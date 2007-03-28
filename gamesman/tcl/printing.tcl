@@ -153,6 +153,8 @@ proc generateBottom { } {
 	exec /usr/bin/psnup -q -2 -d -pletter $outputs("bot_merge") $outputs("bot")
 }
 
+# go through the mistake lists
+# and add stuff to the psnup execute command
 proc makeExec { mistakeList maxErrors} {
 	global kGameName outputs
 	set pathStr "ps/$kGameName/$kGameName"
@@ -163,9 +165,9 @@ proc makeExec { mistakeList maxErrors} {
 		# get list of the worst mistakes
 		set mistakeList [findWorst $mistakeList]
 		# truncate to 4 mistakes
-		set mistakeList [lrange $mistakeList 0 3]
+		set mistakeList [lrange $mistakeList 0 [expr $maxErrors - 1]]
 	}
-	
+
 	# iterate over the mistake lists
 	# taking the old positions value moves
 	# and the actual in game result
@@ -182,15 +184,58 @@ proc makeExec { mistakeList maxErrors} {
 # find the worst mistakes defined from worst to "best"
 # 1 possible lose -> win
 # 2 possible lose -> tie
-# 3 possible lose -> lose (lower remoteness)
 # 3 possible tie -> win
+# 4 possible lose -> lose
 # 4 possible tie -> tie
-# 5 possible win -> win (lower remoteness)
-# break mistakes on same level by remoteness
+# 4 possible win -> win
+# state change mistakes are bad, staying in same
+# level is not as bad
 proc findWorst { mistakeList } {
-	set worst $mistakeList
+	set worst [list]
+	# sort by increasing significance of key
+	# what did we end up at?
+	# giving them a win is the worst
+	foreach mistake $mistakeList {
+		set type [lindex $mistake 0]
+		if { $type  == "Lose"} {
+			set val 3
+		} elseif { $type == "Tie" } {
+			set val 2
+		} elseif { $type == "Win" } {
+			set val 1
+		}
+		lappend worst [list $val $mistake]
+	}
+	
+	set worst [stripKey [lsort -integer -index 0 $worst]]
+
+	set mistakeList [list]
+	# what did we give up?
+	# giving up a losing position is the worst
+	foreach mistake $worst {
+		set type [lindex $mistake 3]
+		if { $type  == "Lose"} {
+			set val 1
+		} elseif { $type == "Tie" } {
+			set val 2
+		} elseif { $type == "Win" } {
+			set val 3
+		}
+		lappend mistakeList [list $val $mistake]
+	}
+	
+	set worst [stripKey [lsort -integer -index 0 $mistakeList]]
 	
 	return $worst
+}
+
+proc stripKey { lst } {
+	set ret [list]
+	for {set i 0} {$i < [llength $lst] } {incr i } {
+		lappend ret [lindex [lindex $lst $i] 1]
+	}
+	
+	return $ret
 }
 
 # do the setup required for a screenshot

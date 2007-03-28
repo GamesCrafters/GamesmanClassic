@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.124 2007-03-28 19:26:19 dmchan Exp $
+# $Id: InitWindow.tcl,v 1.125 2007-03-28 21:52:39 dmchan Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1793,7 +1793,7 @@ proc bestMove { turn theValue theRemoteness prevPossible lastMove } {
 				set bestMove [lindex $item 0]
 				set bestRemote [lindex $item 2]
 				set bestType $val
-			} elseif { $bestRemote > [lindex $item 2] } {
+			} elseif { $bestRemote < [lindex $item 2] } {
 				# else did they make a suboptimal "winning"
 				# position, ie which allows us to win faster
 				# under optimal play
