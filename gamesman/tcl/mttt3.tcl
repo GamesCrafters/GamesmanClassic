@@ -704,6 +704,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
         set toy [expr ([lindex $p 1] / 3 + .5)*$squareSize + $topBuffer]
         
         $c create line $fromx $fromy $tox $toy -width 15 -fill black -tag bigline -capstyle round
+		update idletasks
     }
 }
 

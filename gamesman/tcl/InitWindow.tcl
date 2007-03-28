@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.122 2007-03-27 01:51:26 dmchan Exp $
+# $Id: InitWindow.tcl,v 1.123 2007-03-28 04:47:25 dmchan Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1767,12 +1767,13 @@ proc HandleScrollFeedback { bar whichOffset args } {
 }
 
 proc bestMove { turn theValue theRemoteness prevPossible lastMove } {
+	global gMovesSoFar gPosition gJustUndone
 	set pos [lindex $prevPossible 0]
 	set prev [lindex $prevPossible 1]
-	if { [llength $prev] < 1} {
+	if { [llength $prev] < 1 || $gJustUndone == true} {
 		return
 	}
-	global gMovesSoFar gPosition
+
 	# check the value of current move
 	# it should match up with the best of the prevPossible moves
 	set bestRemote $theRemoteness
