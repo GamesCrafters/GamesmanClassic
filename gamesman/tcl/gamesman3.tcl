@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.55 2007-03-27 18:53:13 dmchan Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.56 2007-03-29 03:59:13 dmchan Exp $
 ##
 ############################################################################
 
@@ -1009,7 +1009,7 @@ proc GameOver { position gameValue lastMove } {
     update idletasks
 
 	if { $printing == true } {
-		doPrinting .middle.f2.cMain $gPosition $WhoWon
+		doPrinting .middle.f2.cMain $gPosition $WhichPieceWon
 	}
 	
     GS_GameOver .middle.f2.cMain $gPosition $gameValue $WhichPieceWon $WhoWon $lastMove

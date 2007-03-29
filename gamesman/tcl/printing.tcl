@@ -17,15 +17,15 @@ set outputs("gs_str") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite \
 set outputs("left_name") "ps/left_name.ps"
 set outputs("right_name") "ps/right_name.ps"
 set outputs("vs") "ps/vs.ps"
-canvas .printing -width 1000 -height 1000
+canvas .printing -width 500 -height 500
 
 # do the printing
-proc doPrinting {c position winner} {
+proc doPrinting {c position winningSide} {
 	global outputs
-	set path [makePathOnce $position false true]
+	set path [makePathOnce $position false]
 	# capture the last position
-	capture $c $position false true $path
-	makeTop $c $position $winner
+	capture $c $position false $path
+	makeTop $c $position $winningSide
 	makeBottom
 	combine
 	# use gs to generate a pdf...
@@ -35,55 +35,53 @@ proc doPrinting {c position winner} {
 }
 
 # setup the top part
-proc makeTop { c position nameOfWinner} {
+proc makeTop { c position winningSide} {
 	global outputs
 	# make the name tags
-	makeTags
-	# combine column major ones...
-	# then combine row major
-	# should have rotated way we want...
-	set winPath [makePath $position false true]
-	# combine vs and winning pos
-	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") \"$winPath\""
-	exec /usr/bin/psnup -d -q -2 -pletter $outputs("top_merge") $outputs("top")
-	
-	# combine left name and possible history?
-	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $outputs(\"left_name\")"
-	exec /usr/bin/psnup -d -q -2 -pletter $outputs("top_merge") \
-		$outputs("left_name")
-	
-	# combine right side
-	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $outputs(\"right_name\")"
-	exec /usr/bin/psnup -d -q -2 -pletter $outputs("top_merge") \
-		$outputs("right_name")
-	
+	makeTags $winningSide
+	set winPath [makePath $position false]
 	# make top
-	set topStr "$outputs(\"right_name\") $outputs(\"top\") $outputs(\"left_name\")"
-	
+	set topStr "$outputs(\"left_name\") \"$winPath\" $outputs(\"right_name\")"
+	#set botStr "$outputs(\"static_blank\") $outputs(\"static_blank\") $outputs(\"static_blank\") "
 	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $topStr"
-	exec /usr/bin/psnup -d -q -3 -pletter $outputs("top_merge") $outputs("top")
+	exec /usr/bin/psnup -q -6 -pletter $outputs("top_merge") $outputs("top")
 }
 
 # make the pages for the names
-proc makeTags { } {
-	global gLeftName gRightName outputs gFrameWidth
-
+proc makeTags { winningSide } {
+	global gLeftName gRightName outputs gFrameWidth gLeftPiece gRightPiece
+	set maxLen [max [max [string length $gLeftName] [string length $gRightName]] 1]
+	# don't want to divide by zero...
+	# leave a buffer
+	set maxPixels [expr [tk scaling] * 8.5 * 72 - 10]
+	# make sure fontsize is an int
+	# also don't make font too big
+	set fontSize [min 128 [expr {int($maxPixels / $maxLen)}]]
 	# pack the printing canvas
 	# do some creation and capturing
 	pack .printing
+	.printing create text [expr $gFrameWidth / 2] 300 -justify center \
+		-text "WINNER" -font {Courier 136} -tag __winner -state hidden
 	.printing create text [expr $gFrameWidth / 2] 75 -justify center \
-		-text $gLeftName -font {Helvetica 128} -tag __printing
+		-text $gLeftName -font "Courier $fontSize" -tag __printing
+	if { $winningSide == $gLeftPiece } {
+		.printing itemconfigure __winner -state normal
+	}
 	update idletasks
 	
 	# reconfigure the text and capture again
-	.printing postscript -file $outputs("left_name") -pagewidth 8.0i -rotate true
+	.printing postscript -file $outputs("left_name") -pagewidth 8.5i
+	if { $winningSide == $gRightPiece } {
+		.printing itemconfigure __winner -state normal
+	} else {
+		.printing itemconfigure __winner -state hidden
+	}
 	.printing itemconfigure __printing -text $gRightName
 	update idletasks
-	
 	# again
-	.printing postscript -file $outputs("right_name") -pagewidth 8.0i -rotate true
+	.printing postscript -file $outputs("right_name") -pagewidth 8.5i
 	pack forget .printing
-	.printing delete __printing
+	.printing delete __printing __winner
 	update
 }
 
@@ -98,9 +96,9 @@ proc makeBottom {} {
 proc combine {} {
 	global outputs
 	
-	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"bot\") \
-		$outputs(\"top\")"
-	exec /usr/bin/psnup -q -2 -pletter $outputs("output_merge") $outputs("output")
+	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"top\") \
+		$outputs(\"bot\")"
+	exec /usr/bin/psnup  -q -2 -pletter $outputs("output_merge") $outputs("output")
 }
 
 # go through all the mistakes
@@ -127,23 +125,24 @@ proc generateBottom { } {
 	set rightExec [makeExec $rightMistakes $maxErrors]
 	set mergeStr ""
 
+	
 	# if we added something then merge and psnup
 	# then combine the pages, else we point to a blank page
 	# need to point to blank page to preserve ordering
-	if { $rightExec != "" } {
-		eval "$outputs(\"gs_str\")$outputs(\"right\") $rightExec"
-		exec /usr/bin/psnup -c -q -[expr 2 * $maxErrors] -pletter \
-			$outputs("right") $outputs("right_merge")
-		set mergeStr "$mergeStr $outputs(\"right_merge\")"
+	if { $leftExec != "" } {
+		eval "$outputs(\"gs_str\")$outputs(\"left\") $leftExec"
+		exec /usr/bin/psnup -q -[expr 2 * $maxErrors] -H8.5in -W8.5in -pletter \
+			$outputs("left") $outputs("left_merge")
+		set mergeStr "$mergeStr $outputs(\"left_merge\")"
 	} else {
 		set mergeStr "$mergeStr $outputs(\"static_blank\")"
 	}
 	
-	if { $leftExec != "" } {
-		eval "$outputs(\"gs_str\")$outputs(\"left\") $leftExec"
-		exec /usr/bin/psnup -c -q -[expr 2 * $maxErrors] -pletter \
-			$outputs("left") $outputs("left_merge")
-		set mergeStr "$mergeStr $outputs(\"left_merge\")"
+	if { $rightExec != "" } {
+		eval "$outputs(\"gs_str\")$outputs(\"right\") $rightExec"
+		exec /usr/bin/psnup -q -[expr 2 * $maxErrors] -H8.5in -W8.5in -pletter \
+			$outputs("right") $outputs("right_merge")
+		set mergeStr "$mergeStr $outputs(\"right_merge\")"
 	} else {
 		set mergeStr "$mergeStr $outputs(\"static_blank\")"
 	}
@@ -175,7 +174,7 @@ proc makeExec { mistakeList maxErrors} {
 		set oldPos [lindex $mistake 6]
 		set badMove [lindex $mistake 1]
 		set badPos [C_DoMove $oldPos $badMove]
-		set ret "$ret \"$pathStr\_$badPos.ps\" \"$pathStr\_$oldPos\_v.ps\""
+		set ret "$ret \"$pathStr\_$oldPos\_v.ps\" \"$pathStr\_$badPos.ps\""
 	}
 	
 	return $ret
@@ -243,7 +242,7 @@ proc stripKey { lst } {
 # the position we need to capture hasn't
 # been capture yet
 proc doCapture { c moveType position theMoves value} {
-	set path [makePathOnce $position $value true]
+	set path [makePathOnce $position $value]
 	if { $path != "" } {
 		set type "all"
 		if {$value == true} {
@@ -255,7 +254,7 @@ proc doCapture { c moveType position theMoves value} {
 		update idletasks
 			
 		# capture screen shot
-		capture $c $position $value true $path
+		capture $c $position $value $path
 			
 		# hide new and display old
 		GS_HideMoves $c $type $position $theMoves
@@ -266,12 +265,12 @@ proc doCapture { c moveType position theMoves value} {
 
 # capture a screen shot
 # give it the correct name depending on options
-proc capture { c pos value rotate path} {
+proc capture { c pos value path} {
 	# capture to game directory
 	if { $path != "" } {
 		# hide background to reduce drawing time
 		$c itemconfigure background -state hidden
-		$c postscript -file "$path" -pagewidth 8.0i -rotate $rotate
+		$c postscript -file "$path" -pagewidth 8.0i -pagey 0.0i -pageanchor s
 		# show it again
 		$c itemconfigure background -state normal
 	}
@@ -280,8 +279,8 @@ proc capture { c pos value rotate path} {
 # will generate the path for the given arguments
 # but will only return if the path doesn't already
 # exist, if it does, then return ""
-proc makePathOnce { pos value rotate} {
-	set path [makePath $pos $value $rotate]
+proc makePathOnce { pos value} {
+	set path [makePath $pos $value]
 	
 	if { [file exists $path] } {
 		return ""
@@ -294,7 +293,7 @@ proc makePathOnce { pos value rotate} {
 # do the folder checking in here, since other
 # functions should call this function to make the
 # path
-proc makePath { pos value rotate } {
+proc makePath { pos value } {
 	global kGameName
 	checkFolders $kGameName
 	
@@ -303,11 +302,7 @@ proc makePath { pos value rotate } {
 		set path "$path\_v"
 	}
 	
-	if { $rotate == false } {
-		set path "$path\_nr.ps"
-	} else {
-		set path "$path.ps"
-	}
+	set path "$path.ps"
 	
 	return $path
 }
@@ -349,4 +344,18 @@ proc checkFolders { game } {
 	if { ![file exists "ps/$game"] } {
 		file mkdir "ps/$game"
 	}
+}
+
+proc max { a b } {
+	if { $a > $b } {
+		return $a
+	}
+	return $b
+}
+
+proc min { a b } {
+	if { $a < $b } {
+		return $a
+	}
+	return $b
 }
