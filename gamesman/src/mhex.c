@@ -37,7 +37,7 @@ STRING   kAuthorName          = "Shah Bawany and Jacob Andreas";
 STRING   kDBName              = "Hex";
 
 BOOLEAN  kPartizan            = TRUE ;
-BOOLEAN  kGameSpecificMenu    = FALSE ;
+BOOLEAN  kGameSpecificMenu    = TRUE ;
 BOOLEAN  kTieIsPossible       = FALSE ;
 BOOLEAN  kLoopy               = FALSE ;
 
@@ -86,28 +86,38 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDROWS 4
-#define BOARDCOLS BOARDROWS
-#define BOARDSIZE BOARDROWS * BOARDCOLS
+#define DEFAULT_BOARDROWS 3
+#define DEFAULT_BOARDCOLS 3
+#define DEFAULT_BOARDSIZE DEFAULT_BOARDROWS * DEFAULT_BOARDCOLS
 
-#define HORIZPLAYER BOARDSIZE 
-#define SWAP_OFFERED BOARDSIZE + 1
+#define MAX_BOARDROWS 5
+#define MAX_BOARDCOLS 5
+#define MAX_BOARDSIZE MAX_BOARDROWS * MAX_BOARDCOLS
+
+// Nash's reccommended board size is 14 (Hein suggests 11). The hash
+// currently wraps for all square boards larger than 5x5. On the bright
+// side, your grandchildren will be dead before your computer finishes
+// solving a 14x14 board, so it's not such a big loss.
+
+#define SWAP_NONE 0
+#define SWAP_COLOR 1
+#define SWAP_DIRECTION 2
+#define SWAP_BOTH 3
+
+#define MAX_SWAPMODE SWAP_BOTH+1
+#define MAX_SWAPTURN 9
 
 #define BLACKCHAR 'X'
 #define WHITECHAR 'O'
 #define BLANKCHAR ' '
 
-#define SWAP_NEXT BLACKCHAR
-#define SKIP_NEXT WHITECHAR
-#define NO_OFFER  BLANKCHAR
-
 #define SWAPMOVE -3
-#define SKIPMOVE -4
 
 #define WHITEPLAYER 1
 #define BLACKPLAYER 2
 
 #define FIRSTPLAYER WHITEPLAYER
+#define DEFAULT_HORIZPLAYER WHITEPLAYER
 
 typedef struct INode {
 
@@ -119,10 +129,15 @@ typedef struct INode {
 /*************************************************************************
 **
 ** Global Variables
-**
-*************************************************************************/
+**************************************************************************/
 
-BOOLEAN variant_swaprule = TRUE;
+int swapmode = SWAP_NONE;
+int swapturn = 1;
+
+int boardrows = DEFAULT_BOARDROWS;
+int boardcols = DEFAULT_BOARDCOLS;
+int boardsize = DEFAULT_BOARDSIZE;
+int possize;
 
 /*************************************************************************
 **
@@ -138,15 +153,17 @@ extern void		SafeFree ();
 
 //int                   vcfg(int *this_cfg);
 void                    InitializeHelpStrings();
-MOVELIST*               getNextBlank(STRING board, int index);
+MOVELIST*               getValidMoves(STRING board, int index, int* count);
 STRING                  MoveToString(MOVE move);
-int                     ColMaskBoard(char* board, int col, char piece);
-int                     RowMaskBoard(char* board, int row, char piece);
 void			PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
+void                    playSwapMove(char* board);
 void			push(lnode** stack, int index);
 int			pop(lnode** stack);
 void			stackfree(lnode* stack);
 BOOLEAN			inbounds(int r, int c);
+void                    modifyBoardSize();
+void                    configureSwapRule();
+void                    getIntVal(int* target);
 
 /************************************************************************
 **
@@ -159,24 +176,27 @@ BOOLEAN			inbounds(int r, int c);
 
 void InitializeGame ()
 {
+
+  if(swapmode == SWAP_DIRECTION || swapmode == SWAP_BOTH)
+    possize = boardsize + 1;
+  else
+    possize = boardsize;
+
   int i;
   char* initialBoard;
-  int pieces[] = {BLANKCHAR, 0, BOARDSIZE, BLACKCHAR, 0, BOARDSIZE, WHITECHAR, 0, BOARDSIZE, -1};
+  int pieces[] = {BLANKCHAR, 0, possize, BLACKCHAR, 0, possize, WHITECHAR, 0, possize, -1};
 
   InitializeHelpStrings();
 
-  gNumberOfPositions = generic_hash_init(BOARDSIZE+2, pieces, NULL, 0);  // ***
+  gNumberOfPositions = generic_hash_init(possize, pieces, NULL, 0);  // ***
 
-  initialBoard = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
+  initialBoard = (char*)SafeMalloc((possize)*sizeof(char));
 
-  for(i = 0; i < BOARDSIZE; i++)
+  for(i = 0; i < boardsize; i++)
 	initialBoard[i] = BLANKCHAR;
 
-  initialBoard[HORIZPLAYER] = (FIRSTPLAYER == WHITEPLAYER ? WHITECHAR : BLACKCHAR);
-  	// The next-to-last cell keeps track of who is trying to win horizontally. This is represented as a character
-	// to keep the hash efficient.
-	
-  initialBoard[SWAP_OFFERED] = SWAP_NEXT;
+  if(swapmode == SWAP_DIRECTION || swapmode == SWAP_BOTH)
+    initialBoard[possize-1] = (DEFAULT_HORIZPLAYER == WHITEPLAYER ? WHITECHAR : BLACKCHAR);
 
   gInitialPosition = generic_hash_hash(initialBoard, FIRSTPLAYER);
 
@@ -208,8 +228,7 @@ kHelpOnYourTurn =
 kHelpStandardObjective =
   "To connect your two parallel sides of the board before the other player connects his or her sides.";
 
-kHelpReverseObjective =
-  "To force your opponent to connect his or her sides of the board first";
+kHelpReverseObjective =  "To force your opponent to connect his or her sides of the board first";
 
 kHelpTieOccursWhen =
   "A tie is not possible in the game of Hex.";
@@ -217,7 +236,7 @@ kHelpTieOccursWhen =
 kHelpExample =
   "";
 
-    gMoveToStringFunPtr = &MoveToString;
+gMoveToStringFunPtr = &MoveToString;
 
 }
 
@@ -244,18 +263,16 @@ MOVELIST *GenerateMoves (POSITION position)
 
     MOVELIST* validMoves;
     char* board;
+    int blankcount = 0;
 
-    board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
+    board = (char*)SafeMalloc((possize)*sizeof(char));
 
     generic_hash_unhash(position, board);
 
-    if(board[SWAP_OFFERED] == SKIP_NEXT)
-    	validMoves = CreateMovelistNode(SKIPMOVE, NULL);
-    else
-    	validMoves = getNextBlank(board, 0);
+    validMoves = getValidMoves(board, 0, &blankcount);
 
-    if(board[SWAP_OFFERED] == SWAP_NEXT && generic_hash_turn(position) != FIRSTPLAYER)
-    	validMoves = CreateMovelistNode(SWAPMOVE, validMoves);
+    if(swapmode != SWAP_NONE && generic_hash_turn(position) != FIRSTPLAYER && blankcount == boardsize-swapturn)
+      validMoves = CreateMovelistNode(SWAPMOVE, validMoves);
 
     SafeFree(board);
 
@@ -269,7 +286,8 @@ MOVELIST *GenerateMoves (POSITION position)
 **
 ** DESCRIPTION: Applies the move to the position.
 **
-** INPUTS:      POSITION position : The old position
+** INPUTS:      POSITION position
+ : The old position
 **              MOVE     move     : The move to apply to the position
 **
 ** OUTPUTS:     (POSITION)        : The position that results from move
@@ -285,19 +303,18 @@ POSITION DoMove (POSITION position, MOVE move)
   POSITION newPosition;
   int turn = generic_hash_turn(position);
 
-  board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
+  board = (char*)SafeMalloc((boardsize)*sizeof(char));
   generic_hash_unhash(position, board);
 
-  if(move == SKIPMOVE) {
-    board[SWAP_OFFERED] = NO_OFFER;
-
-  } else if (move == SWAPMOVE) {
-    board[HORIZPLAYER] = (board[HORIZPLAYER] == WHITECHAR ? BLACKCHAR : WHITECHAR);
-    board[SWAP_OFFERED] = SKIP_NEXT;
+  if (move == SWAPMOVE) {
+    if(swapmode == SWAP_COLOR || swapmode == SWAP_BOTH)
+      playSwapMove(board);
+    if(swapmode == SWAP_DIRECTION || swapmode == SWAP_BOTH) {
+      board[possize-1] = (board[possize-1] == WHITECHAR ? BLACKCHAR : WHITECHAR);
+    }
 
   } else {
     board[move] = ((turn == 1) ? WHITECHAR : BLACKCHAR);
-    if(turn == 2) board[SWAP_OFFERED] = NO_OFFER;
   }
  
   newPosition = generic_hash_hash(board, (turn % 2)+1);
@@ -318,7 +335,7 @@ POSITION DoMove (POSITION position, MOVE move)
 *
 **              Case                                  Return Value
 **              *********************************************************
-**              Current player sees a path across board      lose
+**              Current player sees a path across board      sees lose
 **              Doubling back case (temporary fix)           tie
 **              All other cases                              undecided
 **
@@ -334,33 +351,38 @@ POSITION DoMove (POSITION position, MOVE move)
 VALUE Primitive (POSITION position)
 {
     char* board;
-    char searchchar;
+    char searchchar, horizchar;
     BOOLEAN* visited;
     BOOLEAN search_horiz;
     int i, current, r, c;
     lnode* stack = NULL;
 
-    board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
-    visited = (BOOLEAN*)SafeMalloc((BOARDSIZE)*sizeof(BOOLEAN));
+    board = (char*)SafeMalloc((possize)*sizeof(char));
+    visited = (BOOLEAN*)SafeMalloc((boardsize)*sizeof(BOOLEAN));
 
-    for(i = 0; i < BOARDSIZE; i++) visited[i] = FALSE;
+    for(i = 0; i < boardsize; i++) visited[i] = FALSE;
 
     generic_hash_unhash(position, board);
 
+    if(swapmode == SWAP_DIRECTION || swapmode == SWAP_BOTH)
+      horizchar = board[possize-1];
+    else
+      horizchar = DEFAULT_HORIZPLAYER == WHITEPLAYER ? WHITECHAR : BLACKCHAR;
+
     if(generic_hash_turn(position) == WHITEPLAYER)
-    	searchchar = BLACKCHAR; //remember that this gets called at the beginning of the turn:
-    else                        //we're seeing if the previous player won.
+    	searchchar = BLACKCHAR;
+    else
     	searchchar = WHITECHAR;
 
 
-    if(board[HORIZPLAYER] == searchchar) { //we're looking for a horizontal connection;
+    if(horizchar == searchchar) {
 
     	search_horiz = TRUE;
     	
-	for(i = 0; i < BOARDROWS; i++) {
-		if(board[BOARDROWS*i] == searchchar) {
-			push(&stack, BOARDROWS*i);
-			visited[BOARDROWS*i] = TRUE;
+	for(i = 0; i < boardrows; i++) {
+		if(board[boardcols*i] == searchchar) {
+			push(&stack, boardcols*i);
+			visited[boardcols*i] = TRUE;
 		}
 	}
 
@@ -368,7 +390,7 @@ VALUE Primitive (POSITION position)
 
         search_horiz = FALSE;
 
-    	for(i = 0; i < BOARDCOLS; i++) {
+    	for(i = 0; i < boardcols; i++) {
 		if(board[i] == searchchar) {
 			push(&stack, i);
 			visited[i] = TRUE;
@@ -379,48 +401,48 @@ VALUE Primitive (POSITION position)
 	
     while(stack != NULL) {
 	current = pop(&stack);
-	if((search_horiz && current % BOARDCOLS == BOARDCOLS - 1 && board[current] == searchchar) ||
-	   (!search_horiz && current / BOARDROWS == BOARDROWS - 1 && board[current] == searchchar)) {
+	if((search_horiz && current % boardcols == boardcols - 1 && board[current] == searchchar) ||
+	   (!search_horiz && current / boardcols == boardrows - 1 && board[current] == searchchar)) {
 
 		stackfree(stack);
 		SafeFree(visited);
 		SafeFree(board);
-		return lose;
+		return gStandardGame ? lose : win;
 
 	} else {
 
-		r = (int)(current / BOARDROWS);
-		c = (int)(current % BOARDCOLS);
+		r = (int)(current / boardcols);
+		c = (int)(current % boardcols);
 
 		
-		if(inbounds(r-1, c) && !(visited[c+(r-1)*BOARDROWS]) && board[c+(r-1)*BOARDROWS] == searchchar) {
-			push(&stack, c+(r-1)*BOARDROWS);
-			visited[c+(r-1)*BOARDROWS] = TRUE;
+		if(inbounds(r-1, c) && !(visited[c+(r-1)*boardcols]) && board[c+(r-1)*boardcols] == searchchar) {
+			push(&stack, c+(r-1)*boardcols);
+			visited[c+(r-1)*boardcols] = TRUE;
 		}
 
-		if(inbounds(r-1, c+1) && !(visited[(c+1)+(r-1)*BOARDROWS]) && board[(c+1)+(r-1)*BOARDROWS] == searchchar) {
-			push(&stack, (c+1) + (r-1)*BOARDROWS);
-			visited[(c+1)+(r-1)*BOARDROWS] = TRUE;
+		if(inbounds(r-1, c+1) && !(visited[(c+1)+(r-1)*boardcols]) && board[(c+1)+(r-1)*boardcols] == searchchar) {
+			push(&stack, (c+1) + (r-1)*boardcols);
+			visited[(c+1)+(r-1)*boardcols] = TRUE;
 		}
 
-		if(inbounds(r, c-1) && !(visited[(c-1) + r*BOARDROWS]) && board[(c-1) + r*BOARDROWS] == searchchar) {
-			push(&stack, (c-1) + r*BOARDROWS);
-			visited[(c-1) + r*BOARDROWS] = TRUE;
+		if(inbounds(r, c-1) && !(visited[(c-1) + r*boardcols]) && board[(c-1) + r*boardcols] == searchchar) {
+			push(&stack, (c-1) + r*boardcols);
+			visited[(c-1) + r*boardcols] = TRUE;
 		}
 
-		if(inbounds(r, c+1) && !(visited[(c+1) + r*BOARDROWS]) && board[(c+1) + r*BOARDROWS] == searchchar) {
-			push(&stack, (c+1) + r*BOARDROWS);
-			visited[(c+1) + r*BOARDROWS] = TRUE;
+		if(inbounds(r, c+1) && !(visited[(c+1) + r*boardcols]) && board[(c+1) + r*boardcols] == searchchar) {
+			push(&stack, (c+1) + r*boardcols);
+			visited[(c+1) + r*boardcols] = TRUE;
 		}
 
-		if(inbounds(r+1, c-1) && !(visited[(c-1) + (r+1)*BOARDROWS]) && board[(c-1) + (r+1)*BOARDROWS] == searchchar) {
-			push(&stack, (c-1) + (r+1)*BOARDROWS);
-			visited[(c-1) + (r+1)*BOARDROWS] = TRUE;
+		if(inbounds(r+1, c-1) && !(visited[(c-1) + (r+1)*boardcols]) && board[(c-1) + (r+1)*boardcols] == searchchar) {
+			push(&stack, (c-1) + (r+1)*boardcols);
+			visited[(c-1) + (r+1)*boardcols] = TRUE;
 		}
 
-		if(inbounds(r+1, c) && !(visited[c+(r+1)*BOARDROWS]) && board[c+(r+1)*BOARDROWS] == searchchar) {
-			push(&stack, c + (r+1)*BOARDROWS);
-			visited[(c + (r+1)*BOARDROWS)] = TRUE;
+		if(inbounds(r+1, c) && !(visited[c+(r+1)*boardcols]) && board[c+(r+1)*boardcols] == searchchar) {
+			push(&stack, c + (r+1)*boardcols);
+			visited[(c + (r+1)*boardcols)] = TRUE;
 		}
 
 	}
@@ -458,50 +480,57 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
   int n, row, i, col;
   char* board;
+  char horizchar;
 
-  board = (char*)SafeMalloc((BOARDSIZE+2)*sizeof(char));
+  board = (char*)SafeMalloc((possize)*sizeof(char));
 
   generic_hash_unhash(position, board);
 
+  if(swapmode == SWAP_DIRECTION || swapmode == SWAP_BOTH)
+    horizchar = board[possize - 1];
+  else
+    horizchar = (DEFAULT_HORIZPLAYER == WHITEPLAYER ? WHITECHAR : BLACKCHAR);
+
   printf("\n\n\n\n");
 
-
-  //printf("Prediction: %s", GetPrediction(position)); //check doc
   printf("  %s's turn (%c):\n\n", playersName, generic_hash_turn(position) == 1 ? WHITECHAR : BLACKCHAR);
 
-  printf("  %c: horizontal\n", board[HORIZPLAYER]);
-  printf("  %c: vertical\n\n", board[HORIZPLAYER] == 'O' ? 'X' : 'O');
+  printf("  %c: horizontal\n", horizchar);
+  printf("  %c: vertical\n\n", horizchar == WHITECHAR ? BLACKCHAR : WHITECHAR);
 
   printf("    ");
 
-  for(i = 0; i < BOARDCOLS; i++) {
+  for(i = 0; i < boardcols; i++) {
     printf("/ \\ ");
   }
   printf("\n");
 
-  for(row = 0; row < BOARDROWS; row++) {
+  for(row = 0; row < boardrows; row++) {
     for(i = 0; i < row; i++)
 	  printf("  ");
     printf(" %c |", '0'+row);
-    for(col = 0; col < BOARDCOLS; col++)
-	  printf(" %c |", board[row*BOARDROWS+col]);
+    for(col = 0; col < boardcols; col++)
+	  printf(" %c |", board[row*boardcols+col]);
     printf("\n    ");
     for(i = 0; i < row; i++) {
         printf("  ");
     }
-    for(i = 0; i < BOARDCOLS; i++)
+    for(i = 0; i < boardcols; i++)
       printf("\\ / ");
-    if(row != BOARDROWS-1) printf("\\");
+    if(row != boardrows-1) printf("\\");
     printf("\n");
   }
   printf("   ");
-  for(col = 0; col < BOARDCOLS; col++)
+  for(col = 0; col < boardrows; col++)
     printf("  ");
 
   printf(" ");
-  for(n = 0; n < BOARDCOLS; n++)
+  for(n = 0; n < boardcols; n++)
     printf("%c   ", 'a'+n);
 
+  printf("\n\n");
+
+  printf(GetPrediction(position, playersName, usersTurn));
   printf("\n\n");
 
   SafeFree(board);
@@ -560,20 +589,15 @@ STRING MoveToString (MOVE move)
 {
   STRING movestring = (char*)SafeMalloc(20*sizeof(char));
 
-  if(move == SKIPMOVE) {
-  
-  	movestring [0] = 'k';
-	movestring [1] = '\0';
-	
-  } else if(move == SWAPMOVE) {
+  if(move == SWAPMOVE) {
 
   	movestring [0] = 'w';
 	movestring [1] = '\0';
 
   } else {
 
-  	movestring[0] = 'a' + (int)(move % BOARDCOLS);
-  	movestring[1] = '0' + (int)(move / BOARDROWS);
+  	movestring[0] = 'a' + (int)(move % boardcols);
+  	movestring[1] = '0' + (int)(move / boardcols);
   
  	movestring[2] = '\0';
 
@@ -652,11 +676,11 @@ BOOLEAN ValidTextInput (STRING input) {
 
       if(strlen(input) < 1) {
            return FALSE;
-      } else if(input[0] == 'w' || input[0] == 'k') {
+      } else if(swapmode != SWAP_NONE && input[0] == 'w') {
            return TRUE;
-      } else if((input[0] < 'a') || (input[0] > BOARDROWS+'a')) {
+      } else if((input[0] < 'a') || (input[0] > boardrows+'a')) {
            return FALSE;
-      } else if((input[1] < '0') || (input[1] > BOARDROWS+'0')) {
+      } else if((input[1] < '0') || (input[1] > boardrows+'0')) {
            return FALSE;
       } else {
            return TRUE;
@@ -684,10 +708,8 @@ MOVE ConvertTextInputToMove (STRING input)
 
         if(input[0] == 'w')
 		output = SWAPMOVE;
-	else if(input[0] == 'k')
-		output = SKIPMOVE;
 	else
-		output = (int)(input[0]-'a')+(int)(input[1]-'0')*BOARDROWS;
+		output = (int)(input[0]-'a')+(int)(input[1]-'0')*boardcols;
 
 	
 	return output;
@@ -714,7 +736,40 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-  InitializeHelpStrings();
+  char command = 'Z';
+
+  do {
+
+    printf("\n\t----- Game-specific options for Hex -----\n\n");
+    printf("\td)\tChange board (D)imensions (currently %dx%d)\n", boardrows, boardcols);
+    printf("\ts)\tConfigure (S)waprule\n\n");
+    printf("\tb)\t(B)ack to previous screen\n\n");
+    printf("Please select an option: ");
+    
+    command = toupper(GetMyChar());
+
+    switch(command) {
+    case 'D':
+      modifyBoardSize();
+      command = 'Z';
+      break;
+    
+    case 'S':
+      configureSwapRule();
+      command = 'Z';
+      break;
+
+    case 'B':
+      return;
+
+    default:
+      printf("\nI don't understand %c - please choose another option.", command);
+      command = 'Z';
+
+    }
+
+  } while (command != 'B');
+
 }
 
 
@@ -765,7 +820,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 2;
+  return MAX_BOARDROWS * MAX_BOARDCOLS * MAX_SWAPMODE * MAX_SWAPTURN * 2;
 }
 
 
@@ -786,9 +841,9 @@ int getOption ()
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
-    return variant_swaprule ? 0 : 1;
+    
+  return (((boardrows * MAX_BOARDCOLS + boardcols) * MAX_SWAPMODE + swapmode) * MAX_SWAPTURN + swapturn) * 2 + gStandardGame;
 }
-
 
 /************************************************************************
 **
@@ -803,7 +858,19 @@ int getOption ()
 
 void setOption (int option)
 {
-    variant_swaprule = (option == 0);
+
+  gStandardGame = option % 2;
+  option /= 2;
+
+  swapturn = option % MAX_SWAPTURN;
+  option /= MAX_SWAPTURN;
+
+  swapmode = option % MAX_SWAPMODE;
+  option /= MAX_SWAPMODE;
+
+  boardcols = option % MAX_BOARDCOLS;
+  boardrows = option / MAX_BOARDCOLS;
+
 }
 
 
@@ -844,18 +911,33 @@ int vcfg(int *this_cfg) {
 
 
 
-MOVELIST* getNextBlank(STRING board, int index) {
+MOVELIST* getValidMoves(STRING board, int index, int* count) {
     MOVELIST* validMoves;
 
-    while((board[index] != BLANKCHAR) && (index < BOARDSIZE)) {
+    while((board[index] != BLANKCHAR) && (index < boardsize)) {
 	index++;
     }
-    if(index==BOARDSIZE) {
-    	validMoves = NULL;
+    if(index==boardsize) {
+	validMoves = NULL;
     } else {
-        validMoves = CreateMovelistNode(index, getNextBlank(board, index+1));
+        *count = *count + 1;
+        validMoves = CreateMovelistNode(index, getValidMoves(board, index+1, count));
     }
     return validMoves;
+}
+
+
+void playSwapMove(char* board) {
+
+  int i;
+
+  for(i = 0; i < boardsize; i++) {
+
+    if(board[i] != BLANKCHAR)
+      board[i] = (board[i] == WHITECHAR ? BLACKCHAR : WHITECHAR);
+
+  }
+
 }
 
 
@@ -891,8 +973,118 @@ void stackfree(lnode* stack) {
 }
 
 BOOLEAN inbounds(int row, int col) {
-	return row < BOARDROWS && row >= 0 && col < BOARDCOLS && col >= 0;
+	return row < boardrows && row >= 0 && col < boardcols && col >= 0;
 }
+
+void modifyBoardSize() {
+  char command = 'Z';
+  do {
+    printf("\n\t----- Editing board -----\n\n");
+    printf("\tr)\tChange (R)ows (currently %d)\n", boardrows);
+    printf("\tc)\tChange (C)olumns (currently %d)\n\n", boardcols);
+    printf("\tb)\tGo (B)ack to previous screen\n\n");
+    printf("Please select an option: ");
+
+    command = toupper(GetMyChar());
+
+    switch (command) {
+
+    case 'R':
+      getIntVal(&boardrows);
+      command = 'Z';
+      break;
+
+    case 'C':
+      getIntVal(&boardcols);
+      command = 'Z';
+      break;
+
+    case 'B':
+      return;
+
+    default:
+      printf("\nI don't understand %c - please choose another option.\n", command);
+      command = 'Z';
+
+    }
+
+  } while (1);
+
+}
+
+char* swapmodeToString(int mode) {
+  if(mode == SWAP_BOTH) return "direction and color";
+  else if(mode == SWAP_DIRECTION) return "direction";
+  else if(mode == SWAP_COLOR) return "color";
+  else if(mode == SWAP_NONE) return "never";
+  return "?";
+}
+
+void configureSwapRule() {
+  char command = 'Z';
+  do {
+    printf("\n\t----- Configuring Swaprule -----\n\n");
+
+    printf("\tSwapmode is currently \"Swap %s\"\n\n", swapmodeToString(swapmode));
+
+    printf("\tt)\tChange (T)urn when swap is offered (currently %d)\n\n", swapturn+1);
+
+    if(swapmode != SWAP_BOTH) printf("\ta)\tChange mode to \"Swap direction (A)nd color\"\n");
+    if(swapmode != SWAP_DIRECTION) printf("\td)\tChange mode to \"Swap (D)irection only\"\n");
+    if(swapmode != SWAP_COLOR) printf("\tc)\tChange mode to \"Swap (C)olor only\"\n");
+    if(swapmode != SWAP_NONE) printf("\tn)\tChange mode to \"No swaprule\"\n\n");
+
+    printf("\tb)\tGo (B)ack to previous screen\n\n");
+
+    printf("Please select an option: ");
+
+    command = toupper(GetMyChar());
+
+    switch(command) {
+
+    case 'T':
+      getIntVal(&swapturn);
+      swapturn--;
+      command = 'Z';
+      break;
+
+    case 'A':
+      swapmode = SWAP_BOTH;
+      command = 'Z';
+      break;
+
+    case 'D':
+      swapmode = SWAP_DIRECTION;
+      command = 'Z';
+      break;
+
+    case 'C':
+      swapmode = SWAP_COLOR;
+      command = 'Z';
+      break;
+
+    case 'B':
+      return;
+
+    default:
+      printf("\nI don't understand %c - please choose another option.\n", command);
+      command = 'Z';
+      break;
+
+    }
+
+  } while(1);
+
+}
+
+
+void getIntVal(int* target) {
+  printf("\nEnter a new value: ");
+  *target = GetMyInt();
+  boardsize = boardrows * boardcols;
+
+}
+  
 
 
 
@@ -900,6 +1092,10 @@ BOOLEAN inbounds(int row, int col) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.8  2007/03/25 15:30:55  and-qso
+ ** Removed buggy bitwise primitive, replaced it with DFS that should work for all boards.
+ ** Swapmove implemented, but incorrectly: will be fixed in a later version.
+ **
  ** Revision 1.7  2007/02/28 23:13:40  and-qso
  ** Fixed player direction representation from visual to text-based.
  **
@@ -911,7 +1107,7 @@ BOOLEAN inbounds(int row, int col) {
  **
  ** Revision 1.5  2006/12/07 02:25:07  shahbawany
  **
- ** Working version - BOARDCOLS = 3
+ ** Working version - boardcols = 3
  **
  ** Can solve 3x3, can play player v. player 4x4
  **
