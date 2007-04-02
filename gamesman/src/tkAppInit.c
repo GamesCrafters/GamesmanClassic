@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.36 2007-03-23 15:13:34 scarr2508 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.37 2007-04-02 20:56:00 scarr2508 Exp $
 **
 **************************************************************************/
 
@@ -294,12 +294,14 @@ InitializeCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
-    for (ap = args; (*ap = strsep(&argv[1], " \t")) != NULL;)
-      if (**ap != '\0')
+    for (ap = args; (*ap = strsep(&argv[1], " \t")) != NULL;) {
+      if (**ap != '\0') {
 	if (++ap >= &args[20])
 	  break;
 	else
 	  numArgs++;
+      }
+    }
     
     HandleArguments(numArgs, args);
     Initialize();
