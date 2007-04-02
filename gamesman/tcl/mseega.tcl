@@ -47,9 +47,9 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: (Kill oponant's pieces by trapping them with yours)"
+	SetToWinString "To Win: Kill oponant's pieces by trapping them with yours"
     } else {
-	SetToWinString "To Win: (Let oponant kill your pieces by trapping them with his/her pieces)"
+	SetToWinString "To Win: Let oponant kill your pieces by trapping them with his/her pieces"
     }
     SetToMoveString "To Move: (Click on a dot to place a piece, click on an arrow to slide a piece)"
 	    
