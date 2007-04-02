@@ -1096,6 +1096,7 @@ proc loadGame { frame i } {
 	set theColor [gameColor $i]		
 	
 	##### Game specific page #####
+    catch {
 	canvas $frame.$gameName -background $bgcolor -highlightthickness 0
 	message $frame.$gameName.title -text $gameString -anchor center -width [expr $width - 20]\
 			-foreground $fontcolor -background $bgcolor -font "Helvetica 20 bold"
@@ -1139,6 +1140,7 @@ proc loadGame { frame i } {
 		    
 		convert_html_tcl $fullName $frame.$gameName $fontcolor $bgcolor .text$gameName .scrollbar$gameName
 	}
+    }
 }
 
 ### END PAGE CREATION FUNCTIONS ###
