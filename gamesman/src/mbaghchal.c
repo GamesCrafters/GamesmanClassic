@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.31 2007-02-27 02:15:00 max817 Exp $
+// $Id: mbaghchal.c,v 1.32 2007-04-03 01:29:05 eudean Exp $
 
 /************************************************************************
 **
@@ -93,6 +93,7 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 
 
 BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
+void*	 gGameSpecificTclInit = NULL;
 
 
 /*
@@ -1457,7 +1458,7 @@ void SetupTierStuff() {
 	}
 	gInitialTier = goats*(goats+1);
 }
-
+
 // If Stage 2, children are tier and tier-1 (except 0, it's just 0)
 // If Stage 1 goat, one child: the tiger below it with goatsOnBoard+1 and goatsLeft-1
 // If Stage 2 tiger, two children: the goats below, both with same goatsLeft, but
@@ -1681,6 +1682,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.31  2007/02/27 02:15:00  max817
+// Fixed a bug with the global board inits. -Max
+//
 // Revision 1.30  2007/02/27 01:24:33  max817
 // Made more efficient by adding globals. -Max
 //
