@@ -334,7 +334,7 @@ then
       fi
       
       # Now search
-      flocs=$_common_locations
+      flocs=$_common_tcl_locations
       
       for fcheck in $flocs
       do
