@@ -273,7 +273,7 @@ BOOLEAN tierdb_save_database ()
         tierdb_goodCompression = 1;
         tierdb_goodClose = 0;
         POSITION tot = 0,sTot = gCurrentTierSize;
-        
+
         POSITION start = 0, finish = gCurrentTierSize;
 
         if(!tierdb_array)
@@ -284,14 +284,14 @@ BOOLEAN tierdb_save_database ()
 		sprintf(tierdb_outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
 		mkdir(tierdb_outfilename, 0755);
         if (gDBTierStart != -1 && gDBTierEnd != -1) { // we're creating a partial tier file!
-            sprintf(tierdb_outfilename, "%s/m%s_%d_%d__%llu_%llu_minitierdb.dat.gz",
+            sprintf(tierdb_outfilename, "%s/m%s_%d_%llu__%llu_%llu_minitierdb.dat.gz",
 			    tierdb_outfilename, kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
             start = gDBTierStart;
             finish = gDBTierEnd;
             // reset the vars
             gDBTierStart = gDBTierEnd = -1;
         } else {
-            sprintf(tierdb_outfilename, "%s/m%s_%d_%d_tierdb.dat.gz",
+            sprintf(tierdb_outfilename, "%s/m%s_%d_%llu_tierdb.dat.gz",
 			    tierdb_outfilename, kDBName, getOption(), gCurrentTier);
         }
 
@@ -378,7 +378,7 @@ BOOLEAN tierdb_load_database()
 					tierdb_array[i] = undecided;
 				continue;
 			}
-			sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
+			sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%llu_tierdb.dat.gz",
 						kDBName, getOption(), kDBName, getOption(), gTierInHashWindow[index]);
 			if((tierdb_filep = gzopen(tierdb_outfilename, "rb")) == NULL)
 				return FALSE;
@@ -413,7 +413,7 @@ BOOLEAN tierdb_load_database()
 /* A helper to solveretrograde which simply checks for the existance of a DB.
  * Error Codes: 0 = Doesn't exist, -1 = Incorrect/corrupted, 1 = Exists. */
 int CheckTierDB(TIER tier, int variant) {
-	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%d_tierdb.dat.gz",
+	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%llu_tierdb.dat.gz",
 				kDBName, variant, kDBName, variant, tier);
 	if((tierdb_filep = gzopen(tierdb_outfilename, "rb")) == NULL) {
 		return 0;

@@ -27,7 +27,7 @@ typedef char* 			STRING;
 typedef void* 			GENERIC_PTR;
 
 // Tier Gamesman typedefs
-typedef unsigned int TIER;
+typedef unsigned long long TIER;
 typedef POSITION TIERPOSITION; /* Used to differentiate "tier-specific" positions */
 typedef int UNDOMOVE; /* Just like MOVE but used specifically for undo-moves */
 

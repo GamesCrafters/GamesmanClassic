@@ -347,7 +347,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier)
 STRING TierToString(TIER tier) {
   	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*100);
 	sprintf(tierStr, 
-		"%d Pieces In Left Mancala, %d Pieces in Right Mancala",
+		"%llu Pieces In Left Mancala, %llu Pieces in Right Mancala",
 		tier / 10000,
 		tier % 10000);
 	return tierStr;

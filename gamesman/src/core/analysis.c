@@ -416,18 +416,18 @@ void DetermineInterestingness(POSITION position) {
 	float max_seen = 0.0;
 	POSITION i;
 	POSITION most_interesting = 0;
-	
-	
+
+
 	gAnalysis.Interestingness = (float *) SafeMalloc(gNumberOfPositions * sizeof(float));
-	
+
 	for (i=0; i < gNumberOfPositions; i++) {
 		gAnalysis.Interestingness[i] = 0.0;
 	}
-	
+
 	printf("\nDetermining Interestingness...");
-	
+
 	DetermineInterestingnessDFS(position);
-	
+
 	// set most mostinteresting
 	for (i=0; i < gNumberOfPositions; i++) {
 		if (debugme && gAnalysis.Interestingness[i]) {
@@ -441,18 +441,18 @@ void DetermineInterestingness(POSITION position) {
 			count_max++;
 		}
 	}
-	
+
 	gAnalysis.MostInteresting = most_interesting;
 	gAnalysis.MaxInterestingness = max_seen = 100 * max_seen;
-	
+
 	SafeFree(gAnalysis.Interestingness);
 	gAnalysis.Interestingness = NULL;
-	
+
 	printf("%f\n",max_seen);
-	
+
 	printf("Re-saving analysis DB...");
 	SaveAnalysis();
-	
+
 }
 
 void DetermineInterestingnessDFS(POSITION position) {
@@ -466,7 +466,7 @@ void DetermineInterestingnessDFS(POSITION position) {
 	MOVE move;
 	// misc
 	VALUE value, childvalue;
-	
+
 	if (Visited(position)) {
 		if (debugme) {
 			printf("\tVISITED, returning\n");
@@ -479,7 +479,7 @@ void DetermineInterestingnessDFS(POSITION position) {
 		if(debugme) {
 			printf("\tUNDECIDED or TIE, returning\n");
 		}
-		
+
 		// interestingness defined as zero here
 		// gAnalysis.Interestingness[position] == 0
 		return;
@@ -489,14 +489,14 @@ void DetermineInterestingnessDFS(POSITION position) {
 		printf("UNSEEN POSITION\n");
 	}
 	MarkAsVisited(position);
-	
+
 	if (Primitive(position) != undecided) {
 		// if this is primitive, we assign a default interestingness value
 		gAnalysis.Interestingness[position] = PRIMITIVE_INTERESTINGNESS;
 		if(debugme) {
 			printf("\tPRIMITIVE, set to %f\n",gAnalysis.Interestingness[position]);
 		}
-		
+
 		return;
 	} else {
 		if(debugme) {
@@ -507,7 +507,7 @@ void DetermineInterestingnessDFS(POSITION position) {
 		head = ptr = GenerateMoves(position);
 		while(ptr != NULL) {
 			move = ptr->move;
-			
+
 			child = DoMove(position,move);
 			if ((childvalue = GetValueOfPosition(child)) != undecided) {
 				DetermineInterestingnessDFS(child);
@@ -527,9 +527,9 @@ void DetermineInterestingnessDFS(POSITION position) {
 					default:
 						BadElse("DetermineInterestingness");
 				}
-				
+
 			}
-			
+
 			ptr = ptr->next;
 		}
 		// set interestingness of this position by children values, immediate interestingness
@@ -549,14 +549,14 @@ void DetermineInterestingnessDFS(POSITION position) {
 				ptr = head;
 				while(ptr != NULL) {
 					move = ptr->move;
-					
+
 					child = DoMove(position,move);
 					// only include losing children
 					if ((childvalue = GetValueOfPosition(child)) == lose) {
 						interestingness += gAnalysis.Interestingness[child];
 						// interestingness *= 1.0 - gAnalysis.Interestingness[child];
 					}
-					
+
 					ptr = ptr->next;
 				}
 					// interestingness -= 1.0;
@@ -577,18 +577,18 @@ void DetermineInterestingnessDFS(POSITION position) {
 				ptr = head;
 				while(ptr != NULL) {
 					move = ptr->move;
-					
+
 					child = DoMove(position,move);
 					// all children should be win values
 					interestingness += gAnalysis.Interestingness[child];
 					count++;
 					// interestingness *= 1.0 - gAnalysis.Interestingness[child];
-					
+
 					ptr = ptr->next;
 				}
 					gAnalysis.Interestingness[position] = interestingness /= count;
 				// gAnalysis.Interestingness[position] = 1.0 - interestingness;
-				
+
 				break;
 			case tie:
 				// this interestingness is zero
@@ -1376,7 +1376,6 @@ float PercentDone (STATICMESSAGE msg)
 float PercentLoaded (STATICMESSAGE msg)
 {
     static POSITION num_pos_loaded = 0;
-    float percent = 0;
     int total_positions = gNumberOfPositions;
     if (gHashWindowInitialized) {// Tier-Gamesman Retrograde Solver!
     	total_positions = gMaxPosOffset[1];

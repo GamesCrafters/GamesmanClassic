@@ -107,7 +107,7 @@ POSITION gHashToWindowPosition(TIERPOSITION tierposition, TIER tier) {
 			if (tierposition < 0 || tierposition > gMaxPosOffset[i]) {
 				printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with\n"
 						"illegal TIERPOSITION: %llu\n"
-						"(Tier %d's reported range is from 0 to %llu)\n",
+						"(Tier %llu's reported range is from 0 to %llu)\n",
 						tierposition, tier, gMaxPosOffset[i]-1);
 				ExitStageRight();
 			}
@@ -116,10 +116,10 @@ POSITION gHashToWindowPosition(TIERPOSITION tierposition, TIER tier) {
 	}
 	// shouldn't be reached. So, error:
 	printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with\n"
-			"illegal TIER: %d\n"
+			"illegal TIER: %llu\n"
 			"(Current Hash Window includes these tiers:", tier);
 	for (i = 1; i < gNumTiersInHashWindow; i++)
-		printf(" %d", gTierInHashWindow[i]);
+		printf(" %llu", gTierInHashWindow[i]);
 	printf(")\n");
 	ExitStageRight();
 	return 0;
@@ -172,10 +172,10 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 		CreateDatabases();
 		InitializeDatabases();
 		if(!LoadDatabase()) {
-			printf("ERROR: Couldn't load tierDBs for Tier %d!\n"
+			printf("ERROR: Couldn't load tierDBs for Tier %llu!\n"
 					"(Current Hash Window includes these tiers:", tier);
 			for (i = 1; i < gNumTiersInHashWindow; i++)
-				printf(" %d", gTierInHashWindow[i]);
+				printf(" %llu", gTierInHashWindow[i]);
 			printf(")\n");
 			ExitStageRight();
 		}

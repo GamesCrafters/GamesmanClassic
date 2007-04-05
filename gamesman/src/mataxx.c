@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.12 2007-03-06 02:16:40 max817 Exp $
+// $Id: mataxx.c,v 1.13 2007-04-05 19:16:19 max817 Exp $
 
 /************************************************************************
 **
@@ -937,7 +937,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 // Tier = Number of pieces left to place.
 STRING TierToString(TIER tier) {
 	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*16);
-	sprintf(tierStr, "%d Pieces Placed", boardsize-tier);
+	sprintf(tierStr, "%d Pieces Placed", boardsize-((int)tier));
 	return tierStr;
 }
 
@@ -966,6 +966,9 @@ int GenerateMovesEfficient (POSITION position)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2007/03/06 02:16:40  max817
+// Fixed Generic Hash custom contexts mode. Tested with mataxx.c. -Max
+//
 // Revision 1.11  2007/02/27 02:15:00  max817
 // Fixed a bug with the global board inits. -Max
 //

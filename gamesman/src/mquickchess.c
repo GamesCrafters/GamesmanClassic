@@ -1,4 +1,4 @@
-// $Id: mquickchess.c,v 1.51 2006-12-19 20:00:51 arabani Exp $
+// $Id: mquickchess.c,v 1.52 2007-04-05 19:16:19 max817 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -2673,7 +2673,7 @@ TIER BoardToTier(char *Board) {
 void printTierList(TIERLIST* tl) {
   printf("[ ");
   while(tl != NULL) {
-    printf("%d ", tl->tier);
+    printf("%llu ", tl->tier);
     tl = tl->next;
   }
   printf("]");
@@ -2683,7 +2683,7 @@ void printTierArray(TIER tierArray[NUM_TIERS]) {
   int i;
   printf("[ ");
   for(i = 0; i < NUM_TIERS; i++) {
-    printf("%d ", tierArray[i]);
+    printf("%llu ", tierArray[i]);
   }
   printf("]\n");
 }
@@ -3514,6 +3514,9 @@ POSITION hash(char* board, int turn)
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.51  2006/12/19 20:00:51  arabani
+// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+//
 // Revision 1.50  2006/12/07 08:51:56  vert84
 // *** empty log message ***
 //

@@ -884,6 +884,6 @@ POSITION UnDoMove(POSITION position, UNDOMOVE undomove) {
 // Tier = Number of pieces left to place.
 STRING TierToString(TIER tier) {
 	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*15);
-	sprintf(tierStr, "%d Pieces Placed", BOARDSIZE-tier);
+	sprintf(tierStr, "%d Pieces Placed", BOARDSIZE-((int)tier));
 	return tierStr;
 }
