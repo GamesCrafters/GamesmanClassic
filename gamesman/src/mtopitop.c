@@ -342,6 +342,13 @@ void					addToAllPositions(POSITION newPos);
 POSITION				getFrontFromAllPositions();
 void					removeFrontFromAllPositions();
 
+// TIER
+TIER BoardToTier(char* theBoard);
+STRING TierToString(TIER tier);
+TIERLIST* TierChildren(TIER tier);
+void SetupTierStuff();
+TIERPOSITION NumberOfTierPositions(TIER tier);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -385,6 +392,9 @@ void InitializeGame ()
     if (DEBUG_G) { printf("# Of Pos: %d\n", (int) gNumberOfPositions); }
     if (DEBUG_G) { printf("Init Pos: %d\n", (int) gInitialPosition); }
     if (DEBUG_TEST) { testHash(); }
+
+    // call  SetupTierStuff() somewhere here
+    // call generic_hash_destroy() before this
 }
 
 
@@ -1943,8 +1953,183 @@ int checkValidBoardPositions() {
   return allValid;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// TIER functions
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// may need to change TIER scheme to reflect what is on notes with tier = buckets + 9*small + 45*large
+// or something like that
+
+// tier by total number of pieces on the board
+// theBoard is a representation 
+TIER BoardToTier(char* theBoard) {
+  int i;
+  int small = 0, large = 0, blueB = 0, redB = 0;
+  for (i = 0; i < boardSize; i++) {
+    board->theBoard[i] = ThreePieceToChar(newPiece);
+    if (board->theBoard[i] == SMALLPIECE) { small++; }
+    if (board->theBoard[i] == LARGEPIECE) { large++; }
+    if (board->theBoard[i] == CASTLEPIECE) { small++; large++; }
+    if (board->theBoard[i] == BLUEBUCKETPIECE) { blueB++; }
+    if (board->theBoard[i] == REDBUCKETPIECE) { redB++; }
+    if (board->theBoard[i] == BLUESMALLPIECE) { small++; blueB++; }
+    if (board->theBoard[i] == REDSMALLPIECE) { small++; redB++; }
+    if (board->theBoard[i] == BLUECASTLEPIECE) { small++; large++; blueB++; }
+    if (board->theBoard[i] == REDCASTLEPIECE) { small++; large++; redB++; }
+  }
+  return small + large + blueB + redB;
+}
+
+STRING TierToString(TIER tier) {
+  STRING str = (STRING) SafeMalloc(30*sizeof(char));
+  sprintf(str, "%d pieces on board", tier);
+  return str;
+}
+
+TIERLIST* TierChildren(TIER tier) {
+  TIERLIST* list = null;
+  list = CreateTierlistNode(tier, list); // takes the list pointer and creates a new node with that tier and make it its next pointer
+  if (tier < 12)  // (tier != 12)
+    list = CreateTierlistNode(tier+1, list);
+  return list;
+}
+
+void SetupTierStuff() {
+  kSupportsTierGamesman = TRUE;
+  gTierChildrenFunPtr = &TierChildren;
+  gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+  gTierToStringFunPtr = &TierToString;
+  generic_hash_custom_context_mode(TRUE);
+
+  int tier = 0, b = 0, r = 0;
+  int tempHash, maxL, maxS, maxB;
+  int LpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
+  int SpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
+  int BpiecesArray[] = { HASHBLANK, 5, 9, HASHREDBUCKET, 0, 2, HASHBLUEBUCKET, 0, 2, -1 };
+
+  BoardAndTurn boardArray;
+  boardArray = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
+  boardArray->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
+	
+  for(; tier < 125; tier++) {  // 12 total pieces - 4 large, 4 small, 2 redB, 2blueB
+    // tier = buckets + 9*small + 45*large
+    LpiecesArray[1] = 5;
+    LpiecesArray[2] = 9 - (tier / 45);
+    LpiecesArray[4] = 0;
+    LpiecesArray[5] = (tier / 45);
+
+    SpiecesArray[1] = 5;
+    SpiecesArray[2] = 9 - ((tier % 45) / 9);
+    SpiecesArray[4] = 0;
+    SpiecesArray[5] = ((tier % 45) / 9);
+
+    // 0 = 0 blue, 0 red / 1 = 1 blue, 0 red / 2 = 2 blue, 0 red
+    // 3 = 0 blue, 1 red / 4 = 1 blue, 1 red / 5 = 2 blue, 1 red
+    // 6 = 0 blue, 2 red / 7 = 1 blue, 2 red / 8 = 2 blue, 2 red
+    b = (tier % 9) % 3;
+    if (tier % 9 <= 2) {
+      r = 0;
+    }
+    else if (tier % 9 <= 5) {
+      r = 1;
+    }
+    else {
+      r = 2;
+    }
+    BpiecesArray[1] = 5;
+    BpiecesArray[2] = 9 - b - r;
+    BpiecesArray[4] = 0;
+    BpiecesArray[5] = 2 - r;
+    BpiecesArray[7] = 0;
+    BpiecesArray[8] = 2 - b;
+
+    maxL = generic_hash_init(boardSize, LpiecesArray, NULL, 0);
+    maxS = generic_hash_init(boardSize, SpiecesArray, NULL, 0);
+    maxB = generic_hash_init(boardSize, BpiecesArray, NULL, 0);
+    tempHash = maxB + maxS * maxB + maxL * maxS * maxB;  // what do i do with this hash #????
+
+    generic_hash_set_context(tier);
+
+    // how it was in Max's doc
+    //generic_hash_init(boardsize, pieces_array, NULL, 0);
+    //generic_hash_set_context(tier);  // sets context for this generic hash
+  }
+
+  gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
+  gWhosTurn = boardArray->theTurn = Blue;
+
+  // begin with the default board, all blanks 
+  for (i = 0; i < boardSize; i++) {
+    boardArray->theBoard[i] = BLANKPIECE;
+  }
+  
+  gInitialTier = 0;
+  generic_hash_context_switch(gInitialTier);
+  gInitialTierPosition = arrayHash(boardArray);
+
+  gInitialPosition = arrayHash(boardArray); // = currentBoard = prevBoard
+  SafeFree(boardArray->theBoard);
+  SafeFree(boardArray);
+}
+
+/* Max's code	
+	// initial position stuff (he copied it over from some initialize thing)
+	int i;
+	for(i = 0; i < boarsize; i++)
+		board[i] = SPACE;
+	board[toIndex(l, length)] = RED;
+	board[toIndex(width, length)] = BLUE;
+	board[toIndex(l, 1)] = BLUE;
+	board[toIndex(width, 1)] = RED;
+	turn = 1;
+
+	// add this following stuff
+	gInitialTier = 4;
+	generic_hash_context_switch(gInitialTier);
+	gInitialTierPosition = hash();
+}
+*/
+/*
+void InitializeGame ()
+{
+ 
+
+    // init the hash values
+    maxL = generic_hash_init(boardSize, LpiecesArray, NULL, 0);
+    maxS = generic_hash_init(boardSize, SpiecesArray, NULL, 0);
+    maxB = generic_hash_init(boardSize, BpiecesArray, NULL, 0);
+
+    gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
+    gWhosTurn = boardArray->theTurn = Blue;
+
+    // begin with the default board, all blanks 
+    for (i = 0; i < boardSize; i++) {
+    	boardArray->theBoard[i] = BLANKPIECE;
+    }
+
+    gInitialPosition = arrayHash(boardArray); // = currentBoard = prevBoard
+    SafeFree(boardArray->theBoard);
+    SafeFree(boardArray);
+    if (DEBUG_G) { printf("# Of Pos: %d\n", (int) gNumberOfPositions); }
+    if (DEBUG_G) { printf("Init Pos: %d\n", (int) gInitialPosition); }
+    if (DEBUG_TEST) { testHash(); }
+}
+*/
+
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+	generic_hash_context_switch(tier);
+	return gneeric_hash_max_pos();
+}
+
 
 // $Log: not supported by cvs2svn $
+// Revision 1.1  2007/04/01 20:49:49  alexchoy
+// TIERing topitop
+//
+// Revision 1.42  2006/10/17 10:45:21  max817
+// HUGE amount of changes to all generic_hash games, so that they call the
+// new versions of the functions.
+//
 // Revision 1.41  2006/04/17 09:37:38  alexchoy
 // *** empty log message ***
 //
