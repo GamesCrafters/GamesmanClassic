@@ -64,10 +64,10 @@ void LibInitialize(int eltSize, int rows, int cols, BOOLEAN diagonals) {
   lBoard.directionMap[6] = cols - 1;
   lBoard.directionMap[7] = -1;
   
-  for(i=0;i<MAXBOARDSIZE;i++) {
+  for(i=0;i<MLIB_MAXBOARDSIZE;i++) {
     lBoard.scratchBoard[i] = 0;
   }
-  for(i=0;i<MAXPATTERN;i++) {
+  for(i=0;i<MLIB_MAXPATTERN;i++) {
     overflowGuard(i);
   }
 }

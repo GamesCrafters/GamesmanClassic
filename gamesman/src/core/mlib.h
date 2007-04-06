@@ -13,8 +13,9 @@ void Test();
 
 BOOLEAN mymemcmp(void*,void*,int);
 
-#define MAXBOARDSIZE 64
-#define MAXPATTERN 16
+//watch out for collisions of these constant names. Always prepend the module name before them.
+#define MLIB_MAXBOARDSIZE 64
+#define MLIB_MAXPATTERN 16
 
 typedef struct lb {
   int eltSize;
@@ -26,8 +27,8 @@ typedef struct lb {
   void* opponentPlayerPiece;
   void* initialPlayerPiece;
   int directionMap[8];
-  int scratchBoard[MAXBOARDSIZE];
-  int overflowBoards[MAXPATTERN][MAXBOARDSIZE];
+  int scratchBoard[MLIB_MAXBOARDSIZE];
+  int overflowBoards[MLIB_MAXPATTERN][MLIB_MAXBOARDSIZE];
 } LocalBoard;
 
 extern LocalBoard lBoard;
