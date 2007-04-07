@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.64 2006-12-30 04:11:01 yanpeichen Exp $
+// $Id: mquarto.c,v 1.65 2007-04-07 22:31:08 bensussman Exp $
 
 
 /*
@@ -425,6 +425,22 @@ void UndoMove(MOVE move);
 
 
 QTBPtr		GPSBoard;
+
+
+/** Benjamin Sussman Jumps In!!
+**		Here follows Ben's attempt at the Teirification of Quarto!
+**		TeirGamesman function and variable declarations:
+**/
+void SetupTierStuff();
+TIERLIST* TierChildren(TIER);
+TIERPOSITION NumberOfTierPositions(TIER);
+void GetInitialTierPosition(TIER*, TIERPOSITION*);
+//BOOLEAN IsLegal(POSITION); All moves are legal in Quarto!
+//UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER); Outdated?
+STRING TierToString(TIER);
+//POSITION UnDoMove(POSITION, UNDOMOVE); Outdated?
+
+
 
 /************************************************************************
  **
@@ -2778,7 +2794,95 @@ char readchar( ) {
 }
 
 
+
+/** Benjamin Sussman Jumps In!!
+**		Here follows Ben's attempt at the Teirification of Quarto!
+**		TeirGamesman function and variable declarations:
+**/
+
+/* Tier = Arangement of non-symetric pieces placed on the board. Teir Zero 
+* is the first TWO moves
+* (The choice of the piece to give to the opponent and then the placement
+* of said piece and the choice of the next.)
+*/
+TIER BoardToTier(QTBPtr board) {
+	return board->piecesInPlay;
+}
+
+
+/**Important Constants to remember:
+*BOARDSIZE, EMPTYSLOT, QTBPtr, QTBOARD
+*/
+void SetupTierStuff() {
+	// kSupportsTierGamesman
+	kSupportsTierGamesman = TRUE;
+	// All function pointers
+	gTierChildrenFunPtr				= &TierChildren;
+	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
+	gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
+	//gIsLegalFunPtr				= &IsLegal;
+	//gGenerateUndoMovesToTierFunPtr	= &GenerateUndoMovesToTier; Unnecessary, but faster!
+	//gUnDoMoveFunPtr					= &UnDoMove;
+	gTierToStringFunPtr				= &TierToString;
+
+	// Tier-Specific Hashes: BENNO ATTACK!!!
+	int piecesArray[(NUMPIECES * 3) + 4];
+	int pieceCounter, tierCounter;
+	for(pieceCounter = 0; pieceCounter < NUMPIECES; pieceCounter++) {
+		piecesArray[pieceCounter*3] = pieceCounter;
+		piecesArray[pieceCounter*3 + 1] = 0;
+		piecesArray[pieceCounter*3 + 2] = 0;
+	} 
+	piecesArray[NUMPIECES*3] = EMPTYSLOT;
+	piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = 0;
+	piecesArray[NUMPIECES*3 + 3] = -1;
+	// Now the piecesArray is INITIALIZED!! Wooohoo!
+
+	// Ok, prepare to generic_hash_init 2^16 Times! One for each set of on-board pieces
+	int numberOfTiers = 1 << NUMPIECES; /*This is 2^16*/
+	for(tierCounter =0; tierCounter < numberOfTiers; tierCounter++;) {
+		for(pieceCounter = 0; pieceCounter < NUMPIECES; pieceCounter++) {
+			/**Ok, what's going on here is that the tier Counter is iterating through the
+			2^NUMPIECES possibly configurations, where each bit represents whether or not
+			some piece is present. This makes things easier to code (life1D status)
+			**/
+			piecesArray[pieceCounter*3 + 1] = (tierCounter >> pieceCounter) & 1;
+			piecesArray[pieceCounter*3 + 2] = (tierCounter >> pieceCounter) & 1;
+			piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = getBlankSlots(tierCounter);
+		}
+		generic_hash_init(BOARDSIZE, piecesArray, NULL, 0/*This should be based on blankSlots, discuss with Yanpei&Max*/); 
+	}
+
+	// initial tier
+	gInitialTier = 0;
+	// it's already in the final hash context, so set the position:
+	QTBPtr board = MallocBoard();
+	/* Initialize all fields to 0 */
+    board->squaresOccupied = 0;
+    board->piecesInPlay = 0;
+    board->usersTurn = FALSE;
+    /* Initialize all slots to EMPTYSLOT */
+    for(slot=0; slot<BOARDSIZE+1; slot++) {
+		board->slots[slot] = EMPTYSLOT;  
+    }
+	gInitialTierPosition = TierHash(board);
+}
+
+//Small helper to go through a tier and return the number of empty slots (number of off bits)
+int getBlankSlots(int tier) {
+	int x;
+	int numBlankSlots = 0;
+	for(x = 0; x < NUMPIECES; x++;) {
+		if (((tier >> x) & 1) == 0) numBlankSlots++;
+	}
+	return numBlankSlots;
+}
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.64  2006/12/30 04:11:01  yanpeichen
+// fixed some minor typos
+//
 // Revision 1.63  2006/12/19 20:00:51  arabani
 // Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
 //
