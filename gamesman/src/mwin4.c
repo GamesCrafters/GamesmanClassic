@@ -187,6 +187,13 @@ void 		UndoMove(MOVE move);
 
 STRING		MoveToString( MOVE );
 
+/** Maximization Function Prototypes. **/
+TIER		BoardToTier();
+STRING		TierToString(TIER tier);
+TIERLIST*	TierChildren(TIER tier);
+TIERPOSITION	NumberOfTierPositions(TIER tier);
+void		SetupTierStuff();
+int 		vcfg;
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -1117,3 +1124,66 @@ POSITIONLIST *EnumerateWithinStage(int stage) {
 	//gotta free this in the bottom up solver.
 	return currentStage;
 }
+
+/*************************************************************************
+ **
+ ** MAXIMIZATION FUNCTIONS 
+ **
+ *************************************************************************/
+#define num_cols 3; //number of pieces in first 3 columns determine tier number.
+
+/* Returns Tier that the board is in. Tiers are defined by number of pieces in first three columns. */
+TIER BoardToTier() {
+	int i, j, num_pieces=0;
+	game_board = gPosition.board;
+
+	for (i=0; i<3; i++) {
+		for (j=0; j<WIN4_HEIGHT; j++) {
+			if game_board[i][j] != Blank
+				num_pieces++;
+		}
+	return num_pieces;
+
+	}
+}
+
+/* Converts String to Tier. */
+STRING TierToString(Tier tier) {
+	STRING str = (STRING) SafeMalloc(40 * sizeof(char));
+	sprintf(str, "%d Pieces in first three columns", tier);
+	return str;
+}
+
+/* Returns list of children's tiers.*/
+TIERLIST* TierChildren(TIER tier) {
+	return CreateTierListNode(tier+1, list);
+}
+
+/* Takes a TIER and returns the number of positions within that tier. */
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+	generic_hash_context_switch(tier);
+	return generic_hash_max_pos();
+}
+
+int vcfg(int pieces[]) {
+	return (pieces[2] + pieces[5] + pieces[8]) == num_cols * WIN4_HEIGHT;
+}
+ 
+void SetupTierStuff() {
+	int tier; 
+	max_num_tiers = num_cols * WIN4_HEIGHT; 
+	pieces_array = {'X', 0, -1, 'O', 0, -1, '-', 0, -1};
+	generic_hash_destroy();
+	kSupportsTierGamesman = TRUE;
+	generic_hash_custom_context_mode(TRUE);
+	
+	for (tier=0; tier < max_num_tiers; tier++) {
+		pieces_array[2] = tier;
+		pieces_array[5] = tier;
+		pieces_array[7] = max_num_tiers - tier;
+		pieces_array[8] = max_num_tiers - tier;
+		generic_hash_init (WIN4_HEIGHT*WIN4_WIDTH, pieces_array, &vcfg, 0);
+		generic_hash_set_context(tier);
+	}
+}
+
