@@ -2013,14 +2013,14 @@ void SetupTierStuff() {
 	
   for(; tier < 125; tier++) {  // 12 total pieces - 4 large, 4 small, 2 redB, 2blueB
     // tier = buckets + 9*small + 45*large
-    LpiecesArray[1] = 5;
+    LpiecesArray[1] = 9 - (tier / 45);//5
     LpiecesArray[2] = 9 - (tier / 45);
-    LpiecesArray[4] = 0;
+    LpiecesArray[4] = (tier / 45);//0
     LpiecesArray[5] = (tier / 45);
 
-    SpiecesArray[1] = 5;
+    SpiecesArray[1] = 9 - ((tier % 45) / 9);//5;
     SpiecesArray[2] = 9 - ((tier % 45) / 9);
-    SpiecesArray[4] = 0;
+    SpiecesArray[4] = ((tier % 45) / 9);//0;
     SpiecesArray[5] = ((tier % 45) / 9);
 
     // 0 = 0 blue, 0 red / 1 = 1 blue, 0 red / 2 = 2 blue, 0 red
@@ -2036,11 +2036,11 @@ void SetupTierStuff() {
     else {
       r = 2;
     }
-    BpiecesArray[1] = 5;
+    BpiecesArray[1] = 9 - b - r;//5;
     BpiecesArray[2] = 9 - b - r;
-    BpiecesArray[4] = 0;
+    BpiecesArray[4] = 2 - r; //0; 
     BpiecesArray[5] = 2 - r;
-    BpiecesArray[7] = 0;
+    BpiecesArray[7] = 2 - b; //0;
     BpiecesArray[8] = 2 - b;
 
     maxL = generic_hash_init(boardSize, LpiecesArray, NULL, 0);
@@ -2123,6 +2123,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.43  2007/04/05 04:51:07  alexchoy
+// mtopitop with TIERing, not done yet
+//
 // Revision 1.1  2007/04/01 20:49:49  alexchoy
 // TIERing topitop
 //
