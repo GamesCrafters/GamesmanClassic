@@ -2011,7 +2011,7 @@ void SetupTierStuff() {
   boardArray = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
   boardArray->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
 	
-  for(; tier < 125; tier++) {  // 12 total pieces - 4 large, 4 small, 2 redB, 2blueB
+  for(; tier < 45*5; tier++) {  // 12 total pieces - 4 large, 4 small, 2 redB, 2blueB
     // tier = buckets + 9*small + 45*large
     LpiecesArray[1] = 9 - (tier / 45);//5
     LpiecesArray[2] = 9 - (tier / 45);
@@ -2123,6 +2123,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.44  2007/04/09 22:25:41  alexchoy
+// minor changes
+//
 // Revision 1.43  2007/04/05 04:51:07  alexchoy
 // mtopitop with TIERing, not done yet
 //
