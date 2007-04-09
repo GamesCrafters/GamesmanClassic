@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.65 2007-04-07 22:31:08 bensussman Exp $
+// $Id: mquarto.c,v 1.66 2007-04-09 22:33:38 max817 Exp $
 
 
 /*
@@ -2852,7 +2852,28 @@ void SetupTierStuff() {
 		}
 		generic_hash_init(BOARDSIZE, piecesArray, NULL, 0/*This should be based on blankSlots, discuss with Yanpei&Max*/); 
 	}
+/* NOTES FROM OUR TALK
+    Tier 1
+    hash = 500 positions
+    ghi_max_pos()
+    gh_unhash() = char[16]
 
+    hash() {
+        board[17] // 0 = hand
+        tierpos = gh_hash(board[1:17])
+        tierpos + (ghi_max_pos()*(board[0]+1));
+        // 12 (0 in hand), ghi_max_pos()+12 (1 in hand), ghi_max_pos()*2+12
+    }
+    unhash() {
+        TIER tier, TIERPOSITION tierposition;
+        gUnhashToTierPosition(position, &tier, &tierposition);
+        generic_hash_context_switch(tier);
+        tierposition = position % gh_max_pos();
+        board[0] /= (position - tierpostion) % 16;
+        partialBoard = gh_unhash(tierposition);
+        board = board[0] + partialBoard
+    }
+*/
 	// initial tier
 	gInitialTier = 0;
 	// it's already in the final hash context, so set the position:
@@ -2880,6 +2901,11 @@ int getBlankSlots(int tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.65  2007/04/07 22:31:08  bensussman
+// BUGZID:666
+// This is for Yanpei
+// Only method that is "finished" is setupTierStuff()
+//
 // Revision 1.64  2006/12/30 04:11:01  yanpeichen
 // fixed some minor typos
 //
