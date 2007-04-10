@@ -74,7 +74,6 @@ gamesdb*   mydb;
 
 void filedb_init(DB_Table *new_db)
 {
-        POSITION i;
 		char dirname[80];
 
         //set function pointers
@@ -102,7 +101,7 @@ void filedb_init(DB_Table *new_db)
 
 void filedb_free()
 {
-	gamesdb_put(mydb, &myvalue, mypos);
+	gamesdb_put(mydb, (char *)&myvalue, mypos);
 	gamesdb_destroy(mydb);
 }
 
@@ -110,13 +109,13 @@ cellValue* filedb_get_raw(POSITION pos)
 {
 	if(start == TRUE) {
 		if(mypos != pos) {
-			gamesdb_put(mydb, &myvalue, mypos);
-			gamesdb_get(mydb, &myvalue, pos);
+			gamesdb_put(mydb, (char *)&myvalue, mypos);
+			gamesdb_get(mydb, (char *)&myvalue, pos);
 			mypos = pos;
 		}
 	} else {
 		start = TRUE;
-		gamesdb_get(mydb, &myvalue, pos);
+		gamesdb_get(mydb, (char *)&myvalue, pos);
 		mypos = pos;
 	}
     return &myvalue;
