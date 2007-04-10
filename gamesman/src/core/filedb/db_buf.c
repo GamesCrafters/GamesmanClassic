@@ -125,7 +125,7 @@ int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid vpn) {
     assert(spot->tag == vpn);
 
 	if (DEBUG) {
-		printf("buf_read: spot = %d, buf_tag = %llu, mytag = %llu\n", spot, spot->tag, vpn);
+		printf("buf_read: spot = %u, buf_tag = %llu, mytag = %llu\n", (unsigned int)spot, spot->tag, vpn);
 	}
 	
   	return 0;
@@ -142,7 +142,7 @@ int gamesdb_buf_write(gamesdb* db, gamesdb_frameid spot){
         gamesdb_write(db, spot->tag, spot);
         spot->dirty = FALSE;
         if (DEBUG) {
-            printf("buf_write: spot = %d, buf_tag = %llu\n", spot, spot->tag);
+            printf("buf_write: spot = %u, buf_tag = %llu\n", (unsigned int)spot, spot->tag);
         }
     }
     

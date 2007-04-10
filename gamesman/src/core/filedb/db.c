@@ -47,7 +47,7 @@ static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 	       
 		if (ppn->valid == TRUE) {
 			//this page got kicked out by n-chance
-            printf("translate: replaced = %llu\n", ppn);
+            printf("translate: replaced = %u\n", (unsigned int)ppn);
             assert(ppn->tag != vpn);
 			if (ppn->tag != vpn) {
 				//buffer page is valid but not the one we want
@@ -66,7 +66,7 @@ static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 	}
 	
 	if (DEBUG) {
-		printf("translate: vpn = %llu, ppn = %d tag = %llu\n", vpn, ppn, ppn->tag);
+		printf("translate: vpn = %llu, ppn = %u tag = %llu\n", vpn, (unsigned int)ppn, ppn->tag);
 	}
 	
     assert (ppn->tag == vpn);

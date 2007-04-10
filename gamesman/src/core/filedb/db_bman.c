@@ -92,7 +92,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
             return newpage;
         } else { //shrink
             gamesdb_pageid initial = bufp->num_pages >> 1;
-            if (initial = 0) {
+            if (initial == 0) {
                 initial = 1;
             }
             while (bufp->num_pages > initial) {
@@ -135,7 +135,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
     }
 
 	if (DEBUG) {
-		printf("db_bufman: evicted page at address %llu\n", ret);
+		printf("db_bufman: evicted page at address %u\n", (unsigned int)ret);
 	}
 	
 	return ret;
