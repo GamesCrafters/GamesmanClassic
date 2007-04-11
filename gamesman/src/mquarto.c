@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.66 2007-04-09 22:33:38 max817 Exp $
+// $Id: mquarto.c,v 1.67 2007-04-11 04:09:18 rodarmor Exp $
 
 
 /*
@@ -432,12 +432,12 @@ QTBPtr		GPSBoard;
 **		TeirGamesman function and variable declarations:
 **/
 void SetupTierStuff();
-TIERLIST* TierChildren(TIER);
-TIERPOSITION NumberOfTierPositions(TIER);
-void GetInitialTierPosition(TIER*, TIERPOSITION*);
+TIERLIST* TierChildren(TIER foo) { TIERLIST* bob; return bob;};
+TIERPOSITION NumberOfTierPositions(TIER foo) {TIERPOSITION bob; return bob;};
+void GetInitialTierPosition(TIER* foo, TIERPOSITION* bar) { };
 //BOOLEAN IsLegal(POSITION); All moves are legal in Quarto!
 //UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER); Outdated?
-STRING TierToString(TIER);
+STRING TierToString(TIER foo){STRING bob; return bob;};
 //POSITION UnDoMove(POSITION, UNDOMOVE); Outdated?
 
 
@@ -2809,6 +2809,17 @@ TIER BoardToTier(QTBPtr board) {
 	return board->piecesInPlay;
 }
 
+//Small helper to go through a tier and return the number of empty slots (number of off bits)
+int getBlankSlots(int tier) {
+	int x;
+	int numBlankSlots = 0;
+	for(x = 0; x < NUMPIECES; x++) {
+		if (((tier >> x) & 1) == 0) numBlankSlots++;
+	}
+	return numBlankSlots;
+}
+
+
 
 /**Important Constants to remember:
 *BOARDSIZE, EMPTYSLOT, QTBPtr, QTBOARD
@@ -2840,7 +2851,7 @@ void SetupTierStuff() {
 
 	// Ok, prepare to generic_hash_init 2^16 Times! One for each set of on-board pieces
 	int numberOfTiers = 1 << NUMPIECES; /*This is 2^16*/
-	for(tierCounter =0; tierCounter < numberOfTiers; tierCounter++;) {
+	for(tierCounter = 0; tierCounter < numberOfTiers; tierCounter++) {
 		for(pieceCounter = 0; pieceCounter < NUMPIECES; pieceCounter++) {
 			/**Ok, what's going on here is that the tier Counter is iterating through the
 			2^NUMPIECES possibly configurations, where each bit represents whether or not
@@ -2873,34 +2884,28 @@ void SetupTierStuff() {
         partialBoard = gh_unhash(tierposition);
         board = board[0] + partialBoard
     }
-*/
+
 	// initial tier
 	gInitialTier = 0;
 	// it's already in the final hash context, so set the position:
 	QTBPtr board = MallocBoard();
-	/* Initialize all fields to 0 */
+	// Initialize all fields to 0
     board->squaresOccupied = 0;
     board->piecesInPlay = 0;
     board->usersTurn = FALSE;
-    /* Initialize all slots to EMPTYSLOT */
+    // Initialize all slots to EMPTYSLOT 
     for(slot=0; slot<BOARDSIZE+1; slot++) {
 		board->slots[slot] = EMPTYSLOT;  
     }
-	gInitialTierPosition = TierHash(board);
+	gInitialTierPosition = TierHash(board); */
 }
 
-//Small helper to go through a tier and return the number of empty slots (number of off bits)
-int getBlankSlots(int tier) {
-	int x;
-	int numBlankSlots = 0;
-	for(x = 0; x < NUMPIECES; x++;) {
-		if (((tier >> x) & 1) == 0) numBlankSlots++;
-	}
-	return numBlankSlots;
-}
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.66  2007/04/09 22:33:38  max817
+// Notes from out talk.
+//
 // Revision 1.65  2007/04/07 22:31:08  bensussman
 // BUGZID:666
 // This is for Yanpei
