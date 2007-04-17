@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.126 2007-03-29 03:59:13 dmchan Exp $
+# $Id: InitWindow.tcl,v 1.127 2007-04-17 16:57:18 dmchan Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1793,13 +1793,9 @@ proc bestMove { turn theValue theRemoteness prevPossible lastMove } {
 				set bestMove [lindex $item 0]
 				set bestRemote [lindex $item 2]
 				set bestType $val
-			} elseif { $bestRemote < [lindex $item 2] } {
-				# else did they make a suboptimal "winning"
-				# position, ie which allows us to win faster
-				# under optimal play
-				set mistake true
-				set bestMove [lindex $item 0]
-				set bestRemote [lindex $item 2]
+				if {$val == "Lose" } {
+					break
+				}
 			}
 		} elseif { $bestType == "Tie" } {
 			# we are at a tie
@@ -1809,22 +1805,13 @@ proc bestMove { turn theValue theRemoteness prevPossible lastMove } {
 				set bestMove [lindex $item 0]
 				set bestRemote [lindex $item 2]
 				set bestType $val
-			} elseif {$val == "Tie" && $bestRemote < [lindex $item 2] } {
-				# or did they choose a tying move that
-				# ties faster, we want to prolong game to
-				# cause them most chances to mess up?
-				set mistake true
-				set bestMove [lindex $item 0]
-				set bestRemote [lindex $item 2]
+				# break since this is the last possible
+				# state change
+				break
 			}
-		} elseif {$val == "Lose" && $bestRemote > [lindex $item 2] } {
-			# it is a losing position
-			# did they choose a losing position that
-			# gives us more opportunities to live
-			# check remoteness difference
-			set mistake true
-			set bestMove [lindex $item 0]
-			set bestRemote [lindex $item 2]
+		} else {
+			# cant make a worst mistake
+			break
 		}
 	}
 	

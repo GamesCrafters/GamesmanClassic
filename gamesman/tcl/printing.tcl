@@ -10,6 +10,7 @@ set outputs("bot") "ps/bot.ps"
 set outputs("bot_merge") "ps/bot_merge.ps"
 set outputs("output_merge") "ps/output_merge.ps"
 set outputs("outputPDF") "ps/output.pdf"
+set outputs("static_oxy") "ps/static/static_oxy.ps"
 set outputs("static_blank") "ps/static/static_blank.ps"
 set outputs("static_win_banner") "ps/static/static_win_banner.ps"
 set outputs("gs_str") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite \
@@ -28,10 +29,31 @@ proc doPrinting {c position winningSide} {
 	makeTop $c $position $winningSide
 	makeBottom
 	combine
+	#/Vagroundedbt				(/usr/share/ghostscript/fonts/Vag Rounded BT.ttf) ;
+	# omg... at this command
+	exec /usr/bin/sed -i -r -e '/gsave mark/N' \
+		-e '/gsave mark\[\[:space:]]+Q q/N' \
+		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+497\.645/\
+		%Added postscript\\n90 rotate\\n\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n200 \
+		scalefont\\nsetfont\\nnewpath\\n \
+		250 -400 moveto\\n \
+		(Left Possible) show\\n \
+		2700 -400 moveto\\n \
+		(After) show\\n \
+		4100 -400 moveto\\n \
+		(Right Possible) show\\n \
+		6650 -400 moveto\\n \
+		(After) show\\n \
+		-90 rotate\\n&/' ps/output.ps
 	# use gs to generate a pdf...
 	# only needed for debugging
 	makePDF $outputs("output") $outputs("outputPDF")
-	cleanTemp
+	#cleanTemp
+}
+
+proc replaceFont { } {
+	exec /usr/bin/sed -i -r -e 's/font Courier/font Vagroundedbt/' -e 's/\\/Courier/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)/' ps/right_name.ps
+	exec /usr/bin/sed -i -r -e 's/\\/Courier/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)/' ps/left_name.ps 
 }
 
 # setup the top part
@@ -41,29 +63,34 @@ proc makeTop { c position winningSide} {
 	makeTags $winningSide
 	set winPath [makePath $position false]
 	# make top
-	set topStr "$outputs(\"left_name\") \"$winPath\" $outputs(\"right_name\")"
-	#set botStr "$outputs(\"static_blank\") $outputs(\"static_blank\") $outputs(\"static_blank\") "
+	set topStr "$outputs(\"left_name\") \"$winPath\" $outputs(\"right_name\") "
+	set topStr "$topStr $outputs(\"static_blank\") $outputs(\"static_oxy\") $outputs(\"static_blank\")"
 	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $topStr"
-	exec /usr/bin/psnup -q -6 -pletter $outputs("top_merge") $outputs("top")
+	exec /usr/bin/psnup -q -6 -pletter $outputs("top_merge") $outputs("top") 
 }
 
 # make the pages for the names
 proc makeTags { winningSide } {
 	global gLeftName gRightName outputs gFrameWidth gLeftPiece gRightPiece
-	set maxLen [max [max [string length $gLeftName] [string length $gRightName]] 1]
+	set maxLen [max [max [string length $gLeftName] \
+	 					[string length $gRightName]] 1]
 	# don't want to divide by zero...
 	# leave a buffer
+	set yOffset 200
 	set maxPixels [expr [tk scaling] * 8.5 * 72 - 10]
 	# make sure fontsize is an int
 	# also don't make font too big
 	set fontSize [min 128 [expr {int($maxPixels / $maxLen)}]]
 	# pack the printing canvas
 	# do some creation and capturing
+	# courier is just used as a placeholder... we will replace it
+	# with the desired font
 	pack .printing
-	.printing create text [expr $gFrameWidth / 2] 300 -justify center \
-		-text "WINNER" -font {Courier 136} -tag __winner -state hidden
-	.printing create text [expr $gFrameWidth / 2] 75 -justify center \
-		-text $gLeftName -font "Courier $fontSize" -tag __printing
+	.printing create text [expr $gFrameWidth / 2] 425 \
+		-justify center -text "WINNER" -font {Courier 128} \
+		-tag __winner -state hidden
+	.printing create text [expr $gFrameWidth / 2] $yOffset -justify center \
+		-text "LEFT\n$gLeftName" -font "Courier $fontSize" -tag __printing
 	if { $winningSide == $gLeftPiece } {
 		.printing itemconfigure __winner -state normal
 	}
@@ -76,13 +103,14 @@ proc makeTags { winningSide } {
 	} else {
 		.printing itemconfigure __winner -state hidden
 	}
-	.printing itemconfigure __printing -text $gRightName
+	.printing itemconfigure __printing -text "RIGHT\n$gRightName"
 	update idletasks
 	# again
 	.printing postscript -file $outputs("right_name") -pagewidth 8.5i
 	pack forget .printing
 	.printing delete __printing __winner
 	update
+	replaceFont
 }
 
 # generate mistake lists for the bottom
@@ -98,7 +126,7 @@ proc combine {} {
 	
 	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"top\") \
 		$outputs(\"bot\")"
-	exec /usr/bin/psnup  -q -2 -pletter $outputs("output_merge") $outputs("output")
+	exec /usr/bin/psnup  -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")
 }
 
 # go through all the mistakes
@@ -250,14 +278,18 @@ proc doCapture { c moveType position theMoves value} {
 		}
 		# hide old and display new
 		GS_HideMoves $c $moveType $position $theMoves
-		GS_ShowMoves $c $type $position $theMoves		
+		if {$value == true} {
+			GS_ShowMoves $c $type $position $theMoves		
+		}
 		update idletasks
 			
 		# capture screen shot
 		capture $c $position $value $path
 			
 		# hide new and display old
-		GS_HideMoves $c $type $position $theMoves
+		if {$value == true} {
+			GS_HideMoves $c $type $position $theMoves
+		}
 		GS_ShowMoves $c $moveType $position $theMoves
 		update idletasks
 	}
@@ -302,9 +334,7 @@ proc makePath { pos value } {
 		set path "$path\_v"
 	}
 	
-	set path "$path.ps"
-	
-	return $path
+	return "$path.ps"
 }
 
 # delete temp files
