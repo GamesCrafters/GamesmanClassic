@@ -24,7 +24,7 @@ my $CVSSUBMIT = "cvsSubmit.php";
 #
 # Change only if you aren't running on normal port 80
 #
-my $BUGZ_PORT = "8080";
+my $BUGZ_PORT = "80";
 
 
 ######### That's all you have to do! ###########
