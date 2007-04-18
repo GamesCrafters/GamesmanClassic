@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.56 2007-03-29 03:59:13 dmchan Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.57 2007-04-18 17:11:53 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -586,6 +586,10 @@ proc InitGlobals {} {
     global gToMove gToWin
     set gToMove "To Move:"
     set gToWin "To Win:"
+
+    ### List of moves played
+    global gMovesSoFar
+    set gMovesSoFar [list]
 
     ### Automove when only 1 possible move
     global gSkipInputOnSingleMove

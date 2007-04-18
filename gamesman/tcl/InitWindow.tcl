@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.127 2007-04-17 16:57:18 dmchan Exp $
+# $Id: InitWindow.tcl,v 1.128 2007-04-18 17:11:53 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -830,6 +830,8 @@ proc InitWindow { kRootDir kExt } {
 		    global gWaitingForHuman
 		    set gWaitingForHuman false
 		    .cToolbar raise iITB
+		    global gMovesSoFar
+		    .cToolbar raise iDTB3
 		    RaiseStatusBarIfGameStarted
 		    update
 		    set gameMenuToDriverLoop true
@@ -867,6 +869,7 @@ proc InitWindow { kRootDir kExt } {
 		    global gWaitingForHuman
 		    set gWaitingForHuman false
 		    .cToolbar raise iITB
+		    .cToolbar raise iDTB3
 		    RaiseStatusBarIfGameStarted
 		    update
 		    set gameMenuToDriverLoop true
@@ -939,6 +942,7 @@ proc InitWindow { kRootDir kExt } {
 		    global gWaitingForHuman
 		    set gWaitingForHuman false
 		    .cToolbar raise iITB
+		    .cToolbar raise iDTB3
 		    RaiseStatusBarIfGameStarted
 		    update
 		    set gameMenuToDriverLoop true
@@ -1483,9 +1487,14 @@ proc InitWindow { kRootDir kExt } {
 }
 
 proc RaiseStatusBarIfGameStarted {} {
-    global gGameSolved
+    global gGameSolved gMovesSoFar
     if { $gGameSolved == "true" } {
-		.cStatus lower base
+	.cStatus lower base
+    }
+    if {0 == [llength $gMovesSoFar]} {
+	.cToolbar raise iDTB3
+    } else {
+	.cToolbar raise iITB3
     }
 }
 
