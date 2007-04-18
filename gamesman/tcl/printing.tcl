@@ -11,6 +11,7 @@ set outputs("bot_merge") "ps/bot_merge.ps"
 set outputs("output_merge") "ps/output_merge.ps"
 set outputs("outputPDF") "ps/output.pdf"
 set outputs("static_oxy") "ps/static/static_oxy.ps"
+set outputs("static_legend") "ps/static/static_legend.ps"
 set outputs("static_blank") "ps/static/static_blank.ps"
 set outputs("static_win_banner") "ps/static/static_win_banner.ps"
 set outputs("gs_str") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite \
@@ -18,7 +19,7 @@ set outputs("gs_str") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite \
 set outputs("left_name") "ps/left_name.ps"
 set outputs("right_name") "ps/right_name.ps"
 set outputs("vs") "ps/vs.ps"
-set outputs("font_str") {\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)}
+set outputs("font_str") {(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)}
 canvas .printing -width 500 -height 500
 
 # do the printing
@@ -35,7 +36,7 @@ proc doPrinting {c position winningSide} {
 	exec /usr/bin/sed -i -r -e '/gsave mark/N' \
 		-e '/gsave mark\[\[:space:]]+Q q/N' \
 		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+497\.645/\
-		%Added postscript\\n90 rotate\\n\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n200 \
+		%Added postscript\\n90 rotate\\n(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n200 \
 		scalefont\\nsetfont\\nnewpath\\n \
 		425 -400 moveto\\n \
 		(Left Possible) show\\n \
@@ -70,15 +71,14 @@ proc makeTop { c position winningSide} {
 	set winPath [makePath $position false]
 	# make top
 	set topStr "$outputs(\"left_name\") \"$winPath\" $outputs(\"right_name\") "
-	set topStr "$topStr $outputs(\"static_blank\") $outputs(\"static_oxy\") $outputs(\"static_blank\")"
+	set topStr "$topStr $outputs(\"static_blank\") $outputs(\"static_legend\") $outputs(\"static_blank\")"
 	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $topStr"
 	exec /usr/bin/psnup -q -6 -pletter $outputs("top_merge") $outputs("top") 
 	# add game name
 	# center on 306 650
-	exec /usr/bin/sed -i -r -e '/12.96 -9.8 26.87 -24.98 41.73 -45.52 c/N' \
-		-e '/12.96 -9.8 26.87 -24.98 41.73 -45.52 c\[\[:space:]]h/N' \
-		-e '/12.96 -9.8 26.87 -24.98 41.73 -45.52 c\[\[:space:]]h\[\[:space:]]f/N' \
-		-e 's/12.96 -9.8 26.87 -24.98 41.73 -45.52 c\[\[:space:]]h\[\[:space:]]f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
+	exec /usr/bin/sed -i -r -e '/1440 900 720 720 re/N' \
+		-e '/1440 900 720 720 re\[\[:space:]]f/N' \
+		-e 's/1440 900 720 720 re\[\[:space:]]f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
 		%Added postscript\\n \
 		\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
 		100 scalefont\\n \
@@ -143,7 +143,6 @@ proc makeBottom {} {
 # combine bottom and top outputs
 proc combine {} {
 	global outputs
-	
 	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"top\") \
 		$outputs(\"bot\")"
 	exec /usr/bin/psnup  -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")
@@ -152,7 +151,7 @@ proc combine {} {
 	exec /usr/bin/sed -i -r -e '/f/N' \
 		-e 's/f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
 		%Added postscript\\n \
-		\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
 		90 rotate\\n \
 		75 scalefont\\n \
 		setfont\\n \
