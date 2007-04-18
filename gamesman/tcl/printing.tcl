@@ -18,6 +18,7 @@ set outputs("gs_str") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite \
 set outputs("left_name") "ps/left_name.ps"
 set outputs("right_name") "ps/right_name.ps"
 set outputs("vs") "ps/vs.ps"
+set outputs("font_str") {\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)}
 canvas .printing -width 500 -height 500
 
 # do the printing
@@ -36,29 +37,34 @@ proc doPrinting {c position winningSide} {
 		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+497\.645/\
 		%Added postscript\\n90 rotate\\n\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n200 \
 		scalefont\\nsetfont\\nnewpath\\n \
-		250 -400 moveto\\n \
+		425 -400 moveto\\n \
 		(Left Possible) show\\n \
-		2700 -400 moveto\\n \
+		2750 -400 moveto\\n \
 		(After) show\\n \
-		4100 -400 moveto\\n \
+		4300 -400 moveto\\n \
 		(Right Possible) show\\n \
-		6650 -400 moveto\\n \
+		6700 -400 moveto\\n \
 		(After) show\\n \
-		-90 rotate\\n&/' ps/output.ps
+		-90 rotate\\n&/' $outputs("output")
 	# use gs to generate a pdf...
 	# only needed for debugging
 	makePDF $outputs("output") $outputs("outputPDF")
 	#cleanTemp
 }
 
+# replace references to /Courier with
+# the vag rounded bt font...
 proc replaceFont { } {
-	exec /usr/bin/sed -i -r -e 's/font Courier/font Vagroundedbt/' -e 's/\\/Courier/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)/' ps/right_name.ps
-	exec /usr/bin/sed -i -r -e 's/\\/Courier/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)/' ps/left_name.ps 
+	global outputs
+	# right name
+	exec /usr/bin/sed -i -r -e 's/\\/Courier/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)/' $outputs("right_name")
+	# left name
+	exec /usr/bin/sed -i -r -e 's/\\/Courier/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)/' $outputs("left_name") 
 }
 
 # setup the top part
 proc makeTop { c position winningSide} {
-	global outputs
+	global outputs kGameName
 	# make the name tags
 	makeTags $winningSide
 	set winPath [makePath $position false]
@@ -67,16 +73,30 @@ proc makeTop { c position winningSide} {
 	set topStr "$topStr $outputs(\"static_blank\") $outputs(\"static_oxy\") $outputs(\"static_blank\")"
 	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $topStr"
 	exec /usr/bin/psnup -q -6 -pletter $outputs("top_merge") $outputs("top") 
+	# add game name
+	# center on 306 650
+	exec /usr/bin/sed -i -r -e '/12.96 -9.8 26.87 -24.98 41.73 -45.52 c/N' \
+		-e '/12.96 -9.8 26.87 -24.98 41.73 -45.52 c\[\[:space:]]h/N' \
+		-e '/12.96 -9.8 26.87 -24.98 41.73 -45.52 c\[\[:space:]]h\[\[:space:]]f/N' \
+		-e 's/12.96 -9.8 26.87 -24.98 41.73 -45.52 c\[\[:space:]]h\[\[:space:]]f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
+		%Added postscript\\n \
+		\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		100 scalefont\\n \
+		setfont\\n \
+		newpath\\n \
+		306 650 moveto\\n \
+		($kGameName) dup stringwidth pop 2 div neg 0 rmoveto show\\n/' $outputs("top")
 }
 
 # make the pages for the names
 proc makeTags { winningSide } {
 	global gLeftName gRightName outputs gFrameWidth gLeftPiece gRightPiece
+	set colors [GS_ColorOfPlayers]
 	set maxLen [max [max [string length $gLeftName] \
 	 					[string length $gRightName]] 1]
 	# don't want to divide by zero...
 	# leave a buffer
-	set yOffset 200
+	set yOffset 225
 	set maxPixels [expr [tk scaling] * 8.5 * 72 - 10]
 	# make sure fontsize is an int
 	# also don't make font too big
@@ -86,11 +106,11 @@ proc makeTags { winningSide } {
 	# courier is just used as a placeholder... we will replace it
 	# with the desired font
 	pack .printing
-	.printing create text [expr $gFrameWidth / 2] 425 \
+	.printing create text [expr $gFrameWidth / 2] 450 \
 		-justify center -text "WINNER" -font {Courier 128} \
 		-tag __winner -state hidden
 	.printing create text [expr $gFrameWidth / 2] $yOffset -justify center \
-		-text "LEFT\n$gLeftName" -font "Courier $fontSize" -tag __printing
+		-text "LEFT\n$gLeftName" -font "Courier $fontSize" -tag __printing -fill [lindex $colors 0]
 	if { $winningSide == $gLeftPiece } {
 		.printing itemconfigure __winner -state normal
 	}
@@ -103,7 +123,7 @@ proc makeTags { winningSide } {
 	} else {
 		.printing itemconfigure __winner -state hidden
 	}
-	.printing itemconfigure __printing -text "RIGHT\n$gRightName"
+	.printing itemconfigure __printing -text "RIGHT\n$gRightName" -fill [lindex $colors 1]
 	update idletasks
 	# again
 	.printing postscript -file $outputs("right_name") -pagewidth 8.5i
@@ -127,6 +147,19 @@ proc combine {} {
 	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"top\") \
 		$outputs(\"bot\")"
 	exec /usr/bin/psnup  -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")
+	# add the gamescrafters logo
+	# center on 396 -75
+	exec /usr/bin/sed -i -r -e '/f/N' \
+		-e 's/f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
+		%Added postscript\\n \
+		\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		90 rotate\\n \
+		75 scalefont\\n \
+		setfont\\n \
+		newpath\\n \
+		396 -75 moveto\\n \
+		(Gamescrafters) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		-90 rotate/' $outputs("output")
 }
 
 # go through all the mistakes
