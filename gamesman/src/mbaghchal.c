@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.32 2007-04-03 01:29:05 eudean Exp $
+// $Id: mbaghchal.c,v 1.33 2007-04-19 04:40:16 max817 Exp $
 
 /************************************************************************
 **
@@ -235,6 +235,7 @@ int tigers     = 0;
 int goats      = 0;
 
 char* board    = NULL;
+char* TclBoard = NULL;
 int turn       = 0;
 int goatsLeft  = 0;
 
@@ -294,6 +295,7 @@ int translate (int x, int y);
 int get_x (int index);
 int get_y (int index);
 POSITION hash ();
+char* TclUnhash(POSITION);
 void unhash (POSITION);
 void ChangeBoardSize ();
 void Reset ();
@@ -346,6 +348,7 @@ void InitializeGame ()
 	gCanonicalPosition = GetCanonicalPosition;
 
 	gMoveToStringFunPtr = &MoveToString;
+    gCustomUnhash = &TclUnhash;
 
 	SetupGame();
 }
@@ -1127,6 +1130,18 @@ POSITION hash ()
 	return position;
 }
 
+char* TclUnhash(POSITION position) {
+    unhash(position);
+
+    TclBoard[0] = turn + 48;
+    TclBoard[1] = ((goatsLeft /= 10) % 10) + 48;
+    TclBoard[2] = (goatsLeft % 10) + 48;
+    int i;
+    for (i = 0; i < boardSize; i++)
+        TclBoard[i+3] = board[i];
+    return TclBoard;
+}
+
 void unhash (POSITION position)
 {
 	if(gHashWindowInitialized) {
@@ -1185,7 +1200,10 @@ void SetupGame ()
 {
     if (board != NULL)
         SafeFree(board);
+    if (TclBoard != NULL)
+        SafeFree(TclBoard);
     board = (char*) SafeMalloc(boardSize * sizeof(char));
+    TclBoard = (char*) SafeMalloc((boardSize+3) * sizeof(char));
 	// destroy current hash
 	generic_hash_destroy();
 	// setup the tier hashes
@@ -1682,6 +1700,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.32  2007/04/03 01:29:05  eudean
+// Added Tcl pointer so a GUI can be made.
+//
 // Revision 1.31  2007/02/27 02:15:00  max817
 // Fixed a bug with the global board inits. -Max
 //
