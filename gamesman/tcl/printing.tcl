@@ -51,12 +51,12 @@ proc doPrinting {c position winningSide} {
 		200 scalefont\\n \
 		setfont\\n \
 		newpath\\n \
-		425 -400 moveto\\n \
-		(Left Possible) show\\n \
+		700 -400 moveto\\n \
+		(Before) show\\n \
 		2750 -400 moveto\\n \
 		(After) show\\n \
-		4300 -400 moveto\\n \
-		(Right Possible) show\\n \
+		4650 -400 moveto\\n \
+		(Before) show\\n \
 		6700 -400 moveto\\n \
 		(After) show\\n \
 		1980 -5800 moveto\\n \
@@ -88,7 +88,7 @@ proc makeTop { c position winningSide} {
 	set winPath [makePath $position false]
 	set moves [makeMoveList $maxMoves]
 	eval "$outputs(\"gs_str\")$outputs(\"left_moves_merge\") $moves"
-	exec /usr/bin/psnup -q -m1.0in -$maxMoves -H8.5in -W8.5in -pletter $outputs("left_moves_merge") $outputs("left_moves")
+	exec /usr/bin/psnup -q -m0.6in -$maxMoves -H8.5in -W8.5in -pletter $outputs("left_moves_merge") $outputs("left_moves")
 	# make top
 	set topStr "$outputs(\"left_name\") \"$winPath\" $outputs(\"right_name\") "
 	set topStr "$topStr $outputs(\"left_moves\") $outputs(\"static_legend\") $outputs(\"static_blank\")"
@@ -114,7 +114,7 @@ proc makeTags { winningSide } {
 	# courier is just used as a placeholder... we will replace it
 	# with the desired font
 	pack .printing
-	.printing create text [expr $gFrameWidth / 2] [expr $yOffset + 225] \
+	.printing create text [expr $gFrameWidth / 2] [expr $yOffset + 210] \
 		-justify center -text "WINNER" -font {Courier 128} \
 		-tag __winner -state hidden
 	.printing create text [expr $gFrameWidth / 2] $yOffset -justify center \
