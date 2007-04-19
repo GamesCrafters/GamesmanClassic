@@ -96,7 +96,7 @@ proc makeTags { winningSide } {
 	 					[string length $gRightName]] 1]
 	# don't want to divide by zero...
 	# leave a buffer
-	set yOffset 225
+	set yOffset 250
 	set maxPixels [expr [tk scaling] * 8.5 * 72 - 10]
 	# make sure fontsize is an int
 	# also don't make font too big
@@ -106,7 +106,7 @@ proc makeTags { winningSide } {
 	# courier is just used as a placeholder... we will replace it
 	# with the desired font
 	pack .printing
-	.printing create text [expr $gFrameWidth / 2] 450 \
+	.printing create text [expr $gFrameWidth / 2] [expr $yOffset + 225] \
 		-justify center -text "WINNER" -font {Courier 128} \
 		-tag __winner -state hidden
 	.printing create text [expr $gFrameWidth / 2] $yOffset -justify center \
@@ -148,16 +148,36 @@ proc combine {} {
 	exec /usr/bin/psnup  -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")
 	# add the gamescrafters logo
 	# center on 396 -75
+	# add the time and the date
+	# we need to escape the / in date
+	# otherwise sed complains
+	# get the hostname too
+	# and escape incase it has /
+	set t [clock format [clock seconds] -format %T]
+	set date [clock format [clock seconds] -format %D]
+	regsub -all {\/} $date "\\\/" date
+	set host [exec /usr/bin/hostname]
+	regsub -all {\/} $host "\\\/" host
 	exec /usr/bin/sed -i -r -e '/f/N' \
 		-e 's/f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
 		%Added postscript\\n \
-		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
 		90 rotate\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
 		75 scalefont\\n \
 		setfont\\n \
 		newpath\\n \
 		396 -75 moveto\\n \
 		(Gamescrafters) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		20 scalefont\\n \
+		setfont\\n \
+		newpath\\n \
+		50 -45 moveto\\n \
+		($date) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		50 -75 moveto\\n \
+		($t) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		750 -60 moveto\\n \
+		($host) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		-90 rotate/' $outputs("output")
 }
 
