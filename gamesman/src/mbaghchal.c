@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.33 2007-04-19 04:40:16 max817 Exp $
+// $Id: mbaghchal.c,v 1.34 2007-04-19 04:43:32 max817 Exp $
 
 /************************************************************************
 **
@@ -1187,11 +1187,11 @@ void ChangeBoardSize ()
 
 void Reset ()
 {
-	width      = 3;
-	length     = 3;
+	width      = 5;
+	length     = 5;
 	boardSize  = width*length;
 	tigers     = 4;
-	goats      = 4;
+	goats      = boardSize-tigers-1;
 	diagonals  = TRUE;
 }
 
@@ -1700,6 +1700,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.33  2007/04/19 04:40:16  max817
+// Support for Tcl. -Max
+//
 // Revision 1.32  2007/04/03 01:29:05  eudean
 // Added Tcl pointer so a GUI can be made.
 //
