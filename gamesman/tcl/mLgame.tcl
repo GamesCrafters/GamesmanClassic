@@ -961,7 +961,7 @@ proc moveBigOHelper {c littleO} {
 	set move [myappend [myappend $gFinalL 2] $newO]
     }
     set gPosition [C_DoMove $gPosition $move]
-    set gValueMoves [C_GetValueMoves $gPosition]
+    set gValueMoves [C_GetValueMoves $gPosition 0]
     if {$gVarMoves == "valueMoves"} {	
 	for {set i 0} {$i < [expr [llength $gValueMoves] / 13]} {incr i} {
 	    set thisL [getNewL [lindex [lindex $gValueMoves [expr $i * 13]] 0]]
@@ -1104,7 +1104,7 @@ proc GS_NewGame {c} {
     $c lower num$gCurrentL1 all
     
     ##Color the small L-pieces if valueMoves is on
-    set gValueMoves [C_GetValueMoves $gPosition]    
+    set gValueMoves [C_GetValueMoves $gPosition 0]    
     if {$gVarMoves == "valueMoves"} {
 	for {set i 0} {$i < [expr [llength $gValueMoves] / 13]} {incr i} {
 	    set thisL [getNewL [lindex [lindex $gValueMoves [expr $i * 13]] 0]]

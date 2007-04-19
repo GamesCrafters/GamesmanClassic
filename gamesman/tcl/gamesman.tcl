@@ -31,6 +31,9 @@
 ##
 #############################################################################
 
+global command_line_args
+set command_line_args [concat $argv0 $argv]
+
 #############################################################################
 ##
 ## SetHelpWindow
@@ -817,8 +820,9 @@ proc SetupHelpStringsForWindow { keyword } {
 proc DoStart {} {
     global kGameName varObjective gPosition gInitialPosition
     global oldVarObjective oldGSOptions varObjective
+    global command_line_args
 
-    C_Initialize
+    C_Initialize $command_line_args
     C_InitializeDatabases
 
     .f0.mesStatus config -text "Solving $kGameName...\n(This may take a while)"
@@ -1271,7 +1275,7 @@ proc DoGameSpecificOptions {} {
     global tcl_platform
     if { $tcl_platform(platform) == "macintosh" } {
 	radiobutton .gameSpecificOptions.f0.butReverse  \
-		-text "$kMisereString (misére)"  \
+		-text "$kMisereString (misere)"  \
 		-font $kLabelFont \
 		-variable varObjective \
 		-value butReverse
@@ -1974,7 +1978,7 @@ proc ShowMoves {} {
 
     DeleteMoves
 
-    foreach theMoveValue [C_GetValueMoves $gPosition] {
+    foreach theMoveValue [C_GetValueMoves $gPosition 0] {
 	set theMove [lindex $theMoveValue 0]
         DrawMove .winBoard.c $theMove cyan $kBigPiece
     } 
@@ -1998,7 +2002,7 @@ proc ShowValueMoves {} {
 
     DeleteMoves
 
-    foreach theMoveValue [C_GetValueMoves $gPosition] {
+    foreach theMoveValue [C_GetValueMoves $gPosition 0] {
 	set theMove [lindex $theMoveValue 0]
         DrawMove .winBoard.c $theMove [ValueToColor [lindex $theMoveValue 1]] $kBigPiece
     }
