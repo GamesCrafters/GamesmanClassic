@@ -1,25 +1,33 @@
 global outputs
-set outputs("left") "ps/left.ps"
-set outputs("top") "ps/top.ps"
-set outputs("right") "ps/right.ps"
-set outputs("top_merge") "ps/top_merge.ps"
-set outputs("left_merge") "ps/left_merge.ps"
-set outputs("right_merge") "ps/right_merge.ps"
+set outputs("ps_path") "ps"
+set outputs("left") "/tmp/left.ps"
+set outputs("top") "/tmp/top.ps"
+set outputs("right") "/tmp/right.ps"
+set outputs("top_merge") "/tmp/top_merge.ps"
+set outputs("left_merge") "/tmp/left_merge.ps"
+set outputs("right_merge") "/tmp/right_merge.ps"
 set outputs("output") "ps/output.ps"
-set outputs("bot") "ps/bot.ps"
-set outputs("bot_merge") "ps/bot_merge.ps"
-set outputs("output_merge") "ps/output_merge.ps"
+set outputs("bot") "/tmp/bot.ps"
+set outputs("bot_merge") "/tmp/bot_merge.ps"
+set outputs("left_moves_merge") "/tmp/left_moves_merge.ps"
+set outputs("left_moves") "/tmp/left_moves.ps"
+set outputs("right_moves_merge") "/tmp/right_moves_merge.ps"
+set outputs("right_moves") "/tmp/right_moves.ps"
+set outputs("output_merge") "/tmp/output_merge.ps"
 set outputs("outputPDF") "ps/output.pdf"
-set outputs("static_oxy") "ps/static/static_oxy.ps"
-set outputs("static_legend") "ps/static/static_legend.ps"
-set outputs("static_blank") "ps/static/static_blank.ps"
-set outputs("static_win_banner") "ps/static/static_win_banner.ps"
+set outputs("static_oxy") "../bitmaps/static_oxy.ps"
+set outputs("static_legend") "../bitmaps/static_legend.ps"
+set outputs("static_blank") "../bitmaps/static_blank.ps"
 set outputs("gs_str") "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sDEVICE=pswrite \
 	-sOutputFile="
-set outputs("left_name") "ps/left_name.ps"
-set outputs("right_name") "ps/right_name.ps"
-set outputs("vs") "ps/vs.ps"
-set outputs("font_str") {(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)}
+set outputs("left_name") "/tmp/left_name.ps"
+set outputs("right_name") "/tmp/right_name.ps"
+# if you ever need to find the font_str
+# to a search for the following array value
+# and replace the occurences with the new path
+# need to find a way to pass it to exec w/o the
+# substitutions
+set outputs("font_str") "(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)"
 canvas .printing -width 500 -height 500
 
 # do the printing
@@ -31,13 +39,18 @@ proc doPrinting {c position winningSide} {
 	makeTop $c $position $winningSide
 	makeBottom
 	combine
-	#/Vagroundedbt				(/usr/share/ghostscript/fonts/Vag Rounded BT.ttf) ;
 	# omg... at this command
+	# add titles for the bottom columns
+	# also add the gamescrafters website location
 	exec /usr/bin/sed -i -r -e '/gsave mark/N' \
 		-e '/gsave mark\[\[:space:]]+Q q/N' \
 		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+497\.645/\
-		%Added postscript\\n90 rotate\\n(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n200 \
-		scalefont\\nsetfont\\nnewpath\\n \
+		%Added postscript\\n \
+		90 rotate\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		200 scalefont\\n \
+		setfont\\n \
+		newpath\\n \
 		425 -400 moveto\\n \
 		(Left Possible) show\\n \
 		2750 -400 moveto\\n \
@@ -46,11 +59,14 @@ proc doPrinting {c position winningSide} {
 		(Right Possible) show\\n \
 		6700 -400 moveto\\n \
 		(After) show\\n \
+		1980 -5800 moveto\\n \
+		(GamesCrafters) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		5940 -5800 moveto\\n \
+		(http:\\/\\/gamescrafters.berkeley.edu\\/) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		-90 rotate\\n&/' $outputs("output")
 	# use gs to generate a pdf...
 	# only needed for debugging
 	makePDF $outputs("output") $outputs("outputPDF")
-	#cleanTemp
 }
 
 # replace references to /Courier with
@@ -68,24 +84,16 @@ proc makeTop { c position winningSide} {
 	global outputs kGameName
 	# make the name tags
 	makeTags $winningSide
+	set maxMoves 6
 	set winPath [makePath $position false]
+	set moves [makeMoveList $maxMoves]
+	eval "$outputs(\"gs_str\")$outputs(\"left_moves_merge\") $moves"
+	exec /usr/bin/psnup -q -m1.0in -$maxMoves -H8.5in -W8.5in -pletter $outputs("left_moves_merge") $outputs("left_moves")
 	# make top
 	set topStr "$outputs(\"left_name\") \"$winPath\" $outputs(\"right_name\") "
-	set topStr "$topStr $outputs(\"static_blank\") $outputs(\"static_legend\") $outputs(\"static_blank\")"
+	set topStr "$topStr $outputs(\"left_moves\") $outputs(\"static_legend\") $outputs(\"static_blank\")"
 	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $topStr"
-	exec /usr/bin/psnup -q -6 -pletter $outputs("top_merge") $outputs("top") 
-	# add game name
-	# center on 306 650
-	exec /usr/bin/sed -i -r -e '/1440 900 720 720 re/N' \
-		-e '/1440 900 720 720 re\[\[:space:]]f/N' \
-		-e 's/1440 900 720 720 re\[\[:space:]]f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
-		%Added postscript\\n \
-		\\/(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
-		100 scalefont\\n \
-		setfont\\n \
-		newpath\\n \
-		306 650 moveto\\n \
-		($kGameName) dup stringwidth pop 2 div neg 0 rmoveto show\\n/' $outputs("top")
+	exec /usr/bin/psnup -q -6 -Pletter -pletter $outputs("top_merge") $outputs("top") 
 }
 
 # make the pages for the names
@@ -130,7 +138,31 @@ proc makeTags { winningSide } {
 	pack forget .printing
 	.printing delete __printing __winner
 	update
+	# replace the Courier font with
+	# the vag rounded bt
 	replaceFont
+}
+
+proc makeMoveList { maxMoves } {
+	global gGameSoFar
+	set moves []
+	set moveList ""
+	set len [llength $gGameSoFar]
+	if { $len <= $maxMoves } {
+		set index 0
+	} else {
+		set index [expr $len - $maxMoves - 1]
+	}
+	# don't get position 0
+	set newList [lrange $gGameSoFar $index [expr $len - 2]]
+	for {set i [expr [llength $newList] - 1]} {$i >= 0} {incr i -1} {
+		lappend moves [lindex $newList $i]
+	}
+	foreach move $moves {
+		set path [makePath $move false]
+		set moveList "$moveList $path"
+	}
+	return $moveList
 }
 
 # generate mistake lists for the bottom
@@ -142,10 +174,10 @@ proc makeBottom {} {
 
 # combine bottom and top outputs
 proc combine {} {
-	global outputs
+	global outputs kGameName
 	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"top\") \
 		$outputs(\"bot\")"
-	exec /usr/bin/psnup  -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")
+	exec /usr/bin/psnup -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")
 	# add the gamescrafters logo
 	# center on 396 -75
 	# add the time and the date
@@ -154,8 +186,7 @@ proc combine {} {
 	# get the hostname too
 	# and escape incase it has /
 	set t [clock format [clock seconds] -format %T]
-	set date [clock format [clock seconds] -format %D]
-	regsub -all {\/} $date "\\\/" date
+	set date [clock format [clock seconds] -format "%Y-%m-%d"]
 	set host [exec /usr/bin/hostname]
 	regsub -all {\/} $host "\\\/" host
 	exec /usr/bin/sed -i -r -e '/f/N' \
@@ -163,11 +194,13 @@ proc combine {} {
 		%Added postscript\\n \
 		90 rotate\\n \
 		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
-		75 scalefont\\n \
+		40 scalefont\\n \
 		setfont\\n \
 		newpath\\n \
+		396 -35 moveto\\n \
+		(Post Game Analysis) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		396 -75 moveto\\n \
-		(Gamescrafters) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		($kGameName) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
 		20 scalefont\\n \
 		setfont\\n \
@@ -235,8 +268,7 @@ proc generateBottom { } {
 # go through the mistake lists
 # and add stuff to the psnup execute command
 proc makeExec { mistakeList maxErrors} {
-	global kGameName outputs
-	set pathStr "ps/$kGameName/$kGameName"
+	global outputs
 	set size [llength $mistakeList]
 	set ret ""
 	# trim mistakes to the worst ones
@@ -254,7 +286,9 @@ proc makeExec { mistakeList maxErrors} {
 		set oldPos [lindex $mistake 6]
 		set badMove [lindex $mistake 1]
 		set badPos [C_DoMove $oldPos $badMove]
-		set ret "$ret \"$pathStr\_$oldPos\_v.ps\" \"$pathStr\_$badPos.ps\""
+		set old [makePath $oldPos true]
+		set new [makePath $badPos false]
+		set ret "$ret $old $new"
 	}
 	
 	return $ret
@@ -264,11 +298,7 @@ proc makeExec { mistakeList maxErrors} {
 # 1 possible lose -> win
 # 2 possible lose -> tie
 # 3 possible tie -> win
-# 4 possible lose -> lose
-# 4 possible tie -> tie
-# 4 possible win -> win
-# state change mistakes are bad, staying in same
-# level is not as bad
+# state change mistakes are bad
 proc findWorst { mistakeList } {
 	set worst [list]
 	# sort by increasing significance of key
@@ -378,35 +408,15 @@ proc makePathOnce { pos value} {
 # functions should call this function to make the
 # path
 proc makePath { pos value } {
-	global kGameName
+	global kGameName outputs
 	checkFolders $kGameName
 	
-	set path "ps/$kGameName/$kGameName\_$pos"
+	set path "$outputs(\"ps_path\")/$kGameName/$kGameName\_$pos"
 	if { $value == true} {
 		set path "$path\_v"
 	}
 	
 	return "$path.ps"
-}
-
-# delete temp files
-# technically not needed
-# since will be overwritted on next iteration
-proc cleanTemp {} {
-	global outputs
-	
-	file delete $outputs("left")
-	file delete $outputs("right")
-	file delete $outputs("top")
-	file delete $outputs("left_merge")
-	file delete $outputs("right_merge")
-	file delete $outputs("bot")
-	file delete $outputs("bot_merge")
-	file delete $outputs("output_merge")
-	file delete $outputs("top_merge")
-	file delete $outputs("left_name")
-	file delete $outputs("right_name")
-	file delete $outputs("vs")
 }
 
 # make string to use for pdf generation
@@ -419,12 +429,13 @@ proc makePDF { input output} {
 # check for folders we need
 proc checkFolders { game } {
 	# check for directories
-	if { ![file exists "ps/"] } {
-		file mkdir "ps"
+	global outputs
+	if { ![file exists "$outputs(\"ps_path\")/"] } {
+		file mkdir "$outputs(\"ps_path\")"
 	}
 	
-	if { ![file exists "ps/$game"] } {
-		file mkdir "ps/$game"
+	if { ![file exists "$outputs(\"ps_path\")/$game"] } {
+		file mkdir "$outputs(\"ps_path\")/$game"
 	}
 }
 
