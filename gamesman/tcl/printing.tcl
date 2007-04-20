@@ -61,7 +61,7 @@ proc doPrinting {c position winningSide} {
 		5650 3960 moveto\\n \
 		-1050 0 rlineto\\n \
 		stroke\\n \
-		129.0000 0.0000 0.0000 setrgbcolor\\n \
+		139.0000 0.0000 0.0000 setrgbcolor\\n \
 		4580 3710 moveto\\n \
 		0 500 rlineto\\n \
 		300 0 rlineto\\n \
