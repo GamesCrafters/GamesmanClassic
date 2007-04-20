@@ -34,13 +34,23 @@ canvas .printing -width 500 -height 500
 
 # do the printing
 proc doPrinting {c position winningSide} {
-	global outputs
+	global outputs gFrameWidth
 	set path [makePathOnce $position false]
 	# capture the last position
 	capture $c $position false $path
+	$c create rectangle 0 [expr $gFrameWidth/2 - 75] $gFrameWidth [expr $gFrameWidth/2 + 75] -fill gray -width 1 -outline black -tag PDF
+	$c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 - 40] -text "Generating PDF" -font {Courier 40} -tags PDF
+	$c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 + 40] -text "Step 1 of 6" -font {Courier 40} -tags PDFStep
+	update idletasks
 	makeTop $c $position $winningSide
+	$c itemconfigure PDFStep -text "Step 2 of 6"
+	update idletasks
 	makeBottom
+	$c itemconfigure PDFStep -text "Step 3 of 6"
+	update idletasks
 	combine
+	$c itemconfigure PDFStep -text "Step 4 of 6"
+	update idletasks
 	# omg... at this command
 	# add titles for the bottom columns
 	# also add the gamescrafters website location
@@ -144,10 +154,15 @@ proc doPrinting {c position winningSide} {
 		(http:\\/\\/gamescrafters.berkeley.edu\\/) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		-90 rotate\\n&/' $outputs("output")
 	
+	$c itemconfigure PDFStep -text "Step 5 of 6"
+	update idletasks
 	exec /usr/bin/psnup -q -1 -b0.25in -pletter -Pletter $outputs("output") $outputs("output_merge")
+	$c itemconfigure PDFStep -text "Step 6 of 6"
+	update idletasks
 	# use gs to generate a pdf...
 	# only needed for debugging
 	makePDF $outputs("output_merge") $outputs("outputPDF")
+	$c delete PDF PDFStep
 }
 
 # replace references to /Courier with
