@@ -2,14 +2,17 @@
 
 #############################################################################
 ##
-## NAME:           Xmcmass
+## NAME:         Xmcmass
 ##
-## DESCRIPTION:    
-## AUTHOR:       
-## DATE:         
-## UPDATE HISTORY:
+## DESCRIPTION:  The source code for the Tcl component of Critical Mass
+##               for the Master's project GAMESMAN
 ##
-## 11-21-06        : Initial gamesman3 release for mcmass
+## AUTHOR:       Peterson Trethewey  -  University of California at Berkeley
+##               Copyright (C) Dan Garcia, 1995. All rights reserved.
+##
+## DATE:         05-12-95
+##
+##
 #############################################################################
 
 #############################################################################
@@ -31,16 +34,10 @@ if { $tcl_platform(platform) == "unix" } {
 
 load "$kRootDir/../lib/libmcmass[info sharedlibextension]" Gamesman
 
-### Now source the rest of the game-playing interface code.
-
-source "$kRootDir/../tcl/gamesman3.tcl"
-
 ### Now source our Game-specific code.
 
 source "$kRootDir/../tcl/mcmass.tcl"
 
-main $kRootDir
+### Now source the rest of the game-playing interface code.
 
-
-
-
+source "$kRootDir/../tcl/gamesmancmass.tcl"
