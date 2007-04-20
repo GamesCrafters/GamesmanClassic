@@ -13,6 +13,8 @@ set outputs("left_moves_merge") "/tmp/left_moves_merge.ps"
 set outputs("left_moves") "/tmp/left_moves.ps"
 set outputs("right_moves_merge") "/tmp/right_moves_merge.ps"
 set outputs("right_moves") "/tmp/right_moves.ps"
+set outputs("middle_moves_merge") "/tmp/middle_moves_merge.ps"
+set outputs("middle_moves") "/tmp/middle_moves.ps"
 set outputs("output_merge") "/tmp/output_merge.ps"
 set outputs("outputPDF") "ps/output.pdf"
 set outputs("static_oxy") "../bitmaps/static_oxy.ps"
@@ -44,13 +46,90 @@ proc doPrinting {c position winningSide} {
 	# also add the gamescrafters website location
 	exec /usr/bin/sed -i -r -e '/gsave mark/N' \
 		-e '/gsave mark\[\[:space:]]+Q q/N' \
-		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+497\.645/\
+		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+573\.008/\
 		%Added postscript\\n \
+		600 150 moveto\\n \
+		-100 0 rlineto\\n \
+		0 7620 rlineto\\n \
+		100 0 rlineto\\n \
+		2600 150 moveto\\n \
+		3050 0 rlineto\\n \
+		0 7620 rlineto\\n \
+		-2550 0 rlineto\\n \
+		500 3960 moveto\\n \
+		100 0 rlineto\\n \
+		5650 3960 moveto\\n \
+		-1050 0 rlineto\\n \
+		stroke\\n \
+		129.0000 0.0000 0.0000 setrgbcolor\\n \
+		4580 3710 moveto\\n \
+		0 500 rlineto\\n \
+		300 0 rlineto\\n \
+		0 -500 rlineto\\n \
+		fill\\n \
+		255.0000 255.0000 0.0000 setrgbcolor\\n \
+		4930 3710 moveto\\n \
+		0 500 rlineto\\n \
+		300 0 rlineto\\n \
+		0 -500 rlineto\\n \
+		fill\\n \
+		0.0000 255.0000 0.0000 setrgbcolor\\n \
+		5280 3710 moveto\\n \
+		0 500 rlineto\\n \
+		300 0 rlineto\\n \
+		0 -500 rlineto\\n \
+		fill\\n \
+		0.0000 0.0000 0.0000 setrgbcolor\\n \
 		90 rotate\\n \
 		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
 		200 scalefont\\n \
 		setfont\\n \
-		newpath\\n \
+		3960 -4800 moveto\\n \
+		(Lose) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -5150 moveto\\n \
+		(Tie) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -5500 moveto\\n \
+		(Win) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		500 scalefont\\n \
+		setfont\\n \
+		3960 -1000 moveto\\n \
+		(M) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -1500 moveto\\n \
+		(I) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -2000 moveto\\n \
+		(S) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -2500 moveto\\n \
+		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -3000 moveto\\n \
+		(A) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -3500 moveto\\n \
+		(K) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -4000 moveto\\n \
+		(E) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		3960 -4500 moveto\\n \
+		(S) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		150 -1000 moveto\\n \
+		(L) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		150 -1500 moveto\\n \
+		(E) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		150 -2000 moveto\\n \
+		(F) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		150 -2500 moveto\\n \
+		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		7750 -1000 moveto\\n \
+		(R) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		7750 -1500 moveto\\n \
+		(I) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		7750 -2000 moveto\\n \
+		(G) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		7750 -2500 moveto\\n \
+		(H) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		7750 -3000 moveto\\n \
+		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		200 scalefont\\n \
+		setfont\\n \
 		700 -400 moveto\\n \
 		(Before) show\\n \
 		2750 -400 moveto\\n \
@@ -59,9 +138,9 @@ proc doPrinting {c position winningSide} {
 		(Before) show\\n \
 		6700 -400 moveto\\n \
 		(After) show\\n \
-		1980 -5800 moveto\\n \
+		1980 -5850 moveto\\n \
 		(GamesCrafters) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		5940 -5800 moveto\\n \
+		5940 -5850 moveto\\n \
 		(http:\\/\\/gamescrafters.berkeley.edu\\/) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		-90 rotate\\n&/' $outputs("output")
 	# use gs to generate a pdf...
@@ -86,12 +165,56 @@ proc makeTop { c position winningSide} {
 	makeTags $winningSide
 	set maxMoves 6
 	set winPath [makePath $position false]
-	set moves [makeMoveList $maxMoves]
-	eval "$outputs(\"gs_str\")$outputs(\"left_moves_merge\") $moves"
-	exec /usr/bin/psnup -q -m0.6in -$maxMoves -H8.5in -W8.5in -pletter $outputs("left_moves_merge") $outputs("left_moves")
+	set moves [makeMoveList [expr 3 * $maxMoves]]
+	set emptyStr "$outputs(\"static_blank\") $outputs(\"static_blank\")"
+	set leftMoves ""
+	set middleMoves ""
+	set rightMoves ""
+	# we need to partition the moves to different parts now
+	set i 0
+	set j 0
+	foreach move $moves {
+		if {$i == 0 } {
+			set leftMoves "$leftMoves $move"
+		} elseif {$i == 1} {
+			set middleMoves "$middleMoves $move"
+		} else {
+			set rightMoves "$rightMoves $move"
+		}
+		# we want 2 across on each part
+		incr j
+		if {$j == 2} {
+			incr i
+			# reset i if we need to
+			if {$i == 3} {
+				set i 0
+			}
+			set j 0
+		}
+	}
+	if {$leftMoves == "" } {
+		set leftMoves $emptyStr
+	}
+	eval "$outputs(\"gs_str\")$outputs(\"left_moves_merge\") $leftMoves"
+	exec /usr/bin/psnup -q -m0.65in -$maxMoves -H8.5in -W8.6in -pletter $outputs("left_moves_merge") $outputs("left_moves")
+	
+	if {$middleMoves == "" } {
+		set middleMoves $emptyStr
+	}
+	eval "$outputs(\"gs_str\")$outputs(\"middle_moves_merge\") $middleMoves"
+	exec /usr/bin/psnup -q -m0.65in -$maxMoves -H8.5in -W8.6in -pletter $outputs("middle_moves_merge") $outputs("middle_moves")	
+
+	if {$rightMoves == "" } {
+		set rightMoves $emptyStr
+	}
+	eval "$outputs(\"gs_str\")$outputs(\"right_moves_merge\") $rightMoves"
+	exec /usr/bin/psnup -q -m0.65in -$maxMoves -H8.5in -W8.6in -pletter $outputs("right_moves_merge") $outputs("right_moves")		
+		
+
 	# make top
+	
 	set topStr "$outputs(\"left_name\") \"$winPath\" $outputs(\"right_name\") "
-	set topStr "$topStr $outputs(\"left_moves\") $outputs(\"static_legend\") $outputs(\"static_blank\")"
+	set topStr "$topStr $outputs(\"left_moves\") $outputs(\"middle_moves\") $outputs(\"right_moves\")"
 	eval "$outputs(\"gs_str\")$outputs(\"top_merge\") $topStr"
 	exec /usr/bin/psnup -q -6 -Pletter -pletter $outputs("top_merge") $outputs("top") 
 }
@@ -147,21 +270,23 @@ proc makeMoveList { maxMoves } {
 	global gGameSoFar
 	set moves []
 	set moveList ""
-	set len [llength $gGameSoFar]
-	if { $len <= $maxMoves } {
-		set index 0
-	} else {
-		set index [expr $len - $maxMoves - 1]
+	# need to reverse the list...
+	# tcl 8.5 has a built in reverse
+	# we start at len - 2 because len is > last index
+	# and the last index is pos 0 which we don't want
+	for {set i [expr [llength $gGameSoFar] - 2]} { $i >= 0} {incr i -1} {
+		lappend moves [lindex $gGameSoFar $i]
 	}
-	# don't get position 0
-	set newList [lrange $gGameSoFar $index [expr $len - 2]]
-	for {set i [expr [llength $newList] - 1]} {$i >= 0} {incr i -1} {
-		lappend moves [lindex $newList $i]
-	}
+	
+	# truncate the list to how many we need
+	# end index > len - 1 => len - 1
+	set moves [lrange $moves 0 [expr $maxMoves - 1]]
+	
 	foreach move $moves {
 		set path [makePath $move false]
 		set moveList "$moveList $path"
 	}
+	
 	return $moveList
 }
 
@@ -189,8 +314,11 @@ proc combine {} {
 	set date [clock format [clock seconds] -format "%Y-%m-%d"]
 	set host [exec /usr/bin/hostname]
 	regsub -all {\/} $host "\\\/" host
-	exec /usr/bin/sed -i -r -e '/f/N' \
-		-e 's/f\[\[:space:]]+cleartomark end end pagesave restore showpage/&\\n \
+	# remove mobile if it starts with mobile
+	regsub -all {^mobile} $host "" host
+	# this gets duplicated for some reason...
+	# need to fix some time
+	exec /usr/bin/sed -i -r -e 's/cleartomark end end pagesave restore showpage/&\\n \
 		%Added postscript\\n \
 		90 rotate\\n \
 		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
@@ -201,13 +329,35 @@ proc combine {} {
 		(Post Game Analysis) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		396 -75 moveto\\n \
 		($kGameName) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		265 -350 moveto\\n \
+		(M) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		265 -390 moveto\\n \
+		(O) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		265 -430 moveto\\n \
+		(V) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		265 -470 moveto\\n \
+		(E) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		530 -350 moveto\\n \
+		(H) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		530 -390 moveto\\n \
+		(I) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		530 -430 moveto\\n \
+		(S) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		530 -470 moveto\\n \
+		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		530 -510 moveto\\n \
+		(O) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		530 -550 moveto\\n \
+		(R) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		530 -590 moveto\\n \
+		(Y) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
 		20 scalefont\\n \
 		setfont\\n \
 		newpath\\n \
-		50 -45 moveto\\n \
+		60 -45 moveto\\n \
 		($date) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		50 -75 moveto\\n \
+		60 -75 moveto\\n \
 		($t) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		750 -60 moveto\\n \
 		($host) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
@@ -238,31 +388,28 @@ proc generateBottom { } {
 	set rightExec [makeExec $rightMistakes $maxErrors]
 	set mergeStr ""
 
-	
 	# if we added something then merge and psnup
 	# then combine the pages, else we point to a blank page
 	# need to point to blank page to preserve ordering
-	if { $leftExec != "" } {
-		eval "$outputs(\"gs_str\")$outputs(\"left\") $leftExec"
-		exec /usr/bin/psnup -q -[expr 2 * $maxErrors] -H8.5in -W8.5in -pletter \
-			$outputs("left") $outputs("left_merge")
-		set mergeStr "$mergeStr $outputs(\"left_merge\")"
-	} else {
-		set mergeStr "$mergeStr $outputs(\"static_blank\")"
+	if { $leftExec == "" } {
+		set leftExec "$outputs(\"static_blank\") $outputs(\"static_blank\")"
 	}
+	eval "$outputs(\"gs_str\")$outputs(\"left\") $leftExec"
+	exec /usr/bin/psnup -q -[expr 2 * $maxErrors] -H8.5in -W8.5in -pletter \
+		$outputs("left") $outputs("left_merge")
+	set mergeStr "$mergeStr $outputs(\"left_merge\")"
 	
-	if { $rightExec != "" } {
-		eval "$outputs(\"gs_str\")$outputs(\"right\") $rightExec"
-		exec /usr/bin/psnup -q -[expr 2 * $maxErrors] -H8.5in -W8.5in -pletter \
-			$outputs("right") $outputs("right_merge")
-		set mergeStr "$mergeStr $outputs(\"right_merge\")"
-	} else {
-		set mergeStr "$mergeStr $outputs(\"static_blank\")"
+	if { $rightExec == "" } {
+		set rightExec "$outputs(\"static_blank\") $outputs(\"static_blank\")"
 	}
+	eval "$outputs(\"gs_str\")$outputs(\"right\") $rightExec"
+	exec /usr/bin/psnup -q -[expr 2 * $maxErrors] -H8.5in -W8.5in -pletter \
+			$outputs("right") $outputs("right_merge")
+	set mergeStr "$mergeStr $outputs(\"right_merge\")"
 	
 	# combine the left and right outputs to form the bottom
 	eval "$outputs(\"gs_str\")$outputs(\"bot_merge\") $mergeStr"
-	exec /usr/bin/psnup -q -2 -d -pletter $outputs("bot_merge") $outputs("bot")
+	exec /usr/bin/psnup -q -2 -pletter $outputs("bot_merge") $outputs("bot")
 }
 
 # go through the mistake lists
