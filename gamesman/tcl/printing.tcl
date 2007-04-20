@@ -1,5 +1,5 @@
 global outputs
-set outputs("ps_path") "ps"
+set outputs("ps_path") "/tmp/"
 set outputs("left") "/tmp/left.ps"
 set outputs("top") "/tmp/top.ps"
 set outputs("right") "/tmp/right.ps"
@@ -16,7 +16,7 @@ set outputs("right_moves") "/tmp/right_moves.ps"
 set outputs("middle_moves_merge") "/tmp/middle_moves_merge.ps"
 set outputs("middle_moves") "/tmp/middle_moves.ps"
 set outputs("output_merge") "/tmp/output_merge.ps"
-set outputs("outputPDF") "ps/output.pdf"
+set outputs("outputPDF") "pdf/output.pdf"
 set outputs("static_oxy") "../bitmaps/static_oxy.ps"
 set outputs("static_legend") "../bitmaps/static_legend.ps"
 set outputs("static_blank") "../bitmaps/static_blank.ps"
@@ -35,7 +35,8 @@ canvas .printing -width 500 -height 500
 # do the printing
 proc doPrinting {c position winningSide} {
 	global outputs gFrameWidth
-	set path [makePathOnce $position false]
+	# disable caching
+	set path [makePath $position false]
 	# capture the last position
 	capture $c $position false $path
 	$c create rectangle 0 [expr $gFrameWidth/2 - 75] $gFrameWidth [expr $gFrameWidth/2 + 75] -fill gray -width 1 -outline black -tag PDF
@@ -74,9 +75,11 @@ proc addFooter { } {
 	# omg... at this command
 	# add titles for the bottom columns
 	# also add the gamescrafters website location
+	# the 2 or 3 in the third part is a seega hack...
+	# need to find a better way to detect where to input
 	exec /usr/bin/sed -i -r -e '/gsave mark/N' \
 		-e '/gsave mark\[\[:space:]]+Q q/N' \
-		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+573\.008/\
+		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+57\[23]/\
 		%Added postscript\\n \
 		\\/dispCenter \{dup stringwidth pop 2 div neg 0 rmoveto show\} bind def\\n \
 		600 150 moveto\\n \
@@ -191,7 +194,9 @@ proc addHeader { } {
 	regsub -all {^mobile} $host "" host
 	# replace the spaces in name... with -
 	# otherwise gs dies
+	# replace the ' also
 	regsub -all { } $name "-" name
+	regsub -all {\'} $name "`" name
 	# this gets duplicated for some reason...
 	# need to fix some time
 	exec /usr/bin/sed -i -r -e 's/cleartomark end end pagesave restore showpage/&\\n \
@@ -257,6 +262,7 @@ proc makeTop { c position winningSide} {
 	# make the name tags
 	makeTags $winningSide
 	set maxMoves 6
+	# disable caching
 	set winPath [makePath $position false]
 	set moves [makeMoveList [expr 3 * $maxMoves]]
 	set emptyStr "$outputs(\"static_blank\") $outputs(\"static_blank\")"
@@ -533,7 +539,8 @@ proc stripKey { lst } {
 # the position we need to capture hasn't
 # been capture yet
 proc doCapture { c moveType position theMoves value} {
-	set path [makePathOnce $position $value]
+	# disable caching
+	set path [makePath $position $value]
 	if { $path != "" } {
 		set type "all"
 		if {$value == true} {
@@ -603,6 +610,10 @@ proc makePath { pos value } {
 # make string to use for pdf generation
 # then call it
 proc makePDF { input output} {
+	global outputs
+	if { ![file exists "pdf/"] } {
+		file mkdir "pdf/"
+	}
 	eval "exec /usr/bin/gs -q -dNOPAUSE -dBATCH -sOutputFile=$output \
 			-sDEVICE=pdfwrite -c .setpdfwrite -f $input"
 }
