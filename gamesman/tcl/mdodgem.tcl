@@ -19,7 +19,7 @@ proc GS_InitGameSpecific {} {
     ### Set the name of the game
     
     global kGameName basespeed
-    set kGameName ""
+    set kGameName "Dodgem"
     set basespeed 50
     
     ### Set the initial position of the board (default 0)

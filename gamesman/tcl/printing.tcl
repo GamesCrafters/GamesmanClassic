@@ -6,7 +6,7 @@ set outputs("right") "/tmp/right.ps"
 set outputs("top_merge") "/tmp/top_merge.ps"
 set outputs("left_merge") "/tmp/left_merge.ps"
 set outputs("right_merge") "/tmp/right_merge.ps"
-set outputs("output") "ps/output.ps"
+set outputs("output") "/tmp/output.ps"
 set outputs("bot") "/tmp/bot.ps"
 set outputs("bot_merge") "/tmp/bot_merge.ps"
 set outputs("left_moves_merge") "/tmp/left_moves_merge.ps"
@@ -143,9 +143,11 @@ proc doPrinting {c position winningSide} {
 		5940 -5850 moveto\\n \
 		(http:\\/\\/gamescrafters.berkeley.edu\\/) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		-90 rotate\\n&/' $outputs("output")
+	
+	exec /usr/bin/psnup -q -1 -b0.25in -pletter -Pletter $outputs("output") $outputs("output_merge")
 	# use gs to generate a pdf...
 	# only needed for debugging
-	makePDF $outputs("output") $outputs("outputPDF")
+	makePDF $outputs("output_merge") $outputs("outputPDF")
 }
 
 # replace references to /Courier with
@@ -326,7 +328,7 @@ proc combine {} {
 		setfont\\n \
 		newpath\\n \
 		396 -35 moveto\\n \
-		(Post Game Analysis) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		(Post-Game Analysis) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		396 -75 moveto\\n \
 		($kGameName) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		265 -350 moveto\\n \
@@ -362,6 +364,7 @@ proc combine {} {
 		750 -60 moveto\\n \
 		($host) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
 		-90 rotate/' $outputs("output")
+	
 }
 
 # go through all the mistakes
