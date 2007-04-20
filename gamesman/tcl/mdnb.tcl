@@ -95,7 +95,7 @@ proc GS_NameOfPieces {} {
 #############################################################################
 proc GS_ColorOfPlayers {} {
 
-    return [list red blue]
+    return [list blue red]
 	### FILL THIS IN
     
 }

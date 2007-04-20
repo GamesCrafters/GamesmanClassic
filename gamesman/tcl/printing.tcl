@@ -43,14 +43,34 @@ proc doPrinting {c position winningSide} {
 	$c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 + 40] -text "Step 1 of 6" -font {Courier 40} -tags PDFStep
 	update idletasks
 	makeTop $c $position $winningSide
+	
 	$c itemconfigure PDFStep -text "Step 2 of 6"
 	update idletasks
 	makeBottom
+	
 	$c itemconfigure PDFStep -text "Step 3 of 6"
 	update idletasks
 	combine
+	
 	$c itemconfigure PDFStep -text "Step 4 of 6"
 	update idletasks
+	addHeader
+	addFooter
+	
+	$c itemconfigure PDFStep -text "Step 5 of 6"
+	update idletasks
+	exec /usr/bin/psnup -q -1 -b0.25in -pletter -Pletter $outputs("output") $outputs("output_merge")
+	
+	$c itemconfigure PDFStep -text "Step 6 of 6"
+	update idletasks
+	# use gs to generate a pdf...
+	# only needed for debugging
+	makePDF $outputs("output_merge") $outputs("outputPDF")
+	$c delete PDF PDFStep
+}
+
+proc addFooter { } {
+	global outputs
 	# omg... at this command
 	# add titles for the bottom columns
 	# also add the gamescrafters website location
@@ -58,6 +78,7 @@ proc doPrinting {c position winningSide} {
 		-e '/gsave mark\[\[:space:]]+Q q/N' \
 		-e 's/gsave mark\[\[:space:]]+Q q\[\[:space:]]+573\.008/\
 		%Added postscript\\n \
+		\\/dispCenter \{dup stringwidth pop 2 div neg 0 rmoveto show\} bind def\\n \
 		600 150 moveto\\n \
 		-100 0 rlineto\\n \
 		0 7620 rlineto\\n \
@@ -95,51 +116,11 @@ proc doPrinting {c position winningSide} {
 		200 scalefont\\n \
 		setfont\\n \
 		3960 -4800 moveto\\n \
-		(Lose) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		(Lose) dispCenter\\n \
 		3960 -5150 moveto\\n \
-		(Tie) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		(Tie) dispCenter\\n \
 		3960 -5500 moveto\\n \
-		(Win) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
-		500 scalefont\\n \
-		setfont\\n \
-		3960 -1000 moveto\\n \
-		(M) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		3960 -1500 moveto\\n \
-		(I) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		3960 -2000 moveto\\n \
-		(S) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		3960 -2500 moveto\\n \
-		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		3960 -3000 moveto\\n \
-		(A) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		3960 -3500 moveto\\n \
-		(K) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		3960 -4000 moveto\\n \
-		(E) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		3960 -4500 moveto\\n \
-		(S) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		150 -1000 moveto\\n \
-		(L) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		150 -1500 moveto\\n \
-		(E) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		150 -2000 moveto\\n \
-		(F) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		150 -2500 moveto\\n \
-		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		7750 -1000 moveto\\n \
-		(R) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		7750 -1500 moveto\\n \
-		(I) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		7750 -2000 moveto\\n \
-		(G) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		7750 -2500 moveto\\n \
-		(H) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		7750 -3000 moveto\\n \
-		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
-		200 scalefont\\n \
-		setfont\\n \
+		(Win) dispCenter\\n \
 		700 -400 moveto\\n \
 		(Before) show\\n \
 		2750 -400 moveto\\n \
@@ -149,20 +130,115 @@ proc doPrinting {c position winningSide} {
 		6700 -400 moveto\\n \
 		(After) show\\n \
 		1980 -5850 moveto\\n \
-		(GamesCrafters) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
+		(GamesCrafters) dispCenter\\n \
 		5940 -5850 moveto\\n \
-		(http:\\/\\/gamescrafters.berkeley.edu\\/) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		-90 rotate\\n&/' $outputs("output")
-	
-	$c itemconfigure PDFStep -text "Step 5 of 6"
-	update idletasks
-	exec /usr/bin/psnup -q -1 -b0.25in -pletter -Pletter $outputs("output") $outputs("output_merge")
-	$c itemconfigure PDFStep -text "Step 6 of 6"
-	update idletasks
-	# use gs to generate a pdf...
-	# only needed for debugging
-	makePDF $outputs("output_merge") $outputs("outputPDF")
-	$c delete PDF PDFStep
+		(http:\\/\\/gamescrafters.berkeley.edu\\/) dispCenter\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		500 scalefont\\n \
+		setfont\\n \
+		3960 -1000 moveto\\n \
+		(M) dispCenter\\n \
+		3960 -1500 moveto\\n \
+		(I) dispCenter\\n \
+		3960 -2000 moveto\\n \
+		(S) dispCenter\\n \
+		3960 -2500 moveto\\n \
+		(T) dispCenter\\n \
+		3960 -3000 moveto\\n \
+		(A) dispCenter\\n \
+		3960 -3500 moveto\\n \
+		(K) dispCenter\\n \
+		3960 -4000 moveto\\n \
+		(E) dispCenter\\n \
+		3960 -4500 moveto\\n \
+		(S) dispCenter\\n \
+		150 -1000 moveto\\n \
+		(L) dispCenter\\n \
+		150 -1500 moveto\\n \
+		(E) dispCenter\\n \
+		150 -2000 moveto\\n \
+		(F) dispCenter\\n \
+		150 -2500 moveto\\n \
+		(T) dispCenter\\n \
+		7750 -1000 moveto\\n \
+		(R) dispCenter\\n \
+		7750 -1500 moveto\\n \
+		(I) dispCenter\\n \
+		7750 -2000 moveto\\n \
+		(G) dispCenter\\n \
+		7750 -2500 moveto\\n \
+		(H) dispCenter\\n \
+		7750 -3000 moveto\\n \
+		(T) dispCenter\\n \
+		-90 rotate\\n&/' $outputs("output")	
+}
+
+proc addHeader { } {
+	global outputs kGameName
+	# add the gamescrafters logo
+	# center on 396 -75
+	# add the time and the date
+	# we need to escape the / in date
+	# otherwise sed complains
+	# get the hostname too
+	# and escape incase it has /
+	set name $kGameName
+	set t [clock format [clock seconds] -format %T]
+	set date [clock format [clock seconds] -format "%Y-%m-%d"]
+	set host [exec /usr/bin/hostname]
+	regsub -all {\/} $host "\\\/" host
+	# remove mobile if it starts with mobile
+	regsub -all {^mobile} $host "" host
+	# replace the spaces in name... with -
+	# otherwise gs dies
+	regsub -all { } $name "-" name
+	# this gets duplicated for some reason...
+	# need to fix some time
+	exec /usr/bin/sed -i -r -e 's/cleartomark end end pagesave restore showpage/&\\n \
+		%Added postscript\\n \
+		90 rotate\\n \
+		\\/dispCenter \{dup stringwidth pop 2 div neg 0 rmoveto show\} bind def\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		40 scalefont\\n \
+		setfont\\n \
+		newpath\\n \
+		396 -35 moveto\\n \
+		(Post-Game Analysis) dispCenter\\n \
+		396 -75 moveto\\n \
+		($name) dispCenter\\n \
+		265 -350 moveto\\n \
+		(M) dispCenter\\n \
+		265 -390 moveto\\n \
+		(O) dispCenter\\n \
+		265 -430 moveto\\n \
+		(V) dispCenter\\n \
+		265 -470 moveto\\n \
+		(E) dispCenter\\n \
+		530 -350 moveto\\n \
+		(H) dispCenter\\n \
+		530 -390 moveto\\n \
+		(I) dispCenter\\n \
+		530 -430 moveto\\n \
+		(S) dispCenter\\n \
+		530 -470 moveto\\n \
+		(T) dispCenter\\n \
+		530 -510 moveto\\n \
+		(O) dispCenter\\n \
+		530 -550 moveto\\n \
+		(R) dispCenter\\n \
+		530 -590 moveto\\n \
+		(Y) dispCenter\\n \
+		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
+		20 scalefont\\n \
+		setfont\\n \
+		newpath\\n \
+		60 -45 moveto\\n \
+		($date) dispCenter\\n \
+		60 -75 moveto\\n \
+		($t) dispCenter\\n \
+		750 -60 moveto\\n \
+		($host) dispCenter\\n \
+		-90 rotate/' $outputs("output")
 }
 
 # replace references to /Courier with
@@ -192,11 +268,11 @@ proc makeTop { c position winningSide} {
 	set j 0
 	foreach move $moves {
 		if {$i == 0 } {
-			set leftMoves "$leftMoves $move"
+			set leftMoves "$leftMoves \"$move\""
 		} elseif {$i == 1} {
-			set middleMoves "$middleMoves $move"
+			set middleMoves "$middleMoves \"$move\""
 		} else {
-			set rightMoves "$rightMoves $move"
+			set rightMoves "$rightMoves \"$move\""
 		}
 		# we want 2 across on each part
 		incr j
@@ -301,7 +377,7 @@ proc makeMoveList { maxMoves } {
 	
 	foreach move $moves {
 		set path [makePath $move false]
-		set moveList "$moveList $path"
+		set moveList "$moveList \"$path\""
 	}
 	
 	return $moveList
@@ -316,70 +392,10 @@ proc makeBottom {} {
 
 # combine bottom and top outputs
 proc combine {} {
-	global outputs kGameName
+	global outputs
 	eval "$outputs(\"gs_str\")$outputs(\"output_merge\") $outputs(\"top\") \
 		$outputs(\"bot\")"
-	exec /usr/bin/psnup -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")
-	# add the gamescrafters logo
-	# center on 396 -75
-	# add the time and the date
-	# we need to escape the / in date
-	# otherwise sed complains
-	# get the hostname too
-	# and escape incase it has /
-	set t [clock format [clock seconds] -format %T]
-	set date [clock format [clock seconds] -format "%Y-%m-%d"]
-	set host [exec /usr/bin/hostname]
-	regsub -all {\/} $host "\\\/" host
-	# remove mobile if it starts with mobile
-	regsub -all {^mobile} $host "" host
-	# this gets duplicated for some reason...
-	# need to fix some time
-	exec /usr/bin/sed -i -r -e 's/cleartomark end end pagesave restore showpage/&\\n \
-		%Added postscript\\n \
-		90 rotate\\n \
-		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
-		40 scalefont\\n \
-		setfont\\n \
-		newpath\\n \
-		396 -35 moveto\\n \
-		(Post-Game Analysis) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		396 -75 moveto\\n \
-		($kGameName) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		265 -350 moveto\\n \
-		(M) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		265 -390 moveto\\n \
-		(O) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		265 -430 moveto\\n \
-		(V) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		265 -470 moveto\\n \
-		(E) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		530 -350 moveto\\n \
-		(H) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		530 -390 moveto\\n \
-		(I) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		530 -430 moveto\\n \
-		(S) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		530 -470 moveto\\n \
-		(T) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		530 -510 moveto\\n \
-		(O) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		530 -550 moveto\\n \
-		(R) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		530 -590 moveto\\n \
-		(Y) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf) findfont\\n \
-		20 scalefont\\n \
-		setfont\\n \
-		newpath\\n \
-		60 -45 moveto\\n \
-		($date) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		60 -75 moveto\\n \
-		($t) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		750 -60 moveto\\n \
-		($host) dup stringwidth pop 2 div neg 0 rmoveto show\\n \
-		-90 rotate/' $outputs("output")
-	
+	exec /usr/bin/psnup -q -2 -pletter -W8.25in $outputs("output_merge") $outputs("output")	
 }
 
 # go through all the mistakes
@@ -453,7 +469,7 @@ proc makeExec { mistakeList maxErrors} {
 		set badPos [C_DoMove $oldPos $badMove]
 		set old [makePath $oldPos true]
 		set new [makePath $badPos false]
-		set ret "$ret $old $new"
+		set ret "$ret \"$old\" \"$new\""
 	}
 	
 	return $ret
