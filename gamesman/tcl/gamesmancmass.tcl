@@ -29,6 +29,8 @@
 ## Intelligent Help to know if a radiobutton is selected
 ##
 #############################################################################
+global command_line_args
+set command_line_args [concat $argv0 $argv]
 
 #############################################################################
 ##
@@ -2850,7 +2852,8 @@ proc main {} {
     InitConstants
     GS_InitGameSpecific
     InitWindow
-    C_Initialize
+    global command_line_args
+    C_Initialize $command_line_args
     C_InitializeDatabases
 }
 
