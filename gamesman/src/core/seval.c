@@ -38,7 +38,6 @@
 
 seList evaluatorList;
 seList currEvaluator = NULL;
-fList featureList;
 char* LibraryTraits[] = {"Number of Pieces","Distance from Edge","Clustering","Connections"};
 int numLibraryTraits = 4;
 int numCustomTraits = 0;
@@ -648,7 +647,7 @@ float logarithmic(float value,float params[]){
 void NewTraitMenu(STRING fileName) {
   char nextItem, libraryUpperBound;
   int traitNum;
-  fList currFeature;
+  fList currFeature = NULL;
   char namePlaceHolder[30];
   char* defaultName = "default";
   int variant = 0;
@@ -699,13 +698,13 @@ void NewTraitMenu(STRING fileName) {
       break;
     else {
       currFeature = ParameterizeTrait(traitNum, libraryUpperBound-97);
-      currFeature->next = featureList;
-      featureList = currFeature;
+      currFeature->next = currEvaluator->featureList;
+      currEvaluator->featureList = currFeature;
     }
   }
   
   
-  currEvaluator->featureList = copyFeatureList(featureList);
+  //currEvaluator->featureList = copyFeatureList(featureList);
   currEvaluator->next = evaluatorList;
   evaluatorList = currEvaluator;
   #ifdef HAVE_XML
