@@ -167,6 +167,7 @@ POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 
 // HASH/UNHASH
+char* customUnhash(POSITION);
 POSITION BlankOXToPosition(BlankOX*);
 BlankOX* PositionToBlankOX(POSITION);
 BlankOX WhoseTurn(BlankOX*);
@@ -241,6 +242,7 @@ void InitializeGame()
   }
 
   gMoveToStringFunPtr = &MoveToString;
+  gCustomUnhash = &customUnhash;
 
   //discard current hash
   generic_hash_destroy();
@@ -689,27 +691,30 @@ BOOLEAN AllFilledIn(BlankOX* board)
 
 int NumberOfOptions()
 {
-  return 4 ;
+  return 4;
 }
 
 int getOption()
 {
   int option = 0;
-  option += gStandardGame;
-  option *= 2;
-  option += gSymmetries;
+  option += (gStandardGame ? 1 : 0);
+  option += (gSymmetries ? 2 : 0);
   return option+1;
 }
 
 void setOption(int option)
 {
     option -= 1;
+    gStandardGame = option % 2;
+    option -= 2;
     gSymmetries = option % 2;
-    option /= 2;
-    gStandardGame = option;
 }
 
 // HASH/UNHASH
+
+char* customUnhash(POSITION position) {
+    return (char*)PositionToBlankOX(position);
+}
 
 // "Unhash"
 BlankOX* PositionToBlankOX(POSITION position)

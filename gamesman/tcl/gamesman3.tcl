@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.57 2007-04-18 17:11:53 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.58 2007-04-22 09:54:35 max817 Exp $
 ##
 ############################################################################
 
@@ -590,6 +590,10 @@ proc InitGlobals {} {
     ### List of moves played
     global gMovesSoFar
     set gMovesSoFar [list]
+    
+    ### TIER-GAMESMAN: For Undoing Tier Moves
+    global gTiersSoFar
+    set gTiersSoFar [list]
 
     ### Automove when only 1 possible move
     global gSkipInputOnSingleMove
@@ -650,8 +654,8 @@ proc SetupGamePieces {} {
 
 proc NewGame { } {
 
-    global gGameSoFar gPosition gInitialPosition gMovesSoFar
-    global gLeftName gRightName gWhoseTurn gPlaysFirst
+    global gGameSoFar gPosition gInitialPosition gMovesSoFar gTiersSoFar
+    global gLeftName gRightName gWhoseTurn gPlaysFirst gUsingTiers
     .middle.f1.cMLeft itemconfigure LeftName \
 	-text [format "Left:\n%s" $gLeftName]
     .middle.f3.cMRight itemconfigure RightName \
@@ -660,6 +664,11 @@ proc NewGame { } {
     .middle.f3.cMRight raise RightName
     update
     set gPosition $gInitialPosition
+    # TIER-GAMESMAN
+    if { $gUsingTiers == 1 } {
+        set gPosition [C_InitHashWindow $gInitialPosition]
+        set gTiersSoFar [list]
+    }
     if { $gPlaysFirst == 0 } {
         set gWhoseTurn "Left"
     } else {
@@ -731,6 +740,7 @@ proc DriverLoop { } {
 		}
 
 	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
+
 	    update idletasks
 	    ##
 	}
@@ -754,7 +764,7 @@ proc DriverLoop { } {
 	    .middle.f3.cMRight itemconfigure Predictions \
 		-text [format "Predictions: %s" $gPredString]
 	    update idletasks
-       	    
+              
 	    if { [PlayerIsComputer] } {
 		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 		after [expr int($gMoveDelay * 1000)]
@@ -773,7 +783,6 @@ proc DriverLoop { } {
 		    set gWaitingForHuman true
 		}
 		set gJustUndone false
-
 	    }
 	}
     }
@@ -816,7 +825,7 @@ proc SwitchWhoseTurn {} {
 
 proc DoComputerMove { } {
 
-    global gPosition gGameSoFar gMovesSoFar
+    global gPosition gGameSoFar gMovesSoFar gUsingTiers gTiersSoFar
 
     set theMove [C_GetComputersMove $gPosition]    
 
@@ -836,7 +845,14 @@ proc DoComputerMove { } {
     if { [expr ![C_GoAgain $oldPosition $theMove]] } {
 	SwitchWhoseTurn
     }
-
+    
+    # TIER-GAMESMAN
+    if { $gUsingTiers == 1 } {
+        set gTiersSoFar [push $gTiersSoFar [C_CurrentTier]]
+        set gPosition [C_HashWindow $gPosition]
+        set gGameSoFar [pop $gGameSoFar]
+        set gGameSoFar [push $gGameSoFar $gPosition]
+    }
 }
 
 #############################################################################
@@ -902,7 +918,7 @@ proc ReturnFromHumanMove { theMove } {
 
 proc ReturnFromHumanMoveHelper { theMove } {
         
-    global gPosition gGameSoFar gMovesSoFar gMoveType gReallyUnsolved
+    global gPosition gGameSoFar gMovesSoFar gMoveType gReallyUnsolved gUsingTiers gTiersSoFar
 
     set primitive [C_Primitive $gPosition]
 
@@ -929,6 +945,14 @@ proc ReturnFromHumanMoveHelper { theMove } {
 	if { [expr ![C_GoAgain $oldPosition $theMove]] } {
 	    SwitchWhoseTurn
 	}
+    
+        # TIER-GAMESMAN
+        if { $gUsingTiers == 1 } {
+            set gTiersSoFar [push $gTiersSoFar [C_CurrentTier]]
+            set gPosition [C_HashWindow $gPosition]
+            set gGameSoFar [pop $gGameSoFar]
+            set gGameSoFar [push $gGameSoFar $gPosition]
+        }
 
         DriverLoop
 
@@ -1151,7 +1175,7 @@ proc UndoNMoves { n } {
 
 proc UndoHelper { } {
     
-    global gPosition gMovesSoFar gGameSoFar gMoveType gRedoList gReallyUnsolved
+    global gPosition gMovesSoFar gGameSoFar gMoveType gRedoList gReallyUnsolved gUsingTiers gTiersSoFar
     
     if { [llength $gGameSoFar] != 1 } {
         
@@ -1169,11 +1193,18 @@ proc UndoHelper { } {
         
         set undoOnce [pop $gGameSoFar]
         
+        # TIER-GAMESMAN
+        if { $gUsingTiers == 1 } {
+            set gPosition [C_HashWindowUndo [peek $gTiersSoFar]]
+            set gTiersSoFar [pop $gTiersSoFar]
+        }        
+        
         GS_HandleUndo .middle.f2.cMain [peek $gGameSoFar] [peek $gMovesSoFar] [peek $undoOnce]
         
         set gGameSoFar $undoOnce
         
         set gPosition [peek $gGameSoFar]
+        
         
 	set undoneMove [peek $gMovesSoFar]
         set gMovesSoFar [pop $gMovesSoFar]

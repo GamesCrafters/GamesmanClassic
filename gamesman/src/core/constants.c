@@ -141,7 +141,7 @@ STRING   kHelpWhatAreHints =
 
 
 
-STRING  kHandleDefaultTextInputHelp = 
+STRING  kHandleDefaultTextInputHelp =
 "\n"
 "Text Input Commands:\n"
 "-------------------\n"
@@ -154,19 +154,19 @@ STRING  kHandleDefaultTextInputHelp =
 "h (or H)    : (H)elp\n"
 "q (or Q)    : (Q)uit";
 
-STRING kPrintMenu = 
+STRING kPrintMenu =
 "\n"
 "\tr)\t(R)eprint the position\n";
 
 
-STRING kPrintMenuWithSolving = 
+STRING kPrintMenuWithSolving =
 "\ts)\t(S)how the values of all possible moves\n"
 "\tv)\tPrint (V)isual Value History\n"
 "\tw)\tPrint Visual Value History (W)ith All Possible Moves\n";
 
 
 
-STRING kPrintMenuEnd = 
+STRING kPrintMenuEnd =
 "\tm)\tScript of (M)ove History\n"
 "\n\th)\t(H)elp\n\n"
 "\tb)\t(B)ack\n\n"
@@ -176,7 +176,7 @@ STRING kPrintMenuEnd =
 char *gValueString[] =
     {
 	"Undecided", "Win", "Lose", "Tie",
-	"Win-Visited", "Lose-Visited", 
+	"Win-Visited", "Lose-Visited",
 	"Tie-Visited", "Undecided-Visited"
     };
 
@@ -215,6 +215,8 @@ STRING kCommandSyntaxHelp =
 "--allschemes\n"
 "--adjust\t\tWith bpdb turned on, slice sizes will be grow and shrink to best-fit data.\n"
 "--noadjust\n"
+"--notiers\t\tStarts game with Tier-Gamesman Mode OFF by default.\n"
+"--notiermenu\t\tThis option disables the Tier-Gamesman solver menu, and auto-solves all tiers.\n"
 "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 "\t\t\tTo solve all option configurations of game, use <all>.\n"
 "\t\t\tIf <n> and <all> are ommited, it will solve the default\n"

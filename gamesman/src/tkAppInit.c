@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.37 2007-04-02 20:56:00 scarr2508 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.38 2007-04-22 09:54:34 max817 Exp $
 **
 **************************************************************************/
 
@@ -20,6 +20,7 @@
 #include <string.h>
 #include "core/analysis.h"
 #include "core/gameplay.h"
+#include "core/solveretrograde.h" // For InitTierGamesman()
 
 extern STRING gValueString[]; /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
@@ -42,7 +43,6 @@ int *tclDummyMathPtr = (int *) matherr;
 ** Begin prototype for commands invoked from tcl command requests
 **
 **************************************************************************/
-
 
 static int		InitialPositionCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
@@ -98,6 +98,18 @@ static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
 static int      percentDoneCmd _ANSI_ARGS_((ClientData clientData,
                 Tcl_Interp *interp, int argc, char **argv));
 
+static int      UsingTiersCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
+static int      InitHashWindowCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
+static int      HashWindowCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
+static int      HashWindowUndoCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
+static int      CurrentTierCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
+static int      InitTierGamesmanIfNeededCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
 
 /************************************************************************
 **
@@ -175,6 +187,18 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_PercentDone", (Tcl_CmdProc*) percentDoneCmd, (ClientData) mainWindow,
               (Tcl_CmdDeleteProc*) NULL);
 
+    Tcl_CreateCommand(interp, "C_UsingTiers", (Tcl_CmdProc*) UsingTiersCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_InitHashWindow", (Tcl_CmdProc*) InitHashWindowCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_HashWindow", (Tcl_CmdProc*) HashWindowCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_HashWindowUndo", (Tcl_CmdProc*) HashWindowUndoCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_CurrentTier", (Tcl_CmdProc*) CurrentTierCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_InitTierGamesmanIfNeeded", (Tcl_CmdProc*) InitTierGamesmanIfNeededCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
 
     {
     int (*fptr)(Tcl_Interp *interp,Tk_Window) = (int(*)(Tcl_Interp*, Tk_Window))gGameSpecificTclInit;
@@ -302,8 +326,9 @@ InitializeCmd(dummy, interp, argc, argv)
 	  numArgs++;
       }
     }
-    
+
     HandleArguments(numArgs, args);
+    gTierSolverMenu = FALSE; // For TIER-GAMESMAN, makes sure to turn off the menu and auto-solve
     Initialize();
     interp->result = "System Initialized";
     return TCL_OK;
@@ -322,6 +347,7 @@ InitializeGameCmd(dummy, interp, argc, argv)
     return TCL_ERROR;
   }
   else {
+    gHashWindowInitialized = FALSE; // For TIER-GAMESMAN, just in case
     InitializeGame();
     interp->result = "Game Initialized";
     return TCL_OK;
@@ -867,5 +893,145 @@ ComputeCCmd(dummy, interp, argc, argv)
 }
  #endif
 
+// TIER FUN!
+static int
+UsingTiersCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  if (argc != 1) {
+    interp->result = "wrong # args: UsingTiers";
+    return TCL_ERROR;
+  }
+  else {
+    if (gHashWindowInitialized) // TIER GAMESMAN
+        sprintf(interp->result,"%d",1);
+    else
+        sprintf(interp->result,"%d",0);
+    return TCL_OK;
+  }
+}
 
+static int
+InitHashWindowCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  POSITION position;
 
+  if (argc != 2) {
+    interp->result = "wrong # args: InitHashWindow (int)Position";
+    return TCL_ERROR;
+  }
+  else {
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+      return TCL_ERROR;
+
+    if (gHashWindowInitialized) { // TIER GAMESMAN
+      gInitializeHashWindow(gInitialTier, TRUE);
+      position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
+    } // else, just spit the argument back (for non-tier games)
+
+    sprintf(interp->result,"%d",(int)position);
+    return TCL_OK;
+  }
+}
+
+static int
+HashWindowCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  POSITION position;
+
+  if (argc != 2) {
+    interp->result = "wrong # args: HashWindow (int)Position";
+    return TCL_ERROR;
+  }
+  else {
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+      return TCL_ERROR;
+
+    if (gHashWindowInitialized)
+        gInitializeHashWindowToPosition(&position);
+
+    sprintf(interp->result,"%d",(int)position);
+    return TCL_OK;
+  }
+}
+
+static int
+HashWindowUndoCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  TIER tier;
+
+  if (argc != 2) {
+    interp->result = "wrong # args: HashWindowUndo (int)Position";
+    return TCL_ERROR;
+  }
+  else {
+    if (sscanf(argv[1], POSITION_FORMAT, &tier) == EOF)
+      return TCL_ERROR;
+
+    if (gHashWindowInitialized)
+        gInitializeHashWindow(tier, TRUE);
+
+    sprintf(interp->result,"%d",1);
+    return TCL_OK;
+  }
+}
+
+static int
+CurrentTierCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  if (argc != 1) {
+    interp->result = "wrong # args: UsingTiers";
+    return TCL_ERROR;
+  }
+  else {
+    if (gHashWindowInitialized) // TIER GAMESMAN
+        sprintf(interp->result,"%d",(int)gCurrentTier);
+    else
+        sprintf(interp->result,"%d",-1);
+    return TCL_OK;
+  }
+}
+
+static int
+InitTierGamesmanIfNeededCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  POSITION position;
+
+  if (argc != 2) {
+    interp->result = "wrong # args: UsingTiers";
+    return TCL_ERROR;
+  }
+  else {
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+      return TCL_ERROR;
+
+    if (kSupportsTierGamesman && gTierGamesman) // TIER GAMESMAN
+        sprintf(interp->result,"%d",(int)InitTierGamesman());
+    else // no tiers, just return the position directly for non-tier games
+        sprintf(interp->result,"%d",(int)position);
+    return TCL_OK;
+  }
+}

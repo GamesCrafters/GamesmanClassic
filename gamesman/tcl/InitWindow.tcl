@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.128 2007-04-18 17:11:53 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.129 2007-04-22 09:54:34 max817 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -86,6 +86,7 @@ proc TBaction2 {} {
 
     set gNewGame "true"
     switchRules $kRules
+    
      if { $gGameSolved == "false" } {
  	clickedPlayNow
      }
@@ -1539,6 +1540,9 @@ proc clickedPlayNow {} {
 	    set gGameSolved true
 	    . config -cursor {}
 	} else {
+        # TIER-GAMESMAN
+        set gPosition [C_InitTierGamesmanIfNeeded $gPosition]
+        
 	    set gReallyUnsolved true
 	    set gGameSolved true
 	}
@@ -1571,6 +1575,11 @@ proc clickedPlayNow {} {
 	.cStatus lower base
 	global gGamePlayable
 	set gGamePlayable true
+    
+    # TIER-GAMESMAN
+    global gUsingTiers
+    set gUsingTiers [C_UsingTiers]
+    
 	NewGame
 	if {$gReallyUnsolved} {
 	    .cStatus raise rulesD

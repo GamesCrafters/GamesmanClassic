@@ -86,8 +86,7 @@ void Initialize()
         //generic_hash_context_init();
 
         /* get the DB function table with all pointers to default */
-        if(!(kSupportsTierGamesman && gTierGamesman)) //If no TIER GAMESMAN
-        	CreateDatabases();
+        CreateDatabases();
 
         /* game-specific variabless */
         InitializeGame();
@@ -323,6 +322,8 @@ void HandleArguments (int argc, char *argv[])
                     gBitPerfectDBAdjust = TRUE;
                 } else if(!strcasecmp(argv[i], "--noadjust")) {
                     gBitPerfectDBAdjust = FALSE;
+                } else if(!strcasecmp(argv[i], "--notiers")) {
+                    gTierGamesman = FALSE;
                 } else if(!strcasecmp(argv[i], "--notiermenu")) {
                     gTierSolverMenu = FALSE;
                 } else if(!strcasecmp(argv[i], "--solve")) {
@@ -412,7 +413,7 @@ void HandleArguments (int argc, char *argv[])
 					/* Some games initialize help strings inside InitializeGame() */
 					 InitializeGame();
 					/* prints long name, short name, default option,
-					 * C author(s), and some k* values, delimited with ^ 
+					 * C author(s), and some k* values, delimited with ^
 					 * Current k* values are kDebugMenu. kDebugDetermineValue,
 					 * and any kHelp* that aren't written*/
 					printf("%s^%s^%d^%s^%s^%s^%s\n", kGameName, kDBName, getOption(),

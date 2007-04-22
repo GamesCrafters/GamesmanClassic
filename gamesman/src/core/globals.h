@@ -7,7 +7,7 @@
 */
 
 extern VALUE		gValue;
-extern BOOLEAN		gHumanGoesFirst, gPrintPredictions, gPrintSEvalPredictions, 
+extern BOOLEAN		gHumanGoesFirst, gPrintPredictions, gPrintSEvalPredictions,
   gSEvalLoaded, gSEvalPerfect, gHints, gUnsolved;
 
 extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
@@ -134,6 +134,7 @@ extern TIERPOSITION     gDBTierStart;
 extern TIERPOSITION     gDBTierEnd;
 extern TIER				kBadTier;
 extern BOOLEAN          gTierSolverMenu;
+extern BOOLEAN          gDontLoadTierDB;
 // For the hash window
 extern BOOLEAN			gHashWindowInitialized;
 extern BOOLEAN			gCurrentTierIsLoopy;

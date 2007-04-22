@@ -344,6 +344,7 @@ TTC_SO			= $(LIBDIR)/libmttc$(LIBSUFFIX)
 
 TTTIER_EXE		= $(BINDIR)/mtttier$(EXESUFFIX) #The Tier-based game of Tic-Tac-Tier
 TTTIER_OBJ		= mtttier$(OBJSUFFIX)
+TTTIER_SO       = $(LIBDIR)/libmtttier$(LIBSUFFIX)
 
 TTT_EXE			= $(BINDIR)/mttt$(EXESUFFIX)	# The awesome game of Tic-Tac-Toe
 TTT_OBJ			= mttt$(OBJSUFFIX)
@@ -412,7 +413,8 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
 	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) \
 	$(FOXES_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
-        $(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO) $(TOOTNOTTO_SO) $(CAMBIO_SO) $(BAGHCHAL_SO)
+        $(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO) $(TOOTNOTTO_SO) $(CAMBIO_SO) $(BAGHCHAL_SO) \
+        $(TTTIER_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
