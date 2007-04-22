@@ -133,6 +133,7 @@ extern BOOLEAN			gDBLoadMainTier;
 extern TIERPOSITION     gDBTierStart;
 extern TIERPOSITION     gDBTierEnd;
 extern TIER				kBadTier;
+extern BOOLEAN          gTierSolverMenu;
 // For the hash window
 extern BOOLEAN			gHashWindowInitialized;
 extern BOOLEAN			gCurrentTierIsLoopy;

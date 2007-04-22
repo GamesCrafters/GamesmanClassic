@@ -129,6 +129,7 @@ BOOLEAN			gDBLoadMainTier = FALSE;
 TIERPOSITION    gDBTierStart = -1;
 TIERPOSITION    gDBTierEnd = -1;
 TIER 			kBadTier = -1;
+BOOLEAN         gTierSolverMenu = TRUE;
 // For the hash window
 BOOLEAN			gHashWindowInitialized = FALSE;
 BOOLEAN			gCurrentTierIsLoopy = FALSE;

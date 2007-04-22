@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.34 2007-04-05 19:16:20 max817 Exp $
+// $Id: solveretrograde.c,v 1.35 2007-04-22 04:17:19 max817 Exp $
 
 /************************************************************************
 **
@@ -56,6 +56,7 @@ BOOLEAN checkCorrectness; // Whether or not to check correctness after the solve
 
 // Solver procs
 void checkExistingDB();
+void AutoSolveAllTiers();
 BOOLEAN gotoNextTier();
 void solveFirst(TIER);
 void PrepareToSolveNextTier();
@@ -196,101 +197,103 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	} else if (tiersSolved == 0) // No DBs loaded, a fresh solve
 		printf("No DBs Found! Starting a fresh solve...\n");
 
-	PrepareToSolveNextTier();
+    if (gTierSolverMenu) {
+	    PrepareToSolveNextTier();
 
-	char c;
-    while(cont) {
-        printf("\n\n\t----- RETROGRADE SOLVER MENU for game: %s -----\n", kGameName);
-        printf("\tReady to solve %sLOOPY tier %llu", (gCurrentTierIsLoopy ? "" : "NON-"), gCurrentTier);
-        if (tierNames) {
-			tierStr = gTierToStringFunPtr(gCurrentTier);
-			printf(" (%s)", tierStr);
-			if (tierStr != NULL) SafeFree(tierStr);
-		}
-        printf("\n\tThe tier hash contains (%lld) positions.", gCurrentTierSize);
-        printf("\n\tTiers left: %llu (%.1f%c Solved)\n\n", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
-        if (isLegalGiven)
-       		printf("\tl)\tCheck (L)egality using IsLegal? Currently: %s\n", (checkLegality ? "YES" : "NO"));
-        else printf("\t\t(Legality Checking using IsLegal DISABLED)\n");
-        if (undoGiven)
-        	printf("\tu)\t(U)se UndoMove functions for Loopy Solve? Currently: %s\n", (useUndo ? "YES" : "NO"));
-        else printf("\t\t(Undomove functions for Loopy Solve DISABLED)\n");
-        printf("\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
-			   "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
-        	   "\ts)\t(S)olve the next tier.\n"
-               "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
-               "\tt)\tChange the (T)ier Solve Order.\n\n"
-               "\tb)\t(B)egin the Game before fully solving!\n\n"
-               "\tq)\t(Q)uit the Retrograde Solver.\n"
-               "\nSelect an option:  ", (checkCorrectness ? "YES" : "NO"), (forceLoopy ? "YES" : "NO"));
-        c = GetMyChar();
-        switch(c) {
-			case 'l': case 'L':
-				if (isLegalGiven) //IsLegal is given
-					checkLegality = !checkLegality;
-				else printf("IsLegal isn't written! Thus, you can't check legality!\n");
-				break;
-			case 'u': case 'U':
-				if (undoGiven) //Undo stuff is given
-					useUndo = !useUndo;
-				else printf("UndoMove function(s) not written! Thus, you can't use the UndoMove Algorithm!\n");
-				break;
-			case 'c': case 'C':
-				checkCorrectness = !checkCorrectness;
-				break;
-			case 'f': case 'F':
-				forceLoopy = !forceLoopy;
-				break;
-			case 's': case 'S':
-	            SolveTier(0,gCurrentTierSize);
-	            if (!gotoNextTier()) {
-	            	printf("\n%s is now fully solved!\n", kGameName);
-                	cont = FALSE;
-                } else PrepareToSolveNextTier();
-                break;
-            case 'a': case 'A':
-            	printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
-            	BOOLEAN loop = TRUE;
-            	while (loop) {
-					PrepareToSolveNextTier();
-            		SolveTier(0,gCurrentTierSize);
-            		loop = gotoNextTier();
-            		printf("\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
-				}
-            	printf("\n%s is now fully solved!\n", kGameName);
-                cont = FALSE;
-                break;
-            case 't': case 'T':
-				changeTierSolveList();
-				break;
-            case 'b': case 'B':
-            	if (setInitialTierPosition()) {
-                	cont = FALSE;
-				} break;
-            case 'q': case 'Q':
-            	printf("Exiting Retrograde Solver (WITHOUT Fully Solving)...\n"
-            			"Keep in mind that next time you start the solve, you will\n"
-            			"continue from this exact point, if all the databases are there.\n"
-            			"To ensure correct solving, make sure that the already-written\n"
-            			"databases (in your data/m%s_%d_tierdb directory) are not altered,\n"
-            			"and the API functions are unchanged from their current state.\n", kDBName, variant);
-            	ExitStageRight();
-            case 'h': case 'H':
-                for (ptr = tierSolveList; ptr != NULL; ptr = ptr->next) {
-                    char f1[80], f2[80];
-                    sprintf(f1, "./data/a_%llu.txt", ptr->tier);
-                    sprintf(f2, "./data/b_%llu.txt", ptr->tier);
-                    compareTwoFiles(f1, f2, TRUE);
-                }
-				//compareTwoFiles("./a.txt", "./b.txt", FALSE);
-				break;
-            case 'p': case 'P':
-                TestRemote();
-                break;
-            default:
-                printf("Invalid option!\n");
+	    char c;
+        while(cont) {
+            printf("\n\n\t----- RETROGRADE SOLVER MENU for game: %s -----\n", kGameName);
+            printf("\tReady to solve %sLOOPY tier %llu", (gCurrentTierIsLoopy ? "" : "NON-"), gCurrentTier);
+            if (tierNames) {
+			    tierStr = gTierToStringFunPtr(gCurrentTier);
+			    printf(" (%s)", tierStr);
+			    if (tierStr != NULL) SafeFree(tierStr);
+		    }
+            printf("\n\tThe tier hash contains (%lld) positions.", gCurrentTierSize);
+            printf("\n\tTiers left: %llu (%.1f%c Solved)\n\n", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
+            if (isLegalGiven)
+       		    printf("\tl)\tCheck (L)egality using IsLegal? Currently: %s\n", (checkLegality ? "YES" : "NO"));
+            else printf("\t\t(Legality Checking using IsLegal DISABLED)\n");
+            if (undoGiven)
+        	    printf("\tu)\t(U)se UndoMove functions for Loopy Solve? Currently: %s\n", (useUndo ? "YES" : "NO"));
+            else printf("\t\t(Undomove functions for Loopy Solve DISABLED)\n");
+            printf("\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
+			       "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
+        	       "\ts)\t(S)olve the next tier.\n"
+                   "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
+                   "\tt)\tChange the (T)ier Solve Order.\n\n"
+                   "\tb)\t(B)egin the Game before fully solving!\n\n"
+                   "\tq)\t(Q)uit the Retrograde Solver.\n"
+                   "\nSelect an option:  ", (checkCorrectness ? "YES" : "NO"), (forceLoopy ? "YES" : "NO"));
+            c = GetMyChar();
+            switch(c) {
+			    case 'l': case 'L':
+				    if (isLegalGiven) //IsLegal is given
+					    checkLegality = !checkLegality;
+				    else printf("IsLegal isn't written! Thus, you can't check legality!\n");
+				    break;
+			    case 'u': case 'U':
+				    if (undoGiven) //Undo stuff is given
+					    useUndo = !useUndo;
+				    else printf("UndoMove function(s) not written! Thus, you can't use the UndoMove Algorithm!\n");
+				    break;
+			    case 'c': case 'C':
+				    checkCorrectness = !checkCorrectness;
+				    break;
+			    case 'f': case 'F':
+				    forceLoopy = !forceLoopy;
+				    break;
+			    case 's': case 'S':
+	                SolveTier(0,gCurrentTierSize);
+	                if (!gotoNextTier()) {
+	            	    printf("\n%s is now fully solved!\n", kGameName);
+                	    cont = FALSE;
+                    } else PrepareToSolveNextTier();
+                    break;
+                case 'a': case 'A':
+            	    printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
+            	    BOOLEAN loop = TRUE;
+            	    while (loop) {
+					    PrepareToSolveNextTier();
+            		    SolveTier(0,gCurrentTierSize);
+            		    loop = gotoNextTier();
+            		    printf("\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
+				    }
+            	    printf("\n%s is now fully solved!\n", kGameName);
+                    cont = FALSE;
+                    break;
+                case 't': case 'T':
+				    changeTierSolveList();
+				    break;
+                case 'b': case 'B':
+            	    if (setInitialTierPosition()) {
+                	    cont = FALSE;
+				    } break;
+                case 'q': case 'Q':
+            	    printf("Exiting Retrograde Solver (WITHOUT Fully Solving)...\n"
+            			    "Keep in mind that next time you start the solve, you will\n"
+            			    "continue from this exact point, if all the databases are there.\n"
+            			    "To ensure correct solving, make sure that the already-written\n"
+            			    "databases (in your data/m%s_%d_tierdb directory) are not altered,\n"
+            			    "and the API functions are unchanged from their current state.\n", kDBName, variant);
+            	    ExitStageRight();
+                case 'h': case 'H':
+                    for (ptr = tierSolveList; ptr != NULL; ptr = ptr->next) {
+                        char f1[80], f2[80];
+                        sprintf(f1, "./data/a_%llu.txt", ptr->tier);
+                        sprintf(f2, "./data/b_%llu.txt", ptr->tier);
+                        compareTwoFiles(f1, f2, TRUE);
+                    }
+				    //compareTwoFiles("./a.txt", "./b.txt", FALSE);
+				    break;
+                case 'p': case 'P':
+                    TestRemote();
+                    break;
+                default:
+                    printf("Invalid option!\n");
+            }
         }
-    }
+    } else AutoSolveAllTiers(); // if no menu, go straight to auto solve!
 	printf("Exiting Retrograde Solver...\n\n");
 	FreeTierList(tierSolveList);
 	FreeTierList(solveList);
@@ -298,6 +301,18 @@ VALUE DetermineRetrogradeValue(POSITION position) {
     return undecided; //just bitter at the fact that this is ignored
 }
 
+// Set on by the command line (or the GUI) when no menu must appear
+void AutoSolveAllTiers() {
+    printf("Fully Solving the game...\n\n");
+	BOOLEAN loop = TRUE;
+	while (loop) {
+		PrepareToSolveNextTier();
+		SolveTier(0,gCurrentTierSize);
+		loop = gotoNextTier();
+		printf("\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
+	}
+	printf("\n%s is now fully solved!\n", kGameName);
+}
 
 // Inits the hash window/database and prepares to solve tier
 void PrepareToSolveNextTier() {

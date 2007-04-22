@@ -323,6 +323,8 @@ void HandleArguments (int argc, char *argv[])
                     gBitPerfectDBAdjust = TRUE;
                 } else if(!strcasecmp(argv[i], "--noadjust")) {
                     gBitPerfectDBAdjust = FALSE;
+                } else if(!strcasecmp(argv[i], "--notiermenu")) {
+                    gTierSolverMenu = FALSE;
                 } else if(!strcasecmp(argv[i], "--solve")) {
                         gJustSolving = TRUE;
                         if((i + 1) < argc && !strcasecmp(argv[++i], "all"))
@@ -371,6 +373,19 @@ void HandleArguments (int argc, char *argv[])
                         i += argc;
                         gMessage = TRUE;
                 } else if(!strcasecmp(argv[i], "--GenerateMoves")) {
+                        InitializeGame();
+                        if (argc != 3)
+                            fprintf(stderr, "\nInvalid arguments!\n\n");
+                        else {
+                            printf("\nGenerateMoves returns: [ ");
+                            MOVELIST* moves = GenerateMoves(atoi(argv[2])), *ptr;
+                            for (ptr = moves; ptr != NULL; ptr = ptr->next) {
+                                PrintMove(ptr->move);
+                                printf(" ");
+                            }
+                            printf("]\n\n");
+                            FreeMoveList(moves);
+                        }
                         i += argc;
                         gMessage = TRUE;
                 } else if(!strcasecmp(argv[i], "--lightplayer")) {
@@ -390,7 +405,7 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i],"--hashCounting")) {
 						hashCounting();
 						return;
-				} else if(!strcasecmp(argv[i],"--startAndWait")) {
+				} else if(!strcasecmp(argv[i],"--startAndWait")) { // for PARALLELIZATION
 						StartAndWait();
 						ExitStageRight();
 				} else if(!strcasecmp(argv[i],"--printdefault")) {
@@ -432,37 +447,40 @@ int gamesman_main(STRING executableName)
         if(!gMessage) {
                 if(!gJustSolving)
                         StartGame(executableName);
-                else if(!gSolvingAll) {
-                        fprintf(stderr, "Solving \"%s\" option %u....", kGameName, getOption());
-                        fflush(stderr);
-                        if (gAnalyzing) {
-                        	writeXML(Init);
-                        	writeXML(InitVar);
-                        }
-                        SolveAndStore();
-                        fprintf(stderr, "done.\n");
-                } else {
-                        int i;
-                        fprintf(stderr, "Solving \"%s\" option ", kGameName);
-
-                        if (gAnalyzing) {
-                                writeXML(Init);
-                        }
-
-                        for(i = 1; i <= NumberOfOptions(); i++) {
-                                fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
+                else {
+                        gTierSolverMenu = FALSE; // TIER-GAMESMAN: if just going to solve, turn off the menu
+                        if(!gSolvingAll) {
+                                fprintf(stderr, "Solving \"%s\" option %u....", kGameName, getOption());
                                 fflush(stderr);
-                                setOption(i);
-                        		if (gAnalyzing) {
-                                	writeXML(InitVar);
-                        		}
+                                if (gAnalyzing) {
+                        	        writeXML(Init);
+                        	        writeXML(InitVar);
+                                }
                                 SolveAndStore();
-                                fprintf(stderr, "%c[u", 27);
+                                fprintf(stderr, "done.\n");
+                        } else {
+                                int i;
+                                fprintf(stderr, "Solving \"%s\" option ", kGameName);
+
+                                if (gAnalyzing) {
+                                        writeXML(Init);
+                                }
+
+                                for(i = 1; i <= NumberOfOptions(); i++) {
+                                        fprintf(stderr, "%c[s%u of %u....", 27, i, NumberOfOptions());
+                                        fflush(stderr);
+                                        setOption(i);
+                        		        if (gAnalyzing) {
+                                	        writeXML(InitVar);
+                        		        }
+                                        SolveAndStore();
+                                        fprintf(stderr, "%c[u", 27);
+                                }
+						        if (gAnalyzing) {
+                                        writeXML(Clean);
+                                }
+                                fprintf(stderr, "%u of %u....done.\n", i - 1, NumberOfOptions());
                         }
-						if (gAnalyzing) {
-                                writeXML(Clean);
-                        }
-                        fprintf(stderr, "%u of %u....done.\n", i - 1, NumberOfOptions());
                 }
         }
         return 0;
