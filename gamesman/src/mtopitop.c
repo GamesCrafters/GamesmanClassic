@@ -399,6 +399,7 @@ void InitializeGame ()
     kExclusivelyTierGamesman = TRUE;
     
     // always tiering, so don't need a check
+	generic_hash_destroy();
     SetupTierStuff();
 
     // call  SetupTierStuff() somewhere here
@@ -2127,11 +2128,13 @@ STRING TierToString(TIER tier) {
   return str;
 }
 
+// FIXME - needs to make the "transitions" of the nodes in the Tier tree
 TIERLIST* TierChildren(TIER tier) {
   TIERLIST* list = NULL;
   list = CreateTierlistNode(tier, list); // takes the list pointer and creates a new node with that tier and make it its next pointer
+		//^~~~ link to yourself (tier1->tier1)
   if (tier < 12)  // (tier != 12)
-    list = CreateTierlistNode(tier+1, list);
+    list = CreateTierlistNode(tier+1, list);  // add the links here
   return list;
 }
 
@@ -2182,10 +2185,10 @@ void SetupTierStuff() {
     }
     BpiecesArray[1] = 9 - b - r;//5;
     BpiecesArray[2] = 9 - b - r;
-    BpiecesArray[4] = 2 - r; //0; 
-    BpiecesArray[5] = 2 - r;
-    BpiecesArray[7] = 2 - b; //0;
-    BpiecesArray[8] = 2 - b;
+    BpiecesArray[4] = r; //0; 
+    BpiecesArray[5] = r;
+    BpiecesArray[7] = b; //0;
+    BpiecesArray[8] = b;
 
     maxL = generic_hash_init(boardSize, LpiecesArray, NULL, 0);
     generic_hash_set_context(tier*3);
@@ -2280,18 +2283,23 @@ void InitializeGame ()
 */
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
-  int l, s, b;
+  int l, s, b, sum;
   generic_hash_context_switch(tier*3);
   l =  generic_hash_max_pos();
   generic_hash_context_switch(tier*3+1);
   s = generic_hash_max_pos() * maxB;
   generic_hash_context_switch(tier*3+2);
   b = generic_hash_max_pos() * maxB * maxS;
-  return  l + s + b;
+  sum = b + (s * b) + (l * s * b);
+  return  sum;
+  //(B + (S * maxB) + (L * maxS * maxB))
 }
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.47  2007/04/23 23:26:08  alexchoy
+// *** empty log message ***
+//
 // Revision 1.46  2007/04/22 01:30:18  alexchoy
 // initial TIERing code almost complete
 //
