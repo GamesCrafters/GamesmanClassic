@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.67 2007-04-11 04:09:18 rodarmor Exp $
+// $Id: mquarto.c,v 1.68 2007-04-23 09:14:46 bensussman Exp $
 
 
 /*
@@ -144,6 +144,8 @@
 **                     compared. Mario's is MUCH MUCH faster. 
 **
 ** 21 Aug 2006 dmchan: changed to GetMyInt();
+**
+** 23 Apr 2007 Benno: Finishe my teirification work. I feel like i don't understand the system enough to debug it. Gotta ask Max some questions i guess.
 **************************************************************************/
 
 
@@ -369,9 +371,13 @@ POSITION                factorialNoMem(int n);
 POSITION                yanpeiGetCanonical(POSITION p);
 POSITION                marioGetCanonical(POSITION position);
 
+/* Ben's Extra Special TierHashes */
+POSITION TierHash(QTBPtr);
+QTBPtr TierUnhash(POSITION);
+
 /* Since we may switch implementations, here are function pointers to be set in choosing implementation */
-POSITION                (*hash)( QTBPtr ) = &hashUnsymQuarto;
-QTBPtr                  (*unhash)( POSITION ) = &unhashUnsymQuarto;
+POSITION                (*hash)( QTBPtr ) = &TierHash;//&hashUnsymQuarto;
+QTBPtr                  (*unhash)( POSITION ) = &TierUnhash;//&unhashUnsymQuarto;
 void                    (*initGame)( ) = &yanpeiInitializeGame;
 void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &marioPrintPos;
 //void                    (*printPos)(POSITION position, STRING playersName, BOOLEAN usersTurn ) = &yanpeiPrintSlots;
@@ -432,12 +438,14 @@ QTBPtr		GPSBoard;
 **		TeirGamesman function and variable declarations:
 **/
 void SetupTierStuff();
-TIERLIST* TierChildren(TIER foo) { TIERLIST* bob; return bob;};
-TIERPOSITION NumberOfTierPositions(TIER foo) {TIERPOSITION bob; return bob;};
-void GetInitialTierPosition(TIER* foo, TIERPOSITION* bar) { };
+TIERLIST* TierChildren(TIER);
+TIERPOSITION NumberOfTierPositions(TIER);
+void GetInitialTierPosition(TIER*, TIERPOSITION*);
 //BOOLEAN IsLegal(POSITION); All moves are legal in Quarto!
 //UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER); Outdated?
-STRING TierToString(TIER foo){STRING bob; return bob;};
+STRING TierToString(TIER);
+void setPiecesAndSquares(QTBPtr);
+char * consCharArrayFromBoard(QTBPtr);
 //POSITION UnDoMove(POSITION, UNDOMOVE); Outdated?
 
 
@@ -456,6 +464,8 @@ void InitializeGame ()
 {
 
     initGame();
+
+    SetupTierStuff();
   
 }
 
@@ -2806,11 +2816,17 @@ char readchar( ) {
 * of said piece and the choice of the next.)
 */
 TIER BoardToTier(QTBPtr board) {
-	return board->piecesInPlay;
+	TIER thistier = 0;
+	int x;
+	for(x = 0; x < NUMPIECES; x++){
+		if(board->slots[x+1] != EMPTYSLOT) //0 is the hand slot, so skip it. Go from 1-16
+			thistier = thistier | (1 << x);
+	}
+	return thistier;
 }
 
 //Small helper to go through a tier and return the number of empty slots (number of off bits)
-int getBlankSlots(int tier) {
+int getBlankSlots(TIER tier) {
 	int x;
 	int numBlankSlots = 0;
 	for(x = 0; x < NUMPIECES; x++) {
@@ -2819,6 +2835,24 @@ int getBlankSlots(int tier) {
 	return numBlankSlots;
 }
 
+TIERLIST* TierChildren(TIER tier) {
+	TIERLIST* tierlist = NULL;
+	int x;
+	for (x = 0; x < NUMPIECES; x++) {
+		if (!((tier >> x) & 1))
+			tierlist = CreateTierlistNode((tier | (1 << x)),tierlist);
+	}
+	return tierlist;
+}
+
+TIERPOSITION NumberOfTierPositions(TIER tier){
+	generic_hash_context_switch(tier);
+	return (generic_hash_max_pos() * NUMPIECES); //generic hash will ONLY HASH pieces ON the BOARD!
+}
+
+void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
+
+}
 
 
 /**Important Constants to remember:
@@ -2832,17 +2866,16 @@ void SetupTierStuff() {
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
 	gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
 	//gIsLegalFunPtr				= &IsLegal;
-	//gGenerateUndoMovesToTierFunPtr	= &GenerateUndoMovesToTier; Unnecessary, but faster!
-	//gUnDoMoveFunPtr					= &UnDoMove;
+	//gGenerateUndoMovesToTierFunPtr= &GenerateUndoMovesToTier; Unnecessary, but faster!
+	//gUnDoMoveFunPtr				= &UnDoMove;
 	gTierToStringFunPtr				= &TierToString;
-
+	generic_hash_destroy();
 	// Tier-Specific Hashes: BENNO ATTACK!!!
 	int piecesArray[(NUMPIECES * 3) + 4];
 	int pieceCounter, tierCounter;
 	for(pieceCounter = 0; pieceCounter < NUMPIECES; pieceCounter++) {
 		piecesArray[pieceCounter*3] = pieceCounter;
-		piecesArray[pieceCounter*3 + 1] = 0;
-		piecesArray[pieceCounter*3 + 2] = 0;
+		piecesArray[pieceCounter*3 + 1] = piecesArray[pieceCounter*3 + 2] = 0;
 	} 
 	piecesArray[NUMPIECES*3] = EMPTYSLOT;
 	piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = 0;
@@ -2850,19 +2883,100 @@ void SetupTierStuff() {
 	// Now the piecesArray is INITIALIZED!! Wooohoo!
 
 	// Ok, prepare to generic_hash_init 2^16 Times! One for each set of on-board pieces
-	int numberOfTiers = 1 << NUMPIECES; /*This is 2^16*/
+	TIER numberOfTiers = 1 << NUMPIECES; /*This is 2^16*/
 	for(tierCounter = 0; tierCounter < numberOfTiers; tierCounter++) {
 		for(pieceCounter = 0; pieceCounter < NUMPIECES; pieceCounter++) {
 			/**Ok, what's going on here is that the tier Counter is iterating through the
 			2^NUMPIECES possibly configurations, where each bit represents whether or not
-			some piece is present. This makes things easier to code (life1D status)
-			**/
+			some piece is present. This makes things easier to code (life1D status)**/
 			piecesArray[pieceCounter*3 + 1] = (tierCounter >> pieceCounter) & 1;
 			piecesArray[pieceCounter*3 + 2] = (tierCounter >> pieceCounter) & 1;
-			piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = getBlankSlots(tierCounter);
 		}
+		piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = getBlankSlots(tierCounter);
 		generic_hash_init(BOARDSIZE, piecesArray, NULL, 0/*This should be based on blankSlots, discuss with Yanpei&Max*/); 
 	}
+	gInitialTier = 0;
+	generic_hash_context_switch(0);
+	QTBPtr board = MallocBoard();
+	int x;
+	for(x = 0; x <= NUMPIECES; x++)
+		board->slots[x] = EMPTYSLOT;
+	board->squaresOccupied = 0;
+    board->piecesInPlay = 0;
+    board->usersTurn = FALSE;
+	gInitialTierPosition = TierHash(board);
+}
+
+POSITION TierHash(QTBPtr board) {
+	POSITION position;
+	if (gHashWindowInitialized) { //What the hell does this mean???
+		TIER tier = BoardToTier(board); // find this board's tier
+		generic_hash_context_switch(tier); // switch to that context
+        char* hashBoard = consCharArrayFromBoard(board);
+        TIERPOSITION tierpos = generic_hash_hash(hashBoard, 1);
+		SafeFree(hashBoard);
+		/*Confusing addition up ahead: the plan is to NOT use generichash for the
+		hand piece. So whatever GenHash returns, we add the maximum positions for
+		that hash times the piece in hand (plus one so we never add zero if the hand
+		is zero). This way the generic_hash value is salvagable as the new value modulo
+		the max_positions. The hand piece is salvagable and the quotient of the new 
+		value over the max positions. (how many max positions fit). WHAT ABOUT IF THE
+		HASH IS EXACTLY MAX_POS?!?! SPECIAL CASE!?!??!?!?! OR USE MAX_POS+1??
+		*/
+		tierpos += generic_hash_max_pos()*(board->slots[0] + 1);
+		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
+	} else hashUnsymQuarto(board);
+	if(board != NULL)
+		SafeFree(board);
+	return position;
+}
+
+
+QTBPtr TierUnhash(POSITION position) {
+	QTBPtr board = (QTBPtr) MallocBoard();
+	if (gHashWindowInitialized) {
+		TIERPOSITION tierpos; TIER tier;
+		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
+		generic_hash_context_switch(tier); // switch to that tier's context
+		board->slots[0] = (tierpos / generic_hash_max_pos()) - 1; // I need this to be TRUNCATED!
+		tierpos = tierpos % generic_hash_max_pos();
+        char * hashBoard = (char*)SafeMalloc(NUMPIECES*sizeof(char));
+		generic_hash_unhash(tierpos, hashBoard); // unhash in that tier
+		int x;
+		for(x=0;x<NUMPIECES;x++)
+			board->slots[x+1] = hashBoard[x];
+		SafeFree(hashBoard);
+		setPiecesAndSquares(board);
+		board->usersTurn = FALSE; // Or whatever...who knows!!
+		return board;
+	} else return unhashUnsymQuarto(position);
+}
+
+void setPiecesAndSquares(QTBPtr board) {
+	int piecesinplay = 0;
+	int squaresoccupied = 0;
+	int x;
+	if (board->slots[0] != EMPTYSLOT) piecesinplay++;
+	for(x=1; x<=NUMPIECES; x++){
+		if(board->slots[x] != EMPTYSLOT){
+			piecesinplay++;
+			squaresoccupied++;
+		}
+	}
+	board->piecesInPlay = piecesinplay;
+	board->squaresOccupied = squaresoccupied;
+}
+
+
+char * consCharArrayFromBoard(QTBPtr board) {
+	char * charArray = (char*)SafeMalloc(NUMPIECES*sizeof(char));
+	int x;
+	for(x=0;x<NUMPIECES;x++){
+		charArray[x] = board->slots[x+1];
+	}
+	return charArray;
+}
+
 /* NOTES FROM OUR TALK
     Tier 1
     hash = 500 positions
@@ -2883,26 +2997,24 @@ void SetupTierStuff() {
         board[0] /= (position - tierpostion) % 16;
         partialBoard = gh_unhash(tierposition);
         board = board[0] + partialBoard
-    }
-
-	// initial tier
-	gInitialTier = 0;
-	// it's already in the final hash context, so set the position:
-	QTBPtr board = MallocBoard();
-	// Initialize all fields to 0
-    board->squaresOccupied = 0;
-    board->piecesInPlay = 0;
-    board->usersTurn = FALSE;
-    // Initialize all slots to EMPTYSLOT 
-    for(slot=0; slot<BOARDSIZE+1; slot++) {
-		board->slots[slot] = EMPTYSLOT;  
-    }
-	gInitialTierPosition = TierHash(board); */
+    } */
+STRING TierToString(TIER tier) {
+	STRING thisTier = (STRING)SafeMalloc(NUMPIECES * sizeof(char));
+	int x;
+	for (x = 0; x < NUMPIECES; x++) {
+		if((tier >> x) & 1)
+			thisTier[x] = '1';
+		else thisTier[x] = '0';
+	}
+	return thisTier;
 }
 
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.67  2007/04/11 04:09:18  rodarmor
+// Unborked the build.
+//
 // Revision 1.66  2007/04/09 22:33:38  max817
 // Notes from out talk.
 //
