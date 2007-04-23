@@ -6,6 +6,10 @@
 #include <scew/scew.h>
 #endif
 
+// Constants
+#define SEVAL_NUMSCALEPARAMS 4
+#define SEVAL_NUMEVALPARAMS 4
+
 // Type Declarations
 
 typedef float(*scalingFunction)(float,float[]);
@@ -16,6 +20,10 @@ typedef enum f_type {
   library, custom
 } TYPE;
 
+typedef enum p_type {
+	initial, opponent
+} PIECE_TYPE;
+
 /**I decided not to use a union for the function pointers because
  *it really provides no additional benefit, besides saving 4 bytes
  *of space. In either implementation, we still have to store which
@@ -25,9 +33,9 @@ typedef struct fNode{
   STRING name;
   float weight;
   TYPE type; //custom or library
-  void* piece; //the piece that this trait centers on
-  float scaleParams[4];
-  int evalParams[4];
+  PIECE_TYPE piece; //the piece that this trait centers on
+  float scaleParams[SEVAL_NUMSCALEPARAMS];
+  int evalParams[SEVAL_NUMEVALPARAMS];
   scalingFunction scale;
   featureEvaluatorCustom fEvalC;
   featureEvaluatorLibrary fEvalL;
@@ -81,6 +89,7 @@ float linear(float,float[]);
 float logarithmic(float,float[]);
 float logistic(float,float[]);
 float quadratic(float,float[]);
+float boolean(float,float[]);
 
 void NewTraitMenu(STRING);
 fList ParameterizeTrait(int, int);
