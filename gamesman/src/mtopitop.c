@@ -2133,8 +2133,63 @@ TIERLIST* TierChildren(TIER tier) {
   TIERLIST* list = NULL;
   list = CreateTierlistNode(tier, list); // takes the list pointer and creates a new node with that tier and make it its next pointer
 		//^~~~ link to yourself (tier1->tier1)
-  if (tier < 12)  // (tier != 12)
-    list = CreateTierlistNode(tier+1, list);  // add the links here
+
+  // -- need to add more links --
+  // check tier's pieces - # of L's, S's, and B's
+  // tier = (buckets + 9*small + 45*large)*3
+  // use formula similar to the one in SetupTierStuff()
+  int large, small, blueBuckets, redBuckets;
+  int tempLarge, tempSmall, tempBlueBuckets, tempRedBuckets, tempTier;
+  int tierDiv3 = tier / 3;
+  large = tierDiv3 / 45;
+  small = ((tierDiv3 % 45) / 9);
+  
+  blueBuckets = (tierDiv3 % 9) % 3;
+  if (tierDiv3 % 9 <= 2) {
+    redBuckets = 0;
+  }
+  else if (tierDiv3 % 9 <= 5) {
+    redBuckets = 1;
+  }
+  else {
+    redBuckets = 2;
+  }
+  
+  // see what tier's those pieces can go to (basically, add a piece to the board)
+  if ((large + small + redBuckets + blueBuckets) < 12) {
+    // check large pieces
+    if (large < 4) {
+      // compute that new tier
+      tempLarge = large + 1;
+      tempTier = redBuckets + blueBuckets + 9*small + 45*tempLarge;
+      CreateTierlistNode(tempTier, list);
+    }
+
+    // check small pieces
+    if (small < 4) {
+      // compute that new tier
+      tempSmall = small + 1;
+      tempTier = redBuckets + blueBuckets + 9*tempSmall + 45*large;
+      CreateTierlistNode(tempTier, list);
+    }
+    
+    // check redBuckets
+    if (redBuckets < 2) {
+      // compute that new tier
+      tempRedBuckets = redBuckets + 1;
+      tempTier = tempRedBuckets + blueBuckets + 9*small + 45*large;
+      CreateTierlistNode(tempTier, list);
+    }
+    
+    // check blueBuckets
+    if (blueBuckets < 2) {
+      // compute that new tier
+      tempBlueBuckets = blueBuckets + 1;
+      tempTier = redBuckets + tempBlueBuckets + 9*small + 45*large;
+      CreateTierlistNode(tempTier, list);
+    }
+  }
+
   return list;
 }
 
@@ -2297,6 +2352,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.48  2007/04/23 23:52:31  alexchoy
+// *** empty log message ***
+//
 // Revision 1.47  2007/04/23 23:26:08  alexchoy
 // *** empty log message ***
 //
