@@ -2154,6 +2154,8 @@ TIERLIST* TierChildren(TIER tier) {
   else {
     redBuckets = 2;
   }
+
+  printf("~~~~~ start of redB = %d, blueB = %d, small = %d, large = %d, TIER = %d \n", redBuckets, blueBuckets, small, large, tier);
   
   // see what tier's those pieces can go to (basically, add a piece to the board)
   if ((large + small + redBuckets + blueBuckets) < 12) {
@@ -2161,32 +2163,36 @@ TIERLIST* TierChildren(TIER tier) {
     if (large < 4) {
       // compute that new tier
       tempLarge = large + 1;
-      tempTier = redBuckets + blueBuckets + 9*small + 45*tempLarge;
-      CreateTierlistNode(tempTier, list);
+      tempTier = (3*redBuckets + blueBuckets + 9*small + 45*tempLarge)*3;
+      list = CreateTierlistNode(tempTier, list);
+      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", redBuckets, blueBuckets, small, tempLarge, tempTier);
     }
 
     // check small pieces
     if (small < 4) {
       // compute that new tier
       tempSmall = small + 1;
-      tempTier = redBuckets + blueBuckets + 9*tempSmall + 45*large;
-      CreateTierlistNode(tempTier, list);
+      tempTier = (3*redBuckets + blueBuckets + 9*tempSmall + 45*large)*3;
+      list = CreateTierlistNode(tempTier, list);
+      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", redBuckets, blueBuckets, tempSmall, large, tempTier);
     }
     
     // check redBuckets
     if (redBuckets < 2) {
       // compute that new tier
       tempRedBuckets = redBuckets + 1;
-      tempTier = tempRedBuckets + blueBuckets + 9*small + 45*large;
-      CreateTierlistNode(tempTier, list);
+      tempTier = (3*tempRedBuckets + blueBuckets + 9*small + 45*large)*3;
+      list = CreateTierlistNode(tempTier, list);
+      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", tempRedBuckets, blueBuckets, small, large, tempTier);
     }
     
     // check blueBuckets
     if (blueBuckets < 2) {
       // compute that new tier
       tempBlueBuckets = blueBuckets + 1;
-      tempTier = redBuckets + tempBlueBuckets + 9*small + 45*large;
-      CreateTierlistNode(tempTier, list);
+      tempTier = (3*redBuckets + tempBlueBuckets + 9*small + 45*large)*3;
+      list = CreateTierlistNode(tempTier, list);
+      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", redBuckets, tempBlueBuckets, small, large, tempTier);
     }
   }
 
@@ -2352,6 +2358,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.49  2007/04/24 07:50:32  alexchoy
+// finished TierChildren()
+//
 // Revision 1.48  2007/04/23 23:52:31  alexchoy
 // *** empty log message ***
 //
