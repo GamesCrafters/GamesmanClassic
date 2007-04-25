@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.68 2007-04-23 09:14:46 bensussman Exp $
+// $Id: mquarto.c,v 1.69 2007-04-25 04:58:50 max817 Exp $
 
 
 /*
@@ -170,7 +170,7 @@
  **************************************************************************/
 
 STRING   kGameName            = "Quarto"; /* The name of your game */
-STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV"; /* Your name(s) */
+STRING   kAuthorName          = "Yanpei CHEN, Amy HSUEH, Mario TANEV, Benno"; /* Your name(s) */
 STRING   kDBName              = "quarto"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -441,7 +441,7 @@ void SetupTierStuff();
 TIERLIST* TierChildren(TIER);
 TIERPOSITION NumberOfTierPositions(TIER);
 void GetInitialTierPosition(TIER*, TIERPOSITION*);
-//BOOLEAN IsLegal(POSITION); All moves are legal in Quarto!
+BOOLEAN IsLegal(POSITION);
 //UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER); Outdated?
 STRING TierToString(TIER);
 void setPiecesAndSquares(QTBPtr);
@@ -1060,7 +1060,7 @@ void marioPrintPos(POSITION position, STRING playersName, BOOLEAN usersTurn )
 
 // very crude printSlots for testing hash/unhash
 void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn ) {
-
+/*
     QTBPtr b = unhash(position);
     short i;
 
@@ -1073,7 +1073,7 @@ void yanpeiPrintSlots(POSITION position, STRING playersName, BOOLEAN usersTurn )
 	    printf("  -");
 	}
     }
-    newline();
+    newline();*/
     //printf("squaresOccupied %d\n",b->squaresOccupied);
     //printf("piecesInPlay    %d\n",b->piecesInPlay);
 
@@ -2060,7 +2060,7 @@ void yanpeiTestHash() {
 	    printf("position: " POSITION_FORMAT ", hashed: " POSITION_FORMAT,i,h);
 	    newline();
 	}
-	PrintPosition(i,"",TRUE);
+	//PrintPosition(i,"",TRUE);
 	i++;
     }
     if (allPassed) printf("\n ... testHash() passed.\n"); 
@@ -2818,15 +2818,15 @@ char readchar( ) {
 TIER BoardToTier(QTBPtr board) {
 	TIER thistier = 0;
 	int x;
-	for(x = 0; x < NUMPIECES; x++){
+	for(x = 0; x < BOARDSIZE; x++){
 		if(board->slots[x+1] != EMPTYSLOT) //0 is the hand slot, so skip it. Go from 1-16
-			thistier = thistier | (1 << x);
+			thistier = thistier | (1 << board->slots[x+1]);
 	}
 	return thistier;
 }
 
 //Small helper to go through a tier and return the number of empty slots (number of off bits)
-int getBlankSlots(TIER tier) {
+int getPiecesLeft(TIER tier) {
 	int x;
 	int numBlankSlots = 0;
 	for(x = 0; x < NUMPIECES; x++) {
@@ -2838,6 +2838,8 @@ int getBlankSlots(TIER tier) {
 TIERLIST* TierChildren(TIER tier) {
 	TIERLIST* tierlist = NULL;
 	int x;
+    if (tier == 0)
+        tierlist = CreateTierlistNode(tier, tierlist);
 	for (x = 0; x < NUMPIECES; x++) {
 		if (!((tier >> x) & 1))
 			tierlist = CreateTierlistNode((tier | (1 << x)),tierlist);
@@ -2847,7 +2849,7 @@ TIERLIST* TierChildren(TIER tier) {
 
 TIERPOSITION NumberOfTierPositions(TIER tier){
 	generic_hash_context_switch(tier);
-	return (generic_hash_max_pos() * NUMPIECES); //generic hash will ONLY HASH pieces ON the BOARD!
+    return (generic_hash_max_pos() * (NUMPIECES+((tier==0||getPiecesLeft(tier)<=1)?1:0))); //generic hash will ONLY HASH pieces ON the BOARD!
 }
 
 void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
@@ -2865,7 +2867,7 @@ void SetupTierStuff() {
 	gTierChildrenFunPtr				= &TierChildren;
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
 	gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
-	//gIsLegalFunPtr				= &IsLegal;
+	//gIsLegalFunPtr				    = &IsLegal;
 	//gGenerateUndoMovesToTierFunPtr= &GenerateUndoMovesToTier; Unnecessary, but faster!
 	//gUnDoMoveFunPtr				= &UnDoMove;
 	gTierToStringFunPtr				= &TierToString;
@@ -2884,6 +2886,7 @@ void SetupTierStuff() {
 
 	// Ok, prepare to generic_hash_init 2^16 Times! One for each set of on-board pieces
 	TIER numberOfTiers = 1 << NUMPIECES; /*This is 2^16*/
+    int piecesLeft, piecesOnBoard;
 	for(tierCounter = 0; tierCounter < numberOfTiers; tierCounter++) {
 		for(pieceCounter = 0; pieceCounter < NUMPIECES; pieceCounter++) {
 			/**Ok, what's going on here is that the tier Counter is iterating through the
@@ -2892,19 +2895,27 @@ void SetupTierStuff() {
 			piecesArray[pieceCounter*3 + 1] = (tierCounter >> pieceCounter) & 1;
 			piecesArray[pieceCounter*3 + 2] = (tierCounter >> pieceCounter) & 1;
 		}
-		piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = getBlankSlots(tierCounter);
-		generic_hash_init(BOARDSIZE, piecesArray, NULL, 0/*This should be based on blankSlots, discuss with Yanpei&Max*/); 
+        piecesLeft = getPiecesLeft(tierCounter);
+        piecesOnBoard = BOARDSIZE - piecesLeft;
+		piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = piecesLeft+(BOARDSIZE - NUMPIECES);
+        generic_hash_init(BOARDSIZE, piecesArray, NULL, ((piecesOnBoard == 0) ? 0 : ((piecesOnBoard & 1) ? 1 : 2))); 
 	}
 	gInitialTier = 0;
-	generic_hash_context_switch(0);
+	generic_hash_context_switch(gInitialTier);
 	QTBPtr board = MallocBoard();
 	int x;
-	for(x = 0; x <= NUMPIECES; x++)
+	for(x = 0; x <= BOARDSIZE; x++)
 		board->slots[x] = EMPTYSLOT;
 	board->squaresOccupied = 0;
     board->piecesInPlay = 0;
     board->usersTurn = FALSE;
-	gInitialTierPosition = TierHash(board);
+
+    char* hashBoard = consCharArrayFromBoard(board);
+    TIERPOSITION tierpos = generic_hash_hash(hashBoard, 1);
+    SafeFree(hashBoard);
+    gInitialTierPosition = tierpos + (generic_hash_max_pos()*board->slots[0]);
+    if(board != NULL)
+        FreeBoard(board);
 }
 
 POSITION TierHash(QTBPtr board) {
@@ -2913,7 +2924,7 @@ POSITION TierHash(QTBPtr board) {
 		TIER tier = BoardToTier(board); // find this board's tier
 		generic_hash_context_switch(tier); // switch to that context
         char* hashBoard = consCharArrayFromBoard(board);
-        TIERPOSITION tierpos = generic_hash_hash(hashBoard, 1);
+        TIERPOSITION tierpos = generic_hash_hash(hashBoard, ((board->usersTurn) ? 2 : 1));
 		SafeFree(hashBoard);
 		/*Confusing addition up ahead: the plan is to NOT use generichash for the
 		hand piece. So whatever GenHash returns, we add the maximum positions for
@@ -2923,11 +2934,10 @@ POSITION TierHash(QTBPtr board) {
 		value over the max positions. (how many max positions fit). WHAT ABOUT IF THE
 		HASH IS EXACTLY MAX_POS?!?! SPECIAL CASE!?!??!?!?! OR USE MAX_POS+1??
 		*/
-		tierpos += generic_hash_max_pos()*(board->slots[0] + 1);
+		tierpos += generic_hash_max_pos()*board->slots[0];
 		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
-	} else hashUnsymQuarto(board);
-	if(board != NULL)
-		SafeFree(board);
+        //printf("HASH: tierpos: %llu, Tier: %llu, position: %llu\n", tierpos, tier, position);
+	} else position = hashUnsymQuarto(board);
 	return position;
 }
 
@@ -2938,16 +2948,16 @@ QTBPtr TierUnhash(POSITION position) {
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
 		generic_hash_context_switch(tier); // switch to that tier's context
-		board->slots[0] = (tierpos / generic_hash_max_pos()) - 1; // I need this to be TRUNCATED!
+        //printf("UNHASH: tierpos: %llu, Tier: %llu, position: %llu\n", tierpos, tier, position);
+		board->slots[0] = tierpos / generic_hash_max_pos(); // I need this to be TRUNCATED!
 		tierpos = tierpos % generic_hash_max_pos();
         char * hashBoard = (char*)SafeMalloc(NUMPIECES*sizeof(char));
 		generic_hash_unhash(tierpos, hashBoard); // unhash in that tier
 		int x;
-		for(x=0;x<NUMPIECES;x++)
+		for(x=0;x<BOARDSIZE;x++)
 			board->slots[x+1] = hashBoard[x];
 		SafeFree(hashBoard);
 		setPiecesAndSquares(board);
-		board->usersTurn = FALSE; // Or whatever...who knows!!
 		return board;
 	} else return unhashUnsymQuarto(position);
 }
@@ -2957,7 +2967,7 @@ void setPiecesAndSquares(QTBPtr board) {
 	int squaresoccupied = 0;
 	int x;
 	if (board->slots[0] != EMPTYSLOT) piecesinplay++;
-	for(x=1; x<=NUMPIECES; x++){
+	for(x=1; x<=BOARDSIZE; x++){
 		if(board->slots[x] != EMPTYSLOT){
 			piecesinplay++;
 			squaresoccupied++;
@@ -2965,13 +2975,14 @@ void setPiecesAndSquares(QTBPtr board) {
 	}
 	board->piecesInPlay = piecesinplay;
 	board->squaresOccupied = squaresoccupied;
+    board->usersTurn = (piecesinplay & 1) ? TRUE : FALSE;
 }
 
 
 char * consCharArrayFromBoard(QTBPtr board) {
-	char * charArray = (char*)SafeMalloc(NUMPIECES*sizeof(char));
+	char * charArray = (char*)SafeMalloc(BOARDSIZE*sizeof(char));
 	int x;
-	for(x=0;x<NUMPIECES;x++){
+	for(x=0;x<BOARDSIZE;x++){
 		charArray[x] = board->slots[x+1];
 	}
 	return charArray;
@@ -2998,20 +3009,48 @@ char * consCharArrayFromBoard(QTBPtr board) {
         partialBoard = gh_unhash(tierposition);
         board = board[0] + partialBoard
     } */
+
 STRING TierToString(TIER tier) {
-	STRING thisTier = (STRING)SafeMalloc(NUMPIECES * sizeof(char));
+	STRING thisTier = (STRING)SafeMalloc((NUMPIECES+1)* sizeof(char));
 	int x;
 	for (x = 0; x < NUMPIECES; x++) {
 		if((tier >> x) & 1)
 			thisTier[x] = '1';
 		else thisTier[x] = '0';
 	}
+    thisTier[NUMPIECES] = '\0';
 	return thisTier;
 }
 
+/*BOOLEAN IsLegal(POSITION position) {
+    QTBPtr board = gUseGPS ? GPSBoard : unhash( position );
+    BOOLEAN returnVal = TRUE;
 
+    if(BoardToTier(board) != 0) {
+        if(board->slots[0] == EMPTYSLOT)
+            returnVal = FALSE;
+        else {
+            int x;
+            for(x=0;x<BOARDSIZE;x++) {
+                if(board->slots[x+1] == board->slots[0]) {
+                    returnVal = FALSE;
+                    break;
+                }
+            }
+        }
+    }
+    if (!gUseGPS)
+        FreeBoard(board);
+    return returnVal;
+    return TRUE;
+}*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.68  2007/04/23 09:14:46  bensussman
+// BUGZID: 69770
+//
+// Benno here. I finished my code that i feel like i am currently able to do. It appears that the bug i have is that the tierification core does not think there are any boards in each tier. It thinks they are empty for some reason. Strange...
+//
 // Revision 1.67  2007/04/11 04:09:18  rodarmor
 // Unborked the build.
 //
