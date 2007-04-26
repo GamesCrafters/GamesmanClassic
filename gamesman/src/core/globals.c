@@ -78,6 +78,7 @@ BOOLEAN gBitPerfectDBSolver = TRUE;
 BOOLEAN gBitPerfectDBAdjust = TRUE;
 BOOLEAN gBitPerfectDBSchemes = FALSE;
 BOOLEAN gBitPerfectDBAllSchemes = FALSE;
+BOOLEAN gBitPerfectDBVerbose = FALSE;
 BOOLEAN gTwoBits = FALSE;	      /* Two bit solver, default: FALSE */
 BOOLEAN gCollDB = FALSE;
 BOOLEAN gUnivDB = FALSE;

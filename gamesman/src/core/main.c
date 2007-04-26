@@ -322,6 +322,8 @@ void HandleArguments (int argc, char *argv[])
                     gBitPerfectDBAdjust = TRUE;
                 } else if(!strcasecmp(argv[i], "--noadjust")) {
                     gBitPerfectDBAdjust = FALSE;
+                } else if(!strcasecmp(argv[i], "--bpdbverbose")) {
+                    gBitPerfectDBVerbose = TRUE;
                 } else if(!strcasecmp(argv[i], "--notiers")) {
                     gTierGamesman = FALSE;
                 } else if(!strcasecmp(argv[i], "--notiermenu")) {

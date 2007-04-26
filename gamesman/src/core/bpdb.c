@@ -496,8 +496,8 @@ bpdb_free( )
     slist_free( bpdb_schemes );
 
 _bailout:
-//    return status;
-return;
+    //return status;
+    return;
 }
 
 
@@ -856,7 +856,10 @@ bpdb_grow_slice(
         bpdb_have_printed = TRUE;
         printf("\n");
     }
-    printf("Expanding database (Slot %s %u bits->%u bits)... ", bpdb_slice->name[index], oldSlotSize, newSlotSize);
+
+    if(gBitPerfectDBVerbose) {
+        printf("Expanding database (Slot %s %u bits->%u bits)... ", bpdb_slice->name[index], oldSlotSize, newSlotSize);
+    }
 
     // allocate new space needed for the larger database
     bpdb_new_array = (BYTE *) realloc( bpdb_array, (size_t)ceil(((double)bpdb_slices/(double)BITSINBYTE) * (size_t)(newSliceSize) ) * sizeof(BYTE));
@@ -1080,7 +1083,10 @@ bpdb_shrink_slice(
         bpdb_have_printed = TRUE;
         printf("\n");
     }
-    printf("Shrinking (Slot %s %u bits->%u bits)... ", bpdb_slice->name[index], oldSlotSize, newSlotSize);
+    
+    if(gBitPerfectDBVerbose) {
+        printf("Shrinking (Slot %s %u bits->%u bits)... ", bpdb_slice->name[index], oldSlotSize, newSlotSize);
+    }
 
     // debug-temp
     //bpdb_dump_database(2);
@@ -1703,19 +1709,25 @@ bpdb_save_database()
         } else {
             // get size of file
             stat(outfilenames[i], &fileinfo);
-
-            printf("Scheme: %d. Wrote %s with size of %d\n", ((SCHEME)cur->obj)->id, outfilenames[i], (int)fileinfo.st_size);
+            
+            if(gBitPerfectDBVerbose) {
+                printf("Scheme: %d. Wrote %s with size of %d\n", ((SCHEME)cur->obj)->id, outfilenames[i], (int)fileinfo.st_size);
+            }
 
             // if file is a smaller size, set min
             if(smallestsize == -1 || fileinfo.st_size < smallestsize) {
                 if(smallestsize != -1) {
-                    printf("Removing %s\n", outfilenames[smallestscheme]);
+                    if(gBitPerfectDBVerbose) {
+                        printf("Removing %s\n", outfilenames[smallestscheme]);
+                    }
                     remove(outfilenames[smallestscheme]);
                 }
                 smallestscheme = i;
                 smallestsize = fileinfo.st_size;
             } else {
-                printf("Removing %s\n", outfilenames[i]);
+                if(gBitPerfectDBVerbose) {
+                    printf("Removing %s\n", outfilenames[i]);
+                }
                 remove(outfilenames[i]);
             }
         }
@@ -1723,11 +1735,16 @@ bpdb_save_database()
         i++;
     }
 
-    printf("Choosing scheme: %d\n", smallestscheme);
+    if(gBitPerfectDBVerbose) {
+        printf("Choosing scheme: %d\n", smallestscheme);
+    }
 
     // rename smallest file to final file name
     sprintf(outfilename, "./data/m%s_%d_bpdb.dat.gz", kDBName, getOption());
-    printf("Renaming %s to %s\n", outfilenames[smallestscheme], outfilename);
+
+    if(gBitPerfectDBVerbose) {
+        printf("Renaming %s to %s\n", outfilenames[smallestscheme], outfilename);
+    }
     rename(outfilenames[smallestscheme], outfilename);
 
 _bailout:
@@ -1988,10 +2005,12 @@ bpdb_load_database( )
     // TO DO: TEST IF BOOLEAN IS TRUE
     bitlib_file_read_bytes( inFile, &fileFormat, 1 );
 
-    printf("\n\nDatabase Header Information\n");
+    if(gBitPerfectDBVerbose) {
+        printf("\n\nDatabase Header Information\n");
 
-    // print fileinfo
-    printf("Encoding Scheme: %d\n", fileFormat);
+        // print fileinfo
+        printf("Encoding Scheme: %d\n", fileFormat);
+    }
     
     cur = bpdb_schemes;
 
@@ -2101,7 +2120,9 @@ bpdb_generic_load_database(
     bitsPerSliceHeader = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
     numOfSlotsHeader = bpdb_generic_read_varnum( inFile, bpdb_headerScheme, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, FALSE );
 
-    printf("Slices: %llu\nBits per slice: %d\nSlots per slice: %d\n\n", numOfSlicesHeader, bitsPerSliceHeader, numOfSlotsHeader);
+    if(gBitPerfectDBVerbose) {
+        printf("Slices: %llu\nBits per slice: %d\nSlots per slice: %d\n\n", numOfSlicesHeader, bitsPerSliceHeader, numOfSlotsHeader);
+    }
 
     bpdb_free_slice( bpdb_write_slice );
 
@@ -2138,8 +2159,10 @@ bpdb_generic_load_database(
         tempoverflowed = bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 1 );
 
         // output information on each slot to the user
-        printf("Slot: %s (%u bytes)\n", tempname, tempnamesize);
-        printf("\tBit Width: %u\n", tempsize);
+        if(gBitPerfectDBVerbose) {
+            printf("Slot: %s (%u bytes)\n", tempname, tempnamesize);
+            printf("\tBit Width: %u\n", tempsize);
+        }
 
         if(tempoverflowed) {
             printf("\tWarning: Some values have been capped at %llu due to overflow.\n", (UINT64)pow(2, tempsize) - 1);
