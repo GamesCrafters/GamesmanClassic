@@ -31,17 +31,17 @@ proc GS_InitGameSpecific {} {
     ### Set the strings to be used in the Edit Rules
 
     global kStandardString kMisereString
-    set kStandardString "First player to move both of his or her pieces off of the board into his or her goal area first or trap his or her opponent so that he or she may not move WINS"
-    set kMisereString "First player to move both of his or her pieces off of the board into his or her goal area first or trap his or her opponent so that he or she may not move LOSES"
+    set kStandardString "First player to move both of his or her pieces off of the board into his or her goal area first and avoid trapping his or her opponent so that he or she may not move WINS"
+    set kMisereString "First player to move both of his or her pieces off of the board into his or her goal area first and avoid trapping his or her opponent so that he or she may not move LOSES"
 
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: Move both of your pieces off of the board into your goal area first or trap your opponent so that he may not move."
+	SetToWinString "To Win: Move both of your pieces off of the board into your goal area first and avoid trapping your opponent so that he may not move."
     } else {
-	SetToWinString "To Win: Avoid moving both of your pieces off the board into your goal area first and avoid trapping your opponent so that he may not move."
+	SetToWinString "To Win: Avoid moving both of your pieces off the board into your goal area first or trap your opponent so that he may not move."
     }
     SetToMoveString "To Move: The pieces are intially arranged at a right angle. Players alternate turns moving their pieces to an adjacent open space. The player with pieces lined up vertically may move north, east, or south. The player with his or her pieces lind up horizontally may move north, east or west. Click on the arrow that moves the piece in the direction you wish to move. Note that you can only move to an adjacent UNOCCUPIED square and you may never move away from your goal"
 	    
