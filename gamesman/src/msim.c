@@ -13,6 +13,7 @@
 **
 ** Decided to check out how much space was wasted with the array:
 **
+** Symmetries implemented, Ilya Landa
 **************************************************************************/
 
 /*************************************************************************
@@ -43,7 +44,6 @@ BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 POSITION kBadPosition		= -1;
 void*	 gGameSpecificTclInit = NULL;
-
 STRING   kHelpGraphicInterface =
 "";
 
@@ -157,7 +157,7 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 
 STRING MoveToString( MOVE );
-
+POSITION GetCanonical (POSITION p);
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -169,6 +169,7 @@ STRING MoveToString( MOVE );
 void InitializeGame()
 {
   gMoveToStringFunPtr = &MoveToString;
+  gCanonicalPosition = GetCanonical;
 }
 
 void FreeGame()
@@ -300,16 +301,6 @@ POSITION GetInitialPosition()
     else
       ;   /* do nothing */
   }
-
-  /*
-  getchar();
-  printf("\nNow, whose turn is it? [O/X] : ");
-  scanf("%c",&c);
-  if(c == 'x' || c == 'X')
-    whosTurn = x;
-  else
-    whosTurn = o;
-    */
 
   return(BlankOXToPosition(theBlankOX,whosTurn));
 }
@@ -859,3 +850,75 @@ void setOption(int option)
                 gStandardGame = FALSE ;
 }
 
+
+/************************************************************************
+**
+** NAME:        GetCanonical
+**
+** DESCRIPTION: Receives a game position, looks at its 6 rotation
+**                (including the original). Flips the 6'th rotation.
+**                 Rotates the board 5 times again, and retrns the
+**                 position with the smalles hash value
+** 
+** INPUTS:      POSITION p - the original position
+**
+** OUTPUTS:     POSITION - the game position with the smallest num value
+**
+************************************************************************/
+POSITION GetCanonical (POSITION p){
+  BlankOX posDecoded[BOARDSIZE], newDecoded[BOARDSIZE];
+  POSITION smallest = p;
+  int flip, try, i;
+  // Decode given position into an array
+  PositionToBlankOX(p, posDecoded);
+  for (flip = 0; flip < 2; flip++){
+    // Rotate the board 5 times
+    for (try = 0; try < 6; try++){
+      // Rotate board 1 click clockwise
+      newDecoded[0]  = posDecoded[4];
+      newDecoded[1]  = posDecoded[8];
+      newDecoded[2]  = posDecoded[11];
+      newDecoded[3]  = posDecoded[13];
+      newDecoded[4]  = posDecoded[14];
+      newDecoded[5]  = posDecoded[0];
+      newDecoded[6]  = posDecoded[1];
+      newDecoded[7]  = posDecoded[2];
+      newDecoded[8]  = posDecoded[3];
+      newDecoded[9]  = posDecoded[5];
+      newDecoded[10] = posDecoded[6];
+      newDecoded[11] = posDecoded[7];
+      newDecoded[12] = posDecoded[9];
+      newDecoded[13] = posDecoded[10];
+      newDecoded[14] = posDecoded[12];
+      // Encode new array into a position
+      p = BlankOXToPosition(newDecoded);
+      // Select the smallest position
+      smallest = (smallest < p) ? smallest : p;
+      // New position becomes "old" for the next turning
+      for (i = 0; i < 15; i++)
+	posDecoded[i] = newDecoded[i];
+    }
+    // Flip the board
+    newDecoded[0]  = posDecoded[9];
+    newDecoded[1]  = posDecoded[6];
+    newDecoded[2]  = posDecoded[2];
+    newDecoded[3]  = posDecoded[13];
+    newDecoded[4]  = posDecoded[12];
+    newDecoded[5]  = posDecoded[5];
+    newDecoded[6]  = posDecoded[1];
+    newDecoded[7]  = posDecoded[11];
+    newDecoded[8]  = posDecoded[10];
+    newDecoded[9]  = posDecoded[0];
+    newDecoded[10] = posDecoded[8];
+    newDecoded[11] = posDecoded[7];
+    newDecoded[12] = posDecoded[4];
+    newDecoded[13] = posDecoded[3];
+    newDecoded[14] = posDecoded[14];
+    p = BlankOXToPosition(newDecoded);
+    smallest = (smallest < p) ? smallest : p;
+    for (i = 0; i < 15; i++)
+      posDecoded[i] = newDecoded[i];   
+  }
+  // Return the smallest position
+  return smallest;
+}
