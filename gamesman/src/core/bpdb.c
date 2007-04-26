@@ -1173,7 +1173,9 @@ bpdb_shrink_slice(
 
     }
 
-    printf("done\n");
+    if(gBitPerfectDBVerbose) {
+        printf("done\n");
+    }
 
 
     // allocate new space needed for the larger database
