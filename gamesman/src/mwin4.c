@@ -1279,6 +1279,8 @@ void SetupTierStuff() {
 	int i, pieces_array[] = {'X', 0, 0, 'O', 0, 0, '_', 0, 0, -1};
 	TIER init_tier; 
 	TIERPOSITION init_tier_pos;
+	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
+	int *piece_count;
 
 	kSupportsTierGamesman = TRUE;
         gTierChildrenFunPtr             = &TierChildren;
@@ -1305,8 +1307,17 @@ void SetupTierStuff() {
 	MAX_NUM_TIERS = generic_hash_max_pos();
 
 	for (i=0; i<MAX_NUM_TIERS; i++) {
+		generic_hash_context_switch(1000000000);
+		generic_hash_unhash(i, board);
+
+		piece_count = countPieces(board);
+		pieces_array[2] = min(PIECES_NOT_TIERHASH, (WIN4_WIDTH)*(WIN4_HEIGHT)/2 + 1 - piece_count[0]);
+		pieces_array[5] = min(PIECES_NOT_TIERHASH, (WIN4_WIDTH)*(WIN4_HEIGHT)/2 - piece_count[1]);
+		pieces_array[8] = min(PIECES_NOT_TIERHASH, (WIN4_WIDTH)*(WIN4_HEIGHT) - piece_count[0] - piece_count[1]);
+
 		generic_hash_init(PIECES_NOT_TIERHASH, pieces_array, NULL, 0);
 		generic_hash_set_context(i);
+		SafeFree(piece_count);
 	}
 
         GetInitialTierPosition(&init_tier, &init_tier_pos);
