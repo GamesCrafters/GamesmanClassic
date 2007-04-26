@@ -1,5 +1,5 @@
 /************************************************************************
-**
+c**
 ** NAME:        mwin4.c
 **
 ** DESCRIPTION: Connect-4
@@ -27,14 +27,19 @@
 **                - Graphical Module mwin4.tcl done
 **
 ** 08-19-06	: change to GetMyInt();
+**
+** 02-23-06       Ilya Landa
+**                Implementing symmetries
 **************************************************************************/
 
 /* a position seem to be made with this: (4x4)
  * 10100 10010 11010 01110
- * every segment denotes a row, with the last digit always 0
- * due to the encoding scheme
- * the whole binary number will be the POSITION.
+ * The encoding made by an author is ingennious but was a bit tiesome to decode.
+ * Each segment is a column going up.
+ * 1 is "O", 0 is "X" unless either is followed by all 0's,
+ *   in which case the bit is the beginning of "on pieces" part of the column.
  */
+// !!!THE GAME WILL CRASH IF WIDTH * (HEIGHT + 1) >= 32!!!
 
 /*************************************************************************
 **
@@ -200,6 +205,10 @@ void		SetupTierStuff();
 
 char 		**getOneDRepresentation(XOBlank board[MAXW][MAXH]); 
 STRING		MoveToString( MOVE );
+<<<<<<< mwin4.c
+POSITION        GetCanonicalPosition(POSITION position);
+
+=======
 TIER		BoardToTier(XOBlank board[MAXW][MAXH]);
 TIERLIST	*TierChildren(TIER tier);
 TIERPOSITION	NumberOfTierPositions(TIER tier);
@@ -207,6 +216,7 @@ int 		*count_total_pieces(XOBlank board[MAXW][MAXH]);
 int 		*countPieces(char *board);
 BOOLEAN 	IsLegal(POSITION pos);
 STRING 		TierToString(TIER tier);
+>>>>>>> 1.28
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -256,6 +266,7 @@ void InitializeGame()
 	gPosition.piecesPlaced = 0;
 	gUndoMove = UndoMove;
 	gMoveToStringFunPtr =  &MoveToString;
+	gCanonicalPosition = GetCanonicalPosition;
 }
 
 
@@ -963,6 +974,26 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 }
 
 //Unhash the board into a one-dimensional representation
+<<<<<<< mwin4.c
+void linearUnhash(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
+  int col,row,h;
+  for (col=0; col<WIN4_WIDTH;col++) {
+    row=WIN4_HEIGHT-1;
+    for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
+	 (pos & (1 << h)) == 0;
+	 h--) {
+      board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 2;
+      row--;
+    }
+    h--;
+    while (row >=0) {
+      if ((pos & (1<<h)) != 0) board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 1;
+      else board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 0;
+      row--;
+      h--;
+    }
+  }
+=======
 void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
   int col, row, h, ctr;
   char *tier_board, *non_tier_board;
@@ -1022,6 +1053,7 @@ void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
   	}
 	}
 
+>>>>>>> 1.28
   
 
 }
@@ -1070,7 +1102,6 @@ POSITION MyInitialPosition()
 {
 	POSITION p=1;
 	int i;
-
 	for (i=1;i<WIN4_WIDTH;++i)
 		p = (p << (WIN4_HEIGHT+1))+1;
 	return p;
@@ -1189,11 +1220,10 @@ int CountContinuousPieces(int column, int row, Direction horizontalDirection,
 void CountPieces(POSITION pos, int *xcount, int *ocount)
 {
 	int row, col, h;
-
 	for (col=0; col<WIN4_WIDTH;col++) {
 		row=WIN4_HEIGHT-1;
-		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
-		     (pos & (1 << h)) == 0; h--) row--;
+		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT; (pos & (1 << h))==0; h--)
+		        row--;
 		h--;
 		while (row >=0) {
 			if ((pos & (1<<h)) != 0) (*ocount)++;
@@ -1270,6 +1300,74 @@ POSITIONLIST *EnumerateWithinStage(int stage) {
 	//gotta free this in the bottom up solver.
 	return currentStage;
 }
+<<<<<<< mwin4.c
+
+
+/************************************************************************
+**
+** NAME:        array_symm
+**
+** DESCRIPTION: Takes a 1D position array, imagines it as a
+**                2D [column][row] positon array, and swaps
+**                columns around the middle.
+** 
+** INPUTS:      short* bits - 1D positon array
+**              short  columns - # of columns on the board
+**
+** OUTPUTS:     "bits" is modified to represent a mirror
+**                reflection of the original position.
+**
+************************************************************************/
+void array_symm(short* bits, short columns){
+  short a, t, i = -1, j = columns;
+  short col_sz = WIN4_HEIGHT + 1;
+  while (++i < --j){
+    for (a = 0; a < (WIN4_HEIGHT + 1); a++){
+      t = bits[i * col_sz + a];
+      bits[i * col_sz + a] = bits[j * col_sz + a];
+      bits[j * col_sz + a] = t;
+    }
+  }
+}
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Looks at a position and returns its canonical form
+** 
+** INPUTS:      POSITION p: a passed position
+**
+** OUTPUTS:     POSITION  : position's canonical form
+**
+************************************************************************/
+POSITION GetCanonicalPosition(POSITION p){
+  POSITION temp , hold; // new, hold;
+  int column = WIN4_HEIGHT + 1;
+  short i, size = column * WIN4_WIDTH;
+  short bits[size];
+
+  //Copy position into an array
+  temp = p;
+  //                               Copy the orig position into an array
+  hold = temp;
+  for (i = 0; i < size; i++){
+    bits[i] = temp & 1;
+    temp = temp >> 1;
+  }
+  temp = hold;
+  //                               Process an array
+  array_symm(bits, WIN4_WIDTH );
+  //                               Copy an array into the new position
+  temp = 0;
+  for (i = size-1; i >= 0; i--){
+    temp = temp | bits[i];
+    if (i != 0)
+      temp = temp << 1;
+  }
+  return ((temp < p) ? temp : p);  // Choose the smallest position
+}
+=======
 
 //  MAXIMIZATION FUNCTIONS
 
@@ -1279,8 +1377,6 @@ void SetupTierStuff() {
 	int i, pieces_array[] = {'X', 0, 0, 'O', 0, 0, '_', 0, 0, -1};
 	TIER init_tier; 
 	TIERPOSITION init_tier_pos;
-	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-	int *piece_count;
 
 	kSupportsTierGamesman = TRUE;
         gTierChildrenFunPtr             = &TierChildren;
@@ -1307,17 +1403,8 @@ void SetupTierStuff() {
 	MAX_NUM_TIERS = generic_hash_max_pos();
 
 	for (i=0; i<MAX_NUM_TIERS; i++) {
-		generic_hash_context_switch(1000000000);
-		generic_hash_unhash(i, board);
-
-		piece_count = countPieces(board);
-		pieces_array[2] = min(PIECES_NOT_TIERHASH, (WIN4_WIDTH)*(WIN4_HEIGHT)/2 + 1 - piece_count[0]);
-		pieces_array[5] = min(PIECES_NOT_TIERHASH, (WIN4_WIDTH)*(WIN4_HEIGHT)/2 - piece_count[1]);
-		pieces_array[8] = min(PIECES_NOT_TIERHASH, (WIN4_WIDTH)*(WIN4_HEIGHT) - piece_count[0] - piece_count[1]);
-
 		generic_hash_init(PIECES_NOT_TIERHASH, pieces_array, NULL, 0);
 		generic_hash_set_context(i);
-		SafeFree(piece_count);
 	}
 
         GetInitialTierPosition(&init_tier, &init_tier_pos);
@@ -1596,3 +1683,4 @@ STRING TierToString(TIER tier) {
 }
 
 
+>>>>>>> 1.28
