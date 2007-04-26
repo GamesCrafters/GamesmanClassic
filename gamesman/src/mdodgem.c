@@ -74,12 +74,11 @@ X player:      The X player may move his pieces LEFT, UP, and to the RIGHT.\n\
 Note: The circle always goes first.";
 
 STRING   kHelpStandardObjective =
-"To be the FIRST player to move both your pieces off of the board OR prevent\n\
-your opponent from moving.";
+"To be the FIRST player to move both your pieces off of the board OR be prevented from moving by your opponent's pieces. ";
 
 STRING   kHelpReverseObjective =
-"To be the LAST player to move your pieces off of the board OR to be\n\
-prevented from moving by your opponent's pieces.";
+"To be the LAST player to move your pieces off of the board OR prevent \n\
+your opponent from moving. ";
 
 STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
 "";
