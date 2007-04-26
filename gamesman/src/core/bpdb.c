@@ -51,6 +51,8 @@ Note:
 #include "bpdb_misc.h"
 
 
+//typedef enum 
+
 //
 // Global Variables
 //
@@ -205,7 +207,7 @@ bpdb_init(
     if(!gBitPerfectDBSolver) {
 
         // add value slot
-        status = bpdb_add_slot( 2, "VALUE", TRUE, TRUE, FALSE, &BPDB_VALUESLOT );        //slot 0
+        status = bpdb_add_slot( 2, "VALUE", TRUE, TRUE, FALSE, &BPDB_VALUESLOT );       //slot 0
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("bpdb_init()", "Could not add value slot", status);
             goto _bailout;
@@ -218,8 +220,8 @@ bpdb_init(
             goto _bailout;
         }
 
-	// add winby slot
-        status = bpdb_add_slot(5, "WINBY", TRUE, TRUE, FALSE, &BPDB_WINBYSLOT );            //slot 2
+        // add winby slot
+        status = bpdb_add_slot(5, "WINBY", TRUE, TRUE, FALSE, &BPDB_WINBYSLOT );        //slot 2
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("bpdb_init()", "Could not add winby slot", status);
             goto _bailout;
@@ -233,7 +235,7 @@ bpdb_init(
         }
 
         // add visited slot
-        status = bpdb_add_slot( 1, "VISITED", FALSE, FALSE, FALSE, &BPDB_VISITEDSLOT );   //slot 1
+        status = bpdb_add_slot( 1, "VISITED", FALSE, FALSE, FALSE, &BPDB_VISITEDSLOT ); //slot 1
         if(!GMSUCCESS(status)) {
             BPDB_TRACE("bpdb_init()", "Could not add visited slot", status);
             goto _bailout;
@@ -1214,7 +1216,9 @@ Routine Description:
     given slice.
 
     Flow:
-    1. 
+    1. Check whether reading from the write array or nowrite
+        array.
+    2. Determine byte and bit offset, and read
 
 Arguments:
 
@@ -1223,8 +1227,7 @@ Arguments:
     
 Return value:
 
-    STATUS_SUCCESS on successful execution, or neccessary
-    error on failure.
+    Value of the requested slot
 
 --*/
 
@@ -1259,8 +1262,37 @@ bpdb_get_slice_slot(
     return bitlib_read_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->size[index] );
 }
 
-// need to return the index of the slot
-// slotindex is an output
+
+/*++
+
+Routine Description:
+
+    bpdb_add_slot retrieves the value of a specific slot of a
+    given slice.
+
+    Flow:
+    1. Check whether reading from the write array or nowrite
+        array.
+    2. Determine byte and bit offset, and read
+
+Arguments:
+
+    size - size of new slot in bits
+    name - name of the new slot
+    write - whether the new slot will be written to file
+    adjust - whether the new slot should be adjustable
+    reservemax - whether the largest encodable number
+            should be reserved
+    slotindex - ptr will be dereferenced and set to the index
+            of the new slot for use in later accesses
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
 GMSTATUS
 bpdb_add_slot(
                 UINT8 size,
@@ -1273,6 +1305,10 @@ bpdb_add_slot(
 {
     GMSTATUS status = STATUS_SUCCESS;
     SLICE bpdb_slice = NULL;
+
+    //
+    // check input parameters
+    //
 
     if(NULL == name) {
         status = STATUS_INVALID_INPUT_PARAMETER;
@@ -1292,6 +1328,8 @@ bpdb_add_slot(
         goto _bailout;
     }
 
+    // even indexes are used for slots to be written
+    // odd indexes are used for slots that are in-memory
     if(write) {
         bpdb_slice = bpdb_write_slice;
         *slotindex = 0;
@@ -1310,6 +1348,11 @@ bpdb_add_slot(
     else if(strcmp(name, "VISITED") == 0) BPDB_VISITEDSLOT = *slotindex;
 
     bpdb_slice->slots++;
+
+    //
+    // allocate new slot structure
+    //
+
     if(bpdb_slice->slots == 1) {
         bpdb_slice->size = (UINT8 *) calloc( 1, sizeof(UINT8) );
         bpdb_slice->offset = (UINT32 *) calloc( 1, sizeof(UINT32) );
@@ -1330,6 +1373,10 @@ bpdb_add_slot(
         bpdb_slice->reservemax = (BOOLEAN *) realloc( bpdb_slice->reservemax, bpdb_slice->slots*sizeof(BOOLEAN) );
     }
 
+    //
+    // set new slot attributes
+    //
+
     bpdb_slice->bits += size;
     bpdb_slice->size[bpdb_slice->slots-1] = size;
     if(bpdb_slice->slots == 1) {
@@ -1343,6 +1390,9 @@ bpdb_add_slot(
     strcpy( bpdb_slice->name[bpdb_slice->slots-1], name );
     bpdb_slice->overflowed[bpdb_slice->slots-1] = FALSE;
     bpdb_slice->adjust[bpdb_slice->slots-1] = adjust;
+
+    // if max is reserved, reduce the maxvalue by 1 since the max should
+    // only be set by a special function call
     bpdb_slice->reservemax[bpdb_slice->slots-1] = reservemax;
     if(reservemax) {
         bpdb_slice->maxvalue[bpdb_slice->slots-1]--;
@@ -1353,8 +1403,22 @@ _bailout:
 }
 
 
-//
-//
+/*++
+
+Routine Description:
+
+    bpdb_print_database prints each slice of the database with
+    each slot indicated to stdout.
+
+Arguments:
+
+    None    
+
+Return value:
+
+    None
+
+--*/
 
 void
 bpdb_print_database()
@@ -1376,6 +1440,24 @@ bpdb_print_database()
         printf("\n");
     }
 }
+
+
+/*++
+
+Routine Description:
+
+    bpdb_dump_database dumps the contents of the database to
+    a file.
+
+Arguments:
+
+    num - identifier for file name
+    
+Return value:
+
+    None
+
+--*/
 
 void
 bpdb_dump_database( int num )
@@ -1414,6 +1496,23 @@ bpdb_dump_database( int num )
     fclose(f);
 }
 
+
+/*++
+
+Routine Description:
+
+    bpdb_analyze_database is used for experimentation and
+    analysis
+
+Arguments:
+
+    num - identifier for file to be dumped to
+    
+Return value:
+
+    None
+
+--*/
 
 void
 bpdb_analyze_database( int num )
@@ -1472,6 +1571,29 @@ bpdb_analyze_database( int num )
 }
 
 
+/*++
+
+Routine Description:
+
+    bpdb_save_database writes the (write) database to
+    file.
+
+    The database is encoded with each activated scheme
+    and picks the smallest. At any point in time, only
+    two schemes are saved to file, then the smaller of
+    the two is deleted and another scheme is encoded
+    and compared.    
+
+Arguments:
+
+    None
+    
+Return value:
+
+    TRUE on successful execution, or FALSE otherwise
+
+--*/
+
 BOOLEAN
 bpdb_save_database()
 {
@@ -1482,8 +1604,8 @@ bpdb_save_database()
     GMSTATUS status = STATUS_SUCCESS;
 
     // counter
-    int i;
-    SLIST cur;
+    int i = 0;
+    SLIST cur = NULL;
 
     // file names of saved files
     char **outfilenames;
@@ -1508,11 +1630,22 @@ bpdb_save_database()
     i = 0;
     cur = bpdb_schemes;
 
-    // allocate room for db file names
+    // allocate memory for all db file names
     outfilenames = (char **) malloc( slist_size(bpdb_schemes)*sizeof(char*) );
+    if(NULL == outfilenames) {
+        status = STATUS_NOT_ENOUGH_MEMORY;
+        BPDB_TRACE("bpdb_save_database()", "Could not allocate outfilenames in memory", status);
+        goto _bailout;
+    }
 
+    // allocate memory for each filename
     for(i = 0; i<slist_size(bpdb_schemes); i++) {
         outfilenames[i] = (char *) malloc( 256*sizeof(char) );
+        if(NULL == outfilenames[i]) {
+            status = STATUS_NOT_ENOUGH_MEMORY;
+            BPDB_TRACE("bpdb_save_database()", "Could not allocate outfilename in memory", status);
+            goto _bailout;
+        }
     }
 
 /*
@@ -1532,6 +1665,11 @@ bpdb_save_database()
     for(i = 0; i < (bpdb_write_slice->slots); i++) {
         temp = bpdb_write_slice->maxseen[i];
         bitsNeeded = 0;
+
+        if(bpdb_write_slice->reservemax[i]) {
+            temp++;
+        }
+
         while(0 != temp) {
             bitsNeeded++;
             temp = temp >> 1;
@@ -1609,6 +1747,31 @@ _bailout:
 }
 
 
+/*++
+
+Routine Description:
+
+    bpdb_generic_write_varnum writes an input specified
+    number to a given buffer using a custom encoding
+    scheme.
+
+Arguments:
+
+    outFile - pointer to file struct for output
+    scheme - scheme to use to write variable number
+    curBuffer - pointer to buffer dictates where to start
+                writing
+    outputBuffer - start of buffer
+    bufferLength - length of buffer
+    offset - bit offset within a byte of the buffer
+    consecutiveSkips - variable number to write.
+    
+Return value:
+
+    TRUE on successful execution, or FALSE otherwise
+
+--*/
+
 BOOLEAN
 bpdb_generic_write_varnum(
                 dbFILE *outFile,
@@ -1622,15 +1785,12 @@ bpdb_generic_write_varnum(
 {
     UINT8 leftBits, rightBits;
     
-    //leftBits = bpdb_generic_varnum_gap_bits( consecutiveSkips );
     leftBits = scheme->varnum_gap_bits( consecutiveSkips );
-    //rightBits = leftBits;
     rightBits = scheme->varnum_size_bits(leftBits);
 
     bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, bitlib_right_mask64( leftBits), leftBits );
     bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, 0, 1 );
 
-    //consecutiveSkips -= bpdb_generic_varnum_implicit_amt( leftBits );
     consecutiveSkips -= scheme->varnum_implicit_amt( leftBits );
 
     bitlib_value_to_buffer( outFile, curBuffer, outputBuffer, bufferLength, offset, consecutiveSkips, rightBits );
@@ -1638,7 +1798,31 @@ bpdb_generic_write_varnum(
     return TRUE;
 }
 
+/*++
 
+Routine Description:
+
+    bpdb_save_database saves the contents of the bpdb_write_array
+    to file using the scheme and filename specified as inputs.
+
+    There are two ways that it may save the database. If scheme 0
+    is used, which means that no variable skips encoding is enabled,
+    then the save is done in one large chunk by one command.
+    Otherwise, the function iterates through each slice and slot,
+    outputting the value to a buffer which spills into the output
+    file.
+
+Arguments:
+
+    scheme - variable skips encoding scheme to use
+    outfilename - filename to use for output
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
 
 GMSTATUS
 bpdb_generic_save_database(
@@ -1746,12 +1930,34 @@ _bailout:
 }
 
 
+/*++
+
+Routine Description:
+
+    bpdb_load_database is an exposed function that can be
+    called to load a database for the current game.
+
+    Flow:
+    1. Checks whether the desired file exists to load from
+    2. Finds the matching scheme to decode the file with
+    3. Calls bpdb_generic_load_database() to read file
+
+Arguments:
+
+    None
+    
+Return value:
+
+    TRUE on successful execution, or FALSE otherwise
+
+--*/
+
 
 BOOLEAN
 bpdb_load_database( )
 {
     GMSTATUS status = STATUS_SUCCESS;
-    SLIST cur;
+    SLIST cur = NULL;
 
     // filename
     char outfilename[256];
@@ -1799,7 +2005,7 @@ bpdb_load_database( )
         cur = cur->next;
     }
     
-    status = bpdb_generic_load_database( inFile, (SCHEME) cur->obj );
+    status = bpdb_generic_load_database( inFile, (SCHEME)cur->obj );
     if(!GMSUCCESS(status)) {
         BPDB_TRACE("bpdb_load_database()", "call to bpdb_generic_load_database to load db with recognized scheme failed", status);
         goto _bailout;
@@ -1823,6 +2029,36 @@ _bailout:
     }
 }
 
+
+/*++
+
+Routine Description:
+
+    bpdb_generic_load_database opens an existing file,
+    reads/interprets its contents, and stores the data in
+    an in-memory database.
+
+    Flow:
+    1. Reads number of slices
+    2. Reads bits per slice
+    3. Reads number of slots per header
+    4. Reads in stored header and adds slots to its own
+    5. Allocates database
+    6. Reads in database contents
+
+Arguments:
+
+    inFile - pointer to db file to read in
+    scheme - scheme necessary to decode variable skips in
+             the db file
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
 GMSTATUS
 bpdb_generic_load_database(
                 dbFILE *inFile,
@@ -1840,7 +2076,6 @@ bpdb_generic_load_database(
     UINT8 offset = 0;
     UINT64 skips = 0;
     UINT64 i, j;
-    char tempchar;
     char * tempname;
     UINT8 tempnamesize = 0;
     UINT8 tempsize = 0;
@@ -1895,8 +2130,7 @@ bpdb_generic_load_database(
 
         // read name
         for(j = 0; j<tempnamesize; j++) {
-            tempchar = (char)bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 8 );
-            *(tempname + j) = tempchar;
+            *(tempname + j) = (char)bitlib_read_from_buffer( inFile, &curBuffer, inputBuffer, bpdb_buffer_length, &offset, 8 );
         }
         *(tempname + j) = '\0';
 
@@ -1958,6 +2192,43 @@ bpdb_generic_load_database(
 _bailout:
     return status;
 }
+
+/*++
+
+Routine Description:
+
+    bpdb_generic_read_varnum opens an existing file,
+    reads/interprets its contents, and stores the data in
+    an in-memory database.
+
+    Flow:
+    1. Reads number of slices
+    2. Reads bits per slice
+    3. Reads number of slots per header
+    4. Reads in stored header and adds slots to its own
+    5. Allocates database
+    6. Reads in database contents
+
+Arguments:
+
+    outFile - pointer to file struct to read from
+    scheme - scheme to use to read variable number
+    curBuffer - pointer to buffer dictates where to start
+                reading
+    outputBuffer - start of buffer
+    bufferLength - length of buffer
+    offset - bit offset within a byte of the buffer
+    alreadyReadFirstBit - If the first bit has been read,
+            then it must be taken into consideration since
+            the number of 1 bits dictates the size of the
+            encoded variable number
+
+Return value:
+
+    UINT64 representing the size of the variable number
+
+--*/
+
 
 UINT64
 bpdb_generic_read_varnum(
