@@ -380,11 +380,11 @@ STRING getScaleFnName(fList feature) {
 	STRING scaleFnName;
 	if( feature->scale==&linear )
 		scaleFnName = "linear";
-    else if( feature->scale==&logarithmic )
+	else if( feature->scale==&logarithmic )
 		scaleFnName = "logarithmic";
-    else if( feature->scale==&logistic )
+	else if( feature->scale==&logistic )
 		scaleFnName = "logistic";
-    else if( feature->scale==&quadratic )
+	else if( feature->scale==&quadratic )
 		scaleFnName = "quadratic";
 	else if( feature->scale==&boolean )
 		scaleFnName = "boolean";
@@ -956,13 +956,16 @@ float clustering(void* board,void* piece,int params[]) {
       numPieces++;
     }
   }
+  if(numPieces==0) {
+	return 0;
+  }
   //compute actual averages
   rowAverage = rowAverage/numPieces;
   colAverage = colAverage/numPieces;
   
   for(i=0;i<lBoard.size;i++) {
     if(compare(i,piece,board)) {
-      value = (getRow(i)-rowAverage)*(getRow(i)-rowAverage) + (getCol(i)-colAverage)*(getCol(i)-colAverage);
+      value += (getRow(i)-rowAverage)*(getRow(i)-rowAverage) + (getCol(i)-colAverage)*(getCol(i)-colAverage);
     }
   }
   value /= numPieces;
@@ -1031,7 +1034,7 @@ void printFeature(fList feature) {
 	printf("\tType - %s\n",(feature->type==library ? "library" : "custom"));
 	printf("\tWeight - %.2f\n",feature->weight);
 	printf("\tPiece - %d\n",(int)feature->piece);
-	printf("\tScaling function: %s\n",getScaleFnName(feature));
+	//printf("\tScaling function: %s\n",getScaleFnName(feature)); CAN SOMEONE TELL ME WHY THIS LINE DOESN'T WORK???????????
 	printf("\tScaling parameters: ");
 	for(i=0;i<SEVAL_NUMSCALEPARAMS;i++) {
 		printf("  %.2f",feature->scaleParams[i]);
