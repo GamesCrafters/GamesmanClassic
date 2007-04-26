@@ -358,6 +358,24 @@ scew_element* createEvaluatorNode(seList evaluator) {
   return evaluatorNode;
 }
 
+scew_element* findEvaluatorNode(scew_element* root, STRING evaluatorName) {
+  scew_element* child = NULL;
+  scew_attribute* attribute = NULL;
+  while ((child = scew_element_next(root, child)) != NULL)
+  {
+    while ((attribute = scew_attribute_next(child, attribute)) != NULL)
+    {
+	    if(strcmp(scew_attribute_name(attribute),"name")==0) {
+    	  if(strcmp(scew_attribute_value(attribute), evaluatorName)==0)
+    	    return child;
+    	}
+    }
+  }
+  return NULL;
+}
+
+#endif
+
 STRING getScaleFnName(fList feature) {
 	STRING scaleFnName;
 	if( feature->scale==&linear )
@@ -376,23 +394,6 @@ STRING getScaleFnName(fList feature) {
 	return scaleFnName;
 }
 
-scew_element* findEvaluatorNode(scew_element* root, STRING evaluatorName) {
-  scew_element* child = NULL;
-  scew_attribute* attribute = NULL;
-  while ((child = scew_element_next(root, child)) != NULL)
-  {
-    while ((attribute = scew_attribute_next(child, attribute)) != NULL)
-    {
-	    if(strcmp(scew_attribute_name(attribute),"name")==0) {
-    	  if(strcmp(scew_attribute_value(attribute), evaluatorName)==0)
-    	    return child;
-    	}
-    }
-  }
-  return NULL;
-}
-
-#endif
 
 BOOLEAN loadDataFromXML(STRING fileName) {
   #ifdef HAVE_XML
