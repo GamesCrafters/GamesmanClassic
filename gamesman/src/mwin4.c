@@ -1566,6 +1566,10 @@ TIERLIST* TierChildren(TIER tier) {
 
 	generic_hash_context_switch(TIER_HASH_CXT);
 	generic_hash_unhash(tier, board);
+
+	if (!(validTierBoard(board)))
+		return CreateTierlistNode(tier,list);
+
 	result = NextPossibleBoards(board);
 	list = CreateTierlistNode(tier, list);
 
