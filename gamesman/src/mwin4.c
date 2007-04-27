@@ -116,17 +116,20 @@ STRING   kHelpExample =
 ************************************************************************/
 int  WIN4_WIDTH = 4;
 int  WIN4_HEIGHT = 4;
-int  MAX_NUM_TIERS;
+
+//Maximization parameters
+int FIRST_TIME = FALSE;
+int MAX_NUM_TIERS;
+int COLS_TIERHASH = 1;
+int COLS_NOT_TIERHASH;
+int PIECES_TIERHASH;
+int PIECES_NOT_TIERHASH;
+int TIER_HASH_CXT = 2000000000;
 #define MAXW 9
 #define MAXH 9
 #define MINW 1
 #define MINH 1
 #define TOTAL_STAGES (WIN4_WIDTH*WIN4_HEIGHT)
-#define COLS_TIERHASH 1
-#define COLS_NOT_TIERHASH (WIN4_WIDTH - COLS_TIERHASH)
-#define PIECES_TIERHASH (COLS_TIERHASH*WIN4_HEIGHT)
-#define PIECES_NOT_TIERHASH (COLS_NOT_TIERHASH*WIN4_HEIGHT)
-// Don't forget to set gSlotsX (width) and gSlotsY (height) in win4.tcl !!
 
 #define DIRECTION_PAIRS 4
 #define NO_COLUMN -1
@@ -205,10 +208,8 @@ void		SetupTierStuff();
 
 char 		**getOneDRepresentation(XOBlank board[MAXW][MAXH]); 
 STRING		MoveToString( MOVE );
-<<<<<<< mwin4.c
 POSITION        GetCanonicalPosition(POSITION position);
 
-=======
 TIER		BoardToTier(XOBlank board[MAXW][MAXH]);
 TIERLIST	*TierChildren(TIER tier);
 TIERPOSITION	NumberOfTierPositions(TIER tier);
@@ -216,7 +217,6 @@ int 		*count_total_pieces(XOBlank board[MAXW][MAXH]);
 int 		*countPieces(char *board);
 BOOLEAN 	IsLegal(POSITION pos);
 STRING 		TierToString(TIER tier);
->>>>>>> 1.28
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -291,6 +291,7 @@ void GameSpecificMenu() {
 		printf("\tp)\tContinuous (P)ieces goal (%d)\n", gContinuousPiecesGoal);
 		printf("\tw)\tChoose the board (W)idth (%d through %d) Currently: %d\n",MINW,MAXW,WIN4_WIDTH);
 		printf("\th)\tChoose the board (H)eight (%d through %d) Currently: %d\n",MINH,MAXH,WIN4_HEIGHT);
+		printf("\tc)\tChoose the number of (C)olumns to determine the tier hash (%d through %d) Currently: %d\n", MINW, MAXW, COLS_TIERHASH);
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		if (gLibraries) {
 		  printf("\tl)\tToggle use of game function libraries. Currently: On");
@@ -300,6 +301,20 @@ void GameSpecificMenu() {
 		printf("\n\nSelect an option: ");
 		
 		switch(GetMyChar()) {
+		case 'C': case 'c':
+			printf("Enter number of columns to determine tier (%d through %d): ",MINW,MAXW);
+                        temp = GetMyInt();
+
+                        while(temp > MAXW || temp < MINW){
+                                printf("Out of range\n");
+                                printf("Enter number of columns to determine tier (%d through %d): ",MINW,MAXW);
+                                tChar = GetMyChar();
+                                temp = atoi(&tChar);
+                        }
+                        COLS_TIERHASH = temp;
+			SetupTierStuff();
+                        break;
+
 		case 'Q': case 'q':
 			ExitStageRight();
 			break;
@@ -318,6 +333,7 @@ void GameSpecificMenu() {
 				temp = atoi(&tChar);
 			}
 			WIN4_WIDTH = temp;
+			SetupTierStuff();
 			break;
 		case 'H': case 'h':
 			printf("Enter a height (%d through %d): ",MINH,MAXH);
@@ -330,6 +346,7 @@ void GameSpecificMenu() {
 				temp = atoi(&tChar);
 			}
 			WIN4_HEIGHT = temp;
+			SetupTierStuff();
 			break;
 
 		case 'L': case 'l':
@@ -904,7 +921,7 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 	non_tier_board = (char *)(SafeMalloc(sizeof(char) * PIECES_NOT_TIERHASH)); 
 	gUnhashToTierPosition(pos, &tierpos, &tier);
 
-	generic_hash_context_switch(1000000000);
+	generic_hash_context_switch(TIER_HASH_CXT);
 	generic_hash_unhash(tier, tier_board); 
 
 	generic_hash_context_switch(tier);
@@ -973,27 +990,7 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
      }
 }
 
-//Unhash the board into a one-dimensional representation
-<<<<<<< mwin4.c
-void linearUnhash(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
-  int col,row,h;
-  for (col=0; col<WIN4_WIDTH;col++) {
-    row=WIN4_HEIGHT-1;
-    for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
-	 (pos & (1 << h)) == 0;
-	 h--) {
-      board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 2;
-      row--;
-    }
-    h--;
-    while (row >=0) {
-      if ((pos & (1<<h)) != 0) board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 1;
-      else board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 0;
-      row--;
-      h--;
-    }
-  }
-=======
+
 void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
   int col, row, h, ctr;
   char *tier_board, *non_tier_board;
@@ -1005,7 +1002,7 @@ void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
         non_tier_board = (char *)(SafeMalloc(sizeof(char) * PIECES_NOT_TIERHASH));
         gUnhashToTierPosition(pos, &tierpos, &tier);
 
-        generic_hash_context_switch(1000000000);
+        generic_hash_context_switch(TIER_HASH_CXT);
         generic_hash_unhash(tier, tier_board);
 
         generic_hash_context_switch(tier);
@@ -1053,7 +1050,6 @@ void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
   	}
 	}
 
->>>>>>> 1.28
   
 
 }
@@ -1300,7 +1296,6 @@ POSITIONLIST *EnumerateWithinStage(int stage) {
 	//gotta free this in the bottom up solver.
 	return currentStage;
 }
-<<<<<<< mwin4.c
 
 
 /************************************************************************
@@ -1367,16 +1362,16 @@ POSITION GetCanonicalPosition(POSITION p){
   }
   return ((temp < p) ? temp : p);  // Choose the smallest position
 }
-=======
 
 //  MAXIMIZATION FUNCTIONS
 
 
 /* Initialize Tier Stuff. */
 void SetupTierStuff() {
-	int i, pieces_array[] = {'X', 0, 0, 'O', 0, 0, '_', 0, 0, -1};
+	int i, *piece_count, pieces_array[] = {'X', 0, 0, 'O', 0, 0, '_', 0, 0, -1};
 	TIER init_tier; 
 	TIERPOSITION init_tier_pos;
+	char *board;
 
 	kSupportsTierGamesman = TRUE;
         gTierChildrenFunPtr             = &TierChildren;
@@ -1387,29 +1382,53 @@ void SetupTierStuff() {
 	generic_hash_destroy();
 	generic_hash_custom_context_mode(TRUE);
 
+	COLS_NOT_TIERHASH = WIN4_WIDTH - COLS_TIERHASH;
+	PIECES_TIERHASH = (COLS_TIERHASH * WIN4_HEIGHT);
+	PIECES_NOT_TIERHASH = (COLS_NOT_TIERHASH * WIN4_HEIGHT);
+	
+	board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
+
 	/* creates hash function that determines tier that the board resides in. */
 	pieces_array[2] = PIECES_TIERHASH;
 	pieces_array[5] = PIECES_TIERHASH;
 	pieces_array[8] = PIECES_TIERHASH;
 
 	generic_hash_init(PIECES_TIERHASH, pieces_array, NULL, 0);
-	generic_hash_set_context(1000000000);
+	generic_hash_set_context(TIER_HASH_CXT);
 	
 	/* creates hash function for each particular tier.*/
 	pieces_array[2] = PIECES_NOT_TIERHASH;
 	pieces_array[5] = PIECES_NOT_TIERHASH;
 	pieces_array[8] = PIECES_NOT_TIERHASH;
-	
-	MAX_NUM_TIERS = generic_hash_max_pos();
 
+	MAX_NUM_TIERS = generic_hash_max_pos();
+	
+	if (FIRST_TIME)
+		printf("Generating hashes for %d tiers...\n", MAX_NUM_TIERS);
 	for (i=0; i<MAX_NUM_TIERS; i++) {
-		generic_hash_init(PIECES_NOT_TIERHASH, pieces_array, NULL, 0);
-		generic_hash_set_context(i);
+		generic_hash_context_switch(TIER_HASH_CXT);
+		generic_hash_unhash(i, board);
+
+		if (validTierBoard(board)) {
+			generic_hash_init(PIECES_NOT_TIERHASH, pieces_array, NULL, 0);
+			generic_hash_set_context(i);
+		}
+
+		if (FIRST_TIME && (MAX_NUM_TIERS - i)%100000==0)
+			printf("\t%d tiers remaining...\n", MAX_NUM_TIERS - i);
 	}
+
+
+	SafeFree(board);
 
         GetInitialTierPosition(&init_tier, &init_tier_pos);
         gInitialTier = init_tier;
         gInitialTierPosition = init_tier_pos;
+
+	if (FIRST_TIME) 
+		printf("Tier Initialization Complete!\n");
+
+	FIRST_TIME = TRUE;
 }
 
 
@@ -1547,7 +1566,7 @@ TIERLIST* TierChildren(TIER tier) {
 	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
 	int ctr;
 
-	generic_hash_context_switch(1000000000);
+	generic_hash_context_switch(TIER_HASH_CXT);
 	generic_hash_unhash(tier, board);
 	result = NextPossibleBoards(board);
 	list = CreateTierlistNode(tier, list);
@@ -1600,7 +1619,7 @@ TIER BoardToTier(XOBlank curr_board[MAXW][MAXH]) {
 	TIER tier;
 	int i, j, k=0;
 	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-	
+
 	for (i=0; i<COLS_TIERHASH; i++) {
 		for (j=0; j<WIN4_HEIGHT; j++) {
 			if (curr_board[i][j]==x) {
@@ -1616,7 +1635,7 @@ TIER BoardToTier(XOBlank curr_board[MAXW][MAXH]) {
 		}
 	}
 	
-	generic_hash_context_switch(1000000000);
+	generic_hash_context_switch(TIER_HASH_CXT);
 	tier =	generic_hash_hash(board, 1);
 	SafeFree(board);
 	return tier;
@@ -1660,8 +1679,8 @@ BOOLEAN validTierBoard(char *board) {
 		blank_hit=0;
 		
 		for (row=0; row<WIN4_HEIGHT; row++) {
-			if (board[WIN4_HEIGHT*col + row]=='_')
-				blank_hit=1;
+			if (board[WIN4_HEIGHT*col + row]=='_') 
+				blank_hit=1; 
 			else if (blank_hit==1 && board[WIN4_HEIGHT*col + row] != '_')
 				return FALSE;
 		}
@@ -1676,11 +1695,9 @@ BOOLEAN validTierBoard(char *board) {
 /* Converts Tier Number to a String. */
 STRING TierToString(TIER tier) {
 	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH + 1));
-	generic_hash_context_switch(1000000000);
+	generic_hash_context_switch(TIER_HASH_CXT);
 	generic_hash_unhash(tier, board);
 	board[PIECES_TIERHASH] = NULL;
 	return board;
 }
 
-
->>>>>>> 1.28
