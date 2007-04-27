@@ -217,6 +217,7 @@ int 		*count_total_pieces(XOBlank board[MAXW][MAXH]);
 int 		*countPieces(char *board);
 BOOLEAN 	IsLegal(POSITION pos);
 STRING 		TierToString(TIER tier);
+BOOLEAN		validTierBoard(char *board);
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -312,7 +313,6 @@ void GameSpecificMenu() {
                                 temp = atoi(&tChar);
                         }
                         COLS_TIERHASH = temp;
-			SetupTierStuff();
                         break;
 
 		case 'Q': case 'q':
@@ -333,7 +333,6 @@ void GameSpecificMenu() {
 				temp = atoi(&tChar);
 			}
 			WIN4_WIDTH = temp;
-			SetupTierStuff();
 			break;
 		case 'H': case 'h':
 			printf("Enter a height (%d through %d): ",MINH,MAXH);
@@ -346,7 +345,6 @@ void GameSpecificMenu() {
 				temp = atoi(&tChar);
 			}
 			WIN4_HEIGHT = temp;
-			SetupTierStuff();
 			break;
 
 		case 'L': case 'l':
@@ -1368,7 +1366,7 @@ POSITION GetCanonicalPosition(POSITION p){
 
 /* Initialize Tier Stuff. */
 void SetupTierStuff() {
-	int i, *piece_count, pieces_array[] = {'X', 0, 0, 'O', 0, 0, '_', 0, 0, -1};
+	int i, pieces_array[] = {'X', 0, 0, 'O', 0, 0, '_', 0, 0, -1};
 	TIER init_tier; 
 	TIERPOSITION init_tier_pos;
 	char *board;
@@ -1697,7 +1695,7 @@ STRING TierToString(TIER tier) {
 	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH + 1));
 	generic_hash_context_switch(TIER_HASH_CXT);
 	generic_hash_unhash(tier, board);
-	board[PIECES_TIERHASH] = NULL;
+	board[PIECES_TIERHASH] = '\0';
 	return board;
 }
 
