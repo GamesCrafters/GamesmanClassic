@@ -135,6 +135,7 @@ extern TIERPOSITION     gDBTierEnd;
 extern TIER				kBadTier;
 extern BOOLEAN          gTierSolverMenu;
 extern BOOLEAN          gDontLoadTierDB;
+extern unsigned int     HASHTABLE_BUCKETS;
 // For the hash window
 extern BOOLEAN			gHashWindowInitialized;
 extern BOOLEAN			gCurrentTierIsLoopy;

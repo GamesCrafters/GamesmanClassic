@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.36 2007-04-22 09:54:34 max817 Exp $
+// $Id: solveretrograde.c,v 1.37 2007-05-01 01:26:59 max817 Exp $
 
 /************************************************************************
 **
@@ -53,6 +53,7 @@ BOOLEAN checkLegality; // Whether or not to check legality of tierpositions.
 BOOLEAN useUndo; // Whether or not to use undomove functions.
 BOOLEAN forceLoopy; // Whether or not to force the loopy solver on non-loopy tiers.
 BOOLEAN checkCorrectness; // Whether or not to check correctness after the solve.
+BOOLEAN useLevelFiles; // Whether or not to use Level Files in this solve.
 
 // Solver procs
 void checkExistingDB();
@@ -78,8 +79,6 @@ void rInsertFR(VALUE, POSITION, REMOTENESS);
 void checkForCorrectness(POSITION, POSITION);
 TIERLIST* checkAndDefineTierTree();
 BOOLEAN checkTierTree();
-void clearNodes();
-BOOLEAN tierDFS(TIER, BOOLEAN);
 // Debug Stuff
 void debugMenu();
 // HAXX for comparing two databases
@@ -1216,57 +1215,120 @@ void checkForCorrectness(POSITION start, POSITION end) {
 	else printf("There appears to be some corruption...\n");
 }
 
-/*
-to find others that can solve at same time: check which have ALL kids solved.
-*/
-// for my list work
+/* TIER LIST GENERATION SECTION */
 
-TIERLIST *list = NULL, *nodes = NULL,
-		*preList = NULL, *postList = NULL; //I use TIER since there's no "BooleanList"
+// a hashtable datastructure of tiernodes
+typedef struct tiernode_list
+{
+        TIER tier;
+        BOOLEAN solved;
+        struct tiernode_list* next;
+}
+TIERNODELIST;
 
-// if tier's in list, returns TRUE and sets variables
-// else, return FALSE
-BOOLEAN getNode(TIER tier, BOOLEAN* postValue) {
-	TIERLIST *nodesPtr = nodes, *postPtr = postList;
-	for (; nodesPtr != NULL; nodesPtr = nodesPtr->next, postPtr = postPtr->next)
-		if (nodesPtr->tier == tier) {
-			(*postValue) = postPtr->tier;
-			return TRUE;
+void FreeTierNodeList(TIERNODELIST* ptr){
+    TIERNODELIST *last;
+    while (ptr != NULL) {
+        last = ptr;
+        ptr = ptr->next;
+        SafeFree((GENERIC_PTR)last);
+    }
+}
+
+TIERNODELIST *CreateTierNodelistNode(TIER theTier, TIERNODELIST* theNextTier){
+    TIERNODELIST *theHead = (TIERNODELIST *) SafeMalloc (sizeof(TIERNODELIST));
+    theHead->tier = theTier;
+    theHead->solved = FALSE;
+    theHead->next = theNextTier;
+    return theHead;
+}
+
+TIERLIST *list = NULL; // the list to be generated
+TIERNODELIST** nodesHashTable = NULL; // a hashtable to keep track of nodes
+
+void initDFSStuff() {
+    list = NULL;
+	nodesHashTable = (TIERNODELIST**) SafeMalloc(HASHTABLE_BUCKETS * sizeof(TIERNODELIST*));
+	int i;
+	for (i = 0; i < HASHTABLE_BUCKETS; i++)
+		nodesHashTable[i] = NULL;
+}
+
+void freeDFSStuff() {
+	FreeTierList(list); 
+	int i;
+	for (i = 0; i < HASHTABLE_BUCKETS; i++)
+		FreeTierNodeList(nodesHashTable[i]);
+	if (nodesHashTable != NULL)
+		SafeFree(nodesHashTable);
+}
+
+// puts a node into the hashtable, returns the node pointer
+// invariant: node NOT in hashtable already
+TIERNODELIST* putNode(TIER tier) {
+    int tierBucket = tier % HASHTABLE_BUCKETS;
+	nodesHashTable[tierBucket] =
+		CreateTierNodelistNode(tier, nodesHashTable[tierBucket]);
+    return nodesHashTable[tierBucket];
+}
+
+// gets node from a hashtable
+// if solved, return 1, else return 0
+// if the node isn't there, return -1
+int getNode(TIER tier) {
+	TIERNODELIST* bucket = nodesHashTable[tier % HASHTABLE_BUCKETS];
+    for (; bucket != NULL; bucket = bucket->next) {
+        if (tier == bucket->tier) {
+			if (bucket->solved)
+                return 1;
+            else return 0;
+        }
+    }
+	return -1;
+}
+
+// the actual DFS traverser
+BOOLEAN tierDFS(TIER tier, BOOLEAN defineList) {
+	TIERLIST *children, *cptr;
+	TIER child;
+	int childResult;
+
+	TIERNODELIST* node = putNode(tier);
+
+	children = cptr = gTierChildrenFunPtr(tier);
+	for (; cptr != NULL; cptr = cptr->next) {
+		child = cptr->tier;
+		if (tier == child) continue;
+
+        childResult = getNode(child);
+        // if child not visited, DFS
+		if (childResult == -1) {
+            if (!tierDFS(child, defineList)) {
+                FreeTierList(children);
+                return FALSE;
+            }
+		// else check if there's a cycle
+		} else if (childResult == 0) {
+			printf("ERROR! Tier %llu leads back to higher Tier %llu!\n", child, tier);
+            FreeTierList(children);
+			return FALSE;
 		}
-	return FALSE;
+	}
+	FreeTierList(children);
+	node->solved = TRUE;
+	if (defineList)
+		list = CreateTierlistNode(tier, list);
+	return TRUE;
 }
 
-// invariant: tier is not in list
-void previsit(TIER tier) {
-	nodes = CreateTierlistNode(tier, nodes);
-	preList = CreateTierlistNode(1, preList);
-	postList = CreateTierlistNode(0, postList);
-}
-
-// invariant: tier is already in list
-void postvisit(TIER tier) {
-	TIERLIST *nodesPtr = nodes, *postPtr = postList;
-	for (; nodesPtr != NULL; nodesPtr = nodesPtr->next, postPtr = postPtr->next)
-		if (nodesPtr->tier == tier) {
-			postPtr->tier = 1;
-			return;
-		}
-	BadElse("If you see this, be sure to bug Max about it! :)\n");
-	exit(1);
-}
-
-void clearNodes() {
-	FreeTierList(list); list = NULL;
-	FreeTierList(nodes); nodes = NULL;
-	FreeTierList(preList); preList = NULL;
-	FreeTierList(postList); postList = NULL;
-}
+// NOW, the actual API functions for checking/generating the tier solve list
 
 // Check tier hierarchy AND define tierSolveList
 TIERLIST* checkAndDefineTierTree() {
+    initDFSStuff();
 	BOOLEAN check = tierDFS(gInitialTier, TRUE);
 	TIERLIST* toReturn = CopyTierlist(list);
-	clearNodes();
+	freeDFSStuff();
 	if (check)
 		return toReturn;
 	else return NULL;
@@ -1274,38 +1336,10 @@ TIERLIST* checkAndDefineTierTree() {
 
 // ONLY check tier hierarchy
 BOOLEAN checkTierTree() {
+    initDFSStuff();
 	BOOLEAN check = tierDFS(gInitialTier, FALSE);
-	clearNodes();
+	freeDFSStuff();
 	return check;
-}
-
-BOOLEAN tierDFS(TIER tier, BOOLEAN defineList) {
-	TIERLIST *children, *cptr;
-	TIER child;
-	BOOLEAN childPost;
-
-	previsit(tier);
-	children = cptr = gTierChildrenFunPtr(tier);
-	for (; cptr != NULL; cptr = cptr->next) {
-		child = cptr->tier;
-		if (tier == child) continue;
-
-		// if child not visited, DFS
-		if (!getNode(child, &childPost)) {
-			if (!tierDFS(child, defineList)) return FALSE;
-
-		// else check if there's a "back edge" == cycle
-		// back edge from (v,w) : post[w] false
-		} else if (!childPost) {
-			printf("ERROR! Tier %llu leads back to higher Tier %llu!\n", child, tier);
-			return FALSE;
-		}
-	}
-	FreeTierList(children);
-	postvisit(tier);
-	if (defineList)
-		list = CreateTierlistNode(tier, list);
-	return TRUE;
 }
 
 /************************************************************************
@@ -1482,6 +1516,14 @@ void skipToNewline(FILE* fp) {
 ** ALL THE PARALLELIZATION STUFF
 **
 ************************************************************************/
+
+/***LEVEL FILES***/
+
+void solveLevelFiles() {
+
+}
+
+/***ODEEPA BLUE FUNCTIONS***/
 
 // This is a simple UI for testing the parallelize stuff. All it REALLY
 // does is call the functions.

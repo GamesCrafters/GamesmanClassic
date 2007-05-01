@@ -60,9 +60,6 @@ BOOLEAN custom_contexts_mode = FALSE;
 MOVELIST** generic_hash_hashtable = NULL;
 // A hash table from "custom context" => "index in contextList of that context"
 BOOLEAN hashtableInitialized = FALSE;
-// 50 buckets seems pretty good, can always adjust later
-int HASHTABLE_BUCKETS = 50;
-
 
 /* symmetry stuff. Added 2007-2-14 (Valentines Day!) */
 int numSymmetries = 1;  // we'll always have the identity.

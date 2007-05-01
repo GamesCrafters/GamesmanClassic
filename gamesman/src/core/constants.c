@@ -234,4 +234,5 @@ STRING kCommandSyntaxHelp =
 "--GenerateMoves <args>\n"
 "--lightplayer\n"
 "--netDb\n"
-"--hashCounting\t\tStarts the generic-hash counting tool instead of the game.\n\n";
+"--hashCounting\t\tStarts the generic-hash counting tool instead of the game.\n"
+"--hashtable_buckets\t(advanced) Sets the total number of buckets in any hashtables used.\n\n";

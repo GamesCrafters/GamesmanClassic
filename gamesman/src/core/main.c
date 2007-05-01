@@ -408,6 +408,12 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i],"--hashCounting")) {
 						hashCounting();
 						return;
+                } else if(!strcasecmp(argv[i],"--hashtable_buckets")) {
+                        if(argc < (i + 2))
+                                fprintf(stderr, "\nUsage: %s --hashtable_buckets <n>\n\n", argv[0]);
+                        else
+                                HASHTABLE_BUCKETS = atoi(argv[2]);
+                        i++;
 				} else if(!strcasecmp(argv[i],"--startAndWait")) { // for PARALLELIZATION
 						StartAndWait();
 						ExitStageRight();
