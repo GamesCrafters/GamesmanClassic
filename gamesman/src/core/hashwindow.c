@@ -173,8 +173,9 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 	FreeTierList(ptr);
 	// finally, load the databases to memory:
     // if gDontLoadTierDB is true, we have non-solve playing, so don't load db
-    // however, if static evulator is on, then load as much as you can anyway
-    if (loadDB && (!gDontLoadTierDB || gOpponent == AgainstEvaluator)) {
+    // however, if static evaluator is on, then load as much as you can anyway
+    // however2, if static evaluator is PERFECT, then never load it
+    if (loadDB && (!gDontLoadTierDB || (gOpponent == AgainstEvaluator)) && !gSEvalPerfect) {
 		CreateDatabases();
 		InitializeDatabases();
 		if(!LoadDatabase()) {
@@ -200,10 +201,8 @@ void gInitializeHashWindowToPosition(POSITION* position) {
 }
 
 BOOLEAN gTierDBExistsForPosition(POSITION position) {
-	if (!gHashWindowInitialized) {
-		printf("ERROR: Hash Window is not initialized!\n");
-		ExitStageRight();
-	}
+	if (!gHashWindowInitialized || gSEvalPerfect)
+		return FALSE;
     TIERPOSITION tierposition; TIER tier; int i;
     gUnhashToTierPosition(position, &tierposition, &tier);
 	for(i = 1; i < gNumTiersInHashWindow; i++)
