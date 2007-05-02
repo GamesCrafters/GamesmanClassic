@@ -528,6 +528,9 @@ USERINPUT ConfigurationMenu()
 	  printf("\t\tm)\t(M)isere-ly always (i.e., trying to lose!)\n\n");
 	  if (gPutWinBy) {
 	    printf("\t\tw)\tToggle from %s\n", (gWinBy ? "(W)inBy to Remoteness" : "Remoteness to (W)inBy"));
+	    if (gWinBy) {
+	      printf("\t\tc)\tToggle from %s\n", (gWinByClose ? "WinBy(C)lose to WinBy" : "WinBy to WinBy(C)lose"));
+	    }
 	  }
 	  printf("\t\tg)\tChange the number of (G)ive-backs\n");
 	}
@@ -664,6 +667,17 @@ USERINPUT ConfigurationMenu()
 	      BadMenuChoice();
 	    } else {
 	      gWinBy = !gWinBy;
+	      if (gWinBy == FALSE) {
+		gWinByClose = FALSE;
+	      }
+	    }
+	    HitAnyKeyToContinue();
+	    break;
+        case 'C': case 'c':
+	    if (!gPutWinBy || !gWinBy) {
+	      BadMenuChoice();
+	    } else {
+	      gWinByClose = !gWinByClose;
 	    }
 	    HitAnyKeyToContinue();
 	    break;

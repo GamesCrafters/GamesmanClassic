@@ -69,6 +69,7 @@ void Initialize()
 		gGetVarStringPtr = &get_var_string;
 	if (gPutWinBy) {
 	  gWinBy = TRUE;
+	  gWinByClose = FALSE;
 	}
         srand(time(NULL));
 

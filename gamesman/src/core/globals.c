@@ -58,6 +58,7 @@ BOOLEAN gPrintSEvalPredictions = FALSE; /* TRUE iff the seval predictions should
 BOOLEAN gSEvalLoaded = FALSE;           /* TRUE iff an evaluator is successfully loaded */
 BOOLEAN gSEvalPerfect = FALSE;          /* TRUE iff an evaluator is never wrong */
 BOOLEAN gWinBy = FALSE;               /* TRUE iff the computer is playing with WinBy */
+BOOLEAN gWinByClose = FALSE;          /* TRUE iff the computer is playing with WinByClose */
 BOOLEAN gHints = FALSE;                 /* TRUE iff possible moves should be printed */
 BOOLEAN gUnsolved = FALSE;              /* TRUE iff playing without solving */
 

@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.49 2007-05-02 10:24:36 brianzimmer Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.50 2007-05-02 10:35:04 zwizeguy Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1704,11 +1704,28 @@ MOVE GetWinByMove (POSITION position, MOVELIST* genMoves)
   POSITION child;
   int childWinBy;
   int currWinBy = WinByLoad(position);
+  int turn = generic_hash_turn(position);
+  MOVE minCloseMove, maxCloseMove;
+  int minWin, maxWin;
+  minCloseMove = maxCloseMove = genMoves->move;
+  maxWin = WinByLoad(DoMove(position, genMoves->move));
+  minWin = maxWin;
   for (; genMoves != NULL; genMoves = genMoves->next) {
     child = DoMove(position, genMoves->move);
     childWinBy = WinByLoad(child);
-    if (currWinBy == childWinBy)
+    if ((0 < childWinBy && childWinBy < minWin) || (minWin <= 0 && childWinBy > minWin)) {
+      minCloseMove = genMoves->move;
+      minWin = childWinBy;
+    }
+    if ((maxWin < childWinBy && childWinBy < 0) || (maxWin >= 0 && childWinBy < maxWin)) {
+      maxCloseMove = genMoves->move;
+      maxWin = childWinBy;
+    }
+    if (currWinBy == childWinBy && !gWinByClose)
       return genMoves->move;
+  }
+  if (gWinByClose) {
+    return ((turn == 1) ? minCloseMove : maxCloseMove);
   }
   return -1;
 }
@@ -1883,7 +1900,7 @@ MOVE GetComputersMove(POSITION thePosition)
                 }
 
                 if (moveType == WINMOVE) {
-		  if (gWinBy) {
+		  if (gWinBy || gWinByClose) {
 		    ptr = head;
 		    theMove = GetWinByMove(thePosition,ptr);
 		  } else {
@@ -1892,9 +1909,9 @@ MOVE GetComputersMove(POSITION thePosition)
 		  }
                 } else if (moveType == TIEMOVE) {
                         // TIEMOVE: Tie as quickly as possible when smart???
-						theMove = ChooseSmartComputerMove(thePosition,moves->moveList[moveType],moves->remotenessList[moveType]);//RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+		        theMove = ChooseSmartComputerMove(thePosition,moves->moveList[moveType],moves->remotenessList[moveType]);//RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
                 } else {
-		  if (gWinBy) {
+		  if (gWinBy || gWinByClose) {
 		    ptr = head;
 		    theMove = GetWinByMove(thePosition,ptr);
 		  } else {
