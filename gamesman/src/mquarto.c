@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.69 2007-04-25 04:58:50 max817 Exp $
+// $Id: mquarto.c,v 1.70 2007-05-02 18:06:40 bensussman Exp $
 
 
 /*
@@ -2896,7 +2896,7 @@ void SetupTierStuff() {
 			piecesArray[pieceCounter*3 + 2] = (tierCounter >> pieceCounter) & 1;
 		}
         piecesLeft = getPiecesLeft(tierCounter);
-        piecesOnBoard = BOARDSIZE - piecesLeft;
+        piecesOnBoard = NUMPIECES - piecesLeft;
 		piecesArray[NUMPIECES*3 + 1] = piecesArray[NUMPIECES*3 + 2] = piecesLeft+(BOARDSIZE - NUMPIECES);
         generic_hash_init(BOARDSIZE, piecesArray, NULL, ((piecesOnBoard == 0) ? 0 : ((piecesOnBoard & 1) ? 1 : 2))); 
 	}
@@ -2988,28 +2988,6 @@ char * consCharArrayFromBoard(QTBPtr board) {
 	return charArray;
 }
 
-/* NOTES FROM OUR TALK
-    Tier 1
-    hash = 500 positions
-    ghi_max_pos()
-    gh_unhash() = char[16]
-
-    hash() {
-        board[17] // 0 = hand
-        tierpos = gh_hash(board[1:17])
-        tierpos + (ghi_max_pos()*(board[0]+1));
-        // 12 (0 in hand), ghi_max_pos()+12 (1 in hand), ghi_max_pos()*2+12
-    }
-    unhash() {
-        TIER tier, TIERPOSITION tierposition;
-        gUnhashToTierPosition(position, &tier, &tierposition);
-        generic_hash_context_switch(tier);
-        tierposition = position % gh_max_pos();
-        board[0] /= (position - tierpostion) % 16;
-        partialBoard = gh_unhash(tierposition);
-        board = board[0] + partialBoard
-    } */
-
 STRING TierToString(TIER tier) {
 	STRING thisTier = (STRING)SafeMalloc((NUMPIECES+1)* sizeof(char));
 	int x;
@@ -3046,6 +3024,9 @@ STRING TierToString(TIER tier) {
 }*/
 
 // $Log: not supported by cvs2svn $
+// Revision 1.69  2007/04/25 04:58:50  max817
+// Tiers
+//
 // Revision 1.68  2007/04/23 09:14:46  bensussman
 // BUGZID: 69770
 //
