@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.129 2007-04-22 09:54:34 max817 Exp $
+# $Id: InitWindow.tcl,v 1.130 2007-05-02 08:30:28 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -435,7 +435,8 @@ proc InitWindow { kRootDir kExt } {
         .middle.f1.cMLeft itemconfigure moveHistoryRightName \
 		    -text [format "%s Winning -->" $gRightName]
 	    update
-	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+	    global gUseDB
+	    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" || $gUseDB == "true" } {
 			if { $gReallyUnsolved == true } {
 			    . config -cursor watch
 			    set theValue [C_DetermineValue $gPosition]
@@ -603,8 +604,15 @@ proc InitWindow { kRootDir kExt } {
     frame .middle.f2.fPlayOptions.fMid.fRight \
 	-width [expr $gFrameWidth / 2]
 
-    global gSkipInputOnSingleMove
-    
+    global gSkipInputOnSingleMove gUseDB
+    set gUseDB true
+    checkbutton .middle.f2.fPlayOptions.fMid.fLeft.rUseDB \
+	-text "Load existing database or solve" \
+	-font $kLabelFont \
+	-variable gUseDB \
+	-onvalue true \
+	-offvalue false
+
     checkbutton .middle.f2.fPlayOptions.fMid.fLeft.rAutoMove \
 	-text "Automove if one possible move" \
 	-font $kLabelFont \
@@ -710,6 +718,7 @@ proc InitWindow { kRootDir kExt } {
     ## smarter computer widgets
     pack .middle.f2.fPlayOptions.fMid.fLeft -side left -fill x -expand 1
     pack .middle.f2.fPlayOptions.fMid.fRight -side right -fill x -expand 1
+    pack .middle.f2.fPlayOptions.fMid.fLeft.rUseDB -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.rAutoMove -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer -side top
     pack .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly -expand 1 -fill both -side top
@@ -793,7 +802,8 @@ proc InitWindow { kRootDir kExt } {
 		    GS_Initialize .middle.f2.cMain
 	
 		    # Solve this option
-		    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+		    global gUseDB
+		    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" || $gUseDB == "true"} {
 				set theValue [C_DetermineValue $gPosition]
 				.middle.f1.cMLeft lower progressBar
 		    }
@@ -1520,7 +1530,8 @@ proc switchRules { rules } {
     GS_Initialize .middle.f2.cMain
     
     # Solve this option
-    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
+    global gUseDB
+    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" || $gUseDB == "true"} {
 		set theValue [C_DetermineValue $gPosition]
 		.middle.f1.cMLeft lower progressBar
     }
@@ -1531,78 +1542,81 @@ proc switchRules { rules } {
 
 
 proc clickedPlayNow {} {
-    global gLeftHumanOrComputer gRightHumanOrComputer 
+    global gLeftHumanOrComputer gRightHumanOrComputer gUseDB
     global theValue gGameSolved gReallyUnsolved gPosition
-	if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" } {
-	    . config -cursor watch
-	    set theValue [C_DetermineValue $gPosition]
-	    .middle.f1.cMLeft lower progressBar
-	    set gGameSolved true
-	    . config -cursor {}
-	} else {
+    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" || $gUseDB == "true" } {
+	. config -cursor watch
+	set theValue [C_DetermineValue $gPosition]
+	.middle.f1.cMLeft lower progressBar
+	set gGameSolved true
+	. config -cursor {}
+    } else {
         # TIER-GAMESMAN
         set gPosition [C_InitTierGamesmanIfNeeded $gPosition]
         
-	    set gReallyUnsolved true
-	    set gGameSolved true
-	}
-	pack forget .middle.f2.fPlayOptions
-	global gSmartness gSmartnessScale
-	C_SetSmarterComputer $gSmartness $gSmartnessScale
-	pack .middle.f2.cMain -expand 1
-	pack .middle.f2.fPlayOptions.fBot -side bottom
-	.middle.f3.cMRight lower play
-	.middle.f1.cMLeft lower startupPic
-	.middle.f1.cMLeft raise iIMB
-	.middle.f3.cMRight raise iIMB
-	.middle.f2.cMain lower base
-	.middle.f1.cMLeft raise ToWin
-	.middle.f1.cMLeft raise ToMove
-	.middle.f1.cMLeft lower moveHistory
-	set moveHistoryVisible false
-	.cStatus raise rulesA
+	set gReallyUnsolved true
+	set gGameSolved true
+    }
+    pack forget .middle.f2.fPlayOptions
+    global gSmartness gSmartnessScale
+    C_SetSmarterComputer $gSmartness $gSmartnessScale
+    pack .middle.f2.cMain -expand 1
+    pack .middle.f2.fPlayOptions.fBot -side bottom
+    .middle.f3.cMRight lower play
+    .middle.f1.cMLeft lower startupPic
+    .middle.f1.cMLeft raise iIMB
+    .middle.f3.cMRight raise iIMB
+    .middle.f2.cMain lower base
+    .middle.f1.cMLeft raise ToWin
+    .middle.f1.cMLeft raise ToMove
+    .middle.f1.cMLeft lower moveHistory
+    set moveHistoryVisible false
+    .cStatus raise rulesA
     .cStatus raise historyI
-
+    
     .cToolbar raise iITB
     .cToolbar raise iDTB3
 	
-	pack .middle.f2.fPlayOptions.fBot -side bottom
-	.cToolbar bind iOTB1 <Any-Leave> {
-	    .cToolbar raise iITB1
-	    .middle.f1.cMLeft lower startupPicOver
-	}
-	
-	.cStatus lower base
-	global gGamePlayable
-	set gGamePlayable true
+    pack .middle.f2.fPlayOptions.fBot -side bottom
+    .cToolbar bind iOTB1 <Any-Leave> {
+	.cToolbar raise iITB1
+	.middle.f1.cMLeft lower startupPicOver
+    }
+    
+    .cStatus lower base
+    global gGamePlayable
+    set gGamePlayable true
     
     # TIER-GAMESMAN
     global gUsingTiers
     set gUsingTiers [C_UsingTiers]
     
-	NewGame
-	if {$gReallyUnsolved} {
-	    .cStatus raise rulesD
-	    .cStatus raise historyD
-	    .cStatus raise allD
-	    .cStatus raise valueD
-	    .cStatus raise predD
-	} else {
-	    .cStatus raise rulesA
-	    .cStatus raise historyI
-	    .cStatus raise valueI
-	    .cStatus raise allA
-	    .cStatus raise predI
-	}
-	.middle.f3.cMRight raise WhoseTurn
-	.middle.f1.cMLeft raise LeftName
-	.middle.f3.cMRight raise RightName
-	.cStatus raise undoD
+    NewGame
+    if {$gReallyUnsolved} {
+	.cStatus raise rulesD
+	.cStatus raise historyD
+	.cStatus raise allD
+	.cStatus raise valueD
+	.cStatus raise predD
+    } else {
+	.cStatus raise rulesA
+	.cStatus raise historyI
+	.cStatus raise valueI
+	.cStatus raise allA
+	.cStatus raise predI
+    }
+    .middle.f3.cMRight raise WhoseTurn
+    .middle.f1.cMLeft raise LeftName
+    .middle.f3.cMRight raise RightName
+    .cStatus raise undoD
 }
 
 
 
 proc DisableSmarterComputerInterface {} {
+    global gUseDB
+    set gUseDB false
+    .middle.f2.fPlayOptions.fMid.fLeft.rUseDB configure -state active
     .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure \
 		-foreground grey
     .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure \
@@ -1618,6 +1632,7 @@ proc DisableSmarterComputerInterface {} {
 }
 
 proc EnableSmarterComputerInterface {} {
+    .middle.f2.fPlayOptions.fMid.fLeft.rUseDB configure -state disabled
     .middle.f2.fPlayOptions.fMid.fLeft.lSmarterComputer configure \
 		-foreground black
     .middle.f2.fPlayOptions.fMid.fLeft.rSCPerfectly configure \
@@ -1628,7 +1643,8 @@ proc EnableSmarterComputerInterface {} {
 		-foreground black -state normal
     .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely configure \
 		-foreground black -state normal
-    global gSmartness
+    global gSmartness gUseDB
+    set gUseDB true
     if { $gSmartness == "Imperfectly" } {
 		.middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure \
 			-foreground black -state normal
