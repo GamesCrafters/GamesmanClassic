@@ -1,5 +1,3 @@
-
-
 /*
  * The above lines will include the name and log of the last person
  * to commit this file to CVS
@@ -398,7 +396,7 @@ void InitializeGame ()
     kSupportsTierGamesman = TRUE;
     kExclusivelyTierGamesman = TRUE;
     
-    // always tiering, so don't need a check
+    // always tiering
 	generic_hash_destroy();
     SetupTierStuff();
 
@@ -1659,11 +1657,12 @@ BoardRep splitBoardLSB(BoardAndTurn board) {
 POSITION arrayHash(BoardAndTurn board) {
 	BoardRep toHash;
 	POSITION L, S, B;
+	POSITION maxL, maxS, maxB;
 
 	//if (DEBUG_G) { printf("\n********** arrayHASH **********\n"); }
 //	printf("arrayHash() 1 \n");
 	
-	int tierNum = BoardToTier(board->theBoard);  //BoardToTier(char* theBoard)
+	TIER tierNum = BoardToTier(board->theBoard);  //BoardToTier(char* theBoard)
 
 //	printf("arrayHash() 3 \n");
 
@@ -1679,17 +1678,16 @@ POSITION arrayHash(BoardAndTurn board) {
 //	}
 
 	generic_hash_context_switch(tierNum);
-//	printf("a\n");
 	L = generic_hash_hash(toHash->boardL, gWhosTurn);
-//	printf("b\n");
+	maxL = generic_hash_max_pos();
+
 	generic_hash_context_switch(tierNum + 1);
-//	printf("c\n");
 	S = generic_hash_hash(toHash->boardS, gWhosTurn);
-//	printf("d\n");
+	maxS = generic_hash_max_pos();
+
 	generic_hash_context_switch(tierNum + 2);
-//	printf("e\n");
 	B = generic_hash_hash(toHash->boardB, gWhosTurn);
-//	printf("f\n");
+	maxB = generic_hash_max_pos();
 
 //	printf("arrayHash() 2 \n");
 
@@ -2104,7 +2102,7 @@ int checkValidBoardPositions() {
 // theBoard is a representation 
 TIER BoardToTier(char* theBoard) {
   int i;
-  int small = 0, large = 0, blueB = 0, redB = 0;
+  TIER small = 0, large = 0, blueB = 0, redB = 0, tmp;
   int piece;
   for (i = 0; i < boardSize; i++) {
     piece = CharToBoardPiece(theBoard[i]);
@@ -2119,28 +2117,18 @@ TIER BoardToTier(char* theBoard) {
     if (piece == REDCASTLEPIECE) { small++; large++; redB++; }
   }
   // board->theBaord[i] -- was like this before instead of just theBoard[i]
-  return (9*small + 45*large + blueB + redB) * 3;
+
+  tmp = (9*small + 45*large + blueB + redB*3) * 3;
+  printf("@@@@@@ redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu \n", redB, blueB, small, large, tmp);
+
+  return (9*small + 45*large + blueB + redB*3) * 3;
 }
 
 STRING TierToString(TIER tier) {
   STRING str = (STRING) SafeMalloc(30*sizeof(char));
-  sprintf(str, "%d pieces on board", tier);
-  return str;
-}
-
-// FIXME - needs to make the "transitions" of the nodes in the Tier tree
-TIERLIST* TierChildren(TIER tier) {
-  TIERLIST* list = NULL;
-  list = CreateTierlistNode(tier, list); // takes the list pointer and creates a new node with that tier and make it its next pointer
-		//^~~~ link to yourself (tier1->tier1)
-
-  // -- need to add more links --
-  // check tier's pieces - # of L's, S's, and B's
-  // tier = (buckets + 9*small + 45*large)*3
-  // use formula similar to the one in SetupTierStuff()
-  int large, small, blueBuckets, redBuckets;
-  int tempLarge, tempSmall, tempBlueBuckets, tempRedBuckets, tempTier;
-  int tierDiv3 = tier / 3;
+  
+  unsigned long long large, small, blueBuckets, redBuckets;
+  unsigned long long tierDiv3 = tier / 3;
   large = tierDiv3 / 45;
   small = ((tierDiv3 % 45) / 9);
   
@@ -2155,7 +2143,39 @@ TIERLIST* TierChildren(TIER tier) {
     redBuckets = 2;
   }
 
-  printf("~~~~~ start of redB = %d, blueB = %d, small = %d, large = %d, TIER = %d \n", redBuckets, blueBuckets, small, large, tier);
+  sprintf(str, "large = %llu, small = %llu, red = %llu, blue = %llu", large, small, redBuckets, blueBuckets);
+  return str;
+}
+
+// FIXME - needs to make the "transitions" of the nodes in the Tier tree
+TIERLIST* TierChildren(TIER tier) {
+  TIERLIST* list = NULL;
+  list = CreateTierlistNode(tier, list); // takes the list pointer and creates a new node with that tier and make it its next pointer
+		//^~~~ link to yourself (tier1->tier1)
+
+  // -- need to add more links --
+  // check tier's pieces - # of L's, S's, and B's
+  // tier = (buckets + 9*small + 45*large)*3
+  // use formula similar to the one in SetupTierStuff()
+  unsigned long long large, small, blueBuckets, redBuckets;  // can use type UINT64 too
+  unsigned long long tempLarge, tempSmall, tempBlueBuckets, tempRedBuckets, tempTier;
+  unsigned long long tierDiv3;
+  tierDiv3 = tier/3;
+  large = (tierDiv3 / 45);
+  small = ((tierDiv3 % 45) / 9);
+  
+  blueBuckets = (tierDiv3 % 9) % 3;
+  if (tierDiv3 % 9 <= 2) {
+    redBuckets = 0;
+  }
+  else if (tierDiv3 % 9 <= 5) {
+    redBuckets = 1;
+  }
+  else {
+    redBuckets = 2;
+  }
+
+  printf("~~~~~ start of redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu, tierDiv3 = %llu, tier/3 = %llu \n", redBuckets, blueBuckets, small, large, tier, tierDiv3, tier/3);
   
   // see what tier's those pieces can go to (basically, add a piece to the board)
   if ((large + small + redBuckets + blueBuckets) < 12) {
@@ -2165,7 +2185,7 @@ TIERLIST* TierChildren(TIER tier) {
       tempLarge = large + 1;
       tempTier = (3*redBuckets + blueBuckets + 9*small + 45*tempLarge)*3;
       list = CreateTierlistNode(tempTier, list);
-      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", redBuckets, blueBuckets, small, tempLarge, tempTier);
+//      printf("redB = %llu, blueB = %llu, small = %llu, large = %llu, tempTier = %llu \n", redBuckets, blueBuckets, small, tempLarge, tempTier);
     }
 
     // check small pieces
@@ -2174,7 +2194,7 @@ TIERLIST* TierChildren(TIER tier) {
       tempSmall = small + 1;
       tempTier = (3*redBuckets + blueBuckets + 9*tempSmall + 45*large)*3;
       list = CreateTierlistNode(tempTier, list);
-      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", redBuckets, blueBuckets, tempSmall, large, tempTier);
+//      printf("redB = %llu, blueB = %llu, small = %llu, large = %llu, tempTier = %llu \n", redBuckets, blueBuckets, tempSmall, large, tempTier);
     }
     
     // check redBuckets
@@ -2183,7 +2203,7 @@ TIERLIST* TierChildren(TIER tier) {
       tempRedBuckets = redBuckets + 1;
       tempTier = (3*tempRedBuckets + blueBuckets + 9*small + 45*large)*3;
       list = CreateTierlistNode(tempTier, list);
-      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", tempRedBuckets, blueBuckets, small, large, tempTier);
+//      printf("redB = %llu, blueB = %llu, small = %llu, large = %llu, tempTier = %llu \n", tempRedBuckets, blueBuckets, small, large, tempTier);
     }
     
     // check blueBuckets
@@ -2192,7 +2212,7 @@ TIERLIST* TierChildren(TIER tier) {
       tempBlueBuckets = blueBuckets + 1;
       tempTier = (3*redBuckets + tempBlueBuckets + 9*small + 45*large)*3;
       list = CreateTierlistNode(tempTier, list);
-      printf("redB = %d, blueB = %d, small = %d, large = %d, tempTier = %d \n", redBuckets, tempBlueBuckets, small, large, tempTier);
+//      printf("redB = %llu, blueB = %llu, small = %llu, large = %llu, tempTier = %llu \n", redBuckets, tempBlueBuckets, small, large, tempTier);
     }
   }
 
@@ -2260,10 +2280,12 @@ void SetupTierStuff() {
     maxB = generic_hash_init(boardSize, BpiecesArray, NULL, 0);
     generic_hash_set_context(tier*3 + 2);
 
+	//printf("one: %d, two: %d, three: %d\n", tier*3, tier*3+1, tier*3+2);
+
+    //printf("**************tier: %d, tier+1: %d, tier+2: %d\n", tier*3, tier*3+1, tier*3+2);
+
     tempHash = maxB + maxS * maxB + maxL * maxS * maxB;  // what do i do with this hash #????
     // tier position
-
-    //generic_hash_set_context(3*tier);
 
     // how it was in Max's doc
     //generic_hash_init(boardsize, pieces_array, NULL, 0);
@@ -2299,58 +2321,15 @@ void SetupTierStuff() {
 //  printf("4\n");
 }
 
-/* Max's code	
-	// initial position stuff (he copied it over from some initialize thing)
-	int i;
-	for(i = 0; i < boarsize; i++)
-		board[i] = SPACE;
-	board[toIndex(l, length)] = RED;
-	board[toIndex(width, length)] = BLUE;
-	board[toIndex(l, 1)] = BLUE;
-	board[toIndex(width, 1)] = RED;
-	turn = 1;
-
-	// add this following stuff
-	gInitialTier = 4;
-	generic_hash_context_switch(gInitialTier);
-	gInitialTierPosition = hash();
-}
-*/
-/*
-void InitializeGame ()
-{
- 
-
-    // init the hash values
-    maxL = generic_hash_init(boardSize, LpiecesArray, NULL, 0);
-    maxS = generic_hash_init(boardSize, SpiecesArray, NULL, 0);
-    maxB = generic_hash_init(boardSize, BpiecesArray, NULL, 0);
-
-    gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
-    gWhosTurn = boardArray->theTurn = Blue;
-
-    // begin with the default board, all blanks 
-    for (i = 0; i < boardSize; i++) {
-    	boardArray->theBoard[i] = BLANKPIECE;
-    }
-
-    gInitialPosition = arrayHash(boardArray); // = currentBoard = prevBoard
-    SafeFree(boardArray->theBoard);
-    SafeFree(boardArray);
-    if (DEBUG_G) { printf("# Of Pos: %d\n", (int) gNumberOfPositions); }
-    if (DEBUG_G) { printf("Init Pos: %d\n", (int) gInitialPosition); }
-    if (DEBUG_TEST) { testHash(); }
-}
-*/
-
 TIERPOSITION NumberOfTierPositions(TIER tier) {
-  int l, s, b, sum;
+  POSITION l, s, b;
+  TIERPOSITION sum;
   generic_hash_context_switch(tier*3);
   l =  generic_hash_max_pos();
-  generic_hash_context_switch(tier*3+1);
-  s = generic_hash_max_pos() * maxB;
-  generic_hash_context_switch(tier*3+2);
-  b = generic_hash_max_pos() * maxB * maxS;
+  generic_hash_context_switch(tier*3 + 1);
+  s = generic_hash_max_pos();
+  generic_hash_context_switch(tier*3 + 2);
+  b = generic_hash_max_pos();
   sum = b + (s * b) + (l * s * b);
   return  sum;
   //(B + (S * maxB) + (L * maxS * maxB))
@@ -2358,6 +2337,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.50  2007/04/25 20:01:19  alexchoy
+// *** empty log message ***
+//
 // Revision 1.49  2007/04/24 07:50:32  alexchoy
 // finished TierChildren()
 //
