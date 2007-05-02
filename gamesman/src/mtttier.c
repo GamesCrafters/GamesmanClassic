@@ -243,6 +243,7 @@ void InitializeGame()
 
   gMoveToStringFunPtr = &MoveToString;
   gCustomUnhash = &customUnhash;
+  linearUnhash = gCustomUnhash;
 
   //discard current hash
   generic_hash_destroy();
@@ -450,7 +451,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %c %c %c\n",
 	 board[3], board[4], board[5]);
   printf("         ( 7 8 9 )           : %c %c %c %s\n\n",
-	 board[6], board[7], board[8], GetPrediction(position,playerName,usersTurn));
+	 board[6], board[7], board[8], GetSEvalPrediction(position,playerName,usersTurn));
 
   if (board != NULL)
   	SafeFree(board);

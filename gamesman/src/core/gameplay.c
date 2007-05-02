@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.48 2007-03-21 16:35:11 brianzimmer Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.49 2007-05-02 10:24:36 brianzimmer Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1126,7 +1126,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
         UNDO *tmp;
 
         if((*error = ((undo->next == NULL) ||
-                        (gOpponent == AgainstComputer && (undo->next->next == NULL))))) {
+                        (gOpponent != AgainstHuman && (undo->next->next == NULL))))) {
 
                 printf("\nSorry - can't undo, I'm already at beginning!\n");
                 return(undo);
@@ -1144,7 +1144,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
 
         /* If playing against the computer, undo the users move here */
 
-        if(gOpponent == AgainstComputer) {
+        if(gOpponent != AgainstHuman) {
                 tmp = undo;
                 undo = undo->next;
                 SafeFree((GENERIC_PTR)tmp);
@@ -1438,9 +1438,20 @@ STRING GetSEvalPrediction(POSITION position, STRING playerName, BOOLEAN usersTur
         VALUE value;
 
         if(gPrintSEvalPredictions) {
+                if(gTierDBExistsForPosition(position)) {
+                  MENU old = gMenuMode;
+                  gMenuMode = Evaluated;
+                  BOOLEAN old2 = gPrintPredictions;
+                  gPrintPredictions = TRUE;
+                  STRING str = GetPrediction(position, playerName, usersTurn);
+                  gMenuMode = old;
+                  gPrintPredictions = old2;
+                  return str;
+                }
+                
                 value = evaluatePositionValue(position);
                 
-                sprintf(prediction, "(%s %s %s)",
+                sprintf(prediction, "SEval says: (%s %s %s)",
                         playerName,
                         ((value == lose && usersTurn && gSEvalPerfect == TRUE) ||
                         (value == win && !usersTurn && gSEvalPerfect == TRUE)) ?
@@ -1508,7 +1519,9 @@ MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenes
         return (moveList->move);
 }
 
-MOVE RandomLargestSEvalMove(MOVELIST *moveList, POSITION position)
+// posList and moveList must have their entries pairwise matched!
+// i.e. first entry of posList is the result of first entry of moveList, etc.
+MOVE RandomLargestSEvalMove(POSITIONLIST *posList, MOVELIST *moveList)
 {
         MOVELIST *maxValueMoveList = NULL;
         int numMoves, random;
@@ -1516,16 +1529,18 @@ MOVE RandomLargestSEvalMove(MOVELIST *moveList, POSITION position)
 
         numMoves = 0;
         maxValue = -1;
-        while(moveList != NULL) {
-                currValue = evaluatePosition(DoMove(position, moveList->move));
+        while(posList != NULL) {
+                currValue = evaluatePosition(posList->position);
                 if ( currValue < maxValue) {
                         numMoves = 1;
                         maxValue = currValue;
-                        maxValueMoveList = moveList;
+                        maxValueMoveList = CreateMovelistNode(moveList->move, maxValueMoveList);
                 } else if (currValue == maxValue) {
                         numMoves++;
                 }
+                
                 moveList = moveList->next;
+                posList = posList->next;
         }
 
         if (numMoves<=0) {
@@ -1539,21 +1554,26 @@ MOVE RandomLargestSEvalMove(MOVELIST *moveList, POSITION position)
         return (maxValueMoveList->move);
 }
 
-MOVE LargestWinningSEvalMove(MOVELIST *moveList, POSITION thePosition)
+// posList and moveList must have their entries pairwise matched!
+// i.e. first entry of posList is the result of first entry of moveList, etc.
+MOVE LargestWinningSEvalMove(POSITIONLIST *posList, MOVELIST *moveList, float *bestValue)
 {
-        float currChildValue=0, bestValue=1.1; // Just slightly higher than 1
+        float currChildValue=0;
+        (*bestValue)=1.1; // Just slightly higher than 1, so that anything is better
         MOVE theMove;
         int numMoves = 0;
         
-        while(moveList != NULL) {
-                currChildValue = evaluatePosition(DoMove(thePosition, moveList->move));
+        while(posList != NULL) {
+                currChildValue = evaluatePosition(posList->position);
                 // Choosing a child with a losing value (for the opponent) means we'll win
-                if ( currChildValue < bestValue) {
+                if ( currChildValue < (*bestValue)) {
                         numMoves=1;
                         theMove = moveList->move;
-                        bestValue = currChildValue;
+                        (*bestValue) = currChildValue;
                 }
+                
                 moveList = moveList->next;
+                posList = posList->next;
         }
         
         // If we can't find a winning move
@@ -1566,8 +1586,115 @@ MOVE LargestWinningSEvalMove(MOVELIST *moveList, POSITION thePosition)
 }
 
 MOVE GetSEvalMove(POSITION thePosition) {
+  if(gTierDBExistsForPosition(thePosition))
+    return GetComputersMove(thePosition);
+  
+  float SEvalValue = 0.0;
+  MOVE theMove = 0;
   MOVELIST* moves = GenerateMoves(thePosition);
-  MOVE theMove = LargestWinningSEvalMove(moves, thePosition);
+  if( moves == NULL )
+    ExitStageRight("GetSEvalMoves got NULL from GenerateMoves! Shun... SHUN!");
+  
+  
+  if(gSEvalPerfect){
+    MOVELIST* traverser = moves;
+    POSITIONLIST* positions;
+    while (traverser!=NULL){
+      positions = StorePositionInList(DoMove(thePosition, traverser->move), positions);
+      traverser = traverser->next;
+    }
+      
+    // Since positions are reverseed, need to reverse moves
+    // Use CopyMoveList "feature" that it does it for us =)
+    MOVELIST* reversedMoves = CopyMovelist(moves);
+    theMove = LargestWinningSEvalMove(positions, reversedMoves, &SEvalValue);
+    FreePositionList(positions);
+    FreeMoveList(reversedMoves);
+  }
+  else {
+    // SEval CRAZY bestMove calculation
+    MOVELIST* unsolvedMoves = NULL;
+    POSITIONLIST* unsolvedPositions = NULL;
+    MOVELIST* traverser;
+    MOVE bestMove = -1;
+    VALUE bestMoveValue = undecided;
+    REMOTENESS bestMoveRemoteness = -1;
+    POSITION currentPosition = -1;
+    
+    traverser = moves;
+    while (traverser!=NULL) {
+      currentPosition = DoMove(thePosition, traverser->move);
+      if(gTierDBExistsForPosition(currentPosition)) {
+        MOVE maybeBestMove = traverser->move;
+        VALUE maybeBestMoveValue = GetValueOfPosition(currentPosition);
+        REMOTENESS maybeBestMoveRemoteness = Remoteness(currentPosition);
+        if(bestMoveValue == lose) {
+          // If the next move is going to make them lose either way, then
+          // choose the one with smallest remoteness - Kill them quick!!!
+          if( maybeBestMoveValue == lose && maybeBestMoveRemoteness < bestMoveRemoteness ) {
+            bestMove = maybeBestMove;
+            bestMoveRemoteness = maybeBestMoveRemoteness;
+          }
+        }
+        else if (bestMoveValue == tie){
+          // If its a tie, end it quicker...
+          if( maybeBestMoveValue == tie && maybeBestMoveRemoteness < bestMoveRemoteness ) {
+            bestMove = maybeBestMove;
+            bestMoveRemoteness = maybeBestMoveRemoteness;
+          }
+          // If its a lose for them, take it!
+          else if (maybeBestMoveValue == lose) {
+            bestMove = maybeBestMove;
+            bestMoveValue = maybeBestMoveValue;
+            bestMoveRemoteness = maybeBestMoveRemoteness;
+          }
+        }
+        else if (bestMoveValue == win) {
+          // If the next move is going to make us lose either way, then
+          // choose the one with bigger remoteness - Kill us slower!!!
+          if( maybeBestMoveValue == win && maybeBestMoveRemoteness > bestMoveRemoteness ) {
+            bestMove = maybeBestMove;
+            bestMoveRemoteness = maybeBestMoveRemoteness;
+          }
+          // A tie is better than what we've got
+          // and a win (for us) is for sure
+          else if( maybeBestMoveValue == tie || maybeBestMoveValue == lose) {
+            bestMove = maybeBestMove;
+            bestMoveValue = maybeBestMoveValue;
+            bestMoveRemoteness = maybeBestMoveRemoteness;
+          }
+        }
+        else {
+          // bestMoveValue is undecided, replace it
+          bestMove = maybeBestMove;
+          bestMoveValue = maybeBestMoveValue;
+          bestMoveRemoteness = maybeBestMoveRemoteness;            
+        }
+      }
+      else {
+        unsolvedPositions = StorePositionInList(currentPosition, unsolvedPositions);
+        unsolvedMoves = CreateMovelistNode(traverser->move, unsolvedMoves);
+      }
+      traverser = traverser->next;
+    } // end while
+    
+    if (bestMoveValue == undecided ){
+      // Nothing is solved
+      theMove = LargestWinningSEvalMove(unsolvedPositions, unsolvedMoves, &SEvalValue);
+    }
+    else if (bestMoveValue == lose || unsolvedPositions == NULL)
+      theMove = bestMove;
+    else {
+      theMove = LargestWinningSEvalMove(unsolvedPositions, unsolvedMoves, &SEvalValue);
+      // (SEvalValue > 0) Means that the opponent will win
+      if ( (SEvalValue > 0.0) && bestMoveValue==tie) {
+        theMove = bestMove;
+      }
+    }
+    FreePositionList(unsolvedPositions);
+    FreeMoveList(unsolvedMoves);
+  }
+  
   FreeMoveList(moves);
   return theMove;
 }

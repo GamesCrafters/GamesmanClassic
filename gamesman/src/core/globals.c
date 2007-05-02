@@ -126,7 +126,7 @@ STRING  ServerAddress = "nyc.cs.berkeley.edu:8080/GamesmanServlet";
 /* Tier Gamesman globals and function pointers */
 // For the core
 BOOLEAN 		gTierGamesman = TRUE;
-BOOLEAN			gDBLoadMainTier = FALSE;
+BOOLEAN			gDBLoadMainTier = TRUE;
 TIERPOSITION    gDBTierStart = -1;
 TIERPOSITION    gDBTierEnd = -1;
 TIER 			kBadTier = -1;
