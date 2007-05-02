@@ -6,7 +6,7 @@
 **
 ** AUTHOR:      Kyler Murlas and Zach Wasserman
 **
-** DATE:        2006-05-09
+** DATE:        2007-02-26
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
@@ -27,7 +27,7 @@
 **							hashing and unhashing. Debugging...
 **				2006-04-16	Everything seems to be working correctly. Primitive
 **							needs to be changed so when a move causes both 
-**							players to win it returns tie. or draw?
+**							players to win it returns tie.
 **				2006-04-21	Primitive now handles both players winning at
 **							the same time. It returns a tie. PrintPosition
 **							has improvements suggested. Added GameSpecificMenu.
@@ -36,6 +36,8 @@
 **							if both players are out of pieces and there is no
 **							win or lose.
 **				2006-08-19	Changed scanf to use GetMyInt(), bounds checking still needs to be done
+**				2007-02-26	Small changes, nothing significant
+**				2007-05-01	Tiers working! Hooray!
 **************************************************************************/
 
 /*************************************************************************
@@ -217,6 +219,7 @@ typedef enum possibleBoardPieces {
 
 char *gBlankTOString[] = { "T", "O", "-" };
 
+
 #define moveUnhashPiece(move) move > 10 ? 't' : 'o' /*returns piece defined by hashed move*/
 #define moveUnhashCol(move) move > 10 ? move-10 : move /*returns column defined by hashed move*/
 #define hashMove(col, piece) piece == 't' || piece == 'T' ? col+10 : col /*hashes move*/
@@ -243,6 +246,7 @@ extern GENERIC_PTR	SafeMalloc ();
 extern void		SafeFree (); 
 #endif
 STRING MoveToString(MOVE);
+//VOID PositiontoPieces
 
 
 /*************************************************************************
@@ -252,6 +256,21 @@ STRING MoveToString(MOVE);
 **************************************************************************/
 
 extern VALUE     *gDatabase;
+
+/************************************************************************
+**
+** TIER STUFF
+**
+*************************************************************************/
+
+//TIER FUNCTION PROTOTYPES
+TIERLIST* TierChildren(TIER);
+TIERPOSITION NumberOfTierPositions(TIER);
+BOOLEAN IsLegal(POSITION);
+BOOLEAN tierCheckNumPieces(POSITION);
+void SetupTierStuff();
+//STRING TierToString(TIER);
+
 
 
 /************************************************************************
@@ -264,6 +283,11 @@ extern VALUE     *gDatabase;
 **
 ** OUTPUTS:     POSITION (Initial Position)
 **
+** For 6x4 with 6 Ts and 6 Os the number is: 58,016,695,329
+** Which is also 35 bits!
+** For 6x4 with 5 Ts and 5 Os the number is: 48,353,018,913
+** For 5x4 with 5 Ts and 5 Os the number is: 1,511,031,841
+** For 4x4 with 4 Ts and 4 Os the number is: 37,782,561
 ************************************************************************/
 
 int MyInitialPosition() {
@@ -275,6 +299,9 @@ int MyInitialPosition() {
   
 	for (i=1;i<=TNO_WIDTH;++i)
 		p = (p << (TNO_HEIGHT+1))+1;
+		
+	//unsigned long int pos = p; //for debugging
+	//printf("initialpos=%ld", pos);
 	
 	return p;
 }
@@ -315,21 +342,47 @@ void PositionToBoard(pos,board)
 	  // board is a two-dimensional array of size
 	  // TNO_WIDTH x TNO_HEIGHT
 {
-  int col,row,h;
-  for (col=0; col<TNO_WIDTH;col++) {
-	 row=TNO_HEIGHT-1;
-	 for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (pos & (1 << h)) == 0; h--) {
-		board[col][row]=2;
-      row--;
-    }
-    h--;
-    while (row >=0) {
-      if ((pos & (1<<h)) != 0) board[col][row]=1;
-      else board[col][row]=0;
-      row--;
-		h--;
-    }
+
+	//printf("STARTING POSITIONTOBOARD\n");
+	
+	//for tier, set pos to tierpos
+	if(gHashWindowInitialized) {
+		TIERPOSITION tierpos; TIER tier;
+		gUnhashToTierPosition(pos, &tierpos, &tier); // get tierpos
+		pos = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
+		
+		//unsigned long tierp = tierpos; //for debugging
+		//printf("TIERPOS=%ld\n", tierp);
+	}
+	
+  //if(pos!=0) {
+	
+  	int col,row,h;
+  	for (col=0; col<TNO_WIDTH;col++) {
+		 row=TNO_HEIGHT-1;
+		 for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (pos & (1 << h)) == 0; h--) {
+			board[col][row]=2;
+    	  row--;
+    	}
+   	 h--;
+   	 while (row >=0) {
+    	  if ((pos & (1<<h)) != 0) board[col][row]=1;
+    	  else board[col][row]=0;
+     	 row--;
+			h--;
+   	 }
+  	}
+ // }
+  /*else {
+  int col, row;
+  for(col=0; col<TNO_WIDTH;col++){
+  	for(row=0; row<TNO_HEIGHT; row++){
+  		board[col][row]=2;
+  	}
   }
+  }*/
+  
+ // printf("ENDING POSITIONTOBOARD\n");
 }
 
 /************************************************************************
@@ -344,8 +397,19 @@ void PositionToBoard(pos,board)
 
 void InitializeGame ()
 {
-	gNumberOfPositions = MyNumberOfPos();
+	gNumberOfPositions = MyNumberOfPos(); //ORIGINAL
 	gInitialPosition = MyInitialPosition();
+	//gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest (see below)
+	/*
+	the furthest to the left (bitwise) in the hash is the pieces. When the player makes a move
+	
+	*/
+	
+	
+	SetupTierStuff();
+	
+	//PrintPosition(148479, "blah", TRUE);
+	
 	gMoveToStringFunPtr = &MoveToString;
 }
 
@@ -376,13 +440,32 @@ void PositionToPieces(pos)
 {
   unsigned long i;
   i = (TNO_HEIGHT+1)*TNO_WIDTH;
-  Player1.t = pos >> (i+3);
-  Player1.o = (pos >> i) & 7;
+  
+  POSITION position = pos;
+  
+  //for tier, set pos to tierpos
+	if(gHashWindowInitialized) {
+		TIERPOSITION tierpos; TIER tier;
+		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
+		position = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
+		
+		//unsigned long p = position; //for debugging
+		//printf("POS=%ld\n", p);
+	}
+  
+  Player1.t = position >> (i+3);
+  Player1.o = (position >> i) & 7;
   Player1.total = Player1.t + Player1.o;
   PiecesOnBoard(pos);
   Player2.t = INIT_T - (Board.t - (INIT_T - Player1.t));
   Player2.o = INIT_O - (Board.o - (INIT_O - Player1.o));
   Player2.total = Player2.t + Player2.o;
+}
+
+TIER PositionToTier(pos)
+	POSITION pos;
+{
+	return ( pos << (TNO_WIDTH * (TNO_HEIGHT + 1)) );
 }
 
 
@@ -403,7 +486,8 @@ int WhoseTurn(pos)
 POSITION pos;
 {
   PositionToPieces(pos);
-  if(Player1.total == Player2.total){ return 1;
+  if(Player1.total == Player2.total){ 
+  	return 1;
   }
   else return 2;
 }
@@ -428,6 +512,8 @@ POSITION pos;
 
 MOVELIST *GenerateMoves (POSITION position)
 {
+	//unsigned long pos = position; //for debugging
+	//printf("Starting generatemoves on %ld\n", pos);
 	 MOVELIST *moves = NULL;
 
 	 /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
@@ -462,7 +548,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	 }
   }
 
-
+	//printf("ending genmoves\n");
 	 return moves;
 }
 
@@ -489,13 +575,31 @@ POSITION DoMove (POSITION position, MOVE move)
 	char piece;
 	unsigned long int mask, p = 0;
 	
+	//printf("STARTING DOMOVE\n");
+	POSITION origPos=position;
+	
+	//for tier, set pos to tierpos
+	if(gHashWindowInitialized) {
+		TIERPOSITION tierpos; TIER tier;
+		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
+		position = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
+		
+		//unsigned long pos = position; //for debugging
+		//printf("domove position= %ld\n", pos);
+	}
 	
 	piece = moveUnhashPiece(move);
 	col = moveUnhashCol(move);
 	
 	col--;
 	
-	int player = WhoseTurn(position);
+	int player;
+	if(gHashWindowInitialized) {
+		player = WhoseTurn(origPos);
+	}
+	else { 
+		player = WhoseTurn(position);
+	}
 	
 	
 	for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (position & (1 << h)) == 0; h--){}
@@ -537,6 +641,19 @@ POSITION DoMove (POSITION position, MOVE move)
 		position += p;
 	}
 	
+	if(gHashWindowInitialized) {
+		TIER tier; 
+		TIERPOSITION tierpos;
+		//tier IS pieces in the regular hash so just find pieces for the tier
+		tier = ( position >> (TNO_WIDTH*(TNO_HEIGHT+1)) );
+		//tierpos is the regular position without the pieces info so mask it out
+		//NEED XOR HERE... IT ISNT "!" IS IT?
+		tierpos = ( position ^ ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) ) );
+		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
+	}
+	
+	//printf("ENDING DOMOVE\n");
+	
 	return position;
 
 }
@@ -569,6 +686,10 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
+	//printf("Starting Primitive\n");
+	
+	//unsigned long pos = position; //for debugging
+	//printf("primitive position= %ld\n", pos);
 
   TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
   int col,row, player1=1, t=1, blank=2, count=0, ottoWins=0, tootWins=0;
@@ -712,60 +833,108 @@ VALUE Primitive (POSITION position)
 		 } // if
 	  } // row for
 	} // col for
-	if((tootWins != 0)&&(tootWins == ottoWins))
+	
+	int theTurn=WhoseTurn(position);
+	
+	if((tootWins != 0)&&(tootWins == ottoWins)){
+		//printf("it's a tie (both won) on %ld\n", pos); //for debug
 		return tie;
+	}
 	else if((tootWins > ottoWins))
 	{
-		if(WhoseTurn(position)==player1)
+		if(theTurn==player1)
 		{
-			if(gStandardGame)
+			if(gStandardGame){
+				//printf("it's a win on %ld\n", pos); //for debug
 				return win;
-			else
+			}
+			else {
+				//printf("it's a lose on %ld\n", pos); //for debug
 				return lose;
+			}
 		}
 		else
 		{                        // then (WhoseTurn(position)==player2)
-			if(gStandardGame)
+			if(gStandardGame) {
+				//printf("it's a lose on %ld\n", pos); //for debug
 				return lose;
-			else
+			}
+			else {
+				//printf("it's a win on %ld\n", pos); //for debug
 				return win;
+			}
 		}
 	}
 	else if((ottoWins > tootWins))
 	{
-		if(WhoseTurn(position)==player1)
+		if(theTurn==player1)
 		{
-				if(gStandardGame)
-					return lose;
-				else
-					return win;
+				
+			if(gStandardGame) {
+				//printf("it's a lose on %ld\n", pos); //for debug
+				return lose;
+			}
+			else {
+				//printf("it's a win on %ld\n", pos); //for debug
+				return win;
+			}
+				
 		}
 		else                       // then (WhoseTurn(position)==player2)
 		{
-			if(gStandardGame)
+			
+			if(gStandardGame){
+				//printf("it's a win on %ld\n", pos); //for debug
 				return win;
-			else
-			return lose;
+			}
+			else {
+				//printf("it's a lose on %ld\n", pos); //for debug
+				return lose;
+			}
+			
 		}
 	}
-
-	// If board is filled and there is no winner, game is tie.
-	for (col=0;col<TNO_WIDTH;col++){
-		for (row=0;row<TNO_HEIGHT;row++){
-			if (board[col][row]==0 || board[col][row]==1){
-				count++;
-			} // if
-		} // for
-	} // for
-
-	if(count == (TNO_HEIGHT*TNO_WIDTH)){
-		return tie;
-	} // if
-	// If no win and board is not filled, its undecided
 	
-	PiecesOnBoard(position);
-	if(Board.total == (INIT_T + INIT_O) * 2) return tie;
-
+	if(gHashWindowInitialized) {
+		TIERPOSITION tierpos; TIER tier;
+		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
+		
+		if(tier == 0 && theTurn == 1) {
+			//printf("it's a tie (board full tiers) on %ld\n", pos); //for debug
+			return tie;
+		}
+		else {		
+			PiecesOnBoard(position);
+			if(Board.total == (INIT_T + INIT_O) * 2) {
+				//printf("it's a tie (pieces used tiers) on %ld\n", pos); //for debug
+				return tie;
+			}
+		}
+	}
+	else {
+		// If board is filled and there is no winner, game is tie.
+		for (col=0;col<TNO_WIDTH;col++){
+			for (row=0;row<TNO_HEIGHT;row++){
+				if (board[col][row]==0 || board[col][row]==1){
+					count++;
+				} // if
+			} // for
+		} // for
+		
+		if(count == (TNO_HEIGHT*TNO_WIDTH)){
+			//printf("it's a tie (board full) on %ld\n", pos); //for debug
+			return tie;
+		} // if
+		// If no win and board is not filled, its undecided
+		
+		PiecesOnBoard(position);
+		if(Board.total == (INIT_T + INIT_O) * 2) {
+			//printf("it's a tie (pieces used) on %ld\n", pos); //for debug
+			return tie;
+		}
+	}
+		
+	//printf("it's undecided on %ld\n", pos);
 	return undecided;
 }
 
@@ -1052,18 +1221,26 @@ void GameSpecificMenu ()
 		case 'W' : case 'w':
 			printf("Enter a width: ");
 			TNO_WIDTH = GetMyInt();
+			gInitialPosition = MyInitialPosition();
+			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
 		case 'H': case 'h':
 			printf("Enter a height: ");
 			TNO_HEIGHT = GetMyInt();
+			gInitialPosition = MyInitialPosition();
+			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
 		case 'T': case 't':
 			printf("Enter # of Ts (less than 7): ");
 			INIT_T = GetMyInt();
+			gInitialPosition = MyInitialPosition();
+			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
 		case 'O': case 'o':
 			printf("Enter # of Os (less than 7): ");
 			INIT_O = GetMyInt();
+			gInitialPosition = MyInitialPosition();
+			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
 		case 'b': case 'B':
 			return;
@@ -1143,10 +1320,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    return 0;
+    return TNO_HEIGHT*1000 + TNO_WIDTH*100 + INIT_T*10 + INIT_O;
 }
 
 
@@ -1163,9 +1337,11 @@ int getOption ()
 
 void setOption (int option)
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
+	INIT_O = option % 10;
+	INIT_T = (option % 100 - INIT_O) / 10;
+	TNO_WIDTH = (option % 1000 - (INIT_O + INIT_T*10)) / 100;
+	TNO_HEIGHT = (option % 10000 - (INIT_O + INIT_T*10 + TNO_WIDTH*100)) / 1000;
+	
 }
 
 
@@ -1199,3 +1375,124 @@ void DebugMenu ()
 ** 
 ************************************************************************/
 
+
+
+/***********************************************************************
+**
+** TIER FUNCTIONS
+**
+************************************************************************/
+
+void SetupTierStuff() {
+
+	// kSupportsTierGamesman
+	kSupportsTierGamesman = TRUE;
+	kDebugTierMenu = TRUE;
+	// All function pointers
+	gTierChildrenFunPtr				= &TierChildren;
+	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
+	gIsLegalFunPtr					= &IsLegal;
+	//gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
+	//gGenerateUndoMovesToTierFunPtr	= &GenerateUndoMovesToTier;
+	//gUnDoMoveFunPtr					= &UnDoMove;
+	//gTierToStringFunPtr				= &TierToString;
+	
+	
+	gInitialTier = gInitialPosition >> (TNO_WIDTH*(TNO_HEIGHT+1));
+	gInitialTierPosition = gInitialPosition ^ ( gInitialTier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
+	
+	//unsigned long init = gInitialTierPosition; //for debugging
+	//printf("init tier position= %ld", init);
+	
+}
+
+
+// A tier's child is always a smaller number, it is done by changing the number
+// of a type of piece
+TIERLIST* TierChildren(TIER tier) {
+	TIERLIST* tierlist = NULL;
+	
+	tierlist = CreateTierlistNode( tier, tierlist);
+	
+	//check for (and add) new tier with another T on board
+	if ( (tier >> 3) > 0 ) {
+		TIER newTier = ( ( (tier >> 3) - 1) << 3) + (tier & 7);
+		tierlist = CreateTierlistNode(newTier, tierlist);
+	}
+	
+	//check for (and add) new tier with another O on board
+	if( (tier & 7) > 0 ) {
+		TIER newTier = ( tier & (7 << 3) ) + ( (tier & 7) - 1);
+		tierlist = CreateTierlistNode(newTier, tierlist);
+	}
+	
+	return tierlist;
+}
+
+
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+	TIERPOSITION maxTierPos = 1;
+	int i;
+	for(i = 1; i < (TNO_WIDTH*(TNO_HEIGHT+1)); i++) {
+		maxTierPos = maxTierPos << 1;
+		maxTierPos += 1;
+	}
+	
+	//unsigned long max = maxTierPos; //for debugging
+	//printf("maxTierPos=%ld\n", max);
+	
+	return maxTierPos;
+	
+}
+
+
+BOOLEAN IsLegal(POSITION position) {
+	TIERPOSITION tierpos; 
+	TIER tier;
+	
+	//unsigned long printpos = position;
+	//printf("ISLEGAL position=%ld\n", printpos);
+	
+	gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
+	
+	int col, h;
+	for(col=0; col<TNO_WIDTH;col++) { //for each column
+		for(h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (tierpos & (1 << h)) == 0; h--) { 
+		//check whether any bit equals 1
+		//if not, return invalid
+			if(h == ((col)*(TNO_HEIGHT+1))) {
+				//printf("ISLEGAL returns FALSE on %ld\n", pos);
+				return FALSE;
+			}
+		}
+	}
+	
+	POSITION pos = tierpos;
+	
+	PiecesOnBoard(pos);
+	
+	int tierPieces = (tier >> 3) + (tier & 7);
+	
+	int fullBoardPieces = TNO_WIDTH*TNO_HEIGHT;
+	
+	int empty = fullBoardPieces - Board.total;
+	
+	/*if(empty > tierPieces * 2) {
+		return FALSE;
+	}*/
+
+	if(Board.t > INIT_T * 2) {
+		return FALSE;
+	}
+	
+	if(Board.o > INIT_O * 2) {
+		return FALSE;
+	}
+	
+	if(tierPieces > (int)(empty / 2)) {
+		return FALSE;
+	}
+	
+	//printf("ISLEGAL returns TRUEon %ld\n", pos);
+	return TRUE; //if it never encounters an invalid position
+}
