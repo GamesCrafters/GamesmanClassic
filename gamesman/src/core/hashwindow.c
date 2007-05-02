@@ -133,6 +133,7 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 		// Free old stuff
 		if (gMaxPosOffset != NULL) SafeFree(gMaxPosOffset);
 		if (gTierInHashWindow != NULL) SafeFree(gTierInHashWindow);
+        if (gTierDBExists != NULL) SafeFree(gTierDBExists);
 	}
 	gHashWindowInitialized = TRUE;
 
@@ -154,21 +155,26 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 	gNumTiersInHashWindow = childrenCount+1;
 	gTierInHashWindow = (TIER*) SafeMalloc (gNumTiersInHashWindow * sizeof(TIER));
 	gMaxPosOffset = (TIERPOSITION*) SafeMalloc (gNumTiersInHashWindow * sizeof(TIERPOSITION));
+    gTierDBExists = (BOOLEAN*) SafeMalloc (gNumTiersInHashWindow * sizeof(BOOLEAN));
 
 	// Now we go through the list a second time to set the arrays.
 	children = ptr;
 	gTierInHashWindow[0] = kBadTier;
 	gMaxPosOffset[0] = 0;
+    gTierDBExists[0] = 0;
 	int i;
 	for (i = 1; i < gNumTiersInHashWindow; children = children->next, i++) {
 		gTierInHashWindow[i] = children->tier;
 		gMaxPosOffset[i] = gNumberOfTierPositionsFunPtr(children->tier)+gMaxPosOffset[i-1];
+        gTierDBExists[i] = FALSE; // the true values are set by tierdb.c
 	}
 	// set gNumberOfPositions
 	gNumberOfPositions = gMaxPosOffset[gNumTiersInHashWindow-1];
 	FreeTierList(ptr);
 	// finally, load the databases to memory:
-	if (loadDB && !gDontLoadTierDB) { // for non-solve playing
+    // if gDontLoadTierDB is true, we have non-solve playing, so don't load db
+    // however, if static evulator is on, then load as much as you can anyway
+    if (loadDB && (!gDontLoadTierDB || gOpponent == AgainstEvaluator)) {
 		CreateDatabases();
 		InitializeDatabases();
 		if(!LoadDatabase()) {
@@ -191,4 +197,17 @@ void gInitializeHashWindowToPosition(POSITION* position) {
 	gUnhashToTierPosition((*position), &tierpos, &tier);
 	gInitializeHashWindow(tier, TRUE);
 	(*position) = gHashToWindowPosition(tierpos, tier);
+}
+
+BOOLEAN gTierDBExistsForPosition(POSITION position) {
+	if (!gHashWindowInitialized) {
+		printf("ERROR: Hash Window is not initialized!\n");
+		ExitStageRight();
+	}
+    TIERPOSITION tierposition; TIER tier; int i;
+    gUnhashToTierPosition(position, &tierposition, &tier);
+	for(i = 1; i < gNumTiersInHashWindow; i++)
+		if (gTierInHashWindow[i] == tier) //get value for THIS tier
+			return gTierDBExists[i];
+	return FALSE; // This actually can't happen (invariant)
 }

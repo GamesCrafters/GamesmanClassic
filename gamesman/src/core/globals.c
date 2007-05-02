@@ -141,6 +141,7 @@ TIERPOSITION*	gMaxPosOffset = NULL;
 int				gNumTiersInHashWindow = 0;
 TIER			gCurrentTier = -1;
 TIERPOSITION	gCurrentTierSize = 0;
+BOOLEAN*        gTierDBExists = NULL;
 // For the modules
 BOOLEAN 		kSupportsTierGamesman = FALSE;
 BOOLEAN			kExclusivelyTierGamesman = FALSE;

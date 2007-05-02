@@ -361,7 +361,7 @@ BOOLEAN tierdb_load_database()
 		if(!gHashWindowInitialized)
 				return FALSE;
 
-        POSITION i;
+        POSITION i, maxpos; int j;
         tierdb_goodDecompression = 1;
         tierdb_goodClose = 1;
         BOOLEAN correctDBVer;
@@ -373,15 +373,21 @@ BOOLEAN tierdb_load_database()
 		// always load current tier at BOTTOM, thus it being first
 		for (index = 1; index < gNumTiersInHashWindow; index++) {
 			if (index == 1 && !gDBLoadMainTier) { // if solving, DONT'T load from file
-				int i;
-				for(i = 0; i < gMaxPosOffset[1]; i++)
-					tierdb_array[i] = undecided;
+                maxpos = gMaxPosOffset[index];
+				for(j = 0; j < maxpos; j++)
+					tierdb_array[j] = undecided;
 				continue;
 			}
 			sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%llu_tierdb.dat.gz",
 						kDBName, getOption(), kDBName, getOption(), gTierInHashWindow[index]);
-			if((tierdb_filep = gzopen(tierdb_outfilename, "rb")) == NULL)
-				return FALSE;
+            if((tierdb_filep = gzopen(tierdb_outfilename, "rb")) == NULL) {
+                if (gOpponent == AgainstEvaluator) { // go ahead and ignore the loading of the DB
+                    maxpos = gMaxPosOffset[index];
+				    for(j = 0; j < maxpos; j++)
+					    tierdb_array[j] = undecided;
+				    continue;
+                } else return FALSE;
+            }
 			tierdb_goodDecompression = gzread(tierdb_filep,tierdb_dbVer,sizeof(short));
 			tierdb_goodDecompression = gzread(tierdb_filep,tierdb_numPos,sizeof(POSITION));
 			*tierdb_dbVer = ntohs(*tierdb_dbVer);
@@ -393,7 +399,8 @@ BOOLEAN tierdb_load_database()
 			}
 			correctDBVer = (*tierdb_dbVer == tierdb_FILEVER);
 			if (correctDBVer) {
-				for(i = gMaxPosOffset[index-1]; i < gMaxPosOffset[index] && tierdb_goodDecompression; i++) {
+                maxpos = gMaxPosOffset[index];
+				for(i = gMaxPosOffset[index-1]; i < maxpos && tierdb_goodDecompression; i++) {
 					tierdb_goodDecompression = gzread(tierdb_filep, tierdb_array+i, sizeof(tierdb_cellValue));
 					tierdb_array[i] = ntohs(tierdb_array[i]);
 				}
@@ -404,6 +411,7 @@ BOOLEAN tierdb_load_database()
 					printf("\n\nError in file decompression:\ngzread error: %d\ngzclose error: %d\ndb version: %d\n",tierdb_goodDecompression,tierdb_goodClose,*tierdb_dbVer);
 				return FALSE;
 			}
+            gTierDBExists[index] = TRUE; // lets static evaluator know that this tierdb actually exists!
 		}
 		if(kDebugDetermineValue)
 			printf("Files Successfully Decompressed\n");

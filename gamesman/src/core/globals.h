@@ -144,6 +144,7 @@ extern TIERPOSITION*	gMaxPosOffset;
 extern int				gNumTiersInHashWindow;
 extern TIER				gCurrentTier;
 extern TIERPOSITION		gCurrentTierSize;
+extern BOOLEAN*         gTierDBExists;
 // For the modules
 extern BOOLEAN			kSupportsTierGamesman;
 extern BOOLEAN			kExclusivelyTierGamesman;

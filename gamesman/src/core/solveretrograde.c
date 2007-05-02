@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.37 2007-05-01 01:26:59 max817 Exp $
+// $Id: solveretrograde.c,v 1.38 2007-05-02 07:57:35 max817 Exp $
 
 /************************************************************************
 **
@@ -143,7 +143,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	if (gIsLegalFunPtr == NULL) {
 		printf("-IsLegal NOT GIVEN\nLegality Checking Disabled\n");
 		isLegalGiven = FALSE;
-	}
+	} else checkLegality = TRUE;
 	if (gGenerateUndoMovesToTierFunPtr == NULL) {
 		printf("-GenerateUndoMovesToTier NOT GIVEN\nUndoMove Use Disabled\n");
 		undoGiven = FALSE;
