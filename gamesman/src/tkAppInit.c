@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.38 2007-04-22 09:54:34 max817 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.39 2007-05-03 05:18:01 dfang85 Exp $
 **
 **************************************************************************/
 
@@ -29,6 +29,8 @@ extern POSITION gInitialPosition;
 extern int smartness;
 extern int scalelvl;
 extern MENU gMenuMode;
+extern STRING kHelpStandardObjective;
+extern STRING kHelpReverseObjective;
 
 /*
  * The following variable is a special hack that is needed in order for
@@ -96,7 +98,12 @@ static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 
 static int      percentDoneCmd _ANSI_ARGS_((ClientData clientData,
-                Tcl_Interp *interp, int argc, char **argv));
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		GetStandardObjStringCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		GetReverseObjStringCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+              
 
 static int      UsingTiersCmd _ANSI_ARGS_((ClientData clientData,
                 Tcl_Interp *interp, int argc, char **argv));
@@ -184,8 +191,10 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_SetOption", (Tcl_CmdProc*) SetOptionCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
-    Tcl_CreateCommand(interp, "C_PercentDone", (Tcl_CmdProc*) percentDoneCmd, (ClientData) mainWindow,
-              (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_PercentDone", (Tcl_CmdProc*) percentDoneCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+
+    Tcl_CreateCommand(interp, "C_GetStandardObjString", (Tcl_CmdProc*) GetStandardObjStringCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetReverseObjString", (Tcl_CmdProc*) GetReverseObjStringCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
 
     Tcl_CreateCommand(interp, "C_UsingTiers", (Tcl_CmdProc*) UsingTiersCmd, (ClientData) mainWindow,
               (Tcl_CmdDeleteProc*) NULL);
@@ -865,6 +874,43 @@ percentDoneCmd(dummy, interp, argc, argv)
   }
 }
 
+static int
+GetStandardObjStringCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+
+  if (argc != 1) {
+    interp->result ="wrong # args: shouldn't be any";
+    return TCL_ERROR;
+  }
+
+  else {
+    interp->result = kHelpStandardObjective;
+    return TCL_OK;
+  }
+}
+
+static int
+GetReverseObjStringCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+
+  if (argc != 1) {
+    interp->result ="wrong # args: shouldn't be any";
+    return TCL_ERROR;
+  }
+
+  else {
+    interp->result = kHelpReverseObjective;
+    return TCL_OK;
+  }
+}
 
  #ifdef COMPUTEC
 static int
@@ -891,6 +937,9 @@ ComputeCCmd(dummy, interp, argc, argv)
     return TCL_OK;
   }
 }
+
+
+
  #endif
 
 // TIER FUN!
