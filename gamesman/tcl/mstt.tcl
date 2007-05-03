@@ -38,9 +38,12 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: Be the first player to get three of your pieces\nin a row (horizontally, vertically or diagonally)."
+#	SetToWinString "To Win: Be the first player to get three of your pieces\nin a row (horizontally, vertically or diagonally)."
+	SetToWinString [concat "To Win: " [C_GetStandardObjString]]
     } else {
-	SetToWinString "To Win: Force your opponent into getting three of his pieces\nin a row (horizontally, vertically or diagonally) first."
+	#SetToWinString "To Win: Force your opponent into getting three of his pieces\nin a row (horizontally, vertically or diagonally) first."
+	SetToWinString [concat "To Win: " [C_GetReverseObjString]]
+
     }
     SetToMoveString "To Move: Shift Tac Toe is similar to Tic Tac Toe, except it has the extra option of shifting one of the rows on your turn. Players drop a piece into the slot by clicking the arrow that corresponds to where they would like to move. To shift the board, select the arrow on the sides that correspond to row that the player wants to shift."
 	    
@@ -544,7 +547,49 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
     ### TODO if needed
-    GS_DrawPosition $c $positionAfterUndo
+    global gFlatRule gSlotsX gSlotSize
+    if (!$gFlatRule) {
+	set theMoveArgAbsolute [ConvertToAbsoluteMove $theMoveToUndo]
+	set theMoveBegin [lindex $theMoveArgAbsolute 0]
+	set slotXbegin [expr $theMoveBegin % $gSlotsX]
+	set slotYbegin [expr $theMoveBegin / $gSlotsX]
+	
+	if {$slotYbegin == 0 } {
+	    
+	    set theSlot $currentPosition
+	    set boardPos [expr ($theSlot - ($theSlot % 3))/3]
+	    for {set x 3} {$x < 6} {incr x} {
+		for {set y 4} {$y > 1} {incr y -1} {
+		    
+		    set choice [expr ($boardPos%3)]
+		    if {$choice == 1 && $x == $slotXbegin} {
+			set slotYend $y
+			set piece "X"
+		    } elseif {$choice == 2 && $x == $slotXbegin} {
+			set slotYend $y
+			set piece "O"
+		    } elseif {$choice == 0 && $x == $slotXbegin} {
+		    }
+		    
+		    set boardPos [expr ($boardPos - $choice)/3]
+		}
+	    }
+	    set slotXend $slotXbegin
+	    set cornerXbegin [expr $slotXbegin   * $gSlotSize]
+	    set cornerYbegin [expr $slotYbegin   * $gSlotSize]
+	    set cornerXend [expr $slotXend   * $gSlotSize]
+	    set cornerYend  [expr $slotYend   * $gSlotSize]
+	    
+	    set thePiece tagPieceOnCoord$slotXend$slotYend
+	    animatedrop $c $thePiece \
+		[list $cornerXend $cornerYend] [list $cornerXbegin $cornerYbegin]
+	    $c delete tagPieceOnCoord$slotXend$slotYend
+	} else {
+	    GS_DrawPosition $c $positionAfterUndo
+	}
+    } else {
+	GS_DrawPosition $c $positionAfterUndo
+    }
 }
 
 
