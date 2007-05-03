@@ -349,13 +349,13 @@ void PositionToBoard(pos,board)
 	if(gHashWindowInitialized) {
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(pos, &tierpos, &tier); // get tierpos
-		pos = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
+		pos = tierpos;
+		
+		//pos = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
 		
 		//unsigned long tierp = tierpos; //for debugging
 		//printf("TIERPOS=%ld\n", tierp);
 	}
-	
-  //if(pos!=0) {
 	
   	int col,row,h;
   	for (col=0; col<TNO_WIDTH;col++) {
@@ -372,15 +372,6 @@ void PositionToBoard(pos,board)
 			h--;
    	 }
   	}
- // }
-  /*else {
-  int col, row;
-  for(col=0; col<TNO_WIDTH;col++){
-  	for(row=0; row<TNO_HEIGHT; row++){
-  		board[col][row]=2;
-  	}
-  }
-  }*/
   
  // printf("ENDING POSITIONTOBOARD\n");
 }
@@ -444,30 +435,31 @@ void PositionToPieces(pos)
   POSITION position = pos;
   
   //for tier, set pos to tierpos
-	if(gHashWindowInitialized) {
+	if(gHashWindowInitialized) {	//TIER
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
-		position = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
 		
 		//unsigned long p = position; //for debugging
 		//printf("POS=%ld\n", p);
+		
+		Player1.t = tier >> 3;
+  		Player1.o = tier & 7;
+  		Player1.total = Player1.t + Player1.o;
+ 		PiecesOnBoard(pos);
+  		Player2.t = INIT_T - (Board.t - (INIT_T - Player1.t));
+ 		Player2.o = INIT_O - (Board.o - (INIT_O - Player1.o));
+ 		Player2.total = Player2.t + Player2.o;
 	}
-  
-  Player1.t = position >> (i+3);
-  Player1.o = (position >> i) & 7;
-  Player1.total = Player1.t + Player1.o;
-  PiecesOnBoard(pos);
-  Player2.t = INIT_T - (Board.t - (INIT_T - Player1.t));
-  Player2.o = INIT_O - (Board.o - (INIT_O - Player1.o));
-  Player2.total = Player2.t + Player2.o;
+	else {  				// NOT TIER
+ 	 	Player1.t = position >> (i+3);
+ 		Player1.o = (position >> i) & 7;
+ 		Player1.total = Player1.t + Player1.o;
+ 		PiecesOnBoard(pos);
+ 		Player2.t = INIT_T - (Board.t - (INIT_T - Player1.t));
+ 		Player2.o = INIT_O - (Board.o - (INIT_O - Player1.o));
+ 		Player2.total = Player2.t + Player2.o;
+ 	 }
 }
-
-TIER PositionToTier(pos)
-	POSITION pos;
-{
-	return ( pos << (TNO_WIDTH * (TNO_HEIGHT + 1)) );
-}
-
 
 
 /************************************************************************
@@ -576,16 +568,52 @@ POSITION DoMove (POSITION position, MOVE move)
 	unsigned long int mask, p = 0;
 	
 	//printf("STARTING DOMOVE\n");
-	POSITION origPos=position;
 	
 	//for tier, set pos to tierpos
 	if(gHashWindowInitialized) {
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
-		position = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
+		//position = tierpos + ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
 		
 		//unsigned long pos = position; //for debugging
 		//printf("domove position= %ld\n", pos);
+		
+		piece = moveUnhashPiece(move);
+		col = moveUnhashCol(move);	
+		
+		col--;
+		
+		int player;
+		player = WhoseTurn(position);
+		
+		//Find where piece will go in hash
+		for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (tierpos & (1 << h)) == 0; h--){}
+		
+		if(piece == 'o'){
+			tierpos = tierpos | (1 << (h + 1));
+			
+		}										//Change Board
+		else{
+			tierpos = tierpos | (1<< (h+1));
+			tierpos = tierpos & (tierpos - (1 << h));
+		}
+		
+		if(player == 1){			//change number of pieces (only if player 1 moved)
+			PositionToPieces(position);
+			
+			if(piece == 't') {
+				tier = ((Player1.t - 1) << 3) + Player1.o;
+			}
+			else{
+				tier = (Player1.t << 3) + (Player1.o - 1);
+			}
+			
+		}
+		
+		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
+		
+		return position;
+		
 	}
 	
 	piece = moveUnhashPiece(move);
@@ -594,14 +622,9 @@ POSITION DoMove (POSITION position, MOVE move)
 	col--;
 	
 	int player;
-	if(gHashWindowInitialized) {
-		player = WhoseTurn(origPos);
-	}
-	else { 
-		player = WhoseTurn(position);
-	}
+	player = WhoseTurn(position);
 	
-	
+	//Find where piece will go in hash
 	for (h=col*(TNO_HEIGHT+1)+TNO_HEIGHT; (position & (1 << h)) == 0; h--){}
 	
 	
@@ -641,16 +664,6 @@ POSITION DoMove (POSITION position, MOVE move)
 		position += p;
 	}
 	
-	if(gHashWindowInitialized) {
-		TIER tier; 
-		TIERPOSITION tierpos;
-		//tier IS pieces in the regular hash so just find pieces for the tier
-		tier = ( position >> (TNO_WIDTH*(TNO_HEIGHT+1)) );
-		//tierpos is the regular position without the pieces info so mask it out
-		//NEED XOR HERE... IT ISNT "!" IS IT?
-		tierpos = ( position ^ ( tier << (TNO_WIDTH*(TNO_HEIGHT+1)) ) );
-		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
-	}
 	
 	//printf("ENDING DOMOVE\n");
 	
@@ -1387,7 +1400,7 @@ void SetupTierStuff() {
 
 	// kSupportsTierGamesman
 	kSupportsTierGamesman = TRUE;
-	kDebugTierMenu = TRUE;
+	kDebugTierMenu = FALSE;
 	// All function pointers
 	gTierChildrenFunPtr				= &TierChildren;
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
@@ -1398,8 +1411,12 @@ void SetupTierStuff() {
 	//gTierToStringFunPtr				= &TierToString;
 	
 	
-	gInitialTier = gInitialPosition >> (TNO_WIDTH*(TNO_HEIGHT+1));
-	gInitialTierPosition = gInitialPosition ^ ( gInitialTier << (TNO_WIDTH*(TNO_HEIGHT+1)) );
+	gInitialTier = (INIT_T << 3) + INIT_O;
+	
+	gInitialTierPosition = 0;
+	int i;
+	for (i=1;i<=TNO_WIDTH;++i)
+		gInitialTierPosition = (gInitialTierPosition << (TNO_HEIGHT+1))+1;
 	
 	//unsigned long init = gInitialTierPosition; //for debugging
 	//printf("init tier position= %ld", init);
