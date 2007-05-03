@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.130 2007-05-02 08:30:28 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.131 2007-05-03 17:50:18 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -804,11 +804,15 @@ proc InitWindow { kRootDir kExt } {
 		    # Solve this option
 		    global gUseDB
 		    if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" || $gUseDB == "true"} {
-				set theValue [C_DetermineValue $gPosition]
-				.middle.f1.cMLeft lower progressBar
+			set theValue [C_DetermineValue $gPosition]
+			.middle.f1.cMLeft lower progressBar
+		    } else {
+			global gReallyUnsolved
+			set gReallyUnsolved true
 		    }
 	    	# New game
-	    	TBaction1
+	    	#TBaction1
+		clickedPlayNow
 		}
 
     pack $rulesFrame.buttons.bCancel -side left -fill both -expand 1
@@ -1591,6 +1595,8 @@ proc clickedPlayNow {} {
     global gUsingTiers
     set gUsingTiers [C_UsingTiers]
     
+
+    .middle.f1.cMLeft lower moveHistory
     NewGame
     if {$gReallyUnsolved} {
 	.cStatus raise rulesD
@@ -1598,6 +1604,11 @@ proc clickedPlayNow {} {
 	.cStatus raise allD
 	.cStatus raise valueD
 	.cStatus raise predD
+	.middle.f3.cMRight raise iIMB5
+	global gMoveType
+	set gMoveType all
+	ToggleMoves all
+	set moveHistoryVisible false
     } else {
 	.cStatus raise rulesA
 	.cStatus raise historyI
@@ -1605,6 +1616,7 @@ proc clickedPlayNow {} {
 	.cStatus raise allA
 	.cStatus raise predI
     }
+    .middle.f1.cMLeft lower moveHistory
     .middle.f3.cMRight raise WhoseTurn
     .middle.f1.cMLeft raise LeftName
     .middle.f3.cMRight raise RightName
@@ -2551,6 +2563,9 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
 
 }
 
+
+# increments the solving progress bar by $percent percent
+# call with percent=0 to reset the bar
 proc advanceProgressBar { percent } {
     global gFrameHeight gWindowWidthRatio
     set percentDelta [expr [expr $gWindowWidthRatio * 150 - 20] / 100.0]
@@ -2558,22 +2573,24 @@ proc advanceProgressBar { percent } {
     set xCoord [expr [lindex $barCoords 2] + $percent * $percentDelta]
     set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
     if {$percentDone > 100.0} {
-		$percentDone = 100.0
+	$percentDone = 100.0
     }
     if {$percent == 0} {
-		lset barCoords 2 [lindex $barCoords 0]
-		$percentDone = 0
+	lset barCoords 2 [lindex $barCoords 0]
+	$percentDone = 0
     } else {
-		lset barCoords 2 $xCoord
+	lset barCoords 2 $xCoord
     }
     .middle.f1.cMLeft coords progressBarSlider $barCoords
     .middle.f1.cMLeft itemconfig progressBarText \
-		-text [format "Solving Game:\n%s%% Done" $percentDone]
+	-text [format "Solving Game:\n%s%% Done" $percentDone]
     .middle.f1.cMLeft raise progressBar
     update idletasks
 }
 
 
+# increments the loading progress bar by $percent percent
+# call with percent=0 to reset the bar
 proc advanceLoadingProgressBar { percent } {
     global gFrameHeight gWindowWidthRatio
     set percentDelta [expr [expr $gWindowWidthRatio * 150 - 20] / 100.0]
@@ -2581,17 +2598,17 @@ proc advanceLoadingProgressBar { percent } {
     set xCoord [expr [lindex $barCoords 2] + $percent * $percentDelta]
     set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
     if {$percentDone > 100.0} {
-		$percentDone = 100.0
+	$percentDone = 100.0
     }
     if {$percent == 0} {
-		lset barCoords 2 [lindex $barCoords 0]
-		$percentDone = 0
+	lset barCoords 2 [lindex $barCoords 0]
+	$percentDone = 0
     } else {
-		lset barCoords 2 $xCoord
+	lset barCoords 2 $xCoord
     }
     .middle.f1.cMLeft coords progressBarSlider $barCoords
     .middle.f1.cMLeft itemconfig progressBarText \
-		-text [format "Loading Database:\n%s%% Done" $percentDone]
+	-text [format "Loading Database:\n%s%% Done" $percentDone]
     .middle.f1.cMLeft raise progressBar
     update idletasks
 }

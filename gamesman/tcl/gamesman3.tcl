@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.58 2007-04-22 09:54:35 max817 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.59 2007-05-03 17:50:18 scarr2508 Exp $
 ##
 ############################################################################
 
@@ -706,7 +706,7 @@ proc DriverLoop { } {
     global gMoveDelay gGameDelay gMoveType gGameSolved gReallyUnsolved
     global gWhoseTurn gLeftName gRightName
     global gameMenuToDriverLoop
-	global printing
+    global printing
     if { [expr !$gGameSolved] } {
 	return
     }
@@ -732,12 +732,12 @@ proc DriverLoop { } {
 		set theValue      [C_GetValueOfPosition $gPosition]
 		set theRemoteness [C_Remoteness $gPosition]
 	    }
-		# capture position before move
-		# only do if printing is enabled
-		if { $printing == true } {
-			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves true
-			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves false
-		}
+	    # capture position before move
+	    # only do if printing is enabled
+	    if { $printing == true } {
+		doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves true
+		doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves false
+	    }
 
 	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
 
@@ -768,7 +768,7 @@ proc DriverLoop { } {
 	    if { [PlayerIsComputer] } {
 		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 		after [expr int($gMoveDelay * 1000)]
-								     GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
+		GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 		DoComputerMove
 		set gWaitingForHuman false
 		update
