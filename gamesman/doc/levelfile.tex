@@ -10,7 +10,8 @@ Level Files}
 \maketitle
 
 \section*{Version History}
-2006.11.10 - Version 1.0 - First version created.
+2006.11.10 - Version 1.0 - First version created.\\
+2007.05.02 - Version 1.1 - Edit for Pinkie
 
 \tableofcontents
 \newpage
@@ -21,7 +22,7 @@ Level Files are files which store all reachable positions for a given tier. They
 Below are key definitions to any specific Level File terminology that will be employed.
 \subsection{Full Level Files}
 Level Files contain a header and then data regarding which POSITION's are valid in a given tier. The way the data is stored depends on the type of level file. The full level file is named
-\texttt{/data/mgame\_opt\_tier.dat.gz}
+\texttt{/data/mgame\_opt\_tier.dat.gz}. The file name can be constructed by calling a function provided by the level file creator but the actual file must be created by the parent. This means that while the level file creator will generate the data and place it in the file, the file must be created externally and a pointer to a file, with the name as described above, must be provided to the creator. 
 
 \subsection{Partial Level Files}
 Partial Level Files are level files that contain only a limited portion of the full tier's level file. These files are typically created during use with ODeepa Blue when each computer is generating a partial level file based upon the positions they are responsible for generating. The partial level file is named
@@ -35,7 +36,7 @@ Intermediate level files are generated when the user calls writeLevelFile becaus
 \subsection{Purpose}
 When considering large games such as Bagh Chal or Quarto the very size of each tier and its level file can be a limiting factor as to whether the game is solvable. Although level files utilize gzip compression, the following four files formats for level files was created in order to exploit our knowledge of the data being stored. The aim in reducing the file size is to allow for files that can be stored on a computer so that Tier Gamesman can load the files for solving purposes or to allow for files to be transferred between computers for any use of ODeepa Blue Parallelization. 
 \subsection{General Structure}
-Any lines that begin with a \# are comments. The first line contains a start check bit. This occurs before any comments. After this line, commnets may appear anywhere. The second and third lines contains any header information. The second line contains only the level file type (0, 1, 2, 3) and a new line character. The third line includes the minHashValue and maxHashValue. The minHashValue value is the minimum value of all the values in the tier. The maxHashValue is the largest/maximum number value of all the values stored in the file. In types 1, 2, and 3 all values that are stored are stored where there is a global offset of the minimum legal POSITION. This means that for each position in the file (\#1, \#2, \#3, …) the file contains the values (0, \#2-\#1, \#3-\#1, ….). Lastly bitsPerPosition is the value of the number of bits it takes to store the largest number value - the offset. All values printed in the file are normalized with 0's appended to the front of the values in order to keep them the same bit length. The header is separated from the data by the single character '\^L' = char code 0x12.  The files also only contain values from between minHashValue and maxHashValue. After the data, another '\^L' = char code 0x12 is placed and then the final check bit '1'.
+Any lines that begin with a \# are comments. The first line contains a start check bit. This occurs before any comments. After this line, comments may appear anywhere. The second and third lines contains any header information. The second line contains only the level file type (0, 1, 2, 3) and a new line character. The third line includes the minHashValue and maxHashValue. The minHashValue value is the minimum value of all the values in the tier. The maxHashValue is the largest/maximum number value of all the values stored in the file. In types 1, 2, and 3 all values that are stored are stored where there is a global offset of the minimum legal POSITION. This means that for each position in the file (\#1, \#2, \#3, …) the file contains the values (0, \#2-\#1, \#3-\#1, ….). Lastly bitsPerPosition is the value of the number of bits it takes to store (largest number value - the offset). All values printed in the file are normalized with 0's appended to the front of the values in order to keep them the same bit length. The header is separated from the data by the single character char code 0x12.  The files also only contain values from between minHashValue and maxHashValue. After the data, another char code 0x12 is placed and then the final check bit '1'.
 \subsection{Type 0}
 A Type 0 level file essentially contains all of the positions that are reachable in that Tier. It has very minimal optimizations and contains the values in ASCII in order to enable easy reading and testing of level file generation. An example of a general file follows.
 \ttfamily\\
@@ -44,8 +45,7 @@ mGame\=Name\_Opt\#\_Tier\#\_Type0.dat.gz\\
 \+\\
 1\\
 \#\#\# GAMESMAN Bagh Chal Type 0 Level Files by Deepa Mahajan \\
-\#\#\# Doc on level file formats, see doc/LevelFiles.txt\\
-\#\#\# 2006-08-02 @ 09:00 PST\\
+\#\#\# Doc on level file formats, see doc/LevelFiles.txt 0x12\\
 0\\
 minHashValue maxHashValue 0x12\\
 Ascii positions separated by spaces 0x12\\
@@ -62,8 +62,7 @@ mGame\=Name\_Opt\#\_Tier\#\_Type1.dat.gz
 \+\\
 1\\
 \#\#\# GAMESMAN Bagh Chal Type 1 Level Files by Deepa Mahajan \\
-\#\#\# Doc on level file formats, see doc/LevelFiles.txt\\
-\#\#\# 2006-08-02 @ 09:00 PST\\
+\#\#\# Doc on level file formats, see doc/LevelFiles.txt 0x12\\
 1\\
 minHashValue maxHashValue 0x12\\
 Positions in binary not separated by spaces 0x12\\
@@ -79,8 +78,7 @@ mGame\=Name\_Opt\#\_Tier\#\_Type2.dat.gz
 \+\\
 1\\
 \#\#\# GAMESMAN Bagh Chal Type 2 Level Files by Deepa Mahajan \\
-\#\#\# Doc on level file formats, see doc/LevelFiles.txt\\
-\#\#\# 2006-08-02 @ 09:00 PST\\
+\#\#\# Doc on level file formats, see doc/LevelFiles.txt 0x12\\
 2\\
 minHashValue maxHashValue 0x12\\
 Positions in binary not separated by spaces 0x12\\
@@ -96,8 +94,7 @@ mGame\=Name\_Opt\#\_Tier\#\_Type3.dat.gz
 \+\\
 1\\
 \#\#\# GAMESMAN Bagh Chal Type 3 Level Files by Deepa Mahajan \\
-\#\#\# Doc on level file formats, see doc/LevelFiles.txt\\
-\#\#\# 2006-08-02 @ 09:00 PST\\
+\#\#\# Doc on level file formats, see doc/LevelFiles.txt 0x12\\
 3\\
 minHashValue maxHashValue 0x12\\
 1's and 0's in a row representing reachable and non-reachable positions 0x12\\
@@ -109,7 +106,7 @@ minHashValue maxHashValue 0x12\\
 \subsection{Functions used to Read/Write Level Files}
 \subsubsection{WriteLevelFile}
 \textbf{Description}\\
-\texttt{WriteLevelFile} reads an array of hash values and returns a level file. This file may be of any format type. The function optimizes for size by generating all types sequentially and comparing size of file after each file is generated. If the last value in the file is not a solitary '1' on the last line (preceeded by a 0x12) then the file is corrupted. The array of input hash values is in the form of a BITARRAY. A BITARRAY basically has each bit be a 1 if the position is reachable and a 0 if the position is not reachable.\\
+\texttt{WriteLevelFile} reads an array of hash values and returns a level file. This file may be of any format type. The function optimizes for size by generating all types sequentially and comparing size of file after each file is generated. If the last value in the file is not a solitary '1' on the last line (preceded by a 0x12) then the file is corrupted. The array of input hash values is in the form of a BITARRAY. A BITARRAY basically has each bit be a 1 if the position is reachable and a 0 if the position is not reachable.\\
 \textbf{Arguments}\\
 \texttt{char* compressed\_filename \\
 BITARRAY *array \\
@@ -120,7 +117,7 @@ POSITION endIndex}\\
 
 \subsubsection{ReadLevelFile}
 \textbf{Description}\\
-\texttt{ReadLevelFile} takes in a level file and returns a BITARRAY of available values. The array starts from the level files minHashValue and continues until its maxHashValue. These values must be retrieved by the calling function by using the getLevelFileMinHashValue and getLevelFileMaxHashValue functions. The level file may be of any type from 0 to 3. The BITARRAY array's length must be determined by the parent function by giving it a length of (maxHashValue-minHashValue)/8 bytes. \\
+\texttt{ReadLevelFile} takes in a level file and returns a BITARRAY of available values. The array starts from the level files minHashValue and continues until its maxHashValue. These values must be retrieved by the calling function by using the getLevelFileMinHashValue and getLevelFileMaxHashValue functions. The level file may be of any type from 0 to 3. The BITARRAY array's length must be determined by the parent function by giving it a length of (maxHashValue-minHashValue)/8 bytes. It will also buffer with 0's if it is not byte-aligned.\\
 \textbf{Arguments}\\
 \texttt{char* compressed\_filename \\
 BITARRAY *array \\
@@ -168,6 +165,8 @@ int length}\\
 \textbf{Return Values}\\
 \texttt{int success} 0 0 for valid 1 for invalid\\
 
+\section{Interfacing Example}
+This is an example of how to generate a level file from the Tier Gamesman. 
 \section{Conclusion}
 
 Level Files are also gzip'ed using zlib.h. Thus they also contain that level of compression. 
