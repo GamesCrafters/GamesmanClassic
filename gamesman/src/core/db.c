@@ -286,6 +286,8 @@ SetSlot(
 {
     if(kLoopy && gSymmetries)
 	    position = gCanonicalPosition(position);
+	if(index == gValueSlot)
+		AnalyzePosition(position, value);
     return db_functions->set_slice_slot(position, index, value);
 }
 
@@ -310,7 +312,10 @@ AddSlot(
                 UINT32 *slotindex
                 )
 {
-    return db_functions->add_slot(size, name, write, adjust, reservemax, slotindex);
+	GMSTATUS value = db_functions->add_slot(size, name, write, adjust, reservemax, slotindex);;
+	if (strcmp(name, "VALUE") == 0)
+		gValueSlot = *slotindex;
+    return value;
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)

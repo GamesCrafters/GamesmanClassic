@@ -1134,7 +1134,8 @@ void AnalysisMenu()
     POSITIONLIST *badWinPositions = NULL, *badTiePositions = NULL, *badLosePositions = NULL;
     BOOLEAN tempPredictions = gPrintPredictions, CorruptedValuesP();
     MEX mexValue = 0;
-    int mexInt, maxPositions = 10;
+    int mexInt;
+	unsigned int maxPositions = 10;
     char c;
 
     gPrintPredictions = FALSE;
@@ -1180,6 +1181,9 @@ void AnalysisMenu()
         printf("\tw)\tPrint up to %d (W)inning positions\n",maxPositions);
         printf("\tl)\tPrint up to %d (L)osing  positions\n",maxPositions);
         printf("\tt)\tPrint up to %d (T)ieing  positions\n",maxPositions);
+		printf("\tu)\tPrint up to %d (U)ndecided positions\n",maxPositions);
+		printf("\ty)\tPrint up to %d  S(Y)mmetric positions\n",maxPositions);
+		printf("\tr)\tPrint up to %d Win, Lose, Tie, o(R) Undecided positions\n",maxPositions);
         printf("\n\tp)\t(P)rint the overall summmary of game values\n");
 		printf("\ta)\tPrint detailed (A)nalysis of game values and remoteness distribution\n");  // New printf added
         printf("\tf)\tPrint to an ascii (F)ile the raw game values + remoteness\n");
@@ -1255,7 +1259,7 @@ void AnalysisMenu()
 	    break;
 	case 'n': case 'N':
 	    printf("\nPlease enter the MAX number of positions : ");
-	    scanf("%d", &maxPositions);
+	    maxPositions = GetMyUInt();
 	    break;
 	case 'v': case 'V':
 	    if(!kPartizan) { /* Impartial */
@@ -1267,7 +1271,7 @@ void AnalysisMenu()
 		HitAnyKeyToContinue();
 	    }
 	    break;
-	case 'w': case 'W': case 'l': case 'L': case 't': case 'T':
+	case 'w': case 'W': case 'l': case 'L': case 't': case 'T': case 'r': case 'R': case 'u': case 'U': case 'y': case'Y':
 	    PrintValuePositions(c,maxPositions);
 	    break;
 	case '1': case '2': case '3':

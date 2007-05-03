@@ -15,7 +15,8 @@ extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
 	gBitPerfectDB, gBitPerfectDBSolver, gBitPerfectDBSchemes, gBitPerfectDBAllSchemes, gBitPerfectDBAdjust, gBitPerfectDBVerbose,
     gTwoBits, gCollDB, gUnivDB, gFileDB,
 	gGlobalPositionSolver, gZeroMemSolver,
-	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness, gWinByClose;
+	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness, gWinByClose,
+	gIncludeInterestingnessWithAnalysis;
 
 extern char		gPlayerName[2][MAXNAME];
 

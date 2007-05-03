@@ -95,6 +95,7 @@ BOOLEAN gVisualizing = FALSE;	  /* Write visualization for each variant solved,
 									 default: FALSE */
 BOOLEAN gAnalysisLoaded = FALSE;    /* Has an analysis file been loaded */
 BOOLEAN gInterestingness = FALSE;  /* use interestingness solver after regular solver */
+BOOLEAN gIncludeInterestingnessWithAnalysis = TRUE;
 BOOLEAN gSymmetries = FALSE;
 BOOLEAN gUseOpen = FALSE;	/* Use open positions solver, will be set to TRUE once solver is finalised */
 
@@ -169,4 +170,3 @@ Tcl_Interp *gTclInterp = NULL;
 
 /* Static Evaluator list of custom trait function names */
 STRING  *gCustomTraits = NULL;
-

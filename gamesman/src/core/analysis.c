@@ -33,6 +33,7 @@
 #include "analysis.h"
 #include "db.h"
 #include "openPositions.h"
+#include "textui.h"
 #include <math.h>
 
 /*
@@ -41,6 +42,11 @@
 
 long		gTotalMoves = 0;
 ANALYSIS	gAnalysis = {};
+
+/* Variable to allow hooking into slot based databases. This will hold the 
+	slot number of the VALUE slot, which is where the position values are 
+	stored. */
+UINT32		gValueSlot = 0;
 
 /*
 ** Local variables
@@ -183,33 +189,68 @@ void PrintMexValues(MEX mexValue, int maxPositions)
 void PrintValuePositions(char c, int maxPositions)
 {
     BOOLEAN continueSearching = TRUE;
-    POSITION thePosition;
+    POSITION thePosition, theCanonicalPosition;
     VALUE theValue;
     int j;
     char yesOrNo;
 
     j = 0;
+	thePosition = 0;
     continueSearching = TRUE;
     do {
-        for(j = 0 ; ((thePosition = GetNextPosition()) != kBadPosition) && j < maxPositions ;) {
-            theValue = GetValueOfPosition(thePosition);
-            if((theValue == win  && (c == 'w' || c == 'W')) ||
-	       (theValue == lose && (c == 'l' || c == 'L')) ||
-	       (theValue == tie  && (c == 't' || c == 'T'))) {
-		PrintPosition(thePosition, "Nobody", TRUE);
-		j++;
-	    }
+        for( ; ((j < maxPositions) && (thePosition < gNumberOfPositions)) ; thePosition++) {
+			
+			if (gSymmetries) {
+				theCanonicalPosition = gCanonicalPosition(thePosition);
+				theValue = GetValueOfPosition(theCanonicalPosition);
+			} else
+				theValue = GetValueOfPosition(thePosition);
+
+            if ((c == 'r' || c == 'R') ||
+				(thePosition != theCanonicalPosition && (c == 'y' || c == 'Y') && (theValue != undecided)) ||
+				(theValue == win  && (c == 'w' || c == 'W')) ||
+				(theValue == lose && (c == 'l' || c == 'L')) ||
+				(theValue == tie  && (c == 't' || c == 'T')) ||
+				(theValue == undecided && (c == 'u' || c == 'U'))) {
+					if (gSymmetries && (theCanonicalPosition != thePosition))
+						printf("\nRaw position %llu is symmetric to position %llu, and has value: %s\n", thePosition, theCanonicalPosition,
+							theValue == undecided ? "Undecided" : theValue == win ? "Win" : theValue == lose ? "Lose" : "Tie");
+					else
+						printf("\nRaw position %llu has value: %s\n", thePosition,
+							theValue == undecided ? "Undecided" : theValue == win ? "Win" : theValue == lose ? "Lose" : "Tie");
+
+					if (gSymmetries && (thePosition != theCanonicalPosition) && (c == 'y' || c == 'Y')) {
+						printf("Position %llu:\n", thePosition);
+						PrintPosition(thePosition, "Nobody", TRUE);
+
+						printf("Position %llu:\n", theCanonicalPosition);
+						PrintPosition(theCanonicalPosition, "Nobody", TRUE);
+					} else
+						PrintPosition(thePosition, "Nobody", TRUE);
+
+					j++;
+			}
         }
-        if(thePosition != kBadPosition) {
+        if(thePosition != gNumberOfPositions) {
             printf("\nDo you want more? [Y/N] : ");
-            scanf("%c",&yesOrNo);
-            scanf("%c",&yesOrNo);
-            continueSearching = (yesOrNo == 'y' || yesOrNo == 'Y');
+            yesOrNo = GetMyChar();
+
+			while ((yesOrNo != 'y') && (yesOrNo != 'Y') && (yesOrNo != 'n') && (yesOrNo != 'N')) {
+	            printf("\nDo you want more? [Y/N] : ");
+		        yesOrNo = GetMyChar();
+			}
+
+			if ((yesOrNo == 'y') || (yesOrNo == 'Y')) {
+				j = 0;
+				continueSearching = TRUE;
+			}
+			else
+				continueSearching = FALSE;
         }
         else
-            printf("\nThere are no more %s positions to list...\n",
-		   c == 'w' || c == 'W' ? "winning" : c == 'l' || c == 'L' ? "losing" : "tieing");
-    } while (continueSearching && (thePosition != kBadPosition));
+            printf("\nThere are no more%s positions to list...\n",
+			c == 'r' || c == 'R' ? "" : c == 'u' || c == 'U' ? " undecided": c == 'w' || c == 'W' ? " winning" : c == 'l' || c == 'L' ? " losing" : " tieing");
+    } while (continueSearching && (thePosition != gNumberOfPositions));
     HitAnyKeyToContinue();
 }
 
@@ -609,7 +650,7 @@ void DetermineInterestingnessDFS(POSITION position) {
 
 VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
 {
-    if (theValue != undecided) {
+	if (theValue != undecided) {
         totalPositions++;
         if(theValue == win)  {
             winCount++;
@@ -636,6 +677,7 @@ VALUE AnalyzePosition(POSITION thePosition, VALUE theValue)
             unknownCount++;
         }
     }
+	else printf("Undecided!");
 
     return(theValue);
 }

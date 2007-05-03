@@ -118,5 +118,7 @@ typedef struct analysis_info
 
 extern ANALYSIS gAnalysis;
 
+extern UINT32 gValueSlot;
+
 #endif /* GMCORE_ANALYSIS_H */
 

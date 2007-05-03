@@ -973,6 +973,7 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
 		     (pos & (1 << h)) == 0;
 		     h--) {
+			// These two lines cause a crash when printing position 0
 			board[col][row]=2;
 			row--;
 		}

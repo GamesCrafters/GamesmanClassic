@@ -107,7 +107,8 @@ GetSlot(
                 UINT64 position,
                 UINT8 index
                 );
-UINT64
+
+UINT64
 SetSlot(
                 UINT64 position,
                 UINT8 index,

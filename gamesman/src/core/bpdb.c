@@ -1598,7 +1598,8 @@ Arguments:
     
 Return value:
 
-    TRUE on successful execution, or FALSE otherwise
+    TRUE on successful execution, or FALSE otherwise
+
 
 --*/
 
@@ -1787,7 +1788,8 @@ Arguments:
     
 Return value:
 
-    TRUE on successful execution, or FALSE otherwise
+    TRUE on successful execution, or FALSE otherwise
+
 
 --*/
 

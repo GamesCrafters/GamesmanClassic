@@ -221,7 +221,8 @@ void SolveAndStore()
                 // Writing HTML Has Now Been Deprecated
                 // createAnalysisVarDir();
                 // writeVarHTML();
-                DetermineInterestingness(gInitialPosition);
+                if (gIncludeInterestingnessWithAnalysis)
+					DetermineInterestingness(gInitialPosition);
                 writeXML(Save);
                 writeXML(SaveVar);
                 writeXML(CleanVar);
@@ -346,6 +347,9 @@ void HandleArguments (int argc, char *argv[])
                         createAnalysisGameDir();
                         //writeGameHTML(); DEPRECATED
                         //createVarTable(); DEPRECATED
+                } else if(!strcasecmp(argv[i], "--nointerestingness")) {
+						gIncludeInterestingnessWithAnalysis = FALSE;
+						gInterestingness = FALSE;
                 } else if(!strcasecmp(argv[i], "--open")) {
                 		gUseOpen = TRUE;
                	} else if(!strcasecmp(argv[i], "--visualize")) {
