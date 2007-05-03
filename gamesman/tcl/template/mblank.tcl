@@ -38,9 +38,11 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: (fill in)"
+	#SetToWinString "To Win: (fill in)"
+	SetToWinString [concat "To Win: " [C_GetStandardObjString]]
     } else {
-	SetToWinString "To Win: (fill in)"
+	#SetToWinString "To Win: (fill in)"
+	SetToWinString [concat "To Win: " [C_GetReverseObjString]]
     }
     SetToMoveString "To Move: (fill in)"
 	    
