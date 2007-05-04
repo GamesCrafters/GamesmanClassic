@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.52 2007-05-04 20:19:09 hsiufan Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.53 2007-05-04 20:38:24 hsiufan Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -35,6 +35,7 @@
 #include "gamesman.h"
 #include "openPositions.h"
 #include "globals.h"
+#include "seval.h"
 
 #define leftJustified 1
 #define rightJustified 2
