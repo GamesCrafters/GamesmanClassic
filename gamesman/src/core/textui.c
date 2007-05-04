@@ -293,11 +293,11 @@ void printPlayerConfig(STRING type1, STRING type2) {
 
 void ChoosePlayerTypeMenu(int playerNum){
   char c;
-  
+
   if(playerNum==1 || playerNum==2){
-    BOOLEAN computerIsPlayer = ( (gOpponent == AgainstComputer && ((playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst))) || 
+    BOOLEAN computerIsPlayer = ( (gOpponent == AgainstComputer && ((playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst))) ||
                                   gOpponent == ComputerComputer );
-    BOOLEAN humanIsPlayer = ( (gOpponent == AgainstComputer && ((playerNum==1 && gHumanGoesFirst) || (playerNum==2 && !gHumanGoesFirst))) || 
+    BOOLEAN humanIsPlayer = ( (gOpponent == AgainstComputer && ((playerNum==1 && gHumanGoesFirst) || (playerNum==2 && !gHumanGoesFirst))) ||
                                gOpponent == AgainstHuman );
     BOOLEAN evaluatorIsPlayer = (gOpponent == AgainstEvaluator && ((playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst)));
     do{
@@ -306,14 +306,14 @@ void ChoosePlayerTypeMenu(int playerNum){
       printf("\tUse the following characters to change the type for player %d:\n", playerNum);
       if( !computerIsPlayer && !gUnsolved)
         printf("\tc)\t(C)omputer\n");
-      if( !evaluatorIsPlayer && gSEvalLoaded )  
+      if( !evaluatorIsPlayer && gSEvalLoaded )
         printf("\te)\tStatic (E)valuator\n");
       if( !humanIsPlayer )
         printf("\th)\t(H)uman\n");
       printf("\n\tb)\t(B)ack = Return to previous activity");
       printf("\n\tq)\t(Q)uit\n");
       printf("\n\nSelect an option: ");
-      
+
       switch(c = GetMyChar()) {
         case 'c': case 'C':
           if( gUnsolved ) {
@@ -346,8 +346,8 @@ void ChoosePlayerTypeMenu(int playerNum){
               gOpponent = AgainstComputer;
               gHumanGoesFirst = (playerNum==2)?TRUE:FALSE;
               printf("\nPlayer %d is now a computer.\n\n", playerNum);
-              return;  
-            }  
+              return;
+            }
           }
           break;
         case 'e': case 'E':
@@ -363,8 +363,8 @@ void ChoosePlayerTypeMenu(int playerNum){
               gOpponent = AgainstEvaluator;
               gHumanGoesFirst = (playerNum==2)?TRUE:FALSE;
               printf("\nPlayer %d is now a static evaluator.\n\n", playerNum);
-              return;  
-            }  
+              return;
+            }
           }
           else if(gOpponent == AgainstHuman){
             gOpponent = AgainstEvaluator;
@@ -410,8 +410,8 @@ void ChoosePlayerTypeMenu(int playerNum){
               gOpponent = AgainstComputer;
               gHumanGoesFirst = (playerNum==1)?TRUE:FALSE;
               printf("\nPlayer %d is now a computer.\n\n", playerNum);
-              return;  
-            }  
+              return;
+            }
           }
           break;
         case 'B': case 'b':
@@ -425,7 +425,7 @@ void ChoosePlayerTypeMenu(int playerNum){
 	        HitAnyKeyToContinue();
 	        break;
       }
-    } while(TRUE); 
+    } while(TRUE);
   }
   else{
     BadElse("ChoosePlayerTypeMenu");
@@ -547,7 +547,7 @@ USERINPUT ConfigurationMenu()
 	       gHints ? "   " : "NO ",
 	       !gHints ? "   " : "NO ");
       }
-      
+
       if(gSEvalLoaded) {
 
 	printf("\te)\tToggle from %s(E)VAL-PREDICTIONS to %sEVAL-PREDICTIONS\n",
@@ -718,9 +718,8 @@ void MenusEvaluated()
    /*took out configuration options*/
 
     printf("\n\tp)\t(P)LAY NEW GAME\n");
-
+	printf("\n\tn)\tPLAY (N)ETWORKED GAME\n");
     printf("\n\tc)\t(C)onfigure play options\n");
-
 
     if(!gUnsolved)
     {
@@ -912,6 +911,17 @@ void ParseEvaluatedMenuChoice(char c)
 	HitAnyKeyToContinue();
       }
 	break;
+	case 'n': case 'N':
+		playerOne = NewHumanPlayer("Player One", 0);
+		playerTwo = NewHumanPlayer("Player Two", 1);
+		if (SetupNetworkGame(kGameName)) {
+			playerOne->GetMove = RemoteMove;
+			playerTwo->GetMove = LocalPlayersMove;
+		} else {
+			playerOne->GetMove = LocalPlayersMove;
+			playerTwo->GetMove = RemoteMove;
+		}
+		PlayGame(playerOne, playerTwo);
     case 'p': case 'P':
 	if(gOpponent == AgainstComputer) {
 	    if(gHumanGoesFirst) {
@@ -1192,7 +1202,7 @@ void AnalysisMenu()
         printf("\td)\tPrint (D)atabase comb visualization (POSitions vs NEGativeSpace)\n");
         printf("\tg)\t(G)enerate visualization of game tree in DOT format\n");
         printf("\n\tc)\t(C)heck if value database is corrupted\n");
-		
+
 		printf("\ts)\t(S)olve for interestingness (takes some time)\n");
 		printf("\te)\tS(E)t initial position to the most interesting (only after interestingness solver)\n");
 
@@ -1294,7 +1304,7 @@ void AnalysisMenu()
 		} else {
 			printf("\nNo interesting position set... run interestingness solver first!.\n");
 		}
-		
+
 		break;
 	case 'S': case 's':
 		DetermineInterestingness(gInitialPosition);
@@ -1599,7 +1609,7 @@ void showDBLoadingStatus(STATICMESSAGE msg)
       default:
 	break;
       }
-    
+
     if (clock() > updateTime)
       {
 	fflush(stdout);
