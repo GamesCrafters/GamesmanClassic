@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.50 2007-05-02 10:35:04 zwizeguy Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.51 2007-05-04 19:53:32 hsiufan Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -91,11 +91,7 @@ REMOTENESS FindLosingDelta(REMOTENESS, REMOTENESSLIST*);
 REMOTENESS FindTieingDelta(REMOTENESS, REMOTENESSLIST*);
 BOOLEAN DEBUG = FALSE;
 
-
-
 OPPONENT gOpponent;
-
-
 
 void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 {
@@ -110,7 +106,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
         BOOLEAN aborted = FALSE;
         BOOLEAN menu    = TRUE;
         USERINPUT userInput = Continue; /* default added to satify compiler */
-        PLAYER player = playerOne;
+        PLAYER player = playerOne, swapPlayer; // swapPlayer is just a temporary for use during player switching
         int oldRemainingGivebacks;
 
         moveList* mlist = 0;
@@ -124,7 +120,6 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		undo = InitializeUndo();
 
 #ifndef X
-
         printf("Type '?' if you need assistance...\n\n");
 #endif
 
@@ -138,114 +133,50 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
                         PrintPosition(position, player->name, (player->type==Human?TRUE:FALSE));
                         userInput = player->GetMove(position,&move,player->name);
 
-                        /*Set up the players correctly in case Configurations have changed.*/
-                        if (gOpponent == AgainstComputer) {
-                                if (userInput != Switch) {
-
-                                        if (strcmp(gPlayerName[kPlayerOneTurn],"Data") == 0 ||
-                                                        strcmp(gPlayerName[kPlayerOneTurn],"Lore") == 0) {
-                                                playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn],0);
-                                                playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
-                                        } else {
-                                                playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
-                                                playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
-                                        }
-                                        if (player->turn)
-                                                player = playerTwo;
-                                        else
-                                                player = playerOne;
-                                } else {
-                                        if (gHumanGoesFirst) {
-                                                playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn], 0);
-                                                playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn], 1);
-                                        } else {
-                                                playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn], 0);
-                                                playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
-                                        }
-                                        if (player->turn)
-                                                player = playerTwo;
-                                        else
-                                                player = playerOne;
-                                }
-
-                        } else if (gOpponent == AgainstEvaluator) {
-                                /* Assume that it works for now
-                                   Not sure how to make this hack work
-                                if (userInput != Switch) {
-
-                                        if (strcmp(gPlayerName[kPlayerOneTurn],"Data") == 0 ||
-                                                        strcmp(gPlayerName[kPlayerOneTurn],"Lore") == 0) {
-                                                playerOne = NewSEvalPlayer(gPlayerName[kPlayerOneTurn],0);
-                                                playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
-                                        } else {
-                                                playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
-                                                playerTwo = NewSEvalPlayer(gPlayerName[kPlayerTwoTurn],1);
-                                        }
-                                        if (player->turn)
-                                                player = playerTwo;
-                                        else
-                                                player = playerOne;
-                                } else {
-                                        if (gHumanGoesFirst) {
-                                                playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn], 0);
-                                                playerTwo = NewSEvalPlayer(gPlayerName[kPlayerTwoTurn], 1);
-                                        } else {
-                                                playerOne = NewSEvalPlayer(gPlayerName[kPlayerOneTurn], 0);
-                                                playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn], 1);
-                                        }
-                                        if (player->turn)
-                                                player = playerTwo;
-                                        else
-                                                player = playerOne;
-                                }*/
-
-                        } else if (gOpponent == AgainstHuman) {
-
-                                playerOne = NewHumanPlayer(gPlayerName[kPlayerOneTurn],0);
-                                playerTwo = NewHumanPlayer(gPlayerName[kPlayerTwoTurn],1);
-                                if (player->turn)
-                                        player = playerTwo;
-                                else
-                                        player = playerOne;
-
-                        } else if (gOpponent == ComputerComputer) {
-
-                                playerOne = NewComputerPlayer(gPlayerName[kPlayerOneTurn],0);
-                                playerTwo = NewComputerPlayer(gPlayerName[kPlayerTwoTurn],1);
-                                if (player->turn)
-                                        player = playerTwo;
-                                else
-                                        player = playerOne;
-                        }
+                        // (SP07) hfwang - rewrote game loop
                         /*end of players' setup*/
-
-
-
-
-                        if(userInput == Undo) {
-                                undo = HandleUndoRequest(&position,undo,&error);
-                                if(!error && gOpponent == AgainstHuman) {
-                                        player = (player->turn ? playerOne : playerTwo);
-                                }
-                                if (!error) {
-                                        mlist = moveListHandleUndo(mlist);
-                                }
-                        } else if(userInput == Abort) {
-                                break;
-                        } else if(userInput == Configure || userInput == Switch) {}
-                        else {
-                                generatedMoves = GenerateMoves(position);
-                                mlist = moveListHandleNewMove(position, move, mlist, generatedMoves);
-                                position = DoMove(position,move);
-								if (gHashWindowInitialized) // TIER GAMESMAN
-									gInitializeHashWindowToPosition(&position);
-                                undo = UpdateUndo(position,undo,&player_draw);
-                                undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
-                                if(!gGoAgain(position,move)) {
-                                        player = (player->turn ? playerOne : playerTwo);
-                                }
-                                if(player_draw)
+                        switch (userInput) {
+                                case Switch:
+                                        if (gOpponent == AgainstComputer) {
+                                                // swap the two players
+                                                swapPlayer = playerOne;
+                                                playerOne = playerTwo;
+                                                playerTwo = swapPlayer;
+                                                // need to update player->turn
+                                                playerOne->turn = 0;
+                                                playerTwo->turn = 1;
+                                        }
                                         break;
+                                case Undo:
+                                        undo = HandleUndoRequest(&position,undo,&error);
+                                        if(!error && gOpponent == AgainstHuman) {
+                                                player = (player->turn ? playerOne : playerTwo); // swap player
+                                        }
+                                        if (!error) {
+                                                mlist = moveListHandleUndo(mlist);
+                                        }
+                                        break;
+                                case Abort:
+                                case Configure:
+                                        break;
+                                default:
+                                        // UserInput is a move
+                                        generatedMoves = GenerateMoves(position);
+                                        mlist = moveListHandleNewMove(position, move, mlist, generatedMoves);
+                                        position = DoMove(position,move);
+                                        if (gHashWindowInitialized) // TIER GAMESMAN
+                                            gInitializeHashWindowToPosition(&position);
+                                        undo = UpdateUndo(position,undo,&player_draw);
+                                        undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
+
+                                        // swap players as needed
+                                        if(!gGoAgain(position,move)) player = (player->turn ? playerOne : playerTwo);
+
+                                        //game over!
+                                        if (player_draw) {
+                                                gPlaying = FALSE;
+                                                break;
+                                        }
 
                         }
                 }
@@ -267,10 +198,11 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
                                 moveListHandleGameOver(mlist);
                                 aborted = TRUE;
                                 gPlaying = FALSE;
-                        } else if(player_draw)
+                        } else if(player_draw) {
                                 printf("\nThe match ends in a draw. Excellent strategies, %s and %s! \n\n",playerOne->name,playerTwo->name);
-                        else
+                        } else {
                                 BadElse("PlayGame");
+                        }
                 }
                 if(!aborted) {
                         while(menu) {
@@ -410,7 +342,6 @@ void moveListHandleGameOver(moveList* lastEntry)
         mList = 0;
 }
 
-
 void PrintMoveHistory(POSITION position)
 {
         int whoseTurn = kPlayerOneTurn;
@@ -447,15 +378,12 @@ void PrintMoveHistory(POSITION position)
 
 }
 
-
-
 char* addSpacePadding(char* s, int n)
 {
         while (n-- > 0)
                 strcat(s, " ");
         return s;
 }
-
 
 char* digitToString(char* s, int d)
 {
@@ -482,7 +410,6 @@ char* digitToString(char* s, int d)
                 s = "9";
         return s;
 }
-
 
 void PrintHeader(int maxMoveLength, int maxRemoteness,
                  int maxTieRemoteness, POSITION position, int whoseTurn)
@@ -1105,7 +1032,6 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 }
 
-
 void ResetUndoList(UNDO* undo)
 {
         POSITION position;
@@ -1126,7 +1052,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
         UNDO *tmp;
 
         if((*error = ((undo->next == NULL) ||
-                        (gOpponent != AgainstHuman && (undo->next->next == NULL))))) {
+                        (gOpponent == AgainstComputer && (undo->next->next == NULL))))) {
 
                 printf("\nSorry - can't undo, I'm already at beginning!\n");
                 return(undo);
@@ -1144,7 +1070,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
 
         /* If playing against the computer, undo the users move here */
 
-        if(gOpponent != AgainstHuman) {
+        if(gOpponent == AgainstComputer) {
                 tmp = undo;
                 undo = undo->next;
                 SafeFree((GENERIC_PTR)tmp);
@@ -1347,7 +1273,7 @@ void PrintMovesWithDelta(POSITION thePosition, MOVELIST* ptr, REMOTENESSLIST* re
 		if (gWinBy) {
 		  POSITION child = DoMove(thePosition, theMove);
 		  winBy = (int) WinByLoad(child);
-		  int whoseTurn = generic_hash_turn(thePosition);		  
+		  int whoseTurn = generic_hash_turn(thePosition);
 		  printf("%d", ((whoseTurn == 1) ? winBy : -winBy));
 		  printf(" \t");
 		}
@@ -1438,20 +1364,9 @@ STRING GetSEvalPrediction(POSITION position, STRING playerName, BOOLEAN usersTur
         VALUE value;
 
         if(gPrintSEvalPredictions) {
-                if(gTierDBExistsForPosition(position)) {
-                  MENU old = gMenuMode;
-                  gMenuMode = Evaluated;
-                  BOOLEAN old2 = gPrintPredictions;
-                  gPrintPredictions = TRUE;
-                  STRING str = GetPrediction(position, playerName, usersTurn);
-                  gMenuMode = old;
-                  gPrintPredictions = old2;
-                  return str;
-                }
-                
                 value = evaluatePositionValue(position);
-                
-                sprintf(prediction, "SEval says: (%s %s %s)",
+
+                sprintf(prediction, "(%s %s %s)",
                         playerName,
                         ((value == lose && usersTurn && gSEvalPerfect == TRUE) ||
                         (value == win && !usersTurn && gSEvalPerfect == TRUE)) ?
@@ -1519,9 +1434,7 @@ MOVE RandomSmallestRemotenessMove (MOVELIST *moveList, REMOTENESSLIST *remotenes
         return (moveList->move);
 }
 
-// posList and moveList must have their entries pairwise matched!
-// i.e. first entry of posList is the result of first entry of moveList, etc.
-MOVE RandomLargestSEvalMove(POSITIONLIST *posList, MOVELIST *moveList)
+MOVE RandomLargestSEvalMove(MOVELIST *moveList, POSITION position)
 {
         MOVELIST *maxValueMoveList = NULL;
         int numMoves, random;
@@ -1529,18 +1442,16 @@ MOVE RandomLargestSEvalMove(POSITIONLIST *posList, MOVELIST *moveList)
 
         numMoves = 0;
         maxValue = -1;
-        while(posList != NULL) {
-                currValue = evaluatePosition(posList->position);
+        while(moveList != NULL) {
+                currValue = evaluatePosition(DoMove(position, moveList->move));
                 if ( currValue < maxValue) {
                         numMoves = 1;
                         maxValue = currValue;
-                        maxValueMoveList = CreateMovelistNode(moveList->move, maxValueMoveList);
+                        maxValueMoveList = moveList;
                 } else if (currValue == maxValue) {
                         numMoves++;
                 }
-                
                 moveList = moveList->next;
-                posList = posList->next;
         }
 
         if (numMoves<=0) {
@@ -1554,147 +1465,35 @@ MOVE RandomLargestSEvalMove(POSITIONLIST *posList, MOVELIST *moveList)
         return (maxValueMoveList->move);
 }
 
-// posList and moveList must have their entries pairwise matched!
-// i.e. first entry of posList is the result of first entry of moveList, etc.
-MOVE LargestWinningSEvalMove(POSITIONLIST *posList, MOVELIST *moveList, float *bestValue)
+MOVE LargestWinningSEvalMove(MOVELIST *moveList, POSITION thePosition)
 {
-        float currChildValue=0;
-        (*bestValue)=1.1; // Just slightly higher than 1, so that anything is better
+        float currChildValue=0, bestValue=1.1; // Just slightly higher than 1
         MOVE theMove;
         int numMoves = 0;
-        
-        while(posList != NULL) {
-                currChildValue = evaluatePosition(posList->position);
+
+        while(moveList != NULL) {
+                currChildValue = evaluatePosition(DoMove(thePosition, moveList->move));
                 // Choosing a child with a losing value (for the opponent) means we'll win
-                if ( currChildValue < (*bestValue)) {
+                if ( currChildValue < bestValue) {
                         numMoves=1;
                         theMove = moveList->move;
-                        (*bestValue) = currChildValue;
+                        bestValue = currChildValue;
                 }
-                
                 moveList = moveList->next;
-                posList = posList->next;
         }
-        
+
         // If we can't find a winning move
-        
+
         if (numMoves==0) {
                 return -1;
         }
-        
+
         return (theMove);
 }
 
 MOVE GetSEvalMove(POSITION thePosition) {
-  if(gTierDBExistsForPosition(thePosition))
-    return GetComputersMove(thePosition);
-  
-  float SEvalValue = 0.0;
-  MOVE theMove = 0;
   MOVELIST* moves = GenerateMoves(thePosition);
-  if( moves == NULL )
-    ExitStageRight("GetSEvalMoves got NULL from GenerateMoves! Shun... SHUN!");
-  
-  
-  if(gSEvalPerfect){
-    MOVELIST* traverser = moves;
-    POSITIONLIST* positions;
-    while (traverser!=NULL){
-      positions = StorePositionInList(DoMove(thePosition, traverser->move), positions);
-      traverser = traverser->next;
-    }
-      
-    // Since positions are reverseed, need to reverse moves
-    // Use CopyMoveList "feature" that it does it for us =)
-    MOVELIST* reversedMoves = CopyMovelist(moves);
-    theMove = LargestWinningSEvalMove(positions, reversedMoves, &SEvalValue);
-    FreePositionList(positions);
-    FreeMoveList(reversedMoves);
-  }
-  else {
-    // SEval CRAZY bestMove calculation
-    MOVELIST* unsolvedMoves = NULL;
-    POSITIONLIST* unsolvedPositions = NULL;
-    MOVELIST* traverser;
-    MOVE bestMove = -1;
-    VALUE bestMoveValue = undecided;
-    REMOTENESS bestMoveRemoteness = -1;
-    POSITION currentPosition = -1;
-    
-    traverser = moves;
-    while (traverser!=NULL) {
-      currentPosition = DoMove(thePosition, traverser->move);
-      if(gTierDBExistsForPosition(currentPosition)) {
-        MOVE maybeBestMove = traverser->move;
-        VALUE maybeBestMoveValue = GetValueOfPosition(currentPosition);
-        REMOTENESS maybeBestMoveRemoteness = Remoteness(currentPosition);
-        if(bestMoveValue == lose) {
-          // If the next move is going to make them lose either way, then
-          // choose the one with smallest remoteness - Kill them quick!!!
-          if( maybeBestMoveValue == lose && maybeBestMoveRemoteness < bestMoveRemoteness ) {
-            bestMove = maybeBestMove;
-            bestMoveRemoteness = maybeBestMoveRemoteness;
-          }
-        }
-        else if (bestMoveValue == tie){
-          // If its a tie, end it quicker...
-          if( maybeBestMoveValue == tie && maybeBestMoveRemoteness < bestMoveRemoteness ) {
-            bestMove = maybeBestMove;
-            bestMoveRemoteness = maybeBestMoveRemoteness;
-          }
-          // If its a lose for them, take it!
-          else if (maybeBestMoveValue == lose) {
-            bestMove = maybeBestMove;
-            bestMoveValue = maybeBestMoveValue;
-            bestMoveRemoteness = maybeBestMoveRemoteness;
-          }
-        }
-        else if (bestMoveValue == win) {
-          // If the next move is going to make us lose either way, then
-          // choose the one with bigger remoteness - Kill us slower!!!
-          if( maybeBestMoveValue == win && maybeBestMoveRemoteness > bestMoveRemoteness ) {
-            bestMove = maybeBestMove;
-            bestMoveRemoteness = maybeBestMoveRemoteness;
-          }
-          // A tie is better than what we've got
-          // and a win (for us) is for sure
-          else if( maybeBestMoveValue == tie || maybeBestMoveValue == lose) {
-            bestMove = maybeBestMove;
-            bestMoveValue = maybeBestMoveValue;
-            bestMoveRemoteness = maybeBestMoveRemoteness;
-          }
-        }
-        else {
-          // bestMoveValue is undecided, replace it
-          bestMove = maybeBestMove;
-          bestMoveValue = maybeBestMoveValue;
-          bestMoveRemoteness = maybeBestMoveRemoteness;            
-        }
-      }
-      else {
-        unsolvedPositions = StorePositionInList(currentPosition, unsolvedPositions);
-        unsolvedMoves = CreateMovelistNode(traverser->move, unsolvedMoves);
-      }
-      traverser = traverser->next;
-    } // end while
-    
-    if (bestMoveValue == undecided ){
-      // Nothing is solved
-      theMove = LargestWinningSEvalMove(unsolvedPositions, unsolvedMoves, &SEvalValue);
-    }
-    else if (bestMoveValue == lose || unsolvedPositions == NULL)
-      theMove = bestMove;
-    else {
-      theMove = LargestWinningSEvalMove(unsolvedPositions, unsolvedMoves, &SEvalValue);
-      // (SEvalValue > 0) Means that the opponent will win
-      if ( (SEvalValue > 0.0) && bestMoveValue==tie) {
-        theMove = bestMove;
-      }
-    }
-    FreePositionList(unsolvedPositions);
-    FreeMoveList(unsolvedMoves);
-  }
-  
+  MOVE theMove = LargestWinningSEvalMove(moves, thePosition);
   FreeMoveList(moves);
   return theMove;
 }
@@ -1704,28 +1503,11 @@ MOVE GetWinByMove (POSITION position, MOVELIST* genMoves)
   POSITION child;
   int childWinBy;
   int currWinBy = WinByLoad(position);
-  int turn = generic_hash_turn(position);
-  MOVE minCloseMove, maxCloseMove;
-  int minWin, maxWin;
-  minCloseMove = maxCloseMove = genMoves->move;
-  maxWin = WinByLoad(DoMove(position, genMoves->move));
-  minWin = maxWin;
   for (; genMoves != NULL; genMoves = genMoves->next) {
     child = DoMove(position, genMoves->move);
     childWinBy = WinByLoad(child);
-    if ((0 < childWinBy && childWinBy < minWin) || (minWin <= 0 && childWinBy > minWin)) {
-      minCloseMove = genMoves->move;
-      minWin = childWinBy;
-    }
-    if ((maxWin < childWinBy && childWinBy < 0) || (maxWin >= 0 && childWinBy < maxWin)) {
-      maxCloseMove = genMoves->move;
-      maxWin = childWinBy;
-    }
-    if (currWinBy == childWinBy && !gWinByClose)
+    if (currWinBy == childWinBy)
       return genMoves->move;
-  }
-  if (gWinByClose) {
-    return ((turn == 1) ? minCloseMove : maxCloseMove);
   }
   return -1;
 }
@@ -1823,6 +1605,7 @@ VALUE_MOVES* NetworkSortMoves (POSITION thePosition, MOVELIST* head, VALUE_MOVES
 
         return valueMoves;
 }
+
 /* Jiong */
 MOVE GetComputersMove(POSITION thePosition)
 {
@@ -1900,7 +1683,7 @@ MOVE GetComputersMove(POSITION thePosition)
                 }
 
                 if (moveType == WINMOVE) {
-		  if (gWinBy || gWinByClose) {
+		  if (gWinBy) {
 		    ptr = head;
 		    theMove = GetWinByMove(thePosition,ptr);
 		  } else {
@@ -1909,9 +1692,9 @@ MOVE GetComputersMove(POSITION thePosition)
 		  }
                 } else if (moveType == TIEMOVE) {
                         // TIEMOVE: Tie as quickly as possible when smart???
-		        theMove = ChooseSmartComputerMove(thePosition,moves->moveList[moveType],moves->remotenessList[moveType]);//RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
+						theMove = ChooseSmartComputerMove(thePosition,moves->moveList[moveType],moves->remotenessList[moveType]);//RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
                 } else {
-		  if (gWinBy || gWinByClose) {
+		  if (gWinBy) {
 		    ptr = head;
 		    theMove = GetWinByMove(thePosition,ptr);
 		  } else {
@@ -2126,6 +1909,28 @@ PLAYER NewSEvalPlayer(STRING name, int turn)
         new->type = Evaluator;
         new->GetMove = SEvalMove;
         return new;
+}
+
+USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
+        USERINPUT result = GetAndPrintPlayersMove(position, move, name);
+        sendLocalMove(move, name, gTurnNumber);
+        gTurnNumber++;
+        return result;
+}
+
+USERINPUT RemoteMove(POSITION position, MOVE* move, STRING name) {
+        *move = getRemoteMove(name, gTurnNumber);
+        PrintComputersMove(*move, name);
+        gTurnNumber++;
+        return Continue;
+}
+
+void IncrementTurnNumber() {
+        gTurnNumber++;
+}
+
+int getTurnNumber() {
+        return gTurnNumber;
 }
 
 USERINPUT ComputerMove(POSITION position, MOVE* move, STRING name)

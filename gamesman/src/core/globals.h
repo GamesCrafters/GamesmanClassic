@@ -15,8 +15,7 @@ extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
 	gBitPerfectDB, gBitPerfectDBSolver, gBitPerfectDBSchemes, gBitPerfectDBAllSchemes, gBitPerfectDBAdjust, gBitPerfectDBVerbose,
     gTwoBits, gCollDB, gUnivDB, gFileDB,
 	gGlobalPositionSolver, gZeroMemSolver,
-	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness, gWinByClose,
-	gIncludeInterestingnessWithAnalysis;
+	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness;
 
 extern char		gPlayerName[2][MAXNAME];
 
@@ -127,6 +126,11 @@ extern OPPONENT 	gOpponent;
 extern BOOLEAN 		gNetworkDB;
 extern STRING		ServerAddress;
 
+/* MP over network Globals */
+extern STRING gMPServerAddress;
+extern STRING gRemoteGameURL;
+extern int    gTurnNumber;
+
 /* Tier Gamesman globals and function pointers */
 // For the core
 extern BOOLEAN			gTierGamesman;
@@ -145,7 +149,6 @@ extern TIERPOSITION*	gMaxPosOffset;
 extern int				gNumTiersInHashWindow;
 extern TIER				gCurrentTier;
 extern TIERPOSITION		gCurrentTierSize;
-extern BOOLEAN*         gTierDBExists;
 // For the modules
 extern BOOLEAN			kSupportsTierGamesman;
 extern BOOLEAN			kExclusivelyTierGamesman;

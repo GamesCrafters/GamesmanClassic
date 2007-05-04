@@ -51,8 +51,10 @@ typedef struct Player {
 /* Player Constructors */
 PLAYER          NewHumanPlayer                  (STRING name,int turn);
 PLAYER          NewComputerPlayer               (STRING name,int turn);
-PLAYER          NewSEvalPlayer               (STRING name,int turn);
+PLAYER          NewSEvalPlayer                  (STRING name,int turn);
+USERINPUT       RemoteMove                      (POSITION position,MOVE* move, STRING name);
 USERINPUT       ComputerMove                    (POSITION position,MOVE* move, STRING name);
+USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name);
 USERINPUT       SEvalMove                    (POSITION position,MOVE* move, STRING name);
 
 void            PlayGame                        (PLAYER playerOne,PLAYER playerTwo);
@@ -60,8 +62,8 @@ void            PlayGame                        (PLAYER playerOne,PLAYER playerT
 /* Move-choosing logic */
 MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
-MOVE		RandomLargestSEvalMove	(POSITIONLIST*, MOVELIST*);
-MOVE		LargestWinningSEvalMove	(POSITIONLIST*, MOVELIST*, float*);
+MOVE		RandomLargestSEvalMove	(MOVELIST*, POSITION);
+MOVE		LargestWinningSEvalMove	(MOVELIST*, POSITION);
 
 /* WinBy-choosing logic */
 MOVE     GetWinByMove                           (POSITION, MOVELIST*);

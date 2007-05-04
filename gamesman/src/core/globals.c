@@ -58,7 +58,6 @@ BOOLEAN gPrintSEvalPredictions = FALSE; /* TRUE iff the seval predictions should
 BOOLEAN gSEvalLoaded = FALSE;           /* TRUE iff an evaluator is successfully loaded */
 BOOLEAN gSEvalPerfect = FALSE;          /* TRUE iff an evaluator is never wrong */
 BOOLEAN gWinBy = FALSE;               /* TRUE iff the computer is playing with WinBy */
-BOOLEAN gWinByClose = FALSE;          /* TRUE iff the computer is playing with WinByClose */
 BOOLEAN gHints = FALSE;                 /* TRUE iff possible moves should be printed */
 BOOLEAN gUnsolved = FALSE;              /* TRUE iff playing without solving */
 
@@ -95,7 +94,6 @@ BOOLEAN gVisualizing = FALSE;	  /* Write visualization for each variant solved,
 									 default: FALSE */
 BOOLEAN gAnalysisLoaded = FALSE;    /* Has an analysis file been loaded */
 BOOLEAN gInterestingness = FALSE;  /* use interestingness solver after regular solver */
-BOOLEAN gIncludeInterestingnessWithAnalysis = TRUE;
 BOOLEAN gSymmetries = FALSE;
 BOOLEAN gUseOpen = FALSE;	/* Use open positions solver, will be set to TRUE once solver is finalised */
 
@@ -125,10 +123,15 @@ BOOLEAN gGenerateNodeViz = FALSE;
 BOOLEAN gNetworkDB = FALSE;
 STRING  ServerAddress = "nyc.cs.berkeley.edu:8080/GamesmanServlet";
 
+/* MP over network Globals */
+STRING gMPServerAddress = "127.0.0.1:3000/game/request_game_url";
+STRING gRemoteGameURL = NULL;
+int    gTurnNumber = 0;
+
 /* Tier Gamesman globals and function pointers */
 // For the core
 BOOLEAN 		gTierGamesman = TRUE;
-BOOLEAN			gDBLoadMainTier = TRUE;
+BOOLEAN			gDBLoadMainTier = FALSE;
 TIERPOSITION    gDBTierStart = -1;
 TIERPOSITION    gDBTierEnd = -1;
 TIER 			kBadTier = -1;
@@ -143,7 +146,6 @@ TIERPOSITION*	gMaxPosOffset = NULL;
 int				gNumTiersInHashWindow = 0;
 TIER			gCurrentTier = -1;
 TIERPOSITION	gCurrentTierSize = 0;
-BOOLEAN*        gTierDBExists = NULL;
 // For the modules
 BOOLEAN 		kSupportsTierGamesman = FALSE;
 BOOLEAN			kExclusivelyTierGamesman = FALSE;
@@ -170,3 +172,4 @@ Tcl_Interp *gTclInterp = NULL;
 
 /* Static Evaluator list of custom trait function names */
 STRING  *gCustomTraits = NULL;
+

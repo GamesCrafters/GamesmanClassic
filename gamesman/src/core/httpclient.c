@@ -1,5 +1,7 @@
 #include "httpclient.h"
 #include <errno.h>
+#include "globals.h"
+#include <string.h>
 
 /* FUNCTIONS */
 
@@ -14,14 +16,14 @@ int main(int argc, char *argv[])
 	int r, i;
 	//char blah[] = "136.152.170.158:8080/gamesman/GamesmanServlet";
 	char * url = malloc(strlen(argv[1])+1);
-	
-	// Read the args    
-    if (argc < 2) 
+
+	// Read the args
+    if (argc < 2)
     {
        fprintf(stderr,"usage %s url\n", argv[0]);
        exit(1);
     }
-   
+
     while (1){
 	memcpy(url,argv[1],strlen(argv[1])+1);
 	printf("trying to resolve %s\n",url);
@@ -32,21 +34,21 @@ int main(int argc, char *argv[])
 
 	printf("%s:%d%s\n", req->hostName, req->portNum, req->path);
 
-	body = "abcdefghijklmnopqrstuvwxyz";	
+	body = "abcdefghijklmnopqrstuvwxyz";
 
 	res = post(req, body, 27);
-	
+
 	printf("%s: %s\n", "Date", getheader(res, "date"));
 	printf("%s: %s\n", "Content-Length", getheader(res, "Content-Length"));
 	printf("%s: %s\n", "ReturnCode", getheader(res, "ReturnCode"));
 	printf("%s: %s\n", "ReturnMessage", getheader(res, "ReturnMessage"));
-	
+
 	r = res->bodyLength;
 	printf("response: ");
 	for (i=0; i<r; i++)
 		printf("%d ", res->body[i]);
-     
-	printf("\ndone\n");	
+
+	printf("\ndone\n");
 	freeresponse(res);
     }
 	return 0;
@@ -56,11 +58,11 @@ int main(int argc, char *argv[])
 /**
  * Converts an unsigned long long from host byte order to network byte order
  * depending on the endian-ness of the host system.
- * 
+ *
  * n - unsigned long long (usually a POSITION) in host's byte order
  * returns an unsigned long long in network byte order
  */
-unsigned long long htonll(unsigned long long n) 
+unsigned long long htonll(unsigned long long n)
 {
 	short w = 0x4321;
 	if ((*(char *)& w) != 0x21 )
@@ -111,7 +113,7 @@ char* getheader(httpres *res, char name[])
 		currHdr = currHdr->next;
 	}
 	free(lname);
-	
+
 	// Return what we've found
 	return val;
 }
@@ -135,7 +137,7 @@ void lcstrcpy(char to[], char from[])
 /**
  * Frees the specified httpres struct when no longer needed. Not
  * using this function will result in a memory leak.
- * 
+ *
  * res - httpres struct to free
  */
 void freeresponse(httpres *res)
@@ -160,8 +162,8 @@ void freeresponse(httpres *res)
 		free(tmpHdr);
 	if (res->body != NULL)
 		free(res->body);
-	free(res); 
-	
+	free(res);
+
 }
 
 /**
@@ -186,7 +188,7 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 	// Add the content-length header
 	net_itoa(bodyLength, buffer);
 	addheader(req, "Content-Length", buffer);
-	
+
 	// Create a socket
 	if ((sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
@@ -196,14 +198,14 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 	}
 
 	// Connect to the socket
-	if (connect(sockFd, &(req->sock.res), sizeof(struct sockaddr_in)) < 0) 
+	if (connect(sockFd, &(req->sock.res), sizeof(struct sockaddr_in)) < 0)
 	{
 		fprintf(stderr,"ERROR, opening socket: ");
 		connecterror(stderr);
 		exit(1);
 	}
 
-	// Submit the http request   
+	// Submit the http request
 	n = write(sockFd, "POST ", 5);
 	n = write(sockFd, req->path, strlen(req->path));
 	n = write(sockFd, " HTTP/1.1\r\n", 11);
@@ -250,7 +252,7 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 	free(req->path);
 	free(req);
 
-	return res;	
+	return res;
 }
 
 /**
@@ -285,11 +287,11 @@ void readresponse(int sockFd, httpres *res)
 				buffer[p++] = c[0];
 		}
 		buffer[p] = '\0';
-		
+
 		// Stop reading line-by-line when we encounter a blank line
 		if (strlen(buffer) == 0)
 			break;
-		
+
 		if (res->status == NULL)
 		{
 			// First line is the HTTP status line
@@ -299,7 +301,7 @@ void readresponse(int sockFd, httpres *res)
 				exit(1);
 			}
 			strcpy(res->status, buffer);
-			
+
 			// Parse out the status code
 			pos = strtok(buffer, " ");
 			if (pos != NULL)
@@ -343,7 +345,7 @@ void readresponse(int sockFd, httpres *res)
 				{
 					fprintf(stderr,"ERROR, could not allocate memory for header value\n");
 					exit(1);
-				}			
+				}
 				strcpy(currHdr->value, pos);
 			}
 			else
@@ -356,16 +358,16 @@ void readresponse(int sockFd, httpres *res)
 				}
 				strcpy(currHdr->name, buffer);
 			}
-			
+
 			// Add the header
 			if (tmpHdr != NULL)
 				tmpHdr->next = currHdr;
 			else
 				res->headers = currHdr;
-			tmpHdr = currHdr;	
+			tmpHdr = currHdr;
 		}
 	}
-		
+
 	// Now read any body content
 	if ((pos = getheader(res, "Content-Length")) != NULL)
 	{
@@ -375,7 +377,7 @@ void readresponse(int sockFd, httpres *res)
 			fprintf(stderr,"ERROR, could not allocate memory for response body\n");
 			exit(1);
 		}
-		
+
 		res->bodyLength = read(sockFd, res->body, p);
 	}
 }
@@ -402,7 +404,7 @@ void net_itoa(int n, char s[])
 	if (c < 0)
 		s[i++] = '-';
 	s[i] = '\0';
-	 
+
 	// Now reverse
 	for (i=0, j=strlen(s)-1; i<j; i++, j--)
 	{
@@ -414,7 +416,7 @@ void net_itoa(int n, char s[])
 
 /**
  * Sets the type header to the specified httpreq struct. The specified
- * value is copied (by value) into the struct. Thus, changes to that 
+ * value is copied (by value) into the struct. Thus, changes to that
  * character array will not have any further affect.
  *
  * req - httpreq struct to modify
@@ -438,7 +440,7 @@ void addheader(httpreq *req, char name[], char value[])
 {
 	header *hdr;
 	header *currHdr;
-	
+
 	// Create a header
 	if ((hdr = malloc(sizeof(header))) == NULL)
 	{
@@ -458,7 +460,7 @@ void addheader(httpreq *req, char name[], char value[])
 		exit(1);
 	}
 	strcpy(hdr->value, value);
-	
+
 	// Add to the httpreq
 	if (req->headers == NULL)
 	{
@@ -466,23 +468,135 @@ void addheader(httpreq *req, char name[], char value[])
 	}
 	else
 	{
-		currHdr = req->headers;		
+		currHdr = req->headers;
 		while (currHdr->next != NULL)
 			currHdr = currHdr->next;
 		currHdr->next = hdr;
-	}	
+	}
+}
+
+int SetupNetworkGame(STRING gameName) {
+	httpreq *req;
+	httpres *res;
+	char *url = malloc(256); //"127.0.0.1:3000/game/request_game_url"; //gMPServerAddress
+	char *body = malloc(256);
+	sprintf(body, "game_name=%s", gameName);
+
+	gRemoteGameURL = malloc(256);
+
+	printf("Initiating game.\n");
+	printf("This may take awhile (if no one else wants to play this game)\n");
+
+	while (TRUE) {
+		strncpy(url, gMPServerAddress, 255);
+		req = newrequest(url);
+		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
+		res = post(req, body, strlen(body));
+
+		if (strncmp(res->status, "HTTP/1.1 201", 12) == 0) {
+			// we have a game url (that uniquely represents a game)
+			// and we are player two
+			printf("\nYou have been matched with an opponent... ");
+
+			// lets figure out what turn we are
+			strncpy(gRemoteGameURL, res->body, 255);
+			if (strncmp(getheader(res, "Your-Turn"), "0", 1))  {
+				freeresponse(res);
+				return 0;
+			} else {
+				freeresponse(res);
+				return 1;
+			}
+		} else if (strncmp(res->status, "HTTP/1.1 202", 12) == 0) {
+			// Server: accepted game id, will process later.
+			// Client: okay, will wait for opponent (save the token given by server to poll)
+			sprintf(body, "game_id=%s&game_name=%s", res->body, gameName);
+			freeresponse(res);
+			sleep(5); //poll every 5 seconds
+			//return SetupWait(body);
+		} else {
+			freeresponse(res);
+			printf("Server is talking gibberish...\n");
+			exit(1);
+		}
+	}
+}
+
+void sendLocalMove(MOVE* move, STRING name, int turnNumber) {
+	httpreq *req;
+	httpres *res;
+	char *body = malloc(256);
+	char *url = malloc(256);
+	int i, result;
+
+	sprintf(body, "opponent=%s&turn_number=%d&value=%d", name, turnNumber, *move);
+
+	while (1) {
+		strncpy(url, gRemoteGameURL, 255); //"192.168.0.104:3000/game/<game_id>/get_last_move"
+		req = newrequest(url);
+		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
+		res = post(req, body, strlen(body));
+
+		if (strncmp(res->status, "HTTP/1.1 204", 12) == 0) {
+			freeresponse(res);
+			free(body);
+			free(url);
+			return; // we are done here
+		} else {
+			sleep(5); //poll every 5 seconds
+
+			// reset the body, lets not submit the same data over and over eh?
+			//sprintf(body, "opponent=%s&turn_number=%d", name, turnNumber);
+			freeresponse(res);
+		}
+	}
+}
+
+int getRemoteMove(STRING name, int turnNumber) {
+	httpreq *req;
+	httpres *res;
+	char *body = malloc(256);
+	char *url = malloc(256);
+	int i, result;
+
+	sprintf(body, "opponent=%s&turn_number=%d", name, turnNumber);
+	printf("Waiting for opponent to move...\n");
+
+	while (1) {
+		strncpy(url, gRemoteGameURL, 255); //"192.168.0.104:3000/game/<game_id>/get_last_move"
+		req = newrequest(url);
+		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
+		res = post(req, body, strlen(body));
+
+		if (strncmp(res->status, "HTTP/1.1 200", 12) == 0) {
+			result = atoi(res->body);
+			freeresponse(res);
+			break;
+		} else { // reply was a 304 (no modifications)
+			sleep(5); //poll every 5 seconds
+			freeresponse(res);
+		}
+	}
+	free(body);
+	free(url);
+	return result;
+}
+
+void reportGameEnd(int code) {
+	printf("Game ended!\n");
 }
 
 /**
  * Creates a new httpreq to represent the http request to make. Returns
  * a pointer to this struct for later passing to the get/post function.
- * 
+ *
+ * WARNING: clobbers url
+ *
  * url - url the http request will use (minus the http:// prefix)
  */
 httpreq* newrequest(char url[])
 {
 	httpreq *req;
-
 	// Create the httpreq
 	if ((req = malloc(sizeof(httpreq))) == NULL)
 	{
@@ -494,15 +608,15 @@ httpreq* newrequest(char url[])
 
     // Parse the url and add the info to the httpreq
     parse(url, req);
-    
+
     // Lookup the host addr and validate it
 	if ((req->serverAddr = gethostbyname(req->hostName)) == NULL)
 	{
 		fprintf(stderr,"ERROR, no such host: %s\n", req->hostName);
 		exit(1);
 	}
-	
-	// Setup the socket address    
+
+	// Setup the socket address
 	memcpy(&(req->sock.req.sin_addr.s_addr), *(req->serverAddr->h_addr_list), sizeof(struct in_addr));
 	req->sock.req.sin_family = AF_INET;
 	req->sock.req.sin_port = htons(req->portNum);
@@ -520,7 +634,7 @@ httpreq* newrequest(char url[])
 /**
  * Parses the specified url into the hostName, path, and port
  * and assigns the values into the specified httpreq struct.
- * 
+ *
  * url - url to parse
  * req - pointer to httpreq
  */
@@ -530,13 +644,13 @@ void parse(char url[], httpreq *req)
     char *pos2;
     int n;
 
-	// Parse the url   
+	// Parse the url
 	if (pos1 = strchr(url, ':'))
 	{
 		// Url has a port number specified
 		// Read just the host name, up to the ':'
 		*pos1 = '\0';
-		n = strlen(url);		
+		n = strlen(url);
 		if ((req->hostName = malloc(n+1)) == NULL)
 		{
 			fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
@@ -558,13 +672,14 @@ void parse(char url[], httpreq *req)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
 				exit(1);
-			}			
+			}
 			strcpy(req->path, pos2);
+
 		}
 		else
 		{
 			// Just host name and port, but use malloc calls
-			// so we can free later as we will need to in 
+			// so we can free later as we will need to in
 			// other cases
 			req->portNum = atoi(pos1);
 			// Default path to '/'
@@ -577,7 +692,7 @@ void parse(char url[], httpreq *req)
 		}
 	}
 	else
-	{		
+	{
 		req->portNum = 80;
 		if (pos1 = strchr(url, '/'))
 		{
@@ -598,13 +713,13 @@ void parse(char url[], httpreq *req)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
 				exit(1);
-			}			
+			}
 			strcpy(req->path, pos1);
 		}
 		else
 		{
 			// Just the host name, but use malloc calls
-			// so we can free later as we will need to in 
+			// so we can free later as we will need to in
 			// other cases
 			n = strlen(url);
 			if ((req->hostName = malloc(n+1)) == NULL)
@@ -628,112 +743,112 @@ void parse(char url[], httpreq *req)
 void connecterror(FILE *stream)
 {
 	if (errno == EOPNOTSUPP)
-		fprintf(stream, "Operation not supported on transport endpoint.\n");	
+		fprintf(stream, "Operation not supported on transport endpoint.\n");
 	else if (errno == EPFNOSUPPORT)
-		fprintf(stream, "Protocol family not supported.\n");	
+		fprintf(stream, "Protocol family not supported.\n");
 	else if (errno == ECONNRESET)
-		fprintf(stream, "Connection reset by peer.\n");	
+		fprintf(stream, "Connection reset by peer.\n");
 	else if (errno == ENOBUFS)
-		fprintf(stream, "No buffer space available.\n");	
+		fprintf(stream, "No buffer space available.\n");
 	else if (errno == EAFNOSUPPORT)
-		fprintf(stream, "Address family not supported by protocol family.\n");	
+		fprintf(stream, "Address family not supported by protocol family.\n");
 	else if (errno == EPROTOTYPE)
-		fprintf(stream, "Protocol wrong type for socket.\n");	
+		fprintf(stream, "Protocol wrong type for socket.\n");
 	else if (errno == ENOTSOCK)
-		fprintf(stream, "Socket operation on non-socket.\n");	
+		fprintf(stream, "Socket operation on non-socket.\n");
 	else if (errno == ENOPROTOOPT)
-		fprintf(stream, "Protocol not available.\n");	
+		fprintf(stream, "Protocol not available.\n");
 	else if (errno == ESHUTDOWN)
-		fprintf(stream, "Can't send after socket shutdown.\n");	
+		fprintf(stream, "Can't send after socket shutdown.\n");
 	else if (errno == ECONNREFUSED)
-		fprintf(stream, "Connection refused.\n");	
+		fprintf(stream, "Connection refused.\n");
 	else if (errno == EADDRINUSE)
-		fprintf(stream, "Address already in use.\n");	
+		fprintf(stream, "Address already in use.\n");
 	else if (errno == ECONNABORTED)
-		fprintf(stream, "Connection aborted.\n");	
+		fprintf(stream, "Connection aborted.\n");
 	else if (errno == ENETUNREACH)
-		fprintf(stream, "Network is unreachable.\n");	
+		fprintf(stream, "Network is unreachable.\n");
 	else if (errno == ENETDOWN)
-		fprintf(stream, "Network interface is not configured.\n");	
+		fprintf(stream, "Network interface is not configured.\n");
 	else if (errno == ETIMEDOUT)
-		fprintf(stream, "Connection timed out.\n");	
+		fprintf(stream, "Connection timed out.\n");
 	else if (errno == EHOSTDOWN)
-		fprintf(stream, "Host is down.\n");	
+		fprintf(stream, "Host is down.\n");
 	else if (errno == EHOSTUNREACH)
-		fprintf(stream, "Host is unreachable.\n");	
+		fprintf(stream, "Host is unreachable.\n");
 	else if (errno == EINPROGRESS)
-		fprintf(stream, "Connection already in progress.\n");	
+		fprintf(stream, "Connection already in progress.\n");
 	else if (errno == EALREADY)
-		fprintf(stream, "Socket already connected.\n");	
+		fprintf(stream, "Socket already connected.\n");
 	else if (errno == EDESTADDRREQ)
-		fprintf(stream, "Destination address required.\n");	
+		fprintf(stream, "Destination address required.\n");
 	else if (errno == EMSGSIZE)
-		fprintf(stream, "Message too long.\n");	
+		fprintf(stream, "Message too long.\n");
 	else if (errno == EPROTONOSUPPORT)
-		fprintf(stream, "Unknown protocol.\n");	
+		fprintf(stream, "Unknown protocol.\n");
 	else if (errno == ESOCKTNOSUPPORT)
-		fprintf(stream, "Socket type not supported.\n");	
+		fprintf(stream, "Socket type not supported.\n");
 	else if (errno == EADDRNOTAVAIL)
-		fprintf(stream, "Address not available.\n");	
+		fprintf(stream, "Address not available.\n");
 	else if (errno == ENETRESET)
-		fprintf(stream, "Network interface reset.\n");	
+		fprintf(stream, "Network interface reset.\n");
 	else if (errno == EISCONN)
-		fprintf(stream, "Socket is already connected.\n");	
+		fprintf(stream, "Socket is already connected.\n");
 	else if (errno == ENOTCONN)
-		fprintf(stream, "Socket is not connected.\n");		
+		fprintf(stream, "Socket is not connected.\n");
 	else if (errno == ENOTSUP)
-		fprintf(stream, "Not supported.\n");	
+		fprintf(stream, "Not supported.\n");
 	else if (errno == EMULTIHOP)
-		fprintf(stream, "Multihop attempted.\n");				
+		fprintf(stream, "Multihop attempted.\n");
 	else if (errno == EPROTO)
-		fprintf(stream, "Protocol error.\n");				
+		fprintf(stream, "Protocol error.\n");
 	else if (errno == ENOLINK)
-		fprintf(stream, "The link has been severed.\n");										
+		fprintf(stream, "The link has been severed.\n");
 	else if (errno == EREMOTE)
-		fprintf(stream, "The object is remote.\n");										
+		fprintf(stream, "The object is remote.\n");
 	else if (errno == ENOSR)
-		fprintf(stream, "Out of streams resources.\n");										
+		fprintf(stream, "Out of streams resources.\n");
 	else if (errno == ETIME)
-		fprintf(stream, "Timer expired.\n");										
+		fprintf(stream, "Timer expired.\n");
 	else if (errno == ENODATA)
-		fprintf(stream, "No data (for no delay io).\n");										
+		fprintf(stream, "No data (for no delay io).\n");
 	else if (errno == ENOSTR)
-		fprintf(stream, "Device not a stream.\n");										
+		fprintf(stream, "Device not a stream.\n");
 	else if (errno == EIDRM)
-		fprintf(stream, "Identifier removed.\n");										
+		fprintf(stream, "Identifier removed.\n");
 	else if (errno == ENOMSG)
-		fprintf(stream, "No message of desired type.\n");										
+		fprintf(stream, "No message of desired type.\n");
 	else if (errno == EPIPE)
-		fprintf(stream, "Broken pipe.\n");										
+		fprintf(stream, "Broken pipe.\n");
 	else if (errno == EMLINK)
-		fprintf(stream, "Too many links.\n");										
+		fprintf(stream, "Too many links.\n");
 	else if (errno == EMFILE)
-		fprintf(stream, "Too many open files.\n");										
+		fprintf(stream, "Too many open files.\n");
 	else if (errno == ENFILE)
-		fprintf(stream, "Too many open files in system.\n");										
+		fprintf(stream, "Too many open files in system.\n");
 	else if (errno == EINVAL)
-		fprintf(stream, "Invalid argument.\n");										
+		fprintf(stream, "Invalid argument.\n");
 	else if (errno == ENODEV)
-		fprintf(stream, "No such device.\n");										
+		fprintf(stream, "No such device.\n");
 	else if (errno == EXDEV)
-		fprintf(stream, "Cross-device link.\n");										
+		fprintf(stream, "Cross-device link.\n");
 	else if (errno == ENOTBLK)
-		fprintf(stream, "Block device required.\n");										
+		fprintf(stream, "Block device required.\n");
 	else if (errno == EFAULT)
-		fprintf(stream, "Bad address.\n");										
+		fprintf(stream, "Bad address.\n");
 	else if (errno == EACCES)
-		fprintf(stream, "Permission denied.\n");										
+		fprintf(stream, "Permission denied.\n");
 	else if (errno == EBADF)
-		fprintf(stream, "Bad file number.\n");										
+		fprintf(stream, "Bad file number.\n");
 	else if (errno == ENXIO)
-		fprintf(stream, "No such device or address.\n");										
+		fprintf(stream, "No such device or address.\n");
 	else if (errno == EIO)
-		fprintf(stream, "I/O error.\n");										
+		fprintf(stream, "I/O error.\n");
 	else if (errno == EINTR)
-		fprintf(stream, "Interrupted system call.\n");										
+		fprintf(stream, "Interrupted system call.\n");
 	else if (errno == EPERM)
-		fprintf(stream, "Not super-user.\n");										
+		fprintf(stream, "Not super-user.\n");
 	else
-		fprintf(stream, "Unknown error %d.\n", errno);																					
+		fprintf(stream, "Unknown error %d.\n", errno);
 }
 
