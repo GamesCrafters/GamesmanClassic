@@ -62,8 +62,8 @@ void            PlayGame                        (PLAYER playerOne,PLAYER playerT
 /* Move-choosing logic */
 MOVE		RandomLargestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
 MOVE		RandomSmallestRemotenessMove	(MOVELIST*, REMOTENESSLIST*);
-MOVE		RandomLargestSEvalMove	(MOVELIST*, POSITION);
-MOVE		LargestWinningSEvalMove	(MOVELIST*, POSITION);
+MOVE		RandomLargestSEvalMove	(POSITIONLIST*, MOVELIST*);
+MOVE		LargestWinningSEvalMove	(POSITIONLIST*, MOVELIST*, float*);
 
 /* WinBy-choosing logic */
 MOVE     GetWinByMove                           (POSITION, MOVELIST*);
