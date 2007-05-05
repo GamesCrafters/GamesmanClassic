@@ -146,6 +146,7 @@ Computer's move              : 46\n\
 **************************************************************************/
 
 #define BOARDSIZE     15           /* # Edges = 15 */
+#define VERTICES      6
 
 typedef enum possibleBoardPieces { Blank, o, x } BlankOX;
 
@@ -851,14 +852,112 @@ void setOption(int option)
 }
 
 
+/**********************************************************************
+ *                       SYMMERTY FUNCTIONS
+ * The following are the functions needed for the implementation 
+ *   of symmetries.
+ *
+ * GetCanonical function is at the very bottom
+**********************************************************************/
+
+// This function returns an index of connection a-b in the
+//   BlankOX board[] array
+short connection_lookup(short a, short b){
+  short temp, result = 0;
+  if ((a == b) || (a < 1) || (a > 6) || (b < 1) || (b > 6)){
+    printf("Invalid arguments to connection_lookup: %d, %d\n", a, b);
+    return 99;
+  }
+  if (a > b){
+    temp = a;
+    a = b;
+    b = temp;
+  }
+  for (temp = a; temp > 1; temp--)
+    result += 7 - temp;
+  result += b - a - 1;
+  return result;
+}
+
+// This function determines whether <x> is present in
+//   <array[]> prior to index <endInd>
+char presBefore(short array[], short x, short endInd){
+  short i;
+  for (i = 0; i < endInd; i++)
+    if (array[i] == x)
+      return 1;
+  return 0;
+}
+
+// This function fills all positions in <array[]> starting
+//   at a position <sInd> with elements [1 ... VERTICES]
+//   in an incrementing order without using elements already
+//   present in <array[]> prior to position <sInd>
+void fillEnd(short array[], short sInd){
+  while (sInd < VERTICES){
+    array[sInd] = 1;
+    while (presBefore(array, array[sInd], sInd))
+      array[sInd]++;
+    sInd++;
+  }
+  return;
+}
+
+// This function determines whether elements in <array[]>
+//   are present in a decrementing order
+// Returns 1 - Yes, 0 - No
+char isDecr(short array[], short sInd){
+  short cur = array[sInd], ind = sInd + 1;
+  while (ind < VERTICES){
+    if (cur < array[ind])
+      return 0;
+    cur = array[ind];
+    ind++;
+  }
+  return 1;
+}
+
+// This function takes <array[]> and changes it into its next
+//   permutation.
+// An array {1,2,3,4,5,6}, after 720 calls to this function
+//   will be changed to {6,5,4,3,2,1}
+void permute(short array[]){
+  short end = VERTICES - 1;
+  while (end >= 0){
+    if (array[end] == VERTICES)
+      end--;
+    if (! isDecr(array, end)){
+      do{
+	array[end]++;
+      } while (presBefore(array, array[end], end));
+      fillEnd(array, end+1);
+      return;
+    }
+    end--;
+  }
+  return;
+}
+
+// This function takes <old_board> and copies it into <new_boards>,
+//   changing the order of vertices as indicated in <new_order>
+void change_board(BlankOX* old_board, BlankOX* new_board, short new_order[]){
+  short i = 0, a, b, x, y;
+  for (x = 0; x < VERTICES - 1; x++)
+    for (y = x+1; y < VERTICES; y++){
+      a = new_order[x];
+      b = new_order[y];
+      new_board[i++] = old_board[connection_lookup(a, b)];
+    }
+}
+
 /************************************************************************
 **
 ** NAME:        GetCanonical
 **
-** DESCRIPTION: Receives a game position, looks at its 6 rotation
-**                (including the original). Flips the 6'th rotation.
-**                 Rotates the board 5 times again, and retrns the
-**                 position with the smalles hash value
+** DESCRIPTION: This function tests all possible permutation of
+**                vertices in a board derived from <p>.
+**              The permutation with the smallest hash value is
+**                returned as a canonical form of <p>
 ** 
 ** INPUTS:      POSITION p - the original position
 **
@@ -866,59 +965,18 @@ void setOption(int option)
 **
 ************************************************************************/
 POSITION GetCanonical (POSITION p){
-  BlankOX posDecoded[BOARDSIZE], newDecoded[BOARDSIZE];
-  POSITION smallest = p;
-  int flip, try, i;
-  // Decode given position into an array
-  PositionToBlankOX(p, posDecoded);
-  for (flip = 0; flip < 2; flip++){
-    // Rotate the board 5 times
-    for (try = 0; try < 6; try++){
-      // Rotate board 1 click clockwise
-      newDecoded[0]  = posDecoded[4];
-      newDecoded[1]  = posDecoded[8];
-      newDecoded[2]  = posDecoded[11];
-      newDecoded[3]  = posDecoded[13];
-      newDecoded[4]  = posDecoded[14];
-      newDecoded[5]  = posDecoded[0];
-      newDecoded[6]  = posDecoded[1];
-      newDecoded[7]  = posDecoded[2];
-      newDecoded[8]  = posDecoded[3];
-      newDecoded[9]  = posDecoded[5];
-      newDecoded[10] = posDecoded[6];
-      newDecoded[11] = posDecoded[7];
-      newDecoded[12] = posDecoded[9];
-      newDecoded[13] = posDecoded[10];
-      newDecoded[14] = posDecoded[12];
-      // Encode new array into a position
-      p = BlankOXToPosition(newDecoded);
-      // Select the smallest position
-      smallest = (smallest < p) ? smallest : p;
-      // New position becomes "old" for the next turning
-      for (i = 0; i < 15; i++)
-	posDecoded[i] = newDecoded[i];
-    }
-    // Flip the board
-    newDecoded[0]  = posDecoded[9];
-    newDecoded[1]  = posDecoded[6];
-    newDecoded[2]  = posDecoded[2];
-    newDecoded[3]  = posDecoded[13];
-    newDecoded[4]  = posDecoded[12];
-    newDecoded[5]  = posDecoded[5];
-    newDecoded[6]  = posDecoded[1];
-    newDecoded[7]  = posDecoded[11];
-    newDecoded[8]  = posDecoded[10];
-    newDecoded[9]  = posDecoded[0];
-    newDecoded[10] = posDecoded[8];
-    newDecoded[11] = posDecoded[7];
-    newDecoded[12] = posDecoded[4];
-    newDecoded[13] = posDecoded[3];
-    newDecoded[14] = posDecoded[14];
-    p = BlankOXToPosition(newDecoded);
-    smallest = (smallest < p) ? smallest : p;
-    for (i = 0; i < 15; i++)
-      posDecoded[i] = newDecoded[i];   
+  POSITION testP, canonP = p;
+  BlankOX posDecoded[BOARDSIZE];
+  BlankOX testDecoded[BOARDSIZE];
+  short vert_order[VERTICES] = {1,2,3,4,5,6};
+  short perm = 6 * 5 * 4 * 3 * 2 - 1, i;
+  PositionToBlankOX(p,posDecoded);
+  for (i = 0; i < perm; i++){
+    permute(vert_order);
+    change_board(posDecoded, testDecoded, vert_order);
+    testP = BlankOXToPosition(testDecoded);
+    if (testP < canonP)
+      canonP = testP;
   }
-  // Return the smallest position
-  return smallest;
+  return canonP;
 }
