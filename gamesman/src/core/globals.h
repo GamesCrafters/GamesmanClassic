@@ -143,6 +143,7 @@ extern BOOLEAN          gTierSolverMenu;
 extern BOOLEAN          gDontLoadTierDB;
 extern unsigned int     HASHTABLE_BUCKETS;
 extern BOOLEAN          gTierSolvePrint;
+extern BOOLEAN          gTotalTiers;
 // For the hash window
 extern BOOLEAN			gHashWindowInitialized;
 extern BOOLEAN			gCurrentTierIsLoopy;

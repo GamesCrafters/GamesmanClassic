@@ -233,7 +233,7 @@ void SolveAndStore()
         }
 }
 
-void StartAndWait() {
+void StartAndWait(/*BOOL admin*/) {
 		Initialize();
         InitializeDatabases();
         InitializeAnalysis();
@@ -245,6 +245,8 @@ void StartAndWait() {
 		gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
 
 		RemoteInitialize(); //init the retrograde solver
+        //if (admin)
+        //    runAdmin_Main();
         //runClient_Main();
 }
 

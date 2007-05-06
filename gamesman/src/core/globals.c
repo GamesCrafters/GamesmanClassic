@@ -141,6 +141,7 @@ BOOLEAN         gTierSolverMenu = TRUE;
 BOOLEAN         gDontLoadTierDB = FALSE;
 unsigned int    HASHTABLE_BUCKETS = 1024;
 BOOLEAN         gTierSolvePrint = TRUE;
+BOOLEAN         gTotalTiers = 0;
 // For the hash window
 BOOLEAN			gHashWindowInitialized = FALSE;
 BOOLEAN			gCurrentTierIsLoopy = FALSE;

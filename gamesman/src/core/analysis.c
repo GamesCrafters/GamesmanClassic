@@ -1392,10 +1392,16 @@ float PercentDone (STATICMESSAGE msg)
     if (gHashWindowInitialized) {// Tier-Gamesman Retrograde Solver!
     	total_positions = gCurrentTierSize;
         useTcl = FALSE;
+        if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
+            percent = 1/(float)gTotalTiers*100;
+            char str[100];
+            sprintf(str, "advanceProgressBar %f", percent);
+            Tcl_Eval(gTclInterp, str);
+        }
 	} else if (gActualNumberOfPositionsOptFunPtr != NULL) {
       total_positions = gActualNumberOfPositionsOptFunPtr(getOption());
       if (total_positions < 0)
-	total_positions = gNumberOfPositions;
+	        total_positions = gNumberOfPositions;
     }
     switch (msg)
     {
@@ -1425,6 +1431,12 @@ float PercentLoaded (STATICMESSAGE msg)
     if (gHashWindowInitialized) {// Tier-Gamesman Retrograde Solver!
         total_positions = gCurrentTierSize;
         useTcl = FALSE;
+        if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
+            float percent = 1/(float)gTotalTiers;
+            char str[100];
+            sprintf(str, "advanceLoadingProgressBar %f", percent);
+            Tcl_Eval(gTclInterp, str);
+        }
     }
     switch (msg)
     {

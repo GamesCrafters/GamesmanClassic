@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.39 2007-05-06 03:02:32 max817 Exp $
+// $Id: solveretrograde.c,v 1.40 2007-05-06 03:38:47 max817 Exp $
 
 /************************************************************************
 **
@@ -184,6 +184,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 		numTiers++;
 	}
 	ifprintf(gTierSolvePrint, "\n   %llu Tiers are confirmed to be solved.\n", numTiers);
+    gTotalTiers = numTiers; // for the GUI load percentage printing
 
 	ifprintf(gTierSolvePrint, "\n----- Checking for existing Tier DBs: -----\n\n");
 	checkExistingDB();
@@ -327,6 +328,7 @@ BOOLEAN gotoNextTier() {
 	solvedList = CreateTierlistNode(temp->tier, solvedList);
 	SafeFree(temp);
 	tiersSolved++;
+    PercentDone(AdvanceTier);
 	return (solveList != NULL);
 }
 
