@@ -19,6 +19,8 @@ unsigned int	Stopwatch			();
 void		ExitStageRight			();
 void		ExitStageRightErrorString	(STRING msg);
 
+void        ifprintf(BOOLEAN, char*, ...);
+
 /* We only want to define these if not using MEMWATCH */
 #ifndef MEMWATCH
 GENERIC_PTR	SafeMalloc			(size_t amt);

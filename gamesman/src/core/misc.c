@@ -205,6 +205,16 @@ void ExitStageRightErrorString(char errorMsg[])
         exit(1);
 }
 
+// A Helper added by Ofer and Max: prints only if mustBeTrue is true
+void ifprintf(BOOLEAN mustBeTrue, char* formatstring, ...) {
+    if (mustBeTrue) {
+        va_list argp;
+        va_start(argp, formatstring);
+        vprintf(formatstring, argp);
+        va_end(argp);
+    }
+}
+
 /* We define these only if not using Memwatch for memory debugging.
  * Otherwise, we replace all calls to these functions with calls to
  * Memwatch equivalents.

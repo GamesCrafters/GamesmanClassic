@@ -330,6 +330,9 @@ void HandleArguments (int argc, char *argv[])
                     gTierGamesman = FALSE;
                 } else if(!strcasecmp(argv[i], "--notiermenu")) {
                     gTierSolverMenu = FALSE;
+                } else if(!strcasecmp(argv[i], "--notierprint")) {
+                    gTierSolvePrint = FALSE;
+                    gTierSolverMenu = FALSE;
                 } else if(!strcasecmp(argv[i], "--solve")) {
                         gJustSolving = TRUE;
                         if((i + 1) < argc && !strcasecmp(argv[++i], "all"))
@@ -420,6 +423,7 @@ void HandleArguments (int argc, char *argv[])
                                 HASHTABLE_BUCKETS = atoi(argv[2]);
                         i++;
 				} else if(!strcasecmp(argv[i],"--startAndWait")) { // for PARALLELIZATION
+                        gTierSolvePrint = FALSE;
 						StartAndWait();
 						ExitStageRight();
 				} else if(!strcasecmp(argv[i],"--printdefault")) {

@@ -1388,8 +1388,10 @@ float PercentDone (STATICMESSAGE msg)
     static POSITION num_pos_seen = 0;
     float percent = 0;
     int total_positions = gNumberOfPositions;
+    BOOLEAN useTcl = TRUE;
     if (gHashWindowInitialized) {// Tier-Gamesman Retrograde Solver!
     	total_positions = gCurrentTierSize;
+        useTcl = FALSE;
 	} else if (gActualNumberOfPositionsOptFunPtr != NULL) {
       total_positions = gActualNumberOfPositionsOptFunPtr(getOption());
       if (total_positions < 0)
@@ -1399,13 +1401,13 @@ float PercentDone (STATICMESSAGE msg)
     {
         case Update:
             num_pos_seen++;
-	    if (gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_seen % (total_positions / 1000)))
-	      Tcl_Eval(gTclInterp, "advanceProgressBar 0.1");
+            if (useTcl && gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_seen % (total_positions / 1000)))
+              Tcl_Eval(gTclInterp, "advanceProgressBar 0.1");
             break;
         case Clean:
             num_pos_seen = 0;
-	    if (gTclInterp != NULL)
-	      Tcl_Eval(gTclInterp, "advanceProgressBar 0");
+	        if (useTcl && gTclInterp != NULL)
+	          Tcl_Eval(gTclInterp, "advanceProgressBar 0");
             break;
         default:
             break;
@@ -1419,20 +1421,22 @@ float PercentLoaded (STATICMESSAGE msg)
 {
     static POSITION num_pos_loaded = 0;
     int total_positions = gNumberOfPositions;
+    BOOLEAN useTcl = TRUE;
     if (gHashWindowInitialized) {// Tier-Gamesman Retrograde Solver!
         total_positions = gCurrentTierSize;
+        useTcl = FALSE;
     }
     switch (msg)
     {
         case Update:
             num_pos_loaded++;
-        if (gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_loaded % (total_positions / 1000)))
-	      Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0.1");
+            if (useTcl && gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_loaded % (total_positions / 1000)))
+	          Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0.1");
             break;
         case Clean:
             num_pos_loaded = 0;
-	    if (gTclInterp != NULL)
-	      Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0");
+	        if (useTcl && gTclInterp != NULL)
+	          Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0");
             break;
         default:
             break;

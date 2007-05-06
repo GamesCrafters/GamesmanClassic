@@ -217,6 +217,7 @@ STRING kCommandSyntaxHelp =
 "--noadjust\n"
 "--notiers\t\tStarts game with Tier-Gamesman Mode OFF by default.\n"
 "--notiermenu\t\tThis option disables the Tier-Gamesman solver menu, and auto-solves all tiers.\n"
+"--notierprint\t\tThis option disables the printing from the Tier-Gamesman solver menu.\n"
 "--solve [<n> | <all>]\tSolves game with the n option configuration.\n"
 "\t\t\tTo solve all option configurations of game, use <all>.\n"
 "\t\t\tIf <n> and <all> are ommited, it will solve the default\n"
