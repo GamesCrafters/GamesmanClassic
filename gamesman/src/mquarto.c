@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.71 2007-05-07 01:30:50 max817 Exp $
+// $Id: mquarto.c,v 1.72 2007-05-07 03:05:28 max817 Exp $
 
 
 /*
@@ -178,8 +178,8 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -462,7 +462,6 @@ char * consCharArrayFromBoard(QTBPtr);
 
 void InitializeGame ()
 {
-
     initGame();
 
     SetupTierStuff();
@@ -1335,11 +1334,10 @@ void GameSpecificMenu ()
 	printf("Select an option: ");
 	//fflush(stdin); // This should only work on windows, flushing input is an ambiguous concept
 	//flush();
-	choice = readchar();
-	choice = toupper(choice);
+	choice = GetMyChar();
 	switch(choice) {
-	case 'I':
-	    printf("Please enter the new GAMEDIMENSION (must be less than 4): ");
+    case 'I': case 'i':
+	    printf("Please enter the new GAMEDIMENSION (must be less than or equal to 4): ");
 	    /*scanf("%d",&GAMEDIMENSION);*/
 		GAMEDIMENSION = GetMyInt();
 	    InitializeGame( );
@@ -2862,7 +2860,13 @@ TIERLIST* TierChildren(TIER tier) {
 
 TIERPOSITION NumberOfTierPositions(TIER tier){
 	generic_hash_context_switch(tier);
-    return (generic_hash_max_pos() * (NUMPIECES+((tier==0||getPiecesLeft(tier)==0)?1:0))); //generic hash will ONLY HASH pieces ON the BOARD!
+    TIERPOSITION numPos;
+    if (tier == 0)
+        numPos = generic_hash_max_pos() * (NUMPIECES + 1);
+    else if (getPiecesLeft(tier)==0)
+        numPos = generic_hash_max_pos();
+    else numPos = generic_hash_max_pos() * getPiecesLeft(tier);
+    return numPos;
 }
 
 void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
@@ -2880,14 +2884,15 @@ void SetupTierStuff() {
 	gTierChildrenFunPtr				= &TierChildren;
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
 	gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
-	gIsLegalFunPtr				    = &IsLegal;
+	//gIsLegalFunPtr				    = &IsLegal;
 	//gGenerateUndoMovesToTierFunPtr= &GenerateUndoMovesToTier; Unnecessary, but faster!
 	//gUnDoMoveFunPtr				= &UnDoMove;
 	gTierToStringFunPtr				= &TierToString;
 	generic_hash_destroy();
 	// Tier-Specific Hashes: BENNO ATTACK!!!
 	int piecesArray[(NUMPIECES * 3) + 4];
-	int pieceCounter, tierCounter;
+	int pieceCounter;
+    TIER tierCounter;
 	for(pieceCounter = 0; pieceCounter < NUMPIECES; pieceCounter++) {
 		piecesArray[pieceCounter*3] = pieceCounter;
 		piecesArray[pieceCounter*3 + 1] = piecesArray[pieceCounter*3 + 2] = 0;
@@ -2947,7 +2952,20 @@ POSITION TierHash(QTBPtr board) {
 		value over the max positions. (how many max positions fit). WHAT ABOUT IF THE
 		HASH IS EXACTLY MAX_POS?!?! SPECIAL CASE!?!??!?!?! OR USE MAX_POS+1??
 		*/
-		tierpos += generic_hash_max_pos()*board->slots[0];
+        if(tier == 0)
+            tierpos += generic_hash_max_pos()*board->slots[0];//If in initial tier, let everything thru
+        else if(getPiecesLeft(tier) != 0) { //If we're NOT in the final tier, encode the hand
+            int pieceOffset = 0;
+            int piece;
+            for (piece = 0; piece < NUMPIECES; piece++) {
+                if ((tier >> piece) & 1)
+                    continue;
+                else if (board->slots[0] == piece)
+                    break;
+                pieceOffset++;
+            }
+            tierpos += generic_hash_max_pos()*pieceOffset;
+        }// If we're IN the final tier, the hand is for sure empty so leave tierpos be
 		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
         //printf("HASH: tierpos: %llu, Tier: %llu, position: %llu\n", tierpos, tier, position);
 	} else position = hashUnsymQuarto(board);
@@ -2962,8 +2980,21 @@ QTBPtr TierUnhash(POSITION position) {
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
 		generic_hash_context_switch(tier); // switch to that tier's context
         //printf("UNHASH: tierpos: %llu, Tier: %llu, position: %llu\n", tierpos, tier, position);
-		board->slots[0] = tierpos / generic_hash_max_pos(); // I need this to be TRUNCATED!
+		int encodedHand = tierpos / generic_hash_max_pos(); // I need this to be TRUNCATED!
 		tierpos = tierpos % generic_hash_max_pos();
+        if(tier == 0) board->slots[0] = encodedHand;
+        else if (getPiecesLeft(tier) == 0) board->slots[0] = EMPTYSLOT;
+        else {
+            int piece;
+            for(piece = 0; piece < NUMPIECES; piece++) {
+                if((tier>>piece) & 1)
+                    continue;
+                else if (encodedHand == 0) {
+                    board->slots[0] = piece;
+                    break;
+                } else encodedHand--;
+            }
+        }
         char * hashBoard = (char*)SafeMalloc(NUMPIECES*sizeof(char));
 		generic_hash_unhash(tierpos, hashBoard); // unhash in that tier
 		int x;
@@ -3012,7 +3043,7 @@ STRING TierToString(TIER tier) {
     thisTier[NUMPIECES] = '\0';
 	return thisTier;
 }
-
+/*
 BOOLEAN IsLegal(POSITION position) {
     QTBPtr board = gUseGPS ? GPSBoard : unhash( position );
     BOOLEAN returnVal = TRUE;
@@ -3036,8 +3067,11 @@ BOOLEAN IsLegal(POSITION position) {
         FreeBoard(board);
     return returnVal;
 }
-
+*/
 // $Log: not supported by cvs2svn $
+// Revision 1.71  2007/05/07 01:30:50  max817
+// Quarto works, and fixed a display bug with hash efficiency.
+//
 // Revision 1.70  2007/05/02 18:06:40  bensussman
 // BUGZID:
 // Fixed a small bug, but not the one which prevents a solve from occuring. That's still busted.
