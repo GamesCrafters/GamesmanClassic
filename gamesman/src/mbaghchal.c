@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.35 2007-05-07 07:04:42 brianzimmer Exp $
+// $Id: mbaghchal.c,v 1.36 2007-05-07 22:12:04 max817 Exp $
 
 /************************************************************************
 **
@@ -1197,8 +1197,8 @@ void ChangeBoardSize ()
 
 void Reset ()
 {
-	width      = 5;
-	length     = 5;
+	width      = 3;
+	length     = 3;
 	boardSize  = width*length;
 	tigers     = 4;
 	goats      = boardSize-tigers-1;
@@ -1710,6 +1710,11 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.35  2007/05/07 07:04:42  brianzimmer
+//
+//
+// An attempt to fix a bug that was being experienced.
+//
 // Revision 1.34  2007/04/19 04:43:32  max817
 // More support for Tcl. -Max
 //
