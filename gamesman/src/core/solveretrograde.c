@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.40 2007-05-06 03:38:47 max817 Exp $
+// $Id: solveretrograde.c,v 1.41 2007-05-07 01:30:51 max817 Exp $
 
 /************************************************************************
 **
@@ -807,11 +807,9 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 	for (pos = start; pos < end; pos++) { // Solve only parents
         // the BYTEARRAY Level File stuff goes here
 		if (checkLegality && !gIsLegalFunPtr(pos)) continue; //skip
-        if (gSymmetries) {
-            if (pos != gCanonicalPosition(pos))
-			    continue; // skip, since we'll do canon one later
-		    else trueSizeOfTier++;
-        }
+        if (gSymmetries && pos != gCanonicalPosition(pos))
+		    continue; // skip, since we'll do canon one later
+        trueSizeOfTier++;
 		value = Primitive(pos);
 		if (value != undecided) { // check for primitive-ness
 			SetRemoteness(pos,0);

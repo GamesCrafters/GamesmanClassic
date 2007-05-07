@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.70 2007-05-02 18:06:40 bensussman Exp $
+// $Id: mquarto.c,v 1.71 2007-05-07 01:30:50 max817 Exp $
 
 
 /*
@@ -642,7 +642,11 @@ int FlagAvailablePieces( QTBPtr board, BOOLEAN pieces[] ) {
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-  
+    //if (position == 181801) {
+    //printf("we got here: %llu\n", position);
+    //PrintPosition(position, "", TRUE);
+    //}
+
   QTBPtr board;
   MOVELIST *moves	= NULL;
   MOVE slot;
@@ -710,6 +714,15 @@ MOVELIST *GenerateMoves (POSITION position)
     FreeBoard(board);
   }
   
+//  if (position == 181801) {
+//MOVELIST* ptr;
+//for (ptr = moves; ptr != NULL; ptr = ptr->next) {
+//    POSITION child = DoMove(position, ptr->move);
+//    printf("child: %llu\n", child);
+//    PrintPosition(child, "", TRUE);
+//}
+//  }
+
   /* Return list of valid moves */
   return moves;
   
@@ -2849,7 +2862,7 @@ TIERLIST* TierChildren(TIER tier) {
 
 TIERPOSITION NumberOfTierPositions(TIER tier){
 	generic_hash_context_switch(tier);
-    return (generic_hash_max_pos() * (NUMPIECES+((tier==0||getPiecesLeft(tier)<=1)?1:0))); //generic hash will ONLY HASH pieces ON the BOARD!
+    return (generic_hash_max_pos() * (NUMPIECES+((tier==0||getPiecesLeft(tier)==0)?1:0))); //generic hash will ONLY HASH pieces ON the BOARD!
 }
 
 void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
@@ -2867,7 +2880,7 @@ void SetupTierStuff() {
 	gTierChildrenFunPtr				= &TierChildren;
 	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
 	gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
-	//gIsLegalFunPtr				    = &IsLegal;
+	gIsLegalFunPtr				    = &IsLegal;
 	//gGenerateUndoMovesToTierFunPtr= &GenerateUndoMovesToTier; Unnecessary, but faster!
 	//gUnDoMoveFunPtr				= &UnDoMove;
 	gTierToStringFunPtr				= &TierToString;
@@ -3000,12 +3013,14 @@ STRING TierToString(TIER tier) {
 	return thisTier;
 }
 
-/*BOOLEAN IsLegal(POSITION position) {
+BOOLEAN IsLegal(POSITION position) {
     QTBPtr board = gUseGPS ? GPSBoard : unhash( position );
     BOOLEAN returnVal = TRUE;
 
     if(BoardToTier(board) != 0) {
-        if(board->slots[0] == EMPTYSLOT)
+        if(getPiecesLeft(BoardToTier(board)) == 0)
+            returnVal = (board->slots[0] == EMPTYSLOT);
+        else if (board->slots[0] == EMPTYSLOT)
             returnVal = FALSE;
         else {
             int x;
@@ -3020,10 +3035,13 @@ STRING TierToString(TIER tier) {
     if (!gUseGPS)
         FreeBoard(board);
     return returnVal;
-    return TRUE;
-}*/
+}
 
 // $Log: not supported by cvs2svn $
+// Revision 1.70  2007/05/02 18:06:40  bensussman
+// BUGZID:
+// Fixed a small bug, but not the one which prevents a solve from occuring. That's still busted.
+//
 // Revision 1.69  2007/04/25 04:58:50  max817
 // Tiers
 //
