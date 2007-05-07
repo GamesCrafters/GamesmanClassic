@@ -376,6 +376,48 @@ scew_element* findEvaluatorNode(scew_element* root, STRING evaluatorName) {
 
 #endif
 
+void TryToLoadAnEvaluator(){
+  char fileName[30];
+  sprintf(fileName, "xml/%s.xml", kDBName);
+  if(!FullInitializeSEval(fileName)) return;
+  
+  // If we don't have an evaluator defined, then 
+  // loop through them and pick one
+  if(currEvaluator == NULL && evaluatorExistsForVariant(getOption())) {
+    seList bestEvaluator = NULL;
+    int bestEvalNum = -1, traverserNum=0;
+    seList traverser = evaluatorList;
+    
+    while (traverser != NULL) {
+      if( (traverser->variant==-1 || traverser->variant==getOption()) ) {
+        if(bestEvaluator!=NULL) {
+          if( bestEvaluator->perfect!=TRUE && traverser->perfect==TRUE){
+            bestEvaluator = traverser;
+            bestEvalNum = traverserNum;
+          }
+        }
+        else{
+          bestEvaluator=traverser;
+          bestEvalNum = traverserNum;
+        }
+      }
+      
+      if(bestEvaluator->perfect == TRUE){
+        // Set currEvaluator and break
+        chooseEvaluator(bestEvalNum);
+        return;
+      }
+      traverser = traverser->next;
+      traverserNum++;
+    }
+  
+    if(bestEvalNum!=-1)
+      chooseEvaluator(bestEvalNum);
+  }
+  
+  return;
+}
+
 STRING getScaleFnName(fList feature) {
 	STRING scaleFnName;
 	if( feature->scale==&linear )
@@ -1046,12 +1088,7 @@ void printFeature(fList feature) {
 	printf("\n");
 }
 
-USERINPUT StaticEvaluatorMenu()
-{
-  USERINPUT result = Configure;
-  char c;
-  char fileName[30];
-  sprintf(fileName, "xml/%s.xml", kDBName);
+BOOLEAN FullInitializeSEval(char *fileName){
   
   #ifdef HAVE_XML
   if( !gSEvalLoaded ){
@@ -1062,7 +1099,7 @@ USERINPUT StaticEvaluatorMenu()
       if (xml_dir == NULL) {
         if(mkdir ("./xml", 0755)==-1){
           printf("SEval: Cannot create xml folder. Please create it youself. Returning to menu.\n\n");
-          return result;
+          return FALSE;
         }
       }
       
@@ -1070,22 +1107,32 @@ USERINPUT StaticEvaluatorMenu()
       // If xml file doesn't already exist try to create it
       if(!createNewXMLFile(fileName)){
         printf("SEval: Cannot create xml file. Returning to menu.\n\n");
-        return result;  
+        return FALSE;  
       }
     }
   }
+  #endif
   
   // By now, we at least have a file called kDBName.xml with a game element
   //  ---> Enough for the parser to work with
   // Regenerate list of defined Static Evaluators
   // Base Menu Choices off of that
   
-  #endif
-  
   if(!initializeStaticEvaluator(fileName)){
     printf("Sorry, the Static Evaluator failed to initialize.");
-    return result;
+    return FALSE;
   }
+  return TRUE;
+}
+
+USERINPUT StaticEvaluatorMenu()
+{
+  USERINPUT result = Configure;
+  char c;
+  char fileName[30];
+  sprintf(fileName, "xml/%s.xml", kDBName);
+  
+  if(!FullInitializeSEval(fileName)) return result;
   
   do{
       

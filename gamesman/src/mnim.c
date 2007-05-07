@@ -46,7 +46,7 @@ float XORofColumns(POSITION p){
 }
 
 float MisereXORofColumns(POSITION p){
-	BOOLEAN oneColumnHasOne, lastMove;
+	BOOLEAN oneColumnHasOne=FALSE, lastMove=FALSE;
 	int numColumns=0, i;
 	p >>= 1;
 	for(i = 0 ; i < rows ; i++){

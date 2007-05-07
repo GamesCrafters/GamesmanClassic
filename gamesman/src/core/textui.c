@@ -175,7 +175,8 @@ void Menus(STRING executableName)
 void MenusBeforeEvaluation()
 {
     gUnsolved = FALSE;
-
+    if(!gSEvalLoaded) TryToLoadAnEvaluator();
+    
     printf("\n\t----- Main (Pre-Solved) Menu for %s -----\n", kGameName);
 
     printf("\n\ts)\t(S)TART THE GAME\n");
@@ -820,6 +821,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	Initialize();
 	gOpponent = AgainstComputer;
 	gPrintPredictions = TRUE;
+	gPrintSEvalPredictions = FALSE;
 	sprintf(gPlayerName[kPlayerOneTurn],"Player");
 	sprintf(gPlayerName[kPlayerTwoTurn],"Data");
 	printf("\nSolving with loopy code %s...%s!",kGameName,kLoopy?"Yes":"No");
@@ -863,13 +865,26 @@ void ParseBeforeEvaluationMenuChoice(char c)
     case 'w': case 'W':
 	InitializeGame();
 	gUnsolved = TRUE;
-	gOpponent = AgainstHuman;
+	if(gSEvalLoaded){
+	  gOpponent = AgainstEvaluator;
+	  gPrintSEvalPredictions = TRUE;
+	}
+	else
+	  gOpponent = AgainstHuman;
 	gPrintPredictions = FALSE;
-	sprintf(gPlayerName[kPlayerOneTurn],"Player");
-	sprintf(gPlayerName[kPlayerTwoTurn],"Challenger");
 	if(kSupportsTierGamesman && gTierGamesman) //TIER GAMESMAN
 		gInitialPosition = InitTierGamesman();
-	printf("\n\nYou have chosen to play the game without solving.  Have fun!\n\n");
+	printf("\n\nYou have chosen to play the game without solving.\n");
+	sprintf(gPlayerName[kPlayerOneTurn],"Player");
+	if(gOpponent==AgainstEvaluator) {
+	  printf("I found a static evaluator loaded, so I'm making it your opponent.\n");
+	  sprintf(gPlayerName[kPlayerTwoTurn],"Evaluator");
+	}
+	else {
+	  printf("I did not find an evaluator, so I'm making this a two player game.\n");
+	  sprintf(gPlayerName[kPlayerTwoTurn],"Challenger");
+	}
+	printf("Have fun!\n\n");
 	gMenuMode = Evaluated;
 	HitAnyKeyToContinue();
 	break;

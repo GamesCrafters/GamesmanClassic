@@ -58,7 +58,9 @@ extern seList evaluatorList;
 extern USERINPUT StaticEvaluatorMenu();
 extern float evaluatePosition(POSITION);
 extern VALUE evaluatePositionValue(POSITION);
+extern void TryToLoadAnEvaluator();
 
+BOOLEAN FullInitializeSEval(char*);
 float numPieces(void*,void*,int[]);
 float numFromEdge(void*,void*,int[]);
 float clustering(void*,void*,int[]);

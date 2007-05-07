@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.34 2007-04-19 04:43:32 max817 Exp $
+// $Id: mbaghchal.c,v 1.35 2007-05-07 07:04:42 brianzimmer Exp $
 
 /************************************************************************
 **
@@ -339,6 +339,16 @@ int vcfg_board(int* configuration) {
 	return 1;
 }
 
+STRING copy(STRING toCopy){
+  STRING toReturn = SafeMalloc((strlen(toCopy)+1) * sizeof(char));
+  strcpy(toReturn, toCopy);
+  return toReturn;
+}
+
+void *fakeUnhash(POSITION p){
+  return (void *) copy("balhblahblah");
+}
+
 void InitializeGame ()
 {
 	if(!set) {
@@ -349,7 +359,7 @@ void InitializeGame ()
 
 	gMoveToStringFunPtr = &MoveToString;
     gCustomUnhash = &TclUnhash;
-
+  linearUnhash = &fakeUnhash;
 	SetupGame();
 }
 
@@ -1700,6 +1710,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.34  2007/04/19 04:43:32  max817
+// More support for Tcl. -Max
+//
 // Revision 1.33  2007/04/19 04:40:16  max817
 // Support for Tcl. -Max
 //

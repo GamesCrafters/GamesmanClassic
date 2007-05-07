@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.53 2007-05-04 20:38:24 hsiufan Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.54 2007-05-07 07:04:42 brianzimmer Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -1513,9 +1513,13 @@ MOVE LargestWinningSEvalMove(POSITIONLIST *posList, MOVELIST *moveList, float *b
 }
 
 MOVE GetSEvalMove(POSITION thePosition) {
-  if(gTierDBExistsForPosition(thePosition))
+  gUnsolved = TRUE;
+  if(gTierDBExistsForPosition(thePosition)){
+    gUnsolved = FALSE;
+    printf("I have a database for this, I will use that.\n\n");
     return GetComputersMove(thePosition);
-
+  }
+  
   float SEvalValue = 0.0;
   MOVE theMove = 0;
   MOVELIST* moves = GenerateMoves(thePosition);
@@ -1524,16 +1528,14 @@ MOVE GetSEvalMove(POSITION thePosition) {
 
 
   if(gSEvalPerfect){
+    POSITIONLIST* positions = NULL;
+    MOVELIST* reversedMoves = NULL;
     MOVELIST* traverser = moves;
-    POSITIONLIST* positions;
     while (traverser!=NULL){
       positions = StorePositionInList(DoMove(thePosition, traverser->move), positions);
+      reversedMoves = CreateMovelistNode(traverser->move, reversedMoves);
       traverser = traverser->next;
     }
-
-    // Since positions are reverseed, need to reverse moves
-    // Use CopyMoveList "feature" that it does it for us =)
-    MOVELIST* reversedMoves = CopyMovelist(moves);
     theMove = LargestWinningSEvalMove(positions, reversedMoves, &SEvalValue);
     FreePositionList(positions);
     FreeMoveList(reversedMoves);
@@ -1555,6 +1557,7 @@ MOVE GetSEvalMove(POSITION thePosition) {
         MOVE maybeBestMove = traverser->move;
         VALUE maybeBestMoveValue = GetValueOfPosition(currentPosition);
         REMOTENESS maybeBestMoveRemoteness = Remoteness(currentPosition);
+        
         if(bestMoveValue == lose) {
           // If the next move is going to make them lose either way, then
           // choose the one with smallest remoteness - Kill them quick!!!
@@ -1609,12 +1612,15 @@ MOVE GetSEvalMove(POSITION thePosition) {
       // Nothing is solved
       theMove = LargestWinningSEvalMove(unsolvedPositions, unsolvedMoves, &SEvalValue);
     }
-    else if (bestMoveValue == lose || unsolvedPositions == NULL)
+    else if (bestMoveValue == lose || unsolvedPositions == NULL){
       theMove = bestMove;
+      printf("I have a database for this, I will now play using that.\n\n");
+    }
     else {
       theMove = LargestWinningSEvalMove(unsolvedPositions, unsolvedMoves, &SEvalValue);
       // (SEvalValue > 0) Means that the opponent will win
       if ( (SEvalValue > 0.0) && bestMoveValue==tie) {
+        printf("I have a database for this, I will now play using that.\n\n");
         theMove = bestMove;
       }
     }
