@@ -114,16 +114,13 @@ STRING   kHelpExample =
 **  Game Specific Global Variables
 **
 ************************************************************************/
-int  WIN4_WIDTH = 4;
-int  WIN4_HEIGHT = 4;
-
-//Maximization parameters
-int COLS_TIERHASH = 3;
-int COLS_NOT_TIERHASH;
-int PIECES_TIERHASH;
-int PIECES_NOT_TIERHASH;
-int TIER_HASH_CXT = 0;
-int POS_HASH_CXT = 1;
+int  WIN4_WIDTH = 5;
+int  WIN4_HEIGHT = 5;
+int  TIER_COL_BITS; //Represents how many bits are needed to encode the number of pieces in all columns.
+int  COLSIGBITS; //Represents how many bits are needed to encode the number of pieces per column.
+int WIN4_WIDTH_MINUS_ONE; //Stored globally for optimization purposes.
+int WIN4_HEIGHT_PLUS_ONE; //Stored globally for optimization purposes.
+int WIN4_WIDTH_PLUS_ONE;
 #define MAXW 9
 #define MAXH 9
 #define MINW 1
@@ -143,6 +140,13 @@ char 	       *gBlankOXString[] = { "X", "O", "-" };
 
 int		gContinuousPiecesGoal = 4;
 
+typedef struct {
+	int *convert;
+	int length;
+} NumToPieceConv;
+
+NumToPieceConv *NumToPieceDist;
+NumToPieceConv *PieceDistToNum;
 
 /* Global position solver variables.*/
 
@@ -155,10 +159,6 @@ struct {
 	int previousColumn;
 } gPosition;
 
-typedef struct {
-	int size;
-	POSITION *tiers;
-} TIER_CHILDREN;
 
 typedef enum {
 	NO_DIRECTION,
@@ -200,23 +200,24 @@ int 		CountContinuousPieces(int column, int row, Direction horizontalDirection,
 void 		PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
 
 void            linearUnhash2(POSITION pos, XOBlank* board);
-
+void 		InitPieceToNumConvs(); 
 void 		UndoMove(MOVE move);
-void            GetInitialTierPosition(TIER *tier, TIERPOSITION *tierposition);
 void		SetupTierStuff();
-
-char 		**getOneDRepresentation(XOBlank board[MAXW][MAXH]); 
+void		positionToBinary(POSITION p);
 STRING		MoveToString( MOVE );
 POSITION        GetCanonicalPosition(POSITION position);
 
-TIER		BoardToTier(XOBlank board[MAXW][MAXH]);
+TIER		PositionToTier(POSITION pos);
+TIERPOSITION	PositionToTierPos(POSITION pos, TIER tier);
 TIERLIST	*TierChildren(TIER tier);
-TIERPOSITION	NumberOfTierPositions(TIER tier);
-int 		*count_total_pieces(XOBlank board[MAXW][MAXH]);
-int 		*countPieces(char *board);
+int		**GeneratePermutations(int x, int y);
 BOOLEAN 	IsLegal(POSITION pos);
 STRING 		TierToString(TIER tier);
-BOOLEAN		validTierBoard(char *board);
+TIERPOSITION	PiecePermutation(int pcs, int cols);
+TIERPOSITION	NumberOfTierPositions(TIER tier);
+int		MostSigBit(uint num);
+POSITION	ModPosToPosition(POSITION p);
+POSITION	PositionToModPos(POSITION p, TIER t);
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -246,7 +247,6 @@ void InitializeGame()
 	gOppositeDirections[LEFT] = RIGHT;
 	gOppositeDirections[RIGHT] = LEFT;
 	gOppositeDirections[UP] = DOWN;
-	
 	SetupTierStuff();
 	PositionToBoard(gInitialPosition, gPosition.board);
 
@@ -291,7 +291,6 @@ void GameSpecificMenu() {
 		printf("\tp)\tContinuous (P)ieces goal (%d)\n", gContinuousPiecesGoal);
 		printf("\tw)\tChoose the board (W)idth (%d through %d) Currently: %d\n",MINW,MAXW,WIN4_WIDTH);
 		printf("\th)\tChoose the board (H)eight (%d through %d) Currently: %d\n",MINH,MAXH,WIN4_HEIGHT);
-		printf("\tc)\tChoose the number of (C)olumns to determine the tier hash (%d through %d) Currently: %d\n", MINW, MAXW, COLS_TIERHASH);
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		if (gLibraries) {
 		  printf("\tl)\tToggle use of game function libraries. Currently: On");
@@ -301,18 +300,7 @@ void GameSpecificMenu() {
 		printf("\n\nSelect an option: ");
 		
 		switch(GetMyChar()) {
-		case 'C': case 'c':
-			printf("Enter number of columns to determine tier (%d through %d): ",MINW,MAXW);
-                        temp = GetMyInt();
-
-                        while(temp > MAXW || temp < MINW){
-                                printf("Out of range\n");
-                                printf("Enter number of columns to determine tier (%d through %d): ",MINW,MAXW);
-                                tChar = GetMyChar();
-                                temp = atoi(&tChar);
-                        }
-                        COLS_TIERHASH = temp;
-                        break;
+                        
 
 		case 'Q': case 'q':
 			ExitStageRight();
@@ -403,39 +391,21 @@ void SetTclCGameSpecificOptions(int theOptions[])
 POSITION DoMove(POSITION position, MOVE move)
 {
 	XOBlank turn,WhoseTurn();
-	int i,*pieces_count,free=0;
-	XOBlank board[MAXW][MAXH];
-	TIERPOSITION tierpos; TIER tier;
-	char **oned_boards;
-	char *oned_board;
-	
+	int i,free=0; 
+	POSITION permutation_index, sizebits, remainderbits;
+	TIER tier; TIERPOSITION tierpos;
+	POSITION modpos, bitmask, tierbits;
+
 	if (gHashWindowInitialized) {
-		PositionToBoard(position, board);
-
-		pieces_count = count_total_pieces(board);
-
-		if (pieces_count[0] == pieces_count[1])
-			turn = 0;
-		else
-			turn = 1;
-		
-		for (i=0; i<WIN4_HEIGHT; i++) {
-			if (board[move][i]==Blank) {
-				board[move][i] = turn;
-				break;
-			}
-		}
-
-		tier = BoardToTier(board);
-                generic_hash_context_switch(POS_HASH_CXT);
-                oned_boards = getOneDRepresentation(board);
-                oned_board = oned_boards[1];
-                tierpos = generic_hash_hash(oned_board, 1);
-                SafeFree(oned_boards[0]);
-                SafeFree(oned_boards[1]);
-                SafeFree(oned_boards);
-		return gHashToWindowPosition(tierpos, tier);
-	}
+		gUnhashToTierPosition(position, &tierpos, &tier);
+		tierbits = 1 << tier;
+		permutation_index = position / tierbits;
+		tierpos = (NumToPieceDist[tier].convert[permutation_index]);
+		tierpos <<= tier;
+		modpos = tierpos + (position % tierbits);
+		modpos <<= (64 - tier - TIER_COL_BITS);
+		position = ModPosToPosition(modpos);
+	}	
 
 	for (i=move*(WIN4_HEIGHT+1)+WIN4_HEIGHT; (position & (1 << i)) == 0; --i)
 		free++;
@@ -443,7 +413,7 @@ POSITION DoMove(POSITION position, MOVE move)
 	if (free == 0) return kBadPosition;
 	
 	turn = gUseGPS ? gPosition.nextPiece : WhoseTurn(position);
-	
+
 	position &= ~(1 << i);
 
 	if (gUseGPS) {
@@ -455,6 +425,19 @@ POSITION DoMove(POSITION position, MOVE move)
 	}
 
 	position = (position | ((2+(int)turn)<<i));
+
+	if (gHashWindowInitialized) {
+		tier = PositionToTier(position);
+		tierbits = 1 << tier;
+		tierpos = PositionToModPos(position, tier);
+		bitmask = tierbits - 1;
+		sizebits = tierpos >> (64 - TIER_COL_BITS);
+		remainderbits = (tierpos >> (64 - tier - TIER_COL_BITS)) & bitmask;
+		permutation_index = PieceDistToNum[tier].convert[sizebits];
+		tierpos = permutation_index * tierbits + remainderbits;
+		position = gHashToWindowPosition(tierpos, tier);
+	}
+
 	return position;
 }
 
@@ -541,9 +524,7 @@ VALUE Primitive(POSITION position)
 	int u[WIN4_WIDTH][WIN4_HEIGHT];//up
 	XOBlank board[WIN4_WIDTH][WIN4_HEIGHT+1];
 	int col,row;
-
 	PositionToBoard(position, gPosition.board); // Temporary storage.
-
 	for (col=0;col<WIN4_WIDTH;col++)
 		board[col][WIN4_HEIGHT]=2;
 	for (col=0;col<WIN4_WIDTH;col++)
@@ -907,67 +888,23 @@ STRING MoveToString (MOVE theMove)
 
 void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 {
-     int col, row, h, d_ctr=0;
-     char *tier_board;
-     char *non_tier_board;
-     TIERPOSITION tierpos;
-     TIER tier;
+     	int col, row, h;
+	POSITION permutation_index, tierbits;
+	TIER tier;
+	TIERPOSITION tierpos, modpos;
 
-     if (gHashWindowInitialized) {
-	tier_board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-	non_tier_board = (char *)(SafeMalloc(sizeof(char) * PIECES_NOT_TIERHASH)); 
-	gUnhashToTierPosition(pos, &tierpos, &tier);
-
-	generic_hash_context_switch(TIER_HASH_CXT);
-	generic_hash_unhash(tier, tier_board); 
-
-	generic_hash_context_switch(POS_HASH_CXT);
-	generic_hash_unhash(tierpos, non_tier_board);
-
-	for (col=0; col<COLS_TIERHASH; col++) {
-		for (row=0; row<WIN4_HEIGHT; row++) {
-			if (tier_board[d_ctr] == 'X') {
-				board[col][row]=x;
-			}
-
-			else if (tier_board[d_ctr] == 'O') {
-				board[col][row]=o;
-			}
-
-			else {
-				board[col][row]=Blank;
-			}
-
-			d_ctr++;
-		}
+	if (gHashWindowInitialized) {
+		gUnhashToTierPosition(pos, &tierpos, &tier);
+		tierbits = 1 << tier;
+		permutation_index = pos / tierbits;
+		tierpos = (NumToPieceDist[tier].convert[permutation_index]);
+		tierpos <<= tier;
+		modpos = tierpos + (pos % tierbits);
+		modpos <<= (64 - tier - TIER_COL_BITS);
+		pos = ModPosToPosition(modpos);
 	}
 
-	d_ctr = 0;
-
-	for (col=COLS_TIERHASH; col<WIN4_WIDTH; col++) {
-		for (row=0; row<WIN4_HEIGHT; row++) {
-		        if (non_tier_board[d_ctr] == 'X') {
-                        	board[col][row]=x;
-                        }
-
-                        else if (non_tier_board[d_ctr] == 'O') {
-                                board[col][row]=o;
-                        }
-
-                        else {
-                                board[col][row]=Blank;
-                        }
-
-                        d_ctr++;
-		}
-
-	}
-
-	SafeFree(tier_board);
-	SafeFree(non_tier_board);
-     }
-
-     else {
+	
 	for (col=0; col<WIN4_WIDTH;col++) {
 		row=WIN4_HEIGHT-1;
 		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
@@ -985,51 +922,28 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 			h--;
 		}
 	}
-     }
 }
 
 
 void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
-  int col, row, h, ctr;
-  char *tier_board, *non_tier_board;
-  TIERPOSITION tierpos;
+  int col, row, h; 
+  POSITION permutation_index, tierbits;
   TIER tier;
+  TIERPOSITION tierpos, modpos;
 
-  if (gHashWindowInitialized) {
-	tier_board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-        non_tier_board = (char *)(SafeMalloc(sizeof(char) * PIECES_NOT_TIERHASH));
-        gUnhashToTierPosition(pos, &tierpos, &tier);
-
-        generic_hash_context_switch(TIER_HASH_CXT);
-        generic_hash_unhash(tier, tier_board);
-
-        generic_hash_context_switch(tier);
-        generic_hash_unhash(tierpos, non_tier_board);
-
-	for (ctr=0; ctr<PIECES_TIERHASH; ctr++) {
-		if (tier_board[ctr]=='X')
-			board[ctr]=x;
-		else if (tier_board[ctr]=='O')
-			board[ctr]=o;
-		else
-			board[ctr]=Blank;
+	if (gHashWindowInitialized) {
+		gUnhashToTierPosition(pos, &tierpos, &tier);
+		tierbits = 1 << tier;
+		permutation_index = pos / tierbits;
+		tierpos = (NumToPieceDist[tier].convert[permutation_index]);
+		tierpos <<= tier;
+		modpos = tierpos + (pos % tierbits);
+		modpos <<= (64 - tier - TIER_COL_BITS);
+		pos = ModPosToPosition(modpos);
 	}
 
-	for (ctr=0; ctr<PIECES_NOT_TIERHASH; ctr++) {
-		if (non_tier_board[ctr]=='X')
-			board[ctr+PIECES_TIERHASH]=x;
-		else if (tier_board[ctr]=='O')
-			board[ctr+PIECES_TIERHASH]=o;
-		else
-			board[ctr+PIECES_TIERHASH]=Blank;
-	}
 
-	SafeFree(tier_board);
-	SafeFree(non_tier_board);
-	
-  } 
 
-	else {
  		for (col=0; col<WIN4_WIDTH;col++) {
     			row=WIN4_HEIGHT-1;
     			for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
@@ -1046,10 +960,6 @@ void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
       	h--;
     	}
   	}
-	}
-
-  
-
 }
 
 
@@ -1361,321 +1271,249 @@ POSITION GetCanonicalPosition(POSITION p){
   return ((temp < p) ? temp : p);  // Choose the smallest position
 }
 
-//  MAXIMIZATION FUNCTIONS
 
+
+/******************************* MAXIMIZATION IMPLEMENTATION *****************************/
 
 /* Initialize Tier Stuff. */
 void SetupTierStuff() {
-	int pieces_array[] = {'X', 0, 0, 'O', 0, 0, '_', 0, 0, -1};
-	TIER init_tier; 
-	TIERPOSITION init_tier_pos;
-
 	kSupportsTierGamesman = TRUE;
         gTierChildrenFunPtr             = &TierChildren;
         gNumberOfTierPositionsFunPtr    = &NumberOfTierPositions;
-	gGetInitialTierPositionFunPtr   = &GetInitialTierPosition;
-	gIsLegalFunPtr                  = &IsLegal;
-	//gTierToStringFunPtr		= &TierToString;
-	generic_hash_destroy();
-	generic_hash_custom_context_mode(TRUE);
+	gTierToStringFunPtr		= &TierToString;
+        gInitialTier = 0;
+	gInitialTierPosition = 0;
+	TIER_COL_BITS = WIN4_WIDTH * MostSigBit(WIN4_HEIGHT);
+	COLSIGBITS = MostSigBit(WIN4_HEIGHT);
+        WIN4_WIDTH_MINUS_ONE = WIN4_WIDTH - 1;
+        WIN4_HEIGHT_PLUS_ONE = WIN4_HEIGHT + 1;
+	WIN4_WIDTH_PLUS_ONE = WIN4_WIDTH + 1;
 
-	COLS_NOT_TIERHASH = WIN4_WIDTH - COLS_TIERHASH;
-	PIECES_TIERHASH = (COLS_TIERHASH * WIN4_HEIGHT);
-	PIECES_NOT_TIERHASH = (COLS_NOT_TIERHASH * WIN4_HEIGHT);
-	
-	/* always allocate memory for the smaller hash context first. */
-	if (PIECES_TIERHASH > PIECES_NOT_TIERHASH) {
-        	pieces_array[2] = pieces_array[5] = pieces_array[8] = PIECES_NOT_TIERHASH;
-        	generic_hash_init(PIECES_NOT_TIERHASH, pieces_array, NULL, 0);
-        	generic_hash_set_context(POS_HASH_CXT);
-
-	        pieces_array[2] = pieces_array[5] = pieces_array[8] =  PIECES_TIERHASH;
-        	generic_hash_init(PIECES_TIERHASH, pieces_array, NULL, 0);
-        	generic_hash_set_context(TIER_HASH_CXT);
-	}
-
-	else {
-       		pieces_array[2] = pieces_array[5] = pieces_array[8] =  PIECES_TIERHASH;
-        	generic_hash_init(PIECES_TIERHASH, pieces_array, NULL, 0);
-        	generic_hash_set_context(TIER_HASH_CXT);
-
-		pieces_array[2] = pieces_array[5] = pieces_array[8] = PIECES_NOT_TIERHASH;
-		generic_hash_init(PIECES_NOT_TIERHASH, pieces_array, NULL, 0);
-		generic_hash_set_context(POS_HASH_CXT);
-	}
-
-	GetInitialTierPosition(&init_tier, &init_tier_pos);
-        gInitialTier = init_tier;
-        gInitialTierPosition = init_tier_pos;
+	NumToPieceDist = (NumToPieceConv *)(SafeMalloc(sizeof(NumToPieceConv)*(WIN4_WIDTH*WIN4_HEIGHT+1)));
+	PieceDistToNum = (NumToPieceConv *)(SafeMalloc(sizeof(NumToPieceConv)*(WIN4_WIDTH*WIN4_HEIGHT+1)));
+	InitPieceToNumConvs();
 }
 
 
-/* Given a tier board, returns an array specifying the 
- * number of each type of piece on the board. */
-int *countPieces(char *board) {
-	int *count_array = (int *)(SafeMalloc(sizeof(int) * 2));
-	int ctr;
-
-	count_array[0] = 0;
-	count_array[1] = 0;
-
-	for (ctr=0; ctr<PIECES_TIERHASH; ctr++) {
-		if (board[ctr]=='X')
-			(count_array[0])++;
-		else if (board[ctr]=='O')
-			(count_array[1])++;
-	}
-
-	return count_array;
-}
-/* Given a Connect-4 board, returns two 1D representations to be used
- * for the generic hash functions. */
-char **getOneDRepresentation(XOBlank board[MAXW][MAXH]) {
-	char **result = (char **)(SafeMalloc(sizeof(char *) * 2));
-	result[0] = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-	result[1] = (char *)(SafeMalloc(sizeof(char) * PIECES_NOT_TIERHASH));
-	int row, col, a_ctr=0, b_ctr=0;
-
-	for (col=0; col<COLS_TIERHASH; col++) {
-		for (row=0; row<WIN4_HEIGHT; row++) {
-			if (board[col][row]==x) {
-				result[0][a_ctr++] = 'X';
-			}
-
-			else if (board[col][row]==o) {
-				result[0][a_ctr++] = 'O';
-			}
-
-			else {
-				result[0][a_ctr++] = '_';
-			}
-		}
-	}
-
-	for (col=COLS_TIERHASH; col<WIN4_WIDTH; col++) {
-                for (row=0; row<WIN4_HEIGHT; row++) {
-                        if (board[col][row]==x) {
-                                result[1][b_ctr++] = 'X';
-                        }
-
-                        else if (board[col][row]==o) {
-                                result[1][b_ctr++] = 'O';
-                        }
-
-                        else {
-                                result[1][b_ctr++] = '_';
-                        }
-                }
-        }
-
-	return result;
-}
-
-/* Returns the number of 'x' and 'o' pieces on the board. */
-int *count_total_pieces(XOBlank board[MAXW][MAXH]) {
-	int *result = (int *)(SafeMalloc(sizeof(int)*2));
-	int col,row;
-
-	result[0] = 0;
-	result[1] = 0;
-
-	for (col=0; col<WIN4_WIDTH; col++) {
-		for (row=0; row<WIN4_HEIGHT; row++) {
-			if (board[col][row] == x)
-				(result[0])++;
-			else if (board[col][row] == o)
-				(result[1])++;
-		}
-	}
-
-	return result;
-
-}
-
-/* Given the first half of a Connect 4 board, determines all tiers that are reachable. */
-TIER_CHILDREN *NextPossibleBoards(char *board) {
-	TIER_CHILDREN *result = (TIER_CHILDREN*)(SafeMalloc(sizeof(TIER_CHILDREN)));
-        char *temp_board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-        int pos, ctr=0, num_blank_spaces=0;
-        
-	strncpy(temp_board, board, PIECES_TIERHASH);
-
-	for (pos=0; pos<PIECES_TIERHASH; pos++) {
-                if (board[pos]=='_')
-                        num_blank_spaces++;
-        }
-
-	result->size = 2 * num_blank_spaces;
-	result->tiers = (POSITION *)(SafeMalloc(sizeof(POSITION) * 2 * num_blank_spaces));
-
-        for (pos = 0; pos < PIECES_TIERHASH; pos++) {
-                if (board[pos] == '_') {
-                        temp_board[pos] = 'X';
-
-			if (validTierBoard(temp_board))
-                        	(result->tiers)[ctr++] = generic_hash_hash(temp_board, 1);
-			else
-				(result->tiers)[ctr++] = -1;
-
-                        temp_board[pos] = 'O';
-
-			if (validTierBoard(temp_board))
-                        	(result->tiers)[ctr++] = generic_hash_hash(temp_board, 1);
-			else
-				(result->tiers)[ctr++] = -1;
-			
-			temp_board[pos] = '_';
-                }
-        }
-
-	SafeFree(temp_board);
-        return result;
-}
-
-
-/* Returns list of all children for a particular tier. */ 
+/* Returns list of all children for a particular tier. */  
 TIERLIST* TierChildren(TIER tier) {
-	TIER_CHILDREN *result;
-	TIERLIST* list = NULL;
-	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-	int ctr;
-
-	generic_hash_context_switch(TIER_HASH_CXT);
-	generic_hash_unhash(tier, board);
-
-	if (!(validTierBoard(board)))
-		return CreateTierlistNode(tier,list);
-
-	result = NextPossibleBoards(board);
-	list = CreateTierlistNode(tier, list);
-
-	for (ctr = 0; ctr < result->size; ctr++) {
-		if ((result->tiers)[ctr] != -1) 
-			list = CreateTierlistNode((result->tiers)[ctr], list);
-	}
-
-	SafeFree(result->tiers);
-	SafeFree(result);
-	SafeFree(board);
-	return list;
+	if (tier<WIN4_WIDTH*WIN4_HEIGHT)
+		return CreateTierlistNode(tier+1, NULL);
+	else
+		return NULL;
 }
-
 
 /* Returns the number of positions associated with a particular tier. */
 TIERPOSITION NumberOfTierPositions(TIER tier) {
-	int num_pos;
-	generic_hash_context_switch(POS_HASH_CXT);
-	num_pos = generic_hash_max_pos();
-	return num_pos;
+	return PiecePermutation(tier, WIN4_WIDTH) * (1 << tier);
 }
 
-/* sets initial tier and tier position. */
-void GetInitialTierPosition(TIER *tier, TIERPOSITION *tierposition) {
-	char **oned_boards;
-	char *oned_board;
-	int i, j;
+/* Given a position, returns the tier number of it (i.e. number of pieces placed on the board) */
+TIER PositionToTier(POSITION position) {
+	int bitmask = (1 << WIN4_HEIGHT_PLUS_ONE ) - 1, num_pieces = 0, i; 
+	
+	for (i=0; i<WIN4_WIDTH; i++) {
+		num_pieces += MostSigBit(bitmask & position) - 1;
+		position >>= WIN4_HEIGHT_PLUS_ONE;
+	}
+
+	return num_pieces;
+}
+
+/* Given a number, returns the position of the most significant bit. */
+int MostSigBit(uint num) {
+	int k=0;
+	
+	while (num > 0) {
+		num >>= 1;
+		k++;
+	}
+
+	return k;
+}
+
+/* Initializes hashes that go from position number to piece distributions. */
+void InitPieceToNumConvs() {
+	int tiernum, tierbits = COLSIGBITS, num_dists, **board_confs, bitrep, j, k;
+	
+	for (tiernum=0; tiernum <= WIN4_WIDTH*WIN4_HEIGHT; tiernum++) {
+		num_dists = PiecePermutation(tiernum, WIN4_WIDTH);
+		NumToPieceDist[tiernum].convert = (int *)(SafeMalloc(sizeof(int) * num_dists));
+		PieceDistToNum[tiernum].convert = (int *)(SafeMalloc(sizeof(int) * (1 << (tierbits * WIN4_WIDTH))));
+		board_confs = GeneratePermutations(tiernum, WIN4_WIDTH);
+
+		for (j=0; j<num_dists; j++) {
+			bitrep = 0;
+			
+			for (k=0; k<WIN4_WIDTH; k++) {
+				bitrep += board_confs[j][k];
+
+				if (k<WIN4_WIDTH-1)
+					bitrep <<= tierbits;
+			}
+
+			SafeFree(board_confs[j]);
+			NumToPieceDist[tiernum].convert[j] = bitrep;
+			PieceDistToNum[tiernum].convert[bitrep] = j;
+		}
+
+		NumToPieceDist[tiernum].length = num_dists;
+		PieceDistToNum[tiernum].length = (1 << (tierbits * WIN4_WIDTH));
+		SafeFree(board_confs);
+
+	}
+}
+
+/* Calculates the number of ways X pieces can be distributed among Y columns. */
+TIERPOSITION PiecePermutation(int num_pieces, int num_cols) {
+	int i, num_ways = 0;
+
+	if (num_pieces < 0)
+		return 0;
+
+	if (num_cols == 0 && num_pieces > 0)
+		return 0;
+
+	if (num_pieces == 0)
+		return 1;
+
+
+	if (num_cols == 1 && num_pieces > WIN4_HEIGHT) 
+		return 0;
+
+	for (i=0; i<=WIN4_HEIGHT; i++)
+		num_ways += PiecePermutation(num_pieces-i, num_cols-1);
+
+	return num_ways;
+}
+
+/* Generates a list of permutations for distributing X pieces among Y columns. */
+int **GeneratePermutations(int num_pieces, int num_cols) {
+	int i, j, k, perm=0, num_perms = PiecePermutation(num_pieces, num_cols);
+	int **sub_perm_list, **perm_list;
+	
+	if (!num_perms)
+		return NULL;
+		
+	perm_list = (int **)(SafeMalloc(sizeof(int *) * num_perms));
+
+	for (k=0; k<num_perms; k++)
+		perm_list[k] = (int *)(SafeMalloc(sizeof(int) * num_cols));
+
+	if (num_cols == 1) {
+		perm_list[perm][0] = num_pieces;
+		return perm_list;
+	}
+
+	for (i=0; i<=WIN4_HEIGHT; i++) {
+		num_perms = PiecePermutation(num_pieces-i, num_cols-1);
+		sub_perm_list = GeneratePermutations(num_pieces - i, num_cols - 1);
+	
+		if (sub_perm_list) {	
+			for (k=0; k<num_perms; k++) {
+				perm_list[perm][0]=i;
+			
+				for (j=0; j<num_cols-1; j++)
+					perm_list[perm][j+1] = sub_perm_list[k][j];
+
+				SafeFree(sub_perm_list[k]);
+				perm++;
+			} 
+			SafeFree(sub_perm_list);
+		}
+	} 
+
+	return perm_list; 
+}
+
+POSITION ModPosToPosition(POSITION modpos) {
+	int i, offset=0, col_heights[WIN4_WIDTH];
+	POSITION bitmask, pos=0, modpos_cpy = modpos << TIER_COL_BITS;
+
+	modpos >>= 64 - TIER_COL_BITS;
+	bitmask = (1 << COLSIGBITS) - 1;
+	
+	for (i=0; i<WIN4_WIDTH; i++) {
+		col_heights[WIN4_WIDTH_MINUS_ONE - i] = bitmask & modpos;
+		modpos >>= COLSIGBITS;
+	}
 
 	for (i=0; i<WIN4_WIDTH; i++) {
-		for (j=0; j<WIN4_HEIGHT; j++) {
-			gPosition.board[i][j] = 2;
-		}
+		modpos = modpos_cpy;
+		offset += col_heights[i];
+		modpos >>= (64 - offset);
+		bitmask = (1 << col_heights[i]) - 1;
+		modpos &= bitmask;
+		modpos += 1 << col_heights[i];
+		pos += modpos << (i * WIN4_WIDTH_PLUS_ONE);
 	}
 
-	*tier = BoardToTier(gPosition.board);
-	generic_hash_context_switch(POS_HASH_CXT);
- 	oned_boards = getOneDRepresentation(gPosition.board);
-	oned_board = oned_boards[1];
-	*tierposition = generic_hash_hash(oned_board, 1);
-
-	SafeFree(oned_boards[0]);
-	SafeFree(oned_boards[1]);
-	SafeFree(oned_boards);
-}
-
-/* Given a board, returns the tier number of it. */
-TIER BoardToTier(XOBlank curr_board[MAXW][MAXH]) {
-	TIER tier;
-	int i, j, k=0;
-	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH));
-	for (i=0; i<COLS_TIERHASH; i++) {
-		for (j=0; j<WIN4_HEIGHT; j++) {
-			if (curr_board[i][j]==x) {
-				board[k]='X'; 
-			}
-			else if (curr_board[i][j]==o) {
-				board[k]='O';
-			}
-			else {
-				board[k]='_';
-			}
-			k++;
-		}
-	}
-
-	generic_hash_context_switch(TIER_HASH_CXT);
-	tier =	generic_hash_hash(board, 1);
-	SafeFree(board);
-	return tier;
-}
-
-/* Determines whether the specified position is actually a legal connect 4 board. */
-BOOLEAN IsLegal(POSITION pos) {
-	XOBlank board[MAXW][MAXH];
-	int *pieces_count, row, col, blank_hit;
-
-	PositionToBoard(pos, board);
-
-        /* Checks to make sure that no blank spaces exist vertically between two pieces.*/
-        for (col = COLS_TIERHASH; col < WIN4_WIDTH; col++) {
-                blank_hit = 0;
-                for (row = 0; row < WIN4_HEIGHT; row++) {
-                        if (board[col][row]==2)
-                                blank_hit = 1;
-                        else if (blank_hit==1 && board[col][row]!=2)
-                                return FALSE;
-                }
-        }
-
-	pieces_count = count_total_pieces(board);
-
-	//Checks for unbalanced number of pieces.
-	if ((pieces_count[0] != pieces_count[1]) && (pieces_count[0] != pieces_count[1] + 1)) { 
-		SafeFree(pieces_count);
-		return FALSE;
-	}
-
-	SafeFree(pieces_count);
-	return TRUE;
+	return pos;
 }
 
 
-/* Returns TRUE if board obeys the laws of gravity. */
-BOOLEAN validTierBoard(char *board) {
-	int row, col, blank_hit=0;
+POSITION PositionToModPos(POSITION position, TIER tier) {
+	int total_bits = TIER_COL_BITS + tier, i, num_pieces_col;
+	TIERPOSITION modpos=0;
+	POSITION position_cpy = position;
+	POSITION bitmask = (1 << WIN4_HEIGHT_PLUS_ONE) - 1;
 
-	for (col=0; col<COLS_TIERHASH; col++) {
-		blank_hit=0;
+	for (i=0; i<WIN4_WIDTH_MINUS_ONE; i++) {
+		modpos += MostSigBit(bitmask & position) - 1;
+		position >>= WIN4_HEIGHT_PLUS_ONE;
+		modpos <<= COLSIGBITS;		
+	}
+
+	modpos += MostSigBit(bitmask & position) - 1;
+
+	for (i=0; i<WIN4_WIDTH; i++) {
+		num_pieces_col = MostSigBit(bitmask & position_cpy) - 1;
 		
-		for (row=0; row<WIN4_HEIGHT; row++) {
-			if (board[WIN4_HEIGHT*col + row]=='_') 
-				blank_hit=1; 
-			else if (blank_hit==1 && board[WIN4_HEIGHT*col + row] != '_')
-				return FALSE;
+		if (!num_pieces_col) {
+			position_cpy >>= WIN4_HEIGHT_PLUS_ONE;
+			continue;
 		}
+
+		bitmask = (1 << num_pieces_col) - 1;
+		modpos <<= num_pieces_col;
+		modpos += bitmask & position_cpy;
+		position_cpy >>= WIN4_HEIGHT_PLUS_ONE;
+		bitmask = (1 << WIN4_HEIGHT_PLUS_ONE) - 1;
 	}
 
-	return TRUE;
+	return modpos << (64 - total_bits);
 }
-	
 
 
 
 /* Converts Tier Number to a String. */
 STRING TierToString(TIER tier) {
-	char *board = (char *)(SafeMalloc(sizeof(char) * PIECES_TIERHASH + 1));
-	generic_hash_context_switch(TIER_HASH_CXT);
-	generic_hash_unhash(tier, board);
-	board[PIECES_TIERHASH] = '\0';
-	return board;
+	STRING str = (STRING)(SafeMalloc(sizeof(STRING)*15));
+	sprintf(str, "%d pieces\n", (int)tier);
+	return str;
 }
+
+
+/* Given a 64-bit position, prints out its binary representation.*/
+void positionToBinary(POSITION pos) {
+	char *board = (char *)SafeMalloc(sizeof(char)*65+1);
+	int i=0;
+
+	for (; i<64; i++) {
+		if (pos % 2)
+			board[63-i]='1';
+		else
+			board[63-i]='0';
+
+		pos = pos/2;
+	}
+
+	board[64]='\n';
+	board[65]='\0';
+	
+	printf(board);
+	SafeFree(board);
+}
+
+
 
