@@ -442,9 +442,9 @@ void HandleArguments (int argc, char *argv[])
 							kHelpStarWritten());
 					gMessage = TRUE;
 				} else {
-                        fprintf(stderr, "\nInvalid option or missing parameter, use %s --help for help\n\n", argv[0]);
-                        gMessage = TRUE;
-                        i += argc;
+                    fprintf(stderr, "\nInvalid option or missing parameter: %s, use %s --help for help\n\n", argv[i], argv[0]);
+                    gMessage = TRUE;
+                    i += argc;
                 }
         }
 }
