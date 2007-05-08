@@ -43,6 +43,7 @@
 #include "hash.h"
 #include "visualization.h"
 #include "openPositions.h"
+//#include "Parallel.h"
 
 /*
 ** Globals
@@ -233,7 +234,7 @@ void SolveAndStore()
         }
 }
 
-void StartAndWait(/*BOOL admin*/) {
+void RemoteStartGamesman(BOOLEAN admin) {
 		Initialize();
         InitializeDatabases();
         InitializeAnalysis();
@@ -243,11 +244,12 @@ void StartAndWait(/*BOOL admin*/) {
 		if (gPrintDatabaseInfo)
 			printf("\nEvaluating the value of %s...", kGameName);
 		gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
+        gTierSolvePrint = FALSE;
 
 		RemoteInitialize(); //init the retrograde solver
         //if (admin)
-        //    runAdmin_Main();
-        //runClient_Main();
+        //    run_Admin(NULL);
+        //else run_Client(NULL);
 }
 
 
@@ -424,10 +426,9 @@ void HandleArguments (int argc, char *argv[])
                         else
                                 HASHTABLE_BUCKETS = atoi(argv[2]);
                         i++;
-				} else if(!strcasecmp(argv[i],"--startAndWait")) { // for PARALLELIZATION
-                        gTierSolvePrint = FALSE;
-						StartAndWait();
-						ExitStageRight();
+				} else if(!strcasecmp(argv[i],"--parallel")) { // for PARALLELIZATION
+                        gMessage = TRUE;
+                        //initializeODeepaBlue(argc,argv);
 				} else if(!strcasecmp(argv[i],"--printdefault")) {
 					/* Some games initialize help strings inside InitializeGame() */
 					 InitializeGame();
