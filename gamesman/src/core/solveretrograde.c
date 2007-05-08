@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.41 2007-05-07 01:30:51 max817 Exp $
+// $Id: solveretrograde.c,v 1.42 2007-05-08 13:21:51 max817 Exp $
 
 /************************************************************************
 **
@@ -33,10 +33,16 @@
 **
 **************************************************************************/
 
+/* TO DO ON ODEEPA BLUE:
+Develop the Solver Interface
+Initialize the loading of the tier's level files for solving (depend on parents)
+*/
+
 #include "gamesman.h"
 #include "solveretrograde.h"
 #include "tierdb.h"
 #include "dirent.h"
+#include "levelfile_generator.h"
 
 // TIER VARIABLES
 TIERLIST* tierSolveList; // the total list for the game, w/initial at start
@@ -53,7 +59,10 @@ BOOLEAN checkLegality; // Whether or not to check legality of tierpositions.
 BOOLEAN useUndo; // Whether or not to use undomove functions.
 BOOLEAN forceLoopy; // Whether or not to force the loopy solver on non-loopy tiers.
 BOOLEAN checkCorrectness; // Whether or not to check correctness after the solve.
-BOOLEAN useLevelFiles; // Whether or not to use Level Files in this solve.
+BOOLEAN levelFiles; // Whether or not to use level files in this solve.
+// LEVEL FILES:
+BITARRAY* l_bitArray = NULL; // the bit array for the CURRENT tier
+POSITION l_min = 0;
 
 // Solver procs
 void checkExistingDB();
@@ -62,6 +71,7 @@ BOOLEAN gotoNextTier();
 void solveFirst(TIER);
 void PrepareToSolveNextTier();
 void changeTierSolveList();
+void LevelFileSolverInterface();
 BOOLEAN setInitialTierPosition();
 POSITION GetMyPosition();
 BOOLEAN ConfirmAction(char);
@@ -88,10 +98,18 @@ void compareTwoFiles(char*, char*, BOOLEAN);
 void skipToNewline(FILE*);
 // Remote function helpers
 void TestRemote();
-void r_getBounds(TIER, char*);
+void r_getBounds(TIER, char*, BOOLEAN);
 BOOLEAN r_checkChar(char, char, char*, int*);
 BOOLEAN r_checkStr(char*, char*, int*);
 char* r_intToString(int);
+// Level File Functions
+BOOLEAN l_readFullLevelFile(POSITION*, POSITION*);
+inline BOOLEAN l_isInLevelFile(TIERPOSITION);
+void l_freeBitArray();
+BOOLEAN l_levelFileExists(TIER tier);
+BOOLEAN SolveLevelFile(POSITION, POSITION);
+BOOLEAN l_readPartialLevelFile(POSITION*, POSITION*);
+BOOLEAN l_writeLevelFile(POSITION, POSITION);
 
 
 /************************************************************************
@@ -111,7 +129,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	// initialize global variables
 	variant = getOption();
 	tierNames = TRUE;
-    checkLegality = useUndo = forceLoopy = checkCorrectness = FALSE;
+    checkLegality = useUndo = forceLoopy = checkCorrectness = levelFiles = FALSE;
     // initialize local variables
 	BOOLEAN cont = TRUE, isLegalGiven = TRUE, undoGiven = TRUE;
 
@@ -216,6 +234,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
                 else printf("\t\t(Undomove functions for Loopy Solve DISABLED)\n");
                 printf("\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
                        "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
+                       "\te)\tL(e)vel File Solver\n\n"
                        "\ts)\t(S)olve the next tier.\n"
                        "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
                        "\tt)\tChange the (T)ier Solve Order.\n\n"
@@ -239,6 +258,9 @@ VALUE DetermineRetrogradeValue(POSITION position) {
                         break;
                     case 'f': case 'F':
                         forceLoopy = !forceLoopy;
+                        break;
+                    case 'e': case 'E':
+                        LevelFileSolverInterface();
                         break;
                     case 's': case 'S':
                         SolveTier(0,gCurrentTierSize);
@@ -417,6 +439,12 @@ void changeTierSolveList() {
 	FreeTierList(nexts);
 }
 
+void LevelFileSolverInterface() {
+    /*if(RemoteCanISolveLevelFile(tier)) {
+	    gInitializeHashWindow(tier, FALSE);
+	    SolveLevelFile(0, gCurrentTier);
+    }*/
+}
 
 BOOLEAN setInitialTierPosition() {
 	gDBLoadMainTier = TRUE; // trick tierdb into loading main tier temporarily
@@ -803,9 +831,23 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 	REMOTENESS remoteness;
 	REMOTENESS maxWinRem, minLoseRem, minTieRem;
 	BOOLEAN seenLose, seenTie;
+
+    BOOLEAN usingLevelFiles = FALSE;
+    if (levelFiles && l_levelFileExists(gCurrentTier)) {
+        ifprintf(gTierSolvePrint, "FOUND A LEVEL FILE FOR THIS TIER! Using it to solve...\n");
+        POSITION min, max;
+        if (!l_readFullLevelFile(&min, &max))
+            printf("ERROR: Level file couldn't load! Skipping their use...");
+        else {
+            usingLevelFiles = TRUE;
+            if (min > start) start = min;
+            if (max < end) end = max;
+        }
+    }
+
 	ifprintf(gTierSolvePrint, "Doing an sweep of the tier, and solving it in one go...\n");
 	for (pos = start; pos < end; pos++) { // Solve only parents
-        // the BYTEARRAY Level File stuff goes here
+        if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (checkLegality && !gIsLegalFunPtr(pos)) continue; //skip
         if (gSymmetries && pos != gCanonicalPosition(pos))
 		    continue; // skip, since we'll do canon one later
@@ -867,6 +909,7 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 		ifprintf(gTierSolvePrint, "--True size of tier: %lld\n",trueSizeOfTier);
 		ifprintf(gTierSolvePrint, "--Tier %llu's hash efficiency: %.1f%c\n",gCurrentTier, 100*(double)trueSizeOfTier/gCurrentTierSize, '%');
 	}
+    if (usingLevelFiles) l_freeBitArray();
 }
 
 /************************************************************************
@@ -889,15 +932,29 @@ void SolveWithLoopyAlgorithm(POSITION start, POSITION end) {
 	MOVELIST *moves, *movesptr;
 	VALUE value;
 	REMOTENESS remoteness;
+
+    BOOLEAN usingLevelFiles = FALSE;
+    if (levelFiles && l_levelFileExists(gCurrentTier)) {
+        ifprintf(gTierSolvePrint, "FOUND A LEVEL FILE FOR THIS TIER! Using it to solve...\n");
+        POSITION min, max;
+        if (!l_readFullLevelFile(&min, &max))
+            printf("ERROR: Level file couldn't load! Skipping their use...");
+        else {
+            usingLevelFiles = TRUE;
+            if (min > start) start = min;
+            if (max < end) end = max;
+        }
+    }
+
     //int i,numMoves; // the generateMovesEfficient stuff is commented out for now
 	ifprintf(gTierSolvePrint, "--Setting up Child Counters and Frontier Hashtables...\n");
 	rInitFRStuff();
 	ifprintf(gTierSolvePrint, "--Doing an sweep of the tier, and setting up the frontier...\n");
 	for (pos = start; pos < end; pos++) { // SET UP PARENTS
         posSaver = pos;
-        // the BYTEARRAY Level File stuff goes here
 solve_start: // GASP!! A LABEL!!
         if (childCounts[pos] == 0) { // else, ignore this child, it was already solved
+            if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		    if (checkLegality && !gIsLegalFunPtr(pos)) continue; //skip
 		    if (gSymmetries && pos != gCanonicalPosition(pos))
 			    continue; // skip, since we'll do canon one later
@@ -981,6 +1038,7 @@ solve_start: // GASP!! A LABEL!!
 	// SET UP FRONTIER!
 	ifprintf(gTierSolvePrint, "--Doing an sweep of child tiers, and setting up the frontier...\n");
 	for (pos = gCurrentTierSize; pos < gNumberOfPositions; pos++) {
+        if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
         if (!useUndo && rParents[pos] == NULL) // if we didn't even see this child, don't put it on frontier!
             continue;
 		if (gSymmetries) // use the canonical position's values
@@ -992,6 +1050,7 @@ solve_start: // GASP!! A LABEL!!
 				|| value == undecided))
 			rInsertFR(value, pos, remoteness);
 	}
+    if (usingLevelFiles) l_freeBitArray();
 	ifprintf(gTierSolvePrint, "\n--Beginning the loopy algorithm...\n");
 	REMOTENESS r; POSITIONLIST* list;
 	ifprintf(gTierSolvePrint, "--Processing Lose/Win Frontiers!\n");
@@ -1517,12 +1576,6 @@ void skipToNewline(FILE* fp) {
 **
 ************************************************************************/
 
-/***LEVEL FILES***/
-
-void solveLevelFiles() {
-
-}
-
 /***ODEEPA BLUE FUNCTIONS***/
 
 // This is a simple UI for testing the parallelize stuff. All it REALLY
@@ -1544,8 +1597,7 @@ void TestRemote() {
                "\t3)\t(3)GetTierDependencies(TIER)\n\n"
                "\t4)\t(4)CanISolveTier(TIER)\n"
                "\t5)\t(5)SolveTier(TIER,START,FINISH)\n\n"
-               "\t6)\t(6)IsTierReadyToMerge(TIER)\n"
-               "\t7)\t(7)MergeToMakeTierDB(TIER)\n\n"
+               "\t6)\t(6)MergeToMakeTierDBIfCan(TIER)\n\n"
                "\tC)\t(C)alculate Next Tiers\n"
                "\tS)\t(S)imulate ODeepaBlue\n\n"
                "\tq)\t(Q)uit using the interface\n"
@@ -1595,13 +1647,7 @@ void TestRemote() {
                 printf("TIER: > ");
                 tier = GetMyPosition();
                 if (tier == kBadPosition) break;
-                printf("Returned: %d", RemoteIsTierReadyToMerge(tier));
-				break;
-			case '7':
-                printf("TIER: > ");
-                tier = GetMyPosition();
-                if (tier == kBadPosition) break;
-                printf("Returned: %d", RemoteMergeToMakeTierDB(tier));
+                printf("Returned: %d", RemoteMergeToMakeTierDBIfCan(tier));
 				break;
             case 'c': case 'C':
                 list = RemoteGetTierSolveOrder();
@@ -1650,7 +1696,7 @@ void TestRemote() {
                 printf("Merge: > ");
                 GetMyPosition();
                 for (ptr = list; ptr != NULL; ptr = ptr->next, tier++)
-                    RemoteMergeToMakeTierDB(ptr->tier);
+                    RemoteMergeToMakeTierDBIfCan(ptr->tier);
                 FreeTierList(list);
                 SafeFree(starts);
                 break;
@@ -1742,7 +1788,7 @@ void RemoteSolveTier(TIER tier, TIERPOSITION start, TIERPOSITION finish) {
 	SolveTier(start, finish);
 }
 
-BOOLEAN RemoteIsTierReadyToMerge(TIER tier) {
+BOOLEAN RemoteMergeToMakeTierDBIfCan(TIER tier) {
     if (!TierInList(tier, tierSolveList))
         return FALSE;
 	char directory[MAXINPUTLENGTH];
@@ -1761,7 +1807,7 @@ BOOLEAN RemoteIsTierReadyToMerge(TIER tier) {
 	if(dfd != NULL) {
 		while((dp = readdir(dfd)) != NULL) {
 			filename = dp->d_name;
-			r_getBounds(tier, filename);
+			r_getBounds(tier, filename, TRUE);
 			if (gDBTierStart != -1 && tierdb_load_minifile(filename)) { // is a correct minitierdb!
 				for (i = gDBTierStart; i < gDBTierEnd; i++)
 					seen[i] = TRUE;
@@ -1769,32 +1815,27 @@ BOOLEAN RemoteIsTierReadyToMerge(TIER tier) {
 		}
 		closedir(dfd);
 	}
+    BOOLEAN found = FALSE;
 	for (i = 0; i < gCurrentTierSize; i++) {
-		if (!seen[i]) // don't have all the files!
-            return FALSE;
+        if (!seen[i]) {// don't have all the files!
+            found = TRUE;
+            break;
+        }
 	}
-	return TRUE;
-}
-
-// calls RemoteIsTierReadyToMerge() - yes, repeats work, but a good sanity check!
-BOOLEAN RemoteMergeToMakeTierDB(TIER tier) {
-    if (!RemoteIsTierReadyToMerge(tier)) // sets up whole database!
-        return FALSE;
+    SafeFree(seen);
+	if (found) return FALSE;
     // finally, save this DB as a complete DB
     gDBTierStart = -1;
     gDBTierEnd = -1;
     if (!SaveDatabase())
         return FALSE;
     // now, we delete all minifiles and return true
-    char directory[MAXINPUTLENGTH], removeFile[MAXINPUTLENGTH];
-    char* filename;
-    sprintf(directory,"./data/m%s_%d_tierdb",kDBName,variant);
-    struct dirent *dp;
-    DIR *dfd = opendir(directory);
+    char removeFile[MAXINPUTLENGTH];
+    dfd = opendir(directory);
     if(dfd != NULL) {
         while((dp = readdir(dfd)) != NULL) {
             filename = dp->d_name;
-            r_getBounds(tier, filename);
+            r_getBounds(tier, filename, TRUE);
             if (gDBTierStart != -1) { // is a minitierdb!
                 sprintf(removeFile, "%s/%s", directory, filename);
                 remove(removeFile);
@@ -1808,7 +1849,8 @@ BOOLEAN RemoteMergeToMakeTierDB(TIER tier) {
 // HELPERS
 
 // this is a helper that parses the mini-tierdb filename for info
-void r_getBounds(TIER tier, char* name) {
+// it also helps the level file stuff, when tierdb is FALSe
+void r_getBounds(TIER tier, char* name, BOOLEAN tierdb) {
     gDBTierStart = -1;
     int i = 0;
     char* str;
@@ -1857,7 +1899,7 @@ void r_getBounds(TIER tier, char* name) {
     int end = atoi(endStr);
     if (start < 0 || start >= end || end > gCurrentTierSize) return;
     // check _minitierdb.dat.gz
-    if (r_checkStr("_minitierdb.dat.gz",name,&i)) return;
+    if (r_checkStr((tierdb ? "_minitierdb.dat.gz" : "_minilevelfile.dat.gz"),name,&i)) return;
     // sucess! set the vars and return
     gDBTierStart = start;
     gDBTierEnd = end;
@@ -1895,4 +1937,277 @@ char* r_intToString(int n) {
 	char* str = (char*) SafeMalloc(digits+1 * sizeof(char));
 	sprintf(str, "%d", n);
 	return str;
+}
+
+
+// Level file functions
+// (They look A LOT like their counterparts above)
+
+// like a quicker version of GetTierDependencies
+BOOLEAN RemoteCanISolveLevelFile(TIER tier) {
+	TIERLIST *ptr, *childs, *childPtr;
+	for (ptr = solveList; ptr != NULL; ptr = ptr->next) {
+        if (ptr->tier == tier) continue;
+		childs = gTierChildrenFunPtr(ptr->tier);
+		for (childPtr = childs; childPtr != NULL; childPtr = childPtr->next) {
+			if (childPtr->tier == tier && !l_levelFileExists(childPtr->tier)) {
+                // If parent exists that DOESN'T have a level file done,
+                FreeTierList(childs); // then we can't go yet
+    			return FALSE;
+			}
+		}
+		FreeTierList(childs);
+	}
+	return TRUE;
+}
+
+void RemoteSolveLevelFile(TIER tier, TIERPOSITION start, TIERPOSITION finish) {
+    // two sanity checkers, to check if we actually solve
+    // first can I actually solve this tier?
+    // second, are the args correct?
+    if (!RemoteCanISolveLevelFile(tier) || start < 0 || start >= finish
+            || finish > gNumberOfTierPositionsFunPtr(tier))
+        return;
+	gInitializeHashWindow(tier, FALSE);
+	SolveLevelFile(start, finish);
+}
+
+// very, very similar to the Tier DB version
+BOOLEAN RemoteMergeToMakeLevelFileIfCan(TIER tier) {
+	char directory[MAXINPUTLENGTH];
+	char* filename; POSITION min, max;
+    sprintf(directory,"./data/m%s_%d_tierdb",kDBName,variant);
+    // init the hash window
+    gInitializeHashWindow(tier, FALSE);
+	// keep an array of visited nums
+    POSITION cells = gNumberOfPositions/8;
+    BOOLEAN* seen = (BOOLEAN*) SafeMalloc(gCurrentTierSize * sizeof(BOOLEAN));
+    BITARRAY* visited = (BITARRAY*) SafeMalloc(cells * sizeof(BITARRAY));
+	int i;
+    for (i = 0; i < gCurrentTierSize; i++)
+        seen[i] = FALSE;
+	for (i = 0; i < cells; i++)
+		visited[i] = 0;
+    // check through all the minifiles
+	struct dirent *dp;
+	DIR *dfd = opendir(directory);
+	if(dfd != NULL) {
+		while((dp = readdir(dfd)) != NULL) {
+			filename = dp->d_name;
+			r_getBounds(tier, filename, FALSE);
+			if (gDBTierStart != -1 && l_readPartialLevelFile(&min, &max)) { // is a correct minilevelfile!
+                for (i = gDBTierStart; i < gDBTierEnd; i++)
+                    seen[i] = TRUE;
+                for (i = min; i < max; i++)
+                    if (l_isInLevelFile(i))
+                        visited[i/8] |= 1 << (7 - (i % 8));
+                l_freeBitArray();
+			}
+		}
+		closedir(dfd);
+	}
+    BOOLEAN found = FALSE;
+	for (i = 0; i < gCurrentTierSize; i++) {
+        if (!seen[i]) {// don't have all the files!
+            found = TRUE;
+            break;
+        }
+	}
+    SafeFree(seen);
+    if (found) {// we have to exit! free the bit array
+        SafeFree(l_bitArray);
+        return FALSE;
+    }
+    l_bitArray = visited; // else, use it
+    if (!l_writeLevelFile(0,gCurrentTierSize)) {
+        SafeFree(l_bitArray);
+        return FALSE;
+    }
+    l_freeBitArray();
+    // now, we delete all minifiles and return true
+    char removeFile[MAXINPUTLENGTH];
+    dfd = opendir(directory);
+    if(dfd != NULL) {
+        while((dp = readdir(dfd)) != NULL) {
+            filename = dp->d_name;
+            r_getBounds(tier, filename, FALSE);
+            if (gDBTierStart != -1) { // is a minilevelfile!
+                sprintf(removeFile, "%s/%s", directory, filename);
+                remove(removeFile);
+            }
+        }
+        closedir(dfd);
+    }
+    return TRUE;
+}
+
+
+
+/***LEVEL FILES***/
+
+// First things, wrappers for the Deepa Level file functions:
+
+// Checks existence of a FULL level file
+BOOLEAN l_levelFileExists(TIER tier) {
+    char fname[100];
+    sprintf(fname, "./data/m%s_%d_tierdb/m%s_%d_%llu_levelfile.dat.gz",
+		    kDBName, getOption(), kDBName, getOption(), tier);
+    return isValidLevelFile(fname);
+}
+
+// Read a FULL level file for the current tier
+BOOLEAN l_readFullLevelFile(POSITION* minHash, POSITION* maxHash) {
+    char fname[100];
+    sprintf(fname, "./data/m%s_%d_tierdb/m%s_%d_%llu_levelfile.dat.gz",
+		    kDBName, getOption(), kDBName, getOption(), gCurrentTier);
+    if (!isValidLevelFile(fname)) // doesn't exist! return!
+        return FALSE;
+    POSITION max = getLevelFileMaxHashValue(fname);
+    POSITION min = getLevelFileMinHashValue(fname);
+    POSITION size = max-min;
+    if (l_bitArray != NULL) SafeFree(l_bitArray);
+    l_bitArray = (BITARRAY*) SafeMalloc((((max-min)/8)+1) * sizeof(BITARRAY));
+    BOOLEAN toReturn = ReadLevelFile(fname, l_bitArray, size);
+    if (toReturn) { // if loaded correctly:
+        (*minHash) = min; (*maxHash) = max;
+        l_min = min;
+    }
+    return toReturn;
+}
+
+// Read a PARTIAL level file for the current tier, using gDBTierStart and End
+BOOLEAN l_readPartialLevelFile(POSITION* minHash, POSITION* maxHash) {
+    char fname[100];
+    sprintf(fname, "./data/m%s_%d_tierdb/m%s_%d_%llu__%llu_%llu_minilevelfile.dat.gz",
+		    kDBName, getOption(), kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
+    if (!isValidLevelFile(fname)) // doesn't exist! return!
+        return FALSE;
+    POSITION max = getLevelFileMaxHashValue(fname);
+    POSITION min = getLevelFileMinHashValue(fname);
+    POSITION size = max-min;
+    if (l_bitArray != NULL) SafeFree(l_bitArray);
+    l_bitArray = (BITARRAY*) SafeMalloc((((max-min)/8)+1) * sizeof(BITARRAY));
+    BOOLEAN toReturn = ReadLevelFile(fname, l_bitArray, size);
+    if (toReturn) { // if loaded correctly:
+        (*minHash) = min; (*maxHash) = max;
+        l_min = min;
+    }
+    return toReturn;
+}
+
+// Free the l_bitArray
+void l_freeBitArray() {
+    if (l_bitArray != NULL)
+        SafeFree(l_bitArray);
+}
+
+// This is so we can treat l_bitArray as a sort of visited database, abstractly
+// Assumes pos >= l_min, pos < l_max
+inline BOOLEAN l_isInLevelFile(TIERPOSITION pos) {
+    POSITION base = pos-l_min;
+    POSITION cell = base/8;
+    return l_bitArray[cell] >> (7 - (base % 8)); // get the right bit in the cell
+}
+
+
+// Now, the SOLVER! 
+
+// First, a way to get an "initial" list of positions to hit
+BITARRAY* l_windowBitArray = NULL; // the bit array for whole hash window
+
+// Initialize the windowBitArray
+void l_initWindowBitArray() {
+    if (l_windowBitArray != NULL) SafeFree(l_windowBitArray);
+    POSITION cells = ((gNumberOfPositions/8)+1);
+    l_windowBitArray = (BITARRAY*) SafeMalloc(cells * sizeof(BITARRAY));
+    int i;
+    for (i = 0; i < cells; i++)
+        l_windowBitArray[i] = 0;
+}
+
+// Next, an additional helper to STORE into the "visited database"
+inline void l_storeToLevelFile(TIERPOSITION pos) {
+    POSITION cell = pos/8;
+    l_windowBitArray[cell] |= 1 << (7 - (pos % 8)); // get the right bit in the cell
+    // to save time, might as well clear from visited if can
+    if (pos < gCurrentTierSize) {
+        POSITION base = pos-l_min;
+        cell = base/8;
+        l_bitArray[cell] |= 1 << (7 - (base % 8));
+    }
+}
+
+// Finally, have a way to initialize the parent tier based on the parents
+void l_initLevelFileSolve(POSITION* min, POSITION* max) {
+//l_readPartialLevelFile
+}
+
+// Write a level file, whether partial or full
+BOOLEAN l_writeLevelFile(POSITION start, POSITION end) {
+    char fname[100], fnamebase[100];
+	sprintf(fname, "./data/m%s_%d_tierdb/m%s_%d_%c",
+			kDBName, getOption(), kDBName, getOption(), 0);
+
+    if (start == 0 && end == gCurrentTierSize) // saving the whole file!
+        sprintf(fname, "%s%llu_levelfile.dat.gz", fnamebase, gCurrentTier);
+    else
+        sprintf(fname, "%s%llu__%llu_%llu_minilevelfile.dat.gz", fnamebase, gCurrentTier, start, end);
+    BOOLEAN toReturn = WriteLevelFile(fname, l_windowBitArray, 0, gNumberOfPositions);
+    // now free the arrays
+    SafeFree(l_bitArray); l_bitArray = NULL;
+    SafeFree(l_windowBitArray); l_windowBitArray = NULL;
+    return toReturn;
+}
+
+
+// Now, the heart of the solver FTW! Works for both partial and full
+
+// the function that truly traverses all the children
+void SolveLevelFileHelper(TIERPOSITION pos) {
+	POSITION child;
+	MOVELIST *moves, *movesptr;
+    l_storeToLevelFile(pos); // "visit" this position
+	if (Primitive(pos) != undecided) { // check for primitive-ness
+		return;
+	} else {
+		moves = movesptr = GenerateMoves(pos);
+		if (moves == NULL) { // no chillins
+            printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
+            ExitStageRight();
+		} else {// else, solve me
+			for (; movesptr != NULL; movesptr = movesptr->next) {
+				child = DoMove(pos, movesptr->move);
+				if (gSymmetries)
+					child = gCanonicalPosition(child);
+				SolveLevelFileHelper(child);
+			}
+			FreeMoveList(moves);
+		}
+	}
+}
+
+// the main one
+BOOLEAN SolveLevelFile(POSITION start, POSITION end) {
+	ifprintf(gTierSolvePrint, "\n-----PREPARING LEVEL FILES SOLVER-----\n");
+	ifprintf(gTierSolvePrint, "Doing an sweep of the tier, and solving it in one go...\n");
+    // initialize the BITARRAY
+    l_initWindowBitArray();
+    // if solving the FIRST tier, ignore bounds and just solve all
+    if (gCurrentTier == gInitialTier) {
+        start = 0; end = gCurrentTierSize;
+        l_bitArray = (BITARRAY*) SafeMalloc(((gCurrentTierSize/8)+1) * sizeof(BITARRAY)); // to appease l_storeToLevelFile
+        TIERPOSITION posToSolve = gInitialTierPosition;
+        if (gSymmetries) posToSolve = gCanonicalPosition(posToSolve);
+        SolveLevelFileHelper(posToSolve);
+    } else {
+        // call read on all parents to get me
+        POSITION pos, min = start, max = end;
+        l_initLevelFileSolve(&min, &max);
+        // now go through them all!
+	    for (pos = min; pos < max; pos++)
+            if (l_isInLevelFile(pos)) // solve it!
+                SolveLevelFileHelper(pos);
+    }
+    // now write the results and exit!
+    return l_writeLevelFile(start,end);
 }
