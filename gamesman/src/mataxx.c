@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.13 2007-04-05 19:16:19 max817 Exp $
+// $Id: mataxx.c,v 1.14 2007-05-08 22:14:00 max817 Exp $
 
 /************************************************************************
 **
@@ -106,14 +106,12 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int width		= 0;
-int length		= 0;
-int boardsize	= 0;
+int width		= 3;
+int length		= 3;
+int boardsize	= 9;
 
 char* board     = NULL;
 int turn        = 0;
-
-BOOLEAN set		= FALSE;
 
 /*************************************************************************
 **
@@ -121,7 +119,6 @@ BOOLEAN set		= FALSE;
 **
 *************************************************************************/
 //void InitializeHelpStrings();
-void Reset();
 void SetupGame();
 POSITION hash ();
 void unhash (POSITION);
@@ -157,10 +154,6 @@ int GenerateMovesEfficient (POSITION);
 
 void InitializeGame ()
 {
-	if(!set) {
-		Reset();
-		set = TRUE;
-	}
 	//InitializeHelpStrings();
 	SetupGame();
 
@@ -589,7 +582,6 @@ void GameSpecificMenu ()
 		printf("\tGame Options:\n\n"
 			"\tc)\t(C)hange the board size (nxn), currently: %dx%d\n"
 			"\ti)\tSet the (I)nitial position\n"
-			"\tr)\t(R)eset to default settings\n"
 			"\tb)\t(B)ack to the main menu\n"
 			"\nSelect an option:  ", width, length);
 		c = GetMyChar();
@@ -599,10 +591,6 @@ void GameSpecificMenu ()
 				break;
 			case 'i': case 'I':
 				GetInitialPosition();
-				break;
-			case 'r': case 'R':
-				Reset();
-				SetupGame();
 				break;
 			case 'b': case 'B':
 				cont = FALSE;
@@ -812,12 +800,6 @@ void ChangeBoardSize ()
 	}
 }
 
-void Reset() {
-	length = 3;
-	width = 4;
-	boardsize = length*width;
-}
-
 void SetupGame() {
     if (board != NULL)
         SafeFree(board);
@@ -966,6 +948,9 @@ int GenerateMovesEfficient (POSITION position)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2007/04/05 19:16:19  max817
+// Changed TIER from an unsigned int to an unsigned long long, and fixed any warnings associated with the change.
+//
 // Revision 1.12  2007/03/06 02:16:40  max817
 // Fixed Generic Hash custom contexts mode. Tested with mataxx.c. -Max
 //

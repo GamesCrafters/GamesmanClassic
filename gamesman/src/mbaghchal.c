@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.36 2007-05-07 22:12:04 max817 Exp $
+// $Id: mbaghchal.c,v 1.37 2007-05-08 22:14:00 max817 Exp $
 
 /************************************************************************
 **
@@ -228,18 +228,17 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int width      = 0;
-int length     = 0;
-int boardSize  = 0;
-int tigers     = 0;
-int goats      = 0;
+int width      = 3;
+int length     = 3;
+int boardSize  = 9;
+int tigers     = 4;
+int goats      = 4;
 
 char* board    = NULL;
 char* TclBoard = NULL;
 int turn       = 0;
 int goatsLeft  = 0;
 
-BOOLEAN set    = FALSE;
 BOOLEAN diagonals = TRUE;
 
 POSITION genericHashMaxPos = 0; //saves a function call
@@ -298,7 +297,6 @@ POSITION hash ();
 char* TclUnhash(POSITION);
 void unhash (POSITION);
 void ChangeBoardSize ();
-void Reset ();
 void SetupGame ();
 //BOOLEAN CheckLegality (POSITION position);
 STRING MoveToString(MOVE);
@@ -351,10 +349,6 @@ void *fakeUnhash(POSITION p){
 
 void InitializeGame ()
 {
-	if(!set) {
-		Reset();
-		set = TRUE;
-	}
 	gCanonicalPosition = GetCanonicalPosition;
 
 	gMoveToStringFunPtr = &MoveToString;
@@ -878,7 +872,6 @@ void GameSpecificMenu ()
 			"\tc)\t(C)hange the board size (nxn), currently: %d\n"
 			"\td)\tTurn (D)iagonals %s\n"
 			"\ti)\tSet the (I)nitial position (starting position)\n"
-			"\tr)\t(R)eset to default settings\n"
 			"\tb)\t(B)ack to the main menu\n"
 			"\nSelect an option:  ", width, diagonals ? "off" : "on");
 		c = GetMyChar();
@@ -906,10 +899,6 @@ void GameSpecificMenu ()
 				break;
 			case 'i': case 'I':
 				GetInitialPosition();
-				break;
-			case 'r': case 'R':
-				Reset();
-				SetupGame();
 				break;
 			case 'b': case 'B':
 				cont = FALSE;
@@ -1193,16 +1182,6 @@ void ChangeBoardSize ()
 			SetupGame();
 		}
 	}
-}
-
-void Reset ()
-{
-	width      = 3;
-	length     = 3;
-	boardSize  = width*length;
-	tigers     = 4;
-	goats      = boardSize-tigers-1;
-	diagonals  = TRUE;
 }
 
 
@@ -1710,6 +1689,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.36  2007/05/07 22:12:04  max817
+// 3x3
+//
 // Revision 1.35  2007/05/07 07:04:42  brianzimmer
 //
 //
