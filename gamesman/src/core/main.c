@@ -248,8 +248,8 @@ void RemoteStartGamesman(BOOLEAN admin) {
 
 		RemoteInitialize(); //init the retrograde solver
         //if (admin)
-        //    run_Admin(NULL);
-        //else run_Client(NULL);
+        //    runAdmin_Main(NULL);
+        //else runClient_Main(NULL);
 }
 
 
