@@ -275,7 +275,7 @@ int DEBUG_GAPPM = 0;
 int DEBUG_TEST = 0;
 
 int gameType;
-int maxL, maxS, maxB = 0;
+//int maxL, maxS, maxB = 0;
 PlayerTurn gWhosTurn = Blue;
 MOVE lastMove = -1;		//If lastMove = -1, there has been no last move
 PositionList allPositions = NULL;
@@ -346,6 +346,7 @@ STRING TierToString(TIER tier);
 TIERLIST* TierChildren(TIER tier);
 void SetupTierStuff();
 TIERPOSITION NumberOfTierPositions(TIER tier);
+BOOLEAN IsLegal(POSITION);
 
 /************************************************************************
 **
@@ -693,6 +694,9 @@ POSITION DoMove (POSITION position, MOVE move) {
 ************************************************************************/
 
 VALUE Primitive (POSITION position) {
+//	printf("POSITION %llu\n", position);
+//PrintPosition(position, "", TRUE);
+
     BoardAndTurn board;
 
     board = arrayUnhash(position);
@@ -1656,7 +1660,7 @@ BoardRep splitBoardLSB(BoardAndTurn board) {
 */
 POSITION arrayHash(BoardAndTurn board) {
 	BoardRep toHash;
-	POSITION L, S, B;
+	TIERPOSITION L, S, B;
 	POSITION maxL, maxS, maxB;
 
 	//if (DEBUG_G) { printf("\n********** arrayHASH **********\n"); }
@@ -1668,7 +1672,7 @@ POSITION arrayHash(BoardAndTurn board) {
 
 	toHash = splitBoardLSB(board);
 
-//	printf("arrayHash() 4, %d %d\n", tierNum, gWhosTurn);
+    //printf("arrayHash() 4, %llu, %d\n", tierNum, gWhosTurn);
 	
 //	int x;
 //	for (x = 0; x < boardSize; x++) {
@@ -1677,26 +1681,49 @@ POSITION arrayHash(BoardAndTurn board) {
 //		printf("boardB[%d] = %c\n", x, toHash->boardB[x]+48);
 //	}
 
+	POSITION posL, posS, posB;
+
+	//printf("AAAAA\n");
+
 	generic_hash_context_switch(tierNum);
-	L = generic_hash_hash(toHash->boardL, gWhosTurn);
+	posL = generic_hash_hash(toHash->boardL, gWhosTurn);
+	//L = generic_hash_hash(toHash->boardL, gWhosTurn);
+	//posL = gHashToWindowPosition(L, tierNum);  // problem here
 	maxL = generic_hash_max_pos();
 
+	//printf("BBBBB\n");
+
 	generic_hash_context_switch(tierNum + 1);
-	S = generic_hash_hash(toHash->boardS, gWhosTurn);
+	posS = generic_hash_hash(toHash->boardS, gWhosTurn);
+	//S = generic_hash_hash(toHash->boardS, gWhosTurn);
+	//posS = gHashToWindowPosition(S, tierNum + 1);
 	maxS = generic_hash_max_pos();
 
+	//printf("CCCCC\n");
+
 	generic_hash_context_switch(tierNum + 2);
-	B = generic_hash_hash(toHash->boardB, gWhosTurn);
+	posB = generic_hash_hash(toHash->boardB, gWhosTurn);
+	//B = generic_hash_hash(toHash->boardB, gWhosTurn);
+	//posB = gHashToWindowPosition(B, tierNum + 2);
 	maxB = generic_hash_max_pos();
 
-//	printf("arrayHash() 2 \n");
+	generic_hash_context_switch(tierNum);
 
-	SafeFree(toHash->boardL);
-	SafeFree(toHash->boardS);
-	SafeFree(toHash->boardB);
-	SafeFree(toHash);
+	/*printf("arrayHash() 2 \n");
+	int asdf = 0;
+	for (; asdf < 9; asdf++) {
+		printf("arrayHash() 2, %c, %c, %c \n", (toHash->boardL)[asdf]+48, (toHash->boardS)[asdf]+48, (toHash->boardB)[asdf]+48);
+	}*/
 
-	return B + (S * maxB) + (L * maxS * maxB);
+	//SafeFree(toHash->boardL);
+	//SafeFree(toHash->boardS);
+	//SafeFree(toHash->boardB);
+	//SafeFree(toHash);
+
+//	printf("arrayHash() --- %llu\n", posB + posS * maxB + posL * maxS * maxB);
+
+	//return B + (S * maxB) + (L * maxS * maxB);
+	return posB + posS * maxB + posL * maxS * maxB;
 
 /*      // old way
 	toHash = splitBoardLSB(board);
@@ -1749,14 +1776,23 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
 
   if (DEBUG_AU) { printf("HASHED # = %d\n", (int) hashNumber); }
 
+  //printf("arrayUnhash 3\n");
+
+	if (hashNumber == 1512)
+		printf("aoirjaorijfc\n");
+
   // unnecessary if use tierpos
-  POSITION L = hashNumber / (maxS * maxB);
-  POSITION S = (hashNumber %(maxS * maxB)) / maxB;
-  POSITION B = hashNumber % maxB;
+  //POSITION L = hashNumber / (maxS * maxB);
+  //POSITION S = (hashNumber %(maxS * maxB)) / maxB;
+  //POSITION B = hashNumber % maxB;
+  POSITION L, S, B;
 
   TIERPOSITION tierpos; TIER tier;
   gUnhashToTierPosition(hashNumber, &tierpos, &tier); // get tierpos and tier - not sure how to do this...
   //generic_hash_context_switch(tier);  // switch to that tier's context
+
+  if (hashNumber == 1512)
+		printf("in arrayUnhash() tierpos = %llu, tier = %llu\n", tierpos, tier);
 
   if (DEBUG_AU) {
 	  printf("L = %d\n", (int) L);
@@ -1766,11 +1802,63 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
 
   // changed this from what i had before (commented out below)
   generic_hash_context_switch(tier);
-  generic_hash_unhash(L, toHash->boardL);
+  //generic_hash_unhash(tierpos/45, toHash->boardL);
+  L = generic_hash_max_pos();
   generic_hash_context_switch(tier + 1);
-  generic_hash_unhash(S, toHash->boardS);
+  //generic_hash_unhash((tierpos%45)/9, toHash->boardS);
+  S = generic_hash_max_pos();
   generic_hash_context_switch(tier + 2);
-  generic_hash_unhash(B, toHash->boardB);
+  //generic_hash_unhash(tierpos%9, toHash->boardB);
+  B = generic_hash_max_pos();
+
+  if (hashNumber == 1512) 
+		printf("in arrayUnhash() L = %llu, S = %llu, B = %llu\n", L, S, B);
+  
+
+  generic_hash_context_switch(tier);
+  generic_hash_unhash(tierpos/(S*B), toHash->boardL);
+  if (hashNumber == 1512) 
+		printf("in arrayUnhash() tierpos/(S*B) = %llu\n", tierpos/(S*B));
+
+  generic_hash_context_switch(tier + 1);
+  generic_hash_unhash((tierpos%(S*B))/B, toHash->boardS);
+  if (hashNumber == 1512) 
+		printf("in arrayUnhash() (tierpos%(S*B))/B = %llu\n", (tierpos%(S*B))/B);
+
+  generic_hash_context_switch(tier + 2);
+  generic_hash_unhash(tierpos%B, toHash->boardB);
+  if (hashNumber == 1512) 
+		printf("in arrayUnhash() tierpos%B = %llu\n", tierpos%B);
+
+  int as = 0;
+  if (hashNumber == 1512) {
+	  for(; as < 9; as++) {
+		printf("%c, %c, %c\n", (toHash->boardL)[as]+48, (toHash->boardS)[as]+48, (toHash->boardB)[as]+48);
+	  }
+  }
+
+  // changed this from what i had before (commented out below)
+  //generic_hash_context_switch(tier);
+  //generic_hash_unhash(tierpos/45, toHash->boardL);
+  //L = generic_hash_max_pos();
+  //generic_hash_context_switch(tier + 1);
+  //generic_hash_unhash((tierpos%45)/9, toHash->boardS);
+  //S = generic_hash_max_pos();
+  //generic_hash_context_switch(tier + 2);
+  //generic_hash_unhash(tierpos%9, toHash->boardB);
+  //B = generic_hash_max_pos();
+
+  //generic_hash_context_switch(tier);
+
+  //  generic_hash_context_switch(tier*3);
+  //l =  generic_hash_max_pos();
+  //generic_hash_context_switch(tier*3 + 1);
+  //s = generic_hash_max_pos();
+  //generic_hash_context_switch(tier*3 + 2);
+  //b = generic_hash_max_pos();
+  //sum = b + (s * b) + (l * s * b);
+
+  //printf("end arrayUnhash 2");
 
   for (i = 0; i < boardSize; i++) {
   	newPiece->L = toHash->boardL[i];
@@ -1805,6 +1893,9 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   if (DEBUG_AU) { printf("\ngeneric_hash_turn(hashNumber) = %d\n", generic_hash_turn(hashNumber)); }
 
   if (DEBUG_AU) { printf("\n********** END arrayUNHASH **********\n"); }
+
+//  printf("arrayUnhash, tier = %llu, small = %d", tier, small);
+  //printf("end arrayUnhash\n");
 
   	SafeFree(toHash->boardL);
 	SafeFree(toHash->boardS);
@@ -2070,7 +2161,7 @@ void removeFrontFromAllPositions() {
 	}
 }
 
-int checkValidBoardPositions() {
+/*int checkValidBoardPositions() {
   int l, s, b, cnt, allValid = 1;
   BoardAndTurn boardTurn;
 
@@ -2089,7 +2180,7 @@ int checkValidBoardPositions() {
     }
   }
   return allValid;
-}
+  }*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // TIER functions
@@ -2105,7 +2196,8 @@ TIER BoardToTier(char* theBoard) {
   TIER small = 0, large = 0, blueB = 0, redB = 0, tmp;
   int piece;
   for (i = 0; i < boardSize; i++) {
-    piece = CharToBoardPiece(theBoard[i]);
+    piece = theBoard[i];
+//	printf("&&%d*%c", piece, theBoard[i]);
     if (piece == SMALLPIECE) { small++; }
     if (piece == LARGEPIECE) { large++; }
     if (piece == CASTLEPIECE) { small++; large++; }
@@ -2119,7 +2211,7 @@ TIER BoardToTier(char* theBoard) {
   // board->theBaord[i] -- was like this before instead of just theBoard[i]
 
   tmp = (9*small + 45*large + blueB + redB*3) * 3;
-  printf("@@@@@@ redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu \n", redB, blueB, small, large, tmp);
+  //printf("@@@@@@ redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu \n", redB, blueB, small, large, tmp);
 
   return (9*small + 45*large + blueB + redB*3) * 3;
 }
@@ -2175,7 +2267,7 @@ TIERLIST* TierChildren(TIER tier) {
     redBuckets = 2;
   }
 
-  printf("~~~~~ start of redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu, tierDiv3 = %llu, tier/3 = %llu \n", redBuckets, blueBuckets, small, large, tier, tierDiv3, tier/3);
+    printf("~~~~~ start of redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu, tierDiv3 = %llu\n", redBuckets, blueBuckets, small, large, tier, tierDiv3);
   
   // see what tier's those pieces can go to (basically, add a piece to the board)
   if ((large + small + redBuckets + blueBuckets) < 12) {
@@ -2216,6 +2308,9 @@ TIERLIST* TierChildren(TIER tier) {
     }
   }
 
+  //printf("hereherehere\n");
+  //printf("%s\n", list);
+
   return list;
 }
 
@@ -2225,6 +2320,7 @@ void SetupTierStuff() {
   gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
   gTierToStringFunPtr = &TierToString;
   generic_hash_custom_context_mode(TRUE);
+  gIsLegalFunPtr = &IsLegal;
 
   int i = 0;
   int tier = 0, b = 0, r = 0;
@@ -2302,13 +2398,15 @@ void SetupTierStuff() {
     boardArray->theBoard[i] = BLANKPIECE;
   }
 
-//  printf("3\n");
+  //  printf("3\n");
   
   gInitialTier = 0;
   generic_hash_context_switch(gInitialTier);
-  gInitialTierPosition = arrayHash(boardArray);
 
-//  printf("6\n");
+  //  printf("3.5\n");
+  gInitialTierPosition = 0;//arrayHash(boardArray);
+
+  //  printf("6\n");
 
   gNumberOfPositions = NumberOfTierPositions(gInitialTier); // ?
 	
@@ -2318,25 +2416,89 @@ void SetupTierStuff() {
   SafeFree(boardArray->theBoard);
   SafeFree(boardArray);
 
-//  printf("4\n");
+  printf("4, end of setupTIER\n");
 }
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
   POSITION l, s, b;
   TIERPOSITION sum;
-  generic_hash_context_switch(tier*3);
+  generic_hash_context_switch(tier);
   l =  generic_hash_max_pos();
-  generic_hash_context_switch(tier*3 + 1);
+  generic_hash_context_switch(tier + 1);
   s = generic_hash_max_pos();
-  generic_hash_context_switch(tier*3 + 2);
+  generic_hash_context_switch(tier + 2);
   b = generic_hash_max_pos();
   sum = b + (s * b) + (l * s * b);
+  //sum = b + s + l;
   return  sum;
   //(B + (S * maxB) + (L * maxS * maxB))
 }
 
+// isLegal
+BOOLEAN IsLegal(POSITION position) {
+  BoardAndTurn board = (BoardAndTurn) SafeMalloc(sizeof(struct boardAndTurnRep));
+  board->theBoard = (char *) SafeMalloc(boardSize * sizeof(char));
+  board->data = (BoardData) SafeMalloc(sizeof(struct boardDataElements));
+  BoardRep toHash = (BoardRep) SafeMalloc(sizeof(struct tripleBoardRep));
+  toHash->boardL = (char *) SafeMalloc(boardSize * sizeof(char));
+  toHash->boardS = (char *) SafeMalloc(boardSize * sizeof(char));
+  toHash->boardB = (char *) SafeMalloc(boardSize * sizeof(char));
+  ThreePiece lsb = (ThreePiece) SafeMalloc(sizeof(struct threePieces));
+
+  POSITION L, S, B;
+
+  TIERPOSITION tierpos; TIER tier;
+  gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos and tier - not sure how to do this...
+  //generic_hash_context_switch(tier);  // switch to that tier's context
+
+  // changed this from what i had before (commented out below)
+  generic_hash_context_switch(tier);
+  //generic_hash_unhash(tierpos/45, toHash->boardL);
+  L = generic_hash_max_pos();
+  generic_hash_context_switch(tier + 1);
+  //generic_hash_unhash((tierpos%45)/9, toHash->boardS);
+  S = generic_hash_max_pos();
+  generic_hash_context_switch(tier + 2);
+  //generic_hash_unhash(tierpos%9, toHash->boardB);
+  B = generic_hash_max_pos();
+
+  generic_hash_context_switch(tier);
+  generic_hash_unhash(tierpos/(S*B), toHash->boardL);
+  
+  generic_hash_context_switch(tier + 1);
+  generic_hash_unhash((tierpos%(S*B))/B, toHash->boardS);
+  
+  generic_hash_context_switch(tier + 2);
+  generic_hash_unhash(tierpos%B, toHash->boardB);
+  
+  int as = 0, piece = 0;
+  for(; as < 9; as++) {
+	  lsb->L = (toHash->boardL)[as]+48;
+	  lsb->S = (toHash->boardS)[as]+48;
+	  lsb->B = (toHash->boardB)[as]+48;
+	  piece = ThreePieceToBoardPiece(lsb);
+	  //printf("%c, %c, %c\n", (toHash->boardL)[as]+48, (toHash->boardS)[as]+48, (toHash->boardB)[as]+48);
+	  if (piece == UNKNOWNBOARDPIECE) {
+		  SafeFree(toHash->boardL);
+		  SafeFree(toHash->boardS);
+		  SafeFree(toHash->boardB);
+		  SafeFree(toHash);
+		  SafeFree(lsb);
+		  return FALSE;
+	  }
+  }
+  SafeFree(toHash->boardL);
+  SafeFree(toHash->boardS);
+  SafeFree(toHash->boardB);
+  SafeFree(toHash);
+  SafeFree(lsb);
+  return TRUE;
+}
 
 // $Log: not supported by cvs2svn $
+// Revision 1.51  2007/05/02 22:34:47  alexchoy
+// *** empty log message ***
+//
 // Revision 1.50  2007/04/25 20:01:19  alexchoy
 // *** empty log message ***
 //
