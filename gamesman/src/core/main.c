@@ -429,6 +429,7 @@ void HandleArguments (int argc, char *argv[])
 				} else if(!strcasecmp(argv[i],"--parallel")) { // for PARALLELIZATION
                         gMessage = TRUE;
                         //initializeODeepaBlue(argc,argv);
+                        return;
 				} else if(!strcasecmp(argv[i],"--printdefault")) {
 					/* Some games initialize help strings inside InitializeGame() */
 					 InitializeGame();
