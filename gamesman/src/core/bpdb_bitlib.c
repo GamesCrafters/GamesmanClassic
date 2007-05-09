@@ -174,7 +174,8 @@ bitlib_file_read_bytes(
 
     if(gzread(file, buffer, length) <= 0) {
         status = STATUS_BAD_DECOMPRESSION;
-        BPDB_TRACE("bitlib_file_read_bytes()", "call to gzread returned a failed value", status);
+        //BPDB_TRACE("bitlib_file_read_bytes()", "call to gzread returned a failed value", status);
+        // Commented out because, when using level files, this isn't always an "error"...
     }
     
     return status;

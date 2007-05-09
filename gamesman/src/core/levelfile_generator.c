@@ -93,7 +93,6 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
           writeHeader(compressed_filep_type0, minHashValue, maxHashValue, 0, type);
           printf("0: Header is Written to File\n");
           ArrayToType0Write(array, startIndex, maxHashValue);
-
           printf("0: Body is Written to File\n");
           bitlib_file_write_bytes(compressed_filep_type0, check, strlen(check));
           gzclose(compressed_filep_type0);
@@ -163,93 +162,102 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
           type++;
      }
      
-     
+     char* fnameChosen = NULL;
     stat(filename_type0, &fileinfo0);
     stat(filename_type1, &fileinfo1);
     stat(filename_type2, &fileinfo2);
     stat(filename_type3, &fileinfo3);
-//    if(fileinfo1.st_size > fileinfo0.st_size)
-//    {
-//         if(fileinfo2.st_size > fileinfo1.st_size)
-//          {
-//              if(fileinfo3.st_size > fileinfo2.st_size)
-//              {
-//                    compressed_filep = compressed_filep_type3;
-//			    remove(filename_type0);
-//			    remove(filename_type1);
-//			    remove(filename_type2);
-//				printf("type 3a");
-//              }
-//              else
-//              {
-//                    compressed_filep = compressed_filep_type2;
-//			    remove(filename_type0);
-//			    remove(filename_type1);
-//			    remove(filename_type3);
-//				printf("type 2a");
-//              }
-//          }
-//          else
-//          {
-//              if(fileinfo3.st_size > fileinfo1.st_size)
-//              {
-//                    compressed_filep = compressed_filep_type3;
-//			    remove(filename_type0);
-//			    remove(filename_type1);
-//			    remove(filename_type2);
-//				 printf("type 3b");
-//              }
-//              else
-//              {
-//                    compressed_filep = compressed_filep_type1;
-//			    remove(filename_type0);
-//			    remove(filename_type3);
-//			    remove(filename_type2);
-//				 printf("type 1a");
-//              }
-//          }
-//    }
-//    else
-//    {
-//          if(fileinfo2.st_size > fileinfo0.st_size)
-//          {
-//              if(fileinfo3.st_size > fileinfo2.st_size)
-//              {
-//                    compressed_filep = compressed_filep_type3;
-//			    remove(filename_type0);
-//			    remove(filename_type1);
-//			    remove(filename_type2);
-//				 printf("type 3c");
-//              }
-//              else
-//              {
-//                    compressed_filep = compressed_filep_type2;
-//			    remove(filename_type0);
-//			    remove(filename_type1);
-//			    remove(filename_type3);
-//				 printf("type 2b");
-//              }
-//          }
-//          else
-//          {
-//              if(fileinfo3.st_size > fileinfo0.st_size)
-//              {
-//                    compressed_filep = compressed_filep_type3;
-//			    remove(filename_type0);
-//			    remove(filename_type1);
-//			    remove(filename_type2);
-//				 printf("type 3d");
-//              }
-//              else
-//              {
-//                    compressed_filep = compressed_filep_type0;
-//			    remove(filename_type3);
-//			    remove(filename_type1);
-//			    remove(filename_type2);
-//				 printf("type 0a");
-//              }
-//          }
-//    }
+    if(fileinfo1.st_size > fileinfo0.st_size)
+    {
+         if(fileinfo2.st_size > fileinfo1.st_size)
+          {
+              if(fileinfo3.st_size > fileinfo2.st_size)
+              {
+                    compressed_filep = compressed_filep_type3;
+                    fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				printf("type 3a");
+              }
+              else
+              {
+                    compressed_filep = compressed_filep_type2;
+                    fnameChosen = filename_type2;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type3);
+				printf("type 2a");
+              }
+          }
+          else
+          {
+              if(fileinfo3.st_size > fileinfo1.st_size)
+              {
+                    compressed_filep = compressed_filep_type3;
+                    fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 3b");
+              }
+              else
+              {
+                    compressed_filep = compressed_filep_type1;
+                    fnameChosen = filename_type1;
+			    remove(filename_type0);
+			    remove(filename_type3);
+			    remove(filename_type2);
+				 printf("type 1a");
+              }
+          }
+    }
+    else
+    {
+          if(fileinfo2.st_size > fileinfo0.st_size)
+          {
+              if(fileinfo3.st_size > fileinfo2.st_size)
+              {
+                    compressed_filep = compressed_filep_type3;
+                    fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 3c");
+              }
+              else
+              {
+                    compressed_filep = compressed_filep_type2;
+                    fnameChosen = filename_type2;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type3);
+				 printf("type 2b");
+              }
+          }
+          else
+          {
+              if(fileinfo3.st_size > fileinfo0.st_size)
+              {
+                    compressed_filep = compressed_filep_type3;
+                    fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 3d");
+              }
+              else
+              {
+                    compressed_filep = compressed_filep_type0;
+                    fnameChosen = filename_type0;
+			    remove(filename_type3);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 0a");
+              }
+          }
+    }
+    rename(fnameChosen, compressed_filename);
     
      return 0;
 }
@@ -1680,7 +1688,7 @@ UINT64 findMinValueFromArray(BITARRAY* array, UINT64 length)
           }
           array++;
      }
-     return length;
+     return 0;
 }
 /****************************************************************************
 * Description                                                               
@@ -1694,7 +1702,7 @@ UINT64 findMinValueFromArray(BITARRAY* array, UINT64 length)
 ****************************************************************************/
 UINT64 findMaxValueFromArray(BITARRAY* array, UINT64 length)
 {
-     UINT64 counter=0, lastVal;
+     UINT64 counter=0, lastVal = 0;
      int bitcounter;
      BYTE currentByte;
      UINT8 value;
@@ -1730,7 +1738,7 @@ UINT64 findMaxValueFromArray(BITARRAY* array, UINT64 length)
 ****************************************************************************/
 UINT64 findLastZero(BITARRAY* array, UINT64 length)
 {
-     UINT64 counter=0, lastVal;
+     UINT64 counter=0, lastVal=0;
      int bitcounter;
      BYTE currentByte;
      UINT8 value;
