@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.131 2007-05-03 17:50:18 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.132 2007-05-09 16:53:43 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1903,6 +1903,9 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 
     set numMoves [llength $moveHistoryList]
     set numMovesSoFar [llength $gMovesSoFar]
+    if { $lastMove != "" } {
+	set lastMove [C_MoveToString $lastMove]
+    }
     set moveStringWidth [font measure $kValueHistoryLabelFont $lastMove]
 
     #do actual plotting

@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.39 2007-05-03 05:18:01 dfang85 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.40 2007-05-09 16:53:43 scarr2508 Exp $
 **
 **************************************************************************/
 
@@ -105,6 +105,9 @@ static int		GetReverseObjStringCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
               
 
+static int      moveToStringCmd _ANSI_ARGS_((ClientData clientData,
+                Tcl_Interp *interp, int argc, char **argv));
+
 static int      UsingTiersCmd _ANSI_ARGS_((ClientData clientData,
                 Tcl_Interp *interp, int argc, char **argv));
 static int      InitHashWindowCmd _ANSI_ARGS_((ClientData clientData,
@@ -195,6 +198,9 @@ Gamesman_Init(interp)
 
     Tcl_CreateCommand(interp, "C_GetStandardObjString", (Tcl_CmdProc*) GetStandardObjStringCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_GetReverseObjString", (Tcl_CmdProc*) GetReverseObjStringCmd, (ClientData) mainWindow, (Tcl_CmdDeleteProc*) NULL);
+
+    Tcl_CreateCommand(interp, "C_MoveToString", (Tcl_CmdProc*) moveToStringCmd, (ClientData) mainWindow,
+              (Tcl_CmdDeleteProc*) NULL);
 
     Tcl_CreateCommand(interp, "C_UsingTiers", (Tcl_CmdProc*) UsingTiersCmd, (ClientData) mainWindow,
               (Tcl_CmdDeleteProc*) NULL);
@@ -911,6 +917,31 @@ GetReverseObjStringCmd(dummy, interp, argc, argv)
     return TCL_OK;
   }
 }
+
+static int
+moveToStringCmd(dummy, interp, argc, argv)
+    ClientData dummy;           /* Not used. */
+    Tcl_Interp *interp;         /* Current interpreter. */
+    int argc;               /* Number of arguments. */
+    char **argv;            /* Argument strings. */
+{
+  if (argc != 2) {
+    interp->result = "wrong # args: MoveToString";
+    return TCL_ERROR;
+  }
+  else {
+    MOVE theMove;
+    if(Tcl_GetInt(interp, argv[1], &theMove) != TCL_OK)
+      return TCL_ERROR;
+    if (gMoveToStringFunPtr == NULL) {
+      sprintf(interp->result,"%d",theMove);
+    } else {
+      sprintf(interp->result,"%s",gMoveToStringFunPtr(theMove));
+    }
+    return TCL_OK;
+  }
+}
+
 
  #ifdef COMPUTEC
 static int
