@@ -64,9 +64,9 @@ gamesdb_bufferpage *gamesdb_buf_addpage(gamesdb* db) {
         return NULL;
     }
     buf->tag = 0;
-    buf->valid = FALSE;
+    buf->valid = GAMESDB_FALSE;
     buf->chances = 0;
-    buf->dirty = FALSE;
+    buf->dirty = GAMESDB_FALSE;
     buf->next = bufp->pages;
     bufp->pages = buf;
     bufp->num_pages++;
@@ -100,7 +100,7 @@ int gamesdb_buf_flush_all(gamesdb* db) {
 	gamesdb_bufferpage* buf;
     
 	for (buf = bufp->pages; buf != NULL; buf=buf->next) {
-        if (buf->dirty == TRUE) {
+        if (buf->dirty == GAMESDB_TRUE) {
             gamesdb_buf_write(db, buf);
         }
     }
@@ -114,17 +114,17 @@ int gamesdb_buf_read(gamesdb* db, gamesdb_frameid spot, gamesdb_pageid vpn) {
 	gamesdb_read(db, vpn, spot);
 
     assert(spot->tag == 0 || spot->tag == vpn);
-    assert(spot->dirty == FALSE);
+    assert(spot->dirty == GAMESDB_FALSE);
 
 	//validate the entire page first
-	spot->valid = TRUE;
+	spot->valid = GAMESDB_TRUE;
 	if (spot->tag == 0)
 		//the buffer is uninitialized, this means no record exists in the page
 		spot->tag = vpn;
 
     assert(spot->tag == vpn);
 
-	if (DEBUG) {
+	if (GAMESDB_DEBUG) {
 		printf("buf_read: spot = %u, buf_tag = %llu, mytag = %llu\n", (unsigned int)spot, spot->tag, vpn);
 	}
 	
@@ -137,11 +137,11 @@ int gamesdb_buf_write(gamesdb* db, gamesdb_frameid spot){
     //gamesdb_buffer* bufp = db->buffer;
   
     //we don't have to write the page if it's clean
-    if(spot->dirty == TRUE){
+    if(spot->dirty == GAMESDB_TRUE){
         spot->chances = 0;
         gamesdb_write(db, spot->tag, spot);
-        spot->dirty = FALSE;
-        if (DEBUG) {
+        spot->dirty = GAMESDB_FALSE;
+        if (GAMESDB_DEBUG) {
             printf("buf_write: spot = %u, buf_tag = %llu\n", (unsigned int)spot, spot->tag);
         }
     }

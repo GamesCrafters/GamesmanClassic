@@ -92,7 +92,11 @@ void filedb_init(DB_Table *new_db)
         
         sprintf(dirname, "m%s_%d_filedb", kDBName, getOption()) ;
         
-        mydb = gamesdb_create(sizeof(cellValue), 4196, 0, 10, dirname);
+        gamesdb_pageid max_pages = 0;
+        
+        if (gZeroMemPlayer) max_pages = 1;
+        
+        mydb = gamesdb_create(sizeof(cellValue), 4196, max_pages, 10, dirname);
         
         start = FALSE;
         mypos = 0;

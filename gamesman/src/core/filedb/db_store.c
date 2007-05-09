@@ -43,53 +43,65 @@
 #include <stddef.h>
 #include <dirent.h>
 #include <assert.h>
-/*
-**Basic wrapper for the libz functions. wrapped so that future students
-**can implement it however they choose.
-*/
 
 /*
 ** Opens a database with filename.
 ** returns db_store pointer on success (freed in db_close)
 ** null on failure. 
 */
-gamesdb_store* gamesdb_open(char* filename, int cluster_size){
-  gamesdb_store* db = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
-  
-  db->filename = (char*) gamesdb_SafeMalloc (sizeof(char)*strlen(filename));
-  
-  strcpy(db->filename, filename);
-  
-  db->dir_size = cluster_size;
-  
-  db->current_page = 0;
-  
-  //this is the last page of the chain
-  //it has not been written, so be sure to write it when expanding
-  //db->last_page = 0;
+gamesdb_store* gamesdb_open(gamesdb* db, char* filename, int cluster_size){
   
   char *dirname = (char *) gamesdb_SafeMalloc (sizeof(char) * (strlen(filename) + 10));
-  
   sprintf(dirname, "./data/%s", filename);
+  mkdir ("./data", 0755);
+  mkdir (dirname, 0755);
+
+    gamesdb_boolean verify_ok = GAMESDB_FALSE;
+
+    //verify geometry parameters - sizes for things (records, buffers, and dir clusters)
+    char geometry_filename[GAMESDB_MAX_FILENAME_LEN] = "\0";
+    sprintf(geometry_filename, "%s/%s", dirname, GAMESDB_GEOMETRY_FILENAME);
+    FILE *geometry_file = fopen(geometry_filename, "r");
+    
+    if (geometry_file == NULL) {
+        //create a new geometry file, and write out the info
+        geometry_file = fopen(geometry_filename, "w");
+        fprintf(geometry_file, "%d\n%d\n%d",
+            db->buffer->rec_size,
+            db->buffer->buf_size,
+            cluster_size);
+        fclose(geometry_file);
+        verify_ok = GAMESDB_TRUE;
+    } else { //otherwise, get the data and check
+        int frec_size = -1, fbuf_size = -1, fcluster_size = -1;
+        fscanf(geometry_file, "%d\n%d\n%d",
+            &frec_size,
+            &fbuf_size,
+            &fcluster_size);
+        if ((frec_size == db->buffer->rec_size) &&
+            (fbuf_size == db->buffer->buf_size) &&
+            (fcluster_size == cluster_size)) {
+            verify_ok = GAMESDB_TRUE;
+        }
+        fclose(geometry_file);
+    }
+
+    if (!verify_ok) {
+        printf("Failed to open game database: geometry mismatch.\n");
+        return NULL;
+    }
+    
+  gamesdb_SafeFree(dirname);
   
-  DIR *data_dir = opendir("./data");
+  gamesdb_store* db_store = (gamesdb_store*) gamesdb_SafeMalloc(sizeof(gamesdb_store));
   
-  if (data_dir == NULL) {
-  	mkdir ("./data", 0755);
-  	mkdir (dirname, 0755);
-  }
+  db_store->filename = (char*) gamesdb_SafeMalloc (sizeof(char)*strlen(filename));
+  strcpy(db_store->filename, filename);
   
-  closedir (data_dir);
-  
-  if ((data_dir = opendir(dirname)) == NULL && mkdir(dirname, 0755) == -1) {
-  	printf ("filedb: Cannot make output directory. Aborting.");
-  	exit(1);
-  }
-  
-  closedir(data_dir); 
-  free(dirname);
-  
-  return db; //used to be NULL
+  db_store->dir_size = cluster_size;
+  db_store->current_page = 0;
+
+  return db_store;
 }
 
 /*
@@ -109,7 +121,7 @@ static gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no,
 	
 	//unsigned int current_pos = 0;
 	gamesdb_pageid this_cluster = 0;
-	char temp[MAX_FILENAME_LEN] = "";
+	char temp[GAMESDB_MAX_FILENAME_LEN] = "";
 	//DIR *data_dir = NULL;
     
 	while (page_no >= (1 << dir_size)) {
@@ -142,10 +154,10 @@ static gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no,
 //writes a page into the database
 int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
-    assert(buf->valid == TRUE);
+    assert(buf->valid == GAMESDB_TRUE);
     assert(buf->tag == page);
     
-	char filename[MAX_FILENAME_LEN] = "";
+	char filename[GAMESDB_MAX_FILENAME_LEN] = "";
 	
 	gamesdb_store *dbfile = db->store;
 	gamesdb_buffer *bufp = db->buffer;
@@ -155,7 +167,7 @@ int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
 	gzFile pagefile = gzopen(filename, "w+");
 	
-	if (DEBUG)
+	if (GAMESDB_DEBUG)
 		printf ("db_write: path = %s, page = %llu\n", filename, page);
 
 	//write data
@@ -171,7 +183,7 @@ int gamesdb_write(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
 int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
-	char filename[MAX_FILENAME_LEN] = "";
+	char filename[GAMESDB_MAX_FILENAME_LEN] = "";
 	
 	gamesdb_store *dbfile = db->store;
 	gamesdb_buffer *bufp = db->buffer;
@@ -181,7 +193,7 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 
 	gzFile pagefile = gzopen(filename, "r+");
 	
-	if (DEBUG) {
+	if (GAMESDB_DEBUG) {
 		printf ("db_read: path = %s, page = %llu\n", filename, page);
 	}
 	
@@ -192,17 +204,17 @@ int gamesdb_read(gamesdb* db, gamesdb_pageid page, gamesdb_bufferpage* buf){
 	    gzread(pagefile, (void*)&(buf->chances), sizeof(gamesdb_counter));
 	    gzread(pagefile, (void*)&(buf->tag), sizeof(gamesdb_pageid));
 	    //gzread(pagefile, (void*)&(buf->valid), sizeof(gamesdb_boolean));
-        buf->valid = TRUE;
+        buf->valid = GAMESDB_TRUE;
         //assert(buf->valid == TRUE);
 
 	} else { //page does not exist in disk
-		if (DEBUG) {
+		if (GAMESDB_DEBUG) {
 			printf ("db_read: starting a fresh page.\n");
 		}
 		memset(buf->mem, 0, sizeof(char) * bufp->buf_size * bufp->rec_size);
 		buf->chances = 0;
 		buf->tag = 0;
-		buf->valid = FALSE;
+		buf->valid = GAMESDB_FALSE;
 	}
 
 	//the caller will take care of the dirty bit

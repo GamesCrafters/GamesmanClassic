@@ -72,7 +72,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
     gamesdb_bhash *bhash = db->buf_man->hash;
     
 	for (; page!= NULL; page = page->next) {
-		if (page->valid == FALSE) {
+		if (page->valid == GAMESDB_FALSE) {
 			gamesdb_basichash_put(bhash, vpn, page);
 			return page;
 		}
@@ -83,7 +83,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
     //see if we have space for more physical pages, if so grow the memory pool
     if (bufp->num_pages < bufp->max_pages || bufp->max_pages == 0) {
         
-        if (DEBUG) {
+        if (GAMESDB_DEBUG) {
             printf("db_bufman: Growing the page pool.\n");
         }
         
@@ -102,7 +102,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
     }
     
 	//otherwise, pick one from n-chance, make page table changes, and return
-	if (DEBUG) {
+	if (GAMESDB_DEBUG) {
 		printf("db_bufman: No more free pages in page table. Evicting one page using n-chance.\n");
 	}
 	
@@ -113,8 +113,8 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
 	page = bufp->pages;
 	gamesdb_bufferpage *ret = db->buf_man->clock_hand;
 	
-	while(TRUE) {
-		if (ret->valid == TRUE && ret->chances < MAX_CHANCES) {
+	while(GAMESDB_TRUE) {
+		if (ret->valid == GAMESDB_TRUE && ret->chances < GAMESDB_MAX_CHANCES) {
 			ret->chances++;
 		} else {
 			break;
@@ -134,7 +134,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
         db->buf_man->clock_hand = page;
     }
 
-	if (DEBUG) {
+	if (GAMESDB_DEBUG) {
 		printf("db_bufman: evicted page at address %u\n", (unsigned int)ret);
 	}
 	

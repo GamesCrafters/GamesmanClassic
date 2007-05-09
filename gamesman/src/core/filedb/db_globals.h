@@ -32,15 +32,17 @@
 #ifndef GMCORE_DB_GLOBALS_H
 #define GMCORE_DB_GLOBALS_H
 
-#define TRUE 1
-#define FALSE 0
+#define GAMESDB_TRUE 1
+#define GAMESDB_FALSE 0
 
-#define MAX_CHANCES 15 //this is in accord to the length of elements in buffer->chances
+#define GAMESDB_MAX_CHANCES 15 //this is in accord to the length of elements in buffer->chances
 
-#define CLUSTER_SIZE 10 //10 bits cluster for directory hierarchy
+#define GAMESDB_CLUSTER_SIZE 10 //10 bits cluster for directory hierarchy
 
-#define MAX_FILENAME_LEN 256
+#define GAMESDB_MAX_FILENAME_LEN 256
 
-#define DEBUG 0
+#define GAMESDB_DEBUG 0
+
+#define GAMESDB_GEOMETRY_FILENAME "geometry.dat" 
 
 #endif /* GMCORE_DB_GLOBALS_H */

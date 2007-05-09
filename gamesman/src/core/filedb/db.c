@@ -45,9 +45,9 @@ static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 	if (ppn == NULL) { //the page is not present in physical memory
 		ppn = gamesdb_bman_replace(db, vpn); //get a replacement page, change page table in the process
 	       
-		if (ppn->valid == TRUE) {
+		if (ppn->valid == GAMESDB_TRUE) {
 			//this page got kicked out by n-chance
-            printf("translate: replaced = %u\n", (unsigned int)ppn);
+            if (GAMESDB_DEBUG) printf("translate: replaced = %u\n", (unsigned int)ppn);
             assert(ppn->tag != vpn);
 			if (ppn->tag != vpn) {
 				//buffer page is valid but not the one we want
@@ -65,12 +65,12 @@ static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 		}
 	}
 	
-	if (DEBUG) {
+	if (GAMESDB_DEBUG) {
 		printf("translate: vpn = %llu, ppn = %u tag = %llu\n", vpn, (unsigned int)ppn, ppn->tag);
 	}
 	
     assert (ppn->tag == vpn);
-    assert (ppn->valid == TRUE);
+    assert (ppn->valid == GAMESDB_TRUE);
 	return ppn;	
 }
 
@@ -81,17 +81,22 @@ static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
 gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_recs, gamesdb_pageid max_pages, int cluster_size, char* db_name){
     gamesdb_bman* bman;
     gamesdb_buffer* bufp;
+    gamesdb_store* storep;
     gamesdb* data;
-    gamesdb_store* storep = gamesdb_open(db_name, cluster_size);
 
     bufp = gamesdb_buf_init(rec_size, max_recs, max_pages);
-
     bman = gamesdb_bman_init(bufp);
 
     data = (gamesdb*) gamesdb_SafeMalloc(sizeof(gamesdb));
 
     data->buf_man = bman;
     data->buffer = bufp;
+
+    storep = gamesdb_open(data, db_name, cluster_size);
+    if (storep == NULL) {
+        printf("A fatal error occured when trying to open the database. Aborting.\n");
+        exit(1);
+    }
     data->store = storep;
 
     //create initial page
@@ -137,6 +142,6 @@ void gamesdb_put(gamesdb* gdb, char* mem, gamesdb_position pos){
 	
 	memcpy(ppn->mem+off, mem, bufp->rec_size);
 	
-	ppn->dirty = TRUE;
+	ppn->dirty = GAMESDB_TRUE;
 	ppn->chances = 0; 
 }
