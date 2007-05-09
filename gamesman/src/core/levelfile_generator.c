@@ -37,10 +37,6 @@ gzFile*        compressed_filep_type0;
 gzFile*        compressed_filep_type1;
 gzFile*        compressed_filep_type2;
 gzFile*        compressed_filep_type3;
-char           filename_type0[82];
-char           filename_type1[82];
-char           filename_type2[82];
-char           filename_type3[82];
 
 /********************************************************************************
 * Description
@@ -60,6 +56,10 @@ char           filename_type3[82];
 *********************************************************************************/
 int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startIndex, POSITION endIndex)
 {
+    char filename_type0[82];
+    char filename_type1[82];
+    char filename_type2[82];
+    char filename_type3[82];
     UINT64 minHashValue, maxHashValue;
     char* check ="1";
 	struct stat fileinfo0;
@@ -82,6 +82,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
          if(type == 0)
          {
           strncpy(filename_type0, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
+          filename_type0[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
           strcat(filename_type0, "_0.dat.gz");
           printf("0: Compressed_filename is:  %s \n", filename_type0);
           compressed_filep_type0 = gzopen(filename_type0, "wb");
@@ -102,6 +103,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
          if(type == 1)
          {
           strncpy(filename_type1, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
+          filename_type1[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
           strcat(filename_type1, "_1.dat.gz");
           printf("1: Compressed_filename is:  %s \n", filename_type1);
           compressed_filep_type1 = gzopen(filename_type1, "wb");
@@ -121,6 +123,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
           if(type == 2)
           {
                strncpy(filename_type2, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
+               filename_type2[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
                strcat(filename_type2, "_2.dat.gz");
 
                printf("2: Compressed_filename is:  %s \n", filename_type2);
@@ -142,6 +145,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
           if(type == 3)
           {
                strncpy(filename_type3, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
+               filename_type3[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
                strcat(filename_type3, "_3.dat.gz");
                printf("3: Compressed_filename is:  %s \n", filename_type3);
                compressed_filep_type3 = gzopen(filename_type3, "wb");
