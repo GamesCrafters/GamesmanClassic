@@ -43,25 +43,29 @@ char           filename_type2[82];
 char           filename_type3[82];
 
 /********************************************************************************
-* Description											*
-*      WriteLevelFile reads an array of hash values and returns a			*
-*      level file. This file may be of any format type. The function			*
-*      optimizes for size by generating all types sequentially and          			*
-*      comparing size of file after each file is generated. If the endIndex 		*
-*      is greater than the startIndex then the function knows that the      		*
-*      array has been corrupted at some other level                         			*
-* Arguments                                                                 				*
-*      char* compressed_filename                                            				*
-*      BITARRAY *array                                                     			 	*
-*      POSITION startIndex                                                  			*
-*      POSITION endIndex                                                    			*
-* Return Values                                                            				*
-*      int 0 for success -1 for error                                       				*
+* Description
+*      WriteLevelFile reads an array of hash values and returns a
+*      level file. This file may be of any format type. The function
+*      optimizes for size by generating all types sequentially and
+*      comparing size of file after each file is generated. If the endIndex
+*      is greater than the startIndex then the function knows that the
+*      array has been corrupted at some other level
+* Arguments
+*      char* compressed_filename
+*      BITARRAY *array
+*      POSITION startIndex
+*      POSITION endIndex
+* Return Values
+*      int 0 for success -1 for error
 *********************************************************************************/
 int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startIndex, POSITION endIndex)
 {
     UINT64 minHashValue, maxHashValue;
     char* check ="1";
+	struct stat fileinfo0;
+	struct stat fileinfo1;
+	struct stat fileinfo2;
+	struct stat fileinfo3;
     minHashValue = startIndex + findMinValueFromArray(array, endIndex-startIndex);
     maxHashValue = startIndex + findMaxValueFromArray(array, endIndex-startIndex);
     int type = 0;
@@ -158,6 +162,95 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 
           type++;
      }
+     
+     
+    stat(filename_type0, &fileinfo0);
+    stat(filename_type1, &fileinfo1);
+    stat(filename_type2, &fileinfo2);
+    stat(filename_type3, &fileinfo3);
+//    if(fileinfo1.st_size > fileinfo0.st_size)
+//    {
+//         if(fileinfo2.st_size > fileinfo1.st_size)
+//          {
+//              if(fileinfo3.st_size > fileinfo2.st_size)
+//              {
+//                    compressed_filep = compressed_filep_type3;
+//			    remove(filename_type0);
+//			    remove(filename_type1);
+//			    remove(filename_type2);
+//				printf("type 3a");
+//              }
+//              else
+//              {
+//                    compressed_filep = compressed_filep_type2;
+//			    remove(filename_type0);
+//			    remove(filename_type1);
+//			    remove(filename_type3);
+//				printf("type 2a");
+//              }
+//          }
+//          else
+//          {
+//              if(fileinfo3.st_size > fileinfo1.st_size)
+//              {
+//                    compressed_filep = compressed_filep_type3;
+//			    remove(filename_type0);
+//			    remove(filename_type1);
+//			    remove(filename_type2);
+//				 printf("type 3b");
+//              }
+//              else
+//              {
+//                    compressed_filep = compressed_filep_type1;
+//			    remove(filename_type0);
+//			    remove(filename_type3);
+//			    remove(filename_type2);
+//				 printf("type 1a");
+//              }
+//          }
+//    }
+//    else
+//    {
+//          if(fileinfo2.st_size > fileinfo0.st_size)
+//          {
+//              if(fileinfo3.st_size > fileinfo2.st_size)
+//              {
+//                    compressed_filep = compressed_filep_type3;
+//			    remove(filename_type0);
+//			    remove(filename_type1);
+//			    remove(filename_type2);
+//				 printf("type 3c");
+//              }
+//              else
+//              {
+//                    compressed_filep = compressed_filep_type2;
+//			    remove(filename_type0);
+//			    remove(filename_type1);
+//			    remove(filename_type3);
+//				 printf("type 2b");
+//              }
+//          }
+//          else
+//          {
+//              if(fileinfo3.st_size > fileinfo0.st_size)
+//              {
+//                    compressed_filep = compressed_filep_type3;
+//			    remove(filename_type0);
+//			    remove(filename_type1);
+//			    remove(filename_type2);
+//				 printf("type 3d");
+//              }
+//              else
+//              {
+//                    compressed_filep = compressed_filep_type0;
+//			    remove(filename_type3);
+//			    remove(filename_type1);
+//			    remove(filename_type2);
+//				 printf("type 0a");
+//              }
+//          }
+//    }
+    
      return 0;
 }
 
