@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.132 2007-05-09 16:53:43 scarr2508 Exp $
+# $Id: InitWindow.tcl,v 1.133 2007-05-09 17:00:13 scarr2508 Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -80,8 +80,6 @@ proc TBaction2 {} {
     
     set gLeftHumanOrComputer $sLeftHumanOrComputer
     set gRightHumanOrComputer $sRightHumanOrComputer
-    set gLeftHumanOrComputer "Human"
-    set gRightHumanOrComputer "Computer"
     set gWhoseTurn "Left"
 
     set gNewGame "true"
