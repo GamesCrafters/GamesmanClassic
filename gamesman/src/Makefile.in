@@ -445,7 +445,7 @@ memdebug:
 		@$(MAKE) -w -C core/filedb memdebug
 		@$(MAKE) -w all-memdebug
 
-dist:		clean
+dist-clean:		clean
 		rm -rf Makefile
 
 clean:		clean-bins
@@ -508,7 +508,7 @@ $(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
 	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
 test-%$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
-	$(CC) $(CFLAGS) $(TCLCFLAGS) -Wall -c -o $@ $<
+	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
 test-%: test-%$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
 	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)

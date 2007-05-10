@@ -115,6 +115,10 @@ all: gamesman.a
 
 memdebug: CFLAGS += -DMEMWATCH
 memdebug: all
+
+dist-clean: clean
+	rm -rf Makefile
+
 clean:
 	@$(MAKE) -w -C filedb clean
 	rm -rf $(MODULES) *~ gamesman.a gamesdb.a
