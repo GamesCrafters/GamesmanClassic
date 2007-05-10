@@ -99,9 +99,9 @@ case $os in
       OUTCFLAGS="$OUTCFLAGS -march=$machine";;
   Darwin*)
   	  case $machine in
-  	  	$machine = powerpc
   	    i*86) OUTCFLAGS="$OUTCFLAGS -march=$machine";;
-        * ) OUTCFLAGS="$OUTCFLAGS -m$machine";;
+        * ) $machine=powerpc
+        	OUTCFLAGS="$OUTCFLAGS -m$machine";;
       esac;;
 esac
 
