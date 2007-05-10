@@ -99,8 +99,10 @@ case $os in
   CYGWIN*)
       OUTCFLAGS="$OUTCFLAGS -march=$machine";;
   Darwin*)
-      machine=powerpc
-  	  OUTCFLAGS="$OUTCFLAGS -m$machine";;
+  	  case $machine in
+  	    i*86) OUTCFLAGS="$OUTCFLAGS -march=$machine";;
+        * ) OUTCFLAGS="$OUTCFLAGS -m$machine";;
+      esac;;
 esac
 
 MACHINE=$os-$version-$machine
