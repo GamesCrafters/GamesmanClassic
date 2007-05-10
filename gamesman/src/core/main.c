@@ -403,6 +403,13 @@ void HandleArguments (int argc, char *argv[])
                         }
                         i += argc;
                         gMessage = TRUE;
+                } else if(!strcasecmp(argv[i],"--withPen")) {
+                        if ((i+1) < argc) {
+                                gPenFile = argv[i+1];
+                                i++;
+                        }
+                } else if(!strcasecmp(argv[i], "--penDebug")) {
+                        gPenDebug = TRUE;
                 } else if(!strcasecmp(argv[i], "--lightplayer")) {
                         i += argc;
                         gZeroMemPlayer = TRUE;

@@ -178,3 +178,7 @@ Tcl_Interp *gTclInterp = NULL;
 /* Static Evaluator list of custom trait function names */
 STRING  *gCustomTraits = NULL;
 
+/* Anoto Pen support */
+STRING          gPenFile = NULL;
+BOOLEAN         gPenDebug = FALSE;
+

@@ -520,6 +520,9 @@ proc GS_NewGame { c position } {
     GS_DrawPosition $c $position
     $c delete gameover
     $c raise tagPiece all
+    
+    # Anoto pen support - start new game
+    C_SetGameSpecificOptions 1 1
 }
 
 

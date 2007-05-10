@@ -236,4 +236,6 @@ STRING kCommandSyntaxHelp =
 "--lightplayer\n"
 "--netDb\n"
 "--hashCounting\t\tStarts the generic-hash counting tool instead of the game.\n"
-"--hashtable_buckets\t(advanced) Sets the total number of buckets in any hashtables used.\n\n";
+"--hashtable_buckets\t(advanced) Sets the total number of buckets in any hashtables used.\n"
+"--withPen <file>\tStarts game with Anoto Pen support, reading data from <file> (with GUI only)\n"
+"--penDebug\t\tEnables Anoto Pen log messages / data saving to 'bin/pen/' (with GUI only)\n\n";

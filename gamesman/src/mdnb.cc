@@ -486,6 +486,9 @@ EXTERNC void GameSpecificMenu() {
 
  }
 
+// Anoto pen support - implemented in core/pen/pdnb.c
+EXTERNC void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, int debug);
+
 /************************************************************************
 **
 ** NAME:        SetTclCGameSpecificOptions
@@ -497,13 +500,10 @@ EXTERNC void GameSpecificMenu() {
 
 EXTERNC void SetTclCGameSpecificOptions(int theOptions[])
 {
-  BoardSizeX = theOptions[0]>>4;
-  BoardSizeY = theOptions[0]&0xf;
-  
-  if (BoardSizeY==0xf) {
-    BoardSizeY=1;
-  }
-  //InitializeDatabasesForReal();
+  // Anoto pen support
+  if ((gPenFile != NULL) && (gTclInterp != NULL)) {
+      gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
+  }  
 }
 
 /************************************************************************

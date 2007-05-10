@@ -177,4 +177,8 @@ extern BOOLEAN			gParallelizing;
 /* Tcl interp for making calls to Tcl_Eval */
 extern Tcl_Interp*              gTclInterp;
 
+/* Anoto Pen support */
+extern STRING           gPenFile;
+extern BOOLEAN          gPenDebug;
+
 #endif /* GMCORE_GLOBALS_H */

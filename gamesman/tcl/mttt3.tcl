@@ -482,6 +482,9 @@ proc MakeO { c x y tag } {
 
 proc GS_NewGame { c position } {
     GS_DrawPosition $c $position
+    
+    # Anoto pen support - start new game
+    C_SetGameSpecificOptions 1 1
 }
 
 proc GS_DrawPosition { c position } {

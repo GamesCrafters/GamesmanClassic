@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.40 2007-05-09 16:53:43 scarr2508 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.41 2007-05-10 05:23:08 scarr2508 Exp $
 **
 **************************************************************************/
 
@@ -438,6 +438,7 @@ SetGameSpecificOptionsCmd(dummy, interp, argc, argv)
       if(Tcl_GetInt(interp, argv[i], &theOptions[i-2]) != TCL_OK)
 	return TCL_ERROR;
 
+  gTclInterp = interp;
   gStandardGame = standardGame;
   SetTclCGameSpecificOptions(theOptions);
 

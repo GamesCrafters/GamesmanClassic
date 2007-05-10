@@ -352,6 +352,10 @@ proc GS_NewGame { c position } {
     set turn 0
     $c delete label
     GS_DrawPosition $c $position
+
+    # Anoto pen support - start new game
+    global boardWidth boardHeight
+    C_SetGameSpecificOptions 1 $boardWidth $boardHeight
 }
 
 
