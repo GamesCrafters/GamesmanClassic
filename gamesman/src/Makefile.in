@@ -451,6 +451,7 @@ memdebug:
 		@$(MAKE) -w all-memdebug
 
 dist-clean:		clean
+		@$(MAKE) -w -C core dist-clean
 		rm -rf Makefile
 
 clean:		clean-bins

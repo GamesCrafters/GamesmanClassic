@@ -117,6 +117,7 @@ memdebug: CFLAGS += -DMEMWATCH
 memdebug: all
 
 dist-clean: clean
+	@$(MAKE) -w -C filedb dist-clean
 	rm -rf Makefile
 
 clean:

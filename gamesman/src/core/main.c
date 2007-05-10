@@ -413,9 +413,6 @@ void HandleArguments (int argc, char *argv[])
                 } else if(!strcasecmp(argv[i], "--lightplayer")) {
                         i += argc;
                         gZeroMemPlayer = TRUE;
-                        gFileDB = TRUE;
-                        gBitPerfectDB = FALSE;
-                        gBitPerfectDBSolver = FALSE;
                 } else if(!strcasecmp(argv[i], "--help")) {
                         printf(kCommandSyntaxHelp, argv[0], argv[0], argv[0], argv[0]);
                         gMessage = TRUE;

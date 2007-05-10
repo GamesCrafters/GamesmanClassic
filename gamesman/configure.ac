@@ -96,13 +96,18 @@ case $os in
             9000/7*) machine=9000s700;;
           esac;;
   CYGWIN*)
-      OUTCFLAGS="$OUTCFLAGS -march=$machine";;
+          ;;
   Darwin*)
-  	  case $machine in
-  	    i*86) OUTCFLAGS="$OUTCFLAGS -march=$machine";;
-        * ) machine=powerpc
-        	OUTCFLAGS="$OUTCFLAGS -m$machine";;
-      esac;;
+          machine=powerpc;;
+esac
+
+case $machine in
+  i*86)
+  		  OUTCFLAGS="$OUTCFLAGS -march=$machine";;
+  powerpc)
+          OUTCFLAGS="$OUTCFLAGS -mpowerpc";;
+  *)
+          AC_MSG_WARN(Unusual processor architecture detected. Skipping architecture specifiers for gcc.);;
 esac
 
 MACHINE=$os-$version-$machine
@@ -126,13 +131,13 @@ case $MACHINE in
 			 OUTLIBSUFFIX=".dll";;
   Darwin*)   OS=MACOSX
   			 OUTLIBSUFFIX=".dylib";;
-  *)         AC_MSG_ERROR(this operating system is not supported) ;;
+  *)         OS=UNKNOWN
+  			 AC_MSG_WARN(This operating system is not supported, will use defaults that may or may not work.) ;;
 esac
 
 OUTCFLAGS="$OUTCFLAGS -D$OS"
 
 AC_MSG_RESULT($MACHINE)
-
 
 
 ###
@@ -179,13 +184,12 @@ AC_CHECK_LIB(expat, XML_ParserCreate,
 AC_CHECK_LIB(scew, scew_attribute_create,
     [scew_found=yes],
 	  [AC_MSG_WARN([SCEW (http://www.nongnu.org/scew/) not found, saving static evaluator will not be supported.])])
-OUTXMLLIBFLAGS=
-OUTXMLCFLAGS=
-if test $expat_found = yes; then
-  if test $scew_found = yes; then
+OUTXMLLIBFLAGS=""
+OUTXMLCFLAGS=""
+if test "$expat_found" = "yes" -a "$scew_found" = "yes"
+then
 	  OUTXMLLIBFLAGS="-lscew -lexpat"
 	  OUTXMLCFLAGS="-DHAVE_XML"
-  fi
 fi
 
 
