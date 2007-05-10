@@ -100,7 +100,7 @@ case $os in
   Darwin*)
   	  case $machine in
   	    i*86) OUTCFLAGS="$OUTCFLAGS -march=$machine";;
-        * ) $machine=powerpc
+        * ) machine=powerpc
         	OUTCFLAGS="$OUTCFLAGS -m$machine";;
       esac;;
 esac
