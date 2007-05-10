@@ -72,7 +72,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
     
  	if(endIndex < startIndex)
 	{
-         return -1;
+         return 1;
 	}
 	UINT8 bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
      // 	UINT64 length = ceil((maxHashValue - minHashValue)/BITSINBYTE);
@@ -89,7 +89,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
           if(!compressed_filep_type0)
           {
                printf("0: Couldn't open file");
-               return -1;
+               return 1;
           }
           writeHeader(compressed_filep_type0, minHashValue, maxHashValue, 0, type);
           printf("0: Header is Written to File\n");
@@ -110,7 +110,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
           if(!compressed_filep_type1)
           {
                printf("1: couldn't open file");
-               return -1;
+               return 1;
           }
           writeHeader(compressed_filep_type1, minHashValue, maxHashValue, 0,  type);
 		printf("1: Header is Written to File\n");
@@ -131,7 +131,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
                if(!compressed_filep_type2)
                {
                     printf("2: couldn't open file");
-                    return -1;
+                    return 1;
                }
                writeHeader(compressed_filep_type2, minHashValue, maxHashValue, findLastZero(array, maxHashValue-minHashValue) - findMinValueFromArray(array, endIndex-startIndex), type);
                printf("2: Header is Written to File\n");
@@ -152,7 +152,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
                if(!compressed_filep_type3)
                {
                     printf("3: couldn't open file");
-                    return -1;
+                    return 1;
                }
                writeHeader(compressed_filep_type3, minHashValue, maxHashValue, 0, type);
                printf("3: Header is Written to File\n");
@@ -305,11 +305,11 @@ int writeHeader(gzFile *file, UINT64 minHashValue, UINT64 maxHashValue, UINT64 l
           free(typeH);
 	if(header)
           free(header);
-     if(!status)
+     if(status)
      {
-          return 0;
+          return 1;
      }
-     return -1;
+     return 0;
 }
 
 int isValidLevelFile(char* compressed_filename)
@@ -331,7 +331,7 @@ int isValidLevelFile(char* compressed_filename)
           status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
           if(status)
           {
-               return 0;
+               return 1;
           }
           if(*buffer == 0x0C)
           {
@@ -352,17 +352,17 @@ int isValidLevelFile(char* compressed_filename)
 		if(buffer)
 			free(buffer);
 		gzclose(compressed_filep);
-		return 0;
+		return 1;
      }
 	else
 	{
 		if(buffer)
 			free(buffer);
 		gzclose(compressed_filep);
-		return 1;
+		return 0;
 	}
 	gzclose(compressed_filep);
-     return 0;
+     return 1;
 }
 /****************************************************************************
 * Description                                                               
@@ -648,7 +648,7 @@ int ReadLevelFile(char* compressed_filename, BITARRAY *array, int length)
      }
      else
      {
-          return -1;
+          return 1;
      }
      return status;
 }
@@ -683,7 +683,7 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
           status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
           if(status)
           {
-               return 0;
+               return 1;
           }
           if(*buffer == 0x0C)
           {
@@ -773,7 +773,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
           status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
           if(status)
           {
-               return 0;
+               return status;
           }
           if(*buffer == 0x0C)
           {
@@ -1047,7 +1047,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
           status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
           if(status)
           {
-               return 0;
+               return 1;
           }
           if(*buffer == 0x0C)
           {
