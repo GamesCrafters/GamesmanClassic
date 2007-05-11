@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.37 2007-05-08 22:14:00 max817 Exp $
+// $Id: mbaghchal.c,v 1.38 2007-05-11 01:38:18 max817 Exp $
 
 /************************************************************************
 **
@@ -1062,7 +1062,8 @@ void setOption (int option)
 	else
 		diagonals = TRUE;
 	option /= 2;
-	length = (option / (TIGERS_MAX * GOATS_MAX))+3;
+	width = length = (option / (TIGERS_MAX * GOATS_MAX))+3;
+    boardSize = width*length;
 	tigers = ((option % (TIGERS_MAX * GOATS_MAX)) / GOATS_MAX)+1;
 	goats = ((option % (TIGERS_MAX * GOATS_MAX)) % GOATS_MAX)+1;
 }
@@ -1689,6 +1690,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.37  2007/05/08 22:14:00  max817
+// Fixed a bug with initializing the game
+//
 // Revision 1.36  2007/05/07 22:12:04  max817
 // 3x3
 //
