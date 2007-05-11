@@ -46,7 +46,7 @@ TIERLIST*	CreateTierlistNode		(TIER theTier, TIERLIST* theNextTier);
 TIERLIST*	CopyTierlist			(TIERLIST* theTierlist);
 TIERLIST*	MoveToFrontOfTierlist	(TIER theTier, TIERLIST* theTierlist);
 BOOLEAN		TierInList				(TIER theTier, TIERLIST* theTierlist);
-BOOLEAN		RemoveTierFromList		(TIER theTier, TIERLIST* theTierlist);
+BOOLEAN		RemoveTierFromList		(TIER theTier, TIERLIST** theTierlist);
 
 UNDOMOVELIST*	CreateUndoMovelistNode		(UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove);
 

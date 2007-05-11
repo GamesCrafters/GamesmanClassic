@@ -68,13 +68,15 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 	struct stat fileinfo3;
     minHashValue = startIndex + findMinValueFromArray(array, endIndex-startIndex);
     maxHashValue = startIndex + findMaxValueFromArray(array, endIndex-startIndex);
+	
     int type = 0;
     
 	if(endIndex < startIndex)
 	{
 	    return 1;
 	}
-	UINT8 bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
+	UINT64 bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
+
 	// 	UINT64 length = ceil((maxHashValue - minHashValue)/BITSINBYTE);
 	
 	while(type < NUMOFTYPES)// create the four file types
@@ -133,6 +135,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 				printf("2: couldn't open file");
 				return 1;
 			}
+//			printf("bpppppp %llu %llu %llu", bitsPerPosition, maxHashValue, minHashValue);
 			writeHeader(compressed_filep_type2, minHashValue, maxHashValue, findLastZero(array, maxHashValue-minHashValue) - findMinValueFromArray(array, endIndex-startIndex), type);
 			printf("2: Header is Written to File\n");
 			ArrayToType2Write(array, startIndex, maxHashValue, bitsPerPosition, minHashValue);
@@ -166,101 +169,106 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 		type++;
 	}
 	
-	char* fnameChosen = NULL;
+	char* fnameChosen = NULL;/*s
     stat(filename_type0, &fileinfo0);
     stat(filename_type1, &fileinfo1);
     stat(filename_type2, &fileinfo2);
     stat(filename_type3, &fileinfo3);
-    //~ if(fileinfo1.st_size > fileinfo0.st_size)
-    //~ {
-	    //~ if(fileinfo2.st_size > fileinfo1.st_size)
-		//~ {
-		    //~ if(fileinfo3.st_size > fileinfo2.st_size)
-		    //~ {
-				//~ compressed_filep = compressed_filep_type3;
-				//~ fnameChosen = filename_type3;
-			    //~ remove(filename_type0);
-			    //~ remove(filename_type1);
-			    //~ remove(filename_type2);
-				//~ printf("type 3a");
-		    //~ }
-		    //~ else
-		    //~ {
-				//~ compressed_filep = compressed_filep_type2;
-				//~ fnameChosen = filename_type2;
-			    //~ remove(filename_type0);
-			    //~ remove(filename_type1);
-			    //~ remove(filename_type3);
-				//~ printf("type 2a");
-		    //~ }
-		//~ }
-		//~ else
-		//~ {
-		    //~ if(fileinfo3.st_size > fileinfo1.st_size)
-		    //~ {
-				//~ compressed_filep = compressed_filep_type3;
-				//~ fnameChosen = filename_type3;
-			    //~ remove(filename_type0);
-			    //~ remove(filename_type1);
-			    //~ remove(filename_type2);
-				 //~ printf("type 3b");
-		    //~ }
-		    //~ else
-		    //~ {
-				//~ compressed_filep = compressed_filep_type1;
-				//~ fnameChosen = filename_type1;
-			    //~ remove(filename_type0);
-			    //~ remove(filename_type3);
-			    //~ remove(filename_type2);
-				 //~ printf("type 1a");
-		    //~ }
-		//~ }
-    //~ }
-    //~ else
-    //~ {
-		//~ if(fileinfo2.st_size > fileinfo0.st_size)
-		//~ {
-		    //~ if(fileinfo3.st_size > fileinfo2.st_size)
-		    //~ {
-				//~ compressed_filep = compressed_filep_type3;
-				//~ fnameChosen = filename_type3;
-			    //~ remove(filename_type0);
-			    //~ remove(filename_type1);
-			    //~ remove(filename_type2);
-				 //~ printf("type 3c");
-		    //~ }
-		    //~ else
-		    //~ {
-				//~ compressed_filep = compressed_filep_type2;
-				//~ fnameChosen = filename_type2;
-			    //~ remove(filename_type0);
-			    //~ remove(filename_type1);
-			    //~ remove(filename_type3);
-				 //~ printf("type 2b");
-		    //~ }
-		//~ }
-		//~ else
-		//~ {
-		    //~ if(fileinfo3.st_size > fileinfo0.st_size)
-		    //~ {
-				//~ compressed_filep = compressed_filep_type3;
-				//~ fnameChosen = filename_type3;
-			    //~ remove(filename_type0);
-			    //~ remove(filename_type1);
-			    //~ remove(filename_type2);
-				 //~ printf("type 3d");
-		    //~ }
-		    //~ else
-		    //~ {
-				//~ compressed_filep = compressed_filep_type0;
-				//~ fnameChosen = filename_type0;
-			    //~ remove(filename_type3);
-			    //~ remove(filename_type1);
-			    //~ remove(filename_type2);
-				 //~ printf("type 0a");
-		    //~ }
-		//~ }
-    //~ }
+    if(fileinfo1.st_size > fileinfo0.st_size)
+    {
+	    if(fileinfo2.st_size > fileinfo1.st_size)
+		{
+		    if(fileinfo3.st_size > fileinfo2.st_size)
+		    {
+				compressed_filep = compressed_filep_type3;
+				fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				printf("type 3a");
+		    }
+		    else
+		    {
+				compressed_filep = compressed_filep_type2;
+				fnameChosen = filename_type2;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type3);
+				printf("type 2a");
+		    }
+		}
+		else
+		{
+		    if(fileinfo3.st_size > fileinfo1.st_size)
+		    {
+				compressed_filep = compressed_filep_type3;
+				fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 3b");
+		    }
+		    else
+		    {
+				compressed_filep = compressed_filep_type1;
+				fnameChosen = filename_type1;
+			    remove(filename_type0);
+			    remove(filename_type3);
+			    remove(filename_type2);
+				 printf("type 1a");
+		    }
+		}
+    }
+    else
+    {
+		if(fileinfo2.st_size > fileinfo0.st_size)
+		{
+		    if(fileinfo3.st_size > fileinfo2.st_size)
+		    {
+				compressed_filep = compressed_filep_type3;
+				fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 3c");
+		    }
+		    else
+		    {
+				compressed_filep = compressed_filep_type2;
+				fnameChosen = filename_type2;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type3);
+				 printf("type 2b");
+		    }
+		}
+		else
+		{
+		    if(fileinfo3.st_size > fileinfo0.st_size)
+		    {
+				compressed_filep = compressed_filep_type3;
+				fnameChosen = filename_type3;
+			    remove(filename_type0);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 3d");
+		    }
+		    else
+		    {
+				compressed_filep = compressed_filep_type0;
+				fnameChosen = filename_type0;
+			    remove(filename_type3);
+			    remove(filename_type1);
+			    remove(filename_type2);
+				 printf("type 0a");
+		    }
+		}
+    }*/
+    compressed_filep = compressed_filep_type0;
+    fnameChosen = filename_type0;
+    remove(filename_type3);
+    remove(filename_type1);
+    remove(filename_type2);
     rename(fnameChosen, compressed_filename);
     
 	return 0;
@@ -423,7 +431,7 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 * Return Values                                                             
 *      0 upon success or 1 upon error                                       
 ****************************************************************************/
-int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT8 bitsPerPosition, UINT64 offset)
+int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT64 bitsPerPosition, UINT64 offset)
 {
 
 	POSITION counter = startIndex;
@@ -453,18 +461,22 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 			{
 				offsetValue = counter - offset;
 				leftShift = 8*8 - leftOffset - bitsPerPosition;
-				positionToByteArray(bufferCurr, offsetValue << (64 - bitsPerPosition-leftOffset), bufferPrev);
+				positionToByteArray(bufferCurr, offsetValue << leftShift, bufferPrev);
 				status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, floor((bitsPerPosition + leftOffset)/8));
+//				bitlib_print_bytes_in_bits(bufferCurr, floor((bitsPerPosition + leftOffset)/8));
+//				printf("counter %d amountt %d", counter, (UINT8)(bitsPerPosition));
 				numBytesInCurrent = floor((leftOffset + bitsPerPosition)/8);
 				bufferPrev = *(bufferCurr + (UINT8)floor((leftOffset+bitsPerPosition)/8));
-				leftOffset = ((bitsPerPosition+leftOffset)%8);
-		}
+				leftOffset = ((bitsPerPosition+leftOffset)%8);			
+			}
 			bitcounter++;
 			counter++;
 		}
 		if(bufferPrev !=0)
 		{
 			status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, 1);
+			//bitlib_print_bytes_in_bits(bufferCurr, 1);
+
 		}
 		array++;
 	}
@@ -492,6 +504,7 @@ int positionToByteArray(BITARRAY* buffer, UINT64 value, BYTE bufferPrev)
 {
 	int byteNum = 0;
 	BYTE oneByte;
+//	printf("value %x	\n", bufferPrev);
 	while(byteNum < sizeof(UINT64))
 	{
 		UINT8 bitsTillDesiredByte, bitsInSevenBytes;
@@ -524,7 +537,7 @@ int positionToByteArray(BITARRAY* buffer, UINT64 value, BYTE bufferPrev)
 * Return Values                                                             
 *      0 upon success or 1 upon error                                       
 ****************************************************************************/
-int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT8 bitsPerPosition, UINT64 offset)
+int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT64 bitsPerPosition, UINT64 offset)
 {
 	 POSITION counter = startIndex;
 	UINT8 bitcounter = 0, currentByte;
@@ -631,6 +644,7 @@ int ArrayToType3Write(BITARRAY *array, UINT64 startIndex, UINT64 minHashValue, U
 int ReadLevelFile(char* compressed_filename, BITARRAY *array, int length)
 {
 	int status;
+	//length++;
 	int type = getLevelFileType(compressed_filename);
 	if(type == 0)
 	{
@@ -677,7 +691,7 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 	int endSectionCounter = 0;
 	int diff  = 0;
 	compressed_filep = gzopen(compressed_filename, "rb");
-	length ++;
+	//length ++;
 	//skips header section which has two 0xC (at end of header) and all other ASCII chars
 	while(status == STATUS_SUCCESS && endSectionCounter < 2)
 	{
@@ -702,39 +716,48 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 		if((*buffer) != 0x20)//create number
 		{
 			   temp = temp * 10 + ((*buffer) - '0');
-		  printf(" number %d  --", temp);
+//		  printf(" number %d  --", temp);
 	    }
 		else//number done, put in array
 		{
-		diff = temp - minHashValue;
-		while(index < diff)
-		{
-			bitValue = index % 8;
-			if(bitValue ==0)
+			diff = temp - minHashValue;
+			while(index < diff)
 			{
-				(*array) = 0;
+				bitValue = index % 8;
+				if(bitValue ==0)
+				{
+					(*array) = 0;
+				}
+				index ++;
+				if(bitValue == 7)
+				{
+//					printf("== %d %x==", bitValue, *array);
+					array++;
+				}	
 			}
-			index ++;
-		}
-		if(index == diff)
-		{
-			bitValue = index % 8;
-			printf("\nputting in a 1 %d , %d bitValue", temp, bitValue);
-			if(bitValue ==0)
+			if(index == diff)
 			{
-				(*array) = 0;
+				bitValue = index % 8;
+//				printf("\nputting in a 1 %d , %d,  %d bitValue", temp, bitValue, index);
+				if(bitValue ==0)
+				{
+					(*array) = 0;
+				}
+				(*array) = (*array) | (1 << (7-bitValue));
+				index++;
 			}
-			(*array) = (*array) | (1 << (7-bitValue));
-			index++;
+			if(bitValue == 7)
+			{
+//				printf("== %d %x==", bitValue, *array);
+				array++;
+			}
+			  temp = 0;
 		}
-		if(bitValue == 7)
-		{
-			array++;
-		}
-		  temp = 0;
-	}
 		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 	}
+	printf("== %d %x==", bitValue, *array);
+
+	bitlib_print_bytes_in_bits(array, 2);
 	if(buffer)
 		free(buffer);
 	gzclose(compressed_filep);
@@ -758,7 +781,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 	int index = 0;
 	UINT64    minHashValue = getLevelFileMinHashValue(compressed_filename);
 	UINT64    maxHashValue = getLevelFileMaxHashValue(compressed_filename);
-	UINT8     bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
+	UINT64     bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
 	BYTE*     buffer = (BYTE*)malloc(sizeof(BYTE));
 	int       status = STATUS_SUCCESS;
 	int       endSectionCounter = 0;
@@ -792,17 +815,20 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 	int counter = 0;
 	int lastTempNumber = -1;
 	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-	while(lastTempNumber < length)
+	while((lastTempNumber+1) < length)
 	{
 		if(tempBitIndexInByte != 1)//stll evaluating same byte
 		{
 			printf("case1\n");
+			printf("--- %x %d\n", *buffer, currentIndex);
 			if((8 - (tempBitIndexInByte - 1)) > bitsPerPosition) // doesn't use up rest of byte
 			{
+				printf(" == %d %x==", tempBitIndexInByte, *buffer);
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (8 - (bitsPerPosition)));
 				tempBitIndexInByte += bitsPerPosition;
 				//add number to bitArray
 				lastTempNumber = tempNumber;
+				printf("1tempNumber %d\n", tempNumber);
 				///ADDNUMBERTOBITARRAY
 				if(counter > length)
 				{
@@ -846,11 +872,14 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 			else// uses up rest of Byte
 			{
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (tempBitIndexInByte - 1));
-				currentIndex = (8-(tempBitIndexInByte-1));
+				printf(" *** %d %d ", currentIndex, tempBitIndexInByte);
+				currentIndex += (8-(tempBitIndexInByte-1));
 				tempBitIndexInByte = 1;
 				if(currentIndex >= bitsPerPosition)//add number to bitArray
 				{
+//					printf("add case1b to array ");
 					///ADDNUMBERTOBITARRAY
+					printf("2tempNumber %d\n", tempNumber);
 					lastTempNumber = tempNumber;
 					if(counter > length)
 					{
@@ -861,16 +890,21 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 							free(currentByte);
 						return 0;
 					}
-				else
+					else
 					{
 						while(counter < tempNumber)
 						{
+//							printf("counter %d %d", counter, tempNumber);
 							bitValue = counter % 8;
 							if(bitValue ==0)
 							{
 								(*bitArray) = 0;
 							}
 							counter ++;
+							if(bitValue == 7)
+							{
+								bitArray++;
+							}
 						}
 						if(counter == tempNumber)
 						{
@@ -886,12 +920,10 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 						{
 							bitArray++;
 						}
-				
-						currentIndex = 0;
-						tempNumber = 0;
 					}
 					//ENDADDNUMBERTOBITARRAY
-
+					currentIndex = 0;
+					tempNumber = 0;
 				}
 			}
 		}
@@ -899,12 +931,14 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 		{
 			printf("case2\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			printf("--- %x %d\n", *buffer, currentIndex);
 			index ++;
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
 			tempBitIndexInByte = 1;
 			currentIndex += 8;
 			if(currentIndex >= bitsPerPosition)//add number to bitArray
 			{
+				printf("3tempNumber %d\n", tempNumber);
 				///ADDNUMBERTOBITARRAY
 				lastTempNumber = tempNumber;
 				if(counter > length)
@@ -924,6 +958,10 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 						if(bitValue ==0)
 						{
 							(*bitArray) = 0;
+						}
+						if(bitValue == 7)
+						{
+							bitArray++;
 						}
 						counter ++;
 					}
@@ -951,17 +989,21 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 		{
 			printf("case3\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			printf("--- %x %d\n", *buffer, currentIndex);
 			index ++;
 			if(currentIndex)
 				tempNumber = (tempNumber << (bitsPerPosition - currentIndex))  + ((*buffer) >> (8-(bitsPerPosition-currentIndex)));
 			else
 				tempNumber = (((*buffer) << (tempBitIndexInByte - 1))  >> (8 - bitsPerPosition));
-			tempBitIndexInByte += (bitsPerPosition - currentIndex);
+
+			tempBitIndexInByte = (bitsPerPosition - currentIndex + 1);
+//			printf("tempNumber %x %d %d\n", *buffer, bitsPerPosition, tempBitIndexInByte);
 			currentIndex = bitsPerPosition;
 			if(currentIndex >= bitsPerPosition) //add number to bitArray
 			{
 				///ADDNUMBERTOBITARRAY
 				lastTempNumber = tempNumber;
+				printf("4tempNumber %d\n", tempNumber);
 				if(counter > length)
 				{
 					gzclose(compressed_filep);
@@ -982,6 +1024,10 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 							(*bitArray) = 0;
 						}
 						counter ++;
+						if(bitValue == 7)
+						{
+							bitArray++;
+						}
 					}
 					if(counter == tempNumber)
 					{
@@ -1035,7 +1081,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 	UINT64    minHashValue = getLevelFileMinHashValue(compressed_filename);
 	UINT64    maxHashValue = getLevelFileMaxHashValue(compressed_filename);
 	UINT64    lastZero = getLastZero(compressed_filename);
-	UINT8     bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
+	UINT64    bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
 	BYTE*     buffer = (BYTE*)malloc(sizeof(BYTE));
 	int       status = STATUS_SUCCESS;
 	int       endSectionCounter = 0;
@@ -1073,6 +1119,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 	{
 		if(tempBitIndexInByte != 1)//stll evaluating same byte
 		{
+//			printf("case1\n");
 			if((8 - (tempBitIndexInByte - 1)) > bitsPerPosition) // doesn't use up rest of byte
 			{
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (8 - (bitsPerPosition)));
@@ -1173,6 +1220,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 		}
 		else if((currentIndex + 8) < bitsPerPosition) //if using whole Byte
 		{
+//			printf("case2\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 			if(*buffer == 0x0C)
 				endSectionCounter = 1;
@@ -1263,17 +1311,18 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 		}
 		else // getting new byte but only using some of it
 		{
+//			printf("case3\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 			if(*buffer == 0x0C)
 			{
+				printf("ksljfd?");
 				endSectionCounter = 1;
 			}
 			else
 			{
-				if(endSectionCounter == 1 & (*buffer) == 0x0A)
+				if(endSectionCounter == 1 & (*buffer) != 0x0A)
 				{
-					///ADDNUMBERTOBITARRAY
-					lastTempNumber = tempNumber;
+
 					if(counter > length)
 					{
 						gzclose(compressed_filep);
@@ -1285,6 +1334,8 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 					}
 					else
 					{
+						lastTempNumber = tempNumber;
+//						printf("tempnumber %d", tempNumber);
 						while(counter <= length)
 						{
 							bitValue = counter % 8;
@@ -1293,6 +1344,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 								(*bitArray) = 0;
 							}
 							(*bitArray) = (*bitArray) | (1 << (7-bitValue));
+							printf(" conter bitvalue, bitarray %d, %d, %d", counter, bitValue, *bitArray);
 							counter++;
 							if(bitValue == 7)
 							{
@@ -1303,79 +1355,34 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 						{
 							bitArray++;
 						}
+						endSectionCounter = 0;
 					}
-				}
-				endSectionCounter = 0;
-			}
-					//ENDADDNUMBERTOBITARRAY
-			index ++;
-			if(currentIndex)
-				tempNumber = (tempNumber << (bitsPerPosition - currentIndex))  + ((*buffer) >> (8-(bitsPerPosition-currentIndex)));
-			else
-				tempNumber = (((*buffer) << (tempBitIndexInByte - 1))  >> (8 - bitsPerPosition));
-			tempBitIndexInByte += (bitsPerPosition - currentIndex);
-			currentIndex = bitsPerPosition;
-			if(currentIndex >= bitsPerPosition) //add number to bitArray
-			{
-				///ADDNUMBERTOBITARRAY
-				lastTempNumber = tempNumber;
-				if(counter > length)
-				{
-					gzclose(compressed_filep);
-					if(buffer)
-						free(buffer);
-
-					if(currentByte)
-						free(currentByte);
-					return 0;
 				}
 				else
 				{
-					while(counter < tempNumber)
+					while(counter <= length)
 					{
 						bitValue = counter % 8;
 						if(bitValue ==0)
 						{
 							(*bitArray) = 0;
 						}
+//						printf("count %d", counter);
 						(*bitArray) = (*bitArray) | (1 << (7-bitValue));
 						counter++;
-					}
-					if(counter == tempNumber)
-					{
-						bitValue = counter % 8;
-						if(bitValue ==0)
+						if(bitValue == 7)
 						{
-							(*bitArray) = 0;
+							bitArray++;
 						}
-						counter ++;
-					}
-					if(bitValue == 7)
-					{
-						bitArray++;
 					}
 				}
-				//ENDADDNUMBERTOBITARRAY
-				currentIndex = 0;
-				tempNumber = 0;
 			}
+				
+					//ENDADDNUMBERTOBITARRAY
 			//printf("bitInByte %d  CurrentIndex %d \n", tempBitIndexInByte, currentIndex);
 		}
 	}
-	while(counter <= length)
-	{
-		bitValue = counter % 8;
-		if(bitValue ==0)
-		{
-			(*bitArray) = 0;
-		}
-		(*bitArray) = (*bitArray) | (1 << (7-bitValue));
-		counter++;
-		if(bitValue == 7)
-		{
-			bitArray++;
-		}
-	}
+
 	// read bits and form number until bits per postition, then increment index
 
 	gzclose(compressed_filep);
@@ -1487,10 +1494,10 @@ int getLevelFileType(char* compressed_filename)
 * Return Values                                                             
 *      UINT8 status                                                         
 ****************************************************************************/
-int getLevelFileMinHashValue(char* compressed_filename)
+UINT64 getLevelFileMinHashValue(char* compressed_filename)
 {
 	int status;
-	int minHashValue;
+	UINT64 minHashValue;
 	int pastType = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
 	compressed_filep = gzopen(compressed_filename, "rb");
@@ -1561,10 +1568,10 @@ int getLevelFileMinHashValue(char* compressed_filename)
 * Return Values                                                             
 *      UINT8 status                                                         
 ****************************************************************************/
-int getLevelFileMaxHashValue(char* compressed_filename)
+UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 {
 	int status;
-	int maxHashValue;
+	UINT64 maxHashValue;
 	int pastMin = 0;
 	int pastType = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
@@ -1643,11 +1650,14 @@ int getLevelFileMaxHashValue(char* compressed_filename)
 * Return Values                                                             
 *      UINT8 status                                                         
 ****************************************************************************/
-int getLevelFileBitsPerPosition(char* compressed_filename)
+UINT64 getLevelFileBitsPerPosition(char* compressed_filename)
 {
 	int status;
-	int maxValue = getLevelFileMaxHashValue(compressed_filename) - getLevelFileMinHashValue(compressed_filename);
-	return log2(maxValue) + 1;
+	UINT64 max = getLevelFileMaxHashValue(compressed_filename);
+	UINT64 min = getLevelFileMinHashValue(compressed_filename);
+	UINT64 maxValue = max - min;
+	printf("maxvalue %llu %llu %llu", maxValue, max, min);
+	return (log2(maxValue) + 1);
 }
 
 /****************************************************************************
@@ -1734,6 +1744,7 @@ UINT64 findMaxValueFromArray(BITARRAY* array, UINT64 length)
 		}
 		array++;
 	}
+	printf("!!!!!!!!!!!!!!!! max %llu", lastVal);
 	return lastVal;
 }
 

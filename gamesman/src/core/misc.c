@@ -437,12 +437,12 @@ BOOLEAN	TierInList(TIER theTier, TIERLIST* theTierlist)
 }
 
 // removes the tier from the list
-BOOLEAN	RemoveTierFromList (TIER theTier, TIERLIST* theTierlist) {
-	if (!TierInList(theTier, theTierlist))
+BOOLEAN	RemoveTierFromList (TIER theTier, TIERLIST** theTierlist) {
+	if (!TierInList(theTier, (*theTierlist)))
 		return FALSE;
-	theTierlist = MoveToFrontOfTierlist(theTier, theTierlist);
+	theTierlist = MoveToFrontOfTierlist(theTier, (*theTierlist));
 	TIERLIST* temp = theTierlist;
-	theTierlist = theTierlist->next;
+	(*theTierlist) = (*theTierlist)->next;
 	SafeFree(temp);
 	return TRUE;
 }
