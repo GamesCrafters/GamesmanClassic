@@ -126,8 +126,6 @@ case $MACHINE in
   IRIX-5*)   OS=IRIX5;;
   IRIX*-6*)  OS=IRIX5;;
   CYGWIN*)   OS=WIN32
-  			 OUTCFLAGS="$OUTCFLAGS -DCYGWIN32"
-  			 OUTLDFLAGS="-lm -lc"
 			 OUTLIBSUFFIX=".dll";;
   Darwin*)   OS=MACOSX
   			 OUTLIBSUFFIX=".dylib";;
@@ -151,11 +149,23 @@ AC_PROG_RANLIB
 AC_CHECK_TOOL(AR, ar, :)
 AC_ISC_POSIX
 
+###
+### Check for integer types
+###
+AC_TYPE_INT8_T
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+AC_TYPE_INT64_T
+AC_TYPE_UINT8_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
 
 ###
 ### Check for libraries
 ###
 
+AC_SEARCH_LIBS(malloc, c)
 AC_SEARCH_LIBS(cos, m)
 AC_SEARCH_LIBS(connect, socket)
 AC_SEARCH_LIBS(gethostbyname, nsl)
