@@ -31,4 +31,6 @@ source "$kRootDir/../tcl/mcon.tcl"
 
 ### Now source the rest of the game-playing interface code.
 
-source "$kRootDir/../tcl/gamesmanmcon.tcl"
+source "$kRootDir/../tcl/gamesman3.tcl"
+
+main $kRootDir
