@@ -2239,7 +2239,7 @@ STRING TierToString(TIER tier) {
   return str;
 }
 
-// FIXME - needs to make the "transitions" of the nodes in the Tier tree
+// needs to make the "transitions" of the nodes in the Tier tree
 TIERLIST* TierChildren(TIER tier) {
   TIERLIST* list = NULL;
   list = CreateTierlistNode(tier, list); // takes the list pointer and creates a new node with that tier and make it its next pointer
@@ -2496,6 +2496,9 @@ BOOLEAN IsLegal(POSITION position) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.52  2007/05/08 00:23:15  alexchoy
+// *** empty log message ***
+//
 // Revision 1.51  2007/05/02 22:34:47  alexchoy
 // *** empty log message ***
 //
