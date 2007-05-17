@@ -205,11 +205,8 @@ proc min { a b } {
 
 proc DrawBoard { c } {
     global gFrameWidth gFrameHeight boardSize size margin square
-
     set size [min $gFrameWidth $gFrameHeight]
-
     set square [expr ($size - 2*$margin) / $boardSize]
-
     set radius [expr 0.2 * $square]
     
     # Draw a gray background
@@ -400,8 +397,8 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
-
     foreach move $moveList {
+        puts $move
 	DrawMove $c [lindex $move 0] $moveType [lindex $move 1]
     }
 }
@@ -434,16 +431,18 @@ proc DrawMove { c move moveType type } {
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
-    set temp1 [drawOval $c $color0 $color1]
-    set temp2 [drawOval $c $white0 $white1]
+    global gFrameWidth gFrameHeight boardSize size margin square
+    set size [min $gFrameWidth $gFrameHeight]
+    set square [expr ($size - 2*$margin) / $boardSize]
+    set longradius [expr 0.2 * $square]
+    set shortradius [expr 0.1 * $square]
 
-    $c bind $temp1 <Enter> "$c itemconfigure $temp1 -fill black"
-    $c bind $temp1 <Leave> "$c itemconfigure $temp1 -fill $color"
-    $c bind $temp1 <ButtonRelease-1> "ReturnFromHumanMove $move"
+    
 
-    $c bind $temp2 <Enter> "$c itemconfigure $temp2 -fill black"
-    $c bind $temp2 <Leave> "$c itemconfigure $temp2 -fill $color"
-    $c bind $temp2 <ButtonRelease-1> "ReturnFromHumanMove $move"
+
+    #$c bind $temp <Enter> "$c itemconfigure $temp -fill black"
+    #$c bind $temp <Leave> "$c itemconfigure $temp -fill $color"
+    #$c bind $temp <ButtonRelease-1> "ReturnFromHumanMove $move"
 
 }
 
@@ -451,28 +450,51 @@ proc drawOval { c num1 num2 } {
     global gFrameWidth gFrameHeight boardSize size margin square
     set size [min $gFrameWidth $gFrameHeight]
     set square [expr ($size - 2*$margin) / $boardSize]
+    set longradius [expr 0.2 * $square]
+    set shortradius [expr 0.1 * $square]
+    
 
-    set row [expr $num1/3]
-    set col [expr $num1%3]
+    set row1 [expr $num1/3]
+    set col1 [expr $num1%3]
+    set row2 [expr $num2/3]
+    set col2 [expr $num2%3]
 
-    #draw the square
-    $c create rect \
-        [expr $margin + $square * $col] \
-        [expr $margin + $square * $row] \
-        [expr $margin + $square * ($col + 1)] \
-        [expr $margin + $square * ($row + 1)] \
-        -width 2
+    #left-right oval
+    if { [expr $num2-$num1] == 1} {
+        #draw left oval
+        $c create oval \
+            [expr $margin + $square * ($col1+1) - $longradius] \
+            [expr $margin + $square * ($row1+0.5) - $shortradius] \
+            [expr $margin + $square * ($col1+1)] \
+            [expr $margin + $square * ($row1+0.5) + $shortradius] \
+            -width 2
 
-    set row [expr $num2/3]
-    set col [expr $num2%3]
+        #draw right oval
+        $c create oval \
+            [expr $margin + $square * $col2] \
+            [expr $margin + $square * ($row2+0.5) - $shortradius] \
+            [expr $margin + $square * $col2 + $longradius] \
+            [expr $margin + $square * ($row2+0.5) + $shortradius] \
+            -width 2
+    #top-bottom oval
+    } else {
+        #draw top oval
+        $c create oval \
+            [expr $margin + $square * ($col1+0.5) - $shortradius] \
+            [expr $margin + $square * ($row1+1) - $longradius] \
+            [expr $margin + $square * ($col1+0.5) + $shortradius] \
+            [expr $margin + $square * ($row1+1)] \
+            -width 2
 
-    #draw the square
-    $c create rect \
-        [expr $margin + $square * $col] \
-        [expr $margin + $square * $row] \
-        [expr $margin + $square * ($col + 1)] \
-        [expr $margin + $square * ($row + 1)] \
-        -width 2
+        #draw bottom oval
+        $c create oval \
+            [expr $margin + $square * ($col2+0.5) - $shortradius] \
+            [expr $margin + $square * $row2] \
+            [expr $margin + $square * ($col2+0.5) + $shortradius] \
+            [expr $margin + $square * $row2 + $longradius] \
+            -width 2
+    }
+
 }
 
 #############################################################################
