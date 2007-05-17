@@ -218,6 +218,16 @@ proc DrawBoard { c } {
 	$c create line [expr $margin + ($i + 1) * $square] $margin [expr $margin + ($i + 1) * $square] [expr $size - $margin] -width 2 -fill "\#696969"
     }
 
+    drawCircle $c
+
+}
+
+proc drawCircle { c } {
+    global gFrameWidth gFrameHeight boardSize size margin square
+    set size [min $gFrameWidth $gFrameHeight]
+    set square [expr ($size - 2*$margin) / $boardSize]
+    set radius [expr 0.2 * $square]
+
     # Draw three spots
     for { set i 0 } { $i < $boardSize } { incr i } {
 	$c create oval \
@@ -227,9 +237,7 @@ proc DrawBoard { c } {
 	    [expr $margin + 2.5 * $square + $radius] \
 	    -fill darkgray
     }
-
 }
-
 
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
@@ -397,8 +405,18 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
+
     foreach move $moveList {
-        puts $move
+        set colorPos [getPos 0 [lindex $move 0]]
+        set color0 [pieceToBoard $colorPos 0]
+        set color1 [pieceToBoard $colorPos 1]
+        set whitePos [getPos 2 [lindex $move 0]]
+        set white0 [pieceToBoard $whitePos 0]
+        set white1 [pieceToBoard $whitePos 1]
+
+        puts "color [expr $color0] [expr $color1]"
+        puts "white [expr $white0] [expr $white1]"
+
 	DrawMove $c [lindex $move 0] $moveType [lindex $move 1]
     }
 }
@@ -431,69 +449,39 @@ proc DrawMove { c move moveType type } {
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
+
     global gFrameWidth gFrameHeight boardSize size margin square
     set size [min $gFrameWidth $gFrameHeight]
     set square [expr ($size - 2*$margin) / $boardSize]
     set longradius [expr 0.2 * $square]
     set shortradius [expr 0.1 * $square]
 
+    set row [expr $color0/3]
+    set col [expr $color0%3]
     
-
-
-    #$c bind $temp <Enter> "$c itemconfigure $temp -fill black"
-    #$c bind $temp <Leave> "$c itemconfigure $temp -fill $color"
-    #$c bind $temp <ButtonRelease-1> "ReturnFromHumanMove $move"
-
-}
-
-proc drawOval { c num1 num2 } {
-    global gFrameWidth gFrameHeight boardSize size margin square
-    set size [min $gFrameWidth $gFrameHeight]
-    set square [expr ($size - 2*$margin) / $boardSize]
-    set longradius [expr 0.2 * $square]
-    set shortradius [expr 0.1 * $square]
-    
-
-    set row1 [expr $num1/3]
-    set col1 [expr $num1%3]
-    set row2 [expr $num2/3]
-    set col2 [expr $num2%3]
-
     #left-right oval
-    if { [expr $num2-$num1] == 1} {
-        #draw left oval
-        $c create oval \
-            [expr $margin + $square * ($col1+1) - $longradius] \
-            [expr $margin + $square * ($row1+0.5) - $shortradius] \
-            [expr $margin + $square * ($col1+1)] \
-            [expr $margin + $square * ($row1+0.5) + $shortradius] \
-            -width 2
+    if { [expr $color1-$color0] == 1} {
+        set temp [$c create oval \
+                      [expr $margin + $square * ($col+1) - $longradius] \
+                      [expr $margin + $square * ($row+0.5) - $shortradius] \
+                      [expr $margin + $square * ($col+1) + $longradius] \
+                      [expr $margin + $square * ($row+0.5) + $shortradius] \
+                      -fill $color -width 2]
 
-        #draw right oval
-        $c create oval \
-            [expr $margin + $square * $col2] \
-            [expr $margin + $square * ($row2+0.5) - $shortradius] \
-            [expr $margin + $square * $col2 + $longradius] \
-            [expr $margin + $square * ($row2+0.5) + $shortradius] \
-            -width 2
     #top-bottom oval
     } else {
-        #draw top oval
-        $c create oval \
-            [expr $margin + $square * ($col1+0.5) - $shortradius] \
-            [expr $margin + $square * ($row1+1) - $longradius] \
-            [expr $margin + $square * ($col1+0.5) + $shortradius] \
-            [expr $margin + $square * ($row1+1)] \
-            -width 2
-
-        #draw bottom oval
-        $c create oval \
-            [expr $margin + $square * ($col2+0.5) - $shortradius] \
-            [expr $margin + $square * $row2] \
-            [expr $margin + $square * ($col2+0.5) + $shortradius] \
-            [expr $margin + $square * $row2 + $longradius] \
-            -width 2
+        set temp [$c create oval \
+                      [expr $margin + $square * ($col+0.5) - $shortradius] \
+                      [expr $margin + $square * ($row+1) - $longradius] \
+                      [expr $margin + $square * ($col+0.5) + $shortradius] \
+                      [expr $margin + $square * ($row+1) + $longradius] \
+                      -fill $color -width 2]
     }
+
+
+    $c bind $temp <Enter> "$c itemconfigure $temp -fill black"
+    $c bind $temp <Leave> "$c itemconfigure $temp -fill $color"
+    $c bind $temp <ButtonRelease-1> "ReturnFromHumanMove $move"
 
 }
 
