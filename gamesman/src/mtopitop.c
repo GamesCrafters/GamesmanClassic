@@ -280,6 +280,7 @@ PlayerTurn gWhosTurn = Blue;
 MOVE lastMove = -1;		//If lastMove = -1, there has been no last move
 PositionList allPositions = NULL;
 
+BoardAndTurn globalBoard = NULL;
 
 /*************************************************************************
 **
@@ -428,7 +429,10 @@ MOVELIST *GenerateMoves (POSITION position)
 {
     MOVELIST *moves = NULL;
     MOVELIST *CreateMovelistNode();
-    BoardAndTurn board = arrayUnhash(position);
+
+    printf("GenerateMoves\n");
+
+    BoardAndTurn board = arrayUnhash(position);  // here???
     GMove newMove = (GMove) SafeMalloc(sizeof(struct cleanMove));
     MOVE tempMove, undoMove = inverseMove(lastMove);
     int i, j;
@@ -578,7 +582,10 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move) {
  	char pieceToMove, pieceInWay;
 	POSITION newPosition = 0;
-	BoardAndTurn board = arrayUnhash(position);
+
+	printf("DoMove\n");
+
+	BoardAndTurn board = arrayUnhash(position);  // here???
 	GMove newMove = unhashMove(move);
 	lastMove = move;
 
@@ -656,9 +663,11 @@ POSITION DoMove (POSITION position, MOVE move) {
 
 	if (DEBUG_DM) { printf("NEXT BOARD# = %d\n", (int) newPosition); }
 
-	SafeFree(board->data);
-	SafeFree(board->theBoard);
-    SafeFree(board);
+	globalBoard = board;
+
+	//SafeFree(board->data);
+	//SafeFree(board->theBoard);
+	//SafeFree(board);
     SafeFree(newMove);
 
     if (DEBUG_DM) { printf("\n***** END DO MOVE *****\n"); }
@@ -698,6 +707,8 @@ VALUE Primitive (POSITION position) {
 //PrintPosition(position, "", TRUE);
 
     BoardAndTurn board;
+
+    printf("Primitive\n");
 
     board = arrayUnhash(position);
 
@@ -810,7 +821,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	BoardRep toHash;
 	int i;
 
-	board = arrayUnhash(position);
+	printf("PrintPosition\n");
+
+	board = arrayUnhash(position);  // here???
 	toHash = splitBoardLSB(board);
 
 	if (DEBUG_PP) { printf("\nPOSITION# = %d\n", (int) position); }
@@ -1057,7 +1070,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
     USERINPUT HandleDefaultTextInput();
     char* playerColor;
 
-    BoardAndTurn board = arrayUnhash(position);
+    printf("GetAndPrintPlayersMove\n");
+
+    BoardAndTurn board = arrayUnhash(position);  // here???
 
     if (gWhosTurn == Blue) {
       playerColor = "Blue";
@@ -1170,7 +1185,10 @@ MOVE ConvertTextInputToMove (STRING input)
     char first = input[0], second = input[1];
     MOVE thisMove;
     GMove newMove = (GMove) SafeMalloc(sizeof(struct cleanMove));
-    BoardAndTurn board = arrayUnhash(getFrontFromAllPositions());
+
+    printf("ConvertTextInputToMove, getFrontFromAllPositions() call - %d\n", getFrontFromAllPositions());
+
+    //BoardAndTurn board = arrayUnhash(getFrontFromAllPositions());
 
     if (DEBUG_CTITM) {
     	printf("First input = %c\nSecond input = %c\n", first, second);
@@ -1188,7 +1206,7 @@ MOVE ConvertTextInputToMove (STRING input)
         newMove->movePiece = hRedBucket;
     } else {
     	newMove->fromPos = (int) (first - '0');
-    	newMove->movePiece = CharToHashBoardPiece(board->theBoard[newMove->fromPos - 1]);
+    	newMove->movePiece = CharToHashBoardPiece(globalBoard->theBoard[newMove->fromPos - 1]);
     }
 
     thisMove = hashMove(newMove);
@@ -1200,9 +1218,9 @@ MOVE ConvertTextInputToMove (STRING input)
     }
 
     SafeFree(newMove);
-    SafeFree(board->data);
-    SafeFree(board->theBoard);
-    SafeFree(board);
+    //SafeFree(board->data);
+    //SafeFree(board->theBoard);
+    //SafeFree(board);
 
     if (DEBUG_CTITM) { printf("\n***** END CONVERT TEXT INPUT TO MOVE *****\n"); }
 
@@ -1788,6 +1806,9 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   POSITION L, S, B;
 
   TIERPOSITION tierpos; TIER tier;
+
+  printf("hashNumber = %llu\n", hashNumber);
+
   gUnhashToTierPosition(hashNumber, &tierpos, &tier); // get tierpos and tier - not sure how to do this...
   //generic_hash_context_switch(tier);  // switch to that tier's context
 
@@ -1813,7 +1834,8 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
 
   if (hashNumber == 1512) 
 		printf("in arrayUnhash() L = %llu, S = %llu, B = %llu\n", L, S, B);
-  
+  //sum = b + (s * b) + (l * s * b);
+  printf("in arrayUnhash() L = %llu, S = %llu, B = %llu\n", L, S, B);
 
   generic_hash_context_switch(tier);
   generic_hash_unhash(tierpos/(S*B), toHash->boardL);
@@ -1836,6 +1858,7 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
 		printf("%c, %c, %c\n", (toHash->boardL)[as]+48, (toHash->boardS)[as]+48, (toHash->boardB)[as]+48);
 	  }
   }
+
 
   // changed this from what i had before (commented out below)
   //generic_hash_context_switch(tier);
@@ -2267,7 +2290,7 @@ TIERLIST* TierChildren(TIER tier) {
     redBuckets = 2;
   }
 
-    printf("~~~~~ start of redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu, tierDiv3 = %llu\n", redBuckets, blueBuckets, small, large, tier, tierDiv3);
+  //printf("~~~~~ start of redB = %llu, blueB = %llu, small = %llu, large = %llu, TIER = %llu, tierDiv3 = %llu\n", redBuckets, blueBuckets, small, large, tier, tierDiv3);
   
   // see what tier's those pieces can go to (basically, add a piece to the board)
   if ((large + small + redBuckets + blueBuckets) < 12) {
@@ -2412,16 +2435,21 @@ void SetupTierStuff() {
 	
 //printf("5\n");
 
-  gInitialPosition = arrayHash(boardArray); // = currentBoard = prevBoard
-  SafeFree(boardArray->theBoard);
-  SafeFree(boardArray);
+  globalBoard = boardArray;
 
-  printf("4, end of setupTIER\n");
+  gInitialPosition = arrayHash(boardArray); // = currentBoard = prevBoard
+  //SafeFree(boardArray->theBoard);
+  //SafeFree(boardArray);
+
+  //printf("4, end of setupTIER\n");
 }
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
   POSITION l, s, b;
   TIERPOSITION sum;
+
+  printf("NumberOfTierPositions(%llu)\n", tier);
+
   generic_hash_context_switch(tier);
   l =  generic_hash_max_pos();
   generic_hash_context_switch(tier + 1);
@@ -2496,6 +2524,9 @@ BOOLEAN IsLegal(POSITION position) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.53  2007/05/16 22:37:15  alexchoy
+// *** empty log message ***
+//
 // Revision 1.52  2007/05/08 00:23:15  alexchoy
 // *** empty log message ***
 //
