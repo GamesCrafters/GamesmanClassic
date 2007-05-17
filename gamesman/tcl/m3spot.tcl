@@ -5,11 +5,9 @@
 # Updated Fall 2004 by Jeffrey Chiang, and others
 ####################################################
 
-global posToBoard
-
 set margin 50
 set boardSize 3
-set posToBoard [list 7 1 4 2 1 3 8 4 5 5 2 6]
+
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -70,7 +68,6 @@ proc GS_InitGameSpecific {} {
 proc GS_NameOfPieces {} {
 
     return [list R B W]
-    ### FILL THIS IN
 
 }
 
@@ -92,8 +89,7 @@ proc GS_NameOfPieces {} {
 #############################################################################
 proc GS_ColorOfPlayers {} {
 
-	return [list red blue white]
-	### FILL THIS IN
+    return [list red blue white]
     
 }
 
@@ -263,104 +259,55 @@ proc GS_Deinitialize { c } {
 proc GS_DrawPosition { c position } {
 
     #piecePos
-    #123
-    #456
-    #789
+    #012
+    #345
+    #678
 
-    DrawRectangle $c [GetOrient 1 $position] [GetPos 1 $position] "red"
-    DrawRectangle $c [GetOrient 0 $position] [GetPos 0 $position] "blue"
-    DrawRectangle $c [GetOrient 2 $position] [GetPos 2 $position] "white"
+    set redPos [getPos 1 $position]
+    set red0 [pieceToBoard $redPos 0]
+    set red1 [pieceToBoard $redPos 1]
+    set bluePos [getPos 0 $position]
+    set blue0 [pieceToBoard $bluePos 0]
+    set blue1 [pieceToBoard $bluePos 1]
+    set whitePos [getPos 2 $position]
+    set white0 [pieceToBoard $whitePos 0]
+    set white1 [pieceToBoard $whitePos 1]
 
+#puts "red"
+#puts $red0
+#puts $red1
+#puts "blue"
+#puts $blue0
+#puts $blue1
+#puts "white"
+#puts $white0
+#puts $white1
+
+    drawSquare $c $red0 "red"
+    drawSquare $c $red1 "red"
+    drawSquare $c $blue0 "blue"
+    drawSquare $c $blue1 "blue"
+    drawSquare $c $white0 "white"
+    drawSquare $c $white1 "white"
 }
 
-proc DrawRectangle { c orientation piece color } {
-    # vertical
-    if { $orientation == 1 } {
-        if { $piece < 4 } {
-            DrawVertical $c $color 0 ($piece-1)
-        } elseif { $piece < 7 } {
-            DrawVertical $c $color 1 ($piece-4)
-        } else {
-            DrawVertical $c $color 1 ($piece-7)
-        }
-    #horizontal
-    } else {
-        if { [expr ($piece % 3)] == 1 } {
-            DrawHorizontal $c $color ($piece-1)/3 0
-        } elseif { [expr ($piece % 3)] == 2 } {
-            DrawHorizontal $c $color ($piece-1)/3 1
-        } else {
-            DrawHorizontal $c $color ($piece-1)/3 1
-        }
-    }
-}
-
-proc DrawVertical { c color row col } {
-    global gFrameWidth gFrameHeight boardSize size margin square
-    set size [min $gFrameWidth $gFrameHeight]
-    set square [expr ($size - 2*$margin) / $boardSize]
-
-    for { set i $row } { $i < $boardSize } { incr i } {
-        $c create rect \
-            [expr $margin + $square * $col] \
-            [expr $margin + $square * $i] \
-            [expr $margin + $square * ($col + 1)] \
-            [expr $margin + $square * ($i + 1)] \
-            -fill $color -width 2
-    }
-
-}
-
-proc DrawHorizontal { c color row col } {
-    global gFrameWidth gFrameHeight boardSize size margin square
-    set size [min $gFrameWidth $gFrameHeight]
-    set square [expr ($size - 2*$margin) / $boardSize]
-
-    for { set i 0 } { $i < 2 } { incr i } {
-        $c create rect \
-            [expr $margin + $square * ($i + $col)] \
-            [expr $margin + $square * $row] \
-            [expr $margin + $square * ($i + $col + 1)] \
-            [expr $margin + $square * ($row + 1)] \
-            -fill $color -width 2
-    }
-
-}
-
-proc GetOrient { color position } {
+proc getPos { color position } {
+    #red
     if { $color == 1 } {
-        puts "GetRedOrientation"
-        puts [expr ($position & 0x00000100) >> 8]
-        return [expr ($position & 0x00000100) >> 8]
+        return [expr ($position & 0x00000f00) >> 8]
+    #blue
     } elseif { $color == 0 } {
-        puts "GetBlueOrientation"
-        puts [expr ($position & 0x00000001)]
-        return [expr ($position & 0x00000001)]
+        return [expr ($position & 0x0000000f) >> 0]
+    #white
     } else {
-        puts "GetWhiteOrientation"
-        puts [expr ($position & 0x00000010) >> 4]
-        return [expr ($position & 0x00000010) >> 4]
-    }
-}
-
-proc GetPos { color position } {
-    if { $color == 1 } {
-        puts "GetRedPosition"
-        puts [expr ($position & 0x00000e00) >> 9]
-        return [expr ($position & 0x00000e00) >> 9]
-    } elseif { $color == 0 } {
-        puts "GetBluePosition"
-        puts [expr ($position & 0x0000000e) >> 1]
-        return [expr ($position & 0x0000000e) >> 1]
-    } else {
-        puts "GetWhitePosition"
-        puts [expr ($position & 0x000000e0) >> 5]
-        return [expr ($position & 0x000000e0) >> 5]
+        return [expr ($position & 0x000000f0) >> 4]
     }
 }
 
 proc pieceToBoard { position piecePart } {
+    set posToBoard [list 7 1 4 2 1 3 8 4 5 5 2 6]
     set move [lindex $posToBoard [expr $position-2]]
+
     if { $piecePart == 0 } {
 	return [expr $move - 1]
     } else {
@@ -373,6 +320,23 @@ proc pieceToBoard { position piecePart } {
     }
 }
 
+proc drawSquare { c num color } {
+    global gFrameWidth gFrameHeight boardSize size margin square
+    set size [min $gFrameWidth $gFrameHeight]
+    set square [expr ($size - 2*$margin) / $boardSize]
+
+    set row [expr $num/3]
+    set col [expr $num%3]
+
+    #draw the square
+    $c create rect \
+        [expr $margin + $square * $col] \
+        [expr $margin + $square * $row] \
+        [expr $margin + $square * ($col + 1)] \
+        [expr $margin + $square * ($row + 1)] \
+        -fill $color -width 2
+
+}
 
 #############################################################################
 # GS_NewGame should start playing the game. 
@@ -396,12 +360,8 @@ proc GS_NewGame { c position } {
 # This function is called just before every move.
 #############################################################################
 proc GS_WhoseMove { position } {
-    # Optional Procedure
-
-    set turn [expr $position >> 20]
-
     # player 1 = 1 or red, player 2 = 0 or blue
-    return $turn
+    return [expr $position >> 20]
    
 }
 
@@ -440,6 +400,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
+
     foreach move $moveList {
 	DrawMove $c [lindex $move 0] $moveType [lindex $move 1]
     }
@@ -465,47 +426,54 @@ proc DrawMove { c move moveType type } {
 	}
     }
 
-    set turn [GS_WhoseMove $move]
 
-    #decide turn
-    if { $turn == 0 } {
-        set color "blue"
-        set colornum 0
-    } else {
-        set color "red"
-        set colornum 1
-    }
+    set colorPos [getPos 0 $move]
+    set color0 [pieceToBoard $colorPos 0]
+    set color1 [pieceToBoard $colorPos 1]
+    set whitePos [getPos 2 $move]
+    set white0 [pieceToBoard $whitePos 0]
+    set white1 [pieceToBoard $whitePos 1]
 
-    set orientation [GetOrient $colornum $move]
-    set piece [GetPos $colornum $move]
+    set temp1 [drawOval $c $color0 $color1]
+    set temp2 [drawOval $c $white0 $white1]
 
+    $c bind $temp1 <Enter> "$c itemconfigure $temp1 -fill black"
+    $c bind $temp1 <Leave> "$c itemconfigure $temp1 -fill $color"
+    $c bind $temp1 <ButtonRelease-1> "ReturnFromHumanMove $move"
 
-    # vertical
-    if { $orientation == 1 } {
-        if { $piece < 4 } {
-            set temp [DrawVertical $c $color 0 ($piece-1)]
-        } elseif { $piece < 7 } {
-            set temp [DrawVertical $c $color 1 ($piece-4)]
-        } else {
-            set temp [DrawVertical $c $color 1 ($piece-7)]
-        }
-    #horizontal
-    } else {
-        if { [expr ($piece % 3)] == 1 } {
-            set temp [DrawHorizontal $c $color ($piece-1)/3 0]
-        } elseif { [expr ($piece % 3)] == 2 } {
-            set temp [DrawHorizontal $c $color ($piece-1)/3 1]
-        } else {
-            set temp [DrawHorizontal $c $color ($piece-1)/3 1]s
-        }
-    }
+    $c bind $temp2 <Enter> "$c itemconfigure $temp2 -fill black"
+    $c bind $temp2 <Leave> "$c itemconfigure $temp2 -fill $color"
+    $c bind $temp2 <ButtonRelease-1> "ReturnFromHumanMove $move"
 
-
-    $c bind $tmp <Enter> "$c itemconfigure $tmp -fill black"
-    $c bind $tmp <Leave> "$c itemconfigure $tmp -fill $color"
-    $c bind $tmp <ButtonRelease-1> "ReturnFromHumanMove $move"
 }
 
+proc drawOval { c num1 num2 } {
+    global gFrameWidth gFrameHeight boardSize size margin square
+    set size [min $gFrameWidth $gFrameHeight]
+    set square [expr ($size - 2*$margin) / $boardSize]
+
+    set row [expr $num1/3]
+    set col [expr $num1%3]
+
+    #draw the square
+    $c create rect \
+        [expr $margin + $square * $col] \
+        [expr $margin + $square * $row] \
+        [expr $margin + $square * ($col + 1)] \
+        [expr $margin + $square * ($row + 1)] \
+        -width 2
+
+    set row [expr $num2/3]
+    set col [expr $num2%3]
+
+    #draw the square
+    $c create rect \
+        [expr $margin + $square * $col] \
+        [expr $margin + $square * $row] \
+        [expr $margin + $square * ($col + 1)] \
+        [expr $margin + $square * ($row + 1)] \
+        -width 2
+}
 
 #############################################################################
 # GS_HideMoves erases the moves drawn by GS_ShowMoves.  It's arguments are the 
