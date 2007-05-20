@@ -7,8 +7,8 @@
 
 #variable used to determine whether this turn is a colored move or a neutral
 #move
-global colorMove
-set colorMove 1
+global isColorMove
+set isColorMove 1
 
 set margin 50
 set boardSize 3
@@ -410,7 +410,14 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
 
-    set trimmedMoveList [trimMoveList $position $moveList $colorMove]
+    global isColorMove
+    set trimmedMoveList [trimMoveList $position $moveList $isColorMove]
+    
+    if { $isColorMove == 1 } {
+        set isColorMove 0
+    } else {
+        set isColorMove 1
+    }
 
     foreach move $trimmedMoveList {
         set colorPos [getPos 0 [lindex $move 0]]
@@ -426,26 +433,32 @@ proc GS_ShowMoves { c moveType position moveList } {
     }
 }
 
-proc trimMoveList { position moveList colorMove} {
+proc trimMoveList { position moveList isColorMove} {
     #piecePos
     #012
     #345
     #678
 
     #white's move
-    if { $colorMove == 0 } {
-        set trimmedList [trim $position $moveList 2]
+    if { $isColorMove == 0 } {
+        set trimmedList [trim $position $moveList 2 $isColorMove]
     #colored's move
     } else {
         set turn [GS_WhoseMove $position]
+        #red's move
         if { $turn == 1 } {
-            set trimmedList [trim $position $moveList 1]
+            set trimmedList [trim $position $moveList 1 $isColorMove]
+        #blue's move
         } else {
-            set trimmedList [trim $position $moveList 0]
+            set trimmedList [trim $position $moveList 0 $isColorMove]
         }
     }
 
-    #find position of current white pieces on the board
+    return $trimmedList
+
+}
+
+proc trim { position moveList color isColorMove} {
     set redPos [getPos 1 $position]
     set red0 [pieceToBoard $redPos 0]
     set red1 [pieceToBoard $redPos 1]
@@ -456,16 +469,62 @@ proc trimMoveList { position moveList colorMove} {
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
-    set occupied { red0 red1 blue0 blue1 white0 white1 }
+    if { $color == 1 } {
+        set ownPos0 red0
+        set ownPos1 red1
+        set otherPos0 blue0
+        set otherPos1 blue1
+        set otherPos2 white0
+        set otherPos3 white1
+    } elseif { $color == 0 } {
+        set ownPos0 blue0
+        set ownPos1 blue1
+        set otherPos0 red0
+        set otherPos1 red1
+        set otherPos2 white0
+        set otherPos3 white1
+    } else {
+        set ownPos0 white0
+        set ownPos1 white1
+        set otherPos0 red0
+        set otherPos1 red1
+        set otherPos2 blue0
+        set otherPos3 blue1
+    }
 
-    
 
-    return trimmedList
+    if { $isColorMove == 1 } {
+        set mask 0x000000f0
+        set shift 4
+    } else {
+        set mast 0x0000000f
+        set shift 0
+    }
 
-}
 
-proc trim { position moveList color} {
-    
+    set result {}
+
+    foreach move $moveList {
+        set piecePos [expr ([lindex $move 0] & $mask) >> $shift]
+        set movePos0 [pieceToBoard $piecePos 0]
+        set movePos1 [pieceToBoard $piecePos 1]
+        puts "movePos0 [expr $movePos0+1] movePos1 [expr $movePos1+1]"
+
+        if { ($movePos0 != $ownPos0 && $movePos1 != $ownPos1) &&
+             $movePos0 != $otherPos0 &&
+             $movePos0 != $otherPos1 &&
+             $movePos0 != $otherPos2 &&
+             $movePos0 != $otherPos3 &&
+             $movePos1 != $otherPos0 &&
+             $movePos1 != $otherPos1 &&
+             $movePos1 != $otherPos2 &&
+             $movePos1 != $otherPos3} {
+            lappend result $move
+        }
+    }
+
+    return $result
+
 }
 
 proc drawMove { c move moveType type } {
@@ -513,7 +572,7 @@ proc drawMove { c move moveType type } {
                       [expr $margin + $square * ($row+0.5) - $shortradius] \
                       [expr $margin + $square * ($col+1) + $longradius] \
                       [expr $margin + $square * ($row+0.5) + $shortradius] \
-                      -fill $color -width 2]
+                      -fill $color]
 
     #top-bottom oval
     } else {
@@ -522,7 +581,7 @@ proc drawMove { c move moveType type } {
                       [expr $margin + $square * ($row+1) - $longradius] \
                       [expr $margin + $square * ($col+0.5) + $shortradius] \
                       [expr $margin + $square * ($row+1) + $longradius] \
-                      -fill $color -width 2]
+                      -fill $color]
     }
 
 
