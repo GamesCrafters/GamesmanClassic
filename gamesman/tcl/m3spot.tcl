@@ -5,9 +5,13 @@
 # Updated Fall 2004 by Jeffrey Chiang, and others
 ####################################################
 
+#variable used to determine whether this turn is a colored move or a neutral
+#move
+global colorMove
+set colorMove 1
+
 set margin 50
 set boardSize 3
-
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -406,7 +410,9 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
 
-    foreach move $moveList {
+    set trimmedMoveList [trimMoveList $position $moveList $colorMove]
+
+    foreach move $trimmedMoveList {
         set colorPos [getPos 0 [lindex $move 0]]
         set color0 [pieceToBoard $colorPos 0]
         set color1 [pieceToBoard $colorPos 1]
@@ -414,14 +420,55 @@ proc GS_ShowMoves { c moveType position moveList } {
         set white0 [pieceToBoard $whitePos 0]
         set white1 [pieceToBoard $whitePos 1]
 
-        puts "color [expr $color0] [expr $color1]"
-        puts "white [expr $white0] [expr $white1]"
+        puts "color [expr $color0+1] [expr $color1+1] white [expr $white0+1] [expr $white1+1]"
 
-	DrawMove $c [lindex $move 0] $moveType [lindex $move 1]
+	drawMove $c [lindex $move 0] $moveType [lindex $move 1]
     }
 }
 
-proc DrawMove { c move moveType type } {
+proc trimMoveList { position moveList colorMove} {
+    #piecePos
+    #012
+    #345
+    #678
+
+    #white's move
+    if { $colorMove == 0 } {
+        set trimmedList [trim $position $moveList 2]
+    #colored's move
+    } else {
+        set turn [GS_WhoseMove $position]
+        if { $turn == 1 } {
+            set trimmedList [trim $position $moveList 1]
+        } else {
+            set trimmedList [trim $position $moveList 0]
+        }
+    }
+
+    #find position of current white pieces on the board
+    set redPos [getPos 1 $position]
+    set red0 [pieceToBoard $redPos 0]
+    set red1 [pieceToBoard $redPos 1]
+    set bluePos [getPos 0 $position]
+    set blue0 [pieceToBoard $bluePos 0]
+    set blue1 [pieceToBoard $bluePos 1]
+    set whitePos [getPos 2 $position]
+    set white0 [pieceToBoard $whitePos 0]
+    set white1 [pieceToBoard $whitePos 1]
+
+    set occupied { red0 red1 blue0 blue1 white0 white1 }
+
+    
+
+    return trimmedList
+
+}
+
+proc trim { position moveList color} {
+    
+}
+
+proc drawMove { c move moveType type } {
     
     switch $moveType {
 	value {
