@@ -413,11 +413,6 @@ proc GS_ShowMoves { c moveType position moveList } {
     global isColorMove
     set trimmedMoveList [trimMoveList $position $moveList $isColorMove]
     
-    if { $isColorMove == 1 } {
-        set isColorMove 0
-    } else {
-        set isColorMove 1
-    }
 
     foreach move $trimmedMoveList {
         set colorPos [getPos 0 [lindex $move 0]]
@@ -427,10 +422,18 @@ proc GS_ShowMoves { c moveType position moveList } {
         set white0 [pieceToBoard $whitePos 0]
         set white1 [pieceToBoard $whitePos 1]
 
-        puts "color [expr $color0+1] [expr $color1+1] white [expr $white0+1] [expr $white1+1]"
+        #puts "color [expr $color0+1] [expr $color1+1] white [expr $white0+1] [expr $white1+1]"
 
 	drawMove $c [lindex $move 0] $moveType [lindex $move 1]
     }
+
+
+    if { $isColorMove == 1 } {
+        set isColorMove 0
+    } else {
+        set isColorMove 1
+    }
+
 }
 
 proc trimMoveList { position moveList isColorMove} {
@@ -493,22 +496,17 @@ proc trim { position moveList color isColorMove} {
     }
 
 
-    if { $isColorMove == 1 } {
-        set mask 0x000000f0
-        set shift 4
-    } else {
-        set mast 0x0000000f
-        set shift 0
-    }
-
-
     set result {}
 
     foreach move $moveList {
-        set piecePos [expr ([lindex $move 0] & $mask) >> $shift]
+        if { $isColorMove == 1 } {
+            set piecePos [getPos 0 [lindex $move 0]]
+        } else {
+            set piecePos [getPos 2 [lindex $move 0]]
+        }
         set movePos0 [pieceToBoard $piecePos 0]
         set movePos1 [pieceToBoard $piecePos 1]
-        puts "movePos0 [expr $movePos0+1] movePos1 [expr $movePos1+1]"
+        #puts "movePos0 [expr $movePos0+1] movePos1 [expr $movePos1+1]"
 
         if { ($movePos0 != $ownPos0 && $movePos1 != $ownPos1) &&
              $movePos0 != $otherPos0 &&
@@ -518,9 +516,10 @@ proc trim { position moveList color isColorMove} {
              $movePos1 != $otherPos0 &&
              $movePos1 != $otherPos1 &&
              $movePos1 != $otherPos2 &&
-             $movePos1 != $otherPos3} {
+             $movePos1 != $otherPos3 } {
             lappend result $move
         }
+puts $result
     }
 
     return $result
