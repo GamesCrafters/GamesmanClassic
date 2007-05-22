@@ -521,11 +521,9 @@ proc trim { position moveList color isColorMove} {
         }
         set movePos0 [pieceToBoard $piecePos 0]
         set movePos1 [pieceToBoard $piecePos 1]
-        #puts "movePos0 [expr $movePos0+1] movePos1 [expr $movePos1+1]"
-        #puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]"
+        #puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]" 
 
         if { ($movePos0 != $ownPos0 && $movePos1 != $ownPos1) &&
-             ($movePos1 != $ownPos0 && $movePos0 != $ownPos1) &&
              $movePos0 != $otherPos0 &&
              $movePos0 != $otherPos1 &&
              $movePos0 != $otherPos2 &&
@@ -535,11 +533,12 @@ proc trim { position moveList color isColorMove} {
              $movePos1 != $otherPos2 &&
              $movePos1 != $otherPos3 } {
             lappend result $move
+            #puts "inside"
         }
         puts $result
     }
 
-    puts ""
+    #puts ""
 
     return $result
 
