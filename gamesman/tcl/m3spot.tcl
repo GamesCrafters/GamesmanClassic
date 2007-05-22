@@ -473,26 +473,26 @@ proc trim { position moveList color isColorMove} {
     set white1 [pieceToBoard $whitePos 1]
 
     if { $color == 1 } {
-        set ownPos0 red0
-        set ownPos1 red1
-        set otherPos0 blue0
-        set otherPos1 blue1
-        set otherPos2 white0
-        set otherPos3 white1
+        set ownPos0 $red0
+        set ownPos1 $red1
+        set otherPos0 $blue0
+        set otherPos1 $blue1
+        set otherPos2 $white0
+        set otherPos3 $white1
     } elseif { $color == 0 } {
-        set ownPos0 blue0
-        set ownPos1 blue1
-        set otherPos0 red0
-        set otherPos1 red1
-        set otherPos2 white0
-        set otherPos3 white1
+        set ownPos0 $blue0
+        set ownPos1 $blue1
+        set otherPos0 $red0
+        set otherPos1 $red1
+        set otherPos2 $white0
+        set otherPos3 $white1
     } else {
-        set ownPos0 white0
-        set ownPos1 white1
-        set otherPos0 red0
-        set otherPos1 red1
-        set otherPos2 blue0
-        set otherPos3 blue1
+        set ownPos0 $white0
+        set ownPos1 $white1
+        set otherPos0 $red0
+        set otherPos1 $red1
+        set otherPos2 $blue0
+        set otherPos3 $blue1
     }
 
 
@@ -508,6 +508,8 @@ proc trim { position moveList color isColorMove} {
         set movePos1 [pieceToBoard $piecePos 1]
         #puts "movePos0 [expr $movePos0+1] movePos1 [expr $movePos1+1]"
 
+        puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]"
+
         if { ($movePos0 != $ownPos0 && $movePos1 != $ownPos1) &&
              $movePos0 != $otherPos0 &&
              $movePos0 != $otherPos1 &&
@@ -519,8 +521,10 @@ proc trim { position moveList color isColorMove} {
              $movePos1 != $otherPos3 } {
             lappend result $move
         }
-puts $result
+        puts $result
     }
+
+    puts ""
 
     return $result
 
