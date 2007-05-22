@@ -1281,8 +1281,6 @@ bpdb_get_slice_slot(
     BYTE *bpdb_array = NULL;
     SLICE bpdb_slice = NULL;
 
-	//printf("Initial Seeking position: %llu index: %u\n", position, index);
-
     if(index % 2) {
         bpdb_array = bpdb_nowrite_array;
         bpdb_slice = bpdb_nowrite_slice;
@@ -1291,8 +1289,6 @@ bpdb_get_slice_slot(
         bpdb_slice = bpdb_write_slice;
     }
     index /= 2;
-    
-    //printf("Slot %s, width %u\n", bpdb_slice->name[index], bpdb_slice->size[index]);
 
     byteOffset = (bpdb_slice->bits * position)/BITSINBYTE;
     bitOffset = ((UINT8)(bpdb_slice->bits % BITSINBYTE) * (UINT8)(position % BITSINBYTE)) % BITSINBYTE;
@@ -1301,19 +1297,6 @@ bpdb_get_slice_slot(
     byteOffset += bitOffset / BITSINBYTE;
     bitOffset %= BITSINBYTE;
 
-	/*
-
-	UINT64 val1 = bitlib_read_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->size[index] );
-	UINT64 val2 = bpdb_get_slice_slot_disk(position,index);
-	
-	
-	if(val1 != val2) {
-		printf("NO MATCH val1: %llu val2(disk): %llu\n", val1, val2);
-	} else {
-		//printf("MATCH val1: %llu val2(disk): %llu\n", val1, val2);
-	}
-	return val1;*/
-    
     return bitlib_read_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->size[index] );
 }
 
@@ -2186,22 +2169,17 @@ bpdb_load_database( )
         goto _bailout;
     }
 
-	// ken - temp
-    // close file
-    status = bitlib_file_close(inFile);
-    if(!GMSUCCESS(status)) {
-        BPDB_TRACE("bpdb_load_database()", "call to bitlib to close file failed", status);
-        goto _bailout;
-    }
-    
-    // reopen file if reading from disk 
-    // zero-memory player
+	// if the db will be read from file, assign the
+    // file pointer to the zero-memory player file pointer
+    // otherwise, close the file
     if(bpdb_readFromDisk) {
-	    status = bitlib_file_open(outfilename, "rb", &bpdb_readFile);
-	    if(!GMSUCCESS(status)) {
-	        BPDB_TRACE("bpdb_load_database()", "call to bitlib to open file failed", status);
-	        goto _bailout;
-	    }
+        bpdb_readFile = inFile;
+    } else {
+        status = bitlib_file_close(inFile);
+        if(!GMSUCCESS(status)) {
+            BPDB_TRACE("bpdb_load_database()", "call to bitlib to close file failed", status);
+            goto _bailout;
+        }        
     }
 
     // debug-temp
