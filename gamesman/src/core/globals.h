@@ -12,7 +12,7 @@ extern BOOLEAN		gHumanGoesFirst, gPrintPredictions, gPrintSEvalPredictions,
 
 extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
 	gPrintDatabaseInfo, gJustSolving, gMessage, gSolvingAll,
-	gBitPerfectDB, gBitPerfectDBSolver, gBitPerfectDBSchemes, gBitPerfectDBAllSchemes, gBitPerfectDBAdjust, gBitPerfectDBVerbose,
+	gBitPerfectDB, gBitPerfectDBSolver, gBitPerfectDBSchemes, gBitPerfectDBAllSchemes, gBitPerfectDBAdjust, gBitPerfectDBVerbose, gBitPerfectDBZeroMemoryPlayer,
     gTwoBits, gCollDB, gUnivDB, gFileDB,
 	gGlobalPositionSolver, gZeroMemSolver,
 	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness, gWinByClose,

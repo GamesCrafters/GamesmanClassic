@@ -77,6 +77,7 @@ Routine Description:
 Arguments:
 
     b - pointer to the byte to print out in bits
+    bytes - number of bytes to print (capped at 255)
     
 Return value:
 
@@ -171,11 +172,13 @@ bitlib_file_read_bytes(
                 )
 {
     GMSTATUS status = STATUS_SUCCESS;
+	int ret = 0;
 
-    if(gzread(file, buffer, length) <= 0) {
+    if((ret = gzread(file, buffer, length)) <= 0) {
         status = STATUS_BAD_DECOMPRESSION;
-        //BPDB_TRACE("bitlib_file_read_bytes()", "call to gzread returned a failed value", status);
         // Commented out because, when using level files, this isn't always an "error"...
+        //BPDB_TRACE("bitlib_file_read_bytes()", "call to gzread returned a failed value", status);
+        //printf("Gzip error: %s\n", gzerror(file, &ret));
     }
     
     return status;
@@ -222,6 +225,49 @@ _bailout:
     return status;
 }
 
+
+/*++
+
+Routine Description:
+
+    bitlib_file_seek seeks to a byte within a given file
+    from the beginning of the file.
+    
+Arguments:
+
+    file - pointer to a dbFILE.
+    byteIndex - byte to be seeked to.
+    whence - can be SEEK_SET (start of file), or SEEK_CUR
+            (current position of file pointer)
+    
+Return value:
+
+    STATUS_SUCCESS on successful execution, or neccessary
+    error on failure.
+
+--*/
+
+GMSTATUS
+bitlib_file_seek(
+                dbFILE *db,
+                UINT32 byteIndex,
+                int whence
+                )
+{
+    GMSTATUS status = STATUS_SUCCESS;
+    int ret;
+
+	if((ret = gzseek(db, byteIndex, whence)) < 0) {
+		status = STATUS_FILE_COULD_NOT_BE_SEEKED;
+        BPDB_TRACE("bitlib_file_open()", "gzopen failed to seek in file", status);
+        printf("Gzip error: %s\n", gzerror(db, &ret));
+        goto _bailout;
+	}
+
+_bailout:
+    return status;
+}
+
 /*++
 
 Routine Description:
@@ -244,10 +290,12 @@ bitlib_file_close(
                 )
 {
     GMSTATUS status = STATUS_SUCCESS;
+	int ret;
 
-    if(gzclose(file) != 0) {
+    if((ret = gzclose(file)) != 0) {
         status = STATUS_FILE_COULD_NOT_BE_CLOSED;
         BPDB_TRACE("bitlib_file_close()", "gzclose failed to close file", status);
+        printf("Gzip error: %s\n", gzerror(file, &ret));
         goto _bailout;
     }
 

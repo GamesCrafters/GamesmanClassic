@@ -53,6 +53,13 @@ GMSTATUS
 bitlib_file_close(
                 dbFILE *file
                 );
+                
+GMSTATUS
+bitlib_file_seek(
+                dbFILE *db,
+                UINT32 byteIndex,
+                int whence
+                );
 
 inline
 GMSTATUS
