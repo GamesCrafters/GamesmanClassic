@@ -388,13 +388,28 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
+    
+    global isColorMove
 
-    puts $theMove
-    
-    
+    animateMove $c $theMove
+    GS_DrawPosition $c $newPosition
+
+    if { $isColorMove == 1 } {
+        set isColorMove 0
+    } else {
+        set isColorMove 1
+    }
 
 }
 
+proc animateMove { c theMove } {
+    global gFrameWidth gFrameHeight boardSize size margin square
+    set size [min $gFrameWidth $gFrameHeight]
+    set square [expr ($size - 2*$margin) / $boardSize]
+
+    
+
+}
 
 #############################################################################
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
@@ -429,13 +444,6 @@ proc GS_ShowMoves { c moveType position moveList } {
         #puts "color [expr $color0+1] [expr $color1+1] white [expr $white0+1] [expr $white1+1]"
 
 	drawMove $c [lindex $move 0] $moveType [lindex $move 1]
-    }
-
-
-    if { $isColorMove == 1 } {
-        set isColorMove 0
-    } else {
-        set isColorMove 1
     }
 
 }
@@ -517,6 +525,7 @@ proc trim { position moveList color isColorMove} {
         #puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]"
 
         if { ($movePos0 != $ownPos0 && $movePos1 != $ownPos1) &&
+             ($movePos1 != $ownPos0 && $movePos0 != $ownPos1) &&
              $movePos0 != $otherPos0 &&
              $movePos0 != $otherPos1 &&
              $movePos0 != $otherPos2 &&
@@ -527,10 +536,10 @@ proc trim { position moveList color isColorMove} {
              $movePos1 != $otherPos3 } {
             lappend result $move
         }
-        #puts $result
+        puts $result
     }
 
-    #puts ""
+    puts ""
 
     return $result
 
