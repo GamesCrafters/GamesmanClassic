@@ -314,6 +314,7 @@ proc getPos { color position } {
 }
 
 proc pieceToBoard { position piecePart } {
+#puts $position
     set posToBoard [list 7 1 4 2 1 3 8 4 5 5 2 6]
     set move [lindex $posToBoard [expr $position-2]]
 
@@ -327,6 +328,7 @@ proc pieceToBoard { position piecePart } {
 	}
 	return [expr $move - 1]
     }
+
 }
 
 proc drawSquare { c num color } {
@@ -387,8 +389,10 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
-    ### TODO: Fill this in
+    puts $theMove
     
+    
+
 }
 
 
@@ -463,12 +467,15 @@ proc trimMoveList { position moveList isColorMove} {
 
 proc trim { position moveList color isColorMove} {
     set redPos [getPos 1 $position]
+#puts $redPos
     set red0 [pieceToBoard $redPos 0]
     set red1 [pieceToBoard $redPos 1]
     set bluePos [getPos 0 $position]
+#puts $bluePos
     set blue0 [pieceToBoard $bluePos 0]
     set blue1 [pieceToBoard $bluePos 1]
     set whitePos [getPos 2 $position]
+#puts $whitePos
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
@@ -507,8 +514,7 @@ proc trim { position moveList color isColorMove} {
         set movePos0 [pieceToBoard $piecePos 0]
         set movePos1 [pieceToBoard $piecePos 1]
         #puts "movePos0 [expr $movePos0+1] movePos1 [expr $movePos1+1]"
-
-        puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]"
+        #puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]"
 
         if { ($movePos0 != $ownPos0 && $movePos1 != $ownPos1) &&
              $movePos0 != $otherPos0 &&
@@ -521,10 +527,10 @@ proc trim { position moveList color isColorMove} {
              $movePos1 != $otherPos3 } {
             lappend result $move
         }
-        puts $result
+        #puts $result
     }
 
-    puts ""
+    #puts ""
 
     return $result
 
