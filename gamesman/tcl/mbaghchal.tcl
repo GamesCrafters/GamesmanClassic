@@ -1,9 +1,49 @@
 ####################################################
-# this is a template for tcl module creation
+# mbaghchal.tcl
+# 
+# Baghchal GUI, Tcl/Tk
 #
-# created by Alex Kozlowski and Peterson Trethewey
-# Updated Fall 2004 by Jeffrey Chiang, and others
+# Tcl/Tk done by Yuly Tenorio, based on Eudean Sun's Asalto.tcl
 ####################################################
+
+#Game variables, other vars in DrawBoard and drawmove
+
+# t = line thickness
+set t 5
+
+# dot = dot radius (at intersections)
+set dot 20
+
+# color = color of the board
+set color "black"
+
+# outlineColor = color of piece outlines
+set outlineColor "black"
+
+# outline = size of piece outlines
+set outline 3
+
+# player1 = color of player 1's pieces (goats)
+set player1 "blue"
+
+# player2 = color of player 2's pieces (tigers)
+set player2 "red"
+
+# arrowlength = relative length of arrows (100% would be completely across a square)
+set arrowlength 0.7
+
+# arrowcolor = default color of arrows showing moves
+set arrowcolor cyan
+
+# basespeed = base speed of the animations in milliseconds (values 10-1000, larger is faster)
+set basespeed 100
+
+
+set boardsize 3
+
+
+
+
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -19,12 +59,13 @@ proc GS_InitGameSpecific {} {
     ### Set the name of the game
     
     global kGameName
-    set kGameName ""
+    set kGameName "Bagh Chal"
     
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0
+#
+    set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
@@ -38,17 +79,17 @@ proc GS_InitGameSpecific {} {
 
     global gMisereGame
     if {!$gMisereGame} {
-	SetToWinString "To Win: (fill in)"
+	SetToWinString "To Win: As the tigers, your goal is to capture the goats (by jumping over them) and to avoid getting trapped by the goats. As the goats, your goal is to avoid getting captured and to attempt to trap the tigers."
     } else {
-	SetToWinString "To Win: (fill in)"
+	SetToWinString "To Win: As the tigers, your goal is to avoid capturing the goats and to attempt to get trapped by them. As the goats, your goal is to attempt to get captured by the tigers and to avoid getting the tigers trapped."
     }
-    SetToMoveString "To Move: (fill in)"
+    SetToMoveString "To Move: For the tigers and for the goats (but only after placing all 20 goats on the board), possible moves are indicated by arrows around your pieces. Click on one of these arrows to move in the direction indicated."
 	    
     # Authors Info. Change if desired
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "(Fill this in)"
-    set kTclAuthors "(Fill this in)"
+    set kCAuthors "Max Delgadillo"
+    set kTclAuthors "Yuly Tenorio"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
@@ -62,8 +103,8 @@ proc GS_InitGameSpecific {} {
 # starts playing the game, and before he hits "New Game"
 #############################################################################
 proc GS_NameOfPieces {} {
-
-    ### FILL THIS IN
+#
+    return [list Tigers Goats]
 
 }
 
@@ -84,8 +125,12 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 #############################################################################
 proc GS_ColorOfPlayers {} {
+#
+    # player1 = goats, player2 = tigers 	
+    global player1 player2
 
-	### FILL THIS IN
+    return [list $player1 $player2]
+    
     
 }
 
@@ -156,6 +201,18 @@ proc GS_GetOption { } {
     set option 1
     set option [expr $option + (1-$gMisereGame)]
     return $option
+    
+# from ttt3tier
+#
+#    global gMisereGame
+#        if { $gMisereGame == 0 } {
+#            set option 2
+#        } else {
+#            set option 1
+#        }
+#    return $option
+    
+    
 }
 
 
@@ -175,6 +232,15 @@ proc GS_SetOption { option } {
     global gMisereGame
     set option [expr $option - 1]
     set gMisereGame [expr 1-($option%2)]
+    
+    
+   #from ttt3tier 
+   #     global gMisereGame
+   #     if { $option == 1 } {
+   #         set gMisereGame 1
+   #     } else {
+   #         set gMisereGame 0
+   # }
 }
 
 
@@ -187,37 +253,32 @@ proc GS_SetOption { option } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-    global r s size margin gFrameWidth gFrameHeight
-    set size [min $gFrameWidth $gFrameHeight]
-    set margin 100
-    set s [expr ($size - 2*$margin)/4]
-    set r [expr 0.3 * $s]
+#    global r s size margin gFrameWidth gFrameHeight
+    global s margin size color outlineColor outline t dot r player1 player2 fontsize
 
+
+# Save the GC background skin
+    $c addtag background all
+
+#
+    #set board "T G T  G    G    G  T G T"
+    set board "T T   T T"
+    
+    
+    # Draw the default board with default piece configuration
     DrawBoard $c
-    $c create oval \
-	[expr $margin - $r] \
-	[expr $margin - $r] \
-	[expr $margin + $r] \
-	[expr $margin + $r] \
-	-fill red -width 2
-    $c create oval \
-	[expr $size - $margin - $r] \
-	[expr $margin - $r] \
-	[expr $size - $margin + $r] \
-	[expr $margin + $r] \
-	-fill red -width 2
-    $c create oval \
-	[expr $margin - $r] \
-	[expr $size - $margin - $r] \
-	[expr $margin + $r] \
-	[expr $size - $margin + $r] \
-	-fill red -width 2
-    $c create oval \
-	[expr $size - $margin - $r] \
-	[expr $size - $margin - $r] \
-	[expr $size - $margin + $r] \
-	[expr $size - $margin + $r] \
-	-fill red -width 2
+    DrawPieces $c $board
+
+	# Finally, draw a title
+         $c create rectangle \
+         	0 \
+         	[expr $size/2 - 50] \
+         	$size \
+         	[expr $size/2 + 50] -fill gray -width 1 -outline black
+         $c create text \
+         	[expr $size/2] [expr $size/2] -text "Welcome to Bagh Chal!" -font "Arial $fontsize" -anchor center -fill black -width [expr 4*$s] -justify center
+
+    
 
 }
 
@@ -228,15 +289,55 @@ proc min { a b } {
     return $b
 }
 
+
+######################
+#Proc DrawBoard
+######################
 proc DrawBoard { c } {
-    global size margin s
-    
-    $c create rect \
+	#    global size margin s
+	global s margin size color outlineColor outline t dot r player1 player2 gFrameWidth gFrameHeight fontsize arrowwidth arrowhead boardsize
+
+	# If we don't clean the canvas, things pile up and get slow
+	# We need to keep the background, though (otherwise we get ugly borders around game on some resolutions)
+	$c delete {!background}
+
+
+	#size of board
+	set size [min $gFrameWidth $gFrameHeight]
+	#margin
+	set margin [expr 0.1*$size]
+	#side
+	set s [expr ($size - 2*$margin)/($boardsize - 1)]
+	#radius
+	#set r [expr 0.2 * $s]     ###
+
+	#radius
+	if { $boardsize == 3} {
+		set r [expr 0.2 * $s]
+	} elseif { $boardsize == 4 } {
+		set r [expr 0.25 * $s]
+	} else {
+		set r [expr 0.3 * $s]
+	}
+
+
+
+	set fontsize [expr int($size / 20)]
+	set arrowwidth [expr 0.4 * $r]
+	set arrowhead [list [expr 2 * $arrowwidth] [expr 2 * $arrowwidth] $arrowwidth]
+
+
+	#Draw default board 
+
+	#make gray background
+	$c create rect \
 	0 0 \
 	$size $size \
-	-fill gray
-    
-    for { set i 0 } { $i < 5 } { incr i } {
+	-fill darkgray -width 1 -outline black
+
+	# main board lines
+ 	   
+	for { set i 0 } { $i < $boardsize } { incr i } {
 	# Vertical lines
 	$c create line \
 	    [expr $margin + $i * $s] \
@@ -252,51 +353,262 @@ proc DrawBoard { c } {
 	    [expr $size - $margin] \
 	    [expr $margin + $i * $s] \
 	    -width 3
+	}
+
+	# Diagonal lines
+
+	$c create line \
+	$margin \
+	$margin \
+	[expr $size - $margin] \
+	[expr $size - $margin] \
+	-width 3
+
+
+	$c create line \
+	$margin \
+	[expr $size - $margin] \
+	[expr $size - $margin] \
+	$margin \
+	-width 3
+
+
+	if { $boardsize == 5 } {
+		$c create line \
+		$margin \
+		[expr $size / 2] \
+		[expr $size / 2] \
+		[expr $size - $margin] \
+		-width 3
+
+		$c create line \
+		[expr $size / 2] \
+		$margin \
+		[expr $size - $margin] \
+		[expr $size / 2] \
+		-width 3
+
+		$c create line \
+		$margin \
+		[expr $size / 2] \
+		[expr $size / 2] \
+		$margin \
+		-width 3
+
+		$c create line \
+		[expr $size / 2] \
+		[expr $size - $margin] \
+		[expr $size - $margin] \
+		[expr $size / 2] \
+		-width 3 	    
+	}
+
+	#draw dots on intersection of lines
+	for {set j 0} {$j < $boardsize} {incr j} {
+	    for {set i 0} {$i < $boardsize} { incr i} {
+		$c create oval \
+			[expr $margin - $dot + $i * $s] \
+			[expr $margin - $dot + $j * $s] \
+			[expr $margin + $dot + $i * $s] \
+			[expr $margin + $dot + $j * $s] \
+			-fill $color -width 0    	
+	    }
+	}    	
+    
+}
+
+#############################
+# Draws pieces on the board #
+#############################
+proc DrawPieces { c board } {
+
+	global boardsize
+	#	draw [string index $board 0] 0 $c
+
+	for {set i 0} {$i < ( $boardsize * $boardsize ) } {incr i} {
+	draw [string index $board $i] $i $c
+	}
+}
+
+######################################
+# Draws a piece at index on canvas c #
+######################################
+proc draw { piece index c } {
+    global r player1 player2 outline
+
+    set location [coords $index]
+
+    switch $piece {
+	G { $c create oval \
+		[expr [lindex $location 0] - $r] \
+		[expr [lindex $location 1] - $r] \
+		[expr [lindex $location 0] + $r] \
+		[expr [lindex $location 1] + $r] -fill $player1 -width $outline}
+	T { $c create oval \
+		[expr [lindex $location 0] - $r] \
+		[expr [lindex $location 1] - $r] \
+		[expr [lindex $location 0] + $r] \
+		[expr [lindex $location 1] + $r] -fill $player2 -width $outline}
+	default {}
     }
 
-    # Diagonal lines
-    $c create line \
-	$margin \
-	[expr $size / 2] \
-	[expr $size / 2] \
-	[expr $size - $margin] \
-	-width 3
-
-    $c create line \
-	$margin \
-	$margin \
-	[expr $size - $margin] \
-	[expr $size - $margin] \
-	-width 3
-
-    $c create line \
-	[expr $size / 2] \
-	$margin \
-	[expr $size - $margin] \
-	[expr $size / 2] \
-	-width 3
-
-    $c create line \
-	$margin \
-	[expr $size / 2] \
-	[expr $size / 2] \
-	$margin \
-	-width 3
-
-    $c create line \
-	$margin \
-	[expr $size - $margin] \
-	[expr $size - $margin] \
-	$margin \
-	-width 3
-
-    $c create line \
-	[expr $size / 2] \
-	[expr $size - $margin] \
-	[expr $size - $margin] \
-	[expr $size / 2] \
-	-width 3
 }
+
+########################################
+# Returns coordinates of a board index #
+########################################
+proc coords { index } {
+	global margin s boardsize
+
+    
+        set q [expr $index / $boardsize ]
+    	set res [expr $index % $boardsize]
+      
+        return [list [expr $margin+$res*$s] [expr $margin+$q*$s]]
+ 
+    
+}
+
+proc UnhashBoard {position arrayname} {
+    upvar $arrayname a
+    
+    set board [C_CustomUnhash $position]
+    
+    for {set i 3} {$i < 12} {incr i} {
+        if {[string equal [string index $board $i] "G"]} {   
+            set a($i) g
+        } elseif {[string equal [string index $board $i] "T"]} {
+            set a($i) t
+        } else {
+            set a($i) -
+        }
+    }  
+    
+}
+
+    
+#returns startingPt endingPt
+proc UnhashMove { theMove } {
+	global boardsize
+	
+	
+	set theMove [expr $theMove - $boardsize]
+	set jump [expr theMove % 2]
+	set theMove [expr $theMove / 2]
+	
+	set direction [expr $theMove % 8]
+	set theMove [expr $theMove / 8]
+	
+	set i [expr $theMove / length + 1]
+	set jumpI $i
+	
+	set j [expr $theMove % length + 1]
+	set jumpJ $j
+	
+	set startPt $theMove
+	
+	set UP 0
+	set DOWN 1
+	set UP_RIGHT 2
+	set UP_LEFT 3
+	set DOWN_RIGHT 4
+	set DOWN_LEFT 5
+	set RIGHT 6
+	set LEFT 7
+	
+	
+    	switch $direction {
+    		UP 	{ if { jump } { 
+    				set i [expr $i - 2]
+    				set jumpI [expr $jumpI - 1]
+    		   	} else {
+    		   	  	set i [expr $i - 1] }}
+    		DOWN 	{ if { jump } { 
+		    		set i [expr $i + 2]
+		    		set jumpI [expr $jumpI + 1]
+		        } else {
+    		     		set i [expr $i + 1] }}
+    		RIGHT 	{ if { jump } { 
+		    		set j [expr $j + 2]
+		    		set jumpJ [expr $jumpJ + 1]
+		        } else {
+    		     		set j [expr $j + 1] }}
+    		LEFT 	{ if { jump } { 
+		    		set j [expr $j - 2]
+		    		set jumpJ [expr $jumpJ - 1]
+		        } else {
+    		     		set j [expr $j - 1] }}    		     		
+    		UP_RIGHT { if { jump } { 
+		    		set i [expr $i - 2]
+		    		set j [expr $j + 2]
+		    		set jumpI [expr $jumpI - 1]		    		
+		    		set jumpJ [expr $jumpJ + 1]
+		        } else {
+		        	set i [expr $i - 1]
+    		     		set j [expr $j + 1] }}		
+    		UP_LEFT { if { jump } { 
+		    		set i [expr $i - 2]
+		    		set j [expr $j - 2]
+		    		set jumpI [expr $jumpI - 1]		    		
+		    		set jumpJ [expr $jumpJ - 1]
+		        } else {
+		        	set i [expr $i - 1]
+    		     		set j [expr $j - 1] }}		    		     		
+    		DOWN_RIGHT { if { jump } { 
+		    		set i [expr $i + 2]
+		    		set j [expr $j + 2]
+		    		set jumpI [expr $jumpI + 1]		    		
+		    		set jumpJ [expr $jumpJ + 1]
+		        } else {
+		        	set i [expr $i + 1]
+    		     		set j [expr $j + 1] }}		    		     		
+    		DOWN_LEFT { if { jump } { 
+		    		set i [expr $i + 2]
+		    		set j [expr $j - 2]
+		    		set jumpI [expr $jumpI + 1]		    		
+		    		set jumpJ [expr $jumpJ - 1]
+		        } else {
+		        	set i [expr $i + 1]
+    		     		set j [expr $j - 1] }}			
+    	}
+    	
+    	set endPt [expr ($i-1) * $boardsize + $j -1]
+    	
+    	set jumpedOn [expr ($jumpI - 1) * $boardsize + $jumpJ - 1]
+    	
+    	return [list $startPt $endPt $jumpedOn]
+	
+}
+
+
+		
+
+proc DrawPiecesArray { c arrayname } {
+	
+    global boardsize
+    upvar $arrayname a
+#	draw [string index $board 0] 0 $c
+	
+     for {set i 0} {$i < ( $boardsize * $boardsize ) } {incr i} {
+    	if { $a($i) == "g" } {
+    		draw G $i $c 
+    	} elseif { $a($i) == "t } {
+    		draw T $i $c
+    	}
+     }
+	
+}
+
+
+
+	
+
+
+
+
+
+
+
 
 
 #############################################################################
@@ -322,9 +634,15 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    
+#    
+  	set a(0) 0 
     ### TODO: Fill this in
-
+        UnhashBoard $position a              
+    
+        DrawBoard $c
+        DrawPiecesArray $c $a
+        #DrawPieces $c $position
+#
 }
 
 
@@ -338,6 +656,7 @@ proc GS_DrawPosition { c position } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    DrawBoard $c
     GS_DrawPosition $c $position
 }
 
@@ -350,8 +669,35 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-    return ""    
+
+#    set board [unhash $position];
+#    set whoseTurn [lindex $boardList 0]
+#    return $whoseTurn    
+
+
+######
+     set board [C_CustomUnhash $position]
+
+     if {[string equal [string index $board 0] "1"]}{
+     	return "T"
+     }else {
+     	return "G"
+     }
 }
+
+
+proc NumGoatsLeft { position } {
+
+	set board [C_CustomUnhash $position]
+	
+	if {[string equal [string index $board 1] "1"]} {
+		return 1 }
+	elseif { [string equal [string index $board 2] "0" } {
+		return 0 
+	} else { return 1 }
+}
+
+
 
 
 #############################################################################
@@ -364,11 +710,107 @@ proc GS_WhoseMove { position } {
 # update idletasks.  You can call this to force the canvas to update if
 # you make changes before tcl enters the event loop again.
 #############################################################################
+
+# There are two cases in Bagh Chal: dartboard, and rearranger
+# In the first case, 
+# 1) if the move is only one number, then we simply raise the correct piece.  
+# 2) If the move is a slide move, then we cause the piece (which has already
+#    been raised, to slide to the correct spot.
+# So we:
+# 1. figure out whose turn it is for dartboard moves:
+#   a. unhash the oldPosition
+#   b. set whoseTurn to the first element in boardList (which will be x or o)
+# 2. if theMove is less than 10, then we are in dart board moves so:
+#   a. raise the appropriate piece at piece$whoseTurn$theMove
+# 3. Else, theMove is a rearanger move so:
+
+
+
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
-    GS_DrawPosition $newPosition
+	global boardsize
+	DrawBoard $c
+	#set board [C_CustomUnhash $oldPosition]
+
+	set UnhashedMove [UnhashMove $theMove]
+
+	set startPt [lindex $UnhashedMove 0]
+	set origin [coords $startPt]  
+	
+	set endPt [lindex $UnhashedMove 1]
+	set destination [coords $endPt]
+
+	set JumpedOn [lindex $UnhashedMove 2]
+
+	#set goatsLeft [NumGoatsLeft $oldPosition]
     
+	set a(0) 0
+#	set b(0) 0
+	
+	UnhashBoard $newPosition a    		
+#	UnhashBoard $oldPosition b
+	
+	set whoseTurn [GS_WhoseMove $oldPosition]
+	
+	##OR
+	# if { $a(startPt) == "g" } {
+      	# 	set whoseTurn G
+	#  } else {
+	#  	set whoseTurn T
+	#  }
+		
+	
+	if {whoseTurn == "G"} {
+		set color blue 
+		DrawBoard $c
+		#goat being placed		
+		if {$theMove < $boardsize} {
+			#placing goat       		
+			DrawPiecesArray $c a 
+		} else { 
+			#moving a goat
+			#deleting goat
+			set $a(startPt) -
+			set $a(endPt) g
+			#redraw board with goat at ending positiong    		
+			DrawPiecesArray $c a  
+		}
+	} else {
+		DrawBoard $c
+		set color red
+		set $a($startPt) -
+		set $a($JumpedOn) -
+		set $a($endPt) t
+		
+		DrawPiecesArray $c a
+
+#		set captured [CapturedGoat $oldPosition $newPosition]
+#		if {captured > 0} {
+#			#there was a captured goat, delete it 
+#			DeleteItem $c $oldPosition $captured
+#
+#			#redraw board with tiger at ending position
+#			UnhashBoard $newPosition a
+#			DrawPiecesArray $c $a
+#		} else {
+#			#tiger moving
+#
+#			#delete tiger
+#			DeleteItem $c $oldPosition $theMove
+#
+#			#redraw board
+#			UnhashBoard $newPosition a
+#			DrawPiecesArray $c $a
+		}
+		
+	}
 }
+
+
+
+    
+    
+    
 
 
 #############################################################################
@@ -389,6 +831,69 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 proc GS_ShowMoves { c moveType position moveList } {
 
     ### TODO: Fill this in
+    
+	foreach move $moveList {
+		drawmove $c $move $moveType $position
+	}
+}
+
+proc drawmove { c move moveType position } {
+	global boardsize
+	
+	switch $moveType {
+		value {
+
+		    # If the move leads to a win, it is a losing move (RED)
+		    # If the move leads to a losing position, it is a winning move (GREEN)
+		    # If the move leads to a tieing position, it is a tieing move (YELLOW)
+		    switch [lindex $move 1] {
+			Win { set color darkred }
+			Lose { set color green }
+			Tie { set color yellow }
+			default { set color $arrowcolor }
+		    }
+		}
+		default {
+		    set color $arrowcolor
+		}
+	}
+	
+	set UnhashedMove [UnhashMove $theMove]
+
+	set startPt [lindex $UnhashedMove 0]
+	set origin [coords $startPt]  
+	
+	set endPt [lindex $UnhashedMove 1]
+	set destination [coords $endPt]
+
+	set JumpedOn [lindex $UnhashedMove 2]
+	
+	set a(0) 0
+	
+	UnhashBoard $position a
+	
+	#drawing arrow
+	
+	set arrow [$c create line \
+		   [expr [lindex $origin 0]] \
+		   [expr [lindex $origin 1]] \
+		   [expr [lindex $destination 0] - (1 - $arrowlength)*([lindex $destination 0] - [lindex $origin 0])] \
+		   [expr [lindex $destination 1] - (1 - $arrowlength)*([lindex $destination 1] - [lindex $origin 1])] \
+		   -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead]
+	
+	#set piece [string index $board [lindex $m 0]]
+	set piece $a(startPt)
+
+	draw $piece $startPt $c
+
+	$c bind $arrow <Enter> "$c itemconfigure $arrow -fill black"
+	$c bind $arrow <Leave> "$c itemconfigure $arrow -fill $color"
+	$c bind $arrow <ButtonRelease-1> "ReturnFromHumanMove [lindex $move 0]"	
+	
+
+
+
+
 }
 
 
@@ -400,6 +905,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 proc GS_HideMoves { c moveType position moveList} {
     
     ### TODO: Fill this in
+    GS_DrawPosition $c $position
 
 }
 
