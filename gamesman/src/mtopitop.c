@@ -663,6 +663,10 @@ POSITION DoMove (POSITION position, MOVE move) {
 
 	if (DEBUG_DM) { printf("NEXT BOARD# = %d\n", (int) newPosition); }
 
+	//SafeFree(globalBoard->data);
+	//SafeFree(globalBoard->theBoard);
+	//SafeFree(globalBoard);
+
 	globalBoard = board;
 
 	//SafeFree(board->data);
@@ -1803,13 +1807,36 @@ BoardAndTurn arrayUnhash(POSITION hashNumber) {
   //POSITION L = hashNumber / (maxS * maxB);
   //POSITION S = (hashNumber %(maxS * maxB)) / maxB;
   //POSITION B = hashNumber % maxB;
-  POSITION L, S, B;
+  POSITION L, S, B, hashNumAdjust = 0;
 
   TIERPOSITION tierpos; TIER tier;
 
   printf("hashNumber = %llu\n", hashNumber);
 
-  gUnhashToTierPosition(hashNumber, &tierpos, &tier); // get tierpos and tier - not sure how to do this...
+  int s, l, b, r;
+
+  for (i = 0; i < boardSize; i++) {
+    if (globalBoard->theBoard[i] == SMALLPIECE) { s++; }
+    if (globalBoard->theBoard[i] == LARGEPIECE) { l++; }
+    if (globalBoard->theBoard[i] == CASTLEPIECE) { s++; l++;}
+    if (globalBoard->theBoard[i] == BLUEBUCKETPIECE) { b++; }
+    if (globalBoard->theBoard[i] == REDBUCKETPIECE) { r++; }
+    if (globalBoard->theBoard[i] == BLUESMALLPIECE) { s++; b++; }
+    if (globalBoard->theBoard[i] == REDSMALLPIECE) { s++; r++;}
+    if (globalBoard->theBoard[i] == BLUECASTLEPIECE) {
+      s++; l++; b++;
+    }
+    if (board->theBoard[i] == REDCASTLEPIECE) {
+      s++; l++; r++;
+    }
+
+    // make simplest board in the tier
+    
+
+    //hashNumAdjust = arrayHash();
+  }
+
+  gUnhashToTierPosition(hashNumber - hashNumAdjust, &tierpos, &tier); // get tierpos and tier - not sure how to do this...
   //generic_hash_context_switch(tier);  // switch to that tier's context
 
   if (hashNumber == 1512)
@@ -2524,6 +2551,9 @@ BOOLEAN IsLegal(POSITION position) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.54  2007/05/17 01:29:09  alexchoy
+// *** empty log message ***
+//
 // Revision 1.53  2007/05/16 22:37:15  alexchoy
 // *** empty log message ***
 //
