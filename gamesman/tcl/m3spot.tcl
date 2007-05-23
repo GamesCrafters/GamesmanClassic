@@ -428,7 +428,7 @@ proc animateMove { c theMove } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
-
+puts $moveList
     global isColorMove
     set trimmedMoveList [trimMoveList $position $moveList $isColorMove]
     
