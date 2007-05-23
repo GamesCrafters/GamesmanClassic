@@ -206,6 +206,17 @@ void InitializeGame ()
 	if (DEBUG) { printf("InitializeGame() <-- generic_hash: %d\n",init); }
 
 	init_board_hash();
+	int rots[3] = {90, 180, 270};
+	int refs[4] = {0, 45, 90, 135};
+	if (OthRows == OthCols) {
+	  generic_hash_init_sym(0, OthRows, OthCols, refs, 4, rots, 3);
+	}
+	else {
+	  rots[0] = 180;
+	  refs[0] = 0;
+	  refs[1] = 90;
+	  generic_hash_init_sym(0, OthRows, OthCols, refs, 2, rots, 1);
+	}
 
 	if (DEBUG)
 	{
