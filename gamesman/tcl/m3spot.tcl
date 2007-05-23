@@ -268,9 +268,9 @@ proc GS_Deinitialize { c } {
 proc GS_DrawPosition { c position } {
 
     #piecePos
-    #012
-    #345
-    #678
+    #123
+    #456
+    #789
 
     set redPos [getPos 1 $position]
     set red0 [pieceToBoard $redPos 0]
@@ -282,15 +282,15 @@ proc GS_DrawPosition { c position } {
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
-#puts "red"
-#puts $red0
-#puts $red1
-#puts "blue"
-#puts $blue0
-#puts $blue1
-#puts "white"
-#puts $white0
-#puts $white1
+puts "red"
+puts $red0
+puts $red1
+puts "blue"
+puts $blue0
+puts $blue1
+puts "white"
+puts $white0
+puts $white1
 
     drawSquare $c $red0 "red"
     drawSquare $c $red1 "red"
@@ -319,14 +319,14 @@ proc pieceToBoard { position piecePart } {
     set move [lindex $posToBoard [expr $position-2]]
 
     if { $piecePart == 0 } {
-	return [expr $move - 1]
+	return $move
     } else {
 	if { [expr $position & 0x00000001] == 0 } {
 	    incr move
 	} else {
 	    set move [expr $move + 3]
 	}
-	return [expr $move - 1]
+	return $move
     }
 
 }
@@ -336,8 +336,8 @@ proc drawSquare { c num color } {
     set size [min $gFrameWidth $gFrameHeight]
     set square [expr ($size - 2*$margin) / $boardSize]
 
-    set row [expr $num/3]
-    set col [expr $num%3]
+    set row [expr ($num-1)/3]
+    set col [expr ($num-1)%3]
 
     #draw the square
     $c create rect \
@@ -428,7 +428,7 @@ proc animateMove { c theMove } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
-puts $moveList
+#puts $moveList
     global isColorMove
     set trimmedMoveList [trimMoveList $position $moveList $isColorMove]
     
@@ -450,9 +450,9 @@ puts $moveList
 
 proc trimMoveList { position moveList isColorMove} {
     #piecePos
-    #012
-    #345
-    #678
+    #123
+    #456
+    #789
 
     #white's move
     if { $isColorMove == 0 } {
@@ -523,8 +523,7 @@ proc trim { position moveList color isColorMove} {
         set movePos1 [pieceToBoard $piecePos 1]
         #puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]" 
 
-        if { ($movePos0 != $ownPos0 && $movePos1 != $ownPos1) &&
-             $movePos0 != $otherPos0 &&
+        if { $movePos0 != $otherPos0 &&
              $movePos0 != $otherPos1 &&
              $movePos0 != $otherPos2 &&
              $movePos0 != $otherPos3 &&
@@ -532,10 +531,13 @@ proc trim { position moveList color isColorMove} {
              $movePos1 != $otherPos1 &&
              $movePos1 != $otherPos2 &&
              $movePos1 != $otherPos3 } {
-            lappend result $move
-            #puts "inside"
+            if { !($movePos0 == $ownPos0 && $movePos1 == $ownPos1) &&
+                 !($movePos1 == $ownPos0 && $movePos0 == $ownPos1) } {
+                lappend result $move
+                #puts "inside"
+            }
         }
-        puts $result
+        #puts $result
     }
 
     #puts ""
@@ -564,6 +566,8 @@ proc drawMove { c move moveType type } {
 	}
     }
 
+    
+    global isColorMove
 
     set colorPos [getPos 0 $move]
     set color0 [pieceToBoard $colorPos 0]
@@ -579,11 +583,20 @@ proc drawMove { c move moveType type } {
     set longradius [expr 0.2 * $square]
     set shortradius [expr 0.1 * $square]
 
-    set row [expr $color0/3]
-    set col [expr $color0%3]
+    if { $isColorMove == 1 } {
+        set space0 $color0
+        set space1 $color1
+        set row [expr ($color0-1)/3]
+        set col [expr ($color0-1)%3]
+    } else {
+        set space0 $white0
+        set space1 $white1
+        set row [expr ($white0-1)/3]
+        set col [expr ($white0-1)%3]
+    }
     
     #left-right oval
-    if { [expr $color1-$color0] == 1} {
+    if { [expr $space1-$space0] == 1} {
         set temp [$c create oval \
                       [expr $margin + $square * ($col+1) - $longradius] \
                       [expr $margin + $square * ($row+0.5) - $shortradius] \
