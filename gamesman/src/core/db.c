@@ -272,7 +272,7 @@ GetSlot(
                 UINT8 index
                 )
 {
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	    position = gCanonicalPosition(position);
     return db_functions->get_slice_slot(position, index);
 }
@@ -284,7 +284,7 @@ SetSlot(
                 UINT64 value
                 )
 {
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	    position = gCanonicalPosition(position);
 	if(index == gValueSlot)
 		AnalyzePosition(position, value);
@@ -297,7 +297,7 @@ SetSlotMax(
                 UINT8 index
                 )
 {
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	    position = gCanonicalPosition(position);
     return db_functions->set_slice_slot_max(position, index);
 }
@@ -322,7 +322,7 @@ VALUE StoreValueOfPosition(POSITION position, VALUE value)
 {
     showStatus(Update);
 
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
     	position = gCanonicalPosition(position);
     AnalyzePosition(position,value);
     return db_functions->put_value(position,value);
@@ -331,7 +331,7 @@ VALUE StoreValueOfPosition(POSITION position, VALUE value)
 
 VALUE GetValueOfPosition(POSITION position)
 {
-    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
+    if(((gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
 	position = gCanonicalPosition(position);
     return db_functions->get_value(position);
 }
@@ -339,7 +339,7 @@ VALUE GetValueOfPosition(POSITION position)
 
 REMOTENESS Remoteness(POSITION position)
 {
-    if(((kLoopy && gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
+    if(((gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
 	position = gCanonicalPosition(position);
     return db_functions->get_remoteness(position);
 }
@@ -347,7 +347,7 @@ REMOTENESS Remoteness(POSITION position)
 
 void SetRemoteness (POSITION position, REMOTENESS remoteness)
 {
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
     db_functions->put_remoteness(position,remoteness);
 }
@@ -355,7 +355,7 @@ void SetRemoteness (POSITION position, REMOTENESS remoteness)
 
 BOOLEAN Visited(POSITION position)
 {
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
     return db_functions->check_visited(position);
 }
@@ -363,14 +363,14 @@ BOOLEAN Visited(POSITION position)
 
 void MarkAsVisited (POSITION position)
 {
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
     db_functions->mark_visited(position);
 }
 
 void UnMarkAsVisited (POSITION position)
 {
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
     db_functions->unmark_visited(position);
 }
@@ -390,7 +390,7 @@ void UnMarkAllAsVisited()
 void MexStore(POSITION position, MEX theMex)
 {
     /* do we need this?? */
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
 
     db_functions->put_mex(position, theMex);
@@ -399,7 +399,7 @@ void MexStore(POSITION position, MEX theMex)
 MEX MexLoad(POSITION position)
 {
     /* do we need this?? */
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
 
     return db_functions->get_mex(position);
@@ -408,7 +408,7 @@ MEX MexLoad(POSITION position)
 void WinByStore(POSITION position, WINBY winBy)
 {
     /* do we need this?? */
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
 
     db_functions->put_winby(position, winBy);
@@ -418,7 +418,7 @@ WINBY WinByLoad(POSITION position)
 {
   WINBY result;
   /* do we need this?? */
-    if(kLoopy && gSymmetries)
+    if(gSymmetries)
 	position = gCanonicalPosition(position);
 
     result = db_functions->get_winby(position);
