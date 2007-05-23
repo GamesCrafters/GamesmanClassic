@@ -73,8 +73,6 @@ void printSymmetries(int boardType);
 void printXSpaces(int x);
 void freeSymmetries();
 int convert(int row, int col, int boardType);
-int hashTimes = 0;
-int generic_hash_hashTimes();
 /* end of symmetry stuff */
 
 
@@ -98,14 +96,15 @@ int hash_maxPos = 0;
 void 		hash_combiCalc();
 void 		freeHashContext(int contextNum);
 int 		validConfig(int *t);
-int 		searchIndices(int s);
-int 		searchOffset(int h);
+int 	        searchIndices(int s);
+int      	searchOffset(POSITION h);
 POSITION 	combiCount(int* tc);
 int 		hash_countPieces(int *pA);
-POSITION 	hash_cruncher (char* board, struct symEntry* symIndex); // 2007-2-15 changed to support symmetries
+POSITION 	hash_cruncher (char* board);
+POSITION        hash_cruncher_sym (char* board, struct symEntry* symIndex);
 void 		hash_uncruncher (POSITION hashed, char *dest);
 int 		getPieceParams(int *pa,char *pi,int *mi,int *ma);
-int 		nCr(int n, int r);
+POSITION 	nCr(int n, int r);
 void 		nCr_init(int a);
 int* 		gpd (int n);
 int 		gpi (int n);
@@ -198,16 +197,6 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), i
         cCon->gpdStore = (int*) SafeMalloc (sizeof(int) * cCon->numPieces);
         cCon->miniOffset = (POSITION*) SafeMalloc (sizeof(POSITION) * (cCon->numPieces+2));
         cCon->miniIndices = (int*) SafeMalloc (sizeof(int) * (cCon->numPieces+2));
-
-	// set identity symmetry in case generic_hash_init_sym not called
-	symmetriesList = (struct symEntry*) SafeMalloc (sizeof(struct symEntry));
-	symmetriesList->angle = 0;
-	symmetriesList->next = NULL;
-	symmetriesList->type = IDENTITY;
-	symmetriesList->sym = 	(int*) SafeMalloc (sizeof(int) * boardsize);
-	for (i = 0; i < boardsize; i++) {
-	  symmetriesList->sym[i] = i;
-	}
 
         getPieceParams(pieces_array, cCon->pieces, cCon->mins,cCon->maxs);
         for (i = 0; i < cCon->numPieces;i++) {
@@ -351,25 +340,11 @@ void hash_combiCalc()
 **
 ****************************************/
 
-/* hashes *board to an int */
+/* hashes *board to a POSITION */
 POSITION generic_hash_hash(char* board, int player) {
-	// use the identity symmetry.
-        return generic_hash_hash_sym(board, player, symmetriesList);
-}
-
-//accomodates generic_hash_turn and symmetries
-POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symIndex)
-{
-        int temp, i, j, sum;
+        int i, j;
+	POSITION temp, sum;
         int boardSize = cCon->boardSize;/*hash_boardSize;*/
-
-	hashTimes++;
-	// hashTimes = 20010098 for normal solve w/ 4x4 board
-	//if (hashTimes % 10000000 == 0)
-	//printf("hashTimes = %d\n", hashTimes);
-
-	if (symIndex == NULL)
-	  ExitStageRightErrorString("Invalid symmetry");
 
         for (i = 0;i < cCon->numPieces;i++)
         {
@@ -380,7 +355,7 @@ POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symInde
         for (i = 0; i < boardSize; i++)
         {
                 for (j = 0; j < cCon->numPieces; j++) {
-                        if (board[symIndex->sym[i]] == cCon->pieces[j]) {
+		        if (board[i] == cCon->pieces[j]) {
                                 cCon->thisCount[j]++;
                         }
                 }
@@ -394,7 +369,46 @@ POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symInde
                 }
         }
         temp = cCon->hashOffset[searchIndices(sum)];
-        temp += hash_cruncher(board, symIndex);
+        temp += hash_cruncher(board);
+        if (cCon->player != 0) // using single-player boards, ignore "player"
+        	return temp;
+        else return temp + (player-1)*(cCon->maxPos); //accomodates generic_hash_turn
+}
+
+//accomodates generic_hash_turn and symmetries
+POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symIndex)
+{
+        int i, j;
+	POSITION temp, sum;
+        int boardSize = cCon->boardSize;/*hash_boardSize;*/
+
+	if (symIndex == NULL)
+	  ExitStageRightErrorString("Invalid symmetry");
+
+        for (i = 0;i < cCon->numPieces;i++)
+        {
+                cCon->thisCount[i] = 0;
+                cCon->localMins[i] = cCon->mins[i];
+        }
+
+        for (i = 0; i < boardSize; i++)
+        {
+                for (j = 0; j < cCon->numPieces; j++) {
+		        if (board[symIndex->sym[i]] == cCon->pieces[j]) {
+                                cCon->thisCount[j]++;
+                        }
+                }
+        }
+        sum = 0;
+        for (i = cCon->numPieces-1;i >= 0;i--)
+        {
+                sum += (cCon->thisCount[i] - cCon->mins[i]);
+                if (i > 0) {
+                        sum *= cCon->nums[i-1];
+                }
+        }
+        temp = cCon->hashOffset[searchIndices(sum)];
+        temp += hash_cruncher_sym(board, symIndex);
         if (cCon->player != 0) // using single-player boards, ignore "player"
         	return temp;
         else return temp + (player-1)*(cCon->maxPos); //accomodates generic_hash_turn
@@ -402,8 +416,7 @@ POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symInde
 
 /* helper func from generic_hash_unhash() computes lexicographic rank of *board
    among boards with the same configuration argument *thiscount */
-// changed 2007-2-15 to support symmetries
-POSITION hash_cruncher (char* board, struct symEntry* symIndex)
+POSITION hash_cruncher (char* board)
 {
         POSITION sum = 0;
         int i = 0, k = 0, max1 = 0;
@@ -412,7 +425,37 @@ POSITION hash_cruncher (char* board, struct symEntry* symIndex)
         for(;boardSize>1;boardSize--) {
                 i = 0;
 
-                while (board[symIndex->sym[boardSize - 1]] != cCon->pieces[i])
+                while (board[boardSize - 1] != cCon->pieces[i])		
+                        i++;
+                for (k = 0;k < i;k++) {
+                        max1 = 1;
+                        if (cCon->localMins[k] > 1)
+                                max1 = cCon->localMins[k];
+
+                        if (cCon->thisCount[k] >= max1) {
+                                cCon->thisCount[k]--;
+                                sum += combiCount(cCon->thisCount);
+                                cCon->thisCount[k]++;
+                        }
+                }
+                cCon->thisCount[i]--;
+                cCon->localMins[i]--;
+        }
+
+        return sum;
+}
+
+// symmetry version
+POSITION hash_cruncher_sym (char* board, struct symEntry* symIndex)
+{
+        POSITION sum = 0;
+        int i = 0, k = 0, max1 = 0;
+        int boardSize = cCon->boardSize;
+
+        for(;boardSize>1;boardSize--) {
+                i = 0;
+
+                while (board[symIndex->sym[boardSize - 1]] != cCon->pieces[i])		
                         i++;
                 for (k = 0;k < i;k++) {
                         max1 = 1;
@@ -732,7 +775,7 @@ int searchIndices(int s)
 }
 
 /* function used to map a member of gOffsetIndices into gHashOffset */
-int searchOffset(int h)
+int searchOffset(POSITION h)
 {
         int i = cCon->usefulSpace;
         while(cCon->hashOffset[i] > h)
@@ -806,7 +849,7 @@ int gpi (int n)
 }
 
 /* shorthand for n choose r */
-int nCr(int n, int r)
+POSITION nCr(int n, int r)
 {
         return cCon->NCR[n*(cCon->boardSize+1) + r];
 }
@@ -911,24 +954,44 @@ void freeHashtable() {
 void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots) {
 
         int i,j,k,numDiags;
-	int boardSize = cCon->boardSize;
-	int *hex60Rot = NULL, *tempSym = NULL;
-	struct symEntry *symIndex = symmetriesList;
+	int boardSize = 0;
+	int *hex60Rot = NULL, *tempSym = NULL, *hex0Ref;
+	struct symEntry *symIndex = NULL;
 	BOOLEAN rectBoard = FALSE;
 	BOOLEAN hexBoard = FALSE;
 
 	// 0 for a rectangular board, 1 for a hex board
 	if (boardType == RECT) {
 	  rectBoard = TRUE;
-	}
+	  boardSize = numRows*numCols;
+	} 
 	else if (boardType == HEX) {
 	  hexBoard = TRUE;
+	  for (j = 0; j < numRows; j++) {
+	    for (k = 0; k < numCols; k++) {
+	      boardSize++;
+	    }
+	    if (j < numRows/2)
+	      numCols++;
+	    if (j >= numRows/2 && j < numRows-1)
+	      numCols--;
+	  }
 	  // FIGURE THIS OUT
 	  numDiags = 0;
 	}
 	symBoardRows = numRows;
 	symBoardCols = numCols;
 
+	// setup symmetries list
+	symmetriesList = (struct symEntry*) SafeMalloc (sizeof(struct symEntry));
+	symmetriesList->angle = 0;
+	symmetriesList->next = NULL;
+	symmetriesList->type = IDENTITY;
+	symmetriesList->sym = 	(int*) SafeMalloc (sizeof(int) * boardSize);
+	for (i = 0; i < boardSize; i++) {
+	  symmetriesList->sym[i] = i;
+	}
+	symIndex = symmetriesList;
 	for (i = 0; i < numReflects; i++) {
 	  symIndex->next = new_sym_entry(REFLECTION, reflections[i]);
 	  symIndex = symIndex->next;
@@ -941,8 +1004,42 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	numSymmetries = numRots + numReflects + 1;
 
 	// need an equilateral board for this
-	if ((rectBoard && numRows == numCols) || (hexBoard && numRows == numDiags)) {
-	  composeSymmetries();
+	//if ((rectBoard && numRows == numCols) || (hexBoard && numRows == numDiags)) {
+	//  composeSymmetries();
+	//}
+
+	// set up hex stuff for later
+	if (hexBoard) {
+	  hex60Rot = (int*) SafeMalloc(sizeof(int) * boardSize);
+	  hex0Ref = (int*) SafeMalloc(sizeof(int) * boardSize);
+	  tempSym = (int*) SafeMalloc(sizeof(int) * boardSize);
+	  // numCols refers to # of elements on a row. initialize to 60 degree rotation
+	  // always an odd number of rows so numRows/2 + 1 is the middle row
+	  for (j = 0; j < numRows; j++) {
+	    for (k = 0; k < numCols; k++) {
+	      if (j <= numRows/2) {
+		// i = number of rows below middle row
+		if (numCols-k-1 > numRows/2) 
+		  i = (numCols-k-1) - (numRows/2);
+		else
+		  i = 0;
+		hex60Rot[convert(j,k,HEX)] = convert(numCols-k-1,j-i,HEX);
+	      }
+	      else {
+		// i = number of rows below middle row
+		if (numRows-k-1 > numRows/2) 
+		  i = (numRows-k-1) - (numRows/2);
+		else
+		  i = 0;
+		hex60Rot[convert(j,k,HEX)] = convert(numRows-k-1,j-i,HEX);
+	      }
+	      hex0Ref[convert(j,k,HEX)] = convert(numRows-j-1,k,HEX);
+	    }
+	    if (j < numRows/2)
+	      numCols++;
+	    if (j >= numRows/2 && j < numRows-1)
+	      numCols--;
+	  }
 	}
 
 	symIndex = symmetriesList;
@@ -960,51 +1057,46 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	   * this also means reflectionSymmetries[0] = {2,1,0,5,4,3,8,7,6} and
 	   * reflectionSymmetries[1] = {6,7,8,3,4,5,0,1,2} */
 	  if (symIndex->type == REFLECTION) {
-	    if (rectBoard && (symIndex->angle == 0 || symIndex->angle == 180)) {
-	      // swap rows, leaving the middle one alone
-	      for (j = 0; j < numRows; j++) {
-		// set each element of the row
-		for (k = 0; k < numCols; k++) {
-		  // j*numCols is the first element of the jth row from top
-		  // (numRows-j-1)*numCols is the first element of the jth row from bottom
-		  symIndex->sym[j*numCols+k] = (numRows-j-1)*numCols + k;
-		  //symIndex->sym[(numRows-j-1)*numCols+k] = j*numCols + k;
+	    if (rectBoard) {
+	      if (symIndex->angle == 0 || symIndex->angle == 180) {
+		// swap rows, leaving the middle one alone
+		for (j = 0; j < numRows; j++) {
+		  // set each element of the row
+		  for (k = 0; k < numCols; k++) {
+		    // j*numCols is the first element of the jth row from top
+		    // (numRows-j-1)*numCols is the first element of the jth row from bottom
+		    symIndex->sym[j*numCols+k] = (numRows-j-1)*numCols + k;
+		    //symIndex->sym[(numRows-j-1)*numCols+k] = j*numCols + k;
+		  }
+		}
+	      }
+	      else if (symIndex->angle == 45 || symIndex->angle == 315) {
+		for (j = 0; j < numRows; j++) {
+		  for (k = 0; k < numCols; k++) {
+		    symIndex->sym[j*numCols+k] = (numRows-k-1)*numCols + (numCols-j-1);
+		  }
+		}
+	      }
+	      else if (symIndex->angle == 90 || symIndex->angle == 270) {
+		// swap columns, leaving the middle one alone
+		for (j = 0; j < numRows; j++) {
+		  // set each element of the column
+		  for (k = 0; k < numCols; k++) {
+		    // in same row, but opposite columns
+		    symIndex->sym[j*numCols + k] = j*numCols + (numCols-k-1);
+		    //symIndex->sym[j*numCols + (numCols-k-1)] = j*numCols + k;
+		  }	       
+		}
+	      }
+	      else if (symIndex->angle == 135 || symIndex->angle == 225) {
+		for (j = 0; j < numRows; j++) {
+		  for (k = 0; k < numCols; k++) {
+		    symIndex->sym[j*numCols+k] = k*numCols + j;
+		  }
 		}
 	      }
 	    }
-	    else if (rectBoard && (symIndex->angle == 45 || symIndex->angle == 315)) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-		  symIndex->sym[j*numCols+k] = (numRows-k-1)*numCols + (numCols-j-1);
-		}
-	      }
-	    }
-	    else if (rectBoard && (symIndex->angle == 90 || symIndex->angle == 270)) {
-	      // swap columns, leaving the middle one alone
-	      for (j = 0; j < numRows; j++) {
-		// set each element of the column
-		for (k = 0; k < numCols; k++) {
-		  // in same row, but opposite columns
-		  symIndex->sym[j*numCols + k] = j*numCols + (numCols-k-1);
-		  //symIndex->sym[j*numCols + (numCols-k-1)] = j*numCols + k;
-		}
-	      }
-	    }
-	    else if (rectBoard && (symIndex->angle == 135 || symIndex->angle == 225)) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-		  symIndex->sym[j*numCols+k] = k*numCols + j;
-		}
-	      }
-	    }
-	    /*
-	         0 1 2         g h i
-		3 4 5 6       c d e f
-	       7 8 9 a b ->  7 8 9 a b
-	        c d e f       3 4 5 6
-		 g h i         0 1 2
-	    */
-	    else if (hexBoard && symIndex->angle == 0) {
+	    else if (hexBoard && (symIndex->angle == 0 || symIndex->angle == 180)) {
 	      for (j = 0; j < numRows; j++) {
 		for (k = 0; k < numCols; k++) {
 		  symIndex->sym[convert(j,k,HEX)] = convert(numRows-j-1,k,HEX);
@@ -1015,70 +1107,28 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 		  numCols--;
 	      }
 	    }
-	    else if (hexBoard && (symIndex->angle == 30 || symIndex->angle == 210)) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-		  //symIndex->sym[convert(j,k,HEX)] = convert();
-		}
-		if (j < numRows/2)
-		  numCols++;
-		if (j >= numRows/2 && j < numRows-1)
-		  numCols--;
+	    else if (hexBoard && (symIndex->angle % 30 == 0)) {  
+	      // rotate it a bunch of times
+	      for (j = 0; j < boardSize; j++) {
+		symIndex->sym[j] = j;
+		tempSym[j] = j;
 	      }
-	    }
-	    else if (hexBoard && (symIndex->angle == 60 || symIndex->angle == 240)) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-
+	      if (symIndex->angle > 150)
+		symIndex->angle -= 180;
+	      for (j = 0; j < symIndex->angle/30; j++) {
+		for (k = 0; k < boardSize; k++) {
+		  tempSym[k] = symIndex->sym[hex60Rot[k]];
 		}
-		if (j < numRows/2)
-		  numCols++;
-		if (j >= numRows/2 && j < numRows-1)
-		  numCols--;
+		for (k = 0; k < boardSize; k++) {
+		  symIndex->sym[k] = tempSym[k];
+		}
 	      }
-	    }
-	    else if (hexBoard && (symIndex->angle == 90 || symIndex->angle == 270)) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-		  symIndex->sym[convert(j,k,HEX)] = convert(j,numCols-k-1,HEX);
-		}
-		if (j < numRows/2)
-		  numCols++;
-		if (j >= numRows/2 && j < numRows-1)
-		  numCols--;
+	      // reflect over 0
+	      for (j = 0; j < boardSize; j++) {
+		tempSym[j] = symIndex->sym[hex0Ref[j]];
 	      }
-	    }
-	    else if (hexBoard && (symIndex->angle == 120 || symIndex->angle == 300)) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-
-		}
-		if (j < numRows/2)
-		  numCols++;
-		if (j >= numRows/2 && j < numRows-1)
-		  numCols--;
-	      }
-	    }
-	    else if (hexBoard && (symIndex->angle == 150 || symIndex->angle == 330)) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-
-		}
-		if (j < numRows/2)
-		  numCols++;
-		if (j >= numRows/2 && j < numRows-1)
-		  numCols--;
-	      }
-	    }
-	    else if (hexBoard && symIndex->angle == 180) {
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-
-		}
-		if (j < numRows/2)
-		  numCols++;
-		if (j >= numRows/2 && j < numRows-1)
-		  numCols--;
+	      for (j = 0; j < boardSize; j++) {
+		symIndex->sym[j] = tempSym[j];
 	      }
 	    }
 	  }
@@ -1095,34 +1145,36 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	   * rotationSymmetries[1] = {8,7,6,5,4,3,2,1,0} */
 	  else if (symIndex->type == ROTATION) {
 	    // 90 degree rotation on a rectangular board
-	    if (rectBoard && (symIndex->angle == 90)) {
-	      // go through each row and replace it by the corresponding column
-	      for (j = 0; j < numRows; j++) {
-		// this is for column math
-		for (k = 0; k < numCols; k++) {
-		  // j*numCols + k is the kth element of the jth row
-		  // (numRows-k-1)*numCols + j
-		  symIndex->sym[j*numCols + k] = (numRows-k-1)*numCols + j;
+	    if (rectBoard) {
+	      if (symIndex->angle == 90) {
+		// go through each row and replace it by the corresponding column
+		for (j = 0; j < numRows; j++) {
+		  // this is for column math
+		  for (k = 0; k < numCols; k++) {
+		    // j*numCols + k is the kth element of the jth row
+		    // (numRows-k-1)*numCols + j
+		    symIndex->sym[j*numCols + k] = (numRows-k-1)*numCols + j;
+		  }
 		}
 	      }
-	    }
-	    // 180 degree rotations are simple.  Instead of going from 0 to boardSize-1,
-	    // go from boardSize-1 to 0
-	    else if (rectBoard && symIndex->angle == 180) {
-	      k = 0;
-	      for (j = boardSize-1; j >=0; j--) {
-		symIndex->sym[k] = j;
-		k++;
+	      // 180 degree rotations are simple.  Instead of going from 0 to boardSize-1, 
+	      // go from boardSize-1 to 0
+	      else if (symIndex->angle == 180) {
+		k = 0;
+		for (j = boardSize-1; j >=0; j--) {
+		  symIndex->sym[k] = j;
+		  k++;
+		}
 	      }
-	    }
-	    // -90 degree rotation on a rectangular board
-	    else if (rectBoard && symIndex->angle == 270) {
-	      // for jth row and kth column
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-		  // j*numCols + k = jth row, kth element from the left
-		  // k*numCols + (numCols-j-1) = kth row, jth element from the right
-		  symIndex->sym[j*numCols + k] = k*numCols + (numCols-j-1);
+	      // -90 degree rotation on a rectangular board
+	      else if (symIndex->angle == 270) {
+		// for jth row and kth column
+		for (j = 0; j < numRows; j++) {
+		  for (k = 0; k < numCols; k++) {
+		    // j*numCols + k = jth row, kth element from the left
+		    // k*numCols + (numCols-j-1) = kth row, jth element from the right
+		    symIndex->sym[j*numCols + k] = k*numCols + (numCols-j-1);
+		  }
 		}
 	      }
 	    }
@@ -1135,40 +1187,12 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	        c d e f       h e a 6
 		 g h i         i f b
 	    */
-	    else if (hexBoard && (symIndex->angle == 60 || symIndex->angle == 120 ||
-		  symIndex->angle == 180 || symIndex->angle == 240 || symIndex->angle == 300)) {
-
-	      hex60Rot = (int*) SafeMalloc(sizeof(int) * boardSize);
-	      tempSym = (int*) SafeMalloc(sizeof(int) * boardSize);
-	      // numCols refers to # of elements on a row. initialize to 60 degree rotation
-	      // always an odd number of rows so numRows/2 + 1 is the middle row
-	      for (j = 0; j < numRows; j++) {
-		for (k = 0; k < numCols; k++) {
-		  if (j <= numRows/2) {
-		    // i = number of rows below middle row
-		    if (numCols-k-1 > numRows/2)
-		      i = (numCols-k-1) - (numRows/2);
-		    else
-		      i = 0;
-		    hex60Rot[convert(j,k,HEX)] = convert(numCols-k-1,j-i,HEX);
-		    symIndex->sym[convert(j,k,HEX)] = convert(numCols-k-1,j-i,HEX);
-		  }
-		  else {
-		    // i = number of rows below middle row
-		    if (numRows-k-1 > numRows/2)
-		      i = (numRows-k-1) - (numRows/2);
-		    else
-		      i = 0;
-		    hex60Rot[convert(j,k,HEX)] = convert(numRows-k-1,j-i,HEX);
-		    symIndex->sym[convert(j,k,HEX)] = convert(numRows-k-1,j-i,HEX);
-		  }
-		}
-		if (j < numRows/2)
-		  numCols++;
-		if (j >= numRows/2 && j < numRows-1)
-		  numCols--;
+	    else if (hexBoard && (symIndex->angle % 60 == 0)) {  
+	      for (j = 0; j < boardSize; j++) {
+		symIndex->sym[j] = j;
+		tempSym[j] = j;
 	      }
-	      for (j = 1; j < symIndex->angle/60; j++) {
+	      for (j = 0; j < symIndex->angle/60; j++) {
 		for (k = 0; k < boardSize; k++) {
 		  tempSym[k] = symIndex->sym[hex60Rot[k]];
 		}
@@ -1176,8 +1200,6 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 		  symIndex->sym[k] = tempSym[k];
 		}
 	      }
-	      SafeFree(hex60Rot);
-	      SafeFree(tempSym);
 	    }
 	  }
 	  // shouldn't get here, but if we do set it to the identity
@@ -1190,9 +1212,14 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	  }
 	  symIndex = symIndex->next;
 	}
-
+	
 	printSymmetries(boardType);
-
+	
+	if (hexBoard) {
+	  SafeFree(hex60Rot);
+	  SafeFree(hex0Ref);
+	  SafeFree(tempSym);
+	}
 	// set the function pointer.
 	gCanonicalPosition = generic_hash_canonicalPosition;
 }
@@ -1389,10 +1416,6 @@ BOOLEAN sym_exists(int symType, int symAngle) {
 	//if (!result)
 	//printf("sym of type %d and angle %d not found\n", symType, symAngle);
 	return result;
-}
-
-int generic_hash_hashTime() {
-  return hashTimes;
 }
 
 /* converts col'th element in a row into the corresponding number.
