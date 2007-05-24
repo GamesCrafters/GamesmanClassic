@@ -282,15 +282,15 @@ proc GS_DrawPosition { c position } {
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
-puts "red"
-puts $red0
-puts $red1
-puts "blue"
-puts $blue0
-puts $blue1
-puts "white"
-puts $white0
-puts $white1
+#puts "red"
+#puts $red0
+#puts $red1
+#puts "blue"
+#puts $blue0
+#puts $blue1
+#puts "white"
+#puts $white0
+#puts $white1
 
     drawSquare $c $red0 "red"
     drawSquare $c $red1 "red"
