@@ -43,8 +43,6 @@ set boardsize 3
 
 
 
-
-
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
 # are inherent to the game, unalterable.  You can use this fucntion
@@ -104,7 +102,7 @@ proc GS_InitGameSpecific {} {
 #############################################################################
 proc GS_NameOfPieces {} {
 #
-    return [list Tigers Goats]
+    return [list t g]
 
 }
 
@@ -253,41 +251,37 @@ proc GS_SetOption { option } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-#    global r s size margin gFrameWidth gFrameHeight
-    global s margin size color outlineColor outline t dot r player1 player2 fontsize
+	#    global r s size margin gFrameWidth gFrameHeight
+	global s margin size color outlineColor outline t dot r player1 player2 fontsize
 
 
-# Save the GC background skin
-    $c addtag background all
+	# Save the GC background skin
+	$c addtag background all
 
-#
-    #set board "T G T  G    G    G  T G T"
-    set board "T T   T T"
-    
-    
-    # Draw the default board with default piece configuration
-    DrawBoard $c
-    DrawPieces $c $board
+	#
+	#set board "T G T  G    G    G  T G T"
+	set board "T T   T T"    
 
-	# Finally, draw a title
-         $c create rectangle \
-         	0 \
-         	[expr $size/2 - 50] \
-         	$size \
-         	[expr $size/2 + 50] -fill gray -width 1 -outline black
-         $c create text \
-         	[expr $size/2] [expr $size/2] -text "Welcome to Bagh Chal!" -font "Arial $fontsize" -anchor center -fill black -width [expr 4*$s] -justify center
+	# Draw the default board with default piece configuration
+	DrawBoard $c
+	DrawPieces $c $board
 
-    
-
+# Finally, draw a title
+	 $c create rectangle \
+		0 \
+		[expr $size/2 - 50] \
+		$size \
+		[expr $size/2 + 50] -fill gray -width 1 -outline black
+	 $c create text \
+		[expr $size/2] [expr $size/2] -text "Welcome to Bagh Chal!" -font "Arial $fontsize" -anchor center -fill black -width [expr 4*$s] -justify center
 }
 
 proc min { a b } {
-    if { $a < $b } {
-	return $a
-    }
-    return $b
-}
+	if { $a < $b } {
+		return $a
+	}
+	return $b
+}	
 
 
 ######################
@@ -434,11 +428,11 @@ proc DrawPieces { c board } {
 # Draws a piece at index on canvas c #
 ######################################
 proc draw { piece index c } {
-    global r player1 player2 outline
+	global r player1 player2 outline
 
-    set location [coords $index]
+	set location [coords $index]
 
-    switch $piece {
+	switch $piece {
 	G { $c create oval \
 		[expr [lindex $location 0] - $r] \
 		[expr [lindex $location 1] - $r] \
@@ -450,7 +444,7 @@ proc draw { piece index c } {
 		[expr [lindex $location 0] + $r] \
 		[expr [lindex $location 1] + $r] -fill $player2 -width $outline}
 	default {}
-    }
+	}
 
 }
 
@@ -470,31 +464,34 @@ proc coords { index } {
 }
 
 proc UnhashBoard {position arrayname} {
-    upvar $arrayname a
-    
-    set board [C_CustomUnhash $position]
-    
-    for {set i 3} {$i < 12} {incr i} {
-        if {[string equal [string index $board $i] "G"]} {   
-            set a($i) g
-        } elseif {[string equal [string index $board $i] "T"]} {
-            set a($i) t
-        } else {
-            set a($i) -
-        }
-    }  
+	upvar $arrayname a
+
+	set board [C_CustomUnhash $position]
+
+	for {set i 3} {$i < 12} {incr i} {
+	if {[string equal [string index $board $i] "G"]} {   
+	    set a([expr $i - 3]) g
+	} elseif {[string equal [string index $board $i] "T"]} {
+	    set a([expr $i - 3]) t
+	} else {
+	    set a([expr $i - 3]) -
+	}
+	}  
     
 }
 
-    
-#returns startingPt endingPt
+##################################################################################
+#
+#	Unhashes a move the same way it's done in mbaghchal.c  
+#	returns: a list with [startingPoint   endingPoint  JumpedOn(position of 
+#		 goat jumped on)]
+##################################################################################
 proc UnhashMove { theMove } {
-	global boardsize
+	global boardsize	
 	
-	
-	set theMove [expr $theMove - $boardsize]
-	set jump [expr theMove % 2]
-	set theMove [expr $theMove / 2]
+	set theMove2 [expr $theMove - $boardsize]
+	set jump [expr theMove2 % 2]
+	set theMove3 [expr $theMove2 / 2]
 	
 	set direction [expr $theMove % 8]
 	set theMove [expr $theMove / 8]
@@ -514,8 +511,7 @@ proc UnhashMove { theMove } {
 	set DOWN_RIGHT 4
 	set DOWN_LEFT 5
 	set RIGHT 6
-	set LEFT 7
-	
+	set LEFT 7	
 	
     	switch $direction {
     		UP 	{ if { jump } { 
@@ -581,33 +577,26 @@ proc UnhashMove { theMove } {
 }
 
 
-		
-
+###############################################################################
+#
+#	Draws the given array of g's and t's on the board
+#
+################################################################################
 proc DrawPiecesArray { c arrayname } {
 	
-    global boardsize
-    upvar $arrayname a
-#	draw [string index $board 0] 0 $c
-	
-     for {set i 0} {$i < ( $boardsize * $boardsize ) } {incr i} {
-    	if { $a($i) == "g" } {
-    		draw G $i $c 
-    	} elseif { $a($i) == "t } {
-    		draw T $i $c
-    	}
-     }
+	global boardsize
+	upvar $arrayname a
+	#	draw [string index $board 0] 0 $c
+
+	for {set i 0} {$i < ( $boardsize * $boardsize ) } {incr i} {
+	if { $a($i) == "g" } {
+		draw G $i $c 
+	} elseif { $a($i) == "t" } {
+		draw T $i $c
+	}
+	}
 	
 }
-
-
-
-	
-
-
-
-
-
-
 
 
 
@@ -616,9 +605,23 @@ proc DrawPiecesArray { c arrayname } {
 # is here, so whoever put this here should update this.  -Jeff
 #############################################################################
 proc GS_Deinitialize { c } {
-    $c delete all
+	$c delete all
 }
 
+#############################################################################
+# GS_NewGame should start playing the game. 
+# It's arguments are a canvas, c, where you should draw 
+# the hashed starting position of the game.
+# This is called just when the player hits "New Game"
+# and before any moves are made.
+#############################################################################
+proc GS_NewGame { c position } {
+	# TODO: The default behavior of this funciton is just to draw the position
+	# but if you want you can add a special behaivior here like an animation
+
+	DrawBoard $c
+	GS_DrawPosition $c $position
+}
 
 #############################################################################
 # GS_DrawPosition this draws the board in an arbitrary position.
@@ -635,30 +638,18 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
 #    
-  	set a(0) 0 
-    ### TODO: Fill this in
-        UnhashBoard $position a              
-    
-        DrawBoard $c
-        DrawPiecesArray $c $a
-        #DrawPieces $c $position
+	set a(0) 0 
+	### TODO: Fill this in
+	UnhashBoard $position a              
+
+	DrawBoard $c
+	DrawPiecesArray $c a
+	#DrawPieces $c $position
 #
 }
 
 
-#############################################################################
-# GS_NewGame should start playing the game. 
-# It's arguments are a canvas, c, where you should draw 
-# the hashed starting position of the game.
-# This is called just when the player hits "New Game"
-# and before any moves are made.
-#############################################################################
-proc GS_NewGame { c position } {
-    # TODO: The default behavior of this funciton is just to draw the position
-    # but if you want you can add a special behaivior here like an animation
-    DrawBoard $c
-    GS_DrawPosition $c $position
-}
+
 
 
 #############################################################################
@@ -668,21 +659,30 @@ proc GS_NewGame { c position } {
 # This function is called just before every move.
 #############################################################################
 proc GS_WhoseMove { position } {
-    # Optional Procedure
+	# Optional Procedure
 
-#    set board [unhash $position];
-#    set whoseTurn [lindex $boardList 0]
-#    return $whoseTurn    
+	    set board [C_CustomUnhash $position];
+	       
+	    
+	    if { [string equal [string index $board 0] "1"] } {   
+	      return t	  
+	    } else {
+	      return g
+	    }
+	    
+	    
+	#   set whoseTurn [lindex $boardList 0]
+	#    return $whoseTurn    
 
 
-######
-     set board [C_CustomUnhash $position]
+	######
+	#set board [C_CustomUnhash $position]
 
-     if {[string equal [string index $board 0] "1"]}{
-     	return "T"
-     }else {
-     	return "G"
-     }
+	#if {[string equal [string index $board 0] "1"]}{
+	#return "T"
+	#}else {
+	#return "G"
+	#}
 }
 
 
@@ -724,13 +724,17 @@ proc NumGoatsLeft { position } {
 #   a. raise the appropriate piece at piece$whoseTurn$theMove
 # 3. Else, theMove is a rearanger move so:
 
-
-
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 
 	global boardsize
 	DrawBoard $c
 	#set board [C_CustomUnhash $oldPosition]
+	set a(0) 0
+
+	set whoseTurn [GS_WhoseMove $oldPosition]
+	
+
+
 
 	set UnhashedMove [UnhashMove $theMove]
 
@@ -744,23 +748,23 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 
 	#set goatsLeft [NumGoatsLeft $oldPosition]
     
-	set a(0) 0
+	
 #	set b(0) 0
 	
 	UnhashBoard $newPosition a    		
 #	UnhashBoard $oldPosition b
 	
-	set whoseTurn [GS_WhoseMove $oldPosition]
 	
-	##OR
+	
+	#OR
 	# if { $a(startPt) == "g" } {
       	# 	set whoseTurn G
 	#  } else {
-	#  	set whoseTurn T
+	#   	set whoseTurn T
 	#  }
 		
 	
-	if {whoseTurn == "G"} {
+	if {whoseTurn == "g"} {
 		set color blue 
 		DrawBoard $c
 		#goat being placed		
@@ -784,31 +788,11 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 		
 		DrawPiecesArray $c a
 
-#		set captured [CapturedGoat $oldPosition $newPosition]
-#		if {captured > 0} {
-#			#there was a captured goat, delete it 
-#			DeleteItem $c $oldPosition $captured
-#
-#			#redraw board with tiger at ending position
-#			UnhashBoard $newPosition a
-#			DrawPiecesArray $c $a
-#		} else {
-#			#tiger moving
-#
-#			#delete tiger
-#			DeleteItem $c $oldPosition $theMove
-#
-#			#redraw board
-#			UnhashBoard $newPosition a
-#			DrawPiecesArray $c $a
+
 		}
-		
-	}
-}
-
-
-
-    
+	
+	
+}  
     
     
 
@@ -838,7 +822,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 }
 
 proc drawmove { c move moveType position } {
-	global boardsize
+	global boardsize arrowcolor
 	
 	switch $moveType {
 		value {
@@ -858,7 +842,7 @@ proc drawmove { c move moveType position } {
 		}
 	}
 	
-	set UnhashedMove [UnhashMove $theMove]
+	set UnhashedMove [UnhashMove $move]
 
 	set startPt [lindex $UnhashedMove 0]
 	set origin [coords $startPt]  
@@ -889,11 +873,6 @@ proc drawmove { c move moveType position } {
 	$c bind $arrow <Enter> "$c itemconfigure $arrow -fill black"
 	$c bind $arrow <Leave> "$c itemconfigure $arrow -fill $color"
 	$c bind $arrow <ButtonRelease-1> "ReturnFromHumanMove [lindex $move 0]"	
-	
-
-
-
-
 }
 
 
@@ -903,9 +882,9 @@ proc drawmove { c move moveType position } {
 # You might not use all the arguments, and that's okay.
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
-    
-    ### TODO: Fill this in
-    GS_DrawPosition $c $position
+
+	### TODO: Fill this in
+	GS_DrawPosition $c $position
 
 }
 
@@ -924,8 +903,8 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 
-    ### TODO if needed
-    GS_DrawPosition $c $positionAfterUndo
+	### TODO if needed
+	GS_DrawPosition $c $positionAfterUndo
 }
 
 
