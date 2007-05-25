@@ -33,7 +33,7 @@ proc GS_InitGameSpecific {} {
 
     global gInitialPosition gPosition
     set gInitialPosition 0x001009BD
-    set gPosition $gInitialPosition
+    set gPosition 0x001009BD
 
     ### Set the strings to be used in the Edit Rules
 
