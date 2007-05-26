@@ -282,15 +282,7 @@ proc GS_DrawPosition { c position } {
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
-#puts "red"
-#puts $red0
-#puts $red1
-#puts "blue"
-#puts $blue0
-#puts $blue1
-#puts "white"
-#puts $white0
-#puts $white1
+#puts "red [expr $red0] [expr $red1] blue [expr $blue0] [expr $blue1] white [expr $white0] [expr $white1]"
 
     drawSquare $c $red0 "red"
     drawSquare $c $red1 "red"
@@ -428,7 +420,7 @@ proc animateMove { c theMove } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
-#puts $moveList
+puts $moveList
     global isColorMove
     set trimmedMoveList [trimMoveList $position $moveList $isColorMove]
     
@@ -441,7 +433,7 @@ proc GS_ShowMoves { c moveType position moveList } {
         set white0 [pieceToBoard $whitePos 0]
         set white1 [pieceToBoard $whitePos 1]
 
-        #puts "color [expr $color0+1] [expr $color1+1] white [expr $white0+1] [expr $white1+1]"
+        #puts "color [expr $color0] [expr $color1] white [expr $white0] [expr $white1]"
 
 	drawMove $c [lindex $move 0] $moveType [lindex $move 1]
     }
