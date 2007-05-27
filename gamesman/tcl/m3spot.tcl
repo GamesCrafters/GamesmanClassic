@@ -32,8 +32,8 @@ proc GS_InitGameSpecific {} {
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
-    set gInitialPosition 0x001009BD
-    set gPosition 0x001009BD
+    set gInitialPosition 1051069
+    set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
 
@@ -433,7 +433,7 @@ puts $moveList
         set white0 [pieceToBoard $whitePos 0]
         set white1 [pieceToBoard $whitePos 1]
 
-        #puts "color [expr $color0] [expr $color1] white [expr $white0] [expr $white1]"
+        puts "color [expr $color0] [expr $color1] white [expr $white0] [expr $white1]"
 
 	drawMove $c [lindex $move 0] $moveType [lindex $move 1]
     }
