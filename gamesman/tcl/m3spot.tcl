@@ -10,6 +10,11 @@
 global isColorMove
 set isColorMove 1
 
+global redIndex whiteIndex blueIndex
+set redIndex 0
+set whiteIndex 1
+set blueIndex 2
+
 set margin 50
 set boardSize 3
 
@@ -71,7 +76,7 @@ proc GS_InitGameSpecific {} {
 #############################################################################
 proc GS_NameOfPieces {} {
 
-    return [list R B W]
+    return [list R W B]
 
 }
 
@@ -93,7 +98,7 @@ proc GS_NameOfPieces {} {
 #############################################################################
 proc GS_ColorOfPlayers {} {
 
-    return [list red blue white]
+    return [list red white blue]
     
 }
 
@@ -208,22 +213,44 @@ proc min { a b } {
 }
 
 proc DrawBoard { c } {
+    drawBackground $c
+    drawGrid $c
+    drawCircle $c
+
+}
+
+proc drawBackground { c } {
     global gFrameWidth gFrameHeight boardSize size margin square
     set size [min $gFrameWidth $gFrameHeight]
     set square [expr ($size - 2*$margin) / $boardSize]
     set radius [expr 0.2 * $square]
-    
+
     # Draw a gray background
     $c create rect $margin $margin [expr $size-$margin] [expr $size-$margin] -fill gray
+}
+
+proc drawGrid { c } {
+    global gFrameWidth gFrameHeight boardSize size margin square
+    set size [min $gFrameWidth $gFrameHeight]
+    set square [expr ($size - 2*$margin) / $boardSize]
+    set radius [expr 0.2 * $square]
 
     # Draw a 3x3 grid
     for { set i 0 } { $i < $boardSize-1 } { incr i } {
-	$c create line $margin [expr $margin + ($i + 1) * $square] [expr $size - $margin] [expr $margin + ($i + 1) * $square] -width 2 -fill "\#696969"
-	$c create line [expr $margin + ($i + 1) * $square] $margin [expr $margin + ($i + 1) * $square] [expr $size - $margin] -width 2 -fill "\#696969"
+	$c create line \
+		$margin \
+		[expr $margin + ($i + 1) * $square] \
+		[expr $size - $margin] \
+		[expr $margin + ($i + 1) * $square] \
+		-width 2 -fill "\#696969"
+
+	$c create line \
+		[expr $margin + ($i + 1) * $square] \
+		$margin \
+		[expr $margin + ($i + 1) * $square] \
+		[expr $size - $margin] \
+		-width 2 -fill "\#696969"
     }
-
-    drawCircle $c
-
 }
 
 proc drawCircle { c } {
@@ -272,17 +299,20 @@ proc GS_DrawPosition { c position } {
     #456
     #789
 
-    set redPos [getPos 1 $position]
+    global redIndex whiteIndex blueIndex
+
+    set redPos [getPos $redIndex $position]
     set red0 [pieceToBoard $redPos 0]
     set red1 [pieceToBoard $redPos 1]
-    set bluePos [getPos 0 $position]
-    set blue0 [pieceToBoard $bluePos 0]
-    set blue1 [pieceToBoard $bluePos 1]
-    set whitePos [getPos 2 $position]
+    set whitePos [getPos $whiteIndex $position]
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
+    set bluePos [getPos $blueIndex $position]
+    set blue0 [pieceToBoard $bluePos 0]
+    set blue1 [pieceToBoard $bluePos 1]
+    
 
-#puts "red [expr $red0] [expr $red1] blue [expr $blue0] [expr $blue1] white [expr $white0] [expr $white1]"
+puts "red [expr $red0] [expr $red1] blue [expr $blue0] [expr $blue1] white [expr $white0] [expr $white1]"
 
     drawSquare $c $red0 "red"
     drawSquare $c $red1 "red"
@@ -293,15 +323,17 @@ proc GS_DrawPosition { c position } {
 }
 
 proc getPos { color position } {
+    global redIndex whiteIndex blueIndex
+    
     #red
-    if { $color == 1 } {
+    if { $color == $redIndex } {
         return [expr ($position & 0x00000f00) >> 8]
-    #blue
-    } elseif { $color == 0 } {
-        return [expr ($position & 0x0000000f) >> 0]
     #white
-    } else {
+    } elseif { $color == $whiteIndex } {
         return [expr ($position & 0x000000f0) >> 4]
+    #blue
+    } else {
+        return [expr ($position & 0x0000000f) >> 0]
     }
 }
 
@@ -351,6 +383,9 @@ proc drawSquare { c num color } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    drawBackground $c
+    drawGrid $c
+    drawCircle $c
     GS_DrawPosition $c $position
 
 }
@@ -363,9 +398,14 @@ proc GS_NewGame { c position } {
 # This function is called just before every move.
 #############################################################################
 proc GS_WhoseMove { position } {
-    # player 1 = 1 or red, player 2 = 0 or blue
-    return [expr $position >> 20]
-   
+    global redIndex blueIndex
+
+    if { [expr $position >> 20] == 1 } {
+        return $redIndex
+    } else {
+        return $blueIndex
+    }
+
 }
 
 
@@ -383,7 +423,9 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     
     global isColorMove
 
-    animateMove $c $theMove
+    drawBackground $c
+    drawGrid $c
+    drawCircle $c
     GS_DrawPosition $c $newPosition
 
     if { $isColorMove == 1 } {
@@ -391,15 +433,6 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
     } else {
         set isColorMove 1
     }
-
-}
-
-proc animateMove { c theMove } {
-    global gFrameWidth gFrameHeight boardSize size margin square
-    set size [min $gFrameWidth $gFrameHeight]
-    set square [expr ($size - 2*$margin) / $boardSize]
-
-    
 
 }
 
@@ -420,16 +453,16 @@ proc animateMove { c theMove } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     $c delete moves
-puts $moveList
-    global isColorMove
-    set trimmedMoveList [trimMoveList $position $moveList $isColorMove]
-    
 
-    foreach move $trimmedMoveList {
-        set colorPos [getPos 0 [lindex $move 0]]
+puts $moveList
+
+    global isColorMove
+
+    foreach move $moveList {
+        set colorPos [getMovePos 1 [lindex $move 0]]
         set color0 [pieceToBoard $colorPos 0]
         set color1 [pieceToBoard $colorPos 1]
-        set whitePos [getPos 2 [lindex $move 0]]
+        set whitePos [getMovePos 0 [lindex $move 0]]
         set white0 [pieceToBoard $whitePos 0]
         set white1 [pieceToBoard $whitePos 1]
 
@@ -440,102 +473,14 @@ puts $moveList
 
 }
 
-proc trimMoveList { position moveList isColorMove} {
-    #piecePos
-    #123
-    #456
-    #789
-
-    #white's move
-    if { $isColorMove == 0 } {
-        set trimmedList [trim $position $moveList 2 $isColorMove]
-    #colored's move
-    } else {
-        set turn [GS_WhoseMove $position]
-        #red's move
-        if { $turn == 1 } {
-            set trimmedList [trim $position $moveList 1 $isColorMove]
-        #blue's move
-        } else {
-            set trimmedList [trim $position $moveList 0 $isColorMove]
-        }
-    }
-
-    return $trimmedList
-
-}
-
-proc trim { position moveList color isColorMove} {
-    set redPos [getPos 1 $position]
-#puts $redPos
-    set red0 [pieceToBoard $redPos 0]
-    set red1 [pieceToBoard $redPos 1]
-    set bluePos [getPos 0 $position]
-#puts $bluePos
-    set blue0 [pieceToBoard $bluePos 0]
-    set blue1 [pieceToBoard $bluePos 1]
-    set whitePos [getPos 2 $position]
-#puts $whitePos
-    set white0 [pieceToBoard $whitePos 0]
-    set white1 [pieceToBoard $whitePos 1]
-
+proc getMovePos { color position } {
+    #colored
     if { $color == 1 } {
-        set ownPos0 $red0
-        set ownPos1 $red1
-        set otherPos0 $blue0
-        set otherPos1 $blue1
-        set otherPos2 $white0
-        set otherPos3 $white1
-    } elseif { $color == 0 } {
-        set ownPos0 $blue0
-        set ownPos1 $blue1
-        set otherPos0 $red0
-        set otherPos1 $red1
-        set otherPos2 $white0
-        set otherPos3 $white1
+        return [expr ($position & 0x000000f0) >> 4]
+    #white
     } else {
-        set ownPos0 $white0
-        set ownPos1 $white1
-        set otherPos0 $red0
-        set otherPos1 $red1
-        set otherPos2 $blue0
-        set otherPos3 $blue1
+        return [expr ($position & 0x0000000f) >> 0]
     }
-
-
-    set result {}
-
-    foreach move $moveList {
-        if { $isColorMove == 1 } {
-            set piecePos [getPos 0 [lindex $move 0]]
-        } else {
-            set piecePos [getPos 2 [lindex $move 0]]
-        }
-        set movePos0 [pieceToBoard $piecePos 0]
-        set movePos1 [pieceToBoard $piecePos 1]
-        #puts "movePos0 [expr $movePos0] != ownPos0 [expr $ownPos0] && movePos1 [expr $movePos1] != ownPos1 [expr $ownPos1]" 
-
-        if { $movePos0 != $otherPos0 &&
-             $movePos0 != $otherPos1 &&
-             $movePos0 != $otherPos2 &&
-             $movePos0 != $otherPos3 &&
-             $movePos1 != $otherPos0 &&
-             $movePos1 != $otherPos1 &&
-             $movePos1 != $otherPos2 &&
-             $movePos1 != $otherPos3 } {
-            if { !($movePos0 == $ownPos0 && $movePos1 == $ownPos1) &&
-                 !($movePos1 == $ownPos0 && $movePos0 == $ownPos1) } {
-                lappend result $move
-                #puts "inside"
-            }
-        }
-        #puts $result
-    }
-
-    #puts ""
-
-    return $result
-
 }
 
 proc drawMove { c move moveType type } {
@@ -561,10 +506,10 @@ proc drawMove { c move moveType type } {
     
     global isColorMove
 
-    set colorPos [getPos 0 $move]
+    set colorPos [getMovePos 1 $move]
     set color0 [pieceToBoard $colorPos 0]
     set color1 [pieceToBoard $colorPos 1]
-    set whitePos [getPos 2 $move]
+    set whitePos [getMovePos 0 $move]
     set white0 [pieceToBoard $whitePos 0]
     set white1 [pieceToBoard $whitePos 1]
 
