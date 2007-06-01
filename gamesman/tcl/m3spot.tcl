@@ -534,7 +534,7 @@ proc DrawOval { c space0 space1 color } {
 
     $c bind $temp <Enter> "$c itemconfigure $temp -fill black"
     $c bind $temp <Leave> "$c itemconfigure $temp -fill $color"
-    $c bind $temp <ButtonRelease-1> return [list space0 space1]
+    $c bind $temp <ButtonRelease-1> { puts "inside buttonrelease" }
 
 }
 
