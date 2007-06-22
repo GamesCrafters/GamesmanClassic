@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.41 2007-05-10 05:23:08 scarr2508 Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.42 2007-06-22 00:42:54 mjacobsen Exp $
 **
 **************************************************************************/
 
@@ -60,9 +60,43 @@ static int		InitializeCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		InitializeDatabasesCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
-static int              InitializeGameCmd _ANSI_ARGS_((ClientData clientData,
+static int      InitializeGameCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		GetComputersMoveCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		GetRemotePlayersMoveCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		SendLocalPlayersMoveCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));			    			    			    
+static int		SendGameOverCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));			    
+static int		SendResignCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));			    			    
+static int		LoginUserCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		LogoutUserCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));			    
+static int		RegisterUserCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));			    			    
+static int		GetUsersCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		RegisterGameCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		JoinGameCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		ReceivedChallengeCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		AcceptChallengeCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));			    			    			    
+static int		GetGameStatusCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));			    			    			    
+static int		AcceptedChallengeCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		UnregisterGameCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		DeselectChallengerCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		SelectChallengerCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		SetGameSpecificOptionsCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
@@ -160,6 +194,40 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_InitializeGame", (Tcl_CmdProc*) InitializeGameCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_GetComputersMove", (Tcl_CmdProc*) GetComputersMoveCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetRemotePlayersMove", (Tcl_CmdProc*) GetRemotePlayersMoveCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_SendLocalPlayersMove", (Tcl_CmdProc*) SendLocalPlayersMoveCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);	
+    Tcl_CreateCommand(interp, "C_SendGameOver", (Tcl_CmdProc*) SendGameOverCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);	      	      
+    Tcl_CreateCommand(interp, "C_SendResign", (Tcl_CmdProc*) SendResignCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);	      	      		      
+    Tcl_CreateCommand(interp, "C_LoginUser", (Tcl_CmdProc*) LoginUserCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_LogoutUser", (Tcl_CmdProc*) LogoutUserCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);		      
+    Tcl_CreateCommand(interp, "C_RegisterUser", (Tcl_CmdProc*) RegisterUserCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_GetUsers", (Tcl_CmdProc*) GetUsersCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_RegisterGame", (Tcl_CmdProc*) RegisterGameCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);		      
+    Tcl_CreateCommand(interp, "C_JoinGame", (Tcl_CmdProc*) JoinGameCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);		      
+    Tcl_CreateCommand(interp, "C_ReceivedChallenge", (Tcl_CmdProc*) ReceivedChallengeCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);		      
+    Tcl_CreateCommand(interp, "C_AcceptChallenge", (Tcl_CmdProc*) AcceptChallengeCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);		      
+    Tcl_CreateCommand(interp, "C_GetGameStatus", (Tcl_CmdProc*) GetGameStatusCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);		      
+    Tcl_CreateCommand(interp, "C_AcceptedChallenge", (Tcl_CmdProc*) AcceptedChallengeCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);		      		      
+    Tcl_CreateCommand(interp, "C_UnregisterGame", (Tcl_CmdProc*) UnregisterGameCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_DeselectChallenger", (Tcl_CmdProc*) DeselectChallengerCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+    Tcl_CreateCommand(interp, "C_SelectChallenger", (Tcl_CmdProc*) SelectChallengerCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_SetGameSpecificOptions", (Tcl_CmdProc*) SetGameSpecificOptionsCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
@@ -398,7 +466,7 @@ GetComputersMoveCmd(dummy, interp, argc, argv)
   POSITION position;
 
   if (argc != 2) {
-    interp->result = "wrong # args: GetComputerMove (int)Position";
+    interp->result = "wrong # args: GetComputersMove (int)Position";
     return TCL_ERROR;
   }
   else {
@@ -406,6 +474,666 @@ GetComputersMoveCmd(dummy, interp, argc, argv)
       return TCL_ERROR;
 
     sprintf(interp->result,"%d",(int)GetComputersMove(position));
+    return TCL_OK;
+  }
+}
+
+/* [C_GetRemotePlayersMove $username $password $sessionId $gameId $position] */
+static int
+GetRemotePlayersMoveCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int GetLastOnlineMove();
+  POSITION position;
+  int errCode;
+  char* errMsg;
+  char* move;
+
+  if (argc != 6) {
+    interp->result = "wrong # args: GetRemotePlayersMove (char*)$username (char*)$password (char*)$sessionId (char*)gameId (int)$position";
+    return TCL_ERROR;
+  }
+  else 
+  {
+  	// position is not currently used
+    if (sscanf(argv[5], POSITION_FORMAT, &position) == EOF)
+      return TCL_ERROR;
+ 
+ 	errCode = (int)GetLastOnlineMove((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &move, &errMsg);
+ 	if (errCode == 0)
+ 	{ 	
+ 		if (move == NULL)
+ 		{
+		    sprintf(interp->result,"%d:",errCode);
+ 		}
+ 		else
+ 		{
+		    sprintf(interp->result,"%d:%s",errCode,move);
+		    free(move);
+ 		}
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_SendLocalPlayersMove $username $password $sessionId $gameId $position $prevMove] */
+static int
+SendLocalPlayersMoveCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int SendNewOnlineMove();
+  POSITION position;
+  int errCode;
+  char* errMsg;
+
+  if (argc != 7) {
+    interp->result = "wrong # args: SendLocalPlayersMove (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (int)$position (int)$prevMove";
+    return TCL_ERROR;
+  }
+  else 
+  {
+  	// position not currently used
+    if (sscanf(argv[5], POSITION_FORMAT, &position) == EOF)
+      return TCL_ERROR;
+ 
+ 	errCode = (int)SendNewOnlineMove((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[6], &errMsg);
+ 	if (errCode == 0)
+ 	{ 	
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_SendGameOver $username $password $sessionId $gameId] */
+static int
+SendGameOverCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int SendGameOver();
+  int errCode;
+  char* errMsg;
+
+  if (argc != 5) {
+    interp->result = "wrong # args: SendGameOver (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {
+ 	errCode = (int)SendGameOver((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &errMsg);
+ 	if (errCode == 0)
+ 	{ 	
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_SendResign $username $password $sessionId $gameId] */
+static int
+SendResignCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int SendResign();
+  int errCode;
+  char* errMsg;
+
+  if (argc != 5) {
+    interp->result = "wrong # args: SendResign (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {
+ 	errCode = (int)SendResign((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &errMsg);
+ 	if (errCode == 0)
+ 	{ 	
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_LoginUser $username $password] */
+static int
+LoginUserCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int LoginUser();
+  int errCode;
+  char* errMsg;
+  char* sessionId;
+
+  if (argc != 3) 
+  {
+    interp->result = "wrong # args: LoginUser (char*)$username (char*)$password";
+    return TCL_ERROR;
+  }
+  else 
+  {
+ 	errCode = (int)LoginUser((STRING)argv[1], (STRING)argv[2], &sessionId, &errMsg);
+ 	if (errCode == 0)
+ 	{ 		
+	    sprintf(interp->result,"%d:%s",errCode,sessionId);
+ 		if (sessionId != NULL)
+	 		free(sessionId);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_LogoutUser $username $password $sessionId] */
+static int
+LogoutUserCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int LogoutUser();
+  int errCode;
+  char* errMsg;
+
+  if (argc != 4) 
+  {
+    interp->result = "wrong # args: LogoutUser (char*)$username (char*)$password (char*)$sessionId";
+    return TCL_ERROR;
+  }
+  else 
+  {
+ 	errCode = (int)LogoutUser((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], &errMsg);
+ 	if (errCode == 0)
+ 	{ 		
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_RegisterUser $username $password] */
+static int
+RegisterUserCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int RegisterUser();
+  int errCode;
+  char* errMsg;
+
+  if (argc != 3) 
+  {
+    interp->result = "wrong # args: RegisterUser (char*)$username (char*)$password";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)RegisterUser((STRING)argv[1], (STRING)argv[2], &errMsg);
+ 	if (errCode == 0)
+ 	{
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_GetUsers $username $password $sessionId] */
+static int
+GetUsersCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int GetUsers();
+  int errCode;
+  char* errMsg;
+  char* users;
+
+  if (argc != 4) 
+  {
+    interp->result = "wrong # args: GetUsers (char*)$username (char*)$password (char*)$sessionId";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)GetUsers((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], &users, &errMsg);
+ 	if (errCode == 0)
+ 	{
+ 		if (users != NULL)
+ 		{
+			// Return the request body (users variable) that should contain user/game records. 
+			// Each one terminated by "\n". Where the fields in each record are delimited by ":".   		
+		    sprintf(interp->result,"%d:%s",errCode,users);
+		    free(users);
+ 		}
+ 		else
+ 		{
+		    sprintf(interp->result,"%d:",errCode);
+ 		}
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+  }
+  return TCL_OK;  
+}
+
+/* [C_RegisterGame $username $password $sessionId $gamename $gamevariation $gamedesc $iMoveFirst] */
+static int
+RegisterGameCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int RegisterGame();
+  int errCode;
+  char* errMsg;
+  char* gameId;
+
+  if (argc != 8) 
+  {
+    interp->result = "wrong # args: RegisterGame (char*)$username (char*)$password (char*)$sessionId (char*)$gamename (char*)$gamevariation (char*)$gamedesc (char*)$iMoveFirst";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)RegisterGame((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[5], (STRING)argv[6], (STRING)argv[7], &gameId, &errMsg);
+ 	if (errCode == 0)
+ 	{
+	    sprintf(interp->result,"%d:%s",errCode,gameId);
+ 		if (gameId != NULL)
+	 		free(gameId);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_JoinGame $username $password $sessionId $gameId] */
+static int
+JoinGameCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int JoinGame();
+  int errCode;
+  char* errMsg;
+
+  if (argc != 5) 
+  {
+    interp->result = "wrong # args: JoinGame (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)JoinGame((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &errMsg);
+ 	if (errCode == 0)
+ 	{
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_ReceivedChallenge $username $password $sessionId $gameId] */
+static int
+ReceivedChallengeCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int ReceivedChallenge();
+  int errCode;
+  char* errMsg;
+  char* status;
+
+  if (argc != 5) 
+  {
+    interp->result = "wrong # args: ReceivedChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)ReceivedChallenge((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &status, &errMsg);
+ 	if (errCode == 0)
+ 	{
+	    sprintf(interp->result,"%d:%s",errCode,status);
+ 		if (status != NULL)
+	 		free(status);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_AcceptChallenge $username $password $sessionId $gameId $accept] */
+static int
+AcceptChallengeCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int AcceptChallenge();
+  int errCode;
+  char* errMsg;
+  char* moveFirst;
+
+  if (argc != 6) 
+  {
+    interp->result = "wrong # args: AcceptChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (char*)$accept";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)AcceptChallenge((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[5], &moveFirst, &errMsg);
+ 	if (errCode == 0)
+ 	{
+	    sprintf(interp->result,"%d:%s",errCode,moveFirst);
+ 		if (moveFirst != NULL)
+	 		free(moveFirst);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_GetGameStatus $username $password $sessionId $gameId] */
+static int
+GetGameStatusCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int GetGameStatus();
+  int errCode;
+  char* errMsg;
+  char* users;
+
+  if (argc != 5) 
+  {
+    interp->result = "wrong # args: GetGameStatus (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)GetGameStatus((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &users, &errMsg);
+ 	if (errCode == 0)
+ 	{
+ 		if (users != NULL)
+ 		{
+			// Return the request body (users variable) that should contain user records. 
+			// Each one terminated by "\n". Where the fields in each record are delimited by ":".   		
+		    sprintf(interp->result,"%d:%s",errCode,users);
+		    free(users);
+ 		}
+ 		else
+ 		{
+		    sprintf(interp->result,"%d:",errCode);
+ 		} 			
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_AcceptedChallenge $username $password $sessionId $gameId] */
+static int
+AcceptedChallengeCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int AcceptedChallenge();
+  int errCode;
+  char* errMsg;
+  char* moveFirst;
+  char* status;
+
+  if (argc != 5) 
+  {
+    interp->result = "wrong # args: AcceptedChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)AcceptedChallenge((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &status, &moveFirst, &errMsg);
+ 	if (errCode == 0)
+ 	{
+ 		if (moveFirst != NULL)
+ 		{ 		
+		    sprintf(interp->result,"%d:%s:%s",errCode,status,moveFirst);
+		    free(moveFirst);
+ 		}
+ 		else
+ 		{
+		    sprintf(interp->result,"%d:%s:",errCode,status);
+ 		}
+ 		if (status != NULL)
+	 		free(status);
+ 	}
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_UnregisterGame $username $password $sessionId $gameId] */
+static int
+UnregisterGameCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int UnregisterGame();
+  int errCode;
+  char* errMsg;
+  char* challenger;
+
+  if (argc != 5) 
+  {
+    interp->result = "wrong # args: UnregisterGame (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)UnregisterGame((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &challenger, &errMsg);
+ 	if (errCode == 0)
+ 	{ 		
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else if (errCode == 312)
+ 	{ 		
+	    sprintf(interp->result,"%d:%s",errCode,challenger);
+ 		if (challenger != NULL)
+	 		free(challenger);
+ 	} 	
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_DeselectChallenger $username $password $sessionId $gameId] */
+static int
+DeselectChallengerCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int DeselectChallenger();
+  int errCode;
+  char* errMsg;
+  char* challenger;
+
+  if (argc != 5) 
+  {
+    interp->result = "wrong # args: DeselectChallenger (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)DeselectChallenger((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &challenger, &errMsg);
+ 	if (errCode == 0)
+ 	{ 		
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else if (errCode == 312)
+ 	{ 		
+	    sprintf(interp->result,"%d:%s",errCode,challenger);
+ 		if (challenger != NULL)
+	 		free(challenger);
+ 	} 	
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
+    return TCL_OK;
+  }
+}
+
+/* [C_SelectChallenger $username $password $sessionId $gameId $selChallenger] */
+static int
+SelectChallengerCmd(dummy, interp, argc, argv)
+    ClientData dummy;			/* Not used. */
+    Tcl_Interp *interp;			/* Current interpreter. */
+    int argc;				/* Number of arguments. */
+    char **argv;			/* Argument strings. */
+{
+  int SelectChallenger();
+  int errCode;
+  char* errMsg;
+  char* challenger;
+
+  if (argc != 6) 
+  {
+    interp->result = "wrong # args: SelectChallenger (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (char*)$selChallenger";
+    return TCL_ERROR;
+  }
+  else 
+  {	
+ 	errCode = (int)SelectChallenger((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[5], &challenger, &errMsg);
+ 	if (errCode == 0)
+ 	{ 		
+	    sprintf(interp->result,"%d:",errCode);
+ 	}
+ 	else if (errCode == 312)
+ 	{ 		
+	    sprintf(interp->result,"%d:%s",errCode,challenger);
+ 		if (challenger != NULL)
+	 		free(challenger);
+ 	} 	
+ 	else
+ 	{
+ 		sprintf(interp->result,"%d:%s",errCode,errMsg);
+ 		if (errMsg != NULL)
+	 		free(errMsg);
+ 	}
     return TCL_OK;
   }
 }

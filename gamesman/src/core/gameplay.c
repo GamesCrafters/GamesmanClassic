@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.54 2007-05-07 07:04:42 brianzimmer Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.55 2007-06-22 00:42:54 mjacobsen Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -33,6 +33,7 @@
 **************************************************************************/
 
 #include "gamesman.h"
+#include "httpclient.h"
 #include "openPositions.h"
 #include "globals.h"
 #include "seval.h"
@@ -1930,7 +1931,6 @@ MOVE GetComputersMove(POSITION thePosition)
         }
 }
 
-
 /* Jiong */
 /****
  ** GetValueMoves(POSITION)
@@ -1982,6 +1982,8 @@ VALUE_MOVES* GetValueMoves(POSITION thePosition)
 
 
 /* Jiong */
+/* Who is working on this?? */
+
 VALUE_MOVES* StoreMoveInList(MOVE theMove, REMOTENESS remoteness, VALUE_MOVES* valueMoves, int typeofMove)
 {
         MOVELIST *moveList, *newMove, *prevMoveList;
@@ -2063,6 +2065,7 @@ PLAYER NewSEvalPlayer(STRING name, int turn)
 }
 
 USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
+		void sendLocalMove();
         USERINPUT result = GetAndPrintPlayersMove(position, move, name);
         sendLocalMove(move, name, gTurnNumber);
         gTurnNumber++;
@@ -2070,11 +2073,132 @@ USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
 }
 
 USERINPUT RemoteMove(POSITION position, MOVE* move, STRING name) {
+		int getRemoteMove();
         *move = getRemoteMove(name, gTurnNumber);
         PrintComputersMove(*move, name);
         gTurnNumber++;
         return Continue;
 }
+
+int SetupNetworkGame(STRING gameName) {
+	httpreq *req;
+	httpres *res;
+	char *url = malloc(256); //"127.0.0.1:3000/game/request_game_url"; //gMPServerAddress
+	char *body = malloc(256);
+	char *tmp;
+	sprintf(body, "game_name=%s", gameName);
+
+	gRemoteGameURL = malloc(256);
+
+	printf("Initiating game.\n");
+	printf("This may take awhile (if no one else wants to play this game)\n");
+
+	while (TRUE) {
+		strncpy(url, gMPServerAddress, 255);
+		if (newrequest(url, &req, &tmp) != 0)
+			exit(1);	
+		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
+		post(req, body, strlen(body), &res, &tmp);
+
+		if (strncmp(res->status, "HTTP/1.1 201", 12) == 0) {
+			// we have a game url (that uniquely represents a game)
+			// and we are player two
+			printf("\nYou have been matched with an opponent... ");
+
+			// lets figure out what turn we are
+			strncpy(gRemoteGameURL, res->body, 255);
+			getheader(res, "Your-Turn", &tmp);
+			if (strncmp(tmp, "0", 1))  {
+				freeresponse(res);
+				return 0;
+			} else {
+				freeresponse(res);
+				return 1;
+			}
+		} else if (strncmp(res->status, "HTTP/1.1 202", 12) == 0) {
+			// Server: accepted game id, will process later.
+			// Client: okay, will wait for opponent (save the token given by server to poll)
+			sprintf(body, "game_id=%s&game_name=%s", res->body, gameName);
+			freeresponse(res);
+			sleep(5); //poll every 5 seconds
+			//return SetupWait(body);
+		} else {
+			freeresponse(res);
+			printf("Server is talking gibberish...\n");
+			exit(1);
+		}
+	}
+}
+
+void sendLocalMove(MOVE* move, STRING name, int turnNumber) {
+	httpreq *req;
+	httpres *res;
+	char *body = malloc(256);
+	char *url = malloc(256);
+	char *tmp;
+
+	sprintf(body, "opponent=%s&turn_number=%d&value=%d", name, turnNumber, *move);
+
+	while (1) {
+		strncpy(url, gRemoteGameURL, 255); //"192.168.0.104:3000/game/<game_id>/get_last_move"
+		if (newrequest(url, &req, &tmp) != 0)
+			exit(1); 
+		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
+		post(req, body, strlen(body), &res, &tmp);
+
+		if (strncmp(res->status, "HTTP/1.1 204", 12) == 0) {
+			freeresponse(res);
+			free(body);
+			free(url);
+			return; // we are done here
+		} else {
+			sleep(5); //poll every 5 seconds
+
+			// reset the body, lets not submit the same data over and over eh?
+			//sprintf(body, "opponent=%s&turn_number=%d", name, turnNumber);
+			freeresponse(res);
+		}
+	}
+}
+
+int getRemoteMove(STRING name, int turnNumber) {
+	httpreq *req;
+	httpres *res;
+	char *body = malloc(256);
+	char *url = malloc(256);
+	char *tmp;
+	int result;
+
+	sprintf(body, "opponent=%s&turn_number=%d", name, turnNumber);
+	printf("Waiting for opponent to move...\n");
+
+	while (1) {
+		strncpy(url, gRemoteGameURL, 255); //"192.168.0.104:3000/game/<game_id>/get_last_move"
+		if (newrequest(url, &req, &tmp) != 0)
+			exit(1);
+		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
+		post(req, body, strlen(body), &res, &tmp);
+
+		if (strncmp(res->status, "HTTP/1.1 200", 12) == 0) {
+			result = atoi(res->body);
+			freeresponse(res);
+			break;
+		} else { // reply was a 304 (no modifications)
+			sleep(5); //poll every 5 seconds
+			freeresponse(res);
+		}
+	}
+	free(body);
+	free(url);
+	return result;
+}
+
+void reportGameEnd(int code) {
+	printf("Game ended!\n");
+}
+
+/* END Jiong 
+   Who is working on this?? */
 
 void IncrementTurnNumber() {
         gTurnNumber++;
@@ -2264,4 +2388,468 @@ REMOTENESS findMinRemoteness(REMOTENESSLIST* remoteptr)
         }
 
         return min;
+}
+
+/* Matt Jacobsen: ONLINE GAMING FUNCTIONS */
+
+int LoginUser(STRING username, STRING password, char** sessionId, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_LOGON_USER);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		// Read the session/secret key
+	    getheader(res,HD_SECRET_KEY, sessionId);
+	}
+	freeresponse(res);
+	return errCode;	
+}
+
+int LogoutUser(STRING username, STRING password, STRING sessionId, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_LOGOFF_USER);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	errCode = responseerrorcheck(res, errMsg);
+	freeresponse(res);
+	return errCode;	
+}
+
+int RegisterUser(STRING username, STRING password, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_CREATE_USER);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	errCode = responseerrorcheck(res, errMsg);
+	freeresponse(res);
+	return errCode;	
+}
+
+int GetUsers(STRING username, STRING password, STRING sessionId, char** users, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_GET_USERS);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);	
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		if (res->bodyLength > 0)
+		{
+			// Read the body that should contain user/game records. Each one terminated by
+			// "\n". Where the fields in each record are delimited by ":".  
+			if ((*users = malloc(res->bodyLength+1)) == NULL)
+			{
+				fprintf(stderr,"ERROR, could not allocate memory for reading response body\n");
+				return 1;
+			}
+			strcpy(*users, res->body);
+		}
+		else
+		{
+			*users = NULL;
+		}
+	}
+	freeresponse(res);
+	return errCode;	   
+}
+
+int RegisterGame(STRING username, STRING password, STRING sessionId, STRING gamename, STRING gamevariant, STRING gamedesc, STRING iMoveFirst, char** gameId, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_REGISTER_GAME);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_NAME, gamename);	
+	addheader(req, HD_GAME_VARIANT, gamevariant);	
+	addheader(req, HD_GAME_DESCRIPTION, gamedesc);
+	addheader(req, HD_GAME_HOST_MOVES_FIRST, iMoveFirst);
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		// Read the gameId
+	    getheader(res,HD_GAME_ID, gameId);
+	}
+	freeresponse(res);
+	return errCode;	
+}
+
+int JoinGame(STRING username, STRING password, STRING sessionId, STRING gameId, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_JOIN_GAME);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);	
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	errCode = responseerrorcheck(res, errMsg);
+	freeresponse(res);
+	return errCode;	
+}
+
+int ReceivedChallenge(STRING username, STRING password, STRING sessionId, STRING gameId, char** status, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_RECEIVED_CHALLENGE);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);	
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		// Read the status
+	    getheader(res,HD_STATUS, status);
+	}	
+	freeresponse(res);
+	return errCode;	
+}
+
+int AcceptChallenge(STRING username, STRING password, STRING sessionId, STRING gameId, STRING accept, char** moveFirst, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_ACCEPT_CHALLENGE);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);	
+	addheader(req, HD_ACCEPT, accept);	
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		// Read the move first results
+	    getheader(res,HD_MOVE_FIRST, moveFirst);
+	}	
+	freeresponse(res);
+	return errCode;	
+}
+
+int GetGameStatus(STRING username, STRING password, STRING sessionId, STRING gameId, char** users, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_GET_GAME_STATUS);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);		
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		if (res->bodyLength > 0)
+		{
+			// Read the body that should contain user records. Each one terminated by
+			// "\n". Where the fields in each record are delimited by ":".  
+			if ((*users = malloc(res->bodyLength+1)) == NULL)
+			{
+				fprintf(stderr,"ERROR, could not allocate memory for reading response body\n");
+				return 1;
+			}
+			strcpy(*users, res->body);
+		}
+		else
+		{
+			*users = NULL;
+		}
+	}
+	freeresponse(res);
+	return errCode;	   
+}
+
+int AcceptedChallenge(STRING username, STRING password, STRING sessionId, STRING gameId, char** status, char** moveFirst, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_ACCEPTED_CHALLENGE);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);		
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		// Read the status & the moveFirst header (if available)
+	    getheader(res,HD_STATUS, status);
+	    getheader(res,HD_MOVE_FIRST, moveFirst);	    
+	}
+	freeresponse(res);
+	return errCode;	   
+}
+
+int UnregisterGame(STRING username, STRING password, STRING sessionId, STRING gameId, char** challenger, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_UNREGISTER_GAME);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);		
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 312)
+	{
+		// Read the challenger username (if available)
+	    getheader(res,HD_CHALLENGER_USERNAME, challenger);
+	}
+	freeresponse(res);
+	return errCode;	   
+}
+
+int DeselectChallenger(STRING username, STRING password, STRING sessionId, STRING gameId, char** challenger, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_DESELECT_CHALLENGER);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);		
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 312)
+	{
+		// Read the challenger username (if available)
+	    getheader(res,HD_CHALLENGER_USERNAME, challenger);
+	}
+	freeresponse(res);
+	return errCode;	   
+}
+
+int SelectChallenger(STRING username, STRING password, STRING sessionId, STRING gameId, STRING selChallenger, char** challenger, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_SELECT_CHALLENGER);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);		
+	addheader(req, HD_CHALLENGER_USERNAME, selChallenger);		
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 312)
+	{
+		// Read the challenger username (if available)
+	    getheader(res,HD_CHALLENGER_USERNAME, challenger);
+	}
+	freeresponse(res);
+	return errCode;	   
+}
+
+int GetLastOnlineMove(STRING username, STRING password, STRING sessionId, STRING gameId, char** move, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_GET_LAST_MOVE);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);		
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	if ((errCode = responseerrorcheck(res, errMsg)) == 0)
+	{
+		// Read the last move (if available)
+	    getheader(res,HD_LAST_MOVE, move);
+	}
+	freeresponse(res);
+	return errCode;	   
+}
+
+int SendNewOnlineMove(STRING username, STRING password, STRING sessionId, STRING gameId, STRING move, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_SEND_MOVE);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);
+	addheader(req, HD_MOVE, move);	
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	errCode = responseerrorcheck(res, errMsg);
+	freeresponse(res);
+	return errCode;	   
+}
+
+int SendGameOver(STRING username, STRING password, STRING sessionId, STRING gameId, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_GAME_OVER);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);	
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	errCode = responseerrorcheck(res, errMsg);
+	freeresponse(res);
+	return errCode;	   
+}
+
+int SendResign(STRING username, STRING password, STRING sessionId, STRING gameId, char** errMsg)
+{
+	httpreq *req;
+	httpres *res;
+	int errCode;
+	char * url = malloc(strlen(ServerAddress)+1);
+	memcpy(url,ServerAddress,strlen(ServerAddress)+1);
+  
+	if ((errCode = newrequest(url, &req, errMsg)) != 0)
+		return errCode;
+	settype(req, HD_RESIGN);
+	addheader(req, HD_USERNAME, username);	
+	addheader(req, HD_PASSWORD, password);
+	addheader(req, HD_SECRET_KEY, sessionId);
+	addheader(req, HD_GAME_ID, gameId);	
+	if ((errCode = post(req,NULL,0,&res,errMsg)) != 0)
+		return errCode;
+	
+	errCode = responseerrorcheck(res, errMsg);
+	freeresponse(res);
+	return errCode;	   
 }

@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.59 2007-05-03 17:50:18 scarr2508 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.60 2007-06-22 00:42:53 mjacobsen Exp $
 ##
 ############################################################################
 
@@ -600,6 +600,10 @@ proc InitGlobals {} {
     global gJustUndone
     set gSkipInputOnSingleMove false
     set gJustUndone false
+    
+    ## Make sure we can ignore DriverLoop calls when waiting for a response
+	global gWaitingForResponse
+	set gWaitingForResponse 0
 }
 
 
@@ -654,7 +658,7 @@ proc SetupGamePieces {} {
 
 proc NewGame { } {
 
-    global gGameSoFar gPosition gInitialPosition gMovesSoFar gTiersSoFar
+    global gGameSoFar gPosition gInitialPosition gMovesSoFar gTiersSoFar gComputerIsOnlinePlayer
     global gLeftName gRightName gWhoseTurn gPlaysFirst gUsingTiers
     .middle.f1.cMLeft itemconfigure LeftName \
 	-text [format "Left:\n%s" $gLeftName]
@@ -705,86 +709,95 @@ proc DriverLoop { } {
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
     global gMoveDelay gGameDelay gMoveType gGameSolved gReallyUnsolved
     global gWhoseTurn gLeftName gRightName
-    global gameMenuToDriverLoop
+    global gameMenuToDriverLoop 
+    global gWaitingForResponse
+    
     global printing
-    if { [expr !$gGameSolved] } {
-	return
+    if { [expr !$gGameSolved] || $gWaitingForResponse == 1 } {
+		return
     }
 
     set gWaitingForHuman false
 
     while { [expr !$gWaitingForHuman] } {
-
-	set primitive [C_Primitive $gPosition]
-
-	if {!$gameMenuToDriverLoop} {
-	    ## Move History
-	    if { $primitive != "Undecided" } {
-		set theMoves  [list]
-	    } else {
-		set theMoves  [C_GetValueMoves $gPosition $gReallyUnsolved]
-	    }
-	    set lastMove      [peek $gMovesSoFar]
-	    if {$gReallyUnsolved} {
-		set theValue "lose"
-		set theRemoteness 0
-	    } else {
-		set theValue      [C_GetValueOfPosition $gPosition]
-		set theRemoteness [C_Remoteness $gPosition]
-	    }
-	    # capture position before move
-	    # only do if printing is enabled
-	    if { $printing == true } {
-		doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves true
-		doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves false
-	    }
-
-	    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
-
-	    update idletasks
-	    ##
-	}
-	set gameMenuToDriverLoop false
-
-	## Game's over if the position is primitive
-	if { $primitive != "Undecided" } {
+		set primitive [C_Primitive $gPosition]
 	
-	    set gWaitingForHuman true
-	    GameOver $gPosition $primitive [peek $gMovesSoFar]
-	    
-	} else {
-
-	    .middle.f3.cMRight itemconfigure WhoseTurn \
-		-text [format "It's %s's Turn" [subst $[subst g[subst $gWhoseTurn]Name]]]
-		update idletasks
-
-	    ## Handle Prediction
-	    global gPredString
-	    GetPredictions
-	    .middle.f3.cMRight itemconfigure Predictions \
-		-text [format "Predictions: %s" $gPredString]
-	    update idletasks
-              
-	    if { [PlayerIsComputer] } {
-		GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
-		after [expr int($gMoveDelay * 1000)]
-		GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
-		DoComputerMove
-		set gWaitingForHuman false
-		update
-	    } else {
-		global gSkipInputOnSingleMove gJustUndone
-		if {$gSkipInputOnSingleMove && !$gJustUndone && [llength [C_GetValueMoves $gPosition $gReallyUnsolved]] == 1} {
-		    SwitchWhoseTurn
-		    DoComputerMove
-		    SwitchWhoseTurn
-		} else {
-		    DoHumanMove
-		    set gWaitingForHuman true
+		if {!$gameMenuToDriverLoop} {
+		    ## Move History
+		    if { $primitive != "Undecided" } {
+			set theMoves  [list]
+		    } else {
+			set theMoves  [C_GetValueMoves $gPosition $gReallyUnsolved]
+		    }
+		    set lastMove      [peek $gMovesSoFar]
+		    if {$gReallyUnsolved} {
+			set theValue "lose"
+			set theRemoteness 0
+		    } else {
+			set theValue      [C_GetValueOfPosition $gPosition]
+			set theRemoteness [C_Remoteness $gPosition]
+		    }
+		    # capture position before move
+		    # only do if printing is enabled
+		    if { $printing == true } {
+			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves true
+			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves false
+		    }
+	
+		    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
+	
+		    update idletasks
+		    ##
 		}
-		set gJustUndone false
-	    }
-	}
+		set gameMenuToDriverLoop false
+	
+		## Game's over if the position is primitive
+		if { $primitive != "Undecided" } {
+		
+		    set gWaitingForHuman true
+		    GameOver $gPosition $primitive [peek $gMovesSoFar]
+		    
+		} else {
+	
+		    .middle.f3.cMRight itemconfigure WhoseTurn \
+			-text [format "It's %s's Turn" [subst $[subst g[subst $gWhoseTurn]Name]]]
+			update idletasks
+	
+		    ## Handle Prediction
+		    global gPredString
+		    GetPredictions
+		    .middle.f3.cMRight itemconfigure Predictions \
+			-text [format "Predictions: %s" $gPredString]
+		    update idletasks
+	              
+		    if { [PlayerIsComputer] } {
+			GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
+			after [expr int($gMoveDelay * 1000)]
+			GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
+			if { ![DoComputerMove] } {
+				## Encountered an error
+				EndGame
+				return
+			}
+			set gWaitingForHuman false
+			update
+		    } else {
+			global gSkipInputOnSingleMove gJustUndone
+			if {$gSkipInputOnSingleMove && !$gJustUndone && [llength [C_GetValueMoves $gPosition $gReallyUnsolved]] == 1} {
+			    SwitchWhoseTurn
+				if { ![DoComputerMove] } {
+					## Encountered an error
+					EndGame
+					return
+				}
+			    SwitchWhoseTurn
+			} else {
+			    DoHumanMove
+			    set gWaitingForHuman true
+			}
+			set gJustUndone false
+		    }
+		}
     }
 }
 
@@ -825,10 +838,38 @@ proc SwitchWhoseTurn {} {
 
 proc DoComputerMove { } {
 
-    global gPosition gGameSoFar gMovesSoFar gUsingTiers gTiersSoFar
+    global gPosition 
+    global gGameSoFar 
+    global gMovesSoFar 
+    global gUsingTiers 
+    global gTiersSoFar 
+    global gRightHumanOrComputer 
+    global gWhoseTurn
+    global gGameInfo
+    global gWaitingForResponse
+	
+	set onlinePlayer [PlayerIsOnline]
+	if { !$onlinePlayer } {
+	    set theMove [C_GetComputersMove $gPosition]    
+	} elseif { $gGameInfo != "" } {
+		if { [llength $gMovesSoFar] > 0 } {
+			## Send the local player's last move
+			set prevMove [peek $gMovesSoFar]
+			if { ![SendLocalPlayersMove $gPosition $prevMove] } {
+				## Exit play
+				return 0
+			}
+		}
 
-    set theMove [C_GetComputersMove $gPosition]    
-
+		## Get the remote players counter move
+		set gWaitingForResponse 1
+		set theMove [GetRemotePlayersMove $gPosition]
+		set gWaitingForResponse 0
+		if { $theMove == "" } {
+			## Exit play
+			return 0
+		}
+	}
     set oldPosition $gPosition
 
     set gPosition [C_DoMove $gPosition $theMove]
@@ -839,8 +880,10 @@ proc DoComputerMove { } {
 
     HandleComputersMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
-    .cStatus raise undoI
-    .cToolbar raise iITB3
+	if { !$onlinePlayer } {
+	    .cStatus raise undoI
+	    .cToolbar raise iITB3
+	}
 
     if { [expr ![C_GoAgain $oldPosition $theMove]] } {
 	SwitchWhoseTurn
@@ -853,6 +896,105 @@ proc DoComputerMove { } {
         set gGameSoFar [pop $gGameSoFar]
         set gGameSoFar [push $gGameSoFar $gPosition]
     }
+    
+    return 1
+}
+
+proc SendGameOver { } {
+	global gUsername
+	global gPassword
+	global gSessionId
+	global gGameInfo
+
+    set result [C_SendGameOver $gUsername $gPassword $gSessionId [lindex $gGameInfo 0]]    
+	scan $result "%d:%n" errCode num
+	if { $errCode == 0 } {
+		#Return true
+		return 1
+	} else {
+		## Show the error to the user
+		DisplayRuntimeOKModal "Error: [string range $result $num end]" "OK"
+		## Return false
+		return 0	
+	}
+}
+
+proc SendResignGame { } {
+	global gUsername
+	global gPassword
+	global gSessionId
+	global gGameInfo
+
+    set result [C_SendResign $gUsername $gPassword $gSessionId [lindex $gGameInfo 0]]    
+	scan $result "%d:%n" errCode num
+	if { $errCode == 0 } {
+		#Return true
+		return 1
+	} else {
+		## Return false
+		return 0	
+	}
+}
+
+proc SendLocalPlayersMove { position prevMove } {
+	global gUsername
+	global gPassword
+	global gSessionId
+	global gGameInfo
+
+    set result [C_SendLocalPlayersMove $gUsername $gPassword $gSessionId [lindex $gGameInfo 0] $position $prevMove]    
+	scan $result "%d:%n" errCode num
+	if { $errCode == 0 } {
+		#Return true
+		return 1
+	} else {	
+		## Show the error to the user
+		DisplayRuntimeOKModal "Error: [string range $result $num end]" "OK"
+		## Return false
+		return 0	
+	}
+}
+
+proc GetRemotePlayersMove { position } {
+	global gUsername
+	global gPassword
+	global gSessionId
+	global gGameInfo
+	global gGetRemotePlayersMoveRefreshPeriod
+	global gGetRemotePlayersMoveMaxTries
+
+	for {set x 0} {$x < $gGetRemotePlayersMoveMaxTries} {incr x} {
+	    set result [C_GetRemotePlayersMove $gUsername $gPassword $gSessionId [lindex $gGameInfo 0] $position]
+		scan $result "%d:%n" errCode num
+		if { $errCode == 0 } {
+			if { [string range $result $num end] != "" } {
+				## Got the move
+				return [scan [string range $result $num end] "%d"]
+			} else {
+				## No new move yet. Wait for a moment, let the event's process then try again
+				update
+				after $gGetRemotePlayersMoveRefreshPeriod set timesUp 1
+				vwait timesUp	
+			}
+		} else {
+			## Show the error to the user
+			DisplayRuntimeOKModal "Error: [string range $result $num end]" "OK"
+			## Return nothing (signals an error)
+			return ""
+		}
+	
+		## Provide a facility to continue waiting
+		if {[expr $x + 1] >= $gGetRemotePlayersMoveMaxTries } {	
+			## Show the error to the user
+			set dec [DisplayRuntimeYesNoModal "Exceeded maximum retries for getting remote player's last move. Do you wish to continue (wait some more)?" "Wait a bit more" "End it"]
+			if { $dec } {
+				set x -1
+			}
+		}
+	}
+	
+	## Return nothing (signals an error)
+	return ""
 }
 
 #############################################################################
@@ -936,15 +1078,17 @@ proc ReturnFromHumanMoveHelper { theMove } {
         set gGameSoFar [push $gGameSoFar $gPosition]
         
         set gMovesSoFar [push $gMovesSoFar $theMove]
-        
-	.cStatus raise undoI
-	.cToolbar raise iITB3
+    
+    	if { ![OpponentIsOnline] } {
+			.cStatus raise undoI
+			.cToolbar raise iITB3
+		}
         
         GS_HandleMove .middle.f2.cMain $oldPosition $theMove $gPosition
 
-	if { [expr ![C_GoAgain $oldPosition $theMove]] } {
-	    SwitchWhoseTurn
-	}
+		if { [expr ![C_GoAgain $oldPosition $theMove]] } {
+		    SwitchWhoseTurn
+		}
     
         # TIER-GAMESMAN
         if { $gUsingTiers == 1 } {
@@ -979,7 +1123,30 @@ proc GameOver { position gameValue lastMove } {
     global gLeftPiece gRightPiece
     global gGameDelay gLeftHumanOrComputer gRightHumanOrComputer
 	global printing
-	
+	global gGameInfo
+
+	if { $gGameInfo == "" && [expr [PlayerIsOnline] || [OpponentIsOnline]]} {
+		return
+	}
+
+	if { [PlayerIsOnline] } {
+		## Send the local player's final move
+		if { ![SendLocalPlayersMove $position $lastMove] } {
+			EndGame
+			return
+		}
+		## Clear the global gGameInfo
+		set gGameInfo ""
+	} elseif { [OpponentIsOnline] } {
+		## Send a game over notice
+		if { ![SendGameOver] } {
+			EndGame
+			return
+		}
+		## Clear the global gGameInfo
+		set gGameInfo ""
+	}
+
     set previousPos [peek [pop $gGameSoFar]]
 
     set WhoWon Nobody
@@ -1049,6 +1216,54 @@ proc GameOver { position gameValue lastMove } {
 	after [expr int($gGameDelay * 1000)]
 	TBaction1
     }
+}
+
+#############################################################################
+##
+## EndGame
+##
+## This function is called from the driver loop to end a game due to 
+## online game play error.
+## 
+## Args: none
+##
+## Requires: none
+##
+#############################################################################
+
+proc EndGame { } {
+
+    global gPosition gGameSoFar gWhoseTurn gLeftName gRightName
+    global gLeftPiece gRightPiece
+    global gGameDelay gLeftHumanOrComputer gRightHumanOrComputer
+	global printing
+	global gGameInfo
+
+	if { $gGameInfo == "" && [expr [PlayerIsOnline] || [OpponentIsOnline]]} {
+		return
+	}
+	
+	if { [PlayerIsOnline] || [OpponentIsOnline] } {
+		## Send a resign game notice and ignore any errors
+		SendResignGame
+		## Clear the global gGameInfo
+		set gGameInfo ""
+	}
+
+    set message [concat GAME TERMINATED]
+    SendMessage $message
+	set loseMessage "Nobody wins!"
+
+    .middle.f3.cMRight itemconfigure WhoseTurn \
+	-text [format "%s" $message]
+    
+    .middle.f3.cMRight itemconfigure Predictions \
+	-text [format "%s" $loseMessage] 
+    update idletasks
+
+    DisableMoves
+
+	#after [expr int($gGameDelay * 1000)] TBaction1
 }
 
 
@@ -1246,9 +1461,9 @@ proc Redo { n } {
 	    set redoMove [peek $gRedoList]
 	    ReturnFromHumanMoveHelper $redoMove
 	    set gRedoList [pop $gRedoList]
-	    if { $gWhoseTurn == "Left" && $tempLeft == "Computer"} {
+	    if { $gWhoseTurn == "Left" && ($tempLeft == "Computer")} {
 		set i [expr $i - 1]
-	    } elseif {$gWhoseTurn == "Right" && $tempRight == "Computer"} {
+	    } elseif {$gWhoseTurn == "Right" && ($tempRight == "Computer")} {
 		set i [expr $i - 1]
 	    }
 	}
@@ -1258,6 +1473,52 @@ proc Redo { n } {
 
 }
 
+#############################################################################
+##
+## PlayerIsOnline
+##
+## Returns true or false if the player whose turn it is a remote online player
+## 
+## Args: Nothing
+##
+## Requires: Nothing
+##
+#############################################################################
+
+proc PlayerIsOnline { } {
+
+    global gWhoseTurn gComputerIsOnlinePlayer
+
+    if { $gWhoseTurn == "Left" } {
+        return 0
+    } else {
+        return $gComputerIsOnlinePlayer
+    }
+}
+
+#############################################################################
+##
+## OpponentIsOnline
+##
+## Returns true or false if the player whose turn it is not (i.e. the 
+## opponent) is a remote online player
+## 
+## Args: Nothing
+##
+## Requires: Nothing
+##
+#############################################################################
+
+proc OpponentIsOnline { } {
+
+    global gWhoseTurn gRightHumanOrComputer gLeftHumanOrComputer gComputerIsOnlinePlayer
+
+    if { $gWhoseTurn == "Left" } {
+        return [expr { $gLeftHumanOrComputer == "Human" && $gRightHumanOrComputer == "Computer" && $gComputerIsOnlinePlayer }]
+    } else {
+        return 0
+    }
+}
 #############################################################################
 ##
 ## PlayerIsComputer
@@ -1370,6 +1631,72 @@ proc BadElse { theFunction theMsg } {
     puts "Error: $theFunction\{\} just reached an else clause it shouldn't have: $theMsg"
 }
 
+
+#########################################################
+## Reusable GUI functions for in-game-play windowing
+#########################################################
+
+proc DisplayRuntimeStatusModal { msgText } {
+	global kLabelFont
+
+	set w [expr [winfo width .middle.f2.cMain] * 0.8]
+	set h [expr [winfo height .middle.f2.cMain] * 0.8]
+	frame .middle.f2.cMain.fModal -width $w -height $h -relief raised -bd 2
+	pack propagate .middle.f2.cMain.fModal 0
+		
+	message .middle.f2.cMain.fModal.lMessage -text $msgText -font $kLabelFont -width $w -padx 5 -pady 5
+	place .middle.f2.cMain.fModal -x [expr $w / 8] -y [expr $h / 8] -in .middle.f2.cMain
+	pack .middle.f2.cMain.fModal.lMessage -side top -fill both
+	update
+	focus .middle.f2.cMain.fModal 
+}
+
+proc DisplayRuntimeOKModal { msgText okText } {
+	global kLabelFont
+
+	set w [expr [winfo width .middle.f2.cMain] * 0.8]
+	set h [expr [winfo height .middle.f2.cMain] * 0.8]
+	frame .middle.f2.cMain.fModal -width $w -height $h -relief raised -bd 2
+	pack propagate .middle.f2.cMain.fModal 0
+
+	message .middle.f2.cMain.fModal.lMessage -text $msgText -width $w -font $kLabelFont -padx 5 -pady 5
+	button .middle.f2.cMain.fModal.bMessage -text $okText -width 10 -command { DestroyRuntimeModal }
+	place .middle.f2.cMain.fModal -x [expr $w / 8] -y [expr $h / 8] -in .middle.f2.cMain
+	pack .middle.f2.cMain.fModal.lMessage -side top -fill both
+	pack .middle.f2.cMain.fModal.bMessage -side top
+	update
+	focus .middle.f2.cMain.fModal
+	tkwait window .middle.f2.cMain.fModal
+}
+
+proc DisplayRuntimeYesNoModal { msgText yesText noText } {
+	global kLabelFont
+	global tmp
+	
+	set w [expr [winfo width .middle.f2.cMain] * 0.8]
+	set h [expr [winfo height .middle.f2.cMain] * 0.8]
+	frame .middle.f2.cMain.fModal -width $w -height $h -relief raised -bd 2
+	pack propagate .middle.f2.cMain.fModal 0
+
+	frame .middle.f2.cMain.fModal.fButtons
+	message .middle.f2.cMain.fModal.lMessage -text $msgText -width $w -font $kLabelFont -padx 5 -pady 5
+	button .middle.f2.cMain.fModal.fButtons.bYes -text $yesText -command { DestroyRuntimeModal; global tmp; set tmp 1; }
+	button .middle.f2.cMain.fModal.fButtons.bNo -text $noText -command { DestroyRuntimeModal; global tmp; set tmp 0; }
+	place .middle.f2.cMain.fModal -x [expr $w / 8] -y [expr $h / 8] -in .middle.f2.cMain
+	pack .middle.f2.cMain.fModal.fButtons.bYes -side left
+	pack .middle.f2.cMain.fModal.fButtons.bNo -side left
+	pack .middle.f2.cMain.fModal.lMessage -side top -fill both
+	pack .middle.f2.cMain.fModal.fButtons -side top
+	update
+	focus .middle.f2.cMain.fModal
+	tkwait window .middle.f2.cMain.fModal
+	return $tmp
+}
+
+proc DestroyRuntimeModal { } {
+	place forget .middle.f2.cMain.fModal
+	destroy .middle.f2.cMain.fModal
+}
 
 
 

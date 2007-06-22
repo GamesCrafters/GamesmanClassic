@@ -71,51 +71,84 @@ unsigned long long htonll(unsigned long long n)
 		return (((unsigned long long)htonl(n)) << 32) + htonl(n >> 32);
 }
 
+
 /**
- * Returns the value of the specified header as a char array. The returned
- * value may be NULL if no header exists with the specified name.
+ * Copies the http response status into the status handle.
+ * 
+ * res - httpres struct to read the status from
+ * status - a handle to the status string
+ */
+void getstatus(httpres *res, char** status)
+{
+	*status = NULL;
+	if (res != NULL && res->status != NULL)
+	{
+		if ((*status = malloc(strlen(res->status)+1)) == NULL)
+		{
+			fprintf(stderr,"ERROR, could not allocate memory for response status\n");
+			return;
+		}
+		strcpy(*status, res->status);	
+	}
+}
+
+/**
+ * Copies the value of the specified header into the hdrVal string. The hdrVal
+ * string may be NULL if no header exists with the specified name.
  *
  * res - httpres struct to read header values from
  * name - name of the header for which we want the value
- * returns the value of the named header
+ * hdrVal - handle to the header value string
  */
-char* getheader(httpres *res, char name[])
+void getheader(httpres *res, char name[], char** hdrVal)
 {
 	char *lname;
 	char *lhname;
-	char *val = NULL;
+	*hdrVal = NULL;
 	header *currHdr;
 
+	if (res == NULL)
+		return;
+		
 	// Lower case the name so we can do case-insensitive comparisons
 	if ((lname = malloc(strlen(name)+1)) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for header name comparision\n");
-		exit(1);
+		return;
 	}
 	lcstrcpy(lname, name);
+	
 	// Loop through the headers until we find one
 	currHdr = res->headers;
 	while (currHdr != NULL)
 	{
-		if ((lhname = malloc(strlen(currHdr->name)+1)) == NULL)
+		if (currHdr->name != NULL)
 		{
-			fprintf(stderr,"ERROR, could not allocate memory for header name comparision\n");
-			exit(1);
-		}
-		lcstrcpy(lhname, currHdr->name);
-		if (strcmp(lhname, lname) == 0)
-		{
-			val = currHdr->value;
+			if ((lhname = malloc(strlen(currHdr->name)+1)) == NULL)
+			{
+				fprintf(stderr,"ERROR, could not allocate memory for header name comparision\n");
+				return;
+			}
+			lcstrcpy(lhname, currHdr->name);
+			if (strcmp(lhname, lname) == 0)
+			{
+				if (currHdr->value != NULL)
+				{
+					if ((*hdrVal = malloc(strlen(currHdr->value)+1)) == NULL)
+					{
+						fprintf(stderr,"ERROR, could not allocate memory for header value\n");
+						return;
+					}
+					strcpy(*hdrVal, currHdr->value);
+				}
+				free(lhname);
+				break;
+			}
 			free(lhname);
-			break;
 		}
-		free(lhname);
 		currHdr = currHdr->next;
 	}
 	free(lname);
-
-	// Return what we've found
-	return val;
 }
 
 /**
@@ -145,6 +178,9 @@ void freeresponse(httpres *res)
 	header *currHdr;
 	header *tmpHdr;
 
+	if (res == NULL)
+		return;
+		
 	// Free the malloc'd memory
 	currHdr = res->headers;
 	tmpHdr = NULL;
@@ -153,7 +189,8 @@ void freeresponse(httpres *res)
 		if (tmpHdr != NULL)
 			free(tmpHdr);
 		tmpHdr = currHdr;
-		free(currHdr->name);
+		if (currHdr->name != NULL)
+			free(currHdr->name);
 		if (currHdr->value != NULL)
 			free(currHdr->value);
 		currHdr = currHdr->next;
@@ -163,28 +200,40 @@ void freeresponse(httpres *res)
 	if (res->body != NULL)
 		free(res->body);
 	free(res);
-
 }
 
 /**
  * POST's the specified httpreq to it's preconfigured url with
- * all preconfigured headers and the body content (if any).
- * Returns a httpres struct representing the HTTP response data.
+ * all preconfigured headers and the body content (if any). Frees
+ * the httpreq and all its request headers. Populates the httpres struct 
+ * representing the HTTP response data (which must be freed later using 
+ * freeresponse). Returns 0 if successful. If not successful, returns
+ * a non-zero value and populates the errMsg string.
  *
  * req - httpreq struct to POST to it's url/addr
  * body - content for the body of the HTTP POST, can be NULL
  * bodyLength - length of the body content, can be 0 if body is NULL
+ * res - handle to the httpres struct
+ * errMsg - handle to the error message string
  * returns httpres struct representing the HTTP response data
  */
-httpres* post(httpreq *req, char body[], int bodyLength)
-{
-	httpres *res;
-	header *currHdr;
-	header *tmpHdr;
+int post(httpreq *req, char body[], int bodyLength, httpres** res, char** errMsg)
+{	
+	header *currHdr = NULL;
+	header *tmpHdr = NULL;
     char buffer[64];
     int sockFd;
     int n;
-
+	*res = NULL;
+	*errMsg = NULL;
+	
+	// Check the request
+	if (req == NULL)
+	{
+		mallocstrcpy(errMsg, "NULL httpreq struct pointer");
+		return 1;
+	}
+	
 	// Add the content-length header
 	net_itoa(bodyLength, buffer);
 	addheader(req, "Content-Length", buffer);
@@ -192,17 +241,17 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 	// Create a socket
 	if ((sockFd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		fprintf(stderr,"ERROR, creating socket: ");
-		connecterror(stderr);
-		exit(1);
+		connecterror(buffer);
+		mallocstrcpyext(errMsg, "ERROR, creating socket: ", buffer);
+		return errno;
 	}
 
 	// Connect to the socket
 	if (connect(sockFd, &(req->sock.res), sizeof(struct sockaddr_in)) < 0)
 	{
-		fprintf(stderr,"ERROR, opening socket: ");
-		connecterror(stderr);
-		exit(1);
+		connecterror(buffer);
+		mallocstrcpyext(errMsg, "ERROR, opening socket: ", buffer);
+		return errno;
 	}
 
 	// Submit the http request
@@ -219,6 +268,7 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 		n = write(sockFd, "\r\n", 2);
 		currHdr = currHdr->next;
 	}
+
 	// Add the extra line to separate headers from body
 	n = write(sockFd, "\r\n", 2);
 	// Add the body (if any)
@@ -226,33 +276,45 @@ httpres* post(httpreq *req, char body[], int bodyLength)
 		n = write(sockFd, body, bodyLength);
 
 	// Create the response
-	if ((res = malloc(sizeof(httpres))) == NULL)
+	if ((*res = malloc(sizeof(httpres))) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http response\n");
-		exit(1);
+		return 1;
 	}
-	res->headers = NULL;
-	res->status = NULL;
-	res->body = NULL;
-	res->bodyLength = 0;
+
+	// NULL out the initial values
+	(*res)->headers = NULL;
+	(*res)->status = NULL;
+	(*res)->body = NULL;
+	(*res)->statusCode = 0;
+	(*res)->bodyLength = 0;
+
 	// Read the response
-	readresponse(sockFd, res);
+	readresponse(sockFd, *res);
 	shutdown(sockFd,2);
+	
 	// Free the malloc'd memory
 	currHdr = req->headers;
 	while (currHdr != NULL)
 	{
-		free(currHdr->name);
-		free(currHdr->value);
+		if (currHdr->name != NULL)
+			free(currHdr->name);
+		if (currHdr->value != NULL)			
+			free(currHdr->value);
+		if (tmpHdr != NULL)
+			free(tmpHdr);
 		tmpHdr = currHdr;
 		currHdr = currHdr->next;
-		free(tmpHdr);
 	}
-	free(req->hostName);
-	free(req->path);
+	if (tmpHdr != NULL)
+		free(tmpHdr);
+	if (req->hostName != NULL)
+		free(req->hostName);
+	if (req->path != NULL)
+		free(req->path);
 	free(req);
 
-	return res;
+	return 0;
 }
 
 /**
@@ -264,16 +326,18 @@ httpres* post(httpreq *req, char body[], int bodyLength)
  */
 void readresponse(int sockFd, httpres *res)
 {
-	header *currHdr;
-	header *tmpHdr;
-	char *pos;
+	header *currHdr = NULL;
+	header *tmpHdr = NULL;
+	char *pos = NULL;
     char buffer[512];
     char c[1];
     int p;
     int n;
 
+	if (res == NULL)
+		return;
+
 	// Read each line at a time
-	tmpHdr = NULL;
 	while (1)
 	{
 		p = 0;
@@ -298,7 +362,7 @@ void readresponse(int sockFd, httpres *res)
 			if ((res->status = malloc(strlen(buffer)+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for http response status\n");
-				exit(1);
+				return;
 			}
 			strcpy(res->status, buffer);
 
@@ -316,11 +380,15 @@ void readresponse(int sockFd, httpres *res)
 			if ((currHdr = malloc(sizeof(header))) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for http response header\n");
-				exit(1);
+				return;
 			}
+			
+			// NULL out the initial values
 			currHdr->next = NULL;
+			currHdr->name = NULL;
+			currHdr->value = NULL;
 
-			if (pos = strchr(buffer, ':'))
+			if ((pos = strchr(buffer, ':')))
 			{
 				// Line has a ':' char
 				*pos = '\0';
@@ -328,7 +396,7 @@ void readresponse(int sockFd, httpres *res)
 				if ((currHdr->name = malloc(p+1)) == NULL)
 				{
 					fprintf(stderr,"ERROR, could not allocate memory for header name\n");
-					exit(1);
+					return;
 				}
 				strcpy(currHdr->name, buffer);
 
@@ -344,7 +412,7 @@ void readresponse(int sockFd, httpres *res)
 				if ((currHdr->value = malloc(strlen(pos)+1)) == NULL)
 				{
 					fprintf(stderr,"ERROR, could not allocate memory for header value\n");
-					exit(1);
+					return;
 				}
 				strcpy(currHdr->value, pos);
 			}
@@ -354,7 +422,7 @@ void readresponse(int sockFd, httpres *res)
 				if ((currHdr->name = malloc(strlen(buffer)+1)) == NULL)
 				{
 					fprintf(stderr,"ERROR, could not allocate memory for header name\n");
-					exit(1);
+					return;
 				}
 				strcpy(currHdr->name, buffer);
 			}
@@ -365,20 +433,26 @@ void readresponse(int sockFd, httpres *res)
 			else
 				res->headers = currHdr;
 			tmpHdr = currHdr;
+			//printf("currHdr: %s = %s\n", currHdr->name, currHdr->value);
 		}
 	}
 
 	// Now read any body content
-	if ((pos = getheader(res, "Content-Length")) != NULL)
+	getheader(res, "Content-Length", &pos);
+	if (pos != NULL)
 	{
 		p = atoi(pos);
-		if ((res->body = malloc(p)) == NULL)
+		if (p > 0)
 		{
-			fprintf(stderr,"ERROR, could not allocate memory for response body\n");
-			exit(1);
+			if ((res->body = malloc(p+1)) == NULL)
+			{
+				fprintf(stderr,"ERROR, could not allocate memory for response body\n");
+				return;
+			}
+			res->bodyLength = read(sockFd, res->body, p);
+			res->body[p] = '\0';
+			//printf("expected: %d read: %d body: '%s'\n", p, res->bodyLength, res->body);
 		}
-
-		res->bodyLength = read(sockFd, res->body, p);
 	}
 }
 
@@ -424,6 +498,8 @@ void net_itoa(int n, char s[])
  */
 void settype(httpreq *req, char value[])
 {
+	if (req == NULL)
+		return;
 	addheader(req, "TYPE", value);
 }
 
@@ -438,29 +514,32 @@ void settype(httpreq *req, char value[])
  */
 void addheader(httpreq *req, char name[], char value[])
 {
-	header *hdr;
-	header *currHdr;
+	header *hdr = NULL;
+	header *currHdr = NULL;
 
 	// Create a header
 	if ((hdr = malloc(sizeof(header))) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request header\n");
-		exit(1);
+		return;
 	}
 	hdr->next = NULL;
+	hdr->name = NULL;
+	hdr->value = NULL;
+	
 	if ((hdr->name = malloc(strlen(name) + 1)) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request header name\n");
-		exit(1);
+		return;
 	}
 	strcpy(hdr->name, name);
 	if ((hdr->value = malloc(strlen(value) + 1)) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request header value\n");
-		exit(1);
+		return;
 	}
 	strcpy(hdr->value, value);
-
+	
 	// Add to the httpreq
 	if (req->headers == NULL)
 	{
@@ -475,177 +554,95 @@ void addheader(httpreq *req, char name[], char value[])
 	}
 }
 
-int SetupNetworkGame(STRING gameName) {
-	httpreq *req;
-	httpres *res;
-	char *url = malloc(256); //"127.0.0.1:3000/game/request_game_url"; //gMPServerAddress
-	char *body = malloc(256);
-	sprintf(body, "game_name=%s", gameName);
-
-	gRemoteGameURL = malloc(256);
-
-	printf("Initiating game.\n");
-	printf("This may take awhile (if no one else wants to play this game)\n");
-
-	while (TRUE) {
-		strncpy(url, gMPServerAddress, 255);
-		req = newrequest(url);
-		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
-		res = post(req, body, strlen(body));
-
-		if (strncmp(res->status, "HTTP/1.1 201", 12) == 0) {
-			// we have a game url (that uniquely represents a game)
-			// and we are player two
-			printf("\nYou have been matched with an opponent... ");
-
-			// lets figure out what turn we are
-			strncpy(gRemoteGameURL, res->body, 255);
-			if (strncmp(getheader(res, "Your-Turn"), "0", 1))  {
-				freeresponse(res);
-				return 0;
-			} else {
-				freeresponse(res);
-				return 1;
-			}
-		} else if (strncmp(res->status, "HTTP/1.1 202", 12) == 0) {
-			// Server: accepted game id, will process later.
-			// Client: okay, will wait for opponent (save the token given by server to poll)
-			sprintf(body, "game_id=%s&game_name=%s", res->body, gameName);
-			freeresponse(res);
-			sleep(5); //poll every 5 seconds
-			//return SetupWait(body);
-		} else {
-			freeresponse(res);
-			printf("Server is talking gibberish...\n");
-			exit(1);
-		}
-	}
-}
-
-void sendLocalMove(MOVE* move, STRING name, int turnNumber) {
-	httpreq *req;
-	httpres *res;
-	char *body = malloc(256);
-	char *url = malloc(256);
-	int i, result;
-
-	sprintf(body, "opponent=%s&turn_number=%d&value=%d", name, turnNumber, *move);
-
-	while (1) {
-		strncpy(url, gRemoteGameURL, 255); //"192.168.0.104:3000/game/<game_id>/get_last_move"
-		req = newrequest(url);
-		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
-		res = post(req, body, strlen(body));
-
-		if (strncmp(res->status, "HTTP/1.1 204", 12) == 0) {
-			freeresponse(res);
-			free(body);
-			free(url);
-			return; // we are done here
-		} else {
-			sleep(5); //poll every 5 seconds
-
-			// reset the body, lets not submit the same data over and over eh?
-			//sprintf(body, "opponent=%s&turn_number=%d", name, turnNumber);
-			freeresponse(res);
-		}
-	}
-}
-
-int getRemoteMove(STRING name, int turnNumber) {
-	httpreq *req;
-	httpres *res;
-	char *body = malloc(256);
-	char *url = malloc(256);
-	int i, result;
-
-	sprintf(body, "opponent=%s&turn_number=%d", name, turnNumber);
-	printf("Waiting for opponent to move...\n");
-
-	while (1) {
-		strncpy(url, gRemoteGameURL, 255); //"192.168.0.104:3000/game/<game_id>/get_last_move"
-		req = newrequest(url);
-		addheader(req, "Content-Type", "application/x-www-form-urlencoded");
-		res = post(req, body, strlen(body));
-
-		if (strncmp(res->status, "HTTP/1.1 200", 12) == 0) {
-			result = atoi(res->body);
-			freeresponse(res);
-			break;
-		} else { // reply was a 304 (no modifications)
-			sleep(5); //poll every 5 seconds
-			freeresponse(res);
-		}
-	}
-	free(body);
-	free(url);
-	return result;
-}
-
-void reportGameEnd(int code) {
-	printf("Game ended!\n");
-}
-
 /**
- * Creates a new httpreq to represent the http request to make. Returns
- * a pointer to this struct for later passing to the get/post function.
+ * Creates a new httpreq to represent the http request to make and 
+ * populates the handle to the httpreq struct for later using in the 
+ * post function. Returns 0 if successful. Otherwise, returns a non-zero
+ * value and populates the errMsg string.
  *
  * WARNING: clobbers url
  *
  * url - url the http request will use (minus the http:// prefix)
+ * req - handle to the httpreq struct
+ * errMsg - handle to the error message string
  */
-httpreq* newrequest(char url[])
+int newrequest(char url[], httpreq** req, char** errMsg)
 {
-	httpreq *req;
+	*req = NULL;
+	*errMsg = NULL;
+	
+	if (req == NULL)
+	{
+		mallocstrcpy(errMsg, "NULL httpreq struct pointer");
+    	return 1;
+	}
+	
+	if (url == NULL || strlen(url) == 0)
+	{
+		mallocstrcpy(errMsg, "Cannot specify a NULL url for a request");
+    	return 1;
+	}	
+	
 	// Create the httpreq
-	if ((req = malloc(sizeof(httpreq))) == NULL)
+	if ((*req = malloc(sizeof(httpreq))) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request\n");
-		exit(1);
+		return 1;
 	}
 
-	req->headers = NULL;
-
+	// NULL out the initial values
+	(*req)->headers = NULL;
+	(*req)->serverAddr = NULL;
+	(*req)->hostName = NULL;
+	(*req)->path = NULL;
+	(*req)->portNum = 80;
+	
     // Parse the url and add the info to the httpreq
-    parse(url, req);
+    if (parse(url, *req, errMsg) != 0)
+    	return 1;
 
     // Lookup the host addr and validate it
-	if ((req->serverAddr = gethostbyname(req->hostName)) == NULL)
+	if (((*req)->serverAddr = gethostbyname((*req)->hostName)) == NULL)
 	{
-		fprintf(stderr,"ERROR, no such host: %s\n", req->hostName);
-		exit(1);
+		mallocstrcpyext(errMsg, "ERROR, no such host: ", (*req)->hostName);
+		return 1;
 	}
 
 	// Setup the socket address
-	memcpy(&(req->sock.req.sin_addr.s_addr), *(req->serverAddr->h_addr_list), sizeof(struct in_addr));
-	req->sock.req.sin_family = AF_INET;
-	req->sock.req.sin_port = htons(req->portNum);
+	memcpy(&((*req)->sock.req.sin_addr.s_addr), *((*req)->serverAddr->h_addr_list), sizeof(struct in_addr));
+	(*req)->sock.req.sin_family = AF_INET;
+	(*req)->sock.req.sin_port = htons((*req)->portNum);
 
 	// Add the required headers
-	addheader(req, "Host", req->hostName); // Required by HTTP 1.1
-	addheader(req, "Connection", "close"); // Don't keep the conn open afterwards
-	addheader(req, "User-Agent", "Gamesman/1.0"); // So we can identify ourselves
-	addheader(req, "Content-Type", "application/octet-stream"); // Body content will be binary
+	addheader(*req, "Host", (*req)->hostName); // Required by HTTP 1.1
+	addheader(*req, "Connection", "close"); // Don't keep the conn open afterwards
+	addheader(*req, "User-Agent", "Gamesman/1.0"); // So we can identify ourselves
+	addheader(*req, "Content-Type", "application/octet-stream"); // Body content will be binary
 
 	// Ready to go
-	return req;
+	return 0;
 }
 
 /**
  * Parses the specified url into the hostName, path, and port
- * and assigns the values into the specified httpreq struct.
+ * and assigns the values into the specified httpreq struct. 
+ * Returns 0 if successful. If unsuccessful, populates the errMsg
+ * error message string and returns non-zero.
  *
  * url - url to parse
  * req - pointer to httpreq
+ * errMsg - handle to the error message string
+ * returns 0 if succesful, non-zero otherwise
  */
-void parse(char url[], httpreq *req)
+int parse(char url[], httpreq *req, char** errMsg)
 {
-    char *pos1;
-    char *pos2;
+    char *pos1 = NULL;
+    char *pos2 = NULL;
     int n;
+    *errMsg = NULL;
 
 	// Parse the url
-	if (pos1 = strchr(url, ':'))
+	if ((pos1 = strchr(url, ':')))
 	{
 		// Url has a port number specified
 		// Read just the host name, up to the ':'
@@ -654,12 +651,12 @@ void parse(char url[], httpreq *req)
 		if ((req->hostName = malloc(n+1)) == NULL)
 		{
 			fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-			exit(1);
+			return 1;
 		}
 		strcpy(req->hostName, url);
 		// Move past the ':' char
 		pos1++;
-		if (pos2 = strchr(pos1,'/'))
+		if ((pos2 = strchr(pos1,'/')))
 		{
 			// Url has a '/' char
 			// Read just the port, up to the '/'
@@ -671,10 +668,9 @@ void parse(char url[], httpreq *req)
 			if ((req->path = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
-				exit(1);
+				return 1;
 			}
 			strcpy(req->path, pos2);
-
 		}
 		else
 		{
@@ -686,7 +682,7 @@ void parse(char url[], httpreq *req)
 			if ((req->path = malloc(1+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
-				exit(1);
+				return 1;
 			}
 			strcpy(req->path, "/");
 		}
@@ -694,7 +690,7 @@ void parse(char url[], httpreq *req)
 	else
 	{
 		req->portNum = 80;
-		if (pos1 = strchr(url, '/'))
+		if ((pos1 = strchr(url, '/')))
 		{
 			// Url has a '/' char
 			// Read just the host name, up to the '/'
@@ -703,7 +699,7 @@ void parse(char url[], httpreq *req)
 			if ((req->hostName = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-				exit(1);
+				return 1;
 			}
 			strcpy(req->hostName, url);
 			// Now read from the '/' to the end
@@ -712,7 +708,7 @@ void parse(char url[], httpreq *req)
 			if ((req->path = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for path\n");
-				exit(1);
+				return 1;
 			}
 			strcpy(req->path, pos1);
 		}
@@ -725,130 +721,233 @@ void parse(char url[], httpreq *req)
 			if ((req->hostName = malloc(n+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-				exit(1);
+				return 1;
 			}
 			strcpy(req->hostName, url);
 			// Default path to '/'
 			if ((req->path = malloc(1+1)) == NULL)
 			{
 				fprintf(stderr,"ERROR, could not allocate memory for hostName\n");
-				exit(1);
+				return 1;
 			}
 			strcpy(req->path, "/");
 		}
 	}
+	
+	return 0;
 }
 
+/**
+ * Checks the http response to see if it is valid. If it is, returns 0 and copies
+ * no value to the errMsg string. If it is not valid, returns a non-zero value
+ * and copies an error message into the errMsg string.
+ * 
+ * res - the httpres struct to check
+ * errMsg - handle to the error message string
+ * returns 0 if everything checks out normal, non-zero otherwise
+ */
+int responseerrorcheck(httpres* res, char** errMsg)
+{
+	int errCode = 0;
+	*errMsg = NULL;
 
-void connecterror(FILE *stream)
+	if (res == NULL)
+	{
+		mallocstrcpy(errMsg, "NULL httpres struct pointer");
+		return 1;
+    }
+
+	if (res->statusCode != 200)
+    {
+		getstatus(res, errMsg);
+		if (*errMsg == NULL)
+		{
+			mallocstrcpy(errMsg, "No response received from server.");
+			return 1;
+		}
+		errCode = 1;
+
+		// Print out the body (if any) to stderr
+		if (res->bodyLength > 0)
+			fprintf(stderr, "http response status code: %d %s\n%s", res->statusCode, res->status, res->body);
+    }
+    else
+    {
+    	char* ecode_str;
+		getheader(res, HD_RETURN_CODE, &ecode_str);
+	    if (ecode_str == NULL)
+	    {
+	    	mallocstrcpy(errMsg, "Server sent back invalid response");
+	    	errCode = 1;
+	    }
+	    else
+	    {
+		    int ecode = atoi(ecode_str);
+		    free(ecode_str);
+		    if (ecode != 0)
+		    {
+		       getheader(res,HD_RETURN_MESSAGE, errMsg);
+		       errCode = ecode;
+		    }
+	    }
+    }
+    return errCode;
+}
+
+/**
+ * Copies the network error message for the current error into the specified errMsg
+ * string.
+ * 
+ * errMsg - error message string
+ */
+void connecterror(char errMsg[])
 {
 	if (errno == EOPNOTSUPP)
-		fprintf(stream, "Operation not supported on transport endpoint.\n");
+		strcpy(errMsg, "Operation not supported on transport endpoint.");
 	else if (errno == EPFNOSUPPORT)
-		fprintf(stream, "Protocol family not supported.\n");
+		strcpy(errMsg, "Protocol family not supported.");
 	else if (errno == ECONNRESET)
-		fprintf(stream, "Connection reset by peer.\n");
+		strcpy(errMsg, "Connection reset by peer.");
 	else if (errno == ENOBUFS)
-		fprintf(stream, "No buffer space available.\n");
+		strcpy(errMsg, "No buffer space available.");
 	else if (errno == EAFNOSUPPORT)
-		fprintf(stream, "Address family not supported by protocol family.\n");
+		strcpy(errMsg, "Address family not supported by protocol family.");
 	else if (errno == EPROTOTYPE)
-		fprintf(stream, "Protocol wrong type for socket.\n");
+		strcpy(errMsg, "Protocol wrong type for socket.");
 	else if (errno == ENOTSOCK)
-		fprintf(stream, "Socket operation on non-socket.\n");
+		strcpy(errMsg, "Socket operation on non-socket.");
 	else if (errno == ENOPROTOOPT)
-		fprintf(stream, "Protocol not available.\n");
+		strcpy(errMsg, "Protocol not available.");
 	else if (errno == ESHUTDOWN)
-		fprintf(stream, "Can't send after socket shutdown.\n");
+		strcpy(errMsg, "Can't send after socket shutdown.");
 	else if (errno == ECONNREFUSED)
-		fprintf(stream, "Connection refused.\n");
+		strcpy(errMsg, "Connection refused.");
 	else if (errno == EADDRINUSE)
-		fprintf(stream, "Address already in use.\n");
+		strcpy(errMsg, "Address already in use.");
 	else if (errno == ECONNABORTED)
-		fprintf(stream, "Connection aborted.\n");
+		strcpy(errMsg, "Connection aborted.");
 	else if (errno == ENETUNREACH)
-		fprintf(stream, "Network is unreachable.\n");
+		strcpy(errMsg, "Network is unreachable.");
 	else if (errno == ENETDOWN)
-		fprintf(stream, "Network interface is not configured.\n");
+		strcpy(errMsg, "Network interface is not configured.");
 	else if (errno == ETIMEDOUT)
-		fprintf(stream, "Connection timed out.\n");
+		strcpy(errMsg, "Connection timed out.");
 	else if (errno == EHOSTDOWN)
-		fprintf(stream, "Host is down.\n");
+		strcpy(errMsg, "Host is down.");
 	else if (errno == EHOSTUNREACH)
-		fprintf(stream, "Host is unreachable.\n");
+		strcpy(errMsg, "Host is unreachable.");
 	else if (errno == EINPROGRESS)
-		fprintf(stream, "Connection already in progress.\n");
+		strcpy(errMsg, "Connection already in progress.");
 	else if (errno == EALREADY)
-		fprintf(stream, "Socket already connected.\n");
+		strcpy(errMsg, "Socket already connected.");
 	else if (errno == EDESTADDRREQ)
-		fprintf(stream, "Destination address required.\n");
+		strcpy(errMsg, "Destination address required.");
 	else if (errno == EMSGSIZE)
-		fprintf(stream, "Message too long.\n");
+		strcpy(errMsg, "Message too long.");
 	else if (errno == EPROTONOSUPPORT)
-		fprintf(stream, "Unknown protocol.\n");
+		strcpy(errMsg, "Unknown protocol.");
 	else if (errno == ESOCKTNOSUPPORT)
-		fprintf(stream, "Socket type not supported.\n");
+		strcpy(errMsg, "Socket type not supported.");
 	else if (errno == EADDRNOTAVAIL)
-		fprintf(stream, "Address not available.\n");
+		strcpy(errMsg, "Address not available.");
 	else if (errno == ENETRESET)
-		fprintf(stream, "Network interface reset.\n");
+		strcpy(errMsg, "Network interface reset.");
 	else if (errno == EISCONN)
-		fprintf(stream, "Socket is already connected.\n");
+		strcpy(errMsg, "Socket is already connected.");
 	else if (errno == ENOTCONN)
-		fprintf(stream, "Socket is not connected.\n");
+		strcpy(errMsg, "Socket is not connected.");
 	else if (errno == ENOTSUP)
-		fprintf(stream, "Not supported.\n");
+		strcpy(errMsg, "Not supported.");
 	else if (errno == EMULTIHOP)
-		fprintf(stream, "Multihop attempted.\n");
+		strcpy(errMsg, "Multihop attempted.");
 	else if (errno == EPROTO)
-		fprintf(stream, "Protocol error.\n");
+		strcpy(errMsg, "Protocol error.");
 	else if (errno == ENOLINK)
-		fprintf(stream, "The link has been severed.\n");
+		strcpy(errMsg, "The link has been severed.");
 	else if (errno == EREMOTE)
-		fprintf(stream, "The object is remote.\n");
+		strcpy(errMsg, "The object is remote.");
 	else if (errno == ENOSR)
-		fprintf(stream, "Out of streams resources.\n");
+		strcpy(errMsg, "Out of streams resources.");
 	else if (errno == ETIME)
-		fprintf(stream, "Timer expired.\n");
+		strcpy(errMsg, "Timer expired.");
 	else if (errno == ENODATA)
-		fprintf(stream, "No data (for no delay io).\n");
+		strcpy(errMsg, "No data (for no delay io).");
 	else if (errno == ENOSTR)
-		fprintf(stream, "Device not a stream.\n");
+		strcpy(errMsg, "Device not a stream.");
 	else if (errno == EIDRM)
-		fprintf(stream, "Identifier removed.\n");
+		strcpy(errMsg, "Identifier removed.");
 	else if (errno == ENOMSG)
-		fprintf(stream, "No message of desired type.\n");
+		strcpy(errMsg, "No message of desired type.");
 	else if (errno == EPIPE)
-		fprintf(stream, "Broken pipe.\n");
+		strcpy(errMsg, "Broken pipe.");
 	else if (errno == EMLINK)
-		fprintf(stream, "Too many links.\n");
+		strcpy(errMsg, "Too many links.");
 	else if (errno == EMFILE)
-		fprintf(stream, "Too many open files.\n");
+		strcpy(errMsg, "Too many open files.");
 	else if (errno == ENFILE)
-		fprintf(stream, "Too many open files in system.\n");
+		strcpy(errMsg, "Too many open files in system.");
 	else if (errno == EINVAL)
-		fprintf(stream, "Invalid argument.\n");
+		strcpy(errMsg, "Invalid argument.");
 	else if (errno == ENODEV)
-		fprintf(stream, "No such device.\n");
+		strcpy(errMsg, "No such device.");
 	else if (errno == EXDEV)
-		fprintf(stream, "Cross-device link.\n");
+		strcpy(errMsg, "Cross-device link.");
 	else if (errno == ENOTBLK)
-		fprintf(stream, "Block device required.\n");
+		strcpy(errMsg, "Block device required.");
 	else if (errno == EFAULT)
-		fprintf(stream, "Bad address.\n");
+		strcpy(errMsg, "Bad address.");
 	else if (errno == EACCES)
-		fprintf(stream, "Permission denied.\n");
+		strcpy(errMsg, "Permission denied.");
 	else if (errno == EBADF)
-		fprintf(stream, "Bad file number.\n");
+		strcpy(errMsg, "Bad file number.");
 	else if (errno == ENXIO)
-		fprintf(stream, "No such device or address.\n");
+		strcpy(errMsg, "No such device or address.");
 	else if (errno == EIO)
-		fprintf(stream, "I/O error.\n");
+		strcpy(errMsg, "I/O error.");
 	else if (errno == EINTR)
-		fprintf(stream, "Interrupted system call.\n");
+		strcpy(errMsg, "Interrupted system call.");
 	else if (errno == EPERM)
-		fprintf(stream, "Not super-user.\n");
+		strcpy(errMsg, "Not super-user.");
 	else
-		fprintf(stream, "Unknown error %d.\n", errno);
+		sprintf(errMsg, "Unknown error %d.", errno);
 }
 
+/**
+ * Malloc's enough memory to copy the string specified by msg into the handle specified
+ * by errMsg. Returns 0 if successful, 1 otherwise.
+ * 
+ * errMsg - handle that will point to a malloc'd copy of the msg string
+ * msg - string to copy
+ * returns 0 if successful, 1 otherwise
+ */
+int mallocstrcpy(char** errMsg, const char msg[])
+{
+	if ((*errMsg = malloc(strlen(msg)+1)) == NULL)
+	{
+		fprintf(stderr,"ERROR, could not allocate memory for error message\n");
+		return 1;
+	}	    
+	strcpy(*errMsg, msg);
+	return 0;	
+}
+
+/**
+ * Malloc's enough memory to copy the strings specified by msg1 and msg2 into the handle 
+ * specified by errMsg. Returns 0 if successful, 1 otherwise.
+ * 
+ * errMsg - handle that will point to a malloc'd copy of the msg1 + msg2 string
+ * msg1 - first string to copy
+ * msg2 - second string to copy
+ * returns 0 if successful, 1 otherwise
+ */
+int mallocstrcpyext(char** errMsg, char msg1[], char msg2[])
+{
+	if ((*errMsg = malloc(strlen(msg1)+strlen(msg2)+1)) == NULL)
+	{
+		fprintf(stderr,"ERROR, could not allocate memory for error message\n");
+		return 1;
+	}
+	strcpy(*errMsg, msg1);
+	strcat(*errMsg, msg2);
+	return 0;
+}

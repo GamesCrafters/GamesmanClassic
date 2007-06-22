@@ -47,15 +47,6 @@
 
 #define FILEVER 1
 
-//headers:
-#define HD_LENGTH "length"
-#define HD_GAME  "game"
-#define HD_VARIANT "variant"
-#define HD_GET_VALUE_OF_POSITIONS "GetValueOfPositions"
-#define HD_INIT_DATABASE "InitDatabase"
-#define HD_RETURN_CODE "ReturnCode"
-#define HD_RETURN_MESSAGE "ReturnMessage"
-
 typedef short	cellValue;
 
 void       	netdb_close 			(){}; //nothing
@@ -144,9 +135,9 @@ void badResponseCode(char * reason, int code)
 
 void netdb_get_raw(POSITION * positions, cellValue * cells, int length){ //dispatch to get cells
   httpreq *req;
-
   httpres *res;
-
+  char* errMsg;
+  
   //byte found[] = malloc(sizeof(int)*length); //array to note found items
   //fixme: reduce server request based on a bitmap!
 
@@ -168,13 +159,19 @@ void netdb_get_raw(POSITION * positions, cellValue * cells, int length){ //dispa
   char option[32]; //option encoding
   char length_str[32]; //length encoding
 	
-  req = newrequest(url); //connect to the server
+  //connect to the server
+  if (newrequest(url, &req, &errMsg) != 0)
+  {
+  	fprintf(stderr, "Problem creating request: %s\n", errMsg);
+  	exit(1);
+  }  	
+     
   settype(req, HD_GET_VALUE_OF_POSITIONS);
   
-  addheader(req, HD_GAME,  kDBName);
+  addheader(req, HD_GAME_NAME,  kDBName);
   
   net_itoa(getOption(),option);
-  addheader(req, HD_VARIANT, option);
+  addheader(req, HD_GAME_VARIANT, option);
   
   net_itoa(length,length_str);
   addheader(req,HD_LENGTH,length_str); 
@@ -188,7 +185,11 @@ void netdb_get_raw(POSITION * positions, cellValue * cells, int length){ //dispa
   }
   
   //now post
-  res = post(req,(char*)positions_copy,length*sizeof(POSITION));
+  if ((post(req,(char*)positions_copy,length*sizeof(POSITION), &res, &errMsg)) != 0)
+  {
+  	fprintf(stderr, "Problem posting to the server: %s\n", errMsg);
+  	exit(1);
+  }  	
 
   free (positions_copy);
   //now check errors:
@@ -201,24 +202,29 @@ void netdb_get_raw(POSITION * positions, cellValue * cells, int length){ //dispa
 
      //normal:
 	//FIXME: check status
-    if (!getheader(res,"date")){ //all real responses have this
+	char* tmpVal;
+	getheader(res,"date",&tmpVal);
+    if (tmpVal == NULL){ //all real responses have this
       error("Server did not respond to http request",10);
      }
 
-    char * ecode_str = getheader(res,HD_RETURN_CODE);
-    if (!ecode_str){
+    char * ecode_str;
+    getheader(res,HD_RETURN_CODE,&ecode_str);
+    if (ecode_str == NULL){
       error("Server sent back invalid response",11);
     }
     int ecode = atoi(ecode_str);
     // printf("return code - %d\n",ecode);
     if (ecode != 0){ //error
-       error(getheader(res,HD_RETURN_MESSAGE),ecode);
+    	getheader(res,HD_RETURN_MESSAGE,&tmpVal);
+    	error(tmpVal,ecode);
        //can quit
     }
     
     //verify server not broken
-    char * len_str = getheader(res,HD_LENGTH);
-    if (!len_str || length!=atoi(len_str) || res->bodyLength != length*sizeof(cellValue)){
+    char * len_str;
+    getheader(res,HD_LENGTH,&len_str);
+    if (len_str == NULL || length!=atoi(len_str) || res->bodyLength != length*sizeof(cellValue)){
       error("Server sent back invalid response",10);
     }
 
@@ -248,24 +254,33 @@ void netdb_init_db()
 {
 	httpreq *req;
 	httpres *res;
+	char* errMsg;
 	char *url;
 	char option[32];	
 		
 	// Create a new request
 	url = malloc(strlen(ServerAddress)+1);
 	memcpy(url, ServerAddress, strlen(ServerAddress)+1);
-	req = newrequest(url);
+	if (newrequest(url, &req, &errMsg) != 0)
+	{
+  		fprintf(stderr, "Problem creating request: %s\n", errMsg);
+  		exit(1);
+	}		
 	settype(req, HD_INIT_DATABASE);
 	
 	// Set the gamename header  
-	addheader(req, HD_GAME,  kDBName);
+	addheader(req, HD_GAME_NAME,  kDBName);
 	
 	// Set the option header	
 	net_itoa(getOption(), option);
-	addheader(req, HD_VARIANT, option);
+	addheader(req, HD_GAME_VARIANT, option);
 	  
 	// Now post
-	res = post(req, NULL, (int)NULL);
+	if ((post(req, NULL, 0, &res, &errMsg)) != 0)
+	{
+  		fprintf(stderr, "Problem posting to the server: %s\n", errMsg);
+  		exit(1);
+	}		
 	
 	// Check for errors:
 	checkResponseForErrors(res);
@@ -289,12 +304,15 @@ void checkResponseForErrors(httpres *res)
 	}
 	
 	// Check GamesmanServlet return code/message
-	ecode_str = getheader(res, HD_RETURN_CODE);
+	getheader(res, HD_RETURN_CODE, &ecode_str);
 	if (ecode_str == NULL)
 		error("GamesmanServlet sent back invalid response. Missing return code.", 11);
 	ecode = atoi(ecode_str);
 	if (ecode != 0)
-		error(getheader(res, HD_RETURN_MESSAGE), ecode);
+	{
+		getheader(res, HD_RETURN_MESSAGE, &ecode_str);
+		error(ecode_str, ecode);
+	}
 }
 
 
