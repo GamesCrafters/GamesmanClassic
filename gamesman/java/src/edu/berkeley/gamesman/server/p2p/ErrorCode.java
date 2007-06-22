@@ -9,13 +9,13 @@ package edu.berkeley.gamesman.server.p2p;
  */
 public interface ErrorCode extends edu.berkeley.gamesman.server.ErrorCode
 {
-	public static final int NO_SUCH_GAME = 200;
-	public static final int THREAD_INTERRUPTED = 201;
-
-	// Obsolete error codes (these now only give warnings)
-	public static final int INVALID_START_OF_GAME = 202;
-	public static final int GAME_ALREADY_INITIALIZED = 203;
-	public static final int WRONG_PLAYER_TURN = 204;
+	public static final int UNKNOWN_REQUEST_TYPE = 200;
+	public static final int INVALID_CREDENTIALS = 201;
+	
+	public static final int NO_GAME_FOUND = 202;
+	public static final int INVALID_MOVE_INFO = 203;
+	public static final int MOVE_OUT_OF_TURN = 204;
+	public static final int GAME_ABANDONED = 204;	
 
 	/**
 	 * Contains the error messages for the P2PModule.
@@ -32,12 +32,12 @@ public interface ErrorCode extends edu.berkeley.gamesman.server.ErrorCode
 	 */
 	public interface Msg extends edu.berkeley.gamesman.server.ErrorCode.Msg
 	{
-		public static final String NO_SUCH_GAME = "No valid game found for specified users/players";
-		public static final String THREAD_INTERRUPTED = "Thread interrupted while waiting for players";
-
-		// Obsolete error codes (these now only give warnings)
-		public static final String INVALID_START_OF_GAME = "Invalid start of game";
-		public static final String GAME_ALREADY_INITIALIZED = "Game already initialized";
-		public static final String WRONG_PLAYER_TURN = "Wrong player turn";
+		public static final String UNKNOWN_REQUEST_TYPE = "Unknown request type";
+		public static final String INVALID_CREDENTIALS = "Invalid session key";		
+		
+		public static final String NO_GAME_FOUND = "No game found with the specified game id and username";
+		public static final String INVALID_MOVE_INFO = "Missing or invalid move information";
+		public static final String MOVE_OUT_OF_TURN = "Move made out of turn";		
+		public static final String GAME_ABANDONED = "One or more players has resigned from the game";
 	}
 }

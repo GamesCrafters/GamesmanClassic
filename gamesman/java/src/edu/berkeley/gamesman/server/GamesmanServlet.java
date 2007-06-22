@@ -110,12 +110,11 @@ public class GamesmanServlet extends HttpServlet
 				if (counter < modulesArray.length)
 				{
 					modulesArray[counter].handleRequest(mRequest, mResponse);
-					mResponse.setReturnCode(ErrorCode.VALID_REQUEST);
 				}
 				else
 				{
 					mResponse.setReturnCode(ErrorCode.BAD_REQUEST_TYPE);
-					mResponse.setReturnMessage(ErrorCode.Msg.BAD_REQUEST_TYPE);
+					mResponse.setReturnMessage(ErrorCode.Msg.BAD_REQUEST_TYPE + ": " + mRequest.getHeader("type"));
 				}
 			}
 			catch (ModuleException e)
@@ -124,19 +123,16 @@ public class GamesmanServlet extends HttpServlet
 				mResponse.setReturnCode(e.getCode());
 				mResponse.setReturnMessage(e.getMessage() + (e.getCause() == null?"":" " + e.getCause().getMessage()));
 			}
-			catch (Exception e)
+			finally
 			{
-				// send back error code and http 500 because this is unexpected
-				mResponse.setReturnCode(ErrorCode.GENERAL_EXCEPTION);
-				mResponse.setReturnMessage(ErrorCode.Msg.GENERAL_EXCEPTION + ": " + e.getMessage());
-				e.printStackTrace();
-			}				
+				mResponse.flush();
+			}
 		}
 		else
 		{
 			mResponse.setReturnCode(ErrorCode.SERVER_NOT_INITIALIZED);
 			mResponse.setReturnMessage(ErrorCode.Msg.SERVER_NOT_INITIALIZED);
-		}
+		}		
 	}
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException,

@@ -28,9 +28,9 @@ public class DbModule implements IModule
 {
 	/** Header names */
 	// test
-	public static final String HN_LENGTH = "length";
-	public static final String HN_GAME = "game";
-	public static final String HN_VARIANT = "variant";
+	public static final String HN_LENGTH = "Length";
+	public static final String HN_GAME_NAME = "GameName";
+	public static final String HN_GAME_VARIANT = "GameVariant";
 
 	private HashMap loadedData; // hash of loaded data (maps to shorts!)
 	private String baseDir; // base directory of database files
@@ -244,8 +244,8 @@ public class DbModule implements IModule
 	 */
 	protected void handleInitDatabaseRequest(IModuleRequest req, IModuleResponse res) throws ModuleException
 	{
-		String gamename = req.getHeader(HN_GAME);
-		String gameop = req.getHeader(HN_VARIANT);
+		String gamename = req.getHeader(HN_GAME_NAME);
+		String gameop = req.getHeader(HN_GAME_VARIANT);
 		if (gamename == null)
 			throw new ModuleException(ErrorCode.MISSING_GAME, ErrorCode.Msg.MISSING_GAME);
 		if (gameop == null)
@@ -293,8 +293,8 @@ public class DbModule implements IModule
 	protected void handleGetValueOfPositionsRequest(IModuleRequest req, IModuleResponse res) throws ModuleException
 	{
 		String hlen = req.getHeader(HN_LENGTH);
-		String gamename = req.getHeader(HN_GAME);
-		String gameop = req.getHeader(HN_VARIANT);
+		String gamename = req.getHeader(HN_GAME_NAME);
+		String gameop = req.getHeader(HN_GAME_VARIANT);
 		if (hlen == null)
 			throw new ModuleException(ErrorCode.MISSING_LENGTH, ErrorCode.Msg.MISSING_LENGTH);
 		if (gamename == null)

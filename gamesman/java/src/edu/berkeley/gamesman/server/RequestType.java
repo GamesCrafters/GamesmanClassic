@@ -19,20 +19,24 @@ public interface RequestType
 	public static final String INIT_DATABASE = "InitDatabase";
 
 	/** P2PModule request types */
-	public static final String INIT_GAME = "InitGame";
 	public static final String SEND_MOVE = "SendMove";
+	public static final String GET_LAST_MOVE = "GetLastMove";	
 	public static final String GAME_OVER = "GameOver";
 	public static final String RESIGN = "Resign";
 
 	/** Registration request types */
-	public static final String REGISTER_USER = "RegisterUser";
+	public static final String LOGON_USER = "LogonUser";
+	public static final String LOGOFF_USER = "LogoffUser";	
+	public static final String CREATE_USER = "CreateUser";	
+	public static final String DELETE_USER = "DeleteUser";	
 	public static final String GET_USERS = "GetUsers";
-	public static final String GET_GAMES = "GetGames";
 	public static final String REGISTER_GAME = "RegisterGame";
-	public static final String UNREGISTER_GAME = "UnRegisterGame";
-	public static final String JOIN_GAME_NUMBER = "JoinGameNumber";
-	public static final String JOIN_GAME_USER = "JoinGameUser";
-	public static final String REFRESH_STATUS = "RefreshStatus";
+	public static final String UNREGISTER_GAME = "UnregisterGame";
+	public static final String JOIN_GAME = "JoinGame";
+	public static final String GET_GAME_STATUS = "GetGameStatus";
+	public static final String SELECT_CHALLENGER = "SelectChallenger";
+	public static final String DESELECT_CHALLENGER = "DeselectChallenger";	
+	public static final String RECEIVED_CHALLENGE = "ReceivedChallenge";
 	public static final String ACCEPT_CHALLENGE = "AcceptChallenge";
-	public static final String UNREGISTER_USER = "UnRegisterUser";	
+	public static final String ACCEPTED_CHALLENGE = "AcceptedChallenge";				
 }

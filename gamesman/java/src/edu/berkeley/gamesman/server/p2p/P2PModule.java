@@ -6,8 +6,16 @@ import edu.berkeley.gamesman.server.IModuleResponse;
 import edu.berkeley.gamesman.server.ModuleException;
 import edu.berkeley.gamesman.server.ModuleInitializationException;
 import edu.berkeley.gamesman.server.RequestType;
-import edu.berkeley.gamesman.server.registration.*;
+import edu.berkeley.gamesman.server.registration.RegistrationModule;
+import edu.berkeley.gamesman.server.registration.UserNode;
+
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * IModule that handles message passing between two clients.
@@ -16,16 +24,48 @@ import java.util.Hashtable;
  * 
  */
 
-/** TODO
- * secret key check - just use func in regmod
- * hash on serial number as well - includeded in header
- * document everything
- */
 public class P2PModule implements IModule
 {
+	public static final String HN_USERNAME = "Username";
+	public static final String HN_SECRET_KEY = "SecretKey";
+	public static final String HN_GAME_ID = "GameId";
+	public static final String HN_MOVE = "Move";
+	public static final String HN_LAST_MOVE = "LastMove";
 	
-	/* A hash table mapping ActiveGames to GameInfoContainers. */
-	static Hashtable theGames = new Hashtable(200);
+	private static final long TIMEOUT = 15 * 60 * 1000; // 15 mins
+	private static Hashtable<String, ActiveGame> games = new Hashtable<String, ActiveGame>(200);
+	private static Timer reaper = null;
+	
+	static 
+	{
+		reaper = new Timer(true);
+		long period = 2 * 60 * 1000; // 2 mins
+		TimerTask task = new TimerTask()
+		{
+			public void run()
+			{
+				long now = new Date().getTime();
+				synchronized (games)
+				{		
+					Set<String> keys = new HashSet<String>(games.keySet());
+					Iterator<String> e = keys.iterator();
+					while (e.hasNext())
+					{
+						String key = e.next();
+						ActiveGame game = games.get(key);						
+						if ((game.getLastActiveDate().getTime() + TIMEOUT) < now)
+						{
+							games.remove(key);
+							game.getPlayer1().setPlayingGame(false);
+							game.getPlayer2().setPlayingGame(false);
+						}
+					}
+				}
+			}
+		};
+		// Run every "period" seconds
+		reaper.scheduleAtFixedRate(task, period, period);
+	}
 	
 	/**
 	 * Registers a game between two players. Should be called by Registration module to
@@ -34,164 +74,15 @@ public class P2PModule implements IModule
 	 * @param firstPlayer - Player who will move first
 	 * @param secondPlayer - Player who will move second
 	 */
-	public static void registerNewGame(String firstPlayer, String secondPlayer, int gameID)
+	public static void startGame(String gameId, UserNode player1, UserNode player2)
 	{
-		ActiveGame game = new ActiveGame(firstPlayer, secondPlayer, gameID);
-		GameInfoContainer info = new GameInfoContainer(secondPlayer);
-		debugPrint("Going to add the game and its info to the hashtable");
-		synchronized (theGames)
+		ActiveGame game = new ActiveGame(gameId, player1, player2);
+		synchronized (games)
 		{
-			theGames.put(game, info);
+			games.put(gameId, game);
 		}
-		debugPrint("Registered new game!");
 	}
 	
-	/**
-	 * Simple method that prints if the debugging flag is true.
-	 * 
-	 * @param o
-	 */
-	private static void debugPrint(Object o)
-	{
-		if (Const.PRINT_DEBUGGING)
-			System.out.println("*** " + o.toString());
-	}
-	
-	private static void warn(Object o)
-	{
-		if (Const.PRINT_WARNINGS)
-		{
-			System.err.println("WARNING: " + o.toString());
-		}
-	}
-	/**
-	 * Class representing a game between two players. Holds two Strings representing
-	 * players and a serial game ID representing the game they're playing.
-	 * 
-	 * @author Ramesh Sridharan
-	 * 
-	 */
-	protected static class ActiveGame
-	{
-		protected String player1;
-		protected String player2;
-		protected int gameID;
-		
-		public String getPlayer1()
-		{
-			return player1;
-		}
-		
-		public String getPlayer2()
-		{
-			return player2;
-		}
-		
-		public int getGameID() {
-			return gameID;
-		}
-		
-		public ActiveGame(String p1, String p2, int gameID)
-		{
-			debugPrint("Creating new active object between " + p1 + " and " + p2+", playing #"+gameID);
-			player1 = p1;
-			player2 = p2;
-			this.gameID = gameID;
-		}
-		
-		public String toString()
-		{
-			String theString;
-			if (player1.compareTo(player2) > 0)
-			{
-				theString = (player2 + "===with===" + player1);
-			}
-			else
-			{
-				theString = (player1 + "===with===" + player2);
-			}
-			theString+= " playing"+gameID;
-			return theString;
-		}
-		
-		public int hashCode()
-		{
-			return this.toString().hashCode();
-		}
-		
-		public boolean equals(Object o)
-		{
-			if (this.getClass() != o.getClass())
-			{
-				return false;
-			}
-			else
-			{
-				ActiveGame that = (ActiveGame) o;
-				return (this.toString().equals(that.toString()));
-			}
-		}
-	}
-	/**
-	 * Class holding information about a game. Contains a string representing player who
-	 * has control of the game, and a pending response object to be sent to the player
-	 * waiting for a move to be made.
-	 * 
-	 * @author Ramesh Sridharan
-	 * 
-	 */
-	protected static class GameInfoContainer
-	{
-		protected String whoseTurn;
-		protected IModuleResponse pendingResponse;
-		
-		public String getWhoseTurn()
-		{
-			return whoseTurn;
-		}
-		
-		public GameInfoContainer(String whoseTurn)
-		{
-			debugPrint("Creating a new GameInfoContainer object");
-			this.whoseTurn = whoseTurn;
-			this.pendingResponse = null;
-			debugPrint("Okay, created");
-		}
-		
-		/**
-		 * Changes whose turn it is, assuming the game is between players specified in the
-		 * argument.
-		 * 
-		 * @param theGame
-		 */
-		public void switchTurn(ActiveGame theGame)
-		{
-			if (this.whoseTurn.equalsIgnoreCase(theGame.getPlayer1()))
-			{
-				this.whoseTurn = theGame.getPlayer2();
-			}
-			else
-			{
-				this.whoseTurn = theGame.getPlayer1();
-			}
-		}
-		
-		/**
-		 * Sets a new pending response, and returns the response object for the currently
-		 * waiting player.
-		 * 
-		 * @param newResponse
-		 * @return
-		 */
-		public IModuleResponse changePendingResponse(IModuleResponse newResponse)
-		{
-			IModuleResponse old = this.pendingResponse;
-			this.pendingResponse = newResponse;
-			if (old == null)
-				debugPrint("This should only print on the first move...");
-			return old;
-		}
-	}
 	
 	public void initialize(String workingDir, String[] configArgs) throws ModuleInitializationException
 	{
@@ -200,8 +91,8 @@ public class P2PModule implements IModule
 	public boolean typeSupported(String requestTypeName)
 	{
 		return (requestTypeName.equalsIgnoreCase(RequestType.GAME_OVER) ||
-				requestTypeName.equalsIgnoreCase(RequestType.INIT_GAME) || 
-				requestTypeName.equalsIgnoreCase(RequestType.SEND_MOVE) || 
+				requestTypeName.equalsIgnoreCase(RequestType.SEND_MOVE) ||
+				requestTypeName.equalsIgnoreCase(RequestType.GET_LAST_MOVE) || 				
 				requestTypeName.equalsIgnoreCase(RequestType.RESIGN));
 	}
 	
@@ -213,132 +104,194 @@ public class P2PModule implements IModule
 	 */
 	public void handleRequest(IModuleRequest req, IModuleResponse res) throws ModuleException
 	{
-		String type = req.getHeader("type");
-		String incomingMove = null;
-		String destPlayer = req.getHeader(Const.HN_DESTINATION_PLAYER);
-		String srcPlayer = req.getHeader(Const.HN_SOURCE_PLAYER);
-		String srcPlayerKey = req.getHeader(Const.HN_SOURCE_PLAYER_SECRET_KEY);
-		String gameIDString = req.getHeader(Const.HN_GAME_ID);
-		int gameID = Integer.parseInt(gameIDString);
+		String type = req.getType();
+		if (type.equalsIgnoreCase(RequestType.SEND_MOVE)) {
+			sendMove(req, res);
+		}
+		else if (type.equalsIgnoreCase(RequestType.GET_LAST_MOVE)) {
+			getLastMove(req, res);
+		}				
+		else if (type.equalsIgnoreCase(RequestType.GAME_OVER)) {
+			gameOver(req, res); 
+		}			
+		else if (type.equalsIgnoreCase(RequestType.RESIGN)) {
+			resign(req, res); 
+		}			
+		else {
+			//the request type cannot be handled
+			throw new ModuleException (ErrorCode.UNKNOWN_REQUEST_TYPE, ErrorCode.Msg.UNKNOWN_REQUEST_TYPE);
+		}		
+	}
+	
+	protected void getLastMove(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		
-		if(!RegistrationModule.isValidUserKey(srcPlayer, srcPlayerKey)) {
-			// invalid key!
-			warn("Incorrect secret key!");
+		// Get the ActiveGame
+		ActiveGame game = getGame(req, res, true, true);
+		if (game == null)
+		{
 			return;
 		}
-		
-		ActiveGame theGame = new ActiveGame(destPlayer, srcPlayer, gameID);
-		GameInfoContainer gameStatus;
-		if (!theGames.containsKey(theGame))
+		else if (game.isPlayer1Abandoned() || game.isPlayer2Abandoned())
 		{
-			throw new ModuleException(ErrorCode.NO_SUCH_GAME, "No game has been registered between "
-					+ srcPlayer + " and " + destPlayer);
+			res.setReturnCode(ErrorCode.GAME_ABANDONED);
+			res.setReturnMessage(ErrorCode.Msg.GAME_ABANDONED);			
 		}
-		
-		gameStatus = (GameInfoContainer) theGames.get(theGame);
-		IModuleResponse waitingResponse = gameStatus.changePendingResponse(res);
-		
-		// possibly clean this up to avoid code duplication
-		if (type.equalsIgnoreCase(RequestType.SEND_MOVE))
+
+		String username = req.getHeader(HN_USERNAME);
+
+		synchronized (game)
 		{
-			incomingMove = req.getHeader(Const.HN_MOVE);
-		}
-		else if (type.equalsIgnoreCase(RequestType.INIT_GAME))
-		{
-			// Do nothing
-		}
-		else if (type.equalsIgnoreCase(RequestType.GAME_OVER))
-		{
-			debugPrint("Game over!");
-			waitingResponse.setHeader(Const.HN_TYPE, RequestType.GAME_OVER);
-			waitingResponse.setHeader(Const.HN_MOVE, "null");
-			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
-			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
-			res.setHeader("type", Const.ACK); // Still needed?
-			res.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
-			res.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
-			synchronized (gameStatus)
+			// See whose turn it is
+			if ((game.getPlayer1().getUsername().equalsIgnoreCase(username) && game.isPlayer1Turn()) ||
+					(game.getPlayer2().getUsername().equalsIgnoreCase(username) && !game.isPlayer1Turn()))
 			{
-				gameStatus.notifyAll();
+				// It is our turn to move. So send the last move made by the other player.
+				res.setHeader(HN_LAST_MOVE, (game.getLastMove() == null?"":game.getLastMove()));
 			}
-			theGames.remove(theGame);
-			return;
-		}
-		else if (type.equalsIgnoreCase(RequestType.RESIGN))
-		{
-			waitingResponse.setHeader(Const.HN_TYPE, RequestType.RESIGN);
-			waitingResponse.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
-			waitingResponse.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
-			res.setHeader("type", Const.ACK); // Still needed?
-			res.setHeader(Const.HN_DESTINATION_PLAYER, destPlayer);
-			res.setHeader(Const.HN_SOURCE_PLAYER, srcPlayer);
-			
-			synchronized (gameStatus)
+			else
 			{
-				gameStatus.notifyAll();
-			}
-			theGames.remove(theGame);
-			return;
-		}
-		// Error-checking
-		if ((waitingResponse == null) && (incomingMove != null))
-		{
-			warn("Game between " + srcPlayer + " and " + destPlayer
-					+ " has not yet been initialized");
-			return;
-			// throw new ModuleException(Const.INVALID_START_OF_GAME, "Game between
-			// "+srcPlayer+" and "+destPlayer+" has not yet been initialized");
-		}
-		else if (waitingResponse != null && incomingMove == null)
-		{
-			warn("Game between " + srcPlayer + " and " + destPlayer
-					+ " has already been initialized");
-			return;
-			// throw new ModuleException(Const.GAME_ALREADY_INITIALIZED, "Game between
-			// "+srcPlayer+" and "+destPlayer+" has already been initialized");
-		}
-		if (gameStatus.getWhoseTurn().equalsIgnoreCase(srcPlayer))
-		{
-			warn("It isn't " + srcPlayer + "'s turn. It's " + gameStatus.getWhoseTurn() + "'s turn.");
-			return;
-			// throw new ModuleException(Const.WRONG_PLAYER_TURN, "It isn't
-			// "+srcPlayer+"'s turn.");
-		}
-		debugPrint("Okay! There were no errors detected.");
-		gameStatus.switchTurn(theGame);
-		if (incomingMove != null)
-		{
-			updateResponse(req, waitingResponse);
-		}
-		debugPrint("Going to notify and then wait...");
-		synchronized (gameStatus)
-		{
-			gameStatus.notify();
-			try
-			{
-				gameStatus.wait();
-			}
-			catch (InterruptedException e)
-			{
-				throw new ModuleException(ErrorCode.THREAD_INTERRUPTED, "Thread interrupted", e);
-				
+				// It is not our turn to move. Which means the last move made was by us and we're waiting 
+				// for the other player to make a move. Send nothing.
 			}
 		}
 	}
 	
-	private void updateResponse(IModuleRequest data, IModuleResponse toBeUpdated)
-	{
-		String move = data.getHeader(Const.HN_MOVE);
-		String src = data.getHeader(Const.HN_SOURCE_PLAYER);
-		String dest = data.getHeader(Const.HN_DESTINATION_PLAYER);
-		String gameIDString = data.getHeader(Const.HN_GAME_ID);
+	protected void sendMove(IModuleRequest req, IModuleResponse res) throws ModuleException {
 		
-		toBeUpdated.setHeader(Const.HN_TYPE, RequestType.SEND_MOVE);
+		// Get the ActiveGame
+		ActiveGame game = getGame(req, res, true, true);
+		if (game == null)
+		{
+			return;
+		}
+		else if (game.isPlayer1Abandoned() || game.isPlayer2Abandoned())
+		{
+			res.setReturnCode(ErrorCode.GAME_ABANDONED);
+			res.setReturnMessage(ErrorCode.Msg.GAME_ABANDONED);			
+		}
+
+		String username = req.getHeader(HN_USERNAME);
+		String currMove = req.getHeader(HN_MOVE);
+
+		// Validate the move info
+		if (currMove == null || currMove.trim().equals(""))
+		{
+			res.setReturnCode(ErrorCode.INVALID_MOVE_INFO);
+			res.setReturnMessage(ErrorCode.Msg.INVALID_MOVE_INFO);
+		}
+		else
+		{
+			synchronized (game)
+			{
+				// See whose turn it is
+				if ((game.getPlayer1().getUsername().equalsIgnoreCase(username) && game.isPlayer1Turn()) ||
+						(game.getPlayer2().getUsername().equalsIgnoreCase(username) && !game.isPlayer1Turn()))
+				{
+					// It is our turn to move.
+					game.setLastMove(currMove);
+					game.switchTurn();					
+				}
+				else
+				{
+					// It is not our turn to move. We might be re-trasmitting the same move over again.
+					if ((currMove == null && game.getLastMove() != null) || (currMove != null && game.getLastMove() == null) ||
+							(currMove != null && game.getLastMove() != null && !currMove.equals(game.getLastMove())))
+					{
+						// Not a re-trasmission of the last move. This new move is different. Problem
+						res.setReturnCode(ErrorCode.MOVE_OUT_OF_TURN);
+						res.setReturnMessage(ErrorCode.Msg.MOVE_OUT_OF_TURN);
+					}
+				}
+			}
+		}		
+	}
+	
+	protected void gameOver(IModuleRequest req, IModuleResponse res) throws ModuleException {	
 		
-		toBeUpdated.setHeader(Const.HN_MOVE, move);
-		toBeUpdated.setHeader(Const.HN_DESTINATION_PLAYER, dest);
-		toBeUpdated.setHeader(Const.HN_SOURCE_PLAYER, src);
-		toBeUpdated.setHeader(Const.HN_GAME_ID, gameIDString);
+		// Get the ActiveGame
+		ActiveGame game = getGame(req, res, true, true);
+		if (game == null)
+			return;
+		
+		synchronized (games)
+		{
+			// Clear out the game
+			games.remove(game.getId());
+			game.getPlayer1().setPlayingGame(false);
+			game.getPlayer2().setPlayingGame(false);
+		}
+	}
+	
+	protected void resign(IModuleRequest req, IModuleResponse res) throws ModuleException {
+		
+		// Get the ActiveGame
+		ActiveGame game = getGame(req, res, true, true);
+		if (game == null)
+			return;
+
+		// Abandon the game
+		String username = req.getHeader(HN_USERNAME);
+		if (game.getPlayer1().getUsername().equalsIgnoreCase(username))
+			game.setPlayer1Abandoned(true);
+		else
+			game.setPlayer2Abandoned(true);
+			
+		if (game.isPlayer1Abandoned() && game.isPlayer2Abandoned())
+		{
+			synchronized (games)
+			{
+				// Clear out the game if both players abandoned
+				games.remove(game.getId());
+				game.getPlayer1().setPlayingGame(false);
+				game.getPlayer2().setPlayingGame(false);
+			}
+		}
+	}
+		
+	protected static ActiveGame getGame(IModuleRequest req, IModuleResponse res, 
+			boolean respondErrorIfMissing, boolean updateActiveIfFound) {
+
+		// Get the user
+		UserNode node = RegistrationModule.getCredentials(req, res, respondErrorIfMissing, updateActiveIfFound);
+		if (node == null)
+			return null;
+		
+		// Look for the game
+		String gameId = req.getHeader(HN_GAME_ID);
+		ActiveGame game = null;
+		synchronized (games)
+		{
+			game = games.get(gameId);
+			if (game != null)
+			{
+				// Verify that this game involves this user
+				if (game.getPlayer1() == node || game.getPlayer2() == node)
+				{
+					// Update the last active date
+					if (updateActiveIfFound)
+						game.updateLastActiveDate();
+				}
+				else
+				{
+					if (respondErrorIfMissing)
+					{
+						// No game found
+						res.setReturnCode(ErrorCode.NO_GAME_FOUND);
+						res.setReturnMessage(ErrorCode.Msg.NO_GAME_FOUND);
+					}
+				}					
+			}
+			else
+			{
+				if (respondErrorIfMissing)
+				{
+					// No game found
+					res.setReturnCode(ErrorCode.NO_GAME_FOUND);
+					res.setReturnMessage(ErrorCode.Msg.NO_GAME_FOUND);
+				}
+			}
+		}
+		return game;
 	}
 	
 }

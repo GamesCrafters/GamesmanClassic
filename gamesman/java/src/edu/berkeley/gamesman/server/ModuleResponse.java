@@ -1,5 +1,6 @@
 package edu.berkeley.gamesman.server;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -15,8 +16,9 @@ import javax.servlet.http.HttpServletResponse;
 public class ModuleResponse implements IModuleResponse
 {
 	protected HttpServletResponse response = null;
-	protected boolean returnCodeSet = false;
-	protected boolean returnMessageSet = false;
+	protected int returnCode = ErrorCode.VALID_REQUEST;
+	protected String returnMsg = null;
+	protected ByteArrayOutputStream output = null;
 	
 	/**
 	 * Default constructor. Takes the HttpServletResponse to wrap.
@@ -26,8 +28,6 @@ public class ModuleResponse implements IModuleResponse
 	public ModuleResponse(HttpServletResponse res)
 	{
 		this.response = res;
-		this.returnCodeSet = false;
-		this.returnMessageSet = false;
 	}
 
 	/**
@@ -39,11 +39,7 @@ public class ModuleResponse implements IModuleResponse
 	 */
 	public void setReturnCode(int code)
 	{
-		if (!returnCodeSet)
-		{
-			setHeader(HN_RETURN_CODE, String.valueOf(code));
-			returnCodeSet = true;
-		}
+		this.returnCode = code;
 	}
 
 	/**
@@ -54,11 +50,7 @@ public class ModuleResponse implements IModuleResponse
 	 */
 	public void setReturnMessage(String msg)
 	{
-		if (!returnMessageSet)
-		{
-			setHeader(HN_RETURN_MESSAGE, msg);
-			returnMessageSet = true;
-		}
+		this.returnMsg = msg;
 	}
 	
 	/**
@@ -80,7 +72,29 @@ public class ModuleResponse implements IModuleResponse
 	 */
 	public OutputStream getOutputStream() throws IOException
 	{
-		return this.response.getOutputStream();
+		this.output = new ByteArrayOutputStream();
+		return this.output;
 	}
 
+	public void flush() throws IOException
+	{
+		setHeader(HN_RETURN_CODE, String.valueOf(this.returnCode));
+		if (this.returnMsg != null)
+			setHeader(HN_RETURN_MESSAGE, this.returnMsg);
+		if (this.output != null)
+		{
+			OutputStream out = null;
+			try
+			{				
+				out = this.response.getOutputStream();
+				out.write(this.output.toByteArray());
+			}
+			finally
+			{
+				if (out != null)
+					out.close();
+			}
+		}
+	
+	}
 }
