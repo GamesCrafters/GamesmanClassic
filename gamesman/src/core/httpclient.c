@@ -291,6 +291,7 @@ int post(httpreq *req, char body[], int bodyLength, httpres** res, char** errMsg
 
 	// Read the response
 	readresponse(sockFd, *res);
+	close(sockFd);
 	shutdown(sockFd,2);
 	
 	// Free the malloc'd memory
