@@ -98,7 +98,10 @@ case $os in
   CYGWIN*)
           ;;
   Darwin*)
-          machine=powerpc;;
+	case $machine in
+	      i*86) machine=$machine;;
+	      *) machine=powerpc;;
+	esac;;
 esac
 
 case $machine in
