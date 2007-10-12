@@ -19,7 +19,7 @@
 **
 ** Everything below here must be in every game file
 **
-**************************************************************************/
+*************************************************************************/
 
 #include <stdio.h>
 #include "gamesman.h"
@@ -103,8 +103,8 @@ STRING   kHelpExample =
 
 #define DEFAULTROWS 4
 #define DEFAULTCOLS 4
-#define MAXROWS 4	/*Using 32-bit architecture, 4X4 yields 86 million positions*/
-#define MAXCOLS 4	/*The 4X5 or 5X4 case yields about 6 billion*/
+#define MAXROWS 7	/*Using 32-bit architecture, 4X4 yields 86 million positions*/
+#define MAXCOLS 7	/*The 4X5 or 5X4 case yields about 6 billion*/
 
 /*************************************************************************
 **
@@ -498,14 +498,14 @@ void init_board_hash()
 		  	    WHITEPIECE, 0, OthCols * OthRows,
 		            BLACKPIECE, 0, OthCols * OthRows, -1};
 
-	int max;
-	int init;
+	POSITION max;
+	POSITION init;
 	if(DEBUG) printf("OthRows = %d, OthCols = %d", OthRows, OthCols);
 	if(DEBUG) printf("\ninit_board_hash starting...\n");
 	max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
 	//init = generic_hash_hash(start_standard_board, BLACK);
 	init = MakeInitialSquare();
-	if(DEBUG) printf("\nmax is %d\n", max);
+	if(DEBUG) printf("\nmax is \n"POSITION_FORMAT, max);
 	gInitialPosition = init;
 	gNumberOfPositions = max;
 }
