@@ -66,7 +66,8 @@ else
 	    <li><a href="joust.html">Joust</a></li>
 	    <li><a href="lewth.html">Lewthwaite's Game</a></li>
 	    <li><a href="lgame.html">L Game</a></li>
-	     <li><a href="lite3.html">Lite 3</a></li>
+	    <li><a href="linesOfAction.html">Lines of Action</a></li>
+	    <li><a href="lite3.html">Lite 3</a></li>
 	    <li><a href="mancala.html">Mancala</a></li>
 	    <li><a href="tore.html">Mu Torere</a></li>
 	    <li><a href="nim.html">Nim</a></li>
