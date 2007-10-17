@@ -243,7 +243,10 @@ void InitializeGame()
 
   gMoveToStringFunPtr = &MoveToString;
   gCustomUnhash = &customUnhash;
-  linearUnhash = gCustomUnhash;
+  // gCustomUnhash is a (STRING) char *
+  // linearUnhash expects void *
+  // dchan 10-16-07
+  linearUnhash = (void *) gCustomUnhash;
 
   //discard current hash
   generic_hash_destroy();
