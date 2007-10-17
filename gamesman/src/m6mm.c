@@ -168,6 +168,8 @@ BOOLEAN check_mill(char *board, int slot, char turn);
 BOOLEAN three_in_a_row(char *board, int slot1, int slot2, char turn);
 int find_adjacent(int slot, int *slots);
 POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE move, POSITION position);
+char returnTurn(POSITION pos);
+char* customUnhash(POSITION pos);
 
 
 
@@ -186,6 +188,8 @@ void InitializeGame ()
 	char* board = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
 	int pminmax[] = {X, 0, maxx, O, 0, maxo,BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
 
+	gCustomUnhash = &customUnhash;
+	gReturnTurn = &returnTurn;
 	SetupTierStuff();
 	
 	for(i = 0; i < BOARDSIZE; i++)
@@ -668,7 +672,7 @@ STRING MoveToString (MOVE move)
 
 	STRING movestring;
 	//printf("MOVE TO STRING\n");
-	tier = generic_hash_cur_context(); //DOES THIS WORK??? - Kevin
+	tier = generic_hash_cur_context();
 	piecesLeft = tier/100;
 	if (piecesLeft == 0)
 	{
@@ -790,13 +794,6 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 BOOLEAN ValidTextInput (STRING input)
 {
 	//DONE
-	// we could bulletproof this a lot more
-  //int moveFrom, moveTo, moveRemove;
-  //	int spaces;
-  //BOOLEAN hasSpace, has2Space;
-  //STRING afterSpace;
-  //STRING after2Space;
-
 	if(input[0]>57 || input[0]<48)
 		return FALSE;
 	else
@@ -1072,6 +1069,34 @@ void printBoard(char* board) {
 	//printf("\n");
 }
 
+
+//this was made just for "tkAppInit.c" we are returning the turn so that the gui knows whose turn it is.
+char returnTurn(POSITION pos)
+{
+	if(gHashWindowInitialized){
+		TIER tier; TIERPOSITION tierposition;
+		gUnhashToTierPosition(pos, &tierposition, &tier);
+		generic_hash_context_switch(tier);
+		return (generic_hash_turn(tierposition)==PLAYER_ONE ? X : O);
+	}
+	return '0';
+}
+
+//this was made just for "tkAppInit.c" we are returning the board so that the gui knows whose turn it is.
+char* customUnhash(POSITION pos)
+{
+	//piecesLeft = total pieces left during stage 1 (x + o)
+	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
+	if(gHashWindowInitialized){
+		TIER tier; TIERPOSITION tierposition;
+		gUnhashToTierPosition(pos, &tierposition, &tier);
+		generic_hash_context_switch(tier);
+		board = (char*)generic_hash_unhash(tierposition, board);
+	}
+	return board;
+}
+
+//this is the main unhash function that the C code uses.
 char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo)
 {
 	//piecesLeft = total pieces left during stage 1 (x + o)
