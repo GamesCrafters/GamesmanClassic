@@ -205,6 +205,7 @@ Computer wins.  Nice try player.\n";
 #define PASSMOVE 0
 #define MAXHEIGHT 3
 #define MAXWIDTH 5
+#define EMPTYSPACE '-'
 
 int BOARDWIDTH = 3;
 int BOARDHEIGHT = 1;
@@ -215,7 +216,7 @@ typedef enum possibleBoardPieces {
   Blank, O, R, B
 } BlankORB;
 
-char *gBlankORBString[] = { "�", "O", "R", "B" };
+char *gBlankORBString[] = { "-", "O", "R", "B" };
 
 char *gBoard;
 // char *LegendKey;
@@ -304,14 +305,14 @@ void InitializeGame ()
   int piece_array[] = {'B', 0, half,
 		       'R' , 0, half,
 		       'O', 0, BOARDSIZE,
-		       '�', 0, BOARDSIZE,
+		       EMPTYSPACE, 0, BOARDSIZE,
 		       -1};
 
   gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0, 0);
 
   if (DEFAULT == TRUE) {
     for (i=0; i<BOARDSIZE; i++)
-      gBoard[i] = '�';
+      gBoard[i] = EMPTYSPACE;
 
     gInitialPosition = generic_hash_hash(gBoard, 1);
   }
@@ -515,7 +516,7 @@ POSITION DoMove (thePosition, theMove)
   generic_hash_unhash(thePosition, gBoard);
 
   if (theMove != PASSMOVE) {
-    if (gBoard[theMove-1] == '�')
+    if (gBoard[theMove-1] == EMPTYSPACE)
       gBoard[theMove-1] = 'O';
     else if (player == 1)
       gBoard[theMove-1] = 'R';
@@ -580,7 +581,7 @@ POSITION GetInitialPosition()
     else if(c == 'b' || c == 'B')
       gBoard[i++] = 'B';
     else if(c == '-')
-      gBoard[i++] = '�';
+      gBoard[i++] = EMPTYSPACE;
     else
       ;   /* do nothing */
   }
@@ -646,35 +647,35 @@ VALUE Primitive (pos)
   for (i = 0; i < BOARDSIZE; i++) {
     if (CP[i] < RW[i] - 2) {
       current = ThreeInARow(gBoard, i, i+1, i+2);
-      if (current != '�')
+      if (current != EMPTYSPACE)
 	return EndGame(current, generic_hash_turn(pos));
     }
 
     if (RN[i] < BOARDHEIGHT - 1) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] + 1);
-      if (current != '�')
+      if (current != EMPTYSPACE)
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != 0) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i]);
-      if (current != '�')
+      if (current != EMPTYSPACE)
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] >=2) {
       current = ThreeInARow(gBoard, i, i + RW[i]-1, i + 2*RW[i] - 3);
-      if (current != '�')
+      if (current != EMPTYSPACE)
 	return EndGame(current, generic_hash_turn(pos));
     }
 
     if (RN[i] < BOARDHEIGHT - 1) {
       current = ThreeInARow(gBoard, i, i + RW[i] + 1, i + 2*RW[i] + 3);
-      if (current != '�')
+      if (current != EMPTYSPACE)
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != RW[i]-1) {
       current = ThreeInARow(gBoard, i, i + RW[i]+1, i + 2*RW[i] + 2);
-      if (current != '�')
+      if (current != EMPTYSPACE)
 	return EndGame(current, generic_hash_turn(pos));
     } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] < RW[i] -2) {
       current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] - 1);
-      if (current != '�')
+      if (current != EMPTYSPACE)
 	return EndGame(current, generic_hash_turn(pos));
     }
   }
@@ -837,7 +838,7 @@ MOVELIST *GenerateMoves (position)
     /*    //Generate checker moves
     if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
       for (i = 0; i < BOARDSIZE; i--)
-	if (gBoard[i] == '�')
+	if (gBoard[i] == EMPTYSPACE)
 	  head = CreateMovelistNode(moveHash(0, i , O), head);
 
     //Generate winker moves
@@ -850,7 +851,7 @@ MOVELIST *GenerateMoves (position)
     for (i = BOARDSIZE - 1; i >= 0; i--) {
       if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
 	head = CreateMovelistNode(i+1, head);
-      else if (gBoard[i] == '�' && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
+      else if (gBoard[i] == EMPTYSPACE && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
 	head = CreateMovelistNode(i+1, head);
     }
 
@@ -1188,10 +1189,10 @@ char ThreeInARow(theBlankORB, a, b, c)
 {
   if (theBlankORB[a] == theBlankORB[b] &&
       theBlankORB[b] == theBlankORB[c] &&
-      (theBlankORB[c] != '�' || theBlankORB[c] != 'O'))
+      (theBlankORB[c] != EMPTYSPACE || theBlankORB[c] != 'O'))
     return theBlankORB[a];
   else
-    return '�';
+    return EMPTYSPACE;
 }
 
 BOOLEAN AllFilledIn(theBlankORB)
@@ -1200,7 +1201,7 @@ BOOLEAN AllFilledIn(theBlankORB)
   int i;
 
   for (i = 0; i < BOARDSIZE; i++) {
-    if (theBlankORB[i]=='�' || theBlankORB[i]=='O')
+    if (theBlankORB[i]== EMPTYSPACE || theBlankORB[i]=='O')
       return FALSE;
   }
   return TRUE;
