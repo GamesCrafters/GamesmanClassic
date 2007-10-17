@@ -63,9 +63,7 @@ proc GS_InitGameSpecific {} {
 # starts playing the game, and before he hits "New Game"
 #############################################################################
 proc GS_NameOfPieces {} {
-
-    ### FILL THIS IN
-
+	return [list x o]
 }
 
 
@@ -85,9 +83,7 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 #############################################################################
 proc GS_ColorOfPlayers {} {
-
-	### FILL THIS IN
-    
+	return [list blue red]
 }
 
 
