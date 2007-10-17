@@ -791,11 +791,11 @@ BOOLEAN ValidTextInput (STRING input)
 {
 	//DONE
 	// we could bulletproof this a lot more
-  int moveFrom, moveTo, moveRemove;
-	int spaces;
-  BOOLEAN hasSpace, has2Space;
-  STRING afterSpace;
-  STRING after2Space;
+  //int moveFrom, moveTo, moveRemove;
+  //	int spaces;
+  //BOOLEAN hasSpace, has2Space;
+  //STRING afterSpace;
+  //STRING after2Space;
 
 	if(input[0]>57 || input[0]<48)
 		return FALSE;
@@ -1065,7 +1065,7 @@ void DebugMenu ()
 ************************************************************************/
 
 void printBoard(char* board) {
-	int i;
+	//int i;
 	//printf("Board is= ");
 	//for (i = 0; i < BOARDSIZE; i++)
 		//printf("%c", board[i]);
@@ -1726,6 +1726,9 @@ int find_adjacent(int slot, int *slots)
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.3  2006/12/19 20:00:50  arabani
+ ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+ **
  ** Revision 1.2  2006/12/07 03:37:20  max817
  ** Hash and NMM changes.
  **
