@@ -94,7 +94,7 @@
 **
 **************************************************************************/
 
-char EMPTYSPACE ='�';
+char EMPTYSPACE ='-';
 char PLAYER1 = 'X';
 char PLAYER2 = 'O';
 
