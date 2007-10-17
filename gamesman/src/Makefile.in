@@ -108,6 +108,7 @@ GAMESDB_DEPS		:= $(shell ls core/filedb/*.c)
 
 6MM_EXE			= $(BINDIR)/m6mm$(EXESUFFIX) # The ultimate game of Six Men's Morris
 6MM_OBJ			= m6mm$(OBJSUFFIX)
+6MM_SO			= $(LIBDIR)/libm6mm$(LIBSUFFIX)
 
 9MM_EXE			= $(BINDIR)/m9mm$(EXESUFFIX) # The ultimate game of Nine Men's Morris
 9MM_OBJ			= m9mm$(OBJSUFFIX)
@@ -419,7 +420,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) \
 	$(FOXES_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
         $(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO) $(TOOTNOTTO_SO) $(CAMBIO_SO) $(BAGHCHAL_SO) \
-        $(TTTIER_SO)
+        $(TTTIER_SO) $(6MM_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
