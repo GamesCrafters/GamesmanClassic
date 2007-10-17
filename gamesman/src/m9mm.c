@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m9mm.c,v 1.84 2007-01-06 22:09:21 noafroboy Exp $
+** LAST CHANGE: $Id: m9mm.c,v 1.85 2007-10-17 02:46:43 dmchan Exp $
 **
 **************************************************************************/
 
@@ -1072,7 +1072,7 @@ void DebugMenu ()
 ************************************************************************/
 
 void printBoard(char* board) {
-	int i;
+	//int i;
 	//printf("Board is= ");
 	//for (i = 0; i < BOARDSIZE; i++)
 		//printf("%c", board[i]);
@@ -1558,6 +1558,8 @@ BOOLEAN check_mill(char *board, int slot, char turn)
 			break;
 		}
 	}
+	
+	return FALSE;
 }
 
 // given new board, slots to compare.  if slots all same, then it's a 3
@@ -1838,6 +1840,9 @@ void changetonine()
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.84  2007/01/06 22:09:21  noafroboy
+ ** *** empty log message ***
+ **
  ** Revision 1.10  2006/04/25 01:33:06  ogren
  ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
  **
