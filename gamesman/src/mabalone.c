@@ -1,4 +1,4 @@
-// $Id: mabalone.c,v 1.45 2007-02-08 05:23:43 dmchan Exp $
+// $Id: mabalone.c,v 1.46 2007-10-17 02:37:50 dmchan Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -902,7 +902,7 @@ void PrintPosition(position, playerName, usersTurn)
 	printf("         SW   SE");
 
 	 else
-	printf("");
+	printf("%s", "");
 		if (r != 2 * N - 2) 
 		{
 			if(N==2)
@@ -2393,6 +2393,9 @@ STRING TierToString(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.45  2007/02/08 05:23:43  dmchan
+// fixed unsigned int call
+//
 // Revision 1.44  2006/12/19 20:00:50  arabani
 // Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
 //
