@@ -36,6 +36,7 @@ VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
 POSITION (*gCanonicalPosition)(POSITION) = NULL;
 STRING (*gCustomUnhash)(POSITION) = NULL;
+char (*gReturnTurn)(POSITION) = NULL;
 void* (*linearUnhash)(POSITION) = NULL;
 featureEvaluatorCustom (*gGetSEvalCustomFnPtr)(STRING) = NULL;
 POSITIONLIST *(*gEnumerateWithinStage)(int) = NULL;
