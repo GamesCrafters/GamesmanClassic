@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.42 2007-06-22 00:42:54 mjacobsen Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.43 2007-10-17 09:32:58 patricia_fong Exp $
 **
 **************************************************************************/
 
@@ -53,7 +53,9 @@ static int		GenericUnhashCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		CustomUnhashCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
-
+static int		ReturnTurnCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+				
 static int		FooCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		InitializeCmd _ANSI_ARGS_((ClientData clientData,
@@ -183,6 +185,8 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_GenericUnhash", (Tcl_CmdProc*) GenericUnhashCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
     Tcl_CreateCommand(interp, "C_CustomUnhash", (Tcl_CmdProc*) CustomUnhashCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_ReturnTurn", (Tcl_CmdProc*) ReturnTurnCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
     Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow,
@@ -367,6 +371,31 @@ CustomUnhashCmd(dummy, interp, argc, argv)
   SafeFree(board);
   return TCL_OK;
  }
+ 
+  //if the turn has been encoded elsewhere besides the position (i.e. tierposition), it can be retrieved here
+ static int
+ReturnTurnCmd(dummy, interp, argc, argv)
+     ClientData dummy;
+     Tcl_Interp *interp;
+     int argc;
+     char **argv;
+{
+  /* argv[1] is position, argv[2] USED to be boardsize */
+  if (!(argc == 2 || argc == 3)) {
+    interp->result = "wrong # args: should be 1 (or 2 for backwards compat)";
+    return TCL_ERROR;
+  } else if (gReturnTurn == NULL) {
+    interp->result = "ReturnTurn is not defined for this game";
+    return TCL_ERROR;
+  }
+  // Ported from tkAppInitHash, correct version tbd
+  char turn;
+  POSITION pos = atoi(argv[1]);
+  turn = gReturnTurn(pos);
+  sprintf(interp->result, "%c",turn);
+  return TCL_OK;
+ }
+ 
 
 
 static int
