@@ -569,9 +569,13 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+    global gFrameWidth gFrameHeight
+    set size [min $gFrameWidth $gFrameHeight] 
+    set fontsize [expr int($size / 20)]
 
-	### TODO if needed
-	
+    # Tell us it's "Game Over!" and announce and winner
+    $c create rectangle 0 [expr $size/2 - 50] $size [expr $size/2 + 50] -fill gray -width 1 -outline black -tag "gameover"
+    $c create text [expr $size/2] [expr $size/2] -text "Game Over! $nameOfWinner Wins" -font "Arial $fontsize" -fill black -tag "gameover"
 }
 
 
@@ -586,9 +590,7 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-
-	### TODO if needed
-
+    $c delete gameover
 }
 
 proc unhash { position } {
