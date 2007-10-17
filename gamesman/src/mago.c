@@ -1027,7 +1027,12 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 // Tier = Number of pieces left to place.
 STRING TierToString(TIER tier) {
-	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*16);
-	sprintf(tierStr, "%d Pieces Placed", boardsize-tier);
+	// made buffer size a little larger
+	// since unsigned long long can be up to 20 digits
+	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*64);
+	// boardsize is int, tier is (TIER) unsigned long long
+	// need %llu due to type promotion
+	// %d would lose bits
+	sprintf(tierStr, "%llu Pieces Placed", boardsize-tier);
 	return tierStr;
 }
