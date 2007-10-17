@@ -95,6 +95,7 @@ extern POSITION 	(*gCanonicalPosition)(POSITION);
 
 /* Custom unhash into string function pointer (useful for TCL interoperability) */
 extern STRING 		(*gCustomUnhash)(POSITION);
+extern char 		(*gReturnTurn)(POSITION);
 
 /* Custom unhash into void* function pointer (used in Static Evaluator) */
 extern void* 		(*linearUnhash)(POSITION);
