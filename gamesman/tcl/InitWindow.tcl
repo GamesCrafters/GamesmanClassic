@@ -1,4 +1,4 @@
-# $Id: InitWindow.tcl,v 1.134 2007-06-22 00:42:53 mjacobsen Exp $
+# $Id: InitWindow.tcl,v 1.135 2007-10-17 06:55:20 dmchan Exp $
 #
 #  the actions to be performed when the toolbar buttons are pressed
 #
@@ -1922,7 +1922,7 @@ proc HandleScrolling { f whichOffset args } {
     if { $first == "moveto" } {
 		set frac [lindex $args 1]
 		set $whichOffset [expr $frac * [subst $[subst $whichOffset]Max]]
-		place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]y
+		place $f.scrollpane -in $f -y [subst $[subst $whichOffset]]
     } else {
 		set direction [lindex $args 1]
 		set newOffset [expr [subst $[subst $whichOffset]] - 10*$direction]
