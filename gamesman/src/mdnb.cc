@@ -882,7 +882,7 @@ POSITION ActualNumberOfPositions(int variant) {
   default:
     return gNumberOfPositions;
   }
-  return -1;
+  return (POSITION) -1;
 }
 
 
