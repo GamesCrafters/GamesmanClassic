@@ -35,6 +35,8 @@
 #include "solveretrograde.h" // for InitTierGamesman()
 
 #define DEFAULTLENGTH MAXINPUTLENGTH
+
+extern int SetupNetworkGame(STRING);
 /*
 ** Local function prototypes
 */
