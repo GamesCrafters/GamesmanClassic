@@ -147,7 +147,7 @@ color=3
 basename=cmass
 
 [Shift-Tac-Toe]
-color=3
+color=1
 basename=stt
 
 [1 TO N]
