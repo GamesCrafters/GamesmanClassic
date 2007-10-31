@@ -1,0 +1,10 @@
+<!ELEMENT resource (group*,string*)>
+<!ELEMENT group (group*, string*)>
+<!ELEMENT string (#PCDATA | BR | SUBST)>
+<!ELEMENT BR EMPTY>
+<!ELEMENT SUBST EMPTY>
+
+<!ATTLIST SUBST key CDATA #REQUIRED>
+<!ATTLIST string key CDATA #REQUIRED>
+<!ATTLIST group name CDATA #IMPLIED>
+<!ATTLIST resource lang CDATA #REQUIRED>

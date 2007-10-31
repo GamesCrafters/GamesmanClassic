@@ -1,0 +1,4 @@
+<resource>
+	<string key="testStr1">This is testStr1 in data1.xml</string>
+	<string key="testStr2">This is testStr2 in data1.xml</string>
+</resource>
