@@ -1,3 +1,4 @@
 <resource>
 	<string key="testStr1">这是data1_zh_cn.xml的testStr1。</string>
+	<string key="testRepld">另一个字串</string>
 </resource>

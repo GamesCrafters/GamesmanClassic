@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libxml/parser.h>
+#include <libxml/tree.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
 
 #include "tres.h"
 
 xmlDocPtr __tres_load_file(char* filename);
-xmlChar* __lookup_str_in_doc(xmlDocPtr doc, char* key);
+xmlChar* __lookup_str_in_doc(tres* tres, xmlDocPtr doc, char* key);
 xmlNodePtr __lookup_matching_node_in_doc(xmlDocPtr doc, char* key);
 
 inline wchar_t* utf8towchar(char* utf8) {
@@ -21,7 +22,7 @@ inline wchar_t* utf8towchar(char* utf8) {
  * @return the string node with specified key  
  */ 
 xmlNodePtr __lookup_matching_node_in_doc(xmlDocPtr doc, char* key) {
-  static char tmp[512];
+  char tmp[512];
   
   xmlXPathContextPtr context;
 	xmlXPathObjectPtr result;
@@ -43,14 +44,62 @@ xmlNodePtr __lookup_matching_node_in_doc(xmlDocPtr doc, char* key) {
   return ret;
 }
 
-xmlChar* __lookup_str_in_doc(xmlDocPtr doc, char* key) {
+xmlChar* __lookup_str_in_doc(tres* tres, xmlDocPtr doc, char* key) {
+  xmlNodePtr no;
+  xmlChar* key2;
   xmlNodePtr node = __lookup_matching_node_in_doc(doc,key);
   if (node == NULL)
     return NULL;
   //for now lets just grab the contents
   xmlChar* str = node->children->content;
-  //this str and that node shouldn't need to be freed, they are read from tree
-  return str;
+  
+  xmlChar* buffer = (xmlChar*)malloc(sizeof(xmlChar));
+  int curLen = 0;
+  int maxSize = 0;
+  //glue
+  for( no = node->xmlChildrenNode; no != NULL; no=no->next ) {
+    char* tb;
+	int needFree=0;
+	if (!xmlStrcmp(no->name,(const xmlChar*)"BR")) {
+		tb = "\n";
+		needFree=0;
+	}
+	else if (!xmlStrcmp(no->name,(const xmlChar*)"SUBST")) {
+		key2 = xmlGetProp(no,(const xmlChar*)"key");
+		if (key2 == NULL) {
+			tb = "<INVALID SUBST>";
+			needFree=0;
+		}
+		else {
+			tb = tres_lookupStr(tres,key2);
+			needFree=2;
+			if (tb == NULL) {
+				tb = malloc( strlen(key2) + 3 );
+				sprintf(tb,"%%%s%%",key2);
+				needFree = 1;
+			}
+		}
+	}
+	else if (!xmlStrcmp(no->name,(const xmlChar*)"text")) {
+		tb = no->content;
+		needFree=0;
+	}
+
+	int len = strlen(tb);
+	if (curLen + len >= maxSize) {
+		maxSize += curLen + len + maxSize;
+		buffer = realloc(buffer, maxSize+1);
+	}
+	memcpy(buffer+curLen,tb,len+1);
+	curLen+=len;
+
+	/*switch(needFree) {
+		case 1: free(tb); break;
+		case 2: xmlFree(tb); break;
+	}*/ //free later.
+  }
+
+  return buffer;
 }
 
 xmlDocPtr __tres_load_file(char* filename) {
@@ -95,11 +144,12 @@ tres* tres_create() {
   return obj;
 }
 
+//user shall free the returned string.
 char* tres_lookupStr(tres* obj, char* key) {
   xmlChar* result = NULL;
   tres_file* file = obj->last_file;
   while ( file != NULL ) {
-    result = __lookup_str_in_doc(file->doc,key);
+    result = __lookup_str_in_doc(obj,file->doc,key);
     if ( result != NULL )
       goto after;
     file = file -> prev;
