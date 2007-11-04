@@ -1226,7 +1226,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 				endSectionCounter = 1;
 			else
 			{
-				if(endSectionCounter == 1 & (*buffer) == 0x0A)
+				if(endSectionCounter == 1 && (*buffer) == 0x0A)
 				{
 					///ADDNUMBERTOBITARRAY
 					lastTempNumber = tempNumber;
@@ -1320,7 +1320,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 			}
 			else
 			{
-				if(endSectionCounter == 1 & (*buffer) != 0x0A)
+				if(endSectionCounter == 1 && (*buffer) != 0x0A)
 				{
 
 					if(counter > length)
