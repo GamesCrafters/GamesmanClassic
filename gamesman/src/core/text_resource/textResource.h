@@ -1,5 +1,5 @@
-#ifndef TRES_H
-#define TRES_H
+#ifndef TEXTRESOURCE_H
+#define TEXTRESOURCE_H
 
 #include <libxml/tree.h>
 

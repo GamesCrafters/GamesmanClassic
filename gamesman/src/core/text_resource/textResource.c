@@ -5,7 +5,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
 
-#include "tres.h"
+#include "textResource.h"
 
 xmlDocPtr __tres_load_file(char* filename);
 xmlChar* __lookup_str_in_doc(tres* tres, xmlDocPtr doc, char* key);
@@ -60,11 +60,11 @@ xmlChar* __lookup_str_in_doc(tres* tres, xmlDocPtr doc, char* key) {
   for( no = node->xmlChildrenNode; no != NULL; no=no->next ) {
     char* tb;
 	int needFree=0;
-	if (!xmlStrcmp(no->name,(const xmlChar*)"NL")) {
+	if (!xmlStrcmp(no->name,(const xmlChar*)"nl")) {
 		tb = "\n"; //get newline char!! this is WRONG
 		needFree=0;
 	}
-	else if (!xmlStrcmp(no->name,(const xmlChar*)"SUBST")) {
+	else if (!xmlStrcmp(no->name,(const xmlChar*)"subst")) {
 		key2 = xmlGetProp(no,(const xmlChar*)"key");
 		if (key2 == NULL) {
 			tb = "<INVALID SUBST>";
