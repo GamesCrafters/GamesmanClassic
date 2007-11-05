@@ -5,6 +5,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
 
+#include "textResource_internal.h"
 #include "textResource.h"
 
 xmlDocPtr __tres_load_file(char* filename);
