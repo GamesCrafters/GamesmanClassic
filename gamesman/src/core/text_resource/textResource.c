@@ -164,11 +164,29 @@ char* tres_lookupStr(tres* obj, char* key) {
   return (char*)result;
 }
 
+
+
+//public stuff
+tres* globalRes;
+
 void tres_system_init() {
   static int done = 0;
   if (done)
     return; //alert them? maybe.
-
+  done = 1;
+  
   LIBXML_TEST_VERSION
 
+  globalRes = tres_create();
+}
+
+//wrapper for a system wide tres
+int loadResource(char* filename) {
+  tres_system_init();
+  tres_loadResource(globalRes,filename);
+}
+
+char* getResourceString(char* key) {
+  tres_system_init();
+  tres_lookupStr(globalRes,key);
 }
