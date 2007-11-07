@@ -681,6 +681,10 @@ STRING MoveToString (MOVE move)
 			movestring = (STRING) SafeMalloc(12);
 			sprintf( movestring, "[%d %d %d]",from  , to, remove );
 		} 
+		else if(from == to && to == remove){
+			movestring = (STRING) SafeMalloc(8);
+			sprintf( movestring, "[%d]", from);
+		}
 		else {
 			movestring = (STRING) SafeMalloc(8);
 			sprintf( movestring, "[%d %d]", from, to);
@@ -689,6 +693,7 @@ STRING MoveToString (MOVE move)
 	else 
 	{
 		//printf("MOVE TO STRING ELSE\n");
+		printf("from = %d, to = %d, remove = %d\n", from, to, remove);
 		
 		if (from == to) //if 1st == 2nd position in move formula
 		{
@@ -1751,6 +1756,9 @@ int find_adjacent(int slot, int *slots)
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.5  2007/10/17 10:06:07  patricia_fong
+ ** added functions to m6mm.c for tcl
+ **
  ** Revision 1.3  2006/12/19 20:00:50  arabani
  ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
  **
