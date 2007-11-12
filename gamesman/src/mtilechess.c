@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.12 2006-12-19 20:00:51 arabani Exp $
+// $Id: mtilechess.c,v 1.13 2007-11-12 23:19:49 phase_ac Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -684,12 +684,12 @@ KB\n\
 The valid pieces are:\n\
 K = king, P = pawn, Q = queen, B = bishop, R = rook, N = knight\n\
 Upper-case letters indicate the pieces that belong to white, and\n\
-lower-case letters indicate the pieces that belong to black:\n\n");
+lower-case letters indicate the pieces that belong to black:\n");
     do {
       if (board != NULL) {
 	printf("Illegal board, re-enter:\n");
       }
-      getchar();
+      //getchar();
       board = getBoard();
       do {
 	printf("Whose turn is it? (w/b): \n");
@@ -2210,6 +2210,9 @@ contextList *getContextNodeFromOffset(int offset) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.12  2006/12/19 20:00:51  arabani
+// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+//
 // Revision 1.11  2006/10/17 10:45:21  max817
 // HUGE amount of changes to all generic_hash games, so that they call the
 // new versions of the functions.
