@@ -10,7 +10,7 @@
 **
 ** DATE:	2005-01-11
 **
-** LAST CHANGE: $Id: gameplay.c,v 1.55 2007-06-22 00:42:54 mjacobsen Exp $
+** LAST CHANGE: $Id: gameplay.c,v 1.56 2007-11-14 23:21:16 alb_shau Exp $
 **
 ** LICENSE:	This file is part of GAMESMAN,
 **		The Finite, Two-person Perfect-Information Game Generator
@@ -124,17 +124,17 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 #ifndef X
         printf("Type '?' if you need assistance...\n\n");
 #endif
-
+ 
         while(gPlaying) {
 
-                while((value = Primitive(position)) == undecided ||
+                while(!aborted && 
+                                ((value = Primitive(position)) == undecided ||
                                 userInput==Configure ||
-                                userInput==Switch) {
+                                userInput==Switch)) {
                         oldRemainingGivebacks = remainingGivebacks;
 
                         PrintPosition(position, player->name, (player->type==Human?TRUE:FALSE));
                         userInput = player->GetMove(position,&move,player->name);
-
                         // (SP07) hfwang - rewrote game loop
                         /*end of players' setup*/
                         switch (userInput) {
@@ -159,6 +159,8 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
                                         }
                                         break;
                                 case Abort:
+				        aborted = TRUE;
+				        break;
                                 case Configure:
                                         break;
                                 default:
@@ -195,10 +197,9 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
                         printf("\n%s (player %s) Wins!\n\n",player->turn?playerTwo->name:playerOne->name,player->turn?"two":"one");
                         break;
                 default:
-                        if(userInput == Abort) {
+                        if(aborted) {
                                 printf("Your abort command has been received and successfully processed!\n");
                                 moveListHandleGameOver(mlist);
-                                aborted = TRUE;
                                 gPlaying = FALSE;
                         } else if(player_draw) {
                                 printf("\nThe match ends in a draw. Excellent strategies, %s and %s! \n\n",playerOne->name,playerTwo->name);
