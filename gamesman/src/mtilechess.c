@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.14 2007-11-14 06:22:58 phase_ac Exp $
+// $Id: mtilechess.c,v 1.15 2007-11-14 07:00:39 phase_ac Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -240,12 +240,13 @@ TIER TierPieceValue(char);
 TIER getTier(char*);
 TIER getInitialTier();
 int alignPieceToTier(char, TIER);
-TIERPOSITION getTierPosition(char*);
+TIERPOSITION getTierPosition(char*, int);
 TIERPOSITION getInitialTierPosition();
 TIERLIST* TierChildren(TIER);
 char* tierToBoard(TIER, TIERPOSITION);
 TIERPOSITION NumberOfTierPositions(TIER);
 char PieceTierValue(TIER);
+void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier);
 
 /* External */
 #ifndef MEMWATCH 
@@ -1249,9 +1250,11 @@ int getCurrTurn(POSITION position) {
   return (generic_hash_turn(B - temp->offset));
 }
 
+
+
 /* Given a hashed value, this function returns a string
    which represents a board */
-char *unhashBoard(POSITION position) {
+char *unhashBoardWithoutTiers(POSITION position) {
   int A, B = position%BMAX;
   contextList *temp = getContextNodeFromOffset(B);
   char pieces[(temp->numPieces)+1];
@@ -2231,10 +2234,25 @@ void SetupTierStuff() {
   
 }
 
+char *unhashBoard(POSITION position) {
+  if (gHashWindowInitialized) {
+    printf("unhashing with tiers\n");
+    TIER tier; TIERPOSITION tierposition;
+    gUnhashToTierPosition(position, &tierposition, &tier);
+    printf("unhashing %d\n", tier);
+    
+    return (char*) tierToBoard(tier, tierposition);
+  }
+  else {
+    return unhashBoardWithoutTiers(position);
+  }
+}
+
 void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier) {
-  char* board = unhashBoard(pos);
+  char* board = unhashBoardWithoutTiers(pos);
+  int currentPlayer = pos % 2;
   *tier = getTier(board);
-  *tierpos = getTierPosition(board);
+  *tierpos = getTierPosition(board, currentPlayer);
 }
 
 TIER TierPieceValue(char piece) {
@@ -2321,7 +2339,7 @@ int alignPieceToTier(char piece, TIER tempTier) {
 }
 
 // converts a board into a tierposition
-TIERPOSITION getTierPosition(char* board) {
+TIERPOSITION getTierPosition(char* board, int currentPlayer) {
   TIER thisTier = getTier(board);
   TIERPOSITION retval = 0;
   int length = strlen(board);
@@ -2345,7 +2363,7 @@ TIERPOSITION getTierPosition(char* board) {
       col = 0;
     }
   }
-  return retval;
+  return (retval<<1) + currentPlayer;
 }
 
 TIERPOSITION getInitialTierPosition() {
@@ -2372,7 +2390,7 @@ TIERPOSITION getInitialTierPosition() {
 /*     } */
 /*   } */
 /*   return retval; */
-  return getTierPosition(theBoard);
+  return getTierPosition(theBoard, theCurrentPlayer);
 }
 
 //given a tier, output char
@@ -2552,6 +2570,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.14  2007/11/14 06:22:58  phase_ac
+// Added some tiergamesman functions (not working with tiergamesman yet!)
+//
 // Revision 1.13  2007/11/12 23:19:49  phase_ac
 // BUGZID:
 //
