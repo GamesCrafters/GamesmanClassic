@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.13 2007-11-12 23:19:49 phase_ac Exp $
+// $Id: mtilechess.c,v 1.14 2007-11-14 06:22:58 phase_ac Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -235,6 +235,17 @@ int bitCount(long long unsigned n);
 BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponentKingPlace, int currentPlayer);
 void fillMove(MOVE move, char *moveStr);
 MOVE getMove(STRING input);
+void SetupTierStuff();
+TIER TierPieceValue(char);
+TIER getTier(char*);
+TIER getInitialTier();
+int alignPieceToTier(char, TIER);
+TIERPOSITION getTierPosition(char*);
+TIERPOSITION getInitialTierPosition();
+TIERLIST* TierChildren(TIER);
+char* tierToBoard(TIER, TIERPOSITION);
+TIERPOSITION NumberOfTierPositions(TIER);
+char PieceTierValue(TIER);
 
 /* External */
 #ifndef MEMWATCH 
@@ -2209,7 +2220,344 @@ contextList *getContextNodeFromOffset(int offset) {
 
 
 
+//Tier Gamesman stuff below
+//NTS: put in the function prototypes
+void SetupTierStuff() {
+  kSupportsTierGamesman = TRUE;
+  gInitialTier = getInitialTier();
+  gInitialTierPosition = getInitialTierPosition();
+  gTierChildrenFunPtr = &TierChildren;
+  gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+  
+}
+
+void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier) {
+  char* board = unhashBoard(pos);
+  *tier = getTier(board);
+  *tierpos = getTierPosition(board);
+}
+
+TIER TierPieceValue(char piece) {
+  static int Rcount = 0;
+  static int Bcount = 0;
+  static int Ncount = 0;
+  static int Pcount = 0;
+  static int rcount = 0;
+  static int bcount = 0;
+  static int ncount = 0;
+  static int pcount = 0;
+  TIER value = 0;
+  if (piece == 'K') {
+    value = 1 << 0;
+  } else if (piece == 'Q') {
+    value = 1 << 1;
+  } else if (piece == 'R') {
+    value = 1 << (2 + Rcount);
+    Rcount++;
+  } else if (piece == 'B') {
+    value = 1 << (4 + Bcount);
+    Bcount++;
+  } else if (piece == 'N') {
+    value = 1 << (6 + Ncount);
+    Ncount++;
+  } else if (piece == 'P') {
+    value = 1 << (8 + Pcount);
+    Pcount++;
+  } else if (piece == 'k') {
+    value = 1 << 63;
+  } else if (piece == 'q') {
+    value = 1 << (63 - 1);
+  } else if (piece == 'r') {
+    value = 1 << (63 - 2 - rcount);
+    rcount++;
+  } else if (piece == 'b') {
+    value = 1 << (63 - 4 - bcount);
+    bcount++;
+  } else if (piece == 'n') {
+    value = 1 << (63 - 6 - ncount);
+    ncount++;
+  } else { //if (piece == 'p') {
+    value = 1 << (63 - 8 - pcount);
+    pcount++;
+  }
+  return value;
+}
+
+// converts a board into a tier
+TIER getTier(char* board) {
+  TIER retval;
+  int length = strlen(board);
+  int i = 0;
+  for (i = 0; i < length; i++) {
+    retval += TierPieceValue(board[i]);
+  }
+  return retval;
+}
+
+TIER getInitialTier() {
+  //  TIER initialTier;
+  //  int length = strlen(theBoard);
+  //  for (int i = 0; i < length; i++) {
+  //    initialTier += TierPieceValue(theBoard[i]);
+  //  }
+  //  return intialTier;
+  return getTier(theBoard);
+}
+
+//Given a piece and a tier, it determines which position that piece appears in,
+//  starting from the least significant bit (white's king)
+int alignPieceToTier(char piece, TIER tempTier) {
+  int total = 0; //keeps track of the nth piece in the tier
+  int i = 0;
+  for (i = 0; i < sizeof(tempTier); i++) {
+    if (TierPieceValue(piece) & tempTier) {
+      return total;
+    }
+    //updates the nth piece in the tier because we've found a piece
+    if (1 << i & tempTier)
+      total++;
+  }
+  return -1;
+}
+
+// converts a board into a tierposition
+TIERPOSITION getTierPosition(char* board) {
+  TIER thisTier = getTier(board);
+  TIERPOSITION retval = 0;
+  int length = strlen(board);
+  int sideLength = (int)sqrt(length);
+  int row = 0;
+  int col = 0;
+  int i;
+  //loop through the board starting from the rectangle that consists of the board
+  // find the pieces and their row/col information
+  for (i = sideLength; i < length - sideLength; i++) {
+    //ignore the 0th and last spaces on the board
+    if (!(i%sideLength == 0) && !(i%sideLength == sideLength - 1)) {
+      //found a piece so keep track of its row/col info
+      if (board[i] != ' ') {
+	retval += ((row<<3) + col) << (6 * alignPieceToTier(board[i], thisTier));
+      }
+      col++;
+    }
+    if (i%sideLength == sideLength - 1) {
+      row++;
+      col = 0;
+    }
+  }
+  return retval;
+}
+
+TIERPOSITION getInitialTierPosition() {
+/*   TIER initialTier = getInitialTier(); */
+/*   TIERPOSITION retval = 0; */
+/*   int length = strlen(theBoard); */
+/*   int sideLength = (int)sqrt(length); */
+/*   int row = 0; */
+/*   int col = 0; */
+/*   //loop through the board starting from the rectangle that consists of the board */
+/*   // find the pieces and their row/col information */
+/*   for (int i = sideLength; i < length - sideLength; i++) { */
+/*     //ignore the 0th and last spaces on the board */
+/*     if (!(i%sideLength == 0) && !(i%sideLength == sideLength - 1)) { */
+/*       //found a piece so keep track of its row/col info */
+/*       if (theBoard[i] != ' ') { */
+/* 	retval += (row<<3 + col) << (6 * alignPieceToTier(theBoard[i])); */
+/*       } */
+/*       col++; */
+/*     } */
+/*     if (i%sideLength == sideLength - 1) { */
+/*       row++; */
+/*       col = 0; */
+/*     } */
+/*   } */
+/*   return retval; */
+  return getTierPosition(theBoard);
+}
+
+//given a tier, output char
+char PieceTierValue(TIER tier) {
+
+ //the index at which the '1' is
+ int index=0;
+ TIER value=0;
+
+ char piece=' ';
+
+ //go through loop until find '1'
+ for (index; index<64; index++) {
+   value = tier << index;
+   value = value >> 63;
+   if (value == 1) {
+     break;
+   }
+ }
+
+
+ if (index == 0) {
+   piece = 'k';
+ }
+ else if (index == 1) {
+   piece = 'q';
+ }
+ else if (index == 2 || index == 3) {
+   piece = 'r';
+ }
+ else if (index == 4 || index == 5) {
+   piece = 'b';
+ }
+ else if (index == 6 || index == 7) {
+   piece = 'n';
+ }
+ else if (index > 7 && index <= 31) {
+   piece = 'p';
+ }
+ else if (index == 63) {
+   piece = 'K';
+ }
+ else if (index == 62) {
+   piece = 'Q';
+ }
+ else if (index == 61 || index == 60) {
+   piece = 'R';
+ }
+ else if (index == 59 || index == 58) {
+   piece = 'B';
+ }
+ else if (index == 57 || index == 56) {
+   piece = 'N';
+ }
+ else if (index >= 32 && index < 56) {
+   piece = 'P';
+ }
+
+ return piece;
+}
+
+//given a tier and tierposition, this will return a char-array that
+// represents the board
+char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
+
+ //for the size of the board
+ int i = 0;
+ TIER temp = 0;
+ int rootsize = 0;
+ int fullsize = 0;
+ int x = 0;
+ int y = 0;
+
+ //the board
+ char* board;
+
+ //variables to keep track of iteration through tierpos and tier
+ int tierpos_index=0;
+
+ TIERPOSITION row;
+ TIERPOSITION col;
+
+ //1). get size of the board
+ for (i; i <= 63; i++) {
+   temp = tier << i;
+   temp = temp >> 63;
+   rootsize += temp;
+ }
+ fullsize = rootsize * rootsize;
+
+ //malloc space for board
+ board = (char*) SafeMalloc((fullsize+1) * sizeof(char));
+
+ //initialize board to be all spaces
+ for (x = 0; x < fullsize; x++) {
+   board[x] = ' ';
+ }
+ //null terminator just in case
+ board[fullsize] = '\0';
+
+
+ //3 fill in using tierpos and tier
+ //look at first tier item, find the char, then go to tier pos
+ for (y=0; y <64; y++) {
+   temp = tier << y;
+   temp = temp >> 63;
+
+   if (temp == 1) {
+     row = tierpos << (tierpos_index);
+     row = row >> 61;
+     col = tierpos << (tierpos_index+3);
+     col = col >> 61;
+
+     board[(int) (row * rootsize + col)] = PieceTierValue(1 << (63-y));
+     //increment this by 6 to know to shift by this amount
+     tierpos_index += 6;
+   }
+
+ }
+
+ return board;
+}
+
+
+
+
+//returns number of tier positions
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+
+ TIERPOSITION numOfTiers=0;
+ int i = 0;
+ TIER temp = 0;
+
+ //shift until get that each individual bit
+ for (i; i <= 63; i++) {
+   temp = tier << i;
+   temp = temp >> 63;
+   numOfTiers += temp;
+ }
+ numOfTiers +=1;
+
+ return numOfTiers;
+}
+
+
+//returns a list of the children tiers
+TIERLIST* TierChildren(TIER tier) {
+
+ TIERLIST* children = NULL;
+ TIER newtier;
+ TIER mask;
+ TIER tierbit = 0;
+ int i = 0;
+
+
+ //go through each bit in tier
+ //if that bit is equal to 1, then turn it to 0 and
+ //add that new tier to the tier list
+ for (i; i <= 63; i++) {
+
+   tierbit = tier << i;
+   tierbit = tierbit >> 63;
+   mask = 1 << (63-i);
+
+   //then create new tier and append it to the tierlist
+   if (tierbit == 1) {
+     //create new tier and add to list
+     newtier = tier - mask;
+     children = CreateTierlistNode(newtier, children);
+   }
+
+ }
+
+ return children;
+}
+
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.13  2007/11/12 23:19:49  phase_ac
+// BUGZID:
+//
+//
+// Fixed board input bug in the game specifc menu.
+//
 // Revision 1.12  2006/12/19 20:00:51  arabani
 // Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
 //
