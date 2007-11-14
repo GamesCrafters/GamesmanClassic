@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.16 2007-11-14 07:06:08 phase_ac Exp $
+// $Id: mtilechess.c,v 1.17 2007-11-14 07:20:55 tjlee0909 Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -190,6 +190,7 @@ int hashPieces(char *pieces);
 int isLegalPlacement(long long unsigned place, int sideLength, int numPieces, BOOLEAN isolation);
 void PreProcess(char *pieces);
 POSITION hashBoard(char bA[], int currentPlayer);
+POSITION hashBoardWithoutTiers(char bA[], int currentPlayer);
 int getCurrTurn(POSITION position);
 char *unhashBoard(POSITION position);
 char *FillBoardArray(char *pieceArray, char *placeArray);
@@ -1146,6 +1147,39 @@ BOOLEAN inFuturePieces(int *fP, int piecePlace, int *fpCounter) {
   return FALSE;
 }
 
+
+
+
+
+
+
+
+//TIER GAMESMAN FUNCTION
+POSITION hashBoard(char boardArray[], int currentPlayer) {
+
+  TIER tier;
+  TIERPOSITION tierpos;
+  POSITION pos;
+
+  if (gHashWindowInitialized) {
+    tier = getTier(boardArray);
+    tierpos = getTierPosition(boardArray, currentPlayer);
+    pos = gHashToWindowPosition(tierpos, tier);
+
+  } else {
+    pos = hashBoardWithoutTiers(boardArray, currentPlayer);
+  }
+
+  return pos;
+
+}
+
+
+
+
+
+
+
 /* Given a string which represents a board and the currentPlayer,
    this function returns a POSITION, which is a number representing the
    hashed value of the given board
@@ -1164,7 +1198,7 @@ BOOLEAN inFuturePieces(int *fP, int piecePlace, int *fpCounter) {
       000
       000
       111  ------------> 000000111 -------> 7 */
-POSITION hashBoard(char boardArray[], int currentPlayer) {
+POSITION hashBoardWithoutTiers(char boardArray[], int currentPlayer) {
   POSITION N;
   int newPlacement = 0;
   int B = 0, hashedPlacement, boardLength = strlen(boardArray), sideLength = (int)sqrt(boardLength);
@@ -2235,6 +2269,10 @@ void SetupTierStuff() {
   
 }
 
+
+
+
+
 char *unhashBoard(POSITION position) {
   if (gHashWindowInitialized) {
     printf("unhashing with tiers\n");
@@ -2571,6 +2609,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.16  2007/11/14 07:06:08  phase_ac
+// Anthony - added the prototypes I forgot to add in the last commit, and fixed a warning.
+//
 // Revision 1.15  2007/11/14 07:00:39  phase_ac
 // Anthony - updated getTierPosition to match spec
 //
