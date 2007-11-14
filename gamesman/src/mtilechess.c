@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.17 2007-11-14 07:20:55 tjlee0909 Exp $
+// $Id: mtilechess.c,v 1.18 2007-11-14 07:44:40 phase_ac Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -292,6 +292,7 @@ void InitializeGame ()
   */
   gInitialPosition = hashBoard(theBoard,theCurrentPlayer);
   SafeFree(pieces);
+  SetupTierStuff();
 }
 
 /************************************************************************
@@ -2609,6 +2610,10 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.17  2007/11/14 07:20:55  tjlee0909
+// Taejun Lee
+// Wrote hashBoard and renamed the old function hashBoard to hashBoardWithoutTiers.
+//
 // Revision 1.16  2007/11/14 07:06:08  phase_ac
 // Anthony - added the prototypes I forgot to add in the last commit, and fixed a warning.
 //
