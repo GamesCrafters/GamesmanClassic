@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.15 2007-11-14 07:00:39 phase_ac Exp $
+// $Id: mtilechess.c,v 1.16 2007-11-14 07:06:08 phase_ac Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -247,6 +247,7 @@ char* tierToBoard(TIER, TIERPOSITION);
 TIERPOSITION NumberOfTierPositions(TIER);
 char PieceTierValue(TIER);
 void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier);
+char *unhashBoardWithoutTiers(POSITION position);
 
 /* External */
 #ifndef MEMWATCH 
@@ -2239,7 +2240,7 @@ char *unhashBoard(POSITION position) {
     printf("unhashing with tiers\n");
     TIER tier; TIERPOSITION tierposition;
     gUnhashToTierPosition(position, &tierposition, &tier);
-    printf("unhashing %d\n", tier);
+    printf("unhashing %lld\n", tier);
     
     return (char*) tierToBoard(tier, tierposition);
   }
@@ -2570,6 +2571,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2007/11/14 07:00:39  phase_ac
+// Anthony - updated getTierPosition to match spec
+//
 // Revision 1.14  2007/11/14 06:22:58  phase_ac
 // Added some tiergamesman functions (not working with tiergamesman yet!)
 //
