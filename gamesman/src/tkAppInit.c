@@ -10,7 +10,7 @@
 **
 ** DATE:        1999-04-02
 **
-** LAST CHANGE: $Id: tkAppInit.c,v 1.43 2007-10-17 09:32:58 patricia_fong Exp $
+** LAST CHANGE: $Id: tkAppInit.c,v 1.44 2007-11-15 02:53:19 dounanshi Exp $
 **
 **************************************************************************/
 
@@ -54,6 +54,8 @@ static int		GenericUnhashCmd _ANSI_ARGS_((ClientData clientData,
 static int		CustomUnhashCmd _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 static int		ReturnTurnCmd _ANSI_ARGS_((ClientData clientData,
+			    Tcl_Interp *interp, int argc, char **argv));
+static int		PossibleMoves _ANSI_ARGS_((ClientData clientData,
 			    Tcl_Interp *interp, int argc, char **argv));
 				
 static int		FooCmd _ANSI_ARGS_((ClientData clientData,
@@ -187,6 +189,8 @@ Gamesman_Init(interp)
     Tcl_CreateCommand(interp, "C_CustomUnhash", (Tcl_CmdProc*) CustomUnhashCmd, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 	Tcl_CreateCommand(interp, "C_ReturnTurn", (Tcl_CmdProc*) ReturnTurnCmd, (ClientData) mainWindow,
+		      (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_PossibleMoves", (Tcl_CmdProc*) PossibleMoves, (ClientData) mainWindow,
 		      (Tcl_CmdDeleteProc*) NULL);
 
     Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow,
@@ -396,7 +400,47 @@ ReturnTurnCmd(dummy, interp, argc, argv)
   return TCL_OK;
  }
  
-
+ static int
+PossibleMoves(dummy, interp, argc, argv)
+     ClientData dummy;
+     Tcl_Interp *interp;
+     int argc;
+     char **argv;
+{
+  POSITION position;
+  MOVELIST *ptr, *head;
+  char theAnswer[10000], tmp[1000];
+  char *temp = (char *) malloc (1000);
+  int blah;
+  //char *theAnswer = (char *) malloc (10000);
+  //char *tmp = (char *) malloc (10000);
+  if (argc != 2) {
+    interp->result = "wrong # args: PossibleMoves (int)Position";
+    return TCL_ERROR;
+  }
+  else {
+    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+      return TCL_ERROR;
+    head = ptr = GenerateMoves(position);
+    theAnswer[0] = '\0';
+    while (ptr != NULL) {
+		temp = gMoveToStringFunPtr(ptr->move);
+		blah = strlen(temp);
+		temp[0]='{';
+		temp[blah-1]='}';
+		sprintf(tmp,"%s ", temp);
+		strcpy(theAnswer,(char *)strcat(theAnswer,tmp));
+		ptr = ptr->next;
+    }
+    Tcl_SetResult(interp,theAnswer,TCL_VOLATILE);
+    //Tcl_SetResult(interp,theAnswer,TCL_VOLATILE);
+	//SafeFree(theAnswer);
+	//SafeFree(tmp);
+    FreeMoveList(head);
+    return TCL_OK;
+  }
+}
+ 
 
 static int
 FooCmd(dummy, interp, argc, argv)
