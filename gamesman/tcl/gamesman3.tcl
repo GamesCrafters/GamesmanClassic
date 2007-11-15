@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.60 2007-06-22 00:42:53 mjacobsen Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.61 2007-11-15 02:50:37 dounanshi Exp $
 ##
 ############################################################################
 
@@ -758,9 +758,9 @@ proc DriverLoop { } {
 		    GameOver $gPosition $primitive [peek $gMovesSoFar]
 		    
 		} else {
-	
+			global kGameName
 		    .middle.f3.cMRight itemconfigure WhoseTurn \
-			-text [format "It's %s's Turn" [subst $[subst g[subst $gWhoseTurn]Name]]]
+			-text [format "It's %s's Turn\n" [subst $[subst g[subst $gWhoseTurn]Name]]]
 			update idletasks
 	
 		    ## Handle Prediction
