@@ -1,9 +1,11 @@
-####################################################
-# this is a template for tcl module creation
-#
-# created by Alex Kozlowski and Peterson Trethewey
-# Updated Fall 2004 by Jeffrey Chiang, and others
-####################################################
+# -----TODO List------
+# Game Over
+# Undo Game Over
+# Variants (no fly)
+# drawPosition (how to track different phases)
+# color of players?
+
+
 
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
@@ -17,25 +19,21 @@
 proc GS_InitGameSpecific {} {
     
     ### Set the name of the game
-    
     global kGameName
     set kGameName "6 Men's Morris"
     
     ### Set the initial position of the board (default 0)
-
     global gInitialPosition gPosition
     set gInitialPosition 0
     set gPosition $gInitialPosition
 
     ### Set the strings to be used in the Edit Rules
-
     global kStandardString kMisereString
     set kStandardString "First player to ____ WINS"
     set kMisereString "First player to ____ LOSES"
 
     ### Set the strings to tell the user how to move and what the goal is.
     ### If you have more options, you will need to edit this section
-
     global gMisereGame
     if {!$gMisereGame} {
 	SetToWinString "To Win: (fill in)"
@@ -43,118 +41,49 @@ proc GS_InitGameSpecific {} {
 	SetToWinString "To Win: (fill in)"
     }
     SetToMoveString "To Move: (fill in)"
+	
+	# Authors Info. Change if desired
+	global kRootDir
+	global kCAuthors kTclAuthors kGifAuthors
+	set kCAuthors "(Fill this in)"
+	set kTclAuthors "Daniel Wei, Kevin Liu, Patricia Fong, Dounan Shi"
+	set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
     
-	############   GLOBAL VARS #######################
-
-	global dotgap dotmid
-    global x1 x2 x3 x4 x6 y1 y4 y7 y11 y14
-    global pieceSize pieceOutline xColor oColor pieceOffset
-    global dotSize dotExpandAmount lineWidth lineColor baseColor base
-    global dotx1 dotx2 dotx3 dotx4 dotx5 doty1 doty2 doty3 doty4 doty5
-    global px1 px2 px3 px4 px5 py1 py2 py3 py4 py5
-    global horizArrows vertArrows slideDelay goDelay animQuality
-    global gFrameWidth gFrameHeight
-    global boardSize squareSize leftBuffer topBuffer
+	############   GLOBAL VARS ######################
+	
+	## IMPORTANT: These are variables used to change the board.
+	global gFrameWidth gFrameHeight
+	global boardSize squareSize leftBuffer topBuffer scale
 	global numPositions
 	
-    # Authors Info. Change if desired
-    global kRootDir
-    global kCAuthors kTclAuthors kGifAuthors
-    set kCAuthors "(Fill this in)"
-    set kTclAuthors "Daniel Wei, Kevin Liu, Patricia Fong"
-    set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
-	
-	 ## IMPORTANT: These are variables used to change the board.
-    # board size
-	set numPositions 16
-    set boardSize [expr [min $gFrameWidth $gFrameHeight] - 200]
+    set boardSize [expr [min $gFrameWidth $gFrameHeight] - 150]
     set squareSize [expr $boardSize / 5]
     set leftBuffer [expr [expr $gFrameWidth - $boardSize] / 2]
     set topBuffer [expr [expr $gFrameHeight - $boardSize] / 2]
-    #coordinates:
-    set dotgap [expr $boardSize / 5] 
-    set dotmid [expr $dotgap / 2]
-    set firstXCoord [expr $leftBuffer + $dotmid]
-    set firstYCoord [expr $topBuffer + $dotmid]
-    ## pieces
-    set pieceSize [expr $dotmid - ($dotmid / 4)]
-    set pieceOutline [expr $pieceSize / 14]
-    set xColor blue4
-    set oColor red2
-    set pieceOffset $dotgap
-    ## dots
-    set dotSize [expr $pieceSize / 2.6]
-    set dotExpandAmount [expr 3 * ( $dotSize / 4 )]
-    ## lines
-    set lineWidth [ expr 3 * ( $pieceOutline / 2 ) ]
-    set lineColor CadetBlue4
-    ## base
-    set baseColor white
-    ## arrow lists
-    set horizArrows {list ac ca ce ec gh hg hi ih kl lk no on qr rq rs sr uw wu wy yw}
-    set vertArrows  {list ak ka ku uk gl lg lq ql ch hc rw wr in ni ns sn eo oe oy yo}
-    ## animation delay
-    set slideDelay 20000
-    set goDelay 3000000
-    set animQuality "low"
-    # x and y position numbers
-    set x1 $firstXCoord
-    set x2 [expr $x1 + 2 * $dotgap]
-    set x3 [expr $x2 + 2 * $dotgap]
-    set x4 [expr $x1 + $dotgap]
-    set x5 $x2
-    set x6 [expr $x2 + $dotgap]
-    set x7 $x1
-    set x8 $x4
-    set x9 $x6
-	set x10 $x3
-	set x11 $x4
-	set x12 $x5
-	set x13 $x6
-	set x14 $x1
-	set x15 $x2
-	set x16 $x3
-    
-    set y1 $firstYCoord
-    set y2 $y1
-    set y3 $y1
-    set y4 [expr $y1 + $dotgap]
-    set y5 $y4
-    set y6 $y4
-    set y7 [expr $y4 + $dotgap]
-    set y8 $y7
-    set y9 $y7
-	set y10 $y7
-	set y11 [expr $y7 + $dotgap]
-	set y12 $y11
-	set y13 $y11
-	set y14 [expr $y11 + $dotgap]
-	set y15 $y14
-	set y16 $y14
-        
-    set dotx1 [expr $x1 - [expr $dotSize / 2]];
-    set dotx2 [expr $x2 - [expr $dotSize / 2]];
-    set dotx3 [expr $x3 - [expr $dotSize / 2]];
-	set dotx4 [expr $x4 - [expr $dotSize / 2]];
-	set dotx5 [expr $x5 - [expr $dotSize / 2]];
-    set doty1 [expr $y1 - [expr $dotSize / 2]];
-    set doty2 [expr $y4 - [expr $dotSize / 2]];
-    set doty3 [expr $y7 - [expr $dotSize / 2]];
-    set doty4 [expr $y11 - [expr $dotSize / 2]];
-	set doty5 [expr $y14 - [expr $dotSize / 2]];
+	set scale 1
+	set numPositions 16
 	
-    set px1 [expr $x1 - [expr $pieceSize / 2]];
-    set px2 [expr $x2 - [expr $pieceSize / 2]];
-    set px3 [expr $x3 - [expr $pieceSize / 2]];
-	set px4 [expr $x4 - [expr $pieceSize / 2]];
-	set px5 [expr $x5 - [expr $pieceSize / 2]];
-    set py1 [expr $y1 - [expr $pieceSize / 2]];
-    set py2 [expr $y4 - [expr $pieceSize / 2]];
-    set py3 [expr $y7 - [expr $pieceSize / 2]];
-	set py4 [expr $y11 - [expr $pieceSize / 2]];
-	set py5 [expr $y14 - [expr $pieceSize / 2]];
+	### Used to keep track of multi-click moves
+	global clickCounter pMoves
+	set clickCounter 0
+	set pMoves undefined
+	
+	### Used to keep track of phase 1 or not phase 1
+	global totalPieces numMovesPerformed
+	set totalPieces 12
+	set numMovesPerformed 0
+	
+	# A unique id for each playing piece
+	global playingPieceId
+	set playingPieceId 0
+	
+	# Set animSpeed into the range [1 11]
+	global gAnimationSpeed animSpeed
+	set animSpeed [expr $gAnimationSpeed + 6]
+	
+	# used to show move values
+	global showMovesMoveType showMovesPosition showMovesMoveList
 }
-
 
 #############################################################################
 # GS_NameOfPieces should return a list of 2 strings that represent
@@ -165,10 +94,8 @@ proc GS_InitGameSpecific {} {
 # starts playing the game, and before he hits "New Game"
 #############################################################################
 proc GS_NameOfPieces {} {
-
     return [list X O _]
 }
-
 
 #############################################################################
 # GS_ColorOfPlayers should return a list of two strings, 
@@ -186,11 +113,8 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 #############################################################################
 proc GS_ColorOfPlayers {} {
-
 	return [list blue red]
-    
 }
-
 
 #############################################################################
 # GS_SetupRulesFrame sets up the rules frame;
@@ -228,20 +152,19 @@ proc GS_SetupRulesFrame { rulesFrame } {
     global kLabelFont
     set ruleNum 0
     foreach rule $ruleset {
-	frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
-	pack $rulesFrame.rule$ruleNum  -fill both -expand 1
-	message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
-	pack $rulesFrame.rule$ruleNum.label -side left
-	set rulePartNum 0
-	foreach rulePart [lrange $rule 1 end] {
-	    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
-	    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
-	    incr rulePartNum
-	}
-	incr ruleNum
+		frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
+		pack $rulesFrame.rule$ruleNum  -fill both -expand 1
+		message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
+		pack $rulesFrame.rule$ruleNum.label -side left
+		set rulePartNum 0
+		foreach rulePart [lrange $rule 1 end] {
+		    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+		    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+		    incr rulePartNum
+		}
+		incr ruleNum
     } 
 }
-
 
 #############################################################################
 # GS_GetOption gets the game option specified by the rules frame
@@ -261,7 +184,6 @@ proc GS_GetOption { } {
     }
     return $option
 }
-
 
 #############################################################################
 # GS_SetOption modifies the rules frame to match the given options
@@ -283,7 +205,6 @@ proc GS_SetOption { option } {
     }
 }
 
-
 #############################################################################
 # GS_Initialize is where you can start drawing graphics.  
 # Its argument, c, is a canvas.  Please draw only in this canvas.
@@ -293,439 +214,140 @@ proc GS_SetOption { option } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-
+	
     # you may want to start by setting the size of the canvas; this line isn't necessary
     #$c configure -width 500 -height 500
 	
-	global boardSize squareSize leftBuffer topBuffer
-    global x1 x2 x3 x4 x6 y1 y4 y7 y11 y14
+	global boardSize squareSize leftBuffer topBuffer scale
 	global numPositions
+	global totalPieces
+	global kGameName
 	
-	set counter 0
+	set positionId 0
 	set i 0
 	set j 0
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter 
-	set i 2
-	set j 0
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter 
-	set i 4
-	set j 0
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter 
-	set i 1
-	set j 1
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 2
-	set j 1
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 3
-	set j 1
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 0
-	set j 2
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base-$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 1
-	set j 2
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 3
-	set j 2
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 4
-	set j 2
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 1
-	set j 3
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 2
-	set j 3
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 3
-	set j 3
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 0
-	set j 4
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 2
-	set j 4
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
-	set i 4
-	set j 4
-		$c create rect \
-	[expr $leftBuffer + [expr $i * $squareSize]] \
-	[expr $topBuffer + [expr $j * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+1) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+1) * $squareSize]] \
-	-fill white -tag [list base base$counter]
-		$c create oval \
-	[expr $leftBuffer + [expr ($i+.4) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.4) * $squareSize]] \
-	[expr $leftBuffer + [expr ($i+.6) * $squareSize]] \
-	[expr $topBuffer + [expr ($j+.6) * $squareSize]] \
-	-fill white -tag [list moveindicators mi-$counter]
-		
-		$c bind base$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		
-		$c bind mi-$counter <ButtonRelease-1> "ReturnFromHumanMove [expr $counter*[expr $numPositions*$numPositions + $numPositions+1]]"
-		incr counter
+
+	if {$kGameName == "6 Men's Morris"} {
+		set temp 2
+		set scaledSquareSize $squareSize
+		set sixmm 1
+	}
+	if {$kGameName != "6 Men's Morris"} {   ;# //this will work when C is playing 9mm instead of 6mm
+		set temp 3
+		set scale 0.7
+		set totalPieces 18
+		set scaledSquareSize [expr $scale*$squareSize]
+		set sixmm 0
+	}	
 	
-		$c create rect \
-	[expr [expr $leftBuffer + [expr 0 * $squareSize]] - 40] \
-	[expr [expr $topBuffer + [expr 0 * $squareSize]] - 40] \
-	[expr [expr $leftBuffer + [expr 5 * $squareSize]] + 40] \
-	[expr [expr $topBuffer + [expr 5 * $squareSize]] + 40] \
-	-fill white -tag base
+	#Sets coordinates for center of game table
+	set mx [expr $leftBuffer + [expr (2.5) * $squareSize]]
+	set my [expr $topBuffer + [expr (2.5) * $squareSize]]
+	
+	# graphics
+	set canvasColor #bb917b
+	set lineColor #4c3225
+	set positionMarkerColor $lineColor
+	set lineWidth 3
+
+	#Handles top half points
+	for {set k 0} {$k < $temp} {incr k} {         ;# //traverse rows
+		for {set l 0} {$l <= 2} {incr l} {        ;# //traverse columns
+			set ty [expr ($my-($temp-$k)*$scaledSquareSize)]
+			set tx [expr (($mx+$k*$scaledSquareSize)-($temp-($temp-$k)*$l)*$scaledSquareSize)]
+			# makeOval color doesn't matter here.
+			makeOval $c $tx $ty mi-$positionId $scale $canvasColor
+			makeOval $c $tx $ty [list base positionMarker] [expr $scale - .4] $canvasColor
+			set mx-$positionId $tx
+			set my-$positionId $ty
+			incr positionId
+		}
+	}
+
+	#Handles middle row
+	set ty $my
+	set tx [expr ($mx-$temp*$scaledSquareSize) ]
+	for {set l 0} {$l <= [expr (2*$temp)]} {incr l} {
+		if {$l!=$temp} {
+			# makeOval color doesn't matter here.
+			makeOval $c $tx $ty mi-$positionId $scale $canvasColor
+			makeOval $c $tx $ty [list base positionMarker] [expr $scale - .4] $canvasColor
+			set mx-$positionId $tx
+			set my-$positionId $ty
+			incr positionId
+		}	
+		set tx [expr ($tx+$scaledSquareSize)]
+	}
+	
+	#Handles bottom half
+	for {set k [expr $temp-1]} {$k > -1} {set k [expr $k-1]} {         ;# //traverse rows
+		for {set l 0} {$l <= 2} {incr l} {        ;# //traverse columns
+			set ty [expr ($my+($temp-$k)*$scaledSquareSize)]
+			set tx [expr (($mx+$k*$scaledSquareSize)-($temp-($temp-$k)*$l)*$scaledSquareSize)]
+			# makeOval color doesn't matter here.
+			makeOval $c $tx $ty mi-$positionId $scale $canvasColor
+			makeOval $c $tx $ty [list base positionMarker] [expr $scale - .4] $canvasColor
+			set mx-$positionId $tx
+			set my-$positionId $ty
+			incr positionId
+		}
+	}
+	
+	$c itemconfig positionMarker -outline $positionMarkerColor -width $lineWidth
+	
+	$c create rect \
+		[expr [expr $leftBuffer + [expr 0 * $squareSize]] - 36] \
+		[expr [expr $topBuffer + [expr 0 * $squareSize]] - 36] \
+		[expr [expr $leftBuffer + [expr 5 * $squareSize]] + 36] \
+		[expr [expr $topBuffer + [expr 5 * $squareSize]] + 36] \
+		-fill $canvasColor -tag base -outline white -width 4
 		
-		# horizontal lines
-	set xa $x1
-	set ya $y1
-	set xb $x3
-	set yb $y1
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x4
-	set ya $y4
-	set xb $x6
-	set yb $y4
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x1
-	set ya $y7
-	set xb $x4
-	set yb $y7
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x6
-	set ya $y7
-	set xb $x3
-	set yb $y7
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x4
-	set ya $y11
-	set xb $x6
-	set yb $y11
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x1
-	set ya $y14
-	set xb $x3
-	set yb $y14
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	
-	# vertical lines
-	set xa $x1
-	set ya $y1
-	set xb $x1
-	set yb $y14
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x4
-	set ya $y4
-	set xb $x4
-	set yb $y11
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x2
-	set ya $y1
-	set xb $x2
-	set yb $y4
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x2
-	set ya $y11
-	set xb $x2
-	set yb $y14
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x6
-	set ya $y4
-	set xb $x6
-	set yb $y11
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	set xa $x3
-	set ya $y1
-	set xb $x3
-	set yb $y14
-	$c create line $xa $ya $xb $yb -tag base -width 5
-	
-    MakePieces $c 0
-    
-    $c raise base
-    update idletasks
+	#drawing lines
+	if {$sixmm == 1} {
+		#horizontal
+		$c create line ${mx-0} ${my-0} ${mx-2} ${my-2} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-3} ${my-3} ${mx-5} ${my-5} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-6} ${my-6} ${mx-7} ${my-7} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-8} ${my-8} ${mx-9} ${my-9} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-10} ${my-10} ${mx-12} ${my-12} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-13} ${my-13} ${mx-15} ${my-15} -tag base -width $lineWidth -fill $lineColor
+		#vertical
+		$c create line ${mx-0} ${my-0} ${mx-13} ${my-13} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-3} ${my-3} ${mx-10} ${my-10} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-1} ${my-1} ${mx-4} ${my-4} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-11} ${my-11} ${mx-14} ${my-14} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-5} ${my-5} ${mx-12} ${my-12} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-2} ${my-2} ${mx-15} ${my-15} -tag base -width $lineWidth -fill $lineColor
+	}
+	if {$sixmm == 0} {
+		#horizontal
+		$c create line ${mx-0} ${my-0} ${mx-2} ${my-2} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-3} ${my-3} ${mx-5} ${my-5} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-6} ${my-6} ${mx-8} ${my-8} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-9} ${my-9} ${mx-11} ${my-11} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-12} ${my-12} ${mx-14} ${my-14} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-15} ${my-15} ${mx-17} ${my-17} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-18} ${my-18} ${mx-20} ${my-20} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-21} ${my-21} ${mx-23} ${my-23} -tag base -width $lineWidth -fill $lineColor
+		#vertical
+		$c create line ${mx-0} ${my-0} ${mx-21} ${my-21} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-3} ${my-3} ${mx-18} ${my-18} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-6} ${my-6} ${mx-15} ${my-15} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-1} ${my-1} ${mx-7} ${my-7} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-16} ${my-16} ${mx-22} ${my-22} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-8} ${my-8} ${mx-17} ${my-17} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-5} ${my-5} ${mx-20} ${my-20} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-2} ${my-2} ${mx-23} ${my-23} -tag base -width $lineWidth -fill $lineColor
+	}
+	$c raise positionMarker
 } 
 
-proc MakePieces { c num } {
-  
-	MakeBlue $c [expr $num % 5] [expr $num / 5] $num
-    MakeRed $c [expr $num % 5] [expr $num / 5] $num
-	
-    if { $num != 24 } {
-        MakePieces $c [expr $num + 1]
-    }
-}
-
-
-proc MakeRed { c x y tag } {
-    global squareSize leftBuffer topBuffer
-
-    set x [expr $x * $squareSize + $leftBuffer]
-    set y [expr $y * $squareSize + $topBuffer]
-
-    $c create oval [expr $x  + 20] [expr $y + 20] [expr $x + [expr $squareSize - 20]] [expr $y + [expr $squareSize - 20]] -fill red -tag X-$tag
-    $c lower X-$tag base
-
-}
-
-proc MakeBlue { c x y tag } {
-    global squareSize leftBuffer topBuffer
-
-    set x [expr $x * $squareSize + $leftBuffer]
-    set y [expr $y * $squareSize + $topBuffer]
-	
-    $c create oval [expr $x  + 20] [expr $y + 20] [expr $x + [expr $squareSize - 20]] [expr $y + [expr $squareSize - 20]] -fill blue -tag O-$tag
-    $c lower O-$tag base
-
-}
-
-
-#############################################################################
-# GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
-# is here, so whoever put this here should update this.  -Jeff
-#############################################################################
 proc GS_Deinitialize { c } {
-    $c delete all
+	global pMoves
+	
+	set pMoves undefined
+    $c delete deletable
 }
-
 
 #############################################################################
 # GS_DrawPosition this draws the board in an arbitrary position.
@@ -741,49 +363,9 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    global dotmid leftBuffer topBuffer
-    #$c raise base
+    global leftBuffer topBuffer
     DrawPieces $c $position
-
 }
-
-proc DrawPieces {c position } {
-    global numPositions
-	
-	$c raise base
-	
-	set a(0) 0
-    
-    UnHashBoard $position a
-	
-    for {set i 0} {$i < $numPositions} {incr i} {   
-        if {$a($i) == "X"} {
-            $c raise X-$i base
-        } elseif {$a($i) == "O"} {
-            $c raise O-$i base
-        } 
-    }
-	update idletasks
-}
-
-proc UnHashBoard {position arrayname} {
-    global numPositions
-
-    upvar $arrayname a
-    
-    set board [C_CustomUnhash $position]
-    
-    for {set i 0} {$i < $numPositions} {incr i} {
-        if {[string equal [string index $board $i] "X"]} {   
-            set a($i) X
-        } elseif {[string equal [string index $board $i] "O"]} {
-            set a($i) O
-        } else {
-            set a($i) _
-        }
-    }
-}
-
 
 #############################################################################
 # GS_NewGame should start playing the game. 
@@ -793,13 +375,12 @@ proc UnHashBoard {position arrayname} {
 # and before any moves are made.
 #############################################################################
 proc GS_NewGame { c position } {
-    # TODO: The default behavior of this funciton is just to draw the position
-    # but if you want you can add a special behaivior here like an animation
-
-	GS_DrawPosition $c $position
-	#$c raise o1 base
+	GS_Deinitialize $c
+	$c raise base
+	$c raise positionMarker
+	GS_InitGameSpecific
+	bind $c <ButtonRelease-1> "handleClicks $c %x %y"
 }
-
 
 #############################################################################
 # GS_WhoseMove takes a position and returns whose move it is.
@@ -817,11 +398,8 @@ proc GS_WhoseMove { position } {
 	} else {
 		set val O
 	}
-	
     return $val
-    
 }
-
 
 #############################################################################
 # GS_HandleMove draws (animates) a move being made.
@@ -834,84 +412,34 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
-
-	global numPositions
 	
-	set theMoveTo [expr [expr $theMove / $numPositions] % $numPositions]
+	global numMovesPerformed
+	incr numMovesPerformed
 	
-	switch $theMoveTo {
+	set move [unhashMove $theMove 1]
+	set theMoveFrom [lindex $move 0]
+	set theMoveTo [lindex $move 1]
+	set theMoveRemove [lindex $move 2]
 	
-	1 {
-		set theMoveTo 2
+	if {$theMoveFrom == $theMoveTo} {
+		
+		unhashBoard $newPosition a
+		
+		if {$a($theMoveFrom) == "X"} {
+			set color #eeeeee
+		} else {
+			set color #000000
+		}
+		
+		makePlayingPiece $c $theMoveFrom $color
+		
+	} else {
+		movePlayingPiece $c $theMoveFrom $theMoveTo
 	}
-	2 {
-		set theMoveTo 4
+	if { $theMoveRemove != $theMoveFrom } {
+		removePlayingPiece $c $theMoveRemove
 	}
-	3 {
-		set theMoveTo 6
-	}
-	4 {
-		set theMoveTo 7
-	}
-	5 {
-		set theMoveTo 8
-	}
-	6 {
-		set theMoveTo 10
-	}
-	7 {
-		set theMoveTo 11
-	}
-	8 {
-		set theMoveTo 13
-	}
-	9 {
-		set theMoveTo 14
-	}
-	10 {
-		set theMoveTo 16
-	}
-	11 {
-		set theMoveTo 17
-	}
-	12 {
-		set theMoveTo 18
-	}
-	13 {
-		set theMoveTo 20
-	}
-	14 {
-		set theMoveTo 22
-	}
-	15 {
-		set theMoveTo 24
-	}
-	default {
-		set theMoveTo $theMoveTo
-	}
-	
-	
-	}
-   
-   #C_CustomUnhash [$theMoveTo]
-    set piece X
-	
-    if { [GS_WhoseMove $oldPosition] == "O"} {
-        set piece O
-
-	$c raise $piece-$theMoveTo base
-	update idletasks
-    }
-    
-       
-
-	if { [GS_WhoseMove $oldPosition] == "X"} {
-		$c raise $piece-$theMoveTo base
-		update idletasks
-	}
-
 }
-
 
 #############################################################################
 # GS_ShowMoves draws the move indicator (be it an arrow or a dot, whatever the
@@ -926,37 +454,17 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # moveList = a list of lists.  Each list contains a move and its value.
 # These moves are represented as numbers (same as in C)
 # The value will be either "Win" "Lose" or "Tie"
-# Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
+# Example:  moveList: { [7 3] Win } { [1 2 3] Lose } { [15 2] Tie } 
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {	
 	
-	global numPositions
-	# ONLY FIRST STAGE
-	#C_CustomUnhash [$moveList]
+	global showMovesMoveType showMovesPosition showMovesMoveList
 	
-	foreach item $moveList {
-        set move [lindex $item 0]
-		
-        set value [lindex $item 1]
-        set color cyan
-        
-		set move [expr [expr $move / $numPositions] % $numPositions]
-        $c raise mi-$move base
-        
-        if {$moveType == "value"} {
-            if {$value == "Tie"} {
-                set color yellow
-            } elseif {$value == "Lose"} {
-                set color green
-            } else {
-                set color red4
-            }
-        }
-        $c itemconfigure mi-$move -fill $color
-		
-		#update idletasks
-    }
-    update idletasks
+	set showMovesMoveType $moveType
+	set showMovesPosition $position
+	set showMovesMoveList $moveList
+	
+	showMoves $c $moveType $position $moveList
 }
 
 
@@ -966,8 +474,15 @@ proc GS_ShowMoves { c moveType position moveList } {
 # You might not use all the arguments, and that's okay.
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
-    $c lower moveindicators base
-
+	
+	global showMovesMoveType showMovesPosition showMovesMoveList
+	
+	set showMovesMoveType $moveType
+	set showMovesPosition $position
+	set showMovesMoveList $moveList
+	
+	$c delete valueIndicator
+	update idletasks
 }
 
 
@@ -984,11 +499,36 @@ proc GS_HideMoves { c moveType position moveList} {
 # need to keep that.
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
-
-    ### TODO if needed
-    #GS_DrawPosition $c $positionAfterUndo
+	
+	global numMovesPerformed pMoves
+	global animSpeed
+	
+	set numMovesPerformed [expr $numMovesPerformed - 1]
+	
+	cancelMove $c
+	
+	set move [unhashMove $theMoveToUndo 1]
+	set theMoveFrom [lindex $move 0]
+	set theMoveTo [lindex $move 1]
+	set theMoveRemove [lindex $move 2]
+	
+	if {$theMoveFrom == $theMoveTo} {
+		removePlayingPiece $c $theMoveFrom
+	} else {
+		movePlayingPiece $c $theMoveTo $theMoveFrom
+	}
+	if { $theMoveRemove != $theMoveFrom } {
+		unhashBoard $positionAfterUndo a
+		
+		if {$a($theMoveRemove) == "X"} {
+			set color #eeeeee
+		} else {
+			set color #000000
+		}
+		
+		makePlayingPiece $c $theMoveRemove $color
+	}
 }
-
 
 #############################################################################
 # GS_GetGameSpecificOptions is not quite ready, don't worry about it .
@@ -1004,9 +544,7 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-
 	### TODO if needed
-	
 }
 
 
@@ -1021,7 +559,392 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-
 	### TODO if needed
-
 }
+
+
+
+############################################################################
+# Helper methods
+############################################################################
+
+proc unhashBoard {position arrayname} {
+	global numPositions
+	upvar $arrayname a
+	set board [C_CustomUnhash $position]
+	
+	for {set i 0} {$i < $numPositions} {incr i} {
+		if {[string equal [string index $board $i] "X"]} {   
+			set a($i) X
+		} elseif {[string equal [string index $board $i] "O"]} {
+			set a($i) O
+		} else {
+			set a($i) _
+		}
+	}
+}
+
+proc unhashMove {theMove adjustForPhase} {
+	global numPositions numMovesPerformed totalPieces
+	
+	set theMoveFrom [expr $theMove/( $numPositions*$numPositions )]
+	set theMoveTo [expr [expr $theMove/$numPositions] % $numPositions]
+	set theMoveRemove [expr $theMove % $numPositions]
+	
+	# In phase 1, if you form a mill the move contains a second part, the piece to remove.
+	# This is stored in theMoveTo, instead of theMoveRemove.
+	# Set adjustForPhase to be 1 (true) to change store the remove piece in theMoveRemove.
+	
+	if {$adjustForPhase && $numMovesPerformed <= $totalPieces} {
+		set theMoveRemove $theMoveTo
+		set theMoveTo $theMoveFrom
+	}
+	
+	return [list $theMoveFrom $theMoveTo $theMoveRemove]
+}
+
+# NOT USED
+proc DrawPieces {c position } {
+	global numPositions
+	
+	set a(0) 0
+	
+	unhashBoard $position a
+	
+	for {set i 0} {$i < $numPositions} {incr i} {   
+		if {$a($i) == "X"} {
+		} elseif {$a($i) == "O"} {
+		} 
+	}
+	update idletasks
+}
+
+proc handleClicks { c x y } {
+	
+	global scale numPositions clickCounter pMoves
+	global gAnimationSpeed
+	global showMovesMoveType showMovesPosition showMovesMoveList
+	
+	# find which move indicator the user clicked
+	set tag [getTagOfOverlappingItem $c $x $y mi]
+	if {$tag == ""} {
+		return
+	}
+	set positionId [string range $tag [expr [string first "-" $tag] + 1] end]
+	
+	if {$pMoves == "undefined"} {
+		set pMoves [getPossibleMoves]
+	}
+	
+	set tempMoves $pMoves
+	for {set i [expr [llength $pMoves] - 1]} {$i >= 0} {set i [expr $i - 1]} {
+		set move [lindex $pMoves $i]
+		
+		# check for move cancellation (player clicks first piece again)
+		if { $clickCounter > 0 && [lindex $move 0] == [list $positionId] } {
+			cancelMove $c
+			return
+		}
+		
+		if { [lindex $move $clickCounter] != [list $positionId] } {
+			set pMoves [lreplace $pMoves $i $i]
+		}
+	}
+	
+	if { [llength $pMoves] == 0 } {
+		puts "nothing"
+		set pMoves $tempMoves
+	} elseif { [llength $pMoves] == 1 && [llength [lindex $pMoves 0]] == [expr $clickCounter + 1] } {
+		puts "update"
+		set clickCounter 0
+		
+		set move [lindex $pMoves 0]
+		set m1 [lindex $move 0]
+		set m2 [lindex $move 0]
+		set m3 [lindex $move 0]
+		
+		if { [llength $move] == 2 } {
+			set m2 [lindex $move 1]
+		} elseif { [llength $move] == 3 } {
+			set m2 [lindex $move 1]
+			set m3 [lindex $move 2]
+		}
+		
+		$c delete indicator
+		ReturnFromHumanMove [expr $m1*$numPositions*$numPositions + $m2*$numPositions + $m3]
+		set pMoves [getPossibleMoves]
+		
+	} else {
+		puts "increase counter"
+		set indicatorCoords [getIndicatorCoords $c $positionId]
+		set cx [lindex $indicatorCoords 0]
+		set cy [lindex $indicatorCoords 1]
+		makeOval $c $cx $cy [list base indicator ind-$positionId deletable] [expr $scale+0.4] ""
+		$c itemconfig ind-$positionId -outline #B1FF17 -width 3
+		
+		# Set animSpeed into the range [1 11]
+		set animSpeed [expr $gAnimationSpeed + 6]
+		set steps [expr 50/$animSpeed]
+		
+		# how many steps there are for gAnimationSpeed = 0
+		set defaultSteps [expr 50/6]
+		
+		# how much to scale by
+		set factor [expr pow(1.7, 1.0 * $defaultSteps / $steps)]
+		
+		$c scale ind-$positionId $cx $cy .01 .01
+		for {set i 0} {$i < $steps} {incr i} {
+			$c scale ind-$positionId $cx $cy $factor $factor
+			update idletasks
+		}
+		
+		incr clickCounter
+		
+		# call after increasing clickCounter
+		# showMoves uses the value of clickCounter
+		showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+	}
+}
+
+proc showMoves {c moveType position moveList} {
+	
+	global scale pMoves clickCounter
+		
+	GS_HideMoves $c $moveType $position $moveList
+	
+	# filter moves from showMovesMoveList according to users current move selection
+	set compareMove [lindex $pMoves 0]
+	for {set i [expr [llength $moveList] - 1]} {$i >= 0} {set i [expr $i - 1]} {
+		set item [lindex $moveList $i]
+		set move [unhashMove [lindex $item 0] 0]
+		set remove 0
+		for {set j 0} {$j < $clickCounter} {incr j} {
+			if { [lindex $compareMove $j] != [lindex $move $j] } {
+				set remove 1
+			}
+		}
+		if {$remove} {
+			set moveList [lreplace $moveList $i $i]
+		}
+	}
+	
+	# keep only the best options
+	set tempMoveList [list]
+	foreach item $moveList {
+		set move [unhashMove [lindex $item 0] 0]
+		set positionId [lindex $move $clickCounter]
+		set value [lindex $item 1]
+		set betterValue 0
+		set exists 0
+		foreach item2 $tempMoveList {
+			set move2 [unhashMove [lindex $item2 0] 0]
+			set positionId2 [lindex $move2 $clickCounter]
+			if {$positionId == $positionId2} {
+				set exists 1
+				set value2 [lindex $item2 1]
+				if { $value2 == "Lose" || $value == "Win" } {
+					set betterValue 1
+				}
+			}
+		}
+		if {$betterValue || !$exists} {
+			lappend tempMoveList $item
+		}
+	}
+
+	foreach item $tempMoveList {
+		
+		set move [unhashMove [lindex $item 0] 0]
+		set positionId [lindex $move $clickCounter]
+		set value [lindex $item 1]
+		
+		if {$moveType == "all"} {
+			set color #81dbfc
+		} else {
+			if {$value == "Tie"} {
+				set color yellow
+			} elseif {$value == "Lose"} {
+				set color green
+			} elseif {$value == "Win"} {
+				set color red4
+			}
+		}
+		
+		set indicatorCoords [getIndicatorCoords $c $positionId]
+		set cx [lindex $indicatorCoords 0]
+		set cy [lindex $indicatorCoords 1]
+		makeOval $c $cx $cy [list base valueIndicator vind-$positionId] $scale ""
+		$c itemconfig vind-$positionId -outline $color -width 3
+	}
+	
+	update idletasks
+}
+
+proc cancelMove {c} {
+	global clickCounter pMoves
+	global showMovesMoveType showMovesPosition showMovesMoveList
+	
+	set clickCounter 0
+	set pMoves undefined
+	$c delete indicator
+	
+	# call after updating clickCounter
+	# showMoves uses the value of clickCounter
+	showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+}
+
+proc getPossibleMoves {} {
+	global gPosition
+	return [C_PossibleMoves $gPosition]
+}
+
+# Gets the first tag of the first item with a tag name
+# starting with prefix within the bounding box specified
+proc getTagOfOverlappingItem {c x1 y1 prefix} {
+	set x2 [expr $x1 + 1]
+	set y2 [expr $y1 + 1]
+	set items [$c find overlapping $x1 $y1 $x2 $y2]
+	foreach item $items {
+		set tags [$c gettags $item]
+		foreach tag $tags {
+			if {[string match $prefix* $tag]} {
+				return $tag
+			}
+		}
+	}
+	return
+}
+
+# Gets the tag of the playing piece located at the position "positionId"
+proc getPlayingPiece { c positionId } {
+	set indicatorCoords [getIndicatorCoords $c $positionId]
+	set cx [lindex $indicatorCoords 0]
+	set cy [lindex $indicatorCoords 1]
+	return [getTagOfOverlappingItem $c $cx $cy playingPiece]
+}
+
+# Gets the indicator coordinates [list x y] located at the position "positionId"
+proc getIndicatorCoords { c positionId } {
+	set indicatorCoords [$c coords mi-$positionId]
+	set cx [expr ([lindex $indicatorCoords 0]+[lindex $indicatorCoords 2])/2]
+	set cy [expr ([lindex $indicatorCoords 1]+[lindex $indicatorCoords 3])/2]
+	return [list $cx $cy]
+}
+
+proc makeOval { c x y tag scale color} {
+	global squareSize
+
+	$c create oval \
+		[expr $x - $squareSize*$scale/5] \
+		[expr $y - $squareSize*$scale/5] \
+		[expr $x + $squareSize*$scale/5] \
+		[expr $y + $squareSize*$scale/5] \
+		-fill $color -tag $tag -outline ""
+}
+
+proc makePlayingPiece {c positionId color} {
+	
+	global playingPieceId scale animSpeed
+	
+	set indicatorCoords [getIndicatorCoords $c $positionId]
+	set cx [lindex $indicatorCoords 0]
+	set cy [lindex $indicatorCoords 1]
+	
+	# The number in the tagname of the playing piece is used only to distinguish
+	# the playing pieces, not to represent actual locations.
+	makeOval $c $cx $cy [list playingPiece-$playingPieceId deletable] $scale $color
+	
+	$c scale playingPiece-$playingPieceId $cx $cy .01 .01
+	
+	set steps [expr 150/$animSpeed]
+	
+	# how many steps there are for gAnimationSpeed = 0
+	set defaultSteps [expr 150/6]
+	
+	# how much to scale byŒŒ
+	#set factor [expr pow(1.06, 1.0 * $defaultSteps / $steps)]
+	set factor [expr pow(100, 1.0 / $steps)]
+	
+	for {set i 0} {$i < $steps} {incr i} {
+		$c scale playingPiece-$playingPieceId $cx $cy $factor $factor
+		update idletasks
+	}
+	
+	incr playingPieceId
+}
+
+proc removePlayingPiece {c positionId} {
+	
+	global animSpeed
+	
+	set removePiece [getPlayingPiece $c $positionId]
+	set indicatorCoords [getIndicatorCoords $c $positionId]
+	set cx [lindex $indicatorCoords 0]
+	set cy [lindex $indicatorCoords 1]
+	
+	set steps1 [expr 50/$animSpeed]
+	set steps2 [expr 150/$animSpeed]
+	
+	# how many steps there are for gAnimationSpeed = 0
+	set defaultSteps1 [expr 50/6]
+	set defaultSteps2 [expr 150/6]
+	
+	# how much to scale by
+	set factor1 [expr pow(1.06, 1.0 * $defaultSteps1 / $steps1)]
+	set factor2 [expr pow(0.83, 1.0 * $defaultSteps2 / $steps2)]
+	
+	for {set i 0} {$i < $steps1} {incr i} {
+		$c scale $removePiece $cx $cy $factor1 $factor1
+		update idletasks
+	}
+	for {set i 0} {$i < $steps2} {incr i} {
+		$c scale $removePiece $cx $cy $factor2 $factor2
+		update idletasks
+	}
+	
+	$c delete $removePiece
+	update idletasks
+}
+
+proc movePlayingPiece {c startPosition endPosition} {
+	
+	global animSpeed
+	
+	set playingPiece [getPlayingPiece $c $startPosition]
+	set startCoords [getIndicatorCoords $c $startPosition]
+	set endCoords [getIndicatorCoords $c $endPosition]
+	set dx [expr [lindex $endCoords 0] - [lindex $startCoords 0]]
+	set dy [expr [lindex $endCoords 1] - [lindex $startCoords 1]]
+	
+	set steps [expr 200/$animSpeed]
+	for {set i 0} {$i < $steps} {incr i} {
+		$c move $playingPiece [expr ($dx*1.0)/$steps] [expr ($dy*1.0)/$steps]
+		update idletasks
+	}
+}
+
+
+#Notes: update bindings for all the pieces to invoke a function.
+#       Alternatively.... pass moveList over and decode it.
+#             Look at how GS_ShowMoves and how the value moveList is passed... can copy from tkAppInit.c
+#       Need to alter GS_HandleMove to decode moves
+
+
+
+#handle_click will basically read the moveList by getting it from GetValueMovesCmd(dummy, interp, argc, argv). 
+#                                            "C_GetValueMoves"
+#parse the list to obtain something like [ [8 12] lose [ 8 2 1] win [8 2 3] lose [6 13] win]
+#                          make a list of lists - get rid of everything that doesn't start with the piece clicked on.
+#                                      [ [8 12] [8 2 1] [8 2 3]]
+#                                      [ [8 2 1] [8 2 3] ]
+#need a global variable to count which click we are on for a given move. reset it after a complete move is made.
+
+#encode move after clicking is done. i.e. 8*$numPositions*boardsize+12*boardsize+8 for [8 12]
+                                #      or 8*boardsize*boardsize+12*boardsize+2 for [8 12 2]
+								#      or 8*boardsize*boardsize+8*boardsize+8 for [8]
+      #and send the move along to the C.  i.e. "ReturnFromHumanMove [expr 8*$numPositions*boardsize+12*boardsize+8]"
+
+#assume that after each click.... handle_click will be called. you will have a global moveList called possibleMoves
+
+
+#reupdate possibleMoves after a move is complete.
