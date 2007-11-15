@@ -21,6 +21,9 @@
 ### Remember where our executable is.
 
 global kRootDir
+global pMoves
+global clickCounter
+
 if { $tcl_platform(platform) == "unix" } {
     set kRootDir [file dirname [info script]]
 } else {
