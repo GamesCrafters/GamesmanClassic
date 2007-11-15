@@ -1,5 +1,3 @@
-# $Id: InitWindow.tcl,v 1.136 2007-11-14 23:45:20 dmchan Exp $
-#
 #  the actions to be performed when the toolbar buttons are pressed
 #
 # source the network code
@@ -246,7 +244,8 @@ proc InitWindow { kRootDir kExt } {
   global gFontColor
   global tcl_platform
   global gPredString gWhoseTurn
-  
+  global gMaxVVHSize 
+
   # sean: skipinputonsinglemove added fall '05
   global gSkipInputOnSingleMove 
   global gLeftName gRightName
@@ -1009,8 +1008,8 @@ proc InitWindow { kRootDir kExt } {
 
   set skinsFrame .middle.f2.fSkins
   frame $skinsFrame \
-  -width $gFrameWidth \
-  -height $gFrameHeight
+    -width $gFrameWidth \
+    -height $gFrameHeight
   #[expr $gWindowHeight * 25 / 30] 
 
   frame $skinsFrame.buttons
@@ -1142,7 +1141,7 @@ proc InitWindow { kRootDir kExt } {
     -tags [list startupPicOver]
       
   .middle.f3.cMRight create image 0 [expr $gWindowHeightRatio * 200] -anchor nw \
-  -image iAMB5p -tags [list  iAMB iAMB5]
+    -image iAMB5p -tags [list  iAMB iAMB5]
 
   .middle.f3.cMRight create image 0 0 -anchor nw -image iIMB4p \
     -tags [list  iIMB iIMB4]
@@ -1511,8 +1510,7 @@ proc InitWindow { kRootDir kExt } {
     .cStatus raise historyI
     .cStatus raise rulesA
     #.cStatus raise iABB3
-    # uncomment when working
-    #pack forget .vvhsb 
+    updateVVHBar
     update
   }
 
@@ -1539,8 +1537,7 @@ proc InitWindow { kRootDir kExt } {
     .cStatus raise rulesI
     .cStatus raise historyA
     #.cStatus raise iABB4
-    # uncomment when working
-    #pack .vvhsb -in .middle.f1.cMLeft -side right -anchor e -fill y
+    updateVVHBar
     update
   }
 
@@ -1670,13 +1667,9 @@ proc InitWindow { kRootDir kExt } {
 
   # setup visual value history scrollbar stuff
   .middle.f1.cMLeft config -yscrollcommand ".vvhsb set"
-  scrollbar .vvhsb -orient v -command ".middle.f1.cMLeft yview"
+  scrollbar .vvhsb -orient h -command ".middle.f1.cMLeft yview"
 
-  # setup scrollregion
-  set bb [.middle.f1.cMLeft bbox all]
-  set bb [lreplace $bb 1 1 [expr 4 * [lindex $bb 1]]]
-  set bb [lreplace $bb 3 3 [expr 4 * [lindex $bb 3]]]
-  .middle.f1.cMLeft config -scrollregion "$bb"
+  set gMaxVVHSize [expr $gFrameHeight + 20]
 }
 
 proc RaiseStatusBarIfGameStarted {} {
@@ -1735,12 +1728,13 @@ proc clickedPlayNow {} {
       set gGameSolved true
       . config -cursor {}
     } else {
-        # TIER-GAMESMAN
-        set gPosition [C_InitTierGamesmanIfNeeded $gPosition]
+      # TIER-GAMESMAN
+      set gPosition [C_InitTierGamesmanIfNeeded $gPosition]
         
       set gReallyUnsolved true
       set gGameSolved true
     }
+
     pack forget .middle.f2.fPlayOptions
     global gSmartness gSmartnessScale
     C_SetSmarterComputer $gSmartness $gSmartnessScale
@@ -2364,6 +2358,9 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     #add new move to list
     lappend moveHistoryList $plottedLine $plottedMove
     lappend oldMoveList [list $gPosition $theMoves]
+
+    # resize/show/hide visual value history bar if needed
+    updateVVHBar
 }
 
 proc unplotMove { numUndo } {
@@ -2371,6 +2368,7 @@ proc unplotMove { numUndo } {
     set moveBackNum [expr [expr $numUndo + 1] * 2]
     set len [llength $moveHistoryList]
     set newLast [expr $len - $moveBackNum - 1]
+
     #delete items
     for {set i 0} {$i<[expr $moveBackNum+1] && [expr $len - $i] >= 0} {incr i} {
       set end [lindex $moveHistoryList [expr $len - $i]]
@@ -2380,10 +2378,14 @@ proc unplotMove { numUndo } {
       $moveHistoryCanvas delete moveHistoryDots$y
       $moveHistoryCanvas delete $end
     }
+
     #remove item from list
     set moveHistoryList [lrange $moveHistoryList 0 $newLast]
     set gMistakeList [lrange $gMistakeList 0 $newLast]
     set oldMoveList [lrange $oldMoveList 0 $newLast]
+
+    # resize/show/hide visual value history bar if needed
+    updateVVHBar
 }
 
 #undos to the nth position in the game, indexed at 0
@@ -2439,7 +2441,7 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX } {
 		    } else {
           set mult 0
 		    }
-		    set oldXDistance [expr [expr $oldX - $center] * $mult]
+		    set oldXDistance [expr {($oldX - $center) * $mult}]
 		    if { $oldDeltaX == 0 } {
           set oldRemoteness 0
 		    } else {
@@ -2448,24 +2450,27 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX } {
 	
 		    #handle validMove dots
 		    foreach dot [$moveHistoryCanvas find withtag moveHistoryDots$y] {
-				set dotCoords [$moveHistoryCanvas coords $dot]
-				set xCenter [expr ([lindex $dotCoords 0] + [lindex $dotCoords 2]) / 2]
-				if {$xCenter < $center} {
-				    set dotMult -1
-				} elseif {$xCenter > $center} {
-				    set dotMult 1
-				} else {
-				    set dotMult 0
-				}
-				if { $oldDeltaX == 0 } {
-				    set oldDotRemoteness 0
-				} else {
-				    set oldDotRemoteness [expr ($xCenter - $center) / $oldDeltaX]
-				}
-				set newX [expr $center + ($oldDotRemoteness * $dotMult * $newDeltaX)]
-				lset dotCoords 0 [expr $newX-$pieceRadius/2]
-				lset dotCoords 2 [expr $newX+$pieceRadius/2]
-				$moveHistoryCanvas coords $dot $dotCoords
+          set dotCoords [$moveHistoryCanvas coords $dot]
+          set xCenter [expr ([lindex $dotCoords 0] + [lindex $dotCoords 2]) / 2]
+
+          if {$xCenter < $center} {
+              set dotMult -1
+          } elseif {$xCenter > $center} {
+              set dotMult 1
+          } else {
+              set dotMult 0
+          }
+
+          if { $oldDeltaX == 0 } {
+              set oldDotRemoteness 0
+          } else {
+              set oldDotRemoteness [expr ($xCenter - $center) / $oldDeltaX]
+          }
+
+          set newX [expr $center + ($oldDotRemoteness * $dotMult * $newDeltaX)]
+          lset dotCoords 0 [expr $newX-$pieceRadius/2]
+          lset dotCoords 2 [expr $newX+$pieceRadius/2]
+          $moveHistoryCanvas coords $dot $dotCoords
 		    }
 	
 		    set newXDistance [expr $oldRemoteness * $mult * $newDeltaX]
@@ -2474,10 +2479,10 @@ proc rescaleX { center pieceRadius oldDeltaX newDeltaX } {
 		    global gAnimationSpeed
 		    #total time in ms for one piece to move to new location
 		    #range 0-100
-		    set delay [expr [expr 10 - $gAnimationSpeed + 5] * 10]
+		    set delay [expr {(10 - $gAnimationSpeed + 5) * 10}]
 		    if { $mult != 0 } {
           for {set j 1} {$j<=$steps} {incr j} {
-				    set newX [expr $center + [expr $shift * $j]]
+				    set newX [expr {$center + $shift * $j}]
 				    set xOpposite [expr $center + $center - $newX]
 				    lset lineInCoords 2 $newX
 				    if {$i == 1} {
@@ -2533,10 +2538,11 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
     ### Set FONT COLOR for each skin ###
     if { $gSkinsDir == "EarthFromSpace_HiRes/" || \
 	    $gSkinsDir == "SpaceCloud_HiRes/"} {
-		set gFontColor "white"
+      set gFontColor "white"
     } else {
       set gFontColor "black"
     }
+
     if { [winfo exists .middle.f1.cMLeft] } {
       .middle.f1.cMLeft itemconfig textitem -fill $gFontColor
       .middle.f1.cMLeft itemconfig moveHistoryTitle -fill $gFontColor
@@ -2548,6 +2554,7 @@ proc InitButtons { skinsRootDir skinsDir skinsExt } {
       .middle.f1.cMLeft itemconfig progressBarText -fill $gFontColor
       .middle.f1.cMLeft itemconfig progressBarBox -outline $gFontColor
     }
+
     if { [winfo exists .middle.f3.cMRight] } {
       .middle.f3.cMRight itemconfig textitem -fill $gFontColor
       .middle.f3.cMRight itemconfig Predictions -fill $gFontColor
@@ -2779,12 +2786,12 @@ proc advanceProgressBar { percent {str "Solving Game"} } {
   set percentDone [expr ($xCoord - [lindex $barCoords 0]) / $percentDelta]
 
   if {$percentDone > 100.0} {
-    $percentDone = 100.0
+    set percentDone 100.0
   }
 
   if {$percent == 0} {
     lset barCoords 2 [lindex $barCoords 0]
-    $percentDone = 0
+    set percentDone 0
   } else {
     lset barCoords 2 $xCoord
   }
@@ -2795,3 +2802,36 @@ proc advanceProgressBar { percent {str "Solving Game"} } {
   .middle.f1.cMLeft raise progressBar
   update idletasks
 }
+
+proc showVVHBar { } {
+  pack .vvhsb -in .middle.f1.cMLeft -side bottom -anchor n -fill x
+  update idletasks
+}
+
+proc hideVVHBar { } {
+  pack forget .vvhsb 
+  update idletasks
+}
+
+proc updateVVHBar { } {
+  global gMaxVVHSize
+
+  set box [.middle.f1.cMLeft bbox all]
+  set after [expr [lindex $box end] + 20]
+  set box [lreplace $box end end $after]
+  # offset to consider the scrollbar
+
+  .middle.f1.cMLeft config -scrollregion $box
+
+  # when after exceeds gMaxVVHSize and before is less
+  # we need scrollbar
+  # when after is less than that and before is greater
+  # then we hide it
+  if { $after > $gMaxVVHSize } {
+    showVVHBar
+  } elseif { $after <= $gMaxVVHSize } {
+    hideVVHBar
+  }
+
+}
+
