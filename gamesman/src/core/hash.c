@@ -376,10 +376,10 @@ POSITION generic_hash_hash(char* board, int player) {
 }
 
 //accomodates generic_hash_turn and symmetries
-POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symIndex)
+POSITION generic_hash_hash_sym(char* board, int player, POSITION offset, struct symEntry* symIndex)
 {
         int i, j;
-	POSITION temp, sum;
+	POSITION temp;
         int boardSize = cCon->boardSize;/*hash_boardSize;*/
 
 	if (symIndex == NULL)
@@ -399,16 +399,7 @@ POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symInde
                         }
                 }
         }
-        sum = 0;
-        for (i = cCon->numPieces-1;i >= 0;i--)
-        {
-                sum += (cCon->thisCount[i] - cCon->mins[i]);
-                if (i > 0) {
-                        sum *= cCon->nums[i-1];
-                }
-        }
-        temp = cCon->hashOffset[searchIndices(sum)];
-        temp += hash_cruncher_sym(board, symIndex);
+        temp = offset + hash_cruncher_sym(board, symIndex);
         if (cCon->player != 0) // using single-player boards, ignore "player"
         	return temp;
         else return temp + (player-1)*(cCon->maxPos); //accomodates generic_hash_turn
@@ -1213,7 +1204,7 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	  symIndex = symIndex->next;
 	}
 	
-	printSymmetries(boardType);
+	//printSymmetries(boardType);
 	
 	if (hexBoard) {
 	  SafeFree(hex60Rot);
@@ -1284,13 +1275,38 @@ POSITION generic_hash_canonicalPosition(POSITION pos) {
 	struct symEntry* symIndex = symmetriesList->next;
         generic_hash_unhash(pos, board);
 	int player = generic_hash_turn(pos);
-	POSITION tempPos;
-        POSITION minPos = generic_hash_hash_sym(board, player, symmetriesList);
+	POSITION tempPos, sum, offset, minPos;
+	int i, j, boardSize = cCon->boardSize;
 
+	for (i = 0;i < cCon->numPieces;i++)
+        {
+                cCon->thisCount[i] = 0;
+                cCon->localMins[i] = cCon->mins[i];
+        }
+
+        for (i = 0; i < boardSize; i++)
+        {
+                for (j = 0; j < cCon->numPieces; j++) {
+		        if (board[symIndex->sym[i]] == cCon->pieces[j]) {
+                                cCon->thisCount[j]++;
+                        }
+                }
+        }
+        sum = 0;
+        for (i = cCon->numPieces-1;i >= 0;i--)
+        {
+                sum += (cCon->thisCount[i] - cCon->mins[i]);
+                if (i > 0) {
+                        sum *= cCon->nums[i-1];
+                }
+        }
+        offset = cCon->hashOffset[searchIndices(sum)];
+
+        minPos = generic_hash_hash_sym(board, player, offset, symmetriesList);
 	// try each symmetry, keeping the lowest position hash
 	// returns as the canonical position.
 	while (symIndex != NULL) {
-	  tempPos = generic_hash_hash_sym(board, player, symIndex);
+	  tempPos = generic_hash_hash_sym(board, player, offset, symIndex);
 	  minPos = (tempPos < minPos) ? tempPos : minPos;
 	  symIndex = symIndex->next;
 	}
