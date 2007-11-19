@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.72 2007-05-07 03:05:28 max817 Exp $
+// $Id: mquarto.c,v 1.73 2007-11-19 03:40:23 ddgarcia Exp $
 
 
 /*
@@ -2080,38 +2080,6 @@ void yanpeiTestHash() {
     printPos = oldPrintPos;
 }
 
-// Mario's Cannonical stuff
-
-POSITION marioGetCanonical(POSITION position) {
-  
-  inline QTBPtr rotateBoard90(QTBPtr b);
-  inline QTBPtr reflectBoard(QTBPtr b);
-  inline QTBPtr normalizeBoard(QTBPtr board);
-  
-  QTBPtr orbit[8];
-  short group;
-  
-  orbit[0] = unhash(position);
-  orbit[1] = rotateBoard90(orbit[0]);
-  orbit[2] = rotateBoard90(orbit[1]);
-  orbit[3] = rotateBoard90(orbit[2]);
-  orbit[4] = reflectBoard(orbit[0]);
-  orbit[5] = reflectBoard(orbit[1]);
-  orbit[6] = reflectBoard(orbit[2]);
-  orbit[7] = reflectBoard(orbit[3]);
-  
-  position = offsetTable[NUMPIECES+1];
-  for (group = 0; group < 8; group++) {
-    POSITION temp = hash(normalizeBoard(orbit[group]));
-    position = (temp < position) ? temp : position;
-    /* Free allocated board */
-    FreeBoard(orbit[group]);
-  }
-
-  return position;
-  
-}
-
 QTBPtr rotateBoard90(QTBPtr b) {
 
   QTBPtr c = MallocBoard();
@@ -2152,55 +2120,33 @@ QTBPtr reflectBoard(QTBPtr b) {
   return c;
 }
 
-QTBPtr normalizeBoard(QTBPtr board) {
-  
-  inline short *normalize(short *pieces, short count);
+void swap_columns(short *pieces, short count, short this, short that) {
 
-  // Array of ordered pieces to be normalized
-  short pieces[board->piecesInPlay];
-
-  // Locations of ordered pieces on the board
-  short locations[board->piecesInPlay];
-
-  // Index to location on board
-  int index;
-
-  // Index to piece in ordered set of pieces
+  /* Placeholder for index to pieces in pieces array */
   int piece;
-
-  // For every location on board, until all pieces have been examined
-  for (index = 0, piece = 0; piece < board->piecesInPlay; index++) {
-
-    // If board location contains a piece
-    if (board->slots[index] != EMPTYSLOT) {
-      
-      // Store the piece value in ordered array of pieces
-      pieces[piece] = board->slots[index];
-      
-      // Store the piece location on board
-      locations[piece] = index;
-
-      // Increment piece index
-      piece++;
-      
-    }
-
+  
+  // Go through each piece
+  for (piece = 0; piece < count; piece++) {
+    
+    /* Placeholders to bits this and that in pieces array at index piece */
+    short this_bit, that_bit;
+    
+    // Extract the this bit
+    this_bit = get_bit(pieces[piece], this);
+    
+    // Extract the that bit
+    that_bit = get_bit(pieces[piece], that);
+    
+    // Set the this bit of piece to the that bit
+    set_bit(pieces[piece], this, that_bit);
+    
+    // Set the that bit of piece to the this bit
+    set_bit(pieces[piece], that, this_bit);
+    
   }
-
-  // Normalize pieces
-  normalize(pieces, board->piecesInPlay);
-
-  // For every piece in ordered set of normalized pieces
-  for (piece = 0; piece < board->piecesInPlay; piece++) {
-
-    // Place normalized piece back on the board in the same location
-    board->slots[locations[piece]] = pieces[piece];
-
-  }
-
-  return board;
   
 }
+
 
 short *normalize(short *pieces, short count) {
 
@@ -2329,33 +2275,89 @@ short *normalize(short *pieces, short count) {
    
 }
 
-void swap_columns(short *pieces, short count, short this, short that) {
 
-  /* Placeholder for index to pieces in pieces array */
-  int piece;
+
+QTBPtr normalizeBoard(QTBPtr board) {
   
-  // Go through each piece
-  for (piece = 0; piece < count; piece++) {
-    
-    /* Placeholders to bits this and that in pieces array at index piece */
-    short this_bit, that_bit;
-    
-    // Extract the this bit
-    this_bit = get_bit(pieces[piece], this);
-    
-    // Extract the that bit
-    that_bit = get_bit(pieces[piece], that);
-    
-    // Set the this bit of piece to the that bit
-    set_bit(pieces[piece], this, that_bit);
-    
-    // Set the that bit of piece to the this bit
-    set_bit(pieces[piece], that, this_bit);
-    
+  inline short *normalize(short *pieces, short count);
+
+  // Array of ordered pieces to be normalized
+  short pieces[board->piecesInPlay];
+
+  // Locations of ordered pieces on the board
+  short locations[board->piecesInPlay];
+
+  // Index to location on board
+  int index;
+
+  // Index to piece in ordered set of pieces
+  int piece;
+
+  // For every location on board, until all pieces have been examined
+  for (index = 0, piece = 0; piece < board->piecesInPlay; index++) {
+
+    // If board location contains a piece
+    if (board->slots[index] != EMPTYSLOT) {
+      
+      // Store the piece value in ordered array of pieces
+      pieces[piece] = board->slots[index];
+      
+      // Store the piece location on board
+      locations[piece] = index;
+
+      // Increment piece index
+      piece++;
+      
+    }
+
   }
+
+  // Normalize pieces
+  normalize(pieces, board->piecesInPlay);
+
+  // For every piece in ordered set of normalized pieces
+  for (piece = 0; piece < board->piecesInPlay; piece++) {
+
+    // Place normalized piece back on the board in the same location
+    board->slots[locations[piece]] = pieces[piece];
+
+  }
+
+  return board;
   
 }
 
+// Mario's Cannonical stuff
+
+POSITION marioGetCanonical(POSITION position) {
+  
+  inline QTBPtr rotateBoard90(QTBPtr b);
+  inline QTBPtr reflectBoard(QTBPtr b);
+  inline QTBPtr normalizeBoard(QTBPtr board);
+  
+  QTBPtr orbit[8];
+  short group;
+  
+  orbit[0] = unhash(position);
+  orbit[1] = rotateBoard90(orbit[0]);
+  orbit[2] = rotateBoard90(orbit[1]);
+  orbit[3] = rotateBoard90(orbit[2]);
+  orbit[4] = reflectBoard(orbit[0]);
+  orbit[5] = reflectBoard(orbit[1]);
+  orbit[6] = reflectBoard(orbit[2]);
+  orbit[7] = reflectBoard(orbit[3]);
+  
+  position = offsetTable[NUMPIECES+1];
+  for (group = 0; group < 8; group++) {
+    POSITION temp = hash(normalizeBoard(orbit[group]));
+    position = (temp < position) ? temp : position;
+    /* Free allocated board */
+    FreeBoard(orbit[group]);
+  }
+
+  return position;
+  
+}
 
 // Yanpei's Cannonical stuff
 
@@ -3069,6 +3071,9 @@ BOOLEAN IsLegal(POSITION position) {
 }
 */
 // $Log: not supported by cvs2svn $
+// Revision 1.72  2007/05/07 03:05:28  max817
+// IT WORKS
+//
 // Revision 1.71  2007/05/07 01:30:50  max817
 // Quarto works, and fixed a display bug with hash efficiency.
 //
