@@ -26,6 +26,14 @@
 ;; lose <=> all children are wins
 ;; tie  <=> there is at least one tie child and no loses
 
+(define (solve P) ;; smallest possible solver
+  (or (primitive P)
+      (let ((values (map (lambda (M) (solve (do-move P M))) (generate-moves P))))
+	(cond ((member 'lose values) 'win)
+	      ((member 'tie  values) 'tie)
+     	      (else 'lose)))))
+
+
 (define (solve game P) ;; loop-free memoized solver!
   ; (solve 'nim '(1 3 5 7)) ==> lose
   (or (get game P)
