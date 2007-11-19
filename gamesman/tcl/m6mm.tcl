@@ -431,7 +431,9 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 		set indicatorCoords [getCoords $c mi-$theMoveFrom]
 		set ix [lindex $indicatorCoords 0]
 		set iy [lindex $indicatorCoords 1]
-		if { [getTagOfOverlappingItem $c $ix $iy playingPiece] == "" } {
+		set playingPiece [getTagOfOverlappingItem $c $ix $iy playingPiece]
+		
+		if { $playingPiece == "" } {
 			unhashBoard $newPosition a
 			
 			set colors [GS_ColorOfPlayers]
@@ -457,6 +459,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 		}
 	}
 	if { $theMoveRemove != $theMoveFrom } {
+		puts remove
 		removePlayingPiece $c $theMoveRemove
 	}
 }
@@ -625,7 +628,7 @@ proc unhashMove {theMove adjustForPhase} {
 	# This is stored in theMoveTo, instead of theMoveRemove.
 	# Set adjustForPhase to be 1 (true) to store the remove piece in theMoveRemove.
 	
-	if {$adjustForPhase && $numMovesPerformed < $totalPieces} {
+	if {$adjustForPhase && $numMovesPerformed <= $totalPieces} {
 		set theMoveRemove $theMoveTo
 		set theMoveTo $theMoveFrom
 	}
