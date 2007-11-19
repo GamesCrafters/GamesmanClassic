@@ -1,9 +1,8 @@
 # -----TODO List------
+# Bug when clicking undo/redo during middle of a move
 # Game Over
 # Undo Game Over
-# Variants (no fly)
 # drawPosition (how to track different phases)
-# color of players?
 
 
 
@@ -17,8 +16,8 @@
 # and gInitialPosition in this function.
 ############################################################################
 proc GS_InitGameSpecific {} {
-    
-    ### Set the name of the game
+
+	### Set the name of the game
     global kGameName
     set kGameName "6 Men's Morris"
     
@@ -77,12 +76,13 @@ proc GS_InitGameSpecific {} {
 	global playingPieceId
 	set playingPieceId 0
 	
-	# Set animSpeed into the range [1 11]
-	global gAnimationSpeed animSpeed
-	set animSpeed [expr $gAnimationSpeed + 6]
-	
 	# used to show move values
 	global showMovesMoveType showMovesPosition showMovesMoveList
+	
+	# used for click/drag piece movement
+	global dragging dragPiece dragPiecePositionId mousePrevX mousePrevY prevDragMove
+	set dragging 0
+	set prevDragMove [list]
 }
 
 #############################################################################
@@ -113,7 +113,7 @@ proc GS_NameOfPieces {} {
 # The right player's color should be second.
 #############################################################################
 proc GS_ColorOfPlayers {} {
-	return [list blue red]
+	return [list #eeeeee #000000]
 }
 
 #############################################################################
@@ -255,9 +255,10 @@ proc GS_Initialize { c } {
 		for {set l 0} {$l <= 2} {incr l} {        ;# //traverse columns
 			set ty [expr ($my-($temp-$k)*$scaledSquareSize)]
 			set tx [expr (($mx+$k*$scaledSquareSize)-($temp-($temp-$k)*$l)*$scaledSquareSize)]
-			# makeOval color doesn't matter here.
-			makeOval $c $tx $ty mi-$positionId $scale $canvasColor
-			makeOval $c $tx $ty [list base positionMarker] [expr $scale - .4] $canvasColor
+			set clickRadius [getRadiusGivenScale [expr 2*$scale]]
+			set markerRadius [getRadiusGivenScale [expr $scale - 0.4]]
+			makeOval $c $tx $ty mi-$positionId $clickRadius $canvasColor
+			makeOval $c $tx $ty [list base positionMarker] $markerRadius $canvasColor
 			set mx-$positionId $tx
 			set my-$positionId $ty
 			incr positionId
@@ -269,9 +270,10 @@ proc GS_Initialize { c } {
 	set tx [expr ($mx-$temp*$scaledSquareSize) ]
 	for {set l 0} {$l <= [expr (2*$temp)]} {incr l} {
 		if {$l!=$temp} {
-			# makeOval color doesn't matter here.
-			makeOval $c $tx $ty mi-$positionId $scale $canvasColor
-			makeOval $c $tx $ty [list base positionMarker] [expr $scale - .4] $canvasColor
+			set clickRadius [getRadiusGivenScale [expr 2*$scale]]
+			set markerRadius [getRadiusGivenScale [expr $scale - 0.4]]
+			makeOval $c $tx $ty mi-$positionId $clickRadius $canvasColor
+			makeOval $c $tx $ty [list base positionMarker] $markerRadius $canvasColor
 			set mx-$positionId $tx
 			set my-$positionId $ty
 			incr positionId
@@ -284,9 +286,10 @@ proc GS_Initialize { c } {
 		for {set l 0} {$l <= 2} {incr l} {        ;# //traverse columns
 			set ty [expr ($my+($temp-$k)*$scaledSquareSize)]
 			set tx [expr (($mx+$k*$scaledSquareSize)-($temp-($temp-$k)*$l)*$scaledSquareSize)]
-			# makeOval color doesn't matter here.
-			makeOval $c $tx $ty mi-$positionId $scale $canvasColor
-			makeOval $c $tx $ty [list base positionMarker] [expr $scale - .4] $canvasColor
+			set clickRadius [getRadiusGivenScale [expr 2*$scale]]
+			set markerRadius [getRadiusGivenScale [expr $scale - 0.4]]
+			makeOval $c $tx $ty mi-$positionId $clickRadius $canvasColor
+			makeOval $c $tx $ty [list base positionMarker] $markerRadius $canvasColor
 			set mx-$positionId $tx
 			set my-$positionId $ty
 			incr positionId
@@ -379,7 +382,9 @@ proc GS_NewGame { c position } {
 	$c raise base
 	$c raise positionMarker
 	GS_InitGameSpecific
-	bind $c <ButtonRelease-1> "handleClicks $c %x %y"
+	bind $c <ButtonPress-1> "handlePress $c %x %y"
+	bind $c <ButtonRelease-1> "handleRelease $c %x %y"
+	bind $c <Motion> "handleMotion $c %x %y"
 }
 
 #############################################################################
@@ -423,18 +428,33 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	
 	if {$theMoveFrom == $theMoveTo} {
 		
-		unhashBoard $newPosition a
-		
-		if {$a($theMoveFrom) == "X"} {
-			set color #eeeeee
-		} else {
-			set color #000000
+		set indicatorCoords [getCoords $c mi-$theMoveFrom]
+		set ix [lindex $indicatorCoords 0]
+		set iy [lindex $indicatorCoords 1]
+		if { [getTagOfOverlappingItem $c $ix $iy playingPiece] == "" } {
+			unhashBoard $newPosition a
+			
+			set colors [GS_ColorOfPlayers]
+			if {$a($theMoveFrom) == "X"} {
+				set color [lindex $colors 0]
+			} else {
+				set color [lindex $colors 1]
+			}
+			
+			makePlayingPiece $c $theMoveFrom $color
 		}
 		
-		makePlayingPiece $c $theMoveFrom $color
-		
 	} else {
-		movePlayingPiece $c $theMoveFrom $theMoveTo
+		set coords [getCoords $c mi-$theMoveFrom]
+		set endCoords [getCoords $c mi-$theMoveTo]
+		set playingPiece [getTagOfOverlappingItem \
+		 	$c \
+		 	[lindex $coords 0] \
+		 	[lindex $coords 1] \
+		 	playingPiece]
+		if { $playingPiece != "" } {
+			movePlayingPiece $c $playingPiece $endCoords
+		}
 	}
 	if { $theMoveRemove != $theMoveFrom } {
 		removePlayingPiece $c $theMoveRemove
@@ -501,7 +521,6 @@ proc GS_HideMoves { c moveType position moveList} {
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 	
 	global numMovesPerformed pMoves
-	global animSpeed
 	
 	set numMovesPerformed [expr $numMovesPerformed - 1]
 	
@@ -512,12 +531,8 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 	set theMoveTo [lindex $move 1]
 	set theMoveRemove [lindex $move 2]
 	
-	if {$theMoveFrom == $theMoveTo} {
-		removePlayingPiece $c $theMoveFrom
-	} else {
-		movePlayingPiece $c $theMoveTo $theMoveFrom
-	}
 	if { $theMoveRemove != $theMoveFrom } {
+			
 		unhashBoard $positionAfterUndo a
 		
 		if {$a($theMoveRemove) == "X"} {
@@ -527,6 +542,19 @@ proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 		}
 		
 		makePlayingPiece $c $theMoveRemove $color
+	}
+	
+	if {$theMoveFrom == $theMoveTo} {
+		removePlayingPiece $c $theMoveFrom
+	} else {
+		set coords [getCoords $c mi-$theMoveTo]
+		set endCoords [getCoords $c mi-$theMoveFrom]
+		set playingPiece [getTagOfOverlappingItem \
+			$c \
+			[lindex $coords 0] \
+			[lindex $coords 1] \
+			playingPiece]
+		movePlayingPiece $c $playingPiece $endCoords
 	}
 }
 
@@ -585,17 +613,19 @@ proc unhashBoard {position arrayname} {
 }
 
 proc unhashMove {theMove adjustForPhase} {
-	global numPositions numMovesPerformed totalPieces
+	
+	global numPositions
+	global numMovesPerformed totalPieces
 	
 	set theMoveFrom [expr $theMove/( $numPositions*$numPositions )]
 	set theMoveTo [expr [expr $theMove/$numPositions] % $numPositions]
 	set theMoveRemove [expr $theMove % $numPositions]
 	
-	# In phase 1, if you form a mill the move contains a second part, the piece to remove.
+	# In phase 1, if you form a mill the move contains a second part: the piece to remove.
 	# This is stored in theMoveTo, instead of theMoveRemove.
-	# Set adjustForPhase to be 1 (true) to change store the remove piece in theMoveRemove.
+	# Set adjustForPhase to be 1 (true) to store the remove piece in theMoveRemove.
 	
-	if {$adjustForPhase && $numMovesPerformed <= $totalPieces} {
+	if {$adjustForPhase && $numMovesPerformed < $totalPieces} {
 		set theMoveRemove $theMoveTo
 		set theMoveTo $theMoveFrom
 	}
@@ -619,91 +649,160 @@ proc DrawPieces {c position } {
 	update idletasks
 }
 
-proc handleClicks { c x y } {
+proc handleMotion { c x y } {
 	
-	global scale numPositions clickCounter pMoves
-	global gAnimationSpeed
+	global dragging dragPiece mousePrevX mousePrevY
+	
+	if { $dragging } {
+		set dx [expr $x - $mousePrevX]
+		set dy [expr $y - $mousePrevY]
+		set mousePrevX $x
+		set mousePrevY $y
+		$c move $dragPiece $dx $dy
+	}
+}
+proc handlePress { c x y } {
+	
+	global clickCounter
+	global pMoves numMovesPerformed totalPieces
+	global dragging dragPiece dragPiecePositionId mousePrevX mousePrevY
 	global showMovesMoveType showMovesPosition showMovesMoveList
 	
-	# find which move indicator the user clicked
-	set tag [getTagOfOverlappingItem $c $x $y mi]
-	if {$tag == ""} {
-		return
+	if { $numMovesPerformed >= $totalPieces } {
+		# not phase 1
+		
+		set positionId [getPositionId $c $x $y]
+		
+		if { $positionId != "" && $dragPiece == ""} {
+			
+			set indicatorCoords [getCoords $c mi-$positionId]
+			set ix [lindex $indicatorCoords 0]
+			set iy [lindex $indicatorCoords 1]
+			set playingPiece [getTagOfOverlappingItem $c $ix $iy playingPiece]
+			
+			if { $playingPiece != "" } {
+				
+				if { $pMoves == "undefined" } {
+					set pMoves [getPossibleMoves]
+				}
+				filterPossibleMoves $positionId
+				set dragging 1
+				set dragPiece $playingPiece
+				set dragPiecePositionId $positionId
+				set mousePrevX $x
+				set mousePrevY $y
+				incr clickCounter
+				
+				# call after increasing clickCounter
+				# showMoves uses the value of clickCounter
+				showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+			}
+		}
 	}
-	set positionId [string range $tag [expr [string first "-" $tag] + 1] end]
+}
+
+proc handleRelease { c x y } {
 	
-	if {$pMoves == "undefined"} {
+	global gPosition
+	global clickCounter
+	global pMoves numMovesPerformed totalPieces
+	global dragging dragPiece dragPiecePositionId
+	global showMovesMoveType showMovesPosition showMovesMoveList
+	
+	if { $pMoves == "undefined" } {
 		set pMoves [getPossibleMoves]
 	}
-	
 	set tempMoves $pMoves
-	for {set i [expr [llength $pMoves] - 1]} {$i >= 0} {set i [expr $i - 1]} {
-		set move [lindex $pMoves $i]
-		
-		# check for move cancellation (player clicks first piece again)
-		if { $clickCounter > 0 && [lindex $move 0] == [list $positionId] } {
-			cancelMove $c
-			return
-		}
-		
-		if { [lindex $move $clickCounter] != [list $positionId] } {
-			set pMoves [lreplace $pMoves $i $i]
-		}
-	}
 	
-	if { [llength $pMoves] == 0 } {
-		puts "nothing"
-		set pMoves $tempMoves
-	} elseif { [llength $pMoves] == 1 && [llength [lindex $pMoves 0]] == [expr $clickCounter + 1] } {
-		puts "update"
-		set clickCounter 0
+	set positionId [getPositionId $c $x $y]
+
+	if { $numMovesPerformed < $totalPieces } {
+		# phase 1
 		
-		set move [lindex $pMoves 0]
-		set m1 [lindex $move 0]
-		set m2 [lindex $move 0]
-		set m3 [lindex $move 0]
-		
-		if { [llength $move] == 2 } {
-			set m2 [lindex $move 1]
-		} elseif { [llength $move] == 3 } {
-			set m2 [lindex $move 1]
-			set m3 [lindex $move 2]
+		if { $positionId != "" } {
+
+			filterPossibleMoves $positionId
+
+			if { [llength $pMoves] == 0 } {
+				set pMoves $tempMoves
+			} elseif { [llength $pMoves] == 1 && [llength [lindex $pMoves 0]] == [expr $clickCounter + 1] } {
+				executeMove $c [lindex $pMoves 0]
+			} else {
+				
+				# mill formed during phase 1
+				# create piece
+				set colors [GS_ColorOfPlayers]
+				set whoseTurn [GS_WhoseMove $gPosition]
+				if { $whoseTurn == "X" } {
+					set color [lindex $colors 0]
+				} else {
+					set color [lindex $colors 1]
+				}
+				makePlayingPiece $c $positionId $color
+				
+				incr clickCounter
+				
+				# call after increasing clickCounter
+				# showMoves uses the value of clickCounter
+				showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+			}
 		}
-		
-		$c delete indicator
-		ReturnFromHumanMove [expr $m1*$numPositions*$numPositions + $m2*$numPositions + $m3]
-		set pMoves [getPossibleMoves]
 		
 	} else {
-		puts "increase counter"
-		set indicatorCoords [getIndicatorCoords $c $positionId]
-		set cx [lindex $indicatorCoords 0]
-		set cy [lindex $indicatorCoords 1]
-		makeOval $c $cx $cy [list base indicator ind-$positionId deletable] [expr $scale+0.4] ""
-		$c itemconfig ind-$positionId -outline #B1FF17 -width 3
+		# not phase 1
 		
-		# Set animSpeed into the range [1 11]
-		set animSpeed [expr $gAnimationSpeed + 6]
-		set steps [expr 50/$animSpeed]
-		
-		# how many steps there are for gAnimationSpeed = 0
-		set defaultSteps [expr 50/6]
-		
-		# how much to scale by
-		set factor [expr pow(1.7, 1.0 * $defaultSteps / $steps)]
-		
-		$c scale ind-$positionId $cx $cy .01 .01
-		for {set i 0} {$i < $steps} {incr i} {
-			$c scale ind-$positionId $cx $cy $factor $factor
-			update idletasks
+		if { $positionId != "" } {
+			
+			filterPossibleMoves $positionId
+			
+			if { [llength $pMoves] == 0 } {
+				if { $dragging } {
+					releaseDrag $c
+				} else {
+					set pMoves $tempMoves
+				}
+			} else {
+				
+				if { $dragging } {
+					set dragging 0
+					set endCoords [getCoords $c mi-$positionId]
+					movePlayingPiece $c $dragPiece $endCoords
+				}
+				
+				if { [llength $pMoves] == 1 && [llength [lindex $pMoves 0]] == [expr $clickCounter + 1] } {
+					executeMove $c [lindex $pMoves 0]
+				} else {
+					
+					# allow dragging the piece back to "undo" current move
+					# TODO
+					set newMove [list $dragPiecePositionId $positionId $positionId $dragPiecePositionId]
+					lappend pMoves $newMove
+					lappend showMovesoveList $newMove
+					puts $pMoves
+					
+					incr clickCounter
+					
+					# call after increasing clickCounter
+					# showMoves uses the value of clickCounter
+					showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+				}
+			}
+			
+		} else {
+			if { $dragging } {
+				releaseDrag $c
+			}
 		}
-		
-		incr clickCounter
-		
-		# call after increasing clickCounter
-		# showMoves uses the value of clickCounter
-		showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
 	}
+}
+
+proc releaseDrag { c } {
+	
+	global dragPiece dragPiecePositionId
+	
+	set endCoords [getCoords $c mi-$dragPiecePositionId]
+	movePlayingPiece $c $dragPiece $endCoords
+	cancelMove $c
 }
 
 proc showMoves {c moveType position moveList} {
@@ -742,7 +841,7 @@ proc showMoves {c moveType position moveList} {
 			if {$positionId == $positionId2} {
 				set exists 1
 				set value2 [lindex $item2 1]
-				if { $value2 == "Lose" || $value == "Win" } {
+				if { $value == "Lose" || $value2 == "Win" } {
 					set betterValue 1
 				}
 			}
@@ -770,27 +869,21 @@ proc showMoves {c moveType position moveList} {
 			}
 		}
 		
-		set indicatorCoords [getIndicatorCoords $c $positionId]
+		set indicatorCoords [getCoords $c mi-$positionId]
 		set cx [lindex $indicatorCoords 0]
 		set cy [lindex $indicatorCoords 1]
-		makeOval $c $cx $cy [list base valueIndicator vind-$positionId] $scale ""
-		$c itemconfig vind-$positionId -outline $color -width 3
+		set tag [list base valueIndicator vind-$positionId]
+		if { [getTagOfOverlappingItem $c $cx $cy playingPiece] != "" } {
+			set indicatorRadius [getRadiusGivenScale $scale]
+			makeOval $c $cx $cy $tag $indicatorRadius ""
+			$c itemconfig vind-$positionId -outline $color -width 3
+		} else {
+			set indicatorRadius [getRadiusGivenScale [expr $scale - 0.5]]
+			makeOval $c $cx $cy $tag $indicatorRadius $color
+		}
 	}
 	
 	update idletasks
-}
-
-proc cancelMove {c} {
-	global clickCounter pMoves
-	global showMovesMoveType showMovesPosition showMovesMoveList
-	
-	set clickCounter 0
-	set pMoves undefined
-	$c delete indicator
-	
-	# call after updating clickCounter
-	# showMoves uses the value of clickCounter
-	showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
 }
 
 proc getPossibleMoves {} {
@@ -798,8 +891,76 @@ proc getPossibleMoves {} {
 	return [C_PossibleMoves $gPosition]
 }
 
+# Remove moves inconsistent with positionId.
+proc filterPossibleMoves { positionId } {
+	
+	global clickCounter pMoves
+	
+	for {set i [expr [llength $pMoves] - 1]} {$i >= 0} {set i [expr $i - 1]} {
+		set move [lindex $pMoves $i]
+		if { [lindex $move $clickCounter] != [list $positionId] } {
+			set pMoves [lreplace $pMoves $i $i]
+		}
+	}
+}
+
+proc executeMove { c move } {
+	
+	global numPositions
+	
+	set m1 [lindex $move 0]
+	set m2 [lindex $move 0]
+	set m3 [lindex $move 0]
+	
+	if { [llength $move] == 2 } {
+		set m2 [lindex $move 1]
+	} elseif { [llength $move] == 3 } {
+		set m2 [lindex $move 1]
+		set m3 [lindex $move 2]
+	}
+	
+	ReturnFromHumanMove [expr $m1*$numPositions*$numPositions + $m2*$numPositions + $m3]
+	cancelMove $c
+}
+
+proc cancelMove { c } {
+	
+	global clickCounter pMoves
+	global showMovesMoveType showMovesPosition showMovesMoveList
+	global dragging dragPiece dragPiecePositionId prevDragMove
+	
+	set clickCounter 0
+	set pMoves undefined
+	set dragging 0
+	set dragPiece ""
+	set dragPiecePositionId ""
+	set prevDragMove [list]
+	
+	# call after updating clickCounter
+	# showMoves uses the value of clickCounter
+	showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+}
+
+proc getRadiusGivenScale { scale } {
+	global squareSize
+	return [expr $squareSize*$scale/5]
+}
+
+# Gets the positionId given the coordinates.
+# Returns an empty string if coordiantes are not over a move indicator
+proc getPositionId { c x y } {
+	# find which move indicator over which the action is performed
+	set tag [getTagOfOverlappingItem $c $x $y mi]
+	if {$tag == ""} {
+		return
+	} else {
+		return [string range $tag [expr [string first "-" $tag] + 1] end]
+	}
+}
+
 # Gets the first tag of the first item with a tag name
-# starting with prefix within the bounding box specified
+# starting with prefix within the bounding box specified.
+# Returns empty string if prefix not found.
 proc getTagOfOverlappingItem {c x1 y1 prefix} {
 	set x2 [expr $x1 + 1]
 	set y2 [expr $y1 + 1]
@@ -815,113 +976,118 @@ proc getTagOfOverlappingItem {c x1 y1 prefix} {
 	return
 }
 
-# Gets the tag of the playing piece located at the position "positionId"
-proc getPlayingPiece { c positionId } {
-	set indicatorCoords [getIndicatorCoords $c $positionId]
-	set cx [lindex $indicatorCoords 0]
-	set cy [lindex $indicatorCoords 1]
-	return [getTagOfOverlappingItem $c $cx $cy playingPiece]
-}
-
-# Gets the indicator coordinates [list x y] located at the position "positionId"
-proc getIndicatorCoords { c positionId } {
-	set indicatorCoords [$c coords mi-$positionId]
-	set cx [expr ([lindex $indicatorCoords 0]+[lindex $indicatorCoords 2])/2]
-	set cy [expr ([lindex $indicatorCoords 1]+[lindex $indicatorCoords 3])/2]
+# Gets the coordinates [list x y] of tagId
+proc getCoords { c tagId } {
+	set coordinates [$c coords $tagId]
+	set cx [expr ([lindex $coordinates 0]+[lindex $coordinates 2])/2.0]
+	set cy [expr ([lindex $coordinates 1]+[lindex $coordinates 3])/2.0]
 	return [list $cx $cy]
 }
 
-proc makeOval { c x y tag scale color} {
-	global squareSize
+proc getDimensions { c tagId } {
+	set itemCoords [$c coords $tagId]
+	set width [expr [lindex $itemCoords 2] - [lindex $itemCoords 0] ]
+	set height [expr [lindex $itemCoords 3] - [lindex $itemCoords 1] ]
+	return [list $width $height]
+}
 
+proc makeOval { c x y tag radius color} {
 	$c create oval \
-		[expr $x - $squareSize*$scale/5] \
-		[expr $y - $squareSize*$scale/5] \
-		[expr $x + $squareSize*$scale/5] \
-		[expr $y + $squareSize*$scale/5] \
+		[expr $x - $radius] \
+		[expr $y - $radius] \
+		[expr $x + $radius] \
+		[expr $y + $radius] \
 		-fill $color -tag $tag -outline ""
 }
 
 proc makePlayingPiece {c positionId color} {
 	
-	global playingPieceId scale animSpeed
+	global playingPieceId squareSize scale
 	
-	set indicatorCoords [getIndicatorCoords $c $positionId]
+	set indicatorCoords [getCoords $c mi-$positionId]
 	set cx [lindex $indicatorCoords 0]
 	set cy [lindex $indicatorCoords 1]
 	
 	# The number in the tagname of the playing piece is used only to distinguish
 	# the playing pieces, not to represent actual locations.
-	makeOval $c $cx $cy [list playingPiece-$playingPieceId deletable] $scale $color
+	makeOval $c $cx $cy [list playingPiece-$playingPieceId deletable] 1 $color
 	
-	$c scale playingPiece-$playingPieceId $cx $cy .01 .01
-	
-	set steps [expr 150/$animSpeed]
-	
-	# how many steps there are for gAnimationSpeed = 0
-	set defaultSteps [expr 150/6]
-	
-	# how much to scale byŒŒ
-	#set factor [expr pow(1.06, 1.0 * $defaultSteps / $steps)]
-	set factor [expr pow(100, 1.0 / $steps)]
-	
-	for {set i 0} {$i < $steps} {incr i} {
-		$c scale playingPiece-$playingPieceId $cx $cy $factor $factor
-		update idletasks
-	}
-	
+	animateScale $c playingPiece-$playingPieceId $cx $cy 2 [expr 2*$squareSize*$scale/5]
 	incr playingPieceId
 }
 
 proc removePlayingPiece {c positionId} {
 	
-	global animSpeed
-	
-	set removePiece [getPlayingPiece $c $positionId]
-	set indicatorCoords [getIndicatorCoords $c $positionId]
+	set indicatorCoords [getCoords $c mi-$positionId]
 	set cx [lindex $indicatorCoords 0]
 	set cy [lindex $indicatorCoords 1]
+	set removePiece [getTagOfOverlappingItem $c $cx $cy playingPiece]
 	
-	set steps1 [expr 50/$animSpeed]
-	set steps2 [expr 150/$animSpeed]
-	
-	# how many steps there are for gAnimationSpeed = 0
-	set defaultSteps1 [expr 50/6]
-	set defaultSteps2 [expr 150/6]
-	
-	# how much to scale by
-	set factor1 [expr pow(1.06, 1.0 * $defaultSteps1 / $steps1)]
-	set factor2 [expr pow(0.83, 1.0 * $defaultSteps2 / $steps2)]
-	
-	for {set i 0} {$i < $steps1} {incr i} {
-		$c scale $removePiece $cx $cy $factor1 $factor1
+	if { $removePiece != "" } {
+		animateScale $c $removePiece $cx $cy [lindex [getDimensions $c $removePiece] 0] 2
+		$c delete $removePiece
 		update idletasks
 	}
-	for {set i 0} {$i < $steps2} {incr i} {
-		$c scale $removePiece $cx $cy $factor2 $factor2
-		update idletasks
-	}
+}
+
+proc movePlayingPiece {c playingPiece endCoords} {
 	
-	$c delete $removePiece
+	set startCoords [getCoords $c $playingPiece]
+	
+	set steps [ScaleDownAnimation 20]
+	
+	set animDuration [ScaleDownAnimation 1000]
+	set numFrames [expr int([ScaleDownAnimation 15])+1]
+	set clicksPerFrame [expr $animDuration / $numFrames]
+	
+	set dx [expr 1.0*([lindex $endCoords 0] - [lindex $startCoords 0])]
+	set dy [expr 1.0*([lindex $endCoords 1] - [lindex $startCoords 1])]
+	set stepx [expr $dx/$numFrames]
+	set stepy [expr $dy/$numFrames]
+	
+	set currentTime [clock clicks]
+	set endTime [expr $currentTime + $animDuration - $clicksPerFrame]
+	
+	for {set i 0} {$i < $numFrames} {incr i} {
+		$c move $playingPiece $stepx $stepy
+		update idletasks
+	
+		set waitClicks [expr int($currentTime + $clicksPerFrame - [clock clicks])]
+		if {$waitClicks > 0} {
+			after $waitClicks
+		}
+		set $currentTime [expr $currentTime + $clicksPerFrame]
+	}
+}
+
+proc animateScale { c tagId cx cy startDiameter trgtDiameter } {
+	
+	global gAnimationSpeed
+	
+	set curDiameter $startDiameter
+	set currentTime [clock clicks]
+	set clicksPerFrame 100
+	
+	while { [expr abs( $curDiameter - $trgtDiameter )] > 2 } {
+		set change [expr 1.0*( $trgtDiameter - $curDiameter )/[expr 12 - 2*$gAnimationSpeed]]
+		set curDiameter [expr $curDiameter + $change]
+		set ratio [expr $curDiameter/( $curDiameter - $change )]
+		$c scale $tagId $cx $cy $ratio $ratio
+		update idletasks
+		
+		set waitClicks [expr $currentTime + $clicksPerFrame - [clock clicks]]
+		if {$waitClicks > 0} {
+			after $waitClicks
+		}
+		set $currentTime [expr $currentTime + $clicksPerFrame]
+	}
+	set change [expr  $trgtDiameter - $curDiameter]
+	set ratio [expr $trgtDiameter/( $trgtDiameter - $change )]
+	$c scale $tagId $cx $cy $ratio $ratio
 	update idletasks
 }
 
-proc movePlayingPiece {c startPosition endPosition} {
-	
-	global animSpeed
-	
-	set playingPiece [getPlayingPiece $c $startPosition]
-	set startCoords [getIndicatorCoords $c $startPosition]
-	set endCoords [getIndicatorCoords $c $endPosition]
-	set dx [expr [lindex $endCoords 0] - [lindex $startCoords 0]]
-	set dy [expr [lindex $endCoords 1] - [lindex $startCoords 1]]
-	
-	set steps [expr 200/$animSpeed]
-	for {set i 0} {$i < $steps} {incr i} {
-		$c move $playingPiece [expr ($dx*1.0)/$steps] [expr ($dy*1.0)/$steps]
-		update idletasks
-	}
-}
+
 
 
 #Notes: update bindings for all the pieces to invoke a function.
