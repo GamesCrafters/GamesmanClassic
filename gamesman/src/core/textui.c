@@ -179,7 +179,7 @@ void MenusBeforeEvaluation()
     gUnsolved = FALSE;
     if(!gSEvalLoaded) TryToLoadAnEvaluator();
     
-    printf("\n\t----- Main (Pre-Solved) Menu for %s -----\n", kGameName);
+    printf("\n\t----- Main (Pre-Solved) Menu for %s (variant %d) -----\n", kGameName, getOption());
 
     printf("\n\ts)\t(S)TART THE GAME\n");
     printf("\tw)\tSTART THE GAME (W)ITHOUT SOLVING\n");
@@ -716,7 +716,7 @@ USERINPUT ConfigurationMenu()
 
 void MenusEvaluated()
 {
-    printf("\n\t----- Play (Post-Solved) Menu for %s -----\n", kGameName);
+  printf("\n\t----- Play (Post-Solved) Menu for %s (variant %d) -----\n", kGameName, getOption());
 
    /*took out configuration options*/
 
