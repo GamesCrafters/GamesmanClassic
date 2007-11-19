@@ -72,7 +72,7 @@ void generic_hash_set_context(int context);
 
 POSITION generic_hash_init(int boardsize, int*, int (*fn)(int *), int player);
 POSITION generic_hash_hash(char* board, int player);
-POSITION generic_hash_hash_sym(char* board, int player, struct symEntry* symIndex);
+POSITION generic_hash_hash_sym(char* board, int player, POSITION offset, struct symEntry* symIndex);
 char* generic_hash_unhash_tcl(POSITION pos);
 char* generic_hash_unhash(POSITION hashed, char* dest);
 int generic_hash_turn (POSITION hashed);
