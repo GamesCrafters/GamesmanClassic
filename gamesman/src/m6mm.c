@@ -79,7 +79,8 @@ STRING   kHelpTieOccursWhen =
 STRING   kHelpExample =
 "Help strings not initialized!";
 
-
+/* Variants */
+BOOLEAN gFlying = FALSE;
 
 /*************************************************************************
 **
@@ -103,14 +104,14 @@ STRING   kHelpExample =
 #define toFly 3
 
 
-#define BLANK '_'
+#define BLANK '·'
 #define X 'X'
 #define O 'O'
 
 #define PLAYER_ONE 1
 #define PLAYER_TWO 2
 
-#define SIXMM 1
+#define SIXMM TRUE
 
 
 //TEMPORARY GLOBALS, UNTIL TIERS IMPLEMENTED
@@ -265,123 +266,85 @@ kHelpExample =
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-	//printf("%llu\n", position);
-    MOVELIST *moves = NULL;
-	//MOVELIST *temp = NULL;	//DEBUG
-	char turn;
-	int piecesLeft;
-	int numx, numo;
-	int numadjacent;
-	int posadjacent[4];
-	int from, to;
-	int i, k;
-	
-	char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
-	//printf("\nPRINT POSITION INSIDE GENERATE MOVES\tturn=%c\n", turn); //DEBUG
-	//PrintPosition(position, "kevin", turn);//DEBUG
-	
-	//printf("GENERATEMOVES turn: %c\n", turn);
-	
-    // get NUMX, NUMO from unhash
-	//printf("ENTERED GENERATE MOVES\n");
-	//stage 2 & 3
-	if(piecesLeft == 0)
-	{
-		for (from = 0; from < BOARDSIZE; from++) {
-
-			if (board[from] == turn) //make sure you're trying to move your own stone
-			{
-				if (((turn == X) && (numx > 3)) || ((turn == O) && (numo > 3)))  //checks stage 2
-				{
-					//printf("inside stage 2 of GenerateMoves\n");
-					numadjacent = find_adjacent(from, posadjacent); //adjacent positions
-					for( i = 0; i < numadjacent; i++) //check if to is an adjacent position
-					{
-						to = posadjacent[i];
-						if(board[to] == BLANK) //position is empty
-						{
-							if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+to*BOARDSIZE+from)) // the position makes a 3 in a row
-							{
-								for(k=0;k<BOARDSIZE;k++)
-								{
-									if (turn != board[k]) //the piece is opponent's piece
-									{
-										if(can_be_taken(position, k))
-										{
-											moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
-										}
-									}
-								}
-							}
-							else moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
-						}				
-					}
-			
-				}
-				//flying
-				else
-				{
-					//printf("inside stage 3 of GenerateMoves\n");
-					for (to = 0; to < BOARDSIZE; to++) {
-
-						if(board[to] == BLANK) //position is empty
-						{
-							if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+to*BOARDSIZE+from)) // maked 3 in a row
-							{
-								for(k=0;k<BOARDSIZE;k++)
-								{
-									if(can_be_taken(position, k))
-									{
-										moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
-									}
-								}
-							}
-							else moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
-						}
-					
-					}
-				}
-			}
+  //printf("%llu\n", position);
+  MOVELIST *moves = NULL;
+  //MOVELIST *temp = NULL;	//DEBUG
+  char turn;
+  int piecesLeft;
+  int numx, numo;
+  int numadjacent;
+  int posadjacent[4];
+  int from, to;
+  int i, k;
+  
+  char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
+  //printf("\nPRINT POSITION INSIDE GENERATE MOVES\tturn=%c\n", turn); //DEBUG
+  //PrintPosition(position, "kevin", turn);//DEBUG
+  
+  //printf("GENERATEMOVES turn: %c\n", turn);
+  
+  // get NUMX, NUMO from unhash
+  //printf("ENTERED GENERATE MOVES\n");
+  //stage 2 & 3
+  if(piecesLeft == 0) {
+    for (from = 0; from < BOARDSIZE; from++) {
+      if (board[from] == turn) { //make sure you're trying to move your own stone
+	if (!gFlying || ((turn == X) && (numx > 3)) || ((turn == O) && (numo > 3))) {  // STAGE 2 : sliding
+	  //printf("inside stage 2 of GenerateMoves\n");
+	  numadjacent = find_adjacent(from, posadjacent); //adjacent positions
+	  for(i = 0; i < numadjacent; i++) { //check if to is an adjacent position
+	    to = posadjacent[i];
+	    if(board[to] == BLANK) { //position is empty
+	      if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+to*BOARDSIZE+from)) { // the position makes a 3 in a row
+		for(k=0;k<BOARDSIZE;k++) {
+		  if (turn != board[k]) { //the piece is opponent's piece
+		    if(can_be_taken(position, k)) {
+		      moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
+		    }
+		  }
 		}
+	      }
+	      else 
+		moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
+	    }				
+	  }
+	} else { // STAGE 3 : flying
+	  //printf("inside stage 3 of GenerateMoves\n");
+	  for (to = 0; to < BOARDSIZE; to++) {
+	    if(board[to] == BLANK) { //position is empty
+	      if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+to*BOARDSIZE+from)) { // made 3 in a row
+		for(k=0;k<BOARDSIZE;k++) {
+		  if(can_be_taken(position, k)) {
+		    moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
+		  }
+		}
+	      }	else 
+		moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
+	    }
+	  }
 	}
-	//stage 1
-	else
-	{
-		for (from = 0; from < BOARDSIZE; from++)
-		{
-			if(board[from] == BLANK) //position is empty
-			{
-				//printf("\nhere: %d is BLANK\n", from);
-				if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+from*BOARDSIZE+from))
-				{
-					//printf("this position closes a mill\n");
-					for(to=0;to<BOARDSIZE;to++)
-					{
-						if(can_be_taken(position, to) && (board[to] != turn)){
-							moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE+from, moves);
-						}
-					}
-				}
-				else 
-				{
-					moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
-				}
-			}
-		}			
+      }
+    }
+  } else { // STAGE 1, placing
+    for (from = 0; from < BOARDSIZE; from++) {
+      if(board[from] == BLANK) { //position is empty
+	if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+from*BOARDSIZE+from)) {
+	  //printf("this position closes a mill\n");
+	  for(to=0 ; to < BOARDSIZE ; to++) {
+	    if(can_be_taken(position, to) && (board[to] != turn)) {
+	      moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE+from, moves);
+	    }
+	  }
+	} else {
+	  moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
 	}
-    
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-	//printf("LIST OF AVAILABLE MOVESSSSSSSSSSSSSSSSSSSSSS\n");
-	/*
-	temp = moves; //remove after debug
-	while(temp!=NULL){
-		printf("move = %d\t, [%d %d %d]\n", temp->move, temp->move/(16*16), (temp->move/16)%16, temp->move%16);
-		temp = temp->next;
-	}
-	*/
-    //printf("done with GenerateMoves\n");
-	SafeFree(board);
-    return moves;
+      }
+    }			
+  }
+  
+  //printf("done with GenerateMoves\n");
+  SafeFree(board);
+  return moves;
 }
 
 
@@ -418,7 +381,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	int from = move / (BOARDSIZE * BOARDSIZE);
 	int remove = move % BOARDSIZE;
 
-	if (piecesLeft == 0) // stage 2
+	if (piecesLeft == 0) // STAGE 2 or 3, SLIDING OR FLYING
 	{
 		//printf("inside DoMove. to=%d, from = %d, remove = %d\n", to, from, remove); //DEBUG
 		board[to] = board[from];
@@ -426,7 +389,7 @@ POSITION DoMove (POSITION position, MOVE move)
 		board[remove] = BLANK; //if remove wasn't specified in the string, it is by default equal to from
 	}
 	
-	else // stage 1
+	else // STAGE 1 : PLACING
 	{
 		//printf("DoMove stage 1\n");
 		board[from] = turn;
@@ -478,34 +441,31 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-	char *board;
-	
-	
-	
-	char turn;
-	int piecesLeft;
-	int numx, numo;
-	
-	board = unhash(position, &turn, &piecesLeft, &numx, &numo);
-	SafeFree(board);
-	
-	if(piecesLeft==0){   //check if we are in stage 2 (stage 3 included in 2 with special rules)
-		if ((numx < 3) || (numo < 3)) {
-			if (turn == X) {
-				if (numx < 3) return lose;
-				else return win;
-			} else {
-				if (numo < 3) return lose;
-				else return win;
-			}
-		}
-		MOVELIST* moves = GenerateMoves(position);
-		if (NULL == moves)
-			return lose;
-		FreeMoveList(moves);
-	}
-	//printf("inside Primitive\n");
-    return undecided;
+  char *board;
+  char turn;
+  int piecesLeft;
+  int numx, numo;
+  
+  board = unhash(position, &turn, &piecesLeft, &numx, &numo);
+  SafeFree(board);
+  
+  if(piecesLeft == 0) { // Check if we are in stage 2 (stage 3 included in 2 with special rules)
+    /*
+    if (((numx < 3) && (turn == O)) || ((numo < 3) && (turn == X))) {
+      fprintf(stderr, "ERROR: 6mm Primitive had a position with 2 pieces, but it was their turn!\n");
+      ExitStageRight();
+    }
+    */
+    if ((numx < 3) || (numo < 3))
+      return gStandardGame ? lose : win; 
+  
+    MOVELIST* moves = GenerateMoves(position);
+    if (NULL == moves)
+      return gStandardGame ? lose : win;
+    FreeMoveList(moves);
+  }
+  //printf("inside Primitive\n");
+  return undecided;
 }
 
 
@@ -527,93 +487,64 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-
-	char turn; 
-	int piecesLeft;
-	int numx, numo;
-	
-	//printf("PRINTPOSITION PLAYER: %d\n", generic_hash_turn(position));
+  char turn; 
+  int piecesLeft;
+  int numx, numo;
+  
+  //printf("PRINTPOSITION PLAYER: %d\n", generic_hash_turn(position));
   char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
   //printf("PRINTPOSITION PLAYER %d\n", turn);
   
-
-  if (SIXMM == 1)
-	  {
-		
-		 printf("\n");
-		  printf("            0-------1-------2               %c-------%c-------%c   \n", board[0], board[1], board[2] );
-		  printf("            |       |       |               |       |       |    \n");
-		  printf("            |   3---4---5   |               |   %c---%c---%c   |   \n", board[3], board[4], board[5] );
-		  printf("            |   |       |   |               |   |       |   |    \n");
-		  printf("LEGEND:     6---7       8---9               %c---%c       %c---%c    Turn: %c\n", board[6], board[7], board[8], board[9], turn);
-		  printf("            |   |       |   |               |   |       |   |    \n");
-		  printf("            |   10--11--12  |               |   %c---%c---%c   |  \n", board[10], board[11], board[12] );
-		  printf("            |       |       |               |       |       |     \n");
-		  printf("            13------14------15              %c-------%c-------%c   \n", board[13], board[14], board[15] );
-		    
-		  
-	
-		//printf("numx: %d\tnumo: %d\t\n", numx, numo);
-  /*
-
-      0-------1-------2   
-      |       |       |   
-      |   3---4---5   |   
-      |   |       |   |   
-      6---7       8---9
-      |   |       |   |   
-      |   10--11--12  |   
-      |       |       |   
-     13------14------15  
+  if (SIXMM) {
     
-  
-  */
-  
-	}
-
-  else if (SIXMM == 0)
-	  {
-		  printf("\n");
-		  printf("        0-----------1-----------2       %c-----------%c-----------%c\n", board[0], board[1], board[2] );
-		  printf("        |           |           |       |           |           |\n");
-		  printf("        |           |           |       |           |           |\n");
-		  printf("        |   3-------4-------5   |       |   %c-------%c-------%c   |\n", board[3], board[4], board[5] );
-		  printf("        |   |       |       |   |       |   |       |       |   |\n");
-		  printf("        |   |   6---7---8   |   |       |   |   %c---%c---%c   |   |\n", board[6], board[7], board[8] );
-		  printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
-		  printf("LEGEND: 9---10--11      12--13--14      %c---%c---%c       %c---%c---%c    Turn: %c\n", board[9], board[10], board[11], board[12], board[13], board[14], turn);
-		  printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
-		  printf("        |   |   15--16--17  |   |       |   |   %c---%c---%c   |   |\n", board[15], board[16], board[17] );
-		  printf("        |   |       |       |   |       |   |       |       |   |\n");
-		  printf("        |   18------19------20  |       |   %c-------%c-------%c   |\n", board[18], board[19], board[20] );
-		  printf("        |           |           |       |           |           |\n");
-		  printf("        |           |           |       |           |           |\n");
-		  printf("        21----------22----------23      %c-----------%c-----------%c\n", board[21], board[22], board[23] );
-  
-		  if(piecesLeft !=0)
-		  {
-			printf("/n/nx pieces left: %d \to pieces left: %d\n", piecesLeft/2, piecesLeft/2+piecesLeft%2);
-		  }
-  
-  /*
-  0-----------1-----------2
-  |           |           |
-  |           |           |
-  |   3-------4-------5   |
-  |   |       |       |   |
-  |   |   6---7---8   |   |
-  |   |   |       |   |   |
-  9---10--11      12--13--14
-  |   |   |       |   |   |
-  |   |   15--16--17  |   |
-  |   |       |       |   |
-  |   18------19------20  |
-  |           |           |
-  |           |           |
-  21----------22----------23
-  */
-	}
-    SafeFree(board);
+    printf("\n");
+    printf("          0 ----- 1 ----- 2    %c ----- %c ----- %c    %s's turn (%c)\n", board[0], board[1], board[2], playersName, turn);
+    printf("          |       |       |    |       |       |    \n");
+    printf("          |   3 - 4 - 5   |    |   %c - %c - %c   |    Phase: ", board[3], board[4], board[5]);
+    if (piecesLeft != 0)
+      printf("1 : PLACING\n");
+    else {
+      if  (!gFlying || ((turn == X) && (numx > 3)) || ((turn == O) && (numo > 3))) 
+	printf("2 : SLIDING\n");
+      else
+	printf("3 : FLYING\n");
+    }
+    printf("          |   |       |   |    |   |       |   |    ");
+    if (piecesLeft != 0) 
+      printf("X has %d left to place\n",piecesLeft/2);
+    else
+      printf("X has %d on the board\n", numx);
+    printf("LEGEND:   6 - 7       8 - 9    %c - %c       %c - %c    ", board[6], board[7], board[8], board[9]);
+    if (piecesLeft != 0) 
+      printf("O has %d left to place\n",piecesLeft/2 + piecesLeft%2);
+    else
+      printf("O has %d on the board\n", numo);
+    printf("          |   |       |   |    |   |       |   |    \n");
+    printf("          |  10 - 11- 12  |    |   %c - %c - %c   |  \n", board[10], board[11], board[12] );
+    printf("          |       |       |    |       |       |     \n");
+    printf("          13 ---- 14 ---- 15   %c ----- %c ----- %c    %s\n\n", board[13], board[14], board[15], 
+	   GetPrediction(position,playersName,usersTurn));
+    
+  } else {
+      printf("\n");
+      printf("        0-----------1-----------2       %c-----------%c-----------%c\n", board[0], board[1], board[2] );
+      printf("        |           |           |       |           |           |\n");
+      printf("        |           |           |       |           |           |\n");
+      printf("        |   3-------4-------5   |       |   %c-------%c-------%c   |\n", board[3], board[4], board[5] );
+      printf("        |   |       |       |   |       |   |       |       |   |\n");
+      printf("        |   |   6---7---8   |   |       |   |   %c---%c---%c   |   |\n", board[6], board[7], board[8] );
+      printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
+      printf("LEGEND: 9---10--11      12--13--14      %c---%c---%c       %c---%c---%c    Turn: %c\n", board[9], board[10], board[11], board[12], board[13], board[14], turn);
+      printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
+      printf("        |   |   15--16--17  |   |       |   |   %c---%c---%c   |   |\n", board[15], board[16], board[17] );
+      printf("        |   |       |       |   |       |   |       |       |   |\n");
+      printf("        |   18------19------20  |       |   %c-------%c-------%c   |\n", board[18], board[19], board[20] );
+      printf("        |           |           |       |           |           |\n");
+      printf("        |           |           |       |           |           |\n");
+      printf("        21----------22----------23      %c-----------%c-----------%c\n", board[21], board[22], board[23] );
+      
+    }
+  SafeFree(board);
 }
 
 
@@ -630,7 +561,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    
+  STRING str = MoveToString( computersMove );
+  printf("%8s's move                                     : %s\n",computersName,str);
+  SafeFree( str );
 }
 
 
@@ -683,7 +616,7 @@ STRING MoveToString (MOVE move)
 		} 
 		else if(from == to && to == remove){
 			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d]", from);
+			sprintf( movestring, "%d", from);
 		}
 		else {
 			movestring = (STRING) SafeMalloc(8);
@@ -693,12 +626,12 @@ STRING MoveToString (MOVE move)
 	else 
 	{
 		//printf("MOVE TO STRING ELSE\n");
-		printf("from = %d, to = %d, remove = %d\n", from, to, remove);
+		//printf("from = %d, to = %d, remove = %d\n", from, to, remove);
 		
 		if (from == to) //if 1st == 2nd position in move formula
 		{
 			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d]", from);	
+			sprintf(movestring, "%d", from);	
 		}
 		else
 		{
@@ -734,40 +667,29 @@ STRING MoveToString (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
-	BOOLEAN ValidMove();
-	char turn; 
-	int piecesLeft;
-	int numx, numo;
-	char* board;
-	board = unhash(position, &turn, &piecesLeft, &numx, &numo);
-	SafeFree(board);
-	
-	//printf("GetAndPrintPlayersMove\n");
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	//PrintPosition (position,playersName, TRUE);
-	if(piecesLeft !=0)
-		  {
-			printf("\n\nX pieces left: %d \tO pieces left: %d\n", piecesLeft/2, piecesLeft/2+piecesLeft%2);
-		  }
-	
-	printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
-	
-	input = HandleDefaultTextInput(position, move, playersName);
-	
-	
-		if (input != Continue)
-		{
-			return input;
-		}
+  USERINPUT input;
+  char turn;
+  int piecesLeft, numx, numo;
+  char *board = unhash(position, &turn, &piecesLeft, &numx, &numo);
+  SafeFree(board);
+  
+  do {
+    printf("%8s's move: (u)ndo/", playersName);
+    if (piecesLeft != 0) // STAGE 1 : PLACING
+      printf("0-15/[0-15 0-15]            ");
+    else {
+      printf("[0-15 0-15]/[0-15 0-15 0-15]");
     }
-
-    /* NOTREACHED */
-    return Continue;
+    printf(": ");
+    
+    input = HandleDefaultTextInput(position, move, playersName);
+    
+    if (input != Continue)
+      return input;
+  } while (TRUE);
+  
+  /* NOTREACHED */
+  return (Continue);
 }
 
 
@@ -907,18 +829,17 @@ void GameSpecificMenu ()
 	POSITION GetInitialPosition();
   
   do {
-    printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
+    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
     
 
-    printf("\tCurrent Initial Position:\n");
+    //printf("\tCurrent Initial Position:\n");
     //PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
     
     printf("\n");
-    printf("\ti)\tChoose the (I)nitial position\n");
-  /*  printf("\tf)\tToggle (F)lying from %s to %s\n", 
+    //printf("\ti)\tChoose the (I)nitial position\n");
+    printf("\tf)\tToggle (F)lying from %s to %s\n", 
 	   gFlying ? "ON" : "OFF",
 	   !gFlying ? "ON" : "OFF"); 
-   */ 
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
@@ -928,8 +849,11 @@ void GameSpecificMenu ()
     case 'H': case 'h':
       HelpMenus();
       break;
-    case 'I': case 'i':
-      gInitialPosition = GetInitialPosition();
+      //    case 'I': case 'i':
+      //gInitialPosition = GetInitialPosition();
+      //break;
+    case 'F': case 'f':
+      gFlying = !gFlying;
       break;
     case 'B': case 'b':
       return;
@@ -992,7 +916,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+  return 4;
 }
 
 
@@ -1010,10 +934,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    return 0;
+  return 1 + (gFlying<<1) + gStandardGame;
 }
 
 
@@ -1030,9 +951,10 @@ int getOption ()
 
 void setOption (int option)
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
+  // In terms of bits, option is one more than 0bFS (F=flying,S=Standard)
+  option -= 1;
+  gStandardGame = (option | 0x1);
+  gFlying       = (option | 0x2) >> 1;
 }
 
 
@@ -1756,6 +1678,9 @@ int find_adjacent(int slot, int *slots)
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.6  2007/11/07 03:37:39  patricia_fong
+ ** fixed a small part in MoveToString
+ **
  ** Revision 1.5  2007/10/17 10:06:07  patricia_fong
  ** added functions to m6mm.c for tcl
  **
