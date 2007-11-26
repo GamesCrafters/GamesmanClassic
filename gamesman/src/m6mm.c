@@ -34,7 +34,7 @@
 **************************************************************************/
 
 STRING   kGameName            = "Six Men's Morris"; /* The name of your game */
-STRING   kAuthorName          = "Patricia Fong, Kevin Liu"; /* Your name(s) */
+STRING   kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee"; /* Your name(s) */
 STRING   kDBName              = "6mm"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -81,7 +81,7 @@ STRING   kHelpExample =
 
 /* Variants */
 BOOLEAN gFlying = FALSE;
-
+int SIXMM = 1;
 /*************************************************************************
 **
 ** #defines and structs
@@ -94,14 +94,14 @@ BOOLEAN gFlying = FALSE;
 ** Global Variables
 **
 *************************************************************************/
-#define BOARDSIZE 16 //9mm 24
-#define minx  2 
-#define maxx  6  //9mm 9
-#define mino  2 
-#define maxo  6  //9mm 9
-#define minb  BOARDSIZE - maxo - maxx
-#define maxb  BOARDSIZE - mino - minx
-#define toFly 3
+int BOARDSIZE = 16; //9mm 24
+int minx = 2; 
+int maxx = 6;  //9mm 9
+int mino = 2; 
+int maxo = 6;  //9mm 9
+int minb = 4;
+int maxb = 11;
+	
 
 
 #define BLANK '·'
@@ -111,7 +111,6 @@ BOOLEAN gFlying = FALSE;
 #define PLAYER_ONE 1
 #define PLAYER_TWO 2
 
-#define SIXMM TRUE
 
 
 //TEMPORARY GLOBALS, UNTIL TIERS IMPLEMENTED
@@ -119,7 +118,7 @@ BOOLEAN gFlying = FALSE;
 
 int NUMX=0;
 int NUMO=0;
-int totalPieces = maxx+maxo; //Remove when tiering
+int totalPieces = 12; //Remove when tiering
 
 
 /*************************************************************************
@@ -171,7 +170,8 @@ int find_adjacent(int slot, int *slots);
 POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE move, POSITION position);
 char returnTurn(POSITION pos);
 char* customUnhash(POSITION pos);
-
+void changetosix();
+void changetonine();
 
 
 /************************************************************************
@@ -187,6 +187,7 @@ void InitializeGame ()
 {
 	int i;
 	char* board = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
+
 	int pminmax[] = {X, 0, maxx, O, 0, maxo,BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
 
 	gCustomUnhash = &customUnhash;
@@ -527,21 +528,35 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
     
   } else {
       printf("\n");
-      printf("        0-----------1-----------2       %c-----------%c-----------%c\n", board[0], board[1], board[2] );
+      printf("        0 --------- 1 --------- 2       %c --------- %c --------- %c    %s's turn (%c)\n", board[0], board[1], board[2], playersName, turn );
       printf("        |           |           |       |           |           |\n");
-      printf("        |           |           |       |           |           |\n");
-      printf("        |   3-------4-------5   |       |   %c-------%c-------%c   |\n", board[3], board[4], board[5] );
-      printf("        |   |       |       |   |       |   |       |       |   |\n");
-      printf("        |   |   6---7---8   |   |       |   |   %c---%c---%c   |   |\n", board[6], board[7], board[8] );
+      printf("        |   3 ----- 4 ----- 5   |       |   %c ----- %c ----- %c   |    Phase: ", board[3], board[4], board[5]);
+      if (piecesLeft != 0)
+        printf("1 : PLACING\n");
+      else {
+		if  (!gFlying || ((turn == X) && (numx > 3)) || ((turn == O) && (numo > 3))) 
+			printf("2 : SLIDING\n");
+		else
+			printf("3 : FLYING\n");
+	  }
+      printf("        |   |       |       |   |       |   |       |       |   |    ");
+	  if (piecesLeft != 0) 
+		printf("X has %d left to place\n",piecesLeft/2);
+	  else
+		printf("X has %d on the board\n", numx);
+      printf("        |   |   6 - 7 - 8   |   |       |   |   %c - %c - %c   |   |    ", board[6], board[7], board[8] );
+	  if (piecesLeft != 0) 
+		printf("O has %d left to place\n",piecesLeft/2 + piecesLeft%2);
+      else
+		printf("O has %d on the board\n", numo);
       printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
-      printf("LEGEND: 9---10--11      12--13--14      %c---%c---%c       %c---%c---%c    Turn: %c\n", board[9], board[10], board[11], board[12], board[13], board[14], turn);
+      printf("LEGEND: 9 - 10- 11      12- 13- 14      %c - %c - %c       %c - %c - %c    Turn: %c\n", board[9], board[10], board[11], board[12], board[13], board[14], turn);
       printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
-      printf("        |   |   15--16--17  |   |       |   |   %c---%c---%c   |   |\n", board[15], board[16], board[17] );
+      printf("        |   |   15- 16- 17  |   |       |   |   %c - %c - %c   |   |\n", board[15], board[16], board[17] );
       printf("        |   |       |       |   |       |   |       |       |   |\n");
-      printf("        |   18------19------20  |       |   %c-------%c-------%c   |\n", board[18], board[19], board[20] );
+      printf("        |   18 ---- 19 ---- 20  |       |   %c ----- %c ----- %c   |\n", board[18], board[19], board[20] );
       printf("        |           |           |       |           |           |\n");
-      printf("        |           |           |       |           |           |\n");
-      printf("        21----------22----------23      %c-----------%c-----------%c\n", board[21], board[22], board[23] );
+      printf("        21 -------- 22 -------- 23      %c --------- %c --------- %c\n\n", board[21], board[22], board[23] );
       
     }
   SafeFree(board);
@@ -726,38 +741,6 @@ BOOLEAN ValidTextInput (STRING input)
 	else
 		return TRUE;
 	
-  /*
-  moveFrom = atoi(input); //WRONG
-  printf("moveFrom=%d\n", moveFrom);
-  if (moveFrom < 0 || moveFrom >= BOARDSIZE){
-    printf("returning false at 801\n");
-	return FALSE;
-  }
-  
-  hasSpace = index(input, ' ') != NULL;
-  if (hasSpace) {
-	    afterSpace = index(input, ' '); //SEE WHAT INDEX DOES
-		moveTo = atoi(afterSpace);
-		if (moveTo < 0 || moveTo >= BOARDSIZE) {
-			return FALSE;
-		}
-	  
-		has2Space = index(++afterSpace, ' ') != NULL;
-		if (has2Space) {
-			after2Space = index(afterSpace, ' ');
-			moveRemove = atoi(after2Space);
-			if (moveRemove < 0 || moveRemove >=BOARDSIZE) {
-				return FALSE;
-			}
-			else 
-				return TRUE;
-		} 
-		else {
-			return TRUE;
-		}
-	}
-	return TRUE;
-*/
 }
 
 /************************************************************************
@@ -840,10 +823,20 @@ void GameSpecificMenu ()
     printf("\tf)\tToggle (F)lying from %s to %s\n", 
 	   gFlying ? "ON" : "OFF",
 	   !gFlying ? "ON" : "OFF"); 
+   
+	if (SIXMM == 1) printf("\tn)\tSwitch to (N)ine Men's Morris.\n");
+	else printf("\ts)\tSwitch to (S)ix Men's Morris.\n");
+
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
     switch(GetMyChar()) {
+	case 'S': case 's':
+	  changetosix();
+	  return;
+	case 'N': case'n':
+	  changetonine();
+	  return;
     case 'Q': case 'q':
       ExitStageRight();
     case 'H': case 'h':
@@ -916,7 +909,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-  return 4;
+  return 8; //misere/standard   flying/no-flying   6mm/9mm
 }
 
 
@@ -934,7 +927,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-  return 1 + (gFlying<<1) + gStandardGame;
+  return 1 + (gFlying<<1) + (SIXMM<<2) + gStandardGame;
 }
 
 
@@ -955,6 +948,7 @@ void setOption (int option)
   option -= 1;
   gStandardGame = (option | 0x1);
   gFlying       = (option | 0x2) >> 1;
+  SIXMM			= (option | 0x4) >> 2;
 }
 
 
@@ -1092,7 +1086,7 @@ void SetupTierStuff(){
 	int pieces_array[] = {X, 0, 0, O, 0, 0, BLANK, 0, 0, -1  } ;
 	kExclusivelyTierGamesman = TRUE;
 
-	for(piecesLeft=0;piecesLeft<13;piecesLeft++){
+	for(piecesLeft=0;piecesLeft<maxx+maxo+1;piecesLeft++){
 		for(numx=0;numx<maxx+1;numx++){
 			for(numo=0;numo<maxo+1;numo++){
 				tier=piecesLeft*100+numx*10+numo;
@@ -1112,9 +1106,9 @@ void SetupTierStuff(){
 		}
 	}
 	
-
-	gInitialTier = 1200;	//initial pieces on board
-	generic_hash_context_switch(1200);
+	tier = (maxx+maxo)*100;
+	gInitialTier = tier;	//initial pieces on board
+	generic_hash_context_switch(tier);
 	
 	for(i = 0; i < BOARDSIZE; i++)
 	{
@@ -1370,6 +1364,8 @@ POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE mo
 // return true if slot is member of mill
 BOOLEAN check_mill(char *board, int slot, char turn)
 {
+	if (SIXMM == 1)
+	{
 		switch (slot) {
 		case 0:
 			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,6, 13, turn);
@@ -1422,8 +1418,89 @@ BOOLEAN check_mill(char *board, int slot, char turn)
 		default:
 			return FALSE;
 			break;
+		}
 	}
-			
+	else if(SIXMM == 0){
+		switch (slot) {
+		case 0:
+			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,9, 21, turn);
+			break;
+		case 1: 
+			return three_in_a_row(board, 0, 2, turn) || three_in_a_row(board, 4, 7, turn);
+			break;
+		case 2:
+			return three_in_a_row(board, 1, 0, turn)|| three_in_a_row(board,14, 23, turn);
+			break;
+		case 3:
+			return three_in_a_row(board, 4, 5, turn)|| three_in_a_row(board,10, 18, turn);
+			break;
+		case 4:
+			return three_in_a_row(board, 1, 7, turn) || three_in_a_row(board, 3, 5, turn);
+			break;
+		case 5:
+			return three_in_a_row(board, 4, 3, turn)|| three_in_a_row(board,13, 20, turn);
+			break;
+		case 6:
+			return three_in_a_row(board, 7, 8, turn) || three_in_a_row(board, 11, 15, turn);
+			break;
+		case 7:
+			return three_in_a_row(board, 1, 4, turn) || three_in_a_row(board, 6, 8, turn);
+			break;
+		case 8:
+			return three_in_a_row(board, 7, 6, turn) || three_in_a_row(board, 12, 17, turn);
+			break;
+		case 9:
+			return three_in_a_row(board, 0, 21, turn) || three_in_a_row(board, 10, 11, turn);
+			break;
+		case 10:
+			return three_in_a_row(board, 9, 11, turn) || three_in_a_row(board,3,18, turn);
+			break;
+		case 11:
+			return three_in_a_row(board, 9, 10, turn) || three_in_a_row(board, 6, 15, turn);
+			break;
+		case 12:
+			return three_in_a_row(board, 8, 17, turn)|| three_in_a_row(board,13, 14, turn);
+			break;
+		case 13:
+			return three_in_a_row(board, 12, 14, turn)|| three_in_a_row(board,5, 20, turn);
+			break;
+		case 14:
+			return three_in_a_row(board, 12, 13, turn) || three_in_a_row(board, 2, 23, turn);
+			break;
+		case 15:
+			return three_in_a_row(board, 6, 11, turn)|| three_in_a_row(board,16, 17, turn);
+			break;
+		case 16:
+			return three_in_a_row(board, 15, 17, turn)|| three_in_a_row(board,19, 22, turn);
+			break;
+		case 17:
+			return three_in_a_row(board, 15, 16, turn)|| three_in_a_row(board,8, 12, turn);
+			break;
+		case 18:
+			return three_in_a_row(board, 3, 10, turn)|| three_in_a_row(board,19, 20, turn);
+			break;
+		case 19:
+			return three_in_a_row(board, 18, 20, turn)|| three_in_a_row(board,16, 22, turn);
+			break;
+		case 20:
+			return three_in_a_row(board, 18, 19, turn)|| three_in_a_row(board,5, 13, turn);
+			break;
+		case 21:
+			return three_in_a_row(board, 0, 9, turn)|| three_in_a_row(board,22, 23, turn);
+			break;
+		case 22:
+			return three_in_a_row(board, 16, 19, turn)|| three_in_a_row(board,21, 23, turn);
+			break;
+		case 23:
+			return three_in_a_row(board, 21, 22, turn)|| three_in_a_row(board,2, 14, turn);
+			break;
+		default:
+			return FALSE;
+			break;
+		}
+	}
+	
+	return FALSE;
 }
 
 // given new board, slots to compare.  if slots all same, then it's a 3
@@ -1433,8 +1510,7 @@ BOOLEAN three_in_a_row(char *board, int slot1, int slot2, char turn)
 	//printf("THREE IN A ROW TURN: %c\n", turn);
 	//printf("0: %c\t 1: %c\n", board[0], board[1]);
 	
-  return board[slot1] == turn &&
-    board[slot2] == turn ;
+  return board[slot1] == turn && board[slot2] == turn ;
 }
 
 // Given slot, int array
@@ -1674,10 +1750,52 @@ int find_adjacent(int slot, int *slots)
 }
 
 
+void changetosix()
+{
+	SIXMM = 1;
+	gFlying = FALSE;
+	BOARDSIZE = 16;
+	maxx = 6;
+	maxo = 6;
+	minb = 4;
+	maxb = 12;
+	totalPieces = maxx + maxo;
+	kDBName = "6mm";
+	kGameName = "Six Men's Morris";
+	kHelpGraphicInterface = "Six Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
+}
+
+void changetonine()
+{
+	gFlying = TRUE;
+	SIXMM = 0;
+	BOARDSIZE = 24;
+	maxx = 9;
+	maxo = 9;
+	minb = 6;
+	maxb = 20;
+	totalPieces = maxx + maxo;
+	kDBName = "9mm";
+	kGameName = "Nine Men's Morris";
+	kHelpGraphicInterface = "Nine Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
+}
+
+
 /************************************************************************
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.7  2007/11/19 04:32:44  ddgarcia
+ ** Sooo many changes:
+ **
+ ** 1. Added gFlying (global, changed GenerateMoves, added getOption, setoption)
+ **   (now variants are 1-4 ; before they were 0, default is no flying)
+ ** 2. Supported misere with gStandardGame in Primitive
+ ** 3. polished PrintPosition
+ ** 4. Filled in PrintComputersMove
+ ** 5. Removed [ and ] from single moves in MoveToString
+ ** 6. Cleaned GetAndPrintPlayersMove
+ **
  ** Revision 1.6  2007/11/07 03:37:39  patricia_fong
  ** fixed a small part in MoveToString
  **
