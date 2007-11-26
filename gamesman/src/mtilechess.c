@@ -1,6 +1,6 @@
-// $Id: mtilechess.c,v 1.18 2007-11-14 07:44:40 phase_ac Exp $
+// $Id: mtilechess.c,v 1.19 2007-11-26 00:08:37 phase_ac Exp $
 
-/*
+/**
  * The above lines will include the name and log of the last person
  * to commit this file to CVS
  */
@@ -271,6 +271,10 @@ void InitializeGame ()
   int i, counter = 0, boardSize = (int)(pow((int)sqrt(strlen(theBoard))-2,2)), totalPieces = (int)sqrt(boardSize);
   long long unsigned largestBoard = 0;
   char *pieces = SafeMalloc(totalPieces+1);
+  TIER temp = (long long unsigned) 1<<33;
+  printf("temp = %llu\n", temp);
+  temp = (long long unsigned)pow(2,50);
+  printf("temp = %llu\n", temp);
   for (i = 0; i < strlen(theBoard); i++) {
     if (theBoard[i] != ' ') {
       pieces[counter++] = theBoard[i];
@@ -2265,6 +2269,8 @@ void SetupTierStuff() {
   kSupportsTierGamesman = TRUE;
   gInitialTier = getInitialTier();
   gInitialTierPosition = getInitialTierPosition();
+  printf("Initial tier: %llu\n", gInitialTier);
+  printf("Initial tier position: %llu\n", gInitialTierPosition);
   gTierChildrenFunPtr = &TierChildren;
   gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
   
@@ -2304,7 +2310,7 @@ TIER TierPieceValue(char piece) {
   static int bcount = 0;
   static int ncount = 0;
   static int pcount = 0;
-  TIER value = 0;
+  TIER value = (unsigned long long) 0;
   if (piece == 'K') {
     value = 1 << 0;
   } else if (piece == 'Q') {
@@ -2322,28 +2328,29 @@ TIER TierPieceValue(char piece) {
     value = 1 << (8 + Pcount);
     Pcount++;
   } else if (piece == 'k') {
-    value = 1 << 63;
+    value = (unsigned long long) 1 << 63;
   } else if (piece == 'q') {
-    value = 1 << (63 - 1);
+    value = (unsigned long long) 1 << (63 - 1);
   } else if (piece == 'r') {
-    value = 1 << (63 - 2 - rcount);
+    value = (unsigned long long) 1 << (63 - 2 - rcount);
     rcount++;
   } else if (piece == 'b') {
-    value = 1 << (63 - 4 - bcount);
+    value = (unsigned long long) 1 << (63 - 4 - bcount);
     bcount++;
   } else if (piece == 'n') {
-    value = 1 << (63 - 6 - ncount);
+    value = (unsigned long long) 1 << (63 - 6 - ncount);
     ncount++;
-  } else { //if (piece == 'p') {
-    value = 1 << (63 - 8 - pcount);
+  } else if (piece == 'p') {
+    value = (unsigned long long) 1 << (63 - 8 - pcount);
     pcount++;
   }
+  else value = 0;
   return value;
 }
 
 // converts a board into a tier
 TIER getTier(char* board) {
-  TIER retval;
+  TIER retval = 0;
   int length = strlen(board);
   int i = 0;
   for (i = 0; i < length; i++) {
@@ -2565,12 +2572,13 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
  TIER temp = 0;
 
  //shift until get that each individual bit
- for (i; i <= 63; i++) {
+ for (i = 1; i <= 62; i++) {
    temp = tier << i;
    temp = temp >> 63;
    numOfTiers += temp;
  }
  numOfTiers +=1;
+
 
  return numOfTiers;
 }
@@ -2580,26 +2588,38 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 TIERLIST* TierChildren(TIER tier) {
 
  TIERLIST* children = NULL;
- TIER newtier;
- TIER mask;
+ TIER newtier = 0;
+ TIER mask = 0;
  TIER tierbit = 0;
  int i = 0;
 
+ //temporary new stuff
+ TIER min = 1;
+ min += (unsigned long long) 1<<63;
 
  //go through each bit in tier
  //if that bit is equal to 1, then turn it to 0 and
  //add that new tier to the tier list
  for (i; i <= 63; i++) {
+   
+   
 
-   tierbit = tier << i;
-   tierbit = tierbit >> 63;
-   mask = 1 << (63-i);
+   tierbit = (unsigned long long) tier << i;
+   tierbit = (unsigned long long) tierbit >> 63;
+   mask = (unsigned long long) 1 << (63-i);
 
    //then create new tier and append it to the tierlist
    if (tierbit == 1) {
      //create new tier and add to list
      newtier = tier - mask;
+
+     //if newtier is not just two kings or less
+     if (newtier > min) {
+     //printf("\nMask: %llu\n", mask);
+     //printf("CurrentTier: %llu\n", tier);
+     //printf("NewTier: %llu\n", newtier);
      children = CreateTierlistNode(newtier, children);
+     }
    }
 
  }
@@ -2610,6 +2630,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.18  2007/11/14 07:44:40  phase_ac
+// Anthony - added the SetupTierStuff to initializeGame to commence testing (with crossed fingers)
+//
 // Revision 1.17  2007/11/14 07:20:55  tjlee0909
 // Taejun Lee
 // Wrote hashBoard and renamed the old function hashBoard to hashBoardWithoutTiers.
