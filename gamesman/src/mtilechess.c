@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.19 2007-11-26 00:08:37 phase_ac Exp $
+// $Id: mtilechess.c,v 1.20 2007-11-26 07:17:23 tjlee0909 Exp $
 
 /**
  * The above lines will include the name and log of the last person
@@ -2263,6 +2263,9 @@ contextList *getContextNodeFromOffset(int offset) {
 
 
 
+
+
+
 //Tier Gamesman stuff below
 //NTS: put in the function prototypes
 void SetupTierStuff() {
@@ -2275,9 +2278,6 @@ void SetupTierStuff() {
   gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
   
 }
-
-
-
 
 
 char *unhashBoard(POSITION position) {
@@ -2328,20 +2328,20 @@ TIER TierPieceValue(char piece) {
     value = 1 << (8 + Pcount);
     Pcount++;
   } else if (piece == 'k') {
-    value = (unsigned long long) 1 << 63;
+    value = (unsigned long long) 1 << 27;
   } else if (piece == 'q') {
-    value = (unsigned long long) 1 << (63 - 1);
+    value = (unsigned long long) 1 << (27 - 1);
   } else if (piece == 'r') {
-    value = (unsigned long long) 1 << (63 - 2 - rcount);
+    value = (unsigned long long) 1 << (27 - 2 - rcount);
     rcount++;
   } else if (piece == 'b') {
-    value = (unsigned long long) 1 << (63 - 4 - bcount);
+    value = (unsigned long long) 1 << (27 - 4 - bcount);
     bcount++;
   } else if (piece == 'n') {
-    value = (unsigned long long) 1 << (63 - 6 - ncount);
+    value = (unsigned long long) 1 << (27 - 6 - ncount);
     ncount++;
   } else if (piece == 'p') {
-    value = (unsigned long long) 1 << (63 - 8 - pcount);
+    value = (unsigned long long) 1 << (27 - 8 - pcount);
     pcount++;
   }
   else value = 0;
@@ -2450,9 +2450,9 @@ char PieceTierValue(TIER tier) {
  char piece=' ';
 
  //go through loop until find '1'
- for (index; index<64; index++) {
+ for (index; index<28; index++) {
    value = tier << index;
-   value = value >> 63;
+   value = value >> 27;
    if (value == 1) {
      break;
    }
@@ -2474,25 +2474,25 @@ char PieceTierValue(TIER tier) {
  else if (index == 6 || index == 7) {
    piece = 'n';
  }
- else if (index > 7 && index <= 31) {
+ else if (index > 7 && index <= 13) {
    piece = 'p';
  }
- else if (index == 63) {
+ else if (index == 27) {
    piece = 'K';
  }
- else if (index == 62) {
+ else if (index == 26) {
    piece = 'Q';
  }
- else if (index == 61 || index == 60) {
+ else if (index == 25 || index == 24) {
    piece = 'R';
  }
- else if (index == 59 || index == 58) {
+ else if (index == 23 || index == 22) {
    piece = 'B';
  }
- else if (index == 57 || index == 56) {
+ else if (index == 21 || index == 20) {
    piece = 'N';
  }
- else if (index >= 32 && index < 56) {
+ else if (index >= 14 && index < 20) {
    piece = 'P';
  }
 
@@ -2567,14 +2567,14 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
 //returns number of tier positions
 TIERPOSITION NumberOfTierPositions(TIER tier) {
 
- TIERPOSITION numOfTiers=0;
+ TIERPOSITION numOfTiers= (unsigned long long) 0;
  int i = 0;
- TIER temp = 0;
+ TIER temp = (unsigned long long) 0;
 
  //shift until get that each individual bit
- for (i = 1; i <= 62; i++) {
-   temp = tier << i;
-   temp = temp >> 63;
+ for (i = 1; i <28 ; i++) {
+   temp = (unsigned long long)  tier << i;
+   temp =  (unsigned long long) temp >> 27;
    numOfTiers += temp;
  }
  numOfTiers +=1;
@@ -2582,6 +2582,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
  return numOfTiers;
 }
+
 
 
 //returns a list of the children tiers
@@ -2601,8 +2602,6 @@ TIERLIST* TierChildren(TIER tier) {
  //if that bit is equal to 1, then turn it to 0 and
  //add that new tier to the tier list
  for (i; i <= 63; i++) {
-   
-   
 
    tierbit = (unsigned long long) tier << i;
    tierbit = (unsigned long long) tierbit >> 63;
@@ -2618,9 +2617,11 @@ TIERLIST* TierChildren(TIER tier) {
      //printf("\nMask: %llu\n", mask);
      //printf("CurrentTier: %llu\n", tier);
      //printf("NewTier: %llu\n", newtier);
+
      children = CreateTierlistNode(newtier, children);
      }
    }
+   tierbit = 0;
 
  }
 
@@ -2629,7 +2630,16 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 
+
+
+
+
+
+
 // $Log: not supported by cvs2svn $
+// Revision 1.19  2007/11/26 00:08:37  phase_ac
+// Discovered/kind of fixed a casting problem when using 64bit integers. Still really buggy.
+//
 // Revision 1.18  2007/11/14 07:44:40  phase_ac
 // Anthony - added the SetupTierStuff to initializeGame to commence testing (with crossed fingers)
 //
