@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.22 2007-11-27 03:27:52 phase_ac Exp $
+// $Id: mtilechess.c,v 1.23 2007-11-27 04:02:14 tjlee0909 Exp $
 
 /**
  * The above lines will include the name and log of the last person
@@ -2356,6 +2356,8 @@ TIER TierPieceValue(char piece, int reset) {
 
 // converts a board into a tier
 TIER getTier(char* board) {
+  
+
   TIER retval = 0;
   int length = strlen(board);
   int i = 0;
@@ -2363,6 +2365,7 @@ TIER getTier(char* board) {
   for (i = 0; i < length; i++) {
     retval += TierPieceValue(board[i], 0);
   }
+
   return retval;
 }
 
@@ -2548,11 +2551,15 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
 
  //1). get size of the board
  for (i; i <= 63; i++) {
-   temp = tier << i;
-   temp = temp >> 63;
+   temp = (unsigned long long) tier << i;
+   temp = (unsigned long long) temp >> 63;
    rootsize += temp;
  }
+ //to account for blank border around board
+ rootsize +=2;
+
  fullsize = rootsize * rootsize;
+
 
  //malloc space for board
  board = (char*) SafeMalloc((fullsize+1) * sizeof(char));
@@ -2568,48 +2575,63 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
  //3 fill in using tierpos and tier
  //look at first tier item, find the char, then go to tier pos
  for (y=0; y <64; y++) {
-   temp = tier << y;
-   temp = temp >> 63;
+   temp = (unsigned long long) tier << y;
+   temp = (unsigned long long) temp >> 63;
 
    if (temp == 1) {
-     row = tierpos << (tierpos_index);
-     row = row >> 61;
-     col = tierpos << (tierpos_index+3);
-     col = col >> 61;
+     row = (unsigned long long) tierpos << (tierpos_index);
+     row = (unsigned long long) row >> 61;
+     col = (unsigned long long) tierpos << (tierpos_index+3);
+     col = (unsigned long long) col >> 61;
 
-     board[(int) (row * rootsize + col)] = PieceTierValue(1 << (63-y));
+     board[(int) ((row+1)*rootsize + col + 1)] = PieceTierValue((unsigned long long) 1 << (63-y));
      //increment this by 6 to know to shift by this amount
      tierpos_index += 6;
    }
 
  }
 
+ printf("%s\n\n", board);
+
  return board;
 }
 
+
+//return the factorial of that number
+TIER factorial(TIER num) {
+  if (num > 1) {
+    return (num* factorial(num-1));
+  } else {
+    return 1;
+  }
+}
 
 
 
 //returns number of tier positions
 TIERPOSITION NumberOfTierPositions(TIER tier) {
 
- TIERPOSITION numOfTiers= (unsigned long long) 0;
+ int numOfPieces= (unsigned long long) 0;
  int i = 0;
  TIER temp = (unsigned long long) 0;
+ tier = tier & 0xfffffff;
+ TIERPOSITION numOfPositions = 0;
+ TIERPOSITION comb1 = 0, comb2=0;
 
 
  //shift until get that each individual bit
- for (i = 1; i <27 ; i++) {
+ for (i = 0; i <28 ; i++) {
    temp = (unsigned long long)  tier << i;
    temp = temp & 0xfffffff;
-   temp =  (unsigned long long) temp >> 26;
-   numOfTiers += temp;
+   temp =  (unsigned long long) temp >> 27;
+   numOfPieces += temp;
  }
- numOfTiers +=1;
+ 
+ comb1 = factorial(numOfPieces * numOfPieces);
+ comb2 = factorial((numOfPieces * numOfPieces) - numOfPieces);
+ numOfPositions = comb1/comb2;
 
-
- //return numOfTiers;
- return 0xffff;
+ return numOfPositions;
 }
 
 
@@ -2642,7 +2664,6 @@ TIERLIST* TierChildren(TIER tier) {
      printf("\nMask: %llu\n", mask);
      printf("CurrentTier: %llu\n", tier);
      printf("NewTier: %llu\n", newtier);
-
      children = CreateTierlistNode(newtier, children);
      }
    }
@@ -2662,6 +2683,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.22  2007/11/27 03:27:52  phase_ac
+// Fixed getTierPosition (and its dependent functions, like alignPieceToTier).
+//
 // Revision 1.21  2007/11/27 01:43:59  phase_ac
 // Fixed random bugs, still crashes somewhere. Uploading mainly to allow partner to edit it as well.
 //
