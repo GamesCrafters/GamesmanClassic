@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.21 2007-11-27 01:43:59 phase_ac Exp $
+// $Id: mtilechess.c,v 1.22 2007-11-27 03:27:52 phase_ac Exp $
 
 /**
  * The above lines will include the name and log of the last person
@@ -2381,17 +2381,24 @@ TIER getInitialTier() {
 int alignPieceToTier(char piece, TIER tempTier, int reset) {
   int total = 0; //keeps track of the nth piece in the tier
   int i = 0;
+  TIER tempPieceValue = TierPieceValue(piece, 0);
   if (reset) {
     TierPieceValue(0, 1); //reset the counters in this function
     return -1;
   }
-  for (i = 0; i < sizeof(tempTier); i++) {
-    if (TierPieceValue(piece, 0) & tempTier) {
-      return total;
-    }
+
+  for (i = 0; i < sizeof(tempTier) * 8; i++) {
+    //if (TierPieceValue(piece, 0) & tempTier) {
+    //  return total;
+    //}
+
     //updates the nth piece in the tier because we've found a piece
-    if (1 << i & tempTier)
-      total++;
+    if (1 << i & tempTier) {
+      if (1 << i == tempPieceValue)
+	return total;
+      else
+	total++;
+    }
   }
   return -1;
 }
@@ -2655,6 +2662,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.21  2007/11/27 01:43:59  phase_ac
+// Fixed random bugs, still crashes somewhere. Uploading mainly to allow partner to edit it as well.
+//
 // Revision 1.20  2007/11/26 07:17:23  tjlee0909
 // BUGZID:
 //
