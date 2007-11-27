@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.20 2007-11-26 07:17:23 tjlee0909 Exp $
+// $Id: mtilechess.c,v 1.21 2007-11-27 01:43:59 phase_ac Exp $
 
 /**
  * The above lines will include the name and log of the last person
@@ -237,10 +237,10 @@ BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponen
 void fillMove(MOVE move, char *moveStr);
 MOVE getMove(STRING input);
 void SetupTierStuff();
-TIER TierPieceValue(char);
+TIER TierPieceValue(char, int);
 TIER getTier(char*);
 TIER getInitialTier();
-int alignPieceToTier(char, TIER);
+int alignPieceToTier(char, TIER, int);
 TIERPOSITION getTierPosition(char*, int);
 TIERPOSITION getInitialTierPosition();
 TIERLIST* TierChildren(TIER);
@@ -2301,7 +2301,7 @@ void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier) {
   *tierpos = getTierPosition(board, currentPlayer);
 }
 
-TIER TierPieceValue(char piece) {
+TIER TierPieceValue(char piece, int reset) {
   static int Rcount = 0;
   static int Bcount = 0;
   static int Ncount = 0;
@@ -2311,6 +2311,12 @@ TIER TierPieceValue(char piece) {
   static int ncount = 0;
   static int pcount = 0;
   TIER value = (unsigned long long) 0;
+
+  if (reset) {
+    Rcount = Bcount = Ncount = Pcount = rcount = bcount = ncount = pcount = 0;
+    return 0;
+  }
+
   if (piece == 'K') {
     value = 1 << 0;
   } else if (piece == 'Q') {
@@ -2353,8 +2359,9 @@ TIER getTier(char* board) {
   TIER retval = 0;
   int length = strlen(board);
   int i = 0;
+  TierPieceValue(0,1); //reset the counters used in TierPieceValue
   for (i = 0; i < length; i++) {
-    retval += TierPieceValue(board[i]);
+    retval += TierPieceValue(board[i], 0);
   }
   return retval;
 }
@@ -2371,11 +2378,15 @@ TIER getInitialTier() {
 
 //Given a piece and a tier, it determines which position that piece appears in,
 //  starting from the least significant bit (white's king)
-int alignPieceToTier(char piece, TIER tempTier) {
+int alignPieceToTier(char piece, TIER tempTier, int reset) {
   int total = 0; //keeps track of the nth piece in the tier
   int i = 0;
+  if (reset) {
+    TierPieceValue(0, 1); //reset the counters in this function
+    return -1;
+  }
   for (i = 0; i < sizeof(tempTier); i++) {
-    if (TierPieceValue(piece) & tempTier) {
+    if (TierPieceValue(piece, 0) & tempTier) {
       return total;
     }
     //updates the nth piece in the tier because we've found a piece
@@ -2394,14 +2405,15 @@ TIERPOSITION getTierPosition(char* board, int currentPlayer) {
   int row = 0;
   int col = 0;
   int i;
+  alignPieceToTier(0,0,1);
   //loop through the board starting from the rectangle that consists of the board
-  // find the pieces and their row/col information
+  // find the pieces and their row/col information  
   for (i = sideLength; i < length - sideLength; i++) {
     //ignore the 0th and last spaces on the board
     if (!(i%sideLength == 0) && !(i%sideLength == sideLength - 1)) {
       //found a piece so keep track of its row/col info
       if (board[i] != ' ') {
-	retval += ((row<<3) + col) << (6 * alignPieceToTier(board[i], thisTier));
+	retval += ((row<<3) + col) << (6 * alignPieceToTier(board[i], thisTier, 0));
       }
       col++;
     }
@@ -2445,19 +2457,25 @@ char PieceTierValue(TIER tier) {
 
  //the index at which the '1' is
  int index=0;
+ int mask = 0;
  TIER value=0;
-
+ //             1234567890123456789012345678
+ tier = tier & 0xfffffff;
+ 
  char piece=' ';
 
  //go through loop until find '1'
  for (index; index<28; index++) {
-   value = tier << index;
-   value = value >> 27;
-   if (value == 1) {
+   
+   //value = tier << index;
+   //value = value >> 25;
+   // if (value == 1) {
+   //  break;
+   // }
+   mask = 1<<index;
+   if (mask & tier)
      break;
-   }
  }
-
 
  if (index == 0) {
    piece = 'k';
@@ -2510,6 +2528,7 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
  int fullsize = 0;
  int x = 0;
  int y = 0;
+
 
  //the board
  char* board;
@@ -2571,16 +2590,19 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
  int i = 0;
  TIER temp = (unsigned long long) 0;
 
+
  //shift until get that each individual bit
- for (i = 1; i <28 ; i++) {
+ for (i = 1; i <27 ; i++) {
    temp = (unsigned long long)  tier << i;
-   temp =  (unsigned long long) temp >> 27;
+   temp = temp & 0xfffffff;
+   temp =  (unsigned long long) temp >> 26;
    numOfTiers += temp;
  }
  numOfTiers +=1;
 
 
- return numOfTiers;
+ //return numOfTiers;
+ return 0xffff;
 }
 
 
@@ -2594,15 +2616,11 @@ TIERLIST* TierChildren(TIER tier) {
  TIER tierbit = 0;
  int i = 0;
 
- //temporary new stuff
- TIER min = 1;
- min += (unsigned long long) 1<<63;
-
  //go through each bit in tier
  //if that bit is equal to 1, then turn it to 0 and
  //add that new tier to the tier list
  for (i; i <= 63; i++) {
-
+ 
    tierbit = (unsigned long long) tier << i;
    tierbit = (unsigned long long) tierbit >> 63;
    mask = (unsigned long long) 1 << (63-i);
@@ -2613,10 +2631,10 @@ TIERLIST* TierChildren(TIER tier) {
      newtier = tier - mask;
 
      //if newtier is not just two kings or less
-     if (newtier > min) {
-     //printf("\nMask: %llu\n", mask);
-     //printf("CurrentTier: %llu\n", tier);
-     //printf("NewTier: %llu\n", newtier);
+     if (newtier & 1 && newtier & 1<<27 && newtier != 1+(1<<27)) {
+     printf("\nMask: %llu\n", mask);
+     printf("CurrentTier: %llu\n", tier);
+     printf("NewTier: %llu\n", newtier);
 
      children = CreateTierlistNode(newtier, children);
      }
@@ -2637,6 +2655,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.20  2007/11/26 07:17:23  tjlee0909
+// BUGZID:
+//
 // Revision 1.19  2007/11/26 00:08:37  phase_ac
 // Discovered/kind of fixed a casting problem when using 64bit integers. Still really buggy.
 //
