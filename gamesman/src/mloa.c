@@ -46,7 +46,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.14 2007-03-01 03:40:27 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.15 2007-11-28 10:47:28 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -995,7 +995,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 4;
+    return 2;
 }
 
 
@@ -1017,13 +1017,7 @@ int getOption ()
        include the boolean variable gSymmetries in your
        hash */
 
-  // option is like a binary number with gStandardGame as lowest bit
-  int option = 1;
-  option += (gStandardGame) ? 0 : 1;
-  option += (gSymmetries) ? 2: 0;
-
-  printf("option has been set to %d\n", option);
-  return option;
+  return (gStandardGame) ? 0 : 1;
 }
 
 
@@ -1044,14 +1038,12 @@ void setOption (int option)
        include the boolean variable gSymmetries in your
        hash */
 
-  printf(" option is %d\n", option);
   if (option == 1)
     gStandardGame = TRUE;
   else if (option == 2)
     gStandardGame = FALSE;
-  if (option > 2) {
-    gSymmetries = TRUE;
-  }
+  else
+    printf(" Sorry I don't know that option\n");
 }
 
 
@@ -1440,6 +1432,9 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.14  2007/03/01 03:40:27  alb_shau
+ ** Added symmetry stuff via generic symmetries and removed ties
+ **
  ** Revision 1.13  2007/02/08 05:23:46  dmchan
  ** fixed unsigned int call
  **
