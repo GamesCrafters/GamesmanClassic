@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.23 2007-11-27 04:02:14 tjlee0909 Exp $
+// $Id: mtilechess.c,v 1.24 2007-11-28 04:46:44 phase_ac Exp $
 
 /**
  * The above lines will include the name and log of the last person
@@ -1168,8 +1168,11 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
 
   if (gHashWindowInitialized) {
     tier = getTier(boardArray);
+    printf("\nhashing with tiers\n");
     tierpos = getTierPosition(boardArray, currentPlayer);
+    printf(" The current tier is: %lld, and the current tier position is: %lld\n\n", tier, tierpos);
     pos = gHashToWindowPosition(tierpos, tier);
+
 
   } else {
     pos = hashBoardWithoutTiers(boardArray, currentPlayer);
@@ -2285,7 +2288,8 @@ char *unhashBoard(POSITION position) {
     printf("unhashing with tiers\n");
     TIER tier; TIERPOSITION tierposition;
     gUnhashToTierPosition(position, &tierposition, &tier);
-    printf("unhashing %lld\n", tier);
+    printf("current position: %lld \n", position);
+    printf("unhashing %lld with tier position: %lld\n", tier, tierposition);
     
     return (char*) tierToBoard(tier, tierposition);
   }
@@ -2591,7 +2595,7 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
 
  }
 
- printf("%s\n\n", board);
+ printf("%s\n", board);
 
  return board;
 }
@@ -2683,6 +2687,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.23  2007/11/27 04:02:14  tjlee0909
+// BUGZID:Taejun Lee: changed tierToBoard
+//
 // Revision 1.22  2007/11/27 03:27:52  phase_ac
 // Fixed getTierPosition (and its dependent functions, like alignPieceToTier).
 //
