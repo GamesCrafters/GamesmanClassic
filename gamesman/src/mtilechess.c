@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.24 2007-11-28 04:46:44 phase_ac Exp $
+// $Id: mtilechess.c,v 1.25 2007-11-28 05:35:51 tjlee0909 Exp $
 
 /**
  * The above lines will include the name and log of the last person
@@ -249,6 +249,7 @@ TIERPOSITION NumberOfTierPositions(TIER);
 char PieceTierValue(TIER);
 void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier);
 char *unhashBoardWithoutTiers(POSITION position);
+char *TierToStringFunPtr(TIER);
 
 /* External */
 #ifndef MEMWATCH 
@@ -2279,7 +2280,50 @@ void SetupTierStuff() {
   printf("Initial tier position: %llu\n", gInitialTierPosition);
   gTierChildrenFunPtr = &TierChildren;
   gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+  gTierToStringFunPtr = &TierToStringFunPtr;
   
+}
+
+//gives string representation of tier
+char* TierToStringFunPtr(TIER tier) {
+
+  //the value to be returned
+  char* retval = (char*) SafeMalloc(45 * sizeof(char));
+  
+  TIER newtier;
+  int i = 0;
+  int index=0;
+  int mask = 0;
+
+  retval[45] = '\0';
+
+  retval[0] = 'T';
+  retval[1] = 'I';
+  retval[2] = 'E';
+  retval[3] = 'R';
+  retval[4] = ':';
+  retval[5] = ' ';
+  index=6;
+
+  for ( ; i<28; i++) {
+    newtier = (unsigned long long) 1<<i;
+    mask = (int) newtier & tier;
+
+    if (mask) {
+      retval[index] = PieceTierValue(mask);
+      ++index;
+      retval[index] = ',';
+      ++index;
+      retval[index] = ' ';
+      ++index;
+    }
+
+  }
+
+  retval[index] = '\n';
+  ++index;
+  retval[index] = '\0';
+  return retval;
 }
 
 
@@ -2410,6 +2454,9 @@ int alignPieceToTier(char piece, TIER tempTier, int reset) {
   return -1;
 }
 
+
+
+
 // converts a board into a tierposition
 TIERPOSITION getTierPosition(char* board, int currentPlayer) {
   TIER thisTier = getTier(board);
@@ -2492,44 +2539,50 @@ char PieceTierValue(TIER tier) {
  }
 
  if (index == 0) {
-   piece = 'k';
- }
- else if (index == 1) {
-   piece = 'q';
- }
- else if (index == 2 || index == 3) {
-   piece = 'r';
- }
- else if (index == 4 || index == 5) {
-   piece = 'b';
- }
- else if (index == 6 || index == 7) {
-   piece = 'n';
- }
- else if (index > 7 && index <= 13) {
-   piece = 'p';
- }
- else if (index == 27) {
    piece = 'K';
  }
- else if (index == 26) {
+ else if (index == 1) {
    piece = 'Q';
  }
- else if (index == 25 || index == 24) {
+ else if (index == 2 || index == 3) {
    piece = 'R';
  }
- else if (index == 23 || index == 22) {
+ else if (index == 4 || index == 5) {
    piece = 'B';
  }
- else if (index == 21 || index == 20) {
+ else if (index == 6 || index == 7) {
    piece = 'N';
  }
- else if (index >= 14 && index < 20) {
+ else if (index > 7 && index <= 13) {
    piece = 'P';
+ }
+ else if (index == 27) {
+   piece = 'k';
+ }
+ else if (index == 26) {
+   piece = 'q';
+ }
+ else if (index == 25 || index == 24) {
+   piece = 'r';
+ }
+ else if (index == 23 || index == 22) {
+   piece = 'b';
+ }
+ else if (index == 21 || index == 20) {
+   piece = 'n';
+ }
+ else if (index >= 14 && index < 20) {
+   piece = 'p';
  }
 
  return piece;
 }
+
+
+
+
+
+//GETING WRONG INPUT FOR TIERPOS
 
 //given a tier and tierposition, this will return a char-array that
 // represents the board
@@ -2564,6 +2617,11 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
 
  fullsize = rootsize * rootsize;
 
+
+ //to account for miscommunication, must shift tierposition to the left by
+ //63 - 6*(number of pieces) -1 (last minus one for player's turn bit)
+ tierpos = (unsigned long long) tierpos << (62 - (rootsize * 6)); 
+ 
 
  //malloc space for board
  board = (char*) SafeMalloc((fullsize+1) * sizeof(char));
@@ -2687,6 +2745,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.24  2007/11/28 04:46:44  phase_ac
+// Uploading to let partner edit (his was too buggy).
+//
 // Revision 1.23  2007/11/27 04:02:14  tjlee0909
 // BUGZID:Taejun Lee: changed tierToBoard
 //
