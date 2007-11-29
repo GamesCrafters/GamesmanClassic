@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.26 2007-11-29 03:43:16 tjlee0909 Exp $
+// $Id: mtilechess.c,v 1.27 2007-11-29 05:44:55 tjlee0909 Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -250,6 +250,7 @@ char PieceTierValue(TIER);
 void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier);
 char *unhashBoardWithoutTiers(POSITION position);
 char *TierToStringFunPtr(TIER);
+BOOLEAN isLegalPos(POSITION);
 
 /* External */
 #ifndef MEMWATCH 
@@ -2273,15 +2274,19 @@ contextList *getContextNodeFromOffset(int offset) {
 //Tier Gamesman stuff below
 //NTS: put in the function prototypes
 void SetupTierStuff() {
+  TIERPOSITION maxtierpos = NumberOfTierPositions(hashBoardWithoutTiers(theBoard, 1));
   kSupportsTierGamesman = TRUE;
   gInitialTier = getInitialTier();
   gInitialTierPosition = getInitialTierPosition();
   printf("Initial tier: %llu\n", gInitialTier);
   printf("Initial tier position: %llu\n", gInitialTierPosition);
+  printf("Max tier number: %llu\n", maxtierpos);
+
+
   gTierChildrenFunPtr = &TierChildren;
   gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
   gTierToStringFunPtr = &TierToStringFunPtr;
-  
+  gIsLegalFunPtr = &isLegalPos;
 }
 
 //gives string representation of tier
@@ -2679,24 +2684,26 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
  TIER temp = (unsigned long long) 0;
  tier = tier & 0xfffffff;
  TIERPOSITION numOfPositions = 0;
- TIERPOSITION comb1 = 0, comb2=0;
+ //TIERPOSITION comb1 = 0, comb2=0;
 
 
  //shift until get that each individual bit
- for (i = 0; i <28 ; i++) {
+ for (i = 0; i < 28; i--) {
    temp = (unsigned long long)  tier << i;
    temp = temp & 0xfffffff;
    temp =  (unsigned long long) temp >> 27;
    numOfPieces += temp;
  }
+
+ for (i = 0; i < numOfPieces; i ++) {
+   numOfPositions += ((((numOfPieces - 1) << 3) + i) << 6 * i); 
+ }
  
- comb1 = factorial(numOfPieces * numOfPieces);
- comb2 = factorial((numOfPieces * numOfPieces) - numOfPieces);
- numOfPositions = comb1/comb2;
+ //comb1 = factorial(numOfPieces * numOfPieces);
+ //comb2 = factorial((numOfPieces * numOfPieces) - numOfPieces);
+ //numOfPositions = comb1/comb2;
 
- //return numOfPositions;
-
- return 1;
+ return numOfPositions;
 }
 
 
@@ -2740,8 +2747,10 @@ TIERLIST* TierChildren(TIER tier) {
  return children;
 }
 
-
-
+BOOLEAN isLegalPos(POSITION pos)
+{
+  return isLegalBoard(unhashBoardWithoutTiers(pos), TRUE);
+}
 
 
 
@@ -2749,6 +2758,9 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.26  2007/11/29 03:43:16  tjlee0909
+// Fixed warnings
+//
 // Revision 1.24  2007/11/28 04:46:44  phase_ac
 // Uploading to let partner edit (his was too buggy).
 //
