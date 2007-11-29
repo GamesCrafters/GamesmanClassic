@@ -44,7 +44,7 @@
 // Global Variables
 //
 
-DB_Table    *functionsMapping;
+extern DB_Table    *functionsMapping;
 
 dbFILE		*symdb_readFile = NULL;
 BOOLEAN		symdb_readFromDisk = FALSE;
