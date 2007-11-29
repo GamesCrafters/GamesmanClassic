@@ -1,9 +1,7 @@
 # -----TODO List------
-# Bug when clicking undo/redo during middle of a move
 # Game Over
 # Undo Game Over
 # drawPosition (how to track different phases)
-
 
 
 #############################################################################
@@ -18,28 +16,30 @@
 proc GS_InitGameSpecific {} {
 
 	### Set the name of the game
-    global kGameName
-    set kGameName "6 Men's Morris"
-    
-    ### Set the initial position of the board (default 0)
-    global gInitialPosition gPosition
-    set gInitialPosition 0
-    set gPosition $gInitialPosition
+	global kGameName
+	set kGameName "6 Men's Morris"
+	
+	### Set the initial position of the board (default 0)
+	global gInitialPosition gPosition
+	set gInitialPosition 0
+	set gPosition $gInitialPosition
 
-    ### Set the strings to be used in the Edit Rules
-    global kStandardString kMisereString
-    set kStandardString "First player to ____ WINS"
-    set kMisereString "First player to ____ LOSES"
+	### Set the strings to be used in the Edit Rules
+	global kStandardString kMisereString
+	set kStandardString "First player to ____ WINS"
+	set kMisereString "First player to ____ LOSES"
 
-    ### Set the strings to tell the user how to move and what the goal is.
-    ### If you have more options, you will need to edit this section
-    global gMisereGame
-    if {!$gMisereGame} {
-	SetToWinString "To Win: (fill in)"
-    } else {
-	SetToWinString "To Win: (fill in)"
-    }
-    SetToMoveString "To Move: (fill in)"
+	### Set the strings to tell the user how to move and what the goal is.
+	### If you have more options, you will need to edit this section
+	global gGameRule
+	global gFlyingRule
+	global gMisereGame
+	if {!$gMisereGame} {
+		SetToWinString "To Win: (fill in)"
+	} else {
+		SetToWinString "To Win: (fill in)"
+	}
+	SetToMoveString "To Move: (fill in)"
 	
 	# Authors Info. Change if desired
 	global kRootDir
@@ -47,7 +47,7 @@ proc GS_InitGameSpecific {} {
 	set kCAuthors "(Fill this in)"
 	set kTclAuthors "Daniel Wei, Kevin Liu, Patricia Fong, Dounan Shi"
 	set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
-    
+	
 	############   GLOBAL VARS ######################
 	
 	## IMPORTANT: These are variables used to change the board.
@@ -55,10 +55,10 @@ proc GS_InitGameSpecific {} {
 	global boardSize squareSize leftBuffer topBuffer scale
 	global numPositions
 	
-    set boardSize [expr [min $gFrameWidth $gFrameHeight] - 150]
-    set squareSize [expr $boardSize / 5]
-    set leftBuffer [expr [expr $gFrameWidth - $boardSize] / 2]
-    set topBuffer [expr [expr $gFrameHeight - $boardSize] / 2]
+	set boardSize [expr [min $gFrameWidth $gFrameHeight] - 150]
+	set squareSize [expr $boardSize / 5]
+	set leftBuffer [expr [expr $gFrameWidth - $boardSize] / 2]
+	set topBuffer [expr [expr $gFrameHeight - $boardSize] / 2]
 	set scale 1
 	set numPositions 16
 	
@@ -83,6 +83,17 @@ proc GS_InitGameSpecific {} {
 	global dragging dragPiece dragPiecePositionId mousePrevX mousePrevY prevDragMove
 	set dragging 0
 	set prevDragMove [list]
+	
+	global gGameRule
+	if {!$gGameRule} {
+		set kGameName "9 Men's Morris"
+		set numPositions 24
+		set totalPieces 18
+	} else {
+		set kGameName "6 Men's Morris"
+		set numPositions 16
+		set totalPieces 12
+	}
 }
 
 #############################################################################
@@ -94,7 +105,7 @@ proc GS_InitGameSpecific {} {
 # starts playing the game, and before he hits "New Game"
 #############################################################################
 proc GS_NameOfPieces {} {
-    return [list X O _]
+	return [list X O _]
 }
 
 #############################################################################
@@ -131,39 +142,62 @@ proc GS_ColorOfPlayers {} {
 # Returns: nothing
 #############################################################################
 proc GS_SetupRulesFrame { rulesFrame } {
+	
+	# Create the font to be used by the "Cancel Move" button
+	font create cancelMoveFont -size 14 -family helvetica -weight bold
 
-    set standardRule \
+	set standardRule \
 	[list \
-	     "What would you like your winning condition to be:" \
-	     "Standard" \
-	     "Misere" \
-	    ]
+		 "What would you like your winning condition to be:" \
+		 "Standard" \
+		 "Misere" \
+		]
+	
+	set gameRule \
+	[list \
+		"Would you like to play Six Men's Morris or Nine Men's Morris:" \
+		"Nine Men's Morris" \
+		"Six Men's Morris" \
+		]
+	
+	set flyingRule \
+	[list \
+		"Would you like to enable flying?" \
+		"No Flying" \
+		"Flying" \
+		]
+	
+	# List of all rules, in some order
+	set ruleset [list $standardRule $gameRule $flyingRule]
 
-    # List of all rules, in some order
-    set ruleset [list $standardRule]
+	# Declare and initialize rule globals
+	global gMisereGame
+	set gMisereGame 0
+	
+	global gGameRule
+	set gGameRule 1
 
-    # Declare and initialize rule globals
-    global gMisereGame
-    set gMisereGame 0
+	global gFlyingRule
+	set gFlyingRule 0
+	
+	# List of all rule globals, in same order as rule list
+	set ruleSettingGlobalNames [list "gMisereGame" "gGameRule" "gFlyingRule"]
 
-    # List of all rule globals, in same order as rule list
-    set ruleSettingGlobalNames [list "gMisereGame"]
-
-    global kLabelFont
-    set ruleNum 0
-    foreach rule $ruleset {
+	global kLabelFont
+	set ruleNum 0
+	foreach rule $ruleset {
 		frame $rulesFrame.rule$ruleNum -borderwidth 2 -relief raised
 		pack $rulesFrame.rule$ruleNum  -fill both -expand 1
 		message $rulesFrame.rule$ruleNum.label -text [lindex $rule 0] -font $kLabelFont
 		pack $rulesFrame.rule$ruleNum.label -side left
 		set rulePartNum 0
 		foreach rulePart [lrange $rule 1 end] {
-		    radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
-		    pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
-		    incr rulePartNum
+			radiobutton $rulesFrame.rule$ruleNum.p$rulePartNum -text $rulePart -variable [lindex $ruleSettingGlobalNames $ruleNum] -value $rulePartNum -highlightthickness 0 -font $kLabelFont
+			pack $rulesFrame.rule$ruleNum.p$rulePartNum -side left -expand 1 -fill both
+			incr rulePartNum
 		}
 		incr ruleNum
-    } 
+	} 
 }
 
 #############################################################################
@@ -176,13 +210,12 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-    global gMisereGame
-    if { $gMisereGame == 0 } {
-        set option 2
-    } else {
-        set option 1
-    }
-    return $option
+	global gMisereGame gGameRule gFlyingRule
+	
+	set option 1
+	set option [expr $option + (1-$gMisereGame)]
+	set option [expr $option + (2*$gFlyingRule)]
+	set option [expr $option + (4*$gGameRule)]
 }
 
 #############################################################################
@@ -197,12 +230,25 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-    global gMisereGame
-    if { $option == 1 } {
-        set gMisereGame 1
-    } else {
-        set gMisereGame 0
-    }
+	global gMisereGame gGameRule gFlyingRule
+	set temp [expr $option - 1]
+	if {$temp == 0 || $temp == 2 || $temp == 4 || $temp == 6} {
+		set gMisereGame 1
+	} else {
+		set gMisereGame 0
+	}
+	if { $temp >= 4 } {
+		set gGameRule 1 
+	} else {
+		set gGameRule 0
+	}
+	#000 001 010 011 100 101 110 111
+	# 0   1   2   3   4   5   6   7
+	if {$temp == 2 || $temp == 3 || $temp == 6 || $temp == 7} {
+		set gFlyingRule 1
+	} else {
+		set gFlyingRule 0
+	} 
 }
 
 #############################################################################
@@ -214,9 +260,9 @@ proc GS_SetOption { option } {
 # player hits "New Game"
 #############################################################################
 proc GS_Initialize { c } {
-	
-    # you may want to start by setting the size of the canvas; this line isn't necessary
-    #$c configure -width 500 -height 500
+
+	# you may want to start by setting the size of the canvas; this line isn't necessary
+	#$c configure -width 500 -height 500
 	
 	global boardSize squareSize leftBuffer topBuffer scale
 	global numPositions
@@ -303,7 +349,7 @@ proc GS_Initialize { c } {
 		[expr [expr $topBuffer + [expr 0 * $squareSize]] - 36] \
 		[expr [expr $leftBuffer + [expr 5 * $squareSize]] + 36] \
 		[expr [expr $topBuffer + [expr 5 * $squareSize]] + 36] \
-		-fill $canvasColor -tag base -outline white -width 4
+		-fill $canvasColor -tag [list bg base] -outline white -width 4
 		
 	#drawing lines
 	if {$sixmm == 1} {
@@ -342,6 +388,28 @@ proc GS_Initialize { c } {
 		$c create line ${mx-5} ${my-5} ${mx-20} ${my-20} -tag base -width $lineWidth -fill $lineColor
 		$c create line ${mx-2} ${my-2} ${mx-23} ${my-23} -tag base -width $lineWidth -fill $lineColor
 	}
+	
+	# draw cancel button
+	set bgCoord [getCoords $c bg]
+	set bgX [lindex $bgCoord 0]
+	set bgY [expr $topBuffer + 5*$squareSize + 13]
+	$c create rect \
+		[expr $bgX - 50] \
+		[expr $bgY - 10] \
+		[expr $bgX + 50] \
+		[expr $bgY + 10] \
+		-fill $canvasColor -outline "" -tag cancelMove
+	$c create text $bgX $bgY \
+		-justify center -text "Cancel Move" -font cancelMoveFont \
+		-fill #42322a \
+		-tag [list cancelMove cancelMoveTxt]
+	
+	$c bind cancelMove <ButtonRelease-1> "cancelMove $c"
+	$c bind cancelMove <Enter> "cancelMoveRollover $c"
+	$c bind cancelMove <Leave> "cancelMoveRollout $c"
+	
+	$c lower cancelMove
+	
 	$c raise positionMarker
 } 
 
@@ -349,7 +417,7 @@ proc GS_Deinitialize { c } {
 	global pMoves
 	
 	set pMoves undefined
-    $c delete deletable
+	$c delete deletable
 }
 
 #############################################################################
@@ -366,8 +434,8 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-    global leftBuffer topBuffer
-    DrawPieces $c $position
+	global leftBuffer topBuffer
+	DrawPieces $c $position
 }
 
 #############################################################################
@@ -394,8 +462,8 @@ proc GS_NewGame { c position } {
 # This function is called just before every move.
 #############################################################################
 proc GS_WhoseMove { position } {
-    global numPositions
-    
+	global numPositions
+	
 	set turn [C_ReturnTurn $position]
 	
 	if {$turn == "X"} {
@@ -403,7 +471,7 @@ proc GS_WhoseMove { position } {
 	} else {
 		set val O
 	}
-    return $val
+	return $val
 }
 
 #############################################################################
@@ -450,16 +518,15 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 		set coords [getCoords $c mi-$theMoveFrom]
 		set endCoords [getCoords $c mi-$theMoveTo]
 		set playingPiece [getTagOfOverlappingItem \
-		 	$c \
-		 	[lindex $coords 0] \
-		 	[lindex $coords 1] \
-		 	playingPiece]
+			 $c \
+			 [lindex $coords 0] \
+			 [lindex $coords 1] \
+			 playingPiece]
 		if { $playingPiece != "" } {
 			movePlayingPiece $c $playingPiece $endCoords
 		}
 	}
 	if { $theMoveRemove != $theMoveFrom } {
-		puts remove
 		removePlayingPiece $c $theMoveRemove
 	}
 }
@@ -618,7 +685,6 @@ proc unhashBoard {position arrayname} {
 proc unhashMove {theMove adjustForPhase} {
 	
 	global numPositions
-	global numMovesPerformed totalPieces
 	
 	set theMoveFrom [expr $theMove/( $numPositions*$numPositions )]
 	set theMoveTo [expr [expr $theMove/$numPositions] % $numPositions]
@@ -628,7 +694,7 @@ proc unhashMove {theMove adjustForPhase} {
 	# This is stored in theMoveTo, instead of theMoveRemove.
 	# Set adjustForPhase to be 1 (true) to store the remove piece in theMoveRemove.
 	
-	if {$adjustForPhase && $numMovesPerformed <= $totalPieces} {
+	if { $adjustForPhase && [isPhase1] } {
 		set theMoveRemove $theMoveTo
 		set theMoveTo $theMoveFrom
 	}
@@ -708,7 +774,7 @@ proc handleRelease { c x y } {
 	
 	global gPosition
 	global clickCounter
-	global pMoves numMovesPerformed totalPieces
+	global pMoves
 	global dragging dragPiece dragPiecePositionId
 	global showMovesMoveType showMovesPosition showMovesMoveList
 	
@@ -719,7 +785,7 @@ proc handleRelease { c x y } {
 	
 	set positionId [getPositionId $c $x $y]
 
-	if { $numMovesPerformed < $totalPieces } {
+	if { [isPhase1] } {
 		# phase 1
 		
 		if { $positionId != "" } {
@@ -748,6 +814,8 @@ proc handleRelease { c x y } {
 				# call after increasing clickCounter
 				# showMoves uses the value of clickCounter
 				showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+				
+				$c raise cancelMove
 			}
 		}
 		
@@ -775,19 +843,13 @@ proc handleRelease { c x y } {
 				if { [llength $pMoves] == 1 && [llength [lindex $pMoves 0]] == [expr $clickCounter + 1] } {
 					executeMove $c [lindex $pMoves 0]
 				} else {
-					
-					# allow dragging the piece back to "undo" current move
-					# TODO
-					set newMove [list $dragPiecePositionId $positionId $positionId $dragPiecePositionId]
-					lappend pMoves $newMove
-					lappend showMovesoveList $newMove
-					puts $pMoves
-					
 					incr clickCounter
 					
 					# call after increasing clickCounter
 					# showMoves uses the value of clickCounter
 					showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+				
+					$c raise cancelMove
 				}
 			}
 			
@@ -805,13 +867,13 @@ proc releaseDrag { c } {
 	
 	set endCoords [getCoords $c mi-$dragPiecePositionId]
 	movePlayingPiece $c $dragPiece $endCoords
-	cancelMove $c
+	resetMove $c
 }
 
 proc showMoves {c moveType position moveList} {
 	
 	global scale pMoves clickCounter
-		
+	
 	GS_HideMoves $c $moveType $position $moveList
 	
 	# filter moves from showMovesMoveList according to users current move selection
@@ -922,11 +984,46 @@ proc executeMove { c move } {
 		set m3 [lindex $move 2]
 	}
 	
+	$c lower cancelMove
+	
 	ReturnFromHumanMove [expr $m1*$numPositions*$numPositions + $m2*$numPositions + $m3]
-	cancelMove $c
+	resetMove $c
 }
 
 proc cancelMove { c } {
+	
+	global clickCounter pMoves
+	
+	$c lower cancelMove
+	
+	if { $clickCounter > 0 } {
+		set move [lindex $pMoves 0]
+		if { [isPhase1] } {
+			removePlayingPiece $c [lindex $move 0]
+		} else {
+			set from [lindex $move 1]
+			set to [lindex $move 0]
+			
+			set indicatorCoords [getCoords $c mi-$from]
+			set ix [lindex $indicatorCoords 0]
+			set iy [lindex $indicatorCoords 1]
+			set playingPiece [getTagOfOverlappingItem $c $ix $iy playingPiece]
+			movePlayingPiece $c $playingPiece [getCoords $c mi-$to]
+		}
+	}
+		
+	resetMove $c
+}
+
+proc cancelMoveRollover { c } {
+	$c itemconfigure cancelMoveTxt -fill #6d5447
+}
+
+proc cancelMoveRollout { c } {
+	$c itemconfigure cancelMoveTxt -fill #42322a
+}
+
+proc resetMove { c } {
 	
 	global clickCounter pMoves
 	global showMovesMoveType showMovesPosition showMovesMoveList
@@ -942,6 +1039,11 @@ proc cancelMove { c } {
 	# call after updating clickCounter
 	# showMoves uses the value of clickCounter
 	showMoves $c $showMovesMoveType $showMovesPosition $showMovesMoveList
+}
+
+proc isPhase1 {} {
+	global numMovesPerformed totalPieces
+	return [expr $numMovesPerformed < $totalPieces]
 }
 
 proc getRadiusGivenScale { scale } {
@@ -1089,31 +1191,3 @@ proc animateScale { c tagId cx cy startDiameter trgtDiameter } {
 	$c scale $tagId $cx $cy $ratio $ratio
 	update idletasks
 }
-
-
-
-
-#Notes: update bindings for all the pieces to invoke a function.
-#       Alternatively.... pass moveList over and decode it.
-#             Look at how GS_ShowMoves and how the value moveList is passed... can copy from tkAppInit.c
-#       Need to alter GS_HandleMove to decode moves
-
-
-
-#handle_click will basically read the moveList by getting it from GetValueMovesCmd(dummy, interp, argc, argv). 
-#                                            "C_GetValueMoves"
-#parse the list to obtain something like [ [8 12] lose [ 8 2 1] win [8 2 3] lose [6 13] win]
-#                          make a list of lists - get rid of everything that doesn't start with the piece clicked on.
-#                                      [ [8 12] [8 2 1] [8 2 3]]
-#                                      [ [8 2 1] [8 2 3] ]
-#need a global variable to count which click we are on for a given move. reset it after a complete move is made.
-
-#encode move after clicking is done. i.e. 8*$numPositions*boardsize+12*boardsize+8 for [8 12]
-                                #      or 8*boardsize*boardsize+12*boardsize+2 for [8 12 2]
-								#      or 8*boardsize*boardsize+8*boardsize+8 for [8]
-      #and send the move along to the C.  i.e. "ReturnFromHumanMove [expr 8*$numPositions*boardsize+12*boardsize+8]"
-
-#assume that after each click.... handle_click will be called. you will have a global moveList called possibleMoves
-
-
-#reupdate possibleMoves after a move is complete.
