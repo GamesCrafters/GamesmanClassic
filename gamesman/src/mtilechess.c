@@ -1,5 +1,5 @@
-// $Id: mtilechess.c,v 1.25 2007-11-28 05:35:51 tjlee0909 Exp $
-
+// $Id: mtilechess.c,v 1.26 2007-11-29 03:43:16 tjlee0909 Exp $
+//
 /**
  * The above lines will include the name and log of the last person
  * to commit this file to CVS
@@ -2328,6 +2328,7 @@ char* TierToStringFunPtr(TIER tier) {
 
 
 char *unhashBoard(POSITION position) {
+  
   if (gHashWindowInitialized) {
     printf("unhashing with tiers\n");
     TIER tier; TIERPOSITION tierposition;
@@ -2519,14 +2520,14 @@ char PieceTierValue(TIER tier) {
  //the index at which the '1' is
  int index=0;
  int mask = 0;
- TIER value=0;
+
  //             1234567890123456789012345678
  tier = tier & 0xfffffff;
  
  char piece=' ';
 
  //go through loop until find '1'
- for (index; index<28; index++) {
+ for (; index<28; index++) {
    
    //value = tier << index;
    //value = value >> 25;
@@ -2607,7 +2608,7 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
  TIERPOSITION col;
 
  //1). get size of the board
- for (i; i <= 63; i++) {
+ for (; i <= 63; i++) {
    temp = (unsigned long long) tier << i;
    temp = (unsigned long long) temp >> 63;
    rootsize += temp;
@@ -2693,7 +2694,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
  comb2 = factorial((numOfPieces * numOfPieces) - numOfPieces);
  numOfPositions = comb1/comb2;
 
- return numOfPositions;
+ //return numOfPositions;
+
+ return 1;
 }
 
 
@@ -2710,7 +2713,7 @@ TIERLIST* TierChildren(TIER tier) {
  //go through each bit in tier
  //if that bit is equal to 1, then turn it to 0 and
  //add that new tier to the tier list
- for (i; i <= 63; i++) {
+ for (; i <= 63; i++) {
  
    tierbit = (unsigned long long) tier << i;
    tierbit = (unsigned long long) tierbit >> 63;
@@ -2730,8 +2733,9 @@ TIERLIST* TierChildren(TIER tier) {
      }
    }
    tierbit = 0;
-
  }
+
+ children = CreateTierlistNode(tier, children);
 
  return children;
 }
