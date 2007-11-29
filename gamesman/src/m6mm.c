@@ -186,6 +186,8 @@ void changetonine();
 void InitializeGame ()
 {
 	int i;
+	if (SIXMM) changetosix();
+	if (!SIXMM) changetonine();
 	char* board = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
 
 	int pminmax[] = {X, 0, maxx, O, 0, maxo,BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
@@ -631,7 +633,7 @@ STRING MoveToString (MOVE move)
 		} 
 		else if(from == to && to == remove){
 			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "%d", from);
+			sprintf( movestring, "[%d]", from);
 		}
 		else {
 			movestring = (STRING) SafeMalloc(8);
@@ -646,7 +648,7 @@ STRING MoveToString (MOVE move)
 		if (from == to) //if 1st == 2nd position in move formula
 		{
 			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "%d", from);	
+			sprintf(movestring, "[%d]", from);	
 		}
 		else
 		{
@@ -946,9 +948,9 @@ void setOption (int option)
 {
   // In terms of bits, option is one more than 0bFS (F=flying,S=Standard)
   option -= 1;
-  gStandardGame = (option | 0x1);
-  gFlying       = (option | 0x2) >> 1;
-  SIXMM			= (option | 0x4) >> 2;
+  gStandardGame = (option % 2);
+  gFlying       = (option / 2) % 2;
+  SIXMM			= (option / 4);
 }
 
 
@@ -1753,7 +1755,6 @@ int find_adjacent(int slot, int *slots)
 void changetosix()
 {
 	SIXMM = 1;
-	gFlying = FALSE;
 	BOARDSIZE = 16;
 	maxx = 6;
 	maxo = 6;
@@ -1767,7 +1768,6 @@ void changetosix()
 
 void changetonine()
 {
-	gFlying = TRUE;
 	SIXMM = 0;
 	BOARDSIZE = 24;
 	maxx = 9;
@@ -1785,6 +1785,12 @@ void changetonine()
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.8  2007/11/26 10:41:26  noafroboy
+ ** BUGZID:
+ ** 1.  Added 9 men's morris under game specific options.
+ ** 2.  Polished PrintPosition for 9mm board.
+ ** 3.  Slightly edited SetupTierStuff to accomodate above changes.
+ **
  ** Revision 1.7  2007/11/19 04:32:44  ddgarcia
  ** Sooo many changes:
  **
