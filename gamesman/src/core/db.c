@@ -43,6 +43,7 @@
 #include "netdb.h"
 #include "filedb.h"
 #include "tierdb.h"
+#include "symdb.h"
 
 /* Provide optional support for randomized-hash based collision database, dependent on GMP */
 #ifdef HAVE_GMP
@@ -126,8 +127,11 @@ void db_initialize() {
 	if (kSupportsTierGamesman && gTierGamesman) {
 		tierdb_init(db_functions);
 	} else if (gBitPerfectDB) {
-        status = bpdb_init(db_functions);
-        if(!GMSUCCESS(status)) {
+	  if (gSymmetries)
+	    status = symdb_init(db_functions);
+	  else
+	    status = bpdb_init(db_functions);
+	  if(!GMSUCCESS(status)) {
             BPDB_TRACE("db_initialize()", "Attempt to initialize the bpdb by calling bpdb_init failed", status);
             goto _bailout;
         }
