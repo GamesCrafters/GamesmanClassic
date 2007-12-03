@@ -1665,11 +1665,8 @@ proc InitWindow { kRootDir kExt } {
   grid config .cStatus  -column 0 -row 3 \
       -columnspan 1 -rowspan 1
 
-  # setup visual value history scrollbar stuff
-  .middle.f1.cMLeft config -yscrollcommand ".vvhsb set"
-  scrollbar .vvhsb -orient h -command ".middle.f1.cMLeft yview"
-
-  set gMaxVVHSize [expr $gFrameHeight + 20]
+  bind . <Key-Next> {.middle.f1.cMLeft yview scroll 1 pages; update idletasks} 
+  bind . <Key-Prior> {.middle.f1.cMLeft yview scroll -1 pages; update idletasks} 
 }
 
 proc RaiseStatusBarIfGameStarted {} {
@@ -2358,8 +2355,6 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     #add new move to list
     lappend moveHistoryList $plottedLine $plottedMove
     lappend oldMoveList [list $gPosition $theMoves]
-
-    # resize/show/hide visual value history bar if needed
     updateVVHBar
 }
 
@@ -2384,7 +2379,6 @@ proc unplotMove { numUndo } {
     set gMistakeList [lrange $gMistakeList 0 $newLast]
     set oldMoveList [lrange $oldMoveList 0 $newLast]
 
-    # resize/show/hide visual value history bar if needed
     updateVVHBar
 }
 
@@ -2803,35 +2797,7 @@ proc advanceProgressBar { percent {str "Solving Game"} } {
   update idletasks
 }
 
-proc showVVHBar { } {
-  pack .vvhsb -in .middle.f1.cMLeft -side bottom -anchor n -fill x
-  update idletasks
-}
-
-proc hideVVHBar { } {
-  pack forget .vvhsb 
-  update idletasks
-}
-
 proc updateVVHBar { } {
-  global gMaxVVHSize
-
-  set box [.middle.f1.cMLeft bbox all]
-  set after [expr [lindex $box end] + 20]
-  set box [lreplace $box end end $after]
-  # offset to consider the scrollbar
-
-  .middle.f1.cMLeft config -scrollregion $box
-
-  # when after exceeds gMaxVVHSize and before is less
-  # we need scrollbar
-  # when after is less than that and before is greater
-  # then we hide it
-  if { $after > $gMaxVVHSize } {
-    showVVHBar
-  } elseif { $after <= $gMaxVVHSize } {
-    hideVVHBar
-  }
-
+  .middle.f1.cMLeft config -scrollregion [.middle.f1.cMLeft bbox all] 
 }
 
