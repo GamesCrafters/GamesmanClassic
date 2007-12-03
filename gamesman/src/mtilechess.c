@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.27 2007-11-29 05:44:55 tjlee0909 Exp $
+// $Id: mtilechess.c,v 1.28 2007-12-03 11:00:28 phase_ac Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -251,6 +251,8 @@ void unhashToTierPosition(POSITION pos, TIERPOSITION* tierpos, TIER *tier);
 char *unhashBoardWithoutTiers(POSITION position);
 char *TierToStringFunPtr(TIER);
 BOOLEAN isLegalPos(POSITION);
+int pieces (char*);
+void printProperBoard(char*);
 
 /* External */
 #ifndef MEMWATCH 
@@ -1172,8 +1174,12 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
     tier = getTier(boardArray);
     printf("\nhashing with tiers\n");
     tierpos = getTierPosition(boardArray, currentPlayer);
-    printf(" The current tier is: %lld, and the current tier position is: %lld\n\n", tier, tierpos);
+    printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
     pos = gHashToWindowPosition(tierpos, tier);
+    printf("Corresponds to a position of: %llu", pos);
+    printf(" and a board of:\n");
+    printProperBoard(tierToBoard(tier, tierpos));
+    printf("\n\n");
 
 
   } else {
@@ -1966,7 +1972,7 @@ BOOLEAN isLegalBoard(char *bA, BOOLEAN isolation) {
   temp[i] = '\0';
   sideLength = (int) sqrt(length);
   place = atobi(temp,2);
-  return isLegalPlacement(place,sideLength,numPieces,isolation); //ignore border regarding sideLength
+  return isLegalPlacement(place,sideLength,numPieces,isolation) && (pieces(bA) > 2); //ignore border regarding sideLength
 }
 
 BOOLEAN isIsolation(char **board) {
@@ -2274,14 +2280,15 @@ contextList *getContextNodeFromOffset(int offset) {
 //Tier Gamesman stuff below
 //NTS: put in the function prototypes
 void SetupTierStuff() {
-  TIERPOSITION maxtierpos = NumberOfTierPositions(hashBoardWithoutTiers(theBoard, 1));
+  TIERPOSITION maxtierpos; 
   kSupportsTierGamesman = TRUE;
   gInitialTier = getInitialTier();
   gInitialTierPosition = getInitialTierPosition();
+  maxtierpos = NumberOfTierPositions(gInitialTier);
   printf("Initial tier: %llu\n", gInitialTier);
   printf("Initial tier position: %llu\n", gInitialTierPosition);
   printf("Max tier number: %llu\n", maxtierpos);
-
+  printf("The board converted back: %s\n", tierToBoard(gInitialTier, gInitialTierPosition));
 
   gTierChildrenFunPtr = &TierChildren;
   gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
@@ -2338,7 +2345,6 @@ char *unhashBoard(POSITION position) {
     printf("unhashing with tiers\n");
     TIER tier; TIERPOSITION tierposition;
     gUnhashToTierPosition(position, &tierposition, &tier);
-    printf("current position: %lld \n", position);
     printf("unhashing %lld with tier position: %lld\n", tier, tierposition);
     
     return (char*) tierToBoard(tier, tierposition);
@@ -2489,7 +2495,7 @@ TIERPOSITION getTierPosition(char* board, int currentPlayer) {
       col = 0;
     }
   }
-  return (retval<<1) + currentPlayer;
+  return (retval<<1) + (currentPlayer & 1);
 }
 
 TIERPOSITION getInitialTierPosition() {
@@ -2618,16 +2624,17 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
    temp = (unsigned long long) temp >> 63;
    rootsize += temp;
  }
+
+ //to account for miscommunication, must shift tierposition to the left by
+ //63 - 6*(number of pieces) -1 (last minus one for player's turn bit)
+ tierpos = (unsigned long long) tierpos >> 1;
+ //tierpos = (unsigned long long) tierpos << (63 - (rootsize * 6)); 
+
+
  //to account for blank border around board
  rootsize +=2;
 
  fullsize = rootsize * rootsize;
-
-
- //to account for miscommunication, must shift tierposition to the left by
- //63 - 6*(number of pieces) -1 (last minus one for player's turn bit)
- tierpos = (unsigned long long) tierpos << (62 - (rootsize * 6)); 
- 
 
  //malloc space for board
  board = (char*) SafeMalloc((fullsize+1) * sizeof(char));
@@ -2639,29 +2646,58 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
  //null terminator just in case
  board[fullsize] = '\0';
 
-
  //3 fill in using tierpos and tier
  //look at first tier item, find the char, then go to tier pos
- for (y=0; y <64; y++) {
-   temp = (unsigned long long) tier << y;
-   temp = (unsigned long long) temp >> 63;
+ //for (y=0; y <64; y++) {
+ for (y = 0; y < 28; y++) {
+   temp = ((unsigned long long) (1 << y)) & tier;
+   //printf("Tier: %llu, 1<<y: %d, Index: %d, PiecePresent?: %llu \n", tier, (1<<y), y, temp);
+   //temp = (unsigned long long) tier << y;
+   //temp = (unsigned long long) temp >> 63;
 
-   if (temp == 1) {
-     row = (unsigned long long) tierpos << (tierpos_index);
-     row = (unsigned long long) row >> 61;
-     col = (unsigned long long) tierpos << (tierpos_index+3);
-     col = (unsigned long long) col >> 61;
+   if (temp) {
+     col = (tierpos >> (tierpos_index * 6)) & 7;
+     row = (tierpos >> (tierpos_index * 6 + 3)) & 7;
+     //row = (unsigned long long) tierpos << (tierpos_index);
+     //row = (unsigned long long) row >> 60;
+     //col = (unsigned long long) tierpos << (tierpos_index+3);
+     //col = (unsigned long long) col >> 60;
 
-     board[(int) ((row+1)*rootsize + col + 1)] = PieceTierValue((unsigned long long) 1 << (63-y));
+     //printf("TierPosition: %llu, ", tierpos);
+     //printf("Row: %llu, Col: %llu\n", row, col);
+
+     //board[(int) ((row+1)*rootsize + col + 1)] = PieceTierValue((unsigned long long) 1 << (63-y));
+     board[(int) ((row+1)*rootsize + col + 1)] = PieceTierValue((unsigned long long) 1 << y);
      //increment this by 6 to know to shift by this amount
-     tierpos_index += 6;
+     //tierpos_index += 6;
+     tierpos_index ++;
    }
 
  }
-
- printf("%s\n", board);
+ //printf("rootsize: %d\n", rootsize);
+ printProperBoard(board);
+ /**for (i = 0; i < fullsize; i++) {
+   
+   printf("%c", board[i]);
+   //printf("%d", i);
+   if (((i+1) % ( rootsize )) == 0 )
+     printf("\n");
+     }**/
 
  return board;
+}
+
+void printProperBoard(char* ba)
+{
+  int i = 0;
+  int fullsize = strlen(ba);
+  int rootsize = (int) sqrt(fullsize);
+  for (i = 0; i < fullsize; i++) {
+    printf("%c", ba[i]);
+    //printf("%d", i);
+    if (((i+1) % ( rootsize )) == 0 )
+      printf("\n");
+  }
 }
 
 
@@ -2679,7 +2715,7 @@ TIER factorial(TIER num) {
 //returns number of tier positions
 TIERPOSITION NumberOfTierPositions(TIER tier) {
 
- int numOfPieces= (unsigned long long) 0;
+ int numOfPieces=  0;
  int i = 0;
  TIER temp = (unsigned long long) 0;
  tier = tier & 0xfffffff;
@@ -2688,14 +2724,21 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 
  //shift until get that each individual bit
- for (i = 0; i < 28; i--) {
-   temp = (unsigned long long)  tier << i;
-   temp = temp & 0xfffffff;
-   temp =  (unsigned long long) temp >> 27;
-   numOfPieces += temp;
+ for (i = 0; i < 28; i++) {
+   temp = tier & (1 << i);
+   //temp = (unsigned long long)  tier << i;
+   //temp = temp & 0xfffffff;
+   //temp =  (unsigned long long) temp >> 27;
+   //numOfPieces += temp;
+   if (temp) {
+     numOfPieces++;
+   }
  }
 
+ printf("number of pieces: %d \n", numOfPieces);
+
  for (i = 0; i < numOfPieces; i ++) {
+   //printf("numOfPositions: %llu \n", numOfPositions);
    numOfPositions += ((((numOfPieces - 1) << 3) + i) << 6 * i); 
  }
  
@@ -2703,7 +2746,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
  //comb2 = factorial((numOfPieces * numOfPieces) - numOfPieces);
  //numOfPositions = comb1/comb2;
 
- return numOfPositions;
+ return (numOfPositions << 1) + 2; // last shift + 1 is due to the current player
 }
 
 
@@ -2733,6 +2776,7 @@ TIERLIST* TierChildren(TIER tier) {
 
      //if newtier is not just two kings or less
      if (newtier & 1 && newtier & 1<<27 && newtier != 1+(1<<27)) {
+     //if (newtier & 1 && newtier & 1<<27) {
      printf("\nMask: %llu\n", mask);
      printf("CurrentTier: %llu\n", tier);
      printf("NewTier: %llu\n", newtier);
@@ -2747,9 +2791,26 @@ TIERLIST* TierChildren(TIER tier) {
  return children;
 }
 
+int pieces (char* ba)
+{
+  int pieces = 0;
+  char cur = 0;
+  int i = 0;
+  do {
+    cur = ba[i];
+    if (cur != ' ' && cur != 0)
+      pieces++;
+    i++;
+  } while (cur != 0);
+  return pieces;
+}
+
 BOOLEAN isLegalPos(POSITION pos)
 {
-  return isLegalBoard(unhashBoardWithoutTiers(pos), TRUE);
+  //printf("The board: %s\n", unhashBoard(pos));
+  //printf("It has %d pieces\n", pieces(unhashBoard(pos)));
+  BOOLEAN temp = isLegalBoard(unhashBoard(pos), TRUE);
+  return temp;
 }
 
 
@@ -2758,6 +2819,9 @@ BOOLEAN isLegalPos(POSITION pos)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.27  2007/11/29 05:44:55  tjlee0909
+// updating for partner
+//
 // Revision 1.26  2007/11/29 03:43:16  tjlee0909
 // Fixed warnings
 //
