@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.28 2007-12-03 11:00:28 phase_ac Exp $
+// $Id: mtilechess.c,v 1.29 2007-12-04 08:03:18 phase_ac Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -46,8 +46,8 @@ BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu.
 BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -1171,8 +1171,9 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
   POSITION pos;
 
   if (gHashWindowInitialized) {
+    printProperBoard(boardArray);
     tier = getTier(boardArray);
-    printf("\nhashing with tiers\n");
+    printf("hashing with tiers\n");
     tierpos = getTierPosition(boardArray, currentPlayer);
     printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
     pos = gHashToWindowPosition(tierpos, tier);
@@ -1675,12 +1676,22 @@ BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponen
 /* Returns TRUE if the given piece belongs to currentPlayer,
    and FALSE otherwise. */
 BOOLEAN isSameTeam(char piece, int currentPlayer) {
-  if (piece >= 'a' && piece <= 'z' && currentPlayer == PLAYER2_TURN)
-    return TRUE;
-  else if (piece >= 'A' && piece <= 'Z' && currentPlayer == PLAYER1_TURN)
-    return TRUE;
-  else
-    return FALSE;
+  /*if (gHashWindowInitialized) {
+    if (piece >= 'a' && piece <= 'z' && !currentPlayer)
+      return TRUE;
+    else if (piece >= 'A' && piece <= 'Z' && currentPlayer == PLAYER1_TURN)
+      return TRUE;
+    else
+      return FALSE;
+      }*/
+  //else {
+    if (piece >= 'a' && piece <= 'z' && currentPlayer == PLAYER2_TURN)
+      return TRUE;
+    else if (piece >= 'A' && piece <= 'Z' && currentPlayer == PLAYER1_TURN)
+      return TRUE;
+    else
+      return FALSE;
+    //}
 }
 
 /* Given the starting and ending indeces, will return
@@ -1972,7 +1983,7 @@ BOOLEAN isLegalBoard(char *bA, BOOLEAN isolation) {
   temp[i] = '\0';
   sideLength = (int) sqrt(length);
   place = atobi(temp,2);
-  return isLegalPlacement(place,sideLength,numPieces,isolation) && (pieces(bA) > 2); //ignore border regarding sideLength
+  return isLegalPlacement(place,sideLength,numPieces,isolation); //ignore border regarding sideLength
 }
 
 BOOLEAN isIsolation(char **board) {
@@ -2809,7 +2820,31 @@ BOOLEAN isLegalPos(POSITION pos)
 {
   //printf("The board: %s\n", unhashBoard(pos));
   //printf("It has %d pieces\n", pieces(unhashBoard(pos)));
-  BOOLEAN temp = isLegalBoard(unhashBoard(pos), TRUE);
+  char* tempboard = unhashBoard(pos);
+  int bdlength = strlen(tempboard);
+  int sideLength = (int) sqrt(bdlength);
+  int i;
+  BOOLEAN temp;
+  int kingChecker = 0;
+
+  for (i = 0; i < bdlength; i++) {
+    if (i < sideLength || !(i % sideLength) || 
+	(i % sideLength == sideLength - 1) || (i > bdlength - sideLength)) {
+      if (tempboard[i] != ' ')
+	return FALSE;
+    }
+  }
+
+  for (i = 0; i < bdlength; i++) {
+    if (tempboard[i] == 'k' || tempboard[i] == 'K')
+      kingChecker++;
+  }
+  if (kingChecker != 2)
+    return FALSE;
+  temp = isLegalBoard(tempboard, TRUE);
+  temp = temp && (pieces(tempboard) > 2);
+
+  
   return temp;
 }
 
@@ -2819,6 +2854,9 @@ BOOLEAN isLegalPos(POSITION pos)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.28  2007/12/03 11:00:28  phase_ac
+// Got the first tier solved! But database is corrupted, meaning isLegal is prolly not doing its job correctly. Uploading to let partner to do some debugging/fixing.
+//
 // Revision 1.27  2007/11/29 05:44:55  tjlee0909
 // updating for partner
 //
