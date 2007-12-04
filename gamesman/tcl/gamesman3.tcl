@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.61 2007-11-15 02:50:37 dounanshi Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.62 2007-12-04 22:57:07 dmchan Exp $
 ##
 ############################################################################
 
@@ -714,7 +714,7 @@ proc DriverLoop { } {
     
     global printing
     if { [expr !$gGameSolved] || $gWaitingForResponse == 1 } {
-		return
+      return
     }
 
     set gWaitingForHuman false
@@ -725,23 +725,23 @@ proc DriverLoop { } {
 		if {!$gameMenuToDriverLoop} {
 		    ## Move History
 		    if { $primitive != "Undecided" } {
-			set theMoves  [list]
+          set theMoves  [list]
 		    } else {
-			set theMoves  [C_GetValueMoves $gPosition $gReallyUnsolved]
+          set theMoves  [C_GetValueMoves $gPosition $gReallyUnsolved]
 		    }
 		    set lastMove      [peek $gMovesSoFar]
 		    if {$gReallyUnsolved} {
-			set theValue "lose"
-			set theRemoteness 0
+          set theValue "lose"
+          set theRemoteness 0
 		    } else {
-			set theValue      [C_GetValueOfPosition $gPosition]
-			set theRemoteness [C_Remoteness $gPosition]
+          set theValue      [C_GetValueOfPosition $gPosition]
+          set theRemoteness [C_Remoteness $gPosition]
 		    }
 		    # capture position before move
 		    # only do if printing is enabled
 		    if { $printing == true } {
-			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves true
-			doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves false
+          doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves true
+          doCapture .middle.f2.cMain $gMoveType $gPosition $theMoves false
 		    }
 	
 		    plotMove $gWhoseTurn $theValue $theRemoteness $theMoves $lastMove
@@ -759,46 +759,46 @@ proc DriverLoop { } {
 		    
 		} else {
 			global kGameName
-		    .middle.f3.cMRight itemconfigure WhoseTurn \
-			-text [format "It's %s's Turn\n" [subst $[subst g[subst $gWhoseTurn]Name]]]
+      .middle.f3.cMRight itemconfigure WhoseTurn \
+        -text [format "It's %s's Turn\n" [subst $[subst g[subst $gWhoseTurn]Name]]]
 			update idletasks
 	
-		    ## Handle Prediction
-		    global gPredString
-		    GetPredictions
-		    .middle.f3.cMRight itemconfigure Predictions \
-			-text [format "Predictions: %s" $gPredString]
-		    update idletasks
+      ## Handle Prediction
+      global gPredString
+      GetPredictions
+      .middle.f3.cMRight itemconfigure Predictions \
+        -text [format "Predictions: %s" $gPredString]
+      update idletasks
 	              
-		    if { [PlayerIsComputer] } {
-			GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
-			after [expr int($gMoveDelay * 1000)]
-			GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
-			if { ![DoComputerMove] } {
-				## Encountered an error
-				EndGame
-				return
-			}
-			set gWaitingForHuman false
-			update
-		    } else {
-			global gSkipInputOnSingleMove gJustUndone
-			if {$gSkipInputOnSingleMove && !$gJustUndone && [llength [C_GetValueMoves $gPosition $gReallyUnsolved]] == 1} {
-			    SwitchWhoseTurn
-				if { ![DoComputerMove] } {
-					## Encountered an error
-					EndGame
-					return
-				}
-			    SwitchWhoseTurn
-			} else {
-			    DoHumanMove
-			    set gWaitingForHuman true
-			}
-			set gJustUndone false
-		    }
+      if { [PlayerIsComputer] } {
+        GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
+        after [expr int($gMoveDelay * 1000)]
+        GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
+        if { ![DoComputerMove] } {
+          ## Encountered an error
+          EndGame
+          return
+        }
+        set gWaitingForHuman false
+        update
+      } else {
+        global gSkipInputOnSingleMove gJustUndone
+        if {$gSkipInputOnSingleMove && !$gJustUndone && [llength [C_GetValueMoves $gPosition $gReallyUnsolved]] == 1} {
+            SwitchWhoseTurn
+          if { ![DoComputerMove] } {
+            ## Encountered an error
+            EndGame
+            return
+          }
+            SwitchWhoseTurn
+        } else {
+            DoHumanMove
+            set gWaitingForHuman true
+        }
+        set gJustUndone false
+      }
 		}
-    }
+  }
 }
 
 #############################################################################
@@ -817,9 +817,9 @@ proc SwitchWhoseTurn {} {
     global gWhoseTurn
 
     if { $gWhoseTurn == "Left" } {
-	set gWhoseTurn "Right"
+      set gWhoseTurn "Right"
     } else {
-	set gWhoseTurn "Left"
+      set gWhoseTurn "Left"
     }
 }
     
@@ -1352,7 +1352,9 @@ proc ChangeMoveType { fromMoveType toMoveType position moveList } {
 #############################################################################
 
 proc Undo { } {
-    
+    # delete the printing canvas
+
+    .printing delete PDF
     UndoHelper
     global gWhoseTurn gLeftName gRightName
     .middle.f3.cMRight itemconfigure WhoseTurn \
@@ -1698,18 +1700,18 @@ proc DestroyRuntimeModal { } {
 	destroy .middle.f2.cMain.fModal
 }
 
-
-
-
 # argv etc
 proc main {kRootDir} {
 
-    # Initialize generic top-level window
-    source "$kRootDir/../tcl/InitWindow.tcl"
-    InitGlobals
+  # Initialize generic top-level window
+  source "$kRootDir/../tcl/InitWindow.tcl"
+  InitGlobals
 
 	# source the printing files
 	source "$kRootDir/../tcl/printing.tcl"
+
+  # source the network code
+  source "$kRootDir/../tcl/network.tcl"
     
 	global gSkinsDir
     if {[catch {set fileptr [open skin.txt r]}]} {

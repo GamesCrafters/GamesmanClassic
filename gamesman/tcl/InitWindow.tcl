@@ -1,17 +1,13 @@
 #  the actions to be performed when the toolbar buttons are pressed
 #
-# source the network code
-# get the path and join the strings 
-# - thanks to steven luo
-set path [file dirname [info script]]
-source [file join $path network.tcl]
-
 proc TBaction1 {} {
   # solve the game, 
   global kGameName varObjective gPosition gInitialPosition
   global gGameSolved gGamePlayable
   global gComputerIsOnlinePlayer
+  global moveHistoryY
 
+  set moveHistoryY 0
   # If the play options pane is open, ignore
   if { $gGameSolved == "true" && $gGamePlayable == "false" } {
     # do nothing
@@ -1665,8 +1661,61 @@ proc InitWindow { kRootDir kExt } {
   grid config .cStatus  -column 0 -row 3 \
       -columnspan 1 -rowspan 1
 
-  bind . <Key-Next> {.middle.f1.cMLeft yview scroll 1 pages; update idletasks} 
-  bind . <Key-Prior> {.middle.f1.cMLeft yview scroll -1 pages; update idletasks} 
+  # scroll the scrollable visual value history items
+  bind . <Key-Next> {updateHidden 100} 
+  bind . <Key-Prior> {updateHidden -100} 
+}
+
+proc updateHidden { delta } {
+  global moveHistoryCanvas moveHistoryY moveHistoryVisible
+  global gWindowWidthRatio gPredictionsOn
+
+  set pieceRadius [expr 3.0 + $gWindowWidthRatio]
+  set top [expr $gWindowWidthRatio * 35 + $pieceRadius]
+  set bottom [expr $gWindowWidthRatio * 430]
+  
+  # we need to update the Y delta for plotting
+  set moveHistoryY [expr $moveHistoryY + $delta]
+  $moveHistoryCanvas move moveHistoryScroll 0 $delta 
+  update idletasks
+
+  # get the bounding box then calculate all
+  # visible elements between top and bottom
+  set bbox [$moveHistoryCanvas bbox all] 
+  set items [$moveHistoryCanvas find overlapping \
+              [lindex $bbox 0] \
+              $top \
+              [lindex $bbox 2] \
+              $bottom]
+  
+  # loop over all the elements
+  # and get the visual value history stuff that
+  # is visible, set a tag to indicate that
+  foreach item $items {
+    set tags [$moveHistoryCanvas itemcget $item -tags] 
+    if { [lsearch $tags moveHistoryScroll] != -1 } {
+      $moveHistoryCanvas addtag visibleMove withtag $item
+    }
+  }
+
+  # lower the moveHistoryScoll items below the moveHistoryPlot
+  $moveHistoryCanvas lower moveHistoryScroll moveHistoryPlot
+  # then raise the visible moves
+  $moveHistoryCanvas raise visibleMove 
+
+  # lower the items that should not appear
+  # due to flags
+  if { $gPredictionsOn == false } {
+    $moveHistoryCanvas lower moveHistoryValidMoves
+  }
+
+  if { $moveHistoryVisible == false } {
+    $moveHistoryCanvas lower moveHistory
+  }
+
+  # delete tags and update
+  $moveHistoryCanvas dtag visibleMove
+  update idletasks
 }
 
 proc RaiseStatusBarIfGameStarted {} {
@@ -2076,6 +2125,8 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     global kValueHistoryLabelFont
     global gPredictionsOn gMovesSoFar
     global gMistakeList gPosition oldMoveList
+    # we need to offset the Y by how much we have scrolled
+    global moveHistoryY
 
     $moveHistoryCanvas delete moveHistoryValidMoveLines
 
@@ -2158,8 +2209,8 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
       rescaleX $center $pieceRadius $oldDeltaX $deltax
     }
     
-    set y [expr $top + $pieceRadius * $numMoves]
-    set nextY [expr $top + 2 * $pieceRadius + $pieceRadius * $numMoves]
+    set y [expr $moveHistoryY + $top + $pieceRadius * $numMoves]
+    set nextY [expr $moveHistoryY + $top + 2 * $pieceRadius + $pieceRadius * $numMoves]
 
     #draw faint lines at every remoteness value
     if {$oldDeltaX != $deltax} {
@@ -2233,7 +2284,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
       -font $kValueHistoryLabelFont \
       -fill $gFontColor \
       -anchor $anchor \
-      -tags [list moveHistory moveHistoryMoveString moveString$y textitem]
+      -tags [list moveHistoryScroll moveHistory moveHistoryMoveString moveString$y textitem]
 
     set xDistance [expr [expr $maxRemoteness - $theRemoteness] * $deltax * $mult]
 
@@ -2260,7 +2311,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
       [$moveHistoryCanvas create line $prevX $prevY $x $y \
 	     -fill $lineColor \
 	     -width 1 \
-	     -tags [list moveHistory moveHistoryLine]]
+	     -tags [list moveHistoryScroll moveHistory moveHistoryLine]]
 
     set plottedMove \
       [$moveHistoryCanvas create oval \
@@ -2268,21 +2319,21 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 	     -fill $color \
 	     -outline "" \
 	     -width 3 \
-	     -tags [list moveHistory moveHistoryPlot moveHistoryPosition$numMovesSoFar]]
+	     -tags [list moveHistoryScroll moveHistory moveHistoryPlot moveHistoryPosition$numMovesSoFar]]
 
     if { $theValue == "Tie" && $theRemoteness != $drawRemoteness } {
       set plottedLineOpposite \
 		    [$moveHistoryCanvas create line $prevXOpposite $prevY $xOpposite $y \
 			 -fill $lineColor \
 			 -width 1 \
-			 -tags [list moveHistory moveHistoryLine opposite$y oppositeLine$y]]
+			 -tags [list moveHistoryScroll moveHistory moveHistoryLine opposite$y oppositeLine$y]]
 	
       set plottedMoveOpposite \
 		    [$moveHistoryCanvas create oval \
 			 [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
 			 -fill $color \
 			 -outline "" \
-			 -tags [list moveHistory moveHistoryPlot opposite$y oppositePiece$y moveHistoryPosition$numMovesSoFar]]
+			 -tags [list moveHistoryScroll moveHistory moveHistoryPlot opposite$y oppositePiece$y moveHistoryPosition$numMovesSoFar]]
     }
     $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <ButtonRelease-1> \
       "undoToPosition $numMovesSoFar;"
@@ -2329,14 +2380,14 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
       $moveHistoryCanvas create line $x $y $moveX $nextY \
 		    -fill $lineColor \
 		    -width 1 \
-		    -tags [list moveHistory moveHistoryLine moveHistoryValidMoves moveHistoryValidMoveLines]
+		    -tags [list moveHistoryScroll moveHistory moveHistoryLine moveHistoryValidMoves moveHistoryValidMoveLines]
 	
       $moveHistoryCanvas create oval \
 		    [expr $moveX - $pieceRadius / 2] [expr $nextY - $pieceRadius / 2] \
 		    [expr $moveX + $pieceRadius / 2] [expr $nextY + $pieceRadius / 2] \
 		    -fill $color \
 		    -outline "" \
-		    -tags [list moveHistory moveHistoryPlot moveHistoryValidMoves moveHistoryDots$y]
+		    -tags [list moveHistoryScroll moveHistory moveHistoryPlot moveHistoryValidMoves moveHistoryDots$y]
     }
 
     $moveHistoryCanvas raise moveHistoryPlot
