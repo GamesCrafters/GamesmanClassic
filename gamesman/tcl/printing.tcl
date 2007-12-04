@@ -35,13 +35,17 @@ canvas .printing -width 500 -height 500
 # do the printing
 proc doPrinting {c position winningSide} {
 	global outputs gFrameWidth
+
 	# disable caching
 	set path [makePath $position false]
+
 	# capture the last position
 	capture $c $position false $path
+
+  # create the PDF display widget
 	$c create rectangle 0 [expr $gFrameWidth/2 - 75] $gFrameWidth [expr $gFrameWidth/2 + 75] -fill gray -width 1 -outline black -tag PDF
 	$c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 - 40] -text "Generating PDF" -font {Courier 40} -tags PDF
-	$c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 + 40] -text "Step 1 of 6" -font {Courier 40} -tags PDFStep
+	$c create text [expr $gFrameWidth/2] [expr $gFrameWidth/2 + 40] -text "Step 1 of 6" -font {Courier 40} -tags [list PDF PDFStep]
 	update idletasks
 	makeTop $c $position $winningSide
 	
@@ -67,7 +71,7 @@ proc doPrinting {c position winningSide} {
 	# use gs to generate a pdf...
 	# only needed for debugging
 	makePDF $outputs("output_merge") $outputs("outputPDF")
-	$c delete PDF PDFStep
+	$c delete PDF
 }
 
 proc addFooter { } {
