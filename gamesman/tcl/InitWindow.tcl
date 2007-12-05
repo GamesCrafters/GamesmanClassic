@@ -1506,7 +1506,6 @@ proc InitWindow { kRootDir kExt } {
     .cStatus raise historyI
     .cStatus raise rulesA
     #.cStatus raise iABB3
-    updateVVHBar
     update
   }
 
@@ -1533,7 +1532,6 @@ proc InitWindow { kRootDir kExt } {
     .cStatus raise rulesI
     .cStatus raise historyA
     #.cStatus raise iABB4
-    updateVVHBar
     update
   }
 
@@ -1690,7 +1688,8 @@ proc updateHidden { delta } {
   
   # loop over all the elements
   # and get the visual value history stuff that
-  # is visible, set a tag to indicate that
+  # is visible, set a tag to indicate that it
+  # is visible
   foreach item $items {
     set tags [$moveHistoryCanvas itemcget $item -tags] 
     if { [lsearch $tags moveHistoryScroll] != -1 } {
@@ -2187,29 +2186,32 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     }
 
     if { $moveStringWidth > $maxMoveString || ($theRemoteness < $drawRemoteness && \
-	     ($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness)) } {
+	      ($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness)) } {
       if { $moveStringWidth > $maxMoveString } {
 		    set maxMoveString $moveStringWidth
-		}
-		if {$theRemoteness < $drawRemoteness && \
-			($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness) } {
-		    if { $theRemoteness >= $nextMaxRemoteness } {
-        set maxRemoteness [expr $theRemoteness + 1]
-		    } else {
-        set maxRemoteness [expr $nextMaxRemoteness + 1]
-		    }
-		}
-	
-		if { $maxRemoteness == 0 } {
-		    set deltax 0
-		} else {
-		    set deltax \
-          [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
-		}
+      }
+
+      if {$theRemoteness < $drawRemoteness && \
+          ($theRemoteness > $maxRemoteness || $nextMaxRemoteness > $maxRemoteness) } {
+        if { $theRemoteness >= $nextMaxRemoteness } {
+          set maxRemoteness [expr $theRemoteness + 1]
+        } else {
+          set maxRemoteness [expr $nextMaxRemoteness + 1]
+        }
+      }
+    
+      if { $maxRemoteness == 0 } {
+          set deltax 0
+      } else {
+          set deltax \
+            [expr [expr $center - $pieceRadius - $maxMoveString] / $maxRemoteness]
+      }
+
       rescaleX $center $pieceRadius $oldDeltaX $deltax
     }
     
     set y [expr $moveHistoryY + $top + $pieceRadius * $numMoves]
+    set base_y [expr $y - $moveHistoryY]
     set nextY [expr $moveHistoryY + $top + 2 * $pieceRadius + $pieceRadius * $numMoves]
 
     #draw faint lines at every remoteness value
@@ -2225,12 +2227,15 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 		    set reverse [expr $maxRemoteness - $i]
 		    set stipple @[file join $tk_library demos images gray25.bmp]
 		    set width 2
+
 		    if { [expr $reverse % 5] == 0 } {
           set stipple ""
           set width 1
+
           if { $reverse == 0 } {
 				    set width 2
           }
+
           if { [expr $i * $deltax] > $labelBufferSpace } { #don't draw labels too close to center label
             .middle.f1.cMLeft create text [expr $center - $i * $deltax] $labelsY \
               -text $reverse \
@@ -2246,6 +2251,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
               -tags [list moveHistory moveHistoryLabels moveHistoryLabelsRemoteness textitem]
           }
 		    }
+
 		    $moveHistoryCanvas create line \
           [expr $center - $i * $deltax] $top \
           [expr $center - $i * $deltax] $bottom \
@@ -2253,6 +2259,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
           -stipple $stipple \
           -width $width \
           -tags [list moveHistory moveHistory1Line moveHistory1LineLeft]
+
         $moveHistoryCanvas create line \
           [expr $center + [expr $i * $deltax]] $top \
           [expr $center + [expr $i * $deltax]] $bottom \
@@ -2296,7 +2303,9 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
       set prevCoords [$moveHistoryCanvas coords $prev]
       set prevX [expr [expr [lindex $prevCoords 0] + [lindex $prevCoords 2]] / 2]
       set prevY [expr [expr [lindex $prevCoords 1] + [lindex $prevCoords 3]] / 2]
-      if { "" != [set prevCoordsOpposite [$moveHistoryCanvas coords oppositeLine$prevY]] } {
+      # offset the prevY by moveHistoryY 
+      set base_prev_y [expr $prevY - $moveHistoryY]
+      if { "" != [set prevCoordsOpposite [$moveHistoryCanvas coords oppositeLine$base_prev_y]] } {
 		    set prevXOpposite [lindex $prevCoordsOpposite 2]
       } else {
 		    set prevXOpposite $prevX
@@ -2323,26 +2332,29 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 
     if { $theValue == "Tie" && $theRemoteness != $drawRemoteness } {
       set plottedLineOpposite \
-		    [$moveHistoryCanvas create line $prevXOpposite $prevY $xOpposite $y \
-			 -fill $lineColor \
-			 -width 1 \
-			 -tags [list moveHistoryScroll moveHistory moveHistoryLine opposite$y oppositeLine$y]]
+        [$moveHistoryCanvas create line $prevXOpposite $prevY $xOpposite $y \
+          -fill $lineColor \
+          -width 1 \
+          -tags [list moveHistoryScroll moveHistory moveHistoryLine opposite$base_y oppositeLine$base_y]]
 	
       set plottedMoveOpposite \
 		    [$moveHistoryCanvas create oval \
-			 [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
-			 -fill $color \
-			 -outline "" \
-			 -tags [list moveHistoryScroll moveHistory moveHistoryPlot opposite$y oppositePiece$y moveHistoryPosition$numMovesSoFar]]
+          [expr $xOpposite - $pieceRadius] [expr $y - $pieceRadius] [expr $xOpposite + $pieceRadius] [expr $y + $pieceRadius] \
+          -fill $color \
+          -outline "" \
+          -tags [list moveHistoryScroll moveHistory moveHistoryPlot opposite$base_y oppositePiece$base_y moveHistoryPosition$numMovesSoFar]]
     }
+
     $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <ButtonRelease-1> \
       "undoToPosition $numMovesSoFar;"
+
     $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <Enter> \
       "$moveHistoryCanvas itemconfigure moveHistoryPosition$numMovesSoFar -outline white;"
+
     $moveHistoryCanvas bind moveHistoryPosition$numMovesSoFar <Leave> \
       "$moveHistoryCanvas itemconfigure moveHistoryPosition$numMovesSoFar -outline \"\";"
     
-    #old moves deleted at begining of proc so they dont stick around during animation
+    #old moves deleted at beginning of proc so they dont stick around during animation
     for {set i 0} {$i < [llength $theMoves]} {incr i} {
       set moveRemoteness [lindex [lindex $theMoves $i] 2]
       set moveValue [lindex [lindex $theMoves $i] 1]
@@ -2398,7 +2410,9 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     if { $moveHistoryVisible == false } {
       $moveHistoryCanvas lower moveHistory
     }
+
     #done with plotting
+    # calculate best move things
     if { [llength $oldMoveList] > 0 } {
       bestMove $turn $theValue $theRemoteness [lindex $oldMoveList [expr [llength $oldMoveList] - 1]] $lastMove
     }
@@ -2406,11 +2420,10 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     #add new move to list
     lappend moveHistoryList $plottedLine $plottedMove
     lappend oldMoveList [list $gPosition $theMoves]
-    updateVVHBar
 }
 
 proc unplotMove { numUndo } {
-    global moveHistoryList moveHistoryCanvas gMistakeList oldMoveList
+    global moveHistoryList moveHistoryCanvas gMistakeList oldMoveList moveHistoryY
     set moveBackNum [expr [expr $numUndo + 1] * 2]
     set len [llength $moveHistoryList]
     set newLast [expr $len - $moveBackNum - 1]
@@ -2418,7 +2431,9 @@ proc unplotMove { numUndo } {
     #delete items
     for {set i 0} {$i<[expr $moveBackNum+1] && [expr $len - $i] >= 0} {incr i} {
       set end [lindex $moveHistoryList [expr $len - $i]]
-      set y [lindex [$moveHistoryCanvas coords $end] 3]
+      # offset to the moveHistoryY
+      set y [expr [lindex [$moveHistoryCanvas coords $end] 3] - $moveHistoryY]
+      
       $moveHistoryCanvas delete opposite$y
       $moveHistoryCanvas delete moveString$y
       $moveHistoryCanvas delete moveHistoryDots$y
@@ -2429,8 +2444,6 @@ proc unplotMove { numUndo } {
     set moveHistoryList [lrange $moveHistoryList 0 $newLast]
     set gMistakeList [lrange $gMistakeList 0 $newLast]
     set oldMoveList [lrange $oldMoveList 0 $newLast]
-
-    updateVVHBar
 }
 
 #undos to the nth position in the game, indexed at 0
@@ -2846,9 +2859,5 @@ proc advanceProgressBar { percent {str "Solving Game"} } {
     -text "$str:\n$percentDone%"
   .middle.f1.cMLeft raise progressBar
   update idletasks
-}
-
-proc updateVVHBar { } {
-  .middle.f1.cMLeft config -scrollregion [.middle.f1.cMLeft bbox all] 
 }
 
