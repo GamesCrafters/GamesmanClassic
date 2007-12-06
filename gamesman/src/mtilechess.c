@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.29 2007-12-04 08:03:18 phase_ac Exp $
+// $Id: mtilechess.c,v 1.30 2007-12-06 04:33:26 phase_ac Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -139,7 +139,7 @@ The match ends in a draw. Excellent strategies, Player and Computer\n";
 **
 **************************************************************************/
 #define PLAYER1_TURN 1
-#define PLAYER2_TURN 2
+#define PLAYER2_TURN 0
 
 // Constants specifying directions to "look" on the board
 #define UP 0
@@ -253,6 +253,7 @@ char *TierToStringFunPtr(TIER);
 BOOLEAN isLegalPos(POSITION);
 int pieces (char*);
 void printProperBoard(char*);
+char* flushBoard(char*);
 
 /* External */
 #ifndef MEMWATCH 
@@ -406,6 +407,13 @@ POSITION DoMove (POSITION position, MOVE move)
   pieceMoved = boardArray[(sideLength-filei)*sideLength+ranki];
   boardArray[(sideLength-filei)*sideLength+ranki] = ' ';
   boardArray[(sideLength-filef)*sideLength+rankf] = pieceMoved;
+  //temp = hashBoardWithoutTiers(boardArray, (getCurrTurn(position) == PLAYER1_TURN) ? PLAYER2_TURN : PLAYER1_TURN);
+  //boardArray = unhashBoardWithoutTiers(temp);
+  printf("In DoMove: \n");
+  printProperBoard(boardArray);
+  boardArray = flushBoard(boardArray);
+  printf("After flushing the board back: \n");
+  printProperBoard(boardArray);
   return hashBoard(boardArray,(getCurrTurn(position) == PLAYER1_TURN) ? PLAYER2_TURN : PLAYER1_TURN);
 }
 
@@ -1171,7 +1179,7 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
   POSITION pos;
 
   if (gHashWindowInitialized) {
-    printProperBoard(boardArray);
+    //printProperBoard(boardArray);
     tier = getTier(boardArray);
     printf("hashing with tiers\n");
     tierpos = getTierPosition(boardArray, currentPlayer);
@@ -1297,9 +1305,14 @@ POSITION hashBoardWithoutTiers(char boardArray[], int currentPlayer) {
  * Returns whose turn it is */
 int getCurrTurn(POSITION position) {
   int B = position%BMAX;
-  contextList *temp = getContextNodeFromOffset(B);
-  generic_hash_context_switch(temp->context);
-  return (generic_hash_turn(B - temp->offset));
+  if (gHashWindowInitialized) {
+    return position & 1;
+  }
+  else {
+    contextList *temp = getContextNodeFromOffset(B);
+    generic_hash_context_switch(temp->context);
+    return (generic_hash_turn(B - temp->offset));
+  }
 }
 
 
@@ -2284,8 +2297,87 @@ contextList *getContextNodeFromOffset(int offset) {
 }
 
 
+/*****
+      Check the borders for pieces, and if there are pieces there,
+       move the whole board in a direction so that everything is
+       located in the box of valid pieces.
+ ****/
+char* flushBoard(char* bA) {
+  int boardLength = strlen(bA);
+  int sideLength = (int) sqrt(boardLength);
+  char* temp = (void*) SafeMalloc(boardLength * (sizeof(char)) + 1);
+  int i = 0;
+  int j = 0;
 
+  strcpy(temp, bA);
+  temp[boardLength] = 0;
 
+  //shift the board down.
+  // top boundary
+  for (i = 0; i < boardLength; i++) {
+    if (i < sideLength) {
+      if (bA[i] != ' ') {
+	for (j = 0; j < boardLength - sideLength; j++) {
+	  //weird limit because dont need to shift bottom rows
+	  //default space for top row.
+	  if (j < sideLength)
+	    bA[j] = ' ';
+	  else
+	    bA[j] = temp[j - sideLength]; //copy the previous row
+	}
+	SafeFree(temp);
+	return bA;
+      }
+    }
+    //shift the board up.
+    // bottom boundary
+    if (i >= boardLength - sideLength) {
+      if (bA[i] != ' ') {
+	for (j = 0; j < boardLength; j++) {
+	  //default spaces for the bottom row
+	  if (j >= boardLength - sideLength)
+	    bA[j] = ' ';
+	  else
+	    bA[j] = temp[j + sideLength];
+	}
+	SafeFree(temp);
+	return bA;
+      }
+    }
+    //shift the board right.
+    // left-most boundary
+    if (i % sideLength == 0) {
+      if (bA[i] != ' ') {
+	for (j = sideLength; j < boardLength - sideLength; j++) {
+	  //no need to do the top/bottom row
+	  if (j % sideLength == 0)
+	    bA[j] = ' ';
+	  else
+	    bA[j] = temp[j - 1];
+	}
+	SafeFree(temp);
+	return bA;
+      }
+    }
+    //shift the board left.
+    // right-most boundary
+    if (i % sideLength == sideLength - 1) {
+      if (bA[i] != ' ') {
+	for (j = sideLength; j < boardLength - sideLength; j++) {
+	  //no need to do the top/bottom row
+	  if (j % sideLength == sideLength - 1)
+	    bA[j] = ' ';
+	  else
+	    bA[j] = temp[j + 1];
+	}
+	SafeFree(temp);
+	return bA;
+      }
+    }
+  }
+  SafeFree(temp);
+  return bA;
+}
 
 
 //Tier Gamesman stuff below
@@ -2686,7 +2778,7 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
 
  }
  //printf("rootsize: %d\n", rootsize);
- printProperBoard(board);
+ //printProperBoard(board);
  /**for (i = 0; i < fullsize; i++) {
    
    printf("%c", board[i]);
@@ -2820,8 +2912,8 @@ BOOLEAN isLegalPos(POSITION pos)
 {
   //printf("The board: %s\n", unhashBoard(pos));
   //printf("It has %d pieces\n", pieces(unhashBoard(pos)));
-  char* tempboard = unhashBoard(pos);
-  int bdlength = strlen(tempboard);
+  char* boardArray = unhashBoard(pos);
+  int bdlength = strlen(boardArray);
   int sideLength = (int) sqrt(bdlength);
   int i;
   BOOLEAN temp;
@@ -2830,19 +2922,23 @@ BOOLEAN isLegalPos(POSITION pos)
   for (i = 0; i < bdlength; i++) {
     if (i < sideLength || !(i % sideLength) || 
 	(i % sideLength == sideLength - 1) || (i > bdlength - sideLength)) {
-      if (tempboard[i] != ' ')
+      if (boardArray[i] != ' ')
 	return FALSE;
     }
   }
 
   for (i = 0; i < bdlength; i++) {
-    if (tempboard[i] == 'k' || tempboard[i] == 'K')
+    if (boardArray[i] == 'k' || boardArray[i] == 'K')
       kingChecker++;
   }
+
+  if (inCheck(boardArray, (getCurrTurn(pos) == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN)))
+    return FALSE;
+  
   if (kingChecker != 2)
     return FALSE;
-  temp = isLegalBoard(tempboard, TRUE);
-  temp = temp && (pieces(tempboard) > 2);
+  temp = isLegalBoard(boardArray, TRUE);
+  temp = temp && (pieces(boardArray) > 2);
 
   
   return temp;
@@ -2854,6 +2950,9 @@ BOOLEAN isLegalPos(POSITION pos)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.29  2007/12/04 08:03:18  phase_ac
+// Fixed a bug in the isLegalFunPtr.
+//
 // Revision 1.28  2007/12/03 11:00:28  phase_ac
 // Got the first tier solved! But database is corrupted, meaning isLegal is prolly not doing its job correctly. Uploading to let partner to do some debugging/fixing.
 //
