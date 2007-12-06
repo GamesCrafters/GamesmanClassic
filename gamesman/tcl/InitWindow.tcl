@@ -1839,13 +1839,13 @@ proc clickedPlayNow {} {
       .cStatus raise allA
       .cStatus raise predI
     }
+    
+    update
     .middle.f1.cMLeft lower moveHistory
     .middle.f3.cMRight raise WhoseTurn
     .middle.f1.cMLeft raise LeftName
     .middle.f3.cMRight raise RightName
-    .cStatus raise undoD  
-
-    update idletasks
+    .cStatus raise undoD
 }
 
 proc DisableOnlineGamePlayOptions {} {
