@@ -1,4 +1,4 @@
-// $Id: mataxx.c,v 1.14 2007-05-08 22:14:00 max817 Exp $
+// $Id: mataxx.c,v 1.15 2007-12-07 19:56:04 max817 Exp $
 
 /************************************************************************
 **
@@ -110,9 +110,6 @@ int width		= 3;
 int length		= 3;
 int boardsize	= 9;
 
-char* board     = NULL;
-int turn        = 0;
-
 /*************************************************************************
 **
 ** Function Prototypes
@@ -120,8 +117,8 @@ int turn        = 0;
 *************************************************************************/
 //void InitializeHelpStrings();
 void SetupGame();
-POSITION hash ();
-void unhash (POSITION);
+POSITION hash (char*, int);
+char* unhash (POSITION, int*);
 int toIndex (int, int);
 int legalCoords (int, int);
 void countPieces (char*, int*, int*);
@@ -225,7 +222,8 @@ MOVELIST *GenerateMoves (POSITION position)
 {
     MOVELIST* moves = NULL;
 	int x, y, i, j;
-	unhash(position);
+	int turn;
+	char* board = unhash(position, &turn);
 	for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
 		for (x = 1; x <= width; x++) {// look through the columns, left-to-right
 			if (board[toIndex(x,y)] != (turn==PLAYER_ONE ? RED : BLUE))
@@ -240,6 +238,8 @@ MOVELIST *GenerateMoves (POSITION position)
 						moves = CreateMovelistNode((x*1000) + (y*100) + ((x+i)*10) + (y+j), moves);
 		}
 	}
+	if (board != NULL)
+        SafeFree(board);
     return moves;
 }
 
@@ -272,7 +272,8 @@ POSITION DoMove (POSITION position, MOVE move)
 	// find out if this is a jump
 	BOOLEAN jump = (abs(x1-x2) > 1 || abs(y1-y2) > 1);
 	// now make the board
-	unhash(position);
+	int turn;
+	char* board = unhash(position, &turn);
 	char myPiece = (turn==PLAYER_ONE ? RED : BLUE),
 		oppPiece = (turn==PLAYER_ONE ? BLUE : RED);
 	if (jump) {// if there is a jump, remove old piece and place new piece
@@ -286,7 +287,7 @@ POSITION DoMove (POSITION position, MOVE move)
 			if (legalCoords(x2+i,y2+j) && board[toIndex(x2+i,y2+j)] == oppPiece)
 				board[toIndex(x2+i,y2+j)] = myPiece;
     turn = (turn==PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE);
-	return hash();
+	return hash(board, turn);
 }
 
 
@@ -318,8 +319,13 @@ VALUE Primitive (POSITION position)
 {
 	int reds, blues;
 	BOOLEAN redWon;
-	unhash(position);
+	int turn;
+	char* board = unhash(position, &turn);
+
 	countPieces(board, &reds, &blues);
+
+	if (board != NULL)
+        SafeFree(board);
 
 	if (reds == 0) // no reds, blue has won
 		redWon = FALSE;
@@ -341,7 +347,6 @@ VALUE Primitive (POSITION position)
             return undecided;
         }
     }
-
 
 	VALUE value;
 	if (redWon) //for cleaner code
@@ -373,7 +378,8 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 	int x, y, reds, blues;
-	unhash(position);
+	int turn;
+	char* board = unhash(position, &turn);
 	countPieces(board, &reds, &blues);
 	printf("\t%s's Turn (%s):\n  ",playersName,(turn==PLAYER_ONE ? "X" : "O"));
 	printf("%s\n", GetPrediction(position, playersName, usersTurn));
@@ -393,6 +399,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		printf(" %c",'a'-1+x);
 	}
 	printf("\n\n");
+	if (board != NULL)
+        SafeFree(board);
 }
 
 
@@ -739,8 +747,11 @@ void countPieces (char* board, int* reds, int* blues) {
 WINBY computeWinBy (POSITION position)
 {
 	int reds, blues;
-	unhash(position);
+	int turn;
+	char* board = unhash(position, &turn);
 	countPieces(board, &reds, &blues);
+	if (board != NULL)
+        SafeFree(board);
 	return reds-blues;
 }
 
@@ -801,9 +812,6 @@ void ChangeBoardSize ()
 }
 
 void SetupGame() {
-    if (board != NULL)
-        SafeFree(board);
-    board = (char*) SafeMalloc(boardsize * sizeof(char));
 	generic_hash_destroy();
     generic_hash_custom_context_mode(TRUE);
 	SetupTierStuff();
@@ -811,6 +819,7 @@ void SetupGame() {
 		int pieces_array[10] = {RED, 0, boardsize, BLUE, 0, boardsize, SPACE, 0, boardsize-4, -1};
 		gNumberOfPositions = generic_hash_init(boardsize, pieces_array, NULL, 0);
 		// initial position
+		char* board = (char*) SafeMalloc(boardsize * sizeof(char));
 		int i;
 		for(i = 0; i < boardsize; i++)
 			board[i] = SPACE;
@@ -818,26 +827,28 @@ void SetupGame() {
 		board[toIndex(width, length)] = BLUE;
 		board[toIndex(1, 1)] = BLUE;
 		board[toIndex(width, 1)] = RED;
-        turn = 1;
-		gInitialPosition = hash();
+        int turn = 1;
+		gInitialPosition = hash(board, turn);
 	}
 }
 
-void unhash (POSITION position)
+char* unhash (POSITION position, int* turn)
 {
+	char* board = (char*) SafeMalloc(boardsize * sizeof(char));
 	if (gHashWindowInitialized) {
 		TIERPOSITION tierPos; TIER tier;
 		gUnhashToTierPosition(position, &tierPos, &tier);
 		generic_hash_context_switch(tier);
-		turn = generic_hash_turn(tierPos);
+		(*turn) = generic_hash_turn(tierPos);
 		generic_hash_unhash(tierPos, board); //sets board
 	} else {
-		turn = generic_hash_turn(position);
+		(*turn) = generic_hash_turn(position);
         generic_hash_unhash(position, board); //sets board
 	}
+	return board;
 }
 
-POSITION hash ()
+POSITION hash (char* board, int turn)
 {
 	POSITION position;
 	if (gHashWindowInitialized) {
@@ -846,7 +857,8 @@ POSITION hash ()
 		TIERPOSITION tierPos = generic_hash_hash(board, turn);
 		position = gHashToWindowPosition(tierPos, tier);
 	} else position = generic_hash_hash(board, turn);
-
+	if (board != NULL)
+        SafeFree(board);
 	return position;
 }
 
@@ -888,6 +900,7 @@ void SetupTierStuff() {
         generic_hash_set_context(tier);
 	}
 	// Initial
+	char* board = (char*) SafeMalloc(boardsize * sizeof(char));
 	int i;
 	for(i = 0; i < boardsize; i++)
 		board[i] = SPACE;
@@ -898,8 +911,8 @@ void SetupTierStuff() {
 	// Initial Tier = boardsize-4 (so there's boardsize-4 spaces)
 	gInitialTier = boardsize-4;
 	generic_hash_context_switch(gInitialTier);
-    turn = 1;
-	gInitialTierPosition = hash();
+    int turn = 1;
+	gInitialTierPosition = hash(board, turn);
 }
 
 // children = always me and one below
@@ -928,7 +941,8 @@ STRING TierToString(TIER tier) {
 int GenerateMovesEfficient (POSITION position)
 {
     int x, y, i, j, index = 0;
-    unhash(position);
+	int turn;
+	char* board = unhash(position, &turn);
     for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
         for (x = 1; x <= width; x++) {// look through the columns, left-to-right
             if (board[toIndex(x,y)] != (turn==PLAYER_ONE ? RED : BLUE))
@@ -943,11 +957,16 @@ int GenerateMovesEfficient (POSITION position)
                         gGenerateMovesArray[index++] = (x*1000) + (y*100) + ((x+i)*10) + (y+j);
         }
     }
+	if (board != NULL)
+        SafeFree(board);
     return index;
 }
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.14  2007/05/08 22:14:00  max817
+// Fixed a bug with initializing the game
+//
 // Revision 1.13  2007/04/05 19:16:19  max817
 // Changed TIER from an unsigned int to an unsigned long long, and fixed any warnings associated with the change.
 //

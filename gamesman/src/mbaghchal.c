@@ -1,4 +1,4 @@
-// $Id: mbaghchal.c,v 1.38 2007-05-11 01:38:18 max817 Exp $
+// $Id: mbaghchal.c,v 1.39 2007-12-07 19:56:04 max817 Exp $
 
 /************************************************************************
 **
@@ -234,11 +234,6 @@ int boardSize  = 9;
 int tigers     = 4;
 int goats      = 4;
 
-char* board    = NULL;
-char* TclBoard = NULL;
-int turn       = 0;
-int goatsLeft  = 0;
-
 BOOLEAN diagonals = TRUE;
 
 POSITION genericHashMaxPos = 0; //saves a function call
@@ -293,9 +288,9 @@ int gRotate90CWNewPosition3[] = {6, 3, 0, 7, 4, 1, 8, 5, 2 };
 int translate (int x, int y);
 int get_x (int index);
 int get_y (int index);
-POSITION hash ();
+POSITION hash (char*, int, int);
 char* TclUnhash(POSITION);
-void unhash (POSITION);
+char* unhash (POSITION, int*, int*);
 void ChangeBoardSize ();
 void SetupGame ();
 //BOOLEAN CheckLegality (POSITION position);
@@ -353,7 +348,7 @@ void InitializeGame ()
 
 	gMoveToStringFunPtr = &MoveToString;
     gCustomUnhash = &TclUnhash;
-  linearUnhash = &fakeUnhash;
+    linearUnhash = &fakeUnhash;
 	SetupGame();
 }
 
@@ -384,7 +379,8 @@ MOVELIST *GenerateMoves    (POSITION position)
  		DOWN
  (1,1) IS top left corner and (row,col)=(length, width)= bottom right corner
  */
- 	unhash(position);
+ 	int turn, goatsLeft;
+ 	char* board = unhash(position, &turn, &goatsLeft);
 	char animal;
 	int row = length, col = width;
 	MOVELIST *moves = NULL;
@@ -484,6 +480,8 @@ MOVELIST *GenerateMoves    (POSITION position)
 			}
 		}
 	}
+	if (board != NULL)
+        SafeFree(board);
 	return moves;
 }
 
@@ -506,14 +504,15 @@ MOVELIST *GenerateMoves    (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-    unhash(position);
+	int turn, goatsLeft;
+    char* board = unhash(position, &turn, &goatsLeft);
 	char piece;
 	int jump, direction, i, j, jumpI, jumpJ;
 	if(move < boardSize) { // It's only a Goat being placed
 		board[move] = GOAT;
         turn = PLAYER_TWO;
         goatsLeft -= 1;
-		return hash();
+		return hash(board, turn, goatsLeft);
 	}
 	move -= boardSize;
 	jump = move % 2;
@@ -548,7 +547,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	board[translate(jumpI, jumpJ)] = SPACE; // erase the piece jumped over
     turn = (turn == PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE);
     //goatsLeft stays the same
-	return hash();
+	return hash(board, turn, goatsLeft);
 }
 
 
@@ -605,7 +604,8 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 	int i, j;
-    unhash(position);
+	int turn, goatsLeft;
+    char* board = unhash(position, &turn, &goatsLeft);
 	printf("\t%s's Turn (%s):\n  ",playersName,(turn==PLAYER_ONE?"Goat":"Tiger"));
 	for(i = 1; i <= length+1; i++) { // print the rows one by one
 		if(i <= length) {
@@ -647,6 +647,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		}
 	}
 	printf("\n\n");
+	if (board != NULL)
+        SafeFree(board);
 }
 
 
@@ -938,6 +940,8 @@ void SetTclCGameSpecificOptions (int options[]) {}
 POSITION GetInitialPosition ()
 {
 	int i, j;
+	int turn, goatsLeft;
+	char* board = (char*) SafeMalloc(boardSize * sizeof(char));
 	char line[width], in[2], first;
 	for(i = 0; i < width; i++)
 		line[i] = SPACE;
@@ -993,7 +997,7 @@ POSITION GetInitialPosition ()
 			printf("\n\nInvalid board!!!\n\n");
 	}
 	SetupGame();
-	gInitialPosition = hash();
+	gInitialPosition = hash(board, turn, goatsLeft);
 	return gInitialPosition;
 }
 
@@ -1111,7 +1115,7 @@ int get_y (int index)
 	return index % length + 1;
 }
 
-POSITION hash ()
+POSITION hash (char* board, int turn, int goatsLeft)
 {
 	POSITION position;
 	if (gHashWindowInitialized) {
@@ -1127,11 +1131,15 @@ POSITION hash ()
 		position = generic_hash_hash(board, turn);
 		position += (genericHashMaxPos * goatsLeft);
 	}
+	if (board != NULL)
+        SafeFree(board);
 	return position;
 }
 
 char* TclUnhash(POSITION position) {
-    unhash(position);
+    char* TclBoard = (char*) SafeMalloc((boardSize+3) * sizeof(char));
+    int turn, goatsLeft;
+    char* board = unhash(position, &turn, &goatsLeft);
 
     TclBoard[0] = turn + 48;
     TclBoard[1] = ((goatsLeft /= 10) % 10) + 48;
@@ -1139,26 +1147,30 @@ char* TclUnhash(POSITION position) {
     int i;
     for (i = 0; i < boardSize; i++)
         TclBoard[i+3] = board[i];
+    if (board != NULL)
+        SafeFree(board);
     return TclBoard;
 }
 
-void unhash (POSITION position)
+char* unhash (POSITION position, int* turn, int* goatsLeft)
 {
+	char* board = (char*) SafeMalloc(boardSize * sizeof(char));
 	if(gHashWindowInitialized) {
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
 		int goatsOnBoard;
-		unhashTier(tier, &goatsOnBoard, &goatsLeft, &turn); // this sets goatsLeft and turn
+		unhashTier(tier, &goatsOnBoard, goatsLeft, turn); // this sets goatsLeft and turn
 		generic_hash_context_switch(goatsOnBoard); // switch to that tier's context
 		if (tier < s1GoatOffset) // stage 2
-			turn = generic_hash_turn(tierpos); // hash tells the turn
+			(*turn) = generic_hash_turn(tierpos); // hash tells the turn
 		generic_hash_unhash(tierpos, board); // unhash in that tier
 	} else {
-		goatsLeft = position / genericHashMaxPos;
+		(*goatsLeft) = position / genericHashMaxPos;
 		position %= genericHashMaxPos;
-		turn = generic_hash_turn(position);
+		(*turn) = generic_hash_turn(position);
 		generic_hash_unhash(position, board);
 	}
+	return board;
 }
 
 void ChangeBoardSize ()
@@ -1188,12 +1200,6 @@ void ChangeBoardSize ()
 
 void SetupGame ()
 {
-    if (board != NULL)
-        SafeFree(board);
-    if (TclBoard != NULL)
-        SafeFree(TclBoard);
-    board = (char*) SafeMalloc(boardSize * sizeof(char));
-    TclBoard = (char*) SafeMalloc((boardSize+3) * sizeof(char));
 	// destroy current hash
 	generic_hash_destroy();
 	// setup the tier hashes
@@ -1203,6 +1209,8 @@ void SetupGame ()
 	genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board, 0);
 	gNumberOfPositions = genericHashMaxPos * (goats + 1);
 	// Set Initial Position
+	char* board = (char*) SafeMalloc(boardSize * sizeof(char));
+	char* board2 = (char*) SafeMalloc(boardSize * sizeof(char));
 	int i;
 	for(i = 0; i < boardSize; i++)
 		board[i] = SPACE;
@@ -1210,14 +1218,16 @@ void SetupGame ()
 	board[translate(1, width)] = TIGER;
 	board[translate(length, 1)] = TIGER;
 	board[translate(length, width)] = TIGER;
-    turn = 1;
-    goatsLeft = goats;
-	gInitialPosition = hash();
+	for (i = 0; i < boardSize; i++)
+		board2[i] = board[i];
+    int turn = 1;
+    int goatsLeft = goats;
+	gInitialPosition = hash(board, turn, goatsLeft);
 	// for gInitialTierPosition
 	int globalHashContext = generic_hash_cur_context();
 	generic_hash_context_switch(0); //switch to hash with 0 goats
     goatsLeft = 0;
-	gInitialTierPosition = hash();
+	gInitialTierPosition = hash(board2, turn, goatsLeft);
     //gInitialTier set in SetupTierStuff();
 	generic_hash_context_switch(globalHashContext);
 }
@@ -1338,7 +1348,8 @@ POSITION DoSymmetry(position, symmetry)
 POSITION position;
 int symmetry;
 {
-    unhash(position);
+	int turn, goatsLeft;
+    char* board = unhash(position, &turn, &goatsLeft);
     char* unflipped = (char*) SafeMalloc(boardSize * sizeof(char));
 	int i;
     for(i = 0 ; i < boardSize; i++)
@@ -1363,7 +1374,7 @@ int symmetry;
 	}
     if (unflipped != NULL)
         SafeFree(unflipped);
-	return(hash());
+	return(hash(board, turn, goatsLeft));
 }
 
 /***************************
@@ -1505,14 +1516,15 @@ BOOLEAN IsLegal(POSITION position) {
 
 POSITION UnDoMove (POSITION position, UNDOMOVE undoMove)
 {
-    unhash(position);
+	int turn, goatsLeft;
+    char* board = unhash(position, &turn, &goatsLeft);
 	char piece;
 	int jump, direction, i, j, jumpI, jumpJ;
 	if(undoMove < boardSize) { // It's only a Goat being removed
 		board[undoMove] = SPACE;
         turn = PLAYER_ONE;
         goatsLeft = goatsLeft+1;
-		return hash();
+		return hash(board, turn, goatsLeft);
 	}
 	undoMove -= boardSize;
 	jump = undoMove % 2;
@@ -1546,7 +1558,7 @@ POSITION UnDoMove (POSITION position, UNDOMOVE undoMove)
 	board[translate(i, j)] = piece; // place the piece in its new location
 	if(jump) board[translate(jumpI, jumpJ)] = GOAT; // place the piece jumped over
     turn = (turn == PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE);
-    return hash();
+    return hash(board, turn, goatsLeft);
 }
 
 UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier){
@@ -1557,7 +1569,8 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier){
 	      DOWN
 	(1,1) IS top left corner and (row,col)=(length, width)= bottom right corner
 	*/
-    unhash(position);
+	int turn, goatsLeft;
+    char* board = unhash(position, &turn, &goatsLeft);
 	char animal;
 	int row = length, col = width;
 	UNDOMOVELIST *moves = NULL;
@@ -1670,6 +1683,8 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier){
 			}
 		}
 	}
+	if (board != NULL)
+        SafeFree(board);
 	return moves;
 }
 
@@ -1690,6 +1705,9 @@ STRING TierToString(TIER tier) {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.38  2007/05/11 01:38:18  max817
+// Fixed a bug
+//
 // Revision 1.37  2007/05/08 22:14:00  max817
 // Fixed a bug with initializing the game
 //
