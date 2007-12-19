@@ -1660,18 +1660,42 @@ proc InitWindow { kRootDir kExt } {
       -columnspan 1 -rowspan 1
 
   # scroll the scrollable visual value history items
-  bind . <Key-Next> {updateHidden 100} 
-  bind . <Key-Prior> {updateHidden -100} 
+  bind . <Key-Next> {updateHidden -100} 
+  bind . <Key-Prior> {updateHidden 100} 
+  bind . <Key-Home> {resetHidden} 
+}
+
+proc resetHidden { } {
+  global moveHistoryY
+  updateHidden [expr -$moveHistoryY] 
 }
 
 proc updateHidden { delta } {
   global moveHistoryCanvas moveHistoryY moveHistoryVisible
-  global gWindowWidthRatio gPredictionsOn
+  global moveHistoryList
+  global gWindowWidthRatio gPredictionsOn  
 
+  set numMoves [llength $moveHistoryList]
   set pieceRadius [expr 3.0 + $gWindowWidthRatio]
   set top [expr $gWindowWidthRatio * 35 + $pieceRadius]
   set bottom [expr $gWindowWidthRatio * 430]
-  
+  set baseY [expr $top + $numMoves * $pieceRadius]
+
+  # only allow scrolling if we have a certain number of pieces
+  # we check for delta != -moveHistoryY because
+  # delta == -moveHistoryY when we are reseting
+  # we don't want an infinite loop
+  if { $baseY <= [expr $bottom - 2 * $pieceRadius] &&
+      $delta != [expr -$moveHistoryY]} {
+    # we have scroll off and some recent
+    # undo has set us below the threshold
+    # so we need to reset the move history
+    if { $moveHistoryY != 0 } {
+      resetHidden
+    }
+    return
+  } 
+
   # we need to update the Y delta for plotting
   set moveHistoryY [expr $moveHistoryY + $delta]
   $moveHistoryCanvas move moveHistoryScroll 0 $delta 
@@ -1690,10 +1714,25 @@ proc updateHidden { delta } {
   # and get the visual value history stuff that
   # is visible, set a tag to indicate that it
   # is visible
+  set count 0
   foreach item $items {
     set tags [$moveHistoryCanvas itemcget $item -tags] 
     if { [lsearch $tags moveHistoryScroll] != -1 } {
+      # handle case when line does not exist completely in bounding
+      # box
+      if { [$moveHistoryCanvas type $item] == "line"} {
+        set coords [$moveHistoryCanvas coords $item]
+        set topY [lindex $coords 1]
+        set botY [lindex $coords 3]
+        if { ($topY < $top && $botY >= $top) ||
+            ($topY < $bottom && 
+              $botY >= $bottom) } {
+            continue 
+        }
+      } 
+
       $moveHistoryCanvas addtag visibleMove withtag $item
+      incr count
     }
   }
 
@@ -2420,6 +2459,12 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     #add new move to list
     lappend moveHistoryList $plottedLine $plottedMove
     lappend oldMoveList [list $gPosition $theMoves]
+
+    if { $y >= $bottom } {
+      updateHidden -100
+    } else {
+      updateHidden 0
+    }
 }
 
 proc unplotMove { numUndo } {
@@ -2444,6 +2489,8 @@ proc unplotMove { numUndo } {
     set moveHistoryList [lrange $moveHistoryList 0 $newLast]
     set gMistakeList [lrange $gMistakeList 0 $newLast]
     set oldMoveList [lrange $oldMoveList 0 $newLast]
+
+    updateHidden 0
 }
 
 #undos to the nth position in the game, indexed at 0
