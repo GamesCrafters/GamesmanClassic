@@ -1681,6 +1681,12 @@ proc updateHidden { delta } {
   set bottom [expr $gWindowWidthRatio * 430]
   set baseY [expr $top + $numMoves * $pieceRadius]
 
+  # we can only scroll down once we have scolled
+  # up at least once
+  if { $moveHistoryY >= 0 && $delta > 0 } {
+    return
+  }
+
   # only allow scrolling if we have a certain number of pieces
   # we check for delta != -moveHistoryY because
   # delta == -moveHistoryY when we are reseting
