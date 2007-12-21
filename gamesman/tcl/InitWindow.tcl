@@ -2174,6 +2174,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 
     $moveHistoryCanvas delete moveHistoryValidMoveLines
 
+    set trueLastMove $lastMove
     set drawRemoteness 255
     set pieceRadius [expr 3.0 + $gWindowWidthRatio]
     set center [expr $gWindowWidthRatio * 75]
@@ -2459,7 +2460,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     #done with plotting
     # calculate best move things
     if { [llength $oldMoveList] > 0 } {
-      bestMove $turn $theValue $theRemoteness [lindex $oldMoveList [expr [llength $oldMoveList] - 1]] $lastMove
+      bestMove $turn $theValue $theRemoteness [lindex $oldMoveList [expr [llength $oldMoveList] - 1]] $trueLastMove
     }
 
     #add new move to list

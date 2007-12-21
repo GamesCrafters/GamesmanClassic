@@ -31,12 +31,15 @@ set p_outputs("right_name") "/tmp/right_name.ps"
 # need to find a way to pass it to exec w/o the
 # substitutions
 set p_font "(\\/usr\\/share\\/ghostscript\\/fonts\\/Vag Rounded BT.ttf)"
+
 set p_canvas .printing 
 canvas $p_canvas -width 500 -height 500 
 
 # do the printing
 proc doPrinting {c position winningSide} {
 	global p_outputs gFrameWidth p_canvas
+
+  # we need to resize to correct ratio for the current screen
   $p_canvas configure -width $gFrameWidth -height $gFrameWidth
 
 	# capture the last position
@@ -471,7 +474,7 @@ proc makeExec { mistakeList maxErrors} {
 	if { $size > $maxErrors } {
 		# get list of the worst mistakes
 		set mistakeList [findWorst $mistakeList]
-		# truncate to 4 maxErrors
+		# truncate to maxErrors
 		set mistakeList [lrange $mistakeList 0 [expr $maxErrors - 1]]
 	}
 
@@ -484,10 +487,9 @@ proc makeExec { mistakeList maxErrors} {
 		set badPos [C_DoMove $oldPos $badMove]
 		set old [makePath $oldPos true]
 		set new [makePath $badPos false]
-    
     # position was not captured
     # use blank place holder for now
-    if { [file exists $new] != true } {
+    if { ![file exists $new]} {
       set new $p_outputs("static_blank") 
     }
 		set ret "$ret \"$old\" \"$new\""
@@ -540,6 +542,8 @@ proc findWorst { mistakeList } {
 	return $worst
 }
 
+# strips the key used to sort lst
+# returns lst without the key
 proc stripKey { lst } {
 	set ret [list]
 	for {set i 0} {$i < [llength $lst] } {incr i } {
@@ -589,7 +593,9 @@ proc capture { c pos value path} {
 	if { $path != "" } {
 		# hide background to reduce drawing time
 		$c itemconfigure background -state hidden
+
 		$c postscript -file "$path" -pagewidth 8.0i -pagey 0.0i -pageanchor s
+
 		# show it again
 		$c itemconfigure background -state normal
 	}
@@ -604,6 +610,7 @@ proc makePath { pos valueMove } {
 	checkFolders $kGameName
 	
 	set path "$p_outputs(\"ps_path\")/$kGameName/$kGameName\_$pos"
+
 	if { $valueMove == true} {
 		set path "$path\_v"
 	}
@@ -626,11 +633,11 @@ proc makePDF { input output} {
 proc checkFolders { game } {
 	# check for directories
 	global p_outputs
-	if { false == [file exists "$p_outputs(\"ps_path\")/"] } {
+	if {![file exists "$p_outputs(\"ps_path\")/"] } {
 		file mkdir "$p_outputs(\"ps_path\")"
 	}
 	
-	if { false == [file exists "$p_outputs(\"ps_path\")/$game"] } {
+	if {![file exists "$p_outputs(\"ps_path\")/$game"] } {
 		file mkdir "$p_outputs(\"ps_path\")/$game"
 	}
 }
