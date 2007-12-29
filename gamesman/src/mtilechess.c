@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.30 2007-12-06 04:33:26 phase_ac Exp $
+// $Id: mtilechess.c,v 1.31 2007-12-29 05:14:31 phase_ac Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -139,7 +139,7 @@ The match ends in a draw. Excellent strategies, Player and Computer\n";
 **
 **************************************************************************/
 #define PLAYER1_TURN 1
-#define PLAYER2_TURN 0
+#define PLAYER2_TURN 2
 
 // Constants specifying directions to "look" on the board
 #define UP 0
@@ -276,10 +276,6 @@ void InitializeGame ()
   int i, counter = 0, boardSize = (int)(pow((int)sqrt(strlen(theBoard))-2,2)), totalPieces = (int)sqrt(boardSize);
   long long unsigned largestBoard = 0;
   char *pieces = SafeMalloc(totalPieces+1);
-  TIER temp = (long long unsigned) 1<<33;
-  printf("temp = %llu\n", temp);
-  temp = (long long unsigned)pow(2,50);
-  printf("temp = %llu\n", temp);
   for (i = 0; i < strlen(theBoard); i++) {
     if (theBoard[i] != ' ') {
       pieces[counter++] = theBoard[i];
@@ -407,13 +403,11 @@ POSITION DoMove (POSITION position, MOVE move)
   pieceMoved = boardArray[(sideLength-filei)*sideLength+ranki];
   boardArray[(sideLength-filei)*sideLength+ranki] = ' ';
   boardArray[(sideLength-filef)*sideLength+rankf] = pieceMoved;
-  //temp = hashBoardWithoutTiers(boardArray, (getCurrTurn(position) == PLAYER1_TURN) ? PLAYER2_TURN : PLAYER1_TURN);
-  //boardArray = unhashBoardWithoutTiers(temp);
-  printf("In DoMove: \n");
-  printProperBoard(boardArray);
+  //printf("In DoMove: \n");
+  //printProperBoard(boardArray);
   boardArray = flushBoard(boardArray);
-  printf("After flushing the board back: \n");
-  printProperBoard(boardArray);
+  //printf("After flushing the board back: \n");
+  //printProperBoard(boardArray);
   return hashBoard(boardArray,(getCurrTurn(position) == PLAYER1_TURN) ? PLAYER2_TURN : PLAYER1_TURN);
 }
 
@@ -689,6 +683,7 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
+  int i = 0, numpieces = 0;
   char *board = NULL;
   char c;
   printf("\n");
@@ -701,15 +696,16 @@ void GameSpecificMenu ()
   case 'Q': case 'q':
     ExitStageRight();
   case '1':
-    printf("Limit on total pieces is 5.  Each player MUST have one\n\
-king and all other pieces may not exceed the number allowed in\n\
-traditional chess (e.g. 2 knights).  In addition, the pieces\n\
-must all be connected.  You can describe the board starting at\n\
-the uppermost row that contains at least one piece, and each row\n\
-need only be described until the last piece on that row has been\n\
-placed.  Insert dashes for blanks.  Press enter to start on a new\n\
-row, and press enter twice when you are finished describing your last\n\
-row.  Here is a sample board:\n\
+    printf("Limit on total pieces is 5. Tier solver will only work for boards\n\
+with 3 pieces.  Each player MUST have one king and all other\n\
+pieces may not exceed the number allowed in traditional chess\n\
+(e.g. 2 knights). In addition, the pieces must all be connected\n\
+You can describe the board starting at the uppermost row that\n\
+contains at least one piece, and each row need only be described\n\
+until the last piece on that row has been placed. Insert dashes for\n\
+blanks. Press enter to start on a new row, and press enter twice\n\
+when you are finished describing your last row.\n\
+Here is a sample board:\n\
 KB\n\
 --Ppk\n\
 The valid pieces are:\n\
@@ -728,6 +724,15 @@ lower-case letters indicate the pieces that belong to black:\n");
       } while (c != 'w' && c != 'b');
       theCurrentPlayer = (c == 'w') ? PLAYER1_TURN : PLAYER2_TURN;
       if (isLegalFormat(board) && isIsolation(&board)) {
+	for (i = 0; i < strlen(board); i++) {
+	  if (board[i] != ' ')
+	    numpieces++;
+	}
+	if (numpieces >= 4 && kSupportsTierGamesman && 
+	    !kExclusivelyTierGamesman && gTierGamesman) {
+	  printf("Greater than 4 pieces on the board! Turning the tier solver OFF.\n");
+	  gTierGamesman = !gTierGamesman;
+	}
 	theBoard = setBoard(board);
       } else {
 	theBoard = NULL;
@@ -810,7 +815,9 @@ int NumberOfOptions ()
 int getOption ()
 {
   int numPieces = (int)sqrt(strlen(theBoard))-2, i, j = 0, offset;
+  int temp = 0;
   char *pieces = SafeMalloc(numPieces+1);
+  pieces[numPieces] = 0;
   for (i = 0; i < strlen(theBoard); i++) {
     if (theBoard[i] != ' ') {
       pieces[j++] = theBoard[i];
@@ -824,7 +831,10 @@ int getOption ()
   } else {
     offset = hashPieces("KkQqR") - 288;
   }
-  return hashPieces(pieces) - offset;
+  temp = hashPieces(pieces) - offset;
+  SafeFree(pieces);
+
+  return temp;
 }
 
 
@@ -1181,14 +1191,14 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
   if (gHashWindowInitialized) {
     //printProperBoard(boardArray);
     tier = getTier(boardArray);
-    printf("hashing with tiers\n");
+    //printf("hashing with tiers\n");
     tierpos = getTierPosition(boardArray, currentPlayer);
-    printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
+    //printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
     pos = gHashToWindowPosition(tierpos, tier);
-    printf("Corresponds to a position of: %llu", pos);
-    printf(" and a board of:\n");
-    printProperBoard(tierToBoard(tier, tierpos));
-    printf("\n\n");
+    //printf("Corresponds to a position of: %llu", pos);
+    //printf(" and a board of:\n");
+    //printProperBoard(tierToBoard(tier, tierpos));
+    //printf("\n\n");
 
 
   } else {
@@ -1198,12 +1208,6 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
   return pos;
 
 }
-
-
-
-
-
-
 
 /* Given a string which represents a board and the currentPlayer,
    this function returns a POSITION, which is a number representing the
@@ -1305,8 +1309,8 @@ POSITION hashBoardWithoutTiers(char boardArray[], int currentPlayer) {
  * Returns whose turn it is */
 int getCurrTurn(POSITION position) {
   int B = position%BMAX;
-  if (gHashWindowInitialized) {
-    return position & 1;
+  if (gTierGamesman) {
+    return position%2 ? position & 1 : PLAYER2_TURN;
   }
   else {
     contextList *temp = getContextNodeFromOffset(B);
@@ -2308,73 +2312,72 @@ char* flushBoard(char* bA) {
   char* temp = (void*) SafeMalloc(boardLength * (sizeof(char)) + 1);
   int i = 0;
   int j = 0;
+  int reverseRow = 0;
+  int col = 0;
 
   strcpy(temp, bA);
   temp[boardLength] = 0;
+  
+  //first shift the board to the bottom left, and then shift the board
+  //  up one and right one.
 
-  //shift the board down.
-  // top boundary
   for (i = 0; i < boardLength; i++) {
-    if (i < sideLength) {
-      if (bA[i] != ' ') {
-	for (j = 0; j < boardLength - sideLength; j++) {
-	  //weird limit because dont need to shift bottom rows
-	  //default space for top row.
-	  if (j < sideLength)
-	    bA[j] = ' ';
-	  else
-	    bA[j] = temp[j - sideLength]; //copy the previous row
-	}
-	SafeFree(temp);
-	return bA;
+    bA[i] = ' ';
+  }
+
+  //scan by rows (reverse order)
+  for (i = boardLength - 1; i >= 0; i--) {
+    if (temp[i] != ' ') {
+      reverseRow = sideLength - (int)(i / sideLength) - 1;
+
+      //added for efficiency
+      if (reverseRow == 1) {
+	strcpy(bA, temp);
+	break;
       }
-    }
-    //shift the board up.
-    // bottom boundary
-    if (i >= boardLength - sideLength) {
-      if (bA[i] != ' ') {
-	for (j = 0; j < boardLength; j++) {
-	  //default spaces for the bottom row
-	  if (j >= boardLength - sideLength)
-	    bA[j] = ' ';
-	  else
-	    bA[j] = temp[j + sideLength];
-	}
-	SafeFree(temp);
-	return bA;
+
+      for (j = 0; j < boardLength; j++) {
+
+	if (j >= (reverseRow - 1) * sideLength && 
+	    j < boardLength - (1 - reverseRow) * sideLength)
+	  bA[j] = temp[j + (1 - reverseRow) * sideLength];
       }
-    }
-    //shift the board right.
-    // left-most boundary
-    if (i % sideLength == 0) {
-      if (bA[i] != ' ') {
-	for (j = sideLength; j < boardLength - sideLength; j++) {
-	  //no need to do the top/bottom row
-	  if (j % sideLength == 0)
-	    bA[j] = ' ';
-	  else
-	    bA[j] = temp[j - 1];
-	}
-	SafeFree(temp);
-	return bA;
-      }
-    }
-    //shift the board left.
-    // right-most boundary
-    if (i % sideLength == sideLength - 1) {
-      if (bA[i] != ' ') {
-	for (j = sideLength; j < boardLength - sideLength; j++) {
-	  //no need to do the top/bottom row
-	  if (j % sideLength == sideLength - 1)
-	    bA[j] = ' ';
-	  else
-	    bA[j] = temp[j + 1];
-	}
-	SafeFree(temp);
-	return bA;
-      }
+      break;
     }
   }
+  
+  strcpy(temp, bA);
+  for (i = 0; i < boardLength; i++) {
+    bA[i] = ' ';
+  }
+  
+  //scan by columns
+  for (i = 0; i < boardLength + sideLength; i = i + sideLength) {
+    //update the column counter (kind of a pain)
+    if (i >= boardLength) {
+      i = i % boardLength;
+      i++;
+    }
+
+    if (temp[i] != ' ') {
+      col = i % sideLength;
+
+      //again for efficiency
+      if (col == 1) {
+	strcpy(bA, temp);
+	break;
+      }
+
+      for (j = 0; j < boardLength; j++) {
+
+	if (j % sideLength >= 1 - col &&
+	    j % sideLength < sideLength + (1 - col))
+	  bA[j] = temp[j - 1 + col];
+      }
+      break;
+    }
+  }
+
   SafeFree(temp);
   return bA;
 }
@@ -2388,10 +2391,10 @@ void SetupTierStuff() {
   gInitialTier = getInitialTier();
   gInitialTierPosition = getInitialTierPosition();
   maxtierpos = NumberOfTierPositions(gInitialTier);
-  printf("Initial tier: %llu\n", gInitialTier);
-  printf("Initial tier position: %llu\n", gInitialTierPosition);
-  printf("Max tier number: %llu\n", maxtierpos);
-  printf("The board converted back: %s\n", tierToBoard(gInitialTier, gInitialTierPosition));
+  //printf("Initial tier: %llu\n", gInitialTier);
+  //printf("Initial tier position: %llu\n", gInitialTierPosition);
+  //printf("Max tier number: %llu\n", maxtierpos);
+  //printf("The board converted back: %s\n", tierToBoard(gInitialTier, gInitialTierPosition));
 
   gTierChildrenFunPtr = &TierChildren;
   gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
@@ -2445,10 +2448,10 @@ char* TierToStringFunPtr(TIER tier) {
 char *unhashBoard(POSITION position) {
   
   if (gHashWindowInitialized) {
-    printf("unhashing with tiers\n");
+    //printf("unhashing with tiers\n");
     TIER tier; TIERPOSITION tierposition;
     gUnhashToTierPosition(position, &tierposition, &tier);
-    printf("unhashing %lld with tier position: %lld\n", tier, tierposition);
+    //printf("unhashing %lld with tier position: %lld\n", tier, tierposition);
     
     return (char*) tierToBoard(tier, tierposition);
   }
@@ -2635,7 +2638,6 @@ char PieceTierValue(TIER tier) {
  int index=0;
  int mask = 0;
 
- //             1234567890123456789012345678
  tier = tier & 0xfffffff;
  
  char piece=' ';
@@ -2643,11 +2645,6 @@ char PieceTierValue(TIER tier) {
  //go through loop until find '1'
  for (; index<28; index++) {
    
-   //value = tier << index;
-   //value = value >> 25;
-   // if (value == 1) {
-   //  break;
-   // }
    mask = 1<<index;
    if (mask & tier)
      break;
@@ -2728,11 +2725,8 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
    rootsize += temp;
  }
 
- //to account for miscommunication, must shift tierposition to the left by
- //63 - 6*(number of pieces) -1 (last minus one for player's turn bit)
- tierpos = (unsigned long long) tierpos >> 1;
- //tierpos = (unsigned long long) tierpos << (63 - (rootsize * 6)); 
-
+ //to get rid of the player's turn
+ tierpos = (unsigned long long) tierpos >> 1; 
 
  //to account for blank border around board
  rootsize +=2;
@@ -2751,41 +2745,24 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
 
  //3 fill in using tierpos and tier
  //look at first tier item, find the char, then go to tier pos
- //for (y=0; y <64; y++) {
  for (y = 0; y < 28; y++) {
    temp = ((unsigned long long) (1 << y)) & tier;
    //printf("Tier: %llu, 1<<y: %d, Index: %d, PiecePresent?: %llu \n", tier, (1<<y), y, temp);
-   //temp = (unsigned long long) tier << y;
-   //temp = (unsigned long long) temp >> 63;
 
    if (temp) {
      col = (tierpos >> (tierpos_index * 6)) & 7;
      row = (tierpos >> (tierpos_index * 6 + 3)) & 7;
-     //row = (unsigned long long) tierpos << (tierpos_index);
-     //row = (unsigned long long) row >> 60;
-     //col = (unsigned long long) tierpos << (tierpos_index+3);
-     //col = (unsigned long long) col >> 60;
 
      //printf("TierPosition: %llu, ", tierpos);
      //printf("Row: %llu, Col: %llu\n", row, col);
 
-     //board[(int) ((row+1)*rootsize + col + 1)] = PieceTierValue((unsigned long long) 1 << (63-y));
      board[(int) ((row+1)*rootsize + col + 1)] = PieceTierValue((unsigned long long) 1 << y);
-     //increment this by 6 to know to shift by this amount
-     //tierpos_index += 6;
      tierpos_index ++;
    }
 
  }
  //printf("rootsize: %d\n", rootsize);
  //printProperBoard(board);
- /**for (i = 0; i < fullsize; i++) {
-   
-   printf("%c", board[i]);
-   //printf("%d", i);
-   if (((i+1) % ( rootsize )) == 0 )
-     printf("\n");
-     }**/
 
  return board;
 }
@@ -2823,32 +2800,23 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
  TIER temp = (unsigned long long) 0;
  tier = tier & 0xfffffff;
  TIERPOSITION numOfPositions = 0;
- //TIERPOSITION comb1 = 0, comb2=0;
-
 
  //shift until get that each individual bit
  for (i = 0; i < 28; i++) {
    temp = tier & (1 << i);
-   //temp = (unsigned long long)  tier << i;
-   //temp = temp & 0xfffffff;
-   //temp =  (unsigned long long) temp >> 27;
-   //numOfPieces += temp;
    if (temp) {
      numOfPieces++;
    }
  }
 
- printf("number of pieces: %d \n", numOfPieces);
+ //printf("number of pieces: %d \n", numOfPieces);
 
  for (i = 0; i < numOfPieces; i ++) {
    //printf("numOfPositions: %llu \n", numOfPositions);
    numOfPositions += ((((numOfPieces - 1) << 3) + i) << 6 * i); 
  }
  
- //comb1 = factorial(numOfPieces * numOfPieces);
- //comb2 = factorial((numOfPieces * numOfPieces) - numOfPieces);
- //numOfPositions = comb1/comb2;
-
+ //printf("numOfPositions: %llu \n", ((TIERPOSITION) (numOfPositions << 1)) + 2);
  return (numOfPositions << 1) + 2; // last shift + 1 is due to the current player
 }
 
@@ -2879,10 +2847,9 @@ TIERLIST* TierChildren(TIER tier) {
 
      //if newtier is not just two kings or less
      if (newtier & 1 && newtier & 1<<27 && newtier != 1+(1<<27)) {
-     //if (newtier & 1 && newtier & 1<<27) {
-     printf("\nMask: %llu\n", mask);
-     printf("CurrentTier: %llu\n", tier);
-     printf("NewTier: %llu\n", newtier);
+     //printf("\nMask: %llu\n", mask);
+     //printf("CurrentTier: %llu\n", tier);
+     //printf("NewTier: %llu\n", newtier);
      children = CreateTierlistNode(newtier, children);
      }
    }
@@ -2950,6 +2917,11 @@ BOOLEAN isLegalPos(POSITION pos)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.30  2007/12/06 04:33:26  phase_ac
+// IT WORKS! (i think) for 3 pieces. Untested for four, primarily because it'll
+// 2^6 times longer than it currently does (2 minutes currently). Lots of debug
+// statements littered throughout the game.
+//
 // Revision 1.29  2007/12/04 08:03:18  phase_ac
 // Fixed a bug in the isLegalFunPtr.
 //
