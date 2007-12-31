@@ -12,6 +12,10 @@
 ** UPDATE HIST: 5 May 2004 - Added lots of UI stuff. Print Position revamped
 **				10 May 2004 - Menus. The Menus.
 ** 				12 May 2004 - Finishing touches. Layout tweaked.
+                31 Dec 2007 - Tried adding tiers, but still buggy, so I 
+                                 commented out the call to SetupTierStuff().
+                                 At least it still works like the previous
+                                 version.
 **
 **************************************************************************/
 
@@ -88,7 +92,7 @@ STRING   kHelpExample =
 **
 **************************************************************************/
 
-#define DEBUG 0
+#define DEBUG 0 // CHANGED FROM 0
 #define DEBUGHELPERS 0
 #define SOLVERCOUNTER 0
 
@@ -118,10 +122,12 @@ BOOLEAN variant_NoGenMovesRestriction = 0;
 
 int OthRows = 4;
 int OthCols = 4;
-char start_standard_board[]={	' ',' ',' ',' ',\
-								' ','B','W',' ',\
-								' ','W','B',' ',\
-								' ',' ',' ',' ',};
+
+char start_standard_board[]={ ' ',' ',' ',' ',\
+			      ' ','B','W',' ',\
+			      ' ','W','B',' ',\
+			      ' ',' ',' ',' ',};
+
 /*************************************************************************
 **
 ** Above is where you put your #define's and your global variables, structs
@@ -171,6 +177,21 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 STRING MoveToString(MOVE);
 POSITION ActualNumberOfPositions(int variant);
 
+/* TIER-SPECIFIC FUNCTION DECLARATIONS */
+TIERLIST *TierChildren(TIER tier);
+TIERPOSITION NumberOfTierPositions(TIER tier);
+TIER BoardToTier(char* board);
+TIER PositionToTier(POSITION position);
+STRING TierToString(TIER tier);
+POSITION getPosition(char* board, int player);
+int getTurn(POSITION pos);
+void SetupTierStuff();
+void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition);
+BOOLEAN IsLegal(POSITION position);
+int whoseTurnGivenTier(TIER tier);
+int tierToNumPieces(TIER tier);
+void PrintBoard(char[]);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -199,7 +220,7 @@ void InitializeGame ()
 
 	if (DEBUG) { printf("InitializeGame() <-- generic_hash_init: %d\n",max); }
 
-	if (DEBUG) { printf("InitalizeGame() --> generic_hash_hash\n"); init = generic_hash_hash(start_standard_board,BLACK);}
+	if (DEBUG) { printf("InitalizeGame() --> generic_hash_hash\n"); init = getPosition(start_standard_board, BLACK);}
 
 	if (DEBUG) { printf("INIT CURRENT BOARD\n, START%s, %cEND", start_standard_board, start_standard_board[14]); }
 
@@ -232,6 +253,10 @@ void InitializeGame ()
 	gMoveToStringFunPtr = &MoveToString;
 	gPutWinBy = &computeWinBy;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+
+	//Setup Tier Stuff
+	//SetupTierStuff();
+
 }
 /************************************************************************
 **
@@ -340,7 +365,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	if(DEBUG) printf("\nDoMove starting at Move %d\n", MoveArrayNum);
 
 	board = getBoard(thePosition);
-	whoseturn = generic_hash_turn(thePosition);
+	whoseturn = getTurn(thePosition);
 
 	//assigning opponent pieces and own pieces
 	if(whoseturn == 1)
@@ -357,7 +382,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	}
 
 	if(MoveArrayNum == PASSMOVE)
-		return generic_hash_hash(board, nextplayer);
+		return getPosition(board, nextplayer);
 
 	board[MoveArrayNum] = ownpiece;
 
@@ -377,8 +402,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 			}
 		}
   	}
-
-	return generic_hash_hash(board, nextplayer);
+	return getPosition(board, nextplayer);
 }
 
 
@@ -486,10 +510,9 @@ POSITION SetupInitialPosition()
 
 	init_board_hash();
 
-	gInitialPosition = generic_hash_hash( board, BLACK );
+	gInitialPosition = getPosition(board, BLACK);
 
 	return(gInitialPosition);
-
 }
 
 void init_board_hash()
@@ -568,7 +591,7 @@ VALUE Primitive (POSITION pos)
 	if(DEBUG) { printf("Primitive Starting"); }
 
 	board = getBoard(pos);
-	whoseturn = (int) generic_hash_turn(pos);
+	whoseturn = (int) getTurn(pos);
 
 	for(i = 0; i < (OthRows * OthCols); i++)
 	{
@@ -640,7 +663,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz", owncolor[6];
 	char* board;
 	int blanktally = 0, whitetally = 0, blacktally = 0;
-	int whoseturn = generic_hash_turn(position);
+	int whoseturn = getTurn(position);
 	/*int strlenname = strlen(playerName);*/
 	char turnString1[80], turnString2[80], prediction[80];
 
@@ -833,7 +856,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 MOVELIST *GenerateMoves(POSITION position)
 {
-	int i, j, whoseturn = generic_hash_turn(position);
+	int i, j, whoseturn = getTurn(position);
 	char* board;
 	char ownpiece, opponentpiece;
 	int AnyMovesAtAll = 0;
@@ -1157,30 +1180,7 @@ void setOption(int option)
 ** hash and unhash functions if you are not using one of the existing
 ** ones.
 ************************************************************************/
-
-
-
-/*Stolen from mttc.c*/
-char* getBoard(POSITION pos) {
-  int boardsize;
-  char * generic_hash_unhash(POSITION,char *); /* ?????? */
-  char* newBoard;
-  boardsize = OthCols * OthRows;
-  newBoard = SafeMalloc(boardsize*sizeof(char)+1);
-  newBoard = generic_hash_unhash(pos,newBoard);
-  newBoard[boardsize] = '\0';
-  return newBoard;
-}
-
-char* getBlankBoard() {
-  int boardsize;
-  char * generic_hash_unhash(POSITION,char *); /* ?????? */
-  char* newBoard;
-  boardsize = OthCols * OthRows;
-  newBoard = SafeMalloc(boardsize*sizeof(char));
-  newBoard = generic_hash_unhash(BLANKBOARDPOSITION,newBoard);
-  return newBoard;
-}
+    
 
 int PrintPositionRow(int i)
 {
@@ -1347,7 +1347,7 @@ POSITION MakeInitialSquare()
 	ArrayNum = CoordtoArrayNum(TopLeftOfSq[0] + 1, TopLeftOfSq[1] + 1);
 	board[ArrayNum] = 'B';
 
-	return generic_hash_hash(board, BLACK);
+	return getPosition(board, BLACK);
 }
 
 void PrintBoard(char board[])
@@ -1446,7 +1446,7 @@ int AddRemovePieces(char board[], int tally, char ownpiece)
 
 	} while(selection != 'B');
 
-	gInitialPosition = generic_hash_hash(board, 1);
+	gInitialPosition = getPosition(board, 1);
 
 	return tally;
 }
@@ -1519,34 +1519,34 @@ BOOLEAN Check1Spot1Direc(int ArrayNum, char board[], char ownpiece, char opponen
 
 BOOLEAN quickgeneratemoves(char board[], int whoseturn)
 {
-	int i, j;
-	char ownpiece, opponentpiece;
-
-	if(DEBUG) printf("\nQuick Generate Moves starting\n\n");
-
-	//assigning opponent pieces and own pieces
-	if(whoseturn == 1)
-	{
-		ownpiece = 'B';
-		opponentpiece = 'W';
-	}
-	else
-	{
-		ownpiece = 'W';
-		opponentpiece = 'B';
-	}
-
-	for(i = 0; i < (OthRows * OthCols); i++)
-
-		if(board[i] == BLANKPIECE)
-
-			for(j = 1; j < 9; j++) //Each spot has 8 directions
-
-				if(Check1Spot1Direc(i, board, ownpiece, opponentpiece, j))
-
-					return 1;
-
-	return 0;
+  int i, j;
+  char ownpiece, opponentpiece;
+  
+  if(DEBUG) printf("\nQuick Generate Moves starting\n\n");
+  
+  //assigning opponent pieces and own pieces
+  if(whoseturn == 1)
+    {
+      ownpiece = 'B';
+      opponentpiece = 'W';
+    }
+  else
+    {
+      ownpiece = 'W';
+      opponentpiece = 'B';
+    }
+  
+  for(i = 0; i < (OthRows * OthCols); i++)
+    
+    if(board[i] == BLANKPIECE)
+      
+      for(j = 1; j < 9; j++) //Each spot has 8 directions
+	
+	if(Check1Spot1Direc(i, board, ownpiece, opponentpiece, j))
+	  
+	  return 1;
+  
+  return 0;
 }
 
 POSITION ActualNumberOfPositions(int variant) {
@@ -1570,3 +1570,334 @@ WINBY computeWinBy(POSITION position) {
   return blacktally - whitetally;
 }
 
+/******************* MAXIMIZATION IMPLEMENTATION *******************/
+
+/*Stolen from mttc.c*/
+/* "Unhash" */
+char* getBoard(POSITION pos) {
+  int boardsize;
+  char * generic_hash_unhash(POSITION,char *); /* ?????? */
+  char* newBoard;
+  boardsize = OthCols * OthRows;
+  newBoard = SafeMalloc(boardsize*sizeof(char)+1);
+  /*Stolen from mtttier.c*/ // 11-25-07
+  if (gHashWindowInitialized) {// using hash windows
+    //
+    printf("UH OH, HASH WINDOW GOT INITIALIZED\n");
+    //
+    TIERPOSITION tierpos;
+    TIER tier;
+    gUnhashToTierPosition(pos, &tierpos, &tier); // get tierpos
+    generic_hash_context_switch(tier); // switch to that tier's context
+    newBoard = generic_hash_unhash(tierpos, newBoard); // unhash in that tier
+  } else {
+    newBoard = generic_hash_unhash(pos,newBoard);
+  }
+  newBoard[boardsize] = '\0';
+  return newBoard;
+}
+
+char* getBlankBoard() {
+  int boardsize;
+  char * generic_hash_unhash(POSITION,char *); /* ?????? */
+  char* newBoard;
+  boardsize = OthCols * OthRows;
+  newBoard = SafeMalloc(boardsize*sizeof(char)+1);
+  /*Stolen from mtttier.c*/ // 11-25-07
+  if (gHashWindowInitialized) {// using hash windows
+    //
+    printf("UH OH, HASH WINDOW GOT INITIALIZED\n");
+    //
+    TIERPOSITION tierpos;
+    TIER tier;
+    gUnhashToTierPosition(BLANKBOARDPOSITION, &tierpos, &tier); // get tierpos
+    generic_hash_context_switch(tier); // switch to that tier's context
+    newBoard = generic_hash_unhash(tierpos, newBoard); // unhash in that tier
+  } else {
+    newBoard = generic_hash_unhash(BLANKBOARDPOSITION,newBoard);
+  }
+  return newBoard;
+}
+
+/* "Hash" */
+POSITION getPosition(char* board, int player) {
+  POSITION position;
+  TIER tier = BoardToTier(board); // find this board's tier
+  //int whoseTurn = whoseTurnGivenTier(tier);
+  if (gHashWindowInitialized) {
+    //
+    printf("UH OH, HASH WINDOW GOT INITIALIZED\n");
+    //
+    generic_hash_context_switch(tier); // switch to that context
+    TIERPOSITION tierpos = generic_hash_hash((char*)board, player); //unhash
+    position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
+  } else {
+    position = generic_hash_hash((char*)board, player);
+  }
+  if(board != NULL)
+    SafeFree(board);
+  return position;
+}
+
+
+/* Returns the player whose turn it is to play (1 or 2) */ // 11-25-07
+int getTurn(POSITION pos) {
+  int whoseturn;
+  if (gHashWindowInitialized) {
+    //
+    printf("UH OH, HASH WINDOW GOT INITIALIZED\n");
+    //
+    TIER tier = PositionToTier(pos); // find this position's tier
+    int numPieces = tierToNumPieces(tier);
+    if ((numPieces % 2) == 0) {
+      whoseturn = 1;
+    } else {
+      whoseturn = 2;
+    }
+  } else { // not in tier mode
+    whoseturn = generic_hash_turn(pos);
+  }
+  return whoseturn;
+}
+
+/* x^y */
+int power(int x, int y) {
+  int retval = 1;
+  while (y > 0) {
+    retval *= x;
+    y--;
+  }
+  return retval;
+}
+
+/* x! */
+int fact(int x) {
+  int retval = 1;
+  while (x > 0) {
+    retval *= x;
+    x--;
+  }
+  return retval;
+}
+
+/* C(n, k) */
+int combination(int n, int k) {
+  return (fact(n)/(fact(k) * fact(n-k)));
+}
+
+
+int tierToWhites(TIER tier) {
+  int OthArea = OthRows * OthCols;
+  int whites = tier / OthArea;
+  return whites;
+}
+
+
+int tierToBlacks(TIER tier) {
+  int OthArea = OthRows * OthCols;
+  int blacks = tier % OthArea;
+  return blacks;
+}
+
+
+int tierToNumPieces(TIER tier) {
+  int totPieces = tierToWhites(tier) + tierToBlacks(tier);
+  return totPieces;
+}
+
+
+int whoseTurnGivenBlacksWhites(int blacks, int whites) {
+  int totPieces = blacks + whites;
+  return (totPieces%2==0 ? 1 : 2);
+}
+
+
+int whoseTurnGivenTier(TIER tier) {
+  return whoseTurnGivenBlacksWhites(tierToBlacks(tier), tierToWhites(tier));
+}
+
+
+/* Initialize Tier Stuff. */
+void SetupTierStuff() {
+  // First 6 lines copied from mwin4.c
+  kSupportsTierGamesman = TRUE;
+  //kExclusivelyTierGamesman = FALSE;
+  //kDebugTierMenu = TRUE;
+  gTierChildrenFunPtr = &TierChildren; // Defined below
+  gNumberOfTierPositionsFunPtr = &NumberOfTierPositions; // Will define below
+  gTierToStringFunPtr = &TierToString;
+  gIsLegalFunPtr = &IsLegal;
+/*   gGetInitialTierPositionFunPtr	= &GetInitialTierPosition; */
+  //gUnhashToTierPosition(gInitialPosition, &tierpos, &tier); // get tierpos
+  //gInitialTierPosition = tierpos; // Really??
+  int OthArea = OthCols * OthRows;
+  int piecesArray[] =  {BLANKPIECE, 0, 0,
+			WHITEPIECE, 0, 0,
+			BLACKPIECE, 0, 0, -1};
+  
+/* ----  Notes about the for loop below: ----*/
+/* ~ we have redundant code because we think it makes the code more readable */
+/* ~ we know that the hash will contain hashes illegal in the specified */
+/* tier, but we didn't change it because it would be very difficult to do so. */
+  int whites;
+  int blacks;
+  for (whites = 0; whites <= OthArea; whites++) {
+    for (blacks = 0; blacks <= OthArea - whites; blacks++) {
+      piecesArray[1] = piecesArray[2] = OthArea - whites - blacks;
+      piecesArray[4] = piecesArray[5] = whites;
+      piecesArray[7] = piecesArray[8] = blacks;
+      generic_hash_init(OthArea, piecesArray, NULL, whoseTurnGivenBlacksWhites(blacks, whites));
+    }
+  }
+
+  //Initial Tier when game starts
+  //gInitialTier = PositionToTier(gInitialPosition); // 11-25-07
+  int initWhites = 2;
+  int initBlacks = 2;
+  gInitialTier = initBlacks + OthArea*initWhites; // this is the general hashing function that gives the tier given number of blacks and whites
+  generic_hash_context_switch(gInitialTier);
+
+  //Setup the Board
+  char* board;
+  int ArrayNum, TopLeftOfSq[2];
+  
+  board = getBlankBoard();
+  
+  if(OthRows % 2 == 0)
+    TopLeftOfSq[0] = OthRows / 2;
+  else
+    TopLeftOfSq[0] = (OthRows - 1) / 2;
+  
+  if(OthCols % 2 == 0)
+    TopLeftOfSq[1] = OthCols / 2;
+  else
+    TopLeftOfSq[1] = (OthCols - 1) / 2;
+  
+  ArrayNum = CoordtoArrayNum(TopLeftOfSq[0], TopLeftOfSq[1]);
+  board[ArrayNum] = 'B';
+  ArrayNum = CoordtoArrayNum(TopLeftOfSq[0], TopLeftOfSq[1] + 1);
+  board[ArrayNum] = 'W';
+  ArrayNum = CoordtoArrayNum(TopLeftOfSq[0] + 1, TopLeftOfSq[1]);
+  board[ArrayNum] = 'W';
+  ArrayNum = CoordtoArrayNum(TopLeftOfSq[0] + 1, TopLeftOfSq[1] + 1);
+  board[ArrayNum] = 'B';
+
+  gInitialTierPosition = getPosition(board, BLACK); // BLACK'S TURN??
+  //gInitialPosition = MakeInitialSquare();
+}
+
+
+
+//Returns list of all children for a particular tier.
+TIERLIST* TierChildren(TIER tier) {
+
+  // New tierization scheme: tier = B + OthArea*W, so tier children =
+
+  int OthArea = OthRows * OthCols;
+  int blacks = tier % OthArea;
+  int whites = tier / OthArea;
+  int tempBlacks;
+  int tempWhites;
+  int numPieces = blacks + whites;
+  
+  if ((blacks >= 1) && (whites >= 1) && (tier < OthArea * OthArea) && (numPieces < 16)) {// no children if one color has no pieces
+    TIERLIST* newList = NULL;
+    tempBlacks = blacks;
+    tempWhites = whites;
+    tempBlacks += 2; // black will definitely gain at least two pieces: put one, steal one
+    tempWhites -= 1; // white will definitely lose at least one piece
+    for (; tempWhites >= 0; tempWhites--, tempBlacks++) { // black can only steal white pcs
+      newList = CreateTierlistNode(tempBlacks + tempWhites*OthArea, newList); // black+1, white-1
+
+    }
+    tempBlacks = blacks;
+    tempWhites = whites;
+    tempWhites += 2; // white will definitely gain at least two pieces
+    tempBlacks -= 1; // black will definitely lose at least one piece
+    for (; tempBlacks >= 0; tempBlacks--, tempWhites++) {
+      newList = CreateTierlistNode(tempBlacks + tempWhites*OthArea, newList); // black+1, white-1
+    }
+    return newList;
+  }
+  return NULL;
+}
+
+
+/* Returns the number of positions associated with a particular tier. */
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+  generic_hash_context_switch(tier);
+  return generic_hash_max_pos();
+}
+
+
+/* Given a board, returns the tier number of it (i.e. number of pieces placed on the board) */
+TIER BoardToTier(char* board) {
+  int i = 0; 
+  int whitetally = 0;
+  int blacktally = 0;
+  int OthArea = OthCols * OthRows;
+  for(; i < OthArea; i++)
+    {
+      switch(board[i])
+	{
+	case ' ':
+	  break;
+	case 'W':
+	  whitetally++;
+	  break;
+	case 'B':
+	  blacktally++;
+	  break;
+	}
+    }
+  return (whitetally*OthArea + blacktally);
+}
+
+
+
+/* Given a position, returns the tier number of it (i.e. number of pieces placed on the board) */
+TIER PositionToTier(POSITION position) {
+  char* board = getBoard(position);
+  TIER tier = BoardToTier(board);
+  return tier;
+}
+
+
+STRING TierToString(TIER tier) {
+  STRING tierStr = (STRING) SafeMalloc(sizeof(char)*50);
+  int OthArea = OthRows * OthCols;
+  int blacks = tier % OthArea;
+  int whites = tier / OthArea;
+  int numPieces = blacks + whites;
+  sprintf(tierStr, "%d blacks, %d whites, %d Pieces Placed", blacks, whites, numPieces);
+  return tierStr;
+}
+
+
+BOOLEAN IsLegal(POSITION position) {
+  TIER tier = PositionToTier(position);
+  if (tier < 5) {
+    return FALSE;
+  } else {
+    return TRUE;
+  }
+}
+
+
+//prints out a character string into a board format for easier viewing
+void printBoard(char* board) {
+	printf("----Board-----\n");
+	int i;
+	for (i = 0; board[i] != 0; i++) {
+		printf("%c", board[i]);
+		if (((i+1) % OthCols) == 0) {
+			printf("\n");
+		}
+	}
+	printf("--strlen: %d--\n\n", i);
+	
+	//error checking
+	if ((i-1) > (OthCols * OthRows)) //this is i-1, because i ultimately increments to 1 beyond the size of the board.  i should normally go up to OthArea+1
+		printf("\nHUGE ERROR...I IS TOO BIG, meaning the BOARD SHOULD BE SMALLER THAN IT REALLY IS!!!! ==> %d\n\n",i);
+		
+}
