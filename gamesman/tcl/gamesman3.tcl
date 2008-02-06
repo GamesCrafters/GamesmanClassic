@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.62 2007-12-04 22:57:07 dmchan Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.63 2008-02-06 02:55:13 yjia2 Exp $
 ##
 ############################################################################
 
@@ -25,6 +25,7 @@ if {[llength $argv] > 0 && [lindex $argv 0] == "--printing"} {
 }
 
 set command_line_args [concat $argv0 $argv]
+
 
 proc stack {} {
     return [list]
@@ -1700,8 +1701,66 @@ proc DestroyRuntimeModal { } {
 	destroy .middle.f2.cMain.fModal
 }
 
+
+#commandline handler
+#all commandline options starting with tcl are considered tcl options and removed
+#from command_line_args that gets passed to c
+#in the future this may result in some comical event where some student tries to 
+#add a commandline arg with "tcl" in it and can't figure out why it doesn't work
+#hopefully i won't be around then..
+# - Yiding
+proc CmdlineHandler {} {
+  #handles all tcl related commands and returns a list with them removed
+  global command_line_args argv0 argv
+  global fixed_window_size printing
+  set printing false
+  
+  set command_line_args $argv0
+  
+  set i 0
+  
+  while {$i < [llength $argv]} {
+    set curarg [lindex $argv $i]
+    if {[string range $curarg 0 4] == "--tcl"} {
+      #this arg is for tcl
+      switch [string range $curarg 5 [string length $curarg]] {
+        "geom" {
+          set i [expr {$i + 1}]
+          set fixed_window_size [lindex $argv $i]
+        }
+        "printing" {
+          set printing true
+        }
+      }
+    } elseif { $curarg == "--printing" }  {
+      #this used to be hacked in at the top fo this file
+      puts "tcl: --printing is deprecated. Please use --tclprinting in the future"
+      set printing true
+    } elseif { $curarg == "--help" } {
+      #this is a special argument that is both passed to C AND acted upon by tcl
+      puts "Tcl GUI Args:"
+      puts "  --tclgeom <geom>\tForce a specific size for the window."
+      puts "\t<geom> is in the format of WxH, i.e. --tclgeom 800x600"
+      #pass it on
+      set command_line_args [concat $command_line_args $curarg]
+    } else {
+      #this is not a tcl arg so we give it to C
+      #note that args with quotes in them are handled in correctly
+      #i.e. --foo "bar" will turn into --foo bar
+      #this is just how tcl handles commandline arguments and how it gets listified
+      #hopefully this won't cause sleepless nights for future people
+      set command_line_args [concat $command_line_args $curarg]
+    }
+    set i [expr {$i + 1}]
+  }
+}
+
+
 # argv etc
 proc main {kRootDir} {
+
+  #handle tcl command lines, this must be called or expect death.
+  CmdlineHandler
 
   # Initialize generic top-level window
   source "$kRootDir/../tcl/InitWindow.tcl"

@@ -349,8 +349,12 @@ proc InitWindow { kRootDir kExt } {
     }
   }
 
+  global fixed_window_size
   if { !$convertExists } {
     wm geometry . =800x600
+  } elseif { [info exists fixed_window_size] } {
+    #if the good user specified command line arg for fixed size windows
+    wm geometry . =$fixed_window_size
   } else {
     set aspectRatioWidth 4
     set aspectRatioHeight 3
