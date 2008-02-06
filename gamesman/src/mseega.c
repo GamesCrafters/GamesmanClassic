@@ -33,6 +33,8 @@
  **              **PLEASE PUT UPDATES HERE**
  **
  **		2006-8-21	change to GetMyChar()/GetMyInt() dmchan
+ **     2008-2-05   Implemented getOption(), setOption(int option), and NumberOfOption().
+ **                 
  **************************************************************************/
 
 /*************************************************************************
@@ -1114,7 +1116,7 @@ STRING MoveToString (move)
  ************************************************************************/
 
 int NumberOfOptions () {
-  return 0;
+  return 49;
 }
 
 
@@ -1131,7 +1133,7 @@ int NumberOfOptions () {
  ************************************************************************/
 
 int getOption () {
-  return 0;
+  return (7*(height-3)+(width-2));
 }
 
 
@@ -1148,7 +1150,22 @@ int getOption () {
  ************************************************************************/
 
 void setOption (int option) {
-
+    //int misere = 0;
+    int row;
+    int col;
+    /*if(option >= 50){
+        misere = 1;
+        option -= 49;
+    }*/
+    row = ceil(option/7.0)+2;
+    if(!(option%7)){
+        col = 9;
+    }else{
+        col = option%7+2;
+    }
+    height = row;
+    width = col;
+    return;
 }
 
 

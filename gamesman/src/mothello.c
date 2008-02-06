@@ -672,7 +672,6 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 	if(DEBUG) printf("\nPrintPosition starting\n");
 
-
 	/*Information gathering*/
 	board = getBoard(position);
 
