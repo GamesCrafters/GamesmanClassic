@@ -34,6 +34,7 @@
  **
  **		2006-8-21	change to GetMyChar()/GetMyInt() dmchan
  **     2008-2-05   Implemented getOption(), setOption(int option), and NumberOfOption().
+ **     2008-2-09   Added checks for misere mode and modified options to handle the new variants introcuted by misere mode.
  **                 
  **************************************************************************/
 
@@ -644,7 +645,7 @@ VALUE Primitive (POSITION position) {
     }
   }
   if ((num_pieces == 1) && (!placingBoard(b)))  {
-      return lose;
+        return (gStandardGame ? lose : win);
   }
 
   if (moves==NULL) {
@@ -656,11 +657,11 @@ VALUE Primitive (POSITION position) {
     }
     if (flag != 1) { //THIS WILL NEVER BE REACHED
       //FreeMoveList(moves);
-      return lose;
+      return (gStandardGame ? lose : win);      
     }
     //printf("TODO: implement do again\n");
     //printf("the current player is trapped, with numPieces %d\n", num_pieces);
-    return win;
+    return (gStandardGame ? win : lose);
   } else {
     for (r=0;r<width*height;r++){
       if(getpce(b,r)==c) {
@@ -1116,7 +1117,7 @@ STRING MoveToString (move)
  ************************************************************************/
 
 int NumberOfOptions () {
-  return 49;
+  return 98;
 }
 
 
@@ -1133,7 +1134,7 @@ int NumberOfOptions () {
  ************************************************************************/
 
 int getOption () {
-  return (7*(height-3)+(width-2));
+    return (gStandardGame ? (7*(height-3)+(width-2)) : (49 + (7*(height-3)+(width-2))));
 }
 
 
@@ -1150,13 +1151,12 @@ int getOption () {
  ************************************************************************/
 
 void setOption (int option) {
-    //int misere = 0;
     int row;
     int col;
-    /*if(option >= 50){
-        misere = 1;
+    if(option >= 50){
+        gStandardGame = 0;
         option -= 49;
-    }*/
+    }
     row = ceil(option/7.0)+2;
     if(!(option%7)){
         col = 9;
