@@ -46,7 +46,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.15 2007-11-28 10:47:28 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.16 2008-02-13 02:18:25 alb_shau Exp $
 **
 **************************************************************************/
 
@@ -263,8 +263,8 @@ void InitializeGame ()
 {
   InitializeHelpStrings();
 
-  int pieces[] = {BLANK, gBoardSize - 4*(gBoardLength-2), gBoardSize-2,
-		  BLACK, 1, 2*(gBoardLength-2), WHITE, 1, 2*(gBoardLength-2), -1};
+  int pieces[] = {BLANK, gBoardSize - 2*(gBoardLength-2) - 2*(gBoardHeight-2), gBoardSize-1,
+		  BLACK, 1, 2*(gBoardLength-2), WHITE, 1, 2*(gBoardHeight-2), -1};
   
   gNumberOfPositions = generic_hash_init(gBoardSize, pieces, NULL, 0);
   //gNumberOfPositions = power(3, gBoardSize+1);
@@ -1432,6 +1432,9 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.15  2007/11/28 10:47:28  alb_shau
+ ** Fixed things related to option.  Symmetries should not be a separate option.
+ **
  ** Revision 1.14  2007/03/01 03:40:27  alb_shau
  ** Added symmetry stuff via generic symmetries and removed ties
  **
