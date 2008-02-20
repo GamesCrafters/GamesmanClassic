@@ -11,6 +11,7 @@
 ** UPDATE HIST: 2006.11.29:  Imported
 **
 ** LAST CHANGE: $Id$
+**              2/9/08 Implemented the three option functions.
 **
 **************************************************************************/
 
@@ -800,7 +801,7 @@ int getOption ()
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
-    return 0;
+    return (gStandardGame ? 1: 2);
 }
 
 
@@ -820,6 +821,10 @@ void setOption (int option)
     /* If you have implemented symmetries you should
        include the boolean variable gSymmetries in your
        hash */
+       if(option == 1)
+	       gStandardGame = TRUE ;
+        else
+	       gStandardGame = FALSE ;
 }
 
 
@@ -1337,6 +1342,9 @@ delGoStone(GoStone which) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.4  2006/12/19 20:00:50  arabani
+ ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+ **
  ** Revision 1.3  2006/12/07 03:20:52  darch
  ** ValidTestInput was broken; fixed by breaking to a more usefully broken state.
  **

@@ -38,6 +38,7 @@
 **				2006-08-19	Changed scanf to use GetMyInt(), bounds checking still needs to be done
 **				2007-02-26	Small changes, nothing significant
 **				2007-05-01	Tiers working! Hooray!
+**              2008-02-19  Reimplemented game options, added error checking on game-specific options.
 **************************************************************************/
 
 /*************************************************************************
@@ -1217,6 +1218,7 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
+    int test = 0;
 	do {
 		printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
 		printf("\tw)\tChoose the board (W)idth Currently: %d\n",TNO_WIDTH);
@@ -1233,25 +1235,49 @@ void GameSpecificMenu ()
 			break;
 		case 'W' : case 'w':
 			printf("Enter a width: ");
-			TNO_WIDTH = GetMyInt();
+			test = GetMyInt();
+			if(test < 2 || test > 7){
+                printf("Width should be between 2 to 7.\n");
+                HitAnyKeyToContinue();
+                break;
+            }
+			TNO_WIDTH = test;
 			gInitialPosition = MyInitialPosition();
 			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
 		case 'H': case 'h':
 			printf("Enter a height: ");
-			TNO_HEIGHT = GetMyInt();
+			test = GetMyInt();
+			if(test < 2 || test > 7){
+                printf("Width should be between 2 to 7.\n");
+                HitAnyKeyToContinue();
+                break;
+            }
+			TNO_HEIGHT = test;
 			gInitialPosition = MyInitialPosition();
 			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
 		case 'T': case 't':
 			printf("Enter # of Ts (less than 7): ");
-			INIT_T = GetMyInt();
+			test = GetMyInt();
+			if(test < 2 || test > 7){
+                printf("T should between be 2 to 7.\n");
+                HitAnyKeyToContinue();
+                break;
+            }
+			INIT_T = test;
 			gInitialPosition = MyInitialPosition();
 			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
 		case 'O': case 'o':
 			printf("Enter # of Os (less than 7): ");
-			INIT_O = GetMyInt();
+			test = GetMyInt();
+			if(test < 2 || test > 7){
+                printf("O should be between 2 to 7.\n");
+                HitAnyKeyToContinue();
+                break;
+            }
+			INIT_O = test;
 			gInitialPosition = MyInitialPosition();
 			gNumberOfPositions = gInitialPosition; //because of hash this should be the biggest
 			break;
@@ -1315,7 +1341,10 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    /*or 1 << 13 for the 13 different settings,
+      miserre, o, t, width, height, where everything but misere is 3 bits,
+      with misere being 1 bit. -Alan W.*/
+    return 8191;
 }
 
 
@@ -1333,7 +1362,16 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return TNO_HEIGHT*1000 + TNO_WIDTH*100 + INIT_T*10 + INIT_O;
+    /*return TNO_HEIGHT*1000 + TNO_WIDTH*100 + INIT_T*10 + INIT_O;*/
+    int option = 0;
+    if(gStandardGame){
+        option = 4096;    // or 1<<12 -Ethan R.
+    }
+    option = option | (INIT_O << 9);
+    option = option | (INIT_T << 6);
+    option = option | (TNO_WIDTH << 3);
+    option = option | (TNO_HEIGHT);
+    return option;
 }
 
 
@@ -1349,12 +1387,25 @@ int getOption ()
 ************************************************************************/
 
 void setOption (int option)
-{
+{   /*
 	INIT_O = option % 10;
 	INIT_T = (option % 100 - INIT_O) / 10;
 	TNO_WIDTH = (option % 1000 - (INIT_O + INIT_T*10)) / 100;
-	TNO_HEIGHT = (option % 10000 - (INIT_O + INIT_T*10 + TNO_WIDTH*100)) / 1000;
-	
+	TNO_HEIGHT = (option % 10000 - (INIT_O + INIT_T*10 + TNO_WIDTH*100)) / 1000;*/
+	int extract = (option >> 12) & 1;
+	if(extract == 1){
+        gStandardGame = 0;
+    }else{
+        gStandardGame = 1;
+    }
+    extract = (option >> 9) & 7;
+    INIT_O = extract;
+    extract = (option >> 6) & 7;
+    INIT_T = extract;
+    extract = (option >> 3) & 7;
+    TNO_WIDTH = extract;
+    extract = option & 7;
+    TNO_HEIGHT = extract;
 }
 
 

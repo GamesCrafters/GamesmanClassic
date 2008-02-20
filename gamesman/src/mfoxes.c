@@ -1,4 +1,4 @@
-// $Id: mfoxes.c,v 1.15 2006-12-19 20:00:50 arabani Exp $
+// $Id: mfoxes.c,v 1.16 2008-02-20 06:13:23 ungu1d3d_s0ul Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -21,6 +21,7 @@
 **              4/7/05  [+]Initial adoption of the old module to the current core
 **              4/11/05 [-]realized that ComputeC is deprecated, and removed it.
 **              4/16/05 [*]Geese go first. That was the right default.
+**              2/9/08  numOfOptions returns 2 now (May need more work).
 **
 **************************************************************************/
 
@@ -837,7 +838,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 2;
 }
 
 
@@ -1005,6 +1006,9 @@ void InitializeOrder () {
 }
 
 // $Log: not supported by cvs2svn $
+// Revision 1.15  2006/12/19 20:00:50  arabani
+// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
+//
 // Revision 1.14  2006/10/17 10:45:20  max817
 // HUGE amount of changes to all generic_hash games, so that they call the
 // new versions of the functions.
