@@ -1,4 +1,4 @@
-// $Id: mquarto.c,v 1.73 2007-11-19 03:40:23 ddgarcia Exp $
+// $Id: mquarto.c,v 1.74 2008-02-28 03:04:34 ethanr Exp $
 
 
 /*
@@ -146,6 +146,9 @@
 ** 21 Aug 2006 dmchan: changed to GetMyInt();
 **
 ** 23 Apr 2007 Benno: Finishe my teirification work. I feel like i don't understand the system enough to debug it. Gotta ask Max some questions i guess.
+** 02 Feb 2008 EthanR+AlanW: implemented gStandardGame checking into Primitivies.
+**                           Added bounds checking for options.
+**                           Implemented get, set, and return options
 **************************************************************************/
 
 
@@ -914,7 +917,7 @@ VALUE Primitive (POSITION position)
 
     // returning stuff
     if (primitiveFound) {
-	toReturn = lose;
+	toReturn = gStandardGame ? lose : win;
     } else {
 	// Mario: comparing to NUMPIECES instead of BOARDSIZE
 	toReturn = (b->squaresOccupied<NUMPIECES) ? undecided : tie;
@@ -1339,7 +1342,10 @@ void GameSpecificMenu ()
     case 'I': case 'i':
 	    printf("Please enter the new GAMEDIMENSION (must be less than or equal to 4): ");
 	    /*scanf("%d",&GAMEDIMENSION);*/
-		GAMEDIMENSION = GetMyInt();
+	    int temp = GetMyInt();
+	    if(temp < 0 || temp >= 4)
+	    	break;
+		GAMEDIMENSION = temp;
 	    InitializeGame( );
 	    validInput = TRUE;
 	    break;
@@ -1399,7 +1405,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 8;
 }
 
 
@@ -1417,7 +1423,10 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 0;
+    int temp = gStandardGame;
+    temp = gStandardGame << 2;
+    temp = temp | GAMEDIMENSION;
+    return temp;
 }
 
 
@@ -1434,7 +1443,10 @@ int getOption ()
 
 void setOption (int option)
 {
-    
+    int extract = (option & 3)+1;
+    GAMEDIMENSION = extract;
+    extract = option & 4;
+    gStandardGame = extract;
 }
 
 
@@ -3071,6 +3083,11 @@ BOOLEAN IsLegal(POSITION position) {
 }
 */
 // $Log: not supported by cvs2svn $
+// Revision 1.73  2007/11/19 03:40:23  ddgarcia
+// Rearranged the inline functions since my gcc is a one-pass compiler;
+// also, I have to add -std=c99 to get mquarto.c to compile. I guess I
+// need to do some configure.ac hacking to get that put in... :( -dan
+//
 // Revision 1.72  2007/05/07 03:05:28  max817
 // IT WORKS
 //

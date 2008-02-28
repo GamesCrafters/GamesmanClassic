@@ -19,6 +19,8 @@
  ** 2/13/2006    Started. Much of the code is shamelessly borrowed from
  **              m1210.c, which is used as a template. Done: InitializeGame,
  **              PrintPosition
+ ** 2/20/2008    Added bounds checking, adjusted bounds to be from 2 to 9 and 
+ **             implemented options commands -EthanR+AlanW
  **
  *****************************************************************************/
 
@@ -167,15 +169,12 @@ void ForceInitialize() {
         -1 };
         char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
         int i;
-
         gNumberOfPositions = generic_hash_init(boardSize, pieces, vcfg, 0);
-
     // Create initial position
         for (i = 0; i < maxPieces; i++) {
             initialPosition[i] = (startPromoted ? P1KING : P1MAN);
             initialPosition[boardSize-1 - i] = (startPromoted ? P2KING : P2MAN);
         }
-
         for (i = maxPieces; i < (boardSize - maxPieces); i++) {
             initialPosition[i] = EMPTY;
         }
@@ -374,19 +373,19 @@ void setBoardSize() {
   getchar();
   c = getchar();
   rows = c - '0';
-  if ((rows <= 0) || (rows > 9)) rows = 9;
+  if ((rows <= 1) || (rows >= 9)) rows = 9;
 
   printf("What is the board width? ");
   getchar();
   c = getchar();
   cols = c - '0';
-  if ((cols <= 0) || (cols > 9)) cols = 9;
+  if ((cols <= 1) || (cols >= 9)) cols = 9;
 
   printf("How many starting rows per player? ");
   getchar();
   c = getchar();
   startRows = c - '0';
-  if ((startRows <= 0) || (startRows > rows/2)) startRows = 1;
+  if ((startRows <= 1) || (startRows >= rows/2)) startRows = 1;
 
   ForceInitialize();
 }
@@ -1676,16 +1675,50 @@ STRING kDBName = "Rubik's Checkers" ;
 int NumberOfOptions()
 {
     // TODO
-    return 0;
+    return 2^10-1;
 }
 
 int getOption()
 {
-    // TODO
-    return 0;
+    int extract;
+    if(gStandardGame)
+    	extract = 1;
+    else
+    	extract = 0;
+    extract = extract << 9;
+    extract = extract | (demote << 8);
+    extract = extract | (startRows << 6);
+    extract = extract | (rows << 3);
+    extract = extract | (cols);
+    return extract;
 }
 
 void setOption(int option)
 {
-    // TODO
+    int extract = (option >> 9) & 1;
+	if(extract == 1){
+        gStandardGame = 0;
+    }else{
+        gStandardGame = 1;
+    }
+    extract = (option >> 8) & 1;
+    if (!extract) {  // Switch to Checkers
+    demote = FALSE;
+    manMobility = FORWARD | CAPTURE;
+    forceCapture = TRUE;
+    startPromoted = FALSE;
+    promoteRow = FORWARD;
+    } else {  // Switch to Rubik's
+    demote = TRUE;
+    manMobility = BACKWARD;
+    forceCapture = FALSE;
+    startPromoted = TRUE;
+    promoteRow = BACKWARD;
+    }
+    extract = (option >> 6) & 3;
+    startRows = extract;
+    extract = (option >> 3) & 7;
+    rows = extract;
+    extract = option & 7;
+    cols = extract;
 }

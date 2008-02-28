@@ -272,10 +272,10 @@ void HandleArguments (int argc, char *argv[])
                     gBitPerfectDBSolver = FALSE;
                 }
                 else if(!strcasecmp(argv[i], "--numoptions")) {
-                        fprintf(stderr, "\n%d\n", NumberOfOptions());
+                        fprintf(stderr, "%d\n", NumberOfOptions());
                         gMessage = TRUE;
                 } else if(!strcasecmp(argv[i], "--curroption")) {
-                        fprintf(stderr, "\n%d\n", getOption());
+                        fprintf(stderr, "%d\n", getOption());
                         gMessage = TRUE;
                 } else if(!strcasecmp(argv[i], "--option")) {
                         if(argc < (i + 2)) {
