@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.31 2007-12-29 05:14:31 phase_ac Exp $
+// $Id: mtilechess.c,v 1.32 2008-03-06 01:40:07 phase_ac Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -728,7 +728,7 @@ lower-case letters indicate the pieces that belong to black:\n");
 	  if (board[i] != ' ')
 	    numpieces++;
 	}
-	if (numpieces >= 4 && kSupportsTierGamesman && 
+	if (numpieces >= 5 && kSupportsTierGamesman && 
 	    !kExclusivelyTierGamesman && gTierGamesman) {
 	  printf("Greater than 4 pieces on the board! Turning the tier solver OFF.\n");
 	  gTierGamesman = !gTierGamesman;
@@ -2592,7 +2592,7 @@ TIERPOSITION getTierPosition(char* board, int currentPlayer) {
     if (!(i%sideLength == 0) && !(i%sideLength == sideLength - 1)) {
       //found a piece so keep track of its row/col info
       if (board[i] != ' ') {
-	retval += ((row<<3) + col) << (6 * alignPieceToTier(board[i], thisTier, 0));
+	retval += ((row<<2) + col) << (4 * alignPieceToTier(board[i], thisTier, 0));
       }
       col++;
     }
@@ -2750,8 +2750,8 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
    //printf("Tier: %llu, 1<<y: %d, Index: %d, PiecePresent?: %llu \n", tier, (1<<y), y, temp);
 
    if (temp) {
-     col = (tierpos >> (tierpos_index * 6)) & 7;
-     row = (tierpos >> (tierpos_index * 6 + 3)) & 7;
+     col = (tierpos >> (tierpos_index * 4)) & 3;
+     row = (tierpos >> (tierpos_index * 4 + 2)) & 3;
 
      //printf("TierPosition: %llu, ", tierpos);
      //printf("Row: %llu, Col: %llu\n", row, col);
@@ -2813,10 +2813,10 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
  for (i = 0; i < numOfPieces; i ++) {
    //printf("numOfPositions: %llu \n", numOfPositions);
-   numOfPositions += ((((numOfPieces - 1) << 3) + i) << 6 * i); 
+   numOfPositions += ((((numOfPieces - 1) << 2) + i) << 4 * i); 
  }
  
- //printf("numOfPositions: %llu \n", ((TIERPOSITION) (numOfPositions << 1)) + 2);
+ printf("numOfPositions: %llu \n", ((TIERPOSITION) (numOfPositions << 1)) + 2);
  return (numOfPositions << 1) + 2; // last shift + 1 is due to the current player
 }
 
@@ -2882,6 +2882,8 @@ BOOLEAN isLegalPos(POSITION pos)
   char* boardArray = unhashBoard(pos);
   int bdlength = strlen(boardArray);
   int sideLength = (int) sqrt(bdlength);
+  int numPieces = sideLength - 2;
+  int piecesCounter = 0;
   int i;
   BOOLEAN temp;
   int kingChecker = 0;
@@ -2892,7 +2894,16 @@ BOOLEAN isLegalPos(POSITION pos)
       if (boardArray[i] != ' ')
 	return FALSE;
     }
+    else
+      if (boardArray[i] != ' ')
+	piecesCounter++;
   }
+  
+  //printProperBoard(boardArray);
+  //printf("\nPiecesCounter %d, NumPieces %d \n", piecesCounter, numPieces);
+  
+  if (piecesCounter < numPieces)
+    return FALSE;
 
   for (i = 0; i < bdlength; i++) {
     if (boardArray[i] == 'k' || boardArray[i] == 'K')
@@ -2917,6 +2928,9 @@ BOOLEAN isLegalPos(POSITION pos)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.31  2007/12/29 05:14:31  phase_ac
+// Tierized with 3-pieces. Debug statements removed. 4-piece games default to solving without TierGamesman.
+//
 // Revision 1.30  2007/12/06 04:33:26  phase_ac
 // IT WORKS! (i think) for 3 pieces. Untested for four, primarily because it'll
 // 2^6 times longer than it currently does (2 minutes currently). Lots of debug
