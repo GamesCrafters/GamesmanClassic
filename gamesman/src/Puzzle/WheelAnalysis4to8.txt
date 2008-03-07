@@ -1,0 +1,121 @@
+
+seqSize =  4 ; rotSize =  2
+max level   =  4
+reachables  =  24
+permuations =  24
+ratio       =  1.0
+
+seqSize =  4 ; rotSize =  3
+max level   =  2
+reachables  =  8
+permuations =  24
+ratio       =  0.333333333333
+
+seqSize =  5 ; rotSize =  2
+max level   =  8
+reachables  =  120
+permuations =  120
+ratio       =  1.0
+
+seqSize =  5 ; rotSize =  3
+max level   =  8
+reachables  =  120
+permuations =  120
+ratio       =  1.0
+
+seqSize =  5 ; rotSize =  4
+max level   =  2
+reachables  =  10
+permuations =  120
+ratio       =  0.0833333333333
+
+seqSize =  6 ; rotSize =  2
+max level   =  12
+reachables  =  720
+permuations =  720
+ratio       =  1.0
+
+seqSize =  6 ; rotSize =  3
+max level   =  4
+reachables  =  72
+permuations =  720
+ratio       =  0.1
+
+seqSize =  6 ; rotSize =  4
+max level   =  10
+reachables  =  720
+permuations =  720
+ratio       =  1.0
+
+seqSize =  6 ; rotSize =  5
+max level   =  2
+reachables  =  12
+permuations =  720
+ratio       =  0.0166666666667
+
+seqSize =  7 ; rotSize =  2
+max level   =  18
+reachables  =  5040
+permuations =  5040
+ratio       =  1.0
+
+seqSize =  7 ; rotSize =  3
+max level   =  18
+reachables  =  5040
+permuations =  5040
+ratio       =  1.0
+
+seqSize =  7 ; rotSize =  4
+max level   =  12
+reachables  =  2520
+permuations =  5040
+ratio       =  0.5
+
+seqSize =  7 ; rotSize =  5
+max level   =  12
+reachables  =  2520
+permuations =  5040
+ratio       =  0.5
+
+seqSize =  7 ; rotSize =  6
+max level   =  2
+reachables  =  14
+permuations =  5040
+ratio       =  0.00277777777778
+
+seqSize =  8 ; rotSize =  2
+max level   =  24
+reachables  =  40320
+permuations =  40320
+ratio       =  1.0
+
+seqSize =  8 ; rotSize =  3
+max level   =  10
+reachables  =  1152
+permuations =  40320
+ratio       =  0.0285714285714
+
+seqSize =  8 ; rotSize =  4
+max level   =  18
+reachables  =  40320
+permuations =  40320
+ratio       =  1.0
+
+seqSize =  8 ; rotSize =  5
+max level   =  8
+reachables  =  576
+permuations =  40320
+ratio       =  0.0142857142857
+
+seqSize =  8 ; rotSize =  6
+max level   =  17
+reachables  =  40320
+permuations =  40320
+ratio       =  1.0
+
+seqSize =  8 ; rotSize =  7
+max level   =  2
+reachables  =  16
+permuations =  40320
+ratio       =  0.000396825396825
+
