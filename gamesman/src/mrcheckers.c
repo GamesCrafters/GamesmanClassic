@@ -20,8 +20,8 @@
  **              m1210.c, which is used as a template. Done: InitializeGame,
  **              PrintPosition
  ** 2/20/2008    Added bounds checking, adjusted bounds to be from 2 to 9 and 
- **             implemented options commands -EthanR+AlanW
- **
+ **              implemented options commands -EthanR+AlanW
+ ** 3/10/2008    Further refined functions for options. -EthanR+AlanW
  *****************************************************************************/
 
 /*****************************************************************************
@@ -366,26 +366,36 @@ void DebugMenu() { }
 
 void setBoardSize() {
 
-  char c;
+  int temp;
 
   // Prompt for board size
   printf("What is the board height? ");
-  getchar();
-  c = getchar();
-  rows = c - '0';
-  if ((rows <= 1) || (rows >= 9)) rows = 9;
+  //getchar();
+  temp = GetMyInt();
+  if ((temp <= 1) || (temp > 9)){
+	printf("Board height should be between 2 to 9.\n");
+	HitAnyKeyToContinue();
+	return;
+	}
+	rows = temp;
 
   printf("What is the board width? ");
-  getchar();
-  c = getchar();
-  cols = c - '0';
-  if ((cols <= 1) || (cols >= 9)) cols = 9;
+  temp = GetMyInt();
+  if ((temp <= 1) || (temp > 9)){
+		printf("Board width should be between 2 to 9.\n");
+		HitAnyKeyToContinue();
+		return;
+	}
+	cols = temp;
 
   printf("How many starting rows per player? ");
-  getchar();
-  c = getchar();
-  startRows = c - '0';
-  if ((startRows <= 1) || (startRows >= rows/2)) startRows = 1;
+  temp = GetMyInt();
+  if ((temp < 1) || (temp >= rows/2)){
+		printf("Starting rows should be between 1 and 1/2 the number of rows\n");
+		HitAnyKeyToContinue();
+		return;
+	}
+	startRows = temp;
 
   ForceInitialize();
 }
@@ -1675,7 +1685,7 @@ STRING kDBName = "Rubik's Checkers" ;
 int NumberOfOptions()
 {
     // TODO
-    return 2^10-1;
+    return 1024;
 }
 
 int getOption()

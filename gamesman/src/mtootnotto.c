@@ -38,7 +38,7 @@
 **				2006-08-19	Changed scanf to use GetMyInt(), bounds checking still needs to be done
 **				2007-02-26	Small changes, nothing significant
 **				2007-05-01	Tiers working! Hooray!
-**              2008-02-19  Reimplemented game options, added error checking on game-specific options.
+**              2008-02-19  Reimplemented game options, added error checking on game-specific options. -EthanR + AlanW
 **************************************************************************/
 
 /*************************************************************************
