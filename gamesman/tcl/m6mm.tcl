@@ -1,9 +1,3 @@
-# -----TODO List------
-# Game Over
-# Undo Game Over
-# drawPosition (how to track different phases)
-
-
 #############################################################################
 # GS_InitGameSpecific sets characteristics of the game that
 # are inherent to the game, unalterable.  You can use this fucntion
@@ -31,7 +25,7 @@ proc GS_InitGameSpecific {} {
 
 	### Set the strings to tell the user how to move and what the goal is.
 	### If you have more options, you will need to edit this section
-	global gGameRule
+	
 	global gFlyingRule
 	global gMisereGame
 	if {!$gMisereGame} {
@@ -68,9 +62,8 @@ proc GS_InitGameSpecific {} {
 	set pMoves undefined
 	
 	### Used to keep track of phase 1 or not phase 1
-	global totalPieces numMovesPerformed
+	global totalPieces
 	set totalPieces 12
-	set numMovesPerformed 0
 	
 	# A unique id for each playing piece
 	global playingPieceId
@@ -84,16 +77,9 @@ proc GS_InitGameSpecific {} {
 	set dragging 0
 	set prevDragMove [list]
 	
-	global gGameRule
-	if {!$gGameRule} {
-		set kGameName "9 Men's Morris"
-		set numPositions 24
-		set totalPieces 18
-	} else {
-		set kGameName "6 Men's Morris"
-		set numPositions 16
-		set totalPieces 12
-	}
+	# track if game is over
+	global isGameOver
+	set isGameOver 0
 }
 
 #############################################################################
@@ -145,19 +131,15 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	
 	# Create the font to be used by the "Cancel Move" button
 	font create cancelMoveFont -size 14 -family helvetica -weight bold
+	
+	# Create the font to be used by the "Game Over" text
+	font create gameOverFont -size 40 -family helvetica -weight bold
 
 	set standardRule \
 	[list \
 		 "What would you like your winning condition to be:" \
 		 "Standard" \
 		 "Misere" \
-		]
-	
-	set gameRule \
-	[list \
-		"Would you like to play Six Men's Morris or Nine Men's Morris:" \
-		"Nine Men's Morris" \
-		"Six Men's Morris" \
 		]
 	
 	set flyingRule \
@@ -168,20 +150,18 @@ proc GS_SetupRulesFrame { rulesFrame } {
 		]
 	
 	# List of all rules, in some order
-	set ruleset [list $standardRule $gameRule $flyingRule]
+	set ruleset [list $standardRule $flyingRule]
 
 	# Declare and initialize rule globals
 	global gMisereGame
 	set gMisereGame 0
 	
-	global gGameRule
-	set gGameRule 1
 
 	global gFlyingRule
 	set gFlyingRule 0
 	
 	# List of all rule globals, in same order as rule list
-	set ruleSettingGlobalNames [list "gMisereGame" "gGameRule" "gFlyingRule"]
+	set ruleSettingGlobalNames [list "gMisereGame" "gFlyingRule"]
 
 	global kLabelFont
 	set ruleNum 0
@@ -215,7 +195,6 @@ proc GS_GetOption { } {
 	set option 1
 	set option [expr $option + (1-$gMisereGame)]
 	set option [expr $option + (2*$gFlyingRule)]
-	set option [expr $option + (4*$gGameRule)]
 }
 
 #############################################################################
@@ -230,21 +209,16 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-	global gMisereGame gGameRule gFlyingRule
+	global gMisereGame gFlyingRule
 	set temp [expr $option - 1]
-	if {$temp == 0 || $temp == 2 || $temp == 4 || $temp == 6} {
+	if {$temp == 0 || $temp == 2} {
 		set gMisereGame 1
 	} else {
 		set gMisereGame 0
 	}
-	if { $temp >= 4 } {
-		set gGameRule 1 
-	} else {
-		set gGameRule 0
-	}
 	#000 001 010 011 100 101 110 111
 	# 0   1   2   3   4   5   6   7
-	if {$temp == 2 || $temp == 3 || $temp == 6 || $temp == 7} {
+	if {$temp == 2 || $temp == 3} {
 		set gFlyingRule 1
 	} else {
 		set gFlyingRule 0
@@ -345,10 +319,10 @@ proc GS_Initialize { c } {
 	$c itemconfig positionMarker -outline $positionMarkerColor -width $lineWidth
 	
 	$c create rect \
-		[expr [expr $leftBuffer + [expr 0 * $squareSize]] - 36] \
-		[expr [expr $topBuffer + [expr 0 * $squareSize]] - 36] \
-		[expr [expr $leftBuffer + [expr 5 * $squareSize]] + 36] \
-		[expr [expr $topBuffer + [expr 5 * $squareSize]] + 36] \
+		[expr $leftBuffer + 0 * $squareSize - 36] \
+		[expr $topBuffer + 0 * $squareSize - 36] \
+		[expr $leftBuffer + 5 * $squareSize + 36] \
+		[expr $topBuffer + 5 * $squareSize + 36] \
 		-fill $canvasColor -tag [list bg base] -outline white -width 4
 		
 	#drawing lines
@@ -411,7 +385,20 @@ proc GS_Initialize { c } {
 	$c lower cancelMove
 	
 	$c raise positionMarker
-} 
+	
+	# gameover screen
+	$c create rect \
+		[expr $leftBuffer + 0 * $squareSize - 36] \
+		[expr $my - 30] \
+		[expr $leftBuffer + 5 * $squareSize + 36] \
+		[expr $my + 30] \
+		-fill $canvasColor -tag [list gameover gameoverBg] -outline white -width 4
+	$c create text $mx $my \
+		-justify center -text "Game Over" -font gameOverFont \
+		-fill #42322a \
+		-tag [list gameover gameoverText]
+	$c lower gameover
+}
 
 proc GS_Deinitialize { c } {
 	global pMoves
@@ -434,8 +421,6 @@ proc GS_Deinitialize { c } {
 # Don't bother writing tcl that hashes, that's never necessary.
 #############################################################################
 proc GS_DrawPosition { c position } {
-	global leftBuffer topBuffer
-	DrawPieces $c $position
 }
 
 #############################################################################
@@ -486,9 +471,6 @@ proc GS_WhoseMove { position } {
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
 	
-	global numMovesPerformed
-	incr numMovesPerformed
-	
 	set move [unhashMove $theMove 1]
 	set theMoveFrom [lindex $move 0]
 	set theMoveTo [lindex $move 1]
@@ -503,15 +485,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 		
 		if { $playingPiece == "" } {
 			unhashBoard $newPosition a
-			
-			set colors [GS_ColorOfPlayers]
-			if {$a($theMoveFrom) == "X"} {
-				set color [lindex $colors 0]
-			} else {
-				set color [lindex $colors 1]
-			}
-			
-			makePlayingPiece $c $theMoveFrom $color
+			makePlayingPiece $c $theMoveFrom [getColor $c $a($theMoveFrom)]
 		}
 		
 	} else {
@@ -590,10 +564,8 @@ proc GS_HideMoves { c moveType position moveList} {
 #############################################################################
 proc GS_HandleUndo { c currentPosition theMoveToUndo positionAfterUndo} {
 	
-	global numMovesPerformed pMoves
-	
-	set numMovesPerformed [expr $numMovesPerformed - 1]
-	
+	global pMoves
+
 	cancelMove $c
 	
 	set move [unhashMove $theMoveToUndo 1]
@@ -642,7 +614,9 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
-	### TODO if needed
+	global isGameOver
+	set isGameOver 1
+	animateGameOver $c
 }
 
 
@@ -657,7 +631,9 @@ proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove
 # game, so IF you choose to do nothing in GS_GameOver, you needn't do anything here either.
 #############################################################################
 proc GS_UndoGameOver { c position } {
-	### TODO if needed
+	global isGameOver
+	set isGameOver 0
+	animateUndoGameOver $c
 }
 
 
@@ -702,22 +678,6 @@ proc unhashMove {theMove adjustForPhase} {
 	return [list $theMoveFrom $theMoveTo $theMoveRemove]
 }
 
-# NOT USED
-proc DrawPieces {c position } {
-	global numPositions
-	
-	set a(0) 0
-	
-	unhashBoard $position a
-	
-	for {set i 0} {$i < $numPositions} {incr i} {   
-		if {$a($i) == "X"} {
-		} elseif {$a($i) == "O"} {
-		} 
-	}
-	update idletasks
-}
-
 proc handleMotion { c x y } {
 	
 	global dragging dragPiece mousePrevX mousePrevY
@@ -733,13 +693,13 @@ proc handleMotion { c x y } {
 proc handlePress { c x y } {
 	
 	global clickCounter
-	global pMoves numMovesPerformed totalPieces
+	global pMoves totalPieces
 	global dragging dragPiece dragPiecePositionId mousePrevX mousePrevY
 	global showMovesMoveType showMovesPosition showMovesMoveList
-	
-	if { $numMovesPerformed >= $totalPieces } {
+
+	if { ![isPhase1] } {
 		# not phase 1
-		
+
 		set positionId [getPositionId $c $x $y]
 		
 		if { $positionId != "" && $dragPiece == ""} {
@@ -784,6 +744,11 @@ proc handleRelease { c x y } {
 	set tempMoves $pMoves
 	
 	set positionId [getPositionId $c $x $y]
+	
+	global isGameOver
+	if { $isGameOver } { 
+		set positionId ""
+	}
 
 	if { [isPhase1] } {
 		# phase 1
@@ -872,6 +837,9 @@ proc releaseDrag { c } {
 
 proc showMoves {c moveType position moveList} {
 	
+	global isGameOver
+	if { $isGameOver } { return }
+	
 	global scale pMoves clickCounter
 	
 	GS_HideMoves $c $moveType $position $moveList
@@ -900,7 +868,10 @@ proc showMoves {c moveType position moveList} {
 		set value [lindex $item 1]
 		set betterValue 0
 		set exists 0
-		foreach item2 $tempMoveList {
+		
+		# loop using indexes to allow for item removal
+		for {set i [expr [llength $tempMoveList] - 1]} {$i >= 0} {set i [expr $i - 1]} {
+			set item2 [lindex $tempMoveList $i]
 			set move2 [unhashMove [lindex $item2 0] 0]
 			set positionId2 [lindex $move2 $clickCounter]
 			if {$positionId == $positionId2} {
@@ -908,6 +879,7 @@ proc showMoves {c moveType position moveList} {
 				set value2 [lindex $item2 1]
 				if { $value == "Lose" || $value2 == "Win" } {
 					set betterValue 1
+					set tempMoveList [lreplace $tempMoveList $i $i]
 				}
 			}
 		}
@@ -967,6 +939,15 @@ proc filterPossibleMoves { positionId } {
 			set pMoves [lreplace $pMoves $i $i]
 		}
 	}
+	
+}
+
+# Returns number of pieces left to be placed for phase 1 to finish
+# Value is 11 at first. After first piece is placed, still 11. After second piece, 10.
+# Returns 0 when phase 1 is over.
+proc getPiecesLeft {} {
+	set currentTier [expr [C_CurrentTier]/100]
+	return $currentTier
 }
 
 proc executeMove { c move } {
@@ -1042,8 +1023,7 @@ proc resetMove { c } {
 }
 
 proc isPhase1 {} {
-	global numMovesPerformed totalPieces
-	return [expr $numMovesPerformed < $totalPieces]
+	return [expr [getPiecesLeft] > 0]
 }
 
 proc getRadiusGivenScale { scale } {
@@ -1103,6 +1083,15 @@ proc makeOval { c x y tag radius color} {
 		[expr $x + $radius] \
 		[expr $y + $radius] \
 		-fill $color -tag $tag -outline ""
+}
+
+proc getColor { c nameOfPiece } {
+	set colors [GS_ColorOfPlayers]
+	if {$nameOfPiece == "X"} {
+		return [lindex $colors 0]
+	} else {
+		return [lindex $colors 1]
+	}
 }
 
 proc makePlayingPiece {c positionId color} {
@@ -1190,4 +1179,12 @@ proc animateScale { c tagId cx cy startDiameter trgtDiameter } {
 	set ratio [expr $trgtDiameter/( $trgtDiameter - $change )]
 	$c scale $tagId $cx $cy $ratio $ratio
 	update idletasks
+}
+
+proc animateGameOver {c} {
+	$c raise gameover
+}
+
+proc animateUndoGameOver {c} {
+	$c lower gameover
 }
