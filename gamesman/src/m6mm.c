@@ -94,13 +94,13 @@ int SIXMM = 1;
 ** Global Variables
 **
 *************************************************************************/
-int BOARDSIZE = 16; //9mm 24
+int BOARDSIZE = 24; //6mm 16   9mm 24
 int minx = 2; 
-int maxx = 6;  //9mm 9
+int maxx = 9;  //6mm 6   9mm 9
 int mino = 2; 
-int maxo = 6;  //9mm 9
-int minb = 4;
-int maxb = 11;
+int maxo = 9;  //6mm 6   9mm 9
+int minb = 6;
+int maxb = 19;
 	
 
 
@@ -408,13 +408,20 @@ POSITION DoMove (POSITION position, MOVE move)
 	if (turn == X){
 		temp = updatepieces(board,O,piecesLeft, numx, numo, move, position); 
 		SafeFree(board);
-		return temp;
+	
 	}
 	else{
 		temp = updatepieces(board, X, piecesLeft, numx, numo,move,position);
 		SafeFree(board);
-		return temp;
+	
 	}
+
+	TIER tier; TIERPOSITION tierposition;
+	gUnhashToTierPosition(position, &tierposition, &tier);
+	gCurrentTier = tier;
+	printf("current tier = %d\n", (int)gCurrentTier);
+	
+	return temp;
 }
 
 
@@ -873,9 +880,7 @@ void GameSpecificMenu ()
 ** 
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (int options[])
-{
-    
+void SetTclCGameSpecificOptions (int options[]){
 }
   
   
@@ -911,7 +916,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-  return 8; //misere/standard   flying/no-flying   6mm/9mm
+  return 4; //misere/standard   flying/no-flying   6mm/9mm
 }
 
 
@@ -929,7 +934,8 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-  return 1 + (gFlying<<1) + (SIXMM<<2) + gStandardGame;
+	printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame);
+  return 1 + (gFlying<<1) + gStandardGame;
 }
 
 
@@ -950,7 +956,7 @@ void setOption (int option)
   option -= 1;
   gStandardGame = (option % 2);
   gFlying       = (option / 2) % 2;
-  SIXMM			= (option / 4);
+  
 }
 
 
@@ -1055,6 +1061,7 @@ POSITION hash(char* board, char turn, int piecesLeft, int numx, int numo)
 	if(gHashWindowInitialized){
 		// printf("piecesLeft =%d \t numx: %d \t numo: %d\n", piecesLeft, numx,numo);
 		TIER tier = piecesLeft*100+numx*10+numo;
+		
 		//printf(" line 1093 tier = %d\n", tier);
 		//printf("%d\n", tier);
 		generic_hash_context_switch(tier);
@@ -1110,6 +1117,7 @@ void SetupTierStuff(){
 	
 	tier = (maxx+maxo)*100;
 	gInitialTier = tier;	//initial pieces on board
+	gCurrentTier = tier;
 	generic_hash_context_switch(tier);
 	
 	for(i = 0; i < BOARDSIZE; i++)
@@ -1759,7 +1767,7 @@ void changetosix()
 	maxx = 6;
 	maxo = 6;
 	minb = 4;
-	maxb = 12;
+	maxb = 11;
 	totalPieces = maxx + maxo;
 	kDBName = "6mm";
 	kGameName = "Six Men's Morris";
@@ -1773,7 +1781,7 @@ void changetonine()
 	maxx = 9;
 	maxo = 9;
 	minb = 6;
-	maxb = 20;
+	maxb = 19;
 	totalPieces = maxx + maxo;
 	kDBName = "9mm";
 	kGameName = "Nine Men's Morris";
@@ -1785,6 +1793,9 @@ void changetonine()
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.9  2007/11/29 05:00:29  noafroboy
+ ** temporary hack for m6mm.c
+ **
  ** Revision 1.8  2007/11/26 10:41:26  noafroboy
  ** BUGZID:
  ** 1.  Added 9 men's morris under game specific options.
