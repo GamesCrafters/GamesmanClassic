@@ -8,6 +8,8 @@
 # and gInitialPosition in this function.
 ############################################################################
 proc GS_InitGameSpecific {} {
+	
+	puts "GS_InitGameSpecific"
 
 	### Set the name of the game
 	global kGameName
@@ -71,11 +73,21 @@ proc GS_InitGameSpecific {} {
 	
 	# used to show move values
 	global showMovesMoveType showMovesPosition showMovesMoveList
+	# set these in case they are not initialized (avoid: "no such variable error")
+	set showMovesMoveType ""
+	set showMovesPosition ""
+	set showMovesMoveList ""
 	
 	# used for click/drag piece movement
 	global dragging dragPiece dragPiecePositionId mousePrevX mousePrevY prevDragMove
 	set dragging 0
 	set prevDragMove [list]
+	# set these in case they are not initialized (avoid: "no such variable error")
+	set dragPiece ""
+	set dragPiecePositionId ""
+	set mousePrevX ""
+	set mousePrevY ""
+	set prevDragMove ""
 	
 	# track if game is over
 	global isGameOver
