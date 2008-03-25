@@ -513,11 +513,23 @@ proc InitWindow { kRootDir kExt } {
         .middle.f1.cMLeft itemconfigure moveHistoryRightName \
         -text [format "%s Winning -->" $gRightName]
       update
-      global gUseDB
+      global gUseDB, gUsingTiers, gMovesSoFar, gInitialPosition
       if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" || $gUseDB == "true" } {
         if { $gReallyUnsolved == true } {
           . config -cursor watch
           set theValue [C_DetermineValue $gPosition]
+          
+          # TIER-GAMESMAN
+          if { $gUsingTiers == 1 } {
+            # Calling C_DetermineValue on a Tier games actually solves the whole game and
+            # returns the initial position. So we have to replay the whole game
+            set gPosition [C_InitHashWindow $gInitialPosition]
+            for { set i [expr [llength $gMovesSoFar] - 1] } { $i >= 0 } { incr  i -1 } {
+              set gPosition [C_DoMove $gPosition [lindex $gMovesSoFar $i]]
+              set gPosition [C_HashWindow $gPosition]
+            }
+          }
+          
           set gGameSolved true
           . config -cursor {}
           set gReallyUnsolved false
@@ -1804,6 +1816,9 @@ proc switchRules { rules } {
     if { $gLeftHumanOrComputer == "Computer" || $gRightHumanOrComputer == "Computer" || $gUseDB == "true"} {
       set theValue [C_DetermineValue $gPosition]
       .middle.f1.cMLeft lower progressBar
+    } else {
+      # TIER-GAMESMAN
+      set gPosition [C_InitTierGamesmanIfNeeded $gPosition]
     }
 
     # New game
