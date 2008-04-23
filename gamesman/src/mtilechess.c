@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.32 2008-03-06 01:40:07 phase_ac Exp $
+// $Id: mtilechess.c,v 1.33 2008-04-23 08:17:24 phase_ac Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -23,7 +23,7 @@
 **
 ** Everything below here must be in every game file
 **
-**************************************************************************/
+*************************************************************************/
 
 #include <stdio.h>
 #include "gamesman.h"
@@ -254,6 +254,7 @@ BOOLEAN isLegalPos(POSITION);
 int pieces (char*);
 void printProperBoard(char*);
 char* flushBoard(char*);
+char* switchBoardSize(char*);
 
 /* External */
 #ifndef MEMWATCH 
@@ -408,6 +409,7 @@ POSITION DoMove (POSITION position, MOVE move)
   boardArray = flushBoard(boardArray);
   //printf("After flushing the board back: \n");
   //printProperBoard(boardArray);
+  boardArray = switchBoardSize(boardArray);
   return hashBoard(boardArray,(getCurrTurn(position) == PLAYER1_TURN) ? PLAYER2_TURN : PLAYER1_TURN);
 }
 
@@ -1189,11 +1191,11 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
   POSITION pos;
 
   if (gHashWindowInitialized) {
-    //printProperBoard(boardArray);
+    printProperBoard(boardArray);
     tier = getTier(boardArray);
-    //printf("hashing with tiers\n");
+    printf("hashing with tiers\n");
     tierpos = getTierPosition(boardArray, currentPlayer);
-    //printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
+    printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
     pos = gHashToWindowPosition(tierpos, tier);
     //printf("Corresponds to a position of: %llu", pos);
     //printf(" and a board of:\n");
@@ -2307,14 +2309,16 @@ contextList *getContextNodeFromOffset(int offset) {
        located in the box of valid pieces.
  ****/
 char* flushBoard(char* bA) {
-  int boardLength = strlen(bA);
+  int i = 0;
+  int boardLength = strlen(bA); //doesn't stay this value! (what happens
+                                //   when a piece is taken, and there are
+                                //   still (n+1)^2 board spaces?
   int sideLength = (int) sqrt(boardLength);
   char* temp = (void*) SafeMalloc(boardLength * (sizeof(char)) + 1);
-  int i = 0;
   int j = 0;
   int reverseRow = 0;
   int col = 0;
-
+  
   strcpy(temp, bA);
   temp[boardLength] = 0;
   
@@ -2875,6 +2879,46 @@ int pieces (char* ba)
   return pieces;
 }
 
+//If a piece is captured, the board shrinks in size. This function
+//   factors that in and generates a new board with fewer spots.
+char* switchBoardSize(char* ba)
+{
+  int bdlength = strlen(ba);
+  int sidelength = (int) sqrt(bdlength);
+  char* tempBoard = SafeMalloc((sidelength-1)*(sidelength-1)*(sizeof(char))+1);
+  int piecesCounter = 0;
+  int i;
+  int y = 0;
+
+  tempBoard[(sidelength-1)*(sidelength-1)] = 0;
+
+  for (i = 0; i < bdlength; i++)
+    if (ba[i] != ' ')
+      piecesCounter++;
+  
+  if (piecesCounter == sidelength - 2) { //no pieces were taken
+    SafeFree(tempBoard);
+    printf("Original board: \n");
+    printProperBoard(ba);
+    return ba;
+  }
+  else { //new board is the old board minus the top and right edges
+    printf("piecesCounter: %d\n", piecesCounter);
+    for (i = sidelength; i < bdlength; i++) {
+      if (!(i % sidelength == sidelength - 1)) { 
+	//not at the right edge of the board. transfer these spots to new board
+	tempBoard[y] = ba[i];
+	y++;
+      }
+      tempBoard[y] = 0; //last character has to be a zero
+    }
+    SafeFree(ba);
+    printf("Smaller board: \n");
+    printProperBoard(tempBoard);
+    return tempBoard;
+  }
+}
+
 BOOLEAN isLegalPos(POSITION pos)
 {
   //printf("The board: %s\n", unhashBoard(pos));
@@ -2887,6 +2931,7 @@ BOOLEAN isLegalPos(POSITION pos)
   int i;
   BOOLEAN temp;
   int kingChecker = 0;
+  char* flushedBoard = (void*) SafeMalloc(bdlength * (sizeof(char)) + 1);
 
   for (i = 0; i < bdlength; i++) {
     if (i < sideLength || !(i % sideLength) || 
@@ -2912,7 +2957,14 @@ BOOLEAN isLegalPos(POSITION pos)
 
   if (inCheck(boardArray, (getCurrTurn(pos) == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN)))
     return FALSE;
-  
+
+  strcpy(flushedBoard, boardArray);
+  flushedBoard = flushBoard(flushedBoard);
+  for(i = 0; i < bdlength; i++) {
+    if(flushedBoard[i] != boardArray[i])
+      return FALSE;
+  }
+
   if (kingChecker != 2)
     return FALSE;
   temp = isLegalBoard(boardArray, TRUE);
@@ -2928,6 +2980,9 @@ BOOLEAN isLegalPos(POSITION pos)
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.32  2008/03/06 01:40:07  phase_ac
+// 4-piece variant sort-of working (as long as you don't take any pieces... promptly crashes if you do)
+//
 // Revision 1.31  2007/12/29 05:14:31  phase_ac
 // Tierized with 3-pieces. Debug statements removed. 4-piece games default to solving without TierGamesman.
 //
