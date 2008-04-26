@@ -36,13 +36,13 @@ STRING   CUSTOM_TRAITS[3] = {"XORofColumns", "MisereXORofColumns", ""};
 STRING MoveToString(MOVE);
 
 float XORofColumns(POSITION p){
-	int i, xor=0;
+	int i, colxor=0;
 	p >>= 1;
 	for(i = 0 ; i < rows ; i++){
-		xor ^= p & 7;
+		colxor ^= p & 7;
 		p >>= 3;
 	}
-	return (float)(xor!=0?1:-1);
+	return (float)(colxor!=0?1:-1);
 }
 
 float MisereXORofColumns(POSITION p){
