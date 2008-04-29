@@ -13,7 +13,7 @@ proc GS_InitGameSpecific {} {
 
 	### Set the name of the game
 	global kGameName
-	set kGameName "3 Men's Morris"
+	set kGameName "6 Men's Morris"
 	
 	### Set the initial position of the board (default 0)
 	global gInitialPosition gPosition
@@ -30,7 +30,7 @@ proc GS_InitGameSpecific {} {
 	
 	global gFlyingRule
 	global gGameRule
-	set gGameRule 0
+	#set gGameRule 1
 	global gMisereGame
 	if {!$gMisereGame} {
 		SetToWinString "To Win: (fill in)"
@@ -57,8 +57,8 @@ proc GS_InitGameSpecific {} {
 	set squareSize [expr $boardSize / 5]
 	set leftBuffer [expr [expr $gFrameWidth - $boardSize] / 2]
 	set topBuffer [expr [expr $gFrameHeight - $boardSize] / 2]
-	set scale 2.5
-	set numPositions 9
+	#set scale 1
+	#set numPositions 16
 	
 	### Used to keep track of multi-click moves
 	global clickCounter pMoves
@@ -67,7 +67,7 @@ proc GS_InitGameSpecific {} {
 	
 	### Used to keep track of phase 1 or not phase 1
 	global totalPieces
-	set totalPieces 6
+	#set totalPieces 12
 	
 	# A unique id for each playing piece
 	global playingPieceId
@@ -184,7 +184,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	set gFlyingRule 0
 	
 	global gGameRule
-	set gGameRule 0
+	set gGameRule 2
 	
 	
 	# List of all rule globals, in same order as rule list
@@ -224,7 +224,7 @@ proc GS_GetOption { } {
 	set option [expr $option + (1 - $gMisereGame)]
 	set option [expr $option + (2 * $gFlyingRule)]
 	set option [expr $option + (4 * $gGameRule)]
-
+	
 	return $option
 }
 
@@ -247,7 +247,7 @@ proc GS_SetOption { option } {
 	set gFlyingRule [expr ($option / 2) % 2]
 	set gGameRule [expr $option/4]
 
-	if {$gGameRule == 0} {
+	if { $gGameRule == 0 } {
 		set kGameName "3 Men's Morris"
 		set numPositions 9
 		set totalPieces 6
@@ -289,19 +289,23 @@ proc GS_Initialize { c } {
 	set i 0
 	set j 0
 
+	if {$gGameRule == 0} {
+		set scale 2.5
+		set numPositions 9
+		set totalPieces 6
+	}
 	if {$gGameRule == 1} {
+		set scale 1
 		set temp 2
-		set scaledSquareSize $squareSize
+		set numPositions 16
+		set totalPieces 12
 	}
 	if {$gGameRule == 2} {
 		set temp 3
 		set scale 0.7
 		set totalPieces 18
 		set numPositions 24
-		set scaledSquareSize [expr $scale*$squareSize]
 	}	
-	
-	
 	set scaledSquareSize [expr $scale*$squareSize]
 	
 	#Sets coordinates for center of game table

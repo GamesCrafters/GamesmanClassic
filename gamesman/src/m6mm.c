@@ -81,7 +81,7 @@ STRING   kHelpExample =
 
 /* Variants */
 BOOLEAN gFlying = FALSE;
-int gameType = 3; //3,6,9 men's morris
+int gameType = 9; //3,6,9 men's morris
 /*************************************************************************
 **
 ** #defines and structs
@@ -94,13 +94,13 @@ int gameType = 3; //3,6,9 men's morris
 ** Global Variables
 **
 *************************************************************************/
-int BOARDSIZE = 9; //6mm 16   9mm 24
+int BOARDSIZE = 24; //6mm 16   9mm 24
 int minx = 2; 
-int maxx = 3;  //6mm 6   9mm 9
+int maxx = 9;  //6mm 6   9mm 9
 int mino = 2; 
-int maxo = 3;  //6mm 6   9mm 9
-int minb = 4;
-int maxb = 5;
+int maxo = 9;  //6mm 6   9mm 9
+int minb = 6;
+int maxb = 19;
 	
 
 
@@ -118,7 +118,7 @@ int maxb = 5;
 
 int NUMX=0;
 int NUMO=0;
-int totalPieces = 12; //Remove when tiering
+int totalPieces = 18; //Remove when tiering
 
 
 /*************************************************************************
@@ -999,17 +999,19 @@ int getOption ()
 void setOption (int option)
 {
   // In terms of bits, option is one more than 0bFS (F=flying,S=Standard)
+  int temp;
   option -= 1;
   gStandardGame = (option % 2);
   gFlying       = (option >> 1) % 2;
+  temp = gameType;
   gameType = (((option>>2)+1)*3);
-  if(gameType==3){
+  if((temp != gameType) && (gameType==3)){
 	changetothree();
   }
-  else if(gameType==6){
+  else if((temp != gameType) && (gameType==6)){
 	changetosix();
   }
-  else if (gameType == 9){
+  else if ((temp != gameType) && (gameType == 9)){
 	changetonine();
   }
 }
@@ -1945,6 +1947,9 @@ void changetonine()
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.11  2008/04/29 07:18:43  noafroboy
+ ** added 3mm. starts with 3mm by default for now.
+ **
  ** Revision 1.10  2008/03/18 02:34:09  noafroboy
  ** This version is for the Stanford Demonstration. 9mm has been removed. In addition, gCurrentTier is set each time DoMove is called in order for the GUI to know the phase it is in.
  **
