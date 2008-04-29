@@ -81,7 +81,7 @@ STRING   kHelpExample =
 
 /* Variants */
 BOOLEAN gFlying = FALSE;
-int SIXMM = 1;
+int gameType = 3; //3,6,9 men's morris
 /*************************************************************************
 **
 ** #defines and structs
@@ -94,13 +94,13 @@ int SIXMM = 1;
 ** Global Variables
 **
 *************************************************************************/
-int BOARDSIZE = 24; //6mm 16   9mm 24
+int BOARDSIZE = 9; //6mm 16   9mm 24
 int minx = 2; 
-int maxx = 9;  //6mm 6   9mm 9
+int maxx = 3;  //6mm 6   9mm 9
 int mino = 2; 
-int maxo = 9;  //6mm 6   9mm 9
-int minb = 6;
-int maxb = 19;
+int maxo = 3;  //6mm 6   9mm 9
+int minb = 4;
+int maxb = 5;
 	
 
 
@@ -172,6 +172,7 @@ char returnTurn(POSITION pos);
 char* customUnhash(POSITION pos);
 void changetosix();
 void changetonine();
+void changetothree();
 
 
 /************************************************************************
@@ -186,8 +187,9 @@ void changetonine();
 void InitializeGame ()
 {
 	int i;
-	if (SIXMM) changetosix();
-	if (!SIXMM) changetonine();
+	if (gameType==3) changetothree();
+	if (gameType==6) changetosix();
+	if (gameType==9) changetonine();
 	char* board = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
 
 	int pminmax[] = {X, 0, maxx, O, 0, maxo,BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
@@ -505,7 +507,38 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
   //printf("PRINTPOSITION PLAYER %d\n", turn);
   
-  if (SIXMM) {
+  if (gameType==3) {
+	printf("\n");
+	printf("          0 -- 1 -- 2    %c -- %c -- %c   |    %s's turn (%c)\n", board[0], board[1], board[2], playersName, turn);
+    printf("          |    |    |    |    |    |   |    Phase: ");
+	if (piecesLeft != 0)
+      printf("1 : PLACING\n");
+    else {
+      if  (!gFlying || ((turn == X) && (numx > 3)) || ((turn == O) && (numo > 3))) 
+	printf("2 : SLIDING\n");
+      else
+	printf("3 : FLYING\n");
+    }
+    printf("          3 -- 4 -- 5    %c -- %c -- %c   |    Phase: ", board[3], board[4], board[5]);
+    
+	if (piecesLeft != 0) 
+      printf("X has %d left to place\n",piecesLeft/2);
+    else
+      printf("X has %d on the board\n", numx);
+	  
+    printf("          |    |    |    |    |    |   |    Phase: ");
+	
+	if (piecesLeft != 0) 
+      printf("O has %d left to place\n",piecesLeft/2 + piecesLeft%2);
+    else
+      printf("O has %d on the board\n", numo);
+	
+    printf("          6 -- 7 -- 8    %c -- %c -- %c   |    \n\n", board[6], board[7], board[8]);
+	
+
+  }
+  
+  else if (gameType==6) {
     
     printf("\n");
     printf("          0 ----- 1 ----- 2    %c ----- %c ----- %c    %s's turn (%c)\n", board[0], board[1], board[2], playersName, turn);
@@ -833,13 +866,26 @@ void GameSpecificMenu ()
 	   gFlying ? "ON" : "OFF",
 	   !gFlying ? "ON" : "OFF"); 
    
-	if (SIXMM == 1) printf("\tn)\tSwitch to (N)ine Men's Morris.\n");
-	else printf("\ts)\tSwitch to (S)ix Men's Morris.\n");
+	if (gameType == 3){
+		printf("\ts)\tSwitch to (S)ix Men's Morris.\n");
+		printf("\tn)\tSwitch to (N)ine Men's Morris.\n");
+	}
+	else if (gameType == 6){
+		printf("\tt)\tSwitch to (T)hree Men's Morris.\n");
+		printf("\tn)\tSwitch to (N)ine Men's Morris.\n");
+	}
+	else if (gameType == 9){
+		printf("\tt)\tSwitch to (T)hree Men's Morris.\n");
+		printf("\ts)\tSwitch to (S)ix Men's Morris.\n");
+	}
 
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
     switch(GetMyChar()) {
+	case 'T': case 't':
+	  changetothree();
+	  return;
 	case 'S': case 's':
 	  changetosix();
 	  return;
@@ -916,7 +962,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-  return 4; //misere/standard   flying/no-flying   6mm/9mm
+  return 12; //misere/standard   flying/no-flying   3mm/6mm/9mm
 }
 
 
@@ -934,8 +980,8 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame);
-  return 1 + (gFlying<<1) + gStandardGame;
+	printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2));
+  return 1 + (gFlying<<1) + gStandardGame + ((gameType/3-1)<<2);
 }
 
 
@@ -955,8 +1001,17 @@ void setOption (int option)
   // In terms of bits, option is one more than 0bFS (F=flying,S=Standard)
   option -= 1;
   gStandardGame = (option % 2);
-  gFlying       = (option / 2) % 2;
-  
+  gFlying       = (option >> 1) % 2;
+  gameType = (((option>>2)+1)*3);
+  if(gameType==3){
+	changetothree();
+  }
+  else if(gameType==6){
+	changetosix();
+  }
+  else if (gameType == 9){
+	changetonine();
+  }
 }
 
 
@@ -1374,7 +1429,41 @@ POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE mo
 // return true if slot is member of mill
 BOOLEAN check_mill(char *board, int slot, char turn)
 {
-	if (SIXMM == 1)
+	if (gameType == 3){
+		switch (slot) {
+		case 0:
+			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,3, 6, turn);
+			break;
+		case 1: 
+			return three_in_a_row(board, 0, 2, turn)|| three_in_a_row(board,4, 7, turn);
+			break;
+		case 2:
+			return three_in_a_row(board, 1, 0, turn)|| three_in_a_row(board,5, 8, turn);
+			break;
+		case 3:
+			return three_in_a_row(board, 4, 5, turn)|| three_in_a_row(board,0, 6, turn);
+			break;
+		case 4:
+			return three_in_a_row(board, 1, 7, turn)|| three_in_a_row(board, 3, 5, turn);
+			break;
+		case 5:
+			return three_in_a_row(board, 8, 2, turn)|| three_in_a_row(board,3, 4, turn);
+			break;
+		case 6:
+			return three_in_a_row(board, 0, 3, turn)|| three_in_a_row(board,7, 8, turn);
+			break;
+		case 7:
+			return three_in_a_row(board, 1, 4, turn)|| three_in_a_row(board,6, 8, turn);
+			break;
+		case 8:
+			return three_in_a_row(board, 5, 2, turn)|| three_in_a_row(board,6, 7, turn);
+			break;
+		default:
+			return FALSE;
+			break;
+		}
+	}
+	else if (gameType == 6)
 	{
 		switch (slot) {
 		case 0:
@@ -1430,7 +1519,7 @@ BOOLEAN check_mill(char *board, int slot, char turn)
 			break;
 		}
 	}
-	else if(SIXMM == 0){
+	else if(gameType == 9){
 		switch (slot) {
 		case 0:
 			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,9, 21, turn);
@@ -1534,8 +1623,59 @@ int find_adjacent(int slot, int *slots)
   // 4, 10, 13, 19 are centered (have adjacent pieces in all 4 directions)
 
   int num = 0;
+  
+  if (gameType==3){
+	switch (slot) {
+	  case 0:
+		  slots[num++] = 1;
+		  slots[num++] = 3;
+		  break;
+	  case 1:
+		  slots[num++] = 0;
+		  slots[num++] = 2;
+		  slots[num++] = 4;
+		  break;
+	  case 2:
+		  slots[num++] = 1;
+		  slots[num++] = 5;
+		  break;
+	  case 3:
+		  slots[num++] = 0;
+		  slots[num++] = 4;
+		  slots[num++] = 6;
+		  break;
+	  case 4: 
+		  slots[num++] = 1;
+		  slots[num++] = 3;
+		  slots[num++] = 5;
+		  slots[num++] = 7;
+		  break;
+	  case 5: 
+		  slots[num++] = 2;
+		  slots[num++] = 4;
+		  slots[num++] = 8;
+	      break;
+	  case 6: 
+		  slots[num++] = 7;
+		  slots[num++] = 3;
+		  break;
+	  case 7: 
+		  slots[num++] = 4;
+		  slots[num++] = 6;
+		  slots[num++] = 8;
+		  break;
+	  case 8: 
+		  slots[num++] = 5;
+		  slots[num++] = 7;
+		  break;
+	  default:
+		  num = 0;
+		  slots[0] = -1;
+	      break;
+	  }
+  }
 
-  if (SIXMM == 1)
+  else if (gameType == 6)
   {
 	  switch (slot) {
 	  case 0:
@@ -1618,7 +1758,7 @@ int find_adjacent(int slot, int *slots)
   }
 
 
- if (SIXMM == 0)
+ if (gameType == 9)
  {
   switch (slot) {
   case 0: 
@@ -1758,12 +1898,24 @@ int find_adjacent(int slot, int *slots)
 }
   return num;
 }
-
+void changetothree(){
+	gameType = 3;
+	BOARDSIZE = 9;
+	maxx = 3;
+	maxo = 3;
+	minx = 3;
+	mino = 3;
+	minb = 3;
+	maxb = 4;
+	totalPieces = maxx + maxo;
+	kDBName = "3mm";
+	kGameName = "Three Men's Morris";
+}
 
 void changetosix()
 {
-	SIXMM = 1;
-	BOARDSIZE = 16;
+	gameType = 6;
+	BOARDSIZE =16;
 	maxx = 6;
 	maxo = 6;
 	minb = 4;
@@ -1776,7 +1928,7 @@ void changetosix()
 
 void changetonine()
 {
-	SIXMM = 0;
+	gameType = 9;
 	BOARDSIZE = 24;
 	maxx = 9;
 	maxo = 9;
@@ -1793,6 +1945,9 @@ void changetonine()
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.10  2008/03/18 02:34:09  noafroboy
+ ** This version is for the Stanford Demonstration. 9mm has been removed. In addition, gCurrentTier is set each time DoMove is called in order for the GUI to know the phase it is in.
+ **
  ** Revision 1.9  2007/11/29 05:00:29  noafroboy
  ** temporary hack for m6mm.c
  **
