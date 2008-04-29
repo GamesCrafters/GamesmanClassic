@@ -13,7 +13,7 @@ proc GS_InitGameSpecific {} {
 
 	### Set the name of the game
 	global kGameName
-	set kGameName "6 Men's Morris"
+	set kGameName "3 Men's Morris"
 	
 	### Set the initial position of the board (default 0)
 	global gInitialPosition gPosition
@@ -29,6 +29,8 @@ proc GS_InitGameSpecific {} {
 	### If you have more options, you will need to edit this section
 	
 	global gFlyingRule
+	global gGameRule
+	set gGameRule 0
 	global gMisereGame
 	if {!$gMisereGame} {
 		SetToWinString "To Win: (fill in)"
@@ -55,8 +57,8 @@ proc GS_InitGameSpecific {} {
 	set squareSize [expr $boardSize / 5]
 	set leftBuffer [expr [expr $gFrameWidth - $boardSize] / 2]
 	set topBuffer [expr [expr $gFrameHeight - $boardSize] / 2]
-	set scale 1
-	set numPositions 16
+	set scale 2.5
+	set numPositions 9
 	
 	### Used to keep track of multi-click moves
 	global clickCounter pMoves
@@ -65,7 +67,7 @@ proc GS_InitGameSpecific {} {
 	
 	### Used to keep track of phase 1 or not phase 1
 	global totalPieces
-	set totalPieces 12
+	set totalPieces 6
 	
 	# A unique id for each playing piece
 	global playingPieceId
@@ -92,6 +94,7 @@ proc GS_InitGameSpecific {} {
 	# track if game is over
 	global isGameOver
 	set isGameOver 0
+	
 }
 
 #############################################################################
@@ -160,9 +163,17 @@ proc GS_SetupRulesFrame { rulesFrame } {
 		"No Flying" \
 		"Flying" \
 		]
+		
+	set gameRule \
+	[list \
+		"Which game would you like to play?" \
+		"Three Men's Morris" \
+		"Six Men's Morris" \
+		"Nine Men's Morris" \
+		]
 	
 	# List of all rules, in some order
-	set ruleset [list $standardRule $flyingRule]
+	set ruleset [list $standardRule $flyingRule $gameRule]
 
 	# Declare and initialize rule globals
 	global gMisereGame
@@ -172,8 +183,12 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	global gFlyingRule
 	set gFlyingRule 0
 	
+	global gGameRule
+	set gGameRule 0
+	
+	
 	# List of all rule globals, in same order as rule list
-	set ruleSettingGlobalNames [list "gMisereGame" "gFlyingRule"]
+	set ruleSettingGlobalNames [list "gMisereGame" "gFlyingRule" "gGameRule"]
 
 	global kLabelFont
 	set ruleNum 0
@@ -190,6 +205,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 		}
 		incr ruleNum
 	} 
+
 }
 
 #############################################################################
@@ -205,8 +221,11 @@ proc GS_GetOption { } {
 	global gMisereGame gGameRule gFlyingRule
 	
 	set option 1
-	set option [expr $option + (1-$gMisereGame)]
-	set option [expr $option + (2*$gFlyingRule)]
+	set option [expr $option + (1 - $gMisereGame)]
+	set option [expr $option + (2 * $gFlyingRule)]
+	set option [expr $option + (4 * $gGameRule)]
+
+	return $option
 }
 
 #############################################################################
@@ -221,20 +240,33 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-	global gMisereGame gFlyingRule
-	set temp [expr $option - 1]
-	if {$temp == 0 || $temp == 2} {
-		set gMisereGame 1
-	} else {
-		set gMisereGame 0
+	global gMisereGame gFlyingRule gGameRule numPositions totalPieces scale kGameName
+	set option [expr $option - 1]
+	
+	set gMisereGame [expr 1 - ($option % 2)]
+	set gFlyingRule [expr ($option / 2) % 2]
+	set gGameRule [expr $option/4]
+
+	if {$gGameRule == 0} {
+		set kGameName "3 Men's Morris"
+		set numPositions 9
+		set totalPieces 6
+		set scale 2
 	}
-	#000 001 010 011 100 101 110 111
-	# 0   1   2   3   4   5   6   7
-	if {$temp == 2 || $temp == 3} {
-		set gFlyingRule 1
-	} else {
-		set gFlyingRule 0
-	} 
+	
+	if {$gGameRule == 1} {
+		set kGameName "6 Men's Morris"
+		set numPositions 16
+		set totalPieces 12
+		set scale 1
+	}
+	
+	if {$gGameRule == 2} {
+		set kGameName "9 Men's Morris"
+		set numPositions 24
+		set totalPieces 18
+		set scale 0.7
+	}
 }
 
 #############################################################################
@@ -249,28 +281,28 @@ proc GS_Initialize { c } {
 
 	# you may want to start by setting the size of the canvas; this line isn't necessary
 	#$c configure -width 500 -height 500
-	
+
 	global boardSize squareSize leftBuffer topBuffer scale
-	global numPositions
-	global totalPieces
-	global kGameName
+	global numPositions totalPieces gGameRule
 	
 	set positionId 0
 	set i 0
 	set j 0
 
-	if {$kGameName == "6 Men's Morris"} {
+	if {$gGameRule == 1} {
 		set temp 2
 		set scaledSquareSize $squareSize
-		set sixmm 1
 	}
-	if {$kGameName != "6 Men's Morris"} {   ;# //this will work when C is playing 9mm instead of 6mm
+	if {$gGameRule == 2} {
 		set temp 3
 		set scale 0.7
 		set totalPieces 18
+		set numPositions 24
 		set scaledSquareSize [expr $scale*$squareSize]
-		set sixmm 0
 	}	
+	
+	
+	set scaledSquareSize [expr $scale*$squareSize]
 	
 	#Sets coordinates for center of game table
 	set mx [expr $leftBuffer + [expr (2.5) * $squareSize]]
@@ -281,7 +313,26 @@ proc GS_Initialize { c } {
 	set lineColor #4c3225
 	set positionMarkerColor $lineColor
 	set lineWidth 3
-
+	
+if { $gGameRule == 0 } {
+	for {set k 0} {$k < 3} {incr k} {         ;# //traverse rows
+		set ty [expr ($leftBuffer+$k*$scaledSquareSize)]
+		for {set l 0} {$l < 3} {incr l} {        ;# //traverse columns
+			set tx [expr ($topBuffer+$l*$scaledSquareSize)]
+			set clickRadius [getRadiusGivenScale [expr 2*$scale]]
+			set markerRadius [getRadiusGivenScale [expr $scale - 0.4]]
+			makeOval $c $tx $ty mi-$positionId $clickRadius $canvasColor
+			makeOval $c $tx $ty [list base positionMarker] $markerRadius $canvasColor
+			set mx-$positionId $tx
+			set my-$positionId $ty
+			incr positionId
+		}
+	}
+	
+}	
+	
+	
+if {$gGameRule != 0} {
 	#Handles top half points
 	for {set k 0} {$k < $temp} {incr k} {         ;# //traverse rows
 		for {set l 0} {$l <= 2} {incr l} {        ;# //traverse columns
@@ -327,7 +378,7 @@ proc GS_Initialize { c } {
 			incr positionId
 		}
 	}
-	
+}	
 	$c itemconfig positionMarker -outline $positionMarkerColor -width $lineWidth
 	
 	$c create rect \
@@ -338,7 +389,17 @@ proc GS_Initialize { c } {
 		-fill $canvasColor -tag [list bg base] -outline white -width 4
 		
 	#drawing lines
-	if {$sixmm == 1} {
+	if {$gGameRule == 0} {
+		#horizontal
+		$c create line ${mx-0} ${my-0} ${mx-2} ${my-2} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-3} ${my-3} ${mx-5} ${my-5} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-6} ${my-6} ${mx-8} ${my-8} -tag base -width $lineWidth -fill $lineColor
+		#vertical
+		$c create line ${mx-0} ${my-0} ${mx-6} ${my-6} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-1} ${my-1} ${mx-7} ${my-7} -tag base -width $lineWidth -fill $lineColor
+		$c create line ${mx-2} ${my-2} ${mx-8} ${my-8} -tag base -width $lineWidth -fill $lineColor
+	}
+	if {$gGameRule == 1} {
 		#horizontal
 		$c create line ${mx-0} ${my-0} ${mx-2} ${my-2} -tag base -width $lineWidth -fill $lineColor
 		$c create line ${mx-3} ${my-3} ${mx-5} ${my-5} -tag base -width $lineWidth -fill $lineColor
@@ -354,7 +415,7 @@ proc GS_Initialize { c } {
 		$c create line ${mx-5} ${my-5} ${mx-12} ${my-12} -tag base -width $lineWidth -fill $lineColor
 		$c create line ${mx-2} ${my-2} ${mx-15} ${my-15} -tag base -width $lineWidth -fill $lineColor
 	}
-	if {$sixmm == 0} {
+	if {$gGameRule == 2} {
 		#horizontal
 		$c create line ${mx-0} ${my-0} ${mx-2} ${my-2} -tag base -width $lineWidth -fill $lineColor
 		$c create line ${mx-3} ${my-3} ${mx-5} ${my-5} -tag base -width $lineWidth -fill $lineColor
@@ -410,6 +471,7 @@ proc GS_Initialize { c } {
 		-fill #42322a \
 		-tag [list gameover gameoverText]
 	$c lower gameover
+
 }
 
 proc GS_Deinitialize { c } {
