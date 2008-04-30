@@ -158,6 +158,14 @@ basename=1ton
 color=4
 basename=9mm
 
+[Atari Go]
+color=4
+basename=ago
+
+[Ataxx]
+color=4
+basename=ataxx
+
 [Bagh Chal]
 color=4
 basename=baghchal
@@ -170,9 +178,21 @@ basename=blocking
 color=4
 basename=fandan
 
+[Go]
+color=4
+basename=igo
+
 [Gobblet Jr]
 color=4
 basename=gobblet
+
+[Graph]
+color=4
+basename=graph
+
+[Hex]
+color=4
+basename=hex
 
 [Horseshoe]
 color=4
@@ -182,13 +202,41 @@ basename=horse
 color=4
 basename=joust
 
+[Kono]
+color=4
+basename=kono
+
+[Lines of Action]
+color=4
+basename=loa
+
 [Nu Tic-Tac-Toe]
 color=4
 basename=nuttt
 
+[Paradux]
+color=4
+basename=paradux
+
+[Pentago]
+color=4
+basename=pentago
+
 [Pylos]
 color=4
 basename=pylos
+
+[Quarto]
+color=4
+basename=quarto
+
+[Queensland]
+color=4
+basename=qland
+
+[Quick Chess]
+color=4
+basename=quickchess
 
 [Rubik's Checkers]
 color=4
@@ -197,6 +245,10 @@ basename=rcheckers
 [Rubik's Infinity]
 color=4
 basename=rInfin2
+
+[Six Men's Morris]
+color=4
+basename=6mm
 
 [Square Dance]
 color=4
@@ -213,6 +265,10 @@ basename=tilechess
 [Toot and Otto]
 color=1
 basename=tootnotto
+
+[Topitop]
+color=4
+basename=topitop
 
 [Tic-Tac-Chec]
 color=4
