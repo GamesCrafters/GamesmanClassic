@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m369mm.c,v 1.1 2008-05-01 02:15:13 noafroboy Exp $
+** LAST CHANGE: $Id: m369mm.c,v 1.2 2008-05-01 03:44:52 noafroboy Exp $
 **
 **************************************************************************/
 
@@ -82,6 +82,7 @@ STRING   kHelpExample =
 /* Variants */
 BOOLEAN gFlying = FALSE;
 int gameType = 9; //3,6,9 men's morris
+int millType = 0; //0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
 /*************************************************************************
 **
 ** #defines and structs
@@ -308,9 +309,12 @@ MOVELIST *GenerateMoves (POSITION position)
 		    }
 		  }
 		}
+		  if(millType == 2){
+			moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
+		   }
 	      }
-	      else 
-		moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
+		  else 
+			moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
 	    }				
 	  }
 	} else { // STAGE 3 : flying
@@ -323,8 +327,12 @@ MOVELIST *GenerateMoves (POSITION position)
 		    moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
 		  }
 		}
-	      }	else 
-		moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
+		  if(millType == 2){
+			moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
+			}
+	      }	
+		  else 
+			moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
 	    }
 	  }
 	}
@@ -336,11 +344,15 @@ MOVELIST *GenerateMoves (POSITION position)
 	if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+from*BOARDSIZE+from)) {
 	  //printf("this position closes a mill\n");
 	  for(to=0 ; to < BOARDSIZE ; to++) {
-	    if(can_be_taken(position, to) && (board[to] != turn)) {
+	    if(can_be_taken(position, to)  && (board[to] != turn)) {
 	      moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE+from, moves);
 	    }
 	  }
-	} else {
+	  if(millType == 2){
+		moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
+		}
+	}
+	else {
 	  moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
 	}
       }
@@ -866,6 +878,16 @@ void GameSpecificMenu ()
 	   gFlying ? "ON" : "OFF",
 	   !gFlying ? "ON" : "OFF"); 
    
+	if (millType == 0){
+		printf("\tm)\tWhen mill is formed, can remove any opponent's piece.\n");
+	}
+	else if (millType == 1){
+		printf("\tm)\tWhen mill is formed, can remove opponent's piece if it is not in a mill.\n");
+	}
+	else if (millType == 2){
+		printf("\tm)\tWhen mill is formed, can remove opponent's piece if it is not in a mill, unless if all the remaining pieces are already in a mill.\n");		
+	}
+	
 	if (gameType == 3){
 		printf("\tn)\tSwitch to Six Men's Morris.\n");
 	}
@@ -880,6 +902,14 @@ void GameSpecificMenu ()
     printf("\n\nSelect an option: ");
     
     switch(GetMyChar()) {
+	case 'M': case'm':
+		if (millType == 0)
+			millType = 1;
+		else if (millType == 1)
+			millType = 2;
+		else if (millType == 2)
+			millType = 0;
+	  return;
 	case 'N': case'n':
 		if (gameType == 3)
 			changetosix();
@@ -958,7 +988,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-  return 12; //misere/standard   flying/no-flying   3mm/6mm/9mm
+  return 36; //misere/standard   flying/no-flying   3mm/6mm/9mm millType = 1/2/3
 }
 
 
@@ -977,7 +1007,8 @@ int NumberOfOptions ()
 int getOption ()
 {
 	//printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2));
-  return 1 + (gFlying<<1) + gStandardGame + ((gameType/3-1)<<2);
+	printf("millType = %d\n", millType);
+  return 1 + (gFlying<<1) + gStandardGame + ((gameType/3-1)<<2) + (millType<<4);
 }
 
 
@@ -1001,6 +1032,7 @@ void setOption (int option)
   gFlying       = (option >> 1) % 2;
   temp = gameType;
   gameType = (((option>>2)+1)*3);
+  millType = (option >> 4);
   if((temp != gameType) && (gameType==3)){
 	changetothree();
   }
@@ -1303,7 +1335,13 @@ BOOLEAN can_be_taken(POSITION position, int slot)
 
   allMills = all_mills(board, slot);
   
-  canbetaken = ((!check_mill(board, slot, turn==X?O:X)) || allMills);
+  if(millType == 0)
+	canbetaken = ((!check_mill(board, slot, turn==X?O:X)) || allMills);
+  if(millType == 1)
+	canbetaken = TRUE;
+  if(millType == 2)
+	canbetaken = ((!check_mill(board, slot, turn==X?O:X)));
+	
   SafeFree(board);
   return canbetaken;
   //check mill to see if the position is in a mill 
