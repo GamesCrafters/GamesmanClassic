@@ -116,8 +116,6 @@ char *gBlankOXString[] = { "+", "O", "X" };
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 
-BOOLEAN gToTrapIsToWin = FALSE;  /* Being stuck is when you can't move. */
-
 /* local function prototypes */
 BOOLEAN CantMove(POSITION);
 BOOLEAN OkMove(BlankOX*, BlankOX, SLOT, int);
@@ -246,10 +244,6 @@ void GameSpecificMenu()
     printf("\tC)\tCreate a (C)ustom board\n");
 	printf("\tD)\tUse (D)efault board\n");
    
-    printf("\tT)\t(T)rapping opponent toggle from %s to %s\n", 
-	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
-	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
-    
     printf("\n\n\tB)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
@@ -269,9 +263,6 @@ void GameSpecificMenu()
 	case 'd': case 'D':
 	  kUseCustomBoard = FALSE;
 	  break;
-    case 'T': case 't':
-      gToTrapIsToWin = !gToTrapIsToWin;
-      break;
     case 'b': case 'B':
       return;
     default:
@@ -294,7 +285,6 @@ void GameSpecificMenu()
 void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
-  gToTrapIsToWin = (BOOLEAN) theOptions[0];
 }
 
 /************************************************************************
@@ -433,7 +423,7 @@ VALUE Primitive(position)
   
 
   if(CantMove(position)) /* the other player just won */
-    return(gToTrapIsToWin ? win : lose);       /* !gStandardGame */
+    return(gStandardGame ? lose : win);
   else
     return(undecided);                    /* no one has won yet */
 }
@@ -512,7 +502,7 @@ void PrintPosition(position,playerName,usersTurn)
   BlankOX theBlankOx[BOARDSIZE], whosTurn;
   
   PositionToBlankOX(position,theBlankOx,&whosTurn);
-/*    
+
   printf("     0           1      %s           %s\n",
 	 gBlankOXString[(int)theBlankOx[0]],
          gBlankOXString[(int)theBlankOx[1]]);
@@ -527,11 +517,13 @@ void PrintPosition(position,playerName,usersTurn)
   printf("     3 - - - - - 4      %s - - - - - %s\n\n",
          gBlankOXString[(int)theBlankOx[3]],
          gBlankOXString[(int)theBlankOx[4]]);
-*/   
+
   
+  /*
   for (i = 0; i < gVertices; i++) {
 	  printf("%d\t%s\n", i, gBlankOXString[(int)theBlankOx[i]]);
   }
+  */
 }
 
 /************************************************************************
@@ -741,14 +733,13 @@ STRING MoveToString (theMove)
 
 
 int NumberOfOptions() {
-  return 2*2;
+  return 2;
 }
 
 
 int getOption() {
   int option = 1;
   option += (gStandardGame ? 0 : 1);
-  option += 2* (gToTrapIsToWin ? 1 : 0);
   return option;
 }
 
@@ -757,7 +748,6 @@ void setOption(int option) {
   option--;
 
   gStandardGame = (option%2==0);
-  gToTrapIsToWin = (option/2%2==1);
 }
 
 /************************************************************************
