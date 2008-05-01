@@ -13,7 +13,7 @@ proc GS_InitGameSpecific {} {
 
 	### Set the name of the game
 	global kGameName
-	set kGameName "6 Men's Morris"
+	set kGameName "369 Men's Morris"
 	
 	### Set the initial position of the board (default 0)
 	global gInitialPosition gPosition
@@ -166,10 +166,10 @@ proc GS_SetupRulesFrame { rulesFrame } {
 		
 	set gameRule \
 	[list \
-		"Which game would you like to play?" \
-		"Three Men's Morris" \
-		"Six Men's Morris" \
-		"Nine Men's Morris" \
+		"Which Men's Morris game would you like to play?" \
+		"Three" \
+		"Six" \
+		"Nine" \
 		]
 	
 	# List of all rules, in some order
@@ -248,21 +248,18 @@ proc GS_SetOption { option } {
 	set gGameRule [expr $option/4]
 
 	if { $gGameRule == 0 } {
-		set kGameName "3 Men's Morris"
 		set numPositions 9
 		set totalPieces 6
 		set scale 2
 	}
 	
 	if {$gGameRule == 1} {
-		set kGameName "6 Men's Morris"
 		set numPositions 16
 		set totalPieces 12
 		set scale 1
 	}
 	
 	if {$gGameRule == 2} {
-		set kGameName "9 Men's Morris"
 		set numPositions 24
 		set totalPieces 18
 		set scale 0.7
