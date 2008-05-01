@@ -40,7 +40,7 @@ source "$kRootDir/../tcl/gamesman3.tcl"
 
 ### Now source our Game-specific code.
 
-source "$kRootDir/../tcl/m6mm.tcl"
+source "$kRootDir/../tcl/m369mm.tcl"
 
 main $kRootDir
 
