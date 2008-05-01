@@ -33,9 +33,9 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Six Men's Morris"; /* The name of your game */
+STRING   kGameName            = "369 Men's Morris"; /* The name of your game */
 STRING   kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee"; /* Your name(s) */
-STRING   kDBName              = "6mm"; /* The name to store the database under */
+STRING   kDBName              = "369mm"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -59,7 +59,7 @@ void*	 gGameSpecificTclInit = NULL;
  **/
 
 STRING   kHelpGraphicInterface =
-"Six Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
+"369 Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
 STRING   kHelpTextInterface =
 "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition."; 
@@ -421,7 +421,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	TIER tier; TIERPOSITION tierposition;
 	gUnhashToTierPosition(position, &tierposition, &tier);
 	gCurrentTier = tier;
-	printf("current tier = %d\n", (int)gCurrentTier);
+	//printf("current tier = %d\n", (int)gCurrentTier);
 	
 	return temp;
 }
@@ -673,7 +673,7 @@ STRING MoveToString (MOVE move)
 		} 
 		else if(from == to && to == remove){
 			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d]", from);
+			sprintf( movestring, "[%d]", from); //do not remove the '[' or ']' characters. it wil lbreak the gui
 		}
 		else {
 			movestring = (STRING) SafeMalloc(8);
@@ -867,30 +867,26 @@ void GameSpecificMenu ()
 	   !gFlying ? "ON" : "OFF"); 
    
 	if (gameType == 3){
-		printf("\ts)\tSwitch to (S)ix Men's Morris.\n");
-		printf("\tn)\tSwitch to (N)ine Men's Morris.\n");
+		printf("\tn)\tSwitch to Six Men's Morris.\n");
 	}
 	else if (gameType == 6){
-		printf("\tt)\tSwitch to (T)hree Men's Morris.\n");
-		printf("\tn)\tSwitch to (N)ine Men's Morris.\n");
+		printf("\tn)\tSwitch to Nine Men's Morris.\n");
 	}
 	else if (gameType == 9){
-		printf("\tt)\tSwitch to (T)hree Men's Morris.\n");
-		printf("\ts)\tSwitch to (S)ix Men's Morris.\n");
+		printf("\tn)\tSwitch to Three Men's Morris.\n");
 	}
 
     printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
     printf("\n\nSelect an option: ");
     
     switch(GetMyChar()) {
-	case 'T': case 't':
-	  changetothree();
-	  return;
-	case 'S': case 's':
-	  changetosix();
-	  return;
 	case 'N': case'n':
-	  changetonine();
+		if (gameType == 3)
+			changetosix();
+		else if (gameType == 6)
+			changetonine();
+		else if (gameType == 9)
+			changetothree();
 	  return;
     case 'Q': case 'q':
       ExitStageRight();
@@ -980,7 +976,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2));
+	//printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2));
   return 1 + (gFlying<<1) + gStandardGame + ((gameType/3-1)<<2);
 }
 
@@ -1911,11 +1907,11 @@ void changetothree(){
 	maxb = 4;
 	totalPieces = maxx + maxo;
 	kDBName = "3mm";
-	kGameName = "Three Men's Morris";
 }
 
 void changetosix()
 {
+	printf("changing to 6666666\n");
 	gameType = 6;
 	BOARDSIZE =16;
 	maxx = 6;
@@ -1924,8 +1920,6 @@ void changetosix()
 	maxb = 11;
 	totalPieces = maxx + maxo;
 	kDBName = "6mm";
-	kGameName = "Six Men's Morris";
-	kHelpGraphicInterface = "Six Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 }
 
 void changetonine()
@@ -1938,8 +1932,6 @@ void changetonine()
 	maxb = 19;
 	totalPieces = maxx + maxo;
 	kDBName = "9mm";
-	kGameName = "Nine Men's Morris";
-	kHelpGraphicInterface = "Nine Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 }
 
 
@@ -1947,6 +1939,9 @@ void changetonine()
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.12  2008/04/29 08:42:30  noafroboy
+ ** fixed the tcl so that 3mm and 6mm work. 9mm works for first 12 moves. possible database error
+ **
  ** Revision 1.11  2008/04/29 07:18:43  noafroboy
  ** added 3mm. starts with 3mm by default for now.
  **
