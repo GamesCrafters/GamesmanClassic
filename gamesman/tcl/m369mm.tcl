@@ -30,6 +30,7 @@ proc GS_InitGameSpecific {} {
 	
 	global gFlyingRule
 	global gGameRule
+	global gMillRule
 	#set gGameRule 1
 	global gMisereGame
 	if {!$gMisereGame} {
@@ -172,8 +173,16 @@ proc GS_SetupRulesFrame { rulesFrame } {
 		"Nine" \
 		]
 	
+	set millRule \
+	[list \
+		"Which variant to remove pieces would you like to play?" \
+		"non-mill unless only choice" \
+		"any" \
+		"non-mill regardless" \
+		]
+	
 	# List of all rules, in some order
-	set ruleset [list $standardRule $flyingRule $gameRule]
+	set ruleset [list $standardRule $flyingRule $gameRule $millRule]
 
 	# Declare and initialize rule globals
 	global gMisereGame
@@ -187,8 +196,11 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	set gGameRule 2
 	
 	
+	global gMillRule
+	set gMillRule 0
+	
 	# List of all rule globals, in same order as rule list
-	set ruleSettingGlobalNames [list "gMisereGame" "gFlyingRule" "gGameRule"]
+	set ruleSettingGlobalNames [list "gMisereGame" "gFlyingRule" "gGameRule" "gMillRule"]
 
 	global kLabelFont
 	set ruleNum 0
@@ -218,12 +230,14 @@ proc GS_SetupRulesFrame { rulesFrame } {
 # getOption and setOption in the module's C code
 #############################################################################
 proc GS_GetOption { } {
-	global gMisereGame gGameRule gFlyingRule
+	global gMisereGame gGameRule gFlyingRule gMillRule
 	
 	set option 1
 	set option [expr $option + (1 - $gMisereGame)]
 	set option [expr $option + (2 * $gFlyingRule)]
 	set option [expr $option + (4 * $gGameRule)]
+	set option [expr $option + (16 * $gMillRule)]
+	
 	
 	return $option
 }
@@ -240,29 +254,30 @@ proc GS_GetOption { } {
 # Returns: nothing
 #############################################################################
 proc GS_SetOption { option } {
-	global gMisereGame gFlyingRule gGameRule numPositions totalPieces scale kGameName
+	global gMisereGame gFlyingRule gGameRule numPositions totalPieces scale kGameName gMillRule
 	set option [expr $option - 1]
 	
 	set gMisereGame [expr 1 - ($option % 2)]
 	set gFlyingRule [expr ($option / 2) % 2]
-	set gGameRule [expr $option/4]
+	set gGameRule [expr ($option / 4) % 4]
+	set gMillRule [expr $option / 16]
 
-	if { $gGameRule == 0 } {
+	if {$gGameRule == 0} {
+		set scale 2
 		set numPositions 9
 		set totalPieces 6
-		set scale 2
 	}
-	
 	if {$gGameRule == 1} {
+		set scale 1
+		set temp 2
 		set numPositions 16
 		set totalPieces 12
-		set scale 1
 	}
-	
 	if {$gGameRule == 2} {
-		set numPositions 24
+		set temp 3
+		set scale 1
 		set totalPieces 18
-		set scale 0.7
+		set numPositions 24
 	}
 }
 
