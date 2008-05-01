@@ -106,13 +106,9 @@ GAMESDB_DEPS		:= $(shell ls core/filedb/*.c)
 3SPOT_OBJ		= m3spot$(OBJSUFFIX)
 3SPOT_SO		= $(LIBDIR)/libm3spot$(LIBSUFFIX)
 
-6MM_EXE			= $(BINDIR)/m6mm$(EXESUFFIX) # The ultimate game of Six Men's Morris
-6MM_OBJ			= m6mm$(OBJSUFFIX)
-6MM_SO			= $(LIBDIR)/libm6mm$(LIBSUFFIX)
-
-9MM_EXE			= $(BINDIR)/m9mm$(EXESUFFIX) # The ultimate game of Nine Men's Morris
-9MM_OBJ			= m9mm$(OBJSUFFIX)
-9MM_SO			= $(LIBDIR)/libm9mm$(LIBSUFFIX)
+369MM_EXE		= $(BINDIR)/m369mm$(EXESUFFIX) # The ultimate game of 369 Men's Morris
+369MM_OBJ		= m369mm$(OBJSUFFIX)
+369MM_SO		= $(LIBDIR)/libm369mm$(LIBSUFFIX)
 
 ABALONE_EXE		= $(BINDIR)/mabalone$(EXESUFFIX) #The TITillating game of abalone!
 ABALONE_OBJ		= mabalone$(OBJSUFFIX)
@@ -394,7 +390,7 @@ CGAMEOBJS = $(1210_OBJ) $(TTTIER_OBJ) $(BAGHCHAL_OBJ) $(ATAXX_OBJ) \
 	    $(WUZHI_OBJ) $(SEEGA_OBJ) $(OOE_OBJ) $(TORE_OBJ) $(NUTTT_OBJ) \
 	    $(FOXES_NEW_OBJ) $(QUARTO_OBJ) $(XIGUA_OBJ) $(SHOGI_OBJ) $(LEWTH_OBJ) \
 	    $(DAO_OBJ) $(TILECHESS_OBJ) $(RCHECKERS_OBJ) $(TOOTNOTTO_OBJ) $(QUICKCHESS_OBJ) \
-	    $(CAMBIO_OBJ) $(GO_OBJ) $(AGO_OBJ) $(6MM_OBJ) $(LOA_OBJ) $(HEX_OBJ)
+	    $(CAMBIO_OBJ) $(GO_OBJ) $(AGO_OBJ) $(LOA_OBJ) $(HEX_OBJ) $(369MM_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(TTTIER_EXE) $(BAGHCHAL_EXE) $(ATAXX_EXE) \
@@ -409,7 +405,7 @@ CGAMES =  $(1210_EXE) $(TTTIER_EXE) $(BAGHCHAL_EXE) $(ATAXX_EXE) \
 	  $(OOE_EXE) $(TORE_EXE) $(NUTTT_EXE) $(FOXES_EXE) $(QUARTO_EXE) \
 	  $(XIGUA_EXE) $(SHOGI_EXE) $(LEWTH_EXE) $(DAO_EXE) $(TILECHESS_EXE) $(RCHECKERS_EXE) \
 	  $(TOOTNOTTO_EXE) $(QUICKCHESS_EXE) $(CAMBIO_EXE) $(GO_EXE) \
-	  $(AGO_EXE) $(6MM_EXE) $(LOA_EXE) $(HEX_EXE)
+	  $(AGO_EXE) $(LOA_EXE) $(HEX_EXE) $(369MM_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
@@ -420,7 +416,7 @@ CTCL =  $(1210_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) 
 	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) \
 	$(FOXES_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
         $(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO) $(TOOTNOTTO_SO) $(CAMBIO_SO) $(BAGHCHAL_SO) \
-        $(TTTIER_SO) $(6MM_SO)
+        $(TTTIER_SO) $(369MM_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
@@ -434,7 +430,7 @@ CCTCL = $(CON_SO)
 
 ### Games that need special attention
 SPECIALGAMES = $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE) $(DNB_EXE) $(TACTIX_EXE)
-SPECIALTCL = $(TTT_SO) $(ACHI_SO) $(ABALONE_SO) $(9MM_SO) $(DNB_SO) $(TACTIX_SO)
+SPECIALTCL = $(TTT_SO) $(ACHI_SO) $(ABALONE_SO) $(DNB_SO) $(TACTIX_SO)
 
 
 ##############################################################################
@@ -579,14 +575,6 @@ $(TACTIX_SO): $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(G
 #$(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
 #	$(CC) $(DEP_OBJS) $(FOXES_TCL_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
 
-$(9MM_OBJ): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
-	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
-
-$(9MM_EXE): $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
-	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
-
-$(9MM_SO): $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
-	$(CC) -o $@ $(9MM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 pygamesman: $(GAMESMAN_A) $(GAMESDB_A)
 	$(CC) -o pygamesman$(OBJSUFFIX) $(PYTHONCFLAGS) pygamesman.c
