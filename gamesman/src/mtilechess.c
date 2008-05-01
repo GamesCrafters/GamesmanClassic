@@ -1,4 +1,4 @@
-// $Id: mtilechess.c,v 1.33 2008-04-23 08:17:24 phase_ac Exp $
+// $Id: mtilechess.c,v 1.34 2008-05-01 00:27:18 phase_ac Exp $
 //
 /**
  * The above lines will include the name and log of the last person
@@ -358,6 +358,7 @@ MOVELIST *GenerateMoves (POSITION position)
       }
     }
   }
+  SafeFree(boardArray);
   return moves;
 }
 
@@ -443,13 +444,16 @@ VALUE Primitive (POSITION position)
   char *boardArray = unhashBoard(position);
   int currentPlayer = getCurrTurn(position);
   if (inCheck(boardArray,currentPlayer) && !canMove(boardArray,currentPlayer)) {
+    SafeFree(boardArray);
     // The king is checked and can't move
     return (gStandardGame) ? lose : win;
   }
   else if (!inCheck(boardArray,currentPlayer) && !canMove(boardArray,currentPlayer)) {
     // King is not in check and can't move - Stalemate
+    SafeFree(boardArray);
     return tie;
   } else {
+    SafeFree(boardArray);
     return undecided;
   }
 }
@@ -519,6 +523,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
   printf("\n");
   printf("%s\n",GetPrediction(position,playersName,usersTurn));
   printf("It is %s's turn (%s).\n",playersName,(usersTurn) ? "white/uppercase":"black/lowercase");
+  SafeFree(boardArray);
 }
 
 
@@ -730,9 +735,9 @@ lower-case letters indicate the pieces that belong to black:\n");
 	  if (board[i] != ' ')
 	    numpieces++;
 	}
-	if (numpieces >= 5 && kSupportsTierGamesman && 
+	if (numpieces >= 7 && kSupportsTierGamesman && 
 	    !kExclusivelyTierGamesman && gTierGamesman) {
-	  printf("Greater than 4 pieces on the board! Turning the tier solver OFF.\n");
+	  printf("Greater than 6 pieces on the board! Turning the tier solver OFF.\n");
 	  gTierGamesman = !gTierGamesman;
 	}
 	theBoard = setBoard(board);
@@ -1191,11 +1196,16 @@ POSITION hashBoard(char boardArray[], int currentPlayer) {
   POSITION pos;
 
   if (gHashWindowInitialized) {
-    printProperBoard(boardArray);
+    //printProperBoard(boardArray);
     tier = getTier(boardArray);
-    printf("hashing with tiers\n");
+    //printf("hashing with tiers\n");
     tierpos = getTierPosition(boardArray, currentPlayer);
-    printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
+    //printf("The current tier is: %lld, and the current tier position is: %lld\n", tier, tierpos);
+    if (tier == 142606337) {
+      //printProperBoard(boardArray);
+      //printf("Size of board: %d", strlen(boardArray));
+      //printf("\n");
+    }
     pos = gHashToWindowPosition(tierpos, tier);
     //printf("Corresponds to a position of: %llu", pos);
     //printf(" and a board of:\n");
@@ -2310,9 +2320,7 @@ contextList *getContextNodeFromOffset(int offset) {
  ****/
 char* flushBoard(char* bA) {
   int i = 0;
-  int boardLength = strlen(bA); //doesn't stay this value! (what happens
-                                //   when a piece is taken, and there are
-                                //   still (n+1)^2 board spaces?
+  int boardLength = strlen(bA);
   int sideLength = (int) sqrt(boardLength);
   char* temp = (void*) SafeMalloc(boardLength * (sizeof(char)) + 1);
   int j = 0;
@@ -2588,6 +2596,7 @@ TIERPOSITION getTierPosition(char* board, int currentPlayer) {
   int row = 0;
   int col = 0;
   int i;
+  int numPieces = sideLength - 2;
   alignPieceToTier(0,0,1);
   //loop through the board starting from the rectangle that consists of the board
   // find the pieces and their row/col information  
@@ -2596,7 +2605,9 @@ TIERPOSITION getTierPosition(char* board, int currentPlayer) {
     if (!(i%sideLength == 0) && !(i%sideLength == sideLength - 1)) {
       //found a piece so keep track of its row/col info
       if (board[i] != ' ') {
-	retval += ((row<<2) + col) << (4 * alignPieceToTier(board[i], thisTier, 0));
+	//retval += ((row<<2) + col) << (4 * alignPieceToTier(board[i], thisTier, 0));
+	retval += ((row*numPieces) + col) * 
+	  power(numPieces*numPieces, alignPieceToTier(board[i], thisTier, 0));
       }
       col++;
     }
@@ -2711,6 +2722,7 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
  int fullsize = 0;
  int x = 0;
  int y = 0;
+ int numPieces = 0;
 
 
  //the board
@@ -2732,6 +2744,7 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
  //to get rid of the player's turn
  tierpos = (unsigned long long) tierpos >> 1; 
 
+ numPieces = rootsize;
  //to account for blank border around board
  rootsize +=2;
 
@@ -2754,8 +2767,10 @@ char* tierToBoard(TIER tier, TIERPOSITION tierpos) {
    //printf("Tier: %llu, 1<<y: %d, Index: %d, PiecePresent?: %llu \n", tier, (1<<y), y, temp);
 
    if (temp) {
-     col = (tierpos >> (tierpos_index * 4)) & 3;
-     row = (tierpos >> (tierpos_index * 4 + 2)) & 3;
+     //col = (tierpos >> (tierpos_index * 4)) & 3;
+     col = (tierpos / power(numPieces*numPieces, tierpos_index)) % numPieces;
+     //row = (tierpos >> (tierpos_index * 4 + 2)) & 3;
+     row = (tierpos / (power(numPieces*numPieces, tierpos_index) * numPieces)) % numPieces;
 
      //printf("TierPosition: %llu, ", tierpos);
      //printf("Row: %llu, Col: %llu\n", row, col);
@@ -2817,10 +2832,12 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
  for (i = 0; i < numOfPieces; i ++) {
    //printf("numOfPositions: %llu \n", numOfPositions);
-   numOfPositions += ((((numOfPieces - 1) << 2) + i) << 4 * i); 
+   //numOfPositions += ((((numOfPieces - 1) << 2) + i) << 4 * i); 
+   numOfPositions+=((((numOfPieces - 1) * numOfPieces) + i) * 
+		         power(numOfPieces*numOfPieces,i)); 
  }
  
- printf("numOfPositions: %llu \n", ((TIERPOSITION) (numOfPositions << 1)) + 2);
+ //printf("numOfPositions: %llu \n", ((TIERPOSITION) (numOfPositions << 1)) + 2);
  return (numOfPositions << 1) + 2; // last shift + 1 is due to the current player
 }
 
@@ -2898,12 +2915,12 @@ char* switchBoardSize(char* ba)
   
   if (piecesCounter == sidelength - 2) { //no pieces were taken
     SafeFree(tempBoard);
-    printf("Original board: \n");
-    printProperBoard(ba);
+    //printf("Original board: \n");
+    //printProperBoard(ba);
     return ba;
   }
   else { //new board is the old board minus the top and right edges
-    printf("piecesCounter: %d\n", piecesCounter);
+    //printf("piecesCounter: %d\n", piecesCounter);
     for (i = sidelength; i < bdlength; i++) {
       if (!(i % sidelength == sidelength - 1)) { 
 	//not at the right edge of the board. transfer these spots to new board
@@ -2913,8 +2930,8 @@ char* switchBoardSize(char* ba)
       tempBoard[y] = 0; //last character has to be a zero
     }
     SafeFree(ba);
-    printf("Smaller board: \n");
-    printProperBoard(tempBoard);
+    //printf("Smaller board: \n");
+    //printProperBoard(tempBoard);
     return tempBoard;
   }
 }
@@ -2936,8 +2953,11 @@ BOOLEAN isLegalPos(POSITION pos)
   for (i = 0; i < bdlength; i++) {
     if (i < sideLength || !(i % sideLength) || 
 	(i % sideLength == sideLength - 1) || (i > bdlength - sideLength)) {
-      if (boardArray[i] != ' ')
+      if (boardArray[i] != ' ') {
+	SafeFree(flushedBoard);
+	SafeFree(boardArray);
 	return FALSE;
+      }
     }
     else
       if (boardArray[i] != ' ')
@@ -2947,30 +2967,43 @@ BOOLEAN isLegalPos(POSITION pos)
   //printProperBoard(boardArray);
   //printf("\nPiecesCounter %d, NumPieces %d \n", piecesCounter, numPieces);
   
-  if (piecesCounter < numPieces)
+  if (piecesCounter < numPieces) {
+    SafeFree(flushedBoard);
+    SafeFree(boardArray);
     return FALSE;
+  }
 
   for (i = 0; i < bdlength; i++) {
     if (boardArray[i] == 'k' || boardArray[i] == 'K')
       kingChecker++;
   }
 
-  if (inCheck(boardArray, (getCurrTurn(pos) == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN)))
+  if (inCheck(boardArray, (getCurrTurn(pos) == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN))) {
+    SafeFree(flushedBoard);
+    SafeFree(boardArray);
     return FALSE;
+  }
 
   strcpy(flushedBoard, boardArray);
   flushedBoard = flushBoard(flushedBoard);
   for(i = 0; i < bdlength; i++) {
-    if(flushedBoard[i] != boardArray[i])
+    if(flushedBoard[i] != boardArray[i]) {
+      SafeFree(flushedBoard);
+      SafeFree(boardArray);
       return FALSE;
+    }
   }
 
-  if (kingChecker != 2)
+  if (kingChecker != 2) {
+    SafeFree(flushedBoard);
+    SafeFree(boardArray);
     return FALSE;
+  }
   temp = isLegalBoard(boardArray, TRUE);
   temp = temp && (pieces(boardArray) > 2);
 
-  
+  SafeFree(flushedBoard);
+  SafeFree(boardArray);
   return temp;
 }
 
