@@ -780,7 +780,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 0;
+    return 2;
 }
 
 
@@ -1342,6 +1342,9 @@ delGoStone(GoStone which) {
  ** Changelog
  **
  ** $Log$
+ ** Revision 1.5  2008/02/20 06:13:23  ungu1d3d_s0ul
+ ** changed main.c in core and Tootnotto
+ **
  ** Revision 1.4  2006/12/19 20:00:50  arabani
  ** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
  **
