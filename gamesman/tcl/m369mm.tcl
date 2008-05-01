@@ -287,7 +287,7 @@ proc GS_Initialize { c } {
 	set j 0
 
 	if {$gGameRule == 0} {
-		set scale 2.5
+		set scale 2
 		set numPositions 9
 		set totalPieces 6
 	}
@@ -317,9 +317,9 @@ proc GS_Initialize { c } {
 	
 if { $gGameRule == 0 } {
 	for {set k 0} {$k < 3} {incr k} {         ;# //traverse rows
-		set ty [expr ($leftBuffer+$k*$scaledSquareSize)]
+		set ty [expr ($leftBuffer+$k*$scaledSquareSize + 44)]
 		for {set l 0} {$l < 3} {incr l} {        ;# //traverse columns
-			set tx [expr ($topBuffer+$l*$scaledSquareSize)]
+			set tx [expr ($topBuffer+$l*$scaledSquareSize + 44)]
 			set clickRadius [getRadiusGivenScale [expr 2*$scale]]
 			set markerRadius [getRadiusGivenScale [expr $scale - 0.4]]
 			makeOval $c $tx $ty mi-$positionId $clickRadius $canvasColor
@@ -334,6 +334,10 @@ if { $gGameRule == 0 } {
 	
 	
 if {$gGameRule != 0} {
+	if {$gGameRule == 2} {
+		set scale 1
+	}
+
 	#Handles top half points
 	for {set k 0} {$k < $temp} {incr k} {         ;# //traverse rows
 		for {set l 0} {$l <= 2} {incr l} {        ;# //traverse columns
@@ -352,6 +356,7 @@ if {$gGameRule != 0} {
 	#Handles middle row
 	set ty $my
 	set tx [expr ($mx-$temp*$scaledSquareSize) ]
+	
 	for {set l 0} {$l <= [expr (2*$temp)]} {incr l} {
 		if {$l!=$temp} {
 			set clickRadius [getRadiusGivenScale [expr 2*$scale]]
@@ -1102,7 +1107,7 @@ proc isPhase1 {} {
 }
 
 proc getRadiusGivenScale { scale } {
-	global squareSize
+	global squareSize gGameRule
 	return [expr $squareSize*$scale/5]
 }
 
