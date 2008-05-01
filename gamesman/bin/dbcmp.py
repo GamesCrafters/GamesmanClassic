@@ -9,15 +9,19 @@
 # results will be printed out, and also placed into a file gameName.txt
 # in data/dmcmp
 
+'''./dbcmp.py gameName [filetype]
+\tFiletype defaults to bpdb.dat.gz
+\tStores results in gamesman/bin/data/dbcmp as *.txt'''
+
 import os
 import sys
 import filecmp
 import subprocess
 
 if len(sys.argv) < 2:
-    print './dbcmp.py gName [filetype]'
-    print '\tfiletype defaults to bpdb.dat.gz'
-    print '\tstores results in gamesman/bin/data/dbcmp'
+    print 'Usage:\t./dbcmp.py gameName[.exe] [filetype]'
+    print '\tFiletype defaults to bpdb.dat.gz'
+    print '\tStores results in gamesman/bin/data/dbcmp'
 else:
     gName = sys.argv[1]
     if len(gName) > 4 and gName[-4:] == '.exe':
