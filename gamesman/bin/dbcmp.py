@@ -6,7 +6,8 @@
 # Instructions:
 # place script in gamesman/bin/
 # call with game name and filetype (optional, defaults to .bpdb.dat.gz)
-# results will be printed out, and also placed into a file *.dbcmp
+# results will be printed out, and also placed into a file gameName.txt
+# in data/dmcmp
 
 import os
 import sys
@@ -19,6 +20,8 @@ if len(sys.argv) < 2:
     print '\tstores results in gamesman/bin/data/dbcmp'
 else:
     gName = sys.argv[1]
+    if len(gName) > 4 and gName[-4:] == '.exe':
+        gName = gName[:-4]
     command = './' + gName + ' --numoptions'
     nVarsString = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE).stderr.readlines()
     nVars = int(nVarsString[0][:-1])
