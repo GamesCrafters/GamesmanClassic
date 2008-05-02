@@ -47,21 +47,21 @@ else: # Enough arguments are given
     file.write(' (' + filetype + ')\n\n')
     for i in range(1, nVars): # foreach variant: compare files
         file1 = gName + '_' + str(i) + '_' + filetype
-        sames = [i]
+        sames = [i] # sames holds list of DBs that are the same
         for j in range(i + 1, nVars + 1):
             file2 = gName + '_' + str(j) + '_' + filetype
             test = filecmp.cmp(file1, file2)
             if test:
                 allok = False
                 sames.append(j)
-        bool = False
-        for comp in listofsames: # remove duplicate listings
+        bool = False # bool is a boolean to see uniqueness
+        for comp in listofsames: # foreach previous list
             if sames[0] in comp:
                 bool = True
                 break
-        if bool or len(sames) == 1:
+        if not bool and len(sames) == 1:
             uniques.append(sames[0])
-        else:
+        elif not len(sames) == 1:
             listofsames.append(sames)
     print 'DBs are unique for:' # everything below here is format and printing
     file.write('DBs are unique for:\n')
