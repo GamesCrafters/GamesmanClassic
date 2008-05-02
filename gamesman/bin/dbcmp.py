@@ -61,7 +61,7 @@ else: # Enough arguments are given
                 break
         if not bool and len(sames) == 1:
             uniques.append(sames[0])
-        elif not len(sames) == 1:
+        elif not bool:
             listofsames.append(sames)
     print 'DBs are unique for:' # everything below here is format and printing
     file.write('DBs are unique for:\n')
