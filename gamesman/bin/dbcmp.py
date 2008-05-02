@@ -18,34 +18,34 @@ import sys
 import filecmp
 import subprocess
 
-if len(sys.argv) < 2:
+if len(sys.argv) < 2: # Check to make sure there are enough arguments
     print 'Usage:\t./dbcmp.py gameName[.exe] [filetype]'
     print '\tFiletype defaults to bpdb.dat.gz'
     print '\tStores results in gamesman/bin/data/dbcmp'
-else:
-    gName = sys.argv[1]
+else: # Enough arguments are given
+    gName = sys.argv[1] # gamename is first argument
     if len(gName) > 4 and gName[-4:] == '.exe':
         gName = gName[:-4]
     command = './' + gName + ' --numoptions'
     nVarsString = subprocess.Popen(command, shell=True, stderr=subprocess.PIPE).stderr.readlines()
     nVars = int(nVarsString[0][:-1])
     os.chdir('data')
-    if len(sys.argv) > 2:
+    if len(sys.argv) > 2: # filetype is second argument
         filetype = sys.argv[2]
-    else:
+    else: # filetype defaults to bpdb.dat.gz
         filetype = 'bpdb.dat.gz'
     allok = True
     listofsames = []
     uniques = []
-    if not os.path.exists('dbcmp'):
+    if not os.path.exists('dbcmp'): # creates dbcmp dir if nonexistant
         os.mkdir('dbcmp')
     os.chdir('dbcmp')
     file = open(gName + '.txt', 'w')
     print '\nSaving results in: data/dbcmp/' + gName + '.txt\n'
     os.chdir('..')
-    file.write(gName + ' variants 1 through ' + filetype)
+    file.write(gName + ' variants 1 through ' + str(nVars))
     file.write(' (' + filetype + ')\n\n')
-    for i in range(1, nVars):
+    for i in range(1, nVars): # foreach variant: compare files
         file1 = gName + '_' + str(i) + '_' + filetype
         sames = [i]
         for j in range(i + 1, nVars + 1):
@@ -55,7 +55,7 @@ else:
                 allok = False
                 sames.append(j)
         bool = False
-        for comp in listofsames:
+        for comp in listofsames: # remove duplicate listings
             if sames[0] in comp:
                 bool = True
                 break
@@ -63,7 +63,7 @@ else:
             uniques.append(sames[0])
         else:
             listofsames.append(sames)
-    print 'DBs are unique for:'
+    print 'DBs are unique for:' # everything below here is format and printing
     file.write('DBs are unique for:\n')
     if len(uniques) == 0:
         print 'There are no unique DBs.\n\n'
