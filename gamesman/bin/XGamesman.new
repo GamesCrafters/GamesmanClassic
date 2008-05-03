@@ -619,7 +619,7 @@ proc mouseWheelDown { } {
 	$list [axisView] scroll 1 units
 }
 
-### END SCROLLING FUNCTIOSN ###
+### END SCROLLING FUNCTIONS ###
 
 ### START GAME PAGE SPECIFIC FUNCTIONS ###
 
