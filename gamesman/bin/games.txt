@@ -154,7 +154,7 @@ basename=stt
 color=4
 basename=1ton
 
-[Nine Men's Morris]
+[3, 6, 9 Men's Morris]
 color=4
 basename=9mm
 
@@ -202,7 +202,7 @@ basename=horse
 color=4
 basename=joust
 
-[Kono]
+[Four Field Kono]
 color=4
 basename=kono
 
@@ -214,13 +214,13 @@ basename=loa
 color=4
 basename=nuttt
 
-[Paradux]
-color=4
-basename=paradux
-
 [Pentago]
 color=4
 basename=pentago
+
+[Paradux]
+color=4
+basename=paradux
 
 [Pylos]
 color=4
@@ -245,10 +245,6 @@ basename=rcheckers
 [Rubik's Infinity]
 color=4
 basename=rInfin2
-
-[Six Men's Morris]
-color=4
-basename=6mm
 
 [Square Dance]
 color=4
