@@ -498,7 +498,6 @@ void PrintPosition(position,playerName,usersTurn)
      
 {
     
-  int i;
   BlankOX theBlankOx[BOARDSIZE], whosTurn;
   
   PositionToBlankOX(position,theBlankOx,&whosTurn);
