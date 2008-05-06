@@ -650,17 +650,35 @@ void GameSpecificMenu () {
     if (!strcmp(option,"r")) {
       printf("  Input new board height > ");
       scanf("%d",input);
-      numRows = input[0];
+      if(input[0] > 0 && input[0] <= 4)
+      	numRows = input[0];
+      else{
+      	printf("ERROR: row size must be between one to four\n");
+      	HitAnyKeyToContinue();
+	}
       resetBoard();
     } else if (!strcmp(option,"c")) {
       printf("  Input new board width > ");
       scanf("%d",input);
-      numCols = input[0];
+      if(input[0] > 0 && input[0] <= 4)
+      	numCols = input[0];
+      else{
+			printf("ERROR: col size must be between one to four\n");
+			HitAnyKeyToContinue();
+		}
       resetBoard();
     } else if (!strcmp(option,"g")) {
       printf("  Input new win condition > ");
       scanf("%d",input);
-      winCondition = input[0];
+      int maxRowCol = numCols;
+      if(numRows > numCols)
+      	maxRowCol = numRows;
+      if(input[0] > 0 && input[0] <= maxRowCol)
+      	winCondition = input[0];
+      else{
+			printf("ERROR: winningCondition must be between one to the maximum of rows and columns.\n");
+			HitAnyKeyToContinue();
+		}
     } else if (!strcmp(option,"i")) {
       while(TRUE) {
 	printf("  Make a move (end with 'done') > ");
@@ -722,7 +740,7 @@ void GameSpecificMenu () {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (int options[]) {
+void SetTclCf (int options[]) {
   return;
 }
 
@@ -861,11 +879,11 @@ VALUE Primitive (POSITION position) {
   for (i = 0; i < getBoardSize(); i++) {
     if (numInRow(i,board) >= winCondition && !isPlayer(board[i],player)) {
       SafeFree(board);
-      return lose;
+      return (gStandardGame ? lose : win);
     }
     if (numInRow(i,board) >= winCondition && isPlayer(board[i],player)) {
       SafeFree(board);
-      return win;
+      return (gStandardGame ? win: lose);
     }
   }
   SafeFree(board);
@@ -1203,7 +1221,7 @@ STRING MoveToString (MOVE move)
 /** HOW DOES THIS WORK IN OURS? INFINITE? **/
 
 int NumberOfOptions () {
-  return 0;
+  return 8191; //new bounds are 4 by 4.  This is 2^13-1.
 }
 
 
@@ -1220,7 +1238,14 @@ int NumberOfOptions () {
 ************************************************************************/
 
 int getOption () {
-  return 0;
+	int option = gStandardGame;
+	option = option << 4;
+	option = option | winCondition;
+	option = option << 4;
+	option = option | numCols;
+	option = option << 4;
+	option = option | numRows;
+	return option;
 }
 
 
@@ -1237,7 +1262,23 @@ int getOption () {
 ************************************************************************/
 
 void setOption (int option) {
-  return;
+  int rowIn = option & 0xf;
+  int colIn = (option >> 4) & 0xf;
+  int winCondIn = (option >> 8) & 0xf;
+  int misereIn = (option >> 12) & 0x1;
+  int maxRowCol;
+  if(rowIn > colIn)
+  	maxRowCol = rowIn;
+  else
+	maxRowCol = colIn;
+  if(winCondIn > maxRowCol){
+  	winCondition = maxRowCol;
+  	printf("ERROR: Winning condition is impossible, changing to earlier variant.\n");
+	}
+  numRows = rowIn;
+  numCols = colIn;
+  winCondition = winCondIn;
+  gStandardGame = misereIn;
 }
 
 
