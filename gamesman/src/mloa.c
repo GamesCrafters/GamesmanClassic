@@ -8,7 +8,8 @@
 **
 ** DATE:        Started 9/18/2006
 **
-** UPDATE HIST: 2006.09.18 Coded InitializeGame and PrintPosition
+** UPDATE HIST: 2008.05.05 Fixed getOption to start at 1 instead of 0
+**              2006.09.18 Coded InitializeGame and PrintPosition
 **                         without hashes
 **              2006.09.19 Fixed PrintPosition
 **              2006.09.25 Fixed InitializeGame and PrintPosition to work
@@ -46,7 +47,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.16 2008-02-13 02:18:25 alb_shau Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.17 2008-05-06 02:59:16 zumbooruk Exp $
 **
 **************************************************************************/
 
@@ -1017,7 +1018,7 @@ int getOption ()
        include the boolean variable gSymmetries in your
        hash */
 
-  return (gStandardGame) ? 0 : 1;
+  return (gStandardGame) ? 1 : 2;
 }
 
 
@@ -1432,6 +1433,11 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.16  2008/02/13 02:18:25  alb_shau
+ ** Fixed a bug that would make weird rectangular boards.
+ **
+ ** BUGZID:
+ **
  ** Revision 1.15  2007/11/28 10:47:28  alb_shau
  ** Fixed things related to option.  Symmetries should not be a separate option.
  **
