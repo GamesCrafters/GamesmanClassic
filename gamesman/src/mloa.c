@@ -47,7 +47,7 @@
 **
 **
 **
-** LAST CHANGE: $Id: mloa.c,v 1.17 2008-05-06 02:59:16 zumbooruk Exp $
+** LAST CHANGE: $Id: mloa.c,v 1.18 2008-05-08 06:09:42 l156steven Exp $
 **
 **************************************************************************/
 
@@ -275,9 +275,9 @@ void InitializeGame ()
   int rotations[1] = {90};
   int reflections[1] = {90};
   if (gBoardHeight == gBoardLength)
-    generic_hash_init_sym(0, gBoardHeight, gBoardLength, reflections, 1, rotations, 1);
+    generic_hash_init_sym(0, gBoardHeight, gBoardLength, reflections, 1, rotations, 1, 0);
   else
-    generic_hash_init_sym(0, gBoardHeight, gBoardLength, reflections, 1, NULL, 0);
+    generic_hash_init_sym(0, gBoardHeight, gBoardLength, reflections, 1, NULL, 0, 0);
 
   //printf("gInitialPosition = " POSITION_FORMAT "\n",gInitialPosition);
   //printf("gNumberOfPositions = " POSITION_FORMAT "\n",gNumberOfPositions);
@@ -1433,6 +1433,9 @@ POSITION power(POSITION base, int exponent)
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.17  2008/05/06 02:59:16  zumbooruk
+ ** mloa.c
+ **
  ** Revision 1.16  2008/02/13 02:18:25  alb_shau
  ** Fixed a bug that would make weird rectangular boards.
  **
