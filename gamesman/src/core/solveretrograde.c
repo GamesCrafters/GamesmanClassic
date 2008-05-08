@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.44 2007-05-11 07:04:54 max817 Exp $
+// $Id: solveretrograde.c,v 1.45 2008-05-08 02:31:06 billyboy999 Exp $
 
 /************************************************************************
 **
@@ -38,6 +38,7 @@
 #include "tierdb.h"
 #include "dirent.h"
 #include "levelfile_generator.h"
+#include <stdio.h>
 
 // TIER VARIABLES
 TIERLIST* tierSolveList; // the total list for the game, w/initial at start
@@ -105,7 +106,9 @@ BOOLEAN l_levelFileExists(TIER tier);
 BOOLEAN SolveLevelFile(POSITION, POSITION);
 BOOLEAN l_readPartialLevelFile(POSITION*, POSITION*);
 BOOLEAN l_writeLevelFile(POSITION, POSITION);
-
+//Tier vis stuff
+void GenerateTierTree();
+void DoTierDependencies(TIER, FILE*);
 
 /************************************************************************
 **
@@ -180,6 +183,14 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 				"Exiting Retrograde Solver (WITHOUT Solving)...\n");
 		ExitStageRight();
 	} else ifprintf(gTierSolvePrint, "No Errors Found! Tier Tree generated successfully.\n");
+
+	//OK, the pure tier tree is here! let's use it from here
+	if (gVisTiers)
+	{
+		GenerateTierTree();	//Visualuzes the dotty file
+		ExitStageRight();
+	}
+
 	tierSolveList = CopyTierlist(solveList);
 	solvedList = NULL;
 	tiersSolved = 0;
@@ -201,6 +212,13 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	ifprintf(gTierSolvePrint, "\n----- Checking for existing Tier DBs: -----\n\n");
 	checkExistingDB();
+
+	//Now, if we need to genreate a plain file that doesn't include solved tiers, here's our chance
+	if (gVisTiersPlain){
+		GenerateTierTree();	//outputs tiers that need to be solve to the std output
+		ExitStageRight();
+	}
+
 	if (solveList == NULL) {
 		ifprintf(gTierSolvePrint, "\nLooks like the game is already fully solved! Enjoy the game!\n");
 	} else {
@@ -307,7 +325,23 @@ VALUE DetermineRetrogradeValue(POSITION position) {
                         printf("Invalid option!\n");
                 }
             }
-        } else AutoSolveAllTiers(); // if no menu, go straight to auto solve!
+        }
+		else
+		{
+			// if no menu, go straight to auto solve!
+			//Check if we are solving all tiers, or juts a single one
+			if (gSolveOnlyTier)
+			{
+				//do checks. I guess. Set the current tier to set
+				gInitializeHashWindow(gTierToOnlySolve, TRUE);
+                SolveTier(0,gCurrentTierSize);
+			}
+			else
+			{
+				//Auto solve all of 'em
+				AutoSolveAllTiers();
+			}
+		}
     }
 	ifprintf(gTierSolvePrint, "Exiting Retrograde Solver...\n\n");
 	FreeTierList(tierSolveList);
@@ -327,6 +361,48 @@ void AutoSolveAllTiers() {
 		ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
 	}
 	ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
+}
+
+// this function generates tier trees.
+void GenerateTierTree() {
+
+	//Make a file and output to it. Don't solve the game
+	FILE* fp;
+	if (gVisTiers)
+	{
+		//set us up the file
+		ifprintf(gTierSolvePrint, "Opening file...\n");
+		char filename[150];
+		mkdir("tiervis", 0755);
+		sprintf(filename, "tiervis/Tier_vis_%s.dotty", kDBName);
+		fp = fopen(filename, "w+");
+
+		ifprintf(gTierSolvePrint, "File opened, printing header info...\n");
+		fprintf(fp, "digraph game_%s {\n", kDBName);
+	}
+
+	//Main Loop to go thru all the tiers and get their dependencies.
+	//Print out start message to allert program we're starting if doing plain
+	if (gVisTiersPlain)
+		printf("STARTVTP\n");
+
+	TIERLIST* temp = solveList;
+	for (;temp != NULL; temp = temp->next)
+	{
+		DoTierDependencies(temp->tier, fp);
+	}
+	if (gVisTiersPlain)
+		printf("ENDVTP\n");
+
+
+
+	if (gVisTiers)
+	{
+		fprintf(fp, "}\n");
+		fclose(fp);
+		ifprintf(gTierSolvePrint, "\nFile closed, Tier visualization generated.\n");
+	}
+
 }
 
 // Inits the hash window/database and prepares to solve tier
@@ -1780,6 +1856,63 @@ int RemoteGetTierDependencies(TIER tier) {
 		FreeTierList(childs);
 	}
 	return dependencies;
+}
+
+TIERPOSITION NumberOfTierPositions(TIER);
+
+//ADDED TONS OF CODE
+// this is a copy of the above method, with printing stuff added in and stuff.
+void DoTierDependencies(TIER tier, FILE* fp) {
+	STRING tierStr = "";
+	if (gVisTiers){	//This is just the string for the tier description or something
+		if (gTierToStringFunPtr != NULL)
+			tierStr = gTierToStringFunPtr(tier);
+
+		printf("Getting tds for tier %llu(%s)\n", tier, tierStr);
+		fprintf(fp, "/*This is tier %llu*/\n", tier);
+
+		//get rid of freaking new lines in the string
+		char* ss = tierStr;
+		while (*ss != 0)
+		{
+			if (*ss == '\n')
+				*ss = ' ';
+			ss++;
+		}
+		fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\"];\n", tier, tier, tierStr);
+	}
+	if (gVisTiersPlain)
+	{
+		//print out this tier and it ssize
+		gInitializeHashWindow(tier, FALSE);
+		printf("t%llu:%llu\n", tier, gNumberOfPositions);
+	}
+	//Now link this tier to all of the tiers it depends on
+
+	TIERLIST *childs, *childPtr;
+	int dependencies = 0;
+	//Get all the children; i.e. All the tiers it depends on.
+	childs = gTierChildrenFunPtr(tier);
+	for (childPtr = childs; childPtr != NULL; childPtr = childPtr->next)
+	{
+		//Print out different things if we are visiuliztion or just plain doing it
+		if (gVisTiers)
+		{
+			printf("Dep on child %llu\n", childPtr->tier);
+			fprintf(fp, "T%llu -> T%llu \n", tier, childPtr->tier);
+		}
+		if (gVisTiersPlain)
+		{
+			//print out very simple
+			printf("d%llu:%llu\n", tier, childPtr->tier);
+		}
+		dependencies++;
+	}
+
+	if (gVisTiers){
+		printf("End tds for tier %llu\n", tier);
+		fprintf(fp, "/*This is END of tier %llu*/\n\n", tier);
+	}
 }
 
 // new DetermineRetrogradeValue, solves [ start, finish )
