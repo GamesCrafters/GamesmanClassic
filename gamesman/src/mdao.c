@@ -1,4 +1,4 @@
-// $Id: mdao.c,v 1.9 2006-12-19 20:00:50 arabani Exp $
+// $Id: mdao.c,v 1.10 2008-05-08 05:13:44 l156steven Exp $
 
 /*
  * The above lines will include the name and log of the last person
@@ -206,6 +206,10 @@ void InitializeGame ()
 
   initializePiecesArray(init_pieces);
   gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL, 0);
+   
+  int reflections[] = {0,45,90,135};
+  int rotations[] = {90, 180, 270};
+  generic_hash_init_sym(0, BOARD_ROWS, BOARD_COLS, reflections, 4, rotations, 3, 1); 
   gInitialPosition = generic_hash_hash(board, PLAYER1_TURN);
 
   gMoveToStringFunPtr = &MoveToString;
