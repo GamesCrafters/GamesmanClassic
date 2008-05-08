@@ -231,6 +231,7 @@ other burns...\n";
 
 /*Symmetries*/
 POSITION GetCanonicalPosition(POSITION);
+void ProcessSymmetries(int, int*, int*);
 int gSymmetryMatrix[8][20];
 
 /*************************************************************************
@@ -272,59 +273,32 @@ void InitializeGame()
       for (n = 0; n < BOARDSIZE; n++) {
 	ordered_board[n] = n;
       }
-
       //flip along Y axis:
-      int gFlipNewPosition[BOARDSIZE];
-      int gRotate180NewPosition[BOARDSIZE];
+      int FlipNewPosition[BOARDSIZE];
+      int Rotate180NewPosition[BOARDSIZE];
       int i, j;
       
       for (i = 0; i < ROWSIZE; i++) {
 	for (j = 0; j < COLUMNSIZE; j++) {
 	  //flip along Y axis:
-	  gFlipNewPosition[i*COLUMNSIZE+j] = ordered_board[(i+1)*COLUMNSIZE - j - 1];
+	  FlipNewPosition[i*COLUMNSIZE+j] = ordered_board[(i+1)*COLUMNSIZE - j - 1];
 	  //Rotate 180 degrees:
-	  gRotate180NewPosition[i*COLUMNSIZE+j]= ordered_board[(ROWSIZE-i)*COLUMNSIZE-j-1];
+	  Rotate180NewPosition[i*COLUMNSIZE+j]= ordered_board[(ROWSIZE-i)*COLUMNSIZE-j-1];
 	}
       }
-      int NUMSYMMETRIES = 4;
-      int temp; 
-      for(i = 0 ; i < BOARDSIZE ; i++) {
-	temp = i;
-	for(j = 0 ; j < NUMSYMMETRIES ; j++) {
-	  if(j == NUMSYMMETRIES/2)
-	    temp = gFlipNewPosition[i];
-	  if(j < NUMSYMMETRIES/2)
-	    temp = gSymmetryMatrix[j][i] = gRotate180NewPosition[temp];
-	else
-	  temp = gSymmetryMatrix[j][i] = gRotate180NewPosition[temp];
-	}
-      }
+      ProcessSymmetries(4, Rotate180NewPosition, FlipNewPosition);
+     
     }
     else { //square
-      //int gFlipNewPosition[BOARDSIZE];
-      //int gRotate90CWNewPosition[BOARDSIZE];
       if (ROWSIZE ==3) {
-	
 	/* This is the array used for flipping along the N-S axis */
-      int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
-      
-      /* This is the array used for rotating 90 degrees clockwise */
-      int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
-      
-      int NUMSYMMETRIES = 8;
-      int i, j, temp;
-      for(i = 0 ; i < BOARDSIZE ; i++) {
-	temp = i;
-	for(j = 0 ; j < NUMSYMMETRIES ; j++) {
-	  if(j == NUMSYMMETRIES/2)
-	    temp = gFlipNewPosition[i];
-	  if(j < NUMSYMMETRIES/2)
-	    temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-	  else
-	    temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-	}
-      }
-      
+	int FlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
+	
+	/* This is the array used for rotating 90 degrees clockwise */
+	int Rotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
+	
+	ProcessSymmetries(8, Rotate90CWNewPosition, FlipNewPosition);
+            
       }
       else {//if (ROWSIZE == 4) {
 	/*
@@ -335,30 +309,44 @@ void InitializeGame()
 	*/
 	
 	/* This is the array used for flipping along the N-S axis */
-	int gFlipNewPosition[] = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
+	int FlipNewPosition[] = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
 	
 	/* This is the array used for rotating 90 degrees clockwise */
-	int gRotate90CWNewPosition[] = { 12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3};
-	int NUMSYMMETRIES = 8;
-	int i, j, temp;
-	for(i = 0 ; i < BOARDSIZE ; i++) {
-	  temp = i;
-	  for(j = 0 ; j < NUMSYMMETRIES ; j++) {
-	    if(j == NUMSYMMETRIES/2)
-	      temp = gFlipNewPosition[i];
-	    if(j < NUMSYMMETRIES/2)
-	      temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-	    else
-	      temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-	  }
-	}
+	int Rotate90CWNewPosition[] = { 12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3};
+	
+	ProcessSymmetries(8, Rotate90CWNewPosition, FlipNewPosition);
+	
       }
       
     }
   }
 
 }
+/************************************************************************
+**
+** NAME:        ProcessSymmetries
+**
+** DESCRIPTION: Takes in the number of symmetries we should have,a  
+**              rotation array, and a reflection array and stores
+**              a lookup table of symmetries
+** 
+************************************************************************/
 
+void ProcessSymmetries(int numsymmetries, int* rotation, int* reflection)
+{
+  int i, j, temp;
+  for(i = 0 ; i < BOARDSIZE ; i++) {
+    temp = i;
+    for(j = 0 ; j < numsymmetries ; j++) {
+      if(j == numsymmetries/2)
+	temp = reflection[i];
+      if(j < numsymmetries/2)
+	temp = gSymmetryMatrix[j][i] = rotation[temp];
+      else
+	temp = gSymmetryMatrix[j][i] = rotation[temp];
+    }
+  }
+}
 /************************************************************************
 **
 ** NAME:        DebugMenu
