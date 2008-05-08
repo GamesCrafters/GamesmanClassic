@@ -193,7 +193,7 @@ proc GS_SetupRulesFrame { rulesFrame } {
 	set gFlyingRule 0
 	
 	global gGameRule
-	set gGameRule 2
+	set gGameRule 1
 	
 	
 	global gMillRule
