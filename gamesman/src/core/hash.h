@@ -24,6 +24,7 @@ struct symEntry
         int type;
         int angle;
         int *sym; 
+        int flip;
         struct symEntry *next;
 };
 
@@ -78,8 +79,9 @@ char* generic_hash_unhash(POSITION hashed, char* dest);
 int generic_hash_turn (POSITION hashed);
 void hashCounting(void);
 
-void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots);
+void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots, int flippable);
 POSITION generic_hash_canonicalPosition(POSITION pos);
+void flipboard(char* board);
 void generic_hash_add_sym(int* symToAdd);
 #endif /* GMCORE_HASH_H */
 

@@ -429,6 +429,9 @@ void VSSetParents (POSITION parent, POSITION root)
             
             for (moveptr = movehead; moveptr != NULL; moveptr = moveptr -> next) {
                 child = DoMove(pos, moveptr -> move);
+		if (gSymmetries)
+		  child = gCanonicalPosition(child);
+		
                 if (child < 0 || child >= gNumberOfPositions)
                     FoundBadPosition(child, pos, moveptr -> move);
                 ++gVSNumberChildren[(int)pos];

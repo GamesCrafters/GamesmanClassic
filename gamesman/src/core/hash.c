@@ -66,13 +66,14 @@ int numSymmetries = 1;  // we'll always have the identity.
 int symBoardRows = 0;
 int symBoardCols = 0;
 struct symEntry* symmetriesList = NULL;
-struct symEntry* new_sym_entry(int symType, int symAngle);
+struct symEntry* new_sym_entry(int symType, int symAngle, int flip);
 void composeSymmetries();
 BOOLEAN sym_exists(int symType, int symAngle);
 void printSymmetries(int boardType);
 void printXSpaces(int x);
 void freeSymmetries();
 int convert(int row, int col, int boardType);
+//void flipboard(char* board);
 /* end of symmetry stuff */
 
 
@@ -390,7 +391,7 @@ POSITION generic_hash_hash_sym(char* board, int player, POSITION offset, struct 
                 cCon->thisCount[i] = 0;
                 cCon->localMins[i] = cCon->mins[i];
         }
-
+	
         for (i = 0; i < boardSize; i++)
         {
                 for (j = 0; j < cCon->numPieces; j++) {
@@ -942,7 +943,7 @@ void freeHashtable() {
 }
 
 // should be called after generic_hash_init
-void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots) {
+void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots, int flippable) {
 
         int i,j,k,numDiags;
 	int boardSize = 0;
@@ -978,21 +979,48 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 	symmetriesList->angle = 0;
 	symmetriesList->next = NULL;
 	symmetriesList->type = IDENTITY;
+	symmetriesList->flip = flippable; //does NOT mean that we flip the identity if flippable; only serves as indicator that there are flippable positions
 	symmetriesList->sym = 	(int*) SafeMalloc (sizeof(int) * boardSize);
 	for (i = 0; i < boardSize; i++) {
 	  symmetriesList->sym[i] = i;
 	}
 	symIndex = symmetriesList;
 	for (i = 0; i < numReflects; i++) {
-	  symIndex->next = new_sym_entry(REFLECTION, reflections[i]);
+	  symIndex->next = new_sym_entry(REFLECTION, reflections[i], 0);
 	  symIndex = symIndex->next;
 	}
 	for (i = 0; i < numRots; i++) {
-	  symIndex->next = new_sym_entry(ROTATION, rotations[i]);
+	  symIndex->next = new_sym_entry(ROTATION, rotations[i], 0);
 	  symIndex = symIndex->next;
 	}
+	//if true, swap colors, swap turn has same value.
+	//flip, then do the rest.
+    	//
+	//
+	if (flippable == 1) {
+	  symIndex->next = (struct symEntry*) SafeMalloc (sizeof(struct symEntry));
+	  symIndex = symIndex->next;
+	  symIndex->angle = 0;
+	  symIndex->next = NULL;
+	  symIndex->type = IDENTITY;
+	  symIndex->flip = 1;
+	  symIndex->sym =  (int*) SafeMalloc (sizeof(int) * boardSize);
+	  for (i = 0; i < boardSize; i++) {
+	    symIndex->sym[i] = i;
+	  }
+
+	  for (i = 0; i < numReflects; i++) {
+	    symIndex->next = new_sym_entry(REFLECTION, reflections[i], 1);
+	    symIndex = symIndex->next;
+	  }
+	  for (i = 0; i < numRots; i++) {
+	    symIndex->next = new_sym_entry(ROTATION, rotations[i], 1);
+	    symIndex = symIndex->next;
+	  }
+	}
+
 	// + 1 is for identity.
-	numSymmetries = numRots + numReflects + 1;
+	numSymmetries = (numRots + numReflects + 1) * (flippable + 1);
 
 	// need an equilateral board for this
 	//if ((rectBoard && numRows == numCols) || (hexBoard && numRows == numDiags)) {
@@ -1087,6 +1115,8 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 		}
 	      }
 	    }
+
+	    
 	    else if (hexBoard && (symIndex->angle == 0 || symIndex->angle == 180)) {
 	      for (j = 0; j < numRows; j++) {
 		for (k = 0; k < numCols; k++) {
@@ -1272,10 +1302,18 @@ void printXSpaces(int x) {
 
 POSITION generic_hash_canonicalPosition(POSITION pos) {
         char* board = (char*) SafeMalloc(sizeof(char) * cCon->boardSize);
+	char* flippedboard = (char*) SafeMalloc(sizeof(char) * cCon->boardSize);
 	struct symEntry* symIndex = symmetriesList->next;
         generic_hash_unhash(pos, board);
+	generic_hash_unhash(pos, flippedboard);
 	int player = generic_hash_turn(pos);
+	int flippedplayer;
+	if (player == 1)
+	  flippedplayer = 2;
+	else 
+	  flippedplayer = 1;
 	POSITION tempPos, sum, offset, minPos;
+	POSITION flippedsum, flippedoffset;
 	int i, j, boardSize = cCon->boardSize;
 
 	for (i = 0;i < cCon->numPieces;i++)
@@ -1302,24 +1340,63 @@ POSITION generic_hash_canonicalPosition(POSITION pos) {
         }
         offset = cCon->hashOffset[searchIndices(sum)];
 
+	if (symmetriesList->flip == 1) {
+	//for flipped:
+	  for (i = 0; i < cCon->boardSize; i++) {
+	    if (flippedboard[i] == cCon->pieces[0])
+	      flippedboard[i] = cCon->pieces[1];
+	    else if (flippedboard[i] == cCon->pieces[1])
+	      flippedboard[i] = cCon->pieces[0];
+	  }
+
+	  for (i = 0;i < cCon->numPieces;i++){
+	      cCon->thisCount[i] = 0;
+	      cCon->localMins[i] = cCon->mins[i];
+	  }
+
+	  for (i = 0; i < boardSize; i++)
+	    {
+	      for (j = 0; j < cCon->numPieces; j++) {
+		if (flippedboard[symIndex->sym[i]] == cCon->pieces[j]) {
+		  cCon->thisCount[j]++;
+		}
+	      }
+	    }
+	  flippedsum = 0;
+	  for (i = cCon->numPieces-1;i >= 0;i--)
+	    {
+	      flippedsum += (cCon->thisCount[i] - cCon->mins[i]);
+	      if (i > 0) {
+		flippedsum *= cCon->nums[i-1];
+	      }
+	    }
+	  flippedoffset = cCon->hashOffset[searchIndices(flippedsum)]; 
+	}
+
         minPos = generic_hash_hash_sym(board, player, offset, symmetriesList);
 	// try each symmetry, keeping the lowest position hash
-	// returns as the canonical position.
+	// returns as the canonical position.	
 	while (symIndex != NULL) {
-	  tempPos = generic_hash_hash_sym(board, player, offset, symIndex);
+	  if (symIndex->flip == 1)
+	    tempPos = generic_hash_hash_sym(flippedboard, flippedplayer, flippedoffset, symIndex);	 
+	  else
+	    tempPos = generic_hash_hash_sym(board, player, offset, symIndex);
 	  minPos = (tempPos < minPos) ? tempPos : minPos;
 	  symIndex = symIndex->next;
+	  
 	}
 
 	SafeFree(board);
+	SafeFree(flippedboard);
 	return minPos;
 }
 
-struct symEntry* new_sym_entry(int symType, int symAngle) {
+struct symEntry* new_sym_entry(int symType, int symAngle, int flip) {
         struct symEntry* newEntry = (struct symEntry*) SafeMalloc(sizeof(struct symEntry));
 
 	newEntry->type = symType;
 	newEntry->angle = symAngle;
+	newEntry->flip = flip;
 	newEntry->sym = (int*) SafeMalloc(sizeof(int) * cCon->boardSize);
 	newEntry->next = NULL;
 	return newEntry;
@@ -1343,7 +1420,7 @@ void generic_hash_add_sym(int* symToAdd) {
 	// advance pointer to end of the list
 	while (symIndex->next != NULL) {symIndex = symIndex->next;}
 
-	struct symEntry* newEntry = new_sym_entry(UNKNOWN, 0);
+	struct symEntry* newEntry = new_sym_entry(UNKNOWN, 0, 0);
 	for (i = 0; i < cCon->boardSize; i++) {
 	  newEntry->sym[i] = symToAdd[i];
 	}
@@ -1396,7 +1473,7 @@ void composeSymmetries() {
 	    composition = (composition + 720) % 360;  // so it's not negative
 	    //printf("composition = %d and is of type %d\n", composition, symType);
 	    if (!sym_exists(symType, composition)) {
-	      tableEnd->next = new_sym_entry(symType, composition);
+	      tableEnd->next = new_sym_entry(symType, composition, 0);
 	      tableEnd = tableEnd->next;
 	      numSymmetries++;
 	    }
