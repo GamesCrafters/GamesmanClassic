@@ -347,6 +347,17 @@ void InitializeGame ()
 
   gNumberOfPositions =
     generic_hash_init(boardSize, pieces, NULL, 0);
+  
+  if (boardHeight == boardWidth) {
+    int reflections[4] = {0,45,90,135};
+    int rotations[3] = {90,180,270};
+    generic_hash_init_sym(0, boardHeight, boardWidth, reflections, 4, rotations, 3, 0); 
+  }
+  else {
+    int reflections[2] = {0,90};
+    int rotations[1] = {180};
+    generic_hash_init_sym(0, boardHeight, boardWidth, reflections, 2, rotations, 1, 0);
+  }
 
   if (!positionInitialized) {
     int i;

@@ -20,6 +20,9 @@
 ** 02/02/2005 Updated some game-specific constants.
 ** 02/02/2005 Added PrintPosition().
 **
+** 04/30/2008 Added Symmetries:
+**
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -272,6 +275,9 @@ void InitializeGame ()
   }
   gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL, 0);
   gInitialPosition = generic_hash_hash(theBlankOX, 1);
+
+  int reflections[] = {90};
+  generic_hash_init_sym(0, numOfRows, numOfCols, reflections, 1, NULL, 0, 0); 
 
   gMoveToStringFunPtr = &MoveToString;
 }

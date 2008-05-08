@@ -1,4 +1,4 @@
-// $Id: machi.c,v 1.33 2006-10-03 08:10:02 scarr2508 Exp $
+// $Id: machi.c,v 1.34 2008-05-08 05:12:56 l156steven Exp $
 /************************************************************************
  **
  ** NAME:        machi.c
@@ -19,7 +19,7 @@
  **	2/27/2003 - wrote help strings, added nodiag, alldiag variations
  ** 3/06/2003 - updated print position
  ** 4/02/2006 - added GetVarString to return English description of option hash
- **
+ ** ?/??/2008 - added symmetries (getCanonicalPosition, DoSymmetry)
  **************************************************************************/
 
 /*************************************************************************
@@ -42,7 +42,7 @@ STRING   kGameName           = "Achi";
 
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = TRUE;
-BOOLEAN  kSupportsSymmetries = FALSE;
+BOOLEAN  kSupportsSymmetries = TRUE;
 BOOLEAN  kSupportsGraphics   = TRUE;
 BOOLEAN  kDebugMenu          = FALSE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
@@ -103,6 +103,10 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX,BlankOX *whosTurn);
 STRING GetVarString();
+STRING MoveToString (MOVE);
+STRING PositionToString(POSITION);
+POSITION ActualNumberOfPositions(int variant);
+POSITION GetCanonicalPosition(POSITION position);
 
 /* Variants */
 BOOLEAN allDiag = FALSE;
@@ -110,7 +114,7 @@ BOOLEAN noDiag = FALSE;
 
 void InitializeHelpStrings();
 
-/*static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];*/
+int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
 
 /* Proofs of correctness for the below arrays:
 **
@@ -118,7 +122,7 @@ void InitializeHelpStrings();
 **
 ** 0 1 2	2 1 0		0 1 2		6 3 0		8 7 6		2 5 8
 ** 3 4 5  ->  	5 4 3		3 4 5	->	7 4 1  ->	5 4 3	->	1 4 7
-** 6 7 8	8 7 6		6 7 8		8 5 2		2 1 0		2 1 0
+** 6 7 8	8 7 6		6 7 8		8 5 2		2 1 0		0 3 6
 */
 
 /* This is the array used for flipping along the N-S axis */
@@ -127,12 +131,29 @@ int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
 /* This is the array used for rotating 90 degrees clockwise */
 int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
-STRING MoveToString (MOVE);
-STRING PositionToString(POSITION);
-POSITION ActualNumberOfPositions(int variant);
+
 
 void InitializeGame()
 {
+  //Symmetry code (directly from mttt.c)
+  gCanonicalPosition = GetCanonicalPosition;
+
+  int i, j, temp; /* temp is used for debugging */
+
+  if(kSupportsSymmetries) { /* Initialize gSymmetryMatrix[][] */
+    for(i = 0 ; i < BOARDSIZE ; i++) {
+      temp = i;
+      for(j = 0 ; j < NUMSYMMETRIES ; j++) {
+	if(j == NUMSYMMETRIES/2)
+	  temp = gFlipNewPosition[i];
+	if(j < NUMSYMMETRIES/2)
+	  temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	else
+	  temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+      }
+    }
+  }
+
   gMoveToStringFunPtr = &MoveToString;
   gCustomUnhash = &PositionToString;
 
@@ -417,6 +438,80 @@ POSITION DoMove(thePosition, theMove)
     return BlankOXToPosition(theBlankOX,whosTurn);
 }
 
+/**************************************************/
+/**************** SYMMETRY FUN BEGIN **************/
+/**************************************************/
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+** 
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+
+POSITION GetCanonicalPosition(position)
+     POSITION position;
+{
+  POSITION newPosition, theCanonicalPosition, DoSymmetry();
+  int i;
+  
+  theCanonicalPosition = position;
+  
+  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
+    
+    newPosition = DoSymmetry(position, i);
+    if(newPosition < theCanonicalPosition)    /* THIS is the one */
+      theCanonicalPosition = newPosition;     /* set it to the ans */
+  }
+
+  return(theCanonicalPosition);
+}
+
+/************************************************************************
+**
+** NAME:        DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+**              on the position specified by the input and return the
+**              new position, even if it's the same as the input.
+** 
+** INPUTS:      POSITION position : The position to branch the symmetry from.
+**              int      symmetry : The number of the symmetry operation.
+**
+** OUTPUTS:     POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(position, symmetry)
+     POSITION position;
+     int symmetry;
+{  
+  int i;
+  BlankOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
+  POSITION BlankOXToPosition();
+  
+  BlankOX whosTurn; //has to be same person's move
+  BlankOX whosTurnSym;
+
+  PositionToBlankOX(position,theBlankOx, &whosTurn);
+  PositionToBlankOX(position,symmBlankOx, &whosTurnSym); /* Make copy */
+  
+  /* Copy from the symmetry matrix */
+  
+  for(i = 0 ; i < BOARDSIZE ; i++)
+    symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
+  
+  
+  return(BlankOXToPosition(symmBlankOx, whosTurnSym));
+} 
 /************************************************************************
  **
  ** NAME:        GetInitialPosition
@@ -922,6 +1017,7 @@ STRING PositionToString( thePos )
  ** 
  ** INPUTS:      POSITION thePos     : The position input. 
  **              BlankOX *theBlankOx : The converted BlankOX output array. 
+ **              BlankOX *whosTurn     The converted turn of the position
  **
  ** CALLS:       BadElse()
  **
@@ -933,7 +1029,7 @@ void PositionToBlankOX(thePos,theBlankOX,whosTurn)
 {
     int i;
 
-    if(thePos >= POSITION_OFFSET) {
+    if(thePos >= POSITION_OFFSET) { 
 	*whosTurn = x;  /* if the last character in the array is an x */
 	thePos -= POSITION_OFFSET;
     }
@@ -1116,6 +1212,10 @@ POSITION ActualNumberOfPositions(int variant) {
 
 
 // $Log: not supported by cvs2svn $
+// Revision 1.33  2006/10/03 08:10:02  scarr2508
+// added ActualNumberOfPositions
+// -sean
+//
 // Revision 1.32  2006/04/11 02:10:52  kmowery
 //
 //

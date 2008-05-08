@@ -11,6 +11,35 @@
 **
 ** UPDATE HIST:
 **
+** 04/30/2008   Added Symmetries (works for any board size). Not a very 
+**              symmetry-frendly game the bigger the board is, because 
+**              initial positions are fixed:  
+**
+** 4 x 4 board:
+**
+**With Symmetries
+**
+** Lose      =   287 out of 521 (  154 primitive)
+** Win       =   234 out of 521 (    0 primitive)
+** Tie       =     0 out of 521 (    0 primitive)
+** Draw      =     0 out of 521
+** Unknown   =     0 out of 521 (Sanity-check...should always be 0)
+** TOTAL     =   521 out of 7864320 allocated (  154 primitive)
+**        
+**With Symmetries: 
+**
+** Lose      =    74 out of 133 (   39 primitive)
+** Win       =    59 out of 133 (    0 primitive)
+** Tie       =     0 out of 133 (    0 primitive)
+** Draw      =     0 out of 133
+** Unknown   =     0 out of 133 (Sanity-check...should always be 0)
+** TOTAL     =   133 out of 7864320 allocated (   39 primitive)
+**
+**5 x 4:
+**Without Symmetries 
+** TOTAL     = 16211 out of 199229440 allocated ( 4844 primitive)
+**With Symmetries: Almost no difference?
+** TOTAL     = 16096 out of 199229440 allocated ( 4788 primitive)
 **************************************************************************/
 
 /*************************************************************************
@@ -38,7 +67,7 @@ STRING   kGameName           = "Joust";
 STRING   kDBName             = "joust";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kSupportsHeuristic  = TRUE;
-BOOLEAN  kSupportsSymmetries = FALSE;
+BOOLEAN  kSupportsSymmetries = TRUE;
 BOOLEAN  kSupportsGraphics   = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE; //We use this to set the board
@@ -200,6 +229,10 @@ could move. Don't discount the knight \
 too quickly: he can lob grenades OVER \
 other burns...\n";
 
+/*Symmetries*/
+POSITION GetCanonicalPosition(POSITION);
+int gSymmetryMatrix[8][20];
+
 /*************************************************************************
 **
 ** Here we declare the global database variables
@@ -228,6 +261,102 @@ void InitializeGame()
   gNumberOfPositions = BOARDSIZE*(BOARDSIZE-1)*pow(2,BOARDSIZE-2)*2; /* xpos * ypos * burned spaces * whoseturn */
 
   gMoveToStringFunPtr = &MoveToString;
+
+  /*Symmetry code (Messy)*/
+  gCanonicalPosition = GetCanonicalPosition;
+  
+  if (kSupportsSymmetries) {
+    if (ROWSIZE != COLUMNSIZE) {
+      int ordered_board[BOARDSIZE];
+      int n;
+      for (n = 0; n < BOARDSIZE; n++) {
+	ordered_board[n] = n;
+      }
+
+      //flip along Y axis:
+      int gFlipNewPosition[BOARDSIZE];
+      int gRotate180NewPosition[BOARDSIZE];
+      int i, j;
+      
+      for (i = 0; i < ROWSIZE; i++) {
+	for (j = 0; j < COLUMNSIZE; j++) {
+	  //flip along Y axis:
+	  gFlipNewPosition[i*COLUMNSIZE+j] = ordered_board[(i+1)*COLUMNSIZE - j - 1];
+	  //Rotate 180 degrees:
+	  gRotate180NewPosition[i*COLUMNSIZE+j]= ordered_board[(ROWSIZE-i)*COLUMNSIZE-j-1];
+	}
+      }
+      int NUMSYMMETRIES = 4;
+      int temp; 
+      for(i = 0 ; i < BOARDSIZE ; i++) {
+	temp = i;
+	for(j = 0 ; j < NUMSYMMETRIES ; j++) {
+	  if(j == NUMSYMMETRIES/2)
+	    temp = gFlipNewPosition[i];
+	  if(j < NUMSYMMETRIES/2)
+	    temp = gSymmetryMatrix[j][i] = gRotate180NewPosition[temp];
+	else
+	  temp = gSymmetryMatrix[j][i] = gRotate180NewPosition[temp];
+	}
+      }
+    }
+    else { //square
+      //int gFlipNewPosition[BOARDSIZE];
+      //int gRotate90CWNewPosition[BOARDSIZE];
+      if (ROWSIZE ==3) {
+	
+	/* This is the array used for flipping along the N-S axis */
+      int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
+      
+      /* This is the array used for rotating 90 degrees clockwise */
+      int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
+      
+      int NUMSYMMETRIES = 8;
+      int i, j, temp;
+      for(i = 0 ; i < BOARDSIZE ; i++) {
+	temp = i;
+	for(j = 0 ; j < NUMSYMMETRIES ; j++) {
+	  if(j == NUMSYMMETRIES/2)
+	    temp = gFlipNewPosition[i];
+	  if(j < NUMSYMMETRIES/2)
+	    temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	  else
+	    temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	}
+      }
+      
+      }
+      else {//if (ROWSIZE == 4) {
+	/*
+	  0123   C840   3210
+	  4567   D951   7654
+	  89AB   EA62   BA98
+	  CDEF   FB73   FEDC
+	*/
+	
+	/* This is the array used for flipping along the N-S axis */
+	int gFlipNewPosition[] = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12 };
+	
+	/* This is the array used for rotating 90 degrees clockwise */
+	int gRotate90CWNewPosition[] = { 12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3};
+	int NUMSYMMETRIES = 8;
+	int i, j, temp;
+	for(i = 0 ; i < BOARDSIZE ; i++) {
+	  temp = i;
+	  for(j = 0 ; j < NUMSYMMETRIES ; j++) {
+	    if(j == NUMSYMMETRIES/2)
+	      temp = gFlipNewPosition[i];
+	    if(j < NUMSYMMETRIES/2)
+	      temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	    else
+	      temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+	  }
+	}
+      }
+      
+    }
+  }
+
 }
 
 /************************************************************************
@@ -315,6 +444,76 @@ int theOptions[];
 POSITION ChangeTurn(POSITION thePos){
   return thePos ^ 1; /* xor */
 }
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+** 
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(position)
+     POSITION position;
+{
+  POSITION newPosition, theCanonicalPosition, DoSymmetry();
+  int i, NUMSYMMETRIES;
+  
+  theCanonicalPosition = position;
+  
+  if (ROWSIZE != COLUMNSIZE)
+    NUMSYMMETRIES = 4;
+  else
+    NUMSYMMETRIES = 8;
+  
+  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
+    
+    newPosition = DoSymmetry(position, i);    /* get new */
+    if(newPosition < theCanonicalPosition)    /* THIS is the one */
+      theCanonicalPosition = newPosition;     /* set it to the ans */
+  }
+
+  return(theCanonicalPosition);
+}
+
+/************************************************************************
+**
+** NAME:        DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+**              on the position specified by the input and return the
+**              new position, even if it's the same as the input.
+** 
+** INPUTS:      POSITION position : The position to branch the symmetry from.
+**              int      symmetry : The number of the symmetry operation.
+**
+** OUTPUTS:     POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(position, symmetry)
+     POSITION position;
+     int symmetry;
+{  
+  int i;
+  BlankBurntOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
+  POSITION BlankBurntOXToPosition();
+  
+  PositionToBlankBurntOX(position,theBlankOx);
+  PositionToBlankBurntOX(position,symmBlankOx); /* Make copy */
+  
+  /* Copy from the symmetry matrix */
+  
+  for(i = 0 ; i < BOARDSIZE ; i++)
+    symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
+  
+  return(BlankBurntOXToPosition(symmBlankOx, WhoseTurn(position)));
+} 
 
 /************************************************************************
 **
