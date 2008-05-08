@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m369mm.c,v 1.2 2008-05-01 03:44:52 noafroboy Exp $
+** LAST CHANGE: $Id: m369mm.c,v 1.3 2008-05-08 02:28:12 noafroboy Exp $
 **
 **************************************************************************/
 
@@ -81,7 +81,7 @@ STRING   kHelpExample =
 
 /* Variants */
 BOOLEAN gFlying = FALSE;
-int gameType = 9; //3,6,9 men's morris
+int gameType = 6; //3,6,9 men's morris
 int millType = 0; //0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
 /*************************************************************************
 **
@@ -95,13 +95,13 @@ int millType = 0; //0: can remove piece not from mill unless if only mills left.
 ** Global Variables
 **
 *************************************************************************/
-int BOARDSIZE = 24; //6mm 16   9mm 24
+int BOARDSIZE; //6mm 16   9mm 24
 int minx = 2; 
-int maxx = 9;  //6mm 6   9mm 9
+int maxx;  //6mm 6   9mm 9
 int mino = 2; 
-int maxo = 9;  //6mm 6   9mm 9
-int minb = 6;
-int maxb = 19;
+int maxo;  //6mm 6   9mm 9
+int minb;
+int maxb;
 	
 
 
@@ -282,7 +282,7 @@ MOVELIST *GenerateMoves (POSITION position)
   int posadjacent[4];
   int from, to;
   int i, k;
-  
+  int z = 0;
   char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
   //printf("\nPRINT POSITION INSIDE GENERATE MOVES\tturn=%c\n", turn); //DEBUG
   //PrintPosition(position, "kevin", turn);//DEBUG
@@ -305,11 +305,12 @@ MOVELIST *GenerateMoves (POSITION position)
 		for(k=0;k<BOARDSIZE;k++) {
 		  if (turn != board[k]) { //the piece is opponent's piece
 		    if(can_be_taken(position, k)) {
+			  z=1;
 		      moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
 		    }
 		  }
 		}
-		  if(millType == 2){
+		  if(millType == 2 && z==0){
 			moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
 		   }
 	      }
@@ -324,10 +325,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	      if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+to*BOARDSIZE+from)) { // made 3 in a row
 		for(k=0;k<BOARDSIZE;k++) {
 		  if(can_be_taken(position, k)) {
+		    z=1;
 		    moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
 		  }
 		}
-		  if(millType == 2){
+		  if(millType == 2 && z==0){
 			moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
 			}
 	      }	
@@ -345,10 +347,11 @@ MOVELIST *GenerateMoves (POSITION position)
 	  //printf("this position closes a mill\n");
 	  for(to=0 ; to < BOARDSIZE ; to++) {
 	    if(can_be_taken(position, to)  && (board[to] != turn)) {
+		  z=1;
 	      moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE+from, moves);
 	    }
 	  }
-	  if(millType == 2){
+	  if(millType == 2 && z==0){
 		moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
 		}
 	}
@@ -1939,8 +1942,6 @@ void changetothree(){
 	BOARDSIZE = 9;
 	maxx = 3;
 	maxo = 3;
-	minx = 3;
-	mino = 3;
 	minb = 3;
 	maxb = 4;
 	totalPieces = maxx + maxo;
@@ -1977,6 +1978,9 @@ void changetonine()
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.2  2008/05/01 03:44:52  noafroboy
+ ** added the three variants for removing pieces after forming mills
+ **
  ** Revision 1.13  2008/05/01 02:03:56  noafroboy
  ** latest m6mm.c with some bugs fixed... see wiki for details
  **
