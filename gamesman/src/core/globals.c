@@ -100,6 +100,9 @@ BOOLEAN gInterestingness = FALSE;  /* use interestingness solver after regular s
 BOOLEAN gIncludeInterestingnessWithAnalysis = TRUE;
 BOOLEAN gSymmetries = FALSE;
 BOOLEAN gUseOpen = FALSE;	/* Use open positions solver, will be set to TRUE once solver is finalised */
+BOOLEAN gVisTiers = FALSE;
+BOOLEAN gVisTiersPlain = FALSE;
+BOOLEAN gSolveOnlyTier = FALSE;
 
 char    gPlayerName[2][MAXNAME] = {"", ""}; /* The names of the players user/user or comp/user */
 
@@ -110,6 +113,7 @@ int   smartness = SMART;
 int   scalelvl = MAXSCALE;
 int   remainingGivebacks = 0;
 int   initialGivebacks = 0;
+int   gTierToOnlySolve = -1;
 VALUE oldValueOfPosition = tie;
 
 MENU gMenuMode = BeforeEvaluation;

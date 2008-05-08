@@ -16,11 +16,12 @@ extern BOOLEAN		gStandardGame, gSaveDatabase, gLoadDatabase,
     gTwoBits, gCollDB, gUnivDB, gFileDB,
 	gGlobalPositionSolver, gZeroMemSolver,
 	gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness, gWinByClose,
-	gIncludeInterestingnessWithAnalysis;
+	gIncludeInterestingnessWithAnalysis,
+	gVisTiers, gVisTiersPlain, gSolveOnlyTier;
 
 extern char		gPlayerName[2][MAXNAME];
 
-extern int		smartness, scalelvl, remainingGivebacks, initialGivebacks;
+extern int		smartness, scalelvl, remainingGivebacks, initialGivebacks, gTierToOnlySolve;
 extern VALUE		oldValueOfPosition;
 
 extern MENU		gMenuMode;
@@ -181,5 +182,6 @@ extern Tcl_Interp*              gTclInterp;
 /* Anoto Pen support */
 extern STRING           gPenFile;
 extern BOOLEAN          gPenDebug;
+
 
 #endif /* GMCORE_GLOBALS_H */

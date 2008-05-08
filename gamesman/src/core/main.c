@@ -27,8 +27,6 @@
 ** along with this program, in COPYING; if not, write to the Free Software
 ** Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 **
-** UPDATE HIST: 2008-02-19 Changed the option functions so text does not display when called.
-**
 **************************************************************************/
 
 #include <time.h>
@@ -214,10 +212,22 @@ void StartGame(STRING executableName)
 void SolveAndStore()
 {
 		Initialize();
-        InitializeDatabases();
+		printf("\nInitialized..\n");
+		if (gVisTiers || gVisTiersPlain)
+		{
+			//Don't initialize DB since we don't need to, it seems.
+			printf("Skipping db initialzation... heh\n");
+		}
+        else
+        {
+        	InitializeDatabases();
+        	printf("Initialized DBs..\n");
+		}
         InitializeAnalysis();
+        printf("Initialized Analysis...\n");
         gAnalysis.TotalMoves = 0;
         Stopwatch();
+        printf("Going into solver....");
         DetermineValue(gInitialPosition);
 
         if (gAnalyzing) {
@@ -272,10 +282,10 @@ void HandleArguments (int argc, char *argv[])
                     gBitPerfectDBSolver = FALSE;
                 }
                 else if(!strcasecmp(argv[i], "--numoptions")) {
-                        fprintf(stderr, "%d\n", NumberOfOptions());
+                        fprintf(stderr, "\nNumber of Options: %d\n", NumberOfOptions());
                         gMessage = TRUE;
                 } else if(!strcasecmp(argv[i], "--curroption")) {
-                        fprintf(stderr, "%d\n", getOption());
+                        fprintf(stderr, "\nCurrent Option: %d\n", getOption());
                         gMessage = TRUE;
                 } else if(!strcasecmp(argv[i], "--option")) {
                         if(argc < (i + 2)) {
@@ -336,6 +346,29 @@ void HandleArguments (int argc, char *argv[])
                     gBitPerfectDBZeroMemoryPlayer = TRUE;
                 } else if(!strcasecmp(argv[i], "--notiers")) {
                     gTierGamesman = FALSE;
+                } else if(!strcasecmp(argv[i], "--vt")) {
+                    gVisTiers = TRUE; //Generates dooty file for tier tree visualization
+                } else if(!strcasecmp(argv[i], "--vtp")) {
+                    gVisTiersPlain = TRUE; //outputs to stdout a plain tier tree for easy parsing
+                } else if(!strcasecmp(argv[i], "--onlytier")) {
+                    if ((i + 1) < argc)
+                    {
+						gTierToOnlySolve = atoi(argv[++i]);
+						if (gTierToOnlySolve < 0)
+						{
+							fprintf(stderr, "Tier to solve is not valid\n\n");
+							gMessage = TRUE;
+						}
+						else{	//We're good to go
+							gSolveOnlyTier = TRUE;
+						}
+					}
+					else
+					{
+						fprintf(stderr, "No tier given for solve only tier option\n\n");
+						gMessage = TRUE;
+					}
+
                 } else if(!strcasecmp(argv[i], "--notiermenu")) {
                     gTierSolverMenu = FALSE;
                 } else if(!strcasecmp(argv[i], "--notierprint")) {
@@ -476,7 +509,6 @@ int main(int argc, char *argv[])
 int gamesman_main(STRING executableName)
 {
         //Initialize();
-
         if(!gMessage) {
                 if(!gJustSolving)
                         StartGame(executableName);
