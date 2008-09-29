@@ -10,7 +10,7 @@
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
 **
-** LAST CHANGE: $Id: m369mm.c,v 1.3 2008-05-08 02:28:12 noafroboy Exp $
+** LAST CHANGE: $Id: m369mm.c,v 1.4 2008-09-29 07:33:40 noafroboy Exp $
 **
 **************************************************************************/
 
@@ -174,6 +174,18 @@ char* customUnhash(POSITION pos);
 void changetosix();
 void changetonine();
 void changetothree();
+POSITION GetCanonicalPosition(POSITION);
+POSITION smallHash(char*, char);
+char* smallUnhash(POSITION, char*);
+
+
+//SYMMETRIES
+BOOLEAN kSupportsSymmetries = FALSE; /* Default false, true for 9mm*/
+
+#define NUMSYMMETRIES 9   /*  4 rotations, 4 flipped rotations, outer-inner flip */
+#define BOARDSIZE9mm 24
+int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE9mm];
+
 
 
 /************************************************************************
@@ -188,6 +200,8 @@ void changetothree();
 void InitializeGame ()
 {
 	int i;
+	// SYMMETRY
+	gCanonicalPosition = GetCanonicalPosition;
 	if (gameType==3) changetothree();
 	if (gameType==6) changetosix();
 	if (gameType==9) changetonine();
@@ -206,7 +220,6 @@ void InitializeGame ()
 
 	
 	 gNumberOfPositions = generic_hash_init(BOARDSIZE, pminmax, NULL, 0);
-
 	 gInitialPosition = hash(board, X, maxx+maxo, 0, 0);
 
 	 InitializeHelpStrings(); 
@@ -1009,7 +1022,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	//printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2));
+	printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2) + (millType << 4));
 	printf("millType = %d\n", millType);
   return 1 + (gFlying<<1) + gStandardGame + ((gameType/3-1)<<2) + (millType<<4);
 }
@@ -1180,6 +1193,7 @@ void SetupTierStuff(){
 	gTierToStringFunPtr = &TierToString;
 	int tier, i, piecesLeft, numx, numo;
 	generic_hash_custom_context_mode(TRUE);
+	//	int pminmax[] = {X, 0, maxx, O, 0, maxo,BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
 	int pieces_array[] = {X, 0, 0, O, 0, 0, BLANK, 0, 0, -1  } ;
 	kExclusivelyTierGamesman = TRUE;
 
@@ -1190,9 +1204,14 @@ void SetupTierStuff(){
 				pieces_array[1]=pieces_array[2]=numx;
 				pieces_array[4]=pieces_array[5]=numo;
 				pieces_array[7]=pieces_array[8]=BOARDSIZE-numx-numo;
-				if (piecesLeft > 0) //stage1
+				if (piecesLeft > 0){ //stage1			
+					//pieces_array[] = {X, 0, piecesLeft/2+1, O, piecesLeft/2+1, 0, BLANK, 0, 0, -1  } ;
 					generic_hash_init(BOARDSIZE, pieces_array, NULL, (piecesLeft%2)+1);
-				else generic_hash_init(BOARDSIZE, pieces_array, NULL, 0);
+				}
+				else{
+					//pieces_array[] = {X, minx, maxx, O, mino, maxo, BLANK, 0, 0, -1  } ;
+					generic_hash_init(BOARDSIZE, pieces_array, NULL, 0);
+				}
 				generic_hash_set_context(tier);
 				//printf("tier %d\t", tier);
 				//int j;
@@ -1213,6 +1232,7 @@ void SetupTierStuff(){
 		board[i] = BLANK; 
 	}
 	gInitialTierPosition = generic_hash_hash(board, PLAYER_ONE);
+	//SafeFree(board);
 	//printf("line 1142 gInitialTierPosition = %d\n",  gInitialTierPosition);
 }
 
@@ -1971,13 +1991,148 @@ void changetonine()
 	maxb = 19;
 	totalPieces = maxx + maxo;
 	kDBName = "9mm";
+	
+	//SYMMETRIES
+	kSupportsSymmetries = TRUE; /* Whether we support symmetries */
+
+	int gSymmetryMatrix2[9][24] = { {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23},{2,1,0,5,4,3,8,7,6,14,13,12,11,10,9,17,16,15,20,19,18,23,22,21},{21,22,23,18,19,20,15,16,17,9,10,11,12,13,14,6,7,8,3,4,5,0,1,2},{23,14,2,20,13,5,17,12,8,22,19,16,7,4,1,15,11,6,18,10,3,21,9,0},{0,9,21,3,10,18,6,11,15,1,4,7,16,19,22,8,12,17,5,13,20,2,14,23},{21,9,0,18,10,3,15,11,6,22,19,16,7,4,1,17,12,8,20,13,5,23,14,2},{23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},{2,14,23,5,13,20,8,12,17,1,4,7,16,19,22,6,11,15,3,10,18,0,9,21},{6,7,8,3,4,5,0,1,2,11,10,9,14,13,12,21,22,23,18,19,20,15,16,17} };
+	
+	int i, k;
+	for (i=0; i < 9; i++){
+		for (k=0; k < 24; k++){
+			//printf("%d", gSymmetryMatrix2[i][k]);
+			gSymmetryMatrix[i][k] = gSymmetryMatrix2[i][k];
+		}
+	}
+	//gSymmetryMatrix = gSymmetryMatrix2;
+	/*gSymmetryMatrixptr = (int *) malloc (sizeof(int*)*NUMSYMMETRIES);
+	for (int k=0; k < NUMSYMMETRIES); k++){
+		(*gSymmetryMatrixptr) = (int *) malloc (sizeof(int)*BOARDSIZE);
+	}*/
+	
+	/*NUMSYMMETRIES = 9;   //  4 rotations, 4 flipped rotations, outer-inner flip 
+
+	int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
+
+	if(kSupportsSymmetries) {
+		gSymmetryMatrix[0] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
+		gSymmetryMatrix[1] = {2,1,0,5,4,3,8,7,6,14,13,12,11,10,9,17,16,15,20,19,18,23,22,21};
+		gSymmetryMatrix[2] = {21,22,23,18,19,20,15,16,17,9,10,11,12,13,14,6,7,8,3,4,5,0,1,2};
+		gSymmetryMatrix[3] = {23,14,2,20,13,5,17,12,8,22,19,16,7,4,1,15,11,6,18,10,3,21,9,0};
+		gSymmetryMatrix[4] = {0,9,21,3,10,18,6,11,15,1,4,7,16,19,22,8,12,17,5,13,20,2,14,23};
+		gSymmetryMatrix[5] = {21,9,0,18,10,3,15,11,6,22,19,16,7,4,1,17,12,8,20,13,5,23,14,2};
+		gSymmetryMatrix[6] = {23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
+		gSymmetryMatrix[7] = {2,14,23,5,13,20,8,12,17,1,4,7,16,19,22,6,11,15,3,10,18,0,9,21};
+		gSymmetryMatrix[8] = {6,7,8,3,4,5,0,1,2,11,10,9,14,13,12,21,22,23,18,19,20,15,16,17};
+	}*/
 }
+
+
+/**************************************************/
+/**************** SYMMETRY FUN BEGIN **************/
+/**************************************************/
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+**
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(POSITION position)
+{
+  POSITION newPosition, theCanonicalPosition, DoSymmetry();
+  int i;
+
+  theCanonicalPosition = position;
+
+  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
+    newPosition = DoSymmetry(position, i);    /* get new */
+    if(newPosition < theCanonicalPosition)    /* THIS is the one */
+      theCanonicalPosition = newPosition;     /* set it to the ans */
+  }
+
+  return(theCanonicalPosition);
+}
+
+/************************************************************************
+**
+** NAME:        DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+**              on the position specified by the input and return the
+**              new position, even if it's the same as the input.
+**
+** INPUTS:      POSITION position : The position to branch the symmetry from.
+**              int      symmetry : The number of the symmetry operation.
+**
+** OUTPUTS:     POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(POSITION position, int symmetry)
+{
+  int i;
+  char turn;
+  char* board = smallUnhash(position, &turn);
+  char* symmBoard = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
+  
+  /* Copy from the symmetry matrix */
+  //printf("doing symmetry");
+  for(i = 0 ; i < BOARDSIZE ; i++)
+    symmBoard[i] = board[gSymmetryMatrix[symmetry][i]];
+
+  if (board != NULL)
+    SafeFree(board);
+  return(smallHash(symmBoard, turn));
+}
+
+POSITION smallHash(char* board, char turn){
+	POSITION pos;
+	TIER tier = generic_hash_cur_context();
+	generic_hash_context_switch(tier);
+	TIERPOSITION tierpos = generic_hash_hash(board, (turn == X ? PLAYER_ONE : PLAYER_TWO));
+	pos = gHashToWindowPosition(tierpos, tier);
+	
+	return pos;
+}
+
+char* smallUnhash(POSITION pos, char* turn)
+{
+	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
+	if(gHashWindowInitialized){
+		//printf("unhashing with tiers\n");
+		TIER tier; TIERPOSITION tierposition;
+		gUnhashToTierPosition(pos, &tierposition, &tier);
+		//printf("unhashing %d\n", tier);
+		generic_hash_context_switch(tier);
+		board = (char*)generic_hash_unhash(tierposition, board);
+		(*turn) = generic_hash_turn(tierposition);
+	}
+	return board;
+}
+
+
+/**************************************************/
+/**************** SYMMETRY FUN END ****************/
+/**************************************************/
+
 
 
 /************************************************************************
  ** Changelog
  **
  ** $Log: not supported by cvs2svn $
+ ** Revision 1.3  2008/05/08 02:28:12  noafroboy
+ ** latest version
+ **
  ** Revision 1.2  2008/05/01 03:44:52  noafroboy
  ** added the three variants for removing pieces after forming mills
  **
