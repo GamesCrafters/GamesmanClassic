@@ -11,9 +11,19 @@ print foo
 # make the first one
 puz += foo[0]
 print puz
+#print [x.count(True) for x in puz.board]
 
 # testing hash
 print puz.__hash__()
 
 # testing reverse move
-puz.reverse_move(foo[0])
+puz -= foo[0]
+print puz
+
+# test unhash
+bar = 32631
+puz = puz.unhash(bar)
+print puz
+bar = 1
+puz = puz.unhash(bar)
+print puz

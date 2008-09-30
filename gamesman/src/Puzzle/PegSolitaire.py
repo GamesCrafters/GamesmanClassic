@@ -73,7 +73,7 @@ class PegSolitaire:
         return self.do_move(move)
 
     def __sub__(self, move):
-	return self.reverse_move(move)
+	return self.undo_move(move)
     
     def is_a_solution(self):
         return self in self.generate_solutions()
@@ -87,13 +87,15 @@ class PegSolitaire:
         return False
 
     def reverse_move(self, move):
-	#raise '''Cannot reverse move'''
+	raise '''Cannot reverse move'''
+
+    def undo_move(self, move):
 	tmpBoard = self.board[:]
 	tmpBoard[move[0]][move[1]] = True
 	tmpBoard[move[2]][move[3]] = True
 	tmpBoard[move[4]][move[5]] = False
         return PegSolitaire(tmpBoard)
-
+    
     def get_permutations(self):
 	return 0
 
@@ -109,9 +111,21 @@ class PegSolitaire:
 		if self.board[row][col]:
 		    hash |= (1 << index)
 	return hash
+    
+    def unhash(self, hash):
+	tmpBoard = self.board[:]
+	index = 15
+	for row in range(len(self.board)):
+	    for col in range(len(self.board[row])):
+		index -= 1
+		if ((hash >> index) & 1) == 1:
+		    tmpBoard[row][col] = True
+		else:
+		    tmpBoard[row][col] = False
+	return PegSolitaire(tmpBoard)
 
     def __str__(self):
-	str = ''
+	str = '\n'
 	for row in range(len(self.board)):
 	    str += ' ' * (len(self.board) - row - 1)
 	    for col in range(len(self.board[row])):
