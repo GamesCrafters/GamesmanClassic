@@ -25,41 +25,41 @@ class PegSolitaire:
 		   (self.board[row][col]) and \
 		   (self.board[row][col + 1]) and not \
 		   (self.board[row][col + 2]):
-		    moves.append([row, col, row, col + 1, row, col + 2])
+		    moves.append((row, col, row, col + 1, row, col + 2))
 		# check north east
 		if (col < len(self.board[row]) - 2) and \
 		   (row > 1) and \
 		   (self.board[row][col]) and \
 		   (self.board[row - 1][col]) and not \
 		   (self.board[row - 2][col]):
-		    moves.append([row, col, row - 1, col, row - 2, col])
+		    moves.append((row, col, row - 1, col, row - 2, col))
 		# check south east
 		if (col < len(self.board[row]) - 2) and \
 		   (row < len(self.board) - 2) and \
 		   (self.board[row][col]) and \
 		   (self.board[row][col + 1]) and not \
 		   (self.board[row][col + 2]):
-		    moves.append([row, col, row, col + 1, row, col + 2])
+		    moves.append((row, col, row, col + 1, row, col + 2))
 		# check west
 		if (col > 1) and \
 		   (self.board[row][col]) and \
 		   (self.board[row][col - 1]) and not \
 		   (self.board[row][col - 2]):
-		    moves.append([row, col, row, col - 1, row, col - 2])
+		    moves.append((row, col, row, col - 1, row, col - 2))
 		# check north west
 		if (col > 1) and \
 		   (row > 1) and \
 		   (self.board[row][col]) and \
 		   (self.board[row - 1][col - 1]) and not\
 		   (self.board[row - 2][col - 2]):
-		    moves.append([row, col, row - 1, col - 1, row - 2, col - 2])
+		    moves.append((row, col, row - 1, col - 1, row - 2, col - 2))
 		# check south west
 		if (col > 1) and\
 		   (row < len(self.board) - 2) and\
 		   (self.board[row][col]) and\
 		   (self.board[row + 1][col - 1]) and not\
 		   (self.board[row + 2][col - 2]):
-		    moves.append([row, col, row + 1, col - 1, row + 2, col - 2])
+		    moves.append((row, col, row + 1, col - 1, row + 2, col - 2))
         return moves
 
     def do_move(self, move):
@@ -79,10 +79,20 @@ class PegSolitaire:
         return self in self.generate_solutions()
 
     def is_illegal(self):
+	foo += (bar for bar in [baz.count(True) for baz in self.board])
+	if foo == 15 or foo == 0:
+	    return True
+	elif foo == 14 and self.board[2][1]:
+	    return True
         return False
 
     def reverse_move(self, move):
-	raise 'Cannot reverse move'
+	#raise '''Cannot reverse move'''
+	tmpBoard = self.board[:]
+	tmpBoard[move[0]][move[1]] = True
+	tmpBoard[move[2]][move[3]] = True
+	tmpBoard[move[4]][move[5]] = False
+        return PegSolitaire(tmpBoard)
 
     def get_permutations(self):
 	return 0
