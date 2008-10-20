@@ -1,8 +1,25 @@
 class PegSolitaire:
     """This is the Peg Solitaire Class (Triangular 15)"""
 
-    def __init__(self, board = [[True], [True, True], [True, False, True], [True, True, True, True], [True, True, True, True, True]]):
-	self.board = board
+    def __init__(self, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]]):
+	if isinstance(board, list):
+	    self.board = board
+	elif isinstance(board, int):
+	    if board > 2:
+		self.board = [[False]]
+		row = 2
+		board -= 1
+		while board > 0:
+		    foo = row
+		    bar = []
+		    while foo > 0 and board > 0:
+			bar.append(True)
+			foo -= 1
+			board -= 1
+		    self.board.append(bar)
+		    row += 1
+	    else:
+		self.board = [[False]]
         #self.size = 15
 
     def generate_start(self):
@@ -99,29 +116,33 @@ class PegSolitaire:
     def get_permutations(self):
 	return 0
 
+    def get_score(self):
+	return self.__str__().count('.')
+    
     def __cmp__(self, other):
         return cmp(hash(self), hash(other))
 
     def __hash__(self):
-	index = 15
+	index = 0
 	hash = 0
         for row in range(len(self.board)):
 	    for col in range(len(self.board[row])):
-		index -= 1
 		if self.board[row][col]:
 		    hash |= (1 << index)
+		index += 1
 	return hash
     
     def unhash(self, hash):
 	tmpBoard = self.board[:]
-	index = 15
+	index = 0
 	for row in range(len(self.board)):
 	    for col in range(len(self.board[row])):
-		index -= 1
+		#index -= 1
 		if ((hash >> index) & 1) == 1:
 		    tmpBoard[row][col] = True
 		else:
 		    tmpBoard[row][col] = False
+		index += 1
 	return PegSolitaire(tmpBoard)
 
     def __str__(self):
