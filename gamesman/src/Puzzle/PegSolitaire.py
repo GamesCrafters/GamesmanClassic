@@ -1,26 +1,21 @@
 class PegSolitaire:
     """This is the Peg Solitaire Class (Triangular 15)"""
 
-    def __init__(self, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]]):
-	if isinstance(board, list):
-	    self.board = board
-	elif isinstance(board, int):
-	    if board > 2:
-		self.board = [[False]]
-		row = 2
-		board -= 1
-		while board > 0:
-		    foo = row
-		    bar = []
-		    while foo > 0 and board > 0:
-			bar.append(True)
-			foo -= 1
-			board -= 1
-		    self.board.append(bar)
-		    row += 1
-	    else:
-		self.board = [[False]]
-        #self.size = 15
+    def __init__(self, board_size = 5):
+	if board_size < 1:
+	    self.board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]]
+	    self.size = 5
+	else:
+	    self.board = []
+	    self.board.append([False])
+	    row_size = 2
+	    if board_size > 1:
+		while row_size <= board_size:
+		    row = []
+		    for r in range(row_size):
+			row.append(True)
+		    self.board.append(row)
+		    row_size += 1
 
     def generate_start(self):
         return PegSolitaire()
@@ -97,9 +92,10 @@ class PegSolitaire:
 
     def is_illegal(self):
 	foo += (bar for bar in [baz.count(True) for baz in self.board])
-	if foo == 15 or foo == 0:
+	triangular = (self.size) * (self.size + 1) / 2
+	if foo == triangular or foo == 0:
 	    return True
-	elif foo == 14 and self.board[2][1]:
+	elif foo == (triangular - 1) and self.board[0][0]:
 	    return True
         return False
 
