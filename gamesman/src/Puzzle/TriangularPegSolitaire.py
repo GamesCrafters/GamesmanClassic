@@ -1,16 +1,24 @@
-class PegSolitaire:
-    """This is the Peg Solitaire Class (Triangular 15)"""
+# GamesCrafters Fall 2008
+# Puzzle Team
+# @author: Roger Tu
 
-    def __init__(self, board_size = 5):
-	if board_size < 1:
+class TriangularPegSolitaire:
+    """This is the Triangular Peg Solitaire Class"""
+    
+    pegCharacter = 'o'
+    blankCharacter = '.'
+
+    def __init__(self, size = 5, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]]):
+	if size < 1:
 	    self.board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]]
 	    self.size = 5
 	else:
+	    self.size = size
 	    self.board = []
 	    self.board.append([False])
 	    row_size = 2
-	    if board_size > 1:
-		while row_size <= board_size:
+	    if size > 1:
+		while row_size <= size:
 		    row = []
 		    for r in range(row_size):
 			row.append(True)
@@ -18,12 +26,12 @@ class PegSolitaire:
 		    row_size += 1
 
     def generate_start(self):
-        return PegSolitaire()
+        return TriangularPegSolitaire()
 
     def generate_solutions(self):
         solutions = []
         for power in range(self.size):
-            tmp = PegSolitaire()
+            tmp = TriangularPegSolitaire()
             tmp.board = 2 ** power
             solutions.append(tmp)
         return solutions
@@ -79,7 +87,14 @@ class PegSolitaire:
 	tmpBoard[move[0]][move[1]] = False
 	tmpBoard[move[2]][move[3]] = False
 	tmpBoard[move[4]][move[5]] = True
-        return PegSolitaire(tmpBoard)
+        return TriangularPegSolitaire(self.size, tmpBoard)
+    
+    def undo_move(self, move):
+	tmpBoard = self.board[:]
+	tmpBoard[move[0]][move[1]] = True
+	tmpBoard[move[2]][move[3]] = True
+	tmpBoard[move[4]][move[5]] = False
+	return TriangularPegSolitaire(self.size, tmpBoard)
 
     def __add__(self, move):
         return self.do_move(move)
@@ -98,22 +113,21 @@ class PegSolitaire:
 	elif foo == (triangular - 1) and self.board[0][0]:
 	    return True
         return False
+    
+    def is_deadend(self):
+        return (not self.is_a_solution()) and (self.is_leaf())
+
+    def is_leaf(self):
+        return (len(self.generate_moves) == 0)
 
     def reverse_move(self, move):
 	raise '''Cannot reverse move'''
-
-    def undo_move(self, move):
-	tmpBoard = self.board[:]
-	tmpBoard[move[0]][move[1]] = True
-	tmpBoard[move[2]][move[3]] = True
-	tmpBoard[move[4]][move[5]] = False
-        return PegSolitaire(tmpBoard)
     
     def get_permutations(self):
-	return 0
+	return None
 
-    def get_score(self):
-	return self.__str__().count('.')
+    def value(self):
+	return self.__str__().count(TriangularPegSolitaire.blankCharacter)
     
     def __cmp__(self, other):
         return cmp(hash(self), hash(other))
@@ -133,13 +147,12 @@ class PegSolitaire:
 	index = 0
 	for row in range(len(self.board)):
 	    for col in range(len(self.board[row])):
-		#index -= 1
 		if ((hash >> index) & 1) == 1:
 		    tmpBoard[row][col] = True
 		else:
 		    tmpBoard[row][col] = False
 		index += 1
-	return PegSolitaire(tmpBoard)
+	return TriangularPegSolitaire(self.size, tmpBoard)
 
     def __str__(self):
 	str = '\n'
@@ -147,8 +160,8 @@ class PegSolitaire:
 	    str += ' ' * (len(self.board) - row - 1)
 	    for col in range(len(self.board[row])):
 		if self.board[row][col]:
-		    str += 'o '
+		    str += TriangularPegSolitaire.pegCharacter + ' '
 		else:
-		    str += '. '
+		    str += TriangularPegSolitaire.blankCharacter + ' '
 	    str += '\n'
         return str

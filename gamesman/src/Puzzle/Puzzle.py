@@ -4,15 +4,11 @@ class Puzzle:
     def __init__(self,  one_solution = True):
         self.one_solution = one_solution
 
-    def generate_start(self):      # By default, no starting point (like Rubik's cube)
+    def generate_start(self):
         return False
 
     def generate_solutions(self):
         return []
-
-    #use self.is_a_solution() instead
-    #def is_solution(self):
-    #    return False
     
     def generate_moves(self):
         return []
@@ -20,23 +16,23 @@ class Puzzle:
     def do_move(self, move):
         return []
 
-    def undo_move(self, move): # new
+    def undo_move(self, move):
         return []
 
     def __add__(self, move):
         return self.do_move(move)
 
-    def __sub__(self, move): # new
+    def __sub__(self, move):
         return self.undo_move(move)
 
-    def is_a_solution(self): # new
+    def is_a_solution(self):
         return self in self.generate_solutions()
 
-    def is_deadend(self): # new
-        return False
+    def is_deadend(self):
+        return (not self.is_a_solution()) and (self.is_leaf())
 
-    def is_leaf(self): # new
-        return self.is_a_solution() or self.is_deadend()
+    def is_leaf(self):
+        return (len(self.generate_moves) == 0)
 
     def is_illegal(self):
         return False
@@ -47,7 +43,7 @@ class Puzzle:
     def __hash__(self):
         return 0
 
-    def unhash(self, number): #new
+    def unhash(self, number):
         return self
 
     def __str__(self):

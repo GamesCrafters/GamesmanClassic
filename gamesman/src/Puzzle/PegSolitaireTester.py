@@ -1,7 +1,13 @@
-from PegSolitaire import *
+# GamesCrafters Fall 2008
+# Puzzle Team
+# @author: Roger Tu
+
+from TriangularPegSolitaire import *
+
+print 'Triangular Peg Solitaire Tester v0.1'
 
 # make a default board
-puz = PegSolitaire()
+puz = TriangularPegSolitaire()
 print puz
 
 # get some moves
@@ -30,14 +36,14 @@ print puz
 bar = 1
 puz = puz.unhash(bar)
 print puz
-print puz.get_score()
+print puz.value()
 
 # test n size board
 print 'testing n-size board'
-puz = PegSolitaire(16)
+puz = TriangularPegSolitaire(16)
 print puz
-puz = PegSolitaire(14)
+puz = TriangularPegSolitaire(14)
 print puz
-puz = PegSolitaire(45)
+puz = TriangularPegSolitaire(45)
 print puz
 print puz.__hash__()
