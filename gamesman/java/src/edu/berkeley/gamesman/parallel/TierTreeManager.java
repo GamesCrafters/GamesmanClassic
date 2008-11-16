@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -15,6 +14,9 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 import javax.swing.JOptionPane;
+
+
+import edu.berkeley.gamesman.parallel.gui.UbigraphListener;
 
 /**
  * This class manages the task of keeping the ThreadManager as busy as possible
@@ -109,9 +111,11 @@ public class TierTreeManager
 	
 	TierThreadManager ttm;
 	Map<Long, TierTreeNode> tierMap = new HashMap<Long, TierTreeNode>();
+	Map<Long, TierTreeNode> fullMap = new HashMap<Long, TierTreeNode>(); //This one contians ALL tiers
 	PriorityQueue<TierTreeNode> freeTiers = new PriorityQueue<TierTreeNode>();
 	Map<Long, TierTreeNode> badTiers = new HashMap<Long, TierTreeNode>();
 	Map<Long, TierTreeNode> beingSolved = new HashMap<Long, TierTreeNode>();
+	TierEventListener[] listeners = new TierEventListener[]{new UbigraphListener(this)};
 	
 	int minCoresIdle;
 	PrintWriter logOutput;
@@ -156,6 +160,7 @@ public class TierTreeManager
 		//generate the tiertree
 		//vtp stuffs
 		generateTierTree(priOp, gamePath, game, option);
+		notifyListenersSetup();
 		minCoresIdle = numThreads;
 		cores = numThreads;
 		spawnNewThreads();
@@ -174,7 +179,8 @@ public class TierTreeManager
 		//for now, just process the new tiers coming up. Save
 		//the dependencies for later.
 		LinkedList<String> deps = new LinkedList<String>();
-		while ((line = br.readLine()).equals("ENDVTP") == false)
+		boolean solved = false;
+		while ((line = br.readLine()).equals("ENDALLVTP") == false)
 		{
 			if (line.startsWith("d"))
 			{
@@ -188,7 +194,14 @@ public class TierTreeManager
 
 				long tier = Long.parseLong(line.substring(1, line.indexOf(":")));
 				long size = Long.parseLong(line.substring(line.indexOf(":")+1));
-				tierMap.put(tier, new TierTreeNode(tier, size));
+				if (!solved)	//Only non-solved tiers in here
+					tierMap.put(tier, new TierTreeNode(tier, size, solved));
+				fullMap.put(tier, new TierTreeNode(tier, size, solved));
+			}
+			else if (line.equals("ENDVTP"))
+			{
+				//Switching to solved tiers.
+				solved = true;
 			}
 		}
 		//now, just read in the rest
@@ -218,11 +231,28 @@ public class TierTreeManager
 				//The parent under no circumstances shold be null, so don't check that
 				if (cttn != null)
 				{
-									
 					pttn.deps.add(cttn);
 					cttn.parents.add(pttn);
 					pttn.wasPrim = false;
 				}
+				
+				//now, update the ubigraph links. None of these should be null
+				pttn = fullMap.get(lParent);
+				cttn = fullMap.get(lChild);
+				pttn.deps.add(cttn);
+				cttn.parents.add(pttn);
+				pttn.wasPrim = false;
+			}
+			else
+			{
+				//set flag that this tier depends on itself...
+				TierTreeNode ttn = tierMap.get(lParent);
+				if (ttn != null)	//May not be in the to-solve map.
+					ttn.selfDependent = true;
+				//but has to be in the full map.
+				ttn = fullMap.get(lParent);
+				ttn.selfDependent = true;
+				
 			}
 		}
 		//Tier tree is generated!
@@ -281,7 +311,7 @@ public class TierTreeManager
 	 * @param retCode
 	 * @param seconds
 	 */
-	public synchronized void finished(long t, int retCode, double seconds)
+	synchronized void finished(long t, int retCode, double seconds)
 	{
 		System.out.println(t + " is finished in " + seconds + " seconds");
 		//Find this tier and remove it.
@@ -294,6 +324,7 @@ public class TierTreeManager
 			//something went wrong. Add to badtiers
 			badTiers.put(t, ttn);
 			System.out.println("!!!!!!" + t + " ended with retcode "+retCode+", and was added to badTiers list.");
+			notifyListenersFinished(t, true, seconds);
 		}
 		else
 		{
@@ -316,6 +347,8 @@ public class TierTreeManager
 					freeTiers.add(ttnParent);
 				}
 			}
+			//notify listeners
+			notifyListenersFinished(t, false, seconds);
 		}
 		
 
@@ -329,7 +362,7 @@ public class TierTreeManager
 	private long perfectEff;
 	private long lastTime=0;
 	
-	public synchronized void spawnNewThreads()
+	synchronized void spawnNewThreads()
 	{
 		//update stats. Multiply the time times number of threads we recored
 		//were active.
@@ -360,6 +393,7 @@ public class TierTreeManager
 				return;
 			}
 			System.out.println("Spawned tier " + ttn.tierNum + " - " + ttn);
+			notifyListenersStartSolve(ttn.tierNum);
 		}
 		
 		//restart stats
@@ -393,96 +427,26 @@ public class TierTreeManager
 		}
 	}
 	
+	private void notifyListenersSetup()
+	{
+		for (int a=0;a<listeners.length;a++)
+		{
+			listeners[a].setup(fullMap, tierMap);
+		}
+	}
 	
+	private void notifyListenersStartSolve(long tier)
+	{
+		for (int a=0;a<listeners.length;a++)
+			listeners[a].tierStartSolve(tier);
+	}
+	
+	private void notifyListenersFinished(long tier, boolean bad, double seconds)
+	{
+		for (int a=0;a<listeners.length;a++)
+			listeners[a].tierFinishedSolve(tier, bad, seconds);
+	}
 }
 
-class TierTreeNode implements Comparable<TierTreeNode>
-{
-	public boolean wasPrim=true;
-	public long tierNum, size;
-	public ArrayList<TierTreeNode> deps = new ArrayList<TierTreeNode>();
-	public ArrayList<TierTreeNode> parents = new ArrayList<TierTreeNode>();
-	public double priority = 0;
-	
-	
-	public TierTreeNode(long tierNum, long size)
-	{
-		this.tierNum = tierNum;
-		this.size = size;
-	}
-	
-	public String toString()
-	{
-		return "(" + tierNum + " - " + priority + ")";
-	}
-	
-	public boolean equals(Object o)
-	{
-		return (o instanceof TierTreeNode)?((TierTreeNode)o).tierNum==tierNum:false;
-	}
-	
-	public void propagateDependencies(double amt)
-	{
-		//add to my own priority
-		this.priority += amt;
-		
-		//split this one's dependencies into the number of children and propagate
-		//use amt not priority - becuyase if we don't it messes up big time
-		if (deps.size() > 0)
-		{
-			double eachPri = amt/deps.size();
-			for (int a=0;a<deps.size();a++)
-			{
-				TierTreeNode ttn = deps.get(a);
-				ttn.propagateDependencies(eachPri);
-			}
-		}
-	}
-
-
-	public int compareTo(TierTreeNode ttno)
-	{
-		//We have to reverse it since priorityqueues use
-		//the least element at the top
-		if (priority > ttno.priority)
-		{
-			return -1;
-		}
-		else if (priority == ttno.priority)
-		{
-			return 0;
-		}
-		else
-		{
-			return 1;
-		}
-	}
-	
-
-	public long marker = -1; //This is for the priority huerestic use only.
-	public int calculateHeuristic(int levels, long tierNum)
-	{
-		int count = 0;
-		if (marker != tierNum)
-		{
-			count = 1;
-			//if this is a top tier, make it value of 2
-			if (parents.size() == 0)
-				count++;
-		}
-		marker = tierNum;	//don't count this one again.
-		
-		if (levels != 0)
-		{
-			//check all the parents
-			for (int a=0;a<parents.size();a++)
-			{
-				count += parents.get(a).calculateHeuristic(levels-1, tierNum);
-			}
-		}
-		return count;
-	}
-	
-}
 
 
