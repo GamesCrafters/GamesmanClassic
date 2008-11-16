@@ -1,4 +1,4 @@
-// $Id: solveretrograde.c,v 1.45 2008-05-08 02:31:06 billyboy999 Exp $
+// $Id: solveretrograde.c,v 1.46 2008-11-16 03:52:12 billyboy999 Exp $
 
 /************************************************************************
 **
@@ -392,8 +392,16 @@ void GenerateTierTree() {
 		DoTierDependencies(temp->tier, fp);
 	}
 	if (gVisTiersPlain)
+	{
 		printf("ENDVTP\n");
-
+		//Now, print out the solved tiers. This is to ensure backwards compatability with old versions of java program
+		temp = solvedList;
+		for (;temp != NULL; temp = temp->next)
+		{
+			DoTierDependencies(temp->tier, fp);
+		}
+		printf("ENDALLVTP\n");
+	}
 
 
 	if (gVisTiers)
