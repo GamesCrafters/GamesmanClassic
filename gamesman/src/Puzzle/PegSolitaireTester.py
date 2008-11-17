@@ -2,13 +2,23 @@
 # Puzzle Team
 # @author: Roger Tu
 
-from TriangularPegSolitaire import *
+from TriangularPegSolitaire import TriangularPegSolitaire
+from UnreverseSolver import *
+from Solver import *
 
 print 'Triangular Peg Solitaire Tester v0.1'
 
 # make a default board
 puz = TriangularPegSolitaire()
 print puz
+
+#print puz.generate_solutions()
+
+#solv = UnreverseSolver()
+solv = Solver()
+solv.solve(puz)
+solv.path(puz)
+print ''
 
 # get some moves
 foo = puz.generate_moves()
@@ -40,10 +50,11 @@ print puz.value()
 
 # test n size board
 print 'testing n-size board'
-puz = TriangularPegSolitaire(16)
+foo = TriangularPegSolitaire()
+puz = foo.generate_start(16, 0)
 print puz
-puz = TriangularPegSolitaire(14)
+puz = foo.generate_start(14, 0)
 print puz
-puz = TriangularPegSolitaire(45)
+puz = foo.generate_start(45)
 print puz
 print puz.__hash__()
