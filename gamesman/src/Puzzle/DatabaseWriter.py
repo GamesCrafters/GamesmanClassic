@@ -40,36 +40,36 @@ def writeDatabase(puzzname, options):
 	CHUNKBITS=8
 	CHUNK = 1<<CHUNKBITS
 	
-	alldata = {}
-	default = str(bitClass(remoteness=0)) # remoteness==0 but not solution means not seen.
-	
-	for position in range(solver.maxHash):
-		myval = solver.seen.get(position, None)
-		if not myval:
-			continue
-		chunknum = position>>CHUNKBITS
-		chunkoff = position&(CHUNK-1)
-		
-		arr = alldata.get(chunknum, [])
-		val = bitClass(remoteness=myval)
-		setList(arr, chunkoff, str(val), default)
-		alldata[chunknum] = arr
-	
-	f = open(DatabaseHelper.getFileName(puzzname, options),"wb")
-
-	print "writing to file "+str(f)
+	filename = DatabaseHelper.getFileName(puzzname, options)
+	print "writing to file %s"%filename
+	f = open(filename, "wb")
 	pickle.dump({'puzzle': puzzname,
 		'options': options,
 		'fields': fields,
 		'chunkbits': CHUNKBITS}, f)
-	offsetbase = (f.tell() + (CHUNK-1)) >> CHUNKBITS
+	chunkbase = (f.tell() + (CHUNK-1)) >> CHUNKBITS
 	
-	#for i in xrange((len(l)+CHUNK)/CHUNK):
-	#	bytechunk = ''.join(l[i*CHUNK : (i+1)*CHUNK])
-	#	f.write(bytechunk)
-	for pos in alldata:
-		f.seek((offsetbase + pos)<<CHUNKBITS)
-		f.write(''.join(alldata[pos]))
+	default = str(bitClass(remoteness=0)) # remoteness==0 but not solution means not seen.
+	
+	maxchunks = 1 + solver.maxHash/CHUNK
+	print "Maximum hash is %d, number of %d-byte chunks to write is %d"%(solver.maxHash, CHUNK, maxchunks)
+	
+	for chunknum in range(0,maxchunks):
+		arr = []
+		for chunkoff in range(CHUNK):
+			position = (chunknum<<CHUNKBITS)+chunkoff
+			myval = solver.seen.get(position, None)
+			if not myval:
+				continue
+			
+			val = bitClass(remoteness=myval)
+			setList(arr, chunkoff, str(val), default)
+		
+		pct = 100.0*float(1+chunknum)/maxchunks
+		print "[%3.2f%%] Writing chunk %d/%d to file %s"%(pct, chunknum, maxchunks, filename)
+		if arr:
+			f.seek((chunkbase + chunknum)<<CHUNKBITS)
+			f.write(''.join(arr))
 	
 	f.close()
 	print "Done!"
