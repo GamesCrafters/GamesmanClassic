@@ -1,4 +1,5 @@
 from Solver import Solver
+import cPickle
 
 class UnreverseSolver(Solver):
     """
@@ -62,22 +63,27 @@ class UnreverseSolver(Solver):
             if verbose and len(self.levels[level+1]) > 0:
                 print "Level " + str(level+1) + " : " + str(len(self.levels[level+1]))
             level += 1
-        index = 0
+        del self.levels[level] # the last one is always empty
+        self.findSolutionPaths()
+        self.findDeadendPaths()
 
-        # find all solution paths
+    def findSolutionPaths(self):
+        '''
+        Find all solution paths.
+        '''
         stack = []
         for hashed_solution in self.solutions:
             stack.append((hashed_solution, []))
         while len(stack) > 0:
             current = stack[-1]
             hashed_puzzle = current[0]
-            unhashed_puzzle = puzzle.unhash(hashed_puzzle)
+            unhashed_puzzle = self.puzzle.unhash(hashed_puzzle)
             stack = stack[0:-1]
             if hashed_puzzle in self.undoMove.keys():
                 for move in self.undoMove[hashed_puzzle]:
                     l_copy = current[1][:]
                     l_copy.append((current[0], unhashed_puzzle.value()))
-                    parent = puzzle.unhash(hashed_puzzle) - move
+                    parent = self.puzzle.unhash(hashed_puzzle) - move
                     stack.append((hash(parent), l_copy))
             elif self.seen[hashed_puzzle][0] == 0:
                 current[1].append((current[0], unhashed_puzzle.value()))
@@ -85,28 +91,29 @@ class UnreverseSolver(Solver):
             else:
                 print "Error: invalid position"
 
-        # find all deadend paths
+    def findDeadendPaths(self):
+        '''
+        Find all deadend paths.
+        '''
         stack = []
         for hashed_deadend in self.deadends:
             stack.append((hashed_deadend, []))
         while len(stack) > 0:
             current = stack[-1]
             hashed_puzzle = current[0]
-            unhashed_puzzle = puzzle.unhash(hashed_puzzle)
+            unhashed_puzzle = self.puzzle.unhash(hashed_puzzle)
             stack = stack[0:-1]
             if hashed_puzzle in self.undoMove.keys():
                 for move in self.undoMove[hashed_puzzle]:
                     l_copy = current[1][:]
                     l_copy.append((current[0], unhashed_puzzle.value()))
-                    parent = puzzle.unhash(hashed_puzzle) - move
+                    parent = self.puzzle.unhash(hashed_puzzle) - move
                     stack.append((hash(parent), l_copy))
-            elif self.seen[hashed_puzzle][0] == 0:
+            elif hashed_puzzle in self.seen and self.seen[hashed_puzzle][0] == 0:
                 current[1].append((current[0], unhashed_puzzle.value()))
                 self.deadpaths.append(current[1])
             else:
                 print "Error: invalid position"
-                
-        del self.levels[level] # the last one is always empty
 
     def findPath(self, puzzle):
         '''
@@ -198,50 +205,7 @@ class UnreverseSolver(Solver):
         Saves the data to a file.
         '''
         f = open(fname, 'w')
-        f.write('levels\n')
-        for l in self.levels.keys():
-            f.write(str(l)+'\n')
-            for elt in self.levels[l]:
-                f.write(str(elt)+' ')
-            f.write('\n')
-        f.write('seen\n')
-        for l in self.seen.keys():
-            f.write(str(l)+'\n')
-            elt = self.seen[l]
-            f.write(str(elt[0])+' '+str(elt[1]))
-            f.write('\n')
-        f.write('move\n')
-        for h_p in self.move.keys():
-            f.write(str(h_p)+'\n')
-            for elt in self.move[h_p]:
-                f.write(str(elt)+' ')
-            f.write('\n')
-        f.write('undoMove\n')
-        for h_p in self.undoMove.keys():
-            f.write(str(h_p)+'\n')
-            for elt in self.undoMove[h_p]:
-                f.write(str(elt)+' ')
-            f.write('\n')
-        f.write('solutions\n')
-        for h_p in self.solutions:
-            f.write(str(h_p)+' ')
-        f.write('\ndeadends\n')
-        for h_p in self.deadends:
-            f.write(str(h_p)+' ')
-        f.write('\ngoodpaths\n')
-        index = 0
-        for goodpath in self.goodpaths:
-            f.write(str(index)+'\n')
-            for elt in goodpath:
-                f.write(str(elt[0])+' '+str(elt[1])+'\n')
-            index += 1
-        f.write('deadpaths\n')
-        index = 0
-        for deadpath in self.deadpaths:
-            f.write(str(index)+'\n')
-            for elt in deadpath:
-                f.write(str(elt[0])+' '+str(elt[1])+'\n')
-            index += 1
+        cPickle.dump((self.levels, self.deadends, self.goodpaths, self.deadpaths), f)
         f.close()
 
     def load(self, fname, puzzle):
@@ -250,62 +214,23 @@ class UnreverseSolver(Solver):
         '''
         self.puzzle = puzzle
         f = open(fname)
-        l = f.readline()
-        mode = None
-        while not (l == ''):
-            l = l[:-1]
-            if (l == 'levels') or (l == 'seen') or (l == 'move') or (l == 'undoMove') or (l == 'solutions') or (l == 'deadends') or (l == 'goodpaths') or (l == 'deadpaths'):
-                mode = l
-            elif mode == 'levels':
-                nextl = f.readline()
-                elts = nextl.split()
-                level = int(l)
-                index = 0
-                length = len(elts)
-                while index < length:
-                    h_p = int(elts[index])
-                    elts[index] = h_p
-                    index += 1
-                self.levels[level] = elts[:]
-            elif mode == 'seen':
-                h_p = l.split()
-                nextl = f.readline()
-                elts = nextl.split()
-                self.seen[int(h_p[0])] = (int(elts[0]), int(elts[1]))
-            elif mode == 'move':
-                h_p = int(l)
-                nextl = f.readline()
-                elts = nextl.split()
-                self.move[h_p] = elts[:]
-            elif mode == 'undoMove':
-                h_p = int(l)
-                nextl = f.readline()
-                elts = nextl.split()
-                self.undoMove[h_p] = elts[:]
-            elif mode == 'solutions':
-                elts = l.split()
-                for elt in elts:
-                    self.solutions.append(int(elt))
-            elif mode == 'deadends':
-                elts = l.split()
-                for elt in elts:
-                    self.deadends.append(int(elt))
-            elif mode == 'goodpaths':
-                elts = l.split()
-                if len(elts) == 1:
-                    index = int(elts[0])
-                    self.goodpaths.append([])
-                else: # continue current array
-                    self.goodpaths[index].append((int(elts[0]),int(elts[1])))
-            else: # mode == 'deadpaths'
-                elts = l.split()
-                if len(elts) == 1:                    
-                    index = int(elts[0])
-                    self.deadpaths.append([])
-                else: # continue current array
-                    self.deadpaths[index].append((int(elts[0]),int(elts[1])))
-            l = f.readline()
+        self.levels, self.deadends, self.goodpaths, self.deadpaths = cPickle.load(f)
         f.close()
+        for level in self.levels:
+            for elt in self.levels[level]:
+                self.seen[elt] = level
+        for position in self.seen.keys():
+            self.move[position] = []
+            old_lv = self.seen[position]
+            current = self.puzzle.unhash(position)
+            for move in current.generate_moves():
+                copy = current
+                new_lv = self.seen[hash(copy+move)]
+                if new_lv > old_lv:
+                    self.move[position].append(move)
+                elif new_lv < old_lv:
+                    self.undoMove[position].append(move)
+        self.solutions = self.puzzle.generate_solutions()
 
     # mark_path_to_answer and graph are not checked
     def mark_path_to_answer(self, puzzle):
