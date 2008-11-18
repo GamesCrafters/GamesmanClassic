@@ -42,17 +42,18 @@ def writeDatabase(puzzname, options):
 	
 	alldata = {}
 	default = str(bitClass(remoteness=0)) # remoteness==0 but not solution means not seen.
-	for i in range(solver.get_max_level()+1): # +1 includes starting position
-		print 'Level %d'%i
-		for x in solver.levels[i]:
-			position = hash(x)
-			chunknum = position>>CHUNKBITS
-			chunkoff = position&(CHUNK-1)
-			
-			arr = alldata.get(chunknum, [])
-			val = bitClass(remoteness=i)
-			setList(arr, chunkoff, str(val), default)
-			alldata[chunknum] = arr
+	
+	for position in range(solver.maxHash):
+		myval = solver.seen.get(position, None)
+		if not myval:
+			continue
+		chunknum = position>>CHUNKBITS
+		chunkoff = position&(CHUNK-1)
+		
+		arr = alldata.get(chunknum, [])
+		val = bitClass(remoteness=myval)
+		setList(arr, chunkoff, str(val), default)
+		alldata[chunknum] = arr
 	
 	f = open(DatabaseHelper.getFileName(puzzname, options),"wb")
 
