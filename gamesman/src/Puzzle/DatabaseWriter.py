@@ -3,6 +3,7 @@ import DatabaseHelper
 import Solver
 import Puzzle
 import pickle
+import time
 
 def setList(lis, element, value, default):
 	length = len(lis)
@@ -21,7 +22,7 @@ def numBits(x):
 		a += 1
 	return a
 
-def writeDatabase(puzzname, options):
+def solveDatabase(puzzname, options):
 	if puzzname.find('/') != -1 or puzzname.find('\\') != -1:
 		raise ArgumentException, "invalid puzzle"
 
@@ -34,6 +35,10 @@ def writeDatabase(puzzname, options):
 	solver.solve(puzzle,verbose=True)
 	
 	print "Solved!  Generating array of values"
+	
+	return solver
+
+def writeDatabase(puzzname, options, solver):
 	fields =[('remoteness',numBits(solver.get_max_level()))]
 	bitClass = DatabaseHelper.makeBitClass(fields)
 	
@@ -54,9 +59,10 @@ def writeDatabase(puzzname, options):
 	maxchunks = 1 + solver.maxHash/CHUNK
 	print "Maximum hash is %d, number of %d-byte chunks to write is %d"%(solver.maxHash, CHUNK, maxchunks)
 	
-	for chunknum in range(0,maxchunks):
+	lasttime = starttime = time.time()
+	for chunknum in xrange(0,maxchunks):
 		arr = []
-		for chunkoff in range(CHUNK):
+		for chunkoff in xrange(CHUNK):
 			position = (chunknum<<CHUNKBITS)+chunkoff
 			myval = solver.seen.get(position, None)
 			if not myval:
@@ -65,8 +71,16 @@ def writeDatabase(puzzname, options):
 			val = bitClass(remoteness=myval)
 			setList(arr, chunkoff, str(val), default)
 		
+		nexttime = time.time()
 		pct = 100.0*float(1+chunknum)/maxchunks
-		print "[%3.2f%%] Writing chunk %d/%d to file %s"%(pct, chunknum, maxchunks, filename)
+		if chunknum==0:
+			print "Writing first chunk out of %d to file %s"%(maxchunks,filename)
+		elif nexttime - lasttime > 0.5 or chunknum==1:
+			timeleft = (maxchunks-chunknum) * ((nexttime-starttime)/chunknum)
+			minleft = int(timeleft/60)
+			secleft = int(timeleft)%60
+			print "[%3.2f%%] Writing chunk %d/%d to file %s, %d:%d minutes left"%(pct, chunknum, maxchunks, filename, minleft, secleft)
+			lasttime = nexttime
 		if arr:
 			f.seek((chunkbase + chunknum)<<CHUNKBITS)
 			f.write(''.join(arr))
@@ -80,5 +94,6 @@ if __name__=='__main__':
 	if len(sys.argv)<2:
 		print >>sys.stderr, "Arguments: Python file to import (without .py)"
 		sys.exit(0)
-	writeDatabase(sys.argv[1], {})
+	solver = solveDatabase(sys.argv[1], {})
+ 	writeDatabase(sys.argv[1], {}, solver)
 
