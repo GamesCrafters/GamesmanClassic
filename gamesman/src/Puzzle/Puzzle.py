@@ -52,6 +52,26 @@ class Puzzle:
     def value(self):
         return 1
 
+    # Functions required for web framework:
+    def serialize(self):
+        """Returns a string representation of this object that can be unserialized.
 
-
+           Has a similar relation as __hash__ and unhash, but should be independent
+           of the hashing function used.  In some cases, __str__ can be used.
+           """
+        return str(self)
     
+    # Dictionary containing the default options passed to constructor.
+    default_options = {}
+    
+    @staticmethod
+    def unserialize(self, options, boardstr):
+        """Takes the output of serialize() and returns a new Puzzle object.
+
+           If the board is invalid, returns None
+           'options' is A dictionary containg any other arguments for the constructor.
+           """
+        pass # return new object with passed options and parse board string
+
+
+
