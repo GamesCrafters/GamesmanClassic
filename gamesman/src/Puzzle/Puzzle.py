@@ -69,9 +69,6 @@ class Puzzle:
         """Takes the output of serialize() and returns a new Puzzle object.
 
            If the board is invalid, returns None
-           'options' is A dictionary containg any other arguments for the constructor.
+           'options' is a dictionary containing any other arguments for the constructor.
            """
         pass # return new object with passed options and parse board string
-
-
-
