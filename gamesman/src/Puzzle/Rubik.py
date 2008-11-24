@@ -36,7 +36,7 @@ class Rubik(Puzzle):
     #The cube will be represented as an array of 8 numbers, where each number is N*3 + T,
     #where N is the number of piece (as in the above diagram), and T is the
     #number of turns clockwise necessary to orient the piece. A piece is oriented
-    #if it has either the U or D color on U or D.
+    #if it has either the U or D color on the U or D face.
     def is_oriented(self, c):
         return c == "U" or c == "D"
     
@@ -50,24 +50,34 @@ class Rubik(Puzzle):
     #This method exists because python does not provide a way to have multiple constructors
     def initializeCubeWithStickers(self, F="FFFF", U="UUUU", R="RRRR", L="LLLL", B="BBBB", D="DDDD"):
         self.pieces = []
-        orientation = 0
+        self.orientations = []
+        visited = [ False for i in range(8) ]
         for c in range(8):
             up = c < 4
-            s0 = eval("DU"[up])[c % 4]                  # this sticker is facing up or down
+            s0 = eval("DU"[up])[(c - 2*(not up)) % 4]   # this sticker is facing up or down
             s2 = eval("RFBLFLRB"[c])[3 * up]            # this sticker is clockwise of s0
             s1 = eval("RFBLFLRB"[(c + 4) % 8])[1 + up]  # this sticker is counter clockwise of s0
-            corner = [  ]
-            #TODO - check if is valid and unvisited corner
             n = self.values[s0] + self.values[s1] + self.values[s2]
-            t = 1*self.is_oriented(s1) + 2*self.is_oriented(s2)
-            orientation += t
-            self.pieces.append(3*n + t)
+            #checking if we've visited this corner already
+            if visited[n]:
+                raise "Duplicate corner"
+            visited[n] = True
+            
+            self.pieces.append(n)
+            self.orientations.append(1*self.is_oriented(s1) + 2*self.is_oriented(s2))
         
-        if orientation % 3 != 0:
+        if sum(self.orientations) % 3 != 0:
             raise "Invalid corner orientation"
-        
-    def __init__(self, pieces=[3*n for n in range(8)]):
+        if self.pieces[7] != 7:
+            raise "Piece 7 must be in the BLD location"
+        if self.orientations[7] != 0:
+            raise "Piece 7 must be correctly oriented"
+
+    def __init__(self, pieces = range(8), orientations = [0 for i in range(8)]):
         self.pieces = pieces
+        self.orientations = orientations
+        if len(pieces) != len(orientations):
+            raise "Pieces array different length than orientations array"
         Puzzle(True)
 
     def generate_solutions(self):
@@ -78,66 +88,118 @@ class Rubik(Puzzle):
     def generate_moves(self):
         return ["F", "F2", "F'", "U", "U'", "U2", "R", "R'", "R2"]
 
-    #this returns the value of the corner after being twisted turnsCW
-    def twist_cw(self, corner, turnsCW):
-        return 3 * (corner / 3) + (corner - turnsCW) % 3
-    
+    def cycle_pieces(self, p1, p2, pieces):
+        pieces[p1], pieces[p1+4], pieces[p2], pieces[p2-4] = pieces[p2-4], pieces[p1], pieces[p1+4], pieces[p2]
+        
     def do_move(self, move):
         times = self.turns.index(move[1:])
         pieces = list(self.pieces)
+        orientations = list(self.orientations)
         for i in range(times):
             if move[0] == 'F':
-                pieces[0], pieces[4], pieces[5], pieces[1] = pieces[1], pieces[0], pieces[4], pieces[5]
-                pieces[0] = self.twist_cw(pieces[0], 1)
-                pieces[1] = self.twist_cw(pieces[1], 2)
-                pieces[4] = self.twist_cw(pieces[4], 2)
-                pieces[5] = self.twist_cw(pieces[5], 1)
+                self.cycle_pieces(0, 5, pieces)
+                self.cycle_pieces(0, 5, orientations)
+                orientations[0] = (orientations[0] + 2) % 3
+                orientations[4] = (orientations[4] + 1) % 3
+                orientations[5] = (orientations[5] + 2) % 3
+                orientations[1] = (orientations[1] + 1) % 3
             elif move[0] == 'U':
                 pieces[0], pieces[1], pieces[3], pieces[2] = pieces[2], pieces[0], pieces[1], pieces[3]
             elif move[0] == 'R':
-                pieces[0], pieces[2], pieces[6], pieces[4] = pieces[4], pieces[0], pieces[2], pieces[6]
-                pieces[0] = self.twist_cw(pieces[0], 2)
-                pieces[2] = self.twist_cw(pieces[2], 1)
-                pieces[4] = self.twist_cw(pieces[4], 1)
-                pieces[6] = self.twist_cw(pieces[6], 2)
+                self.cycle_pieces(2, 4, pieces)
+                self.cycle_pieces(2, 4, orientations)
+                orientations[2] = (orientations[2] + 2) % 3
+                orientations[6] = (orientations[6] + 1) % 3
+                orientations[4] = (orientations[4] + 2) % 3
+                orientations[0] = (orientations[0] + 1) % 3
             else:
                 raise "BadMoveError", move + " is not one of [FUR][ '2]"
-        return Rubik(pieces)
+        return Rubik(pieces, orientations)
 
     turns = [ None, "", "2", "'" ]
     def reverse_move(self, move):
         return move[0] + self.turns[4 - self.turns.index(move[1:])]
 
-    """TODO: Ethan, this is all you"""
+    dotty_color_scheme = { "U" : "white", "F" : "red", "R" : "blue", "B" : "orange", "L" : "green", "D" : "yellow" }
+    console_color_scheme = { "U" : "1;29", "F" : "0;31", "R" : "0;36", "B" : "1;31", "L" : "0;32", "D" : "0;33" }
+    
+#<lenox> Black       0;30     Dark Gray     1;30
+#<lenox> Blue        0;34     Light Blue    1;34
+#<lenox> Green       0;32     Light Green   1;32
+#<lenox> Cyan        0;36     Light Cyan    1;36
+#<lenox> Red         0;31     Light Red     1;31
+#<lenox> Purple      0;35     Light Purple  1;35
+#<lenox> Brown       0;33     Yellow        1;33
+#<lenox> Light Gray  0;37     White         1;37
+#<lenox> Other codes available include 4: Underscore, 5: Blink, 7: = Inverse, and 8: Concealed.
+    
     def __str__(self):
-        #return self.T+'|'+self.R+'|'+self.L+'|'+self.BT+'|'+self.BR+'|'+self.BL
+        nl = '\n'
+        import inspect
+        graphing = inspect.stack()[1][3] == "graph"
+        if graphing:
+            nl = '<br align="left" />' #for dotty (\l for left alignment!)
+            
         solved_cube = (("U","R","F"),("U","F","L"),("U","B","R"),("U","L","B"),("D","F","R"),("D","L","F"),("D","R","B"),("D","B","L")) # solved pieces are how each cube (as represented in the picture above) would look going clockwise
-        pieces = list(self.pieces)
         current_state = []
-        for x in range(len(pieces)):
+        for i, piece in enumerate(self.pieces):
             current_chunk = []
-            real_piece = pieces[x] / 3
-            rotations_from_orientation = pieces[x] % 3
-            current_chunk.append(solved_cube[real_piece][(0-rotations_from_orientation)]) #top piece
-            current_chunk.append(solved_cube[real_piece][(1-rotations_from_orientation)]) #right piece
-            current_chunk.append(solved_cube[real_piece][(2-rotations_from_orientation)]) #left piece
+            orientation = self.orientations[i]
+            current_chunk.append(solved_cube[piece][orientation]) #top piece
+            current_chunk.append(solved_cube[piece][(orientation + 1) % 3]) #right piece
+            current_chunk.append(solved_cube[piece][(orientation + 2) % 3]) #left piece
             current_state.append(current_chunk) # This is the stickers on piece[x] arranged clockwise
-        cube_string = "         +-----+\n"
-        cube_string += "         |"+current_state[3][0]+" U "+current_state[2][0]+"|\n"
-        cube_string += "         |"+current_state[1][0]+"   "+current_state[0][0]+"|\n"
-        cube_string += "         +-----+\n"
-        cube_string += " +-----+ +-----+ +-----+ +-----+\n"
-        cube_string += " |"+current_state[3][1]+" L "+current_state[1][2]+"| |"+current_state[1][1]+" F "+current_state[0][2]+"| |"+current_state[0][1]+" R "+current_state[2][2]+"| |"+current_state[2][1]+" B "+current_state[3][2]+"|\n"
-        cube_string += " |"+current_state[7][2]+"   "+current_state[5][1]+"| |"+current_state[5][2]+"   "+current_state[4][1]+"| |"+current_state[4][2]+"   "+current_state[6][1]+"| |"+current_state[6][2]+"   "+current_state[7][1]+"|\n"
-        cube_string += " +-----+ +-----+ +-----+ +-----+\n"
-        cube_string += "         +-----+\n"
-        cube_string += "         |"+current_state[5][0]+" D "+current_state[4][0]+"|\n"
-        cube_string += "         |"+current_state[7][0]+"   "+current_state[6][0]+"|\n"
-        cube_string += "         +-----+\n"
+            
+#        cube_string =  "        +-----+" + nl
+#        cube_string += "        |"+current_state[3][0]+" U "+current_state[2][0]+"|" + nl
+#        cube_string += "        |"+current_state[1][0]+"   "+current_state[0][0]+"|" + nl
+#        cube_string += "        +-----+" + nl
+#        cube_string += "+-----+ +-----+ +-----+ +-----+" + nl
+#        cube_string += "|"+current_state[3][1]+" L "+current_state[1][2]+"| |"+current_state[1][1]+" F "+current_state[0][2]+"| |"+current_state[0][1]+" R "+current_state[2][2]+"| |"+current_state[2][1]+" B "+current_state[3][2]+"|" + nl
+#        cube_string += "|"+current_state[7][2]+"   "+current_state[5][1]+"| |"+current_state[5][2]+"   "+current_state[4][1]+"| |"+current_state[4][2]+"   "+current_state[6][1]+"| |"+current_state[6][2]+"   "+current_state[7][1]+"|" + nl
+#        cube_string += "+-----+ +-----+ +-----+ +-----+" + nl
+#        cube_string += "        +-----+" + nl
+#        cube_string += "        |"+current_state[5][0]+" D "+current_state[4][0]+"|" + nl
+#        cube_string += "        |"+current_state[7][0]+"   "+current_state[6][0]+"|" + nl
+#        cube_string += "        +-----+" + nl
+        
+        cube_string =  "                                  ___________" + nl
+        cube_string += "                                 |     |     |" + nl
+        cube_string += "                    __________   |  "+current_state[2][1]+"  |  "+current_state[3][2]+"  |" + nl
+        cube_string += "   /|              / "+current_state[3][0]+"  / "+current_state[2][0]+"  /|  |_____|_____|" + nl
+        cube_string += "  / |             /____/____/ |  |     |     |" + nl
+        cube_string += " /| |            / "+current_state[1][0]+"  / "+current_state[0][0]+"  /| |  |  "+current_state[6][2]+"  |  "+current_state[7][1]+"  |" + nl
+        cube_string += "/ |"+current_state[1][2]+"|           /____/____/ |"+current_state[2][2]+"|  |_____|_____|" + nl
+        cube_string += "|"+current_state[3][1]+"| |          |     |    |"+current_state[0][1]+"| |     BACK" + nl
+        cube_string += "| |/|          |  "+current_state[1][1]+"  | "+current_state[0][2]+"  | |/|" + nl
+        cube_string += "|/|"+current_state[5][1]+"|          |_____|____|/|"+current_state[6][1]+"|" + nl
+        cube_string += "|"+current_state[7][2]+"| |          |     |    |"+current_state[4][2]+"| |" + nl
+        cube_string += "| |/           |  "+current_state[5][2]+"  | "+current_state[4][1]+"  | |/" + nl
+        cube_string += "|/LEFT         |_____|____|/" + nl + nl + nl 
+        cube_string += "              __________" + nl
+        cube_string += "             / "+current_state[5][0]+"  / "+current_state[4][0]+"  /" + nl
+        cube_string += "            /____/____/" + nl
+        cube_string += "           / "+current_state[7][0]+"  / "+current_state[6][0]+"  /" + nl
+        cube_string += "          /____/____/" + nl
+        cube_string += "              DOWN" + nl
+        
+        if graphing:
+            for face, color in self.dotty_color_scheme.iteritems():
+                cube_string = cube_string.replace(face, '<font color="' + color + '">' + face + '</font>')
+            cube_string = "<table><tr><td bgcolor=\"gray\">" + cube_string + "</td></tr></table>"
+        else:
+            for face, color in self.console_color_scheme.iteritems():
+                cube_string = cube_string.replace(face, '\033[' + color + 'm' + face + '\033[m')
+                
         return cube_string
     
     def __hash__(self):
         hash = 0
-        for i, piece in enumerate(self.pieces):
-            hash |= piece << (5 * i)
+        #only need to hash the first 6 pieces to be unique
+        for piece in self.pieces[:-2]:
+            hash <<= 3
+            hash |= piece
+        for orientation in self.orientations[:-2]:
+            hash <<= 2
+            hash |= orientation
         return hash
