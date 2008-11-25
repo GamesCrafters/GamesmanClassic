@@ -2,9 +2,10 @@
 # Puzzle Team
 # @author: Roger Tu
 
-from Puzzle import Puzzle
+from UnreversePuzzle import UnreversePuzzle
+import copy
 
-class TriangularPegSolitaire(Puzzle):
+class TriangularPegSolitaire(UnreversePuzzle):
     """This is the Triangular Peg Solitaire Class"""
     
     pegCharacter = 'o'
@@ -38,15 +39,16 @@ class TriangularPegSolitaire(Puzzle):
 	tmpBoard.size = len(tmpBoard.board)
 	return tmpBoard
 
-    def __init__(self, size = 5, start = 0, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]]):
+    def __init__(self, size = 5, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]], start = 0):
 	self.size = size
+	self.board = copy.deepcopy(board)
 	self.start = start
-	self.board = board[:]
     '''
     def copy(self, board = self.board):
 	tmp = TriangularPegSolitaire(self.size, board, self.start)
 	return tmp
 	'''
+
     def serialize(self):
 	string = ''
 	for r in range(len(self.board)):
@@ -83,15 +85,15 @@ class TriangularPegSolitaire(Puzzle):
         return tmp
 
     def __flip__(self):
-	tmp = self.board[:]
+	tmpBoard = copy.deepcopy(self.board)
 	for row in range(len(self.board)):
 	    for col in range(len(self.board[row])):
-		tmp[row][col] = not tmp[row][col]
-	return TriangularPegSolitaire(self.size, self.start, tmp)
+		tmpBoard[row][col] = not tmpBoard[row][col]
+	return TriangularPegSolitaire(self.size, tmpBoard, self.start)
     
     def __triangular__(self):
 	return (self.size * (self.size + 1) / 2)
-    
+
     def generate_solutions(self):
         solutions = []
 	for position in range(self.__triangular__()):
@@ -99,7 +101,7 @@ class TriangularPegSolitaire(Puzzle):
 	    tmp = tmp.__flip__()
 	    solutions.append(tmp)
         return solutions
-    
+    '''
     def generate_moves(self):
         moves = []
         for row in range(len(self.board)):
@@ -118,13 +120,15 @@ class TriangularPegSolitaire(Puzzle):
 		   (self.board[row - 2][col]):
 		    moves.append((row, col, row - 1, col, row - 2, col))
 		# check south east
+		# this is actually south west
 		if (col < len(self.board[row]) - 2) and \
 		   (row < len(self.board) - 2) and \
 		   (self.board[row][col]) and \
 		   (self.board[row][col + 1]) and not \
 		   (self.board[row][col + 2]):
 		    moves.append((row, col, row, col + 1, row, col + 2))
-		# check west
+		# check west]
+		# error: this is not west....
 		if (col > 1) and \
 		   (self.board[row][col]) and \
 		   (self.board[row][col - 1]) and not \
@@ -138,27 +142,77 @@ class TriangularPegSolitaire(Puzzle):
 		   (self.board[row - 2][col - 2]):
 		    moves.append((row, col, row - 1, col - 1, row - 2, col - 2))
 		# check south west
+		# not physically possible
 		if (col > 1) and\
 		   (row < len(self.board) - 2) and\
 		   (self.board[row][col]) and\
 		   (self.board[row + 1][col - 1]) and not\
 		   (self.board[row + 2][col - 2]):
 		    moves.append((row, col, row + 1, col - 1, row + 2, col - 2))
+		# missing south east
         return moves
+    '''
 
+    def generate_moves(self):
+        moves = []
+        for row in range(len(self.board)):
+            for col in range(len(self.board[row])):
+		# check east
+		if (col < len(self.board[row]) - 2) and \
+		   (self.board[row][col]) and \
+		   (self.board[row][col + 1]) and not \
+		   (self.board[row][col + 2]):
+		    moves.append((row, col, row, col + 1, row, col + 2))
+		# check south
+		if (row < len(self.board) - 2) and \
+		   (self.board[row][col]) and \
+		   (self.board[row + 1][col]) and not \
+		   (self.board[row + 2][col]):
+		    moves.append((row, col, row + 1, col, row + 2, col))
+		# check west
+		if (col > 1) and \
+                   (row > 1) and \
+		   (self.board[row][col]) and \
+		   (self.board[row][col - 1]) and not \
+		   (self.board[row][col - 2]):
+		    moves.append((row, col, row, col - 1, row, col - 2))
+		# check north
+		if (row > 1) and \
+                   (col < len(self.board[row]) - 2) and \
+		   (self.board[row][col]) and \
+		   (self.board[row - 1][col]) and not \
+		   (self.board[row - 2][col]):
+		    moves.append((row, col, row - 1, col, row - 2, col))
+		# check north west
+		if (col > 1) and \
+		   (row > 1) and \
+		   (self.board[row][col]) and \
+		   (self.board[row - 1][col - 1]) and not \
+		   (self.board[row - 2][col - 2]):
+		    moves.append((row, col, row - 1, col - 1, row - 2, col - 2))
+		# check south east
+		if (row < len(self.board) - 2) and \
+		   (self.board[row][col]) and \
+		   (self.board[row + 1][col + 1]) and not \
+		   (self.board[row + 2][col + 2]):
+		    moves.append((row, col, row + 1, col + 1, row + 2, col + 2))
+        return moves
+    
     def do_move(self, move):
-	tmpBoard = self.board[:]
+        tmpBoard = copy.deepcopy(self.board)
 	tmpBoard[move[0]][move[1]] = False
 	tmpBoard[move[2]][move[3]] = False
 	tmpBoard[move[4]][move[5]] = True
-        return TriangularPegSolitaire(self.size, self.start, tmpBoard)
+	#copy(tmpBoard)
+        return TriangularPegSolitaire(self.size, tmpBoard, self.start)
     
     def undo_move(self, move):
-	tmpBoard = self.board[:]
+	tmpBoard = copy.deepcopy(self.board)
 	tmpBoard[move[0]][move[1]] = True
 	tmpBoard[move[2]][move[3]] = True
 	tmpBoard[move[4]][move[5]] = False
-        return TriangularPegSolitaire(self.size, self.start, tmpBoard)
+	#copy(tmpBoard)
+        return TriangularPegSolitaire(self.size, tmpBoard, self.start)
 
     def __add__(self, move):
         return self.do_move(move)
@@ -168,16 +222,15 @@ class TriangularPegSolitaire(Puzzle):
     
     def is_a_solution(self):
         return self in self.generate_solutions()
-
+    '''
+    def is_a_solution(self):
+        s = 0
+        for row in range(len(self.board)):
+            for col in range(len(self.board[row])):
+                s += self.board[row][col]
+        return (s == 1)
+    '''
     def is_illegal(self):
-	'''
-	foo += (bar for bar in [baz.count(True) for baz in self.board])
-	triangular = (self.size) * (self.size + 1) / 2
-	if foo == triangular or foo == 0:
-	    return True
-	elif foo == (triangular - 1) and self.board[0][0]:
-	    return True
-	'''
         return False
     
     def is_deadend(self):
@@ -209,7 +262,7 @@ class TriangularPegSolitaire(Puzzle):
 	return hash
     
     def unhash(self, hash):
-	tmpBoard = self.board[:]
+	tmpBoard = copy.deepcopy(self.board)
 	index = 0
 	for row in range(len(self.board)):
 	    for col in range(len(self.board[row])):
@@ -218,7 +271,7 @@ class TriangularPegSolitaire(Puzzle):
 		else:
 		    tmpBoard[row][col] = False
 		index += 1
-	tmp = TriangularPegSolitaire(self.size, self.start, tmpBoard)
+	tmp = TriangularPegSolitaire(self.size, tmpBoard, self.start)
         return tmp
 
     def __str__(self):

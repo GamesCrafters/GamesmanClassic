@@ -1,4 +1,5 @@
 from Solver import Solver
+import UnreversePuzzle
 import cPickle
 
 class UnreverseSolver(Solver):
@@ -85,11 +86,9 @@ class UnreverseSolver(Solver):
                     l_copy.append((current[0], unhashed_puzzle.value()))
                     parent = self.puzzle.unhash(hashed_puzzle) - move
                     stack.append((hash(parent), l_copy))
-            elif self.seen[hashed_puzzle][0] == 0:
+            elif hashed_puzzle in self.seen and self.seen[hashed_puzzle][0] == 0:
                 current[1].append((current[0], unhashed_puzzle.value()))
                 self.goodpaths.append(current[1])
-            else:
-                print "Error: invalid position"
 
     def findDeadendPaths(self):
         '''
@@ -112,8 +111,6 @@ class UnreverseSolver(Solver):
             elif hashed_puzzle in self.seen and self.seen[hashed_puzzle][0] == 0:
                 current[1].append((current[0], unhashed_puzzle.value()))
                 self.deadpaths.append(current[1])
-            else:
-                print "Error: invalid position"
 
     def findPath(self, puzzle):
         '''
@@ -205,7 +202,7 @@ class UnreverseSolver(Solver):
         Saves the data to a file.
         '''
         f = open(fname, 'w')
-        cPickle.dump((self.levels, self.deadends, self.goodpaths, self.deadpaths), f)
+        cPickle.dump((self.levels, self.deadends, self.goodpaths, self.deadpaths, self.seen, self.move, self.undoMove), f)
         f.close()
 
     def load(self, fname, puzzle):
@@ -214,8 +211,9 @@ class UnreverseSolver(Solver):
         '''
         self.puzzle = puzzle
         f = open(fname)
-        self.levels, self.deadends, self.goodpaths, self.deadpaths = cPickle.load(f)
+        self.levels, self.deadends, self.goodpaths, self.deadpaths, self.seen, self.move, self.undoMove = cPickle.load(f)
         f.close()
+        '''
         for level in self.levels:
             for elt in self.levels[level]:
                 self.seen[elt] = level
@@ -230,6 +228,7 @@ class UnreverseSolver(Solver):
                     self.move[position].append(move)
                 elif new_lv < old_lv:
                     self.undoMove[position].append(move)
+        '''
         self.solutions = self.puzzle.generate_solutions()
 
     # mark_path_to_answer and graph are not checked
