@@ -1,6 +1,7 @@
 import sys
 import DatabaseHelper
 import Solver
+import UnreverseSolver
 import Puzzle
 import pickle
 import time
@@ -22,7 +23,7 @@ def numBits(x):
 		a += 1
 	return a
 
-def solveDatabase(puzzname, passedoptions):
+def solveDatabase(puzzname, passedoptions,isunreverse):
 	if puzzname.find('/') != -1 or puzzname.find('\\') != -1:
 		raise ArgumentException, "invalid puzzle"
 
@@ -32,26 +33,34 @@ def solveDatabase(puzzname, passedoptions):
 	options = {}
 	options.update(puzzleclass.default_options)
 	options.update(passedoptions)
-	print "Solving "+puzzleclass.__name__+" with options "+repr(options)+"..."
-	puzzle = puzzleclass.unserialize(options) # instantiates a new puzzle object
-	solver = Solver.Solver()
+	print "Solving "+puzzleclass.__name__+" with options "+repr(options)[1:-1]+"..."
+	puzzle = puzzleclass.unserialize(options) #.generate_start(**options) # instantiates a new puzzle object
+	if isunreverse:
+		solver = UnreverseSolver.UnreverseSolver()
+	else:
+		solver = Solver.Solver()
 	solver.solve(puzzle,verbose=True)
 	
 	print "Solved!  Generating array of values"
 	
 	return solver
 
-def writeDatabase(puzzname, passedoptions, solver):
+def writeDatabase(puzzname, passedoptions, solver, isunreverse):
 
 	module = __import__(puzzname)
 	puzzleclass = getattr(module, puzzname)
+
+	maxlevel = solver.get_max_level()
 	
 	options = {}
 	options.update(puzzleclass.default_options)
 	options.update(passedoptions)
 	print options
 	
-	fields =[('remoteness',numBits(solver.get_max_level()))]
+	fields =[('remoteness',numBits(maxlevel))]
+	if isunreverse:
+		fields.append(('score', numBits(maxlevel*2)));
+	
 	bitClass = DatabaseHelper.makeBitClass(fields)
 	
 	CHUNKBITS=8
@@ -63,6 +72,8 @@ def writeDatabase(puzzname, passedoptions, solver):
 	pickle.dump({'puzzle': puzzname,
 		'options': options,
 		'fields': fields,
+		'version': 1,
+		'maxlevel': maxlevel,
 		'chunkbits': CHUNKBITS}, f)
 	chunkbase = (f.tell() + (CHUNK-1)) >> CHUNKBITS
 	
@@ -81,7 +92,12 @@ def writeDatabase(puzzname, passedoptions, solver):
 			if not myval:
 				continue
 			
-			val = bitClass(remoteness=myval)
+			if isunreverse:
+				print myval
+				val = bitClass(remoteness=(maxlevel - myval[0]), score=myval[1])
+				print repr(str(val))
+			else:
+				val = bitClass(remoteness=myval)
 			setList(arr, chunkoff, str(val), default)
 		
 		nexttime = time.time()
@@ -95,7 +111,7 @@ def writeDatabase(puzzname, passedoptions, solver):
 			print "[%3.2f%%] Writing chunk %d/%d to file %s, %d:%d minutes left"%(pct, chunknum, maxchunks, filename, minleft, secleft)
 			lasttime = nexttime
 		if arr:
-			f.seek((chunkbase + chunknum)<<CHUNKBITS)
+			f.seek((chunkbase + (chunknum*bitClass.bytesize))<<CHUNKBITS)
 			f.write(''.join(arr))
 	
 	f.close()
@@ -107,6 +123,16 @@ if __name__=='__main__':
 	if len(sys.argv)<2:
 		print >>sys.stderr, "Arguments: Python file to import (without .py)"
 		sys.exit(0)
-	solver = solveDatabase(sys.argv[1], {})
- 	writeDatabase(sys.argv[1], {}, solver)
+	args = sys.argv[1:]
+	unreverse=False
+	if args[0]=="-u":
+		unreverse=True
+		args=args[1:]
+	
+	options = {}
+	for i in xrange(1,len(args)-1,2):
+		options[args[i]] = args[i+1]
+	
+	solver = solveDatabase(args[0], options, unreverse)
+ 	writeDatabase(args[0], options, solver, unreverse)
 

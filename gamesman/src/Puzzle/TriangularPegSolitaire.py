@@ -14,11 +14,15 @@ class TriangularPegSolitaire(UnreversePuzzle):
     default_options = {'size': 5, 'start': 0}
     
     @staticmethod
-    def unserialize(str):
+    def unserialize(options, str=None):
 	tmpBoard = TriangularPegSolitaire()
 	tmpBoard.board = []
 	row_length = 1
 	row = []
+	size = int(options['size'])
+	if str==None:
+		start = int(options['start'])
+		str = TriangularPegSolitaire(size=size, start=start).generate_start(size=size,start=start).serialize()
 	strindex = 0
 	while strindex < len(str):
 	    if str[strindex] == TriangularPegSolitaire.pegCharacter:

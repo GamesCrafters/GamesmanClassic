@@ -68,7 +68,7 @@ class Executor:
 		#minremoteness = min(*[p['remoteness'] for p in nextvalues])
 		minremoteness = curval['remoteness']-1
 		for val in nextvalues:
-			if not val.get('value'):
+			if val.get('value',-1) == -1:
 				if val['remoteness']<=minremoteness:
 					val['value'] = 3
 				elif val['remoteness']==minremoteness+1:
