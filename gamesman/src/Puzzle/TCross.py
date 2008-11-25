@@ -284,8 +284,11 @@ class TCross(Puzzle):
 
         return hashCode
     
-    @staticmethod
-    def unhash(hashCode, circle = False, binArt = False, dots = True, exactSol = True):
+    def unhash(self, hashCode):
+        circle = self.circle
+        binArt = self.binArt
+        dots = self.dots
+        exactSol = self.exactSol
         # set up an empty gameboard to be modified
         gameboard = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         boardLen = len(gameboard)

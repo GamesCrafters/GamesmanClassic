@@ -23,6 +23,9 @@ class Solver:
                 solutions += self.find_solutions(child)
             return solutions
 
+    def get_max_level(self):
+        return max(self.levels)
+
     def solve(self, puzzle, verbose=False, max_level=-1):
         self.puzzle = puzzle
         solutions = puzzle.generate_solutions()
