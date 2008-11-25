@@ -1,7 +1,6 @@
-import cPickle
-
 class Solver:
     """This is a solver of a single solution"""
+    
     def __init__(self):
         self.levels = {}         # level_num : [hashed_position, hashed_position, ...]
         self.seen = {}           # hashed_position : level_num
@@ -22,6 +21,7 @@ class Solver:
                 child = puzzle + move
                 solutions += self.find_solutions(child)
             return solutions
+
 
     def solve(self, puzzle, verbose=False, max_level=-1):
         self.puzzle = puzzle
@@ -53,6 +53,7 @@ class Solver:
                             self.move[hash(child)].append(position.reverse_move(move))
                         else:
                             pass # we've seen it before, but it isn't a solution path
+
             if verbose and len(self.levels[level+1]) > 0:
                 print "Level " + str(level+1) + " : " + str(len(self.levels[level+1]))
             level += 1
@@ -147,29 +148,55 @@ class Solver:
                 if print_levels:
                     print rankstr + " }"
 
-        print "}"
+        print "}"            
 
     def save(self, fname):
+        '''
+        Save levels, move, path_to_answer to a file.
+        '''
         f = open(fname, 'w')
-        #cPickle.dump((self.levels, self.seen, self.move), f)
-        cPickle.dump(self.levels, f)
+        f.write('levels\n')
+        for l in self.levels.keys():
+            f.write(str(l)+'\n')
+            for elt in self.levels[l]:
+                f.write(str(elt)+' ')
+            f.write('\n')
+        f.write('move\n')
+        for h_p in self.move.keys():
+            f.write(str(h_p)+'\n')
+            for elt in self.move[h_p]:
+                f.write(str(elt)+' ')
+            f.write('\n')
         f.close()
 
     def load(self, fname, puzzle):
+        '''
+        Load information from a file and a puzzle.
+        '''
         self.puzzle = puzzle
         f = open(fname)
-        #self.levels, self.seen, self.move = cPickle.load(f)
-        self.levels = cPickle.load(f)
+        l = f.readline()
+        mode = None
+        while not (l == ''):
+            l = l[:-1]
+            if (l == 'levels') or (l == 'move'):
+                mode = l
+            elif mode == 'levels':
+                nextl = f.readline()
+                elts = nextl.split()
+                level = int(l)
+                index = 0
+                length = len(elts)
+                while index < length:
+                    h_p = int(elts[index])
+                    self.seen[h_p] = level
+                    elts[index] = h_p
+                    index += 1
+                self.levels[level] = elts[:]
+            else: # mode == 'move'
+                h_p = int(l)
+                nextl = f.readline()
+                elts = nextl.split()
+                self.move[h_p] = elts[:]
+            l = f.readline()
         f.close()
-        for level in self.levels:
-            for elt in self.levels[level]:
-                self.seen[elt] = level
-        for position in self.seen.keys():
-            self.move[position] = []
-            old_lv = self.seen[position]
-            current = self.puzzle.unhash(position)
-            for move in current.generate_moves():
-                copy = current
-                new_lv = self.seen[hash(copy+move)]
-                if new_lv < old_lv:
-                    self.move[position].append(move)
