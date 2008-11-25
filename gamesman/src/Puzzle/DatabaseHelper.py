@@ -8,7 +8,9 @@ def replacebadchars(fname):
 
 def getFileName(gamename, options):
 	fname = 'db_'+replacebadchars(gamename)
-	for key in options.iterkeys():
+	mykeys= options.keys()
+	mykeys.sort()
+	for key in mykeys:
 		val = str(options[key])
 		fname += '_' + key + '=' + replacebadchars(val)
 	return fname
@@ -59,8 +61,14 @@ class OpenDB:
 		self.puzzleclass = getattr(__import__(pname), pname)
 		#self.puzzle = self.puzzleclass(**self.header['options'])
 	
+	def unserializePuzzle(self, boardstr):
+		return self.puzzleclass.unserialize(self.header['options'], boardstr)
+		
 	def getPuzzle(self, *args, **kwargs):
-		return self.puzzleclass(**self.header['options'])
+		options = {}
+		options.update(self.puzzleclass.default_options)
+		options.update(kwargs)
+		return self.puzzleclass.unserialize(options, *args)
 	
 	def read(self, mypuzzle, mydict = None):
 		if mypuzzle.is_illegal() and not mypuzzle.is_a_solution:
@@ -75,7 +83,7 @@ class OpenDB:
 		if d['remoteness'] == 0 and not mypuzzle.is_a_solution():
 			d['remoteness'] = -1 # Not a reachable position!
 		
-		d['board'] = str(mypuzzle)
+		d['board'] = mypuzzle.serialize()
 		return d
 	
 

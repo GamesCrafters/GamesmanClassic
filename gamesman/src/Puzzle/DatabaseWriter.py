@@ -22,15 +22,18 @@ def numBits(x):
 		a += 1
 	return a
 
-def solveDatabase(puzzname, options):
+def solveDatabase(puzzname, passedoptions):
 	if puzzname.find('/') != -1 or puzzname.find('\\') != -1:
 		raise ArgumentException, "invalid puzzle"
 
 	module = __import__(puzzname)
 	puzzleclass = getattr(module, puzzname)
 	
+	options = {}
+	options.update(puzzleclass.default_options)
+	options.update(passedoptions)
 	print "Solving "+puzzleclass.__name__+" with options "+repr(options)+"..."
-	puzzle = puzzleclass(**options) # instantiates a new puzzle object
+	puzzle = puzzleclass.unserialize(options) # instantiates a new puzzle object
 	solver = Solver.Solver()
 	solver.solve(puzzle,verbose=True)
 	
@@ -38,7 +41,16 @@ def solveDatabase(puzzname, options):
 	
 	return solver
 
-def writeDatabase(puzzname, options, solver):
+def writeDatabase(puzzname, passedoptions, solver):
+
+	module = __import__(puzzname)
+	puzzleclass = getattr(module, puzzname)
+	
+	options = {}
+	options.update(puzzleclass.default_options)
+	options.update(passedoptions)
+	print options
+	
 	fields =[('remoteness',numBits(solver.get_max_level()))]
 	bitClass = DatabaseHelper.makeBitClass(fields)
 	
@@ -56,6 +68,7 @@ def writeDatabase(puzzname, options, solver):
 	
 	default = str(bitClass(remoteness=0)) # remoteness==0 but not solution means not seen.
 	
+	solver.maxHash = 1000000
 	maxchunks = 1 + solver.maxHash/CHUNK
 	print "Maximum hash is %d, number of %d-byte chunks to write is %d"%(solver.maxHash, CHUNK, maxchunks)
 	

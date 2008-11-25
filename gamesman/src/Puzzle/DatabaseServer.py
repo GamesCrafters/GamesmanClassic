@@ -53,13 +53,28 @@ class Executor:
 		return ret
 
 	def do_getMoveValue(self, req):
-		p = parse_FCG_board(req['board'])
+		#p = parse_FCG_board(req['board'])
+		p = self.db.unserializePuzzle(req['board'])
 		return self.db.read(p)
 	
 	def do_getNextMoveValues(self, req):
-		mypuzz = parse_FCG_board(req['board'])
+		#mypuzz = parse_FCG_board(req['board'])
+
+		curval = self.do_getMoveValue(req)
+
+		mypuzz = self.db.unserializePuzzle(req['board'])
 		nextmoves = [(mypuzz.do_move(m), m) for m in mypuzz.generate_moves()]
 		nextvalues = [self.db.read(p, {'move': m}) for p, m in nextmoves if not p.is_illegal()]
+		#minremoteness = min(*[p['remoteness'] for p in nextvalues])
+		minremoteness = curval['remoteness']-1
+		for val in nextvalues:
+			if not val.get('value'):
+				if val['remoteness']<=minremoteness:
+					val['value'] = 3
+				elif val['remoteness']==minremoteness+1:
+					val['value'] = 2
+				else:
+					val['value'] = 1
 		return nextvalues
 	def __call__(self, req):
 		# if debug: print req

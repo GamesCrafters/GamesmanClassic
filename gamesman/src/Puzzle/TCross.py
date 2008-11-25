@@ -21,7 +21,7 @@ class TCross(Puzzle):
     # 6, 7, 8            = orange dot (dot)
     def __init__(self, gameboard = [25, 16, 30, 24, 21, 22, 10, 11, 19], # the nine pieces' index in board
                                     horizontalPos = 0, verticalPos = True, # state of sliders
-                                    circle = True, binArt = True, dots = True, exactSol = True): # options
+                                    circle = False, binArt = False, dots = True, exactSol = True): # options
         # only store the pieces that are necessary (otherwise hash will fail)
         self.gameboard = [-1, -1, -1, -1, -1, -1, -1, -1, -1]
         if circle:
@@ -54,8 +54,9 @@ class TCross(Puzzle):
         boardString += (self.verticalPos * 1).__str__()
         return boardString
     
+    default_options = {"circle":"0", "binArt":"0", "dots":"1", "exactSol":"1"}
     @staticmethod
-    def unserialize(options = {"circle":False, "binArt":False, "dots":True, "exactSol":True}, 
+    def unserialize(options, 
                     boardString = "-1 -1 -1 -1 -1 -1 20 29 30  1 1"):
         gameboard = [-1, -1, -1, -1, -1, -1, -1, -1, -1] # blank board
         
@@ -71,7 +72,7 @@ class TCross(Puzzle):
         if int(boardString[i]):
             vertPos = True
 
-        return TCross(gameboard, horizPos, vertPos, options["circle"], options["binArt"], options["dots"], options["exactSol"])
+        return TCross(gameboard, horizPos, vertPos, int(options["circle"]), int(options["binArt"]), int(options["dots"]), int(options["exactSol"]))
     
     def is_a_solution(self):
         # if exactSol, then just look in generate_solutions, otherwise look at pieces' relationships to determine if solution
