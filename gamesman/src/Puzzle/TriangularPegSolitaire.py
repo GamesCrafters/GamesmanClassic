@@ -9,16 +9,57 @@ class TriangularPegSolitaire(Puzzle):
     
     pegCharacter = 'o'
     blankCharacter = '.'
+    
+    default_options = {'size': 5, 'start': 0}
+    
+    @staticmethod
+    def unserialize(str):
+	tmpBoard = TriangularPegSolitaire()
+	tmpBoard.board = []
+	row_length = 1
+	row = []
+	strindex = 0
+	while strindex < len(str):
+	    if str[strindex] == TriangularPegSolitaire.pegCharacter:
+		row.append(True)
+	    elif str[strindex] == TriangularPegSolitaire.blankCharacter:
+		row.append(False)
+	    elif str[strindex] == ',':
+		strindex += 1
+		continue
+	    elif str[strindex] == ';':
+		tmpBoard.board.append(row)
+		row = []
+	    elif str[strindex] == ':':
+		strindex += 1
+		break
+	    strindex += 1
+	    
+	tmpBoard.size = len(tmpBoard.board)
+	return tmpBoard
 
-    def __init__(self, size = 5, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]], start = 0):
+    def __init__(self, size = 5, start = 0, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]]):
 	self.size = size
-	self.board = board[:]
 	self.start = start
+	self.board = board[:]
     '''
     def copy(self, board = self.board):
 	tmp = TriangularPegSolitaire(self.size, board, self.start)
 	return tmp
 	'''
+    def serialize(self):
+	string = ''
+	for r in range(len(self.board)):
+	    for c in range(len(self.board[r])):
+		if self.board[r][c]:
+		    string += TriangularPegSolitaire.pegCharacter + ','
+		else:
+		    string += TriangularPegSolitaire.blankCharacter + ','
+	    string += ';'
+	#string = string[:-1]
+	string += ':{size: ' + str(self.size) + ', start: ' + str(self.start) + '}'
+	return string
+    
     def generate_start(self, size = 5, start = 0):
 	tmp = TriangularPegSolitaire()
 	if size < 1:
@@ -46,7 +87,7 @@ class TriangularPegSolitaire(Puzzle):
 	for row in range(len(self.board)):
 	    for col in range(len(self.board[row])):
 		tmp[row][col] = not tmp[row][col]
-	return TriangularPegSolitaire(self.size, tmp, self.start)
+	return TriangularPegSolitaire(self.size, self.start, tmp)
     
     def __triangular__(self):
 	return (self.size * (self.size + 1) / 2)
@@ -110,16 +151,14 @@ class TriangularPegSolitaire(Puzzle):
 	tmpBoard[move[0]][move[1]] = False
 	tmpBoard[move[2]][move[3]] = False
 	tmpBoard[move[4]][move[5]] = True
-	#copy(tmpBoard)
-        return TriangularPegSolitaire(self.size, tmpBoard, self.start)
+        return TriangularPegSolitaire(self.size, self.start, tmpBoard)
     
     def undo_move(self, move):
 	tmpBoard = self.board[:]
 	tmpBoard[move[0]][move[1]] = True
 	tmpBoard[move[2]][move[3]] = True
 	tmpBoard[move[4]][move[5]] = False
-	#copy(tmpBoard)
-        return TriangularPegSolitaire(self.size, tmpBoard, self.start)
+        return TriangularPegSolitaire(self.size, self.start, tmpBoard)
 
     def __add__(self, move):
         return self.do_move(move)
@@ -131,19 +170,21 @@ class TriangularPegSolitaire(Puzzle):
         return self in self.generate_solutions()
 
     def is_illegal(self):
+	'''
 	foo += (bar for bar in [baz.count(True) for baz in self.board])
 	triangular = (self.size) * (self.size + 1) / 2
 	if foo == triangular or foo == 0:
 	    return True
 	elif foo == (triangular - 1) and self.board[0][0]:
 	    return True
+	'''
         return False
     
     def is_deadend(self):
         return (not self.is_a_solution()) and (self.is_leaf())
 
     def is_leaf(self):
-        return (len(self.generate_moves) == 0)
+        return (len(self.generate_moves()) == 0)
 
     def reverse_move(self, move):
 	raise '''Cannot reverse move'''
@@ -177,7 +218,7 @@ class TriangularPegSolitaire(Puzzle):
 		else:
 		    tmpBoard[row][col] = False
 		index += 1
-	tmp = TriangularPegSolitaire(self.size, tmpBoard, self.start)
+	tmp = TriangularPegSolitaire(self.size, self.start, tmpBoard)
         return tmp
 
     def __str__(self):
