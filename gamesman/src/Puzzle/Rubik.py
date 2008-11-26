@@ -79,6 +79,19 @@ class Rubik(Puzzle):
         if len(pieces) != len(orientations):
             raise "Pieces array different length than orientations array"
         Puzzle(True)
+        
+    default_options = {}
+    @staticmethod
+    def unserialize(options, position=None):
+        if position==None or position=="[]":
+            position = "0,1,2,3,4,5,6,7;0,1,2,3,4,5,6,7"
+        pieces, orientations = position.split(";");
+        pieces = [int(x) for x in pieces.split(",")]
+        orientations = [int(x) for x in orientations.split(",")]
+    return Rubik(pieces, orientations)
+
+    def serialize(self):
+        return ','.join(str(x) for x in self.pieces) + ";" + ','.join(str(x) for x in self.orientations)
 
     def generate_solutions(self):
         return [Rubik()]   # Default _is_ solution; what else?
