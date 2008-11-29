@@ -736,6 +736,13 @@ proc InitWindow { kRootDir kExt } {
   frame .middle.f2.fPlayOptions.fMid.fRight \
     -width [expr $gFrameWidth / 2]
 
+  global gDeltaRemote
+  checkbutton .middle.f2.fPlayOptions.fMid.fRight.rDelta \
+    -text "Show Delta Remoteness" \
+    -font $kLabelFont \
+    -variable gDeltaRemote \
+    -onvalue true \
+    -offvalue false	
   global gSkipInputOnSingleMove gUseDB
   set gUseDB true
   checkbutton .middle.f2.fPlayOptions.fMid.fLeft.rUseDB \
@@ -867,6 +874,7 @@ proc InitWindow { kRootDir kExt } {
   pack .middle.f2.fPlayOptions.fMid.fLeft.rSCRandomly -side top -expand 1 -fill both
   pack .middle.f2.fPlayOptions.fMid.fLeft.rSCMiserely -side top -expand 1 -fill both
   .middle.f2.fPlayOptions.fMid.fRight.sPerfectness configure -state disabled -foreground gray
+  pack .middle.f2.fPlayOptions.fMid.fRight.rDelta -side top
   pack .middle.f2.fPlayOptions.fMid.fRight.sPerfectness -side top -expand 1 -fill x
   pack .middle.f2.fPlayOptions.fMid.fRight.animationDelay -side top -expand 1 -fill x
 
@@ -2291,7 +2299,8 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
       for {set i 0} {$i <= $maxRemoteness} {incr i} {
 		    set reverse [expr $maxRemoteness - $i]
 		    set stipple @[file join $tk_library demos images gray25.bmp]
-		    set width 2
+		    #set stipple ""
+			set width 2
 
 		    if { [expr $reverse % 5] == 0 } {
           set stipple ""
@@ -2380,7 +2389,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
       set prevY $y
       set prevXOpposite $x
     }
-
+    
     set plottedLine \
       [$moveHistoryCanvas create line $prevX $prevY $x $y \
 	     -fill $lineColor \
@@ -2390,7 +2399,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
     set plottedMove \
       [$moveHistoryCanvas create oval \
 	     [expr $x - $pieceRadius] [expr $y - $pieceRadius] [expr $x + $pieceRadius] [expr $y + $pieceRadius] \
-	     -fill $color \
+		 -fill $color \
 	     -outline "" \
 	     -width 3 \
 	     -tags [list moveHistoryScroll moveHistory moveHistoryPlot moveHistoryPosition$numMovesSoFar]]

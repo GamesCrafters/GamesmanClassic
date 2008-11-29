@@ -2,7 +2,7 @@
 ##
 ## gamesman3.tcl
 ##
-## LAST CHANGE: $Id: gamesman3.tcl,v 1.63 2008-02-06 02:55:13 yjia2 Exp $
+## LAST CHANGE: $Id: gamesman3.tcl,v 1.64 2008-11-29 11:09:07 koolswim88 Exp $
 ##
 ############################################################################
 
@@ -708,7 +708,7 @@ proc DriverLoop { } {
    
     ## retrieve global variables
     global gGameSoFar gMovesSoFar gPosition gWaitingForHuman
-    global gMoveDelay gGameDelay gMoveType gGameSolved gReallyUnsolved
+    global gMoveDelay gGameDelay gMoveType gGameSolved gReallyUnsolved gDeltaRemote
     global gWhoseTurn gLeftName gRightName
     global gameMenuToDriverLoop 
     global gWaitingForResponse
@@ -772,6 +772,10 @@ proc DriverLoop { } {
       update idletasks
 	              
       if { [PlayerIsComputer] } {
+	    if { $gDeltaRemote } {
+		  set $gMoveType "rm"
+		}
+		
         GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
         after [expr int($gMoveDelay * 1000)]
         GS_HideMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
@@ -1031,8 +1035,12 @@ proc HandleComputersMove { c oldPos theMove Position } {
 
 proc DoHumanMove { } {
 
-    global gPosition gMoveType gReallyUnsolved
-
+    global gPosition gMoveType gReallyUnsolved gDeltaRemote
+	
+    if {$gDeltaRemote} {
+	   set gMoveType "rm"
+	}
+	
     GS_ShowMoves .middle.f2.cMain $gMoveType $gPosition [C_GetValueMoves $gPosition $gReallyUnsolved]
 
 }
@@ -1332,7 +1340,11 @@ proc ToggleMoves { moveType } {
 
 proc ChangeMoveType { fromMoveType toMoveType position moveList } {
 
-    global gWaitingForHuman
+    global gWaitingForHuman gDeltaRemote 
+	
+	if {$gDeltaRemote && [string equal $toMoveType "value"] } {
+	   set toMoveType "rm"
+	}
 
     GS_HideMoves .middle.f2.cMain $fromMoveType $position $moveList
 
