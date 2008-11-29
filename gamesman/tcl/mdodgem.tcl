@@ -438,33 +438,92 @@ proc animate { c piece origin destination } {
 # The value will be either "Win" "Lose" or "Tie"
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #############################################################################
-proc GS_ShowMoves { c moveType position moveList } {
+proc GS_ShowMoves { c moveType position moveList} {
 
     $c delete arrows
 
+	
     foreach m $moveList {
 
 	if { [string equal $moveType "value"] } {
 	    set value [lindex $m 1]
+		set remoteness "off"
+	} elseif { [string equal $moveType "rm"] } {
+		set value [lindex $m 1]
+		set remoteness [lindex $m 3]
 	} else {
 	    set value "off"
+		set remoteness "off"
 	}
-	DrawArrow $c $m $value
+	
+	#if { $delta } {
+	#    set remoteness [lindex $m 3]
+	#} else {
+	#    set remoteness "off"
+	#}
+	
+	DrawArrow $c $m $value $remoteness
     }
 
     $c raise pieces
 }
 
-proc DrawArrow { c m value } {
+proc DrawArrow { c m value remoteness } {
 
     global size r turn gMisereGame
+	global tk_library kRootDir gStippleRootDir
+	
+	set gStippleRootDir "$kRootDir/../bitmaps/"
 
     set move [unhashmove [lindex $m 0]]
     set from [lindex $move 0]
     set to [lindex $move 1]
     set arrowwidth [expr 0.25 * $r]
     set arrowhead [list [expr 2*$arrowwidth] [expr 2*$arrowwidth] $arrowwidth]
-
+	set maxRemoteness [expr 0.25 * $r]
+	set factor [expr $maxRemoteness/5]
+	set stipple12 @[file join $gStippleRootDir gray12.bmp] 
+	set stipple25 @[file join $gStippleRootDir gray25.bmp]
+	set stipple50 @[file join $gStippleRootDir gray50.bmp]
+	set stipple75 @[file join $gStippleRootDir gray75.bmp]
+	
+	#if {$remoteness < [expr $factor*1] } {
+	#	set stipple ""
+	#} elseif {$remoteness < [expr $factor*2] } {
+	#	set stipple $stipple75
+	#} elseif {$remoteness < [expr $factor*3] } {
+	#	set stipple $stipple50
+	#} elseif {$remoteness < [expr $factor*4] } {
+	#	set stipple $stipple25
+	#} else {
+	#	set stipple $stipple12
+	#}
+    if { $remoteness != "off" } {
+        set delta [expr $remoteness / 2]
+    } else {
+        set delta 0
+    }
+    
+    if {$delta == 0} {
+        set stipple ""
+    } elseif {$delta == 1} {
+        set stipple $stipple75
+    } elseif {$delta == 2} {
+        set stipple $stipple50
+    } elseif {$delta == 3} {
+        set stipple $stipple25
+    } else {
+        set stipple $stipple12
+    }
+	
+	if {$remoteness == 0} {
+	    set width $maxRemoteness
+	} elseif {$remoteness > $maxRemoteness} {
+	    set width 1
+	} else {
+	    set width [expr $maxRemoteness - $remoteness]
+	}
+	
     if { !$gMisereGame } {
 	switch $value {
 	    Win { set color darkred }
@@ -504,7 +563,13 @@ proc DrawArrow { c m value } {
 	}
     }
 
-    set arrow [$c create line $xi $yi $xf $yf -width $arrowwidth -fill $color -arrowshape $arrowhead -arrow last -tag arrows]
+   	if { $remoteness == "off" } {
+		set arrow [$c create line $xi $yi $xf $yf -width $arrowwidth -fill $color -arrowshape $arrowhead -arrow last -stipple "" -tag arrows]
+	} else {
+		set arrow [$c create line $xi $yi $xf $yf -width $arrowwidth -fill $color -arrowshape $arrowhead -arrow last -stipple $stipple -tag arrows]
+	    #set arrow [$c create line $xi $yi $xf $yf -width $width -fill $color -arrowshape $arrowhead -arrow last -tag arrows]
+	}
+	
     $c bind $arrow <Enter> "$c itemconfigure $arrow -fill black"
     $c bind $arrow <Leave> "$c itemconfigure $arrow -fill $color"
     $c bind $arrow <ButtonRelease-1> "ReturnFromHumanMove [lindex $m 0]"
