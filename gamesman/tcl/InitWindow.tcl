@@ -241,6 +241,9 @@ proc InitWindow { kRootDir kExt } {
   global tcl_platform
   global gPredString gWhoseTurn
   global gMaxVVHSize 
+  
+  global moveHistoryY
+  set moveHistoryY 0
 
   # sean: skipinputonsinglemove added fall '05
   global gSkipInputOnSingleMove 
