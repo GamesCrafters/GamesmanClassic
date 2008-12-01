@@ -11,15 +11,18 @@ print 'Triangular Peg Solitaire Tester v0.1'
 # make a default board
 puz = TriangularPegSolitaire()
 print puz
+print 'testing serialization & unserialization'
+print puz.serialize()
+print TriangularPegSolitaire.unserialize(None, '.;.,o;o,.,o;o,.,o,.;o,.,o,o,o;')
 
 #print puz.generate_solutions()
-
+'''
 #solv = UnreverseSolver()
 solv = Solver()
 solv.solve(puz)
 solv.path(puz)
 print ''
-
+'''
 # get some moves
 foo = puz.generate_moves()
 print foo
@@ -32,7 +35,16 @@ print puz
 # testing hash
 print 'testing hash'
 print puz.__hash__()
-
+'''
+print 'unhash'
+print puz.unhash(32757)
+puz += foo[0]
+foo = puz.generate_moves()
+puz += foo[1]
+print puz
+print puz.__hash__()
+print puz.unhash(32487)
+'''
 # testing reverse move
 print 'testing reverse move'
 puz -= foo[0]
@@ -58,3 +70,10 @@ print puz
 puz = foo.generate_start(45)
 print puz
 print puz.__hash__()
+
+# test serialize
+print 'testing serialization'
+puzzle = TriangularPegSolitaire(5, 1)
+print puzzle
+print 'garply'
+print puzzle.serialize()

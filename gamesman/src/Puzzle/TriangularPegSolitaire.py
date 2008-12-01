@@ -14,15 +14,22 @@ class TriangularPegSolitaire(UnreversePuzzle):
     default_options = {'size': 5, 'start': 0}
     
     @staticmethod
-    def unserialize(options, str=None):
+    def unserialize(options = None, str = None):
+	print 'asdf'
+	
 	tmpBoard = TriangularPegSolitaire()
 	tmpBoard.board = []
 	row_length = 1
 	row = []
+	
+	if options == None:
+	    options = {'size': 5, 'start': 0}
 	size = int(options['size'])
+	
 	if str==None:
 		start = int(options['start'])
 		str = TriangularPegSolitaire(size=size, start=start).generate_start(size=size,start=start).serialize()
+	
 	strindex = 0
 	while strindex < len(str):
 	    if str[strindex] == TriangularPegSolitaire.pegCharacter:
@@ -35,23 +42,16 @@ class TriangularPegSolitaire(UnreversePuzzle):
 	    elif str[strindex] == ';':
 		tmpBoard.board.append(row)
 		row = []
-	    elif str[strindex] == ':':
-		strindex += 1
-		break
 	    strindex += 1
 	    
 	tmpBoard.size = len(tmpBoard.board)
+	tmpBoard.start = options['start']
 	return tmpBoard
 
     def __init__(self, size = 5, board = [[False], [True, True], [True, True, True], [True, True, True, True], [True, True, True, True, True]], start = 0):
 	self.size = size
 	self.board = copy.deepcopy(board)
 	self.start = start
-    '''
-    def copy(self, board = self.board):
-	tmp = TriangularPegSolitaire(self.size, board, self.start)
-	return tmp
-	'''
 
     def serialize(self):
 	string = ''
@@ -61,9 +61,9 @@ class TriangularPegSolitaire(UnreversePuzzle):
 		    string += TriangularPegSolitaire.pegCharacter + ','
 		else:
 		    string += TriangularPegSolitaire.blankCharacter + ','
+	    string = string[:-1]
 	    string += ';'
-	#string = string[:-1]
-	string += ':{size: ' + str(self.size) + ', start: ' + str(self.start) + '}'
+	#string += ':{size: ' + str(self.size) + ', start: ' + str(self.start) + '}'
 	return string
     
     def generate_start(self, size = 5, start = 0):
@@ -105,57 +105,6 @@ class TriangularPegSolitaire(UnreversePuzzle):
 	    tmp = tmp.__flip__()
 	    solutions.append(tmp)
         return solutions
-    '''
-    def generate_moves(self):
-        moves = []
-        for row in range(len(self.board)):
-            for col in range(len(self.board[row])):
-		# check east
-		if (col < len(self.board[row]) - 2) and \
-		   (self.board[row][col]) and \
-		   (self.board[row][col + 1]) and not \
-		   (self.board[row][col + 2]):
-		    moves.append((row, col, row, col + 1, row, col + 2))
-		# check north east
-		if (col < len(self.board[row]) - 2) and \
-		   (row > 1) and \
-		   (self.board[row][col]) and \
-		   (self.board[row - 1][col]) and not \
-		   (self.board[row - 2][col]):
-		    moves.append((row, col, row - 1, col, row - 2, col))
-		# check south east
-		# this is actually south west
-		if (col < len(self.board[row]) - 2) and \
-		   (row < len(self.board) - 2) and \
-		   (self.board[row][col]) and \
-		   (self.board[row][col + 1]) and not \
-		   (self.board[row][col + 2]):
-		    moves.append((row, col, row, col + 1, row, col + 2))
-		# check west]
-		# error: this is not west....
-		if (col > 1) and \
-		   (self.board[row][col]) and \
-		   (self.board[row][col - 1]) and not \
-		   (self.board[row][col - 2]):
-		    moves.append((row, col, row, col - 1, row, col - 2))
-		# check north west
-		if (col > 1) and \
-		   (row > 1) and \
-		   (self.board[row][col]) and \
-		   (self.board[row - 1][col - 1]) and not\
-		   (self.board[row - 2][col - 2]):
-		    moves.append((row, col, row - 1, col - 1, row - 2, col - 2))
-		# check south west
-		# not physically possible
-		if (col > 1) and\
-		   (row < len(self.board) - 2) and\
-		   (self.board[row][col]) and\
-		   (self.board[row + 1][col - 1]) and not\
-		   (self.board[row + 2][col - 2]):
-		    moves.append((row, col, row + 1, col - 1, row + 2, col - 2))
-		# missing south east
-        return moves
-    '''
 
     def generate_moves(self):
         moves = []
@@ -207,7 +156,6 @@ class TriangularPegSolitaire(UnreversePuzzle):
 	tmpBoard[move[0]][move[1]] = False
 	tmpBoard[move[2]][move[3]] = False
 	tmpBoard[move[4]][move[5]] = True
-	#copy(tmpBoard)
         return TriangularPegSolitaire(self.size, tmpBoard, self.start)
     
     def undo_move(self, move):
@@ -215,7 +163,6 @@ class TriangularPegSolitaire(UnreversePuzzle):
 	tmpBoard[move[0]][move[1]] = True
 	tmpBoard[move[2]][move[3]] = True
 	tmpBoard[move[4]][move[5]] = False
-	#copy(tmpBoard)
         return TriangularPegSolitaire(self.size, tmpBoard, self.start)
 
     def __add__(self, move):
