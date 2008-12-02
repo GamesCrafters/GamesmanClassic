@@ -70,10 +70,3 @@ print puz
 puz = foo.generate_start(45)
 print puz
 print puz.__hash__()
-
-# test serialize
-print 'testing serialization'
-puzzle = TriangularPegSolitaire(5, 1)
-print puzzle
-print 'garply'
-print puzzle.serialize()
