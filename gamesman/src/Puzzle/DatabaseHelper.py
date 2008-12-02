@@ -31,10 +31,12 @@ def makeBitClass(fields):
 		@staticmethod
 		def create(mystr):
 			val = 0
+			print mystr
 			while mystr:
 				val <<= 8
 				val |= ord(mystr[0])
 				mystr = mystr[1:]
+			print " = > " +str(val)
 			return Database_Bitfield(val)
 		@staticmethod
 		def read_from_file(myfile):
@@ -43,10 +45,12 @@ def makeBitClass(fields):
 		
 		def __str__(self):
 			x = self.remoteness 
+			print x
 			s = ''
-			while x:
+			for i in range(totalbytes):
 				s = chr(x&0xff) + s
 				x >>= 8
+			print " <= " + repr(s)
 			return s
 		def to_dictionary(self, defaults=None):
 			d = defaults or {}
