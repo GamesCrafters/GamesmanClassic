@@ -6,23 +6,17 @@ from TriangularPegSolitaire import TriangularPegSolitaire
 from UnreverseSolver import *
 from Solver import *
 
-print 'Triangular Peg Solitaire Tester v0.1'
+print 'Triangular Peg Solitaire Tester v0.2'
 
 # make a default board
 puz = TriangularPegSolitaire()
 print puz
 print 'testing serialization & unserialization'
+print '\tserialization of starting board'
 print puz.serialize()
+print '\tunserialization of a random board'
 print TriangularPegSolitaire.unserialize(None, '.;.o;o.o;o.o.;o.ooo;')
 
-#print puz.generate_solutions()
-'''
-#solv = UnreverseSolver()
-solv = Solver()
-solv.solve(puz)
-solv.path(puz)
-print ''
-'''
 # get some moves
 foo = puz.generate_moves()
 print foo

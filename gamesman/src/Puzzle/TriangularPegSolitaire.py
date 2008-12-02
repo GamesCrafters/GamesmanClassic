@@ -29,7 +29,6 @@ class TriangularPegSolitaire(UnreversePuzzle):
 		str = TriangularPegSolitaire(size=size, start=start).generate_start(size=size,start=start).serialize()
 	
 	strindex = 0
-	print str
 	while strindex < len(str):
 	    if str[strindex] == TriangularPegSolitaire.pegCharacter:
 		row.append(True)
@@ -54,12 +53,10 @@ class TriangularPegSolitaire(UnreversePuzzle):
 	for r in range(len(self.board)):
 	    for c in range(len(self.board[r])):
 		if self.board[r][c]:
-		    string += TriangularPegSolitaire.pegCharacter# + ','
+		    string += TriangularPegSolitaire.pegCharacter
 		else:
-		    string += TriangularPegSolitaire.blankCharacter# + ','
-	    #string = string[:-1]
+		    string += TriangularPegSolitaire.blankCharacter
 	    string += ';'
-	#string += ':{size: ' + str(self.size) + ', start: ' + str(self.start) + '}'
 	return string
     
     def generate_start(self, size = 5, start = 0):
@@ -169,14 +166,7 @@ class TriangularPegSolitaire(UnreversePuzzle):
     
     def is_a_solution(self):
         return self in self.generate_solutions()
-    '''
-    def is_a_solution(self):
-        s = 0
-        for row in range(len(self.board)):
-            for col in range(len(self.board[row])):
-                s += self.board[row][col]
-        return (s == 1)
-    '''
+    
     def is_illegal(self):
         return False
     
