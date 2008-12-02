@@ -13,6 +13,14 @@ class Puzzle:
     def generate_moves(self):
         return []
 
+    def reverse_move(self, move):
+        """deprecated"""
+        return move
+
+    def get_permutations(self):
+        """deprecated"""
+        return 0
+
     def do_move(self, move):
         return []
 
