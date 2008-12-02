@@ -84,7 +84,7 @@ class Rubik(Puzzle):
     @staticmethod
     def unserialize(options, position=None):
         if position==None or position=="[]":
-            position = "0,1,2,3,4,5,6,7;0,1,2,3,4,5,6,7"
+            position = "0,1,2,3,4,5,6,7;0,0,0,0,0,0,0,0"
         pieces, orientations = position.split(";");
         pieces = [int(x) for x in pieces.split(",")]
         orientations = [int(x) for x in orientations.split(",")]
