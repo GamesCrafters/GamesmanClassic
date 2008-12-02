@@ -95,9 +95,9 @@ def writeDatabase(puzzname, passedoptions, solver, isunreverse):
 				continue
 			
 			if isunreverse:
-				print dict(remoteness=(maxlevel - myval[0]), score=myval[1])
-				val = bitClass(remoteness=(maxlevel - myval[0]), score=myval[1])
-				print repr(str(val))
+				#print dict(remoteness=(maxlevel - myval[0]), score=myval[1])
+				val = bitClass(remoteness=(maxlevel - myval[0])) #, score=myval[1])
+				#print repr(str(val))
 			else:
 				val = bitClass(remoteness=myval)
 			setList(arr, chunkoff, str(val), default)

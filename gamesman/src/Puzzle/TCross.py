@@ -1,5 +1,6 @@
 from Puzzle import * 
 import string
+import sys
 
 class TCross(Puzzle):
     # IMPLIED BOARD:
@@ -19,9 +20,9 @@ class TCross(Puzzle):
     # 4                  = "binary" (bin)
     # 5                  = "arts" (art)
     # 6, 7, 8            = orange dot (dot)
-    def __init__(self, gameboard = [25, 16, 30, 24, 21, 22, 10, 11, 19], # the nine pieces' index in board
+    def __init__(self, gameboard = [25, 16, 30, 24, 20, 22, 10, 11, 19], # the nine pieces' index in board
                                     horizontalPos = 0, verticalPos = True, # state of sliders
-                                    circle = False, binArt = False, dots = True, exactSol = True): # options
+                                    circle = 1, binArt = 1, dots = 0, exactSol = 1): # options
         # only store the pieces that are necessary (otherwise hash will fail)
         self.gameboard = [-1, -1, -1, -1, -1, -1, -1, -1, -1]
         if circle:
@@ -30,7 +31,7 @@ class TCross(Puzzle):
             self.gameboard[4:6] = gameboard[4:6]
         if dots:
             self.gameboard[6:9] = gameboard[6:9]
-
+        
         # horizontalPos is either -1 (left), 0 (centered), or 1 (right)
         # verticalPos is either true (left slider down and right up) or false (left slider up and right down)
         self.horizontalPos = horizontalPos
@@ -41,7 +42,7 @@ class TCross(Puzzle):
         self.dots = dots
         self.exactSol = exactSol
         Puzzle()
-    
+        
     def serialize(self):
         boardString = ""
         for piece in range(9): # loop through the pieces
@@ -54,10 +55,11 @@ class TCross(Puzzle):
         boardString += (self.verticalPos * 1).__str__()
         return boardString
     
-    default_options = {"circle":"0", "binArt":"0", "dots":"1", "exactSol":"1"}
+    default_options = {"circle":"1", "binArt":"1", "dots":"0", "exactSol":"1"}
+    
     @staticmethod
     def unserialize(options, 
-                    boardString = "-1 -1 -1 -1 -1 -1 20 29 30  1 1"):
+                    boardString = "25 16 30 24 20 22 10 11 19  0 1"):
         gameboard = [-1, -1, -1, -1, -1, -1, -1, -1, -1] # blank board
         
         i = 0 # string index
@@ -72,7 +74,8 @@ class TCross(Puzzle):
         if int(boardString[i]):
             vertPos = True
 
-        return TCross(gameboard, horizPos, vertPos, int(options["circle"]), int(options["binArt"]), int(options["dots"]), int(options["exactSol"]))
+        return TCross(gameboard, horizPos, vertPos, 
+                      int(options["circle"]), int(options["binArt"]), int(options["dots"]), int(options["exactSol"]))
     
     def is_a_solution(self):
         # if exactSol, then just look in generate_solutions, otherwise look at pieces' relationships to determine if solution
@@ -90,15 +93,15 @@ class TCross(Puzzle):
                 if (board[4] != board[5] - 1): # if bin isn't directly to left of art
                     return False
             if self.dots:
-                if (    (board[7] + 1 != board[6] != board[8] - 1)   # if not 768
-                    and (board[8] + 1 != board[6] != board[7] - 1)   # if not 867
-                    and (board[6] + 1 != board[7] != board[8] - 1)   # if not 678
-                    and (board[8] + 1 != board[7] != board[6] - 1)   # if not 876
-                    and (board[6] + 1 != board[8] != board[7] - 1)   # if not 687
-                    and (board[7] + 1 != board[8] != board[6] - 1)): # if not 786
+                if (    (board[7] + 1 != board[6] or board[6] != board[8] - 1)   # if not 768
+                    and (board[8] + 1 != board[6] or board[6] != board[7] - 1)   # if not 867
+                    and (board[6] + 1 != board[7] or board[7] != board[8] - 1)   # if not 678
+                    and (board[8] + 1 != board[7] or board[7] != board[6] - 1)   # if not 876
+                    and (board[6] + 1 != board[8] or board[8] != board[7] - 1)   # if not 687
+                    and (board[7] + 1 != board[8] or board[8] != board[6] - 1)): # if not 786
                     return False
             return True
-       
+
     def generate_solutions(self):
         # is used if doesn't return [], so return [] if exactSol is false
         if self.exactSol: 
@@ -125,28 +128,28 @@ class TCross(Puzzle):
     def do_move(self, move):
         # get values of self.gameboard -- not a reference to it
         gameboard = self.gameboard[:len(self.gameboard)]
-        
+
         horizontalPos = self.horizontalPos
         verticalPos = self.verticalPos
         
-        if string.upper(move) == 'L':
-            for i in range(len(gameboard)): # look at each piece
+        if move == 'L':
+            for i in range(9): # look at each piece
                 # slide middle rows left
                 if gameboard[i] > 8 and gameboard[i] < 27:
                     gameboard[i] -= 1
                     
             horizontalPos -= 1
             
-        elif string.upper(move) == 'R':
-            for i in range(len(gameboard)): # look at each piece
+        elif move == 'R':
+            for i in range(9): # look at each piece
                 # slide middle rows right
                 if gameboard[i] > 8 and gameboard[i] < 27:
                     gameboard[i] += 1
                     
             horizontalPos += 1
             
-        elif string.upper(move) == 'U':
-            for i in range(len(gameboard)): # look at each piece
+        elif move == 'U':
+            for i in range(9): # look at each piece
                 # shift left slider up (left slider = 2, 11, 20, 29 and 3, 12, 21, 30)
                 if ((gameboard[i] - 2) % 9 == 0) or ((gameboard[i] - 3) % 9 == 0):
                     gameboard[i] -= 9
@@ -156,8 +159,8 @@ class TCross(Puzzle):
 
             verticalPos = False  
   
-        elif string.upper(move) == 'D': 
-            for i in range(len(gameboard)): # look at each piece
+        elif move == 'D': 
+            for i in range(9): # look at each piece
                 # shift left slider down (left slider = 2, 11, 20, 29 and 3, 12, 21, 30)
                 if ((gameboard[i] - 2) % 9 == 0) or ((gameboard[i] - 3) % 9 == 0):
                     gameboard[i] += 9
@@ -206,28 +209,28 @@ class TCross(Puzzle):
         
         # add the top row (NOTE: see helper function below)
         if self.verticalPos:
-            boardString += "     " + listToString(board[5:7]) + "\\n" # for dotty, change to "\\n"
+            boardString += "     " + listToString(board[5:7]) + "\n" # for dotty, change to "\\n"
         else:
-            boardString += "  " + listToString(board[2:4]) + "\\n" # for dotty, change to "\\n"
+            boardString += "  " + listToString(board[2:4]) + "\n" # for dotty, change to "\\n"
         
         # shift the middle rows based on horizontalPos
         if shift == 0:
-            boardString += "  " # for dotty, total: 2 spaces
+            boardString += " " # for dotty, total: 2 spaces
         elif shift == 1:
-            boardString += "    " # for dotty, total: 4 spaces
-        boardString +=  listToString(board[10 + shift:17 + shift]) + "\\n" # for dotty, change to "\\n"
+            boardString += "  " # for dotty, total: 4 spaces
+        boardString +=  listToString(board[10 + shift:17 + shift]) + "\n" # for dotty, change to "\\n"
         
         if shift == 0:
-            boardString += "  " # for dotty, total: 2 spaces
+            boardString += " " # for dotty, total: 2 spaces
         elif shift == 1:
-            boardString += "    " # for dotty, total: 4 spaces
-        boardString += listToString(board[19 + shift:26 + shift]) + "\\n" # for dotty, change to "\\n"
+            boardString += "  " # for dotty, total: 4 spaces
+        boardString += listToString(board[19 + shift:26 + shift]) + "\n" # for dotty, change to "\\n"
         
         # add the bottom row
         if self.verticalPos:
-            boardString += "" + listToString(board[29:31]) # for not dotty, total: 2 spaces
+            boardString += "  " + listToString(board[29:31]) # for not dotty, total: 2 spaces
         else:
-            boardString += "" + listToString(board[32:34]) # for not dotty, total: 5 spaces
+            boardString += "     " + listToString(board[32:34]) # for not dotty, total: 5 spaces
         
         return boardString
    
@@ -285,21 +288,17 @@ class TCross(Puzzle):
         return hashCode
     
     def unhash(self, hashCode):
-        circle = self.circle
-        binArt = self.binArt
-        dots = self.dots
-        exactSol = self.exactSol
         # set up an empty gameboard to be modified
         gameboard = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         boardLen = len(gameboard)
-        
+
         # first handle the verticalPos and horizontalPos
         vertPos = False
         horizPos = 0
         # maxHash is the total number of possible combinations without taking into
         # account the verticalPos and horizontalPos: (numPositions)!/(numEmptys)!/(numDots)!
-        maxHash = divFact(boardLen, boardLen - circle * 4 - binArt * 2 - dots * 3)
-        maxHash /= fact(dots * 3)
+        maxHash = divFact(boardLen, boardLen - self.circle * 4 - self.binArt * 2 - self.dots * 3)
+        maxHash /= fact(self.dots * 3)
         # do the reverse of the hash
         for i in range(6):
             if (hashCode < (i + 1) * maxHash):
@@ -312,13 +311,13 @@ class TCross(Puzzle):
         # set up the counts of pieces based on options selected
         # counts starts with topl and ends with dot
         cs = [0, 0, 0, 0, 0, 0, 0]
-        if circle: # if circle option selected, include its count
+        if self.circle: # if circle option selected, include its count
             for i in range(4):
                 cs[i] = 1
-        if binArt: # if binArt option selected, include its count
+        if self.binArt: # if binArt option selected, include its count
             for i in range(4, 6):
                 cs[i] = 1
-        if dots: # if dots option selected, include its count
+        if self.dots: # if dots option selected, include its count
             cs[6] = 3
         
         # loop through each slot in the gameboard
@@ -354,7 +353,7 @@ class TCross(Puzzle):
                 # they aren't looked at again by gameboard.index(piece)
                 gameboard[gameboard.index(piece)] = 0
             
-        return TCross(board, horizPos, vertPos, circle, binArt, dots, exactSol)
+        return TCross(board, horizPos, vertPos, self.circle, self.binArt, self.dots, self.exactSol)
      
 #### HELPER FUNCTIONS FOR HASH
 # for given counts of piece and slots, find the number of rearrangements possible
@@ -396,10 +395,11 @@ def convertBoard(horizontalPos, verticalPos):
                 19 + hs, 20 + vs1, 21 + vs1, 22 + hs, 23 + cs2, 24 + cs2, 25 + hs]
   
 # calculates factorial of n
+facts = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800, 
+        39916800, 479001600, 6227020800, 87178291200, 1307674368000, 20922789888000,
+        355687428096000, 6402373705728000]
 def fact(n):
-    if n == 0:
-        return 1
-    return n * fact(n - 1)
+    return facts[n]
 
 # simplifies dividing a large factorial by a small one
 def divFact(big, small):
@@ -409,12 +409,8 @@ def divFact(big, small):
         return 1 # cancel out the small factorial on the denominator with larger one on numerator
     return big * divFact(big - 1, small)
 
-def totalCount(counts):
-    tot = 0
-    r = range(len(counts))
-    for i in r:
-        tot += counts[i]
-    return tot
+def totalCount(counts): # hardcoded count function 
+    return counts[0] + counts[1] + counts[2] + counts[3] + counts[4] + counts[5] + counts[6]
 
 #### HELPER FUNCTION FOR STR
 def listToString(list):
