@@ -34,7 +34,8 @@ def makeBitClass(fields):
 			while mystr:
 				val <<= 8
 				val |= ord(mystr[0])
-			return DatabaseBitfield(val)
+				mystr = mystr[1:]
+			return Database_Bitfield(val)
 		@staticmethod
 		def read_from_file(myfile):
 			bytes = myfile.read(totalbytes)
