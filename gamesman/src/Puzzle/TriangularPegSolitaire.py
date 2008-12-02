@@ -15,8 +15,6 @@ class TriangularPegSolitaire(UnreversePuzzle):
     
     @staticmethod
     def unserialize(options = None, str = None):
-	print 'asdf'
-	
 	tmpBoard = TriangularPegSolitaire()
 	tmpBoard.board = []
 	row_length = 1
@@ -31,6 +29,7 @@ class TriangularPegSolitaire(UnreversePuzzle):
 		str = TriangularPegSolitaire(size=size, start=start).generate_start(size=size,start=start).serialize()
 	
 	strindex = 0
+	print str
 	while strindex < len(str):
 	    if str[strindex] == TriangularPegSolitaire.pegCharacter:
 		row.append(True)
