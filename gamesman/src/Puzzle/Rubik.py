@@ -118,6 +118,7 @@ class Rubik(Puzzle):
                 orientations[1] = (orientations[1] + 1) % 3
             elif move[0] == 'U':
                 pieces[0], pieces[1], pieces[3], pieces[2] = pieces[2], pieces[0], pieces[1], pieces[3]
+                orientations[0], orientations[1], orientations[3], orientations[2] = orientations[2], orientations[0], orientations[1], orientations[3]
             elif move[0] == 'R':
                 self.cycle_pieces(2, 4, pieces)
                 self.cycle_pieces(2, 4, orientations)
