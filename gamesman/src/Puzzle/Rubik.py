@@ -88,7 +88,7 @@ class Rubik(Puzzle):
         pieces, orientations = position.split(";");
         pieces = [int(x) for x in pieces.split(",")]
         orientations = [int(x) for x in orientations.split(",")]
-    return Rubik(pieces, orientations)
+        return Rubik(pieces, orientations)
 
     def serialize(self):
         return ','.join(str(x) for x in self.pieces) + ";" + ','.join(str(x) for x in self.orientations)
