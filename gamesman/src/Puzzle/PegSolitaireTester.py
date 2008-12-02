@@ -13,7 +13,7 @@ puz = TriangularPegSolitaire()
 print puz
 print 'testing serialization & unserialization'
 print puz.serialize()
-print TriangularPegSolitaire.unserialize(None, '.;.,o;o,.,o;o,.,o,.;o,.,o,o,o;')
+print TriangularPegSolitaire.unserialize(None, '.;.o;o.o;o.o.;o.ooo;')
 
 #print puz.generate_solutions()
 '''

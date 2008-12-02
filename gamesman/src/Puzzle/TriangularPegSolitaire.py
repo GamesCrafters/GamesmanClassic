@@ -35,9 +35,6 @@ class TriangularPegSolitaire(UnreversePuzzle):
 		row.append(True)
 	    elif str[strindex] == TriangularPegSolitaire.blankCharacter:
 		row.append(False)
-	    elif str[strindex] == ',':
-		strindex += 1
-		continue
 	    elif str[strindex] == ';':
 		tmpBoard.board.append(row)
 		row = []
@@ -57,10 +54,10 @@ class TriangularPegSolitaire(UnreversePuzzle):
 	for r in range(len(self.board)):
 	    for c in range(len(self.board[r])):
 		if self.board[r][c]:
-		    string += TriangularPegSolitaire.pegCharacter + ','
+		    string += TriangularPegSolitaire.pegCharacter# + ','
 		else:
-		    string += TriangularPegSolitaire.blankCharacter + ','
-	    string = string[:-1]
+		    string += TriangularPegSolitaire.blankCharacter# + ','
+	    #string = string[:-1]
 	    string += ';'
 	#string += ':{size: ' + str(self.size) + ', start: ' + str(self.start) + '}'
 	return string
