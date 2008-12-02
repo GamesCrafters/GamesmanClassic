@@ -8,14 +8,17 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import javax.swing.JOptionPane;
 
 
+import edu.berkeley.gamesman.parallel.gui.ControlFrame;
 import edu.berkeley.gamesman.parallel.gui.UbigraphListener;
 
 /**
@@ -30,7 +33,7 @@ public class TierTreeManager
 {
 	
 	
-	public static final boolean FAKE = false;
+	public static boolean FAKE = false;
 	
 	public static Reader generateReader(String game, String dir, int option) throws IOException
 	{
@@ -40,8 +43,6 @@ public class TierTreeManager
 		}
 		else
 		{
-			if (dir.endsWith("/")==false)
-				dir += "/";
 			File d = new File(dir);
 			ProcessBuilder pb;
 			if (option == -1)
@@ -56,7 +57,7 @@ public class TierTreeManager
 	
 	public static void main(String[] args) throws IOException
 	{
-		TierTreeManager ttm = new TierTreeManager();
+		final TierTreeManager ttm = new TierTreeManager();
 		if (args.length == 0)
 		{
 		//	ttm.initAuto();
@@ -64,7 +65,7 @@ public class TierTreeManager
 		//else
 		{
 			String usage = "Syntax:\n" +
-					"java edu.berekley.gamesman.parallel.TierTreeManager numThreads gamePath game priorityAlg {option}\n" +
+					"java edu.berekley.gamesman.parallel.TierTreeManager numThreads gamePath game priorityAlg {-ubigraph server} {-option option}\n" +
 					"\n" +
 					"numThreads		Number of threads (and therefore processes) to spawn (2,3,8).\n" +
 					"gamePath		Path of the bin folder (usually ../../bin).\n" +
@@ -72,7 +73,10 @@ public class TierTreeManager
 					"priorityAlg		Algorithm to prioritize tiers. -1 means complete analysis, 0,1,2,... \n" +
 					"			uses a huerestic, the larger, the more accurate. -1 is fine for anything\n" +
 					"			except mancala; for that game, use a huerestic.\n" +
-					"option			Variant or option to run the game under. Blank or -1 uses default option.";
+					"-option option		Variant or option to run the game under. Not specifing this flag uses the default option.\n" +
+					"-ubigraph server	Enable the ubigraph tier tree simulation and connect to 'server' on port 20738.\n" + 
+					"-control		Enable the swing control gui that allows finer control of the solving process.\n"+
+					"";
 			if (args.length < 4)
 			{
 				//print usage string
@@ -85,7 +89,6 @@ public class TierTreeManager
 				String gamePath;
 				String game;
 				int priOp;
-				int option = -1;
 				try
 				{
 					numThreads = Integer.parseInt(args[0]);
@@ -94,32 +97,81 @@ public class TierTreeManager
 					priOp = Integer.parseInt(args[3]);
 					if (args.length > 4)
 					{
-						option = Integer.parseInt(args[4]);
+						int argon = 4;
+						while (argon < args.length)
+						{
+							if (args[argon].equals("-ubigraph"))
+							{
+								String server = args[++argon];
+								UbigraphListener ul = new UbigraphListener(ttm, "http://"+server+":20738/RPC2");
+								ttm.addTierListener(ul);
+							}
+							else if (args[argon].equals("-control"))
+							{
+								Runnable r = new Runnable() {
+									public void run()
+									{
+										ControlFrame cf = new ControlFrame(ttm);
+										ttm.addTierListener(cf);
+										cf.setVisible(true);
+									}
+								};
+								Thread t = new Thread(r);
+								t.start();
+								t.join();
+							}
+							else if (args[argon].equals("-option"))
+							{
+								//Parse optional arguments
+								ttm.option = Integer.parseInt(args[++argon]);
+							}
+							else if (args[argon].equals("-fake"))
+							{
+								//Parse optional arguments
+								FAKE = true;
+							}
+							else
+							{
+								throw new IllegalArgumentException();
+							}
+							argon++;
+						}
 					}
 				}
 				catch (Exception e)
 				{
+					e.printStackTrace();
 					System.out.println(usage);
 					return;
 				}
 				
-				ttm.init(numThreads, gamePath, game, priOp, option);
+				ttm.init(numThreads, gamePath, game, priOp);
 			}
 		}
-
 	}
 	
 	TierThreadManager ttm;
 	Map<Long, TierTreeNode> tierMap = new HashMap<Long, TierTreeNode>();
 	Map<Long, TierTreeNode> fullMap = new HashMap<Long, TierTreeNode>(); //This one contians ALL tiers
 	PriorityQueue<TierTreeNode> freeTiers = new PriorityQueue<TierTreeNode>();
+	Map<Long, TierTreeNode> blacklistF = new HashMap<Long, TierTreeNode>();
+	Map<Long, TierTreeNode> blacklistT = new HashMap<Long, TierTreeNode>();
 	Map<Long, TierTreeNode> badTiers = new HashMap<Long, TierTreeNode>();
 	Map<Long, TierTreeNode> beingSolved = new HashMap<Long, TierTreeNode>();
-	TierEventListener[] listeners = new TierEventListener[]{new UbigraphListener(this)};
+	TierEventListener[] listeners = new TierEventListener[0];
+	int option = -1;
 	
-	int minCoresIdle;
+	public void addTierListener(TierEventListener tel)
+	{
+		TierEventListener[] nl = new TierEventListener[listeners.length+1];
+		System.arraycopy(listeners, 0, nl, 0, listeners.length);
+		nl[listeners.length] = tel;
+		listeners = nl;
+	}
+	
+	int maxActiveCores;
 	PrintWriter logOutput;
-	int cores;
+	int coresToKill = 0;
 	
 	void initAuto() throws IOException
 	{
@@ -130,7 +182,6 @@ public class TierTreeManager
 		String gamePath;
 		String game;
 		int priOp;
-		int option;
 		if (!FAKE)
 		{
 			gamePath = JOptionPane.showInputDialog("Directory of game to be solved?", "../bin");
@@ -147,11 +198,15 @@ public class TierTreeManager
 			option = -1;
 		}
 		
-		init(numThreads, gamePath, game, priOp, option);
+		init(numThreads, gamePath, game, priOp);
 	}
 	
-	void init(int numThreads, String gamePath, String game, int priOp, int option) throws IOException
+	void init(int numThreads, String gamePath, String game, int priOp) throws IOException
 	{
+		//Resolve gamepath so processbuilder doesn't complain.
+		gamePath = new File(gamePath).getAbsolutePath();
+		if (gamePath.endsWith("/")==false)
+			gamePath += "/";
 		logOutput = new PrintWriter(new File("game" + game + "_" + option + ".log"));
 		//make a new tierthreadmanager		
 		ttm = new TierThreadManager(numThreads, this, gamePath, game, option);
@@ -161,8 +216,13 @@ public class TierTreeManager
 		//vtp stuffs
 		generateTierTree(priOp, gamePath, game, option);
 		notifyListenersSetup();
-		minCoresIdle = numThreads;
-		cores = numThreads;
+		notifyListenersStart();
+		//now, add for all listeners the freelist
+		for (TierTreeNode ttn : freeTiers)
+		{
+			notifyListenersMoveToReady(ttn.tierNum, ttn.priority);
+		}
+		maxActiveCores = 0;
 		spawnNewThreads();
 	}
 	
@@ -180,7 +240,7 @@ public class TierTreeManager
 		//the dependencies for later.
 		LinkedList<String> deps = new LinkedList<String>();
 		boolean solved = false;
-		while ((line = br.readLine()).equals("ENDALLVTP") == false)
+		while ((line = br.readLine()) != null && line.equals("ENDALLVTP") == false)
 		{
 			if (line.startsWith("d"))
 			{
@@ -297,6 +357,7 @@ public class TierTreeManager
 			if (ttnCur.deps.size() == 0)
 			{
 				freeTiers.add(ttnCur);
+				//we wil notify listeners later.
 			}
 		}
 		System.out.println("Done generating tier tree!");
@@ -310,8 +371,9 @@ public class TierTreeManager
 	 * @param t
 	 * @param retCode
 	 * @param seconds
+	 * @param thread 
 	 */
-	synchronized void finished(long t, int retCode, double seconds)
+	synchronized void finished(long t, int retCode, double seconds, TierThread thread)
 	{
 		System.out.println(t + " is finished in " + seconds + " seconds");
 		//Find this tier and remove it.
@@ -343,8 +405,22 @@ public class TierTreeManager
 				ttnParent.deps.remove(ttn);
 				if (ttnParent.deps.size() == 0)
 				{
-					//sweet, that was the last dependencie. Dump in freeList.
-					freeTiers.add(ttnParent);
+					//sweet, that was the last dependencie. Dump in freeList if not blacklisted.
+					//if this is in the blacklist, move it if needed
+					if (blacklistT.containsKey(ttnParent.tierNum))
+					{
+						blacklistT.remove(ttnParent.tierNum);
+						blacklistF.put(ttnParent.tierNum, ttnParent);
+						//this is weird, but add BACK into tiermap since this was blacklisted
+						//out of the tiermap, so it's not in there. we can have it in the tiermap 
+						//but not in the freelist.
+						tierMap.put(ttnParent.tierNum, ttnParent);
+					}
+					else
+					{
+						freeTiers.add(ttnParent);
+					}
+					notifyListenersMoveToReady(ttnParent.tierNum, ttnParent.priority);
 				}
 			}
 			//notify listeners
@@ -353,8 +429,25 @@ public class TierTreeManager
 		
 
 		//now, try to spawn some new threads
+		if (coresToKill > 0)
+		{
+			//oh, we have to kill this core
+			coresToKill--;
+			thread.running = false;
+			thread.shutdownThread();
+			ttm.removeFromThreadPool(thread);
+			System.out.println("Shutdown thread " + thread.threadID);
+		}
+		else
+		{
+			thread.running = false;
+		}
 		spawnNewThreads();
-
+	}
+	
+	public synchronized int newJob()
+	{
+		return -1;
 	}
 	
 	private int activeCoreCount = 0;
@@ -370,17 +463,31 @@ public class TierTreeManager
 		{
 			long time = System.currentTimeMillis() - lastTime;
 			long addedEff = time * activeCoreCount;
-			long perfAE = time * ttm.threads;
+			long perfAE = time;
 			totalEff += addedEff;
 			perfectEff += perfAE;
 		}
 		
+		if (maxActiveCores < activeCoreCount)
+		{
+			maxActiveCores = activeCoreCount;
+		}
 		
 		//go through the goodList for a tier that can be solved. 
 		//Don't spawn more than the number of threads avalibale.
 		
 		for (;ttm.hasMoreThreads() && freeTiers.size() > 0;)
 		{
+			//check if we need to shut down threads
+			if (coresToKill > 0)
+			{
+				//kill a thread this round
+				if (ttm.killReadyThread())
+				{
+					coresToKill--;
+					continue;
+				}
+			}
 			TierTreeNode ttn = freeTiers.poll();
 			//put in being solved list.
 			beingSolved.put(ttn.tierNum, ttn);
@@ -390,6 +497,7 @@ public class TierTreeManager
 				System.err.println("Failed to spawn tier thread " + ttn.tierNum);
 				//add back into the queue
 				freeTiers.add(ttn);
+				//no need to notify listenres i think.
 				return;
 			}
 			System.out.println("Spawned tier " + ttn.tierNum + " - " + ttn);
@@ -401,26 +509,25 @@ public class TierTreeManager
 		activeCoreCount = ttm.threads - ttm.availableThreads();
 		
 		System.out.println("***Idle=" + ttm.availableThreads() + "/"+ttm.threads+", Tiers ready="+freeTiers.size()+"/"+tierMap.size()+", " +
-				"Core status: " + beingSolved.keySet() + ", Efficiency = " + (double)totalEff/perfectEff*cores);
-		if (ttm.availableThreads() < minCoresIdle)
-		{
-			minCoresIdle = ttm.availableThreads();
-		}
+				"Core status: " + beingSolved.keySet() + ", Efficiency = " + (double)totalEff/perfectEff);
+
 		
 		
 		//check if we're all done!
-		if (tierMap.size() == 0 || (freeTiers.size() == 0 && ttm.availableThreads() == cores))
+		if ((tierMap.size() == 0 && blacklistT.size() == 0) || (blacklistF.size() == 0 && freeTiers.size() == 0 && ttm.availableThreads() == ttm.threads))
 		{
 			if (tierMap.size()== 0)
 			{
 				System.out.println("All done!");
+				notifyListenersDone(false);
 			}
 			else
 			{
 				System.out.println("Not all done... We had errors.");
+				notifyListenersDone(true);
 			}
-			System.out.println("Min cores idle - " + minCoresIdle);
-			System.out.println("Core usage efficiency - " + (double)totalEff/perfectEff*cores);
+			System.out.println("Maxium core usage - " + maxActiveCores);
+			System.out.println("Core usage efficiency - " + (double)totalEff/perfectEff);//*cores);
 			System.out.println("Bad tiers: " + badTiers.keySet());
 			ttm.shutdown();
 			logOutput.close();
@@ -430,9 +537,19 @@ public class TierTreeManager
 	private void notifyListenersSetup()
 	{
 		for (int a=0;a<listeners.length;a++)
-		{
 			listeners[a].setup(fullMap, tierMap);
-		}
+	}
+	
+	private void notifyListenersStart()
+	{
+		for (int a=0;a<listeners.length;a++)
+			listeners[a].start();
+	}
+	
+	private void notifyListenersMoveToReady(long tier, double pri)
+	{
+		for (int a=0;a<listeners.length;a++)
+			listeners[a].tierMoveToReady(tier, pri);
 	}
 	
 	private void notifyListenersStartSolve(long tier)
@@ -445,6 +562,100 @@ public class TierTreeManager
 	{
 		for (int a=0;a<listeners.length;a++)
 			listeners[a].tierFinishedSolve(tier, bad, seconds);
+	}
+	
+	private void notifyListenersDone(boolean errors)
+	{
+		for (int a=0;a<listeners.length;a++)
+			listeners[a].done(errors);
+	}
+	
+	//Custom callbacks from the control gui
+	public synchronized void blacklistTier(long tier)
+	{
+		blacklistTiers(new long[]{tier});
+	}
+	
+	//Custom callbacks from the control gui
+	public synchronized void blacklistTiers(long[] tiers)
+	{
+		Set<Long> longSet = new HashSet<Long>();
+		for (long l : tiers)
+			longSet.add(l);
+		//find and remove from freeTiers
+		for (Iterator<TierTreeNode> i = freeTiers.iterator();i.hasNext();)
+		{
+			TierTreeNode ttn = i.next();
+			if (longSet.contains(ttn.tierNum))
+			{
+				i.remove();
+				longSet.remove(ttn.tierNum);
+				blacklistF.put(ttn.tierNum, ttn);
+				System.out.println("Tier " + ttn.tierNum + " was blacklisted.");
+			}
+		}
+		
+		//for the rest, look in the tosolve list
+		for (long tier : longSet)
+		{
+			TierTreeNode ttn = tierMap.get(tier);
+			if (ttn != null)
+			{
+				tierMap.remove(tier);
+				blacklistT.put(tier, ttn);
+				System.out.println("Tier " + ttn.tierNum + " was blacklisted.");
+			}
+		}
+	}
+
+	public synchronized void unblacklistTier(long tier)
+	{
+		unblacklistTiers(new long[]{tier});
+	}
+	
+	
+	public synchronized void unblacklistTiers(long[] tiers)
+	{
+		boolean spawn = false;
+		for (long tier: tiers)
+		{
+			//Find and free from blakclist.
+			TierTreeNode ttn = blacklistF.remove(tier);
+			TierTreeNode ttn2 = blacklistT.remove(tier);
+			if (ttn != null)
+			{
+				//just add back into freelist
+				freeTiers.add(ttn);
+				spawn = true;
+				System.out.println("Tier " + tier + " was unblacklisted (ready).");
+			}
+			else if (ttn2 != null)
+			{
+				tierMap.put(tier, ttn2);
+				System.out.println("Tier " + tier + " was unblacklisted (to solve).");
+			}
+		}
+		if (spawn)
+			spawnNewThreads();
+	}
+	
+	public synchronized void decreaseCoreCount()
+	{
+		if (coresToKill < ttm.threads)
+			coresToKill++;
+		
+	}
+
+	public void increaseCoreCount()
+	{
+		if (coresToKill > 0)
+			coresToKill--;
+		else
+		{
+			//have to create a new thread.
+			ttm.spawnNewThread();
+			spawnNewThreads();
+		}
 	}
 }
 

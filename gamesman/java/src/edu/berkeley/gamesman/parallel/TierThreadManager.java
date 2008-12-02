@@ -28,7 +28,7 @@ public class TierThreadManager
 		}
 	}
 	
-	public boolean solveTier(long t)
+	public synchronized boolean solveTier(long t)
 	{
 		if (down)
 		{
@@ -46,7 +46,7 @@ public class TierThreadManager
 		return tt.newJob(t);		
 	}
 	
-	private TierThread getAThread()
+	private synchronized TierThread getAThread()
 	{
 		for (int a=0;a<threadArr.length;a++)
 		{
@@ -57,12 +57,12 @@ public class TierThreadManager
 	}
 	
 	
-	public int availableThreads()
+	public synchronized int availableThreads()
 	{
 		int t = 0;
 		for (int a=0;a<threadArr.length;a++)
 		{
-			if (threadArr[a].running == false)
+			if (threadArr[a].running == false && threadArr[a].shutdown == false)
 				t++;
 		}
 		return t;
@@ -73,7 +73,7 @@ public class TierThreadManager
 		return getAThread() != null;
 	}
 	
-	void shutdown()
+	synchronized void shutdown()
 	{
 		down = true;
 		for (int a=0;a<threadArr.length;a++)
@@ -81,5 +81,45 @@ public class TierThreadManager
 			threadArr[a].shutdownThread();
 		}
 	}
+
+	public synchronized void removeFromThreadPool(TierThread thread)
+	{
+		for (int a=0;a<threadArr.length;a++)
+		{
+			if (threadArr[a] == thread)
+			{
+				threads--;
+				TierThread[] newArr = new TierThread[threads];
+				System.arraycopy(threadArr, 0, newArr, 0, a);
+				System.arraycopy(threadArr, a+1, newArr, a, threads-a);
+				threadArr = newArr;
+				return;
+			}
+		}
+	}
+
+	public boolean killReadyThread()
+	{
+		TierThread tt = getAThread();
+		if (tt == null)
+			return false;
+		tt.shutdownThread();
+		removeFromThreadPool(tt);
+		System.out.println("Shutdown thread " + tt.threadID);
+		return true;
+	}
+	
+	public synchronized void spawnNewThread()
+	{
+		TierThread tt = new TierThread(this, gamePath, game, option);
+		threads++;
+		TierThread[] newArr = new TierThread[threads];
+		System.arraycopy(threadArr, 0, newArr, 0, threads-1);
+		newArr[threads-1] = tt;
+		threadArr = newArr;
+		
+		
+	}
+
 
 }

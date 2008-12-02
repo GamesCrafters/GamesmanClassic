@@ -17,16 +17,28 @@ public class UbigraphListener implements TierEventListener {
 	TierTreeManager ttm;
 	Map<Long, Integer> tierToVIDMap = new HashMap<Long, Integer>();
 	UbigraphClient graphClient;
+	String server;
 	
 	
-	public UbigraphListener(TierTreeManager ttm)
+	public UbigraphListener(TierTreeManager ttm, String server)
 	{
 		this.ttm = ttm;
+		this.server = server;
 	}
 	
 	public void setup(Map<Long, TierTreeNode> fullMap, Map<Long, TierTreeNode> toSolveMap) 
 	{
 		initUbigraph(toSolveMap, fullMap);
+	}
+
+	public void start()
+	{
+		//no need to do antuhing ere.
+	}
+	
+	public void tierMoveToReady(long tier, double priority)
+	{
+		//Ignored for now
 	}
 
 	public void tierFinishedSolve(long tier, boolean bad, double seconds) 
@@ -46,14 +58,14 @@ public class UbigraphListener implements TierEventListener {
 	
 	public void done(boolean errors)
 	{
-		
+		//Nothing needs to be done.
 	}
 	
 	private void initUbigraph(Map<Long, TierTreeNode> tierMap, Map<Long, TierTreeNode> ubigraphMap)
 	{
 		//create localhost graph client
-		System.out.println("Creating new client object...");
-		graphClient = new UbigraphClient();
+		System.out.println("Creating new client object connected to server "+server+"...");
+		graphClient = new UbigraphClient(server);
 		System.out.println("Clearing graph area...");
 		graphClient.clear();
 		
@@ -66,6 +78,7 @@ public class UbigraphListener implements TierEventListener {
 		{			
 			TierTreeNode ttnCur = i.next();
 			int VID = graphClient.newVertex();
+			graphClient.setVertexAttribute(VID, "label", "Tier " + ttnCur.tierNum);
 			tierToVIDMap.put(ttnCur.tierNum, VID);
 			if (tierMap.containsKey(ttnCur.tierNum) == false)
 				graphClient.setVertexAttribute(VID, "color", "#FFFF00");

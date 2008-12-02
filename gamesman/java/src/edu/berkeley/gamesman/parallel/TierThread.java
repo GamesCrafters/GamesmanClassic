@@ -20,6 +20,9 @@ class TierThread extends Thread
 	volatile boolean running = false;
 	public volatile boolean shutdown = false;
 	private int option;
+	private static int TID_COUNT = 0;
+	public int threadID = TID_COUNT++;
+	
 	
 	public TierThread (TierThreadManager ttm, String path, String name, int option) {
 		gamePath = path;
@@ -49,7 +52,7 @@ class TierThread extends Thread
 					if (TierTreeManager.FAKE)
 					{
 						//sleep for like 100 ms
-						Thread.sleep((long) (100 + Math.random()*100));
+						Thread.sleep((long) (1000 + Math.random()*1000));
 						retCode = 0;
 					}
 					else
@@ -84,6 +87,7 @@ class TierThread extends Thread
 				}
 				time = System.currentTimeMillis() - time;
 				//We are DONE. Call done method
+				System.out.println("Tier " + TierID + " is done, calling done.");
 				done(TierID, retCode, time/1000.0);
 			}
 		}
@@ -91,7 +95,7 @@ class TierThread extends Thread
 		{
 			shutdown = true;
 			e.printStackTrace();
-			System.out.println("A thread has died.");
+			System.out.println("A thread has died unexpectedly.");
 		}
 	}
 
@@ -144,10 +148,11 @@ finished and finish calls newjob
 	public void done(long tid, int retCode, double seconds) throws InterruptedException
 	{
 		//No threads can enter the newjob right now, so we're safe
-		running = false; //No longer running
 		//Now, call finished 
-		ttm.ttm.finished(tid, retCode, seconds);
-		
+		//Finished atomically sets running to false for us. Why didn't i think of that before?
+		ttm.ttm.finished(tid, retCode, seconds, this); 
+
+
 		
 		//This is impossible since we are sycned, and so we have 'complete'
 		//control over running. And of course, the finished thread can't
