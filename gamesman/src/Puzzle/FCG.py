@@ -63,3 +63,25 @@ class FCG(Puzzle):
                (2 ** 2) * self.C + \
                (2 ** 1) * self.G + \
                (2 ** 0) * self.B
+
+    def serialize(self):
+        return str(self)
+
+    default_options = {}
+    @staticmethod
+    def unserialize(options, bd=""):
+        if '|' not in bd:
+            bd = bd + '|'
+        here, there = bd.split('|', 1)
+        here = here.strip().upper()
+        there = there.strip().upper()
+        
+        args = {}
+        for c in here:
+            args[c] = False
+        for c in there:
+            args[c] = True
+
+        return FCG(**args)
+
+

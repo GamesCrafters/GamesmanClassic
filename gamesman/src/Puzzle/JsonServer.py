@@ -17,6 +17,7 @@ from cjson import decode as json_dec, encode as json_enc
 # from simplejson import loads as json_dec, dumps as json_enc
 
 import urllib
+import traceback
 import socket
 import asyncore
 from asynchat import async_chat
@@ -60,8 +61,9 @@ class JsonConnection(async_chat):
 			msg = {"status": "ok", "response": response}
 			
 		except Exception, e:
-			print "Error when parsing JSON query."
+			print "Error when handling JSON query."
 			print e
+			traceback.print_exc()
 			print "---------------"
 			msg = {"status": "error", "msg": str(e)}
 			
@@ -73,6 +75,7 @@ class JsonConnection(async_chat):
 		except:
 			print "FAILURE in encoding message"
 			print repr(msg)
+			traceback.print_exc()
 
 class JsonServer(asyncore.dispatcher):
 	def __init__(self, port, handler):

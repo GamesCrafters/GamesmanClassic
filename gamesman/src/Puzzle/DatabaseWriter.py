@@ -1,6 +1,7 @@
 import sys
 import DatabaseHelper
 import Solver
+import OldSolver
 import UnreverseSolver
 import Puzzle
 import pickle
@@ -23,7 +24,7 @@ def numBits(x):
 		a += 1
 	return a
 
-def solveDatabase(puzzname, passedoptions,isunreverse):
+def solveDatabase(puzzname, passedoptions,isunreverse,solverclass):
 	if puzzname.find('/') != -1 or puzzname.find('\\') != -1:
 		raise ArgumentException, "invalid puzzle"
 
@@ -35,10 +36,7 @@ def solveDatabase(puzzname, passedoptions,isunreverse):
 	options.update(passedoptions)
 	print "Solving "+puzzleclass.__name__+" with options "+repr(options)[1:-1]+"..."
 	puzzle = puzzleclass.unserialize(options) #.generate_start(**options) # instantiates a new puzzle object
-	if isunreverse:
-		solver = UnreverseSolver.UnreverseSolver()
-	else:
-		solver = Solver.Solver()
+	solver = solverclass()
 	solver.solve(puzzle,verbose=True)
 	
 	print "Solved!  Generating array of values"
@@ -60,6 +58,7 @@ def writeDatabase(puzzname, passedoptions, solver, isunreverse):
 	fields =[('remoteness',numBits(maxlevel))]
 	if isunreverse:
 		fields.append(('score', numBits(maxlevel*2)));
+	print fields
 	
 	bitClass = DatabaseHelper.makeBitClass(fields)
 	
@@ -79,7 +78,10 @@ def writeDatabase(puzzname, passedoptions, solver, isunreverse):
 	
 	default = str(bitClass(remoteness=0)) # remoteness==0 but not solution means not seen.
 	
-	solver.maxHash = 1000000
+	try:
+		print solver.maxHash
+	except:
+		solver.maxHash = 2**32
 	maxchunks = 1 + solver.maxHash/CHUNK
 	print "Maximum hash is %d, number of %d-byte chunks to write is %d"%(solver.maxHash, CHUNK, maxchunks)
 	
@@ -93,7 +95,7 @@ def writeDatabase(puzzname, passedoptions, solver, isunreverse):
 				continue
 			
 			if isunreverse:
-				print myval
+				print dict(remoteness=(maxlevel - myval[0]), score=myval[1])
 				val = bitClass(remoteness=(maxlevel - myval[0]), score=myval[1])
 				print repr(str(val))
 			else:
@@ -125,14 +127,19 @@ if __name__=='__main__':
 		sys.exit(0)
 	args = sys.argv[1:]
 	unreverse=False
+	solverclass = Solver.Solver
 	if args[0]=="-u":
+		solverclass = UnreverseSolver.UnreverseSolver
 		unreverse=True
+		args=args[1:]
+	if args[0]=="-o":
+		solverclass = OldSolver.Solver
 		args=args[1:]
 	
 	options = {}
 	for i in xrange(1,len(args)-1,2):
 		options[args[i]] = args[i+1]
 	
-	solver = solveDatabase(args[0], options, unreverse)
+	solver = solveDatabase(args[0], options, unreverse, solverclass)
  	writeDatabase(args[0], options, solver, unreverse)
 
