@@ -11,10 +11,25 @@
 
 # Beware the Jabberwock, my son! The jaws that bite, the claws that catch!
 # Beware the Jubjub bug, and read vazor.com/cjson.html#!
-from cjson import decode as json_dec, encode as json_enc
+try:
+	from cjson import decode as json_dec, encode as json_enc
+except ImportError:
+	try:
+		# Or, if you like simplejson better:
+		from simplejson import loads as json_dec, dumps as json_enc
+	except ImportError:
+		# Does the right thing in many cases, but it's good to scare the user some.
+		print "************* WARNING *************"
+		print "You are using repr() to produce javascript code.  This will work"
+		print "in many cases, but may fail on complicated STRINGS with weird characters"
+		print "or if you send TUPLES to javascript."
+		print ""
+		print "I highly recommend you download and install either the 'simplejson' or"
+		print "the 'cjson' packaage."
+		print "***********************************"
+		json_enc  = repr
+	
 
-# Or, if you like simplejson better:
-# from simplejson import loads as json_dec, dumps as json_enc
 
 import urllib
 import traceback
