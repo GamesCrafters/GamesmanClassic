@@ -20,9 +20,9 @@ class TCross(Puzzle):
     # 4                  = "binary" (bin)
     # 5                  = "arts" (art)
     # 6, 7, 8            = orange dot (dot)
-    def __init__(self, gameboard = [25, 16, 30, 24, 20, 22, 10, 11, 19], # the nine pieces' index in board
+    def __init__(self, gameboard = [25, 16, 30, 24, 11, 20, 10, 29, 23], # the nine pieces' index in board
                                     horizontalPos = 0, verticalPos = True, # state of sliders
-                                    circle = 1, binArt = 1, dots = 0, exactSol = 1): # options
+                                    circle = 1, binArt = 0, dots = 0, exactSol = 0): # options
         # only store the pieces that are necessary (otherwise hash will fail)
         self.gameboard = [-1, -1, -1, -1, -1, -1, -1, -1, -1]
         if circle:
@@ -55,7 +55,7 @@ class TCross(Puzzle):
         boardString += (self.verticalPos * 1).__str__()
         return boardString
     
-    default_options = {"circle":"1", "binArt":"1", "dots":"0", "exactSol":"1"}
+    default_options = {"circle":"1", "binArt":"0", "dots":"0", "exactSol":"0"}
     
     @staticmethod
     def unserialize(options, 
