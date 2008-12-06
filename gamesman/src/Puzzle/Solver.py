@@ -1,4 +1,5 @@
 import cPickle
+import gc
 
 class Solver:
     """This is a solver of a single solution"""
@@ -9,19 +10,30 @@ class Solver:
         self.visited = {}        # hashed_position : True
         self.path_to_answer = {} # hashed_position : True
         self.puzzle = None
+        self.maxHash = 0
 
+    # non-recursive find_solutions
     def find_solutions(self, puzzle):
-        if puzzle.is_illegal() or hash(puzzle) in self.visited:
-            return []
-        else:
-            self.visited[hash(puzzle)] = True # Visit myself
-            solutions = []
-            if puzzle.is_a_solution():
-                solutions += [puzzle]
-            for move in puzzle.generate_moves():
-                child = puzzle + move
-                solutions += self.find_solutions(child)
-            return solutions
+        puzzleQueue = []
+        solutions = []
+        puzzleQueue.extend([hash(puzzle)])
+        while puzzleQueue:
+            h_currPuzzle = puzzleQueue.pop()
+            currPuzzle = puzzle.unhash(h_currPuzzle)
+            if currPuzzle.is_illegal() or h_currPuzzle in self.visited:
+                continue
+            else:
+                self.visited[h_currPuzzle] = True # Visit myself
+                
+                if currPuzzle.is_a_solution():
+                    solutions += [currPuzzle]
+                    
+                h_currChildren = []
+                for move in currPuzzle.generate_moves():
+                    h_currChildren += [hash(currPuzzle + move)]
+                    
+                puzzleQueue.extend(h_currChildren)
+        return solutions
 
     def get_max_level(self):
         return max(self.levels)
@@ -32,13 +44,14 @@ class Solver:
 
         if not solutions:
             solutions = self.find_solutions(puzzle)
-
+        
         #self.levels[0] = solutions
         self.levels[0] = []
         level = 0
         for solution in solutions:
-            self.levels[0].append(hash(solution))
-            self.seen[hash(solution)] = level
+            h_sol = hash(solution)
+            self.levels[0].append(h_sol)
+            self.seen[h_sol] = level
         if verbose:
             print "Level 0 : " + str(len(solutions))
         while self.levels[level] and (max_level==-1 or level<max_level):
@@ -48,12 +61,14 @@ class Solver:
                 for move in position.generate_moves():
                     child = position + move
                     if not child.is_illegal():
-                        if hash(child) not in self.seen:  # first time we've seen it
-                            self.seen[hash(child)] = level+1
-                            self.levels[level+1].append(hash(child))
-                            self.move[hash(child)] = [position.reverse_move(move)]
-                        elif self.seen[hash(child)] == level+1: # another sol path!
-                            self.move[hash(child)].append(position.reverse_move(move))
+                        h_child = hash(child)
+                        if h_child not in self.seen:  # first time we've seen it
+                            self.seen[h_child] = level+1
+                            self.maxHash = max(self.maxHash, h_child)
+                            self.levels[level+1].append(h_child)
+                            self.move[h_child] = [position.reverse_move(move)]
+                        elif self.seen[h_child] == level+1: # another sol path!
+                            self.move[h_child].append(position.reverse_move(move))
                         else:
                             pass # we've seen it before, but it isn't a solution path
             if verbose and len(self.levels[level+1]) > 0:
@@ -72,8 +87,9 @@ class Solver:
             while puzzle not in solutions:
                 print "        LEVEL: " + str(self.seen[hash(puzzle)])
                 print puzzle
-                print ""
-                puzzle += self.move[hash(puzzle)][0] ### Walk left side of tree
+                m = self.move[hash(puzzle)][-1] ### Walk left side of tree
+                print "->" + m
+                puzzle += m 
             print "        LEVEL: " + str(self.seen[hash(puzzle)])
             print puzzle
 
