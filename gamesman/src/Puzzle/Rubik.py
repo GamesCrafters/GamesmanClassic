@@ -207,7 +207,46 @@ class Rubik(Puzzle):
                 
         return cube_string
     
+
+    # In the Rubik class
     def __hash__(self):
+        global threetoxlist
+        global factlist
+        hash = 0
+        pcs = self.pieces[:-1] #copy and extract positions only
+        # up to -1 because last position is always 7.
+        for i in range(6):
+            # get its index.
+            pos = pcs.index(i)
+            pcs.remove(i)
+            # now remove it from the list and add it to the hash.
+            hash += factlist[len(pcs)]*pos
+
+        hash *= threetoxlist[6]
+        for i in range(6):
+            hash += self.orientations[i] * threetoxlist[i]
+        return hash
+ 
+    def unhash(self, hval):
+        global factlist
+        orientations = range(8)
+        totalorient = 0
+        for i in range(6):
+            ori = hval % 3
+            totalorient += ori
+            orientations[i] = ori
+            hval /= 3
+        orientations[6] = ((3-totalorient)%3)
+	orientations[7] = 0
+        pieces = []
+        for i in range(7):
+            f = factlist[len(pieces)]
+            location = (hval/f) % (i+1)
+            pieces.insert(location, 6-i)
+        pieces.append(7)
+        return Rubik(pieces, orientations)
+
+    def old__hash__(self):
         hash = 0
         #only need to hash the first 6 pieces to be unique
         for piece in self.pieces[:-2]:
@@ -217,3 +256,11 @@ class Rubik(Puzzle):
             hash <<= 2
             hash |= orientation
         return hash
+
+
+def fact(n):
+        return (n==0) and 1 or (n * fact(n-1))
+# Memoize nine values -- enough for 2x2x2 Rukik's cube.
+factlist = [fact(n) for n in range(16)]
+threetoxlist = [3**n for n in range(16)]
+

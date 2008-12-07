@@ -44,7 +44,10 @@ def solveDatabase(puzzname, passedoptions,isunreverse,solverclass):
 	return solver
 
 def writeDatabase(puzzname, passedoptions, solver, isunreverse):
-
+	
+	if solver is None:
+		return
+	
 	module = __import__(puzzname)
 	puzzleclass = getattr(module, puzzname)
 
@@ -119,14 +122,43 @@ def writeDatabase(puzzname, passedoptions, solver, isunreverse):
 	f.close()
 	print "Done!"
 
+solver = None
+
+solve_args = ()
+
+# run with -i to interact with solver.
+def run(name, options, unreverse, solverclass):
+	global solver
+	solver = solveDatabase(name, options, unreverse, solverclass)
+ 	writeDatabase(name, options, solver, unreverse)
+	
+
+# run with -i to use the prof variable.
+def profile():
+	global prof, stats, solve_args
+	
+	import cProfile, pstats
+	prof = cProfile.Profile()
+	# *solveargs is to allow passing options in... can't convert everything to repr.
+	prof = prof.runctx("run(*solve_args)", globals(), locals())
+	print "Done profiling!"
+	stats = pstats.Stats(prof)
+	stats.sort_stats("time")
+	stats.print_stats(80)
+
 if __name__=='__main__':
 	#writeDatabase('Wheel',
 	#	{'seqSize': 6})
 	if len(sys.argv)<2:
-		print >>sys.stderr, "Arguments: Python file to import (without .py)"
+		print >>sys.stderr, "Arguments: [-u] [-o] [-p] PythonClass option1 value1 option2 value2 ..."
+		print >>sys.stderr, "\t-u: Unreverse solver"
+		print >>sys.stderr, "\t-o: Old and slow solver for 'legacy' puzzles (including FCG)"
+		print >>sys.stderr, "\t-p: Enable solver profiling"
+		print >>sys.stderr, "\tto determine allowed options, look at default_options in PythonClass.py"
 		sys.exit(0)
 	args = sys.argv[1:]
 	unreverse=False
+	profiling=False
 	solverclass = Solver.Solver
 	if args[0]=="-u":
 		solverclass = UnreverseSolver.UnreverseSolver
@@ -135,11 +167,17 @@ if __name__=='__main__':
 	if args[0]=="-o":
 		solverclass = OldSolver.Solver
 		args=args[1:]
+	if args[0]=="-p":
+		profiling = True
+		args=args[1:]
 	
 	options = {}
 	for i in xrange(1,len(args)-1,2):
 		options[args[i]] = args[i+1]
 	
-	solver = solveDatabase(args[0], options, unreverse, solverclass)
- 	writeDatabase(args[0], options, solver, unreverse)
+	if profiling:
+		solve_args = (args[0], options, unreverse, solverclass)
+		profile()
+	else:
+		run(args[0], options, unreverse, solverclass)
 
