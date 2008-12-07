@@ -36,7 +36,7 @@ public class UbigraphListener implements TierEventListener {
 		//no need to do antuhing ere.
 	}
 	
-	public void tierMoveToReady(long tier, double priority)
+	public void tierMoveToReady(long tier)
 	{
 		//Ignored for now
 	}
@@ -49,7 +49,7 @@ public class UbigraphListener implements TierEventListener {
 		graphClient.setVertexAttribute(tierToVIDMap.get(tier), "size", "1.0");
 	}
 
-	public void tierStartSolve(long tier) 
+	public void tierStartSolve(long tier, int coreOn) 
 	{
 		//lets make it bigger and cyan!
 		graphClient.setVertexAttribute(tierToVIDMap.get(tier), "color", "#00FFFF");

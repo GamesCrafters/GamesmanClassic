@@ -19,13 +19,14 @@ public interface TierEventListener {
 	 * Called when a tier is ready to be solved. Gives the priority of that tier as well
 	 * @param tier
 	 */
-	public void tierMoveToReady(long tier, double priority);
+	public void tierMoveToReady(long tier);
 	
 	/**
 	 * Called when a tier is starting to solve.
 	 * @param tier
+	 * @param coreOn 
 	 */
-	public void tierStartSolve(long tier);
+	public void tierStartSolve(long tier, int coreOn);
 	
 	/**
 	 * Called when a tier is finished solving

@@ -28,22 +28,28 @@ public class TierThreadManager
 		}
 	}
 	
-	public synchronized boolean solveTier(long t)
+	public synchronized int solveTier(long t)
 	{
 		if (down)
 		{
 			System.out.println("This is shut down.");
-			return false;
+			return -1;
 		}
 		
 		//See if there is an avalibale thread
 		TierThread tt = getAThread();
 		if (tt == null)
 		{
-			return false; //Coudln't find an avaible thread.
+			return -1; //Coudln't find an avaible thread.
 		}
 		//start this job up on this thread
-		return tt.newJob(t);		
+		boolean ret = tt.newJob(t);
+		if (ret)
+		{
+			return tt.threadID;
+		}
+		return -1;
+		
 	}
 	
 	private synchronized TierThread getAThread()

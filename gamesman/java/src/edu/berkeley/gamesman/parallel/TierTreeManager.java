@@ -220,7 +220,7 @@ public class TierTreeManager
 		//now, add for all listeners the freelist
 		for (TierTreeNode ttn : freeTiers)
 		{
-			notifyListenersMoveToReady(ttn.tierNum, ttn.priority);
+			notifyListenersMoveToReady(ttn.tierNum);
 		}
 		maxActiveCores = 0;
 		spawnNewThreads();
@@ -420,7 +420,7 @@ public class TierTreeManager
 					{
 						freeTiers.add(ttnParent);
 					}
-					notifyListenersMoveToReady(ttnParent.tierNum, ttnParent.priority);
+					notifyListenersMoveToReady(ttnParent.tierNum);
 				}
 			}
 			//notify listeners
@@ -491,7 +491,8 @@ public class TierTreeManager
 			TierTreeNode ttn = freeTiers.poll();
 			//put in being solved list.
 			beingSolved.put(ttn.tierNum, ttn);
-			if (!ttm.solveTier(ttn.tierNum))
+			int tid = ttm.solveTier(ttn.tierNum);
+			if (tid == -1)
 			{
 				//something went wrong
 				System.err.println("Failed to spawn tier thread " + ttn.tierNum);
@@ -500,8 +501,8 @@ public class TierTreeManager
 				//no need to notify listenres i think.
 				return;
 			}
-			System.out.println("Spawned tier " + ttn.tierNum + " - " + ttn);
-			notifyListenersStartSolve(ttn.tierNum);
+			System.out.println("Spawned tier " + ttn.tierNum + " - " + ttn + " on core " + tid);
+			notifyListenersStartSolve(ttn.tierNum, tid);
 		}
 		
 		//restart stats
@@ -546,16 +547,16 @@ public class TierTreeManager
 			listeners[a].start();
 	}
 	
-	private void notifyListenersMoveToReady(long tier, double pri)
+	private void notifyListenersMoveToReady(long tier)
 	{
 		for (int a=0;a<listeners.length;a++)
-			listeners[a].tierMoveToReady(tier, pri);
+			listeners[a].tierMoveToReady(tier);
 	}
 	
-	private void notifyListenersStartSolve(long tier)
+	private void notifyListenersStartSolve(long tier, int coreOn)
 	{
 		for (int a=0;a<listeners.length;a++)
-			listeners[a].tierStartSolve(tier);
+			listeners[a].tierStartSolve(tier, coreOn);
 	}
 	
 	private void notifyListenersFinished(long tier, boolean bad, double seconds)
@@ -586,6 +587,8 @@ public class TierTreeManager
 		for (Iterator<TierTreeNode> i = freeTiers.iterator();i.hasNext();)
 		{
 			TierTreeNode ttn = i.next();
+			if (blacklistF.containsKey(ttn.tierNum) || blacklistT.containsKey(ttn.tierNum))
+				continue;
 			if (longSet.contains(ttn.tierNum))
 			{
 				i.remove();
@@ -598,6 +601,8 @@ public class TierTreeManager
 		//for the rest, look in the tosolve list
 		for (long tier : longSet)
 		{
+			if (blacklistF.containsKey(tier) || blacklistT.containsKey(tier))
+				continue;
 			TierTreeNode ttn = tierMap.get(tier);
 			if (ttn != null)
 			{

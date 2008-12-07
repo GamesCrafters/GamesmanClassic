@@ -1,7 +1,6 @@
 package edu.berkeley.gamesman.parallel.gui;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -11,6 +10,9 @@ import javax.swing.JFrame;
 import edu.berkeley.gamesman.parallel.TierEventListener;
 import edu.berkeley.gamesman.parallel.TierTreeManager;
 import edu.berkeley.gamesman.parallel.TierTreeNode;
+import edu.berkeley.gamesman.parallel.gui.CFModel.TierData;
+import edu.berkeley.gamesman.parallel.gui.CFModel.TierDataPrinter;
+
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,7 +23,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JButton;
 import javax.swing.JTabbedPane;
 import javax.swing.Timer;
-import java.awt.Dimension;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 
@@ -72,7 +73,7 @@ public class ControlFrame extends JFrame implements TierEventListener {
 		}
 	});
 	private JPanel jpBottom = null;
-	private JButton jbProperties = null;
+	private JButton jbUnblacklist = null;
 	private TierTreeManager ttm;
 	/**
 	 * This is the default constructor
@@ -137,59 +138,83 @@ public class ControlFrame extends JFrame implements TierEventListener {
 		}
 		
 		long[] tiersToSolve = new long[toSolveMap.size()];
+		double[] tiersToSolvePri = new double[toSolveMap.size()];
 		a = 0;
 		for (Iterator<Long> i = toSolveMap.keySet().iterator();i.hasNext();)
 		{
-			tiersToSolve[a++] = i.next();
+			tiersToSolve[a] = i.next();
+			tiersToSolvePri[a] = toSolveMap.get(tiersToSolve[a]).priority;
+			a++;
 		}
 		
 		//iterate thru tiersFull, and add to tiersSolved if not in tiersToSolve
 		long[] tiersSolved = new long[fullMap.size() - toSolveMap.size()];
+		double[] tiersSolvedPri = new double[fullMap.size() - toSolveMap.size()];
 		a = 0;
 		for (int b=0;b<tiersFull.length;b++)
 		{
 			if (toSolveMap.keySet().contains(tiersFull[b]) == false)
 			{
-				System.out.println("solved - " + tiersFull[b]);
-				tiersSolved[a++] = tiersFull[b];
-				System.out.println("Solvd tier:" + tiersFull[b]);
+				tiersSolved[a] = tiersFull[b];
+				tiersSolvedPri[a] = fullMap.get(tiersFull[b]).priority;
+				a++;
 			}
 		}
 		
 		//set up the lists
-		cfModelSolved.addTiers(tiersSolved);
-		cfModelToSolve.addTiers(tiersToSolve);	
+		cfModelSolved.addTiers(tiersSolved, tiersSolvedPri);
+		cfModelToSolve.addTiers(tiersToSolve, tiersToSolvePri);	
 	}
 	
 	public void start()
 	{
 		//enable the buttons
 		jButton.setEnabled(true);
-		jbProperties.setEnabled(true);
+		jbUnblacklist.setEnabled(true);
 		jbReduce.setEnabled(true);
 		jbInc.setEnabled(true);
 	}
-
-	public void tierMoveToReady(long tier, double priority)
+	
+	interface modifyTD
 	{
-		//Transfser blacklist status thru
-		boolean blState = cfModelToSolve.getBLState(tier);
-		cfModelToSolve.removeTier(tier);
-		cfModelReady.addTier(tier, priority);
-		if (blState)
-			cfModelReady.setBlacklist(tier);
+		public void modify(TierData td);
 	}
 
-	public void tierFinishedSolve(long tier, boolean bad, double seconds)
+	private void moveTier(CFModel cfmSrc, CFModel cfmDest, long tier, modifyTD modifier)
 	{
-		cfModelSolving.removeTier(tier);
-		cfModelSolved.addTier(tier, seconds);
+		TierData td = cfmSrc.removeTier(tier);
+		if (td != null)
+		{
+			modifier.modify(td);	//do whatever you need to do to it.
+			cfmDest.addTier(td);
+		}
+	}
+	
+	public void tierMoveToReady(long tier)
+	{
+		//Transfer, don;t need to do anything to the tier.
+		moveTier(cfModelToSolve, cfModelReady, tier, new modifyTD() {
+			public void modify(TierData td){}});
 	}
 
-	public void tierStartSolve(long tier)
+	public void tierFinishedSolve(long tier, boolean bad, final double seconds)
 	{
-		cfModelReady.removeTier(tier);
-		cfModelSolving.addTier(tier);
+		moveTier(cfModelSolving, cfModelSolved, tier, new modifyTD() {
+			public void modify(TierData td)
+			{
+				td.timeTaken = seconds;
+			}
+		});
+	}
+
+	public void tierStartSolve(long tier, final int coreOn)
+	{
+		moveTier(cfModelReady, cfModelSolving, tier, new modifyTD() {
+			public void modify(TierData td)
+			{
+				td.coreOn = coreOn;
+			}
+		});
 	}
 
 	/**
@@ -202,7 +227,13 @@ public class ControlFrame extends JFrame implements TierEventListener {
 		if (jlSolved == null)
 		{
 			jlSolved = new JList();
-			this.cfModelSolved = new CFModel();
+			this.cfModelSolved = new CFModel(new TierDataPrinter() {
+				public String printTD(TierData td)
+				{
+					//For solved list, we print out tier num and time to solve
+					return td.tier + " - " + td.timeTaken;
+				}
+			});
 			jlSolved.setModel(this.cfModelSolved);
 		}
 		return jlSolved;
@@ -218,7 +249,13 @@ public class ControlFrame extends JFrame implements TierEventListener {
 		if (jlToSolve == null)
 		{
 			jlToSolve = new JList();
-			this.cfModelToSolve = new CFModel();
+			this.cfModelToSolve = new CFModel(new TierDataPrinter() {
+				public String printTD(TierData td)
+				{
+					//For toSolve list, we just print out tier num, and if blacklist
+					return (td.blacklist?"!":"") + td.tier;
+				}
+			});
 			jlToSolve.setModel(this.cfModelToSolve);
 		}
 		return jlToSolve;
@@ -266,7 +303,13 @@ public class ControlFrame extends JFrame implements TierEventListener {
 		if (jlSolving == null)
 		{
 			jlSolving = new JList();
-			this.cfModelSolving = new CFModel();
+			this.cfModelSolving = new CFModel(new TierDataPrinter() {
+				public String printTD(TierData td)
+				{
+					//For solving list, we print out tier num and the core it is on
+					return td.tier + " on core " + td.coreOn;
+				}
+			});
 			jlSolving.setModel(this.cfModelSolving);
 		}
 		return jlSolving;
@@ -298,69 +341,55 @@ public class ControlFrame extends JFrame implements TierEventListener {
 		if (jButton == null)
 		{
 			jButton = new JButton();
-			jButton.setText("Toggle Blacklist");
+			jButton.setText("Blacklist Tiers");
 			jButton.setEnabled(false);
 			jButton.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					//check out whats selected in the toSolve tier.
-					int tab = jTabbedPane.getSelectedIndex();
-					long[] tiersToBL = new long[0];
-					CFModel cfm = null;
-					if (tab == 0 || tab == 1)
-					{
-						JOptionPane.showMessageDialog(null, "Cannot blacklist solved or solving threads.");
-					}
-					else if (tab == 2)
-					{
-						int[] indicies = jlReady.getSelectedIndices();
-						tiersToBL = new long[indicies.length];
-						for (int a=0;a<indicies.length;a++)
-						{
-							tiersToBL[a] = cfModelReady.getTier(indicies[a]);
-						}
-						cfm = cfModelReady;
-					}
-					else if (tab == 3)
-					{
-						int[] indicies = jlToSolve.getSelectedIndices();
-						tiersToBL = new long[indicies.length];
-						for (int a=0;a<indicies.length;a++)
-						{
-							tiersToBL[a] = cfModelToSolve.getTier(indicies[a]);
-						}
-						cfm = cfModelToSolve;
-					}
-					else
-					{
-						JOptionPane.showMessageDialog(null, "Invalid tab selected - " + tab + ".");
-					}
-					ArrayList<Long> bl = new ArrayList<Long>();
-					ArrayList<Long> ubl = new ArrayList<Long>();
-					for (long tier : tiersToBL)
-					{
-						int blstate = cfm.setBlacklist(tier);
-						if (blstate == 0)
-						{
-							ubl.add(tier);
-						}
-						else if (blstate == 1)
-						{
-							bl.add(tier);
-						}
-					}
-					long[] bla = new long[bl.size()];
-					for (int a=0;a<bl.size();a++)
-						bla[a] = bl.get(a);
-					long[] ubla = new long[ubl.size()];
-					for (int a=0;a<ubl.size();a++)
-						ubla[a] = ubl.get(a);
-					ttm.blacklistTiers(bla);
-					ttm.unblacklistTiers(ubla);
+					ttm.blacklistTiers(getTiersSelectedForBL(true));
 				}
 			});
 		}
 		return jButton;
+	}
+	
+	private long[] getTiersSelectedForBL(boolean blacklist)
+	{
+		//check out whats selected in the toSolve tier.
+		int tab = jTabbedPane.getSelectedIndex();
+		long[] tiersToBL;
+		int[] indicies = new int[0];
+		CFModel cfm = null;
+		if (tab == 0 || tab == 1)
+		{
+			JOptionPane.showMessageDialog(null, "Cannot blacklist solved or solving threads.");
+		}
+		else if (tab == 2)
+		{
+			indicies = jlReady.getSelectedIndices();
+			cfm = cfModelReady;
+		}
+		else if (tab == 3)
+		{
+			indicies = jlToSolve.getSelectedIndices();
+			cfm = cfModelToSolve;
+		}
+		else
+		{
+			JOptionPane.showMessageDialog(null, "Invalid tab selected - " + tab + ".");
+		}
+		if (indicies.length == 0)
+			return new long[0];
+		tiersToBL = new long[indicies.length];
+		for (int a=0;a<indicies.length;a++)
+		{
+			tiersToBL[a] = cfm.getTier(indicies[a]);
+		}
+		for (int a=0;a<tiersToBL.length;a++)
+		{
+			cfm.setBlacklist(tiersToBL[a], blacklist);
+		}
+		return tiersToBL;
 	}
 
 	/**
@@ -484,7 +513,13 @@ public class ControlFrame extends JFrame implements TierEventListener {
 		if (jlReady == null)
 		{
 			jlReady = new JList();
-			this.cfModelReady = new CFModel();
+			this.cfModelReady = new CFModel(new TierDataPrinter() {
+				public String printTD(TierData td)
+				{
+					//For ready list, we print out tier num and priority/bl
+					return (td.blacklist?"!":"") + td.tier + " - " + td.priority;
+				}
+			});
 			jlReady.setModel(this.cfModelReady);
 		}
 		return jlReady;
@@ -508,7 +543,7 @@ public class ControlFrame extends JFrame implements TierEventListener {
 			jpBottom = new JPanel();
 			jpBottom.setLayout(new GridBagLayout());
 			jpBottom.add(getJButton(), new GridBagConstraints());
-			jpBottom.add(getJbProperties(), new GridBagConstraints());
+			jpBottom.add(getJbUnblacklist(), new GridBagConstraints());
 			jpBottom.add(getJbReduce(), gridBagConstraints);
 			jpBottom.add(getJbInc(), gridBagConstraints1);
 		}
@@ -516,25 +551,25 @@ public class ControlFrame extends JFrame implements TierEventListener {
 	}
 
 	/**
-	 * This method initializes jbProperties	
+	 * This method initializes jbUnblacklist	
 	 * 	
 	 * @return javax.swing.JButton	
 	 */
-	private JButton getJbProperties()
+	private JButton getJbUnblacklist()
 	{
-		if (jbProperties == null)
+		if (jbUnblacklist == null)
 		{
-			jbProperties = new JButton();
-			jbProperties.setText("Properties");
-			jbProperties.setEnabled(false);
-			jbProperties.addActionListener(new java.awt.event.ActionListener() {
+			jbUnblacklist = new JButton();
+			jbUnblacklist.setText("Unblacklist Tiers");
+			jbUnblacklist.setEnabled(false);
+			jbUnblacklist.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e)
 				{
-					
+					ttm.unblacklistTiers(getTiersSelectedForBL(false));
 				}
 			});
 		}
-		return jbProperties;
+		return jbUnblacklist;
 	}
 
 	/**
