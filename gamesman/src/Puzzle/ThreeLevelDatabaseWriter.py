@@ -126,7 +126,7 @@ def writeDatabase(puzzname, passedoptions,isunreverse,solverclass):
 		'options': options,
 		'fields': fields,
 		'version': 1,
-		'maxlevel': maxlevel,
+		'maxlevel': solver.get_max_level(),
 		'chunkbits': CHUNKBITS}, f)
 	chunkbase = (f.tell() + (CHUNK-1)) >> CHUNKBITS
 	

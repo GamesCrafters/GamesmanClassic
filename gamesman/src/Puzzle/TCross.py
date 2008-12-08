@@ -107,9 +107,119 @@ class TCross(Puzzle):
         if self.exactSol: 
             gameboard = [15, 16, 24, 25, 29, 30, 10, 11, 12]
             return [TCross(gameboard, 0, True, self.circle, self.binArt, self.dots, self.exactSol)];
+        elif self.circle and self.dots:
+            return self.generateInexactSolutionsCD()
+        elif self.circle and self.binArt:
+            return self.generateInexactSolutionsCB()
+        elif self.binArt and self.dots:
+            return self.generateInexactSolutionsDB()
         else:
-            return []
-
+            return [] # Let them be generated.
+            
+    # circle/dots
+    def generateInexactSolutionsCD(self):
+        solutions = []
+        for horizPos in range(-1, 2):
+            for vertPos in range(0, 2):                                 
+                conversion = convertBoard(horizPos, vertPos)
+                
+                for pos1 in range(len(conversion) - 2):
+                    solutionBoard = [-1, -1, -1, -1, -1, -1, -1, -1, -1]
+                    if self.dots:
+                        solutionBoard[6] = conversion[pos1]
+                        if conversion.__contains__(solutionBoard[6] + 1):
+                            solutionBoard[7] = solutionBoard[6] + 1
+                            if conversion.__contains__(solutionBoard[7] + 1):
+                                solutionBoard[8] = solutionBoard[7] + 1
+                                if self.circle:
+                                    noDots = range(len(conversion))
+                                    noDots.remove(conversion.index(solutionBoard[6]))
+                                    noDots.remove(conversion.index(solutionBoard[7]))
+                                    noDots.remove(conversion.index(solutionBoard[8]))
+                                    
+                                    noDotsConversion = conversion[0:]
+                                    noDotsConversion[conversion.index(solutionBoard[6])] = -1
+                                    noDotsConversion[conversion.index(solutionBoard[7])] = -1
+                                    noDotsConversion[conversion.index(solutionBoard[8])] = -1
+                                    for pos2 in noDots:
+                                        solutionBoard[0] = noDotsConversion[pos2]
+                                        if noDotsConversion.__contains__(solutionBoard[0] + 1):
+                                            solutionBoard[1] = solutionBoard[0] + 1
+                                            if noDotsConversion.__contains__(solutionBoard[0] + 9):
+                                                solutionBoard[2] = solutionBoard[0] + 9
+                                                if noDotsConversion.__contains__(solutionBoard[2] + 1):
+                                                    solutionBoard[3] = solutionBoard[2] + 1
+                                                    solutions += [TCross(solutionBoard, horizPos, vertPos, 
+                                                                         self.circle, self.binArt, self.dots)]
+            
+        
+        return solutions
+    
+    #circle/binart
+    def generateInexactSolutionsCB(self):
+        solutions = []
+        for horizPos in range(-1, 2):
+            for vertPos in range(0, 2):                                 
+                conversion = convertBoard(horizPos, vertPos)
+                
+                for pos1 in range(len(conversion) - 1):
+                    solutionBoard = [-1, -1, -1, -1, -1, -1, -1, -1, -1]
+                    if self.binArt:
+                        solutionBoard[4] = conversion[pos1]   
+                        if conversion.__contains__(solutionBoard[4] + 1):
+                            solutionBoard[5] = solutionBoard[4] + 1
+                            if self.circle:
+                                noBinArt = range(len(conversion))
+                                noBinArt.remove(conversion.index(solutionBoard[4]))
+                                noBinArt.remove(conversion.index(solutionBoard[5]))
+                                
+                                noBinArtConversion = conversion[0:]
+                                noBinArtConversion[conversion.index(solutionBoard[4])] = -1
+                                noBinArtConversion[conversion.index(solutionBoard[5])] = -1
+                                for pos2 in noBinArt:
+                                    solutionBoard[0] = noBinArtConversion[pos2]
+                                    if noBinArtConversion.__contains__(solutionBoard[0] + 1):
+                                        solutionBoard[1] = solutionBoard[0] + 1
+                                        if noBinArtConversion.__contains__(solutionBoard[0] + 9):
+                                            solutionBoard[2] = solutionBoard[0] + 9
+                                            if noBinArtConversion.__contains__(solutionBoard[2] + 1):
+                                                solutionBoard[3] = solutionBoard[2] + 1
+                                                solutions += [TCross(solutionBoard, horizPos, vertPos, 
+                                                                     self.circle, self.binArt, self.dots)]
+        
+        return solutions
+    
+    # dots/binart
+    def generateInexactSolutionsDB(self):
+        solutions = []
+        for horizPos in range(-1, 2):
+            for vertPos in range(0, 2):                                 
+                conversion = convertBoard(horizPos, vertPos)
+                
+                for pos1 in range(len(conversion) - 1):
+                    solutionBoard = [-1, -1, -1, -1, -1, -1, -1, -1, -1]
+                    if self.binArt:
+                        solutionBoard[4] = conversion[pos1]   
+                        if conversion.__contains__(solutionBoard[4] + 1):
+                            solutionBoard[5] = solutionBoard[4] + 1
+                            if self.dots:
+                                noBinArt = range(len(conversion))
+                                noBinArt.remove(conversion.index(solutionBoard[4]))
+                                noBinArt.remove(conversion.index(solutionBoard[5]))
+                    
+                                noBinArtConversion = conversion[0:]
+                                noBinArtConversion[conversion.index(solutionBoard[4])] = -1
+                                noBinArtConversion[conversion.index(solutionBoard[5])] = -1
+                                for pos2 in noBinArt:
+                                    solutionBoard[6] = noBinArtConversion[pos2]
+                                    if noBinArtConversion.__contains__(solutionBoard[6] + 1):
+                                        solutionBoard[7] = solutionBoard[6] + 1
+                                        if noBinArtConversion.__contains__(solutionBoard[7] + 1):
+                                            solutionBoard[8] = solutionBoard[7] + 1
+                                            solutions += [TCross(solutionBoard, horizPos, vertPos, 
+                                                                     self.circle, self.binArt, self.dots)]
+        return solutions
+    
     def generate_moves(self):
         moves = []
         
@@ -234,6 +344,15 @@ class TCross(Puzzle):
         
         return boardString
    
+    def maxhash(self, boardLen=None):
+        if not boardLen:
+            boardLen = len(convertBoard(self.horizontalPos, self.verticalPos))
+        # maxHash is the total number of possible combinations without taking into
+        # account the verticalPos and horizontalPos: (numPositions)!/(numEmptys)!/(numDots)!
+        maxHash = divFact(boardLen, boardLen - self.circle * 4 - self.binArt * 2 - self.dots * 3)
+        maxHash /= fact(self.dots * 3)
+        return maxHash * 6 # Two horizontal and one vertical 
+
     def __hash__(self): # NOTE: uses helper functions below
         # convert imaginary board from 0 to 33 -> 0 to 17
         conversion = convertBoard(self.horizontalPos, self.verticalPos)
@@ -276,10 +395,7 @@ class TCross(Puzzle):
                 cs[piece] -= 1 # decrement the count of the given piece
         
         # now account for the verticalPos and horizontalPos:
-        # maxHash is the total number of possible combinations without taking into
-        # account the verticalPos and horizontalPos: (numPositions)!/(numEmptys)!/(numDots)!
-        maxHash = divFact(boardLen, boardLen - self.circle * 4 - self.binArt * 2 - self.dots * 3)
-        maxHash /= fact(self.dots * 3)
+        maxHash = self.maxhash(boardLen) / 6 
         # offset the current hash value by the maxHash for verticalPos
         hashCode += maxHash * self.verticalPos
         # offset the current hash value by 2 * maxHash for horizontalPos
@@ -297,8 +413,8 @@ class TCross(Puzzle):
         horizPos = 0
         # maxHash is the total number of possible combinations without taking into
         # account the verticalPos and horizontalPos: (numPositions)!/(numEmptys)!/(numDots)!
-        maxHash = divFact(boardLen, boardLen - self.circle * 4 - self.binArt * 2 - self.dots * 3)
-        maxHash /= fact(self.dots * 3)
+        maxHash = self.maxhash(boardLen)/6
+        
         # do the reverse of the hash
         for i in range(6):
             if (hashCode < (i + 1) * maxHash):
@@ -399,7 +515,15 @@ facts = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800,
         39916800, 479001600, 6227020800, 87178291200, 1307674368000, 20922789888000,
         355687428096000, 6402373705728000]
 def fact(n):
+    L = len(facts)
+    if n < len(facts):
+        return facts[n]
+    for i in xrange(L, n+1):
+        facts.append(facts[-1] * i)
+    
     return facts[n]
+
+divFacts = {}
 
 # simplifies dividing a large factorial by a small one
 def divFact(big, small):
@@ -407,7 +531,9 @@ def divFact(big, small):
         raise 'divFactError', 'denominator larger than numerator'
     if big == small:
         return 1 # cancel out the small factorial on the denominator with larger one on numerator
-    return big * divFact(big - 1, small)
+    if (big,small) not in divFacts:
+        divFacts[(big,small)] = big * divFact(big - 1, small)
+    return divFacts[(big,small)]
 
 def totalCount(counts): # hardcoded count function 
     return counts[0] + counts[1] + counts[2] + counts[3] + counts[4] + counts[5] + counts[6]

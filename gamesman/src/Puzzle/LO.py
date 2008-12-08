@@ -5,6 +5,18 @@ import string
 
 class LO(Puzzle):
     """This is the Lights Out puzzle class"""
+
+    default_options = {"width": 3}
+    
+    def serialize(self):
+        return str(self).replace("\\n","")
+
+    @staticmethod
+    def unserialize(options, boardstr=None):
+        size = int(options["width"])
+        if boardstr is None:
+            return LO([0]*size*size)
+        return LO([int(x) for x in boardstr])
    
     def __init__(self, board):
         #size = side length 1, 2, 3, etc...
@@ -162,13 +174,11 @@ class LO(Puzzle):
             hash += i
         
         return hash
-            
 
-        
-       
-               
-        
-      
-
-     
-            
+    def unhash(self, hval):
+        boardlen = self.size*self.size
+        board = [0]*boardlen
+        for i in xrange(boardlen):
+            board[boardlen-i-1] = hval&1
+            hval >>= 1
+        return LO(board)

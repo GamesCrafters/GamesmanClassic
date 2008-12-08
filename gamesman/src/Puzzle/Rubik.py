@@ -246,6 +246,9 @@ class Rubik(Puzzle):
         pieces.append(7)
         return Rubik(pieces, orientations)
 
+    def maxhash(self):
+        return threetoxlist[6]*factlist[7]
+
     def old__hash__(self):
         hash = 0
         #only need to hash the first 6 pieces to be unique

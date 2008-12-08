@@ -1,6 +1,7 @@
 import sys
 import DatabaseHelper
 import Solver
+import ByteArraySolver
 import OldSolver
 import UnreverseSolver
 import Puzzle
@@ -81,6 +82,17 @@ def writeDatabase(puzzname, passedoptions, solver, isunreverse):
 	
 	default = str(bitClass(remoteness=0)) # remoteness==0 but not solution means not seen.
 	
+	mystr = None
+	try:
+		mystr = solver.getBytes()
+	except:
+		pass # Not a bytearray solve.  Use the normal writing functions.
+	if mystr:
+		f.seek(chunkbase<<CHUNKBITS)
+		print "Writing %d-length buffer to disk..."%len(mystr)
+		f.write(mystr)
+		f.close()
+		return
 	try:
 		print solver.maxHash
 	except:
@@ -152,6 +164,7 @@ if __name__=='__main__':
 	if len(sys.argv)<2:
 		print >>sys.stderr, "Arguments: [-u] [-o] [-p] PythonClass option1 value1 option2 value2 ..."
 		print >>sys.stderr, "\t-u: Unreverse solver"
+		print >>sys.stderr, "\t-b: ByteArray solver (requires Python 2.6)"
 		print >>sys.stderr, "\t-o: Old and slow solver for 'legacy' puzzles (including FCG)"
 		print >>sys.stderr, "\t-p: Enable solver profiling"
 		print >>sys.stderr, "\tto determine allowed options, look at default_options in PythonClass.py"
@@ -163,6 +176,9 @@ if __name__=='__main__':
 	if args[0]=="-u":
 		solverclass = UnreverseSolver.UnreverseSolver
 		unreverse=True
+		args=args[1:]
+        if args[0]=="-b":
+                solverclass = ByteArraySolver.Solver
 		args=args[1:]
 	if args[0]=="-o":
 		solverclass = OldSolver.Solver

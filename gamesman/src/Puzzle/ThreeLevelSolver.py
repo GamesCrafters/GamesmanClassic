@@ -60,6 +60,8 @@ class Solver:
             # yield to database writer
             self.maxHash = max(max(curLevel), self.maxHash)
             yield (level, curLevel)
+            if verbose and len(curLevel) > 0:
+                print "Level " + str(level) + " : " + str(len(curLevel))
             
             for h_position in curLevel:
                 position = puzzle.unhash(h_position)
@@ -69,8 +71,6 @@ class Solver:
                         h_child = hash(child)
                         if h_child not in prevLevel and h_child not in curLevel:  # first time we've seen it
                             nextLevel[h_child] = True
-            if verbose and len(curLevel) > 0:
-                print "Level " + str(level) + " : " + str(len(curLevel))
             level += 1
             
             prevLevel = curLevel
