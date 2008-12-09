@@ -21,7 +21,7 @@ import JsonServer
 
 #### ENVIRONMENT SETTINGS.  CHANGE THESE FOR YOUR COMPUTER.
 PORTNUM=8080
-GAMESMANWEB=os.environ["HOME"]+"/gc/GamesmanWeb/deploy/ui"
+GAMESMANWEB=os.environ["HOME"]+"/workspace/GamesmanWeb2/deploy/ui"
 
 #### DEFAULT PUZZLE.
 PUZZLENAME="fcg"
@@ -52,8 +52,8 @@ def parsepuzzlejsp(fname, puzzlename):
 	text = f.read()
 	f.close()
 	text = text.replace("<%= canonicalName %>", puzzlename)
-	text = text.replace("<%= internalName %>", puzzlename)
-	header, footer = text.split("<% dynamicInclude(out, internalName); %>", 1)
+	text = text.replace("<%= uifile %>", puzzlename)
+	header, footer = text.split("<% dynamicInclude(out, uifile); %>", 1)
 	header = stripjsp(header)
 	footer = stripjsp(footer)
 	return  header, footer
