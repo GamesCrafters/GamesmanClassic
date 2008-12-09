@@ -40,25 +40,58 @@ class DictBitArray:
 class DictByteArray:
     def __init__(self, leng, bytecount):
         self.leng = leng
+        self.byterange = range(bytecount)
         self.bytecount = bytecount
-        self.arr = bytearray(self.leng * self.bytecount)
+        print "Initializing bytearray of length %d"%(self.leng*self.bytecount)
+        self.arr = bytearray(255 for i in xrange(self.leng * self.bytecount))
+        print "Clearing done!"
 
     def __str__(self):
         return str(self.arr)
 
+    def __contains__(self, key):
+        return ((self[key] >> (self.bytecount-1)*8) != 255)
+
+    def valueToStr(self, value):
+        s = ''
+        for i in self.byterange:
+            s += chr(value&255)
+            value >>= 8
+        return s
+
+    def find(self, valuestr, ind=-1):
+        while True:
+            ind = self.arr.find(valuestr, ind+1)
+            if ind == -1:
+                return -1
+            if ind%self.bytecount == 0:
+                return ind/self.bytecount
+
+    def finditer(self, value, ind=-1):
+        valuestr = self.valueToStr(value)
+        while True:
+            ind = self.arr.find(valuestr, ind+1)
+            if ind == -1:
+                return
+            if ind%self.bytecount == 0:
+                yield ind/self.bytecount
+
     def __getitem__(self, key):
         val = 0
         ind = key*self.bytecount
-        for i in range(self.bytecount):
-            val <<= 256
+        for i in self.byterange:
+            val <<= 8
             val += self.arr[ind+i]
         return val
 
+    def __delitem__(self, key):
+        self[key] = 255<< ((self.bytecount-1)*8)
+
     def __setitem__(self, key, value):
         ind = key*self.bytecount
-        for i in range(self.bytecount):
+        for i in self.byterange:
             self.arr[ind+i] = value & 255
-            value >>= 256
+            value >>= 8
 
     def __sizeof__(self):
         return self.leng
@@ -85,13 +118,14 @@ class Solver:
         puzzleQueue = []
         solutions = []
         puzzleQueue.extend([hash(puzzle)])
+        visited = DictBitArray(self.maxAllowedHash)
         while puzzleQueue:
             h_currPuzzle = puzzleQueue.pop()
             currPuzzle = puzzle.unhash(h_currPuzzle)
-            if currPuzzle.is_illegal() or h_currPuzzle in self.visited:
+            if currPuzzle.is_illegal() or h_currPuzzle in visited:
                 continue
             else:
-                self.visited[h_currPuzzle] = True # Visit myself
+                visited[h_currPuzzle] = True # Visit myself
                 
                 if currPuzzle.is_a_solution():
                     solutions.append(currPuzzle)
@@ -110,49 +144,47 @@ class Solver:
         self.puzzle = puzzle
         self.maxAllowedHash = puzzle.maxhash()
         print "max allowed hash is %d"%self.maxAllowedHash
-        #self.levels = {}         # level_num : [hashed_position, hashed_position, ...]
-        self.seen = DictByteArray(self.maxAllowedHash, 1) # hashed_position : level_num
-        #self.move = {}           # hashed_position : [reversed_move, reversed_move, ...]
-        self.visited = DictBitArray(self.maxAllowedHash) # hashed_position : True
+
         solutions = puzzle.generate_solutions()
 
         if not solutions:
             solutions = self.find_solutions(puzzle)
         
+        self.seen = DictByteArray(self.maxAllowedHash, 1) # hashed_position : level_num
+        #self.move = {}           # hashed_position : [reversed_move, reversed_move, ...]
+        
         #self.levels[0] = solutions
-        nextLevel = []
         level = 0
+        nextLevelCount = 0
         for solution in solutions:
             h_sol = hash(solution)
-            nextLevel.append(h_sol)
-            self.visited[h_sol] = True
+            nextLevelCount += 1
             self.seen[h_sol] = level
         total = len(solutions)
         if verbose:
             print "Level 0 : " + str(len(solutions))
-        while nextLevel and (max_level==-1 or level<max_level):
-            curLevel = nextLevel
-            nextLevel = []
-            for h_position in curLevel:
+        while nextLevelCount and (max_level==-1 or level<max_level):
+            nextLevelCount=0
+            for h_position in self.seen.finditer(level):
                 position = self.puzzle.unhash(h_position)
                 for move in position.generate_moves():
                     child = position + move
                     if not child.is_illegal():
                         h_child = hash(child)
-                        if h_child not in self.visited:  # first time we've seen it
-                            self.visited[h_child] = True
+                        if h_child not in self.seen: # first time we've seen it
+                            if h_child >= self.maxAllowedHash:
+                                raise ValueError("maxAllowedHash is %d but got a hash %d"%(self.maxAllowedHash, h_child))
                             self.seen[h_child] = level+1
                             self.maxHash = max(self.maxHash, h_child)
-                            nextLevel.append(h_child)
+                            nextLevelCount += 1
                             #self.move[h_child] = [position.reverse_move(move)]
                         #elif self.seen[h_child] == level+1: # another sol path!
                         #    self.move[h_child].append(position.reverse_move(move))
                         else:
                             pass # we've seen it before, but it isn't a solution path
-            curLevel = None
-            if verbose and nextLevel:
-                total += len(nextLevel)
-                print "Level %d : %d (%02.4f%%)" % (level+1,len(nextLevel),float(total)/self.maxAllowedHash)
+            if verbose and nextLevelCount:
+                total += nextLevelCount
+                print "Level %d : %d (%02.4f%%)" % (level+1,nextLevelCount,float(100.0*total)/self.maxAllowedHash)
             level += 1
         self.maxLevel = level-1
 

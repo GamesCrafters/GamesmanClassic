@@ -36,6 +36,9 @@ class LO(Puzzle):
         
         Puzzle(True) 
 
+    def maxhash(self):
+        return (2**(self.size*self.size))
+
     def generate_start(self):
         '''
         li = list()
