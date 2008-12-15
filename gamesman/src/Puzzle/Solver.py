@@ -26,11 +26,11 @@ class Solver:
                 self.visited[h_currPuzzle] = True # Visit myself
                 
                 if currPuzzle.is_a_solution():
-                    solutions += [currPuzzle]
+                    solutions.append(currPuzzle)
                     
                 h_currChildren = []
                 for move in currPuzzle.generate_moves():
-                    h_currChildren += [hash(currPuzzle + move)]
+                    h_currChildren.append(hash(currPuzzle + move))
                     
                 puzzleQueue.extend(h_currChildren)
         return solutions

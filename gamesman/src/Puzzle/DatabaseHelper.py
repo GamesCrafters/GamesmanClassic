@@ -51,7 +51,8 @@ def makeBitClass(fields):
 		def to_dictionary(self, defaults=None):
 			d = defaults or {}
 			for f in ctypefields:
-				d[f[0]] = getattr(self,f[0])
+				if f[0]=='remoteness':
+					d[f[0]] = getattr(self,f[0])
 			return d
 	
 	return Database_Bitfield
