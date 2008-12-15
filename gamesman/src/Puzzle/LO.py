@@ -5,18 +5,6 @@ import string
 
 class LO(Puzzle):
     """This is the Lights Out puzzle class"""
-
-    default_options = {"width": 3}
-    
-    def serialize(self):
-        return str(self).replace("\\n","")
-
-    @staticmethod
-    def unserialize(options, boardstr=None):
-        size = int(options["width"])
-        if boardstr is None:
-            return LO([0]*size*size)
-        return LO([int(x) for x in boardstr])
    
     def __init__(self, board):
         #size = side length 1, 2, 3, etc...
@@ -29,16 +17,30 @@ class LO(Puzzle):
             raise 'BadBoardError', str(len) + ' is not a valid board size, yo.'
             return
         self.size = int(size)
-        self.board = self.rep_board(board)
+        #self.board = self.rep_board(board)
         
-        #self.board = board
+        self.board = board
         #save point
         
         Puzzle(True) 
-
-    def maxhash(self):
-        return (2**(self.size*self.size))
-
+    default_options = {"size":"5"}
+    @staticmethod
+    def unserialize(options, board=None):
+        myBoard=[]
+    	for i in range(int(options["size"])**2):
+            if board:
+                myBoard.append(int(board[i]))
+            else:
+                myBoard.append(0)
+        return LO(myBoard)
+    
+    def serialize(self):
+        toreturn = str()
+        for a in range(self.size):
+            for b in range(self.size):
+                toreturn += str(int(self.board[a*self.size+b]))
+            
+        return toreturn
     def generate_start(self):
         '''
         li = list()
@@ -67,7 +69,7 @@ class LO(Puzzle):
                 moves+=[i]
         return moves
         '''
-        return range(self.size ** 2)
+        return (chr(ord('a')+x/self.size) + str(x%self.size + 1) for x in range(self.size ** 2))
         
         '''
         moves = []
@@ -84,9 +86,9 @@ class LO(Puzzle):
          
         board = list(self.board)
         size = self.size
-        posx = move%size
-        posy = move/size
-        board[move] = int(not board[move]) #swap current square
+        posy = size - (ord(move[1])-ord('1')) - 1
+        posx = ord(move[0])-ord('a')
+        board[size * posy + posx] = int(not board[size * posy + posx]) #swap current square
         if posx > 0:
             board[size * posy + (posx - 1)] = not board[size * posy + (posx - 1)]
         if posy > 0:
@@ -164,9 +166,9 @@ class LO(Puzzle):
         for a in range(self.size):
             for b in range(self.size):
                 toreturn += str(int(self.board[a*self.size+b]))
-            toreturn+="\\n"
+            
      
-        return toreturn.__getslice__(0,toreturn.__len__()-2)
+        return toreturn
 
     def __hash__(self):
         hash = 0
@@ -178,6 +180,10 @@ class LO(Puzzle):
         
         return hash
 
+    # Needed for the newer solvers:
+    def maxhash(self):
+        return (2**(self.size*self.size))
+
     def unhash(self, hval):
         boardlen = self.size*self.size
         board = [0]*boardlen
@@ -185,3 +191,16 @@ class LO(Puzzle):
             board[boardlen-i-1] = hval&1
             hval >>= 1
         return LO(board)
+
+if __name__ == "__main__":
+    lo = LO([1,1,0,0])      
+    print(lo.serialize())
+
+        
+       
+               
+        
+      
+
+     
+            
