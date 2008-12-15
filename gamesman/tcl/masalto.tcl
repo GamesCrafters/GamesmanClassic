@@ -606,9 +606,26 @@ proc drawmove { c move moveType position } {
     # 3. Draw arrow from origin to destination coordinates
 
     global t arrowhead arrowwidth arrowlength arrowcolor r
+    
+    global tk_library kRootDir gStippleRootDir
+    set gStippleRootDir "$kRootDir/../bitmaps/"
+    set stipple12 @[file join $gStippleRootDir gray12.bmp] 
+	set stipple25 @[file join $gStippleRootDir gray25.bmp]
+	set stipple50 @[file join $gStippleRootDir gray50.bmp]
+	set stipple75 @[file join $gStippleRootDir gray75.bmp]
+       
+     set color $arrowcolor
+     set stipple ""
 
-    switch $moveType {
-	value {
+     
+    set m [unhashmove [lindex $move 0]]
+    set origin [coords [lindex $m 0]]
+    set destination [coords [lindex $m 1]]
+    set board [unhash $position]
+    set delta [lindex $move 3]
+    set delta [expr $delta/2]
+    
+    if {$moveType == "value" || $moveType == "rm"} {
 
 	    # If the move leads to a win, it is a losing move (RED)
 	    # If the move leads to a losing position, it is a winning move (GREEN)
@@ -619,16 +636,24 @@ proc drawmove { c move moveType position } {
 		Tie { set color yellow }
 		default { set color $arrowcolor }
 	    }
+        
+        if {$moveType == "rm"} {
+        
+            if {$delta == 0} {
+                set stipple ""
+            } elseif {$delta == 1} {
+                set stipple $stipple75
+            } elseif {$delta == 2} {
+                set stipple $stipple50
+            } elseif {$delta == 3} {
+                set stipple $stipple25
+            } else {
+                set stipple $stipple12
+            }
+        }
 	}
-	default {
-	    set color $arrowcolor
-	}
-    }
-
-    set m [unhashmove [lindex $move 0]]
-    set origin [coords [lindex $m 0]]
-    set destination [coords [lindex $m 1]]
-    set board [unhash $position]
+	
+    
     
     # This expression draws the arrows from origin to destination. However, since
     # we want some space between the end of the arrow and the destination (otherwise
@@ -640,7 +665,7 @@ proc drawmove { c move moveType position } {
 		   [expr [lindex $origin 1]] \
 		   [expr [lindex $destination 0] - (1 - $arrowlength)*([lindex $destination 0] - [lindex $origin 0])] \
 		   [expr [lindex $destination 1] - (1 - $arrowlength)*([lindex $destination 1] - [lindex $origin 1])] \
-		   -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead]
+		   -width $arrowwidth -fill $color -arrow last -arrowshape $arrowhead -stipple $stipple]
 
     # Now, in order to make sure the arrows show up under the pieces they are on, we have to draw the pieces again.
     # However, we cannot draw all of them, only the ones that have moves on them. This is to ensure that the arrows

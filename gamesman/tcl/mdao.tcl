@@ -5,7 +5,7 @@
 # Updated Fall 2004 by Jeffrey Chiang, and others
 # Dao-specific code by Dan Garcia and GamesCrafters2005Fa
 #
-# LAST CHANGE: $Id: mdao.tcl,v 1.7 2006-04-11 16:01:31 ogren Exp $
+# LAST CHANGE: $Id: mdao.tcl,v 1.8 2008-12-15 23:18:15 koolswim88 Exp $
 #
 ####################################################
 
@@ -455,7 +455,14 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 # Example:  moveList: { 73 Win } { 158 Lose } { 22 Tie } 
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
-
+    global tk_library kRootDir gStippleRootDir
+    set gStippleRootDir "$kRootDir/../bitmaps/"
+    set stipple12 @[file join $gStippleRootDir gray12.bmp] 
+	set stipple25 @[file join $gStippleRootDir gray25.bmp]
+	set stipple50 @[file join $gStippleRootDir gray50.bmp]
+	set stipple75 @[file join $gStippleRootDir gray75.bmp]
+    set stipple ""
+     
     foreach item $moveList {
 	set move  [lindex $item 0]
 	set value [lindex $item 1]
@@ -466,7 +473,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	#h4x
 	puts "move:$move, value:$value, remoteness: $remoteness, delta:$delta"
 
-	if {$moveType == "value"} {
+	if {$moveType == "value" || $moveType == "rm"} {
 	    if {$value == "Tie"} {
 		set color yellow
 	    } elseif {$value == "Lose"} {
@@ -476,17 +483,29 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    }
 	}
 	
+    if {$moveType == "rm"} {
+        set stipple $stipple50
+        
+        if {$delta == 0} {
+            set stipple ""
+        } elseif {$delta == 1} {
+            set stipple $stipple75
+        } elseif {$delta == 2} {
+            set stipple $stipple50
+        } elseif {$delta == 3} {
+            set stipple $stipple25
+        } else {
+            set stipple $stipple12
+        }
+     }
+     
 	set index [Unhasher_Index     $move]
 	set dir   [Unhasher_Direction $move]
 
 	$c raise arrow$index$dir
-	if {$moveType == "value" && $delta > 0} {
-	    $c itemconfig arrow$index$dir -fill $color -outline black -width $delta
-	    #h4x
 
-	} else {
-	    $c itemconfig arrow$index$dir -fill $color
-	}
+	$c itemconfig arrow$index$dir -fill $color -stipple $stipple
+
 	$c bind arrow$index$dir <ButtonRelease-1> "ReturnFromHumanMove $move"
 	$c bind arrow$index$dir <Enter> "$c itemconfig arrow$index$dir -fill black"
 	$c bind arrow$index$dir <Leave> "$c itemconfig arrow$index$dir -fill $color"

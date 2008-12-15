@@ -309,13 +309,13 @@ proc GS_Initialize { c } {
     #draw all the pieces and moves for placement phase 
     for {set x 0} {$x < $gSlotsX} {incr x} {
 	for {set y 0} {$y < $gSlotsY} {incr y} {
-	    DrawCross $c $x $y bluecross$x$y blue 1
-	    DrawCross $c $x $y redcross$x$y red 1
-	    DrawPlus $c $x $y blueplus$x$y blue 1
-	    DrawPlus $c $x $y redplus$x$y red 1
+	    DrawCross $c $x $y bluecross$x$y blue "" 1
+	    DrawCross $c $x $y redcross$x$y red "" 1
+	    DrawPlus $c $x $y blueplus$x$y blue "" 1
+	    DrawPlus $c $x $y redplus$x$y red "" 1
 
-	    DrawCross $c $x $y movecross$x$y cyan 1
-	    DrawPlus $c $x $y moveplus$x$y cyan 1
+	    DrawCross $c $x $y movecross$x$y cyan "" 1
+	    DrawPlus $c $x $y moveplus$x$y cyan "" 1
 	    $c addtag moves withtag movecross$x$y 
 	    $c addtag moves withtag moveplus$x$y 
 	}
@@ -475,7 +475,7 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 	$c lower redplus$fromSlotX$fromSlotY base
 	$c lower redcross$fromSlotX$fromSlotY base
 	if {$gPlayerOneTurn == 1} {set pcolor blue} {set pcolor red}
-	animate $c $fromSlotX $fromSlotY $toSlotX $toSlotY $pcolor $orientation
+	animate $c $fromSlotX $fromSlotY $toSlotX $toSlotY $pcolor "" $orientation
 	if {$orientation == 1} {
 	    if {$gPlayerOneTurn == 1} {
 		$c raise blueplus$toSlotX$toSlotY base
@@ -519,15 +519,17 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
     global gSlotsX gSlotsY gSlotSize
-
-     foreach item $moveList {
+    global tk_library kRootDir gStippleRootDir
+    set gStippleRootDir "$kRootDir/../bitmaps/"
+    
+    foreach item $moveList {
 	set move  [lindex $item 0]
 	set value [lindex $item 1]
 	set remoteness [lindex $item 2]
 	set delta [lindex $item 3]
 	set color cyan
 
-	 if {$moveType == "value"} {
+	 if {$moveType == "value" || $moveType == "rm"} {
 		if {$value == "Tie"} {
 		    set color yellow
 		} elseif {$value == "Lose"} {
@@ -544,13 +546,38 @@ proc GS_ShowMoves { c moveType position moveList } {
 	 set fromSlotX [expr $from % $gSlotsX]
 	 set fromSlotY [expr $from / $gSlotsX]
 	 set toSlotX   [expr $to % $gSlotsX]
-	 set toSlotY   [expr $to / $gSlotsX]	 
+	 set toSlotY   [expr $to / $gSlotsX]	
 
+     
+     set stipple12 @[file join $gStippleRootDir gray12.bmp] 
+	 set stipple25 @[file join $gStippleRootDir gray25.bmp]
+	 set stipple50 @[file join $gStippleRootDir gray50.bmp]
+	 set stipple75 @[file join $gStippleRootDir gray75.bmp]
+     set stipple ""
+     
+     if {$moveType == "rm"} {
+        set stipple $stipple50
+        
+        set delta [expr $delta / 2]
+        
+        if {$delta == 0} {
+            set stipple ""
+        } elseif {$delta == 1} {
+            set stipple $stipple75
+        } elseif {$delta == 2} {
+            set stipple $stipple50
+        } elseif {$delta == 3} {
+            set stipple $stipple25
+        } else {
+            set stipple $stipple12
+        }
+     }
+     
 	 if { $from == 9 || $from == $to} { 
 	     #DrawMoveChungToiPlacing or DrawMoveChungToiTwisting
 	     if {$orientation == 1} {
 		 $c raise moveplus$toSlotX$toSlotY base
-		 $c itemconfig moveplus$toSlotX$toSlotY -fill $color
+		 $c itemconfig moveplus$toSlotX$toSlotY -fill $color -stipple $stipple
 		 
 		 $c bind moveplus$toSlotX$toSlotY  <Enter> "$c itemconfig moveplus$toSlotX$toSlotY -fill black"
 		 $c bind moveplus$toSlotX$toSlotY <Leave> "$c itemconfig moveplus$toSlotX$toSlotY -fill $color"
@@ -558,7 +585,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 		 
 	     } else {
 		 $c raise movecross$toSlotX$toSlotY base
-		 $c itemconfig movecross$toSlotX$toSlotY -fill $color
+		 $c itemconfig movecross$toSlotX$toSlotY -fill $color -stipple $stipple
 		
 		 $c bind movecross$toSlotX$toSlotY  <Enter> "$c itemconfig movecross$toSlotX$toSlotY -fill black"
 		 $c bind movecross$toSlotX$toSlotY <Leave> "$c itemconfig  movecross$toSlotX$toSlotY -fill $color"
@@ -567,7 +594,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 
 	 } elseif { $from != $to } {
 	  #   DrawMoveChungToiHopping
-	     set movetemp [CreateHoppingArrow $c $theAbsoluteMoveArg $gSlotSize $gSlotsX $gSlotsY $color $move]
+	     set movetemp [CreateHoppingArrow $c $theAbsoluteMoveArg $gSlotSize $gSlotsX $gSlotsY $color $stipple $move]
 	     $c addtag moves withtag $movetemp
 	     $c bind $movetemp <ButtonRelease-1> "ReturnFromHumanMove $move"
 
@@ -662,7 +689,7 @@ proc GS_UndoGameOver { c position } {
 ## Here we draw an X on (slotX,slotY) in window w with a tag of theTag
 ##
 #############################################################################
-proc DrawCross { w slotX slotY theTag theColor drawBig} {
+proc DrawCross { w slotX slotY theTag theColor stipple drawBig} {
     global gSlotSize
 
     set theSlotSize [expr $drawBig ? $gSlotSize : ($gSlotSize / 7.0)]
@@ -696,6 +723,7 @@ proc DrawCross { w slotX slotY theTag theColor drawBig} {
 		   $x7 $y6 $x6 $y7 \
 		   $x4 $y5 $x2 $y7 $x1 $y6 $x3 $y4 $x1 $y2 \
 		   -fill $theColor \
+           -stipple $stipple \
 		   -tag $theTag]
 
     $w addtag tagPieceOnCoord$slotX$slotY withtag $theCross
@@ -712,7 +740,7 @@ proc DrawCross { w slotX slotY theTag theColor drawBig} {
 ## If drawBig is false we don't move it to slotX,slotY.
 ##
 #############################################################################
-proc DrawPlus { w slotX slotY theTag theColor drawBig} {
+proc DrawPlus { w slotX slotY theTag theColor stipple drawBig} {
     global gSlotSize
 
     set theSlotSize [expr $drawBig ? $gSlotSize : ($gSlotSize / 7.0)]
@@ -754,6 +782,7 @@ proc DrawPlus { w slotX slotY theTag theColor drawBig} {
 		   $x7 $y7 $x8 $y8 $x9 $y9 $x10 $y10 $x11 $y11 \
 		   $x12 $y12 \
 		   -fill $theColor \
+           -stipple $stipple \
 		   -tag $theTag]
 
     $w addtag tagPieceOnCoord$slotX$slotY withtag $thePlus
@@ -770,7 +799,7 @@ proc DrawPlus { w slotX slotY theTag theColor drawBig} {
 ## Create and return arrow at the specified slots.
 ##
 #############################################################################
-proc CreateHoppingArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY color move} {
+proc CreateHoppingArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY color stipple move} {
 
     global gSlotsX gSlotSize
 
@@ -1010,7 +1039,8 @@ proc CreateHoppingArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY c
     
     set theMove [$w create line $lineStartX $lineStartY $lineEndX $lineEndY \
 	    -width $theLineWidth \
-	    -fill $color]
+	    -fill $color \
+        -stipple $stipple]
     
     # We draw from the smaller-numbered slot to the larger-numbered one
     if { [expr $smallerSlot == $from] } {
@@ -1023,9 +1053,9 @@ proc CreateHoppingArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY c
 
 	
     if { $isitCross } {
-	set theEndPoint [DrawCross $w 0 0 tagDummyForMoves $color 0]
+	set theEndPoint [DrawCross $w 0 0 tagDummyForMoves $color $stipple 0]
     } else {
-	set theEndPoint [DrawPlus  $w 0 0 tagDummyForMoves $color 0]
+	set theEndPoint [DrawPlus  $w 0 0 tagDummyForMoves $color $stipple 0]
     }
     
     ####
@@ -1094,15 +1124,15 @@ proc ConvertToAbsoluteMove { theMove } {
 #	set toSlotY   [expr $to / $gSlotsX]
 
 
-proc animate { c x0 y0 x1 y1 color orientation} {
+proc animate { c x0 y0 x1 y1 color stipple orientation} {
 
     global gAnimationSpeed gSlotSize
     set BaseSpeed 100
     #draw temp piece
     if {$orientation == 1} {
-	set piece [DrawPlus $c $x0 $y0 temppiece $color 1]
+	set piece [DrawPlus $c $x0 $y0 temppiece $color $stipple 1]
     } else {
-	set piece [DrawCross $c $x0 $y0 temppiece $color 1]
+	set piece [DrawCross $c $x0 $y0 temppiece $color $stipple 1]
     }
     # Get source and destination coordinates.
  #   set x0 [lindex $source 0]

@@ -473,6 +473,13 @@ proc GS_ShowMoves { c moveType position moveList } {
     ### TODO: Fill this in
     global gSlotSize gSlotsX gSlotsY 
     global gFlatRule
+    global tk_library kRootDir gStippleRootDir
+    set gStippleRootDir "$kRootDir/../bitmaps/"
+    set stipple12 @[file join $gStippleRootDir gray12.bmp] 
+	set stipple25 @[file join $gStippleRootDir gray25.bmp]
+	set stipple50 @[file join $gStippleRootDir gray50.bmp]
+	set stipple75 @[file join $gStippleRootDir gray75.bmp]
+    set stipple ""
     #Regular board    #theMove#     FlatBoard
     #  0 1 2            
     #3(     ) 6                   9  (2 5 8) 12
@@ -483,9 +490,10 @@ proc GS_ShowMoves { c moveType position moveList } {
 	set value [lindex $item 1]
 	set remoteness [lindex $item 2]
 	set delta [lindex $item 3]
+    set delta [expr $delta/2]
 	set color cyan
 
-	 if {$moveType == "value"} {
+	 if {$moveType == "value" || $moveType == "rm"} {
 		if {$value == "Tie"} {
 		    set color yellow
 		} elseif {$value == "Lose"} {
@@ -493,11 +501,26 @@ proc GS_ShowMoves { c moveType position moveList } {
 		} else {
 		    set color red4
 		}
+        
+        if {$moveType == "rm"} {
+            if {$delta == 0} {
+                set stipple ""
+            } elseif {$delta == 1} {
+                set stipple $stipple75
+            } elseif {$delta == 2} {
+                set stipple $stipple50
+            } elseif {$delta == 3} {
+                set stipple $stipple25
+            } else {
+                set stipple $stipple12
+            }
+        }
+        
 	 }
 	if ($gFlatRule&&$move<=8) {
 	    #do stuff
 	    set XY [ConvertMoveToXY $move]
-	    set movetemp [CreateOvalMove $c $XY $color]
+	    set movetemp [CreateOvalMove $c $XY $color $stipple]
 	    $c bind $movetemp <Enter> "$c itemconfig $movetemp -fill black"
 	    $c bind $movetemp <Leave> "$c itemconfig $movetemp -fill $color"
 	    $c bind $movetemp <ButtonRelease-1> "ReturnFromHumanMove $move"
@@ -508,7 +531,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 	    } else {
 		set theMoveArgAbsolute [ConvertToAbsoluteMove $move]
 	    }
-	    set movetemp [CreateArrow $c $theMoveArgAbsolute $gSlotSize $gSlotsX $gSlotsY $color]
+	    set movetemp [CreateArrow $c $theMoveArgAbsolute $gSlotSize $gSlotsX $gSlotsY $color $stipple]
 	    $c bind $movetemp <Enter> "$c itemconfig $movetemp -fill black"
 	    $c bind $movetemp <Leave> "$c itemconfig $movetemp -fill $color"
 	    $c bind $movetemp <ButtonRelease-1> "ReturnFromHumanMove $move"
@@ -746,7 +769,7 @@ proc DrawSlider { w row position } {
 ##
 #############################################################################
 
-proc CreateArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY color } {
+proc CreateArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY color stipple } {
 
     global gSlotsX
 
@@ -803,7 +826,8 @@ proc CreateArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY color } 
 		     -arrow last \
 		     -arrowshape [list $arrow1 $arrow2 $arrow3] \
 		     -fill $color \
-		     -tag arrows]
+		     -tag arrows \
+             -stipple $stipple]
 
     
     set cornerX [expr $slotXbegin   * $theSlotSize + $theLineOffsetX]
@@ -815,7 +839,7 @@ proc CreateArrow { w theMoveArgAbsolute theSlotSize theSlotsX theSlotsY color } 
 }
 
 #Only used for flat board
-proc CreateOvalMove { c XY color} {
+proc CreateOvalMove { c XY color stipple} {
     global gSlotSize
     
     set slotX [lindex $XY 0]
@@ -826,7 +850,7 @@ proc CreateOvalMove { c XY color} {
     set lowRightX [expr (($upLeftX + $gSlotSize)-40)]
     set lowRightY [expr (($upLeftY + $gSlotSize)-40)]
 
-    $c create oval $upLeftX $upLeftY $lowRightX $lowRightY -fill $color -outline grey -tag dots
+    $c create oval $upLeftX $upLeftY $lowRightX $lowRightY -fill $color -outline grey -tag dots -stipple $stipple
 }
 
 #only used for flat board

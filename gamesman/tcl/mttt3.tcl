@@ -659,15 +659,23 @@ if { [GS_WhoseMove $oldPosition] == "x"} {
 
 
 proc GS_ShowMoves { c moveType position moveList } {
+    global tk_library kRootDir gStippleRootDir
+    set gStippleRootDir "$kRootDir/../bitmaps/"
+    set stipple12 @[file join $gStippleRootDir gray12.bmp] 
+	set stipple25 @[file join $gStippleRootDir gray25.bmp]
+	set stipple50 @[file join $gStippleRootDir gray50.bmp]
+	set stipple75 @[file join $gStippleRootDir gray75.bmp]
     
     foreach item $moveList {
         set move  [lindex $item 0]
         set value [lindex $item 1]
+        set remoteness [lindex $item 2]
+        set delta [lindex $item 3]
         set color cyan
         
         $c raise mi-$move base
         
-        if {$moveType == "value"} {
+        if {$moveType == "value" || $moveType == "rm"} {
             if {$value == "Tie"} {
                 set color yellow
             } elseif {$value == "Lose"} {
@@ -676,7 +684,29 @@ proc GS_ShowMoves { c moveType position moveList } {
                 set color red4
             }
         }
-        $c itemconfigure mi-$move -fill $color
+        
+       
+         set stipple ""
+         
+         if {$moveType == "rm"} {
+            set stipple $stipple50
+            
+            set delta [expr $remoteness / 2]
+            
+            if {$delta == 0} {
+                set stipple ""
+            } elseif {$delta == 1} {
+                set stipple $stipple75
+            } elseif {$delta == 2} {
+                set stipple $stipple50
+            } elseif {$delta == 3} {
+                set stipple $stipple25
+            } else {
+                set stipple $stipple12
+            }
+         }
+     
+        $c itemconfigure mi-$move -fill $color -stipple $stipple
     }
     update idletasks
 }
