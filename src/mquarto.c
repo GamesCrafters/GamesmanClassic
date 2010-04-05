@@ -150,6 +150,7 @@
 **                           Added bounds checking for options.
 **                           Implemented get, set, and return options
 ** 10 Mar 2008 EthanR+AlanW: Further refined options
+** 04 Apr 2010 ide: Updated inline function declarations for gcc 4.4
 **************************************************************************/
 
 
@@ -302,7 +303,6 @@ int LASTSLOT;
 int FACTORIALMAX;
 
 int HAND = 0;
-
 
 typedef struct board_item {
 
@@ -2034,9 +2034,7 @@ void PrintRange( void *cells, size_t content_size, int offset, int size, char (*
 		
     }
 	
-    printf( endmark );
-		
-	
+    printf( "%s", endmark );	
 }
 
 unsigned short GetHandPiece( QTBPtr board ) {
@@ -2099,7 +2097,7 @@ void yanpeiTestHash() {
     printPos = oldPrintPos;
 }
 
-QTBPtr rotateBoard90(QTBPtr b) {
+static inline QTBPtr rotateBoard90(QTBPtr b) {
 
   QTBPtr c = MallocBoard();
   short i,j;
@@ -2119,7 +2117,7 @@ QTBPtr rotateBoard90(QTBPtr b) {
   return c;
 }
 
-QTBPtr reflectBoard(QTBPtr b) {
+static inline QTBPtr reflectBoard(QTBPtr b) {
 
   QTBPtr c = MallocBoard();
   short i,j;
@@ -2139,7 +2137,7 @@ QTBPtr reflectBoard(QTBPtr b) {
   return c;
 }
 
-void swap_columns(short *pieces, short count, short this, short that) {
+static inline void swap_columns(short *pieces, short count, short this, short that) {
 
   /* Placeholder for index to pieces in pieces array */
   int piece;
@@ -2167,9 +2165,7 @@ void swap_columns(short *pieces, short count, short this, short that) {
 }
 
 
-short *normalize(short *pieces, short count) {
-
-   inline void swap_columns(short *pieces, short count, short this, short that);
+static inline short *normalize(short *pieces, short count) {
    
    /* Array to store sequences of individual bits across the different pieces */
    /* The first row of each column contains 0 (which will be the final value of the first piece */
@@ -2296,9 +2292,7 @@ short *normalize(short *pieces, short count) {
 
 
 
-QTBPtr normalizeBoard(QTBPtr board) {
-  
-  inline short *normalize(short *pieces, short count);
+static inline QTBPtr normalizeBoard(QTBPtr board) {
 
   // Array of ordered pieces to be normalized
   short pieces[board->piecesInPlay];
@@ -2349,10 +2343,6 @@ QTBPtr normalizeBoard(QTBPtr board) {
 // Mario's Cannonical stuff
 
 POSITION marioGetCanonical(POSITION position) {
-  
-  inline QTBPtr rotateBoard90(QTBPtr b);
-  inline QTBPtr reflectBoard(QTBPtr b);
-  inline QTBPtr normalizeBoard(QTBPtr board);
   
   QTBPtr orbit[8];
   short group;
