@@ -204,19 +204,23 @@ void InitializeGame ()
 	unhash(position, board);
 	PrintPosition(position, "foo", TRUE);
 	MOVE tester = 89;
+	printf("\nmove: 89");
 	position = DoMove(position, tester);
 	unhash(position, board);
 	PrintPosition(position, "bar", TRUE);
 
 	tester = 65;
+	printf("\nmove: 65");
 	position = DoMove(position, tester);
 	PrintPosition(position, "foo", TRUE);
 
 	tester = 41;
+	printf("\nmove: 41");
 	position = DoMove(position, tester);
 	PrintPosition(position, "bar", TRUE);
 
 	tester = 57;
+	printf("\nmove: 57");
 	position = DoMove(position, tester);
 	PrintPosition(position, "foo", TRUE);
 }
@@ -1064,12 +1068,14 @@ POSITION DoMove (POSITION position, MOVE move) {
 				break;
 		}
 		indexi = move / 8;
+		printf("\ni: %d", indexi);
 		indexf = indexi + (3 * rv) + cv;
+		printf("\nf: %d", indexf);
 		captured = boardArray[indexf]; // get captured piece to determine type
 		boardArray[indexf] = boardArray[indexi]; // move piece to final location
-		if (boardArray[indexf] == BLACK_CHICK && currentPlayer == BLACK_TURN && (indexf == 0 || indexf == 1 || indexf == 2)) {
+		if (boardArray[indexf] == BLACK_CHICK && currentPlayer == BLACK_TURN && (indexf == 0 || indexf == 1 || indexf == 2)) { // promote black chick to black hen if applicable
 			boardArray[indexf] = BLACK_HEN;
-		} else if (boardArray[indexf] == WHITE_CHICK && currentPlayer == WHITE_TURN && (indexf == 9 || indexf == 10 || indexf == 11)) {
+		} else if (boardArray[indexf] == WHITE_CHICK && currentPlayer == WHITE_TURN && (indexf == 9 || indexf == 10 || indexf == 11)) { // promote white chick to white hen if applicable
 			boardArray[indexf] = WHITE_HEN;
 		}
 		boardArray[indexi] = BLANK_PIECE; // set original location to blank
@@ -1100,7 +1106,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				break;
 			case WHITE_CHICK:
 				if (boardArray[CHICK_INDEX] == B0W0) {
-					boardArray[CHICK_INDEX] = B1W1;
+					boardArray[CHICK_INDEX] = B1W0;
 				} else if (boardArray[CHICK_INDEX] == B1W0) {
 					boardArray[CHICK_INDEX] = B2W0;
 				} else if (boardArray[CHICK_INDEX] == B0W1) {
