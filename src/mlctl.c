@@ -33,7 +33,7 @@ STRING   kAuthorName          = "Roger Tu"; /* Your name(s) */
 STRING   kDBName              = "lctl"; /* The name to store the database under */
 
 BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
@@ -41,7 +41,7 @@ BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when o
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
+POSITION gInitialPosition     =  138782043307LLU; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
@@ -97,13 +97,23 @@ STRING   kHelpExample =
 #define WHITE_GIRAFFE 'G'
 #define WHITE_LION 'L'
 
+#define PRINT_BLANK_PIECE "  "
+#define PRINT_BLACK_CHICK "☗c"
+#define PRINT_BLACK_HEN "☗h"
+#define PRINT_BLACK_ELEPHANT "☗e"
+#define PRINT_BLACK_GIRAFFE "☗g"
+#define PRINT_BLACK_LION "☗l"
+
+#define PRINT_WHITE_CHICK "☖C"
+#define PRINT_WHITE_HEN "☖H"
+#define PRINT_WHITE_ELEPHANT "☖E"
+#define PRINT_WHITE_GIRAFFE "☖G"
+#define PRINT_WHITE_LION "☖L"
+
 #define DISTINCT_PIECES 10
 
 #define WHITE 1
 #define BLACK 0
-
-#define MAX_TIERS 22015
-#define NUM_TIERS 256
 
 #define UP 8
 #define DN 2
@@ -114,6 +124,24 @@ STRING   kHelpExample =
 #define DL 1
 #define DR 3
 
+#define B0W0 '0'
+#define B1W0 '1'
+#define B0W1 '2'
+#define B1W1 '3'
+#define B2W0 '4'
+#define B0W2 '5'
+
+#define DROP_BLACK_CHICK 0
+#define DROP_BLACK_ELEPHANT 1
+#define DROP_BLACK_GIRAFFE 2
+#define DROP_WHITE_CHICK 3
+#define DROP_WHITE_ELEPHANT 4
+#define DROP_WHITE_GIRAFFE 5
+
+#define GIRAFFE_INDEX 12
+#define ELEPHANT_INDEX 13
+#define CHICK_INDEX 14
+
 /*************************************************************************
 **
 ** Global Variables
@@ -123,14 +151,6 @@ int rows = 4;
 int cols = 3;
 char *theBoard = "GLE C  c elg000"; // The first 12 characters are the board, the 13th through 15th characters represent the different states the hands can be in.
 int theCurrentPlayer = BLACK_TURN;
-
-/* The following 6 numbers can be combined into a single number to save memory */
-int numBC = 0;
-int numBE = 0;
-int numBG = 0;
-int numWC = 0;
-int numWE = 0;
-int numWG = 0;
 
 /*VARIANTS*/
 BOOLEAN normalVariant = TRUE;
@@ -177,14 +197,7 @@ char* unhash(POSITION position, char *board);
 
 void InitializeGame ()
 {
-  piecesArray =  gBoardToPiecesArray(theBoard, piecesArray); 
-  
-  minBlank = rows*cols - 2 - *(piecesArray) - *(piecesArray+1) - *(piecesArray+2) - *(piecesArray+3) - *(piecesArray + 4) - *(piecesArray+5) - *(piecesArray+6) - *(piecesArray+7) - *(piecesArray + DISTINCT_PIECES-2) - *(piecesArray + DISTINCT_PIECES-1);
-  maxBlank = rows*cols - 2;
-  int pieces_array[40] = {'p', 0, 1, 'b', 0, 1, 'r', 0, 1, 'n', 0, 1, 'q', 0, 1, 'k', 1, 1, 'P', 0, 1, 'B', 0, 1, 'R', 0, 1, 'N', 0, 1, 'Q', 0, 1, 'K', 1, 1, ' ', 6, maxBlank, -1};
-  gNumberOfPositions = generic_hash_init(rows*cols, pieces_array, NULL, 0);
-  gInitialPosition = hash(theBoard,theCurrentPlayer);
-  SafeFree(piecesArray);
+	printf("%llu", hash(theBoard, theCurrentPlayer));
 }
 
 /************************************************************************
@@ -194,7 +207,7 @@ void InitializeGame ()
 ************************************************************************/
 
 void unhash_turn(POSITION position, int* turn) {
-	if (position / 164511360000 == 0) {
+	if (position / 164511360000LLU == 0) {
 		*turn = BLACK_TURN;
 	} else {
 		*turn = WHITE_TURN;
@@ -206,31 +219,38 @@ char* unhash(POSITION position, char* board)
 	POSITION pos = position;
 	POSITION piece = 0;
 
-	int turn = (int) (pos / 164511360000);
+	int numBC = 0;
+	int numBE = 0;
+	int numBG = 0;
+	int numWC = 0;
+	int numWE = 0;
+	int numWG = 0;
+
+	int turn = (int) (pos / 164511360000LLU);
 	if (turn == 0) {
 		theCurrentPlayer = BLACK_TURN;
 	} else if (turn == 1) {
 		theCurrentPlayer = WHITE_TURN;
 	}
 
-	pos = pos % 164511360000;
-	board[pos / 13709280000] = BLACK_LION;
-	pos = pos % 13709280000;
-	board[pos / 1142440000] = WHITE_LION;
+	pos = pos % 164511360000LLU;
+	board[pos / 13709280000LLU] = BLACK_LION;
+	pos = pos % 13709280000LLU;
+	board[pos / 1142440000LLU] = WHITE_LION;
 
-	pos = pos % 1142440000;
-	piece = pos / 43940000;
+	pos = pos % 1142440000LLU;
+	piece = pos / 43940000LLU;
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
 	} else if (piece < 24) { // then white
-		board[piece - 12] = WHITE_GRAFFE;
+		board[piece - 12] = WHITE_GIRAFFE;
 	} else if (piece == 24) { // then black hand
 		numBG += 1;
 	} else { // must be 25, meaning in white hand
 		numWG += 1;
 	}
 
-	pos = pos % 43940000;
+	pos = pos % 43940000LLU;
 	piece = pos / 1690000;
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
@@ -238,7 +258,7 @@ char* unhash(POSITION position, char* board)
 		board[piece - 12] = WHITE_GIRAFFE;
 	} else if (piece == 24) { // then black hand
 		numBG += 1;
-	} else ( // must be 25, meaning in white hand
+	} else { // must be 25, meaning in white hand
 		numWG += 1;
 	}
 
@@ -250,7 +270,7 @@ char* unhash(POSITION position, char* board)
 		board[piece - 12] = WHITE_ELEPHANT;
 	} else if (piece == 24) { // then black hand
 		numBE += 1;
-	} else ( // must be 25, meaning in white hand
+	} else { // must be 25, meaning in white hand
 		numWE += 1;
 	}
 
@@ -262,7 +282,7 @@ char* unhash(POSITION position, char* board)
 		board[piece - 12] = WHITE_ELEPHANT;
 	} else if (piece == 24) { // then black hand
 		numBE += 1;
-	} else ( // must be 25, meaning in white hand
+	} else { // must be 25, meaning in white hand
 		numWE += 1;
 	}
 
@@ -297,6 +317,90 @@ char* unhash(POSITION position, char* board)
 		numWC += 1;
 	}
 
+	if (numBC == 0) { // set board state for chicks in hand
+		if (numWC == 0) {
+			board[CHICK_INDEX] = B0W0;
+		} else if (numWC == 1) {
+			board[CHICK_INDEX] = B0W1;
+		} else if (numWC == 2) {
+			board[CHICK_INDEX] = B0W2;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else if (numBC == 1) {
+		if (numWC == 0) {
+			board[CHICK_INDEX] = B1W0;
+		} else if (numWC == 1) {
+			board[CHICK_INDEX] = B1W1;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else if (numBC == 2) {
+		if (numWC == 0) {
+			board[CHICK_INDEX] = B2W0;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else { // more than 2 in hand
+		printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+	}
+
+	if (numBC == 0) { // set board state for elephants in hand
+		if (numWC == 0) {
+			board[ELEPHANT_INDEX] = B0W0;
+		} else if (numWC == 1) {
+			board[ELEPHANT_INDEX] = B0W1;
+		} else if (numWC == 2) {
+			board[ELEPHANT_INDEX] = B0W2;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else if (numBC == 1) {
+		if (numWC == 0) {
+			board[ELEPHANT_INDEX] = B1W0;
+		} else if (numWC == 1) {
+			board[ELEPHANT_INDEX] = B1W1;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else if (numBC == 2) {
+		if (numWC == 0) {
+			board[ELEPHANT_INDEX] = B2W0;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else { // more than 2 in hand
+		printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+	}
+
+	if (numBC == 0) { // set board state for giraffes in hand
+		if (numWC == 0) {
+			board[GIRAFFE_INDEX] = B0W0;
+		} else if (numWC == 1) {
+			board[GIRAFFE_INDEX] = B0W1;
+		} else if (numWC == 2) {
+			board[GIRAFFE_INDEX] = B0W2;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else if (numBC == 1) {
+		if (numWC == 0) {
+			board[GIRAFFE_INDEX] = B1W0;
+		} else if (numWC == 1) {
+			board[GIRAFFE_INDEX] = B1W1;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else if (numBC == 2) {
+		if (numWC == 0) {
+			board[GIRAFFE_INDEX] = B2W0;
+		} else { // more than 2 in hand
+			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		}
+	} else { // more than 2 in hand
+		printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+	}
+
 	return board;
 }
 
@@ -307,7 +411,7 @@ POSITION hash(char* board, int turn) {
 	char piece;
 
 	if (turn == WHITE_TURN) {
-		position = 164511360000;
+		position = 164511360000LLU;
 	}
 	
 	int i;
@@ -319,10 +423,10 @@ POSITION hash(char* board, int turn) {
 		if (board[i] == BLANK_PIECE) {
 			continue;
 		} else if (board[i] == BLACK_LION) {
-			tmp = i * 13709280000;
+			tmp = i * 13709280000LLU;
 			position += tmp;
 		} else if (board[i] == WHITE_LION) {
-			tmp = i * 1142440000;
+			tmp = i * 1142440000LLU;
 			position += tmp;
 		} else if (board[i] == BLACK_CHICK) {
 			if (foundc == 0) {
@@ -400,72 +504,67 @@ POSITION hash(char* board, int turn) {
 	* 5 - black has 0 white has 2
 	*/
 
-	piece = board[12]; // Giraffes
-	if (piece == '1') {
-		tmp = 24 * 1690000;
+	piece = board[GIRAFFE_INDEX]; // Giraffes
+	if (piece == B1W0) {
+		position += 24 * 1690000;
+	} else if (piece == B0W1) {
+		position += 25 * 1690000;
+	} else if (piece == B1W1) {
+		position += 24 * 43940000;
+		position += 25 * 1690000;
+	} else if (piece == B2W0) {
+		position += 24 * 43940000;
 		position += tmp;
-	} else if (piece == '2') {
-		tmp = 25 * 1690000;
 		position += tmp;
-	} else if (piece == '3') {
-		tmp = 24 * 43940000;
-		position += tmp;
-		tmp = 25 * 1690000;
-		position += tmp;
-	} else if (piece == '4') {
-		tmp = 24 * 43940000;
-		position += tmp;
-		tmp = 24 * 1690000;
-		position += tmp;
-	} else if (piece == '5') {
+	} else if (piece == B0W2) {
 		tmp = 25 * 43940000;
 		position += tmp;
 		tmp = 25 * 1690000;
 		position += tmp;
 	}
 
-	piece = board[13]; // Elephants
-	if (piece == '1') {
+	piece = board[ELEPHANT_INDEX]; // Elephants
+	if (piece == B1W0) {
 		tmp = 24 * 2500;
 		position += tmp;
-	} else if (piece == '2') {
+	} else if (piece == B0W1) {
 		tmp = 25 * 2500;
 		position += tmp;
-	} else if (piece == '3') {
+	} else if (piece == B1W1) {
 		tmp = 24 * 65000;
 		position += tmp;
 		tmp = 25 * 2500;
 		position += tmp;
-	} else if (piece == '4') {
+	} else if (piece == B2W0) {
 		tmp = 24 * 65000;
 		position += tmp;
 		tmp = 24 * 2500;
 		position += tmp;
-	} else if (piece == '5') {
+	} else if (piece == B0W2) {
 		tmp = 25 * 65000;
 		position += tmp;
 		tmp = 25 * 2500;
 		position += tmp;
 	}
 
-	piece = board[14];
-	if (piece == '1') {
+	piece = board[CHICK_INDEX];
+	if (piece == B1W0) {
 		tmp = 24;
 		position += tmp;
-	} else if (piece == '2') {
+	} else if (piece == B0W1) {
 		tmp = 25;
 		position += tmp;
-	} else if (piece == '3') {
+	} else if (piece == B1W1) {
 		tmp = 24 * 50;
 		position += tmp;
 		tmp = 25;
 		position += tmp;
-	} else if (piece == '4') {
+	} else if (piece == B2W0) {
 		tmp = 24 * 50;
 		position += tmp;
 		tmp = 24;
 		position += tmp;
-	} else if (piece == '5') {
+	} else if (piece == B0W2) {
 		tmp = 25 * 50;
 		position += tmp;
 		tmp = 25;
@@ -499,16 +598,51 @@ BOOLEAN sameTeam(char piece, int playerTurn) {
 	if (playerTurn == BLACK_TURN) {
 		if (piece == BLACK_CHICK || piece == BLACK_HEN || piece == BLACK_ELEPHANT || piece == BLACK_GIRAFFE || piece == BLACK_LION) {
 			return TRUE;
+		} else {
+			return FALSE;
 		}
 	} else if (playerTurn == WHITE_TURN) {
 		if (piece == WHITE_CHICK || piece == WHITE_HEN || piece == WHITE_ELEPHANT || piece == WHITE_GIRAFFE || piece == WHITE_LION) {
 			return TRUE;
+		} else {
+			return FALSE;
+		}
 	} else {
+		printf("\n\nError: player turn neither black nor white");
 		return FALSE;
 	}
 }
+
+STRING pieceToPrint(char piece) {
+	switch (piece) {
+		case BLANK_PIECE:
+			return PRINT_BLANK_PIECE;
+		case BLACK_CHICK:
+			return PRINT_BLACK_CHICK;
+		case BLACK_HEN:
+			return PRINT_BLACK_HEN;
+		case BLACK_ELEPHANT:
+			return PRINT_BLACK_ELEPHANT;
+		case BLACK_GIRAFFE:
+			return PRINT_BLACK_GIRAFFE;
+		case BLACK_LION:
+			return PRINT_BLACK_LION;
+		case WHITE_CHICK:
+			return PRINT_WHITE_CHICK;
+		case WHITE_HEN:
+			return PRINT_WHITE_HEN;
+		case WHITE_ELEPHANT:
+			return PRINT_WHITE_ELEPHANT;
+		case WHITE_GIRAFFE:
+			return PRINT_WHITE_GIRAFFE;
+		case WHITE_LION:
+			return PRINT_WHITE_LION;
+		default:
+			return PRINT_BLANK_PIECE;
+	}
+}
 		
-BOOLEAN kingCanMoveTo(char* board, int player, int r, int c) {
+BOOLEAN lionSafeAt(char* board, int player, int r, int c) {
 	BOOLEAN checkup = FALSE;
 	BOOLEAN checkdn = FALSE;
 	BOOLEAN checklt = FALSE;
@@ -578,49 +712,49 @@ BOOLEAN kingCanMoveTo(char* board, int player, int r, int c) {
 		}
 	} else { // used for piece directionality
 		if (checkup) { // only lion, giraffe, hen can move down
-			piece = board[coordToNum(r - 1, c);
+			piece = board[coordToNum(r - 1, c)];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
 		if (checklt) { // only lion, giraffe, hen can move right
-			piece = board[coordToNum(r, c - 1);
+			piece = board[coordToNum(r, c - 1)];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
 		if (checkrt) { // only lion, giraffe, hen can move left
-			piece = board[coordToNum(r, c + 1);
+			piece = board[coordToNum(r, c + 1)];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
 		if (checkdn) { // only lion, giraffe, chick, hen can move up
-			piece = board[coordToNum(r + 1, c);
+			piece = board[coordToNum(r + 1, c)];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN || piece == BLACK_CHICK) {
 				return FALSE;
 			}
 		}
 		if (checkup || checklt) { // only lion, elephant can move down right
-			piece = board[coordToNum(r - 1, c - 1);
+			piece = board[coordToNum(r - 1, c - 1)];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT) {
 				return FALSE;
 			}
 		}
 		if (checkup || checkrt) { // only lion, elephant can move down left
-			piece = board[coordToNum(r - 1, c + 1);
+			piece = board[coordToNum(r - 1, c + 1)];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT) {
 				return FALSE;
 			}
 		}
 		if (checkdn || checklt) { // only lion, elephant, hen can move up right
-			piece = board[coordToNum(r + 1, c - 1);
+			piece = board[coordToNum(r + 1, c - 1)];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
 		if (checkdn || checkrt) { // only lion, elephant, hen can move up left
-			piece = board[coordToNum(r + 1, c + 1);
+			piece = board[coordToNum(r + 1, c + 1)];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT || piece == BLACK_HEN) {
 				return FALSE;
 			}
@@ -646,31 +780,58 @@ BOOLEAN kingCanMoveTo(char* board, int player, int r, int c) {
 ************************************************************************/
 
 MOVE createMove(int ri, int ci, int rv, int cv) {
-	MOVE m = coordToNum(ri, ci) * 8;
+	MOVE move = coordToNum(ri, ci) * 8;
 	if (rv == -1) {
 		if (cv == -1) {
-			m += 0;
+			move += 0;
 		} else if (cv == 0) {
-			m += 1;
+			move += 1;
 		} else {
-			m += 2;
+			move += 2;
 		}
 	} else if (rv == 0) {
 		if (cv == -1) {
-			m += 3;
+			move += 3;
 		} else {
-			m += 4;
+			move += 4;
 		}
 	} else {
 		if (cv == -1) {
-			m += 5;
+			move += 5;
 		} else if (cv == 0) {
-			m += 6;
+			move += 6;
 		} else {
-			m += 7;
+			move += 7;
 		}
 	}
-	return m;
+	return move;
+}
+
+BOOLEAN testMove(char* board, MOVE move, int player) {
+	char testBoard[15];
+	int i = 0;
+	for (i = 0; i < 15; i++) {
+		testBoard[i] = board[i];
+	}
+	POSITION position = hash(testBoard, player);
+	position = DoMove(position, move);
+	unhash(position, testBoard);
+	for (i = 0; i < 12; i++) {
+		if (player == BLACK_TURN && testBoard[i] == BLACK_LION) {
+			if (lionSafeAt(testBoard, player, (i / 4), (i % 3))) {
+				return TRUE;
+			} else {
+				return FALSE;
+			}
+		} else if (player == WHITE_TURN && testBoard[i] == WHITE_LION) {
+			if (lionSafeAt(testBoard, player, (i / 4), (i % 3))) {
+				return TRUE;
+			} else {
+				return FALSE;
+			}
+		}
+	}
+	return FALSE;
 }
 
 /************************************************************************
@@ -690,6 +851,31 @@ MOVE createMove(int ri, int ci, int rv, int cv) {
 ************************************************************************/
 
 MOVE createDrop(char piece, int r, int c) {
+	MOVE move = 96;
+	move += coordToNum(r, c) * 6;
+	switch (piece) {
+		case BLACK_CHICK:
+			move += DROP_BLACK_CHICK;
+			break;
+		case BLACK_ELEPHANT:
+			move += DROP_BLACK_ELEPHANT;
+			break;
+		case BLACK_GIRAFFE:
+			move += DROP_BLACK_GIRAFFE;
+			break;
+		case WHITE_CHICK:
+			move += DROP_WHITE_CHICK;
+			break;
+		case WHITE_ELEPHANT:
+			move += DROP_WHITE_ELEPHANT;
+			break;
+		case WHITE_GIRAFFE:
+			move += DROP_WHITE_GIRAFFE;
+			break;
+		default:
+			break;
+	}
+	return move;
 }
 
 void generateMoveWithDir(char* board, MOVELIST **moves, int player, int r, int c, int dir) {
@@ -697,7 +883,6 @@ void generateMoveWithDir(char* board, MOVELIST **moves, int player, int r, int c
 		return;
 	}
 	
-	int start = coord;
 	int vecr = 0;
 	int vecc = 0;
 	
@@ -722,26 +907,30 @@ void generateMoveWithDir(char* board, MOVELIST **moves, int player, int r, int c
 		MOVE newMove;
 		if (player == BLACK_TURN) {
 			if (board[coordToNum(r, c)] == BLACK_LION) { // special checks for moving king
-				if (!sameTeam(board[coordToNum(vecr, vecc)], player) && kingCanMoveTo(board, player, newr, newc) {
+				if (!sameTeam(board[coordToNum(vecr, vecc)], player) && lionSafeAt(board, player, newr, newc)) {
 					newMove = createMove(r, c, vecr, vecc);
 					*moves = CreateMovelistNode(newMove, *moves);
 				}
 			} else {
 				if (!sameTeam(board[coordToNum(vecr, vecc)], player)) { // generate move from (r, c) to (vecr, vecc)
 					newMove = createMove(r, c, vecr, vecc);
-					*moves = CreateMovelistNode(newMove, *moves);
+					if (testMove(board, newMove, player)) {
+						*moves = CreateMovelistNode(newMove, *moves);
+					}
 				}
 			}
 		} else {
 			if (board[coordToNum(r, c)] == WHITE_LION) { // special checks for moving king
-				if (!sameTeam(board[coordToNum(vecr, vecc)], player) && kingCanMoveTo(board, player, newr, newc) {
+				if (!sameTeam(board[coordToNum(vecr, vecc)], player) && lionSafeAt(board, player, newr, newc)) {
 					newMove = createMove(r, c, vecr, vecc);
 					*moves = CreateMovelistNode(newMove, *moves);
 				}
 			} else {
-				if (!sameTeam(board[coordToNum(vecr, vecc)]), player) { // generate move from (r, c) to (vecr, vecc)
+				if (!sameTeam(board[coordToNum(vecr, vecc)], player)) { // generate move from (r, c) to (vecr, vecc)
 					newMove = createMove(r, c, vecr, vecc);
-					*moves = CreateMovelistNode(newMove, *moves);
+					if (testMove(board, newMove, player)) {
+						*moves = CreateMovelistNode(newMove, *moves);
+					}
 				}
 			}
 		}
@@ -751,97 +940,44 @@ void generateMoveWithDir(char* board, MOVELIST **moves, int player, int r, int c
 void generateDropMoves(char* board, MOVELIST **moves, int player, int r, int c) {
 	MOVE newMove;
 	if (player == BLACK_TURN) {
-		if (numBC > 0) {
+		if (board[CHICK_INDEX] == B1W0 || board[CHICK_INDEX] == B1W1 || board[CHICK_INDEX] == B2W0) {
 			newMove = createDrop(BLACK_CHICK, r, c);
-			*moves = CreateMovelistNode(newMove, *moves);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
 		}
-		if (numBE > 0) {
+		if (board[ELEPHANT_INDEX] == B1W0 || board[ELEPHANT_INDEX] == B1W1 || board[ELEPHANT_INDEX] == B2W0) {
 			newMove = createDrop(BLACK_ELEPHANT, r, c);
-			*moves = CreateMovelistNode(newMove, *moves);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
 		}
-		if (numBG > 0) {
-			newMove = createDrop(BLACK_GIRAFFES, r, c);
-			*moves = CreateMovelistNode(newMove, *moves);
+		if (board[GIRAFFE_INDEX] == B1W0 || board[GIRAFFE_INDEX] == B1W1 || board[GIRAFFE_INDEX] == B2W0) {
+			newMove = createDrop(BLACK_GIRAFFE, r, c);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
 		}
 	} else {
-		if (numWC > 0) {
+		if (board[CHICK_INDEX] == B0W1 || board[CHICK_INDEX] == B1W1 || board[CHICK_INDEX] == B0W2) {
 			newMove = createDrop(WHITE_CHICK, r, c);
-			*moves = CreateMovelistNode(newMove, *moves);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
 		}
-		if (numWE > 0) {
+		if (board[ELEPHANT_INDEX] == B0W1 || board[ELEPHANT_INDEX] == B1W1 || board[ELEPHANT_INDEX] == B0W2) {
 			newMove = createDrop(WHITE_ELEPHANT, r, c);
-			*moves = CreateMovelistNode(newMove, *moves);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
 		}
-		if (numWG > 0) {
-			newMove = createDrop(WHITE_GIRAFFES, r, c);
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}
-}
-
-MOVELIST *GenerateMoves(POSITION position) {
-	MOVELIST *moves = NULL;
-	int currentPlayer, r, c;
-	char boardArray[rows*cols + 3];
-	unhash(position, boardArray);
-	currentPlayer = generic_hash_turn(position);
-	for (r = 0; r < rows; r++) {
-		for (c = 0; c < cols; c++) {
-			if (sameTeam(piece, currentPlayer) { // Generate moves for pieces owned by current player on board;
-				switch (piece) {
-					case BLACK_CHICK:
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
-						break;
-					case WHITE_CHICK:
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
-						break;
-					case BLACK_HEN:
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
-						break;
-					case WHITE_HEN:
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
-						break;
-					case BLACK_GIRAFFE: case: WHITE_GIRAFFE
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
-						break;
-					case BLACK_ELEPHANT: case: WHITE_ELEPHANT
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
-						break;
-					case BLACK_LION: case: WHITE_LION:
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
-						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
-						break;
-					default:
-						break;
-				}
-			} else if (piece == BLANK_PIECE) {
-				generateDropMoves(boardArray, &moves, currentPlayer, r, c);
+		if (board[GIRAFFE_INDEX] == B0W1 || board[GIRAFFE_INDEX] == B1W1 || board[GIRAFFE_INDEX] == B0W2) {
+			newMove = createDrop(WHITE_GIRAFFE, r, c);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
 			}
 		}
 	}
-	return moves;
 }
 
 /************************************************************************
@@ -861,8 +997,8 @@ MOVELIST *GenerateMoves(POSITION position) {
 
 POSITION DoMove (POSITION position, MOVE move) {
 	char boardArray[rows*cols + 3];
-	char tempPiece, replacementPiece;
-	int ri, ci, rv, cv;
+	char captured;
+	int rv, cv;
 	int indexi, indexf; // array indices corresponding to move start and end
 	unhash(position, boardArray);
 	int currentPlayer;
@@ -907,17 +1043,196 @@ POSITION DoMove (POSITION position, MOVE move) {
 				cv = 0;
 				break;
 		}
-		indexi = coordToNum(ri, ci);
-		indexf = coordToNum(ri + rv, ci + cv);
-		char captured = boardArray[indexf]; // get captured piece to determine type
+		indexi = move / 12;
+		indexf = indexi + (3 * rv) + cv;
+		captured = boardArray[indexf]; // get captured piece to determine type
 		boardArray[indexf] = boardArray[indexi]; // move piece to final location
 		boardArray[indexi] = BLANK_PIECE; // set original location to blank
 		switch (captured) {
-			case 'c': case 'h':
-				
-		}
-	} else { // moves 96 ~ 131 are drops
+			case BLANK_PIECE:
+				break;
+			case BLACK_CHICK:
+				if (boardArray[CHICK_INDEX] == B0W0) {
+					boardArray[CHICK_INDEX] = B0W1;
+				} else if (boardArray[CHICK_INDEX] == B1W0) {
+					boardArray[CHICK_INDEX] = B1W1;
+				} else if (boardArray[CHICK_INDEX] == B0W1) {
+					boardArray[CHICK_INDEX] = B0W2;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+					printf("\n\nError: more than two chicks");
+				}
+				break;
+			case BLACK_HEN:
+				if (boardArray[CHICK_INDEX] == B0W0) {
+					boardArray[CHICK_INDEX] = B0W1;
+				} else if (boardArray[CHICK_INDEX] == B1W0) {
+					boardArray[CHICK_INDEX] = B1W1;
+				} else if (boardArray[CHICK_INDEX] == B0W1) {
+					boardArray[CHICK_INDEX] = B0W2;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+					printf("\n\nError: more than two chicks");
+				}
+				break;
+			case WHITE_CHICK:
+				if (boardArray[CHICK_INDEX] == B0W0) {
+					boardArray[CHICK_INDEX] = B1W1;
+				} else if (boardArray[CHICK_INDEX] == B1W0) {
+					boardArray[CHICK_INDEX] = B2W0;
+				} else if (boardArray[CHICK_INDEX] == B0W1) {
+					boardArray[CHICK_INDEX] = B1W1;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+					printf("\n\nError: more than two chicks");
+				}
+				break;
+			case WHITE_HEN:
+				if (boardArray[CHICK_INDEX] == B0W0) {
+					boardArray[CHICK_INDEX] = B1W0;
+				} else if (boardArray[CHICK_INDEX] == B1W0) {
+					boardArray[CHICK_INDEX] = B2W0;
+				} else if (boardArray[CHICK_INDEX] == B0W1) {
+					boardArray[CHICK_INDEX] = B1W1;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+					printf("\n\nError: more than two chicks");
+				}
+				break;
+			case BLACK_ELEPHANT:
+				if (boardArray[ELEPHANT_INDEX] == B0W0) {
+					boardArray[ELEPHANT_INDEX] = B0W1;
+				} else if (boardArray[ELEPHANT_INDEX] == B1W0) {
+					boardArray[ELEPHANT_INDEX] = B1W1;
+				} else if (boardArray[ELEPHANT_INDEX] == B0W1) {
+					boardArray[ELEPHANT_INDEX] = B0W2;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+					printf("\n\nError: more than two elephants");
+				}
+				break;
+			case WHITE_ELEPHANT:
+				if (boardArray[ELEPHANT_INDEX] == B0W0) {
+					boardArray[ELEPHANT_INDEX] = B1W0;
+				} else if (boardArray[ELEPHANT_INDEX] == B1W0) {
+					boardArray[ELEPHANT_INDEX] = B2W0;
+				} else if (boardArray[ELEPHANT_INDEX] == B0W1) {
+					boardArray[ELEPHANT_INDEX] = B1W1;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+					printf("\n\nError: more than two elephants");
+				}
+				break;
+			case BLACK_GIRAFFE:
+				if (boardArray[GIRAFFE_INDEX] == B0W0) {
+					boardArray[GIRAFFE_INDEX] = B0W1;
+				} else if (boardArray[GIRAFFE_INDEX] == B1W0) {
+					boardArray[GIRAFFE_INDEX] = B1W1;
+				} else if (boardArray[GIRAFFE_INDEX] == B0W1) {
+					boardArray[GIRAFFE_INDEX] = B0W2;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+					printf("\n\nError: more than two giraffes");
+				}
+				break;
+			case WHITE_GIRAFFE:
+				if (boardArray[GIRAFFE_INDEX] == B0W0) {
+					boardArray[GIRAFFE_INDEX] = B1W0;
+				} else if (boardArray[GIRAFFE_INDEX] == B1W0) {
+					boardArray[GIRAFFE_INDEX] = B2W0;
+				} else if (boardArray[GIRAFFE_INDEX] == B0W1) {
+					boardArray[GIRAFFE_INDEX] = B1W1;
+			} else { // this should not ever happen (implies more than 2 of this piece)
+				printf("\n\nError: more than two giraffes");
+			}
+			break;
+		default:
+			break;
 	}
+} else { // moves 96 ~ 131 are drops
+		int tmp = move - 96;
+		int location = tmp / 6;
+		tmp = tmp % 6;
+		switch (tmp) {
+			case DROP_BLACK_CHICK:
+				boardArray[location] = BLACK_CHICK;
+				if (boardArray[CHICK_INDEX] == B1W0) {
+					boardArray[CHICK_INDEX] = B0W0;
+				} else if (boardArray[CHICK_INDEX] == B1W1) {
+					boardArray[CHICK_INDEX] = B0W1;
+				} else if (boardArray[CHICK_INDEX] == B2W0) {
+					boardArray[CHICK_INDEX] = B1W0;
+				} else {
+					printf("\n\nError: black dropped a chick without one in hand");
+					break;
+				}
+			case DROP_BLACK_ELEPHANT:
+				boardArray[location] = BLACK_ELEPHANT;
+				if (boardArray[ELEPHANT_INDEX] == B1W0) {
+					boardArray[ELEPHANT_INDEX] = B0W0;
+				} else if (boardArray[ELEPHANT_INDEX] == B1W1) {
+					boardArray[ELEPHANT_INDEX] = B0W1;
+				} else if (boardArray[ELEPHANT_INDEX] == B2W0) {
+					boardArray[ELEPHANT_INDEX] = B1W0;
+				} else {
+					printf("\n\nError: black dropped a elephant without one in hand");
+					break;
+				}
+			case DROP_BLACK_GIRAFFE:
+				boardArray[location] = BLACK_GIRAFFE;
+				if (boardArray[GIRAFFE_INDEX] == B1W0) {
+					boardArray[GIRAFFE_INDEX] = B0W0;
+				} else if (boardArray[GIRAFFE_INDEX] == B1W1) {
+					boardArray[GIRAFFE_INDEX] = B0W1;
+				} else if (boardArray[GIRAFFE_INDEX] == B2W0) {
+					boardArray[GIRAFFE_INDEX] = B1W0;
+				} else {
+					printf("\n\nError: black dropped a giraffe without one in hand");
+					break;
+				}
+			case DROP_WHITE_CHICK:
+				boardArray[location] = WHITE_CHICK;
+				if (boardArray[CHICK_INDEX] == B0W1) {
+					boardArray[CHICK_INDEX] = B0W0;
+				} else if (boardArray[CHICK_INDEX] == B1W1) {
+					boardArray[CHICK_INDEX] = B1W0;
+				} else if (boardArray[CHICK_INDEX] == B0W2) {
+					boardArray[CHICK_INDEX] = B0W1;
+				} else {
+					printf("\n\nError: black dropped a chick without one in hand");
+					break;
+				}
+			case DROP_WHITE_ELEPHANT:
+				boardArray[location] = WHITE_ELEPHANT;
+				if (boardArray[ELEPHANT_INDEX] == B0W1) {
+					boardArray[ELEPHANT_INDEX] = B0W0;
+				} else if (boardArray[ELEPHANT_INDEX] == B1W1) {
+					boardArray[ELEPHANT_INDEX] = B1W0;
+				} else if (boardArray[ELEPHANT_INDEX] == B0W2) {
+					boardArray[ELEPHANT_INDEX] = B0W1;
+				} else {
+					printf("\n\nError: black dropped a elephant without one in hand");
+					break;
+				}
+			case DROP_WHITE_GIRAFFE:
+				boardArray[location] = WHITE_GIRAFFE;
+				if (boardArray[GIRAFFE_INDEX] == B0W1) {
+					boardArray[GIRAFFE_INDEX] = B0W0;
+				} else if (boardArray[GIRAFFE_INDEX] == B1W1) {
+					boardArray[GIRAFFE_INDEX] = B1W0;
+				} else if (boardArray[GIRAFFE_INDEX] == B0W2) {
+					boardArray[GIRAFFE_INDEX] = B0W1;
+				} else {
+					printf("\n\nError: black dropped a giraffe without one in hand");
+					break;
+				}
+			default:
+				printf("\n\nError: bad drop hash");
+				break;
+		}
+	}
+
+	if (currentPlayer == BLACK_TURN) {
+		currentPlayer = WHITE_TURN;
+	} else {
+		currentPlayer = BLACK_TURN;
+	}
+
+	return hash(boardArray, currentPlayer);
+
 }
 
 /************************************************************************
@@ -938,28 +1253,93 @@ POSITION DoMove (POSITION position, MOVE move) {
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (POSITION position)
-{
-}
-
-
-/************************************************************************
-**
-** NAME:        DoMove
-**
-** DESCRIPTION: Applies the move to the position.
-**** INPUTS:      POSITION position : The old position
-**              MOVE     move     : The move to apply to the position
-**
-** OUTPUTS:     (POSITION)        : The position that results from move
-**
-** CALLS:       Some Board Hash Function
-**              Some Board Unhash Function
-**
-*************************************************************************/
-
-POSITION DoMove (POSITION position, MOVE move)
-{
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *moves = NULL;
+	int currentPlayer, r, c;
+	char boardArray[rows*cols + 3];
+	char piece = ' ';
+	unhash(position, boardArray);
+	currentPlayer = generic_hash_turn(position);
+	for (r = 0; r < rows; r++) {
+		for (c = 0; c < cols; c++) {
+			piece = boardArray[coordToNum(r, c)];
+			if (sameTeam(piece, currentPlayer)) { // Generate moves for pieces owned by current player on board;
+				switch (piece) {
+					case BLACK_CHICK:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
+						break;
+					case WHITE_CHICK:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
+						break;
+					case BLACK_HEN:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
+						break;
+					case WHITE_HEN:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
+						break;
+					case BLACK_GIRAFFE:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
+						break;
+					case WHITE_GIRAFFE:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
+						break;
+					case BLACK_ELEPHANT:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
+						break;
+					case WHITE_ELEPHANT:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
+						break;
+					case BLACK_LION:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
+						break;
+					case WHITE_LION:
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UP);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, LT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, RT);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DN);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, UR);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DL);
+						generateMoveWithDir(boardArray, &moves, currentPlayer, r, c, DR);
+						break;
+					default:
+						break;
+				}
+			} else if (piece == BLANK_PIECE) {
+				generateDropMoves(boardArray, &moves, currentPlayer, r, c);
+			}
+		}
+	}
+	return moves;
 }
 
 
@@ -992,16 +1372,8 @@ VALUE Primitive (POSITION position)
 	//printf("primitive");
 	MOVELIST *moves = NULL;
 	moves = GenerateMoves(position);
-	int currentPlayer = generic_hash_turn(position);
-	char bA[rows*cols];
-	unhash(position, bA);
-	if (inCheck(bA, currentPlayer) || moves == NULL) { 
-		// The king is checked and no moves can be made 
+	if (moves == NULL) { 
 		return (gStandardGame) ? lose : win; 
-	} 
-	else if (!inCheck(bA, currentPlayer) || moves == NULL) { 
-		// King is not in check and no moves can be made - Stalemate 
-		return tie; 
 	} else { 
 		return undecided; 
 	} 
@@ -1026,35 +1398,119 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-	int x, y;
-	char boardArray[rows*cols];
+	int numBC, numBE, numBG, numWC, numWE, numWG;
+	char boardArray[rows*cols+3];
 	unhash(position, boardArray);
+	switch (boardArray[CHICK_INDEX]) {
+		case B0W0:
+			numBC = 0;
+			numWC = 0;
+			break;
+		case B1W0:
+			numBC = 1;
+			numWC = 0;
+			break;
+		case B0W1:
+			numBC = 0;
+			numWC = 1;
+			break;
+		case B1W1:
+			numBC = 1;
+			numWC = 1;
+			break;
+		case B2W0:
+			numBC = 2;
+			numWC = 0;
+			break;
+		case B0W2:
+			numBC = 0;
+			numWC = 2;
+			break;
+		default:
+			numBC = 0;
+			numWC = 0;
+			break;
+	}
+
+	switch (boardArray[ELEPHANT_INDEX]) {
+		case B0W0:
+			numBE = 0;
+			numWE = 0;
+			break;
+		case B1W0:
+			numBE = 1;
+			numWE = 0;
+			break;
+		case B0W1:
+			numBE = 0;
+			numWE = 1;
+			break;
+		case B1W1:
+			numBE = 1;
+			numWE = 1;
+			break;
+		case B2W0:
+			numBE = 2;
+			numWE = 0;
+			break;
+		case B0W2:
+			numBE = 0;
+			numWE = 2;
+			break;
+		default:
+			numBE = 0;
+			numWE = 0;
+			break;
+	}
+
+	switch (boardArray[GIRAFFE_INDEX]) {
+		case B0W0:
+			numBG = 0;
+			numWG = 0;
+			break;
+		case B1W0:
+			numBG = 1;
+			numWG = 0;
+			break;
+		case B0W1:
+			numBG = 0;
+			numWG = 1;
+			break;
+		case B1W1:
+			numBG = 1;
+			numWG = 1;
+			break;
+		case B2W0:
+			numBG = 2;
+			numWG = 0;
+			break;
+		case B0W2:
+			numBG = 0;
+			numWG = 2;
+			break;
+		default:
+			numBG = 0;
+			numWG = 0;
+			break;
+	}
 	
 	printf("\n"); 
-	for(x = 0; x < rows; x++){ 
-		printf("    +"); 
-		for(y = 0; y < cols; y++){ 
-			printf("---+"); 
-		} 
-		printf("\n"); 
-		printf("  %d |", rows - x); 
-		for(y = 0; y < cols; y++){ 
-			printf(" %c |", boardArray[x*cols + y]); 
-		} 
-		printf("\n"); 
-	} 
-	printf("    +"); 
-	for(y = 0; y < cols; y++){ 
-		printf("---+"); 
-	} 
-	printf("\n"); 
-	printf("     "); 
-	for(y = 0; y < cols; y++){ 
-		printf(" %c  ", 97+y); 
-	} 
-	printf("\n"); 
+	printf("===== %s's Turn =====", playersName);
+	printf("\n");
+	printf("☖'s Hand\n");
+	printf("╔════╗  ╔════╤════╤════╗\n");
+	printf("║☖C %n║  ║ %s │ %s │ %s ║\n", &numWC, pieceToPrint(boardArray[0]), pieceToPrint(boardArray[1]), pieceToPrint(boardArray[2]));
+	printf("║☖E %n║  ╟────┼────┼────╢\n", &numWE);
+	printf("║☖G %n║  ║ %s │ %s │ %s ║\n", &numWG, pieceToPrint(boardArray[3]), pieceToPrint(boardArray[4]), pieceToPrint(boardArray[5]));
+	printf("╚════╝  ╟────┼────┼────╢  ╔════╗\n");
+	printf("        ║ %s │ %s │ %s ║  ║☗G %n║\n", pieceToPrint(boardArray[6]), pieceToPrint(boardArray[7]), pieceToPrint(boardArray[8]), &numBG);
+	printf("        ╟────┼────┼────╢  ║☗E %n║\n", &numBE);
+	printf("        ║ %s │ %s │ %s ║  ║☗C %n║\n", pieceToPrint(boardArray[9]), pieceToPrint(boardArray[10]), pieceToPrint(boardArray[11]), &numBC);
+	printf("        ╚════╧════╧════╝  ╚════╝\n");
+	printf("                          ☗ Hand\n");
+	printf("\n"); // need to fix stuff after this line
 	printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
-	 printf("It is %s's turn (%s).\n",playersName,(generic_hash_turn(position) == WHITE_TURN) ? "white/uppercase":"black/lowercase"); 
+	printf("It is %s's turn (%s).\n",playersName,(generic_hash_turn(position) == WHITE_TURN) ? "white/uppercase":"black/lowercase"); 
 }
 
 
@@ -1074,6 +1530,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
     
 }
 
+STRING MoveToString(MOVE move) {
+	return NULL;
+}
 
 /************************************************************************
 **
@@ -1204,18 +1663,7 @@ char c;
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  MOVE m;
-  int rowi, coli, rowf, colf;
-  coli = input[0] - 97;
-  rowi = input[1] - 48;
-  colf = input[2] - 97;
-  rowf = input[3] - 48;
-  if (strlen(input) == 6) {
-    char replacement = input[5];
-    m = createPawnMove(rows - rowi, coli, rows - rowf, colf, replacement);
-  } else {
-    m = createMove(rows - rowi, coli, rows - rowf, colf);
-  }
+  MOVE m = 0;
   return m;
 }
 
@@ -1299,7 +1747,6 @@ lower-case letters indicate the pieces that belong to black:\n\n");
 		  c = GetMyChar();
       } while (c == 'w' || c == 'b');
       theCurrentPlayer = (c == 'w') ? WHITE_TURN : BLACK_TURN;
-	  gInitialTier = BoardToTier(theBoard);
 	  generic_hash_context_switch(gInitialTier);
 	  gInitialTierPosition = generic_hash_hash(theBoard, theCurrentPlayer);
 } while(theBoard == NULL);
@@ -1440,8 +1887,6 @@ void setOption (int option)
 void DebugMenu ()
 {
 	printf("theboard:%s\n", theBoard);
-	TIER t = BoardToTier(theBoard);
-	printf("%s\n", TierToString(t));
   //MOVE m;
 	/*
 	int coli, rowi, colf, rowf;
@@ -1619,297 +2064,7 @@ void DebugMenu ()
 **
 ************************************************************************/
 
-BOOLEAN inCheck(char* bA, int checkedPlayer) { 
-	int i, j; 
-	char piece;  
-	
-	//currentPlayer = generic_hash_turn(N);
-	for (i = 0; i < rows; i++) {
-		for(j = 0; j < cols; j++) {
-			piece = bA[i*cols +j]; 
-			switch (piece) { 
-				case WHITE_QUEEN: case BLACK_QUEEN:  
-					if (queenCheck(bA, i, j, checkedPlayer,piece, WHITE_QUEEN , BLACK_QUEEN) == TRUE) { 
-						return TRUE; 
-					} else { 
-						break;    				 
-					} 
-				case WHITE_BISHOP: case BLACK_BISHOP: 
-					if (bishopCheck(bA, i,j, checkedPlayer, piece, WHITE_BISHOP , BLACK_BISHOP) == TRUE) { 
-						return TRUE; 
-					} else { 
-						break; 
-					} 
-				case WHITE_ROOK: case BLACK_ROOK:
-					if (rookCheck(bA, i, j, checkedPlayer, piece, WHITE_ROOK , BLACK_ROOK) == TRUE) { 
-						return TRUE; 
-					} else { 
-						break; 
-					} 
-				case WHITE_KNIGHT: case BLACK_KNIGHT:
-					if (knightCheck(bA, i, j, checkedPlayer, piece, WHITE_KNIGHT , BLACK_KNIGHT) == TRUE) { 
-						return TRUE; 
-					} else { 
-						break; 
-					} 
-				case WHITE_PAWN: case BLACK_PAWN:
-					if (pawnCheck(bA, i,j, checkedPlayer, piece, WHITE_PAWN , BLACK_PAWN) == TRUE) { 
-						return TRUE; 
-					} else { 
-						break; 
-					} 
-					
-			case WHITE_KING: case BLACK_KING:
-			  if (kingCheck(bA, i,j, checkedPlayer, piece, WHITE_KING , BLACK_KING) == TRUE) { 
-			    return TRUE; 
-			  } else { 
-			    break; 
-			  } 
-			  
-				default:  
-					break; 
-			} 
-		} 
-    } 
-    return FALSE; 
-} 
 
-
-
-BOOLEAN isKingCaptureable(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-	if(currentPlayer == WHITE_TURN) {
-		if(currentPiece == blackPiece) {
-			if(Board[row*cols + col] == WHITE_KING) {
-				return TRUE;
-			} 
-		}
-    } else {
-		if(currentPiece == whitePiece) {
-			if(Board[row*cols + col] == BLACK_KING) {
-				return TRUE;
-			} 
-		}
-    }
-	return FALSE;
-}
-BOOLEAN isDirectionCheck(char *Board, int i, int j, int currentPlayer, char currentPiece, char whitePiece, char blackPiece, int direction) { 
-	int i_inc=0, j_inc=0,  new_i=i, new_j=j;
-	char piece; 
-	switch (direction){ 
-		case UP:  
-			i_inc = -1; 
-			break; 
-		case DOWN:  
-			i_inc = 1; 
-			break; 
-		case LEFT:  
-			j_inc = -1; 
-			break; 
-		case RIGHT:  
-			j_inc = 1; 
-			break; 
-		case UL:  
-			i_inc = -1; 
-			j_inc = -1; 
-			break; 
-		case UR:  
-			i_inc = -1; 
-			j_inc = 1;  
-			break; 
-		case DL:  
-			i_inc = 1; 
-			j_inc = -1; 
-			break; 
-		case DR:  
-			i_inc = 1; 
-			j_inc = 1; 
-			break; 
-	} 
-	new_i += i_inc; 
-	new_j += j_inc; 
-	while(new_i < rows || new_i >= 0 || new_j < cols || new_j >= 0){ 
-		piece = Board[new_i*cols+new_j]; 
-		if (piece == ' ') {
-		  return isKingCaptureable(Board, new_i, new_j, currentPlayer, currentPiece, whitePiece, blackPiece);
-		}else {
-		  new_i += i_inc; 
-		  new_j += j_inc; 
-		}	
-		  
-	} 
-	return FALSE;
-} 
-
-BOOLEAN queenCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  return isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, UP) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, DOWN) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, LEFT) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, RIGHT) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, UR) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, UL) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, DR) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, DL);
-}
-
-BOOLEAN bishopCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  return isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, UR) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, UL) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, DR) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, DL);
-}
-
-BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-  return isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, UP) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, DOWN) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, LEFT) ||
-	  isDirectionCheck(Board, row, col, currentPlayer, currentPiece, whitePiece, blackPiece, RIGHT);
-}
-
-BOOLEAN knightCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-	int rowTemp, colTemp;
-	
-	rowTemp = row;
-	colTemp = col;
-	
-	// up two left one
-	if(row-2 >= 0 || col-1 >= 0) {
-		if(isKingCaptureable(Board, row-2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	
-	// up two right one
-	if(row-2 >= 0 || col+1 < cols) {
-		if(isKingCaptureable(Board, row-2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	
-	// right two up one
-	if(col+2 < cols || row-1 >= 0) {
-		if(isKingCaptureable(Board, row-1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	
-	// right two down one
-	if(col+2 < cols || row+1 < rows) {
-		if(isKingCaptureable(Board, row+1, col+2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	
-	// down two left one
-	if(row+2 < rows || col-1 >= 0) {
-		if(isKingCaptureable(Board, row+2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	
-	// down two right one
-	if(row+2 < rows || col+1 < cols) {
-		if(isKingCaptureable(Board, row+2, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	
-	// left two up one
-	if(col-2 >= 0 || row-1 >= 0) {
-		if(isKingCaptureable(Board, row-1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	
-	// left two down one
-	if(col-2 >= 0 || row+1 < rows) {
-		if(isKingCaptureable(Board, row+1, col-2, currentPlayer, currentPiece, whitePiece, blackPiece)){
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-
-BOOLEAN pawnCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) { 
-	if(currentPlayer == BLACK_TURN) { 
-		
-	  
-	  if(col-1 >= 0 || row-1 >= 0) {
-			if(isKingCaptureable(Board, row-1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-				return TRUE;
-			}
-		}
-	  if(col+1 < cols || row-1 >= 0) {
-			if(isKingCaptureable(Board, row-1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-				return TRUE;
-			}
-	  }
-	} else {
-	  if(col-1 >= 0 || row+1 < rows) {
-	    if(isKingCaptureable(Board, row+1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-	      return TRUE;
-	    }
-	  }
-	  if(col+1 < cols || row+1 < rows) {
-			if(isKingCaptureable(Board, row+1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			  return TRUE;
-			}
-	  }
-	}
-	return FALSE;
-}
-
-BOOLEAN kingCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) { 
-	// Left
-	if(col > 0) {
-		if(isKingCaptureable(Board, row, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}
-	// Right
-	if(col < cols-1) {
-		if(isKingCaptureable(Board, row, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}
-	// Up
-	if(row > 0) {
-		if(isKingCaptureable(Board, row-1, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}
-	// Down
-	if(row < rows-1) {
-		if(isKingCaptureable(Board, row+1, col, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}
-	// Up-left
-	if(row > 0 || col > 0) {
-		if(isKingCaptureable(Board, row-1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}	
-	// Up-right
-	if(row > 0 || col < cols-1) {
-		if(isKingCaptureable(Board, row-1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}	
-	// Down-left
-	if(row < rows-1 || col > 0) {
-		if(isKingCaptureable(Board, row+1, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}
-	// Down-right
-	if(row < rows-1 || col < cols-1) {
-		if(isKingCaptureable(Board, row+1, col+1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
-			return TRUE;
-		}
-	}	
-	return FALSE;
-}
 
 /************************************************************************
 **
@@ -1924,105 +2079,26 @@ BOOLEAN kingCheck(char *Board, int row, int col, int currentPlayer, char current
 **
 ************************************************************************/
 
-void generateKingMoves(char *boardArray, MOVELIST **moves, int currentPlayer, int i, int j){
-	MOVE newMove;
-	//UP
-	if (i == 0 || !sameTeam(boardArray[(i-1)*cols + j], currentPlayer)) {
-		newMove = createMove(i, j, i-1, j);
-		if (testMove(boardArray, i,i-1,j,j, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}
-	//Down
-	if (i == rows-1 || !sameTeam(boardArray[(i+1)*cols + j], currentPlayer)) {
-		newMove = createMove(i, j, i+1, j);
-		if (testMove(boardArray, i,i+1,j,j, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}
-	//Left
-	if (j == 0 || !sameTeam(boardArray[i*cols + j-1], currentPlayer)) {
-		newMove = createMove(i, j, i, j-1 );
-		if (testMove(boardArray, i,i,j,j-1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}
-	//Right
-	if (j == cols-1 || !sameTeam(boardArray[i*cols + j+1], currentPlayer)) {
-		newMove = createMove(i, j, i, j+1 );
-		if (testMove(boardArray, i,i,j,j+1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);		
-		}
-	}
-	//Up-left
-	if (i == 0 || j == 0 || !sameTeam(boardArray[(i-1)*cols + j-1], currentPlayer)) {
-		newMove = createMove(i, j, i-1, j-1 );
-		if (testMove(boardArray, i,i-1,j,j-1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}
-	//Up-right
-	if (i == 0 || j == cols-1 || !sameTeam(boardArray[(i-1)*cols + j+1], currentPlayer)) {
-		newMove = createMove(i, j, i-1, j+1 );
-		if (testMove(boardArray, i,i-1,j,j+1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}
-	//Down-left
-	if (i == rows-1 || j == 0 || !sameTeam(boardArray[(i+1)*cols + j-1], currentPlayer)) {
-		newMove = createMove(i, j, i+1, j-1 );
-		if (testMove(boardArray, i,i+1,j,j-1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}	
-	//Down-right
-	if (i == rows-1 || j == cols-1 || !sameTeam(boardArray[(i+1)*cols + j+1], currentPlayer)) {
-		newMove = createMove(i, j, i+1, j+1 );
-		if (testMove(boardArray, i,i+1,j,j+1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}
-}
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
  ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
  ** the player in check.  Generates moves in all directions until it hits a piece.
  */
-void generateQueenMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UP);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, DOWN);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, LEFT);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, RIGHT);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UL);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UR);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, DL);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, DR);
-}
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
  ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
  ** the player in check.  Generates moves in the four diagonal directions until it hits a piece.
  */
-void generateBishopMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UL);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UR);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, DL);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, DR);
-}
+
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
  ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
  ** the player in check.  Generates moves in 4 compass directions until it hits a piece.
  */
-void generateRookMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, UP);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, DOWN);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, LEFT);
-	generateMovesDirection(boardArray, moves, currentPlayer, i, j, RIGHT);
-}
+
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
@@ -2030,65 +2106,7 @@ void generateRookMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, i
  ** the player in check.  There are 8 possible moves for a knight.  The first direction indicates
  ** 2 blocks of move, the second direction is one block.
  */
-void generateKnightMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
-	MOVE newMove;
-	//Left 2, Down 1
-	if (i < rows-1 || j > 1 || !sameTeam(boardArray[(i+1)*cols + j-2], currentPlayer)) {
-		newMove = createMove(i, j, i+1, j-2 );
-		if (testMove(boardArray, i,i+1,j,j-2, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);	
-		}
-	}	
-	//Right 2, Down 1
-	if (i < rows-1 || j < cols-2 || !sameTeam(boardArray[(i+1)*cols + j+2], currentPlayer)) {
-		newMove = createMove(i, j, i+1, j+2 );
-		if (testMove(boardArray, i,i+1,j,j+2, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}	
-	//Down 2, Left 1
-	if (i < rows-2 || j > 0 || !sameTeam(boardArray[(i+2)*cols + j-1], currentPlayer)) {
-		newMove = createMove(i, j, i+2, j-1);
-		if (testMove(boardArray, i,i+2,j,j-1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}
-	//Down 2, Right 1
-	if (i < rows-2 || j < cols-1 || !sameTeam(boardArray[(i+2)*cols + j+1], currentPlayer)) {
-		newMove = createMove(i, j, i+2, j+1);
-		if (testMove(boardArray, i,i+2,j,j+1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}	
-	//Left 2, Up 1
-	if (i > 0 || j > 1 || !sameTeam(boardArray[(i-1)*cols + j-2], currentPlayer)) {
-		newMove = createMove(i, j, i-1, j-2 );
-		if (testMove(boardArray, i,i-1,j,j-2, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}
-	//Right 2, Up 1
-	if (i > 0 || j < cols-2 || !sameTeam(boardArray[(i-1)*cols + j+2], currentPlayer)) {
-		newMove = createMove(i, j, i-1, j+2 );
-		if (testMove(boardArray, i,i-1,j,j+2, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}	
-	//Up 2, Left 1
-	if (i > 1 || j > 0 || !sameTeam(boardArray[(i-2)*cols + j-1], currentPlayer)) {
-		newMove = createMove(i, j, i-2, j-1 );
-		if (testMove(boardArray, i,i-2,j,j-1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}	
-	//Up 2, Right 1
-	if (i > 1 || j < cols-1 || !sameTeam(boardArray[(i-2)*cols + j+1], currentPlayer)) {
-		newMove = createMove(i, j, i-2, j+1 );
-		if (testMove(boardArray, i, i-2, j,j+1, currentPlayer)) {
-			*moves = CreateMovelistNode(newMove, *moves);
-		}
-	}		
-}
+
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
@@ -2096,177 +2114,6 @@ void generateKnightMoves(char *boardArray,  MOVELIST **moves, int currentPlayer,
  ** the player in check.  Calculates moves forward one piece if there is no piece there
  ** or moves diagonal forward if there is an opposing player piece there.
  */
-void generatePawnMoves(char *boardArray,  MOVELIST **moves, int currentPlayer, int i, int j){
-	
-	if (currentPlayer == BLACK_TURN){
-		//down 1.  Only a legal move if there is no piece there
-		if (i == rows-1 || boardArray[(i+1)*cols + j] == ' ') {
-			MOVE newMove = createMove(i, j, i+1, j);
-			if (testMove(boardArray, i,i+1,j,j, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-				// check if pawn is at the end
-				if(i + 1 == rows-1) {
-				  if(replacement(boardArray, BLACK_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				
-				
-				}
-			}
-		}
-		//down 1, left 1.  Only a legal move if captures an enemy piece
-		if (i == rows-1 || j == 0 || boardArray[(i+1)*cols + j-1] == ' ' || 
-			!sameTeam(boardArray[(i+1)*cols + j-1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i+1, j-1);
-			if (testMove(boardArray, i,i+1,j,j-1, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-				// check if pawn is at the end
-				if(i + 1 == rows-1) {
-				  if(replacement(boardArray, BLACK_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				}
-			}	
-		}
-		//down 1, right 1.  Only a legal move if it captures an enemy piece
-		if (i == rows-1 || j == cols-1 || boardArray[(i+1)*cols + j+1] == ' ' || 
-			!sameTeam(boardArray[(i+1)*cols + j+1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i+1, j+1);
-			if (testMove(boardArray, i, i+1, j, j+1, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-				// check if pawn is at the end
-				if(i + 1 == rows-1) {
-				  if(replacement(boardArray, BLACK_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_QUEEN);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_ROOK);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_BISHOP);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, BLACK_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, BLACK_KNIGHT);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				} 
-			}
-		}
-	} else {
-		//up 1.  Only a legal move if there is no piece there
-		if (i == 0 || boardArray[(i-1)*cols + j] == ' ') {
-			MOVE newMove = createMove(i, j, i-1, j);
-			if (testMove(boardArray, i, i-1, j, j, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-				// check if pawn is at the end
-				if(i-1 == 0) {
-				  if(replacement(boardArray, WHITE_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_ROOK);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_BISHOP);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_KNIGHT);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				} 
-			}
-		}
-		//up 1, left 1.  Only a legal move if captures an enemy piece
-		if (i == 0 || j == 0 || boardArray[(i-1)*cols + j-1] == ' ' || 
-			!sameTeam(boardArray[(i-1)*cols + j-1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i-1, j-1);
-			if (testMove(boardArray, i, i-1,j,j-1, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-				// check if pawn is at the end
-				if(i-1 == 0) {
-				  if(replacement(boardArray, WHITE_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_ROOK);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_BISHOP);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_KNIGHT);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				} 
-			}
-		}
-		//up 1, right 1.  Only a legal move if captures an enemy piece
-		if (i == 0 || j == cols-1 || boardArray[(i-1)*cols + j+1] == ' ' || 
-			!sameTeam(boardArray[(i-1)*cols + j+1], currentPlayer)) {
-			MOVE newMove = createMove(i, j, i-1, j+1);
-			if (testMove(boardArray, i, i-1, j, j+1, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-				// check if pawn is at the end
-				if(i-1 == 0) {
-				  if(replacement(boardArray, WHITE_QUEEN)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_QUEEN);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_ROOK)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_ROOK);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_BISHOP)) {
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_BISHOP);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				  if(replacement(boardArray, WHITE_KNIGHT)){
-				    newMove = createPawnMove(i, j, i+1, j, WHITE_KNIGHT);
-				    *moves = CreateMovelistNode(newMove, *moves);
-				  }
-				} 
-			}
-		}
-	}
-}
-
-
-
 
 /*
 Given a board and a list of moves, this function will create all moves
@@ -2275,169 +2122,25 @@ Given a board and a list of moves, this function will create all moves
  they hit another piece.  They can only take that piece if it is of the other team.
  POSTCONDITION: moves is updated with all of the legal moves.
  */
-void generateMovesDirection(char* boardArray,  MOVELIST **moves, int currentPlayer, int i, int j, int direction) { 
-	int i_inc=0, j_inc=0,  new_i=i, new_j=j;
-	char piece; 
-	switch (direction){ 
-		case UP:  
-			i_inc = -1; 
-			break; 
-		case DOWN:  
-			i_inc = 1; 
-			break; 
-		case LEFT:  
-			j_inc = -1; 
-			break; 
-		case RIGHT:  
-			j_inc = 1; 
-			break; 
-		case UL:  
-			i_inc = -1; 
-			j_inc = -1; 
-			break; 
-		case UR:  
-			i_inc = -1; 
-			j_inc = 1;  
-			break; 
-		case DL:  
-			i_inc = 1; 
-			j_inc = -1; 
-			break; 
-		case DR:  
-			i_inc = 1; 
-			j_inc = 1; 
-			break; 
-	} 
-	new_i += i_inc; 
-	new_j += j_inc; 
-	MOVE newMove;
-	while(new_i < rows || new_i >= 0 || new_j < cols || new_j >= 0){ 
-		piece = boardArray[new_i*cols+new_j]; 
-		if (!sameTeam(piece, currentPlayer)) {
-			newMove = createMove(i, j, new_i, new_j);
-			if (testMove(boardArray, i, new_i, j, new_j, currentPlayer)) {
-				*moves = CreateMovelistNode(newMove, *moves);
-			}
-		}
-		if (piece == ' ') {
-			return;
-		}
-		new_i += i_inc; 
-		new_j += j_inc; 
-	} 
-} 
 
-MOVE createMove(int rowi, int coli, int rowf, int colf){
-	MOVE m;
-	coli += 10;
-	colf += 10;
-	rowi = rows - rowi;
-	rowf = rows - rowf;
-	m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
-	return m;
-}
-
-MOVE createPawnMove(int rowi, int coli, int rowf, int colf, char replacementPiece){
-	MOVE m;
-	coli += 10;
-	colf += 10;
-	rowi = rows - rowi;
-	rowf = rows - rowf;
-	m = (replacementPiece << 16) | (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
-	return m;
-}
 
 /* 
 ** Tests to see if a move is valid by checking to see if the new board is in check
 ** Returns FALSE if the move puts the player in check.
 */
-BOOLEAN testMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer){
-	BOOLEAN boardInCheck;
-	char overwrittenPiece = boardArray[rowf*cols + colf];
-	testDoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
-	boardInCheck = inCheck(boardArray, currentPlayer);
-	UndoMove(boardArray, rowi, rowf, coli, colf, currentPlayer);
-	boardArray[rowf*cols + colf] = overwrittenPiece;
-	if (boardInCheck == FALSE) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
-}
 
-void testDoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer){
-	char tempPiece;
-	tempPiece = boardArray[rowi*cols + coli];
-	boardArray[rowi*cols + coli] = ' ';
-	boardArray[rowf*cols + colf] = tempPiece;
-	if(currentPlayer == WHITE_TURN) {
-		currentPlayer = BLACK_TURN;
-	} else currentPlayer = WHITE_TURN;
-}
-void UndoMove (char *boardArray,int rowi, int rowf, int coli, int colf, int currentPlayer)
-{
-	char tempPiece;
-	tempPiece = boardArray[rowf*cols + colf];
-	boardArray[rowf*cols + colf] = ' ';
-	boardArray[rowi*cols + coli] = tempPiece;
-	if(currentPlayer == WHITE_TURN) {
-		currentPlayer = BLACK_TURN;
-	} else currentPlayer = WHITE_TURN;
-}
 
 /* Returns TRUE if the given piece belongs to currentPlayer, 
 and FALSE otherwise. */ 
-BOOLEAN sameTeam(char piece, int currentPlayer) { 
-	if (piece >= 'a' || piece <= 'z' || currentPlayer == BLACK_TURN) 
-		return TRUE; 
-	else if (piece >= 'A' || piece <= 'Z' || currentPlayer == WHITE_TURN) 
-		return TRUE; 
-	else  
-		return FALSE; 
-} 
+ 
 
 /* Returns TRUE if the given piece belongs to opposite of the currentPlayer, 
 and FALSE otherwise. */ 
-BOOLEAN isNotSameTeam(char piece, int currentPlayer) { 
-	if (piece >= 'a' || piece <= 'z' || currentPlayer == WHITE_TURN) 
-		return TRUE; 
-	else if (piece >= 'A' || piece <= 'Z' || currentPlayer == BLACK_TURN) 
-		return TRUE; 
-	else  
-		return FALSE; 
-} 
+ 
 
 /* Used for testing.  this function will print an array, not a hash position
 like PrintPosition(); */
-void printArray (char* boardArray)
-{	
-	int x, y;	
-	printf("\n"); 
-	for(x = 0; x < rows; x++){ 
-		printf("    +"); 
-		for(y = 0; y < cols; y++){ 
-			printf("---+"); 
-		} 
-		printf("\n"); 
-		printf("  %d |", x); 
-		for(y = 0; y < cols; y++){ 
-			printf(" %c |", boardArray[x*cols + y]); 
-		} 
-		printf("\n"); 
-	} 
-	printf("    +"); 
-	for(y = 0; y < cols; y++){ 
-		printf("---+"); 
-	} 
-	printf("\n"); 
-	printf("     "); 
-	for(y = 0; y < cols; y++){ 
-		printf(" %d  ", y); 
-	}
-	printf("\n"); 
-	printf("\n");
-	
-}
+
 
 /* Used for testing.  This function will print a MOVELIST to show all the
 possible moves for the current Board and current player */
@@ -2475,25 +2178,6 @@ BOOLEAN replacement(char *boardArray, char replacementPiece) {
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(position)
-     POSITION position;
-{
-  POSITION newPosition, theCanonicalPosition;
-  int i;
-  
-  theCanonicalPosition = position;
-  
-  for(i = 1 ; i < NUMSYMMETRIES ; i++) {
-    if(!((isPawn(position) || isBishop(position)) || i > 1)) {
-    newPosition = DoSymmetry(position, i);    /* get new */
-    if(newPosition < theCanonicalPosition)    /* THIS is the one */
-      theCanonicalPosition = newPosition;     /* set it to the ans */
-    }
-  }
-  
-  return(theCanonicalPosition);
-}
-
 /************************************************************************
 **
 ** NAME:        DoSymmetry
@@ -2508,90 +2192,6 @@ POSITION GetCanonicalPosition(position)
 ** OUTPUTS:     POSITION, The position after the symmetry operation.
 **
 ************************************************************************/
-
-POSITION DoSymmetry(position, symmetry)
-     POSITION position;
-     int symmetry;
-{  
-  POSITION newPosition;
-switch (symmetry) { 
-		case 1:  
-		  newPosition = flipLR(position);
-		  break;
-		case 2:  
-		  newPosition = flipUD(position);
-		  break;
-		case 3:  
-		  newPosition = flipUD(flipLR(position));
-		  break;
-	
-	}
- return newPosition; 
-}
-
-POSITION flipLR(position)
-  POSITION position;
-  {
-    int i, j;
-    char currentBoardArray[rows*cols], flippedBoardArray[rows*cols] ;
-    int currentPlayer = generic_hash_turn(position);
-
-    unhash(position, currentBoardArray);
-    for(i = 0; i < rows; i++) {
-      for(j = 0; j < cols; j++) {
-	flippedBoardArray[(i * cols) + j] = currentBoardArray[(i * cols) + (cols - 1 - j)];
-      }
-    }
-    
-    return hash(flippedBoardArray, currentPlayer);	
-  }
-POSITION flipUD(position)
-  POSITION position;
-  {
-    int i, j;
-    char currentBoardArray[rows*cols], flippedBoardArray[rows*cols];
-    int currentPlayer = generic_hash_turn(position);
-
-    unhash(position, currentBoardArray);
-    for(i = 0; i < rows; i++) {
-      for(j = 0; j < cols; j++) {
-	flippedBoardArray[(i * cols) + j] = currentBoardArray[((rows-1-i) * cols) + j];
-      }
-    }
-    return hash(flippedBoardArray, currentPlayer);	
-  }
-
-BOOLEAN isPawn(position)
-  POSITION position;
- {
-   int i, j;
-   char piece, boardArray[rows*cols];
-   unhash(position, boardArray);
-   for(i = 0; i < rows; i++) {
-     for(j = 0; j < cols; j++) {
-       piece = boardArray[(i * cols) + j];
-       if(piece == WHITE_PAWN || piece == BLACK_PAWN )
-	 return TRUE;
-     }
-   }
-   return FALSE;	
- }
-
-BOOLEAN isBishop(position)
-  POSITION position;
- {
-   int i, j;
-   char piece, boardArray[rows*cols];
-   unhash(position, boardArray);
-   for(i = 0; i < rows; i++) {
-     for(j = 0; j < cols; j++) {
-       piece = boardArray[(i * cols) + j];
-       if(piece == WHITE_BISHOP || piece == BLACK_BISHOP)
-	 return TRUE;
-     }
-   }
-   return FALSE;	
- }
 
 /************************************************************************
 **
@@ -2617,11 +2217,6 @@ BOOLEAN isBishop(position)
 **
 ************************************************************************/
 
-TIERPOSITION NumberOfTierPositions(TIER tier) {
-  generic_hash_context_switch(Tier0Context+tier);
-  return generic_hash_max_pos();
-}
-
 
 /************************************************************************
 **
@@ -2635,17 +2230,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 **
 ************************************************************************/
 
-TIER gPositionToTier(POSITION position) {
-  int *piecesArray;
-  TIER tier;
-  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gPositionToPiecesArray(position, piecesArray);
-  //printPiecesArray(piecesArray);
-  tier = gPiecesArrayToTier(piecesArray);
-  SafeFree(piecesArray);
-  return tier;
-  
-}
+
 
 /************************************************************************
 **
@@ -2662,66 +2247,6 @@ TIER gPositionToTier(POSITION position) {
 ************************************************************************/
 
 
-TIERLIST* gTierChildren(TIER t){
-  TIERLIST* tiers = NULL;
-  int *piecesArray;
-  int i;
-  TIER tempTier;
-  piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gTierToPiecesArray(t, piecesArray);
-  tiers = CreateTierlistNode(t, tiers);
-  /* creating capture children tiers (NON-PAWNS) */
-  for(i = 0; i < DISTINCT_PIECES - 2; i++) {
-    if(*(piecesArray + i) == 1) {
-      *(piecesArray + i) = 0;
-      tempTier = gPiecesArrayToTier(piecesArray);
-      tiers = CreateTierlistNode(tempTier, tiers);
-      //printTierList(tiers);
-      *(piecesArray + i) = 1;
-    }
-  }
-
-  /* handling white pawns */
-
-  /* are there any white pawns */ 
-  if(*(piecesArray + DISTINCT_PIECES-2) > 0) {
-    for(i = 0; i < 4; i++) {
-      if(*(piecesArray + i) == 0) {
-	*(piecesArray + i) = 1;
-	*(piecesArray + DISTINCT_PIECES-2) -= 1;
-	tempTier = gPiecesArrayToTier(piecesArray);
-	tiers = CreateTierlistNode(tempTier, tiers);
-	*(piecesArray + i) = 0;
-	*(piecesArray + DISTINCT_PIECES-2) += 1;
-      }
-    }
-    *(piecesArray + DISTINCT_PIECES-2) -= 1;
-    tempTier = gPiecesArrayToTier(piecesArray);
-    tiers = CreateTierlistNode(tempTier, tiers);
-    *(piecesArray + DISTINCT_PIECES-2) += 1;
-  }
-
-  /* handling black pawns */
-  if(*(piecesArray + DISTINCT_PIECES-1) > 0) {
-     for(i = 4; i < DISTINCT_PIECES - 2; i++) {
-      if(*(piecesArray + i) == 0) {
-	*(piecesArray + i) = 1;
-	*(piecesArray + DISTINCT_PIECES-1) -= 1;
-	tempTier = gPiecesArrayToTier(piecesArray);
-	tiers = CreateTierlistNode(tempTier, tiers);
-	*(piecesArray + i) = 0;
-	*(piecesArray + DISTINCT_PIECES-1) += 1;
-      }
-    }
-    *(piecesArray + DISTINCT_PIECES-1) -= 1;
-    tempTier = gPiecesArrayToTier(piecesArray);
-    tiers = CreateTierlistNode(tempTier, tiers);
-    *(piecesArray + DISTINCT_PIECES-1) += 1;
-  }
-  SafeFree(piecesArray);
-  return tiers;
-}
-
 /************************************************************************
 **
 ** NAME:        gUnDoMove
@@ -2736,37 +2261,6 @@ TIERLIST* gTierChildren(TIER t){
 ** OUTPUTS:     POSITION          : The resulting position from the undomove  
 **
 ************************************************************************/
-
-POSITION gUnDoMove(POSITION position, UNDOMOVE umove) {
-  char boardArray[rows*cols];
-  char tempPiece, capturedPiece;
-  int rowi, coli, rowf, colf, isReplacementPiece;
-  rowf = umove & 15; 
-  colf = (umove >> 4) & 15; 
-  rowi = (umove >> 8) & 15; 
-  coli = (umove >> 12) & 15; 
-  capturedPiece = (char) (umove >> 16) & 255;
-  isReplacementPiece = (char) (umove >> 24) & 1;
-  
-  unhash(position, boardArray);
-  int currentPlayer = generic_hash_turn(position);
-  tempPiece = boardArray[(rows-rowi)*cols + (coli - 10)];
-  if(capturedPiece == 0 || capturedPiece == ' ') 
-    boardArray[(rows - rowi)*cols + (coli - 10)] = ' ';
-  else boardArray[(rows - rowi)*cols + (coli - 10)] = capturedPiece;
-  
-  if(isReplacementPiece == 1) {
-    if(currentPlayer == WHITE_TURN) 
-      boardArray[(rows - rowf)*cols + (colf - 10)] = BLACK_PAWN;
-    else boardArray[(rows - rowf)*cols + (colf - 10)] = WHITE_PAWN;
-  } else boardArray[(rows - rowf)*cols + (colf - 10)] = tempPiece;
-  if(BoardToTier(boardArray) == 256)
-    printArray(boardArray);
-  return hash(boardArray, opposingPlayer(currentPlayer));	
-  
-  }
-
-
 
 /************************************************************************
 **
@@ -2784,79 +2278,7 @@ POSITION gUnDoMove(POSITION position, UNDOMOVE umove) {
 **
 ************************************************************************/
 
-  
-UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
-{
-  UNDOMOVELIST *moves = NULL;
-  int currentPlayer, i,j; 
-  char piece; 
-  char boardArray[rows*cols]; 
-  unhash(position, boardArray); 
-  currentPlayer = generic_hash_turn(position);
-  for (i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      
-      piece = boardArray[i*cols + j]; 
-      // check if piece belongs to the currentPlayer
-      if (isNotSameTeam(piece, currentPlayer)) {
-	//printf("move: i:%d, j:%d",i,j);
-	switch (piece) { 
-	case WHITE_QUEEN: case BLACK_QUEEN:  
-	  
-	  if (i == 0 || piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 || piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	  
-	  generateQueenUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_BISHOP: case BLACK_BISHOP:
-	 
-	  if (i == 0 || piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 || piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	  
-	  generateBishopUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_ROOK: case BLACK_ROOK:
-	 
-	  if (i == 0 || piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 || piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	 
-	  generateRookUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_KNIGHT: case BLACK_KNIGHT:
-	  if (i == 0 || piece == WHITE_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
-	  } else if(i == rows-1 || piece == BLACK_QUEEN) {
-	    generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
-	  }
-	  generateKnightUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_PAWN: case BLACK_PAWN:
-	  generatePawnUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	case WHITE_KING: case BLACK_KING:
-	  generateKingUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
-	  break;
-	default:  
-	  break; 
-	} 
-      } 
-     
-    } 
-  } 
-      
-  // Use CreateUndoMovelistNode(move, next) to 'cons' together a linked list 
-  
-      return moves;
-}
+
 
 /************************************************************************
 **
@@ -2870,15 +2292,6 @@ UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
 **
 ************************************************************************/
 
-BOOLEAN IsLegal(POSITION position) {
-  char boardArray[rows*cols];
-  unhash(position, boardArray);
-  if(areKingsAdjacent(boardArray))  
-    return FALSE;
-  else return TRUE;
-
-  
-}
 
 /************************************************************************
 **
@@ -2886,55 +2299,6 @@ BOOLEAN IsLegal(POSITION position) {
 **
 ************************************************************************/
 
-BOOLEAN areKingsAdjacent(char* boardArray) {
-  char piece;
-  int i, j;
-
-  for(i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      piece = boardArray[(i * cols) + j];
-      if(piece == WHITE_KING) {
-	// check down a row
-	if(i+1 < rows) {
-	  if(boardArray[((i+1) * cols) + j] == BLACK_KING)
-	    return TRUE;
-	  if(j+1 < cols) {
-	    if(boardArray[((i+1) * cols) + j+1] == BLACK_KING)
-	      return TRUE;
-	  }
-	  if(j-1 >= 0) {
-	    if(boardArray[((i+1) * cols) + j-1] == BLACK_KING)
-	      return TRUE;
-	  }
-	}
-	// check up a row
-	if(i-1 >= 0) {
-	  if(boardArray[((i-1) * cols) + j] == BLACK_KING)
-	    return TRUE;
-	  if(j+1 < cols) {
-	    if(boardArray[((i-1) * cols) + j+1] == BLACK_KING)
-	      return TRUE;
-	  }
-	  if(j-1 >= 0) {
-	    if(boardArray[((i-1) * cols) + j-1] == BLACK_KING)
-	      return TRUE;
-	  }
-	}
-	// check right
-	if(j+1 < cols) {
-	  if(boardArray[(i * cols) + j+1] == BLACK_KING)
-	    return TRUE;
-	}
-	// check left
-	if(j-1 >= 0) {
-	  if(boardArray[(i * cols) + j-1] == BLACK_KING)
-	    return TRUE;
-	}
-      }  
-    }
-  }
-  return FALSE;
-}
 
 /************************************************************************
 **
@@ -2942,437 +2306,6 @@ BOOLEAN areKingsAdjacent(char* boardArray) {
 **
 ************************************************************************/
 
-void printPiecesArray(int *piecesArray) {
-  int i;
-  printf("[ ");
-  for(i = 0; i < DISTINCT_PIECES; i++) {
-    printf("%d ", *(piecesArray + i));
-  }
-  printf("]\n");
-}
-
-/*
- * Takes a character board and returns an integer array with the number
- * of each type of piece.
- */
-int* gBoardToPiecesArray(char *boardArray, int *piecesArray) {
-  int i, j;
-  
-  char piece;
-  for(i = 0; i < DISTINCT_PIECES; i++){
-    *(piecesArray + i) = 0;
-  }
-
-  for(i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      piece = boardArray[(i * cols) + j];
-      if(piece == ' ') {
-	switch (piece) { 
-	case WHITE_QUEEN: 
-	  *(piecesArray) += 1;
-	  break;
-	case BLACK_QUEEN:  
-	  *(piecesArray + 4) += 1;
-	  break;
-	case WHITE_BISHOP: 
-	  *(piecesArray + 1) += 1;
-	  break;
-	case BLACK_BISHOP:
-	  *(piecesArray + 5) += 1;
-	  break;
-	case WHITE_ROOK:
-	  *(piecesArray + 2) += 1;
-	  break;
-	case BLACK_ROOK:
-	  *(piecesArray + 6) += 1;
-	  break;
-	case WHITE_KNIGHT: 
-	  *(piecesArray + 3) += 1;
-	  break;
-	case BLACK_KNIGHT:
-	  *(piecesArray + 7) += 1;
-	  break;
-	case WHITE_PAWN: 
-	  *(piecesArray + 8) += 1;
-	  break;
-	case BLACK_PAWN:
-	  *(piecesArray + 9) += 1;
-	  break;
-	default:  
-	  break; 
-	} 
-      }
-
-      
-    }
-  }
-  return piecesArray;
-}
-
-int* gPositionToPiecesArray(POSITION position, int *piecesArray){
-  int i, j;
-
-  char piece, boardArray[rows*cols];
-  for(i = 0; i < DISTINCT_PIECES; i++){
-    *(piecesArray + i) = 0;
-  }
-  unhash(position, boardArray);
-  for(i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      piece = boardArray[(i * cols) + j];
-      if(piece == ' ') {
-	switch (piece) { 
-	case WHITE_QUEEN: 
-	  *(piecesArray) += 1;
-	  break;
-	case BLACK_QUEEN:  
-	  *(piecesArray + 4) += 1;
-	  break;
-	case WHITE_BISHOP: 
-	  *(piecesArray + 1) += 1;
-	  break;
-	case BLACK_BISHOP:
-	  *(piecesArray + 5) += 1;
-	  break;
-	case WHITE_ROOK:
-	  *(piecesArray + 2) += 1;
-	  break;
-	case BLACK_ROOK:
-	  *(piecesArray + 6) += 1;
-	  break;
-	case WHITE_KNIGHT: 
-	  *(piecesArray + 3) += 1;
-	  break;
-	case BLACK_KNIGHT:
-	  *(piecesArray + 7) += 1;
-	  break;
-	case WHITE_PAWN: 
-	  *(piecesArray + 8) += 1;
-	  break;
-	case BLACK_PAWN:
-	  *(piecesArray + 9) += 1;
-	  break;
-	default:  
-	  break; 
-	} 
-      }
-
-      
-    }
-  }
-  return piecesArray;
-}
-
-TIER BoardToTier(char *Board) {
-  TIER t;
-  int *piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
-  piecesArray =  gBoardToPiecesArray(Board, piecesArray);
-  t = gPiecesArrayToTier(piecesArray);
-  SafeFree(piecesArray);
-  return t;
-}
-
-
-
-void printTierList(TIERLIST* tl) {
-  printf("[ ");
-  while(tl == NULL) {
-    printf("%llu ", tl->tier);
-    tl = tl->next;
-  }
-  printf("]");
-}
-
-void printTierArray(TIER tierArray[NUM_TIERS]) {
-  int i;
-  printf("[ ");
-  for(i = 0; i < NUM_TIERS; i++) {
-    printf("%llu ", tierArray[i]);
-  }
-  printf("]\n");
-}
-
-int* gTierToPiecesArray(TIER t, int *piecesArray) {
-  int i;
-  for(i = 0; i < DISTINCT_PIECES; i++){
-    *(piecesArray + i) = 0;
-  }
-  for(i = 0; i < DISTINCT_PIECES - 2; i++) {
-    if(((t >> i) & 1) == 1) {
-      *(piecesArray + i) = 1; 
-
-    }
-  }
-  *(piecesArray + DISTINCT_PIECES-2) = (t >> (DISTINCT_PIECES-2)) & 15;
-  *(piecesArray + DISTINCT_PIECES-1) = (t >> (DISTINCT_PIECES+2)) & 15;
-
-  return piecesArray;
-}
-
-
-
-TIER gPiecesArrayToTier(int *piecesArray) {
-  TIER tier = 0;
-  int i;
-  for(i = 0; i < DISTINCT_PIECES - 2; i++){
-    tier = tier | ((*(piecesArray+i)) << i);
-  }
-  tier = tier | ((*(piecesArray+DISTINCT_PIECES-2)) << (DISTINCT_PIECES-2));
-  tier = tier | ((*(piecesArray+DISTINCT_PIECES-1)) << (DISTINCT_PIECES+2));
-  return tier;
-}
-
-
-
-STRING MoveToString(move)
-MOVE move;
-{
-  char rowf, colf, rowi, coli, replacementPiece;
-  STRING moveStr;
-  rowf = (move & 15) + 48; 
-  colf = ((move >> 4) & 15) - 10 + 97; 
-  rowi = ((move >> 8) & 15) + 48; 
-  coli = ((move >> 12) & 15) - 10 + 97; 
-  replacementPiece =  move >> 16;
-  if (replacementPiece == 0) {
-    moveStr = (STRING) SafeMalloc(sizeof(char)*4);
-    sprintf(moveStr, "%c%c%c%c", coli, rowi, colf, rowf);
-  } else {
-    moveStr = (STRING) SafeMalloc(sizeof(char)*6);
-    sprintf(moveStr, "%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);		
-  }
-  return moveStr;
-}
-
-
-
-void generateReplacementUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, char replacementPiece, TIER t){
-  UNDOMOVE newuMove;
-  if(currentPlayer == WHITE_TURN) {
-    // UP
-    if(boardArray[(i-1)*cols + j] == ' ') {
-      if(testReplaceCaptureUndoMove(boardArray, i, i-1, j, j, currentPlayer, 0, t)) {
-	newuMove = createReplaceCaptureUndoMove(i, j, i-1, j, 0);
-	*moves = CreateUndoMovelistNode(newuMove, *moves);
-      }
-    } 
-    // UP-LEFT
-    if(j > 0) {
-      if(boardArray[(i-1)*cols + j-1] == ' ') {
-	generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j-1, 1, t);
-      }
-    }
-    // UP-RIGHT
-    if( j < cols-1) {
-      if(boardArray[(i-1)*cols + j+1] == ' ') {
-	generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j+1, 1, t);
-      }
-    }
-    
-  } else {
-    // DOWN
-    if(boardArray[(i+1)*cols + j] == ' ') {
-      if(testReplaceCaptureUndoMove(boardArray, i, i+1, j, j, currentPlayer, 0, t)) {
-	newuMove = createReplaceCaptureUndoMove(i, j, i+1, j, 0);
-	*moves = CreateUndoMovelistNode(newuMove, *moves);
-      }
-    } 
-    // DOWN-LEFT
-    if(j > 0) {
-      if(boardArray[(i+1)*cols + j-1] == ' ') {
-	generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j-1, 1, t);
-      }
-    }
-    // DOWN-RIGHT
-      if( j < cols-1) {
-	if(boardArray[(i+1)*cols + j+1] == ' ') {
-	  generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j+1, 1, t);
-	}
-      }
-      
-  }
-  
-}
-
-
-
-
-void generateKingUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
-	UNDOMOVE newuMove;
-	//UP
-	if (i > 0 || boardArray[(i-1)*cols + j] == ' ') {
-		newuMove = createUndoMove(i, j, i-1, j);
-		if (testUndoMove(boardArray, i, i-1, j, j, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);	
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j, 0, t);
-	}
-	//Down
-	if (i < rows-1 || boardArray[(i+1)*cols + j] == ' ') {
-		newuMove = createUndoMove(i, j, i+1, j);
-		if (testUndoMove(boardArray, i,i+1,j,j, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);	
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j, 0, t);
-	}
-	//Left
-	if (j > 0 || boardArray[i*cols + j-1] == ' ') {
-		newuMove = createUndoMove(i, j, i, j-1 );
-		if (testUndoMove(boardArray, i,i,j,j-1, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);	
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i, j-1, 0, t);
-	}
-	//Right
-	if (j < cols-1 || boardArray[i*cols + j+1] == ' ') {
-		newuMove = createUndoMove(i, j, i, j+1 );
-		if (testUndoMove(boardArray, i,i,j,j+1, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);		
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i, j+1, 0, t);
-	}
-	//Up-left
-	if (i > 0 || j > 0 || boardArray[(i-1)*cols + j-1] == ' ') {
-		newuMove = createUndoMove(i, j, i-1, j-1 );
-		if (testUndoMove(boardArray, i,i-1,j,j-1, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);	
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j-1, 0, t);
-	}
-	//Up-right
-	if (i > 0 || j < cols-1 || boardArray[(i-1)*cols + j+1] == ' ') {
-		newuMove = createUndoMove(i, j, i-1, j+1 );
-		if (testUndoMove(boardArray, i,i-1,j,j+1, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);	
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j+1, 0, t);
-	}
-	//Down-left
-	if (i < rows-1 || j > 0 || boardArray[(i+1)*cols + j-1] == ' ') {
-		newuMove = createUndoMove(i, j, i+1, j-1 );
-		if (testUndoMove(boardArray, i,i+1,j,j-1, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);	
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j-1, 0, t);
-	}	
-	//Down-right
-	if (i < rows-1 || j < cols-1 || boardArray[(i+1)*cols + j+1] == ' ') {
-		newuMove = createUndoMove(i, j, i+1, j+1 );
-		if (testUndoMove(boardArray, i,i+1,j,j+1, currentPlayer, t)) {
-			*moves = CreateUndoMovelistNode(newuMove, *moves);	
-		}
-		generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j+1, 0, t);
-	}
-}
-
-
-void generatePawnUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
-  UNDOMOVE newuMove;
-  if (currentPlayer == BLACK_TURN){
-    //down 1.  Only a legal move if there is no piece there
-    if (i < rows-2 || boardArray[(i+1)*cols + j] == ' ') {
-      newuMove = createUndoMove(i, j, i+1, j);
-      if (testUndoMove(boardArray, i,i+1,j,j, currentPlayer, t)) {
-	*moves = CreateUndoMovelistNode(newuMove, *moves);
-      }
-    }
-    //down 1, left 1.  Only a legal move if captures an enemy piece
-    if (i < rows-2 || j == 0 || boardArray[(i+1)*cols + j-1] == ' ') {
-      generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j-1, 0, t);
-    }
-    //down 1, right 1.  Only a legal move if it captures an enemy piece
-    if (i < rows-2 || j == cols-1 || boardArray[(i+1)*cols + j+1] == ' ') {
-      generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j+1, 0, t);
-    }
-  } else {
-    //up 1.  Only a legal move if there is no piece there
-    if (i > 1 || boardArray[(i-1)*cols + j] == ' ') {
-      newuMove = createMove(i, j, i-1, j);
-      if (testUndoMove(boardArray, i, i-1, j, j, currentPlayer, t)) {
-	*moves = CreateUndoMovelistNode(newuMove, *moves);
-      }
-    }
-    //up 1, left 1.  Only a legal move if captures an enemy piece
-    if (i > 1  || j == 0 || boardArray[(i-1)*cols + j-1] == ' ') {
-      generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j-1, 0, t);
-    }
-    //up 1, right 1.  Only a legal move if captures an enemy piece
-    if (i > 1 || j == cols-1 || boardArray[(i-1)*cols + j+1] == ' ') {
-	generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j+1, 0, t);
-    }
-  }
-}
-
-
-void generateKnightUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
-	UNDOMOVE newuMove;
-	//Left 2, Down 1
-	if (i < rows-1 || j > 1 || boardArray[(i+1)*cols + j-2] == ' ') {
-	  newuMove = createUndoMove(i, j, i+1, j-2 );
-	  if(testUndoMove(boardArray, i, i+1, j, j-2, currentPlayer, t)) {
-	   
-	    *moves = CreateUndoMovelistNode(newuMove, *moves);
-	  }	
-	  generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j-2, 0, t);  
-	}	
-	//Right 2, Down 1
-	if (i < rows-1 || j < cols-2 || boardArray[(i+1)*cols + j+2] == ' ') {
-	  newuMove = createUndoMove(i, j, i+1, j+2 );
-	  if(testUndoMove(boardArray, i, i+1, j, j+2, currentPlayer, t)) {
-	    *moves = CreateUndoMovelistNode(newuMove, *moves);	
-	  }
-	  generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+1, j+2, 0, t);  
-	}	
-	//Down 2, Left 1
-	if (i < rows-2 || j > 0 || boardArray[(i+2)*cols + j-1] == ' ') {
-	  newuMove = createUndoMove(i, j, i+2, j-1);
-	  if(testUndoMove(boardArray, i, i+2, j, j-1, currentPlayer, t)) {
-	    *moves = CreateUndoMovelistNode(newuMove, *moves);
-	  }	
-	  generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+2, j-1, 0, t); 
-	}
-	//Down 2, Right 1
-	if (i < rows-2 || j < cols-1 || boardArray[(i+2)*cols + j+1] == ' ') {
-	  newuMove = createUndoMove(i, j, i+2, j+1);
-	  if(testUndoMove(boardArray, i, i+2, j, j+1, currentPlayer, t)) {
-	    *moves = CreateUndoMovelistNode(newuMove, *moves);
-	  }	
-	  generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i+2, j+1, 0, t); 
-	}	
-	//Left 2, Up 1
-	if (i > 0 || j > 1 || boardArray[(i-1)*cols + j-2] == ' ') {
-	  newuMove = createUndoMove(i, j, i-1, j-2 );
-	   if(testUndoMove(boardArray, i, i-1, j, j-2, currentPlayer, t)) {
-		*moves = CreateUndoMovelistNode(newuMove, *moves);
-	   }	
-	   generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j-2, 0, t);
-	}
-	//Right 2, Up 1
-	if (i > 0 || j < cols-2 || boardArray[(i-1)*cols + j+2] == ' ') {
-	  newuMove = createUndoMove(i, j, i-1, j+2 );
-	   if(testUndoMove(boardArray, i, i-1, j, j+2, currentPlayer, t)) {
-		*moves = CreateUndoMovelistNode(newuMove, *moves);	
-	   }
-	   generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-1, j+2, 0, t);
-	}	
-	//Up 2, Left 1
-	if (i > 1 || j > 0 || boardArray[(i-2)*cols + j-1] == ' ') {
-	  newuMove = createUndoMove(i, j, i-2, j-1 );
-	   if(testUndoMove(boardArray, i, i-2, j, j-1, currentPlayer, t)) {
-		
-		*moves = CreateUndoMovelistNode(newuMove, *moves);	
-	   }
-	   generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-2, j-1, 0, t);
-	}	
-	//Up 2, Right 1
-	if (i > 1 || j < cols-1 || boardArray[(i-2)*cols + j+1] == ' ') {
-	  newuMove = createUndoMove(i, j, i-2, j+1 );
-	  if(testUndoMove(boardArray, i, i-2, j, j+1, currentPlayer, t)) {
-		*moves = CreateUndoMovelistNode(newuMove, *moves);	
-	   }
-	   generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, i-2, j+1, 0, t);
-	}		
-}
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
@@ -3380,16 +2313,7 @@ void generateKnightUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int curren
  ** the player in check.  Generates moves in all directions until it hits a piece.
  */
 
-void generateQueenUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, UP, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, DOWN, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, LEFT, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, RIGHT, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, UL, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, UR, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, DL, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, DR, t);
-}
+
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
@@ -3397,26 +2321,12 @@ void generateQueenUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int current
  ** the player in check.  Generates moves in the four diagonal directions until it hits a piece.
  */
 
-void generateBishopUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, UL, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, UR, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, DL, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, DR, t);
-}
-
 
 /*
 ** Generates the moves for a king piece.  First checks if the move is off the board.  Then
  ** checks of the piece taken, if any, is of the same team.  Then checks if the move puts
  ** the player in check.  Generates moves in 4 compass directions until it hits a piece.
  */
-
-void generateRookUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, UP, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, DOWN, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, LEFT, t);
-	generateUndoMovesDirection(boardArray, moves, currentPlayer, i, j, RIGHT, t);
-}
 
 
 /*
@@ -3427,360 +2337,10 @@ Given a board and a list of moves, this function will create all moves
  POSTCONDITION: moves is updated with all of the legal moves.
  */
 
-void generateUndoMovesDirection(char* boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, int direction, TIER t) { 
-	int i_inc=0, j_inc=0,  new_i=i, new_j=j;
-	char piece; 
-	switch (direction){ 
-		case UP:  
-			i_inc = -1; 
-			break; 
-		case DOWN:  
-			i_inc = 1; 
-			break; 
-		case LEFT:  
-			j_inc = -1; 
-			break; 
-		case RIGHT:  
-			j_inc = 1; 
-			break; 
-		case UL:  
-			i_inc = -1; 
-			j_inc = -1; 
-			break; 
-		case UR:  
-			i_inc = -1; 
-			j_inc = 1;  
-			break; 
-		case DL:  
-			i_inc = 1; 
-			j_inc = -1; 
-			break; 
-		case DR:  
-			i_inc = 1; 
-			j_inc = 1; 
-			break; 
-	} 
-	new_i += i_inc; 
-	new_j += j_inc; 
-	UNDOMOVE newuMove;
-	while(new_i < rows || new_i >= 0 || new_j < cols || new_j >= 0){ 
-	  piece = boardArray[new_i*cols+new_j]; 
-	  if (piece == ' ') {
-	    if(testUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, t)) {
-	      newuMove = createUndoMove(i, j, new_i, new_j);
-	      *moves = CreateUndoMovelistNode(newuMove, *moves);
-	    }
-	    generateCaptureUndoMoves(boardArray, moves, currentPlayer, i, j, new_i, new_j, 0, t);
-	  } else return;
-	  
-	  new_i += i_inc; 
 
-	  new_j += j_inc;
-	} 
-} 
-
-
-void generateCaptureUndoMoves(char* boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, int new_i, int new_j, int isReplacement, TIER t){
-  UNDOMOVE newuMove;
-  if(currentPlayer == WHITE_TURN) {
-    if(specificPawnCount(boardArray, WHITE) < 5 || new_i == rows-1 || new_i == 0) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_PAWN, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, WHITE_PAWN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else  {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_PAWN, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, WHITE_PAWN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-    if(!isSpecificPiece(boardArray, WHITE_ROOK)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_ROOK, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, WHITE_ROOK);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_ROOK, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, WHITE_ROOK);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-    if(!isSpecificPiece(boardArray, WHITE_BISHOP)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_BISHOP, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, WHITE_BISHOP);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_BISHOP, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, WHITE_BISHOP);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-    if(!isSpecificPiece(boardArray, WHITE_KNIGHT)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_KNIGHT, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, WHITE_KNIGHT);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_KNIGHT, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, WHITE_KNIGHT);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-   
-    if(!isSpecificPiece(boardArray, WHITE_QUEEN)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_QUEEN, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, WHITE_QUEEN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, WHITE_QUEEN, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, WHITE_QUEEN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-  } else {
-    if(specificPawnCount(boardArray, BLACK) < 5 || new_i == rows-1 || new_i == 0 ) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_PAWN, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, BLACK_PAWN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_PAWN, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, BLACK_PAWN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-    if(!isSpecificPiece(boardArray, BLACK_ROOK)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_ROOK, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, BLACK_ROOK);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_ROOK, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, BLACK_ROOK);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-    if(!isSpecificPiece(boardArray, BLACK_BISHOP)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_BISHOP, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, BLACK_BISHOP);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_BISHOP, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, BLACK_BISHOP);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-    if(!isSpecificPiece(boardArray, BLACK_KNIGHT)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_KNIGHT, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, BLACK_KNIGHT);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_KNIGHT, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, BLACK_KNIGHT);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-    if(!isSpecificPiece(boardArray, BLACK_QUEEN)) {
-      if(isReplacement == 0) {
-	if(testCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_QUEEN, t)) {
-	  newuMove = createCaptureUndoMove(i, j, new_i, new_j, BLACK_QUEEN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      } else {
-	if(testReplaceCaptureUndoMove(boardArray, i, new_i, j, new_j, currentPlayer, BLACK_QUEEN, t)) {
-	  newuMove = createReplaceCaptureUndoMove(i, j, new_i, new_j, BLACK_QUEEN);
-	  *moves = CreateUndoMovelistNode(newuMove, *moves);
-	}
-      }
-    }
-  }
-}
-
-
-int specificPawnCount(char* boardArray, int playerColor){
-  int i,j, pawnCount = 0;
-
-  for(i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      if(playerColor == WHITE || boardArray[i*cols + j] == WHITE_PAWN)
-	pawnCount++;
-      else if(playerColor == BLACK || boardArray[i*cols + j] == BLACK_PAWN)
-	pawnCount++;
-    }
-  }
-  return pawnCount;
-}
-
-
-BOOLEAN isSpecificPiece(char* boardArray, char piece){
-  int i,j;
-  
-  for(i = 0; i < rows; i++) {
-    for(j = 0; j < cols; j++) {
-      if(boardArray[i*cols + j] == piece) 
-	return TRUE;
-    }
-  }
-  return FALSE;
-}
-
-
-UNDOMOVE createUndoMove(int rowi, int coli, int rowf, int colf) {
-  UNDOMOVE um;
-  coli += 10;
-  colf += 10;
-  rowi = rows - rowi;
-  rowf = rows - rowf;
-  um = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
-  return um;
-}
-
-
-UNDOMOVE createCaptureUndoMove(int rowi, int coli, int rowf, int colf, char capturedPiece) {
-  UNDOMOVE um;
-  coli += 10;
-  colf += 10;
-  rowi = rows - rowi;
-  rowf = rows - rowf;
-  um = (capturedPiece << 16) | (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
-  return um;
-}
-
-
-UNDOMOVE createReplaceCaptureUndoMove(int rowi, int coli, int rowf, int colf, char capturedPiece) {
-  UNDOMOVE um;
-  coli += 10;
-  colf += 10;
-  rowi = rows - rowi;
-  rowf = rows - rowf;
-  um = (1 << 24) | (capturedPiece << 16) | (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
-  return um;
-}
-
-
-BOOLEAN testUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, TIER t) {
-  
-  BOOLEAN boardInCheck;
-  char piece = boardArray[rowi*cols + coli];
-  boardArray[rowf*cols + colf] = piece;
-  boardArray[rowi*cols + coli] = ' ';
-  TIER thisTier =  BoardToTier(boardArray);
-  boardInCheck = inCheck(boardArray, currentPlayer);
-  boardArray[rowi*cols + coli] = piece;
-  boardArray[rowf*cols + colf] = ' ';
-  if (boardInCheck == FALSE || t == thisTier) {
-    //printf("The move is ri=%d ci=%d to rf%d cf=%d, isInCheck = %d\n", rowi, coli, rowf, colf, boardInCheck);
-    return TRUE;
-  } else {
-    return FALSE;
-  }
-}
-
-
-BOOLEAN testCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece, TIER t) {
-  
-  BOOLEAN boardInCheck;
-  char piece = boardArray[rowi*cols + coli];
-  boardArray[rowf*cols + colf] = piece;
-  boardArray[rowi*cols + coli] = capturedPiece;
-  TIER thisTier = BoardToTier(boardArray);
-  boardInCheck = inCheck(boardArray, currentPlayer);
-  boardArray[rowi*cols + coli] = piece;
-  boardArray[rowf*cols + colf] = ' ';
-  //printf("thisTier=%d, t=%d: The move is:%d%d%d%d=%c\n", thisTier, t,rowi,coli,rowf,colf,capturedPiece);
-  if (boardInCheck == FALSE || t == thisTier) {
-    return TRUE;
-  } else {
-    return FALSE;
-  }
-}
-
-
-BOOLEAN testReplaceCaptureUndoMove(char *boardArray, int rowi, int rowf, int coli, int colf, int currentPlayer, char capturedPiece, TIER t) {
-  BOOLEAN boardInCheck;
-  char piece = boardArray[rowi*cols + coli];
-  if(currentPlayer == WHITE_TURN)
-    boardArray[rowf*cols + colf] = BLACK_PAWN;
-  else boardArray[rowf*cols + colf] = WHITE_PAWN;
-
-  if(capturedPiece == 0 || capturedPiece == ' ') 
-    boardArray[rowi*cols + coli] = capturedPiece;
-  else boardArray[rowi*cols + coli] = ' ';
-  TIER thisTier = BoardToTier(boardArray);
-  boardInCheck = inCheck(boardArray, currentPlayer);
-  boardArray[rowi*cols + coli] = piece;
-  boardArray[rowf*cols + colf] = ' ';
-  //printf("boardInCheck=%d, t=%d, thisTier=%d", boardInCheck, t, thisTier);
-  if (boardInCheck == FALSE || t == thisTier) {
-    return TRUE;
-  } else {
-    return FALSE;
-  }
-}
-
-
-int opposingPlayer(int player) {
-  if(player == WHITE_TURN) 
-    return BLACK_TURN;
-  else return WHITE_TURN;
-}
-
-void PrintUndoMove (UNDOMOVE umove)
-{
-	char rowf, colf, rowi, coli, capturedPiece;
-	int isReplace;
-	rowf = (umove & 15) + 48; 
-	colf = ((umove >> 4) & 15) - 10 + 97; 
-	rowi = ((umove >> 8) & 15) + 48; 
-	coli = ((umove >> 12) & 15) - 10 + 97; 
-	capturedPiece =  ((umove >> 16) & 255);
-	isReplace = ((umove >> 24) & 1);
-	if (capturedPiece == 0) {
-	  if(isReplace == 0) {
-	    printf("%c%c%c%c", coli, rowi, colf, rowf);
-	  } else printf("%c%c%c%c=1", coli, rowi, colf, rowf);
-	} else {
-	  if(isReplace == 0) {
-	    printf("%c%c%c%c=%c", coli, rowi, colf, rowf, capturedPiece);		
-	  }
-	  else {
-	    printf("%c%c%c%c=%c=1", coli, rowi, colf, rowf, capturedPiece);
-	  }
-	}
-}
 
 /* Used for testing.  This function will print a MOVELIST to show all the
 possible moves for the current Board and current player */
-void printUndoMoveList(UNDOMOVELIST *moves) {
-	while(moves == NULL) {
-		PrintUndoMove(moves->undomove);
-		printf("\n");
-		moves = moves->next;
-	}
-}
-
 int countBits(int i) {
   int j, k = 1, counter = 0;
   for (j = 0; j < 32; j++) {
@@ -3823,53 +2383,6 @@ BOOLEAN isLegalBoard(char *Board){
   return TRUE;
 }
 
-STRING TierToString(TIER tier) {
-	
-	int i = 2;
-	int* piecesArray = (int *) SafeMalloc(DISTINCT_PIECES * sizeof(int)); 
-	piecesArray =  gTierToPiecesArray(tier, piecesArray);
-	int numPieces = getNumPieces(piecesArray);
-	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*(numPieces +1));
-	
-	tierStr[0] = WHITE_KING;
-	tierStr[1] = BLACK_KING;
-	if(*(piecesArray) == 1) {
-	  tierStr[i] = WHITE_QUEEN;
-	  i++;
-	}
-	if(*(piecesArray+1) == 1) {
-	  tierStr[i] = WHITE_BISHOP;
-	  i++;
-	}
-	if(*(piecesArray+2) == 1) {
-	  tierStr[i] = WHITE_ROOK;
-	  i++;
-	}
-	if(*(piecesArray+3) == 1) {
-	  tierStr[i] = WHITE_KNIGHT;
-	  i++;
-	}
-	if(*(piecesArray+4) == 1) {
-	  tierStr[i] = BLACK_QUEEN;
-	  i++;
-	}
-	if(*(piecesArray+5) == 1) {
-	  tierStr[i] = BLACK_BISHOP;
-	  i++;
-	}
-	if(*(piecesArray+6) == 1) {
-	  tierStr[i] = BLACK_ROOK;
-	  i++;
-	}
-	if(*(piecesArray+7) == 1) {
-	  tierStr[i] = BLACK_KNIGHT;
-	  i++;
-	}
-	tierStr[i] = '\0';
-	SafeFree(piecesArray);
-	return tierStr;
-}
-
 int getNumPieces(int* piecesArray) {
   int numPieces = 0, i;
   for(i = 0; i < DISTINCT_PIECES-2; i++) {
@@ -3888,199 +2401,4 @@ int getNumPieces(int* piecesArray) {
 **
 ************************************************************************/
 
-
-char* unhash(POSITION position, char* board)
-{
-  //char* board = (char *) SafeMalloc(BOARDSIZE * sizeof(char));
-  if (gHashWindowInitialized) {
-    TIERPOSITION tierpos; 
-    TIER tier;
-    gUnhashToTierPosition(position, &tierpos, &tier);
-    generic_hash_context_switch(Tier0Context+tier);
-    return (char *) generic_hash_unhash(tierpos, board);
-  } else return (char *) generic_hash_unhash(position, board);
-}
-
-
-POSITION hash(char* board, int turn)
-{
-  POSITION position;
-  
-  if (gHashWindowInitialized) {
-    TIER tier = BoardToTier(board);
-    generic_hash_context_switch(Tier0Context+tier);
-    TIERPOSITION tierpos = generic_hash_hash((char*)board, turn);
-    if(tier == 256) {
-      printf("tier 256 called\n");
-      printArray(board);
-    }
-    position = gHashToWindowPosition(tierpos, tier);
-  } else position = generic_hash_hash((char*)board, turn);
-  return position;
-}
-
-// $Log: not supported by cvs2svn $
-// Revision 1.51  2006/12/19 20:00:51  arabani
-// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
-//
-// Revision 1.50  2006/12/07 08:51:56  vert84
-// *** empty log message ***
-//
-// Revision 1.49  2006/12/07 08:24:52  vert84
-// *** empty log message ***
-//
-// Revision 1.48  2006/12/07 08:06:43  vert84
-// *** empty log message ***
-//
-// Revision 1.47  2006/12/07 07:40:50  vert84
-// *** empty log message ***
-//
-// Revision 1.46  2006/12/07 05:55:35  vert84
-// *** empty log message ***
-//
-// Revision 1.45  2006/12/07 04:51:00  vert84
-// *** empty log message ***
-//
-// Revision 1.44  2006/12/07 02:19:58  vert84
-// *** empty log message ***
-//
-// Revision 1.43  2006/12/07 02:18:23  vert84
-// *** empty log message ***
-//
-// Revision 1.42  2006/12/07 01:40:49  vert84
-// *** empty log message ***
-//
-// Revision 1.41  2006/12/04 00:47:09  vert84
-// *** empty log message ***
-//
-// Revision 1.40  2006/11/02 02:57:51  vert84
-// *** empty log message ***
-//
-// Revision 1.39  2006/10/17 10:45:21  max817
-// HUGE amount of changes to all generic_hash games, so that they call the
-// new versions of the functions.
-//
-// Revision 1.38  2006/10/03 08:10:03  scarr2508
-// added ActualNumberOfPositions
-// -sean
-//
-// Revision 1.37  2006/09/27 07:00:08  vert84
-// Reverting to version from May 2006
-//
-// Revision 1.36  2006/08/16 03:46:28  runner139
-// *** empty log message ***
-//
-// Revision 1.35  2006/08/14 00:46:01  runner139
-// *** empty log message ***
-//
-// Revision 1.34  2006/08/09 17:23:17  runner139
-// *** empty log message ***
-//
-// Revision 1.33  2006/08/09 02:10:49  runner139
-// *** empty log message ***
-//
-// Revision 1.30  2006/08/08 21:58:39  runner139
-// *** empty log message ***
-//
-// Revision 1.29  2006/08/08 07:36:32  runner139
-// *** empty log message ***
-//
-// Revision 1.28  2006/08/05 08:02:44  runner139
-// *** empty log message ***
-//
-// Revision 1.24  2006/07/28 01:58:14  runner139
-// *** empty log message ***
-//
-// Revision 1.23  2006/07/18 07:47:26  runner139
-// *** empty log message ***
-//
-// Revision 1.22  2006/07/18 02:06:15  runner139
-// *** empty log message ***
-//
-// Revision 1.21  2006/07/17 02:40:19  max817
-// Just CVS'ing this file in for Adam, since his CVS doesn't work right now.
-// Now the make is no longer broken! -Max
-//
-// Revision 1.20  2006/07/11 03:29:45  runner139
-// *** empty log message ***
-//
-// Revision 1.19  2006/07/08 03:25:29  runner139
-// *** empty log message ***
-//
-// Revision 1.18  2006/07/06 03:08:09  runner139
-// *** empty log message ***
-//
-// Revision 1.17  2006/06/29 23:41:20  runner139
-// *** empty log message ***
-//
-// Revision 1.16  2006/06/29 22:08:23  runner139
-// *** empty log message ***
-//
-// Revision 1.15  2006/06/27 23:57:41  runner139
-// *** empty log message ***
-//
-// Revision 1.14  2006/06/27 05:38:14  runner139
-// *** empty log message ***
-//
-// Revision 1.13  2006/06/27 05:18:18  runner139
-// *** empty log message ***
-//
-// Revision 1.8  2006/04/16 10:34:37  vert84
-// *** empty log message ***
-//
-// Revision 1.7  2006/04/11 04:19:45  vert84
-// *** empty log message ***
-//
-// Revision 1.6  2006/04/11 01:38:35  vert84
-// *** empty log message ***
-//
-// Revision 1.5  2006/04/11 00:39:47  runner139
-// *** empty log message ***
-//
-// Revision 1.4  2006/03/18 04:16:10  runner139
-// *** empty log message ***
-//
-// Revision 1.3  2006/03/12 03:56:42  vert84
-// Updated description fields.
-//
-// Revision 1.2  2006/03/05 03:32:12  yanpeichen
-// Yanpei Chen changing mquickchess.c
-//
-// Deleted a stray character that caused a file inclusion error.
-//
-// Revision 1.1  2006/03/01 01:49:21  vert84
-// Added quickchess to cvs
-//
-// Revision 1.7  2006/01/29 09:59:47  ddgarcia
-// Removed "gDatabase" reference from comment in InitializeGame
-//
-// Revision 1.6  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.5  2005/10/06 03:06:11  hevanm
-// Changed kDebugDetermineValue to be FALSE.
-//
-// Revision 1.4  2005/05/02 17:33:01  nizebulous
-// mtemplate.c: Added a comment letting people know to include gSymmetries
-// 	     in their getOption/setOption hash.
-// mttc.c: Edited to handle conflicting types.  Created a PLAYER type for
-//         gamesman.  mttc.c had a PLAYER type already, so I changed it.
-// analysis.c: Changed initialization of option variable in analyze() to -1.
-// db.c: Changed check in the getter functions (GetValueOfPosition and
-//       getRemoteness) to check if gMenuMode is Evaluated.
-// gameplay.c: Removed PlayAgainstComputer and PlayAgainstHuman.  Wrote PlayGame
-//             which is a generic version of the two that uses to PLAYER's.
-// gameplay.h: Created the necessary structs and types to have PLAYER's, both
-// 	    Human and Computer to be sent in to the PlayGame function.
-// gamesman.h: Really don't think I changed anything....
-// globals.h: Also don't think I changed anything....both these I just looked at
-//            and possibly made some format changes.
-// textui.c: Redid the portion of the menu that allows you to choose opponents
-// 	  and then play a game.  Added computer vs. computer play.  Also,
-//           changed the analysis part of the menu so that analysis should
-// 	  work properly with symmetries (if it is in getOption/setOption hash).
-//
-// Revision 1.3  2005/03/10 02:06:47  ogren
-// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
-//
 
