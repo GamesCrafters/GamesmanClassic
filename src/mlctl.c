@@ -40,7 +40,7 @@ BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
-POSITION gNumberOfPositions   =  500000000000LLU; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions   =  329022720000LLU; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  138782043307LLU; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
@@ -202,23 +202,23 @@ void InitializeGame ()
 	POSITION position = hash(theBoard, BLACK_TURN);
 	printf("\nPOSITION: %llu", position);
 	unhash(position, board);
-	PrintPosition(position, "Roger", TRUE);
+	PrintPosition(position, "foo", TRUE);
 	MOVE tester = 89;
 	position = DoMove(position, tester);
 	unhash(position, board);
-	PrintPosition(position, "Roger", TRUE);
+	PrintPosition(position, "bar", TRUE);
 
 	tester = 65;
 	position = DoMove(position, tester);
-	PrintPosition(position, "Roger", TRUE);
+	PrintPosition(position, "foo", TRUE);
 
 	tester = 41;
 	position = DoMove(position, tester);
-	PrintPosition(position, "Roger", TRUE);
+	PrintPosition(position, "bar", TRUE);
 
-	tester = (96 + 30 + DROP_BLACK_ELEPHANT);
+	tester = 57;
 	position = DoMove(position, tester);
-	PrintPosition(position, "Roger", TRUE);
+	PrintPosition(position, "foo", TRUE);
 }
 
 /************************************************************************
@@ -1171,7 +1171,6 @@ POSITION DoMove (POSITION position, MOVE move) {
 		int tmp = move % 96;
 		int location = tmp / 6;
 		tmp = tmp % 6;
-		printf("\n%d", location);
 		switch (tmp) {
 			case DROP_BLACK_CHICK:
 				boardArray[location] = BLACK_CHICK;
@@ -1185,6 +1184,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 					perror("Error: black dropped a chick without one in hand");
 					break;
 				}
+				break;
 			case DROP_BLACK_ELEPHANT:
 				boardArray[location] = BLACK_ELEPHANT;
 				if (boardArray[ELEPHANT_INDEX] == B1W0) {
@@ -1197,6 +1197,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 					perror("Error: black dropped a elephant without one in hand");
 					break;
 				}
+				break;
 			case DROP_BLACK_GIRAFFE:
 				boardArray[location] = BLACK_GIRAFFE;
 				if (boardArray[GIRAFFE_INDEX] == B1W0) {
@@ -1209,6 +1210,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 					perror("Error: black dropped a giraffe without one in hand");
 					break;
 				}
+				break;
 			case DROP_WHITE_CHICK:
 				boardArray[location] = WHITE_CHICK;
 				if (boardArray[CHICK_INDEX] == B0W1) {
@@ -1221,6 +1223,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 					perror("Error: black dropped a chick without one in hand");
 					break;
 				}
+				break;
 			case DROP_WHITE_ELEPHANT:
 				boardArray[location] = WHITE_ELEPHANT;
 				if (boardArray[ELEPHANT_INDEX] == B0W1) {
@@ -1233,6 +1236,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 					perror("Error: black dropped a elephant without one in hand");
 					break;
 				}
+				break;
 			case DROP_WHITE_GIRAFFE:
 				boardArray[location] = WHITE_GIRAFFE;
 				if (boardArray[GIRAFFE_INDEX] == B0W1) {
@@ -1245,6 +1249,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 					perror("Error: black dropped a giraffe without one in hand");
 					break;
 				}
+				break;
 			default:
 				perror("Error: bad drop hash");
 				break;
@@ -1282,10 +1287,10 @@ POSITION DoMove (POSITION position, MOVE move) {
 MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *moves = NULL;
 	int currentPlayer, r, c;
-	char boardArray[rows*cols + 3];
+	char boardArray[rows*cols + 4];
 	char piece = ' ';
 	unhash(position, boardArray);
-	currentPlayer = generic_hash_turn(position);
+	unhash_turn(position, &currentPlayer);
 	for (r = 0; r < rows; r++) {
 		for (c = 0; c < cols; c++) {
 			piece = boardArray[coordToNum(r, c)];
