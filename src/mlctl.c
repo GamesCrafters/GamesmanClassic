@@ -40,7 +40,7 @@ BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles
 BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
 BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
 
-POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
+POSITION gNumberOfPositions   =  500000000000LLU; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  138782043307LLU; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
@@ -185,6 +185,7 @@ BOOLEAN isLegalBoard(char *Board);
 BOOLEAN IsLegal(POSITION p);
 POSITION hash(char* board, int turn);
 char* unhash(POSITION position, char *board);
+MOVE createMove(int ri, int ci, int rv, int cv);
 
 /************************************************************************
 **
@@ -197,7 +198,27 @@ char* unhash(POSITION position, char *board);
 
 void InitializeGame ()
 {
-	printf("%llu", hash(theBoard, theCurrentPlayer));
+	char board[] = "XXXXXXXXXXSUHFO";
+	POSITION position = hash(theBoard, BLACK_TURN);
+	printf("\nPOSITION: %llu", position);
+	unhash(position, board);
+	PrintPosition(position, "Roger", TRUE);
+	MOVE tester = 89;
+	position = DoMove(position, tester);
+	unhash(position, board);
+	PrintPosition(position, "Roger", TRUE);
+
+	tester = 65;
+	position = DoMove(position, tester);
+	PrintPosition(position, "Roger", TRUE);
+
+	tester = 41;
+	position = DoMove(position, tester);
+	PrintPosition(position, "Roger", TRUE);
+
+	tester = (96 + 30 + DROP_BLACK_ELEPHANT);
+	position = DoMove(position, tester);
+	PrintPosition(position, "Roger", TRUE);
 }
 
 /************************************************************************
@@ -217,7 +238,7 @@ void unhash_turn(POSITION position, int* turn) {
 char* unhash(POSITION position, char* board)
 {
 	POSITION pos = position;
-	POSITION piece = 0;
+	POSITION piece;
 
 	int numBC = 0;
 	int numBE = 0;
@@ -226,10 +247,27 @@ char* unhash(POSITION position, char* board)
 	int numWE = 0;
 	int numWG = 0;
 
-	int turn = (int) (pos / 164511360000LLU);
+	// Reset the board
+	board[0] = BLANK_PIECE;
+	board[1] = BLANK_PIECE;
+	board[2] = BLANK_PIECE;
+	board[3] = BLANK_PIECE;
+	board[4] = BLANK_PIECE;
+	board[5] = BLANK_PIECE;
+	board[6] = BLANK_PIECE;
+	board[7] = BLANK_PIECE;
+	board[8] = BLANK_PIECE;
+	board[9] = BLANK_PIECE;
+	board[10] = BLANK_PIECE;
+	board[11] = BLANK_PIECE;
+	board[12] = B0W0;
+	board[13] = B0W0;
+	board[14] = B0W0;
+
+	POSITION turn = pos / 164511360000LLU;
 	if (turn == 0) {
 		theCurrentPlayer = BLACK_TURN;
-	} else if (turn == 1) {
+	} else {
 		theCurrentPlayer = WHITE_TURN;
 	}
 
@@ -239,7 +277,7 @@ char* unhash(POSITION position, char* board)
 	board[pos / 1142440000LLU] = WHITE_LION;
 
 	pos = pos % 1142440000LLU;
-	piece = pos / 43940000LLU;
+	piece = pos / 43940000;
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
 	} else if (piece < 24) { // then white
@@ -250,7 +288,7 @@ char* unhash(POSITION position, char* board)
 		numWG += 1;
 	}
 
-	pos = pos % 43940000LLU;
+	pos = pos % 43940000;
 	piece = pos / 1690000;
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
@@ -303,6 +341,7 @@ char* unhash(POSITION position, char* board)
 	}
 
 	pos = pos % 50;
+	piece = pos;
 	if (piece < 12) { // then black
 		board[piece] = BLACK_CHICK;
 	} else if (piece < 24) { // then white
@@ -325,7 +364,7 @@ char* unhash(POSITION position, char* board)
 		} else if (numWC == 2) {
 			board[CHICK_INDEX] = B0W2;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
 	} else if (numBC == 1) {
 		if (numWC == 0) {
@@ -333,72 +372,72 @@ char* unhash(POSITION position, char* board)
 		} else if (numWC == 1) {
 			board[CHICK_INDEX] = B1W1;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
 	} else if (numBC == 2) {
 		if (numWC == 0) {
 			board[CHICK_INDEX] = B2W0;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
 	} else { // more than 2 in hand
-		printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 	}
 
-	if (numBC == 0) { // set board state for elephants in hand
-		if (numWC == 0) {
+	if (numBE == 0) { // set board state for elephants in hand
+		if (numWE == 0) {
 			board[ELEPHANT_INDEX] = B0W0;
-		} else if (numWC == 1) {
+		} else if (numWE == 1) {
 			board[ELEPHANT_INDEX] = B0W1;
-		} else if (numWC == 2) {
+		} else if (numWE == 2) {
 			board[ELEPHANT_INDEX] = B0W2;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
-	} else if (numBC == 1) {
-		if (numWC == 0) {
+	} else if (numBE == 1) {
+		if (numWE == 0) {
 			board[ELEPHANT_INDEX] = B1W0;
-		} else if (numWC == 1) {
+		} else if (numWE == 1) {
 			board[ELEPHANT_INDEX] = B1W1;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
-	} else if (numBC == 2) {
-		if (numWC == 0) {
+	} else if (numBE == 2) {
+		if (numWE == 0) {
 			board[ELEPHANT_INDEX] = B2W0;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
 	} else { // more than 2 in hand
-		printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 	}
 
-	if (numBC == 0) { // set board state for giraffes in hand
-		if (numWC == 0) {
+	if (numBG == 0) { // set board state for giraffes in hand
+		if (numWG == 0) {
 			board[GIRAFFE_INDEX] = B0W0;
-		} else if (numWC == 1) {
+		} else if (numWG == 1) {
 			board[GIRAFFE_INDEX] = B0W1;
-		} else if (numWC == 2) {
+		} else if (numWG == 2) {
 			board[GIRAFFE_INDEX] = B0W2;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
-	} else if (numBC == 1) {
-		if (numWC == 0) {
+	} else if (numBG == 1) {
+		if (numWG == 0) {
 			board[GIRAFFE_INDEX] = B1W0;
-		} else if (numWC == 1) {
+		} else if (numWG == 1) {
 			board[GIRAFFE_INDEX] = B1W1;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
-	} else if (numBC == 2) {
-		if (numWC == 0) {
+	} else if (numBG == 2) {
+		if (numWG == 0) {
 			board[GIRAFFE_INDEX] = B2W0;
 		} else { // more than 2 in hand
-			printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+			perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 		}
 	} else { // more than 2 in hand
-		printf("\n\nError: Attempting to place more than 2 pieces of 1 type in hand");
+		perror("Error: Attempting to place more than 2 pieces of 1 type in hand");
 	}
 
 	return board;
@@ -514,61 +553,42 @@ POSITION hash(char* board, int turn) {
 		position += 25 * 1690000;
 	} else if (piece == B2W0) {
 		position += 24 * 43940000;
-		position += tmp;
-		position += tmp;
+		position += 24 * 1690000;
 	} else if (piece == B0W2) {
-		tmp = 25 * 43940000;
-		position += tmp;
-		tmp = 25 * 1690000;
-		position += tmp;
+		position += 25 * 43940000;
+		position += 25 * 1690000;
 	}
 
 	piece = board[ELEPHANT_INDEX]; // Elephants
 	if (piece == B1W0) {
-		tmp = 24 * 2500;
-		position += tmp;
+		position += 24 * 2500;
 	} else if (piece == B0W1) {
-		tmp = 25 * 2500;
-		position += tmp;
+		position += 25 * 2500;
 	} else if (piece == B1W1) {
-		tmp = 24 * 65000;
-		position += tmp;
-		tmp = 25 * 2500;
-		position += tmp;
+		position += 24 * 65000;
+		position += 25 * 2500;
 	} else if (piece == B2W0) {
-		tmp = 24 * 65000;
-		position += tmp;
-		tmp = 24 * 2500;
-		position += tmp;
+		position += 24 * 65000;
+		position += 24 * 2500;
 	} else if (piece == B0W2) {
-		tmp = 25 * 65000;
-		position += tmp;
-		tmp = 25 * 2500;
-		position += tmp;
+		position += 25 * 65000;
+		position += 25 * 2500;
 	}
 
-	piece = board[CHICK_INDEX];
+	piece = board[CHICK_INDEX]; // Chicks
 	if (piece == B1W0) {
-		tmp = 24;
-		position += tmp;
+		position += 24;
 	} else if (piece == B0W1) {
-		tmp = 25;
-		position += tmp;
+		position += 25;
 	} else if (piece == B1W1) {
-		tmp = 24 * 50;
-		position += tmp;
-		tmp = 25;
-		position += tmp;
+		position += 24 * 50;
+		position += 25;
 	} else if (piece == B2W0) {
-		tmp = 24 * 50;
-		position += tmp;
-		tmp = 24;
-		position += tmp;
+		position += 24 * 50;
+		position += 24;
 	} else if (piece == B0W2) {
-		tmp = 25 * 50;
-		position += tmp;
-		tmp = 25;
-		position += tmp;
+		position += 25 * 50;
+		position += 25;
 	}
 
 	return position;
@@ -608,7 +628,7 @@ BOOLEAN sameTeam(char piece, int playerTurn) {
 			return FALSE;
 		}
 	} else {
-		printf("\n\nError: player turn neither black nor white");
+		perror("Error: player turn neither black nor white");
 		return FALSE;
 	}
 }
@@ -638,7 +658,7 @@ STRING pieceToPrint(char piece) {
 		case WHITE_LION:
 			return PRINT_WHITE_LION;
 		default:
-			return PRINT_BLANK_PIECE;
+			return "XX";
 	}
 }
 		
@@ -808,7 +828,7 @@ MOVE createMove(int ri, int ci, int rv, int cv) {
 }
 
 BOOLEAN testMove(char* board, MOVE move, int player) {
-	char testBoard[15];
+	char testBoard[16];
 	int i = 0;
 	for (i = 0; i < 15; i++) {
 		testBoard[i] = board[i];
@@ -996,9 +1016,9 @@ void generateDropMoves(char* board, MOVELIST **moves, int player, int r, int c) 
 *************************************************************************/
 
 POSITION DoMove (POSITION position, MOVE move) {
-	char boardArray[rows*cols + 3];
+	char boardArray[rows*cols + 4];
 	char captured;
-	int rv, cv;
+	int rv = 0, cv = 0;
 	int indexi, indexf; // array indices corresponding to move start and end
 	unhash(position, boardArray);
 	int currentPlayer;
@@ -1043,10 +1063,15 @@ POSITION DoMove (POSITION position, MOVE move) {
 				cv = 0;
 				break;
 		}
-		indexi = move / 12;
+		indexi = move / 8;
 		indexf = indexi + (3 * rv) + cv;
 		captured = boardArray[indexf]; // get captured piece to determine type
 		boardArray[indexf] = boardArray[indexi]; // move piece to final location
+		if (boardArray[indexf] == BLACK_CHICK && currentPlayer == BLACK_TURN && (indexf == 0 || indexf == 1 || indexf == 2)) {
+			boardArray[indexf] = BLACK_HEN;
+		} else if (boardArray[indexf] == WHITE_CHICK && currentPlayer == WHITE_TURN && (indexf == 9 || indexf == 10 || indexf == 11)) {
+			boardArray[indexf] = WHITE_HEN;
+		}
 		boardArray[indexi] = BLANK_PIECE; // set original location to blank
 		switch (captured) {
 			case BLANK_PIECE:
@@ -1059,7 +1084,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[CHICK_INDEX] == B0W1) {
 					boardArray[CHICK_INDEX] = B0W2;
 				} else { // this should not ever happen (implies more than 2 of this piece)
-					printf("\n\nError: more than two chicks");
+					perror("Error: more than two chicks");
 				}
 				break;
 			case BLACK_HEN:
@@ -1070,7 +1095,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[CHICK_INDEX] == B0W1) {
 					boardArray[CHICK_INDEX] = B0W2;
 				} else { // this should not ever happen (implies more than 2 of this piece)
-					printf("\n\nError: more than two chicks");
+					perror("Error: more than two chicks");
 				}
 				break;
 			case WHITE_CHICK:
@@ -1081,7 +1106,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[CHICK_INDEX] == B0W1) {
 					boardArray[CHICK_INDEX] = B1W1;
 				} else { // this should not ever happen (implies more than 2 of this piece)
-					printf("\n\nError: more than two chicks");
+					perror("Error: more than two chicks");
 				}
 				break;
 			case WHITE_HEN:
@@ -1092,7 +1117,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[CHICK_INDEX] == B0W1) {
 					boardArray[CHICK_INDEX] = B1W1;
 				} else { // this should not ever happen (implies more than 2 of this piece)
-					printf("\n\nError: more than two chicks");
+					perror("Error: more than two chicks");
 				}
 				break;
 			case BLACK_ELEPHANT:
@@ -1103,7 +1128,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[ELEPHANT_INDEX] == B0W1) {
 					boardArray[ELEPHANT_INDEX] = B0W2;
 				} else { // this should not ever happen (implies more than 2 of this piece)
-					printf("\n\nError: more than two elephants");
+					perror("Error: more than two elephants");
 				}
 				break;
 			case WHITE_ELEPHANT:
@@ -1114,7 +1139,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[ELEPHANT_INDEX] == B0W1) {
 					boardArray[ELEPHANT_INDEX] = B1W1;
 				} else { // this should not ever happen (implies more than 2 of this piece)
-					printf("\n\nError: more than two elephants");
+					perror("Error: more than two elephants");
 				}
 				break;
 			case BLACK_GIRAFFE:
@@ -1125,7 +1150,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[GIRAFFE_INDEX] == B0W1) {
 					boardArray[GIRAFFE_INDEX] = B0W2;
 				} else { // this should not ever happen (implies more than 2 of this piece)
-					printf("\n\nError: more than two giraffes");
+					perror("Error: more than two giraffes");
 				}
 				break;
 			case WHITE_GIRAFFE:
@@ -1135,17 +1160,18 @@ POSITION DoMove (POSITION position, MOVE move) {
 					boardArray[GIRAFFE_INDEX] = B2W0;
 				} else if (boardArray[GIRAFFE_INDEX] == B0W1) {
 					boardArray[GIRAFFE_INDEX] = B1W1;
-			} else { // this should not ever happen (implies more than 2 of this piece)
-				printf("\n\nError: more than two giraffes");
-			}
-			break;
-		default:
-			break;
-	}
-} else { // moves 96 ~ 131 are drops
-		int tmp = move - 96;
+				} else { // this should not ever happen (implies more than 2 of this piece)
+				perror("Error: more than two giraffes");
+				}
+				break;
+			default:
+				break;
+		}
+	} else { // moves 96 ~ 131 are drops
+		int tmp = move % 96;
 		int location = tmp / 6;
 		tmp = tmp % 6;
+		printf("\n%d", location);
 		switch (tmp) {
 			case DROP_BLACK_CHICK:
 				boardArray[location] = BLACK_CHICK;
@@ -1156,7 +1182,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[CHICK_INDEX] == B2W0) {
 					boardArray[CHICK_INDEX] = B1W0;
 				} else {
-					printf("\n\nError: black dropped a chick without one in hand");
+					perror("Error: black dropped a chick without one in hand");
 					break;
 				}
 			case DROP_BLACK_ELEPHANT:
@@ -1168,7 +1194,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[ELEPHANT_INDEX] == B2W0) {
 					boardArray[ELEPHANT_INDEX] = B1W0;
 				} else {
-					printf("\n\nError: black dropped a elephant without one in hand");
+					perror("Error: black dropped a elephant without one in hand");
 					break;
 				}
 			case DROP_BLACK_GIRAFFE:
@@ -1180,7 +1206,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[GIRAFFE_INDEX] == B2W0) {
 					boardArray[GIRAFFE_INDEX] = B1W0;
 				} else {
-					printf("\n\nError: black dropped a giraffe without one in hand");
+					perror("Error: black dropped a giraffe without one in hand");
 					break;
 				}
 			case DROP_WHITE_CHICK:
@@ -1192,7 +1218,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[CHICK_INDEX] == B0W2) {
 					boardArray[CHICK_INDEX] = B0W1;
 				} else {
-					printf("\n\nError: black dropped a chick without one in hand");
+					perror("Error: black dropped a chick without one in hand");
 					break;
 				}
 			case DROP_WHITE_ELEPHANT:
@@ -1204,7 +1230,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[ELEPHANT_INDEX] == B0W2) {
 					boardArray[ELEPHANT_INDEX] = B0W1;
 				} else {
-					printf("\n\nError: black dropped a elephant without one in hand");
+					perror("Error: black dropped a elephant without one in hand");
 					break;
 				}
 			case DROP_WHITE_GIRAFFE:
@@ -1216,11 +1242,11 @@ POSITION DoMove (POSITION position, MOVE move) {
 				} else if (boardArray[GIRAFFE_INDEX] == B0W2) {
 					boardArray[GIRAFFE_INDEX] = B0W1;
 				} else {
-					printf("\n\nError: black dropped a giraffe without one in hand");
+					perror("Error: black dropped a giraffe without one in hand");
 					break;
 				}
 			default:
-				printf("\n\nError: bad drop hash");
+				perror("Error: bad drop hash");
 				break;
 		}
 	}
@@ -1399,7 +1425,7 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 	int numBC, numBE, numBG, numWC, numWE, numWG;
-	char boardArray[rows*cols+3];
+	char boardArray[rows*cols+4];
 	unhash(position, boardArray);
 	switch (boardArray[CHICK_INDEX]) {
 		case B0W0:
@@ -1497,20 +1523,21 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("\n"); 
 	printf("===== %s's Turn =====", playersName);
 	printf("\n");
-	printf("☖'s Hand\n");
+	printf("☖ Hand\n");
 	printf("╔════╗  ╔════╤════╤════╗\n");
-	printf("║☖C %n║  ║ %s │ %s │ %s ║\n", &numWC, pieceToPrint(boardArray[0]), pieceToPrint(boardArray[1]), pieceToPrint(boardArray[2]));
-	printf("║☖E %n║  ╟────┼────┼────╢\n", &numWE);
-	printf("║☖G %n║  ║ %s │ %s │ %s ║\n", &numWG, pieceToPrint(boardArray[3]), pieceToPrint(boardArray[4]), pieceToPrint(boardArray[5]));
+	printf("║☖C %d║  ║ %s │ %s │ %s ║\n", numWC, pieceToPrint(boardArray[0]), pieceToPrint(boardArray[1]), pieceToPrint(boardArray[2]));
+	printf("║☖E %d║  ╟────┼────┼────╢\n", numWE);
+	printf("║☖G %d║  ║ %s │ %s │ %s ║\n", numWG, pieceToPrint(boardArray[3]), pieceToPrint(boardArray[4]), pieceToPrint(boardArray[5]));
 	printf("╚════╝  ╟────┼────┼────╢  ╔════╗\n");
-	printf("        ║ %s │ %s │ %s ║  ║☗G %n║\n", pieceToPrint(boardArray[6]), pieceToPrint(boardArray[7]), pieceToPrint(boardArray[8]), &numBG);
-	printf("        ╟────┼────┼────╢  ║☗E %n║\n", &numBE);
-	printf("        ║ %s │ %s │ %s ║  ║☗C %n║\n", pieceToPrint(boardArray[9]), pieceToPrint(boardArray[10]), pieceToPrint(boardArray[11]), &numBC);
+	printf("        ║ %s │ %s │ %s ║  ║☗G %d║\n", pieceToPrint(boardArray[6]), pieceToPrint(boardArray[7]), pieceToPrint(boardArray[8]), numBG);
+	printf("        ╟────┼────┼────╢  ║☗E %d║\n", numBE);
+	printf("        ║ %s │ %s │ %s ║  ║☗C %d║\n", pieceToPrint(boardArray[9]), pieceToPrint(boardArray[10]), pieceToPrint(boardArray[11]), numBC);
 	printf("        ╚════╧════╧════╝  ╚════╝\n");
 	printf("                          ☗ Hand\n");
 	printf("\n"); // need to fix stuff after this line
-	printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
-	printf("It is %s's turn (%s).\n",playersName,(generic_hash_turn(position) == WHITE_TURN) ? "white/uppercase":"black/lowercase"); 
+	//printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
+	//unhash_turn(position, &theCurrentPlayer);
+	//printf("It is %s's turn (%s).\n",playersName,(theCurrentPlayer == BLACK_TURN) ? "black/lowercase":"white/uppercase"); 
 }
 
 
