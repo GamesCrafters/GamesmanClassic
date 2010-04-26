@@ -55,7 +55,7 @@ STRING kHelpGraphicInterface =
 "Not written yet";
 
 STRING   kHelpTextInterface    =
-"Not written yet";
+"\n☖ Hand\n╔════╗  ╔════╤════╤════╗\n║☖C 0║  ║ 00 │ 01 │ 02 ║\n║☖E 0║  ╟────┼────┼────╢\n║☖G 0║  ║ 03 │ 04 │ 05 ║\n╚════╝  ╟────┼────┼────╢  ╔════╗\n        ║ 06 │ 07 │ 08 ║  ║☗G 0║\n        ╟────┼────┼────╢  ║☗E 0║\n        ║ 09 │ 10 │ 11 ║  ║☗C 0║\n        ╚════╧════╧════╝  ╚════╝\n                          ☗ Hand\n";
 
 STRING   kHelpOnYourTurn =
 "";
@@ -198,17 +198,20 @@ MOVE createMove(int ri, int ci, int rv, int cv);
 
 void InitializeGame ()
 {
-	char board[] = "XXXXXXXXXXSUHFO";
+	char board[] = "XXXXXXXXXXXXXXX";
 	POSITION position = hash(theBoard, BLACK_TURN);
 	printf("\nPOSITION: %llu", position);
 	unhash(position, board);
 	PrintPosition(position, "foo", TRUE);
-	MOVE tester = 89;
-	printf("\nmove: 89");
+	printf("\n%s", board);
+
+	MOVE tester = 57;
+	printf("\nmove: 57");
 	position = DoMove(position, tester);
 	unhash(position, board);
 	PrintPosition(position, "bar", TRUE);
-
+	printf("\n%s", board);
+/*
 	tester = 65;
 	printf("\nmove: 65");
 	position = DoMove(position, tester);
@@ -223,6 +226,7 @@ void InitializeGame ()
 	printf("\nmove: 57");
 	position = DoMove(position, tester);
 	PrintPosition(position, "foo", TRUE);
+*/
 }
 
 /************************************************************************
@@ -466,11 +470,9 @@ POSITION hash(char* board, int turn) {
 		if (board[i] == BLANK_PIECE) {
 			continue;
 		} else if (board[i] == BLACK_LION) {
-			tmp = i * 13709280000LLU;
-			position += tmp;
+			position += i * 13709280000LLU;
 		} else if (board[i] == WHITE_LION) {
-			tmp = i * 1142440000LLU;
-			position += tmp;
+			position += i * 1142440000LLU;
 		} else if (board[i] == BLACK_CHICK) {
 			if (foundc == 0) {
 				tmp = i * 50;
@@ -1068,9 +1070,9 @@ POSITION DoMove (POSITION position, MOVE move) {
 				break;
 		}
 		indexi = move / 8;
-		printf("\ni: %d", indexi);
+//		printf("\ni: %d", indexi);
 		indexf = indexi + (3 * rv) + cv;
-		printf("\nf: %d", indexf);
+//		printf("\nf: %d", indexf);
 		captured = boardArray[indexf]; // get captured piece to determine type
 		boardArray[indexf] = boardArray[indexi]; // move piece to final location
 		if (boardArray[indexf] == BLACK_CHICK && currentPlayer == BLACK_TURN && (indexf == 0 || indexf == 1 || indexf == 2)) { // promote black chick to black hen if applicable
