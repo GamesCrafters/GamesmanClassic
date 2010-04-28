@@ -32,6 +32,7 @@
 #ifndef GMCORE_DB_BASICHASH_H
 #define GMCORE_DB_BASICHASH_H
 
+#include  <string.h>
 #include  "db_buf.h"
 #include  "db_types.h"
 

@@ -498,7 +498,7 @@ void HandleArguments (int argc, char *argv[])
 		    int option = atoi(argv[3]);
 		    char* boardStr = argv[2];
 		    //SetOption(option);
-		    InitializeGame();
+		    //InitializeGame();
 		    
 		    GetNextMoveValues(boardStr, option);
 

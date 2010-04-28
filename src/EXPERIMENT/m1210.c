@@ -514,20 +514,23 @@ STRING GetNextMoveValues(char* board, int option) {
 	InitializeDatabases();
 	
 	POSITION pos = atoi(board);
-	MOVELIST* moves = GenerateMoves(
-	
-	int length = 1;
 
-    	positions[0] = 3;
+	// check for primitive:
+	if (Primitive(pos)) {
+		// primitive! return value of this board?
+		printf("Primitive Position: %lld, Value: %d\n", pos, Primitive(pos));
+	} 
+	else {
+		MOVELIST* moves = GenerateMoves(pos);
+		printf("Not Primitive Position: %lld\n", pos);
+		while (moves != NULL) {
+			POSITION child = DoMove(pos, moves->move);
+			moves = moves->next; 
+			printf("Child position: %lld, Value: %d\n", child, DetermineValue(child));
+			
+		}
+	}
 	
- 	printf("hi1\n");	
-	//printf("%d\n", DoMove(1, 2));
-	int val = DetermineValue(4);
-	int r = 2;
-	//db_functions->get_bulk (positions, ValueArray, remotenessArray, length);
- 	printf("hi\n");
-	printf("%d\n", val);
- 	printf("bye\n");
 
 	return NULL;
 }

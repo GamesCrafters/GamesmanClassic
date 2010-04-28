@@ -33,6 +33,7 @@
 #include "db_basichash.h"
 #include "db_malloc.h"
 #include <assert.h>
+//#include <string.h>
 
 static gamesdb_bhashin* gamesdb_basichash_getrow(gamesdb_bhash* hash, gamesdb_pageid id) {
     int row = id & (hash->index_size - 1);
