@@ -2246,3 +2246,7 @@ THERE IS NOTHING TO REMOVE.
 we should use the one liner functions from, to, and remove.
 	it makes the code a whole lot easier to read and reduces likely hood of errors... such as the mistake in DoMove earlier
 */
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}

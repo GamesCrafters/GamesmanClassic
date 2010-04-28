@@ -1704,6 +1704,11 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}
+
 // $Log: not supported by cvs2svn $
 // Revision 1.38  2007/05/11 01:38:18  max817
 // Fixed a bug

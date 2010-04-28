@@ -896,3 +896,25 @@ STRING TierToString(TIER tier) {
 	sprintf(tierStr, "%d Pieces Placed", BOARDSIZE-((int)tier));
 	return tierStr;
 }
+
+POSITION StringToPosition(char* boardStr, int move, int option) {
+    // change boardStr to BlankOX
+    BlankOX *board = malloc(sizeof(BlankOX)* BOARDSIZE);
+    if (strlen(boardStr) < BOARDSIZE) {
+        printf("String to Position for ACHI failed\n");
+        return -1;
+    }
+    int i;
+    for (i = 0; i < BOARDSIZE; i++) {
+        if (boardStr[i] == 'o') {
+            board[i] = o;
+        }
+        else if (boardStr[i] == 'x') {
+            board[i] = x;
+        }
+        else if (boardStr[i] == '_') {
+            board[i] = Blank;
+        }        
+    }
+    return BlankOXToPosition(board);
+}

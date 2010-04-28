@@ -783,6 +783,10 @@ EXTERNC void PrintMove(MOVE theMove)
 	printf("%c", i+'a'); 
 }
 
+EXTERNC POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}
 /*
 EXTERNC VALUE *GetRawValueFromDatabase(POSITION position)
 {

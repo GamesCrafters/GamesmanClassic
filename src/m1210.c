@@ -506,3 +506,34 @@ void setOption (int option)
 ************************************************************************/
 
 void DebugMenu() { }
+
+
+STRING GetNextMoveValues(char* board, int option) {
+	setOption(option);
+	Initialize();
+	InitializeDatabases();
+	
+	POSITION pos = atoi(board);
+
+	// check for primitive:
+	if (Primitive(pos)) {
+		// primitive! return value of this board?
+		printf("Primitive Position: %lld, Value: %d\n", pos, Primitive(pos));
+	} 
+	else {
+		MOVELIST* moves = GenerateMoves(pos);
+		printf("Not Primitive Position: %lld\n", pos);
+		while (moves != NULL) {
+			POSITION child = DoMove(pos, moves->move);
+			moves = moves->next; 
+			printf("Child position: %lld, Value: %d\n", child, DetermineValue(child));
+			
+		}
+	}
+	
+
+	return NULL;
+}
+POSITION StringToPosition(char* board, int move, int option) {
+    return atoi(board);
+}

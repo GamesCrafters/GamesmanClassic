@@ -1900,3 +1900,7 @@ void printBoard(char* board) {
 		printf("\nHUGE ERROR...I IS TOO BIG, meaning the BOARD SHOULD BE SMALLER THAN IT REALLY IS!!!! ==> %d\n\n",i);
 		
 }
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}

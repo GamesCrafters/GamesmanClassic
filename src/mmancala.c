@@ -1500,3 +1500,7 @@ int my_nCr(int n, int r)
 
 
 void* gGameSpecificTclInit = NULL;
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}

@@ -1391,3 +1391,7 @@ BlankOX getwhosTurnfromMove(MOVE theMove) {
   player = theMove & 255;
   return (player == 1) ? o : x;
 }
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}

@@ -125,6 +125,71 @@ void SetSolver()
                 gSolver = &DetermineValueSTD;
 }
 
+VALUE GetValue(POSITION position)
+{
+	gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
+    //gSaveDatabase = FALSE;
+	if (gAnalyzing && !LoadAnalysis()) {
+		gLoadDatabase = FALSE;
+	}
+
+	if(kSupportsTierGamesman && gTierGamesman) {//TIER GAMESMAN
+		gSolver = &DetermineRetrogradeValue; // force the retrograde solver
+		gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
+		gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
+		gSolver(position);
+		gDBLoadMainTier = TRUE; // from now on, tierdb loads main tier too
+		gInitializeHashWindow(gInitialTier, TRUE);
+		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
+		gInitialPosition = position; // saves a LOT of little changes
+
+		showStatus(Clean);
+		AnalysisCollation();
+		gAnalysisLoaded = TRUE;
+		//if(gSaveDatabase) {
+		//	if(gUseOpen) {
+		//		SaveOpenPositionsData();
+		//	}
+		//	SaveAnalysis();
+		//}
+
+	} else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
+		if (GetValueOfPosition(position) == undecided) {
+    		gSolver(position);
+			AnalysisCollation();
+			gAnalysisLoaded = TRUE;
+
+			if(gSaveDatabase) {
+                SaveDatabase();
+				if(gUseOpen) {
+					SaveOpenPositionsData();
+				}
+				SaveAnalysis();
+			}
+		}
+	} else {
+		// Ken Elkabany removed the line below, tell him if you want to undo it
+        // bpdb will not work with it since it doesn't allocate itself until gSolver(position)
+        // is called
+		//StoreValueOfPosition(position, undecided);
+		gSolver(position);
+		showStatus(Clean);
+		AnalysisCollation();
+		gAnalysisLoaded = TRUE;
+
+		if(gSaveDatabase) {
+			SaveDatabase();
+			if(gUseOpen) {
+				SaveOpenPositionsData();
+			}
+			SaveAnalysis();
+		}
+	}
+	gUseGPS = FALSE;
+	gValue = GetValueOfPosition(position);
+
+	return gValue;
+}
 VALUE DetermineValue(POSITION position)
 {
 	gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
@@ -474,20 +539,66 @@ void HandleArguments (int argc, char *argv[])
                         gMessage = TRUE;
                         //initializeODeepaBlue(argc,argv);
                         return;
-				} else if(!strcasecmp(argv[i],"--printdefault")) {
-					/* Some games initialize help strings inside InitializeGame() */
-					 InitializeGame();
-					/* prints long name, short name, default option,
-					 * C author(s), and some k* values, delimited with ^
-					 * Current k* values are kDebugMenu. kDebugDetermineValue,
-					 * and any kHelp* that aren't written*/
-					printf("%s^%s^%d^%s^%s^%s^%s\n", kGameName, kDBName, getOption(),
-							kAuthorName,
-							kDebugMenu ? "True" : "False",
-							kDebugDetermineValue ? "True" : "False",
-							kHelpStarWritten());
-					gMessage = TRUE;
-				} else {
+	       	} else if(!strcasecmp(argv[i],"--printdefault")) {
+		  /* Some games initialize help strings inside InitializeGame() */
+		  InitializeGame();
+		  /* prints long name, short name, default option,
+		   * C author(s), and some k* values, delimited with ^
+		   * Current k* values are kDebugMenu. kDebugDetermineValue,
+		   * and any kHelp* that aren't written*/
+		  printf("%s^%s^%d^%s^%s^%s^%s\n", kGameName, kDBName, getOption(),
+			 kAuthorName,
+			 kDebugMenu ? "True" : "False",
+			 kDebugDetermineValue ? "True" : "False",
+			 kHelpStarWritten());
+		  gMessage = TRUE;
+	     	}
+		/* NEW STUFF */
+		/* ./game --GetNextMoveValues <boardString> <whoseMove> <option> <params (optional)>*/
+		else if(!strcasecmp(argv[i], "--GetNextMoveValues")) {
+		  //InitializeGame();
+		  if (argc != 5 && argc != 6)
+		    fprintf(stderr, "\nInvalid arguments!\n\n");
+		  else {
+
+		    char* boardStr = argv[2];
+            int whoseMove = atoi(argv[3]);
+		    int option = atoi(argv[4]);
+            //char* paramStr = argv[5];
+
+            setOption(option);
+        	Initialize();
+        	InitializeDatabases();
+	
+	        POSITION pos = StringToPosition(boardStr, whoseMove, option);//, paramStr);//atoi(board);
+
+	        // check for primitive:
+	        if (Primitive(pos)) {
+		        // primitive! return value of this board?
+		        printf("{}\n");
+	        } 
+	        else {
+		        MOVELIST* moves = GenerateMoves(pos);
+		        printf("{");
+		        while (moves != NULL) {
+			        POSITION child = DoMove(pos, moves->move);
+
+                    // (childPos, move, value)
+			        printf("(%lld, %d, %d)", child, moves->move, GetValue(child));
+			        moves = moves->next; 
+			        if (moves != NULL) {
+                        printf(", ");
+                    }
+		        }
+		        printf("}\n");
+	        }
+
+
+		  }
+		  i += argc;
+		  gMessage = TRUE;
+                }
+		else {
                     fprintf(stderr, "\nInvalid option or missing parameter: %s, use %s --help for help\n\n", argv[i], argv[0]);
                     gMessage = TRUE;
                     i += argc;

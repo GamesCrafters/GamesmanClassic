@@ -1828,3 +1828,7 @@ space(8)  board space(8) legend space(8) direction space(8) action
   // ----------------------------------------------------
   */
 
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}

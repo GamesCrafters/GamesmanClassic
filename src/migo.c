@@ -1356,3 +1356,7 @@ delGoStone(GoStone which) {
  **
  ************************************************************************/
 
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}

@@ -1564,3 +1564,7 @@ BOOLEAN IsLegal(POSITION position) {
 	//printf("ISLEGAL returns TRUEon %ld\n", pos);
 	return TRUE; //if it never encounters an invalid position
 }
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}

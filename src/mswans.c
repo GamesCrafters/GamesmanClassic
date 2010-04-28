@@ -1086,3 +1086,7 @@ void setOption(int option)
   gToTrapIsToWin = (option/2%2==0);
   gNumDragons = (option/4)+MIN_DRAGONS;
 }
+POSITION StringToPosition(char* board, int option, char* move, char* params) {
+    // FIXME: this is just a stub    
+    return atoi(board);
+}
