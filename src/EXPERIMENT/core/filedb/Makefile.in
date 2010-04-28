@@ -1,0 +1,67 @@
+##############################################################################
+#
+#  Makefile for GAMESMAN
+#  The Finite, Two-person Perfect-Information Game Generator
+#
+#  (G)ame-independent
+#  (A)utomatic
+#  (M)ove-tree
+#  (E)xhaustive
+#  (S)earch,
+#  (M)anipulation
+#  (A)nd
+#  (N)avigation
+#
+#  GamesCrafters Research Group, UC Berkeley
+#  Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
+#
+##############################################################################
+
+# @WARNGC@ Makefile.in
+# @configure_input@
+
+CC		= @CC@
+CFLAGS		= @CFLAGS@ @TCLCFLAGS@ @GMPCFLAGS@
+AR		= @AR@ cr
+RANLIB		= @RANLIB@
+
+LIBSUFFIX	= @LIBSUFFIX@
+OBJSUFFIX	= @OBJSUFFIX@
+EXESUFFIX	= @EXESUFFIX@
+
+
+##############################################################################
+### Files
+
+DB_OBJ		=  db_store$(OBJSUFFIX) db_malloc$(OBJSUFFIX) db_buf$(OBJSUFFIX) db$(OBJSUFFIX) db_bman$(OBJSUFFIX) db_basichash$(OBJSUFFIX) ../memwatch$(OBJSUFFIX)
+
+#INCLUDES=db_store.h db_malloc.h db.h db_buf.h db_global.h ../memwatch.h \
+#db_bman.h db_basichash.h db_types.h
+
+
+##############################################################################
+### Rules
+
+all: gamesdb.a
+
+test: dbtest.c gamesdb.a
+	$(CC) $(CFLAGS) -c -o dbtest$(OBJSUFFIX) dbtest.c
+	$(CC) -o dbtest dbtest$(OBJSUFFIX) gamesdb.a -lz
+
+memdebug: CFLAGS += -DMEMWATCH
+memdebug: all
+
+dist-clean: clean
+	rm -rf Makefile
+
+clean:
+	rm -rf gamesdb.a *~ *.o dbtest dbtest.exe data
+
+gamesdb.a: $(DB_OBJ)
+	rm -f $@
+	$(AR) $@ $(DB_OBJ) ; $(RANLIB) $@
+	cp gamesdb.a ../../gamesdb.a ; $(RANLIB) ../../gamesdb.a
+
+$(DB_OBJ): %.o: %.c
+#$(INCLUDES)
+	$(CC) $(CFLAGS) -c -o $@ $<
