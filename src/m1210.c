@@ -506,28 +506,3 @@ void setOption (int option)
 ************************************************************************/
 
 void DebugMenu() { }
-
-
-STRING GetNextMoveValues(char* board, int option) {
-	setOption(option);
-	Initialize();
-	InitializeDatabases();
-	
-	POSITION pos = atoi(board);
-	MOVELIST* moves = GenerateMoves(
-	
-	int length = 1;
-
-    	positions[0] = 3;
-	
- 	printf("hi1\n");	
-	//printf("%d\n", DoMove(1, 2));
-	int val = DetermineValue(4);
-	int r = 2;
-	//db_functions->get_bulk (positions, ValueArray, remotenessArray, length);
- 	printf("hi\n");
-	printf("%d\n", val);
- 	printf("bye\n");
-
-	return NULL;
-}

@@ -29,7 +29,6 @@
 **
 **************************************************************************/
 
-#include "string.h"
 #include "db_types.h"
 #include "db_basichash.h"
 #include "db_malloc.h"

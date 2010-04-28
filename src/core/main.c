@@ -474,47 +474,20 @@ void HandleArguments (int argc, char *argv[])
                         gMessage = TRUE;
                         //initializeODeepaBlue(argc,argv);
                         return;
-	       	} else if(!strcasecmp(argv[i],"--printdefault")) {
-		  /* Some games initialize help strings inside InitializeGame() */
-		  InitializeGame();
-		  /* prints long name, short name, default option,
-		   * C author(s), and some k* values, delimited with ^
-		   * Current k* values are kDebugMenu. kDebugDetermineValue,
-		   * and any kHelp* that aren't written*/
-		  printf("%s^%s^%d^%s^%s^%s^%s\n", kGameName, kDBName, getOption(),
-			 kAuthorName,
-			 kDebugMenu ? "True" : "False",
-			 kDebugDetermineValue ? "True" : "False",
-			 kHelpStarWritten());
-		  gMessage = TRUE;
-	     	}
-		/* NEW STUFF */
-		/* ./game --GetNextMoveValues <boardString> <option> */
-		else if(!strcasecmp(argv[i], "--GetNextMoveValues")) {
-		  //InitializeGame();
-		  if (argc != 4)
-		    fprintf(stderr, "\nInvalid arguments!\n\n");
-		  else {
-		    int option = atoi(argv[3]);
-		    char* boardStr = argv[2];
-		    //SetOption(option);
-		    InitializeGame();
-		    
-		    GetNextMoveValues(boardStr, option);
-
-		    printf("\nGetNextMoveValues returns: [ ");
-		    MOVELIST* moves = GenerateMoves(atoi(argv[2])), *ptr;
-		    for (ptr = moves; ptr != NULL; ptr = ptr->next) {
-		      PrintMove(ptr->move);
-		      printf(" ");
-		    }
-		    printf("]\n\n");
-		    FreeMoveList(moves);
-		  }
-		  i += argc;
-		  gMessage = TRUE;
-                }
-		else {
+				} else if(!strcasecmp(argv[i],"--printdefault")) {
+					/* Some games initialize help strings inside InitializeGame() */
+					 InitializeGame();
+					/* prints long name, short name, default option,
+					 * C author(s), and some k* values, delimited with ^
+					 * Current k* values are kDebugMenu. kDebugDetermineValue,
+					 * and any kHelp* that aren't written*/
+					printf("%s^%s^%d^%s^%s^%s^%s\n", kGameName, kDBName, getOption(),
+							kAuthorName,
+							kDebugMenu ? "True" : "False",
+							kDebugDetermineValue ? "True" : "False",
+							kHelpStarWritten());
+					gMessage = TRUE;
+				} else {
                     fprintf(stderr, "\nInvalid option or missing parameter: %s, use %s --help for help\n\n", argv[i], argv[0]);
                     gMessage = TRUE;
                     i += argc;

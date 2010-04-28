@@ -1148,37 +1148,6 @@ BOOLEAN phase1(BlankOX *theBlankOX)
 }
 
 
-/* NEW STUFF */
-STRING GetNextMoveValues(char* boardStr, int option) {
-  setOption(option);
-  InitializeGame();
-  InitializeDatabases();
-  BlankOX theBoard[BOARDSIZE];
-  BlankOX whoseTurn;
-
-  stringToBlankOX(boardStr, theBoard, &whoseTurn);
-  
-  
-  // change to internal (achi's) representation
-  
-  // find and load db. fail = abort.
-
-  // for each child in this position:
-  //   change child's internal representation to global representation (the hash)
-  //   read the value from the database
-  //   add (toString original representation, value, remoteness, etc) to list
-
-  // return list
-  
-  return NULL;
-  
-
-}
-
-void stringToBlankOX(char* boardStr, BlankOX* board, BlankOX* whoseTurn) {
-
-}
-
 
 STRING kDBName = "achi" ;
 
