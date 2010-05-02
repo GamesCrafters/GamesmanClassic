@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import re
 from subprocess import Popen, PIPE
-from thrift.Thrift import TException
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
@@ -11,6 +10,7 @@ from gamesman.ttypes import *
 
 class RequestHandler(GamestateRequestHandler.Iface):
     
+    TUPLE_PATTERN = r'\([^,]*\s*,[^,]*\s*,[^,]*\)'
     GAMES = ['1210', '1ton', '369mm', '3spot', 'Lgame', 'abalone', 'achi',
              'ago', 'asalto', 'ataxx', 'baghchal', 'blocking', 'cambio',
              'change', 'cmass', 'con', 'ctoi', 'dao', 'dinododgem', 'dnb',
@@ -26,25 +26,28 @@ class RequestHandler(GamestateRequestHandler.Iface):
         self.path = path
     
     def getMoveValue(self, game, configuration):
-        results = self.get_move_value_base(game, configuration,
-                                           '--GetMoveValue')
-        move_value = self.parse_move_value(results)
-        if move_value is None:
-            raise TException('failed to get move value for %s %s' % \
-                                 (game, configuration))
-        return GetMoveResponse(status='ok', response=move_value)
+        try:
+            results = self.get_move_value_base(game, configuration,
+                                               '--GetMoveValue')
+            match = re.search(self.TUPLE_PATTERN, results)
+            if match is None:
+                raise GameException('failed to get move value for %s %s' % \
+                                     (game, configuration))
+            move_value = self.parse_move_value(match.group())
+            return GetMoveResponse(status='ok', response=move_value)
+        except GameException as e:
+            return GetMoveResponse(status='error', message=e.args[0])
     
     def getNextMoveValues(self, game, configuration):
-        results = self.get_move_value_base(game, configuration,
-                                           '--GetNextMoveValues')
-        if results is None:
-            raise TException('failed to get move values for %s %s' % \
-                                 (game, configuration))
-        pattern = r'\([^,]+,\s+[^,]+,\s+[^,]+\)'
-        move_values = []
-        for matched in re.findall(pattern, results):
-            move_values.append(self.parse_move_value(matched.strip()))
-        return GetNextMoveResponse(status='ok', response=move_values)
+        try:
+            results = self.get_move_value_base(game, configuration,
+                                               '--GetNextMoveValues')
+            move_values = []
+            for matched in re.findall(self.TUPLE_PATTERN, results):
+                move_values.append(self.parse_move_value(matched.strip()))
+            return GetNextMoveResponse(status='ok', response=move_values)
+        except GameException as e:
+            return GetNextMoveResponse(status='error', message=e.args[0])
     
     def get_move_value_base(self, game, configuration, flag):
         '''Securely invokes the specified game binary with the given board
@@ -64,7 +67,7 @@ class RequestHandler(GamestateRequestHandler.Iface):
         process = Popen(arguments, stdout=PIPE, stderr=PIPE, cwd=self.path)
         out, err = process.communicate()
         if err:
-            raise TException(game + ' raised an error: ' + err)
+            raise GameException(game + ' raised an error: ' + err)
         return out
     
     def parse_configuration(self, configuration):
@@ -82,22 +85,24 @@ class RequestHandler(GamestateRequestHandler.Iface):
         return [self.sanitize_argument(a) for a in board, player, variant]
     
     def parse_move_value(self, result):
-        match = re.match(r'\(([^,]+),\s+([^,]+),\s+([^,]+)\)', result)
+        match = re.match(r'\(([^,]*),\s+([^,]*),\s+([^,]*)\)', result)
         if match is None:
-            return None
+            raise GameException('malformed move value: %s' % (result,))
         board, move, value = match.group(1, 2, 3)
-        value = self.decode_move(int(move))
+        value = self.decode_value(int(value))
+        if not move:
+            move = None
         return GamestateResponse(board=board, move=move, value=value)
     
-    def decode_move(self, move):
+    def decode_value(self, value):
         values = ('undecided', 'win', 'lose', 'tie')
-        if 0 <= move < len(values):
-            return values[move]
+        if 0 <= value < len(values):
+            return values[value]
         return 'undecided'
     
     def verify_game(self, game):
-        if game not in RequestHandler.GAMES:
-            raise TException(name + ' is not a valid game name')
+        if game not in self.GAMES:
+            raise GameException(name + ' is not a valid game name')
     
     def sanitize_argument(self, argument):
         '''Removes all characters that aren't common typeable ASCII characters
@@ -105,6 +110,9 @@ class RequestHandler(GamestateRequestHandler.Iface):
         '''
         # The only visible ASCII characters are Space through Tilde.
         return re.sub('[^ -~]', '', argument)
+
+class GameException(Exception):
+    pass
 
 if __name__ == '__main__':
     port = 24444

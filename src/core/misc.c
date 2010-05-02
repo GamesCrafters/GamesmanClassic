@@ -138,7 +138,7 @@ int GetRandomNumber(int n)
         int ans,nRequest,mulFactor;
 
         if(n <= 0) {
-                printf("Error: GetRandomNumber called with n <= 0! \n");
+	        fprintf(stderr, "Error: GetRandomNumber called with n <= 0! \n");
                 return(0);
         }
 
@@ -201,7 +201,7 @@ void ExitStageRight()
 
 void ExitStageRightErrorString(char errorMsg[])
 {
-        printf("\nError: %s\n",errorMsg);
+        fprintf(stderr, "\nError: %s\n",errorMsg);
         exit(1);
 }
 
@@ -227,7 +227,7 @@ GENERIC_PTR SafeMalloc(size_t amount)
 
         /* Mando's Fix is to put a ckalloc here */
         if((ptr = malloc(amount)) == NULL) {
-                printf("Error: SafeMalloc could not allocate the requested %lu bytes\n",(long) amount);
+	        fprintf(stderr, "Error: SafeMalloc could not allocate the requested %lu bytes\n",(long) amount);
                 ExitStageRight();
                 exit(0);
         } else {
@@ -241,7 +241,7 @@ GENERIC_PTR SafeRealloc(GENERIC_PTR ptr, size_t amount)
 		ExitStageRightErrorString("Error: SafeRealloc was handed a NULL ptr!\n");
 		exit(0);
 	} else if((ptr = realloc(ptr, amount)) == NULL) {
-		printf("Error: SafeRealloc could not allocate the requested %lu bytes\n", (long) amount);
+	        fprintf(stderr, "Error: SafeRealloc could not allocate the requested %lu bytes\n", (long) amount);
 		ExitStageRight();
 		exit(0);
 	} else {
@@ -262,7 +262,7 @@ void SafeFree(GENERIC_PTR ptr)
 
 void BadElse(STRING function)
 {
-        printf("Error: %s() just reached an else clause it shouldn't have!\n\n",function);
+        fprintf(stderr, "Error: %s() just reached an else clause it shouldn't have!\n\n",function);
 }
 
 // Adapted from CreateMovelistNode
@@ -466,9 +466,9 @@ void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
         dup2(2, 1);
 #endif
 
-        printf("\n*** ERROR: Invalid position (" POSITION_FORMAT ") encountered.", pos);
-        printf("\n*** ERROR: Parent=" POSITION_FORMAT ", move=%d", parent, move);
-        printf("\n*** ERROR: Representation of parent position:\n\n");
+        fprintf(stderr, "\n*** ERROR: Invalid position (" POSITION_FORMAT ") encountered.", pos);
+        fprintf(stderr, "\n*** ERROR: Parent=" POSITION_FORMAT ", move=%d", parent, move);
+        fprintf(stderr, "\n*** ERROR: Representation of parent position:\n\n");
         PrintPosition(pos, "debug", 0);
         fflush(stdout);
         ExitStageRight();
@@ -503,11 +503,11 @@ POSITION GetNextPosition()
 MEXCALC MexAdd(MEXCALC theMexCalc, MEX theMex)
 {
         if(theMex > 31) {
-                printf("Error: MexAdd handed a theMex greater than 31\n");
+	        fprintf(stderr, "Error: MexAdd handed a theMex greater than 31\n");
                 ExitStageRight();
                 exit(0);
         } else if (theMex == kBadMexValue) {
-                printf("Error: MexAdd handed a kBadMexValue for theMex\n");
+	        fprintf(stderr, "Error: MexAdd handed a kBadMexValue for theMex\n");
                 ExitStageRight();
                 exit(0);
         }
@@ -549,11 +549,11 @@ void MexFormat(POSITION position, STRING string)
 MEX MexPrimitive(VALUE value)
 {
         if(value == undecided) {
-                printf("Error: MexPrimitive handed a value other than win/lose (undecided)\n");
+	        fprintf(stderr, "Error: MexPrimitive handed a value other than win/lose (undecided)\n");
                 ExitStageRight();
                 exit(0);
         } else if(value == tie) {
-                printf("Error: MexPrimitive handed a value other than win/lose (tie)\n");
+	        fprintf(stderr, "Error: MexPrimitive handed a value other than win/lose (tie)\n");
                 ExitStageRight();
                 exit(0);
         } else if(value == win)
