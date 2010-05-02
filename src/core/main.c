@@ -195,7 +195,7 @@ VALUE DetermineValue(POSITION position)
 	gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
 
 	if (gAnalyzing && !LoadAnalysis()) {
-		gLoadDatabase = FALSE;
+        gLoadDatabase = FALSE;
 	}
 
 	if(kSupportsTierGamesman && gTierGamesman) {//TIER GAMESMAN
@@ -554,6 +554,37 @@ void HandleArguments (int argc, char *argv[])
 		  gMessage = TRUE;
 	     	}
 		/* NEW STUFF */
+        /* ./game --GetMoveValue <boardString> <whoseMove> <option>*/
+        else if(!strcasecmp(argv[i], "--GetMoveValue")) {
+		  //InitializeGame();
+		  if (argc != 5)
+		    fprintf(stderr, "\nInvalid arguments!\n\n");
+		  else {
+
+		    char* boardStr = argv[2];
+            int whoseMove = atoi(argv[3]);
+		    int option = atoi(argv[4]);
+            //char* paramStr = argv[5];
+
+            setOption(option);
+        	Initialize();
+        	InitializeDatabases();
+	
+	        POSITION pos = StringToPosition(boardStr, whoseMove, option);//, paramStr);//atoi(board);
+
+	        // check for primitive:
+	        if (Primitive(pos)) {
+		        // primitive! return value of this board?
+		        printf("%d\n", Primitive(pos));
+	        } 
+	        else {
+		        printf("%d\n", GetValue(pos));
+	        }
+
+		  }
+		  i += argc;
+		  gMessage = TRUE;
+        }
 		/* ./game --GetNextMoveValues <boardString> <whoseMove> <option> <params (optional)>*/
 		else if(!strcasecmp(argv[i], "--GetNextMoveValues")) {
 		  //InitializeGame();
@@ -597,7 +628,7 @@ void HandleArguments (int argc, char *argv[])
 		  }
 		  i += argc;
 		  gMessage = TRUE;
-                }
+        }
 		else {
                     fprintf(stderr, "\nInvalid option or missing parameter: %s, use %s --help for help\n\n", argv[i], argv[0]);
                     gMessage = TRUE;
