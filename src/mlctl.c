@@ -211,6 +211,21 @@ void InitializeGame ()
 	unhash(position, board);
 	PrintPosition(position, "bar", TRUE);
 	printf("\n%s", board);
+
+	printf("\n\ntesting unhashing");
+	position = 141155193307LLU;
+	printf("\nPOSITION: %llu", position);
+	unhash(position, board);
+	PrintPosition(position, "foo", TRUE);
+	printf("\n%s", board);
+
+	printf("\n\ntesting hashing");
+	theBoard = " G l   H g L042";
+	position = hash(theBoard, BLACK_TURN);
+	printf("\nPOSITION: %llu", position);
+//	unhash(position, board);
+	PrintPosition(position, "foo", TRUE);
+	printf("\n%s", board);
 /*
 	tester = 65;
 	printf("\nmove: 65");
@@ -280,12 +295,18 @@ char* unhash(POSITION position, char* board)
 	}
 
 	pos = pos % 164511360000LLU;
+	piece = pos / 13709280000LLU;
+	printf("\nBLACK LION: %llu", piece);
 	board[pos / 13709280000LLU] = BLACK_LION;
+
 	pos = pos % 13709280000LLU;
+	piece = pos / 1142440000LLU;
+	printf("\nWHITE LION: %llu", piece);
 	board[pos / 1142440000LLU] = WHITE_LION;
 
 	pos = pos % 1142440000LLU;
 	piece = pos / 43940000;
+	printf("\nGIRAFFE 1: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
 	} else if (piece < 24) { // then white
@@ -298,6 +319,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 43940000;
 	piece = pos / 1690000;
+	printf("\nGIRAFFE 2: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
 	} else if (piece < 24) { // then white
@@ -310,6 +332,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 1690000;
 	piece = pos / 65000;
+	printf("\nELEPHANT 1: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_ELEPHANT;
 	} else if (piece < 24) { // then white
@@ -322,6 +345,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 65000;
 	piece = pos / 2500;
+	printf("\nELEPHANT 2: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_ELEPHANT;
 	} else if (piece < 24) { // then white
@@ -334,6 +358,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 2500;
 	piece = pos / 50;
+	printf("\nCHICK 1: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_CHICK;
 	} else if (piece < 24) { // then white
@@ -350,6 +375,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 50;
 	piece = pos;
+	printf("\nCHICK 2: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_CHICK;
 	} else if (piece < 24) { // then white
