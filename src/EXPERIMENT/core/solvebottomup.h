@@ -1,7 +1,0 @@
-
-#ifndef GMCORE_SOLVEBOTTOMUP_H
-#define GMCORE_SOLVEBOTTOMUP_H
-
-VALUE	DetermineValueBU	(POSITION pos);
-
-#endif /* GMCORE_SOLVEBOTTOMUP_H */
