@@ -104,7 +104,7 @@ POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX,BlankOX *whosTurn);
 STRING GetVarString();
 STRING MoveToString (MOVE);
-STRING PositionToString(POSITION);
+STRING _PositionToString(POSITION);
 POSITION ActualNumberOfPositions(int variant);
 POSITION GetCanonicalPosition(POSITION position);
 
@@ -155,7 +155,7 @@ void InitializeGame()
   }
 
   gMoveToStringFunPtr = &MoveToString;
-  gCustomUnhash = &PositionToString;
+  gCustomUnhash = &_PositionToString;
 
   gGetVarStringPtr = &GetVarString;
   gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
@@ -976,7 +976,7 @@ STRING MoveToString(theMove)
   }
 }
 
-STRING PositionToString( thePos )
+STRING _PositionToString( thePos )
      POSITION thePos;
 {
   BlankOX* turn = SafeMalloc( sizeof(BlankOX) );
@@ -1298,3 +1298,24 @@ POSITION StringToPosition(char* boardStr, int move, int option) {
     }
     return BlankOXToPosition(board, move);
 }
+char* PositionToString(POSITION pos, int move, int option) {
+    // change boardStr to BlankOX
+    BlankOX board[BOARDSIZE];
+    BlankOX whoseMove;
+    PositionToBlankOX(pos, board, &whoseMove);
+    char* boardStr = malloc(sizeof(char) * BOARDSIZE+1);
+    int i;
+    for (i = 0; i < BOARDSIZE; i++) {
+        if (board[i] == o) {
+            boardStr[i] = 'o';
+        }
+        else if (board[i] == x) {
+            boardStr[i] = 'x';
+        }
+        else if (board[i] == Blank) {
+            boardStr[i] = '_';
+        }        
+    }
+    return _PositionToString(pos);
+}
+

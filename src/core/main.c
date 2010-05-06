@@ -126,7 +126,7 @@ void SetSolver()
     }
 }
 
-VALUE GetValue(POSITION position)
+void InitializeGetMoveValuesStuff(POSITION position)
 {
     gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
     //gSaveDatabase = FALSE;
@@ -155,15 +155,15 @@ VALUE GetValue(POSITION position)
     //}
     
     } else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
-        if (GetValueOfPosition(position) == undecided) {
+     if (GetValueOfPosition(position) == undecided) {
             gSolver(position);
-            AnalysisCollation();
+            AnalysisCollation();									
             gAnalysisLoaded = TRUE;
         
-            if(gSaveDatabase) {
+            if(gSaveDatabase) {																																																																													
                 SaveDatabase();
                 if(gUseOpen) {
-                    SaveOpenPositionsData();
+           SaveOpenPositionsData();
                 }
                 SaveAnalysis();
             }
@@ -181,14 +181,13 @@ VALUE GetValue(POSITION position)
         if(gSaveDatabase) {
             SaveDatabase();
             if(gUseOpen) {
-                SaveOpenPositionsData();
+              SaveOpenPositionsData();
             }
             SaveAnalysis();
         }
     }
     gUseGPS = FALSE;
-    gValue = GetValueOfPosition(position);
-    return gValue;
+    
 }
 VALUE DetermineValue(POSITION position)
 {
@@ -582,11 +581,15 @@ void HandleArguments (int argc, char *argv[])
                     } else {
                         printf("{");
                         MOVELIST *moves = GenerateMoves(pos);
+                        // LOAD EVERYTHING
+                        InitializeGetMoveValuesStuff(pos);
                         while (moves != NULL) {
                             POSITION child = DoMove(pos, moves->move);
-                            // FIXME: change "child" into a board string
-                            printf("(%lld, %d, %d)", child, moves->move,
-                                   GetValue(child));
+                            // FIXME: change "child" into a board strings
+                            char* childPosition = PositionToString(child, whoseMove, option);
+                            //printf("(%lld, %d, %d)", child, moves->move,
+                            printf("(%s, %s, %d)", childPosition, MoveToString(moves->move),
+                                   GetValueOfPosition(child));
                             moves = moves->next;
                             if (moves != NULL) {
                               printf(", ");
@@ -595,9 +598,10 @@ void HandleArguments (int argc, char *argv[])
                         printf("}\n");
                     }
                 } else {
+                    InitializeGetMoveValuesStuff(pos);
                       // Output the move value for the current position.
                     VALUE positionValue = primitiveValue ? primitiveValue :
-                                                           GetValue(pos);
+                                                           GetValueOfPosition(pos);
                     // We omit the "move" field from the tuple.
                     printf("(%s, , %d)\n", boardStr, positionValue);
                 }

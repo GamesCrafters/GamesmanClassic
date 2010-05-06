@@ -252,10 +252,8 @@ void InitializeGame() {
   piecesArray[7] = 0;
   piecesArray[8] = side-1;
   piecesArray[9] = -1;
-
   gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL, 0);
   gWhosTurn = x;
-
   for (i = 0; i < NUM_BUCKETS; i++)
     gBucketIndicator[0][i] = gBucketIndicator[1][i] = FALSE;
   gUndoMove = UndoMove;
@@ -1391,7 +1389,26 @@ BlankOX getwhosTurnfromMove(MOVE theMove) {
   player = theMove & 255;
   return (player == 1) ? o : x;
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+POSITION StringToPosition(char* board, int move, int option) {
+        
+    BlankOX realBoard[boardsize];
+    int i = 0;
+    for (i = 0; i < boardsize; i++) {
+        realBoard[i] = board[i];
+        
+    }
+    return generic_hash_hash(realBoard,move);
+}
+
+
+
+char* PositionToString(POSITION pos, int move, int option) {
+    BlankOX board[boardsize];
+    int i = 0;
+    generic_hash_unhash(pos, &board);
+    char* finalBoard = calloc((boardsize+1), sizeof(char));
+    for (i = 0; i < boardsize; i++) {
+        finalBoard[i] = board[i]; 
+    }
+    return finalBoard;
 }

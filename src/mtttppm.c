@@ -567,3 +567,4 @@ Revision 1.3  2004/12/01 22:31:29  ogren
 added prototypes for COLOR SwapWinLoseColor, int GetOffset. Must still decide between typing file/buffer access functions as void or prototyping them as int. -Elmer
 
 */
+

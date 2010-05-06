@@ -1376,7 +1376,10 @@ int symmetry;
         SafeFree(unflipped);
 	return(hash(board, turn, goatsLeft));
 }
-
+char* PositionToString(POSITION pos, int move, int option) {
+    // FIXME: this is just a stub
+    return "Implement Me";
+}
 /***************************
 ******  TIER API    ********
 ****************************/

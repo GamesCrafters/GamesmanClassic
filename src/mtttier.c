@@ -918,3 +918,9 @@ POSITION StringToPosition(char* boardStr, int move, int option) {
     }
     return BlankOXToPosition(board);
 }
+
+char* PositionToString(POSITION pos, int move, int option) {
+    // FIXME: this is just a stub
+    return "Implement Me";
+}
+

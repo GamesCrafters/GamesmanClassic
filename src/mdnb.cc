@@ -787,6 +787,14 @@ EXTERNC POSITION StringToPosition(char* board, int option, char* move, char* par
     // FIXME: this is just a stub    
     return atoi(board);
 }
+EXTERNC char* PositionToString(POSITION pos, int move, int option) {
+    // FIXME: this is just a stub
+    return "Implement Me";
+}
+
+EXTERNC STRING MoveToString(MOVE theMove) {
+    return "Implement MoveToString";
+}
 /*
 EXTERNC VALUE *GetRawValueFromDatabase(POSITION position)
 {

@@ -537,3 +537,11 @@ STRING GetNextMoveValues(char* board, int option) {
 POSITION StringToPosition(char* board, int move, int option) {
     return atoi(board);
 }
+
+char* PositionToString(POSITION pos, int move, int option) {
+    char buffer[32];
+    snprintf(buffer, 32, "%lld",pos);
+    char* ret = malloc(sizeof(char)*(strlen(buffer)+1));
+    strncpy(ret, buffer, (strlen(buffer)+1));
+    return ret; 																													
+}

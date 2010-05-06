@@ -613,6 +613,14 @@ EXTERNC POSITION StringToPosition(char* board, int option, char* move, char* par
     return atoi(board);
 }
 
+EXTERNC char* PositionToString(POSITION pos, int move, int option) {
+    // FIXME: this is just a stub
+    return "Implement Me";
+}
+
+EXTERNC STRING MoveToString(MOVE theMove) {
+    return "Implement MoveToString";
+}
 /************************************************************************
 *************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE

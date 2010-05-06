@@ -139,3 +139,9 @@ int comparePosToStr(GoPosition pos, const char* str) {
 	free(posstr);
 	return result;
 }
+
+
+char* PositionToString(POSITION pos, int move, int option) {
+    // FIXME: this is just a stub
+    return "Implement Me";
+}
