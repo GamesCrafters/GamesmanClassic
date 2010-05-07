@@ -200,48 +200,22 @@ void InitializeGame ()
 {
 	char board[] = "XXXXXXXXXXXXXXX";
 	POSITION position = hash(theBoard, BLACK_TURN);
-	printf("\nPOSITION: %llu", position);
+	printf("\nINITIAL POSITION: %llu", position);
+	PrintPosition(position, "foo", TRUE);
 	unhash(position, board);
-	PrintPosition(position, "foo", TRUE);
 	printf("\n%s", board);
 
-	MOVE tester = 57;
-	printf("\nmove: 57");
-	position = DoMove(position, tester);
+	printf("\n----- TESTING hash/unhash -----");
+	position = hash(board, BLACK_TURN);
+	PrintPosition(position, "foo", TRUE);
 	unhash(position, board);
-	PrintPosition(position, "bar", TRUE);
 	printf("\n%s", board);
 
-	printf("\n\ntesting unhashing");
-	position = 141155193307LLU;
-	printf("\nPOSITION: %llu", position);
+	printf("\n----- TESTING unhash -----");
+	position = hash(" L  C  c  l 430", BLACK_TURN);
+	PrintPosition(position, "foo", TRUE);
 	unhash(position, board);
-	PrintPosition(position, "foo", TRUE);
 	printf("\n%s", board);
-
-	printf("\n\ntesting hashing");
-	theBoard = " G l   H g L042";
-	position = hash(theBoard, BLACK_TURN);
-	printf("\nPOSITION: %llu", position);
-//	unhash(position, board);
-	PrintPosition(position, "foo", TRUE);
-	printf("\n%s", board);
-/*
-	tester = 65;
-	printf("\nmove: 65");
-	position = DoMove(position, tester);
-	PrintPosition(position, "foo", TRUE);
-
-	tester = 41;
-	printf("\nmove: 41");
-	position = DoMove(position, tester);
-	PrintPosition(position, "bar", TRUE);
-
-	tester = 57;
-	printf("\nmove: 57");
-	position = DoMove(position, tester);
-	PrintPosition(position, "foo", TRUE);
-*/
 }
 
 /************************************************************************
@@ -260,6 +234,8 @@ void unhash_turn(POSITION position, int* turn) {
 
 char* unhash(POSITION position, char* board)
 {
+//	board = (char *) SafeMalloc(16 * sizeof(char));
+	BOOLEAN verbose = FALSE;
 	POSITION pos = position;
 	POSITION piece;
 
@@ -296,17 +272,17 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 164511360000LLU;
 	piece = pos / 13709280000LLU;
-	printf("\nBLACK LION: %llu", piece);
+	if (verbose) printf("\nBLACK LION: %llu", piece);
 	board[pos / 13709280000LLU] = BLACK_LION;
 
 	pos = pos % 13709280000LLU;
 	piece = pos / 1142440000LLU;
-	printf("\nWHITE LION: %llu", piece);
+	if (verbose) printf("\nWHITE LION: %llu", piece);
 	board[pos / 1142440000LLU] = WHITE_LION;
 
 	pos = pos % 1142440000LLU;
 	piece = pos / 43940000;
-	printf("\nGIRAFFE 1: %llu", piece);
+	if (verbose) printf("\nGIRAFFE 1: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
 	} else if (piece < 24) { // then white
@@ -319,7 +295,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 43940000;
 	piece = pos / 1690000;
-	printf("\nGIRAFFE 2: %llu", piece);
+	if (verbose) printf("\nGIRAFFE 2: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_GIRAFFE;
 	} else if (piece < 24) { // then white
@@ -332,7 +308,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 1690000;
 	piece = pos / 65000;
-	printf("\nELEPHANT 1: %llu", piece);
+	if (verbose) printf("\nELEPHANT 1: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_ELEPHANT;
 	} else if (piece < 24) { // then white
@@ -345,7 +321,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 65000;
 	piece = pos / 2500;
-	printf("\nELEPHANT 2: %llu", piece);
+	if (verbose) printf("\nELEPHANT 2: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_ELEPHANT;
 	} else if (piece < 24) { // then white
@@ -358,7 +334,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 2500;
 	piece = pos / 50;
-	printf("\nCHICK 1: %llu", piece);
+	if (verbose) printf("\nCHICK 1: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_CHICK;
 	} else if (piece < 24) { // then white
@@ -375,7 +351,7 @@ char* unhash(POSITION position, char* board)
 
 	pos = pos % 50;
 	piece = pos;
-	printf("\nCHICK 2: %llu", piece);
+	if (verbose) printf("\nCHICK 2: %llu", piece);
 	if (piece < 12) { // then black
 		board[piece] = BLACK_CHICK;
 	} else if (piece < 24) { // then white
@@ -1404,6 +1380,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 			}
 		}
 	}
+//	SafeFree(boardArray);
 	return moves;
 }
 
@@ -1434,6 +1411,41 @@ MOVELIST *GenerateMoves(POSITION position) {
 
 VALUE Primitive (POSITION position)
 {
+	char board[16];
+	char piece;
+	unhash(position, board);
+	unhash_turn(position, &theCurrentPlayer);
+	if (theCurrentPlayer == BLACK_TURN) {
+		piece = board[9];
+		if (piece == WHITE_LION) {
+			return (gStandardGame) ? lose  : win;
+		}
+
+		piece = board[10];
+		if (piece == WHITE_LION) {
+			return (gStandardGame) ? lose : win;
+		}
+
+		piece = board[11];
+		if (piece == WHITE_LION) {
+			return (gStandardGame) ? lose : win;
+		} 
+	} else {
+		piece = board[0];
+		if (piece == BLACK_LION) {
+			return (gStandardGame) ? lose : win;
+		}
+
+		piece = board[1];
+		if (piece == BLACK_LION) {
+			return (gStandardGame) ? lose : win;
+		}
+
+		piece = board[2];
+		if (piece == BLACK_LION) {
+			return (gStandardGame) ? lose : win;
+		}
+	}
 	//printf("primitive");
 	MOVELIST *moves = NULL;
 	moves = GenerateMoves(position);
@@ -2468,6 +2480,8 @@ int getNumPieces(int* piecesArray) {
 ************************************************************************/
 
 
+<<<<<<< .mine
+=======
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
     // FIXME: this is just a stub    
     return atoi(board);
@@ -2478,3 +2492,4 @@ char* PositionToString(POSITION pos, int move, int option) {
     // FIXME: this is just a stub
     return "Implement Me";
 }
+>>>>>>> .r4951
