@@ -2246,13 +2246,26 @@ THERE IS NOTHING TO REMOVE.
 we should use the one liner functions from, to, and remove.
 	it makes the code a whole lot easier to read and reduces likely hood of errors... such as the mistake in DoMove earlier
 */
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+POSITION StringToPosition(char* board, int move, int option) {
+        
+    char realBoard[BOARDSIZE];
+    int i = 0;
+    for (i = 0; i < BOARDSIZE; i++) {
+        realBoard[i] = board[i];
+        
+    }
+    return generic_hash_hash(realBoard,move);
 }
 
 
+
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+    char board[BOARDSIZE];
+    int i = 0;
+    generic_hash_unhash(pos, &board);
+    char* finalBoard = calloc((BOARDSIZE+1), sizeof(char));
+    for (i = 0; i < BOARDSIZE; i++) {
+        finalBoard[i] = board[i]; 
+    }
+    return finalBoard;
 }

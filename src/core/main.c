@@ -126,7 +126,7 @@ void SetSolver()
     }
 }
 
-void InitializeGetMoveValuesStuff(POSITION position)
+BOOLEAN InitializeGetMoveValuesStuff()
 {
     gUseGPS = gGlobalPositionSolver && gUndoMove != NULL;
     //gSaveDatabase = FALSE;
@@ -134,59 +134,7 @@ void InitializeGetMoveValuesStuff(POSITION position)
         gLoadDatabase = FALSE;
     }
 
-    if(kSupportsTierGamesman && gTierGamesman) {//TIER GAMESMAN
-        gSolver = &DetermineRetrogradeValue; // force the retrograde solver
-    gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
-    gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
-    gSolver(position);
-    gDBLoadMainTier = TRUE; // from now on, tierdb loads main tier too
-    gInitializeHashWindow(gInitialTier, TRUE);
-    position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
-    gInitialPosition = position; // saves a LOT of little changes
-    
-    showStatus(Clean);
-    AnalysisCollation();
-    gAnalysisLoaded = TRUE;
-    //if(gSaveDatabase) {
-    //    if(gUseOpen) {
-    //        SaveOpenPositionsData();
-    //    }
-    //    SaveAnalysis();
-    //}
-    
-    } else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
-     if (GetValueOfPosition(position) == undecided) {
-            gSolver(position);
-            AnalysisCollation();									
-            gAnalysisLoaded = TRUE;
-        
-            if(gSaveDatabase) {																																																																													
-                SaveDatabase();
-                if(gUseOpen) {
-           SaveOpenPositionsData();
-                }
-                SaveAnalysis();
-            }
-        }
-    } else {
-        // Ken Elkabany removed the line below, tell him if you want to undo it
-        // bpdb will not work with it since it doesn't allocate itself until
-        // gSolver(position) is called
-        //StoreValueOfPosition(position, undecided);
-        gSolver(position);
-        showStatus(Clean);
-        AnalysisCollation();
-        gAnalysisLoaded = TRUE;
-      
-        if(gSaveDatabase) {
-            SaveDatabase();
-            if(gUseOpen) {
-              SaveOpenPositionsData();
-            }
-            SaveAnalysis();
-        }
-    }
-    gUseGPS = FALSE;
+    return gLoadDatabase && LoadDatabase() && LoadOpenPositionsData();
     
 }
 VALUE DetermineValue(POSITION position)
@@ -582,28 +530,32 @@ void HandleArguments (int argc, char *argv[])
                         printf("{");
                         MOVELIST *moves = GenerateMoves(pos);
                         // LOAD EVERYTHING
-                        InitializeGetMoveValuesStuff(pos);
-                        while (moves != NULL) {
-                            POSITION child = DoMove(pos, moves->move);
-                            // FIXME: change "child" into a board strings
-                            char* childPosition = PositionToString(child, whoseMove, option);
-                            //printf("(%lld, %d, %d)", child, moves->move,
-                            printf("(%s, %s, %d)", childPosition, MoveToString(moves->move),
-                                   GetValueOfPosition(child));
-                            moves = moves->next;
-                            if (moves != NULL) {
-                              printf(", ");
+                        if (InitializeGetMoveValuesStuff()) {
+                            while (moves != NULL) {
+                                POSITION child = DoMove(pos, moves->move);
+                                // FIXME: change "child" into a board strings
+                                char* childPosition = PositionToString(child, whoseMove, option);
+                                //printf("(%lld, %d, %d)", child, moves->move,
+                                printf("(%s, %s, %d)", childPosition, MoveToString(moves->move),
+                                       GetValueOfPosition(child));
+                                moves = moves->next;
+                                if (moves != NULL) {
+                                  printf(", ");
+                                }
                             }
+                        } else {
+                            printf("error");
                         }
                         printf("}\n");
                     }
                 } else {
-                    InitializeGetMoveValuesStuff(pos);
-                      // Output the move value for the current position.
-                    VALUE positionValue = primitiveValue ? primitiveValue :
-                                                           GetValueOfPosition(pos);
-                    // We omit the "move" field from the tuple.
-                    printf("(%s, , %d)\n", boardStr, positionValue);
+                    if (InitializeGetMoveValuesStuff()) {
+                          // Output the move value for the current position.
+                        VALUE positionValue = primitiveValue ? primitiveValue :
+                                                               GetValueOfPosition(pos);
+                        // We omit the "move" field from the tuple.
+                        printf("(%s, , %d)\n", boardStr, positionValue);
+                    }
                 }
             }   
             i += argc;
