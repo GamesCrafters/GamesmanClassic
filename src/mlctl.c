@@ -1218,9 +1218,9 @@ POSITION DoMove (POSITION position, MOVE move) {
 //		printf("\nf: %d", indexf);
 		captured = boardArray[indexf]; // get captured piece to determine type
 		boardArray[indexf] = boardArray[indexi]; // move piece to final location
-		if (boardArray[indexf] == BLACK_CHICK && currentPlayer == BLACK_TURN && (indexf == 0 || indexf == 1 || indexf == 2)) { // promote black chick to black hen if applicable
+		if (boardArray[indexf] == BLACK_CHICK && (indexf == 0 || indexf == 1 || indexf == 2)) { // promote black chick to black hen if applicable
 			boardArray[indexf] = BLACK_HEN;
-		} else if (boardArray[indexf] == WHITE_CHICK && currentPlayer == WHITE_TURN && (indexf == 9 || indexf == 10 || indexf == 11)) { // promote white chick to white hen if applicable
+		} else if (boardArray[indexf] == WHITE_CHICK && (indexf == 9 || indexf == 10 || indexf == 11)) { // promote white chick to white hen if applicable
 			boardArray[indexf] = WHITE_HEN;
 		}
 		boardArray[indexi] = BLANK_PIECE; // set original location to blank
@@ -2001,6 +2001,77 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 ** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
 **************************************************************************/
 
+BOOLEAN ValidTextInput (STRING input) {
+	int length = strlen(input);
+	char c;
+	if (length < 4) {
+		return FALSE;
+	} else {
+		c = input[0];
+		if (c == 'd') { // a drop move
+			c = input[1];
+			if (c != 'c' && c != 'e' && c != 'g' && c != 'C' && c != 'E' && c != 'G') {
+				return FALSE;
+			}
+			c = input[2];
+			if (c < '0' || c > '1') {
+				return FALSE;
+			}
+
+			if (c == '0') {
+				c = input[3];
+				if (c < '0' || c > '9') {
+					return FALSE;
+				}
+			} else if (c == '1') {
+				c = input[3];
+				if (c < '0' || c > '1') {
+					return FALSE;
+				}
+			} else {
+				return FALSE;
+			}
+		} else { // otherwise it is a move
+			if (c < '0' || c > '1') {
+				return FALSE;
+			}
+			if (c == '0') {
+				c = input[1];
+				if (c < '0' || c > '9') {
+					return FALSE;
+				}
+			} else if (c == '1') {
+				c = input[1];
+				if (c < '0' || c > '1') {
+					return FALSE;
+				}
+			} else {
+				return FALSE;
+			}
+
+			c = input[2];
+			if (c < '0' || c > '1') {
+				return FALSE;
+			}
+			if (c == '0') {
+				c = input[3];
+				if (c < '0' || c > '9') {
+					return FALSE;
+				}
+			} else if (c == '1') {
+				c = input[3];
+				if (c < '0' || c > '1') {
+					return FALSE;
+				}
+			} else {
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
+
+/*
 BOOLEAN ValidTextInput (STRING input)
 {
 char c;
@@ -2008,8 +2079,10 @@ char c;
 	if(length==4 || length==6 ) 
 		return FALSE; 
 	else{ 
+*/
 		/* Make sure the row and column are within the bounds 
 		set by the current board size. */  
+/*
 		c = input[0];
 		if (c < 'a' || c >= 'a' + cols) return FALSE; 
 		c = input[2]; 
@@ -2029,6 +2102,7 @@ char c;
 	return TRUE; 
 
 } 
+*/
 
 /************************************************************************
 **
@@ -2044,11 +2118,76 @@ char c;
 **
 ************************************************************************/
 
+MOVE ConvertTextInputToMove (STRING input) {
+	MOVE move;
+	int start, finish;
+	char c = input[0];
+	if (c == 'd') { // then it is a drop move
+		move = 96;
+		c = input[2];
+		if (c == '0') {
+			c = input[3];
+			finish = c - '0';
+		} else {
+			c = input[3];
+			finish = 10 + c - '0';
+		}
+		move += 6 * finish;
+		c = input[1];
+		switch (c) {
+			case 'c':
+				move += DROP_BLACK_CHICK;
+				break;
+			case 'e':
+				move += DROP_BLACK_ELEPHANT;
+				break;
+			case 'g':
+				move += DROP_BLACK_GIRAFFE;
+				break;
+			case 'C':
+				move += DROP_WHITE_CHICK;
+				break;
+			case 'E':
+				move += DROP_WHITE_ELEPHANT;
+				break;
+			case 'G':
+				move += DROP_WHITE_GIRAFFE;
+				break;
+		}
+	} else { // then move (all 4 characters must be numbers)
+		move = 0;
+		if (c == '0') { // 2nd digit can be anything
+			c = input[1];
+			start = c - '0';
+		} else { // then it must begin with a 1
+			c = input[1];
+			start = 10 + c - '0';
+		}
+		c = input[2];
+		if (c == '0') { // 3rd digit can only be 1 or 0
+			c = input[3];
+			finish = c - '0';
+		} else {
+			c = input[3];
+			finish = 10 + c - '0';
+		}
+
+		if (finish < start) {
+			move = (8 * start) + (4 - (start - finish));
+		} else {
+			move = (8 * start) + (finish - start - 1);
+		}
+	}
+	return move;
+}
+
+/*
 MOVE ConvertTextInputToMove (STRING input)
 {
   MOVE m = 0;
   return m;
 }
+*/
 
 
 /************************************************************************
