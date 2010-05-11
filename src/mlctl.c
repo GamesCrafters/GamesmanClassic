@@ -42,6 +42,7 @@ BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when 
 
 POSITION gNumberOfPositions   =  329022720000LLU; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  138782043307LLU; /* The initial hashed position for your starting board */
+//POSITION gInitialPosition	= 139331982298LLU;
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
 void*	 gGameSpecificTclInit = NULL;
@@ -185,7 +186,7 @@ BOOLEAN isLegalBoard(char *Board);
 BOOLEAN IsLegal(POSITION p);
 POSITION hash(char* board, int turn);
 char* unhash(POSITION position, char *board);
-MOVE createMove(int ri, int ci, int rv, int cv);
+MOVE createMove(int start, int finish);
 
 /************************************************************************
 **
@@ -198,23 +199,20 @@ MOVE createMove(int ri, int ci, int rv, int cv);
 
 void InitializeGame ()
 {
+	theBoard = (char *) SafeMalloc(15 * sizeof(char));
+	theBoard = "GLE C  c elg000";
 	char board[] = "XXXXXXXXXXXXXXX";
 	POSITION position = hash(theBoard, BLACK_TURN);
-	printf("\nINITIAL POSITION: %llu", position);
-	PrintPosition(position, "foo", TRUE);
+	printf("POSITION: %llu\n", position);
 	unhash(position, board);
-	printf("\n%s", board);
+	PrintPosition(position, "foo", TRUE);
+	printf("%s\n", board);
 
-	printf("\n----- TESTING hash/unhash -----");
-	position = hash(board, BLACK_TURN);
-	PrintPosition(position, "foo", TRUE);
+	MOVE tester = 57;
+	printf("move: 57\n");
+	position = DoMove(position, tester);
 	unhash(position, board);
-	printf("\n%s", board);
-
-	printf("\n----- TESTING unhash -----");
-	position = hash(" L  C  c  l 430", BLACK_TURN);
-	PrintPosition(position, "foo", TRUE);
-	unhash(position, board);
+	PrintPosition(position, "bar", TRUE);
 	printf("\n%s", board);
 }
 
@@ -234,7 +232,6 @@ void unhash_turn(POSITION position, int* turn) {
 
 char* unhash(POSITION position, char* board)
 {
-//	board = (char *) SafeMalloc(16 * sizeof(char));
 	BOOLEAN verbose = FALSE;
 	POSITION pos = position;
 	POSITION piece;
@@ -585,18 +582,18 @@ POSITION hash(char* board, int turn) {
 
 	piece = board[CHICK_INDEX]; // Chicks
 	if (piece == B1W0) {
-		position += 24;
+		position += 48;
 	} else if (piece == B0W1) {
-		position += 25;
+		position += 49;
 	} else if (piece == B1W1) {
-		position += 24 * 50;
-		position += 25;
+		position += 48 * 50;
+		position += 49;
 	} else if (piece == B2W0) {
-		position += 24 * 50;
-		position += 24;
+		position += 48 * 50;
+		position += 48;
 	} else if (piece == B0W2) {
-		position += 25 * 50;
-		position += 25;
+		position += 49 * 50;
+		position += 49;
 	}
 
 	return position;
@@ -669,120 +666,123 @@ STRING pieceToPrint(char piece) {
 			return "XX";
 	}
 }
-		
+
+/*
 BOOLEAN lionSafeAt(char* board, int player, int r, int c) {
+*/
+BOOLEAN lionSafeAt(char* board, int player, int index) {
 	BOOLEAN checkup = FALSE;
 	BOOLEAN checkdn = FALSE;
 	BOOLEAN checklt = FALSE;
 	BOOLEAN checkrt = FALSE;
-	if (r > 0) {
+	if (index != 0 && index != 1 && index != 2) {
 		checkup = TRUE;
 	}
-	if (r < 3) {
+	if (index != 9 && index != 10 && index != 11) {
 		checkdn = TRUE;
 	}
-	if (c > 0) {
+	if (index != 0 && index != 3 && index != 6 && index != 9) {
 		checklt = TRUE;
 	}
-	if (c < 2) {
+	if (index != 2 && index != 5 && index != 8 && index != 11) {
 		checkrt = TRUE;
 	}
 	
 	char piece;
 	if (player == BLACK_TURN) { // used for piece directionality
 		if (checkup) { // only lion, giraffe, chick, hen can move down
-			piece = board[coordToNum(r - 1, c)];
+			piece = board[index - 3];
 			if (piece == WHITE_LION || piece == WHITE_GIRAFFE || piece == WHITE_CHICK || piece == WHITE_HEN) {
 				return FALSE;
 			}
 		}
 		if (checklt) { // only lion, giraffe, hen can move right
-			piece = board[coordToNum(r, c - 1)];
+			piece = board[index - 1];
 			if (piece == WHITE_LION || piece == WHITE_GIRAFFE || piece == WHITE_HEN) {
 				return FALSE;
 			}
 		}
 		if (checkrt) { // only lion, giraffe, hen can move left
-			piece = board[coordToNum(r, c + 1)];
+			piece = board[index + 1];
 			if (piece == WHITE_LION || piece == WHITE_GIRAFFE || piece == WHITE_HEN) {
 				return FALSE;
 			}
 		}
 		if (checkdn) { // only lion, giraffe, hen can move up
-			piece = board[coordToNum(r + 1, c)];
+			piece = board[index + 3];
 			if (piece == WHITE_LION || piece == WHITE_GIRAFFE || piece == WHITE_HEN) {
 				return FALSE;
 			}
 		}
-		if (checkup || checklt) { // only lion, elephant, hen can move down right
-			piece = board[coordToNum(r - 1, c - 1)];
+		if (checkup && checklt) { // only lion, elephant, hen can move down right
+			piece = board[index - 4];
 			if (piece == WHITE_LION || piece == WHITE_ELEPHANT || piece == WHITE_HEN) {
 				return FALSE;
 			}
 		}
-		if (checkup || checkrt) { // only lion, elephant, hen can move down left
-			piece = board[coordToNum(r - 1, c + 1)];
+		if (checkup && checkrt) { // only lion, elephant, hen can move down left
+			piece = board[index - 2];
 			if (piece == WHITE_LION || piece == WHITE_ELEPHANT || piece == WHITE_HEN) {
 				return FALSE;
 			}
 		}
-		if (checkdn || checklt) { // only lion, elephant can move up right
-			piece = board[coordToNum(r + 1, c - 1)];
+		if (checkdn && checklt) { // only lion, elephant can move up right
+			piece = board[index + 2];
 			if (piece == WHITE_LION || piece == WHITE_ELEPHANT) {
 				return FALSE;
 			}
 		}
-		if (checkdn || checkrt) { // only lion, elephant can move up left
-			piece = board[coordToNum(r + 1, c + 1)];
+		if (checkdn && checkrt) { // only lion, elephant can move up left
+			piece = board[index + 4];
 			if (piece == WHITE_LION || piece == WHITE_ELEPHANT) {
 				return FALSE;
 			}
 		}
 	} else { // used for piece directionality
 		if (checkup) { // only lion, giraffe, hen can move down
-			piece = board[coordToNum(r - 1, c)];
+			piece = board[index - 3];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
 		if (checklt) { // only lion, giraffe, hen can move right
-			piece = board[coordToNum(r, c - 1)];
+			piece = board[index - 1];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
 		if (checkrt) { // only lion, giraffe, hen can move left
-			piece = board[coordToNum(r, c + 1)];
+			piece = board[index + 1];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
 		if (checkdn) { // only lion, giraffe, chick, hen can move up
-			piece = board[coordToNum(r + 1, c)];
+			piece = board[index + 3];
 			if (piece == BLACK_LION || piece == BLACK_GIRAFFE || piece == BLACK_HEN || piece == BLACK_CHICK) {
 				return FALSE;
 			}
 		}
-		if (checkup || checklt) { // only lion, elephant can move down right
-			piece = board[coordToNum(r - 1, c - 1)];
+		if (checkup && checklt) { // only lion, elephant can move down right
+			piece = board[index - 4];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT) {
 				return FALSE;
 			}
 		}
-		if (checkup || checkrt) { // only lion, elephant can move down left
-			piece = board[coordToNum(r - 1, c + 1)];
+		if (checkup && checkrt) { // only lion, elephant can move down left
+			piece = board[index - 2];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT) {
 				return FALSE;
 			}
 		}
-		if (checkdn || checklt) { // only lion, elephant, hen can move up right
-			piece = board[coordToNum(r + 1, c - 1)];
+		if (checkdn && checklt) { // only lion, elephant, hen can move up right
+			piece = board[index + 2];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT || piece == BLACK_HEN) {
 				return FALSE;
 			}
 		}
-		if (checkdn || checkrt) { // only lion, elephant, hen can move up left
-			piece = board[coordToNum(r + 1, c + 1)];
+		if (checkdn && checkrt) { // only lion, elephant, hen can move up left
+			piece = board[index + 4];
 			if (piece == BLACK_LION || piece == BLACK_ELEPHANT || piece == BLACK_HEN) {
 				return FALSE;
 			}
@@ -807,6 +807,7 @@ BOOLEAN lionSafeAt(char* board, int player, int r, int c) {
 **
 ************************************************************************/
 
+/*
 MOVE createMove(int ri, int ci, int rv, int cv) {
 	MOVE move = coordToNum(ri, ci) * 8;
 	if (rv == -1) {
@@ -834,9 +835,34 @@ MOVE createMove(int ri, int ci, int rv, int cv) {
 	}
 	return move;
 }
+*/
+
+MOVE createMove(int start, int finish) {
+	MOVE move = start * 8;
+	if ((start - 4) == finish) { // ul
+		move += 0;
+	} else if ((start - 3) == finish) { // up
+		move += 1;
+	} else if ((start - 2) == finish) { // ur
+		move += 2;
+	} else if ((start - 1) == finish) { // lt
+		move += 3;
+	} else if (start == finish) { // same thing.. not possible
+		perror("attempted a null move");
+	} else if ((start + 1) == finish) { // rt
+		move += 4;
+	} else if ((start + 2) == finish) { // dl
+		move += 5;
+	} else if ((start + 3) == finish) { // dn
+		move += 6;
+	} else if ((start + 4) == finish) { // dr
+		move += 7;
+	}
+	return move;
+}
 
 BOOLEAN testMove(char* board, MOVE move, int player) {
-	char testBoard[16];
+	char testBoard[15];
 	int i = 0;
 	for (i = 0; i < 15; i++) {
 		testBoard[i] = board[i];
@@ -846,13 +872,13 @@ BOOLEAN testMove(char* board, MOVE move, int player) {
 	unhash(position, testBoard);
 	for (i = 0; i < 12; i++) {
 		if (player == BLACK_TURN && testBoard[i] == BLACK_LION) {
-			if (lionSafeAt(testBoard, player, (i / 4), (i % 3))) {
+			if (lionSafeAt(testBoard, player, i)) {
 				return TRUE;
 			} else {
 				return FALSE;
 			}
 		} else if (player == WHITE_TURN && testBoard[i] == WHITE_LION) {
-			if (lionSafeAt(testBoard, player, (i / 4), (i % 3))) {
+			if (lionSafeAt(testBoard, player, i)) {
 				return TRUE;
 			} else {
 				return FALSE;
@@ -878,6 +904,35 @@ BOOLEAN testMove(char* board, MOVE move, int player) {
 **
 ************************************************************************/
 
+MOVE createDrop(char piece, int index) {
+	MOVE move = 96;
+	move += index * 6;
+	switch (piece) {
+		case BLACK_CHICK:
+			move += DROP_BLACK_CHICK;
+			break;
+		case BLACK_ELEPHANT:
+			move += DROP_BLACK_ELEPHANT;
+			break;
+		case BLACK_GIRAFFE:
+			move += DROP_BLACK_GIRAFFE;
+			break;
+		case WHITE_CHICK:
+			move += DROP_WHITE_CHICK;
+			break;
+		case WHITE_ELEPHANT:
+			move += DROP_WHITE_ELEPHANT;
+			break;
+		case WHITE_GIRAFFE:
+			move += DROP_WHITE_GIRAFFE;
+			break;
+		default:
+			break;
+	}
+	return move;
+}
+
+/*
 MOVE createDrop(char piece, int r, int c) {
 	MOVE move = 96;
 	move += coordToNum(r, c) * 6;
@@ -905,9 +960,15 @@ MOVE createDrop(char piece, int r, int c) {
 	}
 	return move;
 }
+*/
 
+void generateMoveWithDir(char* board, MOVELIST **moves, int player, int start, int dir) {
+/*
 void generateMoveWithDir(char* board, MOVELIST **moves, int player, int r, int c, int dir) {
-	if (!sameTeam(board[coordToNum(r, c)], player)) { // if this piece is not current player's do not generate a move.
+*/
+	if (!sameTeam(board[start], player)) { // if this piece is not current player's do not generate a move.
+		// This should never happen;
+		perror("Error: player attempted to move a piece not his/her own.");
 		return;
 	}
 	
@@ -925,7 +986,41 @@ void generateMoveWithDir(char* board, MOVELIST **moves, int player, int r, int c
 	} else if (dir == UR || dir == RT || dir == DR) {
 		vecc = 1;
 	}
-	
+
+	int finish = start + (3 * vecr) + vecc;
+
+	MOVE newMove;
+	if (player == BLACK_TURN) {
+		if (board[start] == BLACK_LION) {
+			if (!sameTeam(board[finish], player) && lionSafeAt(board, player, finish)) {
+				newMove = createMove(start, finish);
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		} else {
+			if (!sameTeam(board[finish], player)) {
+				newMove = createMove(start, finish);
+				if (testMove(board, newMove, player)) {
+					*moves = CreateMovelistNode(newMove, *moves);
+				}
+			}
+		}
+	} else {
+		if (board[start] == WHITE_LION) {
+			if (!sameTeam(board[finish], player) && lionSafeAt(board, player, finish)) {
+				newMove = createMove(start, finish);
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		} else {
+			if (!sameTeam(board[finish], player)) {
+				newMove = createMove(start, finish);
+				if (testMove(board, newMove, player)) {
+					*moves = CreateMovelistNode(newMove, *moves);
+				}
+			}
+		}
+	}
+
+/*	
 	int newr = r + vecr;
 	int newc = c + vecc;
 	
@@ -963,8 +1058,53 @@ void generateMoveWithDir(char* board, MOVELIST **moves, int player, int r, int c
 			}
 		}
 	}
+*/
 }
 
+void generateDropMoves(char* board, MOVELIST **moves, int player, int index) {
+	MOVE newMove;
+	if (player == BLACK_TURN) {
+		if (board[CHICK_INDEX] == B1W0 || board[CHICK_INDEX] == B1W1 || board[CHICK_INDEX] == B2W0) {
+			newMove = createDrop(BLACK_CHICK, index);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		}
+		if (board[ELEPHANT_INDEX] == B1W0 || board[ELEPHANT_INDEX] == B1W1 || board[ELEPHANT_INDEX] == B2W0) {
+			newMove = createDrop(BLACK_ELEPHANT, index);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		}
+		if (board[GIRAFFE_INDEX] == B1W0 || board[GIRAFFE_INDEX] == B1W1 || board[GIRAFFE_INDEX] == B2W0) {
+			newMove = createDrop(BLACK_GIRAFFE, index);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		}
+	} else {
+		if (board[CHICK_INDEX] == B0W1 || board[CHICK_INDEX] == B1W1 || board[CHICK_INDEX] == B0W2) {
+			newMove = createDrop(WHITE_CHICK, index);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		}
+		if (board[ELEPHANT_INDEX] == B0W1 || board[ELEPHANT_INDEX] == B1W1 || board[ELEPHANT_INDEX] == B0W2) {
+			newMove = createDrop(WHITE_ELEPHANT, index);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		}
+		if (board[GIRAFFE_INDEX] == B0W1 || board[GIRAFFE_INDEX] == B1W1 || board[GIRAFFE_INDEX] == B0W2) {
+			newMove = createDrop(WHITE_GIRAFFE, index);
+			if (testMove(board, newMove, player)) {
+				*moves = CreateMovelistNode(newMove, *moves);
+			}
+		}
+	}
+}
+
+/*
 void generateDropMoves(char* board, MOVELIST **moves, int player, int r, int c) {
 	MOVE newMove;
 	if (player == BLACK_TURN) {
@@ -1007,6 +1147,7 @@ void generateDropMoves(char* board, MOVELIST **moves, int player, int r, int c) 
 		}
 	}
 }
+*/
 
 /************************************************************************
 **
@@ -1073,7 +1214,7 @@ POSITION DoMove (POSITION position, MOVE move) {
 		}
 		indexi = move / 8;
 //		printf("\ni: %d", indexi);
-		indexf = indexi + (3 * rv) + cv;
+		indexf = indexi + (cols * rv) + cv;
 //		printf("\nf: %d", indexf);
 		captured = boardArray[indexf]; // get captured piece to determine type
 		boardArray[indexf] = boardArray[indexi]; // move piece to final location
@@ -1296,11 +1437,135 @@ POSITION DoMove (POSITION position, MOVE move) {
 
 MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *moves = NULL;
-	int currentPlayer, r, c;
-	char boardArray[rows*cols + 4];
+	int currentPlayer, index;
+	char board[rows*cols + 4];
 	char piece = ' ';
-	unhash(position, boardArray);
+	unhash(position, board);
 	unhash_turn(position, &currentPlayer);
+
+	for (index = 0; index < (rows * cols); index++) {
+		piece = board[index];
+		if (sameTeam(piece, currentPlayer)) {
+			switch (piece) {
+				case BLACK_LION:
+					if (index != 0 && index != 1 && index != 2 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UL);
+					if (index != 0 && index != 1 && index != 2)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UP);
+					if (index != 0 && index != 1 && index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UR);
+					if (index != 0 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, LT);
+					if (index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, RT);
+					if (index != 0 && index != 3 && index != 6 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DL);
+					if (index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
+					if (index != 2 && index != 5 && index != 8 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DR);
+					break;
+				case BLACK_CHICK:
+					if (index != 0 && index != 1 && index != 2)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UP);
+					break;
+				case BLACK_HEN:
+					if (index != 0 && index != 1 && index != 2 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UL);
+					if (index != 0 && index != 1 && index != 2)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UP);
+					if (index != 0 && index != 1 && index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UR);
+					if (index != 0 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, LT);
+					if (index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, RT);
+					if (index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
+					break;
+				case BLACK_ELEPHANT:
+					if (index != 0 && index != 1 && index != 2 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UL);
+					if (index != 0 && index != 1 && index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UR);
+					if (index != 0 && index != 3 && index != 6 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DL);
+					if (index != 2 && index != 5 && index != 8 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DR);
+					break;
+				case BLACK_GIRAFFE:
+					if (index != 0 && index != 1 && index != 2)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UP);
+					if (index != 0 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, LT);
+					if (index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, RT);
+					if (index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
+					break;
+				case WHITE_LION:
+					if (index != 0 && index != 1 && index != 2 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UL);
+					if (index != 0 && index != 1 && index != 2)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UP);
+					if (index != 0 && index != 1 && index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UR);
+					if (index != 0 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, LT);
+					if (index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, RT);
+					if (index != 0 && index != 3 && index != 6 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DL);
+					if (index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
+					if (index != 2 && index != 5 && index != 8 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DR);
+					break;
+				case WHITE_CHICK:
+						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
+					break;
+				case WHITE_HEN:
+					if (index != 0 && index != 1 && index != 2)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UP);
+					if (index != 0 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, LT);
+					if (index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, RT);
+					if (index != 0 && index != 3 && index != 6 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DL);
+					if (index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
+					if (index != 2 && index != 5 && index != 8 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DR);
+					break;
+				case WHITE_ELEPHANT:
+					if (index != 0 && index != 1 && index != 2 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UL);
+					if (index != 0 && index != 1 && index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UR);
+					if (index != 0 && index != 3 && index != 6 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DL);
+					if (index != 2 && index != 5 && index != 8 && index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DR);
+					break;
+				case WHITE_GIRAFFE:
+					if (index != 0 && index != 1 && index != 2)
+						generateMoveWithDir(board, &moves, currentPlayer, index, UP);
+					if (index != 0 && index != 3 && index != 6 && index != 9)
+						generateMoveWithDir(board, &moves, currentPlayer, index, LT);
+					if (index != 2 && index != 5 && index != 8 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, RT);
+					if (index != 9 && index != 10 && index != 11)
+						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
+					break;
+				default:
+					break;
+			}
+		} else if (board[index] == BLANK_PIECE) {
+			generateDropMoves(board, &moves, currentPlayer, index);
+		}
+	}
+/*
 	for (r = 0; r < rows; r++) {
 		for (c = 0; c < cols; c++) {
 			piece = boardArray[coordToNum(r, c)];
@@ -1380,7 +1645,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 			}
 		}
 	}
-//	SafeFree(boardArray);
+*/
 	return moves;
 }
 
@@ -1411,41 +1676,6 @@ MOVELIST *GenerateMoves(POSITION position) {
 
 VALUE Primitive (POSITION position)
 {
-	char board[16];
-	char piece;
-	unhash(position, board);
-	unhash_turn(position, &theCurrentPlayer);
-	if (theCurrentPlayer == BLACK_TURN) {
-		piece = board[9];
-		if (piece == WHITE_LION) {
-			return (gStandardGame) ? lose  : win;
-		}
-
-		piece = board[10];
-		if (piece == WHITE_LION) {
-			return (gStandardGame) ? lose : win;
-		}
-
-		piece = board[11];
-		if (piece == WHITE_LION) {
-			return (gStandardGame) ? lose : win;
-		} 
-	} else {
-		piece = board[0];
-		if (piece == BLACK_LION) {
-			return (gStandardGame) ? lose : win;
-		}
-
-		piece = board[1];
-		if (piece == BLACK_LION) {
-			return (gStandardGame) ? lose : win;
-		}
-
-		piece = board[2];
-		if (piece == BLACK_LION) {
-			return (gStandardGame) ? lose : win;
-		}
-	}
 	//printf("primitive");
 	MOVELIST *moves = NULL;
 	moves = GenerateMoves(position);
@@ -1609,7 +1839,82 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 }
 
 STRING MoveToString(MOVE move) {
-	return NULL;
+	STRING str = SafeMalloc(4 * sizeof(char));
+	STRING str2 = SafeMalloc(4 * sizeof(char));
+	int rv;
+	int cv;
+	int location;
+	int tmp;
+	if (move < 96) { // The move is a move
+		tmp = move % 8;
+		switch (tmp) {
+			case 0: // move ul
+				rv = -1;
+				cv = -1;
+				break;
+			case 1: // move up
+				rv = -1;
+				cv = 0;
+				break;
+			case 2: // move ur
+				rv = -1;
+				cv = 1;
+				break;
+			case 3: // move lt
+				rv = 0;
+				cv = -1;
+				break;
+			case 4: // move rt
+				rv = 0;
+				cv = 1;
+				break;
+			case 5: // move dl
+				rv = 1;
+				cv = -1;
+				break;
+			case 6: // move dn
+				rv = 1;
+				cv = 0;
+				break;
+			case 7: // move dr
+				rv = 1;
+				cv = 1;
+				break;
+			default:
+				rv = 0;
+				cv = 0;
+				break;
+		}
+		location = move / 8;
+		tmp = location + (cols * rv) + cv;
+		sprintf(str, "%02d%02d", location, tmp);
+	} else { // The move is a drop
+		tmp = move % 96;
+		location = tmp / 6;
+		tmp = tmp % 6;
+		switch (tmp) {
+			case DROP_BLACK_CHICK:
+				sprintf(str, "dc%02d", location);
+				break;
+			case DROP_WHITE_CHICK:
+				sprintf(str, "dc%02d", location);
+				break;	
+			case DROP_BLACK_ELEPHANT:
+				sprintf(str, "de%02d", location);
+				break;
+			case DROP_WHITE_ELEPHANT:
+				sprintf(str, "de%02d", location);
+				break;
+			case DROP_BLACK_GIRAFFE:
+				sprintf(str, "dg%02d", location);
+				break;
+			case DROP_WHITE_GIRAFFE:
+				sprintf(str, "dg%02d", location);
+				break;
+		}
+	}
+	sprintf(str2, "%04d", move);
+	return str;
 }
 
 /************************************************************************
@@ -2479,17 +2784,8 @@ int getNumPieces(int* piecesArray) {
 **
 ************************************************************************/
 
-
-<<<<<<< .mine
-=======
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
-
-char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
-}
->>>>>>> .r4951
