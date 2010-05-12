@@ -199,6 +199,7 @@ MOVE createMove(int start, int finish);
 
 void InitializeGame ()
 {
+	/*
 	theBoard = (char *) SafeMalloc(15 * sizeof(char));
 	theBoard = "GLE C  c elg000";
 	char board[] = "XXXXXXXXXXXXXXX";
@@ -214,6 +215,19 @@ void InitializeGame ()
 	unhash(position, board);
 	PrintPosition(position, "bar", TRUE);
 	printf("\n%s", board);
+	*/
+
+	POSITION pos = 0;
+	pos += 10LLU * 12 * 26 * 26 * 26 * 26 * 50 * 50;
+	pos += 1LLU * 26 * 26 * 26 * 26 * 50 * 50;
+	pos += 24 * 26 * 26 * 26 * 50 * 50;
+	pos += 24 * 26 * 26 * 50 * 50;
+	pos += 24 * 26 * 50 * 50;
+	pos += 24 * 50 * 50;
+	pos += 48 * 50;
+	pos += 48;
+	pos += 12LLU * 12 * 26 * 26 * 26 * 26 * 50 * 50;
+//	gInitialPosition = pos;
 }
 
 /************************************************************************
@@ -1437,9 +1451,10 @@ POSITION DoMove (POSITION position, MOVE move) {
 
 MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *moves = NULL;
-	int currentPlayer, index;
+	int currentPlayer;
+	int index;
 	char board[rows*cols + 4];
-	char piece = ' ';
+	char piece;
 	unhash(position, board);
 	unhash_turn(position, &currentPlayer);
 
@@ -1522,6 +1537,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 						generateMoveWithDir(board, &moves, currentPlayer, index, DR);
 					break;
 				case WHITE_CHICK:
+					if (index != 9 && index != 10 && index != 11)
 						generateMoveWithDir(board, &moves, currentPlayer, index, DN);
 					break;
 				case WHITE_HEN:
@@ -1706,7 +1722,7 @@ VALUE Primitive (POSITION position)
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 	int numBC, numBE, numBG, numWC, numWE, numWG;
-	char boardArray[rows*cols+4];
+	char boardArray[rows*cols+3];
 	unhash(position, boardArray);
 	switch (boardArray[CHICK_INDEX]) {
 		case B0W0:
@@ -1804,16 +1820,16 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("\n"); 
 	printf("===== %s's Turn =====", playersName);
 	printf("\n");
-	printf("☖ Hand\n");
-	printf("╔════╗  ╔════╤════╤════╗\n");
-	printf("║☖C %d║  ║ %s │ %s │ %s ║\n", numWC, pieceToPrint(boardArray[0]), pieceToPrint(boardArray[1]), pieceToPrint(boardArray[2]));
-	printf("║☖E %d║  ╟────┼────┼────╢\n", numWE);
-	printf("║☖G %d║  ║ %s │ %s │ %s ║\n", numWG, pieceToPrint(boardArray[3]), pieceToPrint(boardArray[4]), pieceToPrint(boardArray[5]));
-	printf("╚════╝  ╟────┼────┼────╢  ╔════╗\n");
-	printf("        ║ %s │ %s │ %s ║  ║☗G %d║\n", pieceToPrint(boardArray[6]), pieceToPrint(boardArray[7]), pieceToPrint(boardArray[8]), numBG);
-	printf("        ╟────┼────┼────╢  ║☗E %d║\n", numBE);
-	printf("        ║ %s │ %s │ %s ║  ║☗C %d║\n", pieceToPrint(boardArray[9]), pieceToPrint(boardArray[10]), pieceToPrint(boardArray[11]), numBC);
-	printf("        ╚════╧════╧════╝  ╚════╝\n");
+	printf("☖ Hand                                    Legend:\n");
+	printf("╔════╗  ╔════╤════╤════╗             ╔════╤════╤════╗\n");
+	printf("║☖C %d║  ║ %s │ %s │ %s ║             ║ 00 │ 01 │ 02 ║\n", numWC, pieceToPrint(boardArray[0]), pieceToPrint(boardArray[1]), pieceToPrint(boardArray[2]));
+	printf("║☖E %d║  ╟────┼────┼────╢             ╟────┼────┼────╢\n", numWE);
+	printf("║☖G %d║  ║ %s │ %s │ %s ║             ║ 03 │ 04 │ 05 ║\n", numWG, pieceToPrint(boardArray[3]), pieceToPrint(boardArray[4]), pieceToPrint(boardArray[5]));
+	printf("╚════╝  ╟────┼────┼────╢  ╔════╗     ╟────┼────┼────╢\n");
+	printf("        ║ %s │ %s │ %s ║  ║☗G %d║     ║ 06 │ 07 │ 08 ║\n", pieceToPrint(boardArray[6]), pieceToPrint(boardArray[7]), pieceToPrint(boardArray[8]), numBG);
+	printf("        ╟────┼────┼────╢  ║☗E %d║     ╟────┼────┼────╢\n", numBE);
+	printf("        ║ %s │ %s │ %s ║  ║☗C %d║     ║ 09 │ 10 │ 11 ║\n", pieceToPrint(boardArray[9]), pieceToPrint(boardArray[10]), pieceToPrint(boardArray[11]), numBC);
+	printf("        ╚════╧════╧════╝  ╚════╝     ╚════╧════╧════╝\n");
 	printf("                          ☗ Hand\n");
 	printf("\n"); // need to fix stuff after this line
 	//printf("%s\n",GetPrediction(position,playersName,usersTurn)); 
@@ -1894,22 +1910,22 @@ STRING MoveToString(MOVE move) {
 		tmp = tmp % 6;
 		switch (tmp) {
 			case DROP_BLACK_CHICK:
-				sprintf(str, "dc%02d", location);
+				sprintf(str, "*c%02d", location);
 				break;
 			case DROP_WHITE_CHICK:
-				sprintf(str, "dc%02d", location);
+				sprintf(str, "*C%02d", location);
 				break;	
 			case DROP_BLACK_ELEPHANT:
-				sprintf(str, "de%02d", location);
+				sprintf(str, "*e%02d", location);
 				break;
 			case DROP_WHITE_ELEPHANT:
-				sprintf(str, "de%02d", location);
+				sprintf(str, "*E%02d", location);
 				break;
 			case DROP_BLACK_GIRAFFE:
-				sprintf(str, "dg%02d", location);
+				sprintf(str, "*g%02d", location);
 				break;
 			case DROP_WHITE_GIRAFFE:
-				sprintf(str, "dg%02d", location);
+				sprintf(str, "*G%02d", location);
 				break;
 		}
 	}
@@ -1964,7 +1980,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
         /***********************************************************
 		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 		***********************************************************/
-		printf("%8s's move [(undo)/<coli><rowi><colf><rowf><replacementPiece>] : ", playersName);
+		printf("%8s's move [<beginning index><end index>/<*><piece><drop index>] : ", playersName);
 		
 		input = HandleDefaultTextInput(position, move, playersName);
 		
@@ -2008,7 +2024,7 @@ BOOLEAN ValidTextInput (STRING input) {
 		return FALSE;
 	} else {
 		c = input[0];
-		if (c == 'd') { // a drop move
+		if (c == '*') { // a drop move
 			c = input[1];
 			if (c != 'c' && c != 'e' && c != 'g' && c != 'C' && c != 'E' && c != 'G') {
 				return FALSE;
@@ -2119,10 +2135,11 @@ char c;
 ************************************************************************/
 
 MOVE ConvertTextInputToMove (STRING input) {
+	printf("MOVESTR: %s\n", input);
 	MOVE move;
 	int start, finish;
 	char c = input[0];
-	if (c == 'd') { // then it is a drop move
+	if (c == '*') { // then it is a drop move
 		move = 96;
 		c = input[2];
 		if (c == '0') {
@@ -2132,28 +2149,9 @@ MOVE ConvertTextInputToMove (STRING input) {
 			c = input[3];
 			finish = 10 + c - '0';
 		}
-		move += 6 * finish;
 		c = input[1];
-		switch (c) {
-			case 'c':
-				move += DROP_BLACK_CHICK;
-				break;
-			case 'e':
-				move += DROP_BLACK_ELEPHANT;
-				break;
-			case 'g':
-				move += DROP_BLACK_GIRAFFE;
-				break;
-			case 'C':
-				move += DROP_WHITE_CHICK;
-				break;
-			case 'E':
-				move += DROP_WHITE_ELEPHANT;
-				break;
-			case 'G':
-				move += DROP_WHITE_GIRAFFE;
-				break;
-		}
+
+		move = createDrop(c, finish);
 	} else { // then move (all 4 characters must be numbers)
 		move = 0;
 		if (c == '0') { // 2nd digit can be anything
@@ -2161,7 +2159,7 @@ MOVE ConvertTextInputToMove (STRING input) {
 			start = c - '0';
 		} else { // then it must begin with a 1
 			c = input[1];
-			start = 10 + c - '0';
+			start = 10 + (c - '0');
 		}
 		c = input[2];
 		if (c == '0') { // 3rd digit can only be 1 or 0
@@ -2169,15 +2167,12 @@ MOVE ConvertTextInputToMove (STRING input) {
 			finish = c - '0';
 		} else {
 			c = input[3];
-			finish = 10 + c - '0';
+			finish = 10 + (c - '0');
 		}
 
-		if (finish < start) {
-			move = (8 * start) + (4 - (start - finish));
-		} else {
-			move = (8 * start) + (finish - start - 1);
-		}
+		move = createMove(start, finish);
 	}
+	printf("MOVE: %d\n", move);
 	return move;
 }
 
