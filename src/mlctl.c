@@ -62,10 +62,10 @@ STRING   kHelpOnYourTurn =
 "";
 
 STRING   kHelpStandardObjective =
-"Try to checkmate your opponent's lion.";
+"Try to checkmate your opponent's lion or get your lion to the otherside without being checkmated.";
 
 STRING   kHelpReverseObjective =
-"Try to get your lion checkmated.";
+"Try to get your lion checkmated or get your opponent to move his lion to yourside without being checkmated.";
 
 STRING   kHelpTieOccursWhen =
 "Ties are not possible.";
