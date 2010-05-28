@@ -20,7 +20,65 @@ proc GS_InitGameSpecific {} {
     
     global kGameName
     set kGameName "L Game"
-    
+
+    global fourSquares
+    set fourSquares [list \
+      [list 0 0 0 0] \
+	   [list 9 5 1 2] \
+	   [list 10 6 2 3] \
+	   [list 11 7 3 4] \
+	   [list 13 9 5 6] \
+	   [list 14 10 6 7] \
+	   [list 15 11 7 8] \
+	   [list 10 6 2 1] \
+	   [list 11 7 3 2] \
+	   [list 12 8 4 3] \
+	   [list 14 10 6 5] \
+	   [list 15 11 7 6] \
+	   [list 16 12 8 7] \
+	   [list 2 3 4 8] \
+	   [list 6 7 8 12] \
+	   [list 10 11 12 16] \
+	   [list 1 2 3 7] \
+	   [list 5 6 7 11] \
+	   [list 9 10 11 15] \
+	   [list 6 7 8 4] \
+	   [list 10 11 12 8] \
+	   [list 14 15 16 12] \
+	   [list 5 6 7 3] \
+	   [list 9 10 11 7] \
+	   [list 13 14 15 11] \
+	   [list 8 12 16 15] \
+	   [list 7 11 15 14] \
+	   [list 6 10 14 13] \
+	   [list 4 8 12 11] \
+	   [list 3 7 11 10] \
+	   [list 2 6 10 9] \
+	   [list 7 11 15 16] \
+	   [list 6 10 14 15] \
+	   [list 5 9 13 14] \
+	   [list 3 7 11 12] \
+	   [list 2 6 10 11] \
+	   [list 1 5 9 10] \
+	   [list 15 14 13 9] \
+	   [list 11 10 9 5] \
+	   [list 7 6 5 1] \
+	   [list 16 15 14 10] \
+	   [list 12 11 10 6] \
+	   [list 8 7 6 2] \
+	   [list 11 10 9 13] \
+	   [list 7 6 5 9] \
+	   [list 3 2 1 5] \
+	   [list 12 11 10 14] \
+	   [list 8 7 6 10] \
+	   [list 4 3 2 6] \
+   ]
+   
+   # 0 if moving L piece 1 if moving Neutral Piece
+   global gMovePart
+   set gMovePart 0
+
+   global l1 l2 s1 s2
     ### Set the initial position of the board (default 0)
 
     global gInitialPosition gPosition
@@ -110,7 +168,6 @@ proc GS_ColorOfPlayers {} {
 # Returns: nothing
 #############################################################################
 proc GS_SetupRulesFrame { rulesFrame } {
-
     set standardRule \
 	[list \
 	     "What would you like your winning condition to be:" \
@@ -270,10 +327,15 @@ proc GS_Initialize { c } {
     makeL $c 8 2 2 num47 sq8 sq7 sq6 sq10
     makeL $c 8 3 0 num48 sq4 sq3 sq6 sq2
 
+    for {set j 0} {$j < 48} {incr j} {
+       $c bind num$j <Enter> "hoverSmall $c $j show"
+       $c bind num$j <Leave> "hoverSmall $c $j hide"
+    }
+
     ##Make the blue, red, and grey tiles
     for {set j 0} {$j < 16} {incr j} {
-       set x [expr ($j % 4) * $rectSize]
-       set y [expr ($j / 4) * $rectSize]
+       set x [expr (int(($j % 4)) * $rectSize)]
+       set y [expr (int(($j / 4)) * $rectSize)]
 
        $c create rectangle $x $y [expr $x + $rectSize] [expr $y + $rectSize] \
          -fill blue \
@@ -287,6 +349,17 @@ proc GS_Initialize { c } {
          -outline blue \
          -width 3 \
          -tags "shade-$j" 
+       $c create oval $x $y [expr $x + $rectSize] [expr $y + $rectSize] \
+         -fill purple \
+         -outline black \
+         -width 3 \
+         -tags "BigO-black-$j"
+       $c create oval $x $y [expr $x + $rectSize] [expr $y + $rectSize] \
+         -fill purple \
+         -outline white \
+         -width 3 \
+         -tags "BigO-white-$j"
+       smallO $c $j $x $y
     }
     $c raise back
 } 
@@ -408,6 +481,33 @@ proc makeL {c num x y t t1 t2 t3 t4} {
     }
 }
 
+proc smallO { c num x y } {
+   global gFrameHeight
+   set edgeBuffer 0
+   set rectSize [expr [expr $gFrameHeight - $edgeBuffer * 2] / 4]
+   set factor [expr $rectSize / 2]
+   $c create oval $x $y [expr $x + $factor] [expr $y + $factor] \
+      -fill cyan -outline black -width 2 -tags "SmallO-black-$num"
+   $c create oval [expr $x + $factor] [expr $y + $factor] \
+      [expr $x + $rectSize] [expr $y + $rectSize] \
+      -fill cyan -outline white -width 2 -tags "SmallO-white-$num"
+}
+
+proc hoverSmall { c num action } {
+   shadeL $c $num shade $action
+}
+
+proc shadeL { c pos color action } {
+   global fourSquares
+   for {set j 0} {$j < 16} {incr j} {
+      $c lower $color-[expr $j]
+   }
+   set squares [lindex $fourSquares $pos]
+   for {set i 0} {$i < 4} {incr i} {
+      $c raise $color-[expr [lindex $squares $i] - 1] 
+   }
+   $c raise showingL
+}
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
 # is here, so whoever put this here should update this.  -Jeff
@@ -432,44 +532,183 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
 
-    $c raise base
+    $c raise back
+
+    global l1 l2 s1 s2
     
     set l1 [unhashL1 $position]
-    set l2 [unhashS1 $position]
-    set s1 [unhashL2 $position]
-    set s2 [unhashS2 $position]
-    set turn [unhashTurn $position]
+    set l2 [24to48 $l1 [unhashL2 $position]]
+    set s1 [8to16 $l1 $l2 [unhashS1 $position]]
+    set s2 [7to16 $l1 $l2 $s1 [unhashS2 $position]]
 
-    DrawL l1 blue
-    DrawL l2 red
-    DrawS s1
-    DrawS s2
+    BigL $c $l1 red
+    BigL $c $l2 blue
+    BigO $c $s1 black
+    BigO $c $s2 white
 
 }
 
 proc unhashL1 { position } {
-   return [expr ((($position >> 1) / 7 / 8 / 24) % 48) + 1]
+   return [expr int((($position >> 1) / 7 / 8 / 24) % 48) + 1]
 }
 
 proc unhashL2 { position } {
-   return [expr ((($position >> 1) / 7 / 8) % 24) + 1];
+   return [expr int((($position >> 1) / 7 / 8) % 24) + 1];
+}
+
+proc 24to48 { L1 L2 } {
+   set pieces [list \
+      [list 0] \
+      [list 3 5 6 9 11 12 14 15 19 20 21 24 25 26 27 28 29 31 32 34 40 41 46 47] \
+      [list 6 12 21 24 25 26 28 31 33 37 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 4 7 10 21 25 27 30 32 33 36 37 40 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 3 6 8 9 12 13 15 16 20 21 25 26 28 29 31 34 40 46 0 0 0 0 0 0] \
+      [list 1 9 13 25 28 45 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 2 4 7 10 27 30 33 36 45 48 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 3 6 9 12 21 24 25 26 28 31 33 34 37 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 4 10 21 25 27 32 33 36 37 40 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 4 5 7 10 11 17 18 23 24 26 27 30 31 32 33 35 36 37 38 39 40 43 44] \
+      [list 3 6 8 9 12 13 16 25 28 31 34 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 9 13 33 36 45 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 2 4 7 10 18 24 27 30 32 33 35 36 37 38 43 45 48 0 0 0 0 0 0] \
+      [list 4 5 10 11 15 17 18 21 23 24 26 27 31 32 33 36 37 38 39 40 41 43 44 46] \
+      [list 1 18 24 33 36 37 38 40 43 45 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 4 13 16 19 22 33 37 39 42 44 45 48 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 4 10 15 18 20 21 24 25 27 28 32 33 37 38 40 41 43 46 0 0 0 0 0 0] \
+      [list 9 13 21 25 37 40 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 9 12 13 14 16 19 22 39 42 45 48 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 15 18 21 24 33 36 37 38 40 43 45 46 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 4 16 22 33 37 39 44 45 48 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 2 3 4 7 8 13 16 17 19 22 23 29 30 35 36 38 39 42 43 44 45 47 48] \
+      [list 15 18 20 21 24 25 28 37 40 43 46 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 9 13 21 25 45 48 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 2 7 9 12 13 14 16 19 22 30 36 39 42 44 45 47 48 0 0 0 0 0 0] \
+      [list 1 2 3 4 5 7 8 10 16 17 22 23 27 29 30 33 35 36 38 39 43 44 45 48] \
+      [list 1 2 4 7 9 13 30 36 45 48 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 3 6 8 9 12 13 16 25 28 31 34 45 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 2 4 5 7 10 16 22 27 30 32 33 36 37 39 40 44 45 0 0 0 0 0 0] \
+      [list 1 4 21 25 33 37 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 3 6 9 12 21 24 25 26 28 31 34 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 2 4 7 9 10 13 27 30 33 36 45 48 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 3 8 9 12 13 16 28 34 45 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 2 3 6 7 8 9 11 12 13 14 15 16 19 20 25 28 29 31 34 35 41 42 47 48] \
+      [list 1 4 7 10 27 30 32 33 36 37 40 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 9 12 21 25 33 37 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 3 6 8 9 11 12 13 14 19 21 24 25 26 28 31 34 42 48 0 0 0 0 0 0] \
+      [list 2 3 7 8 9 12 13 14 15 16 17 19 20 22 28 29 34 35 39 41 42 45 47 48] \
+      [list 9 12 13 14 16 19 21 25 42 48 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 9 13 15 18 20 21 24 25 28 37 40 43 46 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 3 4 8 9 13 14 16 17 19 22 28 34 39 42 44 45 48 0 0 0 0 0 0] \
+      [list 1 13 16 33 37 45 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 15 18 21 24 33 36 37 38 40 43 46 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 9 12 13 14 16 19 21 22 25 39 42 45 48 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 9 13 15 20 21 24 25 28 40 46 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 5 6 11 12 14 15 18 19 20 21 23 24 25 26 27 28 31 32 37 40 41 43 46 47] \
+      [list 1 4 13 16 19 22 39 42 44 45 48 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 1 21 24 33 37 45 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0] \
+      [list 6 12 15 18 20 21 23 24 25 26 31 33 36 37 38 40 43 46 0 0 0 0 0 0] \
+   ]
+   set rel [lindex $pieces $L1]
+   return [lindex $rel [expr $L2 - 1]]
+}
+
+proc 8to16 { L1 L2 S1as8 } {
+   set S1as16 0
+   global fourSquares
+
+   for {set i 1} {$i < 17} {incr i} {
+      set arr($i) 0
+   }
+   for {set i 0} {$i < 4} {incr i} {
+      set arr([lindex [lindex $fourSquares $L1] $i]) 1
+      set arr([lindex [lindex $fourSquares $L2] $i]) 1
+   }
+   for {set i 1} {$i < 17} {incr i} {
+      set current $arr($i)
+      if {$current == 0} {
+         if {$S1as8 == 1} {
+            set arr($i) 2
+         }
+         set S1as8 [expr $S1as8 - 1]
+      }
+   }
+   for {set i 1} {$i < 17} {incr i} {
+      if {$arr($i) == 2} {
+         set S1as16 $i
+      }
+   }
+   return $S1as16
+}   
+
+proc 7to16 { L1 L2 S1 S2as7 } {
+   set S2as16 0
+   global fourSquares
+   for {set i 1} {$i < 17} {incr i} {
+      set arr($i) 0
+   }
+   for {set i 0} {$i < 4} {incr i} {
+      set arr([lindex [lindex $fourSquares $L1] $i]) 1
+      set arr([lindex [lindex $fourSquares $L2] $i]) 1
+   }
+   set arr($S1) 1
+   for {set i 1} {$i < 17} {incr i} {
+      if {$arr($i) == 0} {
+         if {$S2as7 == 1} {
+            set arr($i) 2
+         }
+         set S2as7 [expr $S2as7 - 1]
+      }
+   }
+   for {set i 1} {$i < 17} {incr i} {
+      if {$arr($i) == 2} {
+         set S2as16 $i
+      }
+   }
+   return $S2as16
 }
 
 proc unhashS1 { position } {
-   return [expr ((($position >> 1) / 7) % 8) + 1];
+   return [expr int((($position >> 1) / 7) % 8) + 1];
 }
 
 proc unhashS2 { position } {
-   return [expr (($position >> 1) % 7) + 1];
+   return [expr int(($position >> 1) % 7) + 1];
 }
 
 proc unhashTurn { position } {
-   return [expr ($position & 1) + 1]
+   return [expr int($position & 1) + 1]
 }
 
-proc DrawL { pos color } {
+proc unhashMoveL { position } {
+   return [expr $position / 1000]
 }
 
+proc unhashMoveSPiece { position } {
+   set total [expr $position - ($postion / 1000) * 1000]
+   return [expr $total / 100]
+}
+
+proc unhashMoveSValue { postion } {
+   return [expr $total % 100]
+}
+
+proc BigL { c pos color } {
+   global fourSquares
+   for {set j 0} {$j < 16} {incr j} {
+      $c lower $color-[expr $j]
+   }
+   set squares [lindex $fourSquares $pos]
+   for {set i 0} {$i < 4} {incr i} {
+      $c raise $color-[expr [lindex $squares $i] - 1] 
+   }
+}
+
+proc BigO { c pos color } {
+   for {set j 0} {$j < 16} {incr j} {
+      $c lower BigO-$color-$j
+   }
+   $c raise BigO-$color-[expr $pos - 1]
+}
 
 #############################################################################
 # GS_NewGame should start playing the game. 
@@ -493,7 +732,12 @@ proc GS_NewGame { c position } {
 #############################################################################
 proc GS_WhoseMove { position } {
     # Optional Procedure
-    return ""    
+    set turn [unhashTurn $position]
+    if {$turn == 0} {
+       return red
+    } else {
+       return blue
+    }
 }
 
 
@@ -508,9 +752,7 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
-
-	### TODO: Fill this in
-    
+   
 }
 
 
@@ -531,7 +773,36 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-    ### TODO: Fill this in
+   global gMovePart
+   foreach item $moveList {
+      set move [lindex $item 0]
+      set value [lindex $item 1]
+      set remoteness [lindex $item 2]
+      set delta [lindex $item 3]
+      set color cyan
+      if {$moveType == "value" || $moveType == "rm"} {
+         if {$value == "Tie"} {
+            set color yellow
+         } elseif {$value == "Lose"} {
+            set color green
+         } else {
+            set color red
+         }
+      }
+      if {$gMovePart == 0} {
+         set number [unhashMoveL $move]
+         $c raise num$number
+         $c itemconfigure num$number -fill $color -tags "num$number showingL" 
+      } else {
+         if {[unhashMoveSPiece $move] == 1} { 
+            $c raise SmallO-black-[unhashMoveSValue $move]
+            $c itemconfigure SmallO-black-[unhashMoveSValue $move] -fill $color
+         } else {
+            $c raise SmallO-white-[unhashMoveSValue $move]
+            $c itemconfigure SmallO-white-[unhashMoveSValue $move] -fill $color
+         }
+      }
+   }
 }
 
 
@@ -542,7 +813,7 @@ proc GS_ShowMoves { c moveType position moveList } {
 #############################################################################
 proc GS_HideMoves { c moveType position moveList} {
 
-    ### TODO: Fill this in
+
 
 }
 
