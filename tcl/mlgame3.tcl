@@ -103,10 +103,10 @@ proc GS_InitGameSpecific {} {
     global gMisereGame
     if {!$gMisereGame} {
 	#SetToWinString "To Win: (fill in)"
-	SetToWinString [concat "To Win: " [C_GetStandardObjString]]
+	SetToWinString [concat "To Win: " $kToWinStandard]
     } else {
 	#SetToWinString "To Win: (fill in)"
-	SetToWinString [concat "To Win: " [C_GetReverseObjString]]
+	SetToWinString [concat "To Win: " $kToWinMisere]
     }
     SetToMoveString "To Move: Each player takes turns moving his or her L piece into a different position. At the end of each turn, players place one of the neutral circle pieces onto any open square. Click on the small L that represents the location you want to move your L piece. Then click on the square where you want to place the black or white neutral circle."
 	    
@@ -114,7 +114,7 @@ proc GS_InitGameSpecific {} {
     global kRootDir
     global kCAuthors kTclAuthors kGifAuthors
     set kCAuthors "Michael Savitzky, Alex Kozlowski"
-    set kTclAuthors "Zach Bush"
+    set kTclAuthors "Zach Bush, Michael Savitzky, Alex Kozlowski"
     set kGifAuthors "$kRootDir/../bitmaps/DanGarcia-310x232.gif"
 }
 
@@ -526,9 +526,9 @@ proc itemEnter { c } {
       set gRestoreCmd "$c itemconfig current -fill $fill"
       $c itemconfig current -fill $outline
       if {[lsearch [$c gettags current] "black"] != -1} {
-         $c itemconfig BigO-black-$gCurrentBlack -stipple gray25
+         $c itemconfig BigO-black-[expr $gCurrentBlack - 1] -stipple gray25
       } else {
-         $c itemconfig BigO-white-$gCurrentWhite -stipple gray25
+         $c itemconfig BigO-white-[expr $gCurrentWhite - 1] -stipple gray25
       }
    }
    if {$type == "polygon" || $type == "rectangle"} {
@@ -540,8 +540,8 @@ proc itemEnter { c } {
 proc itemLeave { c } {
    global gRestoreCmd gCurrentBlack gCurrentWhite
    eval $gRestoreCmd
-   $c itemconfig BigO-black-$gCurrentBlack -stipple ""
-   $c itemconfig BigO-white-$gCurrentWhite -stipple ""
+   $c itemconfig BigO-black-[expr $gCurrentBlack - 1] -stipple ""
+   $c itemconfig BigO-white-[expr $gCurrentWhite - 1] -stipple ""
 }
 
 proc placeL { c smallL } {
@@ -570,20 +570,24 @@ proc placeO { c smallO } {
       set gPlayerOneTurn [not $gPlayerOneTurn]
    }
    for {set i 0} {$i <= 48} {incr i} {
-      if {[lsearch [$c gettags $smallO] "WSmallO-$i"] != -1} {
-         set gCurrentWhite $i
+      puts [lindex [$c gettags $smallO] 0]
+      puts "WSmallO$i"
+      if {[lsearch [$c gettags $smallO] "WSmallO$i"] != -1} {
+         set gCurrentWhite [expr $i + 1]
          set piece 1
-         set value $i
-      } elseif {[lsearch [$c gettags $smallO] "BSmallO-$i"] != -1} {
-         set gCurrentBlack $i
+         set value [expr $i + 1]
+      } elseif {[lsearch [$c gettags $smallO] "BSmallO$i"] != -1} {
+         set gCurrentBlack [expr $i + 1]
          set piece 2
-         set value $i
+         set value [expr $i + 1]
       }
    }
+
+   puts "Piece: $piece\nValue: $value"
    set gOkay 1
    set gPhase 0
-   ReturnFromHumanMove [expr (1000 * $gFinalL) + (100 * $piece) + $value]
    drawMoves $c
+   ReturnFromHumanMove [expr (1000 * $gFinalL) + (100 * $piece) + $value]
 }
 
 proc raiseLowerL { c Lnum action piece lev} {
