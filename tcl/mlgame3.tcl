@@ -75,8 +75,11 @@ proc GS_InitGameSpecific {} {
    ]
    
    # 0 if moving L piece 1 if moving Neutral Piece
-   global gMovePart
-   set gMovePart 0
+   global gPhase
+   set gPhase 0
+
+   global gOkay
+   set gOkay 1
 
    global l1 l2 s1 s2
     ### Set the initial position of the board (default 0)
@@ -255,6 +258,8 @@ proc GS_Initialize { c } {
     global kLabelFont gMisereGame
 
     global gFrameWidth gFrameHeight
+    global gActive
+    set gActive 1
 
     set edgeBuffer 0
     set rectSize [expr [expr $gFrameHeight - $edgeBuffer * 2] / 4]
@@ -327,10 +332,6 @@ proc GS_Initialize { c } {
     makeL $c 8 2 2 num47 sq8 sq7 sq6 sq10
     makeL $c 8 3 0 num48 sq4 sq3 sq6 sq2
 
-    for {set j 0} {$j < 48} {incr j} {
-       $c bind num$j <Enter> "hoverSmall $c $j show"
-       $c bind num$j <Leave> "hoverSmall $c $j hide"
-    }
 
     ##Make the blue, red, and grey tiles
     for {set j 0} {$j < 16} {incr j} {
@@ -348,7 +349,7 @@ proc GS_Initialize { c } {
          -fill blue \
          -outline blue \
          -width 3 \
-         -tags "shade-$j" 
+         -tags "shade-$j shade" 
        $c create oval $x $y [expr $x + $rectSize] [expr $y + $rectSize] \
          -fill purple \
          -outline black \
@@ -361,6 +362,15 @@ proc GS_Initialize { c } {
          -tags "BigO-white-$j"
        smallO $c $j $x $y
     }
+
+    $c bind small <Enter> "itemEnter $c"
+    $c bind small <Leave> "itemLeave $c"
+    $c bind small <1> "placeL $c current"
+
+    $c bind neutral <Enter> "itemEnter $c"
+    $c bind neutral <Leave> "itemLeave $c"
+    $c bind neutral <1> "placeO $c current"
+
     $c raise back
 } 
 
@@ -487,26 +497,142 @@ proc smallO { c num x y } {
    set rectSize [expr [expr $gFrameHeight - $edgeBuffer * 2] / 4]
    set factor [expr $rectSize / 2]
    $c create oval $x $y [expr $x + $factor] [expr $y + $factor] \
-      -fill cyan -outline black -width 2 -tags "SmallO-black-$num"
+      -fill cyan -outline black -width 2 -tags "BSmallO$num black neutral"
    $c create oval [expr $x + $factor] [expr $y + $factor] \
       [expr $x + $rectSize] [expr $y + $rectSize] \
-      -fill cyan -outline white -width 2 -tags "SmallO-white-$num"
+      -fill cyan -outline white -width 2 -tags "WSmallO$num white neutral"
 }
 
-proc hoverSmall { c num action } {
-   shadeL $c $num shade $action
+proc itemEnter { c } {
+   global gRestoreCmd gCurrentBlack gCurrentWhite
+   if {[winfo depth $c] == 1} {
+      set gRestoreCmd {}
+      return
+   }
+   set type [$c type current]
+   if {$type == "window"} {
+      set gRestoreCmd {}
+      return
+   }
+   if {$type == "bitmap"} {
+      set bg [lindex [$c itemconf current -background] 4]
+      set gRestoreCmd [list $citemconfig current -background $bg]
+      $c itemconfig current -background black
+      return
+   }
+   set fill [lindex [$c itemconfig current -fill] 4]
+   if {$type == "oval"} {
+      set outline [lindex [$c itemconfig current -outline] 4]
+      set gRestoreCmd "$c itemconfig current -fill $fill"
+      $c itemconfig current -fill $outline
+      if {[lsearch [$c gettags current] "black"] != -1} {
+         $c itemconfig BigO-black-$gCurrentBlack -stipple gray25
+      } else {
+         $c itemconfig BigO-white-$gCurrentWhite -stipple gray25
+      }
+   }
+   if {$type == "polygon" || $type == "rectangle"} {
+      set gRestoreCmd "unShowBigL $c current"
+      showBigL $c current
+   }
 }
 
-proc shadeL { c pos color action } {
+proc itemLeave { c } {
+   global gRestoreCmd gCurrentBlack gCurrentWhite
+   eval $gRestoreCmd
+   $c itemconfig BigO-black-$gCurrentBlack -stipple ""
+   $c itemconfig BigO-white-$gCurrentWhite -stipple ""
+}
+
+proc placeL { c smallL } {
+   global gPhase gPosition gCurrentL1 gCurrentL2 gPlayerOneTurn gFinalL gCurrentBlack gCurrentWhite gOkay gValueMovels gValMoves
+   set gOkay 0
+   itemLeave $c
+   $c lower shade all
+   for {set i 0} {$i <= 48} {incr i} {
+      if {[lsearch [$c gettags $smallL] "num$i"] != -1} {
+         set gFinalL $i
+      }
+   }
+   set gOkay 1
+   set gPhase 1
+   drawMoves $c
+}
+
+proc placeO { c smallO } {
+   global gPhase gPosition gCurrentL1 gCurrentL2 gPlayerOneTurn gFinalL gCurrentBlack gCurrentWhite gOkay gValueMovels gValMoves
+   set gOkay 0
+   itemLeave $c
+   set piece 0
+   set value 0
+   $c lower shade all
+   if {$gPlayerOneTurn} {
+      set gPlayerOneTurn [not $gPlayerOneTurn]
+   }
+   for {set i 0} {$i <= 48} {incr i} {
+      if {[lsearch [$c gettags $smallO] "WSmallO-$i"] != -1} {
+         set gCurrentWhite $i
+         set piece 1
+         set value $i
+      } elseif {[lsearch [$c gettags $smallO] "BSmallO-$i"] != -1} {
+         set gCurrentBlack $i
+         set piece 2
+         set value $i
+      }
+   }
+   set gOkay 1
+   set gPhase 0
+   ReturnFromHumanMove [expr (1000 * $gFinalL) + (100 * $piece) + $value]
+   drawMoves $c
+}
+
+proc raiseLowerL { c Lnum action piece lev} {
    global fourSquares
-   for {set j 0} {$j < 16} {incr j} {
-      $c lower $color-[expr $j]
-   }
-   set squares [lindex $fourSquares $pos]
+   set pieces [lindex $fourSquares $Lnum]
    for {set i 0} {$i < 4} {incr i} {
-      $c raise $color-[expr [lindex $squares $i] - 1] 
+      puts [format "$action-ing $piece-%i" [expr [lindex $pieces $i] - 1]]
+      $c $action $piece-[expr [lindex $pieces $i] - 1] $lev
    }
-   $c raise showingL
+}
+
+proc showBigL {c smallL} {
+   global gPlayerOneTurn gCurrentL1 gCurrentL2
+   for {set i 1} {$i <= 48} {incr i} {
+      if {[lsearch [$c gettags $smallL] "num$i"] != -1} {
+         if {$gPlayerOneTurn} {
+            raiseLowerL $c $gCurrentL1 lower red back
+            raiseLowerL $c $i raise red shade
+         } else {
+            raiseLowerL $c $gCurrentL2 lower blue back
+            raiseLowerL $c $i raise blue shade
+         }
+      }
+   }
+}
+
+proc not { bool } {
+   if { $bool } {
+      return 0
+   } else {
+      return 1
+   }
+}
+
+proc unShowBigL { c smallL } {
+   global gPlayerOneTurn gCurrentL1 gCurrentL2 gOkay
+   for {set i 1} {$i <= 48} {incr i} {
+      if {[lsearch [$c gettags $smallL] "num$i"] != -1} {
+         if {$gPlayerOneTurn && $gOkay} {
+            raiseLowerL $c $i lower red back
+            raiseLowerL $c $gCurrentL1 raise red shade
+         }
+         if {[not $gPlayerOneTurn] && $gOkay} {
+            raiseLowerL $c $i lower blue back
+            raiseLowerL $c $gCurrentL2 raise blue shade
+         }
+         raiseLowerL $c $i lower square all
+      }
+   }
 }
 #############################################################################
 # GS_Deinitialize deletes everything in the playing canvas.  I'm not sure why this
@@ -532,19 +658,34 @@ proc GS_Deinitialize { c } {
 #############################################################################
 proc GS_DrawPosition { c position } {
 
-    $c raise back
+#    $c raise back
 
-    global l1 l2 s1 s2
+    global gCurrentL1 gCurrentL2 gCurrentBlack gCurrentWhite gPlayerOneTurn gOkay
     
-    set l1 [unhashL1 $position]
-    set l2 [24to48 $l1 [unhashL2 $position]]
-    set s1 [8to16 $l1 $l2 [unhashS1 $position]]
-    set s2 [7to16 $l1 $l2 $s1 [unhashS2 $position]]
+    set gCurrentL1 [unhashL1 $position]
+    set gCurrentL2 [24to48 $gCurrentL1 [unhashL2 $position]]
+    set gCurrentBlack [8to16 $gCurrentL1 $gCurrentL2 [unhashS1 $position]]
+    set gCurrentWhite [7to16 $gCurrentL1 $gCurrentL2 $gCurrentBlack [unhashS2 $position]]
+    if {[unhashTurn $position] == 1} {
+       set gPlayerOneTurn 1
+    } else {
+       set gPlayerOneTurn 0
+    }
 
-    BigL $c $l1 red
-    BigL $c $l2 blue
-    BigO $c $s1 black
-    BigO $c $s2 white
+    $c lower back
+    for {set i 0} {$i < 16} {incr i} {
+       $c lower blue-$i all
+       $c lower shade-$i all
+       $c lower red-$i all
+       $c lower BigO-white-$i
+       $c lower BigO-black-$i
+    }
+    $c raise back
+    raiseLowerL $c $gCurrentL1 raise shade back
+    raiseLowerL $c $gCurrentL1 raise red shade
+    raiseLowerL $c $gCurrentL2 raise blue all
+    $c raise BigO-black-[expr $gCurrentBlack - 1]
+    $c raise BigO-white-[expr $gCurrentWhite - 1]
 
 }
 
@@ -684,12 +825,12 @@ proc unhashMoveL { position } {
 }
 
 proc unhashMoveSPiece { position } {
-   set total [expr $position - ($postion / 1000) * 1000]
+   set total [expr $position - ($position / 1000) * 1000]
    return [expr $total / 100]
 }
 
-proc unhashMoveSValue { postion } {
-   return [expr $total % 100]
+proc unhashMoveSValue { position } {
+   return [expr $position % 100]
 }
 
 proc BigL { c pos color } {
@@ -720,6 +861,8 @@ proc BigO { c pos color } {
 proc GS_NewGame { c position } {
     # TODO: The default behavior of this funciton is just to draw the position
     # but if you want you can add a special behaivior here like an animation
+    global gActive
+    set gActive 1
     GS_DrawPosition $c $position
 }
 
@@ -752,7 +895,20 @@ proc GS_WhoseMove { position } {
 # you make changes before tcl enters the event loop again.
 #############################################################################
 proc GS_HandleMove { c oldPosition theMove newPosition } {
-   
+   global gCurrentL1 gCurrentL2 gCurrentBlack gCurrentWhite gPlayerOneTurn gOkay
+
+   if { $gPlayerOneTurn } {
+      set gCurrentL1 [unhashMoveL $theMove]
+   } else {
+      set gCurrentL2 [unhashMoveL $theMove]
+   }
+
+   if {[unhashMoveSPiece $theMove] == 1} {
+      set gCurrentBlack [unhashMoveSValue $theMove]
+   } else {
+      set gCurrentWhite [unhashMoveSValue $theMove]
+   }
+   GS_DrawPosition $c $newPosition
 }
 
 
@@ -773,33 +929,61 @@ proc GS_HandleMove { c oldPosition theMove newPosition } {
 #############################################################################
 proc GS_ShowMoves { c moveType position moveList } {
 
-   global gMovePart
-   foreach item $moveList {
-      set move [lindex $item 0]
-      set value [lindex $item 1]
-      set remoteness [lindex $item 2]
-      set delta [lindex $item 3]
-      set color cyan
-      if {$moveType == "value" || $moveType == "rm"} {
-         if {$value == "Tie"} {
-            set color yellow
-         } elseif {$value == "Lose"} {
-            set color green
-         } else {
-            set color red
+   global gMoveList gMoveType gPosition gPhase 
+   set gMoveList $moveList
+   set gMoveType $moveType
+   set gPosition $position
+   # set gPhase 0
+
+   drawMoves $c
+}
+
+proc drawMoves { c } {
+   global gMoveList gMoveType gPosition gPhase gFinalL gActive
+   for {set i 0} {$i < 48} {incr i} {
+      $c lower num$i
+   }
+   for {set i 0} {$i < 16} {incr i} {
+      $c lower BSmallO$i
+      $c lower WSmallO$i
+   }
+   if {$gPhase != 0} {
+      raiseLowerL $c $gFinalL raise red back
+   }
+
+   if {$gActive} {
+
+      foreach item $gMoveList {
+         set move [lindex $item 0]
+         set value [lindex $item 1]
+         set remoteness [lindex $item 2]
+         set delta [lindex $item 3]
+         set color cyan
+         if {$gMoveType == "value" || $gMoveType == "rm"} {
+            if {$value == "Tie"} {
+               set color yellow
+            } elseif {$value == "Lose"} {
+               set color green
+            } else {
+               set color red
+            }
          }
-      }
-      if {$gMovePart == 0} {
-         set number [unhashMoveL $move]
-         $c raise num$number
-         $c itemconfigure num$number -fill $color -tags "num$number showingL" 
-      } else {
-         if {[unhashMoveSPiece $move] == 1} { 
-            $c raise SmallO-black-[unhashMoveSValue $move]
-            $c itemconfigure SmallO-black-[unhashMoveSValue $move] -fill $color
+
+         if {$gPhase == 0} {
+            set number [unhashMoveL $move]
+            $c raise num$number 
+            $c itemconfigure num$number -fill $color  
          } else {
-            $c raise SmallO-white-[unhashMoveSValue $move]
-            $c itemconfigure SmallO-white-[unhashMoveSValue $move] -fill $color
+            if {[unhashMoveL $move] == $gFinalL} { 
+               if {[unhashMoveSPiece $move] == 1} { 
+                  puts [unhashMoveSValue $move]
+                  $c raise BSmallO[expr [unhashMoveSValue $move] -1] all
+                  $c itemconfigure BSmallO[expr [unhashMoveSValue $move] -1] -fill $color
+               } else {
+                  $c raise WSmallO[expr [unhashMoveSValue $move] -1] all
+                  $c itemconfigure WSmallO[expr [unhashMoveSValue $move] -1] -fill $color
+               }
+            }
          }
       }
    }
@@ -851,8 +1035,11 @@ proc GS_GetGameSpecificOptions { } {
 # Or, do nothing.
 #############################################################################
 proc GS_GameOver { c position gameValue nameOfWinningPiece nameOfWinner lastMove} {
+   
+   global gActive
+   set gActive 0
+   GS_DrawPosition $c $position
 
-	### TODO if needed
 	
 }
 
