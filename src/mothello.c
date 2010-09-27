@@ -1900,13 +1900,18 @@ void printBoard(char* board) {
 		printf("\nHUGE ERROR...I IS TOO BIG, meaning the BOARD SHOULD BE SMALLER THAN IT REALLY IS!!!! ==> %d\n\n",i);
 		
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+POSITION StringToPosition(char* board, int move, int option) {
+    int boardsize = OthRows * OthCols;
+    char* temp = (char*) SafeMalloc(boardsize+1);
+    int i;
+    for (i = 0; i < boardsize+1; i++) {
+        temp[i] = board[i];
+    }
+    // getPosition calls SafeFree() on the string it is passed
+    return getPosition(temp, move);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+    return getBoard(pos);
 }
