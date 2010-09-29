@@ -1901,11 +1901,20 @@ void printBoard(char* board) {
 		
 }
 POSITION StringToPosition(char* board, int move, int option) {
+    // currently our server doesn't allow spaces in any value it receives
+    // we ask users to provide us _ for blank pieces instead and replace it 
+    // to the real BLANKPIECE value when we process the board
+
+    char RECEIVEDBLANKPIECE = '_';
     int boardsize = OthRows * OthCols;
     char* temp = (char*) SafeMalloc(boardsize+1);
     int i;
     for (i = 0; i < boardsize+1; i++) {
-        temp[i] = board[i];
+        if (board[i] == RECEIVEDBLANKPIECE) {
+            temp[i] = BLANKPIECE;
+        } else {
+            temp[i] = board[i];
+        }
     }
     // getPosition calls SafeFree() on the string it is passed
     return getPosition(temp, move);
@@ -1913,5 +1922,19 @@ POSITION StringToPosition(char* board, int move, int option) {
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    return getBoard(pos);
+    int boardsize = OthRows * OthCols;
+    char RETURNEDBLANKPIECE = '_';
+    char* rtnBoard = (char*) SafeMalloc(boardsize+1);
+    char* board = getBoard(pos);
+    int i;
+    for (i = 0; i < boardsize+1; i++) {
+        if (board[i] == BLANKPIECE) {
+            rtnBoard[i] = RETURNEDBLANKPIECE;
+        } else {
+            rtnBoard[i] = board[i];
+        }
+    }
+    SafeFree(board);
+    return rtnBoard;
+    return rtnBoard;
 }
