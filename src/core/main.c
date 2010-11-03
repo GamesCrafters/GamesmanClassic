@@ -533,9 +533,15 @@ void HandleArguments (int argc, char *argv[])
                         if (InitializeGetMoveValuesStuff()) {
                             while (moves != NULL) {
                                 POSITION child = DoMove(pos, moves->move);
-                                // FIXME: change "child" into a board strings
                                 char* childPosition = PositionToString(child, whoseMove, option);
-                                //printf("(%lld, %d, %d)", child, moves->move,
+
+                                // flip move values to change perspective
+                                VALUE value = GetValueOfPosition(child);
+                                if (value == win) {
+                                    value = lose;                                
+                                } else if (value == lose) {
+                                    value = win;
+                                }
                                 printf("(%s, %s, %d)", childPosition, MoveToString(moves->move),
                                        GetValueOfPosition(child));
                                 moves = moves->next;
