@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import re
+import urllib
 from subprocess import Popen, PIPE
 from thrift.transport import TSocket
 from thrift.transport import TTransport
@@ -7,6 +8,7 @@ from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer
 from gamesman import *
 from gamesman.ttypes import *
+from daemon import DaemonContext
 
 class RequestHandler(GamestateRequestHandler.Iface):
     
@@ -15,12 +17,13 @@ class RequestHandler(GamestateRequestHandler.Iface):
              'ago', 'asalto', 'ataxx', 'baghchal', 'blocking', 'cambio',
              'change', 'cmass', 'con', 'ctoi', 'dao', 'dinododgem', 'dnb',
              'dodgem', 'fandan', 'foxes', 'gobblet', 'graph', 'hex', 'horse',
-             'hshogi', 'iceblocks', 'igo', 'joust', 'kono', 'lewth', 'lite3',
-             'loa', 'mancala', 'nim', 'nuttt', 'ooe', 'othello', 'pylos',
-             'qland', 'quarto', 'quickchess', 'qx', 'rInfin2', 'rcheckers',
-             'rubix', 'seega', 'sim', 'slideN', 'snake', 'squaredance', 'stt',
-             'swans', 'tactix', 'tilechess', 'tootnotto', 'tore', 'ttc', 'ttt',
-             'tttier', 'win4', 'winkers', 'wuzhi', 'xigua']
+             'hshogi', 'iceblocks', 'igo', 'joust', 'kono', 'lctl', 'lewth',
+             'lite3', 'loa', 'mancala', 'nim', 'nuttt', 'ooe', 'othello',
+             'pylos', 'qland', 'quarto', 'quickchess', 'qx', 'rInfin2',
+             'rcheckers', 'rubix', 'seega', 'sim', 'slideN', 'snake',
+             'squaredance', 'stt', 'swans', 'tactix', 'tilechess', 'tootnotto',
+             'tore', 'ttc', 'ttt', 'tttier', 'win4', 'winkers', 'wuzhi',
+             'xigua']
     
     def __init__(self, path):
         self.path = path
@@ -76,7 +79,7 @@ class RequestHandler(GamestateRequestHandler.Iface):
         for field in fields:
             prop, value = field.split('=', 1)
             if prop == 'board':
-                board = value
+                board = urllib.unquote(value)
             elif prop == 'player':
                 player = str(int(value))
             elif prop == 'option':
@@ -115,14 +118,16 @@ class GameException(Exception):
     pass
 
 if __name__ == '__main__':
-    port = 24444
-    path = '../bin'
-    handler = RequestHandler(path)
-    processor = GamestateRequestHandler.Processor(handler)
-    transport = TSocket.TServerSocket(port)
-    transport_factory = TTransport.TBufferedTransportFactory()
-    protocol_factory = TBinaryProtocol.TBinaryProtocolFactory()
-    server = TServer.TThreadedServer(processor, transport, transport_factory,
-                                     protocol_factory)
-    print 'GamesmanClassic server listening on port %d...' % (port,)
-    server.serve()
+    with DaemonContext():
+        port = 24444
+        path = '../bin'
+        handler = RequestHandler(path)
+        processor = GamestateRequestHandler.Processor(handler)
+        transport = TSocket.TServerSocket(port)
+        transport_factory = TTransport.TBufferedTransportFactory()
+        protocol_factory = TBinaryProtocol.TBinaryProtocolFactory()
+        server = TServer.TThreadedServer(processor, transport,
+                                         transport_factory,
+                                         protocol_factory)
+        print 'GamesmanClassic server listening on port %d...' % (port,)
+        server.serve()
