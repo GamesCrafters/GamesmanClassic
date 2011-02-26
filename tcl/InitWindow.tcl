@@ -2301,7 +2301,7 @@ proc plotMove { turn theValue theRemoteness theMoves lastMove } {
 	
       for {set i 0} {$i <= $maxRemoteness} {incr i} {
 		    set reverse [expr $maxRemoteness - $i]
-		    set stipple @[file join $tk_library demos images gray25.bmp]
+		    set stipple @[file join $tk_library demos images gray25.xbm]
 		    #set stipple ""
 			set width 2
 
