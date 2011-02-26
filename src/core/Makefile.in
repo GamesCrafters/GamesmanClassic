@@ -98,7 +98,7 @@ SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_RETROGRADE) $(SOLVER_OPENPOSITIONS) $(SOLVER_VS_STD) \
 	$(SOLVER_VS_LOOPY)
 
-MODULES=$(CORE) $(SOLVERS) hash.o
+MODULES=$(CORE) $(SOLVERS) hash.o memwatch.o
 
 INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h seval.h\
