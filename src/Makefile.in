@@ -456,7 +456,7 @@ clean:		clean-bins
 		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
 		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
 		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A) $(GAMESDB_A) \
-		$(ANOTO_PEN_OBJ) $(TTT_PEN_OBJ) $(TACTIX_EXE) $(DNB_PEN_OBJ)
+		$(ANOTO_PEN_OBJ) $(TTT_PEN_OBJ) $(TACTIX_EXE) $(DNB_PEN_OBJ) $(TACTIX_PEN_OBJ)
 
 clean-bins:
 		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
