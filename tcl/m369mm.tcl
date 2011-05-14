@@ -9,7 +9,7 @@
 ############################################################################
 proc GS_InitGameSpecific {} {
 	
-	puts "GS_InitGameSpecific"
+	### puts "GS_InitGameSpecific"
 
 	### Set the name of the game
 	global kGameName
