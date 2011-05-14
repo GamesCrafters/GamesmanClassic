@@ -1022,8 +1022,8 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2) + (millType << 4));
-	printf("millType = %d\n", millType);
+  //printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2) + (millType << 4));
+  //printf("millType = %d\n", millType);
   return 1 + (gFlying<<1) + gStandardGame + ((gameType/3-1)<<2) + (millType<<4);
 }
 
@@ -1970,7 +1970,7 @@ void changetothree(){
 
 void changetosix()
 {
-	printf("changing to 6666666\n");
+  //printf("changing to 6666666\n");
 	gameType = 6;
 	BOARDSIZE =16;
 	maxx = 6;
