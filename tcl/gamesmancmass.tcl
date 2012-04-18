@@ -1026,7 +1026,7 @@ proc DoGameSpecificOptions {} {
     global tcl_platform
     if { $tcl_platform(platform) == "macintosh" } {
 	radiobutton .gameSpecificOptions.f0.butReverse  \
-	    -text "$kMisereString (misŽre)"  \
+	    -text "$kMisereString (misÂŽre)"  \
 	    -font $kLabelFont \
 	    -variable varObjective \
 	    -value butReverse
@@ -1635,7 +1635,7 @@ proc DeleteMoves {} {
     
     .winBoard.c delete tagMoves
     
-    foreach theMoveValue [C_GetValueMoves $gPosition] {
+    foreach theMoveValue [C_GetValueMoves $gPosition 0] {
 	set theMove [lindex $theMoveValue 0]
         DrawMove .winBoard.c $theMove gray $kBigPiece
     } 
@@ -1655,7 +1655,7 @@ proc ShowMoves {} {
     
     DeleteMoves
 
-    foreach theMoveValue [C_GetValueMoves $gPosition] {
+    foreach theMoveValue [C_GetValueMoves $gPosition 0] {
 	set theMove [lindex $theMoveValue 0]
         DrawMove .winBoard.c $theMove cyan $kBigPiece
     } 
@@ -1675,7 +1675,7 @@ proc ShowValueMoves {} {
 
     DeleteMoves
 
-    foreach theMoveValue [C_GetValueMoves $gPosition] {
+    foreach theMoveValue [C_GetValueMoves $gPosition 0] {
 	set theMove [lindex $theMoveValue 0]
         DrawMove .winBoard.c $theMove [ValueToColor [lindex $theMoveValue 1]] $kBigPiece
     }
