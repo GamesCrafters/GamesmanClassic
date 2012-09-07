@@ -1,0 +1,8 @@
+*.o
+*.so
+*.a
+bin/*
+Makefile
+config.*
+configure
+autom4te.cache
