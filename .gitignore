@@ -6,3 +6,7 @@ Makefile
 config.*
 configure
 autom4te.cache
+
+*.dat
+*.gz
+*.export
