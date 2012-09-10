@@ -2,6 +2,6 @@
 #define GMCORE_NETDB_H
 
 /* General */
-void       	netdb_init 		(DB_Table *new_db);
+void            netdb_init              (DB_Table *new_db);
 
 #endif /* GMCORE_NETDB_H */

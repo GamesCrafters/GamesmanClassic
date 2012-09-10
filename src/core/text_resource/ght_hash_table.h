@@ -87,8 +87,8 @@ typedef unsigned int ght_uint32_t;
  */
 typedef struct s_hash_key
 {
-  unsigned int i_size;       /**< The size in bytes of the key p_key */
-  const void *p_key;         /**< A pointer to the key. */
+	unsigned int i_size; /**< The size in bytes of the key p_key */
+	const void *p_key;   /**< A pointer to the key. */
 } ght_hash_key_t;
 
 /*
@@ -98,13 +98,13 @@ typedef struct s_hash_key
  */
 typedef struct s_hash_entry
 {
-  void *p_data;
+	void *p_data;
 
-  struct s_hash_entry *p_next;
-  struct s_hash_entry *p_prev;
-  struct s_hash_entry *p_older;
-  struct s_hash_entry *p_newer;
-  ght_hash_key_t key;
+	struct s_hash_entry *p_next;
+	struct s_hash_entry *p_prev;
+	struct s_hash_entry *p_older;
+	struct s_hash_entry *p_newer;
+	ght_hash_key_t key;
 
 } ght_hash_entry_t;
 
@@ -115,8 +115,8 @@ typedef struct s_hash_entry
  */
 typedef struct
 {
-  ght_hash_entry_t *p_entry; /* The current entry */
-  ght_hash_entry_t *p_next;  /* The next entry */
+	ght_hash_entry_t *p_entry; /* The current entry */
+	ght_hash_entry_t *p_next; /* The next entry */
 } ght_iterator_t;
 
 /**
@@ -168,23 +168,23 @@ typedef void (*ght_fn_bucket_free_callback_t)(void *data, const void *key);
  */
 typedef struct
 {
-  unsigned int i_items;              /**< The current number of items in the table */
-  unsigned int i_size;               /**< The number of buckets */
-  ght_fn_hash_t fn_hash;             /**< The hash function used */
-  ght_fn_alloc_t fn_alloc;           /**< The function used for allocating entries */
-  ght_fn_free_t fn_free;             /**< The function used for freeing entries */
-  ght_fn_bucket_free_callback_t fn_bucket_free; /**< The function called when a bucket overflows */
-  int i_heuristics;                  /**< The type of heuristics used */
-  int i_automatic_rehash;            /**< TRUE if automatic rehashing is used */
+	unsigned int i_items;        /**< The current number of items in the table */
+	unsigned int i_size;         /**< The number of buckets */
+	ght_fn_hash_t fn_hash;       /**< The hash function used */
+	ght_fn_alloc_t fn_alloc;     /**< The function used for allocating entries */
+	ght_fn_free_t fn_free;       /**< The function used for freeing entries */
+	ght_fn_bucket_free_callback_t fn_bucket_free; /**< The function called when a bucket overflows */
+	int i_heuristics;            /**< The type of heuristics used */
+	int i_automatic_rehash;      /**< TRUE if automatic rehashing is used */
 
-  /* private: */
-  ght_hash_entry_t **pp_entries;
-  int *p_nr;                         /* The number of entries in each bucket */
-  int i_size_mask;                   /* The number of bits used in the size */
-  unsigned int bucket_limit;
+	/* private: */
+	ght_hash_entry_t **pp_entries;
+	int *p_nr;                   /* The number of entries in each bucket */
+	int i_size_mask;             /* The number of bits used in the size */
+	unsigned int bucket_limit;
 
-  ght_hash_entry_t *p_oldest;        /* The entry inserted the earliest. */
-  ght_hash_entry_t *p_newest;        /* The entry inserted the latest. */
+	ght_hash_entry_t *p_oldest;  /* The entry inserted the earliest. */
+	ght_hash_entry_t *p_newest;  /* The entry inserted the latest. */
 } ght_hash_table_t;
 
 /**
@@ -353,8 +353,8 @@ unsigned int ght_table_size(ght_hash_table_t *p_ht);
  * @return 0 if the element could be inserted, -1 otherwise.
  */
 int ght_insert(ght_hash_table_t *p_ht,
-	       void *p_entry_data,
-	       unsigned int i_key_size, const void *p_key_data);
+               void *p_entry_data,
+               unsigned int i_key_size, const void *p_key_data);
 
 /**
  * Replace an entry in the hash table. This function will return an
@@ -370,8 +370,8 @@ int ght_insert(ght_hash_table_t *p_ht,
  * @return a pointer to the <I>old</I> value or NULL if the operation failed.
  */
 void *ght_replace(ght_hash_table_t *p_ht,
-		  void *p_entry_data,
-		  unsigned int i_key_size, const void *p_key_data);
+                  void *p_entry_data,
+                  unsigned int i_key_size, const void *p_key_data);
 
 
 /**
@@ -385,7 +385,7 @@ void *ght_replace(ght_hash_table_t *p_ht,
  * @return a pointer to the found entry or NULL if no entry could be found.
  */
 void *ght_get(ght_hash_table_t *p_ht,
-	      unsigned int i_key_size, const void *p_key_data);
+              unsigned int i_key_size, const void *p_key_data);
 
 /**
  * Remove an entry from the hash table. The entry is removed from the
@@ -398,7 +398,7 @@ void *ght_get(ght_hash_table_t *p_ht,
  * @return a pointer to the removed entry or NULL if the entry could be found.
  */
 void *ght_remove(ght_hash_table_t *p_ht,
-		 unsigned int i_key_size, const void *p_key_data);
+                 unsigned int i_key_size, const void *p_key_data);
 
 /**
  * Return the first entry in the hash table. This function should be
@@ -502,7 +502,7 @@ void *ght_next(ght_hash_table_t *p_ht, ght_iterator_t *p_iterator, const void **
  * @param p_iterator the iterator to use.
  *
  * @param pp_key a pointer to the pointer of the key (NULL if none).
- * 
+ *
  * @param size a pointer to the size of the key pointer to by pp_key.
  *
  * @return a pointer to the next entry in the table or NULL if there

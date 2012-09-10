@@ -1,5 +1,5 @@
 /* Test script for migo.c */
-#include "migo.c"	/* For testing of static functions, need to be in one compilation unit. */
+#include "migo.c"       /* For testing of static functions, need to be in one compilation unit. */
 
 char* errstr;
 
@@ -20,11 +20,11 @@ int main(int argc, char* argv[]) {
 int testGameCreation(void) {
 	/* FIXME:  Test for nulls, etc */
 	const char* empty3x3 =
-"    A B C\n"
-"  3 . . .  3\n"
-"  2 . . .  2\n"
-"  1 . . .  1\n"
-"    A B C\n";
+	        "    A B C\n"
+	        "  3 . . .  3\n"
+	        "  2 . . .  2\n"
+	        "  1 . . .  1\n"
+	        "    A B C\n";
 	int result;
 	GoGame myGame = newGoGame(3);
 	char* posstr = stringifyGoPosition(myGame->position);
@@ -41,17 +41,17 @@ int testStonePlacement(void) {
 	/* FIXME:  nulls, etc */
 	/* FIXME:  Last move indicator */
 	const char* black_center =
-"    A B C\n"
-"  3 . . .  3\n"
-"  2 . X .  2\n"
-"  1 . . .  1\n"
-"    A B C\n";
+	        "    A B C\n"
+	        "  3 . . .  3\n"
+	        "  2 . X .  2\n"
+	        "  1 . . .  1\n"
+	        "    A B C\n";
 	const char* white_b3 =
-"    A B C\n"
-"  3 . O .  3\n"
-"  2 . X .  2\n"
-"  1 . . .  1\n"
-"    A B C\n";
+	        "    A B C\n"
+	        "  3 . O .  3\n"
+	        "  2 . X .  2\n"
+	        "  1 . . .  1\n"
+	        "    A B C\n";
 	int res1, res2;
 	char* posstr;
 	GoGame myGame = newGoGame(3);
@@ -70,7 +70,7 @@ int testStonePlacement(void) {
 #endif
 	free(posstr);
 	delGoGame(myGame);
-	return (res1 && res2);	/* FIXME:  Error messages */
+	return (res1 && res2);  /* FIXME:  Error messages */
 }
 
 int testCountLiberties(void) {
@@ -84,29 +84,29 @@ int testCountLiberties(void) {
 int testDoMove(void) {
 	/* FIXME:  nulls, etc */
 	const char* black_center =
-"    A B C\n"
-"  3 . . .  3\n"
-"  2 . X .  2\n"
-"  1 . . .  1\n"
-"    A B C\n";
+	        "    A B C\n"
+	        "  3 . . .  3\n"
+	        "  2 . X .  2\n"
+	        "  1 . . .  1\n"
+	        "    A B C\n";
 	const char* white_b3 =
-"    A B C\n"
-"  3 . O .  3\n"
-"  2 . X .  2\n"
-"  1 . . .  1\n"
-"    A B C\n";
+	        "    A B C\n"
+	        "  3 . O .  3\n"
+	        "  2 . X .  2\n"
+	        "  1 . . .  1\n"
+	        "    A B C\n";
 	const char* black_c3 =
-"    A B C\n"
-"  3 . O X  3\n"
-"  2 . X .  2\n"
-"  1 . . .  1\n"
-"    A B C\n";
+	        "    A B C\n"
+	        "  3 . O X  3\n"
+	        "  2 . X .  2\n"
+	        "  1 . . .  1\n"
+	        "    A B C\n";
 	const char* white_c2 =
-"    A B C\n"
-"  3 . O .  3\n"
-"  2 . X O  2\n"
-"  1 . . .  1\n"
-"    A B C\n";
+	        "    A B C\n"
+	        "  3 . O .  3\n"
+	        "  2 . X O  2\n"
+	        "  1 . . .  1\n"
+	        "    A B C\n";
 	int res1, res2, res3, res4;
 	GoMove nextMove;
 	GoGame myGame = newGoGame(3);
@@ -127,7 +127,7 @@ int testDoMove(void) {
 	delGoMove(nextMove);
 	res4 = comparePosToStr(myGame->position, white_c2);
 	delGoGame(myGame);
-	return (res1 && res2 && res3 && res4);	/* FIXME:  Error messages */
+	return (res1 && res2 && res3 && res4);  /* FIXME:  Error messages */
 }
 
 int comparePosToStr(GoPosition pos, const char* str) {
@@ -142,6 +142,6 @@ int comparePosToStr(GoPosition pos, const char* str) {
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

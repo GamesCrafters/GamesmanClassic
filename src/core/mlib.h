@@ -18,17 +18,17 @@ BOOLEAN mymemcmp(void*,void*,int);
 #define MLIB_MAXPATTERN 16
 
 typedef struct lb {
-  int eltSize;
-  int rows;
-  int cols;
-  int size;
-  BOOLEAN diagonals;
-  void* blankPiece;
-  void* opponentPlayerPiece;
-  void* initialPlayerPiece;
-  int directionMap[8];
-  int scratchBoard[MLIB_MAXBOARDSIZE];
-  int overflowBoards[MLIB_MAXPATTERN][MLIB_MAXBOARDSIZE];
+	int eltSize;
+	int rows;
+	int cols;
+	int size;
+	BOOLEAN diagonals;
+	void* blankPiece;
+	void* opponentPlayerPiece;
+	void* initialPlayerPiece;
+	int directionMap[8];
+	int scratchBoard[MLIB_MAXBOARDSIZE];
+	int overflowBoards[MLIB_MAXPATTERN][MLIB_MAXBOARDSIZE];
 } LocalBoard;
 
 extern LocalBoard lBoard;

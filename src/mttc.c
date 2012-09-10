@@ -99,25 +99,25 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1; /* Need to ask michel if this is correct */
 
-STRING   kAuthorName         = "Reman Child";
-STRING   kGameName           = "Tic-Tac-Chec";
-STRING   kDBName             = "ttc";
-BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = FALSE;
-BOOLEAN  kGameSpecificMenu   = TRUE;
-BOOLEAN  kTieIsPossible      = FALSE;
-BOOLEAN  kLoopy              = TRUE;
-BOOLEAN  kDebugDetermineValue = TRUE;
+STRING kAuthorName         = "Reman Child";
+STRING kGameName           = "Tic-Tac-Chec";
+STRING kDBName             = "ttc";
+BOOLEAN kPartizan           = TRUE;
+BOOLEAN kDebugMenu          = FALSE;
+BOOLEAN kGameSpecificMenu   = TRUE;
+BOOLEAN kTieIsPossible      = FALSE;
+BOOLEAN kLoopy              = TRUE;
+BOOLEAN kDebugDetermineValue = TRUE;
 
 /*
    Help strings that are pretty self-explanatory
-*/
+ */
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+        "Not written yet";
 
-STRING   kHelpTextInterface    =
-"On your turn, you must make a move corresponding to the piece you choose\n\
+STRING kHelpTextInterface    =
+        "On your turn, you must make a move corresponding to the piece you choose\n\
 to move. If you want to *place* a piece from off the board, moves are\n\
 specified by the piece followed by the destination cell.  If you want to\n\
 move a piece already on the board, you must specify the source cell as well.\n\
@@ -132,27 +132,27 @@ Examples of MOVING pieces:\n\
   Ba1c3    -  move the bishop FROM a1 TO c3\n\
 \n\
 Capturing consists of the same conventions; no differentiation is made in\n\
-move nomenclature.";
+move nomenclature."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING   kHelpOnYourTurn =
-"You input a valid move - either a capture, placement, or simple piece move";
+STRING kHelpOnYourTurn =
+        "You input a valid move - either a capture, placement, or simple piece move";
 
-STRING   kHelpStandardObjective =
-"The objective of this game is to get N of your pieces in a row, where N \n\
+STRING kHelpStandardObjective =
+        "The objective of this game is to get N of your pieces in a row, where N \n\
 denotes the win condition that the game is initialized with (default: ).\n\
 This includes a row in either the horizontal, vertical, or diagonal \n\
-directions.";
+directions."                                                                                                                                                                                                                                         ;
 
-STRING   kHelpReverseObjective =
-"The misere option of this game is essentially meaningless.  There is no\n\
-forcing combination to make your opponent 'lose'.";
+STRING kHelpReverseObjective =
+        "The misere option of this game is essentially meaningless.  There is no\n\
+forcing combination to make your opponent 'lose'."                                                                                    ;
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
+STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+                            "";
 
 /* Added \n\ to handle multi-lined strings. --- Robert Liao */
-STRING   kHelpExample =
-"Ok, Player and Computer, let us begin. \n\
+STRING kHelpExample =
+        "Ok, Player and Computer, let us begin. \n\
 \n\
 Type '?' if you need assistance...\n\
 \n\
@@ -410,7 +410,7 @@ Type '?' if you need assistance...\n\
   Game Prediction:  (Computer should Lose in 0)\n\
 \n\
 \n\
-Excellent! You won!\n";
+Excellent! You won!\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
 
 /*************************************************************************
 **
@@ -434,8 +434,8 @@ Excellent! You won!\n";
 
 /* Used mainly for setting up/changing the board */
 struct pieceType {
-  int id;   // Piece ID
-  int freq; // Number of occurrences
+	int id; // Piece ID
+	int freq; // Number of occurrences
 };
 
 
@@ -461,7 +461,7 @@ enum pieceID { B_KG,B_QN,B_RK,B_BP,B_KN,B_PN,
 enum players {BLACK, WHITE};
 
 char piece_strings[13] = {'K','Q','R','B','N','P',
-			  'k','q','r','b','n','p','-'};
+	                  'k','q','r','b','n','p','-'};
 
 /** #defines **************************************************************/
 
@@ -480,17 +480,17 @@ char piece_strings[13] = {'K','Q','R','B','N','P',
 #define K_LEG 1 // length of king's stride
 #define MAX_PIECES 20
 
-#define min(a,b) ((a < b)? a : b)
-#define max(a,b) ((a > b)? a : b)
+#define min(a,b) ((a < b) ? a : b)
+#define max(a,b) ((a > b) ? a : b)
 
 /*************************************************************************/
 
 /* Function prototypes here. */
 
 /* External */
-#ifndef MEMWATCH 
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+#ifndef MEMWATCH
+extern GENERIC_PTR      SafeMalloc ();
+extern void             SafeFree ();
 #endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
@@ -524,61 +524,61 @@ STRING MoveToString( MOVE );
 ************************************************************************/
 
 void InitializeGame () {
-  int *getPieceArray(struct pieceType *, int), getBoardSize(),i;
-  int *pieceArray;
-  BOARD board;
-  int sizeOfPieceType(struct pieceType *);
-  /* Initialize Global Variables */
-  if (numRows == 0)
-    numRows = INIT_NUMROWS;
-  if (numCols == 0)
-    numCols = INIT_NUMCOLS;
-  if (winCondition == 0)
-    winCondition = INIT_WINCONDITION;
-  if (initPieces == NULL) {
-    initPieces = (struct pieceType *)SafeMalloc(MAX_PIECES*sizeof(struct pieceType));
-    /* define initial pieces for board - bishop, queen, knight for each side; */
+	int *getPieceArray(struct pieceType *, int), getBoardSize(),i;
+	int *pieceArray;
+	BOARD board;
+	int sizeOfPieceType(struct pieceType *);
+	/* Initialize Global Variables */
+	if (numRows == 0)
+		numRows = INIT_NUMROWS;
+	if (numCols == 0)
+		numCols = INIT_NUMCOLS;
+	if (winCondition == 0)
+		winCondition = INIT_WINCONDITION;
+	if (initPieces == NULL) {
+		initPieces = (struct pieceType *)SafeMalloc(MAX_PIECES*sizeof(struct pieceType));
+		/* define initial pieces for board - bishop, queen, knight for each side; */
 
-    initPieces[0].id = B_RK;
-    initPieces[0].freq = 1;
-    initPieces[1].id = B_KN;
-    initPieces[1].freq = 1;
-    initPieces[2].id = B_BP;
-    initPieces[2].freq = 1;
-    initPieces[3].id = W_RK;
-    initPieces[3].freq = 1;
-    initPieces[4].id = W_KN;
-    initPieces[4].freq = 1;
-    initPieces[5].id = W_BP;
-    initPieces[5].freq = 1;
+		initPieces[0].id = B_RK;
+		initPieces[0].freq = 1;
+		initPieces[1].id = B_KN;
+		initPieces[1].freq = 1;
+		initPieces[2].id = B_BP;
+		initPieces[2].freq = 1;
+		initPieces[3].id = W_RK;
+		initPieces[3].freq = 1;
+		initPieces[4].id = W_KN;
+		initPieces[4].freq = 1;
+		initPieces[5].id = W_BP;
+		initPieces[5].freq = 1;
 
 
-    //initPieces[0].id = B_QN;
-    //initPieces[0].freq = 2;
-    //initPieces[1].id = W_QN;
-    //initPieces[1].freq = 2;
-    initPieces[6].id = BLNK; // end condition
-    initPieces[6].freq = getBoardSize();
-  }
-  if (gNumberOfPositions == 0) {
-    pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
-    gNumberOfPositions = generic_hash_init(getBoardSize(), pieceArray,NULL,0);
-    ////////////////////////////
-    ////printf("gnumpositions (init) : %u\n",gNumberOfPositions);
-    SafeFree(pieceArray);
-  }
-  if (gInitialPosition == 0) {
-    /* define initial board as being all blank */
-    board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char));
-    for (i = 0; i < getBoardSize(); i++)
-      board[i] = BLNK;
-    gInitialPosition = generic_hash_hash(board,WHITE); // white goes first
-    SafeFree(board);
-  }
+		//initPieces[0].id = B_QN;
+		//initPieces[0].freq = 2;
+		//initPieces[1].id = W_QN;
+		//initPieces[1].freq = 2;
+		initPieces[6].id = BLNK; // end condition
+		initPieces[6].freq = getBoardSize();
+	}
+	if (gNumberOfPositions == 0) {
+		pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
+		gNumberOfPositions = generic_hash_init(getBoardSize(), pieceArray,NULL,0);
+		////////////////////////////
+		////printf("gnumpositions (init) : %u\n",gNumberOfPositions);
+		SafeFree(pieceArray);
+	}
+	if (gInitialPosition == 0) {
+		/* define initial board as being all blank */
+		board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char));
+		for (i = 0; i < getBoardSize(); i++)
+			board[i] = BLNK;
+		gInitialPosition = generic_hash_hash(board,WHITE); // white goes first
+		SafeFree(board);
+	}
 
-  gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 
-  return;
+	return;
 }
 
 
@@ -592,14 +592,14 @@ void InitializeGame () {
 ************************************************************************/
 // Doesn't do anything at the moment
 void DebugMenu () {
-  int option = 1;
-  while (option != 0) {
-    printf(" 1) Test Generate Moves\n");
-    printf(" 0) Exit\n");
-    printf("\n  DEBUG> ");
-    scanf("%d",&option);
-  }
-  return;
+	int option = 1;
+	while (option != 0) {
+		printf(" 1) Test Generate Moves\n");
+		printf(" 0) Exit\n");
+		printf("\n  DEBUG> ");
+		scanf("%d",&option);
+	}
+	return;
 }
 
 
@@ -618,116 +618,116 @@ void DebugMenu () {
  */
 
 void GameSpecificMenu () {
-  void PrintPosition (POSITION, STRING, BOOLEAN);
-  void resetBoard(), resetPieces(),addPieceToInit(PIECE);
-  PIECE stringToPiece(char);
-  int *input,i;
-  char move[MOVE_LENGTH+1], piece;
-  char option[2];
-  BOOLEAN hadInitialPieces(MPLAYER);
+	void PrintPosition (POSITION, STRING, BOOLEAN);
+	void resetBoard(), resetPieces(),addPieceToInit(PIECE);
+	PIECE stringToPiece(char);
+	int *input,i;
+	char move[MOVE_LENGTH+1], piece;
+	char option[2];
+	BOOLEAN hadInitialPieces(MPLAYER);
 
-  input = (int *) malloc(1*sizeof(int));
-  while(TRUE) {
-    PrintPosition(gInitialPosition,"GameMenu",FALSE);
-    printf("  Game Specific Options:\n");
-    printf("    Current number of positions: "POSITION_FORMAT"\n",gNumberOfPositions);
-    printf("    *note* this should be <= ~2,000,000 positions\n\n");
-    printf("\tr)\t (R)ows in board       -     [%d] rows\n",numRows);
-    printf("\tc)\t (C)olumns in board    -     [%d] cols\n",numCols);
-    printf("\tg)\t (G)ame win condition  -     [%d] in a row\n",winCondition);
-    printf("\n");
-    printf("\ti)\t (I)nitial board\n");
-    printf("\th)\t W(h)ite pieceset\n");
-    printf("\tb)\t B(l)ack pieceset\n");
-    printf("\n");
-    printf("\tb)\t (B)ack\n\n");
-    printf("  Select an option: ");
-    scanf("%s",option);
-    if (!strcmp(option,"b")) {
-      SafeFree(input);
-      return;
-    }
-    if (!strcmp(option,"r")) {
-      printf("  Input new board height > ");
-      scanf("%d",input);
-      if(input[0] > 0 && input[0] <= 4)
-      	numRows = input[0];
-      else{
-      	printf("ERROR: row size must be between one to four\n");
-      	HitAnyKeyToContinue();
-	}
-      resetBoard();
-    } else if (!strcmp(option,"c")) {
-      printf("  Input new board width > ");
-      scanf("%d",input);
-      if(input[0] > 0 && input[0] <= 4)
-      	numCols = input[0];
-      else{
-			printf("ERROR: col size must be between one to four\n");
-			HitAnyKeyToContinue();
+	input = (int *) malloc(1*sizeof(int));
+	while(TRUE) {
+		PrintPosition(gInitialPosition,"GameMenu",FALSE);
+		printf("  Game Specific Options:\n");
+		printf("    Current number of positions: "POSITION_FORMAT "\n",gNumberOfPositions);
+		printf("    *note* this should be <= ~2,000,000 positions\n\n");
+		printf("\tr)\t (R)ows in board       -     [%d] rows\n",numRows);
+		printf("\tc)\t (C)olumns in board    -     [%d] cols\n",numCols);
+		printf("\tg)\t (G)ame win condition  -     [%d] in a row\n",winCondition);
+		printf("\n");
+		printf("\ti)\t (I)nitial board\n");
+		printf("\th)\t W(h)ite pieceset\n");
+		printf("\tb)\t B(l)ack pieceset\n");
+		printf("\n");
+		printf("\tb)\t (B)ack\n\n");
+		printf("  Select an option: ");
+		scanf("%s",option);
+		if (!strcmp(option,"b")) {
+			SafeFree(input);
+			return;
 		}
-      resetBoard();
-    } else if (!strcmp(option,"g")) {
-      printf("  Input new win condition > ");
-      scanf("%d",input);
-      int maxRowCol = numCols;
-      if(numRows > numCols)
-      	maxRowCol = numRows;
-      if(input[0] > 0 && input[0] <= maxRowCol)
-      	winCondition = input[0];
-      else{
-			printf("ERROR: winningCondition must be between one to the maximum of rows and columns.\n");
-			HitAnyKeyToContinue();
+		if (!strcmp(option,"r")) {
+			printf("  Input new board height > ");
+			scanf("%d",input);
+			if(input[0] > 0 && input[0] <= 4)
+				numRows = input[0];
+			else{
+				printf("ERROR: row size must be between one to four\n");
+				HitAnyKeyToContinue();
+			}
+			resetBoard();
+		} else if (!strcmp(option,"c")) {
+			printf("  Input new board width > ");
+			scanf("%d",input);
+			if(input[0] > 0 && input[0] <= 4)
+				numCols = input[0];
+			else{
+				printf("ERROR: col size must be between one to four\n");
+				HitAnyKeyToContinue();
+			}
+			resetBoard();
+		} else if (!strcmp(option,"g")) {
+			printf("  Input new win condition > ");
+			scanf("%d",input);
+			int maxRowCol = numCols;
+			if(numRows > numCols)
+				maxRowCol = numRows;
+			if(input[0] > 0 && input[0] <= maxRowCol)
+				winCondition = input[0];
+			else{
+				printf("ERROR: winningCondition must be between one to the maximum of rows and columns.\n");
+				HitAnyKeyToContinue();
+			}
+		} else if (!strcmp(option,"i")) {
+			while(TRUE) {
+				printf("  Make a move (end with 'done') > ");
+				scanf("%s",move);
+				if (!strcmp(move,"done"))
+					break;
+				if (ValidTextInput(move)) {
+					gInitialPosition = DoMove(gInitialPosition,ConvertTextInputToMove(move));
+					PrintPosition(gInitialPosition,"Game Menu",FALSE);
+				}
+			}
+		} else if (!strcmp(option,"h")) {
+			printf("  Input a line of WHITE pieces (q,b,n,k,r)\n");
+			printf("  i.e. '> q b q' would correspond to starting with two queens and a bishop\n\n");
+			printf("  > ");
+			i = 0;
+			getchar(); // Account for the previous input from stdin
+			// Hmmm will eventually have to check string to make sure something legal is added
+			if (hadInitialPieces(WHITE))
+				resetPieces();
+			while((piece = getchar()) != '\n') {
+				if (piece == 'k' || piece == 'q' || piece == 'b' ||
+				    piece == 'p' || piece == 'n' || piece == 'r') {
+					addPieceToInit(stringToPiece(piece));
+				}
+				resetBoard();
+			}
+		} else if (!strcmp(option,"l")) {
+			printf("  Input a line of BLACK pieces (Q,B,N,K,R))\n");
+			printf("  i.e. '> Q B Q' would correspond to starting with two queens and a bishop\n\n");
+			printf("  > ");
+			i = 0;
+			getchar(); // Account for the previous input from stdin
+			// Hmmm will eventually have to check string to make sure something legal is added
+			if (hadInitialPieces(BLACK))
+				resetPieces();
+			while((piece = getchar()) != '\n') {
+				if (piece == 'K' || piece == 'Q' || piece == 'B' ||
+				    piece == 'P' || piece == 'N' || piece == 'R') {
+					addPieceToInit(stringToPiece(piece));
+				}
+				resetBoard();
+			}
+		} else {
+			printf("\n > INVALID OPTION, try to get it right this time please.\n");
 		}
-    } else if (!strcmp(option,"i")) {
-      while(TRUE) {
-	printf("  Make a move (end with 'done') > ");
-	scanf("%s",move);
-	if (!strcmp(move,"done"))
-	  break;
-	if (ValidTextInput(move)) {
-	  gInitialPosition = DoMove(gInitialPosition,ConvertTextInputToMove(move));
-	  PrintPosition(gInitialPosition,"Game Menu",FALSE);
 	}
-      }
-    } else if (!strcmp(option,"h")) {
-      printf("  Input a line of WHITE pieces (q,b,n,k,r)\n");
-      printf("  i.e. '> q b q' would correspond to starting with two queens and a bishop\n\n");
-      printf("  > ");
-      i = 0;
-      getchar(); // Account for the previous input from stdin
-      // Hmmm will eventually have to check string to make sure something legal is added
-      if (hadInitialPieces(WHITE))
-	resetPieces();
-      while((piece = getchar()) != '\n') {
-	if (piece == 'k' || piece == 'q' || piece == 'b' ||
-	    piece == 'p' || piece == 'n' || piece == 'r') {
-	  addPieceToInit(stringToPiece(piece));
-	}
-	resetBoard();
-      }
-    } else if (!strcmp(option,"l")) {
-      printf("  Input a line of BLACK pieces (Q,B,N,K,R))\n");
-      printf("  i.e. '> Q B Q' would correspond to starting with two queens and a bishop\n\n");
-      printf("  > ");
-      i = 0;
-      getchar(); // Account for the previous input from stdin
-      // Hmmm will eventually have to check string to make sure something legal is added
-      if (hadInitialPieces(BLACK))
-	resetPieces();
-      while((piece = getchar()) != '\n') {
-	if (piece == 'K' || piece == 'Q' || piece == 'B' ||
-	    piece == 'P' || piece == 'N' || piece == 'R') {
-	  addPieceToInit(stringToPiece(piece));
-	}
-	resetBoard();
-      }
-    } else {
-      printf("\n > INVALID OPTION, try to get it right this time please.\n");
-    }
-  }
-  SafeFree(input);
-  return;
+	SafeFree(input);
+	return;
 }
 
 
@@ -741,7 +741,7 @@ void GameSpecificMenu () {
 ************************************************************************/
 
 void SetTclCf (int options[]) {
-  return;
+	return;
 }
 
 
@@ -762,17 +762,17 @@ void SetTclCf (int options[]) {
 *************************************************************************/
 
 POSITION DoMove (POSITION pos, MOVE move) {
-  BOARD getBoard(POSITION), newBoard;
-  MPLAYER getPlayer(POSITION), newPlayer;
-  POSITION makePosition(BOARD, MPLAYER),newPos;
-  newPlayer = (getPlayer(pos) == WHITE)? BLACK : WHITE;
-  newBoard = getBoard(pos);
-  newBoard[getDest(move)] = getPiece(move, newBoard);
-  if (!offBoard(move))
-    newBoard[getSource(move)] = BLNK;
-  newPos = makePosition(newBoard,newPlayer);
-  SafeFree(newBoard);
-  return newPos;
+	BOARD getBoard(POSITION), newBoard;
+	MPLAYER getPlayer(POSITION), newPlayer;
+	POSITION makePosition(BOARD, MPLAYER),newPos;
+	newPlayer = (getPlayer(pos) == WHITE) ? BLACK : WHITE;
+	newBoard = getBoard(pos);
+	newBoard[getDest(move)] = getPiece(move, newBoard);
+	if (!offBoard(move))
+		newBoard[getSource(move)] = BLNK;
+	newPos = makePosition(newBoard,newPlayer);
+	SafeFree(newBoard);
+	return newPos;
 }
 
 
@@ -788,46 +788,46 @@ POSITION DoMove (POSITION pos, MOVE move) {
 ************************************************************************/
 
 POSITION GetInitialPosition () {
-  char command[COMMAND_LENGTH+1];
-  char inString[MOVE_LENGTH+1];
-  MPLAYER player, getPlayer(POSITION);
-  POSITION pos = gInitialPosition, switchPlayer(POSITION);
-  while(TRUE) {
-    player = getPlayer(pos);
-    PrintPosition(pos,(player == WHITE)? "White" : "Black",FALSE);
-    printf(" DEBUG ('do ?' for help) > ");
-    scanf("%s %s",command,inString);
-    if (!strcmp(inString,"q"))
-      break;
-    if (!strcmp(inString,"?")) {
-      printf("\n\n\n\n");
-      printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
-      printf("|\n");
-      printf("| Commands : \n");
-      printf("|   mv [MOVE]               -     Make a move\n");
-      printf("|   pl [BLACK:WHITE]        -     Change the player\n");
-      printf("|   do q                     -     Quits the menu\n");
-      printf("|   do ?                     -     Prints this help box\n");
-      printf("|\n");
-      printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
-      continue;
-    }
-    if (!strcmp(command,"mv")) {
-      if (ValidTextInput(inString)) {
-	pos = DoMove(pos,ConvertTextInputToMove(inString));
-      } else {
-	printf("\nINVALID MOVE\n");
-      }
-    }
-    if (!strcmp(command,"pl")) {
-      if (!strcmp(inString,"BLACK"))
-	player = BLACK;
-      if (!strcmp(inString,"WHITE"))
-	player = WHITE;
-      pos = switchPlayer(pos);
-    }
-  }
-  return pos;
+	char command[COMMAND_LENGTH+1];
+	char inString[MOVE_LENGTH+1];
+	MPLAYER player, getPlayer(POSITION);
+	POSITION pos = gInitialPosition, switchPlayer(POSITION);
+	while(TRUE) {
+		player = getPlayer(pos);
+		PrintPosition(pos,(player == WHITE) ? "White" : "Black",FALSE);
+		printf(" DEBUG ('do ?' for help) > ");
+		scanf("%s %s",command,inString);
+		if (!strcmp(inString,"q"))
+			break;
+		if (!strcmp(inString,"?")) {
+			printf("\n\n\n\n");
+			printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+			printf("|\n");
+			printf("| Commands : \n");
+			printf("|   mv [MOVE]               -     Make a move\n");
+			printf("|   pl [BLACK:WHITE]        -     Change the player\n");
+			printf("|   do q                     -     Quits the menu\n");
+			printf("|   do ?                     -     Prints this help box\n");
+			printf("|\n");
+			printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
+			continue;
+		}
+		if (!strcmp(command,"mv")) {
+			if (ValidTextInput(inString)) {
+				pos = DoMove(pos,ConvertTextInputToMove(inString));
+			} else {
+				printf("\nINVALID MOVE\n");
+			}
+		}
+		if (!strcmp(command,"pl")) {
+			if (!strcmp(inString,"BLACK"))
+				player = BLACK;
+			if (!strcmp(inString,"WHITE"))
+				player = WHITE;
+			pos = switchPlayer(pos);
+		}
+	}
+	return pos;
 }
 
 
@@ -843,11 +843,11 @@ POSITION GetInitialPosition () {
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
-  void PrintMove();
-  printf("  > %s's move : ",computersName);
-  PrintMove(computersMove);
-  printf("\n");
-  return;
+	void PrintMove();
+	printf("  > %s's move : ",computersName);
+	PrintMove(computersMove);
+	printf("\n");
+	return;
 }
 
 
@@ -871,23 +871,23 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 ************************************************************************/
 
 VALUE Primitive (POSITION position) {
-  BOARD board, getBoard(POSITION);
-  MPLAYER player;
-  int i, numInRow(CELL,BOARD);
+	BOARD board, getBoard(POSITION);
+	MPLAYER player;
+	int i, numInRow(CELL,BOARD);
 
-  board = getBoard(position);
-  for (i = 0; i < getBoardSize(); i++) {
-    if (numInRow(i,board) >= winCondition && !isPlayer(board[i],player)) {
-      SafeFree(board);
-      return (gStandardGame ? lose : win);
-    }
-    if (numInRow(i,board) >= winCondition && isPlayer(board[i],player)) {
-      SafeFree(board);
-      return (gStandardGame ? win: lose);
-    }
-  }
-  SafeFree(board);
-  return undecided;
+	board = getBoard(position);
+	for (i = 0; i < getBoardSize(); i++) {
+		if (numInRow(i,board) >= winCondition && !isPlayer(board[i],player)) {
+			SafeFree(board);
+			return (gStandardGame ? lose : win);
+		}
+		if (numInRow(i,board) >= winCondition && isPlayer(board[i],player)) {
+			SafeFree(board);
+			return (gStandardGame ? win : lose);
+		}
+	}
+	SafeFree(board);
+	return undecided;
 }
 
 
@@ -908,73 +908,73 @@ VALUE Primitive (POSITION position) {
 **
 ************************************************************************/
 void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  BOARD board, getBoard(POSITION);
-  struct pieceType *piecesOffBoard(struct pieceType *, BOARD),*pt = NULL;
-  board = getBoard(position);
-  int row,col,i;
-  BOOLEAN isWhite(PIECE), isBlack(PIECE);
-  // Ascertains the pieces off the board
-  //for (i = 0; i < sizeOfPieceType(initPieces); i++) {
-  pt = piecesOffBoard(initPieces,board);
-    //}
-  printf("\n  %s",playerName);
-  for (i = 0; i < (numCols*5); i++)
-    printf(" ");
-  printf("Win Condition: %d\n ",winCondition);
-  for (i = 0; i < (numCols * 5) + 40;i++) {
-    printf("-");
-  }
-  printf("\n\n     ");
-  for (col = 0; col < numCols; col++)
-    printf("--- ");
-  printf("\n");
-  for(row = 0; row < numRows; row++) {
-    printf("  %d",numRows-row);
-    for (col = 0; col < numCols; col++)
-      printf(" | %c" ,piece_strings[board[row*numCols+col]-'0']);
-    printf(" |      ");
+	BOARD board, getBoard(POSITION);
+	struct pieceType *piecesOffBoard(struct pieceType *, BOARD),*pt = NULL;
+	board = getBoard(position);
+	int row,col,i;
+	BOOLEAN isWhite(PIECE), isBlack(PIECE);
+	// Ascertains the pieces off the board
+	//for (i = 0; i < sizeOfPieceType(initPieces); i++) {
+	pt = piecesOffBoard(initPieces,board);
+	//}
+	printf("\n  %s",playerName);
+	for (i = 0; i < (numCols*5); i++)
+		printf(" ");
+	printf("Win Condition: %d\n ",winCondition);
+	for (i = 0; i < (numCols * 5) + 40; i++) {
+		printf("-");
+	}
+	printf("\n\n     ");
+	for (col = 0; col < numCols; col++)
+		printf("--- ");
+	printf("\n");
+	for(row = 0; row < numRows; row++) {
+		printf("  %d",numRows-row);
+		for (col = 0; col < numCols; col++)
+			printf(" | %c",piece_strings[board[row*numCols+col]-'0']);
+		printf(" |      ");
 
-    if (row == 0) {
-      printf("WHITE's offboard pieces: [ ");
-      for (i = 0; i < sizeOfPieceType(pt); i++) {
-	if (pt[i].freq == 1 && isWhite(pt[i].id))
-	  printf("%c ",piece_strings[pt[i].id]);
-	if  (pt[i].freq > 1 && isWhite(pt[i].id))
-	  printf("%cx%d ",piece_strings[pt[i].id],pt[i].freq);
-      }
-      printf("]");
-    } else if (row == numRows-1) {
-      printf("BLACK's offboard pieces: [ ");
-      for (i = 0; i < sizeOfPieceType(pt); i++) {
-	if (pt[i].freq == 1 && isBlack(pt[i].id))
-	  printf("%c ",piece_strings[pt[i].id]);
-	if  (pt[i].freq > 1 && isBlack(pt[i].id))
-	  printf("%cx%d ",piece_strings[pt[i].id],pt[i].freq);
-      }
-      printf("]");
-    }
-    printf("\n     ");
-    for (col = 0; col < numCols; col++)
-      printf("--- ");
-    printf("\n");
-  }
-  printf("     ");
-  for(i = 0; i < numCols; i++) {
-    printf(" %c  ",'a'+i);
-  }
-  printf("\n\n ");
-  for (i = 0; i < (numCols * 5) + 40;i++) {
-    printf("-");
-  }
-  if (strcmp(playerName,"GameMenu")) {
-    printf("\n\n  Game Prediction:  %s\n\n",
-	   GetPrediction(position,playerName,usersTurn));
-  } else {
-    printf("\n\n");
-  }
-  SafeFree(board);
-  SafeFree(pt);
-  return;
+		if (row == 0) {
+			printf("WHITE's offboard pieces: [ ");
+			for (i = 0; i < sizeOfPieceType(pt); i++) {
+				if (pt[i].freq == 1 && isWhite(pt[i].id))
+					printf("%c ",piece_strings[pt[i].id]);
+				if  (pt[i].freq > 1 && isWhite(pt[i].id))
+					printf("%cx%d ",piece_strings[pt[i].id],pt[i].freq);
+			}
+			printf("]");
+		} else if (row == numRows-1) {
+			printf("BLACK's offboard pieces: [ ");
+			for (i = 0; i < sizeOfPieceType(pt); i++) {
+				if (pt[i].freq == 1 && isBlack(pt[i].id))
+					printf("%c ",piece_strings[pt[i].id]);
+				if  (pt[i].freq > 1 && isBlack(pt[i].id))
+					printf("%cx%d ",piece_strings[pt[i].id],pt[i].freq);
+			}
+			printf("]");
+		}
+		printf("\n     ");
+		for (col = 0; col < numCols; col++)
+			printf("--- ");
+		printf("\n");
+	}
+	printf("     ");
+	for(i = 0; i < numCols; i++) {
+		printf(" %c  ",'a'+i);
+	}
+	printf("\n\n ");
+	for (i = 0; i < (numCols * 5) + 40; i++) {
+		printf("-");
+	}
+	if (strcmp(playerName,"GameMenu")) {
+		printf("\n\n  Game Prediction:  %s\n\n",
+		       GetPrediction(position,playerName,usersTurn));
+	} else {
+		printf("\n\n");
+	}
+	SafeFree(board);
+	SafeFree(pt);
+	return;
 }
 
 /************************************************************************
@@ -996,51 +996,51 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 MOVELIST *GenerateMoves (POSITION position) {
-  BOARD getBoard(POSITION), board;
-  MPLAYER player, getPlayer(POSITION);
-  MOVELIST *genPlacingMoves(BOARD,MOVELIST *,MPLAYER);
-  MOVELIST *genBishopMoves(BOARD,MPLAYER,CELL,MOVELIST *);
-  MOVELIST *genQueenMoves(BOARD,MPLAYER,CELL,MOVELIST *);
-  MOVELIST *genKnightMoves(BOARD,MPLAYER,CELL,MOVELIST *);
-  MOVELIST *genRookMoves(BOARD,MPLAYER,CELL,MOVELIST *);
-  MOVELIST *genPawnMoves(BOARD,MPLAYER,CELL,MOVELIST *);
-  MOVELIST *genKingMoves(BOARD,MPLAYER,CELL,MOVELIST *);
-  MOVELIST *head = NULL;
+	BOARD getBoard(POSITION), board;
+	MPLAYER player, getPlayer(POSITION);
+	MOVELIST *genPlacingMoves(BOARD,MOVELIST *,MPLAYER);
+	MOVELIST *genBishopMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+	MOVELIST *genQueenMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+	MOVELIST *genKnightMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+	MOVELIST *genRookMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+	MOVELIST *genPawnMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+	MOVELIST *genKingMoves(BOARD,MPLAYER,CELL,MOVELIST *);
+	MOVELIST *head = NULL;
 
-  int i;
-  board = getBoard(position);
-  player = getPlayer(position);
+	int i;
+	board = getBoard(position);
+	player = getPlayer(position);
 
-  /* Generate 'MOVE' moves */
-  for (i = 0; i < getBoardSize(); i++) {
-    if (isPlayer(board[i],player)) {
-      switch(board[i]) {
-      case (B_BP): case (W_BP):
-	head = genBishopMoves(board,player,i,head);
-	break;
-      case (B_QN): case (W_QN):
-	head = genQueenMoves(board,player,i,head);
-	break;
-      case (B_RK): case (W_RK):
-	head = genRookMoves(board,player,i,head);
-	break;
-      case (B_PN): case (W_PN):
-	head = genPawnMoves(board,player,i,head);
-	break;
-      case (B_KG): case (W_KG):
-	head = genKingMoves(board,player,i,head);
-	break;
-      case (B_KN): case (W_KN):
-	head = genKnightMoves(board,player,i,head);
-	break;
-      }
-    }
-  }
+	/* Generate 'MOVE' moves */
+	for (i = 0; i < getBoardSize(); i++) {
+		if (isPlayer(board[i],player)) {
+			switch(board[i]) {
+			case (B_BP): case (W_BP):
+				head = genBishopMoves(board,player,i,head);
+				break;
+			case (B_QN): case (W_QN):
+				head = genQueenMoves(board,player,i,head);
+				break;
+			case (B_RK): case (W_RK):
+				head = genRookMoves(board,player,i,head);
+				break;
+			case (B_PN): case (W_PN):
+				head = genPawnMoves(board,player,i,head);
+				break;
+			case (B_KG): case (W_KG):
+				head = genKingMoves(board,player,i,head);
+				break;
+			case (B_KN): case (W_KN):
+				head = genKnightMoves(board,player,i,head);
+				break;
+			}
+		}
+	}
 
-  /* Generate 'PLACING' moves */
-  head = genPlacingMoves(board,head,player);
-  SafeFree(board);
-  return head;
+	/* Generate 'PLACING' moves */
+	head = genPlacingMoves(board,head,player);
+	SafeFree(board);
+	return head;
 }
 
 
@@ -1064,17 +1064,17 @@ MOVELIST *GenerateMoves (POSITION position) {
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE* theMove, STRING playerName) {
-  BOOLEAN ValidMove();
-  USERINPUT ret, HandleDefaultTextInput();
-  do {
-    printf("%8s's move > ",playerName);
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if(ret != Continue)
-      return(ret);
+	BOOLEAN ValidMove();
+	USERINPUT ret, HandleDefaultTextInput();
+	do {
+		printf("%8s's move > ",playerName);
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
 
-  }
-  while (TRUE);
-  return(Continue); /* this is never reached, but lint is now happy */
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -1095,24 +1095,24 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE* theMove, STRING pl
 ************************************************************************/
 
 BOOLEAN ValidTextInput (STRING input) {
-  BOOLEAN isPiece(char),isRow(char),isCol(char);
-  // Can be either length 3 (placing piece) or 4 (moving piece)
-  BOOLEAN valid = TRUE;
+	BOOLEAN isPiece(char),isRow(char),isCol(char);
+	// Can be either length 3 (placing piece) or 4 (moving piece)
+	BOOLEAN valid = TRUE;
 
-  // Case of placing: i.e. Qa4
-  valid &= isPiece(input[0]);
-  valid &= isRow(input[1]);
-  valid &= isCol(input[2]);
-  if (input[3] == '\0')
-    return valid;
+	// Case of placing: i.e. Qa4
+	valid &= isPiece(input[0]);
+	valid &= isRow(input[1]);
+	valid &= isCol(input[2]);
+	if (input[3] == '\0')
+		return valid;
 
-  // Case of moving: i.e. a2a4
-  valid = TRUE;
-  valid &= isRow(input[0]);
-  valid &= isCol(input[1]);
-  valid &= isRow(input[2]);
-  valid &= isCol(input[3]);
-  return valid && (input[4] == '\0');
+	// Case of moving: i.e. a2a4
+	valid = TRUE;
+	valid &= isRow(input[0]);
+	valid &= isCol(input[1]);
+	valid &= isRow(input[2]);
+	valid &= isCol(input[3]);
+	return valid && (input[4] == '\0');
 }
 
 /************************************************************************
@@ -1130,20 +1130,20 @@ BOOLEAN ValidTextInput (STRING input) {
 ************************************************************************/
 
 MOVE ConvertTextInputToMove (STRING input) {
-  /* Move is represented by: lowest CELL_LENGTH bits is the dest,
-     next CELL_LENGTH bits is the source, then the rest corresponds
-     to the piece itself */
-  CELL strToCell(STRING);
-  int i;
-  PIECE piece;
-  for (i = 0; i < BLNK; i++)
-    if (input[0] == piece_strings[i])
-      piece = i;
-  // if placing
-  if (strlen(input) == 3)
-    return makeMove(piece,OFF,strToCell(input+1));
-  // else if moving
-  return makeMove(OFF,strToCell(input),strToCell(input+2));
+	/* Move is represented by: lowest CELL_LENGTH bits is the dest,
+	   next CELL_LENGTH bits is the source, then the rest corresponds
+	   to the piece itself */
+	CELL strToCell(STRING);
+	int i;
+	PIECE piece;
+	for (i = 0; i < BLNK; i++)
+		if (input[0] == piece_strings[i])
+			piece = i;
+	// if placing
+	if (strlen(input) == 3)
+		return makeMove(piece,OFF,strToCell(input+1));
+	// else if moving
+	return makeMove(OFF,strToCell(input),strToCell(input+2));
 }
 
 /************************************************************************
@@ -1157,9 +1157,9 @@ MOVE ConvertTextInputToMove (STRING input) {
 ************************************************************************/
 
 void PrintMove (MOVE move) {
-    STRING str = MoveToString( move );
-    printf( "%s", str );
-    SafeFree( str );
+	STRING str = MoveToString( move );
+	printf( "%s", str );
+	SafeFree( str );
 }
 
 
@@ -1175,35 +1175,35 @@ void PrintMove (MOVE move) {
 
 STRING MoveToString (MOVE move)
 {
-  STRING m = (STRING) SafeMalloc( 8 );
-  STRING m2 = (STRING) SafeMalloc( 8 );
+	STRING m = (STRING) SafeMalloc( 8 );
+	STRING m2 = (STRING) SafeMalloc( 8 );
 
-  //  sprintf( m, "" );
-  //  sprintf( m2, "" );
+	//  sprintf( m, "" );
+	//  sprintf( m2, "" );
 
-  PIECE piece;
-  piece = move >> 2*CELL_LENGTH;
-  if (piece != OFF) {
-    sprintf( m, "%c", piece_strings[piece]);
-  } else {
-    *m = '\0';
-  }
+	PIECE piece;
+	piece = move >> 2*CELL_LENGTH;
+	if (piece != OFF) {
+		sprintf( m, "%c", piece_strings[piece]);
+	} else {
+		*m = '\0';
+	}
 
-  sprintf( m2, "%s", m );
+	sprintf( m2, "%s", m );
 
-  if (!offBoard(move)) {
-    sprintf( m, "%s%c%d", m2, getCol(getSource(move))+'a',
-	   numRows - getRow(getSource(move)));
-  }
+	if (!offBoard(move)) {
+		sprintf( m, "%s%c%d", m2, getCol(getSource(move))+'a',
+		         numRows - getRow(getSource(move)));
+	}
 
-  sprintf( m2, "%s", m );
+	sprintf( m2, "%s", m );
 
-  sprintf( m, "%s%c%d", m2, getCol(getDest(move))+'a',
-	   numRows - getRow(getDest(move)));
+	sprintf( m, "%s%c%d", m2, getCol(getDest(move))+'a',
+	         numRows - getRow(getDest(move)));
 
 
-  SafeFree( m2 );
-  return m;
+	SafeFree( m2 );
+	return m;
 }
 
 
@@ -1221,7 +1221,7 @@ STRING MoveToString (MOVE move)
 /** HOW DOES THIS WORK IN OURS? INFINITE? **/
 
 int NumberOfOptions () {
-  return 8191; //new bounds are 4 by 4.  This is 2^13-1.
+	return 8191; //new bounds are 4 by 4.  This is 2^13-1.
 }
 
 
@@ -1262,23 +1262,23 @@ int getOption () {
 ************************************************************************/
 
 void setOption (int option) {
-  int rowIn = option & 0xf;
-  int colIn = (option >> 4) & 0xf;
-  int winCondIn = (option >> 8) & 0xf;
-  int misereIn = (option >> 12) & 0x1;
-  int maxRowCol;
-  if(rowIn > colIn)
-  	maxRowCol = rowIn;
-  else
-	maxRowCol = colIn;
-  if(winCondIn > maxRowCol){
-  	winCondition = maxRowCol;
-  	printf("ERROR: Winning condition is impossible, changing to earlier variant.\n");
+	int rowIn = option & 0xf;
+	int colIn = (option >> 4) & 0xf;
+	int winCondIn = (option >> 8) & 0xf;
+	int misereIn = (option >> 12) & 0x1;
+	int maxRowCol;
+	if(rowIn > colIn)
+		maxRowCol = rowIn;
+	else
+		maxRowCol = colIn;
+	if(winCondIn > maxRowCol) {
+		winCondition = maxRowCol;
+		printf("ERROR: Winning condition is impossible, changing to earlier variant.\n");
 	}
-  numRows = rowIn;
-  numCols = colIn;
-  winCondition = winCondIn;
-  gStandardGame = misereIn;
+	numRows = rowIn;
+	numCols = colIn;
+	winCondition = winCondIn;
+	gStandardGame = misereIn;
 }
 
 
@@ -1292,228 +1292,228 @@ void setOption (int option) {
 
 /* Gets the board length */
 int getBoardSize() {
-  return numRows * numCols;
+	return numRows * numCols;
 }
 
 /* Gets the row from a cell number */
 int getRow(CELL cell) {
-  return cell / numCols;
+	return cell / numCols;
 }
 
 /* Gets the col from a cell number */
 
 int getCol(CELL cell) {
-  return cell % numCols;
+	return cell % numCols;
 }
 
 /** Primitive Helper Functions *****************************************/
 BOOLEAN isBlack(PIECE piece) {
-  return piece < B_PN + 1;
+	return piece < B_PN + 1;
 }
 
 BOOLEAN isWhite(PIECE piece) {
-  return piece > B_PN && piece < BLNK;
+	return piece > B_PN && piece < BLNK;
 }
 
 /* Identifies whether the pieces on the two cells are of the same color */
 BOOLEAN sameColor(CELL first, CELL second, BOARD board) {
-  return (isWhite(board[first]) && isWhite(board[second])) ||
-    (isBlack(board[first]) && isBlack(board[second]));
+	return (isWhite(board[first]) && isWhite(board[second])) ||
+	       (isBlack(board[first]) && isBlack(board[second]));
 }
 
 /** return the number of pieces consecutively adjacent including current piece
  *  vertically, horizonally, or diagonally
  */
 int numInRow(CELL start, BOARD board) {
-  int numUp=0, numDown=0, numLeft=0, numRight=0, numUL=0, numDR=0, numUR=0, numDL=0;
-  int i=0, j=0;
-  int row = (start / numCols) + 1; // rows start from 1
-  int col = (start % numCols) + 1; // cols start from 1
-  BOOLEAN sameColor(CELL,CELL,BOARD);
-  if (board[start] == BLNK)
-    return 0;
-  else {
-    for(i = 1; col + i <= numCols; i++) {
-      if (sameColor(start, start+i, board))
-	numRight++;
-      else
-	break;
-    }
-    for(i = 1; col - i > 0; i++) {
-      if (sameColor(start, start-i, board))
-	numLeft++;
-      else
-	break;
-    }
-    for(i = 1; row + i <= numRows; i++) {
-      if (sameColor(start, start + numCols*i, board))
-	numDown++;
-      else
-	break;
-    }
-    for(i = 1; row - i > 0; i++) {
-      if (sameColor(start, start - numCols*i, board))
-	numUp++;
-      else
-	break;
-    }
-    for (i=1; row+i <= numRows && col+i <= numCols; i++) {
-      if (sameColor(start, start+numCols*i+i, board))
-	numDR++;
-      else
-	break;
-    }
-    for (i=1; row-i > 0 && col-i > 0; i++) {
-      if (sameColor(start, start-numCols*i-i, board))
-	numUL++;
-      else
-	break;
-    }
-    for (i=1; row+i <= numRows && col-i > 0; i++) {
-      if (sameColor(start, start+numCols*i-i, board))
-	numDL++;
-      else
-	break;
-    }
-    for (i=1; row-i > 0 && col+i <= numCols; i++) {
-      if (sameColor(start, start-numCols*i+i, board))
-	numUR++;
-      else
-	break;
-    }
-    i = max (numRight+numLeft, numDown+numUp);
-    j = max (numDR+numUL, numDL+numUR);
-    return 1+max(i, j);
-  }
-  return 0;
+	int numUp=0, numDown=0, numLeft=0, numRight=0, numUL=0, numDR=0, numUR=0, numDL=0;
+	int i=0, j=0;
+	int row = (start / numCols) + 1; // rows start from 1
+	int col = (start % numCols) + 1; // cols start from 1
+	BOOLEAN sameColor(CELL,CELL,BOARD);
+	if (board[start] == BLNK)
+		return 0;
+	else {
+		for(i = 1; col + i <= numCols; i++) {
+			if (sameColor(start, start+i, board))
+				numRight++;
+			else
+				break;
+		}
+		for(i = 1; col - i > 0; i++) {
+			if (sameColor(start, start-i, board))
+				numLeft++;
+			else
+				break;
+		}
+		for(i = 1; row + i <= numRows; i++) {
+			if (sameColor(start, start + numCols*i, board))
+				numDown++;
+			else
+				break;
+		}
+		for(i = 1; row - i > 0; i++) {
+			if (sameColor(start, start - numCols*i, board))
+				numUp++;
+			else
+				break;
+		}
+		for (i=1; row+i <= numRows && col+i <= numCols; i++) {
+			if (sameColor(start, start+numCols*i+i, board))
+				numDR++;
+			else
+				break;
+		}
+		for (i=1; row-i > 0 && col-i > 0; i++) {
+			if (sameColor(start, start-numCols*i-i, board))
+				numUL++;
+			else
+				break;
+		}
+		for (i=1; row+i <= numRows && col-i > 0; i++) {
+			if (sameColor(start, start+numCols*i-i, board))
+				numDL++;
+			else
+				break;
+		}
+		for (i=1; row-i > 0 && col+i <= numCols; i++) {
+			if (sameColor(start, start-numCols*i+i, board))
+				numUR++;
+			else
+				break;
+		}
+		i = max (numRight+numLeft, numDown+numUp);
+		j = max (numDR+numUL, numDL+numUR);
+		return 1+max(i, j);
+	}
+	return 0;
 }
 
 /** GetInitialPosition helper functions ********************************/
 
 /* Returns the same board with the player switched */
 POSITION switchPlayer(POSITION pos) {
-  POSITION makePosition(BOARD,MPLAYER),newPos;
-  BOARD board, getBoard(POSITION);
-  board = getBoard(pos);
-  newPos = makePosition(board,(getPlayer(pos) == WHITE)? BLACK : WHITE);
-  SafeFree(board);
-  return newPos;
+	POSITION makePosition(BOARD,MPLAYER),newPos;
+	BOARD board, getBoard(POSITION);
+	board = getBoard(pos);
+	newPos = makePosition(board,(getPlayer(pos) == WHITE) ? BLACK : WHITE);
+	SafeFree(board);
+	return newPos;
 }
 
 /* Game Specific Menu helper functions *********************************/
 void resetBoard() {
-  int *pieceArray, *getPieceArray(struct pieceType *,int), getBoardSize(),i;
-  int sizeOfPieceType(struct pieceType *);
-  BOARD board;
-  board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char));
-  for (i=0; i < getBoardSize(); i++)
-    board[i] = BLNK;
-  pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
-  gNumberOfPositions = generic_hash_init(getBoardSize(),pieceArray,NULL,0);
+	int *pieceArray, *getPieceArray(struct pieceType *,int), getBoardSize(),i;
+	int sizeOfPieceType(struct pieceType *);
+	BOARD board;
+	board = (BOARD)SafeMalloc(getBoardSize()*sizeof(char));
+	for (i=0; i < getBoardSize(); i++)
+		board[i] = BLNK;
+	pieceArray = getPieceArray(initPieces,sizeOfPieceType(initPieces)+1);
+	gNumberOfPositions = generic_hash_init(getBoardSize(),pieceArray,NULL,0);
 
-  gInitialPosition = generic_hash_hash(board,WHITE);
-  SafeFree(board);
+	gInitialPosition = generic_hash_hash(board,WHITE);
+	SafeFree(board);
 }
 
 /* Zeros out the initial starting pieces */
 void resetPieces() {
-  initPieces[0].id = BLNK;
-  initPieces[0].freq = 0;
-  return;
+	initPieces[0].id = BLNK;
+	initPieces[0].freq = 0;
+	return;
 }
 
 /* Adds another piece to the startup */
 void addPieceToInit(PIECE piece) {
-  int i;
-  for (i = 0; i < sizeOfPieceType(initPieces); i++) {
-    if (initPieces[i].id == piece) {
-      initPieces[i].freq = initPieces[i].freq + 1;
-      return;
-    }
-  }
-  i = sizeOfPieceType(initPieces);
-  initPieces[i].id = piece;
-  initPieces[i].freq = 1;
-  initPieces[i+1].id = BLNK;
-  initPieces[i+1].freq = i;
-  return;
+	int i;
+	for (i = 0; i < sizeOfPieceType(initPieces); i++) {
+		if (initPieces[i].id == piece) {
+			initPieces[i].freq = initPieces[i].freq + 1;
+			return;
+		}
+	}
+	i = sizeOfPieceType(initPieces);
+	initPieces[i].id = piece;
+	initPieces[i].freq = 1;
+	initPieces[i+1].id = BLNK;
+	initPieces[i+1].freq = i;
+	return;
 }
 
 /* Tests whether player has already specified an initial pieceset */
 BOOLEAN hadInitialPieces(MPLAYER player) {
-  int i;
+	int i;
 
-  for (i = 0; i < sizeOfPieceType(initPieces); i++) {
-    if (isPlayer(initPieces[i].id,player))
-      return TRUE;
-  }
-  return FALSE;
+	for (i = 0; i < sizeOfPieceType(initPieces); i++) {
+		if (isPlayer(initPieces[i].id,player))
+			return TRUE;
+	}
+	return FALSE;
 }
 
 PIECE stringToPiece(char piece) {
-  int i;
-  for (i = 0; i < BLNK; i++) {
-    if (piece_strings[i] == piece)
-      return i;
-  }
-  return BLNK;
+	int i;
+	for (i = 0; i < BLNK; i++) {
+		if (piece_strings[i] == piece)
+			return i;
+	}
+	return BLNK;
 }
 
 /** PRINT POSITION helper functions ************************************/
 
 struct pieceType *piecesOffBoard(struct pieceType *pieces, BOARD board) {
-  int getBoardSize(), sizeOfPieceType(struct pieceType *),i;
-  struct pieceType *newPT;
-  newPT = (struct pieceType *)SafeMalloc((sizeOfPieceType(pieces)+1) * sizeof(struct pieceType));
-  for (i = 0; i < sizeOfPieceType(pieces)+1; i++) {
-    newPT[i].id = pieces[i].id;
-    newPT[i].freq = pieces[i].freq - numOnBoard(pieces[i].id,board);
-  }
-  return newPT;
+	int getBoardSize(), sizeOfPieceType(struct pieceType *),i;
+	struct pieceType *newPT;
+	newPT = (struct pieceType *)SafeMalloc((sizeOfPieceType(pieces)+1) * sizeof(struct pieceType));
+	for (i = 0; i < sizeOfPieceType(pieces)+1; i++) {
+		newPT[i].id = pieces[i].id;
+		newPT[i].freq = pieces[i].freq - numOnBoard(pieces[i].id,board);
+	}
+	return newPT;
 }
 
 /* Counts the number of occurrences of specified piece on the board */
 int numOnBoard(PIECE piece, BOARD board) {
-  int i, count=0;
-  for (i = 0; i < getBoardSize(); i++)
-    if (board[i] == piece)
-      count++;
-  return count;
+	int i, count=0;
+	for (i = 0; i < getBoardSize(); i++)
+		if (board[i] == piece)
+			count++;
+	return count;
 }
 
 /* Returns the size of a struct pieceType array (assumes ends with a BLNK)*/
 /* DOES NOT INCLUDE BLNK */
 int sizeOfPieceType(struct pieceType *pt) {
-  int i = 0;
-  while(pt[i].id != BLNK) {
-    i++;
-  }
-  return i;
+	int i = 0;
+	while(pt[i].id != BLNK) {
+		i++;
+	}
+	return i;
 }
 
 /** Valid Text Input Helpers *******************************************/
 BOOLEAN isPiece(char c) {
-  int i;
-  BOOLEAN valid = FALSE;
-  for (i = 0; i < sizeOfPieceType(initPieces); i++)
-    if (c == piece_strings[initPieces[i].id])
-      valid = TRUE;
-  return valid;
+	int i;
+	BOOLEAN valid = FALSE;
+	for (i = 0; i < sizeOfPieceType(initPieces); i++)
+		if (c == piece_strings[initPieces[i].id])
+			valid = TRUE;
+	return valid;
 }
 
 BOOLEAN isRow(char c) {
-  return (c >= 'a' && c < 'a' + numRows);
+	return (c >= 'a' && c < 'a' + numRows);
 }
 
 BOOLEAN isCol(char c) {
-  return (c >= '0' && c <= '9'); //places upper bound on numRows
+	return (c >= '0' && c <= '9'); //places upper bound on numRows
 }
 
 /** ConvertTextInputToMove Helper Functions ****************************/
 
 /* Converts a string of the form 'a5', 'b6',etc to cell on board */
 CELL strToCell(STRING str) {
-  return (str[0] - 'a') + numCols*(numRows-(str[1]-'0'));
+	return (str[0] - 'a') + numCols*(numRows-(str[1]-'0'));
 }
 
 /** GenerateMoves Helper Functions *************************************/
@@ -1522,341 +1522,341 @@ CELL strToCell(STRING str) {
 // *NOTE* the BOARD is inverse from what is expected - as in it goes
 //  0 -> end starting from **top left**
 int getSpaceLeft(CELL cell) {
-  return getCol(cell);
+	return getCol(cell);
 }
 int getSpaceRight(CELL cell) {
-  return numCols - (getCol(cell) + 1);
+	return numCols - (getCol(cell) + 1);
 }
 int getSpaceUp(CELL cell) {
-  return getRow(cell);
+	return getRow(cell);
 }
 int getSpaceDown(CELL cell) {
-  return numRows - (getRow(cell) + 1);
+	return numRows - (getRow(cell) + 1);
 }
 
 /* Determines if specified piece is one of player's */
 BOOLEAN isPlayer(PIECE piece, MPLAYER player) {
-  return (isWhite(piece) && player == WHITE) ||
-    (isBlack(piece) && player == BLACK);
+	return (isWhite(piece) && player == WHITE) ||
+	       (isBlack(piece) && player == BLACK);
 }
 
 /* Tests to see if given cell in board has an opponent's piece */
 BOOLEAN isOpponent(CELL cell, BOARD board, MPLAYER player) {
-  return isPlayer(board[cell],(player == WHITE)? BLACK : WHITE);
+	return isPlayer(board[cell],(player == WHITE) ? BLACK : WHITE);
 }
 
 /* Tests to see whether the given board is occupied by player's piece */
 BOOLEAN isAllied(CELL cell, BOARD board, MPLAYER player) {
-  return isPlayer(board[cell],player);
+	return isPlayer(board[cell],player);
 }
 
 
 /* Generates all available placing moves (as in, placing an offboard
    piece onto the board) */
 MOVELIST *genPlacingMoves(BOARD board, MOVELIST *head,MPLAYER player) {
-  int i,j;
+	int i,j;
 
-  struct pieceType *pt;
-  pt = piecesOffBoard(initPieces,board);
-  for (i = 0; i < getBoardSize(); i++)
-    if (board[i] == BLNK)
-      for (j = 0; j < sizeOfPieceType(pt); j++) {
-	if (isPlayer(pt[j].id,player) && pt[j].freq > 0)
-	  head = CreateMovelistNode(makeMove(pt[j].id,OFF,i),head);
-      }
-  SafeFree(pt);
-  return head;
+	struct pieceType *pt;
+	pt = piecesOffBoard(initPieces,board);
+	for (i = 0; i < getBoardSize(); i++)
+		if (board[i] == BLNK)
+			for (j = 0; j < sizeOfPieceType(pt); j++) {
+				if (isPlayer(pt[j].id,player) && pt[j].freq > 0)
+					head = CreateMovelistNode(makeMove(pt[j].id,OFF,i),head);
+			}
+	SafeFree(pt);
+	return head;
 }
 
 /* Generates all available bishop moves given a specific board and cell - 4 directions*/
 MOVELIST *genBishopMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
-  int i;
-  int spaceLeft,spaceRight,spaceUp,spaceDown;
-  PIECE piece;
-  CELL test;
-  spaceLeft = getSpaceLeft(cell);
-  spaceRight = getSpaceRight(cell);
-  spaceUp = getSpaceUp(cell);
-  spaceDown = getSpaceDown(cell);
-  piece = (player == BLACK)? B_BP : W_BP;
-  /* test northeasterly direction */
-  for (i = 1; i <= spaceUp && i <= spaceRight; i++) {
-    test = cell - i*numCols + i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* test southeasterly direction */
-  for (i = 1; i <= spaceRight && i <= spaceDown; i++) {
-    test = cell + i*numCols + i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* test southwesterly direction */
-  for (i = 1; i <= spaceDown && i <= spaceLeft; i++) {
-    test = cell + i*numCols - i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* test northwesterly direction */
-  for (i = 1; i <= spaceUp && i <= spaceLeft; i++) {
-    test = cell - i*numCols - i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  return head;
+	int i;
+	int spaceLeft,spaceRight,spaceUp,spaceDown;
+	PIECE piece;
+	CELL test;
+	spaceLeft = getSpaceLeft(cell);
+	spaceRight = getSpaceRight(cell);
+	spaceUp = getSpaceUp(cell);
+	spaceDown = getSpaceDown(cell);
+	piece = (player == BLACK) ? B_BP : W_BP;
+	/* test northeasterly direction */
+	for (i = 1; i <= spaceUp && i <= spaceRight; i++) {
+		test = cell - i*numCols + i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* test southeasterly direction */
+	for (i = 1; i <= spaceRight && i <= spaceDown; i++) {
+		test = cell + i*numCols + i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* test southwesterly direction */
+	for (i = 1; i <= spaceDown && i <= spaceLeft; i++) {
+		test = cell + i*numCols - i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* test northwesterly direction */
+	for (i = 1; i <= spaceUp && i <= spaceLeft; i++) {
+		test = cell - i*numCols - i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	return head;
 }
 
 /* Generates the Knight moves - 8 max */
 MOVELIST *genKnightMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
-  int spaceLeft,spaceRight,spaceUp,spaceDown;
-  PIECE piece;
-  CELL test;
-  spaceLeft = getSpaceLeft(cell);
-  spaceRight = getSpaceRight(cell);
-  spaceUp = getSpaceUp(cell);
-  spaceDown = getSpaceDown(cell);
+	int spaceLeft,spaceRight,spaceUp,spaceDown;
+	PIECE piece;
+	CELL test;
+	spaceLeft = getSpaceLeft(cell);
+	spaceRight = getSpaceRight(cell);
+	spaceUp = getSpaceUp(cell);
+	spaceDown = getSpaceDown(cell);
 
-  //////////////////////////////
+	//////////////////////////////
 
-  //  printf("\nSPACE left: %d right: %d up: %d down: %d\n",spaceLeft,spaceRight,spaceUp,spaceDown);
-  //printf("numCols: %d numRows: %d ROW: %d COL: %d\n",numCols,numRows,getRow(cell),getCol(cell));
+	//  printf("\nSPACE left: %d right: %d up: %d down: %d\n",spaceLeft,spaceRight,spaceUp,spaceDown);
+	//printf("numCols: %d numRows: %d ROW: %d COL: %d\n",numCols,numRows,getRow(cell),getCol(cell));
 
-  /////////////////////////////
+	/////////////////////////////
 
-  piece = (player == BLACK)? B_KN : W_KN;
-  test = cell - N_LLEG*numCols + N_SLEG;
-  if (spaceUp >= N_LLEG && spaceRight >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell - N_SLEG*numCols + N_LLEG;
-  if (spaceUp >= N_SLEG && spaceRight >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + N_SLEG*numCols + N_LLEG;
-  if (spaceDown >= N_SLEG && spaceRight >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + N_LLEG*numCols + N_SLEG;
-  if (spaceDown >= N_LLEG && spaceRight >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + N_LLEG*numCols - N_SLEG;
-  if (spaceDown >= N_LLEG && spaceLeft >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + N_SLEG*numCols - N_LLEG;
-  if (spaceDown >= N_SLEG && spaceLeft >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell - N_SLEG*numCols - N_LLEG;
-  if (spaceUp >= N_SLEG && spaceLeft >= N_LLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell - N_LLEG*numCols - N_SLEG;
-  if (spaceUp >= N_LLEG && spaceLeft >= N_SLEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  return head;
+	piece = (player == BLACK) ? B_KN : W_KN;
+	test = cell - N_LLEG*numCols + N_SLEG;
+	if (spaceUp >= N_LLEG && spaceRight >= N_SLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell - N_SLEG*numCols + N_LLEG;
+	if (spaceUp >= N_SLEG && spaceRight >= N_LLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + N_SLEG*numCols + N_LLEG;
+	if (spaceDown >= N_SLEG && spaceRight >= N_LLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + N_LLEG*numCols + N_SLEG;
+	if (spaceDown >= N_LLEG && spaceRight >= N_SLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + N_LLEG*numCols - N_SLEG;
+	if (spaceDown >= N_LLEG && spaceLeft >= N_SLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + N_SLEG*numCols - N_LLEG;
+	if (spaceDown >= N_SLEG && spaceLeft >= N_LLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell - N_SLEG*numCols - N_LLEG;
+	if (spaceUp >= N_SLEG && spaceLeft >= N_LLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell - N_LLEG*numCols - N_SLEG;
+	if (spaceUp >= N_LLEG && spaceLeft >= N_SLEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	return head;
 }
 /* Generates the King moves - 8 max */
 MOVELIST *genKingMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
-  int spaceLeft,spaceRight,spaceUp,spaceDown;
-  PIECE piece;
-  CELL test;
-  spaceLeft = getSpaceLeft(cell);
-  spaceRight = getSpaceRight(cell);
-  spaceUp = getSpaceUp(cell);
-  spaceDown = getSpaceDown(cell);
-  piece = (player == BLACK)? B_KG : W_KG;
-  test = cell - numCols;
-  if (spaceUp >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell-numCols+K_LEG;
-  if (spaceUp >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + K_LEG;
-  if (spaceRight >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + numCols + K_LEG;
-  if (spaceDown >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + numCols;
-  if (spaceDown >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell + numCols - K_LEG;
-  if (spaceDown >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell - K_LEG;
-  if (spaceLeft >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  test = cell - numCols - K_LEG;
-  if (spaceUp >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player))
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-  //  printf("\nEXPECTED: 'K' RESULT: %c\n",piece_strings[getPiece(makeMove(piece,cell,test))]);
-  return head;
+	int spaceLeft,spaceRight,spaceUp,spaceDown;
+	PIECE piece;
+	CELL test;
+	spaceLeft = getSpaceLeft(cell);
+	spaceRight = getSpaceRight(cell);
+	spaceUp = getSpaceUp(cell);
+	spaceDown = getSpaceDown(cell);
+	piece = (player == BLACK) ? B_KG : W_KG;
+	test = cell - numCols;
+	if (spaceUp >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell-numCols+K_LEG;
+	if (spaceUp >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + K_LEG;
+	if (spaceRight >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + numCols + K_LEG;
+	if (spaceDown >= K_LEG && spaceRight >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + numCols;
+	if (spaceDown >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell + numCols - K_LEG;
+	if (spaceDown >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell - K_LEG;
+	if (spaceLeft >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	test = cell - numCols - K_LEG;
+	if (spaceUp >= K_LEG && spaceLeft >= K_LEG && !isAllied(test,board,player))
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+	//  printf("\nEXPECTED: 'K' RESULT: %c\n",piece_strings[getPiece(makeMove(piece,cell,test))]);
+	return head;
 }
 /* Generates the Rook moves - 4 directions */
 MOVELIST *genRookMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
-  int spaceLeft,spaceRight,spaceUp,spaceDown;
-  int i;
-  PIECE piece;
-  CELL test;
-  spaceLeft = getSpaceLeft(cell);
-  spaceRight = getSpaceRight(cell);
-  spaceUp = getSpaceUp(cell);
-  spaceDown = getSpaceDown(cell);
-  piece = (player == BLACK)? B_RK : W_RK;
+	int spaceLeft,spaceRight,spaceUp,spaceDown;
+	int i;
+	PIECE piece;
+	CELL test;
+	spaceLeft = getSpaceLeft(cell);
+	spaceRight = getSpaceRight(cell);
+	spaceUp = getSpaceUp(cell);
+	spaceDown = getSpaceDown(cell);
+	piece = (player == BLACK) ? B_RK : W_RK;
 
-  /* Test up */
-  for (i = 1; i <= spaceUp; i++) {
-    test = cell - i*numCols;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* Test to the right */
-  for (i = 1; i <= spaceRight; i++) {
-    test = cell + i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* Test down */
-  for (i = 1; i <= spaceDown; i++) {
-    test = cell + i*numCols;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* Test to the left */
-  for (i = 1; i <= spaceLeft; i++) {
-    test = cell - i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  return head;
+	/* Test up */
+	for (i = 1; i <= spaceUp; i++) {
+		test = cell - i*numCols;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* Test to the right */
+	for (i = 1; i <= spaceRight; i++) {
+		test = cell + i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* Test down */
+	for (i = 1; i <= spaceDown; i++) {
+		test = cell + i*numCols;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* Test to the left */
+	for (i = 1; i <= spaceLeft; i++) {
+		test = cell - i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	return head;
 }
 /* Generates the Queen moves - basically the rook and bishop moves combined */
 MOVELIST *genQueenMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
-  int spaceLeft,spaceRight,spaceUp,spaceDown;
-  int i;
-  PIECE piece;
-  CELL test;
-  spaceLeft = getSpaceLeft(cell);
-  spaceRight = getSpaceRight(cell);
-  spaceUp = getSpaceUp(cell);
-  spaceDown = getSpaceDown(cell);
-  piece = (player == BLACK)? B_QN : W_QN;
-  for (i = 1; i <= spaceUp; i++) {
-    test = cell - i*numCols;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* Test to the right */
-  for (i = 1; i <= spaceRight; i++) {
-    test = cell + i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* Test down */
-  for (i = 1; i <= spaceDown; i++) {
-    test = cell + i*numCols;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* Test to the left */
-  for (i = 1; i <= spaceLeft; i++) {
-    test = cell - i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* test northeasterly direction */
-  for (i = 1; i <= spaceUp && i <= spaceRight; i++) {
-    test = cell - i*numCols + i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* test southeasterly direction */
-  for (i = 1; i <= spaceRight && i <= spaceDown; i++) {
-    test = cell + i*numCols + i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* test southwesterly direction */
-  for (i = 1; i <= spaceDown && i <= spaceLeft; i++) {
-    test = cell + i*numCols - i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  /* test northwesterly direction */
-  for (i = 1; i <= spaceUp && i <= spaceLeft; i++) {
-    test = cell - i*numCols - i;
-    if (isAllied(test,board,player))
-      break;
-    head = CreateMovelistNode(makeMove(piece,cell,test),head);
-    if (isOpponent(test,board,player))
-      break;
-  }
-  return head;
+	int spaceLeft,spaceRight,spaceUp,spaceDown;
+	int i;
+	PIECE piece;
+	CELL test;
+	spaceLeft = getSpaceLeft(cell);
+	spaceRight = getSpaceRight(cell);
+	spaceUp = getSpaceUp(cell);
+	spaceDown = getSpaceDown(cell);
+	piece = (player == BLACK) ? B_QN : W_QN;
+	for (i = 1; i <= spaceUp; i++) {
+		test = cell - i*numCols;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* Test to the right */
+	for (i = 1; i <= spaceRight; i++) {
+		test = cell + i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* Test down */
+	for (i = 1; i <= spaceDown; i++) {
+		test = cell + i*numCols;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* Test to the left */
+	for (i = 1; i <= spaceLeft; i++) {
+		test = cell - i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* test northeasterly direction */
+	for (i = 1; i <= spaceUp && i <= spaceRight; i++) {
+		test = cell - i*numCols + i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* test southeasterly direction */
+	for (i = 1; i <= spaceRight && i <= spaceDown; i++) {
+		test = cell + i*numCols + i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* test southwesterly direction */
+	for (i = 1; i <= spaceDown && i <= spaceLeft; i++) {
+		test = cell + i*numCols - i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	/* test northwesterly direction */
+	for (i = 1; i <= spaceUp && i <= spaceLeft; i++) {
+		test = cell - i*numCols - i;
+		if (isAllied(test,board,player))
+			break;
+		head = CreateMovelistNode(makeMove(piece,cell,test),head);
+		if (isOpponent(test,board,player))
+			break;
+	}
+	return head;
 }
 /* Generates the Pawn moves */
 MOVELIST *genPawnMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
-  return head;
+	return head;
 }
 
 /** Hash Interaction Functions *****************************************/
 
 /* Gets the Board from the hash position */
 BOARD getBoard(POSITION pos) {
-  int getBoardSize();
-  BOARD newBoard;
-  newBoard = (BOARD) SafeMalloc(getBoardSize()*sizeof(char));
-  newBoard = generic_hash_unhash(pos,newBoard);
-  return newBoard;
+	int getBoardSize();
+	BOARD newBoard;
+	newBoard = (BOARD) SafeMalloc(getBoardSize()*sizeof(char));
+	newBoard = generic_hash_unhash(pos,newBoard);
+	return newBoard;
 }
 
 /* Gets the Player from the hash position */
 
 MPLAYER getPlayer(POSITION pos) { // Note: WHITE is player 1
-  return (generic_hash_turn(pos) == 1)? WHITE : BLACK;
+	return (generic_hash_turn(pos) == 1) ? WHITE : BLACK;
 }
 
 POSITION makePosition(BOARD board, MPLAYER player) {
-  return generic_hash_hash(board,(player == WHITE)? 1 : 2);
+	return generic_hash_hash(board,(player == WHITE) ? 1 : 2);
 }
 
 /* Converts the pieceType array into one more palatable to the hash function
@@ -1864,22 +1864,22 @@ POSITION makePosition(BOARD board, MPLAYER player) {
  * REQUIRES: BLNK is the last piece in the pieceType array
  */
 int *getPieceArray(struct pieceType *types, int size) {
-  int *pieceArray, i, numPieces = 0, minblanks, getBoardSize();
-  pieceArray = (int *) SafeMalloc ((3*size+1) * sizeof(int));
-  for (i = 0; i < size; i++) {
-    pieceArray[3*i] = types[i].id;
-    if (types[i].id == BLNK) {
-      minblanks = getBoardSize() - numPieces;
-      pieceArray[3*i+1] = (minblanks > 0)? minblanks : 0;
-      pieceArray[3*i+2] = getBoardSize();
-    } else {
-      pieceArray[3*i+1] = 0;
-      pieceArray[3*i+2] = types[i].freq;
-    }
-    numPieces += types[i].freq;
-  }
-  pieceArray[3*size] = -1;
-  return pieceArray;
+	int *pieceArray, i, numPieces = 0, minblanks, getBoardSize();
+	pieceArray = (int *) SafeMalloc ((3*size+1) * sizeof(int));
+	for (i = 0; i < size; i++) {
+		pieceArray[3*i] = types[i].id;
+		if (types[i].id == BLNK) {
+			minblanks = getBoardSize() - numPieces;
+			pieceArray[3*i+1] = (minblanks > 0) ? minblanks : 0;
+			pieceArray[3*i+2] = getBoardSize();
+		} else {
+			pieceArray[3*i+1] = 0;
+			pieceArray[3*i+2] = types[i].freq;
+		}
+		numPieces += types[i].freq;
+	}
+	pieceArray[3*size] = -1;
+	return pieceArray;
 }
 
 /** Move representation helper functions *********************************/
@@ -1890,37 +1890,37 @@ int *getPieceArray(struct pieceType *types, int size) {
 // NOTE: 0xff for the source represents OFF the board
 
 MOVE makeMove(PIECE piece, CELL source, CELL dest) {
-  int move = dest;
-  move += source << CELL_LENGTH;
-  if (source == OFF) {
-    move += piece << 2*CELL_LENGTH;
-  } else {
-    move += OFF << 2*CELL_LENGTH;
-  }
-  return move;
+	int move = dest;
+	move += source << CELL_LENGTH;
+	if (source == OFF) {
+		move += piece << 2*CELL_LENGTH;
+	} else {
+		move += OFF << 2*CELL_LENGTH;
+	}
+	return move;
 }
 
 PIECE getPiece(MOVE move, BOARD board) {
-  PIECE piece;
-  piece = move >> 2*CELL_LENGTH;
-  if (piece != OFF) {
-    return piece;
-  } else {
-    return board[getSource(move)];
-  }
+	PIECE piece;
+	piece = move >> 2*CELL_LENGTH;
+	if (piece != OFF) {
+		return piece;
+	} else {
+		return board[getSource(move)];
+	}
 }
 
 CELL getSource(MOVE move) {
-  return (move >> CELL_LENGTH) & 0xFF;
+	return (move >> CELL_LENGTH) & 0xFF;
 }
 
 CELL getDest(MOVE move) {
-  return move & 0xFF;
+	return move & 0xFF;
 }
 
 /* Returns TRUE if we're placing a piece from off the board, else FALSE */
 BOOLEAN offBoard(MOVE move) {
-  return (getSource(move) == 0xFF);
+	return (getSource(move) == 0xFF);
 }
 
 /*************************************************************************/
@@ -1932,46 +1932,46 @@ BOOLEAN offBoard(MOVE move) {
 #define NULLPIECE 15 // we know that 15 doesn't correspond to a real piece
 #define MAX 50
 BOARD generateBoard(struct pieceType *pieces) {
-  int i, j, k,pieceCount = 0, getBoardSize();
-  char *pieceBank;
-  BOARD newBoard;
-  srand(time(NULL));
-  for (i = 0; ; i++) {
-    if (pieces[i].id == BLNK) {
-      break;
-    } else {
-      printf("id: %d, %d ",pieces[i].id,i);
-    }
-  }
-  pieceBank = (char *) SafeMalloc(MAX*sizeof(char));
-  for (i = 0,k=0;;i++) {
-    if (pieces[i].id == BLNK) // loop terminates on BLNK
-      break;
-    pieceCount += pieces[i].freq;
-    for (j = 0; j < pieces[i].freq; j++) {
-      pieceBank[k++] =  pieces[i].id;
-    }
-  }
-  printf("Number of pieces to possibly place: %d\n",pieceCount);
-  newBoard = (BOARD) SafeMalloc (getBoardSize() * sizeof(char));
-  for(i = 0; i < getBoardSize(); i++) {
-    j = rand() % (2*pieceCount); // the probability of getting a blank is < 50%
-    if (j < pieceCount && pieceBank[j] != NULLPIECE) {
-      newBoard[i] = pieceBank[j];
-      pieceBank[j] = NULLPIECE;
-    } else {
-      newBoard[i] = BLNK;
-    }
-  }
-  return newBoard;
+	int i, j, k,pieceCount = 0, getBoardSize();
+	char *pieceBank;
+	BOARD newBoard;
+	srand(time(NULL));
+	for (i = 0;; i++) {
+		if (pieces[i].id == BLNK) {
+			break;
+		} else {
+			printf("id: %d, %d ",pieces[i].id,i);
+		}
+	}
+	pieceBank = (char *) SafeMalloc(MAX*sizeof(char));
+	for (i = 0,k=0;; i++) {
+		if (pieces[i].id == BLNK) // loop terminates on BLNK
+			break;
+		pieceCount += pieces[i].freq;
+		for (j = 0; j < pieces[i].freq; j++) {
+			pieceBank[k++] =  pieces[i].id;
+		}
+	}
+	printf("Number of pieces to possibly place: %d\n",pieceCount);
+	newBoard = (BOARD) SafeMalloc (getBoardSize() * sizeof(char));
+	for(i = 0; i < getBoardSize(); i++) {
+		j = rand() % (2*pieceCount); // the probability of getting a blank is < 50%
+		if (j < pieceCount && pieceBank[j] != NULLPIECE) {
+			newBoard[i] = pieceBank[j];
+			pieceBank[j] = NULLPIECE;
+		} else {
+			newBoard[i] = BLNK;
+		}
+	}
+	return newBoard;
 }
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

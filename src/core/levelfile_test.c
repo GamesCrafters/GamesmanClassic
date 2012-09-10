@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 	status = WriteLevelFile(compressedFileName, compressedValues, startIndex, endIndex);
 	printf("Compressed All\n\n");
 // Type 0 Text
-   	compressed_fp = gzopen(compressedFileName0, "rb");
+	compressed_fp = gzopen(compressedFileName0, "rb");
 	text_fp = fopen(textFileName0, "wb");
 
 	//read from compressed file and write to text file
@@ -84,12 +84,12 @@ int main(int argc, char **argv)
 	printf("0: Decompressed\n");
 
 // Type 0 Read
-     int type = getLevelFileType(compressedFileName0);
-     int minHashValue = getLevelFileMinHashValue(compressedFileName0);
-     int maxHashValue = getLevelFileMaxHashValue(compressedFileName0);
-     int bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName0);
+	int type = getLevelFileType(compressedFileName0);
+	int minHashValue = getLevelFileMinHashValue(compressedFileName0);
+	int maxHashValue = getLevelFileMaxHashValue(compressedFileName0);
+	int bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName0);
 	printf("0: This is type %d and min value %d max value %d  bpp %d\n", type, minHashValue, maxHashValue, bitsPerPosition);
-     BITARRAY* answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
+	BITARRAY* answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
 	printf("0: Beginning Read\n");
 	ReadLevelFile(compressedFileName0, answer, maxHashValue-minHashValue);
 	printf("0: Read\n0: The bit string is : \t");
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 	printf("0: Printed\n\n");
 
 // Type 1 Text
-   	compressed_fp = gzopen(compressedFileName1, "rb");
+	compressed_fp = gzopen(compressedFileName1, "rb");
 	text_fp = fopen(textFileName1, "wb");
 
 	//read from compressed file and write to text file
@@ -111,20 +111,20 @@ int main(int argc, char **argv)
 	printf("1: Decompressed\n");
 
 // Type 1 Read
-     type = getLevelFileType(compressedFileName1);
-     minHashValue = getLevelFileMinHashValue(compressedFileName1);
-     maxHashValue = getLevelFileMaxHashValue(compressedFileName1);
-     bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName1);
-     printf("1: This is type %d and min value %d max value %d  bpp %d\n", type, minHashValue, maxHashValue, bitsPerPosition);
-     answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
+	type = getLevelFileType(compressedFileName1);
+	minHashValue = getLevelFileMinHashValue(compressedFileName1);
+	maxHashValue = getLevelFileMaxHashValue(compressedFileName1);
+	bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName1);
+	printf("1: This is type %d and min value %d max value %d  bpp %d\n", type, minHashValue, maxHashValue, bitsPerPosition);
+	answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
 
-     ReadLevelFile(compressedFileName1, answer, maxHashValue-minHashValue);
+	ReadLevelFile(compressedFileName1, answer, maxHashValue-minHashValue);
 	printf("1: Read\n1: The bit string is : \t");
-     bitlib_print_bytes_in_bits(answer, ceil((maxHashValue - minHashValue) / 8)+1);
-     printf("1: Printed\n\n");
-	
+	bitlib_print_bytes_in_bits(answer, ceil((maxHashValue - minHashValue) / 8)+1);
+	printf("1: Printed\n\n");
+
 // Type 2 Text
-   	compressed_fp = gzopen(compressedFileName2, "rb");
+	compressed_fp = gzopen(compressedFileName2, "rb");
 	text_fp = fopen(textFileName2, "wb");
 
 	//read from compressed file and write to text file
@@ -138,20 +138,20 @@ int main(int argc, char **argv)
 	printf("2: Decompressed\n");
 
 // Type 2 Read
-     type = getLevelFileType(compressedFileName2);
-     minHashValue = getLevelFileMinHashValue(compressedFileName2);
-     maxHashValue = getLevelFileMaxHashValue(compressedFileName2);
-     bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName2);
-     printf("2: This is type %d and min value %d max value %d  bpp %d\n", type, minHashValue, maxHashValue, bitsPerPosition);
-     answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
+	type = getLevelFileType(compressedFileName2);
+	minHashValue = getLevelFileMinHashValue(compressedFileName2);
+	maxHashValue = getLevelFileMaxHashValue(compressedFileName2);
+	bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName2);
+	printf("2: This is type %d and min value %d max value %d  bpp %d\n", type, minHashValue, maxHashValue, bitsPerPosition);
+	answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
 
-     ReadLevelFile(compressedFileName2, answer, maxHashValue-minHashValue);
+	ReadLevelFile(compressedFileName2, answer, maxHashValue-minHashValue);
 	printf("2: Read\n2: The bit string is : \t");
-     bitlib_print_bytes_in_bits(answer, ceil((maxHashValue - minHashValue) / 8)+1);
-     printf("2: Printed\n\n");
-     
+	bitlib_print_bytes_in_bits(answer, ceil((maxHashValue - minHashValue) / 8)+1);
+	printf("2: Printed\n\n");
+
 // Type 3 Text
-   	compressed_fp = gzopen(compressedFileName3, "rb");
+	compressed_fp = gzopen(compressedFileName3, "rb");
 	text_fp = fopen(textFileName3, "wb");
 
 	//read from compressed file and write to text file
@@ -165,21 +165,21 @@ int main(int argc, char **argv)
 	printf("3: Decompressed\n");
 
 // Type 3 Read
-     type = getLevelFileType(compressedFileName3);
-     minHashValue = getLevelFileMinHashValue(compressedFileName3);
-     maxHashValue = getLevelFileMaxHashValue(compressedFileName3);
-     bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName3);
-     printf("3: This is type %d and min value %d max value %d  bpp %d\n", type, minHashValue, maxHashValue, bitsPerPosition);
-     answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
+	type = getLevelFileType(compressedFileName3);
+	minHashValue = getLevelFileMinHashValue(compressedFileName3);
+	maxHashValue = getLevelFileMaxHashValue(compressedFileName3);
+	bitsPerPosition = getLevelFileBitsPerPosition(compressedFileName3);
+	printf("3: This is type %d and min value %d max value %d  bpp %d\n", type, minHashValue, maxHashValue, bitsPerPosition);
+	answer = (BYTE *) malloc(sizeof(BYTE) * (ceil((maxHashValue - minHashValue) / 8)+1));
 
-     ReadLevelFile(compressedFileName3, answer, maxHashValue-minHashValue);
+	ReadLevelFile(compressedFileName3, answer, maxHashValue-minHashValue);
 	printf("3: Read\n3: The bit string is : \t");
-     bitlib_print_bytes_in_bits(answer, ceil((maxHashValue - minHashValue) / 8)+1);
-     printf("3: Printed\n");
-	
+	bitlib_print_bytes_in_bits(answer, ceil((maxHashValue - minHashValue) / 8)+1);
+	printf("3: Printed\n");
+
 	printf("These are valid %d, %d, %d, %d", isValidLevelFile(compressedFileName0), isValidLevelFile(compressedFileName1), isValidLevelFile(compressedFileName2), isValidLevelFile(compressedFileName3));
-	
-	
+
+
 	if(answer)
 		free(answer);
 	return 0;

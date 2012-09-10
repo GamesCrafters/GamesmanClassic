@@ -8,16 +8,16 @@
 /* TEST FUNCTION ONLY */
 
 /*
-int main(int argc, char *argv[])
-{
-	httpreq *req;
-	httpres *res;
-	char *body;
-	int r, i;
-	//char blah[] = "136.152.170.158:8080/gamesman/GamesmanServlet";
-	char * url = malloc(strlen(argv[1])+1);
+   int main(int argc, char *argv[])
+   {
+        httpreq *req;
+        httpres *res;
+        char *body;
+        int r, i;
+        //char blah[] = "136.152.170.158:8080/gamesman/GamesmanServlet";
+        char * url = malloc(strlen(argv[1])+1);
 
-	// Read the args
+        // Read the args
     if (argc < 2)
     {
        fprintf(stderr,"usage %s url\n", argv[0]);
@@ -25,35 +25,35 @@ int main(int argc, char *argv[])
     }
 
     while (1){
-	memcpy(url,argv[1],strlen(argv[1])+1);
-	printf("trying to resolve %s\n",url);
-	req = newrequest(url);
-	addheader(req, "type", "MATT");
-	addheader(req, "header1", "val1");
-	addheader(req, "Header2", "monkey monkey doo doo face");
+        memcpy(url,argv[1],strlen(argv[1])+1);
+        printf("trying to resolve %s\n",url);
+        req = newrequest(url);
+        addheader(req, "type", "MATT");
+        addheader(req, "header1", "val1");
+        addheader(req, "Header2", "monkey monkey doo doo face");
 
-	printf("%s:%d%s\n", req->hostName, req->portNum, req->path);
+        printf("%s:%d%s\n", req->hostName, req->portNum, req->path);
 
-	body = "abcdefghijklmnopqrstuvwxyz";
+        body = "abcdefghijklmnopqrstuvwxyz";
 
-	res = post(req, body, 27);
+        res = post(req, body, 27);
 
-	printf("%s: %s\n", "Date", getheader(res, "date"));
-	printf("%s: %s\n", "Content-Length", getheader(res, "Content-Length"));
-	printf("%s: %s\n", "ReturnCode", getheader(res, "ReturnCode"));
-	printf("%s: %s\n", "ReturnMessage", getheader(res, "ReturnMessage"));
+        printf("%s: %s\n", "Date", getheader(res, "date"));
+        printf("%s: %s\n", "Content-Length", getheader(res, "Content-Length"));
+        printf("%s: %s\n", "ReturnCode", getheader(res, "ReturnCode"));
+        printf("%s: %s\n", "ReturnMessage", getheader(res, "ReturnMessage"));
 
-	r = res->bodyLength;
-	printf("response: ");
-	for (i=0; i<r; i++)
-		printf("%d ", res->body[i]);
+        r = res->bodyLength;
+        printf("response: ");
+        for (i=0; i<r; i++)
+                printf("%d ", res->body[i]);
 
-	printf("\ndone\n");
-	freeresponse(res);
+        printf("\ndone\n");
+        freeresponse(res);
     }
-	return 0;
-}
-*/
+        return 0;
+   }
+ */
 
 /**
  * Converts an unsigned long long from host byte order to network byte order
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 unsigned long long htonll(unsigned long long n)
 {
 	short w = 0x4321;
-	if ((*(char *)& w) != 0x21 )
+	if ((*(char *)&w) != 0x21 )
 		return n;
 	else
 		return (((unsigned long long)htonl(n)) << 32) + htonl(n >> 32);
@@ -74,7 +74,7 @@ unsigned long long htonll(unsigned long long n)
 
 /**
  * Copies the http response status into the status handle.
- * 
+ *
  * res - httpres struct to read the status from
  * status - a handle to the status string
  */
@@ -88,7 +88,7 @@ void getstatus(httpres *res, char** status)
 			fprintf(stderr,"ERROR, could not allocate memory for response status\n");
 			return;
 		}
-		strcpy(*status, res->status);	
+		strcpy(*status, res->status);
 	}
 }
 
@@ -109,7 +109,7 @@ void getheader(httpres *res, char name[], char** hdrVal)
 
 	if (res == NULL)
 		return;
-		
+
 	// Lower case the name so we can do case-insensitive comparisons
 	if ((lname = malloc(strlen(name)+1)) == NULL)
 	{
@@ -117,7 +117,7 @@ void getheader(httpres *res, char name[], char** hdrVal)
 		return;
 	}
 	lcstrcpy(lname, name);
-	
+
 	// Loop through the headers until we find one
 	currHdr = res->headers;
 	while (currHdr != NULL)
@@ -180,7 +180,7 @@ void freeresponse(httpres *res)
 
 	if (res == NULL)
 		return;
-		
+
 	// Free the malloc'd memory
 	currHdr = res->headers;
 	tmpHdr = NULL;
@@ -205,8 +205,8 @@ void freeresponse(httpres *res)
 /**
  * POST's the specified httpreq to it's preconfigured url with
  * all preconfigured headers and the body content (if any). Frees
- * the httpreq and all its request headers. Populates the httpres struct 
- * representing the HTTP response data (which must be freed later using 
+ * the httpreq and all its request headers. Populates the httpres struct
+ * representing the HTTP response data (which must be freed later using
  * freeresponse). Returns 0 if successful. If not successful, returns
  * a non-zero value and populates the errMsg string.
  *
@@ -218,22 +218,22 @@ void freeresponse(httpres *res)
  * returns httpres struct representing the HTTP response data
  */
 int post(httpreq *req, char body[], int bodyLength, httpres** res, char** errMsg)
-{	
+{
 	header *currHdr = NULL;
 	header *tmpHdr = NULL;
-    char buffer[64];
-    int sockFd;
-    int n;
+	char buffer[64];
+	int sockFd;
+	int n;
 	*res = NULL;
 	*errMsg = NULL;
-	
+
 	// Check the request
 	if (req == NULL)
 	{
 		mallocstrcpy(errMsg, "NULL httpreq struct pointer");
 		return 1;
 	}
-	
+
 	// Add the content-length header
 	net_itoa(bodyLength, buffer);
 	addheader(req, "Content-Length", buffer);
@@ -293,14 +293,14 @@ int post(httpreq *req, char body[], int bodyLength, httpres** res, char** errMsg
 	readresponse(sockFd, *res);
 	close(sockFd);
 	shutdown(sockFd,2);
-	
+
 	// Free the malloc'd memory
 	currHdr = req->headers;
 	while (currHdr != NULL)
 	{
 		if (currHdr->name != NULL)
 			free(currHdr->name);
-		if (currHdr->value != NULL)			
+		if (currHdr->value != NULL)
 			free(currHdr->value);
 		if (tmpHdr != NULL)
 			free(tmpHdr);
@@ -330,10 +330,10 @@ void readresponse(int sockFd, httpres *res)
 	header *currHdr = NULL;
 	header *tmpHdr = NULL;
 	char *pos = NULL;
-    char buffer[512];
-    char c[1];
-    int p;
-    int n;
+	char buffer[512];
+	char c[1];
+	int p;
+	int n;
 
 	if (res == NULL)
 		return;
@@ -383,7 +383,7 @@ void readresponse(int sockFd, httpres *res)
 				fprintf(stderr,"ERROR, could not allocate memory for http response header\n");
 				return;
 			}
-			
+
 			// NULL out the initial values
 			currHdr->next = NULL;
 			currHdr->name = NULL;
@@ -527,7 +527,7 @@ void addheader(httpreq *req, char name[], char value[])
 	hdr->next = NULL;
 	hdr->name = NULL;
 	hdr->value = NULL;
-	
+
 	if ((hdr->name = malloc(strlen(name) + 1)) == NULL)
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for http request header name\n");
@@ -540,7 +540,7 @@ void addheader(httpreq *req, char name[], char value[])
 		return;
 	}
 	strcpy(hdr->value, value);
-	
+
 	// Add to the httpreq
 	if (req->headers == NULL)
 	{
@@ -556,8 +556,8 @@ void addheader(httpreq *req, char name[], char value[])
 }
 
 /**
- * Creates a new httpreq to represent the http request to make and 
- * populates the handle to the httpreq struct for later using in the 
+ * Creates a new httpreq to represent the http request to make and
+ * populates the handle to the httpreq struct for later using in the
  * post function. Returns 0 if successful. Otherwise, returns a non-zero
  * value and populates the errMsg string.
  *
@@ -571,19 +571,19 @@ int newrequest(char url[], httpreq** req, char** errMsg)
 {
 	*req = NULL;
 	*errMsg = NULL;
-	
+
 	if (req == NULL)
 	{
 		mallocstrcpy(errMsg, "NULL httpreq struct pointer");
-    	return 1;
+		return 1;
 	}
-	
+
 	if (url == NULL || strlen(url) == 0)
 	{
 		mallocstrcpy(errMsg, "Cannot specify a NULL url for a request");
-    	return 1;
-	}	
-	
+		return 1;
+	}
+
 	// Create the httpreq
 	if ((*req = malloc(sizeof(httpreq))) == NULL)
 	{
@@ -597,12 +597,12 @@ int newrequest(char url[], httpreq** req, char** errMsg)
 	(*req)->hostName = NULL;
 	(*req)->path = NULL;
 	(*req)->portNum = 80;
-	
-    // Parse the url and add the info to the httpreq
-    if (parse(url, *req, errMsg) != 0)
-    	return 1;
 
-    // Lookup the host addr and validate it
+	// Parse the url and add the info to the httpreq
+	if (parse(url, *req, errMsg) != 0)
+		return 1;
+
+	// Lookup the host addr and validate it
 	if (((*req)->serverAddr = gethostbyname((*req)->hostName)) == NULL)
 	{
 		mallocstrcpyext(errMsg, "ERROR, no such host: ", (*req)->hostName);
@@ -626,7 +626,7 @@ int newrequest(char url[], httpreq** req, char** errMsg)
 
 /**
  * Parses the specified url into the hostName, path, and port
- * and assigns the values into the specified httpreq struct. 
+ * and assigns the values into the specified httpreq struct.
  * Returns 0 if successful. If unsuccessful, populates the errMsg
  * error message string and returns non-zero.
  *
@@ -637,10 +637,10 @@ int newrequest(char url[], httpreq** req, char** errMsg)
  */
 int parse(char url[], httpreq *req, char** errMsg)
 {
-    char *pos1 = NULL;
-    char *pos2 = NULL;
-    int n;
-    *errMsg = NULL;
+	char *pos1 = NULL;
+	char *pos2 = NULL;
+	int n;
+	*errMsg = NULL;
 
 	// Parse the url
 	if ((pos1 = strchr(url, ':')))
@@ -734,7 +734,7 @@ int parse(char url[], httpreq *req, char** errMsg)
 			strcpy(req->path, "/");
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -742,7 +742,7 @@ int parse(char url[], httpreq *req, char** errMsg)
  * Checks the http response to see if it is valid. If it is, returns 0 and copies
  * no value to the errMsg string. If it is not valid, returns a non-zero value
  * and copies an error message into the errMsg string.
- * 
+ *
  * res - the httpres struct to check
  * errMsg - handle to the error message string
  * returns 0 if everything checks out normal, non-zero otherwise
@@ -756,10 +756,10 @@ int responseerrorcheck(httpres* res, char** errMsg)
 	{
 		mallocstrcpy(errMsg, "NULL httpres struct pointer");
 		return 1;
-    }
+	}
 
 	if (res->statusCode != 200)
-    {
+	{
 		getstatus(res, errMsg);
 		if (*errMsg == NULL)
 		{
@@ -771,34 +771,34 @@ int responseerrorcheck(httpres* res, char** errMsg)
 		// Print out the body (if any) to stderr
 		if (res->bodyLength > 0)
 			fprintf(stderr, "http response status code: %d %s\n%s", res->statusCode, res->status, res->body);
-    }
-    else
-    {
-    	char* ecode_str;
+	}
+	else
+	{
+		char* ecode_str;
 		getheader(res, HD_RETURN_CODE, &ecode_str);
-	    if (ecode_str == NULL)
-	    {
-	    	mallocstrcpy(errMsg, "Server sent back invalid response");
-	    	errCode = 1;
-	    }
-	    else
-	    {
-		    int ecode = atoi(ecode_str);
-		    free(ecode_str);
-		    if (ecode != 0)
-		    {
-		       getheader(res,HD_RETURN_MESSAGE, errMsg);
-		       errCode = ecode;
-		    }
-	    }
-    }
-    return errCode;
+		if (ecode_str == NULL)
+		{
+			mallocstrcpy(errMsg, "Server sent back invalid response");
+			errCode = 1;
+		}
+		else
+		{
+			int ecode = atoi(ecode_str);
+			free(ecode_str);
+			if (ecode != 0)
+			{
+				getheader(res,HD_RETURN_MESSAGE, errMsg);
+				errCode = ecode;
+			}
+		}
+	}
+	return errCode;
 }
 
 /**
  * Copies the network error message for the current error into the specified errMsg
  * string.
- * 
+ *
  * errMsg - error message string
  */
 void connecterror(char errMsg[])
@@ -916,7 +916,7 @@ void connecterror(char errMsg[])
 /**
  * Malloc's enough memory to copy the string specified by msg into the handle specified
  * by errMsg. Returns 0 if successful, 1 otherwise.
- * 
+ *
  * errMsg - handle that will point to a malloc'd copy of the msg string
  * msg - string to copy
  * returns 0 if successful, 1 otherwise
@@ -927,15 +927,15 @@ int mallocstrcpy(char** errMsg, const char msg[])
 	{
 		fprintf(stderr,"ERROR, could not allocate memory for error message\n");
 		return 1;
-	}	    
+	}
 	strcpy(*errMsg, msg);
-	return 0;	
+	return 0;
 }
 
 /**
- * Malloc's enough memory to copy the strings specified by msg1 and msg2 into the handle 
+ * Malloc's enough memory to copy the strings specified by msg1 and msg2 into the handle
  * specified by errMsg. Returns 0 if successful, 1 otherwise.
- * 
+ *
  * errMsg - handle that will point to a malloc'd copy of the msg1 + msg2 string
  * msg1 - first string to copy
  * msg2 - second string to copy

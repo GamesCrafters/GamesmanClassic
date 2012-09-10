@@ -12,12 +12,12 @@
 
 // Type Declarations
 
-typedef float(*scalingFunction)(float,float[]);
+typedef float (*scalingFunction)(float,float[]);
 
-typedef float(*featureEvaluatorLibrary)(void*,void*,int[]);
+typedef float (*featureEvaluatorLibrary)(void*,void*,int[]);
 
 typedef enum f_type {
-  library, custom
+	library, custom
 } TYPE;
 
 typedef enum p_type {
@@ -25,30 +25,30 @@ typedef enum p_type {
 } PIECE_TYPE;
 
 /**I decided not to use a union for the function pointers because
- *it really provides no additional benefit, besides saving 4 bytes
- *of space. In either implementation, we still have to store which
- *type of function we're using.
+ * it really provides no additional benefit, besides saving 4 bytes
+ * of space. In either implementation, we still have to store which
+ * type of function we're using.
  */
-typedef struct fNode{
-  STRING name;
-  float weight;
-  TYPE type; //custom or library
-  PIECE_TYPE piece; //the piece that this trait centers on
-  float scaleParams[SEVAL_NUMSCALEPARAMS];
-  int evalParams[SEVAL_NUMEVALPARAMS];
-  scalingFunction scale;
-  featureEvaluatorCustom fEvalC;
-  featureEvaluatorLibrary fEvalL;
-  struct fNode * next;
+typedef struct fNode {
+	STRING name;
+	float weight;
+	TYPE type; //custom or library
+	PIECE_TYPE piece; //the piece that this trait centers on
+	float scaleParams[SEVAL_NUMSCALEPARAMS];
+	int evalParams[SEVAL_NUMEVALPARAMS];
+	scalingFunction scale;
+	featureEvaluatorCustom fEvalC;
+	featureEvaluatorLibrary fEvalL;
+	struct fNode * next;
 } *fList;
 
-typedef struct seNode{
-  //scew_element* element;
-  STRING name;
-  int variant;
-  BOOLEAN perfect;
-  fList featureList;
-  struct seNode * next;
+typedef struct seNode {
+	//scew_element* element;
+	STRING name;
+	int variant;
+	BOOLEAN perfect;
+	fList featureList;
+	struct seNode * next;
 } *seList;
 
 extern seList evaluatorList;

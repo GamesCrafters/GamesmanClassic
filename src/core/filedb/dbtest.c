@@ -44,15 +44,15 @@ int main(int argc, char *argv[])
 
 	gamesdb *testdb = gamesdb_create(recsize, recs, pages_used, dirsize, dbname);
 	printf("Starting DB test...\n");
-	
+
 	//sleep(10);
-	
+
 	gamesdb_position i;
 	short data = 0, result = 0;
 
 	//sequencial read/write
 
-	for (i=0;i<totalrecs;i++) {
+	for (i=0; i<totalrecs; i++) {
 		data = i & ((1<<16) - 1);
 		printf("reading: %llu\n", i);
 		gamesdb_put(testdb, (void*)&data, i);
@@ -64,21 +64,21 @@ int main(int argc, char *argv[])
 	}
 	//random reads
 /*	for (i=0;i<totalrecs;i++) {
-		data = i % (1<<16);
-		if(i == 170)
-			printf("GAHHHHHH!\n");
-		printf("reading: %llu\n", i);
-		db_get(testdb, (void*)&result, i);
-		if (data!=result) {
-			printf("ERROR in seq read: position %llu, saved %d, got %d\n", i, data, result);
-			break;
-		}
-	}*/
+                data = i % (1<<16);
+                if(i == 170)
+                        printf("GAHHHHHH!\n");
+                printf("reading: %llu\n", i);
+                db_get(testdb, (void*)&result, i);
+                if (data!=result) {
+                        printf("ERROR in seq read: position %llu, saved %d, got %d\n", i, data, result);
+                        break;
+                }
+        }*/
 	printf("entering random tests...\n");
-	
+
 	gamesdb_position val;
-	for (i=0;i<totalrecs;i++) {
-		while (totalrecs <= (val = rand() * totalrecs / RAND_MAX));
+	for (i=0; i<totalrecs; i++) {
+		while (totalrecs <= (val = rand() * totalrecs / RAND_MAX)) ;
 		printf("reading: %llu\n", val);
 		data = val & ((1 << 16) - 1);
 		//gamesdb_put(testdb, (void*)&data, val);

@@ -5,22 +5,22 @@
 void*    gGameSpecificTclInit = NULL;
 
 
-BOOLEAN  kGameSpecificMenu;
-BOOLEAN  kPartizan;
-BOOLEAN  kDebugMenu;
-BOOLEAN  kTieIsPossible;
-BOOLEAN  kLoopy;
-BOOLEAN  kDebugDetermineValue;
-STRING   kAuthorName;
-STRING   kGameName;
-STRING   kHelpGraphicInterface;
-STRING   kHelpTextInterface;
-STRING   kHelpOnYourTurn;
-STRING   kHelpStandardObjective;
-STRING   kHelpReverseObjective;
-STRING   kHelpTieOccursWhen;
-STRING   kHelpExample;
-STRING   kDBName;
+BOOLEAN kGameSpecificMenu;
+BOOLEAN kPartizan;
+BOOLEAN kDebugMenu;
+BOOLEAN kTieIsPossible;
+BOOLEAN kLoopy;
+BOOLEAN kDebugDetermineValue;
+STRING kAuthorName;
+STRING kGameName;
+STRING kHelpGraphicInterface;
+STRING kHelpTextInterface;
+STRING kHelpOnYourTurn;
+STRING kHelpStandardObjective;
+STRING kHelpReverseObjective;
+STRING kHelpTieOccursWhen;
+STRING kHelpExample;
+STRING kDBName;
 POSITION kBadPosition;
 POSITION gInitialPosition;
 POSITION gNumberOfPositions;
@@ -52,7 +52,7 @@ PyObject *exportPOSITION(POSITION from) {
 void importSTRING(void *to, PyObject *from) {
 	*((STRING *)to) = PyString_AsString(from);
 }
-	
+
 static PyObject *callback = NULL;
 
 /* Should be in gamesman.h */
@@ -72,7 +72,7 @@ static PyObject *initialize(PyObject *self, PyObject *args) {
 	PyObject *result = NULL;
 	PyObject *arglist;
 	PyObject *handler;
-	
+
 	if (PyArg_ParseTuple(args, "OO", &arglist, &handler)) {
 
 		if (!PyCallable_Check(handler)) {
@@ -83,35 +83,35 @@ static PyObject *initialize(PyObject *self, PyObject *args) {
 			Py_XDECREF(callback);
 			callback=handler;
 		}
-				
+
 		if (!PyList_Check(arglist)) {
 			PyErr_SetString(PyExc_TypeError, "first argument must be a list");
 			return NULL;
 		} else {
-						
+
 			int index, argc = PyList_Size(arglist);
 			char *argv[argc];
 
 			for (index = 0; index < argc; index++) {
 				if (!PyArg_Parse(PyList_GetItem(arglist, index), "s", argv + index)) {
 					return NULL;
-						}	
 				}
-				result = Py_BuildValue("i", gamesman_main(argc, argv));
 			}
+			result = Py_BuildValue("i", gamesman_main(argc, argv));
+		}
 	}
 	return result;
 
 }
 
-static PyObject *export(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *export (PyObject *self, PyObject *args, PyObject *keywords) {
 
 	int index;
 	static struct {
 		char *keyword;
 		void *variable;
-		void (*import) (void *, PyObject *);
-	} varmap[] = { 
+		void (*import)(void *, PyObject *);
+	} varmap[] = {
 		{"kGameSpecificMenu", &kGameSpecificMenu, &importBOOLEAN},
 		{"kPartizan", &kPartizan, &importBOOLEAN},
 		{"kDebugMenu", &kDebugMenu, &importBOOLEAN},
@@ -144,11 +144,11 @@ static PyObject *export(PyObject *self, PyObject *args, PyObject *keywords) {
 
 	return Py_None;
 }
-	
+
 static PyMethodDef functions[] = {
-    {"initialize",  initialize, METH_VARARGS, "Initializes callback handler and calls main"},
-	 {"export",  (PyCFunction) export, METH_VARARGS | METH_KEYWORDS, "Exports keyworded variables"},
-    {NULL, 0}
+	{"initialize",  initialize, METH_VARARGS, "Initializes callback handler and calls main"},
+	{"export",  (PyCFunction) export, METH_VARARGS | METH_KEYWORDS, "Exports keyworded variables"},
+	{NULL, 0}
 };
 
 PyMODINIT_FUNC initpygamesman() {
@@ -182,7 +182,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	Py_DECREF(call(Py_BuildValue("(sOOO)", "PrintPosition", py_position, py_playerName, py_usersTurn)));
 	Py_DECREF(py_position);
 	Py_DECREF(py_playerName);
-		
+
 }
 
 MOVELIST *GenerateMoves(POSITION position) {
@@ -190,7 +190,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	PyObject *py_movelist;
 	MOVELIST *movelist = NULL;
 	int index;
-	
+
 	py_position = PyPosition_FromPosition(position);
 	py_movelist = call(Py_BuildValue("(sO)", "GenerateMoves", py_position));
 
@@ -199,31 +199,31 @@ MOVELIST *GenerateMoves(POSITION position) {
 		PyErr_Print();
 		exit(1);
 	}
-		
+
 	for (index = 0; index < PyList_Size(py_movelist); index++ ) {
-		
+
 		MOVE move;
 		verify(PyArg_Parse(PyList_GetItem(py_movelist, index), "i", &move));
 		movelist = CreateMovelistNode(move, movelist);
-			
+
 	}
 
 	Py_DECREF(py_movelist);
 	return movelist;
-		
+
 }
 
 VALUE Primitive(POSITION position) {
 	PyObject *py_position, *py_value;
 	VALUE value;
-	
+
 	py_position = PyPosition_FromPosition(position);
 	py_value = call(Py_BuildValue("(sO)", "Primitive", py_position));
 	verify(PyArg_Parse(py_value, "i", &value));
-	
+
 	Py_DECREF(py_position);
 	Py_DECREF(py_value);
-	
+
 	return value;
 }
 
@@ -237,10 +237,10 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 	py_funcall = Py_BuildValue("(sOO)", "PrintPrompt", py_position, py_playerName);
 
 	while ( input == Continue ) {
-		
+
 		Py_INCREF(py_funcall);
 		Py_DECREF(call(py_funcall));
-    	input = HandleDefaultTextInput(position, move, playerName);
+		input = HandleDefaultTextInput(position, move, playerName);
 
 	}
 
@@ -280,7 +280,7 @@ void PrintMove(MOVE move) {
 
 void PrintComputersMove(MOVE move, STRING computerName) {
 	PyObject *py_move, *py_computerName;
-	
+
 	py_move = PyInt_FromLong(move);
 	py_computerName = PyString_FromString(computerName);
 	Py_DECREF(call(Py_BuildValue("(sOO)", "PrintComputersMove", py_move, py_computerName)));
@@ -293,22 +293,22 @@ int getOption () {
 }
 
 POSITION DoMove(POSITION position, MOVE move) {
-	
+
 	PyObject *py_position, *py_move, *py_newposition;
 	POSITION newposition;
-	
+
 	py_position = PyPosition_FromPosition(position);
 	py_move = PyMove_FromMove(move);
 	py_newposition = call(Py_BuildValue("(sOO)", "DoMove", py_position, py_move));
 
 	importPOSITION(&newposition, py_newposition);
-	
+
 	Py_DECREF(py_position);
 	Py_DECREF(py_move);
 	Py_DECREF(py_newposition);
-	
+
 	return newposition;
-	
+
 }
 
 void GameSpecificMenu(){
@@ -324,18 +324,18 @@ BOOLEAN ValidTextInput(STRING input){
 	PyObject *py_input;
 	PyObject *py_valid;
 	BOOLEAN valid;
-	
+
 	py_input = PyString_FromString(input);
 	py_valid = call(Py_BuildValue("(sO)", "ValidTextInput", py_input));
-	
+
 	if (!PyBool_Check(py_valid)) {
 		exit(1);
 	}
-		
+
 	importBOOLEAN(&valid, py_valid);
 	return valid;
 }
-		 
+
 int NumberOfOptions(){
-		  return 0;
+	return 0;
 }

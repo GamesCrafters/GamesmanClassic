@@ -44,108 +44,108 @@
 
 GMSTATUS
 bitlib_file_open(
-                char *filename,
-                char *mode,
-                dbFILE **db
-                );
+        char *filename,
+        char *mode,
+        dbFILE **db
+        );
 
 GMSTATUS
 bitlib_file_close(
-                dbFILE *file
-                );
-                
+        dbFILE *file
+        );
+
 GMSTATUS
 bitlib_file_seek(
-                dbFILE *db,
-                UINT32 byteIndex,
-                int whence
-                );
+        dbFILE *db,
+        UINT32 byteIndex,
+        int whence
+        );
 
 inline
 GMSTATUS
 bitlib_file_write_bytes(
-                dbFILE *file,
-                BYTE *buffer,
-                UINT32 length
-                );
+        dbFILE *file,
+        BYTE *buffer,
+        UINT32 length
+        );
 
 inline
 GMSTATUS
 bitlib_file_read_bytes(
-                dbFILE *file,
-                BYTE *buffer,
-                UINT32 length
-                );
+        dbFILE *file,
+        BYTE *buffer,
+        UINT32 length
+        );
 
 inline
 BYTE
 bitlib_right_mask8(
-                UINT8 maskbits
-                );
+        UINT8 maskbits
+        );
 
 inline
 UINT64
 bitlib_right_mask64(
-                UINT8 maskbits
-                );
+        UINT8 maskbits
+        );
 
 inline
 void
 bitlib_insert_bits(
-                BYTE *slice,
-                UINT8 bitOffset,
-                UINT64 value,
-                UINT8 bitsToOutput
-                );
+        BYTE *slice,
+        UINT8 bitOffset,
+        UINT64 value,
+        UINT8 bitsToOutput
+        );
 
 inline
 BYTE
 bitlib_get_bits_range(
-                UINT64 value,
-                UINT8 offsetFromRight,
-                UINT8 length
-                );
+        UINT64 value,
+        UINT8 offsetFromRight,
+        UINT8 length
+        );
 
 inline
 UINT64
 bitlib_read_bits(
-                BYTE *slice,
-                UINT8 offsetFromLeft,
-                UINT8 bitsToOutput
-                );
+        BYTE *slice,
+        UINT8 offsetFromLeft,
+        UINT8 bitsToOutput
+        );
 
 void
 bitlib_print_byte_in_bits(
-                BYTE *b
-                );
+        BYTE *b
+        );
 
 void
 bitlib_print_bytes_in_bits(
-                BYTE *b,
-                UINT8 bytes
-                );
+        BYTE *b,
+        UINT8 bytes
+        );
 
 inline
 void
 bitlib_value_to_buffer(
-                dbFILE *file,
-                BYTE **curBuffer,
-                BYTE *outputBuffer,
-                UINT32 bufferLength,
-                UINT8 *offsetFromLeft,
-                UINT64 value,
-                UINT8 bitsToOutput
-                );
+        dbFILE *file,
+        BYTE **curBuffer,
+        BYTE *outputBuffer,
+        UINT32 bufferLength,
+        UINT8 *offsetFromLeft,
+        UINT64 value,
+        UINT8 bitsToOutput
+        );
 
 inline
 UINT64
 bitlib_read_from_buffer(
-                dbFILE *inFile,
-                BYTE **curBuffer,
-                BYTE *inputBuffer,
-                UINT32 bufferLength,
-                UINT8 *offsetFromLeft,
-                UINT8 length
-                );
+        dbFILE *inFile,
+        BYTE **curBuffer,
+        BYTE *inputBuffer,
+        UINT32 bufferLength,
+        UINT8 *offsetFromLeft,
+        UINT8 length
+        );
 
 #endif /* GMCORE_BITLIB_H */

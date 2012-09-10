@@ -37,23 +37,23 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Ataxx"; /* The name of your game */
-STRING   kAuthorName          = "Max Delgadillo"; /* Your name(s) */
-STRING   kDBName              = "ataxx"; /* The name to store the database under */
+STRING kGameName            = "Ataxx";   /* The name of your game */
+STRING kAuthorName          = "Max Delgadillo";   /* Your name(s) */
+STRING kDBName              = "ataxx";   /* The name to store the database under */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN kTieIsPossible       = TRUE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN kLoopy               = TRUE;  /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugMenu           = FALSE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
-void*	 gGameSpecificTclInit = NULL;
+void*    gGameSpecificTclInit = NULL;
 
 /**
  * Help strings that are pretty self-explanatory
@@ -62,26 +62,26 @@ void*	 gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING   kHelpGraphicInterface =
-"Help strings not initialized!";
+STRING kHelpGraphicInterface =
+        "Help strings not initialized!";
 
-STRING   kHelpTextInterface =
-"Help strings not initialized!";
+STRING kHelpTextInterface =
+        "Help strings not initialized!";
 
-STRING   kHelpOnYourTurn =
-"Help strings not initialized!";
+STRING kHelpOnYourTurn =
+        "Help strings not initialized!";
 
-STRING   kHelpStandardObjective =
-"Help strings not initialized!";
+STRING kHelpStandardObjective =
+        "Help strings not initialized!";
 
-STRING   kHelpReverseObjective =
-"Help strings not initialized!";
+STRING kHelpReverseObjective =
+        "Help strings not initialized!";
 
-STRING   kHelpTieOccursWhen =
-"Help strings not initialized!";
+STRING kHelpTieOccursWhen =
+        "Help strings not initialized!";
 
-STRING   kHelpExample =
-"Help strings not initialized!";
+STRING kHelpExample =
+        "Help strings not initialized!";
 
 
 
@@ -90,14 +90,14 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-#define WIDTH_MAX	9
-#define LENGTH_MAX	9
-#define WIDTH_MIN	3
-#define LENGTH_MIN	3
+#define WIDTH_MAX       9
+#define LENGTH_MAX      9
+#define WIDTH_MIN       3
+#define LENGTH_MIN      3
 
-#define RED			'X'
-#define BLUE		'O'
-#define SPACE		' '
+#define RED                     'X'
+#define BLUE            'O'
+#define SPACE           ' '
 #define PLAYER_ONE  1
 #define PLAYER_TWO  2
 
@@ -106,9 +106,9 @@ STRING   kHelpExample =
 ** Global Variables
 **
 *************************************************************************/
-int width		= 3;
-int length		= 3;
-int boardsize	= 9;
+int width               = 3;
+int length              = 3;
+int boardsize   = 9;
 
 /*************************************************************************
 **
@@ -134,7 +134,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier);
 /* External */
 #ifndef MEMWATCH
 extern GENERIC_PTR SafeMalloc ();
-extern void	SafeFree ();
+extern void     SafeFree ();
 #endif
 
 STRING MoveToString(MOVE move);
@@ -154,9 +154,9 @@ void InitializeGame ()
 	//InitializeHelpStrings();
 	SetupGame();
 
-    //gPutWinBy = &computeWinBy;
+	//gPutWinBy = &computeWinBy;
 
-    gGenerateMovesEfficientFunPtr = &GenerateMovesEfficient;
+	gGenerateMovesEfficientFunPtr = &GenerateMovesEfficient;
 
 	gMoveToStringFunPtr = &MoveToString;
 }
@@ -173,32 +173,32 @@ void InitializeGame ()
 **
 ************************************************************************/
 /*void InitializeHelpStrings ()
-{
+   {
 
-kHelpGraphicInterface =
+   kHelpGraphicInterface =
     "";
 
-kHelpTextInterface =
+   kHelpTextInterface =
    "";
 
-kHelpOnYourTurn =
-  "";
+   kHelpOnYourTurn =
+   "";
 
-kHelpStandardObjective =
-  "";
+   kHelpStandardObjective =
+   "";
 
-kHelpReverseObjective =
-  "";
+   kHelpReverseObjective =
+   "";
 
-kHelpTieOccursWhen =
-  "A tie occurs when ...";
+   kHelpTieOccursWhen =
+   "A tie occurs when ...";
 
-kHelpExample =
-  "";
+   kHelpExample =
+   "";
 
     gMoveToStringFunPtr = &MoveToString;
 
-}*/
+   }*/
 
 
 /************************************************************************
@@ -220,12 +220,12 @@ kHelpExample =
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST* moves = NULL;
+	MOVELIST* moves = NULL;
 	int x, y, i, j;
 	int turn;
 	char* board = unhash(position, &turn);
-	for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
-		for (x = 1; x <= width; x++) {// look through the columns, left-to-right
+	for (y = 1; y <= length; y++) { // look through all the rows, bottom-up
+		for (x = 1; x <= width; x++) { // look through the columns, left-to-right
 			if (board[toIndex(x,y)] != (turn==PLAYER_ONE ? RED : BLUE))
 				continue; //not our piece, we can't move it
 			/* check the 5x5 grid around us, using i to modify x and j for y.
@@ -239,8 +239,8 @@ MOVELIST *GenerateMoves (POSITION position)
 		}
 	}
 	if (board != NULL)
-        SafeFree(board);
-    return moves;
+		SafeFree(board);
+	return moves;
 }
 
 
@@ -275,8 +275,8 @@ POSITION DoMove (POSITION position, MOVE move)
 	int turn;
 	char* board = unhash(position, &turn);
 	char myPiece = (turn==PLAYER_ONE ? RED : BLUE),
-		oppPiece = (turn==PLAYER_ONE ? BLUE : RED);
-	if (jump) {// if there is a jump, remove old piece and place new piece
+	     oppPiece = (turn==PLAYER_ONE ? BLUE : RED);
+	if (jump) { // if there is a jump, remove old piece and place new piece
 		board[toIndex(x1,y1)] = SPACE;
 		board[toIndex(x2,y2)] = myPiece;
 	} else // no jump, leave the old piece alone and place new piece
@@ -286,7 +286,7 @@ POSITION DoMove (POSITION position, MOVE move)
 		for (i = -1; i <= 1; i++) // columns, left-right
 			if (legalCoords(x2+i,y2+j) && board[toIndex(x2+i,y2+j)] == oppPiece)
 				board[toIndex(x2+i,y2+j)] = myPiece;
-    turn = (turn==PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE);
+	turn = (turn==PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE);
 	return hash(board, turn);
 }
 
@@ -325,28 +325,28 @@ VALUE Primitive (POSITION position)
 	countPieces(board, &reds, &blues);
 
 	if (board != NULL)
-        SafeFree(board);
+		SafeFree(board);
 
 	if (reds == 0) // no reds, blue has won
 		redWon = FALSE;
 	else if (blues == 0) // no blues, red has won
 		redWon = TRUE;
-	else if (reds+blues == boardsize) {// else if board is filled
+	else if (reds+blues == boardsize) { // else if board is filled
 		if (reds > blues) //red won
 			redWon = TRUE;
 		else if (blues > reds) //blue won
 			redWon = FALSE;
 		else return tie; // tie
 	} else {
-        // now, we check to see if there's legal moves:
-        MOVELIST* moves = GenerateMoves(position);
-        if (moves == NULL) // a lose for current player!
-            redWon = (turn==PLAYER_ONE ? TRUE : FALSE);
-        else {
-            FreeMoveList(moves);
-            return undecided;
-        }
-    }
+		// now, we check to see if there's legal moves:
+		MOVELIST* moves = GenerateMoves(position);
+		if (moves == NULL) // a lose for current player!
+			redWon = (turn==PLAYER_ONE ? TRUE : FALSE);
+		else {
+			FreeMoveList(moves);
+			return undecided;
+		}
+	}
 
 	VALUE value;
 	if (redWon) //for cleaner code
@@ -384,23 +384,23 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("\t%s's Turn (%s):\n  ",playersName,(turn==PLAYER_ONE ? "X" : "O"));
 	printf("%s\n", GetPrediction(position, playersName, usersTurn));
 	printf("X = %d\tO = %d\n  ", reds, blues);
-	for (y = length; y >= 1; y--) {// for all the rows
-		for (x = 1; x <= width; x++)// for all the columns
+	for (y = length; y >= 1; y--) { // for all the rows
+		for (x = 1; x <= width; x++) // for all the columns
 			printf("+-");
 		printf("+\n%d ", y);
 		for (x = 1; x <= width; x++)
 			printf("|%c",board[toIndex(x,y)]);
 		printf("|\n  ");
 	}
-	for (x = 1; x <= width; x++)// for all the columns
+	for (x = 1; x <= width; x++) // for all the columns
 		printf("+-");
 	printf("+\n  ");
-	for (x = 1; x <= width; x++) {// for all the columns
+	for (x = 1; x <= width; x++) { // for all the columns
 		printf(" %c",'a'-1+x);
 	}
 	printf("\n\n");
 	if (board != NULL)
-        SafeFree(board);
+		SafeFree(board);
 }
 
 
@@ -435,9 +435,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-    STRING str = MoveToString(move);
-    printf("%s", str);
-    SafeFree(str);
+	STRING str = MoveToString(move);
+	printf("%s", str);
+	SafeFree(str);
 }
 
 
@@ -453,10 +453,10 @@ void PrintMove (MOVE move)
 
 STRING MoveToString (MOVE move)
 {
-    STRING moveStr = (STRING) SafeMalloc(sizeof(char)*5);
-   	moveStr[0] = ((move/1000) % 10)+'a'-1;
-   	moveStr[1] = ((move/100) % 10)+'0';
-   	moveStr[2] = ((move/10) % 10)+'a'-1;
+	STRING moveStr = (STRING) SafeMalloc(sizeof(char)*5);
+	moveStr[0] = ((move/1000) % 10)+'a'-1;
+	moveStr[1] = ((move/100) % 10)+'0';
+	moveStr[2] = ((move/10) % 10)+'a'-1;
 	moveStr[3] = (move % 10)+'0';
 	moveStr[4] = '\0';
 	return moveStr;
@@ -485,24 +485,24 @@ STRING MoveToString (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
 
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/([%c-%c][%d-%d][%c-%c][%d-%d])] : ", playersName,
-			'a', width+'a'-1, 1, length, 'a', width+'a', 1, length);
+	for (;; ) {
+		/***********************************************************
+		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+		***********************************************************/
+		printf("%8s's move [(undo)/([%c-%c][%d-%d][%c-%c][%d-%d])] : ", playersName,
+		       'a', width+'a'-1, 1, length, 'a', width+'a', 1, length);
 
-	input = HandleDefaultTextInput(position, move, playersName);
+		input = HandleDefaultTextInput(position, move, playersName);
 
-	if (input != Continue)
-		return input;
-    }
+		if (input != Continue)
+			return input;
+	}
 
-    /* NOTREACHED */
-    return Continue;
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -536,7 +536,7 @@ BOOLEAN ValidTextInput (STRING input)
 	if(strlen(input) != 4)
 		return FALSE;
 	if (!isalpha(input[0]) || !isdigit(input[1]) ||
-		!isalpha(input[2]) || !isdigit(input[3]))
+	    !isalpha(input[2]) || !isdigit(input[3]))
 		return FALSE;
 	return TRUE;
 }
@@ -559,7 +559,7 @@ BOOLEAN ValidTextInput (STRING input)
 MOVE ConvertTextInputToMove (STRING input)
 {
 	return (1000*(input[0]-'a'+1) + 100*(input[1]-'0')
-			+ 10*(input[2]-'a'+1) + (input[3]-'0'));
+	        + 10*(input[2]-'a'+1) + (input[3]-'0'));
 }
 
 
@@ -588,26 +588,26 @@ void GameSpecificMenu ()
 		printf("\n\nCurrent %dx%d board:  \n", width, length);
 		PrintPosition(gInitialPosition, "Gamesman", 0);
 		printf("\tGame Options:\n\n"
-			"\tc)\t(C)hange the board size (nxn), currently: %dx%d\n"
-			"\ti)\tSet the (I)nitial position\n"
-			"\tb)\t(B)ack to the main menu\n"
-			"\nSelect an option:  ", width, length);
+		       "\tc)\t(C)hange the board size (nxn), currently: %dx%d\n"
+		       "\ti)\tSet the (I)nitial position\n"
+		       "\tb)\t(B)ack to the main menu\n"
+		       "\nSelect an option:  ", width, length);
 		c = GetMyChar();
 		switch(c) {
-			case 'c': case 'C':
-				ChangeBoardSize();
-				break;
-			case 'i': case 'I':
-				GetInitialPosition();
-				break;
-			case 'b': case 'B':
-				cont = FALSE;
-				break;
-			default:
-				printf("Invalid option!\n");
+		case 'c': case 'C':
+			ChangeBoardSize();
+			break;
+		case 'i': case 'I':
+			GetInitialPosition();
+			break;
+		case 'b': case 'B':
+			cont = FALSE;
+			break;
+		default:
+			printf("Invalid option!\n");
 		}
 	}
-  //InitializeHelpStrings();
+	//InitializeHelpStrings();
 }
 
 
@@ -641,7 +641,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return 0;
+	return 0;
 }
 
 
@@ -658,7 +658,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 2;
+	return 2;
 }
 
 
@@ -695,9 +695,9 @@ int getOption ()
 
 void setOption (int option)
 {
-    if (option == 1)
-    	gStandardGame = TRUE;
-    else gStandardGame = FALSE;
+	if (option == 1)
+		gStandardGame = TRUE;
+	else gStandardGame = FALSE;
 }
 
 
@@ -751,29 +751,29 @@ WINBY computeWinBy (POSITION position)
 	char* board = unhash(position, &turn);
 	countPieces(board, &reds, &blues);
 	if (board != NULL)
-        SafeFree(board);
+		SafeFree(board);
 	return reds-blues;
 }
 
 /*
-The BOARD the player sees is as follows:
-3 + + + +
-2 + + + +
-1 + + + +
-  a b c d
+   The BOARD the player sees is as follows:
+   3 + + + +
+   2 + + + +
+   1 + + + +
+   a b c d
 
-length = 3, width = 4, boardsize = 12.
+   length = 3, width = 4, boardsize = 12.
 
-So on the array, it's like this:
-{ a3, b3, c3, d3, a2, b2, c2, d2, a1, b1, c1, d1 }
-  0   1   2   3   4   5   6   7   8   9   10  11
+   So on the array, it's like this:
+   { a3, b3, c3, d3, a2, b2, c2, d2, a1, b1, c1, d1 }
+   0   1   2   3   4   5   6   7   8   9   10  11
 
-For the game, letters are translated to numbers (a = 1, b = 2, etc.)
-So (1,1) is the bottom left, (4,3) is the top right.
+   For the game, letters are translated to numbers (a = 1, b = 2, etc.)
+   So (1,1) is the bottom left, (4,3) is the top right.
 
-toIndex takes in the coord and produces its index.
-So toIndex(1,1) = 8, toIndex(4,3) = 3.
-*/
+   toIndex takes in the coord and produces its index.
+   So toIndex(1,1) = 8, toIndex(4,3) = 3.
+ */
 
 //a precursor to toIndex = checks if x and y are legal coords
 int legalCoords (int x, int y) {
@@ -813,7 +813,7 @@ void ChangeBoardSize ()
 
 void SetupGame() {
 	generic_hash_destroy();
-    generic_hash_custom_context_mode(TRUE);
+	generic_hash_custom_context_mode(TRUE);
 	SetupTierStuff();
 	if (width <= 5 && length <= 5) {
 		int pieces_array[10] = {RED, 0, boardsize, BLUE, 0, boardsize, SPACE, 0, boardsize-4, -1};
@@ -827,7 +827,7 @@ void SetupGame() {
 		board[toIndex(width, length)] = BLUE;
 		board[toIndex(1, 1)] = BLUE;
 		board[toIndex(width, 1)] = RED;
-        int turn = 1;
+		int turn = 1;
 		gInitialPosition = hash(board, turn);
 	}
 }
@@ -843,7 +843,7 @@ char* unhash (POSITION position, int* turn)
 		generic_hash_unhash(tierPos, board); //sets board
 	} else {
 		(*turn) = generic_hash_turn(position);
-        generic_hash_unhash(position, board); //sets board
+		generic_hash_unhash(position, board); //sets board
 	}
 	return board;
 }
@@ -858,15 +858,15 @@ POSITION hash (char* board, int turn)
 		position = gHashToWindowPosition(tierPos, tier);
 	} else position = generic_hash_hash(board, turn);
 	if (board != NULL)
-        SafeFree(board);
+		SafeFree(board);
 	return position;
 }
 
 /* TIERS: Number of pieces left to place. Alternately, number of spaces
-on the board.
-That gives tiers solvable from 0 to boardsize.
-Pieces on board = boardsize-tier
-*/
+   on the board.
+   That gives tiers solvable from 0 to boardsize.
+   Pieces on board = boardsize-tier
+ */
 
 TIER BoardToTier(char* board) {
 	int reds, blues;
@@ -897,7 +897,7 @@ void SetupTierStuff() {
 		piecesArray[7] = piecesArray[8] = tier;
 		// make the hashes
 		generic_hash_init(boardsize, piecesArray, NULL, 0);
-        generic_hash_set_context(tier);
+		generic_hash_set_context(tier);
 	}
 	// Initial
 	char* board = (char*) SafeMalloc(boardsize * sizeof(char));
@@ -911,7 +911,7 @@ void SetupTierStuff() {
 	// Initial Tier = boardsize-4 (so there's boardsize-4 spaces)
 	gInitialTier = boardsize-4;
 	generic_hash_context_switch(gInitialTier);
-    int turn = 1;
+	int turn = 1;
 	gInitialTierPosition = hash(board, turn);
 }
 
@@ -940,26 +940,26 @@ STRING TierToString(TIER tier) {
 // An experimental GenerateMoves that should be much faster
 int GenerateMovesEfficient (POSITION position)
 {
-    int x, y, i, j, index = 0;
+	int x, y, i, j, index = 0;
 	int turn;
 	char* board = unhash(position, &turn);
-    for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
-        for (x = 1; x <= width; x++) {// look through the columns, left-to-right
-            if (board[toIndex(x,y)] != (turn==PLAYER_ONE ? RED : BLUE))
-                continue; //not our piece, we can't move it
-            /* check the 5x5 grid around us, using i to modify x and j for y.
-               moves-wise, jumps are handled the same as slides
-               note that this DOES check its own square, but always fails
-               the test since it's not a SPACE. */
-            for (j = -2; j <= 2; j++) // rows, bottom-up
-                for (i = -2; i <= 2; i++) // columns, left-right
-                    if (legalCoords(x+i,y+j) && board[toIndex(x+i,y+j)] == SPACE)
-                        gGenerateMovesArray[index++] = (x*1000) + (y*100) + ((x+i)*10) + (y+j);
-        }
-    }
+	for (y = 1; y <= length; y++) { // look through all the rows, bottom-up
+		for (x = 1; x <= width; x++) { // look through the columns, left-to-right
+			if (board[toIndex(x,y)] != (turn==PLAYER_ONE ? RED : BLUE))
+				continue; //not our piece, we can't move it
+			/* check the 5x5 grid around us, using i to modify x and j for y.
+			   moves-wise, jumps are handled the same as slides
+			   note that this DOES check its own square, but always fails
+			   the test since it's not a SPACE. */
+			for (j = -2; j <= 2; j++) // rows, bottom-up
+				for (i = -2; i <= 2; i++) // columns, left-right
+					if (legalCoords(x+i,y+j) && board[toIndex(x+i,y+j)] == SPACE)
+						gGenerateMovesArray[index++] = (x*1000) + (y*100) + ((x+i)*10) + (y+j);
+		}
+	}
 	if (board != NULL)
-        SafeFree(board);
-    return index;
+		SafeFree(board);
+	return index;
 }
 
 
@@ -1010,11 +1010,11 @@ int GenerateMovesEfficient (POSITION position)
 // Revision 1.10  2006/04/25 01:33:06  ogren
 // Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }
 

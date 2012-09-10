@@ -30,10 +30,10 @@ typedef struct edge_list
 } EDGELIST;
 
 /* Public functions */
-BOOLEAN PrepareTree(EDGELIST *);	// Prepare the in-memory write buffer
-void CleanupTree(EDGELIST *);	// Cleanup the in-memory write buffer
-void Visualize();		// Visualize game tree
-void Write(FILE *, EDGELIST *);	// Write a string to a file
+BOOLEAN PrepareTree(EDGELIST *);        // Prepare the in-memory write buffer
+void CleanupTree(EDGELIST *);   // Cleanup the in-memory write buffer
+void Visualize();               // Visualize game tree
+void Write(FILE *, EDGELIST *); // Write a string to a file
 
 /* Private functions */
 FILE *PrepareDOTFile();

@@ -31,23 +31,23 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Atari Go"; /* The name of your game */
-STRING   kAuthorName          = "Ofer Sadgat"; /* Your name(s) */
-STRING   kDBName              = "mago"; /* The name to store the database under */
+STRING kGameName            = "Atari Go";   /* The name of your game */
+STRING kAuthorName          = "Ofer Sadgat";   /* Your name(s) */
+STRING kDBName              = "mago";   /* The name to store the database under */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = FALSE; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN kTieIsPossible       = FALSE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN kLoopy               = FALSE;  /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugMenu           = FALSE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
-void*	 gGameSpecificTclInit = NULL;
+void*    gGameSpecificTclInit = NULL;
 
 /**
  * Help strings that are pretty self-explanatory
@@ -56,26 +56,26 @@ void*	 gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING   kHelpGraphicInterface =
-"Help strings not initialized!";
+STRING kHelpGraphicInterface =
+        "Help strings not initialized!";
 
-STRING   kHelpTextInterface =
-"Help strings not initialized!";
+STRING kHelpTextInterface =
+        "Help strings not initialized!";
 
-STRING   kHelpOnYourTurn =
-"Help strings not initialized!";
+STRING kHelpOnYourTurn =
+        "Help strings not initialized!";
 
-STRING   kHelpStandardObjective =
-"Help strings not initialized!";
+STRING kHelpStandardObjective =
+        "Help strings not initialized!";
 
-STRING   kHelpReverseObjective =
-"Help strings not initialized!";
+STRING kHelpReverseObjective =
+        "Help strings not initialized!";
 
-STRING   kHelpTieOccursWhen =
-"Help strings not initialized!";
+STRING kHelpTieOccursWhen =
+        "Help strings not initialized!";
 
-STRING   kHelpExample =
-"Help strings not initialized!";
+STRING kHelpExample =
+        "Help strings not initialized!";
 
 
 
@@ -84,18 +84,18 @@ STRING   kHelpExample =
 ** #defines and structs
 **
 **************************************************************************/
-#define WIDTH_MAX	19
-#define LENGTH_MAX	19
-#define WIDTH_MIN	1
-#define LENGTH_MIN	1
+#define WIDTH_MAX       19
+#define LENGTH_MAX      19
+#define WIDTH_MIN       1
+#define LENGTH_MIN      1
 
-#define WHITE		'o'
-#define BLACK		'X'
-#define SPACE		' '
+#define WHITE           'o'
+#define BLACK           'X'
+#define SPACE           ' '
 #define PLAYER_ONE  1
 #define PLAYER_TWO  2
 
-struct linked_list{
+struct linked_list {
 	int x, y;
 	struct linked_list *next;
 };
@@ -105,11 +105,11 @@ struct linked_list{
 ** Global Variables
 **
 *************************************************************************/
-int width		= 0;
-int length		= 0;
-int boardsize	= 0;
+int width               = 0;
+int length              = 0;
+int boardsize   = 0;
 
-BOOLEAN set		= FALSE;
+BOOLEAN set             = FALSE;
 
 /*************************************************************************
 **
@@ -134,7 +134,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier);
 /* External */
 #ifndef MEMWATCH
 extern GENERIC_PTR SafeMalloc ();
-extern void	SafeFree ();
+extern void     SafeFree ();
 #endif
 
 STRING MoveToString(MOVE move);
@@ -176,29 +176,29 @@ void InitializeGame (){
 **
 ************************************************************************/
 void InitializeHelpStrings ()
-{		
+{
 	kHelpGraphicInterface =
-  		"There is no graphic interface.";
+	        "There is no graphic interface.";
 
 	kHelpTextInterface =
-   		"";
+	        "";
 
 	kHelpOnYourTurn =
-	 	"Place a piece into an empty space.";
+	        "Place a piece into an empty space.";
 
 	kHelpStandardObjective =
-	  	"To surround an opponents stone or group of stones completely.";
+	        "To surround an opponents stone or group of stones completely.";
 
 	kHelpReverseObjective =
-	  	"Have one or more of your own stones be completely surrounded.";
+	        "Have one or more of your own stones be completely surrounded.";
 
 	kHelpTieOccursWhen =
-  		"A tie can never happen.";
+	        "A tie can never happen.";
 
 	kHelpExample =
-  		"3   - o -   \n2 o - X - o \n1   - o -   \n\nHere X is completely surrounded.";
+	        "3   - o -   \n2 o - X - o \n1   - o -   \n\nHere X is completely surrounded.";
 
-    gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 
 }
 
@@ -221,20 +221,20 @@ void InitializeHelpStrings ()
 ************************************************************************/
 
 MOVELIST *GenerateMoves (POSITION position){
-    MOVELIST* moves = NULL;
+	MOVELIST* moves = NULL;
 	char* board;
 	int turn, x, y;
 	board = unhash(position, &turn);
-	for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
-		for (x = 1; x <= width; x++) {// look through the columns, left-to-right
-			if (board[toIndex(x,y)] == SPACE){
+	for (y = 1; y <= length; y++) { // look through all the rows, bottom-up
+		for (x = 1; x <= width; x++) { // look through the columns, left-to-right
+			if (board[toIndex(x,y)] == SPACE) {
 				moves = CreateMovelistNode((x*100) + y, moves);
 			}
 		}
 	}
 	if(board != NULL)
 		SafeFree(board);
-    return moves;
+	return moves;
 }
 
 
@@ -256,7 +256,7 @@ MOVELIST *GenerateMoves (POSITION position){
 
 POSITION DoMove (POSITION position, MOVE move){
 	/* MOVE = two digits, are just coords. So a4 is 14. */
-    char* board;
+	char* board;
 	int turn, x1, y1;
 	//unhash the move
 	x1 = move/100;
@@ -325,24 +325,24 @@ VALUE Primitive (POSITION position){
 	(*bno_liberties).y = -2;
 	(*bno_liberties).next = NULL;
 
-	for (y = 1; y <= length; y++) {// look through all the rows, bottom-up
-		for (x = 1; x <= width; x++) {// look through the columns, left-to-right
+	for (y = 1; y <= length; y++) { // look through all the rows, bottom-up
+		for (x = 1; x <= width; x++) { // look through the columns, left-to-right
 			int result;
-			if (board[toIndex(x,y)] == BLACK){
+			if (board[toIndex(x,y)] == BLACK) {
 				result = evaluateLiberties(board, x, y, NULL, bhave_liberties, bno_liberties, board[toIndex(x,y)],turn);
 			} else {
 				result = evaluateLiberties(board, x, y, NULL, whave_liberties, wno_liberties, board[toIndex(x,y)],turn);
 			}
 			struct linked_list *tmp_liberties = bhave_liberties;
 			int ct = 0;
-			while (tmp_liberties != NULL){
+			while (tmp_liberties != NULL) {
 				ct = ct + 1;
 				tmp_liberties = (*tmp_liberties).next;
 			}
 
-			if (result == FALSE){
+			if (result == FALSE) {
 				if (((turn == PLAYER_ONE) && (board[toIndex(x,y)] == WHITE))
-					|| ((turn == PLAYER_TWO) && (board[toIndex(x,y)] == BLACK))){
+				    || ((turn == PLAYER_TWO) && (board[toIndex(x,y)] == BLACK))) {
 					SELFKILL = TRUE;
 				} else {
 					listFree(&bhave_liberties);
@@ -358,7 +358,7 @@ VALUE Primitive (POSITION position){
 	listFree(&bno_liberties);
 	listFree(&whave_liberties);
 	listFree(&wno_liberties);
-	if (SELFKILL == TRUE){
+	if (SELFKILL == TRUE) {
 		return (gStandardGame ? win : lose);
 	}
 	return undecided;
@@ -368,30 +368,30 @@ int UNDECIDED = -1;
 
 int evaluateLiberties(char *board, int x, int y, struct linked_list *waiting, struct linked_list *evaled, struct linked_list *nolibs, char col, int turn){
 	BOOLEAN first = (waiting == NULL);
-	if ((x > width) || (y > length) || (x <= 0) || (y <= 0)){
+	if ((x > width) || (y > length) || (x <= 0) || (y <= 0)) {
 		return UNDECIDED;
-	} else if (board[toIndex(x,y)] == SPACE){
+	} else if (board[toIndex(x,y)] == SPACE) {
 		return TRUE;
-	} else if (board[toIndex(x,y)] != col){
+	} else if (board[toIndex(x,y)] != col) {
 		return FALSE;
-	} else if (listMember(waiting, x, y) == TRUE){
-		return  UNDECIDED;
-	} else if (listMember(evaled, x, y) == TRUE){
+	} else if (listMember(waiting, x, y) == TRUE) {
+		return UNDECIDED;
+	} else if (listMember(evaled, x, y) == TRUE) {
 		return TRUE;
-	} else if (listMember(nolibs, x, y) == TRUE){
+	} else if (listMember(nolibs, x, y) == TRUE) {
 		return FALSE;
 	} else {
 		waiting = listAdd(waiting, x, y);
 		if (evaluateLiberties(board, x+1, y, waiting, evaled, nolibs, col, turn) == TRUE
-				|| evaluateLiberties(board, x, y+1, waiting, evaled, nolibs, col, turn) == TRUE
-				|| evaluateLiberties(board, x, y-1, waiting, evaled, nolibs, col, turn) == TRUE
-				|| evaluateLiberties(board, x-1, y, waiting, evaled, nolibs, col, turn) == TRUE){
+		    || evaluateLiberties(board, x, y+1, waiting, evaled, nolibs, col, turn) == TRUE
+		    || evaluateLiberties(board, x, y-1, waiting, evaled, nolibs, col, turn) == TRUE
+		    || evaluateLiberties(board, x-1, y, waiting, evaled, nolibs, col, turn) == TRUE) {
 			listAdd(evaled, x, y);
 			waiting = listRemove(waiting, x, y);
 			return TRUE;
 		} else {
-			if (first == TRUE){
-				while ((*waiting).next != NULL){
+			if (first == TRUE) {
+				while ((*waiting).next != NULL) {
 					listAdd(nolibs, (*(*waiting).next).x, (*(*waiting).next).y);
 					(*waiting).next = listRemove((*waiting).next, (*(*waiting).next).x, (*(*waiting).next).y);
 				}
@@ -406,10 +406,10 @@ int evaluateLiberties(char *board, int x, int y, struct linked_list *waiting, st
 }
 
 int listMember(struct linked_list *lst, int x, int y){
-	if (lst == NULL){
+	if (lst == NULL) {
 		return FALSE;
 	}
-	if ((*lst).x == x && (*lst).y == y){
+	if ((*lst).x == x && (*lst).y == y) {
 		return TRUE;
 	} else {
 		return listMember((*lst).next, x, y);
@@ -420,7 +420,7 @@ struct linked_list* listAdd(struct linked_list *lst, int x,  int y){
 	struct linked_list *val = (struct linked_list *) SafeMalloc(sizeof(struct linked_list));
 	(*val).x = x;
 	(*val).y = y;
-	if (lst == NULL){
+	if (lst == NULL) {
 		(*val).next = NULL;
 		return val;
 	}
@@ -431,9 +431,9 @@ struct linked_list* listAdd(struct linked_list *lst, int x,  int y){
 
 struct linked_list* listRemove(struct linked_list *lst, int x,  int y){
 	struct linked_list *last = NULL;
-	while (lst != NULL){
-		if ((*lst).x == x && (*lst).y == y){
-			if (last == NULL){
+	while (lst != NULL) {
+		if ((*lst).x == x && (*lst).y == y) {
+			if (last == NULL) {
 				SafeFree(lst);
 				return NULL;
 			}
@@ -449,14 +449,14 @@ struct linked_list* listRemove(struct linked_list *lst, int x,  int y){
 }
 
 void listFree(struct linked_list **lst){
-	if (lst == NULL){
+	if (lst == NULL) {
 		return;
-	} else if ((*lst) == NULL){
+	} else if ((*lst) == NULL) {
 		return;
 	} else {
 		struct linked_list *list = (*lst);
 		struct linked_list *next;
-		while (list != NULL){
+		while (list != NULL) {
 			next = (*list).next;
 			SafeFree(list);
 			list = next;
@@ -488,25 +488,25 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn){
 	countPieces(board, &reds, &blues);
 	printf("\t%s's Turn (%s):\n  ",playersName,(turn==PLAYER_ONE ? "BLACK" : "WHITE"));
 	printf("%s\n", GetPrediction(position, playersName, usersTurn));
-	for (y = length; y >= 0; y--) {// for all the rows
-		if (y == 0){
+	for (y = length; y >= 0; y--) { // for all the rows
+		if (y == 0) {
 			printf("    ");
-			for (x = 0; x < width; x = x + 1){
+			for (x = 0; x < width; x = x + 1) {
 				printf("%c   ", 'a' + x);
 			}
 		} else {
-			printf(" %2d ", y);//print row number
-			for (x = 1; x <= width; x++){
-				if (x+1 <= width){
+			printf(" %2d ", y); //print row number
+			for (x = 1; x <= width; x++) {
+				if (x+1 <= width) {
 					printf("%c - ",board[toIndex(x,y)]);
 				} else {
 					printf("%c",board[toIndex(x,y)]);
 				}
 			}
 			printf("\n");
-			if (y > 1){
+			if (y > 1) {
 				printf("    ");
-				for (x = 0; x < width; x++){
+				for (x = 0; x < width; x++) {
 					printf("|   ");
 				}
 				printf("\n");
@@ -548,9 +548,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName){
 ************************************************************************/
 
 void PrintMove (MOVE move){
-    STRING str = MoveToString(move);
-    printf("%s", str);
-    SafeFree(str);
+	STRING str = MoveToString(move);
+	printf("%s", str);
+	SafeFree(str);
 }
 
 
@@ -565,9 +565,9 @@ void PrintMove (MOVE move){
 ************************************************************************/
 
 STRING MoveToString (MOVE move){
-    STRING moveStr = (STRING) SafeMalloc(sizeof(char)*3);
-   	moveStr[0] = (move/100)+'a'-1;
-   	moveStr[1] = (move % 100) + '0';
+	STRING moveStr = (STRING) SafeMalloc(sizeof(char)*3);
+	moveStr[0] = (move/100)+'a'-1;
+	moveStr[1] = (move % 100) + '0';
 	moveStr[2] = '\0';
 	return moveStr;
 }
@@ -596,9 +596,9 @@ STRING MoveToString (MOVE move){
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName){
 
 	USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+	USERINPUT HandleDefaultTextInput();
 
-    for (;;) {
+	for (;; ) {
 		/***********************************************************
 		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 		***********************************************************/
@@ -608,10 +608,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 		if (input != Continue)
 			return input;
-    }
+	}
 
-    /* NOTREACHED */
-    return Continue;
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -694,31 +694,31 @@ void GameSpecificMenu (){
 		printf("\n\nCurrent %dx%d board:  \n", width, length);
 		PrintPosition(gInitialPosition, "Gamesman", 0);
 		printf("\tGame Options:\n\n"
-			"\tc)\t(C)hange the board size (nxn), currently: %dx%d\n"
-			//"\ti)\tSet the (I)nitial position\n"
-			"\tr)\t(R)eset to default settings\n"
-			"\tb)\t(B)ack to the main menu\n"
-			"\nSelect an option:  ", width, length);
+		       "\tc)\t(C)hange the board size (nxn), currently: %dx%d\n"
+		       //"\ti)\tSet the (I)nitial position\n"
+		       "\tr)\t(R)eset to default settings\n"
+		       "\tb)\t(B)ack to the main menu\n"
+		       "\nSelect an option:  ", width, length);
 		c = GetMyChar();
 		switch(c) {
-			case 'c': case 'C':
-				ChangeBoardSize();
-				break;
-			case 'i': case 'I':
-				GetInitialPosition();
-				break;
-			case 'r': case 'R':
-				Reset();
-				SetupGame();
-				break;
-			case 'b': case 'B':
-				cont = FALSE;
-				break;
-			default:
-				printf("Invalid option!\n");
+		case 'c': case 'C':
+			ChangeBoardSize();
+			break;
+		case 'i': case 'I':
+			GetInitialPosition();
+			break;
+		case 'r': case 'R':
+			Reset();
+			SetupGame();
+			break;
+		case 'b': case 'B':
+			cont = FALSE;
+			break;
+		default:
+			printf("Invalid option!\n");
 		}
 	}
-  //InitializeHelpStrings();
+	//InitializeHelpStrings();
 }
 
 
@@ -750,7 +750,7 @@ void SetTclCGameSpecificOptions (int options[]){
 ************************************************************************/
 
 POSITION GetInitialPosition (){
-    return 0;
+	return 0;
 }
 
 
@@ -766,7 +766,7 @@ POSITION GetInitialPosition (){
 ************************************************************************/
 
 int NumberOfOptions (){
-    return 19*19*2;
+	return 19*19*2;
 }
 
 
@@ -783,14 +783,14 @@ int NumberOfOptions (){
 ************************************************************************/
 
 int getOption (){
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    if (gStandardGame == TRUE){
-    	return width*100 + length;
-    } else {
-    	return (width*100 + length)*-1;
-    }
+	/* If you have implemented symmetries you should
+	   include the boolean variable gSymmetries in your
+	   hash */
+	if (gStandardGame == TRUE) {
+		return width*100 + length;
+	} else {
+		return (width*100 + length)* -1;
+	}
 }
 
 
@@ -806,15 +806,15 @@ int getOption (){
 ************************************************************************/
 
 void setOption (int option){
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    if (option < 0){
-    	gStandardGame = FALSE;
-    	option = option * -1;	
-    }
-    width = option / 100;
-    length = option % 100;
+	/* If you have implemented symmetries you should
+	   include the boolean variable gSymmetries in your
+	   hash */
+	if (option < 0) {
+		gStandardGame = FALSE;
+		option = option * -1;
+	}
+	width = option / 100;
+	length = option % 100;
 }
 
 
@@ -859,26 +859,26 @@ void countPieces (char* board, int* blacks, int* whites) {
 }
 
 /*
-The BOARD the player sees is as follows:
-3 + - + - + - +
-  |   |   |   |
-2 + - + - + - +
-  |   |   |   |
-1 + - + - + - +
-  a   b   c   d
+   The BOARD the player sees is as follows:
+   3 + - + - + - +
+ |   |   |   |
+   2 + - + - + - +
+ |   |   |   |
+   1 + - + - + - +
+   a   b   c   d
 
-length = 3, width = 4, boardsize = 12.
+   length = 3, width = 4, boardsize = 12.
 
-So on the array, it's like this:
-{ a3, b3, c3, d3, a2, b2, c2, d2, a1, b1, c1, d1 }
-  0   1   2   3   4   5   6   7   8   9   10  11
+   So on the array, it's like this:
+   { a3, b3, c3, d3, a2, b2, c2, d2, a1, b1, c1, d1 }
+   0   1   2   3   4   5   6   7   8   9   10  11
 
-For the game, letters are translated to numbers (a = 1, b = 2, etc.)
-So (1,1) is the bottom left, (4,3) is the top right.
+   For the game, letters are translated to numbers (a = 1, b = 2, etc.)
+   So (1,1) is the bottom left, (4,3) is the top right.
 
-toIndex takes in the coord and produces its index.
-So toIndex(1,1) = 8, toIndex(4,3) = 3.
-*/
+   toIndex takes in the coord and produces its index.
+   So toIndex(1,1) = 8, toIndex(4,3) = 3.
+ */
 
 //a precursor to toIndex = checks if x and y are legal coords
 int legalCoords (int x, int y) {
@@ -966,10 +966,10 @@ POSITION hash (char* board, int turn){
 }
 
 /* TIERS: Number of pieces left to place. Alternately, number of spaces
-on the board.
-That gives tiers solvable from 0 to boardsize.
-Pieces on board = boardsize-tier
-*/
+   on the board.
+   That gives tiers solvable from 0 to boardsize.
+   Pieces on board = boardsize-tier
+ */
 
 TIER BoardToTier(char* board) {
 	int blacks, whites;
@@ -1037,12 +1037,12 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

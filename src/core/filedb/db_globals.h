@@ -43,6 +43,6 @@
 
 #define GAMESDB_DEBUG 0
 
-#define GAMESDB_GEOMETRY_FILENAME "geometry.dat" 
+#define GAMESDB_GEOMETRY_FILENAME "geometry.dat"
 
 #endif /* GMCORE_DB_GLOBALS_H */

@@ -9,7 +9,7 @@
 **
 ** DATE:        08/25/91
 **
-** UPDATE HIST:  
+** UPDATE HIST:
 **
 **  9-04-91 1.0a1 : Added <crs> to PrintPosition and added call
 **                  to ValidMove() and PrintPossibleMoves()
@@ -43,41 +43,41 @@ POSITION kBadPosition = -1;
 
 POSITION gInitialPosition    = 0;
 
-POSITION gMinimalPosition = 0 ;
+POSITION gMinimalPosition = 0;
 
-STRING   kAuthorName          = "Dan Garcia";
-STRING   kGameName            = "1 TO N";
-BOOLEAN  kPartizan            = FALSE;
-BOOLEAN  kDebugMenu           = FALSE;
-BOOLEAN  kGameSpecificMenu    = TRUE;
-BOOLEAN  kTieIsPossible       = FALSE;
-BOOLEAN  kLoopy               = FALSE;
-BOOLEAN  kDebugDetermineValue = FALSE;
-void*	 gGameSpecificTclInit = NULL;
+STRING kAuthorName          = "Dan Garcia";
+STRING kGameName            = "1 TO N";
+BOOLEAN kPartizan            = FALSE;
+BOOLEAN kDebugMenu           = FALSE;
+BOOLEAN kGameSpecificMenu    = TRUE;
+BOOLEAN kTieIsPossible       = FALSE;
+BOOLEAN kLoopy               = FALSE;
+BOOLEAN kDebugDetermineValue = FALSE;
+void*    gGameSpecificTclInit = NULL;
 
-STRING   kHelpGraphicInterface = "";  /* empty since kSupportsGraphics == FALSE */
+STRING kHelpGraphicInterface = "";    /* empty since kSupportsGraphics == FALSE */
 
-STRING   kHelpTextInterface    =
-"On your turn, select the number 1 or 2 to raise the total sum. After\n\
+STRING kHelpTextInterface    =
+        "On your turn, select the number 1 or 2 to raise the total sum. After\n\
 selecting your move, the total is displayed. The play then alternates to the\n\
 second player, who also has the choice of raising the sum by 1 or 2 points.\n\
 The winneris the first person to raise the total sum to N. If at any point\n\
-you have made a mistake, type u to revert back to your previous position.";
+you have made a mistake, type u to revert back to your previous position."                                                                                                                                                                                                                                                                                                                              ;
 
-STRING   kHelpOnYourTurn =
-"Select the number 1 or 2 to raise the total sum. You can also revert to the\n\
-previous position by typing u.";
+STRING kHelpOnYourTurn =
+        "Select the number 1 or 2 to raise the total sum. You can also revert to the\n\
+previous position by typing u."                                                                                        ;
 
-STRING   kHelpStandardObjective =
-"To be the player to raise the total to N.";
+STRING kHelpStandardObjective =
+        "To be the player to raise the total to N.";
 
-STRING   kHelpReverseObjective =
-"To force the other player to raise the total to N.";
+STRING kHelpReverseObjective =
+        "To force the other player to raise the total to N.";
 
-STRING   kHelpTieOccursWhen = ""; /* empty since kTieIsPossible == FALSE */
+STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING   kHelpExample =
-"TOTAL                        :  0   \n\n\
+STRING kHelpExample =
+        "TOTAL                        :  0   \n\n\
      Dan's move [(u)ndo/1/2] : { 2 } \n\n\
 TOTAL                        :  2    \n\n\
 Computer's move              :  2    \n\n\
@@ -90,7 +90,7 @@ TOTAL                        :  7    \n\n\
 TOTAL                        :  9    \n\n\
 Computer's move              :  2    \n\n\
 TOTAL                        : 11    \n\n\
-Computer wins. Nice try, Dan.";
+Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ;
 
 STRING MoveToString(MOVE);
 
@@ -110,8 +110,8 @@ STRING gGameSpecificMenu = "1.\tSet the value of N\n  \t(the target ending sum.\
 
 void InitializeGame()
 {
-  gNumberOfPositions = N + 1;
-  gMoveToStringFunPtr = &MoveToString;
+	gNumberOfPositions = N + 1;
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -120,26 +120,27 @@ void InitializeGame()
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 
-void DebugMenu() { }
+void DebugMenu() {
+}
 
 void changeBoard()
 {
-  unsigned int boardSize;
-  printf("Enter the new N:  ");
-  boardSize = GetMyUInt();
-  N = boardSize;
-  gNumberOfPositions = N + 1;
+	unsigned int boardSize;
+	printf("Enter the new N:  ");
+	boardSize = GetMyUInt();
+	N = boardSize;
+	gNumberOfPositions = N + 1;
 }
 
 void changeMove()
 {
-  unsigned int turnSize;
-  printf("Enter the new turn size:  ");
-  turnSize = GetMyUInt();
-  gTurn = turnSize;
+	unsigned int turnSize;
+	printf("Enter the new turn size:  ");
+	turnSize = GetMyUInt();
+	gTurn = turnSize;
 }
 
 /************************************************************************
@@ -149,24 +150,24 @@ void changeMove()
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 ************************************************************************/
 
-void GameSpecificMenu() 
+void GameSpecificMenu()
 {
-  int selection;
-  printf("%s", gGameSpecificMenu);
-  selection = GetMyInt();
-  if(selection == 1)
-    changeBoard();
-  else if(selection == 2)
-    changeMove();
-  else if(selection == 3)
-    return;
-  else {
-    printf("\n\n\nInvalid Entry, please try again...");
-    GameSpecificMenu();
-  }
+	int selection;
+	printf("%s", gGameSpecificMenu);
+	selection = GetMyInt();
+	if(selection == 1)
+		changeBoard();
+	else if(selection == 2)
+		changeMove();
+	else if(selection == 3)
+		return;
+	else {
+		printf("\n\n\nInvalid Entry, please try again...");
+		GameSpecificMenu();
+	}
 }
 
 /************************************************************************
@@ -175,13 +176,13 @@ void GameSpecificMenu()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
-  /* No need to have anything here, we have no extra options */
+	/* No need to have anything here, we have no extra options */
 }
 
 /************************************************************************
@@ -189,7 +190,7 @@ int theOptions[];
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION thePosition : The old position
 **              MOVE     theMove     : The move to apply.
 **
@@ -198,10 +199,10 @@ int theOptions[];
 ************************************************************************/
 
 POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
-     MOVE theMove;
+POSITION thePosition;
+MOVE theMove;
 {
-  return(thePosition + theMove);
+	return(thePosition + theMove);
 }
 
 /************************************************************************
@@ -210,17 +211,17 @@ POSITION DoMove(thePosition, theMove)
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** INPUTS:      POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
 
 POSITION GetInitialPosition()
 {
-  POSITION initialPosition;
-  printf("Please input the starting value [0 - N] : ");
-  scanf(POSITION_FORMAT,&initialPosition);
-  return initialPosition;
+	POSITION initialPosition;
+	printf("Please input the starting value [0 - N] : ");
+	scanf(POSITION_FORMAT,&initialPosition);
+	return initialPosition;
 }
 
 /************************************************************************
@@ -228,17 +229,17 @@ POSITION GetInitialPosition()
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE   *computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE   *computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
 void PrintComputersMove(computersMove, computersName)
-     MOVE computersMove;
-     STRING computersName;
+MOVE computersMove;
+STRING computersName;
 {
-  printf("%8s's move              : %2d\n", computersName, computersMove);
+	printf("%8s's move              : %2d\n", computersName, computersMove);
 }
 
 /************************************************************************
@@ -253,20 +254,20 @@ void PrintComputersMove(computersMove, computersName)
 **              a row is a primitive lose, because the player who faces
 **              this board has just lost. I.e. the player before him
 **              created the board and won. Otherwise undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
 ************************************************************************/
 
-VALUE Primitive(pos) 
-     POSITION pos;
+VALUE Primitive(pos)
+POSITION pos;
 {
-  if(pos >= N) /* once they get to N, the game is over*/
-    return(gStandardGame ? lose : win); /* gStandardGame  lose win*/
-  else
-    return(undecided);
+	if(pos >= N) /* once they get to N, the game is over*/
+		return(gStandardGame ? lose : win); /* gStandardGame  lose win*/
+	else
+		return(undecided);
 }
 
 /************************************************************************
@@ -275,7 +276,7 @@ VALUE Primitive(pos)
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
@@ -287,12 +288,12 @@ VALUE Primitive(pos)
 ************************************************************************/
 
 void PrintPosition(position, playerName, usersTurn)
-     POSITION position;
-     STRING playerName;
-     BOOLEAN  usersTurn;
+POSITION position;
+STRING playerName;
+BOOLEAN usersTurn;
 {
-  printf("\nTOTAL                        : "POSITION_FORMAT" %s \n\n",position,
-	 GetPrediction(position,playerName,usersTurn));
+	printf("\nTOTAL                        : "POSITION_FORMAT " %s \n\n",position,
+	       GetPrediction(position,playerName,usersTurn));
 }
 
 /************************************************************************
@@ -302,10 +303,10 @@ void PrintPosition(position, playerName, usersTurn)
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
@@ -313,16 +314,16 @@ void PrintPosition(position, playerName, usersTurn)
 ************************************************************************/
 
 MOVELIST *GenerateMoves(position)
-     POSITION position;
+POSITION position;
 {
-  unsigned int count = 1;
-  MOVELIST *head = NULL;
-  MOVELIST *CreateMovelistNode();
-  while((count <= gTurn) && (count + position <= N)) {
-    head = CreateMovelistNode(count, head);
-    count++;
-  }
-  return(head);
+	unsigned int count = 1;
+	MOVELIST *head = NULL;
+	MOVELIST *CreateMovelistNode();
+	while((count <= gTurn) && (count + position <= N)) {
+		head = CreateMovelistNode(count, head);
+		count++;
+	}
+	return(head);
 }
 
 /************************************************************************
@@ -332,9 +333,9 @@ MOVELIST *GenerateMoves(position)
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -345,25 +346,25 @@ MOVELIST *GenerateMoves(position)
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-     POSITION thePosition;
-     MOVE *theMove;
-     STRING playerName;
+POSITION thePosition;
+MOVE *theMove;
+STRING playerName;
 {
-  USERINPUT ret, HandleDefaultTextInput();
-  BOOLEAN ValidMove();
-  char input[2];
+	USERINPUT ret, HandleDefaultTextInput();
+	BOOLEAN ValidMove();
+	char input[2];
 
-  input[0] = '3';
+	input[0] = '3';
 
-  do {
-    printf("%8s's move [(u)ndo/1/2] :  ", playerName);
+	do {
+		printf("%8s's move [(u)ndo/1/2] :  ", playerName);
 
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if(ret != Continue)
-      return(ret);
-  }
-  while (TRUE);
-  return(Continue); /* this is never reached, but lint is now happy */
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -376,7 +377,7 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE iff the input is a valid text input.
@@ -384,10 +385,10 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 ************************************************************************/
 
 BOOLEAN ValidTextInput(input)
-     STRING input;
+STRING input;
 {
-  unsigned int theInput = atoi(input);
-  return(theInput <= gTurn && theInput >= 1);
+	unsigned int theInput = atoi(input);
+	return(theInput <= gTurn && theInput >= 1);
 }
 
 /************************************************************************
@@ -395,7 +396,7 @@ BOOLEAN ValidTextInput(input)
 ** NAME:        ConvertTextInputToMove
 **
 ** DESCRIPTION: Convert the string input to the internal move representation.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -403,9 +404,9 @@ BOOLEAN ValidTextInput(input)
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(input)
-     STRING input;
+STRING input;
 {
-  return((MOVE) atoi(input)); /* user input is 1-9, our rep. is 0-8 */
+	return((MOVE) atoi(input)); /* user input is 1-9, our rep. is 0-8 */
 }
 
 /************************************************************************
@@ -413,14 +414,14 @@ MOVE ConvertTextInputToMove(input)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
 void PrintMove(MOVE theMove)
 {
-  printf("%d", theMove);
+	printf("%d", theMove);
 }
 
 /************************************************************************
@@ -428,61 +429,61 @@ void PrintMove(MOVE theMove)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING move = (STRING) SafeMalloc(3);
-  sprintf( move, "%d", theMove );
-  return move;
+	STRING move = (STRING) SafeMalloc(3);
+	sprintf( move, "%d", theMove );
+	return move;
 }
 
 
 
-STRING kDBName = "1TON" ;
+STRING kDBName = "1TON";
 
 int NumberOfOptions()
 {
-  return (MAXN * MAXM);
+	return (MAXN * MAXM);
 }
 
 int getOption()
 {
-  if(gStandardGame)
-    return ((N * MAXM + gTurn - 1) * 2);
-  else
-    return ((N * MAXM + gTurn - 1) * 2 + 1);
+	if(gStandardGame)
+		return ((N * MAXM + gTurn - 1) * 2);
+	else
+		return ((N * MAXM + gTurn - 1) * 2 + 1);
 }
 
 void setOption(int option)
 {
-  int set;
-  set = option % 2;
-  option /= 2;
-  if(!set) {
-    gStandardGame = TRUE;
-    gTurn = ((option % MAXM) + 1);
-    N = (option / MAXM);
-  }
-  else {
-    gStandardGame = FALSE;
-    gTurn = ((option % MAXM) + 1);
-    N = (option / MAXM);
-  }
+	int set;
+	set = option % 2;
+	option /= 2;
+	if(!set) {
+		gStandardGame = TRUE;
+		gTurn = ((option % MAXM) + 1);
+		N = (option / MAXM);
+	}
+	else {
+		gStandardGame = FALSE;
+		gTurn = ((option % MAXM) + 1);
+		N = (option / MAXM);
+	}
 }
 
 
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

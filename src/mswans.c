@@ -23,7 +23,7 @@
 #include "hash.h"
 
 /* With 0-4 dragons and 0-12 swans, we get the incredible
- * 14593151 * 64 => 933,961,664 positions!!! (too many) */
+* 14593151 * 64 => 933,961,664 positions!!! (too many) */
 
 /* We're going to try to hardcode 1 dragon only, yielding 522,352 positions
  * times 64 ways of changing the extra information (turn, phase, swans-left)
@@ -34,36 +34,36 @@ POSITION gNumberOfPositions  = 33430528;
 /* POSITION gInitialPosition    = (2285 << 6) + 12;  */  /* for full 4-dragon bd */
 POSITION gInitialPosition;
 POSITION kBadPosition        = -1;
-STRING   kAuthorName         = "Anh Thai and Sandra Tang";
-STRING   kGameName           = "Dragons & Swans";
-BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = TRUE;
-BOOLEAN  kGameSpecificMenu   = TRUE;
-BOOLEAN  kTieIsPossible      = FALSE;
-BOOLEAN  kLoopy               = TRUE;
-BOOLEAN  kDebugDetermineValue = FALSE;
-void*	 gGameSpecificTclInit = NULL;
+STRING kAuthorName         = "Anh Thai and Sandra Tang";
+STRING kGameName           = "Dragons & Swans";
+BOOLEAN kPartizan           = TRUE;
+BOOLEAN kDebugMenu          = TRUE;
+BOOLEAN kGameSpecificMenu   = TRUE;
+BOOLEAN kTieIsPossible      = FALSE;
+BOOLEAN kLoopy               = TRUE;
+BOOLEAN kDebugDetermineValue = FALSE;
+void*    gGameSpecificTclInit = NULL;
 
-STRING   kHelpGraphicInterface =
-"";
+STRING kHelpGraphicInterface =
+        "";
 
-STRING   kHelpTextInterface    =
-"On the dragon's turn, use the LEGEND to determine which numbers to choose (between 1 and 16, with 1 at the upper left and 16 at the lower right) to correspond to the location of your dragon and the empty orthogonally-adjacent position you wish to move that dragon to. On the swan's turn, if the swan still has pieces remaining from the initial pile, choose a number between 1 and 16 to correspond to the location you want to place your swan. If the swan has no remaining swans from the inital pile, choose numbers between 1 and 16 to correspond to the location of your swan and the emtpy orthogonally-adjacent position you wish to move that swan to.";
+STRING kHelpTextInterface    =
+        "On the dragon's turn, use the LEGEND to determine which numbers to choose (between 1 and 16, with 1 at the upper left and 16 at the lower right) to correspond to the location of your dragon and the empty orthogonally-adjacent position you wish to move that dragon to. On the swan's turn, if the swan still has pieces remaining from the initial pile, choose a number between 1 and 16 to correspond to the location you want to place your swan. If the swan has no remaining swans from the inital pile, choose numbers between 1 and 16 to correspond to the location of your swan and the emtpy orthogonally-adjacent position you wish to move that swan to.";
 
-STRING   kHelpOnYourTurn =
-"If it is the swan's turn and there are swans remaining from the intial pile place a swan on one of the empty board positions. If it is the swan's turn and there are no swans remaining in the initial pile, or it is the dragon's turn, move one of your pieces to an orthogonally-adjacent empty board position.";
+STRING kHelpOnYourTurn =
+        "If it is the swan's turn and there are swans remaining from the intial pile place a swan on one of the empty board positions. If it is the swan's turn and there are no swans remaining in the initial pile, or it is the dragon's turn, move one of your pieces to an orthogonally-adjacent empty board position.";
 
-STRING   kHelpStandardObjective =
-"Swans will try to TRAP all the dragons and dragons will try to EAT all the swans";
+STRING kHelpStandardObjective =
+        "Swans will try to TRAP all the dragons and dragons will try to EAT all the swans";
 
-STRING   kHelpReverseObjective =
-"Dragons will try to be TRAPPED and swans will try to be EATEN.";
+STRING kHelpReverseObjective =
+        "Dragons will try to be TRAPPED and swans will try to be EATEN.";
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"";
+STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+                            "";
 
-STRING   kHelpExample =
-"         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+STRING kHelpExample =
+        "         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
 LEGEND:  ( 5  6  7  8 )  TOTAL:   : - - - -\n\
          ( 9 10 11 12 )           : - - - -\n\
          (13 14 15 16 )           : X - - X\n\n\
@@ -194,7 +194,7 @@ You have 1 swans left.\n\
 LEGEND:  ( 5  6  7  8 )  TOTAL:   : O O O X\n\
          ( 9 10 11 12 )           : O O O X\n\
          (13 14 15 16 )           : O X O O\n\n\n\
-Excellent! You won!";
+Excellent! You won!"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
 
 
 /*************************************************************************
@@ -236,22 +236,22 @@ STRING MoveToString( MOVE );
 
 void InitializeGame()
 {
-    int numSwans = 12;
-    int numDragons = gNumDragons;
+	int numSwans = 12;
+	int numDragons = gNumDragons;
 
-    int pieces_array[] = { 'o', 0, numSwans, 'x', numDragons, numDragons, 'b', 0, BOARDSIZE, -1};
-    gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL, 0)<<1<<4;
-    char initialBoard[] = {'x', 'b', 'b', 'b',
-			   'b', 'b', 'b', 'b',
-			   'b', 'b', 'b', 'b',
-			   'b', 'b', 'b', 'b'};
-    if (numDragons>1) initialBoard[15] = 'x';
-    if (numDragons>2) initialBoard[3] = 'x';
-    if (numDragons>3) initialBoard[12] = 'x';
+	int pieces_array[] = { 'o', 0, numSwans, 'x', numDragons, numDragons, 'b', 0, BOARDSIZE, -1};
+	gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL, 0)<<1<<4;
+	char initialBoard[] = {'x', 'b', 'b', 'b',
+		               'b', 'b', 'b', 'b',
+		               'b', 'b', 'b', 'b',
+		               'b', 'b', 'b', 'b'};
+	if (numDragons>1) initialBoard[15] = 'x';
+	if (numDragons>2) initialBoard[3] = 'x';
+	if (numDragons>3) initialBoard[12] = 'x';
 
-    gInitialPosition = generic_hash_hash2(initialBoard, 'o', 1, numSwans);
+	gInitialPosition = generic_hash_hash2(initialBoard, 'o', 1, numSwans);
 
-    gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -283,54 +283,54 @@ void DebugMenu()
 
 void GameSpecificMenu()
 {
-  do {
-    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+	do {
+		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
 
-    printf("\tCurrent Initial Position:\n");
-    PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
+		printf("\tCurrent Initial Position:\n");
+		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
 
-    printf("\tI)\tChoose the (I)nitial position\n");
-    printf("\tT)\t(T)rapping opponent toggle from %s to %s\n",
-	   gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
-	   !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
-    printf("\tD)\tChange the number of (D)ragons (Currently %d)\n",
-	   gNumDragons);
+		printf("\tI)\tChoose the (I)nitial position\n");
+		printf("\tT)\t(T)rapping opponent toggle from %s to %s\n",
+		       gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
+		       !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
+		printf("\tD)\tChange the number of (D)ragons (Currently %d)\n",
+		       gNumDragons);
 
-    printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-    printf("\n\nSelect an option: ");
+		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+		printf("\n\nSelect an option: ");
 
-    switch(GetMyChar()) {
-    case 'Q': case 'q':
-      ExitStageRight();
-    case 'H': case 'h':
-      HelpMenus();
-      break;
-    case 'I': case 'i' :
-      gInitialPosition = GetInitialPosition();
-      break;
-    case 'T': case 't':
-      gToTrapIsToWin = !gToTrapIsToWin;
-      break;
-    case 'D': case 'd':
-      printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS);
-      /*scanf("%d", &gNumDragons);*/
-	gNumDragons = GetMyInt();
-      while (gNumDragons > MAX_DRAGONS || gNumDragons < MIN_DRAGONS) {
-	printf("Invalid entry. Please try again\n");
-	printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS);
-	/*scanf("%d", &gNumDragons);*/
-	gNumDragons = GetMyInt();
-      }
-      InitializeGame();
-      break;
-    case 'b': case 'B':
-      return;
-    default:
-      printf("\nSorry, I don't know that option. Try another.\n");
-      HitAnyKeyToContinue();
-      break;
-    }
-  } while(TRUE);
+		switch(GetMyChar()) {
+		case 'Q': case 'q':
+			ExitStageRight();
+		case 'H': case 'h':
+			HelpMenus();
+			break;
+		case 'I': case 'i':
+			gInitialPosition = GetInitialPosition();
+			break;
+		case 'T': case 't':
+			gToTrapIsToWin = !gToTrapIsToWin;
+			break;
+		case 'D': case 'd':
+			printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS);
+			/*scanf("%d", &gNumDragons);*/
+			gNumDragons = GetMyInt();
+			while (gNumDragons > MAX_DRAGONS || gNumDragons < MIN_DRAGONS) {
+				printf("Invalid entry. Please try again\n");
+				printf("How many dragons [%d-%d]? ", MIN_DRAGONS, MAX_DRAGONS);
+				/*scanf("%d", &gNumDragons);*/
+				gNumDragons = GetMyInt();
+			}
+			InitializeGame();
+			break;
+		case 'b': case 'B':
+			return;
+		default:
+			printf("\nSorry, I don't know that option. Try another.\n");
+			HitAnyKeyToContinue();
+			break;
+		}
+	} while(TRUE);
 }
 
 /************************************************************************
@@ -345,7 +345,7 @@ void GameSpecificMenu()
 void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
-  gToTrapIsToWin = (BOOLEAN) theOptions[0];
+	gToTrapIsToWin = (BOOLEAN) theOptions[0];
 }
 
 /************************************************************************
@@ -364,38 +364,38 @@ int theOptions[];
 ************************************************************************/
 
 POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
-     MOVE theMove;
+POSITION thePosition;
+MOVE theMove;
 {
-  SLOT fromSlot, toSlot;
-  char whosTurn;
-  int phase, numSwans;
+	SLOT fromSlot, toSlot;
+	char whosTurn;
+	int phase, numSwans;
 
-  generic_hash_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
-  theMove = theMove >> 1;  /* shift phase bit off of theMove */
-  if ((whosTurn == 'o') && (numSwans != 0)) {  /* placing swans on the board */
-      numSwans--;
-      if (numSwans == 0)
-	  phase = 2;
-      gBoard[theMove] = 'o';
-      return((POSITION) generic_hash_hash2(gBoard, 'x', phase, numSwans));
-  }
-  else if ((whosTurn == 'x') || (numSwans == 0)) {  /* sliding or jumping pieces */
-      MoveToSlots(theMove, &fromSlot, &toSlot);
-      if ((fromSlot-toSlot) == 2)
-	  gBoard[(fromSlot-1)] = 'b';
-      else if ((fromSlot-toSlot) == -2)
-	  gBoard[(fromSlot+1)] = 'b';
-      else if ((fromSlot-toSlot) == 8)
-	  gBoard[(fromSlot-4)] = 'b';
-      else if ((fromSlot-toSlot) == -8)
-	  gBoard[(fromSlot+4)] = 'b';
-      gBoard[toSlot] = gBoard[fromSlot];
-      gBoard[fromSlot]='b';
-      return((POSITION) generic_hash_hash2(gBoard,(whosTurn == 'o' ? 'x' : 'o'),phase, numSwans));
-  }
-  else
-      return(Continue);
+	generic_hash_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
+	theMove = theMove >> 1; /* shift phase bit off of theMove */
+	if ((whosTurn == 'o') && (numSwans != 0)) { /* placing swans on the board */
+		numSwans--;
+		if (numSwans == 0)
+			phase = 2;
+		gBoard[theMove] = 'o';
+		return((POSITION) generic_hash_hash2(gBoard, 'x', phase, numSwans));
+	}
+	else if ((whosTurn == 'x') || (numSwans == 0)) { /* sliding or jumping pieces */
+		MoveToSlots(theMove, &fromSlot, &toSlot);
+		if ((fromSlot-toSlot) == 2)
+			gBoard[(fromSlot-1)] = 'b';
+		else if ((fromSlot-toSlot) == -2)
+			gBoard[(fromSlot+1)] = 'b';
+		else if ((fromSlot-toSlot) == 8)
+			gBoard[(fromSlot-4)] = 'b';
+		else if ((fromSlot-toSlot) == -8)
+			gBoard[(fromSlot+4)] = 'b';
+		gBoard[toSlot] = gBoard[fromSlot];
+		gBoard[fromSlot]='b';
+		return((POSITION) generic_hash_hash2(gBoard,(whosTurn == 'o' ? 'x' : 'o'),phase, numSwans));
+	}
+	else
+		return(Continue);
 
 }
 
@@ -412,58 +412,58 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-  char whosTurn;
-  signed char c;
-  int numX, numO;
-  int i, phase, numSwans;
+	char whosTurn;
+	signed char c;
+	int numX, numO;
+	int i, phase, numSwans;
 
 
-  printf("\n\n\t----- Get Initial Position -----\n");
-  printf("\n\tPlease input the position to begin with.\n");
-  printf("\tNote that it should be in the following format:\n\n");
-  printf("o - - - \no - - -            <----- EXAMPLE \n- - x x\n- - x x\n\n");
+	printf("\n\n\t----- Get Initial Position -----\n");
+	printf("\n\tPlease input the position to begin with.\n");
+	printf("\tNote that it should be in the following format:\n\n");
+	printf("o - - - \no - - -            <----- EXAMPLE \n- - x x\n- - x x\n\n");
 
-  getchar();
-  do {
-    numX = numO = 0;
-    i = 0;
-    while(i < BOARDSIZE && (c = getchar()) != EOF) {
-      if(c == 'x' || c == 'X') {
-	numX++;
-	gBoard[i++] = 'x';
-      }
-      else if(c == 'o' || c == 'O' || c == '0') {
-	numO++;
-	gBoard[i++] = 'o';
-      }
-      else if(c == '-')
-	gBoard[i++] = 'b';
-      else
-	;   /* do nothing */
-    }
+	getchar();
+	do {
+		numX = numO = 0;
+		i = 0;
+		while(i < BOARDSIZE && (c = getchar()) != EOF) {
+			if(c == 'x' || c == 'X') {
+				numX++;
+				gBoard[i++] = 'x';
+			}
+			else if(c == 'o' || c == 'O' || c == '0') {
+				numO++;
+				gBoard[i++] = 'o';
+			}
+			else if(c == '-')
+				gBoard[i++] = 'b';
+			else
+				; /* do nothing */
+		}
 
-    getchar();
-    printf("\nNow, whose turn is it? [O/X] : ");
-    /*scanf("%c",&c);*/
-	c = GetMyChar();
-    if(c == 'x' || c == 'X')
-      whosTurn = 'x';
-    else
-      whosTurn = 'o';
-    getchar();
-    printf("\nHow many swans do you want to start with? [0-%d] : ", 12-numO);
-    /*scanf("%d", &numSwans);*/
-	numSwans = GetMyInt();
+		getchar();
+		printf("\nNow, whose turn is it? [O/X] : ");
+		/*scanf("%c",&c);*/
+		c = GetMyChar();
+		if(c == 'x' || c == 'X')
+			whosTurn = 'x';
+		else
+			whosTurn = 'o';
+		getchar();
+		printf("\nHow many swans do you want to start with? [0-%d] : ", 12-numO);
+		/*scanf("%d", &numSwans);*/
+		numSwans = GetMyInt();
 
-    if (numSwans < 0 || numSwans+numO > 12 || numX < MIN_DRAGONS || numX > MAX_DRAGONS)
-      printf("\n\nInvalid board. Please try again\n\n");
-  } while (numSwans < 0 || numSwans+numO > 12 || numX < MIN_DRAGONS || numX > MAX_DRAGONS);
+		if (numSwans < 0 || numSwans+numO > 12 || numX < MIN_DRAGONS || numX > MAX_DRAGONS)
+			printf("\n\nInvalid board. Please try again\n\n");
+	} while (numSwans < 0 || numSwans+numO > 12 || numX < MIN_DRAGONS || numX > MAX_DRAGONS);
 
-  if(numSwans != 0)
-      phase = 1;
-  else
-      phase = 2;
-  return((POSITION) generic_hash_hash2(gBoard, whosTurn, phase, numSwans));
+	if(numSwans != 0)
+		phase = 1;
+	else
+		phase = 2;
+	return((POSITION) generic_hash_hash2(gBoard, whosTurn, phase, numSwans));
 }
 
 /************************************************************************
@@ -478,20 +478,20 @@ POSITION GetInitialPosition()
 ************************************************************************/
 
 void PrintComputersMove(computersMove,computersName)
-     MOVE computersMove;
-     STRING computersName;
+MOVE computersMove;
+STRING computersName;
 {
-  SLOT fromSlot,toSlot;
-  int phase;
-  phase = computersMove & 1;  /* phase 1 = 0, phase 2 = 1 */
-  computersMove = computersMove >> 1;
-  if(phase == 0)
-      printf("%8s's move              : %2d\n", computersName, computersMove+1);
-  else {
-      MoveToSlots(computersMove,&fromSlot,&toSlot);
-      printf("%8s's move              : %d %d\n", computersName,
-	     fromSlot+1,toSlot+1);
-  }
+	SLOT fromSlot,toSlot;
+	int phase;
+	phase = computersMove & 1; /* phase 1 = 0, phase 2 = 1 */
+	computersMove = computersMove >> 1;
+	if(phase == 0)
+		printf("%8s's move              : %2d\n", computersName, computersMove+1);
+	else {
+		MoveToSlots(computersMove,&fromSlot,&toSlot);
+		printf("%8s's move              : %d %d\n", computersName,
+		       fromSlot+1,toSlot+1);
+	}
 }
 
 /************************************************************************
@@ -518,60 +518,60 @@ void PrintComputersMove(computersMove,computersName)
 ************************************************************************/
 
 VALUE Primitive(position)
-     POSITION position;
+POSITION position;
 {
-  BOOLEAN AllFilledIn();
-  char OnlyPlayerLeft();
-  char whosTurn;
-  char theBoard[16];
-  int phase, numSwans;
+	BOOLEAN AllFilledIn();
+	char OnlyPlayerLeft();
+	char whosTurn;
+	char theBoard[16];
+	int phase, numSwans;
 
-  generic_hash_unhash2(position, theBoard, &whosTurn, &phase, &numSwans);
+	generic_hash_unhash2(position, theBoard, &whosTurn, &phase, &numSwans);
 
-  if ((OnlyPlayerLeft(theBoard) == 'x') && (numSwans == 0) && (whosTurn == 'x'))
-    return(gStandardGame ? win : lose);  /* cause you're the only one left */
+	if ((OnlyPlayerLeft(theBoard) == 'x') && (numSwans == 0) && (whosTurn == 'x'))
+		return(gStandardGame ? win : lose); /* cause you're the only one left */
 
-  if(AllFilledIn(theBoard))
-    return(lose);
-  else if(CantMove(position) && (whosTurn == 'x'))
-	  return(gToTrapIsToWin? lose :win);
-  else if(CantMove(position) && (numSwans == 0)) /* the other player just won */
-      return(gToTrapIsToWin ? lose : win);       /* !gStandardGame */
-  else
-    return(undecided);                    /* no one has won yet */
+	if(AllFilledIn(theBoard))
+		return(lose);
+	else if(CantMove(position) && (whosTurn == 'x'))
+		return(gToTrapIsToWin ? lose : win);
+	else if(CantMove(position) && (numSwans == 0)) /* the other player just won */
+		return(gToTrapIsToWin ? lose : win); /* !gStandardGame */
+	else
+		return(undecided);        /* no one has won yet */
 }
 
 BOOLEAN CantMove(position)
-     POSITION position;
+POSITION position;
 {
-  MOVELIST *ptr, *GenerateMoves();
-  BOOLEAN cantMove;
-  ptr = GenerateMoves(position);
-  cantMove = (ptr == NULL);
-  FreeMoveList(ptr);
-  return(cantMove);
+	MOVELIST *ptr, *GenerateMoves();
+	BOOLEAN cantMove;
+	ptr = GenerateMoves(position);
+	cantMove = (ptr == NULL);
+	FreeMoveList(ptr);
+	return(cantMove);
 }
 
 
 char OnlyPlayerLeft(theBoard)
-     char theBoard[16];
+char theBoard[16];
 {
-  int i;
-  BOOLEAN sawO = FALSE, sawX = FALSE;
-  for(i = 0 ; i < BOARDSIZE ; i ++) {
-    sawO |= (theBoard[i] == 'o');
-    sawX |= (theBoard[i] == 'x');
-  }
-  if(sawX && !sawO)
-    return('x');
-  else if (sawO && !sawX)
-    return('o');
-  else if (sawO && sawX)
-    return('b');
-  else {
-    printf("Error in OnlyPlayerLeft! the board is blank!!!\n");
-    return('b');
-  }
+	int i;
+	BOOLEAN sawO = FALSE, sawX = FALSE;
+	for(i = 0; i < BOARDSIZE; i++) {
+		sawO |= (theBoard[i] == 'o');
+		sawX |= (theBoard[i] == 'x');
+	}
+	if(sawX && !sawO)
+		return('x');
+	else if (sawO && !sawX)
+		return('o');
+	else if (sawO && sawX)
+		return('b');
+	else {
+		printf("Error in OnlyPlayerLeft! the board is blank!!!\n");
+		return('b');
+	}
 }
 
 /************************************************************************
@@ -592,48 +592,48 @@ char OnlyPlayerLeft(theBoard)
 ************************************************************************/
 
 void PrintPosition(position,playerName,usersTurn)
-     POSITION position;
-     STRING playerName;
-     BOOLEAN  usersTurn;
+POSITION position;
+STRING playerName;
+BOOLEAN usersTurn;
 {
-  int i;
-  char whosTurn;
-  int phase, numSwans;
-  char theBoard[16];
+	int i;
+	char whosTurn;
+	int phase, numSwans;
+	char theBoard[16];
 
-  generic_hash_unhash2(position,theBoard,&whosTurn, &phase, &numSwans);
+	generic_hash_unhash2(position,theBoard,&whosTurn, &phase, &numSwans);
 
-  printf("\n         ( 1  2  3  4 )           : ");
-  for(i=0; i<4; i++) {
-      if(theBoard[i] == 'b')
-	  printf("- ");
-      else
-	  printf("%c ", theBoard[i]);
-  }
-  printf("    PLAYER %c's turn\n", whosTurn);
-  printf("LEGEND:  ( 5  6  7  8 )  TOTAL:   : ");
-  for(i=4; i<8; i++){
-      if(theBoard[i] == 'b')
-	  printf("- ");
-      else
-	  printf("%c ", theBoard[i]);
-  }
-  printf("\n         ( 9 10 11 12 )           : ");
-  for(i=8; i<12; i++){
-      if(theBoard[i] == 'b')
-	  printf("- ");
-      else
-	  printf("%c ", theBoard[i]);
-  }
-  printf("\n         (13 14 15 16 )           : ");
-  for(i=12; i<16; i++){
-      if(theBoard[i] == 'b')
-	  printf("- ");
-      else
-	  printf("%c ", theBoard[i]);
-  }
-  printf("%s\n", GetPrediction(position,playerName,usersTurn));
-  printf("                              Phase: %d Swans Remaining: %d\n\n", phase, numSwans);
+	printf("\n         ( 1  2  3  4 )           : ");
+	for(i=0; i<4; i++) {
+		if(theBoard[i] == 'b')
+			printf("- ");
+		else
+			printf("%c ", theBoard[i]);
+	}
+	printf("    PLAYER %c's turn\n", whosTurn);
+	printf("LEGEND:  ( 5  6  7  8 )  TOTAL:   : ");
+	for(i=4; i<8; i++) {
+		if(theBoard[i] == 'b')
+			printf("- ");
+		else
+			printf("%c ", theBoard[i]);
+	}
+	printf("\n         ( 9 10 11 12 )           : ");
+	for(i=8; i<12; i++) {
+		if(theBoard[i] == 'b')
+			printf("- ");
+		else
+			printf("%c ", theBoard[i]);
+	}
+	printf("\n         (13 14 15 16 )           : ");
+	for(i=12; i<16; i++) {
+		if(theBoard[i] == 'b')
+			printf("- ");
+		else
+			printf("%c ", theBoard[i]);
+	}
+	printf("%s\n", GetPrediction(position,playerName,usersTurn));
+	printf("                              Phase: %d Swans Remaining: %d\n\n", phase, numSwans);
 }
 
 /************************************************************************
@@ -656,107 +656,107 @@ void PrintPosition(position,playerName,usersTurn)
 ************************************************************************/
 
 MOVELIST *GenerateMoves(position)
-     POSITION position;
+POSITION position;
 {
-  MOVELIST *head = NULL;
-  MOVELIST *CreateMovelistNode();
-  MOVE tempMove;
-  int i,j,k, l, phase, numSwans;
-  char theBoard[16];
-  char whosTurn;
-  generic_hash_unhash2(position, theBoard, &whosTurn, &phase, &numSwans);
-  if((whosTurn == 'o') && (numSwans != 0)) {
-      for(k = 0 ; k < BOARDSIZE ; k++) {
-	  if(theBoard[k] == 'b') {
-	      /* shift move over and add the phase bit,
-	         bit is off for phase 1, on for phase 2 */
-	      l = k << 1;
-	      head = CreateMovelistNode(l,head);
-	  }
-      }
-  }
-  else{
-      for(i = 0 ; i < BOARDSIZE ; i++) {     /* enumerate over all FROM slots */
-	  for(j = 0 ; j < 8 ; j++) {           /* enumerate over all directions */
-	      if(OkMove(theBoard,whosTurn,(SLOT)i,j)) {
-		  tempMove = SlotsToMove((SLOT)i, GetToSlot(theBoard, i, j, whosTurn));
-		  /* shift tempMove over and add the phase bit */
-		  tempMove = tempMove << 1;
-		  tempMove++; /* phase bit is 1 when phase is 2 */
-		  head = CreateMovelistNode(tempMove,head);
-	      }
-	  }
-      }
-  }
-  return(head);
+	MOVELIST *head = NULL;
+	MOVELIST *CreateMovelistNode();
+	MOVE tempMove;
+	int i,j,k, l, phase, numSwans;
+	char theBoard[16];
+	char whosTurn;
+	generic_hash_unhash2(position, theBoard, &whosTurn, &phase, &numSwans);
+	if((whosTurn == 'o') && (numSwans != 0)) {
+		for(k = 0; k < BOARDSIZE; k++) {
+			if(theBoard[k] == 'b') {
+				/* shift move over and add the phase bit,
+				   bit is off for phase 1, on for phase 2 */
+				l = k << 1;
+				head = CreateMovelistNode(l,head);
+			}
+		}
+	}
+	else{
+		for(i = 0; i < BOARDSIZE; i++) { /* enumerate over all FROM slots */
+			for(j = 0; j < 8; j++) { /* enumerate over all directions */
+				if(OkMove(theBoard,whosTurn,(SLOT)i,j)) {
+					tempMove = SlotsToMove((SLOT)i, GetToSlot(theBoard, i, j, whosTurn));
+					/* shift tempMove over and add the phase bit */
+					tempMove = tempMove << 1;
+					tempMove++; /* phase bit is 1 when phase is 2 */
+					head = CreateMovelistNode(tempMove,head);
+				}
+			}
+		}
+	}
+	return(head);
 }
 
 BOOLEAN OkMove(theBoard,whosTurn,fromSlot,direction)
-     char theBoard[16];
-     char whosTurn;
-     SLOT fromSlot;
-     int direction;
+char theBoard[16];
+char whosTurn;
+SLOT fromSlot;
+int direction;
 {
-  SLOT toSlot;
-  toSlot = GetToSlot(theBoard,fromSlot,direction,whosTurn);
-  return((theBoard[fromSlot] == whosTurn) &&
-	 (toSlot != BADSLOT) &&
-	 (theBoard[toSlot] == 'b'));
+	SLOT toSlot;
+	toSlot = GetToSlot(theBoard,fromSlot,direction,whosTurn);
+	return((theBoard[fromSlot] == whosTurn) &&
+	       (toSlot != BADSLOT) &&
+	       (theBoard[toSlot] == 'b'));
 }
 
 SLOT GetToSlot(theBoard,fromSlot,direction,whosTurn)
-     char theBoard[16];
-     SLOT fromSlot;
-     int direction;
-     char whosTurn;
+char theBoard[16];
+SLOT fromSlot;
+int direction;
+char whosTurn;
 {
-    /* direction:
-           5
+	/* direction:
+	       5
 
-           1                   0
+	       1                   0
 
-    4  0  'x'  2  6        3  '0'  1
+	   4  0  'x'  2  6        3  '0'  1
 
-           3                   2
+	       3                   2
 
-           7
-    */
-  if (((whosTurn == 'x') &&
-       ((direction == 2 && ((fromSlot % 4) == 3)) || (direction == 1 && (fromSlot < 4)) ||
-	(direction == 3 && (fromSlot > 11)) || (direction == 4 && (((fromSlot % 4) <= 1) ||
-	(theBoard[(fromSlot-1)] == 'b') || (theBoard[(fromSlot-1)] == 'x'))) ||
-	(direction == 5 && ((fromSlot < 8) || (theBoard[(fromSlot - 4)] == 'b') ||
-	(theBoard[(fromSlot-4)] == 'x'))) || (direction == 6 && (((fromSlot % 4) >= 2) ||
-	(theBoard[(fromSlot+1)] == 'b') || (theBoard[(fromSlot+1)] == 'x'))) ||
-	(direction == 7 && ((fromSlot > 7) || (theBoard[(fromSlot + 4)] == 'b') ||
-	(theBoard[(fromSlot+4)] == 'x'))) || (direction == 0 && ((fromSlot % 4) == 0)))) ||
-      ((whosTurn == 'o') && ((direction == 3 && (fromSlot > 11)) ||
-          (direction == 4) || (direction == 5) || (direction == 6) || (direction == 7) ||
-          (direction == 2 && ((fromSlot % 4) == 3)) || (direction == 0 && ((fromSlot % 4) == 0)) ||
-			     (direction == 1 && (fromSlot < 4)))))
-      return(BADSLOT);
+	       7
+	 */
+	if (((whosTurn == 'x') &&
+	     ((direction == 2 && ((fromSlot % 4) == 3)) || (direction == 1 && (fromSlot < 4)) ||
+	      (direction == 3 && (fromSlot > 11)) || (direction == 4 && (((fromSlot % 4) <= 1) ||
+	                                                                 (theBoard[(fromSlot-1)] == 'b') || (theBoard[(fromSlot-1)] == 'x'))) ||
+	      (direction == 5 && ((fromSlot < 8) || (theBoard[(fromSlot - 4)] == 'b') ||
+	                          (theBoard[(fromSlot-4)] == 'x'))) || (direction == 6 && (((fromSlot % 4) >= 2) ||
+	                                                                                   (theBoard[(fromSlot+1)] == 'b') || (theBoard[(fromSlot+1)] == 'x'))) ||
+	      (direction == 7 && ((fromSlot > 7) || (theBoard[(fromSlot + 4)] == 'b') ||
+	                          (theBoard[(fromSlot+4)] == 'x'))) || (direction == 0 && ((fromSlot % 4) == 0)))) ||
+	    ((whosTurn == 'o') && ((direction == 3 && (fromSlot > 11)) ||
+	                           (direction == 4) || (direction == 5) || (direction == 6) || (direction == 7) ||
+	                           (direction == 2 && ((fromSlot % 4) == 3)) || (direction == 0 && ((fromSlot % 4) == 0)) ||
+	                           (direction == 1 && (fromSlot < 4)))))
+		return(BADSLOT);
 
-  else if (whosTurn == 'x' && direction == 4)	 /* far west */
-	  return (fromSlot - 2);
-  else if (whosTurn == 'x' && direction == 5)	/* far north */
-	  return (fromSlot - 8);
-  else if (whosTurn == 'x' && direction == 6)	/* far east */
-	  return (fromSlot + 2);
-  else if (whosTurn == 'x' && direction == 7)	/* far south */
-	  return (fromSlot + 8);
-  else if (direction == 0)		/* west */
-      return (fromSlot - 1);
-  else if (direction == 1)		/* north */
-      return (fromSlot - 4);
-  else if (direction == 2)		/* east */
-      return (fromSlot + 1);
-  else if (direction == 3)		/* south */
-      return(fromSlot + 4);
-  else
-    BadElse("GetToSlot");
+	else if (whosTurn == 'x' && direction == 4) /* far west */
+		return (fromSlot - 2);
+	else if (whosTurn == 'x' && direction == 5) /* far north */
+		return (fromSlot - 8);
+	else if (whosTurn == 'x' && direction == 6) /* far east */
+		return (fromSlot + 2);
+	else if (whosTurn == 'x' && direction == 7) /* far south */
+		return (fromSlot + 8);
+	else if (direction == 0)        /* west */
+		return (fromSlot - 1);
+	else if (direction == 1)        /* north */
+		return (fromSlot - 4);
+	else if (direction == 2)        /* east */
+		return (fromSlot + 1);
+	else if (direction == 3)        /* south */
+		return(fromSlot + 4);
+	else
+		BadElse("GetToSlot");
 
-  //never reaches here
-  return 0;
+	//never reaches here
+	return 0;
 }
 
 /************************************************************************
@@ -779,30 +779,30 @@ SLOT GetToSlot(theBoard,fromSlot,direction,whosTurn)
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-     POSITION thePosition;
-     MOVE *theMove;
-     STRING playerName;
+POSITION thePosition;
+MOVE *theMove;
+STRING playerName;
 {
-  USERINPUT ret;
-  int phase, numSwans;
-  char whosTurn;
-  generic_hash_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
+	USERINPUT ret;
+	int phase, numSwans;
+	char whosTurn;
+	generic_hash_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
 
-  do {
-    if((whosTurn == 'o') && (numSwans != 0)) {
-      printf("%8s's move [(u)ndo/1-16] : ", playerName);
-      ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-      if(ret != Continue)
-	  return(ret);
-    }
-    else if((whosTurn == 'x') || (numSwans == 0)) {
-      printf("%8s's move [(u)ndo/1-16 1-16] : ", playerName);
-      ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-      if(ret != Continue)
-	  return(ret);
-    }
-  } while (TRUE);
-  return(Continue); /* this is never reached, but lint is now happy */
+	do {
+		if((whosTurn == 'o') && (numSwans != 0)) {
+			printf("%8s's move [(u)ndo/1-16] : ", playerName);
+			ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+			if(ret != Continue)
+				return(ret);
+		}
+		else if((whosTurn == 'x') || (numSwans == 0)) {
+			printf("%8s's move [(u)ndo/1-16 1-16] : ", playerName);
+			ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+			if(ret != Continue)
+				return(ret);
+		}
+	} while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -823,19 +823,19 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 ************************************************************************/
 
 BOOLEAN ValidTextInput(input)
-     STRING input;
+STRING input;
 {
-  SLOT fromSlot, toSlot;
-  int ret;
-  if(input[1] == '\0')  /* one digit input */
-      return((input[0] >= '1') && (input[0] <= '9'));
-  else if(input[2] == '\0') {/* two digit input */
-      return((input[0] == '1') && (input[1] >= '0') && (input[1] <= '6'));
-  }
-  else {
-      ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-      return((fromSlot <= 16) && (fromSlot >= 1) && (toSlot <= 16) && (toSlot >= 1));
-  }
+	SLOT fromSlot, toSlot;
+	int ret;
+	if(input[1] == '\0') /* one digit input */
+		return((input[0] >= '1') && (input[0] <= '9'));
+	else if(input[2] == '\0') { /* two digit input */
+		return((input[0] == '1') && (input[1] >= '0') && (input[1] <= '6'));
+	}
+	else {
+		ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+		return((fromSlot <= 16) && (fromSlot >= 1) && (toSlot <= 16) && (toSlot >= 1));
+	}
 }
 
 /************************************************************************
@@ -853,25 +853,25 @@ BOOLEAN ValidTextInput(input)
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(input)
-     STRING input;
+STRING input;
 {
-  MOVE SlotsToMove();
-  SLOT fromSlot, toSlot;
-  int ret;
-  MOVE tempMove;
-  if((input[1] == '\0') || (input[2] == '\0')) {  /* single number input */
-	  ret = (((atoi(input)) - 1) * 2);
-	  return((MOVE) ret);
-  }
-  else {
-      ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-      fromSlot--;               /* user input is 1-16, our rep. is 0-15 */
-      toSlot--;             /* user input is 1-16, our rep. is 0-15 */
-      tempMove = SlotsToMove(fromSlot, toSlot);
-      tempMove *= 2;
-      tempMove++;
-      return(tempMove);
-  }
+	MOVE SlotsToMove();
+	SLOT fromSlot, toSlot;
+	int ret;
+	MOVE tempMove;
+	if((input[1] == '\0') || (input[2] == '\0')) { /* single number input */
+		ret = (((atoi(input)) - 1) * 2);
+		return((MOVE) ret);
+	}
+	else {
+		ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+		fromSlot--;     /* user input is 1-16, our rep. is 0-15 */
+		toSlot--;   /* user input is 1-16, our rep. is 0-15 */
+		tempMove = SlotsToMove(fromSlot, toSlot);
+		tempMove *= 2;
+		tempMove++;
+		return(tempMove);
+	}
 }
 
 /************************************************************************
@@ -885,11 +885,11 @@ MOVE ConvertTextInputToMove(input)
 ************************************************************************/
 
 void PrintMove(theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING m = MoveToString( theMove );
-  printf( "%s", m );
-  SafeFree( m );
+	STRING m = MoveToString( theMove );
+	printf( "%s", m );
+	SafeFree( m );
 }
 
 /************************************************************************
@@ -903,22 +903,22 @@ void PrintMove(theMove)
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING m = (STRING) SafeMalloc( 10 );
-  SLOT fromSlot, toSlot;
-  int phase;
-  phase = theMove & 1;
-  theMove = theMove >> 1;
-  if(phase == 0)
-      sprintf( m, "%d", theMove + 1);
-  else {
-      MoveToSlots(theMove,&fromSlot,&toSlot);
-      /* The plus 1 is because the user thinks it's 1-16, but MOVE is 0-15 */
-      sprintf( m, "[ %d %d ] ", fromSlot + 1, toSlot + 1);
-  }
+	STRING m = (STRING) SafeMalloc( 10 );
+	SLOT fromSlot, toSlot;
+	int phase;
+	phase = theMove & 1;
+	theMove = theMove >> 1;
+	if(phase == 0)
+		sprintf( m, "%d", theMove + 1);
+	else {
+		MoveToSlots(theMove,&fromSlot,&toSlot);
+		/* The plus 1 is because the user thinks it's 1-16, but MOVE is 0-15 */
+		sprintf( m, "[ %d %d ] ", fromSlot + 1, toSlot + 1);
+	}
 
-  return m;
+	return m;
 }
 
 /************************************************************************
@@ -942,28 +942,28 @@ STRING MoveToString (theMove)
 
 void generic_hash_unhash2(int hashed, char* dest, char* whosTurn, int* phase, int* numSwans)
 {
-    int whoseTurnTemp, phaseTemp;
+	int whoseTurnTemp, phaseTemp;
 
-    // isolate numswans
-    *numSwans = (hashed & 0xF);
-    hashed = hashed >> 4;
+	// isolate numswans
+	*numSwans = (hashed & 0xF);
+	hashed = hashed >> 4;
 
-    // isolate phase
-    phaseTemp = (hashed & 1);
-    if(phaseTemp == 0)
-	*phase = 1;
-    else
-	*phase = 2;
-    hashed = hashed >> 1;
+	// isolate phase
+	phaseTemp = (hashed & 1);
+	if(phaseTemp == 0)
+		*phase = 1;
+	else
+		*phase = 2;
+	hashed = hashed >> 1;
 
-    // isolate generic_hash_turn
-    whoseTurnTemp = generic_hash_turn(hashed);
-    if(whoseTurnTemp == 1)
-	*whosTurn = 'o';
-    else
-	*whosTurn = 'x';
+	// isolate generic_hash_turn
+	whoseTurnTemp = generic_hash_turn(hashed);
+	if(whoseTurnTemp == 1)
+		*whosTurn = 'o';
+	else
+		*whosTurn = 'x';
 
-    generic_hash_unhash(hashed, dest);
+	generic_hash_unhash(hashed, dest);
 }
 
 /************************************************************************
@@ -979,11 +979,11 @@ void generic_hash_unhash2(int hashed, char* dest, char* whosTurn, int* phase, in
 ************************************************************************/
 
 void MoveToSlots(theMove, fromSlot, toSlot)
-     MOVE theMove;
-     SLOT *fromSlot, *toSlot;
+MOVE theMove;
+SLOT *fromSlot, *toSlot;
 {
-  *fromSlot = theMove % (BOARDSIZE+1);
-  *toSlot   = theMove / (BOARDSIZE+1);
+	*fromSlot = theMove % (BOARDSIZE+1);
+	*toSlot   = theMove / (BOARDSIZE+1);
 }
 
 /************************************************************************
@@ -1000,9 +1000,9 @@ void MoveToSlots(theMove, fromSlot, toSlot)
 ************************************************************************/
 
 MOVE SlotsToMove (fromSlot, toSlot)
-     SLOT fromSlot, toSlot;
+SLOT fromSlot, toSlot;
 {
-  return ((MOVE) toSlot* (BOARDSIZE+1) + fromSlot);
+	return ((MOVE) toSlot* (BOARDSIZE+1) + fromSlot);
 }
 
 /************************************************************************
@@ -1019,25 +1019,25 @@ MOVE SlotsToMove (fromSlot, toSlot)
 
 int generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
 {
-  int temp, whoseTurnTemp;
+	int temp, whoseTurnTemp;
 
-  if (whosTurn == 'o')
-    whoseTurnTemp = 1;
-  else
-    whoseTurnTemp = 2;
+	if (whosTurn == 'o')
+		whoseTurnTemp = 1;
+	else
+		whoseTurnTemp = 2;
 
-  temp = generic_hash_hash(board, whoseTurnTemp);
+	temp = generic_hash_hash(board, whoseTurnTemp);
 
-  // encode phase
-  temp = temp << 1;
-  if(phase == 2)
-      temp++;
+	// encode phase
+	temp = temp << 1;
+	if(phase == 2)
+		temp++;
 
-  // encode numswans
-  temp = temp << 4;
-  temp += numSwans;
+	// encode numswans
+	temp = temp << 4;
+	temp += numSwans;
 
-  return temp;
+	return temp;
 }
 /************************************************************************
 **
@@ -1052,14 +1052,14 @@ int generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
 ************************************************************************/
 
 BOOLEAN AllFilledIn(theBoard)
-     char theBoard[16];
+char theBoard[16];
 {
-  BOOLEAN answer = TRUE;
-  int i;
+	BOOLEAN answer = TRUE;
+	int i;
 
-  for(i = 0; i < BOARDSIZE; i++)
-      answer &= (theBoard[i] == 'o' || theBoard[i] == 'x');
-  return(answer);
+	for(i = 0; i < BOARDSIZE; i++)
+		answer &= (theBoard[i] == 'o' || theBoard[i] == 'x');
+	return(answer);
 }
 
 
@@ -1067,32 +1067,32 @@ STRING kDBName = "swans";
 
 int NumberOfOptions()
 {
-    return 4*(MAX_DRAGONS-MIN_DRAGONS+1);
+	return 4*(MAX_DRAGONS-MIN_DRAGONS+1);
 }
 
 int getOption()
 {
-  int option = 1;
-  option += (gStandardGame ? 0 : 1);
-  option += 2*(gToTrapIsToWin ? 0 : 1);
-  option += 4*(gNumDragons-MIN_DRAGONS);
-  return option;
+	int option = 1;
+	option += (gStandardGame ? 0 : 1);
+	option += 2*(gToTrapIsToWin ? 0 : 1);
+	option += 4*(gNumDragons-MIN_DRAGONS);
+	return option;
 }
 
 void setOption(int option)
 {
-  option--;
-  gStandardGame = (option%2==0);
-  gToTrapIsToWin = (option/2%2==0);
-  gNumDragons = (option/4)+MIN_DRAGONS;
+	option--;
+	gStandardGame = (option%2==0);
+	gToTrapIsToWin = (option/2%2==0);
+	gNumDragons = (option/4)+MIN_DRAGONS;
 }
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

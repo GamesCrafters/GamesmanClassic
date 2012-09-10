@@ -33,12 +33,12 @@ int gB[] = {   0,   0,   0, 0 };
 char *gPScmd[] = { "W", "L", "T", "U" }; /* String of commands to PS */
 
 typedef enum color_enum {
-  c_win, c_lose, c_tie, c_invalid
+	c_win, c_lose, c_tie, c_invalid
 } COLOR;
 
 typedef struct pixelbuffer_struct {
-  char *bufptr;
-  int x,y;
+	char *bufptr;
+	int x,y;
 } PIXELBUFFER;
 
 /* S(0) = 1; S(n) = 3 * S(n-1) + 2; */
@@ -54,7 +54,7 @@ COLOR GetBuffer();
 void tttppm(int,int);
 void WritePreamblePS(FILE *,int,int);
 void tttppmrecur(FILE *,PIXELBUFFER *,int,int,POSITION,int,int,int);
-void DrawColor(FILE *,PIXELBUFFER *,int,int,int,int,POSITION,int); 
+void DrawColor(FILE *,PIXELBUFFER *,int,int,int,int,POSITION,int);
 
 COLOR SwapWinLoseColor(COLOR,int);
 int GetOffset(int,int);
@@ -71,7 +71,7 @@ void WriteBuffer(PIXELBUFFER *,int,int,COLOR);
 ** NAME:        tttppm
 **
 ** DESCRIPTION: Start the PPM process, build a buffer, fill it, print it
-** 
+**
 ** INPUTS:      int toPS, toFile : Whether to write to (PPM,PS) and
 **                               : whether to write to (screen,file)
 **
@@ -84,64 +84,64 @@ void WriteBuffer(PIXELBUFFER *,int,int,COLOR);
 void tttppm(toPS,toFile)
 int toPS, toFile;
 {
-  FILE *fp;
-  char filename[80];
-  PIXELBUFFER *pixbuf;
-  int cx, cy, depth, scale;
-  
-  printf("%s Creation time!\n\n",toPS ? "Postscript" : "PPM");
-  printf("Depth : ");
-  scanf("%d",&depth);
+	FILE *fp;
+	char filename[80];
+	PIXELBUFFER *pixbuf;
+	int cx, cy, depth, scale;
 
-  if(toPS) {
-    printf("Scale : ");
-    scanf("%d",&scale);
-  }
+	printf("%s Creation time!\n\n",toPS ? "Postscript" : "PPM");
+	printf("Depth : ");
+	scanf("%d",&depth);
 
-  if(toFile) {
-    printf("File  : ");
-    scanf("%s",filename);
+	if(toPS) {
+		printf("Scale : ");
+		scanf("%d",&scale);
+	}
 
-    if((fp = fopen(filename, "w")) == NULL)
-      ExitStageRightErrorString("Couldn't open file, sorry.");
-  } else
-    fp = stdout;
+	if(toFile) {
+		printf("File  : ");
+		scanf("%s",filename);
 
-  if(!toPS)
-    printf("Creating/Initializing buffer...\n");
+		if((fp = fopen(filename, "w")) == NULL)
+			ExitStageRightErrorString("Couldn't open file, sorry.");
+	} else
+		fp = stdout;
 
-  pixbuf = toPS ? (PIXELBUFFER *)NULL : CreatePixelBufferAtDepth(depth);
-  cx = cy = GetOffset(depth,0);
+	if(!toPS)
+		printf("Creating/Initializing buffer...\n");
 
-  printf("Filling %s...\n",toPS ? (toFile ? "file" : "screen") : "buffer");
+	pixbuf = toPS ? (PIXELBUFFER *)NULL : CreatePixelBufferAtDepth(depth);
+	cx = cy = GetOffset(depth,0);
 
-  if(toPS && toFile)
-    WritePreamblePS(fp,scale,depth);
+	printf("Filling %s...\n",toPS ? (toFile ? "file" : "screen") : "buffer");
 
-  tttppmrecur(fp,pixbuf,cx,cy,gInitialPosition,depth,0,toPS);
+	if(toPS && toFile)
+		WritePreamblePS(fp,scale,depth);
 
-  if(!toPS)
-    printf("Dumping buffer to file...\n");
+	tttppmrecur(fp,pixbuf,cx,cy,gInitialPosition,depth,0,toPS);
 
-  if(!toPS) {
-    if(toFile)
-	  PrintPPMBufferAscii(fp,pixbuf);
-	// PrintPPMBufferAscii(fp,pixbuf,gS[depth],gS[depth]);
-	// This was an incorrect call... -Elmer
-      /* PrintPPMBufferBinary(fp,pixbuf,gS[depth],gS[depth]); */
-    else
-      PrintBuffer(pixbuf);
-  } else
-    if(toFile)
-      fprintf(fp,"showpage\n");
+	if(!toPS)
+		printf("Dumping buffer to file...\n");
 
-  printf("done...\n");
+	if(!toPS) {
+		if(toFile)
+			PrintPPMBufferAscii(fp,pixbuf);
+		// PrintPPMBufferAscii(fp,pixbuf,gS[depth],gS[depth]);
+		// This was an incorrect call... -Elmer
+		/* PrintPPMBufferBinary(fp,pixbuf,gS[depth],gS[depth]); */
+		else
+			PrintBuffer(pixbuf);
+	} else
+	if(toFile)
+		fprintf(fp,"showpage\n");
 
-  if (!toPS)
-    SafeFree(pixbuf);
-  
-  if(toFile)
-    fclose(fp);
+	printf("done...\n");
+
+	if (!toPS)
+		SafeFree(pixbuf);
+
+	if(toFile)
+		fclose(fp);
 }
 
 /************************************************************************
@@ -149,7 +149,7 @@ int toPS, toFile;
 ** NAME:        WritePreamblePS
 **
 ** DESCRIPTION: Write the Postscript header to the file fp
-** 
+**
 ** INPUTS:      FILE *fp            : File pointer to write PPP to
 **              int depth           : Depth requested from user
 **              int scale           : Scale requested from user
@@ -160,7 +160,7 @@ void WritePreamblePS(fp,scale,depth)
 FILE *fp;
 int scale,depth;
 {
-  fprintf(fp,"%%!-Adobe-1.0\n\
+	fprintf(fp,"%%!-Adobe-1.0\n\
 \n\
 /pagewidthinches 8.5 def\n\
 /pageheightinches 11 def\n\
@@ -213,7 +213,7 @@ U %d 0 0 F\n\
 ** NAME:        tttppmrecur
 **
 ** DESCRIPTION: Recursively go down the game tree and modify the buffer
-** 
+**
 ** INPUTS:      FILE *fp            : File pointer to write PPP to
 **              PIXELBUFFER *pixbuf : Pixel buffer
 **              int          cx, cy : Center in the image of new piece
@@ -233,33 +233,33 @@ PIXELBUFFER *pixbuf;
 int cx,cy,depth,topdowndepth,toPS;
 POSITION pos;
 {
-  MOVELIST *ptr, *head, *GenerateMoves();
-  POSITION theChild, DoMove();
-  MOVE theMove;
-  
-  /* Draw this level */
-  DrawColor(fp,pixbuf,cx,cy,depth,topdowndepth,pos,toPS);
-  
-  /* If we're not at the bottom level */
-  if (depth != topdowndepth) {
-    head = ptr = GenerateMoves(pos);
-    while(ptr != NULL) {
-      theMove = ptr->move;
-      theChild = DoMove(pos,theMove);
-      
-      /* Recursively call ourselves */
-      tttppmrecur(fp,
-		  pixbuf,
-		  cx+gX[(int)theMove]*gS[depth-topdowndepth-1],
-		  cy+gY[(int)theMove]*gS[depth-topdowndepth-1],
-		  theChild,
-		  depth,
-		  topdowndepth+1,
-		  toPS);
-      ptr = ptr->next;
-    }
-    FreeMoveList(head);
-  }
+	MOVELIST *ptr, *head, *GenerateMoves();
+	POSITION theChild, DoMove();
+	MOVE theMove;
+
+	/* Draw this level */
+	DrawColor(fp,pixbuf,cx,cy,depth,topdowndepth,pos,toPS);
+
+	/* If we're not at the bottom level */
+	if (depth != topdowndepth) {
+		head = ptr = GenerateMoves(pos);
+		while(ptr != NULL) {
+			theMove = ptr->move;
+			theChild = DoMove(pos,theMove);
+
+			/* Recursively call ourselves */
+			tttppmrecur(fp,
+			            pixbuf,
+			            cx+gX[(int)theMove]*gS[depth-topdowndepth-1],
+			            cy+gY[(int)theMove]*gS[depth-topdowndepth-1],
+			            theChild,
+			            depth,
+			            topdowndepth+1,
+			            toPS);
+			ptr = ptr->next;
+		}
+		FreeMoveList(head);
+	}
 }
 
 /************************************************************************
@@ -267,7 +267,7 @@ POSITION pos;
 ** NAME:        DrawColor
 **
 ** DESCRIPTION: Draw the color of the pixel into the buffer
-** 
+**
 ** INPUTS:      FILE *fp            : File pointer to write PPP to
 **              PIXELBUFFER *pixbuf : Pixel buffer
 **              int          cx, cy : Center in the image of new piece
@@ -286,37 +286,37 @@ PIXELBUFFER *pixbuf;
 int cx,cy,depth,topdowndepth,toPS;
 POSITION pos;
 {
-  VALUE Primitive(), GetValueOfPosition();
-  int i,j,edge,halfedge,primitivep;
-  COLOR SwapWinLoseColor(), color;
-  
-  color = SwapWinLoseColor((COLOR)GetValueOfPosition(pos),topdowndepth);
-  primitivep = (Primitive(pos) != undecided);
-  edge = gS[depth-topdowndepth];
-  halfedge = (edge-1)/2;
-  
-  if(depth == topdowndepth) /* lowest depth, single pixel */
-    if(toPS)
-      fprintf(fp,"%s %d %d P\n",gPScmd[(int)color],cx,cy);
-    else
-      WriteBuffer(pixbuf,cx,cy,color);
-  else if (primitivep)    /* Primitive, fill in w/single color */
-    if(toPS)
-      fprintf(fp,"%s %d %d %d F\n",gPScmd[(int)color],edge,cx-halfedge,cy-halfedge);
-    else
-      for(i=0;i<edge;i++)
-	for(j=0;j<edge;j++)
-	  WriteBuffer(pixbuf,cx-halfedge+i,cy-halfedge+j,color);
-  else /* Not primitive and not the bottom of tree yet */
-    if(toPS)
-      fprintf(fp,"%s %d %d %d B\n",gPScmd[(int)color],edge,cx-halfedge,cy-halfedge);
-    else
-      for(i=0;i<edge;i++) {
-	WriteBuffer(pixbuf,cx-halfedge+i,cy-halfedge,color);
-	WriteBuffer(pixbuf,cx-halfedge+i,cy+halfedge,color);
-	WriteBuffer(pixbuf,cx-halfedge,cy-halfedge+i,color);
-	WriteBuffer(pixbuf,cx+halfedge,cy-halfedge+i,color);
-      }
+	VALUE Primitive(), GetValueOfPosition();
+	int i,j,edge,halfedge,primitivep;
+	COLOR SwapWinLoseColor(), color;
+
+	color = SwapWinLoseColor((COLOR)GetValueOfPosition(pos),topdowndepth);
+	primitivep = (Primitive(pos) != undecided);
+	edge = gS[depth-topdowndepth];
+	halfedge = (edge-1)/2;
+
+	if(depth == topdowndepth) /* lowest depth, single pixel */
+		if(toPS)
+			fprintf(fp,"%s %d %d P\n",gPScmd[(int)color],cx,cy);
+		else
+			WriteBuffer(pixbuf,cx,cy,color);
+	else if (primitivep) /* Primitive, fill in w/single color */
+		if(toPS)
+			fprintf(fp,"%s %d %d %d F\n",gPScmd[(int)color],edge,cx-halfedge,cy-halfedge);
+		else
+			for(i=0; i<edge; i++)
+				for(j=0; j<edge; j++)
+					WriteBuffer(pixbuf,cx-halfedge+i,cy-halfedge+j,color);
+	else /* Not primitive and not the bottom of tree yet */
+	if(toPS)
+		fprintf(fp,"%s %d %d %d B\n",gPScmd[(int)color],edge,cx-halfedge,cy-halfedge);
+	else
+		for(i=0; i<edge; i++) {
+			WriteBuffer(pixbuf,cx-halfedge+i,cy-halfedge,color);
+			WriteBuffer(pixbuf,cx-halfedge+i,cy+halfedge,color);
+			WriteBuffer(pixbuf,cx-halfedge,cy-halfedge+i,color);
+			WriteBuffer(pixbuf,cx+halfedge,cy-halfedge+i,color);
+		}
 }
 
 /************************************************************************
@@ -326,7 +326,7 @@ POSITION pos;
 ** DESCRIPTION: Swap the value of the array for all positions
 **              w <-> l because we want the user to see the values he
 **              sees in GAMESMAN.
-** 
+**
 ** INPUTS:      COLOR color         : Color of the position
 **              int topdowndepth    : Depth we're at now
 **
@@ -338,15 +338,15 @@ COLOR SwapWinLoseColor(color,topdowndepth)
 COLOR color;
 int topdowndepth;
 {
-  if(topdowndepth != 0) {    /* Don't swap colors for the first position */
-    if(color == c_lose)
-      return(c_win);
-    else if(color == c_win)
-      return(c_lose);
-    else 
-      return(color);
-  }
-  return(c_invalid);
+	if(topdowndepth != 0) { /* Don't swap colors for the first position */
+		if(color == c_lose)
+			return(c_win);
+		else if(color == c_win)
+			return(c_lose);
+		else
+			return(color);
+	}
+	return(c_invalid);
 }
 
 /************************************************************************
@@ -354,7 +354,7 @@ int topdowndepth;
 ** NAME:        GetOffset
 **
 ** DESCRIPTION: Get the offset into the center of the array
-** 
+**
 ** INPUTS:      int depth           : Depth requested from user
 **              int topdowndepth    : Depth we're at now
 **
@@ -363,7 +363,7 @@ int topdowndepth;
 int GetOffset(depth,topdowndepth)
 int depth,topdowndepth;
 {
-  return((gS[depth - topdowndepth]-1)/2);
+	return((gS[depth - topdowndepth]-1)/2);
 }
 
 /************************************************************************
@@ -371,7 +371,7 @@ int depth,topdowndepth;
 ** NAME:        PrintPPMBufferBinary
 **
 ** DESCRIPTION: Write Buffer to file in PPM Binary format
-** 
+**
 ** INPUTS:      FILE *fp            : File pointer to write PPP to
 **              PIXELBUFFER *pixbuf : Buffer to dump to file
 **
@@ -383,16 +383,16 @@ void PrintPPMBufferBinary(fp,pixbuf)
 FILE *fp;
 PIXELBUFFER *pixbuf;
 {
-  int i,j,ci;
+	int i,j,ci;
 
-  fprintf(fp,"P3\n#foo.ppm\n%d %d\n255\n",pixbuf->x,pixbuf->y);
+	fprintf(fp,"P3\n#foo.ppm\n%d %d\n255\n",pixbuf->x,pixbuf->y);
 
-  for(j=0; j<pixbuf->y; j++) {
-    for(i=0; i<pixbuf->x; i++) {
-      ci = (int)GetBuffer(pixbuf,i,j);
-      fprintf(fp,"%c%c%c",(char)gR[ci],(char)gG[ci],(char)gB[ci]);
-    }
-  }
+	for(j=0; j<pixbuf->y; j++) {
+		for(i=0; i<pixbuf->x; i++) {
+			ci = (int)GetBuffer(pixbuf,i,j);
+			fprintf(fp,"%c%c%c",(char)gR[ci],(char)gG[ci],(char)gB[ci]);
+		}
+	}
 }
 
 /************************************************************************
@@ -400,7 +400,7 @@ PIXELBUFFER *pixbuf;
 ** NAME:        PrintPPMBufferAscii
 **
 ** DESCRIPTION: Write Buffer to file in PPM Ascii format
-** 
+**
 ** INPUTS:      FILE *fp            : File pointer to write PPP to
 **              PIXELBUFFER *pixbuf : Buffer to dump to file
 **
@@ -412,17 +412,17 @@ void PrintPPMBufferAscii(fp,pixbuf)
 FILE *fp;
 PIXELBUFFER *pixbuf;
 {
-  int i,j,ci;
+	int i,j,ci;
 
-  fprintf(fp,"P3\n#foo.ppm\n%d %d\n255\n",pixbuf->x,pixbuf->y);
+	fprintf(fp,"P3\n#foo.ppm\n%d %d\n255\n",pixbuf->x,pixbuf->y);
 
-  for(j=0; j<pixbuf->y; j++) {
-    for(i=0; i<pixbuf->x; i++) {
-      ci = (int)GetBuffer(pixbuf,i,j);
-      fprintf(fp,"%3d %3d %3d  ",gR[ci],gG[ci],gB[ci]);
-    }
-    fprintf(fp,"\n");
-  }
+	for(j=0; j<pixbuf->y; j++) {
+		for(i=0; i<pixbuf->x; i++) {
+			ci = (int)GetBuffer(pixbuf,i,j);
+			fprintf(fp,"%3d %3d %3d  ",gR[ci],gG[ci],gB[ci]);
+		}
+		fprintf(fp,"\n");
+	}
 }
 
 /************************************************************************
@@ -440,13 +440,13 @@ PIXELBUFFER *pixbuf;
 void PrintBuffer(pixbuf)
 PIXELBUFFER *pixbuf;
 {
-  int i,j;
-  
-  for(j=0; j<pixbuf->y; j++) {
-    for(i=0; i<pixbuf->x; i++)
-      printf("%d",(int)GetBuffer(pixbuf,i,j));
-    printf("\n");
-  }
+	int i,j;
+
+	for(j=0; j<pixbuf->y; j++) {
+		for(i=0; i<pixbuf->x; i++)
+			printf("%d",(int)GetBuffer(pixbuf,i,j));
+		printf("\n");
+	}
 }
 
 /************************************************************************
@@ -464,7 +464,7 @@ PIXELBUFFER *pixbuf;
 PIXELBUFFER *CreatePixelBufferAtDepth(depth)
 int depth;
 {
-  return(CreatePixelBuffer(gS[depth],gS[depth]));
+	return(CreatePixelBuffer(gS[depth],gS[depth]));
 }
 
 /************************************************************************
@@ -484,21 +484,21 @@ PIXELBUFFER *CreatePixelBuffer(x,y)
 int x,y;
 {
   #ifndef MEMWATCH
-  GENERIC_PTR SafeMalloc();
+	GENERIC_PTR SafeMalloc();
   #endif
-  PIXELBUFFER *pixbuf;
-  int i,j;
+	PIXELBUFFER *pixbuf;
+	int i,j;
 
-  pixbuf = (PIXELBUFFER *) SafeMalloc (sizeof(PIXELBUFFER));
-  pixbuf->bufptr = (char *) SafeMalloc (sizeof(char) * x * y);
-  pixbuf->x = x;
-  pixbuf->y = y;
+	pixbuf = (PIXELBUFFER *) SafeMalloc (sizeof(PIXELBUFFER));
+	pixbuf->bufptr = (char *) SafeMalloc (sizeof(char) * x * y);
+	pixbuf->x = x;
+	pixbuf->y = y;
 
-  for(j=0; j<y; j++)
-    for(i=0; i<x; i++)
-      WriteBuffer(pixbuf,i,j,c_invalid);
+	for(j=0; j<y; j++)
+		for(i=0; i<x; i++)
+			WriteBuffer(pixbuf,i,j,c_invalid);
 
-  return(pixbuf);
+	return(pixbuf);
 }
 
 /************************************************************************
@@ -506,7 +506,7 @@ int x,y;
 ** NAME:        WriteBuffer
 **
 ** DESCRIPTION: Write the pixel into the (i,j) position in the buffer
-** 
+**
 ** INPUTS:      PIXELBUFFER *pixbuf : Pixel buffer
 **              int          i,j    : The pixel to write
 **              COLOR        color  : The color to write
@@ -520,13 +520,13 @@ PIXELBUFFER *pixbuf;
 int i,j;
 COLOR color;
 {
-  if(i >= pixbuf->x)
-    ExitStageRightErrorString("index i greater than max width in WriteBuffer");
+	if(i >= pixbuf->x)
+		ExitStageRightErrorString("index i greater than max width in WriteBuffer");
 
-  if(j >= pixbuf->y)
-    ExitStageRightErrorString("index j greater than max height in WriteBuffer");
+	if(j >= pixbuf->y)
+		ExitStageRightErrorString("index j greater than max height in WriteBuffer");
 
-  *(pixbuf->bufptr + j*pixbuf->x + i) = (char) color;
+	*(pixbuf->bufptr + j*pixbuf->x + i) = (char) color;
 }
 
 /************************************************************************
@@ -534,7 +534,7 @@ COLOR color;
 ** NAME:        GetBuffer
 **
 ** DESCRIPTION: Get the color at the (i,j) position in pixbuf
-** 
+**
 ** INPUTS:      PIXELBUFFER *pixbuf : Pixel buffer
 **              int          i,j    : The pixel to write
 **
@@ -546,25 +546,25 @@ COLOR GetBuffer(pixbuf,i,j)
 PIXELBUFFER *pixbuf;
 int i,j;
 {
-  if(i >= pixbuf->x)
-    ExitStageRightErrorString("index i greater than max width in WriteBuffer");
+	if(i >= pixbuf->x)
+		ExitStageRightErrorString("index i greater than max width in WriteBuffer");
 
-  if(j >= pixbuf->y)
-    ExitStageRightErrorString("index j greater than max height in WriteBuffer");
+	if(j >= pixbuf->y)
+		ExitStageRightErrorString("index j greater than max height in WriteBuffer");
 
-  return((COLOR) *(pixbuf->bufptr + j*pixbuf->x + i));
+	return((COLOR) *(pixbuf->bufptr + j*pixbuf->x + i));
 }
 
 /* Changelog:
-$Log: not supported by cvs2svn $
-Revision 1.5  2006/02/03 06:08:39  hevanm
-fixed warnings. I will leave the real bugs to retro hehehehe.
+   $Log: not supported by cvs2svn $
+   Revision 1.5  2006/02/03 06:08:39  hevanm
+   fixed warnings. I will leave the real bugs to retro hehehehe.
 
-Revision 1.4  2005/05/04 22:54:15  ogren
-prototyped void functions properly.  Fixed a call to PrintPPMBufferAscii(fp,pixbuf) -Elmer
+   Revision 1.4  2005/05/04 22:54:15  ogren
+   prototyped void functions properly.  Fixed a call to PrintPPMBufferAscii(fp,pixbuf) -Elmer
 
-Revision 1.3  2004/12/01 22:31:29  ogren
-added prototypes for COLOR SwapWinLoseColor, int GetOffset. Must still decide between typing file/buffer access functions as void or prototyping them as int. -Elmer
+   Revision 1.3  2004/12/01 22:31:29  ogren
+   added prototypes for COLOR SwapWinLoseColor, int GetOffset. Must still decide between typing file/buffer access functions as void or prototyping them as int. -Elmer
 
-*/
+ */
 

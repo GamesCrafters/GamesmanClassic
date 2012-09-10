@@ -40,9 +40,9 @@
 #include "db_basichash.h"
 
 
-gamesdb*	gamesdb_create	(int rec_size, gamesdb_pageid max_recs, gamesdb_pageid max_pages, int cluster_size, char* db_name);
-void		gamesdb_destroy	(gamesdb* data);
-void		gamesdb_get		(gamesdb* gdb, char* mem, gamesdb_position pos);
-void		gamesdb_put		(gamesdb* gdb, char* mem, gamesdb_position pos);
+gamesdb*        gamesdb_create  (int rec_size, gamesdb_pageid max_recs, gamesdb_pageid max_pages, int cluster_size, char* db_name);
+void            gamesdb_destroy (gamesdb* data);
+void            gamesdb_get             (gamesdb* gdb, char* mem, gamesdb_position pos);
+void            gamesdb_put             (gamesdb* gdb, char* mem, gamesdb_position pos);
 
 #endif /* GMCORE_GAMESDB_H */

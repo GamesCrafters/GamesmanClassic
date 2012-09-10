@@ -48,17 +48,17 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Mu Torere"; /* The name of your game */
-STRING   kAuthorName          = "Joe Jing and Jeff Chou"; /* Your name(s) */
-STRING   kDBName              = "tore"; /* The name to store the database under */
+STRING kGameName            = "Mu Torere";   /* The name of your game */
+STRING kAuthorName          = "Joe Jing and Jeff Chou";   /* Your name(s) */
+STRING kDBName              = "tore";   /* The name to store the database under */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN kTieIsPossible       = FALSE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN kLoopy               = TRUE;   /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugMenu           = FALSE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -72,26 +72,26 @@ void* gGameSpecificTclInit    = NULL;
  */
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+        "Not written yet";
 
-STRING   kHelpTextInterface =
-"Type in from what position you want to move.  For example, if you want to move to 3, type in '3'.";
+STRING kHelpTextInterface =
+        "Type in from what position you want to move.  For example, if you want to move to 3, type in '3'.";
 
-STRING   kHelpOnYourTurn =
-"Any piece may move into the middle as long as the middle space is empty and the moving piece is adjacent to an opponent's piece.  Any piece may move to any free adjacent side position.";
+STRING kHelpOnYourTurn =
+        "Any piece may move into the middle as long as the middle space is empty and the moving piece is adjacent to an opponent's piece.  Any piece may move to any free adjacent side position.";
 
-STRING   kHelpStandardObjective =
-"The objective is to trap your opponent so he has no possible moves left.";
+STRING kHelpStandardObjective =
+        "The objective is to trap your opponent so he has no possible moves left.";
 
-STRING   kHelpReverseObjective =
-"Objective is to obtain a position in which you have no more moves";
+STRING kHelpReverseObjective =
+        "Objective is to obtain a position in which you have no more moves";
 
-STRING   kHelpTieOccursWhen =
-"A tie will never occur";
+STRING kHelpTieOccursWhen =
+        "A tie will never occur";
 
 
-STRING   kHelpExample =
-"   Board         Key \n\
+STRING kHelpExample =
+        "   Board         Key \n\
   o  |  o      2  |  4\n\
    \\ | /        \\ | /\n\
  o-- _ --x    1-- 0 --5\n\
@@ -282,7 +282,7 @@ Player's Turn(x)\n\
 Computer's Turn(o)\n\
 (Computer should Lose in 0)\n\
 \n\
-Player (player one) Wins!\n";
+Player (player one) Wins!\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ;
 
 
 
@@ -310,9 +310,9 @@ char gBoard[9];
 *************************************************************************/
 
 /* External */
-#ifndef MEMWATCH 
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+#ifndef MEMWATCH
+extern GENERIC_PTR      SafeMalloc ();
+extern void             SafeFree ();
 #endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
@@ -335,30 +335,30 @@ STRING MoveToString( MOVE );
 
 void InitializeGame ()
 {
-  int init_array[10];
-  init_array[0] = '_';
-  init_array[1] = 1;
-  init_array[2] = 1;
-  init_array[3] = 'x';
-  init_array[4] = 4;
-  init_array[5] = 4;
-  init_array[6] = 'o';
-  init_array[7] = 4;
-  init_array[8] = 4;
-  init_array[9] = -1;
+	int init_array[10];
+	init_array[0] = '_';
+	init_array[1] = 1;
+	init_array[2] = 1;
+	init_array[3] = 'x';
+	init_array[4] = 4;
+	init_array[5] = 4;
+	init_array[6] = 'o';
+	init_array[7] = 4;
+	init_array[8] = 4;
+	init_array[9] = -1;
 
 
-  gNumberOfPositions = generic_hash_init(9, init_array, NULL, 0);
+	gNumberOfPositions = generic_hash_init(9, init_array, NULL, 0);
 
-  gBoard[1] = gBoard[2] = gBoard[3] = gBoard[4] = 'o';
-  gBoard[5] = gBoard[6] = gBoard[7] = gBoard[8] = 'x';
-  gBoard[0] = '_';
+	gBoard[1] = gBoard[2] = gBoard[3] = gBoard[4] = 'o';
+	gBoard[5] = gBoard[6] = gBoard[7] = gBoard[8] = 'x';
+	gBoard[0] = '_';
 
-  gInitialPosition = generic_hash_hash(gBoard, 1);
+	gInitialPosition = generic_hash_hash(gBoard, 1);
 
-  gCanonicalPosition = getCanonicalPosition;
+	gCanonicalPosition = getCanonicalPosition;
 
-  gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -382,67 +382,67 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-  char turn;
-  char opp;
-  int i;
-  int x;
-  generic_hash_unhash(position, gBoard);
-  if (generic_hash_turn(position) == 1){
-    turn = 'x';
-    opp = 'o';
-  } else {
-    turn = 'o';
-    opp = 'x';
-  }
-  MOVELIST *moves = NULL;
-  for (i = 0; i < 9; i++){
-    if (gBoard[i] == turn){
-      if (i == 0){
-	for (x = 1; x < 9; x++){
-	  if (gBoard[x] == '_'){
-	    moves = CreateMovelistNode(i, moves);
-	    }
+	char turn;
+	char opp;
+	int i;
+	int x;
+	generic_hash_unhash(position, gBoard);
+	if (generic_hash_turn(position) == 1) {
+		turn = 'x';
+		opp = 'o';
+	} else {
+		turn = 'o';
+		opp = 'x';
 	}
-      } else if (i == 1){
-	  if (gBoard[8] == '_'){
-	    moves = CreateMovelistNode(i, moves);
-	  } else if (gBoard[8] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(i, moves);
-	  } else if (gBoard[i+1] == '_'){
-	    moves = CreateMovelistNode(i, moves);
-	  } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	    moves = CreateMovelistNode(i, moves);
-	  }
-      } else if (i == 8){
-	if (gBoard[1] == '_'){
-	  moves = CreateMovelistNode(i, moves);
-	} else if (gBoard[1] == opp && gBoard[0] == '_'){
-	  moves = CreateMovelistNode(i, moves);
-	} else if (gBoard[i-1] == '_'){
-	  moves = CreateMovelistNode(i, moves);
-	} else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	  moves = CreateMovelistNode(i, moves);
+	MOVELIST *moves = NULL;
+	for (i = 0; i < 9; i++) {
+		if (gBoard[i] == turn) {
+			if (i == 0) {
+				for (x = 1; x < 9; x++) {
+					if (gBoard[x] == '_') {
+						moves = CreateMovelistNode(i, moves);
+					}
+				}
+			} else if (i == 1) {
+				if (gBoard[8] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[8] == opp && gBoard[0] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[i+1] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[i+1] == opp && gBoard[0] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				}
+			} else if (i == 8) {
+				if (gBoard[1] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[1] == opp && gBoard[0] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[i-1] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[i-1] == opp && gBoard[0] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				}
+			} else {
+				if (gBoard[i-1] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[i+1] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[i-1] == opp && gBoard[0] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				} else if (gBoard[i+1] == opp && gBoard[0] == '_') {
+					moves = CreateMovelistNode(i, moves);
+				}
+			}
+		}
 	}
-      } else {
-	    if (gBoard[i-1] == '_'){
-	      moves = CreateMovelistNode(i, moves);
-	    } else if (gBoard[i+1] == '_'){
-	      moves = CreateMovelistNode(i, moves);
-	    } else if (gBoard[i-1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(i, moves);
-	    } else if (gBoard[i+1] == opp && gBoard[0] == '_'){
-	      moves = CreateMovelistNode(i, moves);
-	    }
-	  }
-    }
-  }
 
 
 
 
-  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 
-  return moves;
+	return moves;
 }
 
 
@@ -464,25 +464,27 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  int i, from, to;
-  char oldc, turn;
-  generic_hash_unhash(position,gBoard);
-  for (i = 0; i < 9; i++){
-    if (gBoard[i] == '_'){
-      to = i;}}
-  from = move;
-  oldc = gBoard[from];
-    if (generic_hash_turn(position) == 1){
-    turn = 'x';
-  } else {
-    turn = 'o';
-  }
-      gBoard[to] = oldc;
-      gBoard[from] = '_';
-  if (generic_hash_turn(position) == 1)
-    return generic_hash_hash(gBoard,2);
-  else
-    return generic_hash_hash(gBoard, 1);
+	int i, from, to;
+	char oldc, turn;
+	generic_hash_unhash(position,gBoard);
+	for (i = 0; i < 9; i++) {
+		if (gBoard[i] == '_') {
+			to = i;
+		}
+	}
+	from = move;
+	oldc = gBoard[from];
+	if (generic_hash_turn(position) == 1) {
+		turn = 'x';
+	} else {
+		turn = 'o';
+	}
+	gBoard[to] = oldc;
+	gBoard[from] = '_';
+	if (generic_hash_turn(position) == 1)
+		return generic_hash_hash(gBoard,2);
+	else
+		return generic_hash_hash(gBoard, 1);
 }
 
 
@@ -509,18 +511,18 @@ POSITION DoMove (POSITION position, MOVE move)
 ** CALLS:       None
 **
 *********************************************
-	***************************/
+***************************/
 
 VALUE Primitive (POSITION position)
 {
-  if (GenerateMoves(position) != NULL){
-    return undecided;
-  } else {
-    if(gStandardGame)
-      return lose;
-    else
-      return win;
-  }
+	if (GenerateMoves(position) != NULL) {
+		return undecided;
+	} else {
+		if(gStandardGame)
+			return lose;
+		else
+			return win;
+	}
 }
 
 
@@ -546,17 +548,17 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  generic_hash_unhash(position, gBoard);
-  printf("   Board         Key\n");
-  printf("     %c            3\n",gBoard[3]);
-  printf("  %c  |  %c      2  |  4\n", gBoard[2], gBoard[4]);
-  printf("   \\ | /        \\ | /\n");
-  printf(" %c-- %c --%c    1-- 0 --5\n", gBoard[1], gBoard[0], gBoard[5]);
-  printf("   / | \\        / | \\\n");
-  printf("  %c  |  %c      8  |  6\n", gBoard[8], gBoard[6]);
-  printf("     %c            7\n", gBoard[7]);
-  printf("\n%s's Turn(%c)\n", playersName, (generic_hash_turn (position)) == 1 ? 'x' : 'o');
-  printf("%s\n", GetPrediction(position,playersName,usersTurn));
+	generic_hash_unhash(position, gBoard);
+	printf("   Board         Key\n");
+	printf("     %c            3\n",gBoard[3]);
+	printf("  %c  |  %c      2  |  4\n", gBoard[2], gBoard[4]);
+	printf("   \\ | /        \\ | /\n");
+	printf(" %c-- %c --%c    1-- 0 --5\n", gBoard[1], gBoard[0], gBoard[5]);
+	printf("   / | \\        / | \\\n");
+	printf("  %c  |  %c      8  |  6\n", gBoard[8], gBoard[6]);
+	printf("     %c            7\n", gBoard[7]);
+	printf("\n%s's Turn(%c)\n", playersName, (generic_hash_turn (position)) == 1 ? 'x' : 'o');
+	printf("%s\n", GetPrediction(position,playersName,usersTurn));
 
 }
 
@@ -574,7 +576,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  printf("%8s's move: %d\n", computersName, computersMove);
+	printf("%8s's move: %d\n", computersName, computersMove);
 
 
 }
@@ -593,9 +595,9 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 void PrintMove (MOVE move)
 
 {
-    STRING str = MoveToString( move );
-    printf( "%s", str );
-    SafeFree( str );
+	STRING str = MoveToString( move );
+	printf( "%s", str );
+	SafeFree( str );
 }
 
 
@@ -611,11 +613,11 @@ void PrintMove (MOVE move)
 
 STRING MoveToString (MOVE move)
 {
-  STRING m = (STRING) SafeMalloc( 5 );
+	STRING m = (STRING) SafeMalloc( 5 );
 
-  sprintf( m, "%d", move);
+	sprintf( m, "%d", move);
 
-  return m;
+	return m;
 }
 
 
@@ -641,23 +643,23 @@ STRING MoveToString (MOVE move)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
 
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/(## FromTo)] : ", playersName);
+	for (;; ) {
+		/***********************************************************
+		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+		***********************************************************/
+		printf("%8s's move [(undo)/(## FromTo)] : ", playersName);
 
-	input = HandleDefaultTextInput(position, move, playersName);
+		input = HandleDefaultTextInput(position, move, playersName);
 
-	if (input != Continue)
-		return input;
-    }
+		if (input != Continue)
+			return input;
+	}
 
-    /* NOTREACHED */
-    return Continue;
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -688,7 +690,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  return ((input[0] <= '8' ) && (input[0] >= '0'));
+	return ((input[0] <= '8' ) && (input[0] >= '0'));
 }
 
 /************************************************************************
@@ -707,10 +709,10 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  int theInput = atoi(input);
-  int from = theInput/10;
-  int to = theInput%10;
-  return ((MOVE) move_make(from, to));
+	int theInput = atoi(input);
+	int from = theInput/10;
+	int to = theInput%10;
+	return ((MOVE) move_make(from, to));
 }
 
 
@@ -766,45 +768,45 @@ void SetTclCGameSpecificOptions (int options[])
 ************************************************************************/
 
 /*  Copied from mttt.c
-*/
+ */
 POSITION GetInitialPosition ()
 {
-  // POSITION BlankOXToPosition();
-  //BlankOX theBlankOX[BOARDSIZE], whosTurn;
-  //signed char c;
-  //int i, goodInputs = 0;
+	// POSITION BlankOXToPosition();
+	//BlankOX theBlankOX[BOARDSIZE], whosTurn;
+	//signed char c;
+	//int i, goodInputs = 0;
 
 
-  //printf("\n\n\t----- Get Initial Position -----\n");
-  //printf("\n\tPlease input the position to begin with.\n");
-  //printf("\tNote that it should be in the following format:\n\n");
-  //printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
+	//printf("\n\n\t----- Get Initial Position -----\n");
+	//printf("\n\tPlease input the position to begin with.\n");
+	//printf("\tNote that it should be in the following format:\n\n");
+	//printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
 
-  //i = 0;
-  //getchar();
-  //while(i < BOARDSIZE && (c = getchar()) != EOF) {
-  //if(c == 'x' || c == 'X')
-  //  theBlankOX[i++] = x;
-  //else if(c == 'o' || c == 'O' || c == '0')
-  //  theBlankOX[i++] = o;
-  //else if(c == '-')
-  //  theBlankOX[i++] = Blank;
-  //else
-  //  ;   /* do nothing */
-  //}
+	//i = 0;
+	//getchar();
+	//while(i < BOARDSIZE && (c = getchar()) != EOF) {
+	//if(c == 'x' || c == 'X')
+	//  theBlankOX[i++] = x;
+	//else if(c == 'o' || c == 'O' || c == '0')
+	//  theBlankOX[i++] = o;
+	//else if(c == '-')
+	//  theBlankOX[i++] = Blank;
+	//else
+	//  ;   /* do nothing */
+	//}
 
-  /*
-  getchar();
-  printf("\nNow, whose turn is it? [O/X] : ");
-  scanf("%c",&c);
-  if(c == 'x' || c == 'X')
-    whosTurn = x;
-  else
-    whosTurn = o;
-    */
+	/*
+	   getchar();
+	   printf("\nNow, whose turn is it? [O/X] : ");
+	   scanf("%c",&c);
+	   if(c == 'x' || c == 'X')
+	   whosTurn = x;
+	   else
+	   whosTurn = o;
+	 */
 
-  //return(BlankOXToPosition(theBlankOX,whosTurn));
-  return 0;
+	//return(BlankOXToPosition(theBlankOX,whosTurn));
+	return 0;
 }
 
 
@@ -821,7 +823,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 2;
+	return 2;
 }
 
 
@@ -839,11 +841,11 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-  if (gStandardGame) {
-    return 2;
-  } else {
-    return 1;
-  }
+	if (gStandardGame) {
+		return 2;
+	} else {
+		return 1;
+	}
 }
 
 
@@ -860,13 +862,13 @@ int getOption ()
 
 void setOption (int option)
 {
-  if (option == 1) {
-    gStandardGame = 0;
-  } else if (option == 2) {
-    gStandardGame = 1;
-  } else {
-  	BadElse("setOption");
-  }
+	if (option == 1) {
+		gStandardGame = 0;
+	} else if (option == 2) {
+		gStandardGame = 1;
+	} else {
+		BadElse("setOption");
+	}
 
 }
 
@@ -903,77 +905,77 @@ void DebugMenu ()
 
 POSITION getCanonicalPosition (POSITION position) {
 
-    char board[9], invertedBoard[9], reversedSideBoard[9], temp;
-    POSITION minPosHash = position, newHash = 0;
-    int currentTurn = generic_hash_turn(position), reverseTurn = (currentTurn == 1 ? 2 : 1);
-    int i, j;
+	char board[9], invertedBoard[9], reversedSideBoard[9], temp;
+	POSITION minPosHash = position, newHash = 0;
+	int currentTurn = generic_hash_turn(position), reverseTurn = (currentTurn == 1 ? 2 : 1);
+	int i, j;
 
-    generic_hash_unhash(position, board);
+	generic_hash_unhash(position, board);
 
-    /*inverted board, where the order of pieces go from clockwise to counter-clockwise*/
-    invertedBoard[0] = board[0];
-    invertedBoard[1] = board[1];
-    for (i = 2; i < 9; i++)
-	invertedBoard[i] = board[10-i];
-    //    printf("invertedBoard: %s", invertedBoard);
-    newHash = generic_hash_hash(invertedBoard, currentTurn);
-    if (newHash < minPosHash) minPosHash = newHash;
-
-    /*rotate it*/
-    for (i = 0; i < 8; i++) {
-	temp = invertedBoard[1];
-	for (j = 1; j < 8; j++)
-	    invertedBoard[j] = invertedBoard[j+1];
-	invertedBoard[8] = temp;
-	//	printf("invertedBoard rotated: %s", invertedBoard);
+	/*inverted board, where the order of pieces go from clockwise to counter-clockwise*/
+	invertedBoard[0] = board[0];
+	invertedBoard[1] = board[1];
+	for (i = 2; i < 9; i++)
+		invertedBoard[i] = board[10-i];
+	//    printf("invertedBoard: %s", invertedBoard);
 	newHash = generic_hash_hash(invertedBoard, currentTurn);
 	if (newHash < minPosHash) minPosHash = newHash;
-    }
 
-    /*reversed board, with the pieces changed to one of its opposing side,
-     *and the turn changed to the other player*/
-    for (i = 0; i < 9; i++) {
-	if (board[i] != '_')
-	    reversedSideBoard[i] = (board[i] == 'x'? 'o':'x');
-	else
-	    reversedSideBoard[i] = '_';
-    }
-    //    printf("reversedSideBoard: %s", invertedBoard);
-    newHash = generic_hash_hash(reversedSideBoard, reverseTurn);
-    if (newHash < minPosHash) minPosHash = newHash;
+	/*rotate it*/
+	for (i = 0; i < 8; i++) {
+		temp = invertedBoard[1];
+		for (j = 1; j < 8; j++)
+			invertedBoard[j] = invertedBoard[j+1];
+		invertedBoard[8] = temp;
+		//	printf("invertedBoard rotated: %s", invertedBoard);
+		newHash = generic_hash_hash(invertedBoard, currentTurn);
+		if (newHash < minPosHash) minPosHash = newHash;
+	}
 
-    /*turn this board too because they lead to the same value*/
-    /*rotate it*/
-    for (i = 0; i < 8; i++) {
-	temp = reversedSideBoard[1];
-	for (j = 1; j < 8; j++)
-	    reversedSideBoard[j] = reversedSideBoard[j+1];
-	reversedSideBoard[8] = temp;
-	//printf("reversedSideBoard rotated: %s", invertedBoard);
+	/*reversed board, with the pieces changed to one of its opposing side,
+	 * and the turn changed to the other player*/
+	for (i = 0; i < 9; i++) {
+		if (board[i] != '_')
+			reversedSideBoard[i] = (board[i] == 'x' ? 'o' : 'x');
+		else
+			reversedSideBoard[i] = '_';
+	}
+	//    printf("reversedSideBoard: %s", invertedBoard);
 	newHash = generic_hash_hash(reversedSideBoard, reverseTurn);
 	if (newHash < minPosHash) minPosHash = newHash;
-    }
 
-    /*rotate current board*/
-    for (i = 0; i < 8; i++) {
-	temp = board[1];
-	for (j = 1; j < 8; j++)
-	    board[j] = board[j+1];
-	board[8] = temp;
-	//printf("board rotated: %s", invertedBoard);
-	newHash = generic_hash_hash(board, currentTurn);
-	if (newHash < minPosHash) minPosHash = newHash;
-    }
+	/*turn this board too because they lead to the same value*/
+	/*rotate it*/
+	for (i = 0; i < 8; i++) {
+		temp = reversedSideBoard[1];
+		for (j = 1; j < 8; j++)
+			reversedSideBoard[j] = reversedSideBoard[j+1];
+		reversedSideBoard[8] = temp;
+		//printf("reversedSideBoard rotated: %s", invertedBoard);
+		newHash = generic_hash_hash(reversedSideBoard, reverseTurn);
+		if (newHash < minPosHash) minPosHash = newHash;
+	}
 
-    return minPosHash;
+	/*rotate current board*/
+	for (i = 0; i < 8; i++) {
+		temp = board[1];
+		for (j = 1; j < 8; j++)
+			board[j] = board[j+1];
+		board[8] = temp;
+		//printf("board rotated: %s", invertedBoard);
+		newHash = generic_hash_hash(board, currentTurn);
+		if (newHash < minPosHash) minPosHash = newHash;
+	}
+
+	return minPosHash;
 }
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

@@ -17,12 +17,12 @@
 ** DATE:        1.27.05 - ????
 **
 ** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-** 		-- 1.27.05 -- Created file and started adding in game info. -JK
+**              -- 1.27.05 -- Created file and started adding in game info. -JK
 **		-- 1.30.05 -- Added to displayasciitable.
-** 			      Filled in most of PrintPosition.
+**                            Filled in most of PrintPosition.
 **                            Still need code to unhash.  -JK
 **		-- 2.9.05 -- Filled in code for the following functions:
-** 			     - NumberOfOptions()
+**                           - NumberOfOptions()
 **			     - getOption()
 **                           - setOption()
 **              -- 2.23.05 -- Fixed Initialize game (set gNumberOfPositions and gInitialPosition)
@@ -30,7 +30,7 @@
 **                            Actually allocated space for the board in PrintPosition
 **              -- 3.01.05 -- Added in wrapped hash functions
 **			      Wrote Primitive()
-** 		  	      Changed functions to reflect the new hash functions
+**                            Changed functions to reflect the new hash functions
 **			      Get a floating point exception now though when trying to go into the debug
 **			      menu.
 **			      Also cannot represent more than 6 empty spaces...maybe something to do with
@@ -98,17 +98,17 @@ char EMPTYSPACE ='-';
 char PLAYER1 = 'X';
 char PLAYER2 = 'O';
 
-STRING   kGameName            = "XiGua"; /* The name of your game */
-STRING   kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder"; /* Your name(s) */
-STRING   kDBName              = "xigua"; /* The name to store the database under */
+STRING kGameName            = "XiGua";   /* The name of your game */
+STRING kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder";   /* Your name(s) */
+STRING kDBName              = "xigua";   /* The name to store the database under */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = TRUE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = TRUE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN kTieIsPossible       = TRUE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN kLoopy               = FALSE;   /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = FALSE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugMenu           = FALSE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -120,25 +120,25 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  */
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+        "Not written yet";
 
-STRING   kHelpTextInterface    =
-"Selecting a move is done by picking a letter corresponding with a square on the board. The board displayed will list the key to base your selection from (Note: not all spots on the board will be possible at any given time).";
+STRING kHelpTextInterface    =
+        "Selecting a move is done by picking a letter corresponding with a square on the board. The board displayed will list the key to base your selection from (Note: not all spots on the board will be possible at any given time).";
 
-STRING   kHelpOnYourTurn =
-"Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by an edge in the board.";
+STRING kHelpOnYourTurn =
+        "Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by an edge in the board.";
 
-STRING   kHelpStandardObjective =
-"The objective of the game is to be the player with the most pieces on the board when the last piece is placed.";
+STRING kHelpStandardObjective =
+        "The objective of the game is to be the player with the most pieces on the board when the last piece is placed.";
 
-STRING   kHelpReverseObjective =
-"The objective of the game is to be the player with the least number of pieces of the board when the last piece is placed.";
+STRING kHelpReverseObjective =
+        "The objective of the game is to be the player with the least number of pieces of the board when the last piece is placed.";
 
-STRING   kHelpTieOccursWhen =
-"A tie occurs when both players have the same number of pieces on the board when the last piece is placed.";
+STRING kHelpTieOccursWhen =
+        "A tie occurs when both players have the same number of pieces on the board when the last piece is placed.";
 
-STRING   kHelpExample =
-"Legend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       �\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n";
+STRING kHelpExample =
+        "Legend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       �\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n";
 
 
 /*************************************************************************
@@ -172,8 +172,8 @@ BOOLEAN *checked;
 
 /*struct with adjacency information - built in Initialize Game */
 typedef struct adjacency_info {
-  int numAdjacent;
-  MOVE *adj;
+	int numAdjacent;
+	MOVE *adj;
 } adjacency;
 
 adjacency *adjacent;
@@ -185,9 +185,9 @@ adjacency *adjacent;
 *************************************************************************/
 
 /* External */
-#ifndef MEMWATCH 
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+#ifndef MEMWATCH
+extern GENERIC_PTR      SafeMalloc ();
+extern void             SafeFree ();
 #endif
 
 void* gGameSpecificTclInit = NULL;
@@ -249,7 +249,7 @@ POSITION GetCanonicalPosition(POSITION position);
 void InitializeGame ()
 {
 	/* need to change this to reflect the board size */
-        maxsize=5+4*boardsize;
+	maxsize=5+4*boardsize;
 	//if(numpieces==-1) numpieces=maxsize-1;
 	numpieces=maxsize-1;
 	int piecesarray[]={PLAYER1,0,numpieces,PLAYER2,0,numpieces,EMPTYSPACE,0,maxsize,-1};
@@ -266,76 +266,76 @@ void InitializeGame ()
 	/**************************************************/
 
 	if(boardsize == 4) {
-	  kSupportsSymmetries = TRUE; /* Whether we support symmetries - false until full boardsize selected */
+		kSupportsSymmetries = TRUE; /* Whether we support symmetries - false until full boardsize selected */
 
-	  gSymmetryMatrix = SafeMalloc(sizeof(MOVE) * NUMSYMMETRIES * maxsize);
+		gSymmetryMatrix = SafeMalloc(sizeof(MOVE) * NUMSYMMETRIES * maxsize);
 
-	  /* This is the array used for flipping along the N-S axis */
-	  gFlipNewPosition = SafeMalloc(sizeof(MOVE) * maxsize);
-	  *gFlipNewPosition = 2;
-	  *(++gFlipNewPosition) = 1;
-	  *(++gFlipNewPosition) = 0;
-	  *(++gFlipNewPosition) = 3;
-	  *(++gFlipNewPosition) = 6;
-	  *(++gFlipNewPosition) = 5;
-	  *(++gFlipNewPosition) = 4;
-	  *(++gFlipNewPosition) = 13;
-	  *(++gFlipNewPosition) = 12;
-	  *(++gFlipNewPosition) = 11;
-	  *(++gFlipNewPosition) = 10;
-	  *(++gFlipNewPosition) = 9;
-	  *(++gFlipNewPosition) = 8;
-	  *(++gFlipNewPosition) = 7;
-	  *(++gFlipNewPosition) = 16;
-	  *(++gFlipNewPosition) = 15;
-	  *(++gFlipNewPosition) = 14;
-	  *(++gFlipNewPosition) = 17;
-	  *(++gFlipNewPosition) = 20;
-	  *(++gFlipNewPosition) = 19;
-	  *(++gFlipNewPosition) = 18;
+		/* This is the array used for flipping along the N-S axis */
+		gFlipNewPosition = SafeMalloc(sizeof(MOVE) * maxsize);
+		*gFlipNewPosition = 2;
+		*(++gFlipNewPosition) = 1;
+		*(++gFlipNewPosition) = 0;
+		*(++gFlipNewPosition) = 3;
+		*(++gFlipNewPosition) = 6;
+		*(++gFlipNewPosition) = 5;
+		*(++gFlipNewPosition) = 4;
+		*(++gFlipNewPosition) = 13;
+		*(++gFlipNewPosition) = 12;
+		*(++gFlipNewPosition) = 11;
+		*(++gFlipNewPosition) = 10;
+		*(++gFlipNewPosition) = 9;
+		*(++gFlipNewPosition) = 8;
+		*(++gFlipNewPosition) = 7;
+		*(++gFlipNewPosition) = 16;
+		*(++gFlipNewPosition) = 15;
+		*(++gFlipNewPosition) = 14;
+		*(++gFlipNewPosition) = 17;
+		*(++gFlipNewPosition) = 20;
+		*(++gFlipNewPosition) = 19;
+		*(++gFlipNewPosition) = 18;
 
-	  /* This is the array used for rotating 90 degrees clockwise */
-	  gRotate90CWNewPosition = SafeMalloc(sizeof(MOVE) * maxsize);
-	  *gRotate90CWNewPosition = 14;
-	  *(++gRotate90CWNewPosition) = 7;
-	  *(++gRotate90CWNewPosition) = 4;
-	  *(++gRotate90CWNewPosition) = 8;
-	  *(++gRotate90CWNewPosition) = 15;
-	  *(++gRotate90CWNewPosition) = 9;
-	  *(++gRotate90CWNewPosition) = 0;
-	  *(++gRotate90CWNewPosition) = 19;
-	  *(++gRotate90CWNewPosition) = 17;
-	  *(++gRotate90CWNewPosition) = 15;
-	  *(++gRotate90CWNewPosition) = 10;
-	  *(++gRotate90CWNewPosition) = 5;
-	  *(++gRotate90CWNewPosition) = 3;
-	  *(++gRotate90CWNewPosition) = 1;
-	  *(++gRotate90CWNewPosition) = 20;
-	  *(++gRotate90CWNewPosition) = 11;
-	  *(++gRotate90CWNewPosition) = 2;
-	  *(++gRotate90CWNewPosition) = 12;
-	  *(++gRotate90CWNewPosition) = 16;
-	  *(++gRotate90CWNewPosition) = 13;
-	  *(++gRotate90CWNewPosition) = 6;
+		/* This is the array used for rotating 90 degrees clockwise */
+		gRotate90CWNewPosition = SafeMalloc(sizeof(MOVE) * maxsize);
+		*gRotate90CWNewPosition = 14;
+		*(++gRotate90CWNewPosition) = 7;
+		*(++gRotate90CWNewPosition) = 4;
+		*(++gRotate90CWNewPosition) = 8;
+		*(++gRotate90CWNewPosition) = 15;
+		*(++gRotate90CWNewPosition) = 9;
+		*(++gRotate90CWNewPosition) = 0;
+		*(++gRotate90CWNewPosition) = 19;
+		*(++gRotate90CWNewPosition) = 17;
+		*(++gRotate90CWNewPosition) = 15;
+		*(++gRotate90CWNewPosition) = 10;
+		*(++gRotate90CWNewPosition) = 5;
+		*(++gRotate90CWNewPosition) = 3;
+		*(++gRotate90CWNewPosition) = 1;
+		*(++gRotate90CWNewPosition) = 20;
+		*(++gRotate90CWNewPosition) = 11;
+		*(++gRotate90CWNewPosition) = 2;
+		*(++gRotate90CWNewPosition) = 12;
+		*(++gRotate90CWNewPosition) = 16;
+		*(++gRotate90CWNewPosition) = 13;
+		*(++gRotate90CWNewPosition) = 6;
 
-	  gCanonicalPosition = GetCanonicalPosition;
+		gCanonicalPosition = GetCanonicalPosition;
 
-	  int i, j, temp; /* temp is used for debugging */
+		int i, j, temp; /* temp is used for debugging */
 
-	/* the following loop seg faults on first iteration for boardsize
-		choice of 21, someone fix*/
-	  /* Initialize gSymmetryMatrix[][] */
-	  for(i = 0 ; i < maxsize ; i++) {
-	    temp = i;
-	    for(j = 0 ; j < NUMSYMMETRIES ; j++) {
-	      if(j == NUMSYMMETRIES/2)
-		temp = gFlipNewPosition[i];
-	      if(j < NUMSYMMETRIES/2)
-		temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-	      else
-		temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-	    }
-	  }
+		/* the following loop seg faults on first iteration for boardsize
+		        choice of 21, someone fix*/
+		/* Initialize gSymmetryMatrix[][] */
+		for(i = 0; i < maxsize; i++) {
+			temp = i;
+			for(j = 0; j < NUMSYMMETRIES; j++) {
+				if(j == NUMSYMMETRIES/2)
+					temp = gFlipNewPosition[i];
+				if(j < NUMSYMMETRIES/2)
+					temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+				else
+					temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+			}
+		}
 	}
 	/**************************************************/
 	/**************** SYMMETRY FUN END ****************/
@@ -349,211 +349,211 @@ void InitializeGame ()
 
 	switch(boardsize) {
 	case 0: adjacent[0].numAdjacent = adjacent[1].numAdjacent = adjacent[3].numAdjacent = adjacent[4].numAdjacent = 3;
-	  adjacent[2].numAdjacent = 4;
-	  adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
-	  adjacent[0].adj[0] = 1;
-	  adjacent[0].adj[1] = 2;
-	  adjacent[0].adj[2] = 3;
-	  adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
-	  adjacent[1].adj[0] = 0;
-	  adjacent[1].adj[1] = 2;
-	  adjacent[1].adj[2] = 4;
-	  adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
-	  adjacent[3].adj[0] = 0;
-	  adjacent[3].adj[1] = 2;
-	  adjacent[3].adj[2] = 4;
-	  adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
-	  adjacent[4].adj[0] = 1;
-	  adjacent[4].adj[1] = 2;
-	  adjacent[4].adj[2] = 3;
-	  adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
-	  adjacent[2].adj[0] = 0;
-	  adjacent[2].adj[1] = 1;
-	  adjacent[2].adj[2] = 3;
-	  adjacent[2].adj[3] = 4;
-	  break;
+		adjacent[2].numAdjacent = 4;
+		adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
+		adjacent[0].adj[0] = 1;
+		adjacent[0].adj[1] = 2;
+		adjacent[0].adj[2] = 3;
+		adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
+		adjacent[1].adj[0] = 0;
+		adjacent[1].adj[1] = 2;
+		adjacent[1].adj[2] = 4;
+		adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
+		adjacent[3].adj[0] = 0;
+		adjacent[3].adj[1] = 2;
+		adjacent[3].adj[2] = 4;
+		adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
+		adjacent[4].adj[0] = 1;
+		adjacent[4].adj[1] = 2;
+		adjacent[4].adj[2] = 3;
+		adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
+		adjacent[2].adj[0] = 0;
+		adjacent[2].adj[1] = 1;
+		adjacent[2].adj[2] = 3;
+		adjacent[2].adj[3] = 4;
+		break;
 	case 1: adjacent[1].numAdjacent = adjacent[8].numAdjacent = 2;
-	  adjacent[0].numAdjacent = adjacent[2].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = 3;
-	  adjacent[3].numAdjacent = adjacent[4].numAdjacent = adjacent[5].numAdjacent = 4;
-	  adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
-	  adjacent[1].adj[0] = 5;
-	  adjacent[1].adj[1] = 6;
-	  adjacent[8].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[8].numAdjacent);
-	  adjacent[8].adj[0] = 5;
-	  adjacent[8].adj[1] = 6;
-	  adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
-	  adjacent[0].adj[0] = 2;
-	  adjacent[0].adj[1] = 3;
-	  adjacent[0].adj[2] = 4;
-	  adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[2].numAdjacent);
-	  adjacent[2].adj[0] = 0;
-	  adjacent[2].adj[1] = 3;
-	  adjacent[2].adj[2] = 7;
-	  adjacent[6].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[6].numAdjacent);
-	  adjacent[6].adj[0] = 1;
-	  adjacent[6].adj[1] = 5;
-	  adjacent[6].adj[2] = 8;
-	  adjacent[7].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[7].numAdjacent);
-	  adjacent[7].adj[0] = 2;
-	  adjacent[7].adj[1] = 3;
-	  adjacent[7].adj[2] = 4;
-	  adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
-	  adjacent[3].adj[0] = 0;
-	  adjacent[3].adj[1] = 2;
-	  adjacent[3].adj[2] = 4;
-	  adjacent[3].adj[3] = 7;
-	  adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
-	  adjacent[4].adj[0] = 0;
-	  adjacent[4].adj[1] = 3;
-	  adjacent[4].adj[2] = 5;
-	  adjacent[4].adj[3] = 7;
-	  adjacent[5].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[5].numAdjacent);
-	  adjacent[5].adj[0] = 1;
-	  adjacent[5].adj[1] = 4;
-	  adjacent[5].adj[2] = 6;
-	  adjacent[5].adj[3] = 8;
-	  break;
+		adjacent[0].numAdjacent = adjacent[2].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = 3;
+		adjacent[3].numAdjacent = adjacent[4].numAdjacent = adjacent[5].numAdjacent = 4;
+		adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
+		adjacent[1].adj[0] = 5;
+		adjacent[1].adj[1] = 6;
+		adjacent[8].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[8].numAdjacent);
+		adjacent[8].adj[0] = 5;
+		adjacent[8].adj[1] = 6;
+		adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
+		adjacent[0].adj[0] = 2;
+		adjacent[0].adj[1] = 3;
+		adjacent[0].adj[2] = 4;
+		adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[2].numAdjacent);
+		adjacent[2].adj[0] = 0;
+		adjacent[2].adj[1] = 3;
+		adjacent[2].adj[2] = 7;
+		adjacent[6].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[6].numAdjacent);
+		adjacent[6].adj[0] = 1;
+		adjacent[6].adj[1] = 5;
+		adjacent[6].adj[2] = 8;
+		adjacent[7].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[7].numAdjacent);
+		adjacent[7].adj[0] = 2;
+		adjacent[7].adj[1] = 3;
+		adjacent[7].adj[2] = 4;
+		adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
+		adjacent[3].adj[0] = 0;
+		adjacent[3].adj[1] = 2;
+		adjacent[3].adj[2] = 4;
+		adjacent[3].adj[3] = 7;
+		adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
+		adjacent[4].adj[0] = 0;
+		adjacent[4].adj[1] = 3;
+		adjacent[4].adj[2] = 5;
+		adjacent[4].adj[3] = 7;
+		adjacent[5].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[5].numAdjacent);
+		adjacent[5].adj[0] = 1;
+		adjacent[5].adj[1] = 4;
+		adjacent[5].adj[2] = 6;
+		adjacent[5].adj[3] = 8;
+		break;
 	case 2: adjacent[0].numAdjacent = adjacent[2].numAdjacent = adjacent[10].numAdjacent = adjacent[12].numAdjacent = 2;
-	  adjacent[1].numAdjacent = adjacent[3].numAdjacent = adjacent[9].numAdjacent = adjacent[11].numAdjacent = 3;
-	  adjacent[4].numAdjacent = adjacent[5].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = adjacent[8].numAdjacent = 4;
-	  adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
-	  adjacent[0].adj[0] = 3;
-	  adjacent[0].adj[1] = 4;
-	  adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[2].numAdjacent);
-	  adjacent[2].adj[0] = 8;
-	  adjacent[2].adj[1] = 9;
-	  adjacent[10].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[10].numAdjacent);
-	  adjacent[10].adj[0] = 3;
-	  adjacent[10].adj[1] = 4;
-	  adjacent[12].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[12].numAdjacent);
-	  adjacent[12].adj[0] = 8;
-	  adjacent[12].adj[1] = 9;
-	  adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
-	  adjacent[1].adj[0] = 5;
-	  adjacent[1].adj[1] = 6;
-	  adjacent[1].adj[2] = 7;
-	  adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
-	  adjacent[3].adj[0] = 0;
-	  adjacent[3].adj[1] = 4;
-	  adjacent[3].adj[2] = 10;
-	  adjacent[9].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[9].numAdjacent);
-	  adjacent[9].adj[0] = 2;
-	  adjacent[9].adj[1] = 8;
-	  adjacent[9].adj[2] = 12;
-	  adjacent[11].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[11].numAdjacent);
-	  adjacent[11].adj[0] = 5;
-	  adjacent[11].adj[1] = 6;
-	  adjacent[11].adj[2] = 7;
-	  adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
-	  adjacent[4].adj[0] = 0;
-	  adjacent[4].adj[1] = 3;
-	  adjacent[4].adj[2] = 5;
-	  adjacent[4].adj[3] = 10;
-	  adjacent[5].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[5].numAdjacent);
-	  adjacent[5].adj[0] = 1;
-	  adjacent[5].adj[1] = 4;
-	  adjacent[5].adj[2] = 6;
-	  adjacent[5].adj[3] = 11;
-	  adjacent[6].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[6].numAdjacent);
-	  adjacent[6].adj[0] = 1;
-	  adjacent[6].adj[1] = 5;
-	  adjacent[6].adj[2] = 7;
-	  adjacent[6].adj[3] = 11;
-	  adjacent[7].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[7].numAdjacent);
-	  adjacent[7].adj[0] = 1;
-	  adjacent[7].adj[1] = 6;
-	  adjacent[7].adj[2] = 8;
-	  adjacent[7].adj[3] = 11;
-	  adjacent[8].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[8].numAdjacent);
-	  adjacent[8].adj[0] = 2;
-	  adjacent[8].adj[1] = 7;
-	  adjacent[8].adj[2] = 9;
-	  adjacent[8].adj[3] = 12;
-	  break;
+		adjacent[1].numAdjacent = adjacent[3].numAdjacent = adjacent[9].numAdjacent = adjacent[11].numAdjacent = 3;
+		adjacent[4].numAdjacent = adjacent[5].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = adjacent[8].numAdjacent = 4;
+		adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
+		adjacent[0].adj[0] = 3;
+		adjacent[0].adj[1] = 4;
+		adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[2].numAdjacent);
+		adjacent[2].adj[0] = 8;
+		adjacent[2].adj[1] = 9;
+		adjacent[10].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[10].numAdjacent);
+		adjacent[10].adj[0] = 3;
+		adjacent[10].adj[1] = 4;
+		adjacent[12].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[12].numAdjacent);
+		adjacent[12].adj[0] = 8;
+		adjacent[12].adj[1] = 9;
+		adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
+		adjacent[1].adj[0] = 5;
+		adjacent[1].adj[1] = 6;
+		adjacent[1].adj[2] = 7;
+		adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
+		adjacent[3].adj[0] = 0;
+		adjacent[3].adj[1] = 4;
+		adjacent[3].adj[2] = 10;
+		adjacent[9].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[9].numAdjacent);
+		adjacent[9].adj[0] = 2;
+		adjacent[9].adj[1] = 8;
+		adjacent[9].adj[2] = 12;
+		adjacent[11].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[11].numAdjacent);
+		adjacent[11].adj[0] = 5;
+		adjacent[11].adj[1] = 6;
+		adjacent[11].adj[2] = 7;
+		adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
+		adjacent[4].adj[0] = 0;
+		adjacent[4].adj[1] = 3;
+		adjacent[4].adj[2] = 5;
+		adjacent[4].adj[3] = 10;
+		adjacent[5].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[5].numAdjacent);
+		adjacent[5].adj[0] = 1;
+		adjacent[5].adj[1] = 4;
+		adjacent[5].adj[2] = 6;
+		adjacent[5].adj[3] = 11;
+		adjacent[6].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[6].numAdjacent);
+		adjacent[6].adj[0] = 1;
+		adjacent[6].adj[1] = 5;
+		adjacent[6].adj[2] = 7;
+		adjacent[6].adj[3] = 11;
+		adjacent[7].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[7].numAdjacent);
+		adjacent[7].adj[0] = 1;
+		adjacent[7].adj[1] = 6;
+		adjacent[7].adj[2] = 8;
+		adjacent[7].adj[3] = 11;
+		adjacent[8].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[8].numAdjacent);
+		adjacent[8].adj[0] = 2;
+		adjacent[8].adj[1] = 7;
+		adjacent[8].adj[2] = 9;
+		adjacent[8].adj[3] = 12;
+		break;
 	case 3: adjacent[14].numAdjacent = adjacent[16].numAdjacent = 2;
-	  adjacent[0].numAdjacent = adjacent[1].numAdjacent = adjacent[2].numAdjacent = adjacent[4].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = adjacent[13].numAdjacent = adjacent[15].numAdjacent = 3;
-	  adjacent[3].numAdjacent = adjacent[5].numAdjacent = adjacent[8].numAdjacent = adjacent[9].numAdjacent = adjacent[10].numAdjacent = adjacent[11].numAdjacent = adjacent[12].numAdjacent = 4;
-	  adjacent[14].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[14].numAdjacent);
-	  adjacent[14].adj[0] = 7;
-	  adjacent[14].adj[1] = 8;
-	  adjacent[16].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[16].numAdjacent);
-	  adjacent[16].adj[0] = 12;
-	  adjacent[16].adj[1] = 13;
-	  adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
-	  adjacent[0].adj[0] = 1;
-	  adjacent[0].adj[1] = 3;
-	  adjacent[0].adj[2] = 4;
-	  adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
-	  adjacent[1].adj[0] = 0;
-	  adjacent[1].adj[1] = 2;
-	  adjacent[1].adj[2] = 3;
-	  adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[2].numAdjacent);
-	  adjacent[2].adj[0] = 1;
-	  adjacent[2].adj[1] = 3;
-	  adjacent[2].adj[2] = 6;
-	  adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
-	  adjacent[4].adj[0] = 0;
-	  adjacent[4].adj[1] = 7;
-	  adjacent[4].adj[2] = 8;
-	  adjacent[6].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[6].numAdjacent);
-	  adjacent[6].adj[0] = 2;
-	  adjacent[6].adj[1] = 12;
-	  adjacent[6].adj[2] = 13;
-	  adjacent[7].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[7].numAdjacent);
-	  adjacent[7].adj[0] = 4;
-	  adjacent[7].adj[1] = 8;
-	  adjacent[7].adj[2] = 14;
-	  adjacent[13].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[13].numAdjacent);
-	  adjacent[13].adj[0] = 6;
-	  adjacent[13].adj[1] = 12;
-	  adjacent[13].adj[2] = 16;
-	  adjacent[15].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[15].numAdjacent);
-	  adjacent[15].adj[0] = 9;
-	  adjacent[15].adj[1] = 10;
-	  adjacent[15].adj[2] = 11;
-	  adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
-	  adjacent[3].adj[0] = 0;
-	  adjacent[3].adj[1] = 1;
-	  adjacent[3].adj[2] = 2;
-	  adjacent[3].adj[3] = 5;
-	  adjacent[5].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[5].numAdjacent);
-	  adjacent[5].adj[0] = 3;
-	  adjacent[5].adj[1] = 9;
-	  adjacent[5].adj[2] = 10;
-	  adjacent[5].adj[3] = 11;
-	  adjacent[8].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[8].numAdjacent);
-	  adjacent[8].adj[0] = 4;
-	  adjacent[8].adj[1] = 7;
-	  adjacent[8].adj[2] = 9;
-	  adjacent[8].adj[3] = 14;
-	  adjacent[9].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[9].numAdjacent);
-	  adjacent[9].adj[0] = 5;
-	  adjacent[9].adj[1] = 8;
-	  adjacent[9].adj[2] = 10;
-	  adjacent[9].adj[3] = 15;
-	  adjacent[10].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[10].numAdjacent);
-	  adjacent[10].adj[0] = 5;
-	  adjacent[10].adj[1] = 9;
-	  adjacent[10].adj[2] = 11;
-	  adjacent[10].adj[3] = 15;
-	  adjacent[11].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[11].numAdjacent);
-	  adjacent[11].adj[0] = 5;
-	  adjacent[11].adj[1] = 10;
-	  adjacent[11].adj[2] = 12;
-	  adjacent[11].adj[3] = 15;
-	  adjacent[12].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[12].numAdjacent);
-	  adjacent[12].adj[0] = 6;
-	  adjacent[12].adj[1] = 11;
-	  adjacent[12].adj[2] = 13;
-	  adjacent[12].adj[3] = 16;
-	  break;
+		adjacent[0].numAdjacent = adjacent[1].numAdjacent = adjacent[2].numAdjacent = adjacent[4].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = adjacent[13].numAdjacent = adjacent[15].numAdjacent = 3;
+		adjacent[3].numAdjacent = adjacent[5].numAdjacent = adjacent[8].numAdjacent = adjacent[9].numAdjacent = adjacent[10].numAdjacent = adjacent[11].numAdjacent = adjacent[12].numAdjacent = 4;
+		adjacent[14].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[14].numAdjacent);
+		adjacent[14].adj[0] = 7;
+		adjacent[14].adj[1] = 8;
+		adjacent[16].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[16].numAdjacent);
+		adjacent[16].adj[0] = 12;
+		adjacent[16].adj[1] = 13;
+		adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
+		adjacent[0].adj[0] = 1;
+		adjacent[0].adj[1] = 3;
+		adjacent[0].adj[2] = 4;
+		adjacent[1].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[1].numAdjacent);
+		adjacent[1].adj[0] = 0;
+		adjacent[1].adj[1] = 2;
+		adjacent[1].adj[2] = 3;
+		adjacent[2].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[2].numAdjacent);
+		adjacent[2].adj[0] = 1;
+		adjacent[2].adj[1] = 3;
+		adjacent[2].adj[2] = 6;
+		adjacent[4].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[4].numAdjacent);
+		adjacent[4].adj[0] = 0;
+		adjacent[4].adj[1] = 7;
+		adjacent[4].adj[2] = 8;
+		adjacent[6].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[6].numAdjacent);
+		adjacent[6].adj[0] = 2;
+		adjacent[6].adj[1] = 12;
+		adjacent[6].adj[2] = 13;
+		adjacent[7].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[7].numAdjacent);
+		adjacent[7].adj[0] = 4;
+		adjacent[7].adj[1] = 8;
+		adjacent[7].adj[2] = 14;
+		adjacent[13].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[13].numAdjacent);
+		adjacent[13].adj[0] = 6;
+		adjacent[13].adj[1] = 12;
+		adjacent[13].adj[2] = 16;
+		adjacent[15].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[15].numAdjacent);
+		adjacent[15].adj[0] = 9;
+		adjacent[15].adj[1] = 10;
+		adjacent[15].adj[2] = 11;
+		adjacent[3].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[3].numAdjacent);
+		adjacent[3].adj[0] = 0;
+		adjacent[3].adj[1] = 1;
+		adjacent[3].adj[2] = 2;
+		adjacent[3].adj[3] = 5;
+		adjacent[5].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[5].numAdjacent);
+		adjacent[5].adj[0] = 3;
+		adjacent[5].adj[1] = 9;
+		adjacent[5].adj[2] = 10;
+		adjacent[5].adj[3] = 11;
+		adjacent[8].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[8].numAdjacent);
+		adjacent[8].adj[0] = 4;
+		adjacent[8].adj[1] = 7;
+		adjacent[8].adj[2] = 9;
+		adjacent[8].adj[3] = 14;
+		adjacent[9].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[9].numAdjacent);
+		adjacent[9].adj[0] = 5;
+		adjacent[9].adj[1] = 8;
+		adjacent[9].adj[2] = 10;
+		adjacent[9].adj[3] = 15;
+		adjacent[10].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[10].numAdjacent);
+		adjacent[10].adj[0] = 5;
+		adjacent[10].adj[1] = 9;
+		adjacent[10].adj[2] = 11;
+		adjacent[10].adj[3] = 15;
+		adjacent[11].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[11].numAdjacent);
+		adjacent[11].adj[0] = 5;
+		adjacent[11].adj[1] = 10;
+		adjacent[11].adj[2] = 12;
+		adjacent[11].adj[3] = 15;
+		adjacent[12].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[12].numAdjacent);
+		adjacent[12].adj[0] = 6;
+		adjacent[12].adj[1] = 11;
+		adjacent[12].adj[2] = 13;
+		adjacent[12].adj[3] = 16;
+		break;
 	case 4: adjacent[0].numAdjacent = adjacent[1].numAdjacent = adjacent[2].numAdjacent = \
-		  adjacent[4].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = \
-		  adjacent[13].numAdjacent = adjacent[14].numAdjacent = adjacent[16].numAdjacent = \
-		  adjacent[18].numAdjacent = adjacent[19].numAdjacent = adjacent[20].numAdjacent = 3;
-                adjacent[3].numAdjacent = adjacent[5].numAdjacent = adjacent[8].numAdjacent = \
-		  adjacent[9].numAdjacent = adjacent[10].numAdjacent = adjacent[11].numAdjacent = \
-		  adjacent[12].numAdjacent = adjacent[15].numAdjacent = adjacent[17].numAdjacent = 4;
+		                                                            adjacent[4].numAdjacent = adjacent[6].numAdjacent = adjacent[7].numAdjacent = \
+		                                                                                                                        adjacent[13].numAdjacent = adjacent[14].numAdjacent = adjacent[16].numAdjacent = \
+		                                                                                                                                                                                      adjacent[18].numAdjacent = adjacent[19].numAdjacent = adjacent[20].numAdjacent = 3;
+		adjacent[3].numAdjacent = adjacent[5].numAdjacent = adjacent[8].numAdjacent = \
+		                                                            adjacent[9].numAdjacent = adjacent[10].numAdjacent = adjacent[11].numAdjacent = \
+		                                                                                                                         adjacent[12].numAdjacent = adjacent[15].numAdjacent = adjacent[17].numAdjacent = 4;
 		adjacent[0].adj = (MOVE *) SafeMalloc(sizeof(MOVE) * adjacent[0].numAdjacent);
 		adjacent[0].adj[0] = 1;
 		adjacent[0].adj[1] = 3;
@@ -649,20 +649,20 @@ void InitializeGame ()
 		adjacent[17].adj[3] = 20;
 		break; /*NOTE: need to free all this she-bop */
 	default:
-	  printf("We should never get here inside InitializeGame while creating the adjacency table information\n");
-	  break;
+		printf("We should never get here inside InitializeGame while creating the adjacency table information\n");
+		break;
 	}
 
 	gMoveToStringFunPtr = &MoveToString;
 }
 
 char * emptyboard(board)
-	char *board;
+char *board;
 {
 	int i;
 
 	board = (char *) SafeMalloc(sizeof(char) * maxsize);
-	for(i=0;i<maxsize;i++) board[i]=EMPTYSPACE;
+	for(i=0; i<maxsize; i++) board[i]=EMPTYSPACE;
 
 	return board;
 }
@@ -687,7 +687,7 @@ char * emptyboard(board)
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-    MOVELIST *moves = NULL; /* has fields move and next */
+	MOVELIST *moves = NULL; /* has fields move and next */
 	int i;
 	char piece;
 	int player;
@@ -704,59 +704,59 @@ MOVELIST *GenerateMoves (POSITION position)
 	}
 
 	board=emptyboard(board);
-    /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
 	/* wow, talk about making something foolproof for having students coding games */
 	board=unhashboard(position,board);
-	for(i=0;i<maxsize;i++) {
+	for(i=0; i<maxsize; i++) {
 		if(isValidMove(board, (MOVE) i, piece)) {
 			moves = CreateMovelistNode((MOVE)i,moves);
 		}
 	}
 
-    return moves;
+	return moves;
 }
 
 /* Generate Moves helper function isValidMove */
 BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
-  if(board[mv] != EMPTYSPACE)
-    return FALSE;
+	if(board[mv] != EMPTYSPACE)
+		return FALSE;
 
-  int i, scount=0, ocount=0;
-  char oPiece = ((p == PLAYER1) ? PLAYER2 : PLAYER1);
+	int i, scount=0, ocount=0;
+	char oPiece = ((p == PLAYER1) ? PLAYER2 : PLAYER1);
 
-  for(i = 0; i < adjacent[mv].numAdjacent; i++)
-    if(board[adjacent[mv].adj[i]] == p)
-      scount++;
-    else if(board[adjacent[mv].adj[i]] == oPiece)
-      ocount++;
+	for(i = 0; i < adjacent[mv].numAdjacent; i++)
+		if(board[adjacent[mv].adj[i]] == p)
+			scount++;
+		else if(board[adjacent[mv].adj[i]] == oPiece)
+			ocount++;
 
-  if(scount == adjacent[mv].numAdjacent) {
-    board[mv] = p;
+	if(scount == adjacent[mv].numAdjacent) {
+		board[mv] = p;
 
-    if(isSurrounded(board, mv, p, checked)) {
-      board[mv] = EMPTYSPACE;
-      zeroChecked();
-      return FALSE;
-    }
+		if(isSurrounded(board, mv, p, checked)) {
+			board[mv] = EMPTYSPACE;
+			zeroChecked();
+			return FALSE;
+		}
 
-      board[mv] = EMPTYSPACE;
-      zeroChecked();
-  }
-  else if(ocount == adjacent[mv].numAdjacent) {
-    board[mv] = p;
-    BOOLEAN canCapture = FALSE;
+		board[mv] = EMPTYSPACE;
+		zeroChecked();
+	}
+	else if(ocount == adjacent[mv].numAdjacent) {
+		board[mv] = p;
+		BOOLEAN canCapture = FALSE;
 
-    for(i = 0; i < adjacent[mv].numAdjacent && !canCapture; i++) {
-      canCapture = (canCapture || isSurrounded(board, adjacent[mv].adj[i], oPiece, checked));
-      zeroChecked();
-    }
+		for(i = 0; i < adjacent[mv].numAdjacent && !canCapture; i++) {
+			canCapture = (canCapture || isSurrounded(board, adjacent[mv].adj[i], oPiece, checked));
+			zeroChecked();
+		}
 
-    board[mv] = EMPTYSPACE;
+		board[mv] = EMPTYSPACE;
 
-    return canCapture;
-  }
+		return canCapture;
+	}
 
-  return TRUE;
+	return TRUE;
 }
 
 /************************************************************************
@@ -801,66 +801,66 @@ POSITION DoMove (POSITION position, MOVE move)
 	/* check for capture */
 
 	for(i = 0; i < adjacent[move].numAdjacent; i++) {
-	  if(board[adjacent[move].adj[i]] == oPiece && !checked[adjacent[move].adj[i]]) {
-	    checked[adjacent[move].adj[i]] = TRUE;
-	    if(isSurrounded(board, adjacent[move].adj[i], oPiece, checked)) {
-	      zeroChecked();
-	      removeStones(board, adjacent[move].adj[i], oPiece, checked);
-	    }
-	    zeroChecked();
-	  }
+		if(board[adjacent[move].adj[i]] == oPiece && !checked[adjacent[move].adj[i]]) {
+			checked[adjacent[move].adj[i]] = TRUE;
+			if(isSurrounded(board, adjacent[move].adj[i], oPiece, checked)) {
+				zeroChecked();
+				removeStones(board, adjacent[move].adj[i], oPiece, checked);
+			}
+			zeroChecked();
+		}
 	}
 
 	player^=3; /* slickness, 1 becomes 2 becomes 1.... */
-    	position = hash(board,player,turn);
+	position = hash(board,player,turn);
 
 	return position;
 }
 
 void zeroChecked() {
-  int i;
-  for(i = 0; i < maxsize; i++)
+	int i;
+	for(i = 0; i < maxsize; i++)
 		checked[i] = FALSE;
 }
 
 BOOLEAN isSurrounded(board, move, p, check)
-	char *board;
-	MOVE move;
-	char p;
-	BOOLEAN *check;
+char *board;
+MOVE move;
+char p;
+BOOLEAN *check;
 {
-  if(board[move] != p)
-    return (board[move] == EMPTYSPACE) ? FALSE : TRUE;
-  else {
-    int i;
-    BOOLEAN ret = TRUE;
+	if(board[move] != p)
+		return (board[move] == EMPTYSPACE) ? FALSE : TRUE;
+	else {
+		int i;
+		BOOLEAN ret = TRUE;
 
-    for(i = 0; i < adjacent[move].numAdjacent && ret; i++)
-      if(!check[adjacent[move].adj[i]]) {
-	check[adjacent[move].adj[i]] = TRUE;
-	ret = (ret && isSurrounded(board, adjacent[move].adj[i], p, check));
-      }
+		for(i = 0; i < adjacent[move].numAdjacent && ret; i++)
+			if(!check[adjacent[move].adj[i]]) {
+				check[adjacent[move].adj[i]] = TRUE;
+				ret = (ret && isSurrounded(board, adjacent[move].adj[i], p, check));
+			}
 
-    return ret;
-  }
+		return ret;
+	}
 }
 
 void removeStones(board, move, p, check)
-	char *board;
-	MOVE move;
-	char p;
-	BOOLEAN *check;
+char *board;
+MOVE move;
+char p;
+BOOLEAN *check;
 {
 	int i;
-  if(board[move] == p) {
-    check[move] = TRUE;
-    board[move] = EMPTYSPACE;
+	if(board[move] == p) {
+		check[move] = TRUE;
+		board[move] = EMPTYSPACE;
 
 
-    for(i = 0; i < adjacent[move].numAdjacent; i++)
-      if(!check[adjacent[move].adj[i]])
-	removeStones(board, adjacent[move].adj[i], p, check);
-  }
+		for(i = 0; i < adjacent[move].numAdjacent; i++)
+			if(!check[adjacent[move].adj[i]])
+				removeStones(board, adjacent[move].adj[i], p, check);
+	}
 }
 
 /************************************************************************
@@ -888,7 +888,7 @@ void removeStones(board, move, p, check)
 ************************************************************************/
 
 VALUE Primitive (position)
-	POSITION position;
+POSITION position;
 {
 	int player,turn;
 	int p1c, p2c;
@@ -902,17 +902,17 @@ VALUE Primitive (position)
 	board=unhashboard(position,board);
 
 	if(player == 1)
-	  piece = PLAYER1;
+		piece = PLAYER1;
 	else if(player == 2)
-	  piece = PLAYER2;
+		piece = PLAYER2;
 	else {
-	  fprintf(stderr,"Bad else: GenerateMovse (Piece selection)\n");
-	  exit(1);
+		fprintf(stderr,"Bad else: GenerateMovse (Piece selection)\n");
+		exit(1);
 	}
 
 	for(i = 0; i < maxsize && noValidMoves; i++)
-	  if(isValidMove(board, (MOVE) i, piece))
-	    noValidMoves = FALSE;
+		if(isValidMove(board, (MOVE) i, piece))
+			noValidMoves = FALSE;
 
 	/* if we've ran out of pieces or there are no more valid spaces on the board */
 	if(turn==numpieces || noValidMoves) {
@@ -920,34 +920,34 @@ VALUE Primitive (position)
 		p2c=countboard(board,PLAYER2);
 
 		for(i = 0; i < maxsize; i++) {
-		  if(board[i] == EMPTYSPACE) {
-		    checked[i] = TRUE;
+			if(board[i] == EMPTYSPACE) {
+				checked[i] = TRUE;
 
-		    if(isTerritory(board, (MOVE) i, PLAYER1, checked))
-		      p1c++;
-		    else {
-		      zeroChecked();
-		      if(isTerritory(board, (MOVE) i, PLAYER2, checked))
-			 p2c++;
-		      zeroChecked();
-		    }
-		  }
+				if(isTerritory(board, (MOVE) i, PLAYER1, checked))
+					p1c++;
+				else {
+					zeroChecked();
+					if(isTerritory(board, (MOVE) i, PLAYER2, checked))
+						p2c++;
+					zeroChecked();
+				}
+			}
 
-		  zeroChecked();
+			zeroChecked();
 		}
 
 		/* if its player 2's turn and he's ahead, this spots a win */
 		if(p1c<p2c && player==2) {
 			ret=win;
-		/* if its player 1's turn and he's ahead, this spots a win */
+			/* if its player 1's turn and he's ahead, this spots a win */
 		} else if(p1c>p2c && player==1) {
 			ret=win;
-		/* if they are equal, this spots a tie */
+			/* if they are equal, this spots a tie */
 		} else if(p1c==p2c) {
 			ret=tie;
 			/* changed this so that it would solve for now */
 			// ret=win;
-		/* otherwise it must be a lose */
+			/* otherwise it must be a lose */
 		} else {
 			ret=lose;
 		}
@@ -955,30 +955,30 @@ VALUE Primitive (position)
 		ret=undecided;
 	}
 
-    return ret;
+	return ret;
 }
 
 /* helper function to count empty indices surrounded by one player as territory for that player */
 BOOLEAN isTerritory(board, move, p, check)
-	char *board;
-	MOVE move;
-	char p;
-	BOOLEAN *check;
+char *board;
+MOVE move;
+char p;
+BOOLEAN *check;
 {
-  if(board[move] != EMPTYSPACE)
-    return (board[move] == p);
-  else {
-    int i;
-    BOOLEAN ret = TRUE;
+	if(board[move] != EMPTYSPACE)
+		return (board[move] == p);
+	else {
+		int i;
+		BOOLEAN ret = TRUE;
 
-    for(i = 0; i < adjacent[move].numAdjacent && ret; i++)
-      if(!check[adjacent[move].adj[i]]) {
-	check[adjacent[move].adj[i]] = TRUE;
-	ret = (ret && isTerritory(board, adjacent[move].adj[i], p, check));
-      }
+		for(i = 0; i < adjacent[move].numAdjacent && ret; i++)
+			if(!check[adjacent[move].adj[i]]) {
+				check[adjacent[move].adj[i]] = TRUE;
+				ret = (ret && isTerritory(board, adjacent[move].adj[i], p, check));
+			}
 
-    return ret;
-  }
+		return ret;
+	}
 }
 
 /************************************************************************
@@ -998,8 +998,8 @@ BOOLEAN isTerritory(board, move, p, check)
 *************************************************************************/
 
 void display5board(pos, prediction)
-	char *pos;
-	char *prediction;
+char *pos;
+char *prediction;
 {
 	printf("Legend:    1         Current:      %c\n",pos[0]);
 	printf("          /|\\        Player1: X   /|\\\n");
@@ -1009,71 +1009,71 @@ void display5board(pos, prediction)
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 void display9board(pos, prediction)
-	char *pos;
-	char *prediction;
+char *pos;
+char *prediction;
 {
 	printf("Legend:   1      2        Current:      %c      %c\n",pos[0],pos[1]);
 	printf("         /|\\    /|        Player1: X   /|\\    /|\n");
 	printf("        3-4-5--6-7        Player2: *  %c-%c-%c--%c-%c\n",pos[2],pos[3],pos[4],pos[5],pos[6]);
 	printf("         \\|/    \\|                     \\|/    \\|\n");
 	printf("          8      9                      %c      %c\n",pos[7],pos[8]);
-	if(prediction)printf(" Prediction: %s\n\n",prediction);
+	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 void display13board(pos, prediction)
-	char *pos;
-	char *prediction;
+char *pos;
+char *prediction;
 {
 	printf("Legend:   1      2      3   Current:    %c      %c      %c\n",pos[0],pos[1],pos[2]);
 	printf("          |\\    /|\\    /|   Player1: X  |\\    /|\\    /|\n");
 	printf("          4-5--6-7-8--9-B   Player2: *  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
 	printf("          |/    \\|/    \\|               |/    \\|/    \\|\n");
 	printf("          D      E      F               %c      %c      %c\n",pos[10],pos[11],pos[12]);
-	if(prediction)printf(" Prediction: %s\n\n",prediction);
+	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 
 void display17board(pos, prediction)
-	char *pos;
-	char *prediction;
+char *pos;
+char *prediction;
 {
-        printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
-        printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
-        printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
-        printf("        /     |     \\               /     |     \\\n");
-        printf("       5      6      7             %c      %c      %c\n",pos[4],pos[5],pos[6]);
-        printf("       |\\    /|\\    /|             |\\    /|\\    /|\n");
-        printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
-        printf("       |/    \\|/    \\|             |/    \\|/    \\|\n");
-        printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
-	if(prediction)printf(" Prediction: %s\n\n",prediction);
+	printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
+	printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
+	printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
+	printf("        /     |     \\               /     |     \\\n");
+	printf("       5      6      7             %c      %c      %c\n",pos[4],pos[5],pos[6]);
+	printf("       |\\    /|\\    /|             |\\    /|\\    /|\n");
+	printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
+	printf("       |/    \\|/    \\|             |/    \\|/    \\|\n");
+	printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
+	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 
 void display21board(pos, prediction)
-	char *pos;
-	char *prediction;
+char *pos;
+char *prediction;
 {
-        printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
-        printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
-        printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
-        printf("        /     |     \\               /     |     \\\n");
-        printf("       5      6      7             %c      %c      %c\n",pos[4],pos[5],pos[6]);
-        printf("       |\\    /|\\    /|             |\\    /|\\    /|\n");
-        printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
-        printf("       |/    \\|/    \\|             |/    \\|/    \\|\n");
-        printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
-        printf("        \\     |     /               \\     |     /\n");
-        printf("         \\    L    /                 \\    %c    /\n",pos[17]);
-        printf("          \\  /|\\  /                   \\  /|\\  /\n");
-        printf("           \\M-N-P/        \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
+	printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
+	printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
+	printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
+	printf("        /     |     \\               /     |     \\\n");
+	printf("       5      6      7             %c      %c      %c\n",pos[4],pos[5],pos[6]);
+	printf("       |\\    /|\\    /|             |\\    /|\\    /|\n");
+	printf("       8-9--B-D-E--F-G             %c-%c--%c-%c-%c--%c-%c\n",pos[7],pos[8],pos[9],pos[10],pos[11],pos[12],pos[13]);
+	printf("       |/    \\|/    \\|             |/    \\|/    \\|\n");
+	printf("       I      J      K             %c      %c      %c\n",pos[14],pos[15],pos[16]);
+	printf("        \\     |     /               \\     |     /\n");
+	printf("         \\    L    /                 \\    %c    /\n",pos[17]);
+	printf("          \\  /|\\  /                   \\  /|\\  /\n");
+	printf("           \\M-N-P/        \\%c-%c-%c/\n",pos[18],pos[19],pos[20]);
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 
 }
 
 char *getprediction(pred)
-	char *pred;
+char *pred;
 {
 	int i=0;
 	/* code to initialize it to blank values until a later time */
-	for(;i<16;i++) pred[i]=(char)32; /* fill with spaces */
+	for(; i<16; i++) pred[i]=(char)32; /* fill with spaces */
 	pred[i]='\0';
 	return pred;
 }
@@ -1094,25 +1094,25 @@ char *getprediction(pred)
 ************************************************************************/
 
 void PrintPosition (position, playersName, usersTurn)
-	POSITION position;
-	STRING playersName;
-	BOOLEAN usersTurn;
+POSITION position;
+STRING playersName;
+BOOLEAN usersTurn;
 {
 	/* just a doodle of the gameboard
 	 * - Josh
-	 * 		/0-0-0\
-         *             /..\|/..\
+	 *              /0-0-0\
+	 *             /..\|/..\
 	 *	      /....0....\
 	 *           /.....|.....\
-         *          0......0......0
-         *          |\..../|\..../|
-         *          0-0--0-0-0--0-0
-         *          |/....\|/....\|
-         *          0......0......0
-         *           \.....|...../
-         *            \....0..../
-         *             \../|\../
-         *              \0-0-0/
+	 *          0......0......0
+	 *          |\..../|\..../|
+	 *          0-0--0-0-0--0-0
+	 *          |/....\|/....\|
+	 *          0......0......0
+	 *           \.....|...../
+	 *            \....0..../
+	 *             \../|\../
+	 *              \0-0-0/
 	 *
 	 * all thanks to boring lectures =)
 	 */
@@ -1125,25 +1125,25 @@ void PrintPosition (position, playersName, usersTurn)
 	if(strcmp(prediction," ")==0) prediction=NULL;
 	toprint = unhashboard(position,toprint);
 	switch(boardsize) {
-		case 0:
-			display5board(toprint,prediction);
-			break;
-		case 1:
-			display9board(toprint,prediction);
-			break;
-		case 2:
-			display13board(toprint,prediction);
-			break;
-		case 3:
-			display17board(toprint,prediction);
-			break;
-		case 4:
-			display21board(toprint,prediction);
-			break;
-		default:
-			printf("Invalid boardsize in printPosition\n");
-			exit(1);
-			break;
+	case 0:
+		display5board(toprint,prediction);
+		break;
+	case 1:
+		display9board(toprint,prediction);
+		break;
+	case 2:
+		display13board(toprint,prediction);
+		break;
+	case 3:
+		display17board(toprint,prediction);
+		break;
+	case 4:
+		display21board(toprint,prediction);
+		break;
+	default:
+		printf("Invalid boardsize in printPosition\n");
+		exit(1);
+		break;
 	}
 	SafeFree(toprint);
 }
@@ -1161,50 +1161,50 @@ void PrintPosition (position, playersName, usersTurn)
 ************************************************************************/
 
 void PrintComputersMove (computersMove, computersName)
-	MOVE computersMove;
-	STRING computersName;
+MOVE computersMove;
+STRING computersName;
 {
 	char move=0;
 	if(computersMove>-1 && computersMove < 9) {
 		move=49+computersMove;
 	} else {
 		switch(computersMove) {
-			case 9:
-				move='B';
-				break;
-			case 10:
-				move='D';
-				break;
-			case 11:
-				move='E';
-				break;
-			case 12:
-				move='F';
-				break;
-			case 13:
-				move='G';
-				break;
-			case 14:
-				move='I';
-				break;
-			case 15:
-				move='J';
-				break;
-			case 16:
-				move='K';
-				break;
-			case 17:
-				move='L';
-				break;
-			case 18:
-				move='M';
-				break;
-			case 19:
-				move='N';
-				break;
-			case 20:
-				move='P';
-				break;
+		case 9:
+			move='B';
+			break;
+		case 10:
+			move='D';
+			break;
+		case 11:
+			move='E';
+			break;
+		case 12:
+			move='F';
+			break;
+		case 13:
+			move='G';
+			break;
+		case 14:
+			move='I';
+			break;
+		case 15:
+			move='J';
+			break;
+		case 16:
+			move='K';
+			break;
+		case 17:
+			move='L';
+			break;
+		case 18:
+			move='M';
+			break;
+		case 19:
+			move='N';
+			break;
+		case 20:
+			move='P';
+			break;
 		}
 	}
 	printf("%s's move		: %c\n",computersName,move);
@@ -1223,11 +1223,11 @@ void PrintComputersMove (computersMove, computersName)
 
 
 void PrintMove (move)
-	MOVE move;
+MOVE move;
 {
-  STRING m = MoveToString( move );
-  printf( "%s", m );
-  SafeFree( m );
+	STRING m = MoveToString( move );
+	printf( "%s", m );
+	SafeFree( m );
 }
 
 /************************************************************************
@@ -1241,61 +1241,61 @@ void PrintMove (move)
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING m = (STRING) SafeMalloc( 2 );
-  char movechar=getmovechar(theMove);
+	STRING m = (STRING) SafeMalloc( 2 );
+	char movechar=getmovechar(theMove);
 
-  sprintf( m, "%c",movechar);
-  return m;
+	sprintf( m, "%c",movechar);
+	return m;
 }
 
 char getmovechar(move)
-	MOVE move;
+MOVE move;
 {
 	char movechar=0;
-        if(move>-1 && move < 9) {
-                movechar=49+move;
-        } else {
-                switch(move) {
-                        case 9:
-                                movechar='B';
-                                break;
-                        case 10:
-                                movechar='D';
-                                break;
-                        case 11:
-                                movechar='E';
-                                break;
-                        case 12:
-                                movechar='F';
-                                break;
-                        case 13:
-                                movechar='G';
-                                break;
-                        case 14:
-                                movechar='I';
-                                break;
-                        case 15:
-                                movechar='J';
-                                break;
-                        case 16:
-                                movechar='K';
-                                break;
-                        case 17:
-                                movechar='L';
-                                break;
-                        case 18:
-                                movechar='M';
-                                break;
-                        case 19:
-                                movechar='N';
-                                break;
-                        case 20:
-                                movechar='P';
-                                break;
-                }
-        }
+	if(move>-1 && move < 9) {
+		movechar=49+move;
+	} else {
+		switch(move) {
+		case 9:
+			movechar='B';
+			break;
+		case 10:
+			movechar='D';
+			break;
+		case 11:
+			movechar='E';
+			break;
+		case 12:
+			movechar='F';
+			break;
+		case 13:
+			movechar='G';
+			break;
+		case 14:
+			movechar='I';
+			break;
+		case 15:
+			movechar='J';
+			break;
+		case 16:
+			movechar='K';
+			break;
+		case 17:
+			movechar='L';
+			break;
+		case 18:
+			movechar='M';
+			break;
+		case 19:
+			movechar='N';
+			break;
+		case 20:
+			movechar='P';
+			break;
+		}
+	}
 	return movechar;
 }
 
@@ -1321,12 +1321,12 @@ char getmovechar(move)
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (position, move, playersName)
-	POSITION position;
-	MOVE *move;
-	STRING playersName;
+POSITION position;
+MOVE *move;
+STRING playersName;
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
 
 	MOVELIST *moves;
 	MOVE thisMove;
@@ -1345,20 +1345,20 @@ USERINPUT GetAndPrintPlayersMove (position, move, playersName)
 	}
 	if(cur!=0) cur--;
 	validmoves[cur]='\0';
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(undo)/(%s)] : ", playersName,validmoves);
+	for (;; ) {
+		/***********************************************************
+		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+		***********************************************************/
+		printf("%8s's move [(undo)/(%s)] : ", playersName,validmoves);
 
-	input = HandleDefaultTextInput(position, move, playersName);
+		input = HandleDefaultTextInput(position, move, playersName);
 
-	if (input != Continue)
-		return input;
-    }
+		if (input != Continue)
+			return input;
+	}
 	SafeFree(validmoves);
-    /* NOTREACHED */
-    return Continue;
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -1388,33 +1388,33 @@ USERINPUT GetAndPrintPlayersMove (position, move, playersName)
 ************************************************************************/
 
 BOOLEAN ValidTextInput (input)
-	STRING input;
+STRING input;
 {
 	switch(toupper(input[0])) {
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-		case 'B':
-		case 'D':
-		case 'E':
-		case 'F':
-		case 'G':
-	        case 'I':
-		case 'J':
-		case 'K':
-		case 'L':
-		case 'M':
-		case 'N':
-		case 'P':
-			return TRUE;
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	case 'B':
+	case 'D':
+	case 'E':
+	case 'F':
+	case 'G':
+	case 'I':
+	case 'J':
+	case 'K':
+	case 'L':
+	case 'M':
+	case 'N':
+	case 'P':
+		return TRUE;
 	}
-    return FALSE;
+	return FALSE;
 }
 
 
@@ -1433,38 +1433,38 @@ BOOLEAN ValidTextInput (input)
 ************************************************************************/
 
 MOVE ConvertTextInputToMove (input)
-	STRING input;
+STRING input;
 {
 	switch(toupper(input[0])) {
-		case 'B':
-			return (MOVE)9;
-		case 'D':
-			return (MOVE)10;
-                case 'E':
-			return (MOVE)11;
-                case 'F':
-			return (MOVE)12;
-                case 'G':
-			return (MOVE)13;
-                case 'I':
-			return (MOVE)14;
-                case 'J':
-			return (MOVE)15;
-                case 'K':
-			return (MOVE)16;
-                case 'L':
-			return (MOVE)17;
-                case 'M':
-			return (MOVE)18;
-                case 'N':
-			return (MOVE)19;
-                case 'P':
-			return (MOVE)20;
-		default:
-			input[1]='\0';
-			return (MOVE)atoi(input)-1;
+	case 'B':
+		return (MOVE)9;
+	case 'D':
+		return (MOVE)10;
+	case 'E':
+		return (MOVE)11;
+	case 'F':
+		return (MOVE)12;
+	case 'G':
+		return (MOVE)13;
+	case 'I':
+		return (MOVE)14;
+	case 'J':
+		return (MOVE)15;
+	case 'K':
+		return (MOVE)16;
+	case 'L':
+		return (MOVE)17;
+	case 'M':
+		return (MOVE)18;
+	case 'N':
+		return (MOVE)19;
+	case 'P':
+		return (MOVE)20;
+	default:
+		input[1]='\0';
+		return (MOVE)atoi(input)-1;
 	}
-    return 0;
+	return 0;
 }
 
 
@@ -1487,12 +1487,12 @@ MOVE ConvertTextInputToMove (input)
 
 void GameSpecificMenu ()
 {
-   	char choice;
+	char choice;
 	int boardsizechoice;
 
 	while(1) {
 		/*fflush(stdin);		fflush is undefined for input streams
-		choice=getc(stdin);  dummy call to get the carrage return in the buffer */
+		   choice=getc(stdin);  dummy call to get the carrage return in the buffer */
 		printf("\n\t----- mxigua Option Menu -----\n\n");
 		printf("\td)\tChange Boar(d) Size (Currently: %d)\n",maxsize);
 		printf("\tn)\tChange (N)umber of Pieces (Currently: %d)\n",numpieces);
@@ -1507,48 +1507,48 @@ void GameSpecificMenu ()
 		choice = GetMyChar();
 		choice=toupper(choice);
 		switch(choice) {
-			case 'D':
-				/*fflush(stdin);
-				choice=getc(stdin);*/
-				printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
-				/*scanf("%d",&boardsizechoice);*/
-				boardsizechoice = GetMyInt();
-				if(boardsizechoice==5||boardsizechoice==9||boardsizechoice==13||boardsizechoice==17||boardsizechoice==21) {
-					boardsize=(boardsizechoice-5)/4;
-					// uncomment this to auto-reset numpieces
-					//numpieces=-1;
-					InitializeGame();
-				} else {
-					printf("Incorrect size.\n");
-				}
-				break;
-			case 'N':
-				/*fflush(stdin);
-				choice=getc(stdin);*/
-				printf("Please enter the number of pieces you want to be in play [1-%d]",maxsize);
-				/*scanf("%d",&boardsizechoice);*/
-				boardsizechoice = GetMyInt();
-				if(boardsizechoice>=1 && boardsizechoice <= maxsize) {
-					numpieces=boardsizechoice;
-					InitializeGame();
-				} else {
-					printf("Incorrect number of pieces.\n");
-				}
-				break;
-			case 'R':
-				printf("Not this time, sorry.\n");
-				break;
-			case 'H':
-				printf("Not this time, sorry.\n");
-				break;
-			case 'W':
-				printf("Not this time, sorry.\n");
-				break;
-			case 'B':
-				return;
-			default:
-				printf("You did not select a valid option.\n");
-				break;
+		case 'D':
+			/*fflush(stdin);
+			   choice=getc(stdin);*/
+			printf("Please enter a boardsize from the following [5, 9, 13, 17, 21]:");
+			/*scanf("%d",&boardsizechoice);*/
+			boardsizechoice = GetMyInt();
+			if(boardsizechoice==5||boardsizechoice==9||boardsizechoice==13||boardsizechoice==17||boardsizechoice==21) {
+				boardsize=(boardsizechoice-5)/4;
+				// uncomment this to auto-reset numpieces
+				//numpieces=-1;
+				InitializeGame();
+			} else {
+				printf("Incorrect size.\n");
+			}
+			break;
+		case 'N':
+			/*fflush(stdin);
+			   choice=getc(stdin);*/
+			printf("Please enter the number of pieces you want to be in play [1-%d]",maxsize);
+			/*scanf("%d",&boardsizechoice);*/
+			boardsizechoice = GetMyInt();
+			if(boardsizechoice>=1 && boardsizechoice <= maxsize) {
+				numpieces=boardsizechoice;
+				InitializeGame();
+			} else {
+				printf("Incorrect number of pieces.\n");
+			}
+			break;
+		case 'R':
+			printf("Not this time, sorry.\n");
+			break;
+		case 'H':
+			printf("Not this time, sorry.\n");
+			break;
+		case 'W':
+			printf("Not this time, sorry.\n");
+			break;
+		case 'B':
+			return;
+		default:
+			printf("You did not select a valid option.\n");
+			break;
 		}
 	}
 }
@@ -1564,7 +1564,7 @@ void GameSpecificMenu ()
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (options)
-	int options[];
+int options[];
 {
 
 }
@@ -1590,49 +1590,49 @@ POSITION GetInitialPosition ()
 	char *prediction="";
 	int count=0,pnum,turn;
 	switch(boardsize) {
-		case 0:
-			display5board(board,prediction);
-			moves="1 2 3 4 5";
-			break;
-		case 1:
-			display9board(board,prediction);
-			moves="1 2 3 4 5 6 7 8 9";
-			break;
-		case 2:
-			display13board(board,prediction);
-			moves="1 2 3 4 5 6 7 8 9 B D E F";
-			break;
-		case 3:
-			display17board(board,prediction);
-			moves="1 2 3 4 5 6 7 8 9 B D E F G I J K";
-			break;
-		case 4:
-			display21board(board,prediction);
-			moves="1 2 3 4 5 6 7 8 9 B D E F G I J K L M N P";
-			break;
-		default:
-			printf("Bad default in GetInitialPosition().");
-			exit(1);
+	case 0:
+		display5board(board,prediction);
+		moves="1 2 3 4 5";
+		break;
+	case 1:
+		display9board(board,prediction);
+		moves="1 2 3 4 5 6 7 8 9";
+		break;
+	case 2:
+		display13board(board,prediction);
+		moves="1 2 3 4 5 6 7 8 9 B D E F";
+		break;
+	case 3:
+		display17board(board,prediction);
+		moves="1 2 3 4 5 6 7 8 9 B D E F G I J K";
+		break;
+	case 4:
+		display21board(board,prediction);
+		moves="1 2 3 4 5 6 7 8 9 B D E F G I J K L M N P";
+		break;
+	default:
+		printf("Bad default in GetInitialPosition().");
+		exit(1);
 	}
 	printf("Please enter the pieces [X,*,O]\nin each position [%s] with one space between each position.\n",moves);
 	/*fflush(stdin);
-	getc(stdin);	 kill the remaining \n in the buffer
-	in=getc(stdin);*/
+	   getc(stdin);	 kill the remaining \n in the buffer
+	   in=getc(stdin);*/
 	in = GetMyChar();
 	while(in!='\n') {
 		if(count < maxsize) {
 			switch(toupper(in)) {
-				//case PLAYER1:
-				case 'X':
-					board[count]=PLAYER1;
-					break;
-				//case PLAYER2:
-				case 'O':
-					board[count]=PLAYER2;
-					break;
-				default:
-					board[count]=EMPTYSPACE;
-					break;
+			//case PLAYER1:
+			case 'X':
+				board[count]=PLAYER1;
+				break;
+			//case PLAYER2:
+			case 'O':
+				board[count]=PLAYER2;
+				break;
+			default:
+				board[count]=EMPTYSPACE;
+				break;
 			}
 			/*in=getc(stdin);*/
 			in = GetMyChar();
@@ -1649,7 +1649,7 @@ POSITION GetInitialPosition ()
 	if(pnum<1 || pnum>2) pnum=1;
 	if(turn<0||turn>(numpieces)) turn=numpieces;
 
-    return hash(board,pnum,turn);
+	return hash(board,pnum,turn);
 }
 
 
@@ -1676,7 +1676,7 @@ int NumberOfOptions ()
 	numberOfOptions=getOption();
 	/* return the options to their previous values */
 	setOption(curoptions);
-    return numberOfOptions;
+	return numberOfOptions;
 }
 
 
@@ -1689,18 +1689,18 @@ int NumberOfOptions ()
 **              Each set of variants needs to have a different number.
 **
 ** OUTPUTS:     int : the number representation of the options.
- **
+**
 ************************************************************************/
 
 int getOption ()
 {
 	/**
-	 ** Options:
-	 ** 1/0 Inverse/Normal Rules
- 	 ** 1/0 Handicapped/Not
-         ** 0-2 Counting Territory, captures, or both
-	 ** 0-4 Boardsize
-         **/
+	** Options:
+	** 1/0 Inverse/Normal Rules
+	** 1/0 Handicapped/Not
+	** 0-2 Counting Territory, captures, or both
+	** 0-4 Boardsize
+	**/
 	return 30*rulesvariant+15*handicapping+5*towin+boardsize;
 }
 
@@ -1717,9 +1717,9 @@ int getOption ()
 ************************************************************************/
 
 void setOption (option)
-	int option;
+int option;
 {
-   	rulesvariant=option/30;
+	rulesvariant=option/30;
 	option-=(rulesvariant*30);
 	handicapping=option/15;
 	option-=(handicapping*15);
@@ -1770,9 +1770,9 @@ void DebugMenu ()
 **
 **************************************************************************/
 POSITION hash(board, player, turn)
-	char *board;
-	int player;
-	int turn;
+char *board;
+int player;
+int turn;
 {
 	POSITION ret;
 
@@ -1793,8 +1793,8 @@ POSITION hash(board, player, turn)
 ***************************************************************************/
 
 char *unhashboard(hashed, board)
-	POSITION hashed;
-	char *board;
+POSITION hashed;
+char *board;
 {
 	hashed=hashed>>NUM_HASH_WRAPPER_BITS; /* get rid of the turn encoding */
 	/* better have a non null board */
@@ -1809,7 +1809,7 @@ char *unhashboard(hashed, board)
 ***************************************************************************/
 
 int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg)) {
-        return (generic_hash_init(boardsize, pieces_array, NULL, 0) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
+	return (generic_hash_init(boardsize, pieces_array, NULL, 0) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
 }
 
 /***************************************************************************
@@ -1821,7 +1821,7 @@ int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* c
 *****************************************************************************/
 
 int getplayer(hashed)
-	POSITION hashed;
+POSITION hashed;
 {
 	hashed = hashed>>NUM_HASH_WRAPPER_BITS;
 	return generic_hash_turn(hashed);
@@ -1835,7 +1835,7 @@ int getplayer(hashed)
 *****************************************************************************/
 
 int getturnnumber(hashed)
-	POSITION hashed;
+POSITION hashed;
 {
 	return hashed&31;
 }
@@ -1848,11 +1848,11 @@ int getturnnumber(hashed)
 ***********/
 
 int countboard(board, tocount)
-	char *board;
-	char tocount;
+char *board;
+char tocount;
 {
 	int counter=0,i=0;
-	for(;i<maxsize;i++)
+	for(; i<maxsize; i++)
 		if(board[i]==tocount)
 			counter++;
 	return counter;
@@ -1878,22 +1878,22 @@ int countboard(board, tocount)
 ************************************************************************/
 
 POSITION GetCanonicalPosition(position)
-     POSITION position;
+POSITION position;
 {
-  POSITION DoSymmetry();
-  POSITION newPosition, theCanonicalPosition;
-  int i;
+	POSITION DoSymmetry();
+	POSITION newPosition, theCanonicalPosition;
+	int i;
 
-  theCanonicalPosition = position;
+	theCanonicalPosition = position;
 
-  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
+	for(i = 0; i < NUMSYMMETRIES; i++) {
 
-    newPosition = DoSymmetry(position, i);    /* get new */
-    if(newPosition < theCanonicalPosition)    /* THIS is the one */
-      theCanonicalPosition = newPosition;     /* set it to the ans */
-  }
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
 
-  return(theCanonicalPosition);
+	return(theCanonicalPosition);
 }
 
 /************************************************************************
@@ -1912,34 +1912,34 @@ POSITION GetCanonicalPosition(position)
 ************************************************************************/
 
 POSITION DoSymmetry(position, symmetry)
-     POSITION position;
-     int symmetry;
+POSITION position;
+int symmetry;
 {
-  int i;
-  int player = getplayer(position);
-  int turn = getturnnumber(position);
+	int i;
+	int player = getplayer(position);
+	int turn = getturnnumber(position);
 
-  board = unhashboard(position,board);
-  symmboard = unhashboard(position,symmboard); /* Make copy */
+	board = unhashboard(position,board);
+	symmboard = unhashboard(position,symmboard); /* Make copy */
 
-  /* Copy from the symmetry matrix */
+	/* Copy from the symmetry matrix */
 
-  for(i = 0 ; i < maxsize ; i++)
-    symmboard[i] = board[gSymmetryMatrix[symmetry][i]];
+	for(i = 0; i < maxsize; i++)
+		symmboard[i] = board[gSymmetryMatrix[symmetry][i]];
 
-  return(hash(symmboard, player, turn));
+	return(hash(symmboard, player, turn));
 }
 
 /**************************************************/
 /**************** SYMMETRY FUN END ****************/
 /**************************************************/
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

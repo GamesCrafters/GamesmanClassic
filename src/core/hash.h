@@ -4,7 +4,7 @@
 #include "gamesman.h"
 
 /************************************************************************
-***********************************************************************/
+ ***********************************************************************/
 /* DDG Tried to fix build by externing in hash.h, declaring in hash.c */
 /* 2004-10-20 */
 //extern POSITION *hash_hashOffset;
@@ -21,46 +21,46 @@
 
 struct symEntry
 {
-        int type;
-        int angle;
-        int *sym; 
-        int flip;
-        struct symEntry *next;
+	int type;
+	int angle;
+	int *sym;
+	int flip;
+	struct symEntry *next;
 };
 
 
 struct hashContext
 {
 
-        POSITION *hashOffset;
-        POSITION maxPos;
-        POSITION *combiArray;
-        POSITION *NCR;
-        int *gpdStore;
-        int *offsetIndices;
-        int *pieceIndices;
-        int boardSize;
+	POSITION *hashOffset;
+	POSITION maxPos;
+	POSITION *combiArray;
+	POSITION *NCR;
+	int *gpdStore;
+	int *offsetIndices;
+	int *pieceIndices;
+	int boardSize;
 
-        int numCfgs;
-        int usefulSpace;
+	int numCfgs;
+	int usefulSpace;
 
-        int numPieces;
-        char *pieces;
-        int *nums;
-        int *mins;
-        int *maxs;
+	int numPieces;
+	char *pieces;
+	int *nums;
+	int *mins;
+	int *maxs;
 
-        int *thisCount;
-        int *localMins;
+	int *thisCount;
+	int *localMins;
 
-        POSITION *miniOffset;
-        int *miniIndices;
+	POSITION *miniOffset;
+	int *miniIndices;
 
-        int (*gfn)(int *);
+	int (*gfn)(int *);
 
-        int player;		// 0=Both Player boards (default), 1=1st Player only, 2=2nd only
+	int player;             // 0=Both Player boards (default), 1=1st Player only, 2=2nd only
 
-        int contextNumber;
+	int contextNumber;
 };
 
 int generic_hash_context_init();

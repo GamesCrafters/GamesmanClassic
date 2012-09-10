@@ -14,7 +14,7 @@
 
 #include "tk.h"
 #include "gamesman.h"
-#include<string.h>
+#include <string.h>
 
 extern STRING gValueString[];        /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;
@@ -42,60 +42,60 @@ int *tclDummyMathPtr = (int *) matherr;
 ** Begin prototype for commands invoked from tcl command requests
 **
 **************************************************************************/
-static int		PrintCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		InitialPositionCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		GenericUnhashCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		DestinationCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		MoveHashCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		WhoseMoveCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		FooCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		InitializeCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		InitializeDatabasesCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int              InitializeGameCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		GetComputersMoveCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		SetGameSpecificOptionsCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		DetermineValueCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		GetValueOfPositionCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		RemotenessCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		MexCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		DoMoveCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		PrimitiveCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		GetValueMovesCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		RandomCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
+static int PrintCmd _ANSI_ARGS_((ClientData clientData,
+                                 Tcl_Interp *interp, int argc, char **argv));
+static int InitialPositionCmd _ANSI_ARGS_((ClientData clientData,
+                                           Tcl_Interp *interp, int argc, char **argv));
+static int GenericUnhashCmd _ANSI_ARGS_((ClientData clientData,
+                                         Tcl_Interp *interp, int argc, char **argv));
+static int DestinationCmd _ANSI_ARGS_((ClientData clientData,
+                                       Tcl_Interp *interp, int argc, char **argv));
+static int MoveHashCmd _ANSI_ARGS_((ClientData clientData,
+                                    Tcl_Interp *interp, int argc, char **argv));
+static int WhoseMoveCmd _ANSI_ARGS_((ClientData clientData,
+                                     Tcl_Interp *interp, int argc, char **argv));
+static int FooCmd _ANSI_ARGS_((ClientData clientData,
+                               Tcl_Interp *interp, int argc, char **argv));
+static int InitializeCmd _ANSI_ARGS_((ClientData clientData,
+                                      Tcl_Interp *interp, int argc, char **argv));
+static int InitializeDatabasesCmd _ANSI_ARGS_((ClientData clientData,
+                                               Tcl_Interp *interp, int argc, char **argv));
+static int InitializeGameCmd _ANSI_ARGS_((ClientData clientData,
+                                          Tcl_Interp *interp, int argc, char **argv));
+static int GetComputersMoveCmd _ANSI_ARGS_((ClientData clientData,
+                                            Tcl_Interp *interp, int argc, char **argv));
+static int SetGameSpecificOptionsCmd _ANSI_ARGS_((ClientData clientData,
+                                                  Tcl_Interp *interp, int argc, char **argv));
+static int DetermineValueCmd _ANSI_ARGS_((ClientData clientData,
+                                          Tcl_Interp *interp, int argc, char **argv));
+static int GetValueOfPositionCmd _ANSI_ARGS_((ClientData clientData,
+                                              Tcl_Interp *interp, int argc, char **argv));
+static int RemotenessCmd _ANSI_ARGS_((ClientData clientData,
+                                      Tcl_Interp *interp, int argc, char **argv));
+static int MexCmd _ANSI_ARGS_((ClientData clientData,
+                               Tcl_Interp *interp, int argc, char **argv));
+static int DoMoveCmd _ANSI_ARGS_((ClientData clientData,
+                                  Tcl_Interp *interp, int argc, char **argv));
+static int PrimitiveCmd _ANSI_ARGS_((ClientData clientData,
+                                     Tcl_Interp *interp, int argc, char **argv));
+static int GetValueMovesCmd _ANSI_ARGS_((ClientData clientData,
+                                         Tcl_Interp *interp, int argc, char **argv));
+static int RandomCmd _ANSI_ARGS_((ClientData clientData,
+                                  Tcl_Interp *interp, int argc, char **argv));
  #ifdef COMPUTEC
-static int		ComputeCCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
+static int ComputeCCmd _ANSI_ARGS_((ClientData clientData,
+                                    Tcl_Interp *interp, int argc, char **argv));
  #endif
-static int		GoAgainCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		GetPredictionCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int              SetSmarterComputerCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		GetOptionCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
-static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
-			    Tcl_Interp *interp, int argc, char **argv));
+static int GoAgainCmd _ANSI_ARGS_((ClientData clientData,
+                                   Tcl_Interp *interp, int argc, char **argv));
+static int GetPredictionCmd _ANSI_ARGS_((ClientData clientData,
+                                         Tcl_Interp *interp, int argc, char **argv));
+static int SetSmarterComputerCmd _ANSI_ARGS_((ClientData clientData,
+                                              Tcl_Interp *interp, int argc, char **argv));
+static int GetOptionCmd _ANSI_ARGS_((ClientData clientData,
+                                     Tcl_Interp *interp, int argc, char **argv));
+static int SetOptionCmd _ANSI_ARGS_((ClientData clientData,
+                                     Tcl_Interp *interp, int argc, char **argv));
 
 /************************************************************************
 **
@@ -113,74 +113,74 @@ static int		SetOptionCmd _ANSI_ARGS_((ClientData clientData,
 
 int
 Gamesman_Init(interp)
-    Tcl_Interp *interp;		/* Interpreter for application. */
+Tcl_Interp *interp;             /* Interpreter for application. */
 {
-    Tk_Window mainWindow;
+	Tk_Window mainWindow;
 
-    mainWindow = Tk_MainWindow(interp);
-    Tcl_CreateCommand(interp, "Print", (Tcl_CmdProc*) PrintCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_InitialPosition", (Tcl_CmdProc*) InitialPositionCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_GenericUnhash", (Tcl_CmdProc*) GenericUnhashCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_Destination", (Tcl_CmdProc*) DestinationCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_MoveHash", (Tcl_CmdProc*) MoveHashCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_WhoseMove", (Tcl_CmdProc*) WhoseMoveCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_Initialize", (Tcl_CmdProc*) InitializeCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_InitializeDatabases", (Tcl_CmdProc*) InitializeDatabasesCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_InitializeGame", (Tcl_CmdProc*) InitializeGameCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_GetComputersMove", (Tcl_CmdProc*) GetComputersMoveCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_SetGameSpecificOptions", (Tcl_CmdProc*) SetGameSpecificOptionsCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_DetermineValue", (Tcl_CmdProc*) DetermineValueCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_GetValueOfPosition", (Tcl_CmdProc*) GetValueOfPositionCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_Remoteness", (Tcl_CmdProc*) RemotenessCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_Mex", (Tcl_CmdProc*) MexCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_DoMove", (Tcl_CmdProc*) DoMoveCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_Primitive", (Tcl_CmdProc*) PrimitiveCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_GetValueMoves", (Tcl_CmdProc*) GetValueMovesCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_Random", (Tcl_CmdProc*) RandomCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
+	mainWindow = Tk_MainWindow(interp);
+	Tcl_CreateCommand(interp, "Print", (Tcl_CmdProc*) PrintCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_InitialPosition", (Tcl_CmdProc*) InitialPositionCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_GenericUnhash", (Tcl_CmdProc*) GenericUnhashCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_Destination", (Tcl_CmdProc*) DestinationCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_MoveHash", (Tcl_CmdProc*) MoveHashCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_WhoseMove", (Tcl_CmdProc*) WhoseMoveCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "foo", (Tcl_CmdProc*) FooCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_Initialize", (Tcl_CmdProc*) InitializeCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_InitializeDatabases", (Tcl_CmdProc*) InitializeDatabasesCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_InitializeGame", (Tcl_CmdProc*) InitializeGameCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_GetComputersMove", (Tcl_CmdProc*) GetComputersMoveCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_SetGameSpecificOptions", (Tcl_CmdProc*) SetGameSpecificOptionsCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_DetermineValue", (Tcl_CmdProc*) DetermineValueCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_GetValueOfPosition", (Tcl_CmdProc*) GetValueOfPositionCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_Remoteness", (Tcl_CmdProc*) RemotenessCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_Mex", (Tcl_CmdProc*) MexCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_DoMove", (Tcl_CmdProc*) DoMoveCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_Primitive", (Tcl_CmdProc*) PrimitiveCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_GetValueMoves", (Tcl_CmdProc*) GetValueMovesCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_Random", (Tcl_CmdProc*) RandomCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
 #ifdef COMPUTEC
-    Tcl_CreateCommand(interp, "C_ComputeC", (Tcl_CmdProc*) ComputeCCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_ComputeC", (Tcl_CmdProc*) ComputeCCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
 #endif
-    Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_GetPrediction", (Tcl_CmdProc*) GetPredictionCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_SetSmarterComputer", (Tcl_CmdProc*) SetSmarterComputerCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_GetOption", (Tcl_CmdProc*) GetOptionCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
-    Tcl_CreateCommand(interp, "C_SetOption", (Tcl_CmdProc*) SetOptionCmd, (ClientData) mainWindow,
-		      (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_GoAgain", (Tcl_CmdProc*) GoAgainCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_GetPrediction", (Tcl_CmdProc*) GetPredictionCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_SetSmarterComputer", (Tcl_CmdProc*) SetSmarterComputerCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_GetOption", (Tcl_CmdProc*) GetOptionCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
+	Tcl_CreateCommand(interp, "C_SetOption", (Tcl_CmdProc*) SetOptionCmd, (ClientData) mainWindow,
+	                  (Tcl_CmdDeleteProc*) NULL);
 
-    {
-    int (*fptr)(Tcl_Interp *interp,Tk_Window) = (int(*)(Tcl_Interp*, Tk_Window))gGameSpecificTclInit;
+	{
+		int (*fptr)(Tcl_Interp *interp,Tk_Window) = (int (*)(Tcl_Interp*, Tk_Window))gGameSpecificTclInit;
 
-    if (fptr)
-      (fptr)(interp,mainWindow);
-    }
+		if (fptr)
+			(fptr)(interp,mainWindow);
+	}
 
-    return TCL_OK;
+	return TCL_OK;
 }
 
 /*************************************************************************
@@ -190,606 +190,606 @@ Gamesman_Init(interp)
 **************************************************************************/
 static int
 InitialPositionCmd(dummy, interp, argc, argv)
-     ClientData dummy;
-     Tcl_Interp *interp;
-     int argc;
-     char **argv;
+ClientData dummy;
+Tcl_Interp *interp;
+int argc;
+char **argv;
 {
-  if (argc != 1) {
-    interp->result ="wrong # args: shouldn't be any";
-    return TCL_ERROR;
-  }
-  sprintf(interp->result,"%d",(int)getInitialPosition());
-  return TCL_OK;
+	if (argc != 1) {
+		interp->result ="wrong # args: shouldn't be any";
+		return TCL_ERROR;
+	}
+	sprintf(interp->result,"%d",(int)getInitialPosition());
+	return TCL_OK;
 }
 
 static int
 GenericUnhashCmd(dummy, interp, argc, argv)
-     ClientData dummy;
-     Tcl_Interp *interp;
-     int argc;
-     char **argv;
+ClientData dummy;
+Tcl_Interp *interp;
+int argc;
+char **argv;
 {
-  //argv[1] is position, argv[2] is boardsize
-  if (argc != 3) {
-    interp->result = "wrong # args: should be 2";
-    return TCL_ERROR;
-  }
-  char *board;
-  board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
-  generic_hash_unhash(atoi(argv[1]),board);
-  sprintf(interp->result, "%s",board);
-  return TCL_OK;
+	//argv[1] is position, argv[2] is boardsize
+	if (argc != 3) {
+		interp->result = "wrong # args: should be 2";
+		return TCL_ERROR;
+	}
+	char *board;
+	board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
+	generic_hash_unhash(atoi(argv[1]),board);
+	sprintf(interp->result, "%s",board);
+	return TCL_OK;
 }
 
 static int
 DestinationCmd(dummy, interp, argc, argv)
-     ClientData dummy;
-     Tcl_Interp *interp;
-     int argc;
-     char **argv;
+ClientData dummy;
+Tcl_Interp *interp;
+int argc;
+char **argv;
 {
-  //argv[1] is slot#, argv[2] is direction#
-  if (argc != 3) {
-    interp->result = "wrong # args: should be 2";
-    return TCL_ERROR;
-  }
-  sprintf(interp->result, "%d", destination(atoi(argv[1]), atoi(argv[2])));
-  return TCL_OK;
+	//argv[1] is slot#, argv[2] is direction#
+	if (argc != 3) {
+		interp->result = "wrong # args: should be 2";
+		return TCL_ERROR;
+	}
+	sprintf(interp->result, "%d", destination(atoi(argv[1]), atoi(argv[2])));
+	return TCL_OK;
 }
 
 static int
 MoveHashCmd(dummy, interp, argc, argv)
-     ClientData dummy;
-     Tcl_Interp *interp;
-     int argc;
-     char **argv;
+ClientData dummy;
+Tcl_Interp *interp;
+int argc;
+char **argv;
 {
-  //argv1-3 are slot #s, argv[4] is direction #
-  if (argc !=5) {
-    interp->result = "wrong # args: should be 4";
-    return TCL_ERROR;
-  }
-  sprintf(interp->result, "%d", move_hash(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4])));
-  return TCL_OK;
+	//argv1-3 are slot #s, argv[4] is direction #
+	if (argc !=5) {
+		interp->result = "wrong # args: should be 4";
+		return TCL_ERROR;
+	}
+	sprintf(interp->result, "%d", move_hash(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4])));
+	return TCL_OK;
 }
 
 static int
 PrintCmd(dummy, interp, argc, argv)
-     ClientData dummy;
-     Tcl_Interp *interp;
-     int argc;
-     char **argv;
+ClientData dummy;
+Tcl_Interp *interp;
+int argc;
+char **argv;
 {
-  printf("%s\n",argv[1]);
-  return TCL_OK;
+	printf("%s\n",argv[1]);
+	return TCL_OK;
 }
 
 
 static int
 WhoseMoveCmd(dummy, interp, argc, argv)
-     ClientData dummy;
-     Tcl_Interp *interp;
-     int argc;
-     char **argv;
+ClientData dummy;
+Tcl_Interp *interp;
+int argc;
+char **argv;
 {
-  if (argc !=2) {
-    interp->result = "wrong # args: should be one";
-    return TCL_ERROR;
-  }
-  sprintf(interp->result,"%d", generic_hash_turn(atoi(argv[1])));
-  return TCL_OK;
+	if (argc !=2) {
+		interp->result = "wrong # args: should be one";
+		return TCL_ERROR;
+	}
+	sprintf(interp->result,"%d", generic_hash_turn(atoi(argv[1])));
+	return TCL_OK;
 }
 
 static int
 FooCmd(dummy, interp, argc, argv)
-     ClientData dummy;			/* Not used. */
-     Tcl_Interp *interp;			/* Current interpreter. */
-     int argc;				/* Number of arguments. */
-     char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                             /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-    if (argc != 4) {
-	Tcl_AppendResult(interp, "wrong # args: should be \"", argv[0],
-		" x y z\"", (char *) NULL);
-	return TCL_ERROR;
-    }
-    else {
-	interp->result = "Dan Garcia";
-	return TCL_OK;
-    }
+	if (argc != 4) {
+		Tcl_AppendResult(interp, "wrong # args: should be \"", argv[0],
+		                 " x y z\"", (char *) NULL);
+		return TCL_ERROR;
+	}
+	else {
+		interp->result = "Dan Garcia";
+		return TCL_OK;
+	}
 }
 
 static int
 InitializeCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  if (argc != 1) {
-    interp->result = "wrong # args: shouldn't have any args";
-    return TCL_ERROR;
-  }
-  else {
-    Initialize();
-    interp->result = "System Initialized";
-    return TCL_OK;
-  }
+	if (argc != 1) {
+		interp->result = "wrong # args: shouldn't have any args";
+		return TCL_ERROR;
+	}
+	else {
+		Initialize();
+		interp->result = "System Initialized";
+		return TCL_OK;
+	}
 }
 
 static int
 InitializeGameCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  if (argc != 1) {
-    interp->result = "wrong # args: shouldn't have any args";
-    return TCL_ERROR;
-  }
-  else {
-    InitializeGame();
-    interp->result = "Game Initialized";
-    return TCL_OK;
-  }
+	if (argc != 1) {
+		interp->result = "wrong # args: shouldn't have any args";
+		return TCL_ERROR;
+	}
+	else {
+		InitializeGame();
+		interp->result = "Game Initialized";
+		return TCL_OK;
+	}
 }
 
 static int
 InitializeDatabasesCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  if (argc != 1) {
-    interp->result = "wrong # args: shouldn't have any args";
-    return TCL_ERROR;
-  }
-  else {
-    InitializeDatabases();
-    interp->result = "Databases Initialized";
-    return TCL_OK;
-  }
+	if (argc != 1) {
+		interp->result = "wrong # args: shouldn't have any args";
+		return TCL_ERROR;
+	}
+	else {
+		InitializeDatabases();
+		interp->result = "Databases Initialized";
+		return TCL_OK;
+	}
 }
 
 static int
 GetComputersMoveCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  MOVE GetComputersMove();
-  POSITION position;
+	MOVE GetComputersMove();
+	POSITION position;
 
-  if (argc != 2) {
-    interp->result = "wrong # args: GetComputerMove (int)Position";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: GetComputerMove (int)Position";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
 
-    sprintf(interp->result,"%d",(int)GetComputersMove(position));
-    return TCL_OK;
-  }
+		sprintf(interp->result,"%d",(int)GetComputersMove(position));
+		return TCL_OK;
+	}
 }
 
 static int
 SetGameSpecificOptionsCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  int i, theOptions[100];
-  int standardGame = 0;
+	int i, theOptions[100];
+	int standardGame = 0;
 
-  if (argc < 2) {
-    interp->result = "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options";
-    return TCL_ERROR;
-  }
+	if (argc < 2) {
+		interp->result = "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options";
+		return TCL_ERROR;
+	}
 
-  if (argc > 102) {
-    interp->result = "too many arguments: SetGameSpecificOptions (boolean)Standard-Game-p [, (boolean)option_n]*";
-    return TCL_ERROR;
-  }
+	if (argc > 102) {
+		interp->result = "too many arguments: SetGameSpecificOptions (boolean)Standard-Game-p [, (boolean)option_n]*";
+		return TCL_ERROR;
+	}
 
-  if(Tcl_GetInt(interp, argv[1], &standardGame) != TCL_OK)
-    return TCL_ERROR;
+	if(Tcl_GetInt(interp, argv[1], &standardGame) != TCL_OK)
+		return TCL_ERROR;
 
-  if (argc > 2)
-    for(i=2;i<argc;i++)
-      if(Tcl_GetInt(interp, argv[i], &theOptions[i-2]) != TCL_OK)
-	return TCL_ERROR;
+	if (argc > 2)
+		for(i=2; i<argc; i++)
+			if(Tcl_GetInt(interp, argv[i], &theOptions[i-2]) != TCL_OK)
+				return TCL_ERROR;
 
-  gStandardGame = standardGame;
-  SetTclCGameSpecificOptions(theOptions);
+	gStandardGame = standardGame;
+	SetTclCGameSpecificOptions(theOptions);
 
-  return TCL_OK;
+	return TCL_OK;
 }
 
 static int
 DetermineValueCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  VALUE DetermineValue(), DetermineLoopyValue();
+	POSITION position;
+	VALUE DetermineValue(), DetermineLoopyValue();
 
-  if (argc != 2) {
-    interp->result = "wrong # args: DetermineValue (POSITION)Position";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: DetermineValue (POSITION)Position";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
 
-    interp->result = gValueString[(int)DetermineValue(position)];
+		interp->result = gValueString[(int)DetermineValue(position)];
 
-    return TCL_OK;
-  }
+		return TCL_OK;
+	}
 }
 
 static int
 GetValueOfPositionCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  VALUE GetValueOfPosition();
+	POSITION position;
+	VALUE GetValueOfPosition();
 
-  if (argc != 2) {
-    interp->result = "wrong # args: GetValueOfPosition (POSITION)Position";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: GetValueOfPosition (POSITION)Position";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
 
-    interp->result = gValueString[(int)GetValueOfPosition(position)];
-    return TCL_OK;
-  }
+		interp->result = gValueString[(int)GetValueOfPosition(position)];
+		return TCL_OK;
+	}
 }
 
 static int
 RemotenessCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  REMOTENESS Remoteness();
+	POSITION position;
+	REMOTENESS Remoteness();
 
-  if (argc != 2) {
-    interp->result = "wrong # args: Remoteness (POSITION)Position";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: Remoteness (POSITION)Position";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
 
-    sprintf(interp->result,"%d",(int)Remoteness(position));
-    return TCL_OK;
-  }
+		sprintf(interp->result,"%d",(int)Remoteness(position));
+		return TCL_OK;
+	}
 }
 
 static int
 MexCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  REMOTENESS Remoteness();
+	POSITION position;
+	REMOTENESS Remoteness();
 
-  if (argc != 2) {
-    interp->result = "wrong # args: Mex (POSITION)Position";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: Mex (POSITION)Position";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
 
-    if(!kPartizan)
-      MexFormat(position,interp->result);
-    else
-      sprintf(interp->result," ");
-    return TCL_OK;
-  }
+		if(!kPartizan)
+			MexFormat(position,interp->result);
+		else
+			sprintf(interp->result," ");
+		return TCL_OK;
+	}
 }
 
 static int
 DoMoveCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  MOVE move;
-  POSITION DoMove();
+	POSITION position;
+	MOVE move;
+	POSITION DoMove();
 
-  if (argc != 3) {
-    interp->result = "wrong # args: DoMove (int)Position (int)Move";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
-    if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
-      return TCL_ERROR;
+	if (argc != 3) {
+		interp->result = "wrong # args: DoMove (int)Position (int)Move";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
+		if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
+			return TCL_ERROR;
 
-    sprintf(interp->result,"%d",(int)DoMove(position,move));
-    return TCL_OK;
-  }
+		sprintf(interp->result,"%d",(int)DoMove(position,move));
+		return TCL_OK;
+	}
 }
 
 static int
 GoAgainCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  MOVE move;
-  extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
+	POSITION position;
+	MOVE move;
+	extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
-  if (argc != 3) {
-    interp->result = "wrong # args: GoAgain (int)Position (int)Move";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
-    if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
-      return TCL_ERROR;
+	if (argc != 3) {
+		interp->result = "wrong # args: GoAgain (int)Position (int)Move";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
+		if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
+			return TCL_ERROR;
 
-    sprintf(interp->result,"%d",(int)gGoAgain(position,move));
-    return TCL_OK;
-  }
+		sprintf(interp->result,"%d",(int)gGoAgain(position,move));
+		return TCL_OK;
+	}
 }
 
 static int
 PrimitiveCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  VALUE Primitive();
+	POSITION position;
+	VALUE Primitive();
 
-  if (argc != 2) {
-    interp->result = "wrong # args: Primitive (int)Position";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: Primitive (int)Position";
+		return TCL_ERROR;
+	}
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
 
-    interp->result = gValueString[(int)Primitive(position)];
-    return TCL_OK;
-  }
+		interp->result = gValueString[(int)Primitive(position)];
+		return TCL_OK;
+	}
 }
 
 static int
 GetValueMovesCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  MOVELIST *ptr, *head;
-  VALUE value;
-  char theAnswer[10000], tmp[1000];
+	POSITION position;
+	MOVELIST *ptr, *head;
+	VALUE value;
+	char theAnswer[10000], tmp[1000];
 
-  if (argc != 2) {
-    interp->result = "wrong # args: GetValueMoves (int)Position";
-    return TCL_ERROR;
-  }
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
-
-    head = ptr = GenerateMoves(position);
-    theAnswer[0] = '\0';
-    while (ptr != NULL) {
-      value = GetValueOfPosition(DoMove(position,ptr->move));
-
-      if (gGoAgain(position,ptr->move)) {
-	switch(value) {
-	case win: value = lose; break;
-	case lose: value = win; break;
-	default: value = value;
+	if (argc != 2) {
+		interp->result = "wrong # args: GetValueMoves (int)Position";
+		return TCL_ERROR;
 	}
-      }
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
 
-      sprintf(tmp,"{ %d %s } ",
-	      (ptr->move),
-	      gValueString[value]);
-      /* If this barfs, change 'char' to 'const char' */
-      strcpy(theAnswer,(char *)strcat(theAnswer,tmp));
-      ptr = ptr->next;
-    }
+		head = ptr = GenerateMoves(position);
+		theAnswer[0] = '\0';
+		while (ptr != NULL) {
+			value = GetValueOfPosition(DoMove(position,ptr->move));
 
-    Tcl_SetResult(interp,theAnswer,TCL_VOLATILE);
+			if (gGoAgain(position,ptr->move)) {
+				switch(value) {
+				case win: value = lose; break;
+				case lose: value = win; break;
+				default: value = value;
+				}
+			}
 
-    FreeMoveList(head);
-    return TCL_OK;
-  }
+			sprintf(tmp,"{ %d %s } ",
+			        (ptr->move),
+			        gValueString[value]);
+			/* If this barfs, change 'char' to 'const char' */
+			strcpy(theAnswer,(char *)strcat(theAnswer,tmp));
+			ptr = ptr->next;
+		}
+
+		Tcl_SetResult(interp,theAnswer,TCL_VOLATILE);
+
+		FreeMoveList(head);
+		return TCL_OK;
+	}
 }
 
 static int
 RandomCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  int GetRandomNumber();
-  int n;
+	int GetRandomNumber();
+	int n;
 
-  if (argc != 2) {
-    interp->result = "wrong # args: Random (int)n";
-    return TCL_ERROR;
-  }
-  else {
-    if(Tcl_GetInt(interp, argv[1], &n) != TCL_OK)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: Random (int)n";
+		return TCL_ERROR;
+	}
+	else {
+		if(Tcl_GetInt(interp, argv[1], &n) != TCL_OK)
+			return TCL_ERROR;
 
-    sprintf(interp->result,"%d",GetRandomNumber(n));
-    return TCL_OK;
-  }
+		sprintf(interp->result,"%d",GetRandomNumber(n));
+		return TCL_OK;
+	}
 }
 
 static int
 GetPredictionCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  POSITION position;
-  STRING playerName, prediction;
+	POSITION position;
+	STRING playerName, prediction;
 
-  if (argc != 3) {
-    interp->result = "wrong # args: GetPrediction position playerName";
-    return TCL_ERROR;
-  }
+	if (argc != 3) {
+		interp->result = "wrong # args: GetPrediction position playerName";
+		return TCL_ERROR;
+	}
 
-  else {
-    if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
-      return TCL_ERROR;
-    playerName = (STRING) argv[2];
+	else {
+		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
+			return TCL_ERROR;
+		playerName = (STRING) argv[2];
 
-    prediction =  GetPrediction(position, playerName, TRUE);
-    sprintf(interp->result,"%s",prediction);
-    return TCL_OK;
-  }
+		prediction =  GetPrediction(position, playerName, TRUE);
+		sprintf(interp->result,"%s",prediction);
+		return TCL_OK;
+	}
 }
 
 static int
 SetSmarterComputerCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  int smartnessScale;
-  STRING smartnessString;
+	int smartnessScale;
+	STRING smartnessString;
 
-  if (argc > 3 || argc < 2) {
-    interp->result = "wrong # args: SetSmarterComputer smartness [scale]";
-    return TCL_ERROR;
-  }
+	if (argc > 3 || argc < 2) {
+		interp->result = "wrong # args: SetSmarterComputer smartness [scale]";
+		return TCL_ERROR;
+	}
 
-  else {
-    smartnessString = (STRING) argv[1];
-    sprintf(interp->result, "Setting smarter computer to %s\n", smartnessString);
+	else {
+		smartnessString = (STRING) argv[1];
+		sprintf(interp->result, "Setting smarter computer to %s\n", smartnessString);
 
-    if (strcmp(smartnessString, "Perfectly") == 0) {
-      smartness = SMART;
-      scalelvl = 100;
-    }
-    else if (strcmp(smartnessString, "Imperfectly") == 0) {
-      smartness = SMART;
-      if(Tcl_GetInt(interp, argv[2], &smartnessScale) != TCL_OK)
-	return TCL_ERROR;
-      scalelvl = smartnessScale;
-    }
-    else if (strcmp(smartnessString, "Randomly") == 0) {
-      smartness = RANDOM;
-    }
-    else if (strcmp(smartnessString, "Miserely") == 0) {
-      smartness = DUMB;
-    }
-    else {
-      return TCL_ERROR;
-    }
+		if (strcmp(smartnessString, "Perfectly") == 0) {
+			smartness = SMART;
+			scalelvl = 100;
+		}
+		else if (strcmp(smartnessString, "Imperfectly") == 0) {
+			smartness = SMART;
+			if(Tcl_GetInt(interp, argv[2], &smartnessScale) != TCL_OK)
+				return TCL_ERROR;
+			scalelvl = smartnessScale;
+		}
+		else if (strcmp(smartnessString, "Randomly") == 0) {
+			smartness = RANDOM;
+		}
+		else if (strcmp(smartnessString, "Miserely") == 0) {
+			smartness = DUMB;
+		}
+		else {
+			return TCL_ERROR;
+		}
 
-    return TCL_OK;
-  }
+		return TCL_OK;
+	}
 }
 
 static int
 SetOptionCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  int option;
+	int option;
 
-  if (argc != 2) {
-    interp->result = "wrong # args: SetOption (int)option";
-    return TCL_ERROR;
-  }
-  else {
-    if(Tcl_GetInt(interp, argv[1], &option) != TCL_OK)
-      return TCL_ERROR;
+	if (argc != 2) {
+		interp->result = "wrong # args: SetOption (int)option";
+		return TCL_ERROR;
+	}
+	else {
+		if(Tcl_GetInt(interp, argv[1], &option) != TCL_OK)
+			return TCL_ERROR;
 
-    setOption(option);
+		setOption(option);
 
-    return TCL_OK;
-  }
+		return TCL_OK;
+	}
 }
 
 static int
 GetOptionCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  int option;
+	int option;
 
-  if (argc != 1) {
-    interp->result = "wrong # args: GetOption";
-    return TCL_ERROR;
-  }
-  else {
+	if (argc != 1) {
+		interp->result = "wrong # args: GetOption";
+		return TCL_ERROR;
+	}
+	else {
 
-    option = getOption();
-    sprintf(interp->result,"%d",option);
+		option = getOption();
+		sprintf(interp->result,"%d",option);
 
-    return TCL_OK;
-  }
+		return TCL_OK;
+	}
 }
 
  #ifdef COMPUTEC
 static int
 ComputeCCmd(dummy, interp, argc, argv)
-    ClientData dummy;			/* Not used. */
-    Tcl_Interp *interp;			/* Current interpreter. */
-    int argc;				/* Number of arguments. */
-    char **argv;			/* Argument strings. */
+ClientData dummy;                       /* Not used. */
+Tcl_Interp *interp;                     /* Current interpreter. */
+int argc;                               /* Number of arguments. */
+char **argv;                            /* Argument strings. */
 {
-  int ComputeC();
-  int n,k;
+	int ComputeC();
+	int n,k;
 
-  if (argc != 3) {
-    interp->result = "wrong # args: Random (int)n";
-    return TCL_ERROR;
-  }
-  else {
-    if(Tcl_GetInt(interp, argv[1], &n) != TCL_OK)
-      return TCL_ERROR;
-    if(Tcl_GetInt(interp, argv[2], &k) != TCL_OK)
-      return TCL_ERROR;
+	if (argc != 3) {
+		interp->result = "wrong # args: Random (int)n";
+		return TCL_ERROR;
+	}
+	else {
+		if(Tcl_GetInt(interp, argv[1], &n) != TCL_OK)
+			return TCL_ERROR;
+		if(Tcl_GetInt(interp, argv[2], &k) != TCL_OK)
+			return TCL_ERROR;
 
-    sprintf(interp->result,"%d",ComputeC(n,k));
-    return TCL_OK;
-  }
+		sprintf(interp->result,"%d",ComputeC(n,k));
+		return TCL_OK;
+	}
 }
  #endif
 

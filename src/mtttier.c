@@ -61,52 +61,52 @@
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 0;
-POSITION kBadPosition	     = -1;
+POSITION kBadPosition        = -1;
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING   kAuthorName         = "Dan Garcia (and Max Delgadillo)";
-STRING   kGameName           = "Tic-Tac-Tier";
-STRING   kDBName             = "tttier";
-BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = FALSE;
-BOOLEAN  kGameSpecificMenu   = FALSE;
-BOOLEAN  kTieIsPossible      = TRUE;
-BOOLEAN  kLoopy               = FALSE;
-BOOLEAN  kDebugDetermineValue = FALSE;
-void*	 gGameSpecificTclInit = NULL;
+STRING kAuthorName         = "Dan Garcia (and Max Delgadillo)";
+STRING kGameName           = "Tic-Tac-Tier";
+STRING kDBName             = "tttier";
+BOOLEAN kPartizan           = TRUE;
+BOOLEAN kDebugMenu          = FALSE;
+BOOLEAN kGameSpecificMenu   = FALSE;
+BOOLEAN kTieIsPossible      = TRUE;
+BOOLEAN kLoopy               = FALSE;
+BOOLEAN kDebugDetermineValue = FALSE;
+void*    gGameSpecificTclInit = NULL;
 
-STRING   kHelpGraphicInterface =
-"The LEFT button puts an X or O (depending on whether you went first\n\
+STRING kHelpGraphicInterface =
+        "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
-it reverts back to your your most recent position.";
+it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n\
+STRING kHelpTextInterface    =
+        "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
 to the empty board position you desire and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+revert back to your most recent position."                                                                                                                                                                                                                                                                                                                           ;
 
-STRING   kHelpOnYourTurn =
-"You place one of your pieces on one of the empty board positions.";
+STRING kHelpOnYourTurn =
+        "You place one of your pieces on one of the empty board positions.";
 
-STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+STRING kHelpStandardObjective =
+        "To get three of your markers (either X or O) in a row, either\n\
+horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
 
-STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n\
+STRING kHelpReverseObjective =
+        "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES.";
+LOSES."                                                                                                                                                             ;
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"the board fills up without either player getting three-in-a-row.";
+STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+                            "the board fills up without either player getting three-in-a-row.";
 
-STRING   kHelpExample =
-"         ( 1 2 3 )           : - - -\n\
+STRING kHelpExample =
+        "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\
 Computer's move              :  3    \n\n\
@@ -137,7 +137,7 @@ Computer's move              :  4    \n\n\
          ( 1 2 3 )           : - O X \n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
          ( 7 8 9 )           : O - O \n\n\
-Computer wins. Nice try, Dan.";
+Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
 
 /*************************************************************************
 **
@@ -154,9 +154,9 @@ Computer wins. Nice try, Dan.";
 #define BOARDSIZE     9           /* 3x3 board */
 // I decided on chars instead of the "BlankOX" struct because it's
 // easier for the generic hash to handle.
-#define Blank	'-'
-#define o		'O'
-#define x		'X'
+#define Blank   '-'
+#define o               'O'
+#define x               'X'
 // This is so I don't have to change "BlankOX" occurences everywhere.
 typedef char BlankOX;
 
@@ -224,49 +224,50 @@ int vcfg(int* this_cfg) {
 
 void InitializeGame()
 {
-  // SYMMETRY
-  gCanonicalPosition = GetCanonicalPosition;
-  int i, j, temp; /* temp is used for debugging */
-  if(kSupportsSymmetries) { /* Initialize gSymmetryMatrix[][] */
-    for(i = 0 ; i < BOARDSIZE ; i++) {
-      temp = i;
-      for(j = 0 ; j < NUMSYMMETRIES ; j++) {
-	if(j == NUMSYMMETRIES/2)
-	  temp = gFlipNewPosition[i];
-	if(j < NUMSYMMETRIES/2)
-	  temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-	else
-	  temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-      }
-    }
-  }
+	// SYMMETRY
+	gCanonicalPosition = GetCanonicalPosition;
+	int i, j, temp; /* temp is used for debugging */
+	if(kSupportsSymmetries) { /* Initialize gSymmetryMatrix[][] */
+		for(i = 0; i < BOARDSIZE; i++) {
+			temp = i;
+			for(j = 0; j < NUMSYMMETRIES; j++) {
+				if(j == NUMSYMMETRIES/2)
+					temp = gFlipNewPosition[i];
+				if(j < NUMSYMMETRIES/2)
+					temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+				else
+					temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
+			}
+		}
+	}
 
-  gMoveToStringFunPtr = &MoveToString;
-  gCustomUnhash = &customUnhash;
-  // gCustomUnhash is a (STRING) char *
-  // linearUnhash expects void *
-  // dchan 10-16-07
-  linearUnhash = (void *) gCustomUnhash;
+	gMoveToStringFunPtr = &MoveToString;
+	gCustomUnhash = &customUnhash;
+	// gCustomUnhash is a (STRING) char *
+	// linearUnhash expects void *
+	// dchan 10-16-07
+	linearUnhash = (void *) gCustomUnhash;
 
-  //discard current hash
-  generic_hash_destroy();
+	//discard current hash
+	generic_hash_destroy();
 
-  //Setup Tier Stuff (at bottom)
-  SetupTierStuff();
+	//Setup Tier Stuff (at bottom)
+	SetupTierStuff();
 
-  //have a GLOBAL HASH set up at outset:
-  int game[10] = { o, 0, 4, x, 0, 5, Blank, 0, 9, -1 };
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, game, vcfg, 1);
+	//have a GLOBAL HASH set up at outset:
+	int game[10] = { o, 0, 4, x, 0, 5, Blank, 0, 9, -1 };
+	gNumberOfPositions = generic_hash_init(BOARDSIZE, game, vcfg, 1);
 
-   // gInitialPosition
-  BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
-  for (i = 0; i < BOARDSIZE; i++)
-  	board[i] = Blank;
-  gInitialPosition = BlankOXToPosition(board);
+	// gInitialPosition
+	BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
+	for (i = 0; i < BOARDSIZE; i++)
+		board[i] = Blank;
+	gInitialPosition = BlankOXToPosition(board);
 }
 
 void FreeGame()
-{}
+{
+}
 
 /************************************************************************
 **
@@ -277,7 +278,8 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu() { }
+void DebugMenu() {
+}
 
 /************************************************************************
 **
@@ -289,7 +291,8 @@ void DebugMenu() { }
 **
 ************************************************************************/
 
-void GameSpecificMenu() { }
+void GameSpecificMenu() {
+}
 
 /************************************************************************
 **
@@ -303,7 +306,7 @@ void GameSpecificMenu() { }
 void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
-  /* No need to have anything here, we have no extra options */
+	/* No need to have anything here, we have no extra options */
 }
 
 /************************************************************************
@@ -321,9 +324,9 @@ int theOptions[];
 
 POSITION DoMove(POSITION position, MOVE move)
 {
-    BlankOX* board = PositionToBlankOX(position);
-    board[move] = WhoseTurn(board);
-    return BlankOXToPosition(board);
+	BlankOX* board = PositionToBlankOX(position);
+	board[move] = WhoseTurn(board);
+	return BlankOXToPosition(board);
 }
 
 /************************************************************************
@@ -339,28 +342,28 @@ POSITION DoMove(POSITION position, MOVE move)
 
 POSITION GetInitialPosition()
 {
-  BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
-  signed char c;
-  int i = 0, xcount = 0, ycount = 0;
+	BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
+	signed char c;
+	int i = 0, xcount = 0, ycount = 0;
 
-  printf("\n\n\t----- Get Initial Position -----\n");
-  printf("\n\tPlease input the position to begin with.\n");
-  printf("\tNote that it should be in the following format:\n\n");
-  printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
+	printf("\n\n\t----- Get Initial Position -----\n");
+	printf("\n\tPlease input the position to begin with.\n");
+	printf("\tNote that it should be in the following format:\n\n");
+	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
 
-  getchar();
-  while(i < BOARDSIZE && (c = getchar()) != EOF) {
-    if(c == 'x' || c == 'X') {
-      board[i++] = x; xcount++;
-    } else if(c == 'o' || c == 'O' || c == '0') {
-      board[i++] = o; ycount++;
-    } else if(c == '-')
-      board[i++] = Blank;
-    else
-      ;   /* do nothing */
-  }
+	getchar();
+	while(i < BOARDSIZE && (c = getchar()) != EOF) {
+		if(c == 'x' || c == 'X') {
+			board[i++] = x; xcount++;
+		} else if(c == 'o' || c == 'O' || c == '0') {
+			board[i++] = o; ycount++;
+		} else if(c == '-')
+			board[i++] = Blank;
+		else
+			; /* do nothing */
+	}
 
-  return(BlankOXToPosition(board));
+	return(BlankOXToPosition(board));
 }
 
 /************************************************************************
@@ -375,10 +378,10 @@ POSITION GetInitialPosition()
 ************************************************************************/
 
 void PrintComputersMove(computersMove,computersName)
-     MOVE computersMove;
-     STRING computersName;
+MOVE computersMove;
+STRING computersName;
 {
-  printf("%8s's move              : %2d\n", computersName, computersMove+1);
+	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
 /************************************************************************
@@ -406,26 +409,26 @@ void PrintComputersMove(computersMove,computersName)
 
 VALUE Primitive(POSITION position)
 {
-  BlankOX* board = PositionToBlankOX(position);
-  VALUE value;
+	BlankOX* board = PositionToBlankOX(position);
+	VALUE value;
 
-  if (ThreeInARow(board, 0, 1, 2) ||
-      ThreeInARow(board, 3, 4, 5) ||
-      ThreeInARow(board, 6, 7, 8) ||
-      ThreeInARow(board, 0, 3, 6) ||
-      ThreeInARow(board, 1, 4, 7) ||
-      ThreeInARow(board, 2, 5, 8) ||
-      ThreeInARow(board, 0, 4, 8) ||
-      ThreeInARow(board, 2, 4, 6))
-    value = gStandardGame ? lose : win;
-  else if (AllFilledIn(board))
-    value = tie;
-  else
-    value = undecided;
+	if (ThreeInARow(board, 0, 1, 2) ||
+	    ThreeInARow(board, 3, 4, 5) ||
+	    ThreeInARow(board, 6, 7, 8) ||
+	    ThreeInARow(board, 0, 3, 6) ||
+	    ThreeInARow(board, 1, 4, 7) ||
+	    ThreeInARow(board, 2, 5, 8) ||
+	    ThreeInARow(board, 0, 4, 8) ||
+	    ThreeInARow(board, 2, 4, 6))
+		value = gStandardGame ? lose : win;
+	else if (AllFilledIn(board))
+		value = tie;
+	else
+		value = undecided;
 
-  if (board != NULL)
-  	SafeFree(board);
-  return value;
+	if (board != NULL)
+		SafeFree(board);
+	return value;
 }
 
 /************************************************************************
@@ -447,17 +450,17 @@ VALUE Primitive(POSITION position)
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
-  BlankOX* board = PositionToBlankOX(position);
+	BlankOX* board = PositionToBlankOX(position);
 
-  printf("\n         ( 1 2 3 )           : %c %c %c (%c's Turn)\n",
-     board[0], board[1], board[2], WhoseTurn(board));
-  printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %c %c %c\n",
-	 board[3], board[4], board[5]);
-  printf("         ( 7 8 9 )           : %c %c %c %s\n\n",
-	 board[6], board[7], board[8], GetSEvalPrediction(position,playerName,usersTurn));
+	printf("\n         ( 1 2 3 )           : %c %c %c (%c's Turn)\n",
+	       board[0], board[1], board[2], WhoseTurn(board));
+	printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %c %c %c\n",
+	       board[3], board[4], board[5]);
+	printf("         ( 7 8 9 )           : %c %c %c %s\n\n",
+	       board[6], board[7], board[8], GetSEvalPrediction(position,playerName,usersTurn));
 
-  if (board != NULL)
-  	SafeFree(board);
+	if (board != NULL)
+		SafeFree(board);
 }
 
 /************************************************************************
@@ -513,18 +516,18 @@ MOVELIST* GenerateMoves(POSITION position)
 
 POSITION GetCanonicalPosition(POSITION position)
 {
-  POSITION newPosition, theCanonicalPosition, DoSymmetry();
-  int i;
+	POSITION newPosition, theCanonicalPosition, DoSymmetry();
+	int i;
 
-  theCanonicalPosition = position;
+	theCanonicalPosition = position;
 
-  for(i = 0 ; i < NUMSYMMETRIES ; i++) {
-    newPosition = DoSymmetry(position, i);    /* get new */
-    if(newPosition < theCanonicalPosition)    /* THIS is the one */
-      theCanonicalPosition = newPosition;     /* set it to the ans */
-  }
+	for(i = 0; i < NUMSYMMETRIES; i++) {
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
 
-  return(theCanonicalPosition);
+	return(theCanonicalPosition);
 }
 
 /************************************************************************
@@ -544,20 +547,20 @@ POSITION GetCanonicalPosition(POSITION position)
 
 POSITION DoSymmetry(POSITION position, int symmetry)
 {
-  int i;
-  BlankOX *board, *symmBoard;
+	int i;
+	BlankOX *board, *symmBoard;
 
-  board = PositionToBlankOX(position);
-  symmBoard = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
+	board = PositionToBlankOX(position);
+	symmBoard = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
 
-  /* Copy from the symmetry matrix */
+	/* Copy from the symmetry matrix */
 
-  for(i = 0 ; i < BOARDSIZE ; i++)
-    symmBoard[i] = board[gSymmetryMatrix[symmetry][i]];
+	for(i = 0; i < BOARDSIZE; i++)
+		symmBoard[i] = board[gSymmetryMatrix[symmetry][i]];
 
-  if (board != NULL)
-    SafeFree(board);
-  return(BlankOXToPosition(symmBoard));
+	if (board != NULL)
+		SafeFree(board);
+	return(BlankOXToPosition(symmBoard));
 }
 
 /**************************************************/
@@ -585,18 +588,18 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 
 USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName)
 {
-  USERINPUT ret;
+	USERINPUT ret;
 
-  do {
-    printf("%8s's move [(u)ndo/1-9] :  ", playerName);
+	do {
+		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
 
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if(ret != Continue)
-      return(ret);
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
 
-  }
-  while (TRUE);
-  return(Continue); /* this is never reached, but lint is now happy */
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -618,7 +621,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 
 BOOLEAN ValidTextInput(STRING input)
 {
-  return(input[0] <= '9' && input[0] >= '1');
+	return(input[0] <= '9' && input[0] >= '1');
 }
 
 /************************************************************************
@@ -635,7 +638,7 @@ BOOLEAN ValidTextInput(STRING input)
 
 MOVE ConvertTextInputToMove(STRING input)
 {
-  return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
+	return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
 }
 
 /************************************************************************
@@ -650,9 +653,9 @@ MOVE ConvertTextInputToMove(STRING input)
 
 void PrintMove(MOVE theMove)
 {
-    STRING str = MoveToString( theMove );
-    printf( "%s", str );
-    SafeFree( str );
+	STRING str = MoveToString( theMove );
+	printf( "%s", str );
+	SafeFree( str );
 }
 
 
@@ -668,63 +671,63 @@ void PrintMove(MOVE theMove)
 
 STRING MoveToString (MOVE theMove)
 {
-  STRING m = (STRING) SafeMalloc( 3 );
-  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-  sprintf( m, "%d", theMove + 1);
+	STRING m = (STRING) SafeMalloc( 3 );
+	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+	sprintf( m, "%d", theMove + 1);
 
-  return m;
+	return m;
 }
 
 BOOLEAN ThreeInARow(BlankOX* board, int a, int b, int c)
 {
-  return(board[a] == board[b] &&
-		 board[b] == board[c] &&
-		 board[c] != Blank );
+	return(board[a] == board[b] &&
+	       board[b] == board[c] &&
+	       board[c] != Blank );
 }
 
 BOOLEAN AllFilledIn(BlankOX* board)
 {
-  BOOLEAN answer = TRUE;
-  int i;
+	BOOLEAN answer = TRUE;
+	int i;
 
-  for(i = 0; i < BOARDSIZE; i++)
-    answer &= (board[i] == o || board[i] == x);
+	for(i = 0; i < BOARDSIZE; i++)
+		answer &= (board[i] == o || board[i] == x);
 
-  return(answer);
+	return(answer);
 }
 
 int NumberOfOptions()
 {
-  return 4;
+	return 4;
 }
 
 int getOption()
 {
-  int option = 0;
-  option += (gStandardGame ? 1 : 0);
-  option += (gSymmetries ? 2 : 0);
-  return option+1;
+	int option = 0;
+	option += (gStandardGame ? 1 : 0);
+	option += (gSymmetries ? 2 : 0);
+	return option+1;
 }
 
 void setOption(int option)
 {
-    option -= 1;
-    gStandardGame = option % 2;
-    option -= 2;
-    gSymmetries = option % 2;
+	option -= 1;
+	gStandardGame = option % 2;
+	option -= 2;
+	gSymmetries = option % 2;
 }
 
 // HASH/UNHASH
 
 char* customUnhash(POSITION position) {
-    return (char*)PositionToBlankOX(position);
+	return (char*)PositionToBlankOX(position);
 }
 
 // "Unhash"
 BlankOX* PositionToBlankOX(POSITION position)
 {
 	char* board = (char *) SafeMalloc(BOARDSIZE * sizeof(char)); // make board space
-	if (gHashWindowInitialized) {// using hash windows
+	if (gHashWindowInitialized) { // using hash windows
 		TIERPOSITION tierpos; TIER tier;
 		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
 		generic_hash_context_switch(tier); // switch to that tier's context
@@ -753,7 +756,7 @@ BlankOX WhoseTurn(BlankOX* board)
 	// for the Tier-specific generic hashes.
 	int i, xcount = 0, ocount = 0;
 
-	for(i = 0 ; i < BOARDSIZE ; i++) {
+	for(i = 0; i < BOARDSIZE; i++) {
 		if(board[i] == x)
 			xcount++;
 		else if(board[i] == o)
@@ -782,13 +785,13 @@ void SetupTierStuff() {
 	// kSupportsTierGamesman
 	kSupportsTierGamesman = TRUE;
 	// All function pointers
-	gTierChildrenFunPtr				= &TierChildren;
-	gNumberOfTierPositionsFunPtr	= &NumberOfTierPositions;
-	gGetInitialTierPositionFunPtr	= &GetInitialTierPosition;
+	gTierChildrenFunPtr                             = &TierChildren;
+	gNumberOfTierPositionsFunPtr    = &NumberOfTierPositions;
+	gGetInitialTierPositionFunPtr   = &GetInitialTierPosition;
 	//gIsLegalFunPtr				= &IsLegal;
-	gGenerateUndoMovesToTierFunPtr	= &GenerateUndoMovesToTier;
-	gUnDoMoveFunPtr					= &UnDoMove;
-	gTierToStringFunPtr				= &TierToString;
+	gGenerateUndoMovesToTierFunPtr  = &GenerateUndoMovesToTier;
+	gUnDoMoveFunPtr                                 = &UnDoMove;
+	gTierToStringFunPtr                             = &TierToString;
 	// Tier-Specific Hashes
 	int piecesArray[10] = { o, 0, 0, x, 0, 0, Blank, 0, 0, -1 };
 	int piecesOnBoard, tier;
@@ -839,14 +842,14 @@ void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
 	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
 
 	while(i < BOARDSIZE && (c = GetMyChar()) != EOF) {
-	if(c == 'x' || c == 'X') {
-		board[i++] = x; xcount++;
-	} else if(c == 'o' || c == 'O' || c == '0') {
-		board[i++] = o; ycount++;
-	} else if(c == '-')
-		board[i++] = Blank;
-	else
-		;   /* do nothing */
+		if(c == 'x' || c == 'X') {
+			board[i++] = x; xcount++;
+		} else if(c == 'o' || c == 'O' || c == '0') {
+			board[i++] = o; ycount++;
+		} else if(c == '-')
+			board[i++] = Blank;
+		else
+			; /* do nothing */
 	}
 
 	(*tier) = BoardToTier(board);
@@ -873,21 +876,21 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier) {
 	}
 	TIER myTier = BoardToTier(board);
 	if (board != NULL)
-  		SafeFree(board);
-  	// Check TIER, should be one above current tier
-  	if (myTier + 1 != tier) {
+		SafeFree(board);
+	// Check TIER, should be one above current tier
+	if (myTier + 1 != tier) {
 		FreeUndoMoveList(undomoves); // since it won't be used
 		return NULL;
 	}
-  	return undomoves;
+	return undomoves;
 }
 
 // UNDOMOVE = Just like a MOVE (0-8) but it tells
 // where to TAKE a piece rather than PLACE it.
 POSITION UnDoMove(POSITION position, UNDOMOVE undomove) {
-    BlankOX* board = PositionToBlankOX(position);
-    board[undomove] = Blank;
-    return BlankOXToPosition(board);
+	BlankOX* board = PositionToBlankOX(position);
+	board[undomove] = Blank;
+	return BlankOXToPosition(board);
 }
 
 // Tier = Number of pieces left to place.
@@ -898,29 +901,29 @@ STRING TierToString(TIER tier) {
 }
 
 POSITION StringToPosition(char* boardStr, int move, int option) {
-    // change boardStr to BlankOX
-    BlankOX *board = malloc(sizeof(BlankOX)* BOARDSIZE);
-    if (strlen(boardStr) < BOARDSIZE) {
-        printf("String to Position for ACHI failed\n");
-        return -1;
-    }
-    int i;
-    for (i = 0; i < BOARDSIZE; i++) {
-        if (boardStr[i] == 'o') {
-            board[i] = o;
-        }
-        else if (boardStr[i] == 'x') {
-            board[i] = x;
-        }
-        else if (boardStr[i] == '_') {
-            board[i] = Blank;
-        }        
-    }
-    return BlankOXToPosition(board);
+	// change boardStr to BlankOX
+	BlankOX *board = malloc(sizeof(BlankOX)* BOARDSIZE);
+	if (strlen(boardStr) < BOARDSIZE) {
+		printf("String to Position for ACHI failed\n");
+		return -1;
+	}
+	int i;
+	for (i = 0; i < BOARDSIZE; i++) {
+		if (boardStr[i] == 'o') {
+			board[i] = o;
+		}
+		else if (boardStr[i] == 'x') {
+			board[i] = x;
+		}
+		else if (boardStr[i] == '_') {
+			board[i] = Blank;
+		}
+	}
+	return BlankOXToPosition(board);
 }
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }
 

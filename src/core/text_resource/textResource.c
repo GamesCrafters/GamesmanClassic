@@ -12,9 +12,9 @@ TextResource TextResource_create(const char* filename) {
 	TextResource tr = calloc(sizeof(struct TextResource_struct), 1);
 	tr->parameters = ght_create(32);
 	tr->strings = ght_create(64);
-	
+
 	int result = _TextResource_loadResource(tr,filename);
-	
+
 	if (!result) {
 		TextResource_free(tr);
 		return NULL;
@@ -28,29 +28,29 @@ void TextResource_free(TextResource tr) {
 	const void *p_key;
 	void *p_e;
 
-	for (p_e = ght_first(tr->parameters, &iterator, &p_key); p_e; 
-		p_e = ght_next(tr->parameters, &iterator, &p_key)) {
+	for (p_e = ght_first(tr->parameters, &iterator, &p_key); p_e;
+	     p_e = ght_next(tr->parameters, &iterator, &p_key)) {
 		free(p_e);
 	}
-		
+
 
 	ght_finalize(tr->parameters);
 
-	for (p_e = ght_first(tr->strings, &iterator, &p_key); p_e; 
-		p_e = ght_next(tr->strings, &iterator, &p_key)) {
-		
+	for (p_e = ght_first(tr->strings, &iterator, &p_key); p_e;
+	     p_e = ght_next(tr->strings, &iterator, &p_key)) {
+
 		free(p_e);
 	}
 
 	ght_finalize(tr->strings);
-	
+
 	free(tr);
 }
 
 void TextResource_setParameter(TextResource tr, const char* key, const char* value) {
 	bstring val = ght_remove(tr->parameters,strlen(key),key);
 	if (val) bdestroy(val);
-	
+
 	val = bfromcstr(value);
 	ght_insert(tr->parameters,val,strlen(key),key);
 }
@@ -67,22 +67,22 @@ static bstring tr_evalKey(TextResource tr, const char* key) {
 static bstring tr_eval(TextResource tr, trnode_t* node) {
 	//internally we work with bstrings
 
-	
-	
+
+
 	trnode_t* tmpNode;
-	
+
 	switch(node->type) {
 	case TRNODE_TEXT:
 		return bstrcpy(node->textData);
 	case TRNODE_REPR:
-		;int match=0;
-		if (node->condKey) { 
+		; int match=0;
+		if (node->condKey) {
 			assert(node->condValue);
 			//conditional
 			char* condkey = bstr2cstr(node->condKey,'\0');
 			bstring val = ght_get(tr->parameters,strlen(condkey),condkey);
 			bcstrfree(condkey);
-			
+
 			if (val && !bstrcmp(node->condValue, val)) {
 				//matches
 				match = 1;
@@ -91,7 +91,7 @@ static bstring tr_eval(TextResource tr, trnode_t* node) {
 			//unconditional, so go too
 			match=1;
 		}
-		
+
 		if (match) {
 			return tr_evalKey(tr,node->reprKey->data);
 		} else
@@ -110,15 +110,15 @@ static bstring tr_eval(TextResource tr, trnode_t* node) {
 		return tmpStr;
 	case TRNODE_SWITCH:
 		//look through the children for matching choice
-		;char* switchVar = bstr2cstr(node->switchVar,'\0');
+		; char* switchVar = bstr2cstr(node->switchVar,'\0');
 		bstring val = ght_get(tr->parameters,strlen(switchVar),switchVar);
 		bcstrfree(switchVar);
-		
+
 		tmpNode = node->children_list;
 		while(tmpNode) {
 			assert(tmpNode->type == TRNODE_STRING);
 			assert(tmpNode->caseValue);
-			
+
 			if (!bstrcmp(tmpNode->caseValue,val)) {
 				//we match, return this
 				return tr_eval(tr,tmpNode);
@@ -130,7 +130,7 @@ static bstring tr_eval(TextResource tr, trnode_t* node) {
 	default:
 		assert(0);
 	}
-	
+
 	assert(0);
 	return NULL;
 }
@@ -150,17 +150,17 @@ static void normalize_space(bstring str) {
 			//multiple spaces
 			bdelete(str,spaceStart+1,spaceLen-1);
 		}
-		
+
 		i = spaceStart+1;
 	}
 }
 
 int TextResource_getString(TextResource tr, const char* key, unsigned int maxSize, char* buffer) {
-	
+
 	bstring str = tr_evalKey(tr, key);
 	normalize_space(str);
 	char* cstr = bstr2cstr(str,'0');
-	
+
 	//copy no more than maxSize bytes
 	int copysize = strlen(cstr) + 1;
 	int rv = copysize;
@@ -169,11 +169,11 @@ int TextResource_getString(TextResource tr, const char* key, unsigned int maxSiz
 		buffer[maxSize-1] = '\0'; //null terminate the buffer
 		rv = -maxSize; //negative signals we got truncated
 	}
-	
+
 	strncpy(buffer,cstr,copysize);
 	bcstrfree(cstr);
 	bdestroy(str);
-	
+
 	return rv;
 }
 

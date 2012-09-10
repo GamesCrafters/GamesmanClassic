@@ -43,49 +43,49 @@ POSITION gInitialPosition; /* The initial position (starting board) */
 POSITION gMinimalPosition; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING   kGameName           = "Winkers"; /* The name of your game */
-STRING   kDBName             = "winkers"; /* The name to store the database under */
-STRING   kAuthorName         = "Newton Le and Edward Li";
-BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = FALSE; /* TRUE while debugging */
-BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
-BOOLEAN  kTieIsPossible      = TRUE; /* TRUE if a tie is possible */
-BOOLEAN  kLoopy               = FALSE; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
-void*	 gGameSpecificTclInit = NULL;
+STRING kGameName           = "Winkers";   /* The name of your game */
+STRING kDBName             = "winkers";   /* The name to store the database under */
+STRING kAuthorName         = "Newton Le and Edward Li";
+BOOLEAN kPartizan           = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kDebugMenu          = FALSE;  /* TRUE while debugging */
+BOOLEAN kGameSpecificMenu   = TRUE;  /* TRUE if there is a game specific menu*/
+BOOLEAN kTieIsPossible      = TRUE;  /* TRUE if a tie is possible */
+BOOLEAN kLoopy               = FALSE;  /* TRUE if the game tree will have cycles (a rearranger style game) */
+BOOLEAN kDebugDetermineValue = FALSE;  /* TRUE while debugging */
+void*    gGameSpecificTclInit = NULL;
 
 /*
    Help strings that are pretty self-explanatory
-*/
+ */
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+        "Not written yet";
 
-STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number you want to make\n\
+STRING kHelpTextInterface    =
+        "On your turn, use the LEGEND to determine which number you want to make\n\
 a move on. You can choose any number that doesn't have a winker on it. A\n\
 blank position will mean you place a checker, and a checker position will\n\
-mean you place your color winker.";
+mean you place your color winker."                                                                                                                                                                                                                                             ;
 
-STRING   kHelpOnYourTurn =
-"You place either a checker onto an empty position, or a winker onto\n\
+STRING kHelpOnYourTurn =
+        "You place either a checker onto an empty position, or a winker onto\n\
 a checker as long as you have a piece of that type. If you can't make a\n\
-move with the pieces you have, you will pass.";
+move with the pieces you have, you will pass."                                                                                                                                                           ;
 
-STRING   kHelpStandardObjective =
-"To get three of your winkers in a row, horizontally or diagonally.\n\
-Three-in-a-row WINS.";
+STRING kHelpStandardObjective =
+        "To get three of your winkers in a row, horizontally or diagonally.\n\
+Three-in-a-row WINS."                                                                               ;
 
-STRING   kHelpReverseObjective =
-"To force your opponent into getting three winker in a row of their color\n\
-horizontally or diagonally. Three-in-a-row LOSES.";
+STRING kHelpReverseObjective =
+        "To force your opponent into getting three winker in a row of their color\n\
+horizontally or diagonally. Three-in-a-row LOSES."                                                                                     ;
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"the entire board has been filled with winkers without either player\n\
-getting three-in-a-row.";
+STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+                            "the entire board has been filled with winkers without either player\n\
+getting three-in-a-row."                                                                                                    ;
 
-STRING   kHelpExample =
-"            1   2   3     :  - - - \n\
+STRING kHelpExample =
+        "            1   2   3     :  - - - \n\
  LEGEND:  4   5   6   7   : - - - - \n\
             8   9  10     :  - - - \n\
 \n\
@@ -188,7 +188,7 @@ Computer's move : 4\n\
 Player pieces left (O: 0, R: 4)\n\
 \n\
 \n\
-Computer wins.  Nice try player.\n";
+Computer wins.  Nice try player.\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ;
 
 /*************************************************************************
 **
@@ -213,7 +213,7 @@ int BOARDSIZE = 11;
 BOOLEAN DEFAULT = TRUE;
 
 typedef enum possibleBoardPieces {
-  Blank, O, R, B
+	Blank, O, R, B
 } BlankORB;
 
 char *gBlankORBString[] = { "-", "O", "R", "B" };
@@ -267,11 +267,11 @@ int RowWidth(int i);
 STRING MoveToString( MOVE );
 
 /* External */
-#ifndef MEMWATCH 
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+#ifndef MEMWATCH
+extern GENERIC_PTR      SafeMalloc ();
+extern void             SafeFree ();
 #endif
-extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
+extern BOOLEAN (*gGoAgain)(POSITION, MOVE);
 
 /************************************************************************
 **
@@ -284,50 +284,50 @@ extern BOOLEAN  (*gGoAgain)(POSITION, MOVE);
 
 void InitializeGame ()
 {
-  gGoAgain = passMoveOnly;
+	gGoAgain = passMoveOnly;
 
-  int i;
-  BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
+	int i;
+	BOARDSIZE = BOARDHEIGHT * (2 * BOARDWIDTH + BOARDHEIGHT) + BOARDWIDTH;
 
-  gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
-  //  LegendKey = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
-  RN = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
-  RW = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
-  CP = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
+	gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+	//  LegendKey = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
+	RN = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
+	RW = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
+	CP = (int *) SafeMalloc (BOARDSIZE * sizeof(int));
 
-  //  int x;
-  //  for (x = 0; x < BOARDSIZE; x++) {
-  //   LegendKey[x] = Legend(x+1);
-  // }
+	//  int x;
+	//  for (x = 0; x < BOARDSIZE; x++) {
+	//   LegendKey[x] = Legend(x+1);
+	// }
 
-  int half = (BOARDSIZE + 1) / 2;
+	int half = (BOARDSIZE + 1) / 2;
 
-  int piece_array[] = {'B', 0, half,
-		       'R' , 0, half,
-		       'O', 0, BOARDSIZE,
-		       EMPTYSPACE, 0, BOARDSIZE,
-		       -1};
+	int piece_array[] = {'B', 0, half,
+		             'R', 0, half,
+		             'O', 0, BOARDSIZE,
+		             EMPTYSPACE, 0, BOARDSIZE,
+		             -1};
 
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0, 0);
+	gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, 0, 0);
 
-  if (DEFAULT == TRUE) {
-    for (i=0; i<BOARDSIZE; i++)
-      gBoard[i] = EMPTYSPACE;
+	if (DEFAULT == TRUE) {
+		for (i=0; i<BOARDSIZE; i++)
+			gBoard[i] = EMPTYSPACE;
 
-    gInitialPosition = generic_hash_hash(gBoard, 1);
-  }
+		gInitialPosition = generic_hash_hash(gBoard, 1);
+	}
 
-  gMinimalPosition = gInitialPosition;
+	gMinimalPosition = gInitialPosition;
 
-  //  printf("Number of Boards: %d", gNumberOfPositions);
+	//  printf("Number of Boards: %d", gNumberOfPositions);
 
-  for (i = 0; i < BOARDSIZE; i++) {
-    RN[i] = RowNumber(i);
-    CP[i] = ColPosition(i);
-    RW[i] = RowWidth(i);
-  }
+	for (i = 0; i < BOARDSIZE; i++) {
+		RN[i] = RowNumber(i);
+		CP[i] = ColPosition(i);
+		RW[i] = RowWidth(i);
+	}
 
-  gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -357,123 +357,123 @@ void DebugMenu ()
 
 void GameSpecificMenu ()
 {
-  char GetMyChar();
-  void GetDimensions();
+	char GetMyChar();
+	void GetDimensions();
 
-  do {
-    /*fflush(stdin);*/
+	do {
+		/*fflush(stdin);*/
 
-    printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
 
-    printf("\td)\t Change the (D)imensions of the board.  Currently: (%d,%d)\n", BOARDWIDTH, BOARDHEIGHT+1);
+		printf("\td)\t Change the (D)imensions of the board.  Currently: (%d,%d)\n", BOARDWIDTH, BOARDHEIGHT+1);
 
-    /*
-    if (MISERE == 0)
-      printf("\tm)\t Toggle from Standard to (M)isere\n");
-    else
-      printf("\tm)\t Toggle from (M)isere to Standard\n");
-    */
-    printf("\ti)\t Change the (I)nitial Position.\n");
-    printf("\tb)\t (B)ack to the previous menu\n\nSelect an option:  ");
+		/*
+		   if (MISERE == 0)
+		   printf("\tm)\t Toggle from Standard to (M)isere\n");
+		   else
+		   printf("\tm)\t Toggle from (M)isere to Standard\n");
+		 */
+		printf("\ti)\t Change the (I)nitial Position.\n");
+		printf("\tb)\t (B)ack to the previous menu\n\nSelect an option:  ");
 
 
-    switch(GetMyChar()) {
-    case 'Q': case 'q':
-      ExitStageRight();
-    case 'H': case 'h':
-      HelpMenus();
-      break;
-    case 'I': case 'i':
-      gInitialPosition = GetInitialPosition();
-      break;
-    case 'B': case 'b':
-      return;
-    case 'D': case 'd':
-      GetDimensions();
-      break;
-    default:
-      BadMenuChoice();
-      HitAnyKeyToContinue();
-      break;
-    }
-  } while(TRUE);
+		switch(GetMyChar()) {
+		case 'Q': case 'q':
+			ExitStageRight();
+		case 'H': case 'h':
+			HelpMenus();
+			break;
+		case 'I': case 'i':
+			gInitialPosition = GetInitialPosition();
+			break;
+		case 'B': case 'b':
+			return;
+		case 'D': case 'd':
+			GetDimensions();
+			break;
+		default:
+			BadMenuChoice();
+			HitAnyKeyToContinue();
+			break;
+		}
+	} while(TRUE);
 }
 
 
 void GetDimensions() {
 
-  char c;
-  char GetMyChar();
-  void printBoard(char*);
-  int height, width;
+	char c;
+	char GetMyChar();
+	void printBoard(char*);
+	int height, width;
 
-  do {
-    /*fflush(stdin);*/
-    printf("\nEnter the horizontal dimension or get (h)elp:  ");
+	do {
+		/*fflush(stdin);*/
+		printf("\nEnter the horizontal dimension or get (h)elp:  ");
 
-    if ((c = GetMyChar()) == 'h' || c == 'H') {
-      printf("\nThe horizontal dimension is the number of pieces on the first row.  For example,");
-      printf("\nthe current board has a horizontal dimension of %d: \n", BOARDWIDTH);
-      printf("The maximum horizontal dimension is %d\n", MAXWIDTH);
-      printBoard(NULL);
-    } else {
-      char maximumWChar = MAXWIDTH + '0' + 1;
-      if (c >= '1' && c <= maximumWChar) {
-	width = c - '0';
-	break;
-      } else {
-	printf("\nInvalid input.");
-      }
-    }
-  } while(TRUE);
+		if ((c = GetMyChar()) == 'h' || c == 'H') {
+			printf("\nThe horizontal dimension is the number of pieces on the first row.  For example,");
+			printf("\nthe current board has a horizontal dimension of %d: \n", BOARDWIDTH);
+			printf("The maximum horizontal dimension is %d\n", MAXWIDTH);
+			printBoard(NULL);
+		} else {
+			char maximumWChar = MAXWIDTH + '0' + 1;
+			if (c >= '1' && c <= maximumWChar) {
+				width = c - '0';
+				break;
+			} else {
+				printf("\nInvalid input.");
+			}
+		}
+	} while(TRUE);
 
-  do {
-    /*fflush(stdin);*/
-    printf("\nEnter the vertical dimension or get (h)elp:  ");
-    if ((c = GetMyChar()) == 'h' || c == 'H') {
-      printf("\nThe vertical dimension is the number of pieces from the top row to the middle");
-      printf("\nrow.  For example, the current board has a vertical dimension of %d: \n", BOARDHEIGHT+1);
-      printf("The maximum vertical dimension is %d\n", MAXHEIGHT + 1);
-      printBoard(NULL);
-    } else {
-      char maximumHChar = MAXHEIGHT + '0' + 1;
-      if (c > '0' && c <= maximumHChar) {
-	height = c - '0' - 1;
-	break;
-      } else {
-	printf("\nInvalid input.");
-      }
-    }
-  } while(TRUE);
+	do {
+		/*fflush(stdin);*/
+		printf("\nEnter the vertical dimension or get (h)elp:  ");
+		if ((c = GetMyChar()) == 'h' || c == 'H') {
+			printf("\nThe vertical dimension is the number of pieces from the top row to the middle");
+			printf("\nrow.  For example, the current board has a vertical dimension of %d: \n", BOARDHEIGHT+1);
+			printf("The maximum vertical dimension is %d\n", MAXHEIGHT + 1);
+			printBoard(NULL);
+		} else {
+			char maximumHChar = MAXHEIGHT + '0' + 1;
+			if (c > '0' && c <= maximumHChar) {
+				height = c - '0' - 1;
+				break;
+			} else {
+				printf("\nInvalid input.");
+			}
+		}
+	} while(TRUE);
 
-  BOARDHEIGHT = height;
-  BOARDWIDTH = width;
-  DEFAULT = TRUE;
-  InitializeGame();
+	BOARDHEIGHT = height;
+	BOARDWIDTH = width;
+	DEFAULT = TRUE;
+	InitializeGame();
 
-  printf("\n The current board is now: \n");
-  printBoard(NULL);
+	printf("\n The current board is now: \n");
+	printBoard(NULL);
 }
 
 
- // =======================80 CHARS=================================================
+// =======================80 CHARS=================================================
 
 void printBoard (char * board) {
-  int i, j, m = 0;
+	int i, j, m = 0;
 
-  printf("\n");
+	printf("\n");
 
-  for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
-    PrintSpaces (abs(BOARDHEIGHT - i));
+	for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
+		PrintSpaces (abs(BOARDHEIGHT - i));
 
-    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
-      if (board == NULL)
-	printf("O ");
-      else
-	printf("%c ", board[m++]);
+		for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
+			if (board == NULL)
+				printf("O ");
+			else
+				printf("%c ", board[m++]);
 
-    printf("\n");
-  }
+		printf("\n");
+	}
 }
 
 
@@ -487,7 +487,7 @@ void printBoard (char * board) {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (options)
-	int options[];
+int options[];
 {
 }
 
@@ -508,28 +508,28 @@ void SetTclCGameSpecificOptions (options)
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
 POSITION DoMove (thePosition, theMove)
-	POSITION thePosition;
-	MOVE theMove;
+POSITION thePosition;
+MOVE theMove;
 {
-  int player = generic_hash_turn(thePosition);
+	int player = generic_hash_turn(thePosition);
 
-  generic_hash_unhash(thePosition, gBoard);
+	generic_hash_unhash(thePosition, gBoard);
 
-  if (theMove != PASSMOVE) {
-    if (gBoard[theMove-1] == EMPTYSPACE)
-      gBoard[theMove-1] = 'O';
-    else if (player == 1)
-      gBoard[theMove-1] = 'R';
-    else
-      gBoard[theMove-1] = 'B';
-  }
+	if (theMove != PASSMOVE) {
+		if (gBoard[theMove-1] == EMPTYSPACE)
+			gBoard[theMove-1] = 'O';
+		else if (player == 1)
+			gBoard[theMove-1] = 'R';
+		else
+			gBoard[theMove-1] = 'B';
+	}
 
-  POSITION next = generic_hash_hash(gBoard,(player==1)?2:1);
+	POSITION next = generic_hash_hash(gBoard,(player==1) ? 2 : 1);
 
-  if (GenerateMoves(next) == NULL)
-    return generic_hash_hash(gBoard, player);
-  else
-    return next;
+	if (GenerateMoves(next) == NULL)
+		return generic_hash_hash(gBoard, player);
+	else
+		return next;
 }
 
 /************************************************************************
@@ -546,47 +546,47 @@ POSITION DoMove (thePosition, theMove)
 POSITION GetInitialPosition()
 {
 	/*  BlankORB theBlankORB[BOARDSIZE];*/
-  void printBoard();
-  signed char c;
-  int i;
+	void printBoard();
+	signed char c;
+	int i;
 
-  printf("\n\n\t----- Get Initial Position -----\n");
-  printf("\n\tPlease input the position to begin with.\n");
-  printf("\tNote that it should be in the following format:\n\n");
-  printf("Example:\n");
+	printf("\n\n\t----- Get Initial Position -----\n");
+	printf("\n\tPlease input the position to begin with.\n");
+	printf("\tNote that it should be in the following format:\n\n");
+	printf("Example:\n");
 
-  for (i = 0; i < BOARDSIZE; i++) {
-    if ((i%4) == 0)
-      gBoard[i] = '-';
-    else if ((i%4) == 1)
-      gBoard[i] = 'O';
-    else if ((i%4) == 2)
-      gBoard[i] = 'R';
-    else
-      gBoard[i] = 'B';
-  }
+	for (i = 0; i < BOARDSIZE; i++) {
+		if ((i%4) == 0)
+			gBoard[i] = '-';
+		else if ((i%4) == 1)
+			gBoard[i] = 'O';
+		else if ((i%4) == 2)
+			gBoard[i] = 'R';
+		else
+			gBoard[i] = 'B';
+	}
 
-  printBoard(gBoard);
-  printf("\n");
+	printBoard(gBoard);
+	printf("\n");
 
-    // printf("  - -\n O - -\n- R - -         <----- EXAMPLE \n - R O\n  - -\n\n");
+	// printf("  - -\n O - -\n- R - -         <----- EXAMPLE \n - R O\n  - -\n\n");
 
-  i = 0;
-  getchar();
-  while(i < BOARDSIZE && (c = getchar()) != EOF) {
-    if(c == 'r' || c == 'R')
-      gBoard[i++] = 'R';
-    else if(c == 'o' || c == 'O' || c == '0')
-      gBoard[i++] = 'O';
-    else if(c == 'b' || c == 'B')
-      gBoard[i++] = 'B';
-    else if(c == '-')
-      gBoard[i++] = EMPTYSPACE;
-    else
-      ;   /* do nothing */
-  }
-  DEFAULT = FALSE;
-  return(generic_hash_hash(gBoard, 1));
+	i = 0;
+	getchar();
+	while(i < BOARDSIZE && (c = getchar()) != EOF) {
+		if(c == 'r' || c == 'R')
+			gBoard[i++] = 'R';
+		else if(c == 'o' || c == 'O' || c == '0')
+			gBoard[i++] = 'O';
+		else if(c == 'b' || c == 'B')
+			gBoard[i++] = 'B';
+		else if(c == '-')
+			gBoard[i++] = EMPTYSPACE;
+		else
+			; /* do nothing */
+	}
+	DEFAULT = FALSE;
+	return(generic_hash_hash(gBoard, 1));
 }
 
 
@@ -602,15 +602,15 @@ POSITION GetInitialPosition()
 ************************************************************************/
 
 void PrintComputersMove(computersMove, computersName)
-	MOVE computersMove;
-	STRING computersName;
+MOVE computersMove;
+STRING computersName;
 {
-  printf("%8s's move : ", computersName);
-  if (computersMove == PASSMOVE)
-    printf("pass");
-  else
-    printf("%d", computersMove);
-    //    printf("%c", LegendKey[computersMove-1]);
+	printf("%8s's move : ", computersName);
+	if (computersMove == PASSMOVE)
+		printf("pass");
+	else
+		printf("%d", computersMove);
+	//    printf("%c", LegendKey[computersMove-1]);
 }
 
 
@@ -634,55 +634,55 @@ void PrintComputersMove(computersMove, computersName)
 ************************************************************************/
 
 VALUE Primitive (pos)
-	POSITION pos;
+POSITION pos;
 {
-  BOOLEAN AllFilledIn();
-  char ThreeInARow();
-  /*  BlankORB theBlankORB[BOARDSIZE];*/
-  VALUE EndGame(char, int);
-  generic_hash_unhash(pos, gBoard);
-  char current;
+	BOOLEAN AllFilledIn();
+	char ThreeInARow();
+	/*  BlankORB theBlankORB[BOARDSIZE];*/
+	VALUE EndGame(char, int);
+	generic_hash_unhash(pos, gBoard);
+	char current;
 
-  int i;
-  for (i = 0; i < BOARDSIZE; i++) {
-    if (CP[i] < RW[i] - 2) {
-      current = ThreeInARow(gBoard, i, i+1, i+2);
-      if (current != EMPTYSPACE)
-	return EndGame(current, generic_hash_turn(pos));
-    }
+	int i;
+	for (i = 0; i < BOARDSIZE; i++) {
+		if (CP[i] < RW[i] - 2) {
+			current = ThreeInARow(gBoard, i, i+1, i+2);
+			if (current != EMPTYSPACE)
+				return EndGame(current, generic_hash_turn(pos));
+		}
 
-    if (RN[i] < BOARDHEIGHT - 1) {
-      current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] + 1);
-      if (current != EMPTYSPACE)
-	return EndGame(current, generic_hash_turn(pos));
-    } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != 0) {
-      current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i]);
-      if (current != EMPTYSPACE)
-	return EndGame(current, generic_hash_turn(pos));
-    } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] >=2) {
-      current = ThreeInARow(gBoard, i, i + RW[i]-1, i + 2*RW[i] - 3);
-      if (current != EMPTYSPACE)
-	return EndGame(current, generic_hash_turn(pos));
-    }
+		if (RN[i] < BOARDHEIGHT - 1) {
+			current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] + 1);
+			if (current != EMPTYSPACE)
+				return EndGame(current, generic_hash_turn(pos));
+		} else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != 0) {
+			current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i]);
+			if (current != EMPTYSPACE)
+				return EndGame(current, generic_hash_turn(pos));
+		} else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] >=2) {
+			current = ThreeInARow(gBoard, i, i + RW[i]-1, i + 2*RW[i] - 3);
+			if (current != EMPTYSPACE)
+				return EndGame(current, generic_hash_turn(pos));
+		}
 
-    if (RN[i] < BOARDHEIGHT - 1) {
-      current = ThreeInARow(gBoard, i, i + RW[i] + 1, i + 2*RW[i] + 3);
-      if (current != EMPTYSPACE)
-	return EndGame(current, generic_hash_turn(pos));
-    } else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != RW[i]-1) {
-      current = ThreeInARow(gBoard, i, i + RW[i]+1, i + 2*RW[i] + 2);
-      if (current != EMPTYSPACE)
-	return EndGame(current, generic_hash_turn(pos));
-    } else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] < RW[i] -2) {
-      current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] - 1);
-      if (current != EMPTYSPACE)
-	return EndGame(current, generic_hash_turn(pos));
-    }
-  }
-    if (AllFilledIn(gBoard))
-      return tie;
-    else
-      return undecided;
+		if (RN[i] < BOARDHEIGHT - 1) {
+			current = ThreeInARow(gBoard, i, i + RW[i] + 1, i + 2*RW[i] + 3);
+			if (current != EMPTYSPACE)
+				return EndGame(current, generic_hash_turn(pos));
+		} else if (RN[i] == BOARDHEIGHT - 1 && CP[i] != RW[i]-1) {
+			current = ThreeInARow(gBoard, i, i + RW[i]+1, i + 2*RW[i] + 2);
+			if (current != EMPTYSPACE)
+				return EndGame(current, generic_hash_turn(pos));
+		} else if (RN[i] >= BOARDHEIGHT && RN[i] <= 2*BOARDHEIGHT - 2 && CP[i] < RW[i] -2) {
+			current = ThreeInARow(gBoard, i, i + RW[i], i + 2*RW[i] - 1);
+			if (current != EMPTYSPACE)
+				return EndGame(current, generic_hash_turn(pos));
+		}
+	}
+	if (AllFilledIn(gBoard))
+		return tie;
+	else
+		return undecided;
 }
 
 /************************************************************************
@@ -703,84 +703,84 @@ VALUE Primitive (pos)
 ************************************************************************/
 
 void PrintPosition (position, playerName, usersTurn)
-	POSITION position;
-	STRING playerName;
-	BOOLEAN usersTurn;
+POSITION position;
+STRING playerName;
+BOOLEAN usersTurn;
 {
-	int i, j, m = 0;/*, n = 0;*/
-  generic_hash_unhash(position, gBoard);
+	int i, j, m = 0; /*, n = 0;*/
+	generic_hash_unhash(position, gBoard);
 
-  char wink, opWink;
-  int numCheckers = 0;
-  int numWinks = 0;
-  int numOpWinks = 0;
+	char wink, opWink;
+	int numCheckers = 0;
+	int numWinks = 0;
+	int numOpWinks = 0;
 
-  /*  printf("NumOfOptions: %d\n", NumberOfOptions());
-  for (j = 1; j <= NumberOfOptions(); j++) {
-    setOption(j);
-    printf("Option: %d - W: %d, H: %d, ", j, BOARDWIDTH, BOARDHEIGHT);
-    if (gStandardGame)
-      printf("Standard\n");
-    else
-      printf("Misere\n");
-      } */
+	/*  printf("NumOfOptions: %d\n", NumberOfOptions());
+	   for (j = 1; j <= NumberOfOptions(); j++) {
+	   setOption(j);
+	   printf("Option: %d - W: %d, H: %d, ", j, BOARDWIDTH, BOARDHEIGHT);
+	   if (gStandardGame)
+	    printf("Standard\n");
+	   else
+	    printf("Misere\n");
+	    } */
 
 
 
-  //  if (Primitive(position)) {
-    generic_hash_unhash(position, gBoard);
+	//  if (Primitive(position)) {
+	generic_hash_unhash(position, gBoard);
 
-    if (generic_hash_turn(position) == 1) {
-      wink = 'R';
-      opWink = 'B';
-    } else {
-      wink = 'B';
-      opWink = 'R';
-    }
+	if (generic_hash_turn(position) == 1) {
+		wink = 'R';
+		opWink = 'B';
+	} else {
+		wink = 'B';
+		opWink = 'R';
+	}
 
-    //Count pieces on board
-    for (i = 0; i < BOARDSIZE; i++)
-      if (gBoard[i] == opWink)
-	numOpWinks++;
-      else if (gBoard[i] == wink)
-	numWinks++;
-      else if (gBoard[i] == 'O')
-	numCheckers++;
+	//Count pieces on board
+	for (i = 0; i < BOARDSIZE; i++)
+		if (gBoard[i] == opWink)
+			numOpWinks++;
+		else if (gBoard[i] == wink)
+			numWinks++;
+		else if (gBoard[i] == 'O')
+			numCheckers++;
 
-  printf("\n");
+	printf("\n");
 
-  int z = 1;
-  for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
-    if (i == BOARDHEIGHT)
-      printf (" LEGEND: ");
-    else
-      printf ("         ");
+	int z = 1;
+	for (i = 0; i < 2*BOARDHEIGHT+1; i++) {
+		if (i == BOARDHEIGHT)
+			printf (" LEGEND: ");
+		else
+			printf ("         ");
 
-    PrintSpaces (2*abs(BOARDHEIGHT - i));
+		PrintSpaces (2*abs(BOARDHEIGHT - i));
 
-    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++) {
-      printf("%2d  ", z);
-      z++;
-    }
-      //      printf("%c ", LegendKey[n++]);
+		for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++) {
+			printf("%2d  ", z);
+			z++;
+		}
+		//      printf("%c ", LegendKey[n++]);
 
-    PrintSpaces (2*abs(BOARDHEIGHT - i));
-    printf(" : ");
-    PrintSpaces (abs(BOARDHEIGHT - i));
+		PrintSpaces (2*abs(BOARDHEIGHT - i));
+		printf(" : ");
+		PrintSpaces (abs(BOARDHEIGHT - i));
 
-    for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
-      printf("%c ", gBoard[m++]);
+		for (j = 0; j < BOARDWIDTH + BOARDHEIGHT - abs(BOARDHEIGHT - i); j++)
+			printf("%c ", gBoard[m++]);
 
-    if (i == BOARDHEIGHT)
-      printf("%s", GetPrediction(position,playerName,usersTurn));
+		if (i == BOARDHEIGHT)
+			printf("%s", GetPrediction(position,playerName,usersTurn));
 
-    printf("\n");
-  }
+		printf("\n");
+	}
 
-  int half = (BOARDSIZE+1)/2;
+	int half = (BOARDSIZE+1)/2;
 
-  printf("\n%s pieces left (O: %d, %c: %d)", playerName, half - numOpWinks - (numCheckers/2), wink, half - numWinks);
-  printf("\n\n");
+	printf("\n%s pieces left (O: %d, %c: %d)", playerName, half - numOpWinks - (numCheckers/2), wink, half - numWinks);
+	printf("\n\n");
 
 }
 
@@ -803,65 +803,65 @@ void PrintPosition (position, playerName, usersTurn)
 **
 ************************************************************************/
 MOVELIST *GenerateMoves (position)
-         POSITION position;
+POSITION position;
 {
-  MOVELIST *CreateMovelistNode(), *head = NULL;
-  BOOLEAN AllFilledIn(char*);
-  VALUE Primitive();
-  int player = generic_hash_turn (position);
-  char wink, opWink;
-  int numCheckers = 0;
-  int numWinks = 0;
-  int numOpWinks = 0;
-  int i;
+	MOVELIST *CreateMovelistNode(), *head = NULL;
+	BOOLEAN AllFilledIn(char*);
+	VALUE Primitive();
+	int player = generic_hash_turn (position);
+	char wink, opWink;
+	int numCheckers = 0;
+	int numWinks = 0;
+	int numOpWinks = 0;
+	int i;
 
-  //  if (Primitive(position)) {
-    generic_hash_unhash(position, gBoard);
+	//  if (Primitive(position)) {
+	generic_hash_unhash(position, gBoard);
 
-    if (player == 1) {
-      wink = 'R';
-      opWink = 'B';
-    } else {
-      wink = 'B';
-      opWink = 'R';
-    }
+	if (player == 1) {
+		wink = 'R';
+		opWink = 'B';
+	} else {
+		wink = 'B';
+		opWink = 'R';
+	}
 
-    //Count pieces on board
-    for (i = 0; i < BOARDSIZE; i++)
-      if (gBoard[i] == opWink)
-	numOpWinks++;
-      else if (gBoard[i] == wink)
-	numWinks++;
-      else if (gBoard[i] == 'O')
-	numCheckers++;
+	//Count pieces on board
+	for (i = 0; i < BOARDSIZE; i++)
+		if (gBoard[i] == opWink)
+			numOpWinks++;
+		else if (gBoard[i] == wink)
+			numWinks++;
+		else if (gBoard[i] == 'O')
+			numCheckers++;
 
-    /*    //Generate checker moves
-    if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
-      for (i = 0; i < BOARDSIZE; i--)
-	if (gBoard[i] == EMPTYSPACE)
-	  head = CreateMovelistNode(moveHash(0, i , O), head);
+	/*    //Generate checker moves
+	   if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
+	   for (i = 0; i < BOARDSIZE; i--)
+	    if (gBoard[i] == EMPTYSPACE)
+	      head = CreateMovelistNode(moveHash(0, i , O), head);
 
-    //Generate winker moves
-    if (numWinks > 0)
-      for (i = 0; i < BOARDSIZE; i--)
-	if (gBoard[i] == O)
-	  head = CreateMovelistNode(moveHash(0, i , wink), head);
-    */
+	   //Generate winker moves
+	   if (numWinks > 0)
+	   for (i = 0; i < BOARDSIZE; i--)
+	    if (gBoard[i] == O)
+	      head = CreateMovelistNode(moveHash(0, i , wink), head);
+	 */
 
-    for (i = BOARDSIZE - 1; i >= 0; i--) {
-      if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
-	head = CreateMovelistNode(i+1, head);
-      else if (gBoard[i] == EMPTYSPACE && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
-	head = CreateMovelistNode(i+1, head);
-    }
+	for (i = BOARDSIZE - 1; i >= 0; i--) {
+		if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
+			head = CreateMovelistNode(i+1, head);
+		else if (gBoard[i] == EMPTYSPACE && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
+			head = CreateMovelistNode(i+1, head);
+	}
 
-    /* Commented out to support goAgain
-    if (head == NULL && AllFilledIn(gBoard) == FALSE)
-      head = CreateMovelistNode(PASSMOVE, head);
-    */
+	/* Commented out to support goAgain
+	   if (head == NULL && AllFilledIn(gBoard) == FALSE)
+	   head = CreateMovelistNode(PASSMOVE, head);
+	 */
 
-    return head;
-    // }
+	return head;
+	// }
 }
 
 /************************************************************************
@@ -884,34 +884,34 @@ MOVELIST *GenerateMoves (position)
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-	POSITION thePosition;
-	MOVE *theMove;
-	STRING playerName;
+POSITION thePosition;
+MOVE *theMove;
+STRING playerName;
 {
-  USERINPUT ret, HandleDefaultTextInput();
-  do {
-    printf("%8s's move [1-%d] : ", playerName, BOARDSIZE);
-    /*    if (BOARDSIZE == 0)
-	  printf("0] : ");
-	  else if (BOARDSIZE < 10)
-	  printf("1-%c] : ", LegendKey[BOARDSIZE-1]);
-	  else if (BOARDSIZE == 10)
-	  printf("1-9/A] : ");
-	  else if (BOARDSIZE < 36)
-	  printf("1-9/A-%c] : ", LegendKey[BOARDSIZE-1]);
-	  else if (BOARDSIZE == 36)
-	  printf("1-9/A-Z/a] : ");
-	  else
-	  printf("1-9/A-Z/a-%c] : ", LegendKey[BOARDSIZE-1]);
-    */
+	USERINPUT ret, HandleDefaultTextInput();
+	do {
+		printf("%8s's move [1-%d] : ", playerName, BOARDSIZE);
+		/*    if (BOARDSIZE == 0)
+		      printf("0] : ");
+		      else if (BOARDSIZE < 10)
+		      printf("1-%c] : ", LegendKey[BOARDSIZE-1]);
+		      else if (BOARDSIZE == 10)
+		      printf("1-9/A] : ");
+		      else if (BOARDSIZE < 36)
+		      printf("1-9/A-%c] : ", LegendKey[BOARDSIZE-1]);
+		      else if (BOARDSIZE == 36)
+		      printf("1-9/A-Z/a] : ");
+		      else
+		      printf("1-9/A-Z/a-%c] : ", LegendKey[BOARDSIZE-1]);
+		 */
 
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if (ret != Continue)
-      return(ret);
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if (ret != Continue)
+			return(ret);
 
-  } while(TRUE);
+	} while(TRUE);
 
-  return (Continue);
+	return (Continue);
 }
 
 
@@ -933,14 +933,14 @@ USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
 ************************************************************************/
 
 BOOLEAN ValidTextInput (input)
-	STRING input;
+STRING input;
 {
-  if (strlen(input) != 1 && strlen(input)!= 2)
-    return FALSE;
-  int a;
-  if ((a = ConvertToNumber(input)) < 0)
-    return FALSE;
-  return TRUE;
+	if (strlen(input) != 1 && strlen(input)!= 2)
+		return FALSE;
+	int a;
+	if ((a = ConvertToNumber(input)) < 0)
+		return FALSE;
+	return TRUE;
 }
 
 
@@ -959,9 +959,9 @@ BOOLEAN ValidTextInput (input)
 ************************************************************************/
 
 MOVE ConvertTextInputToMove (input)
-	STRING input;
+STRING input;
 {
-  return ConvertToNumber(input);
+	return ConvertToNumber(input);
 }
 
 /************************************************************************
@@ -975,11 +975,11 @@ MOVE ConvertTextInputToMove (input)
 ************************************************************************/
 
 void PrintMove (move)
-	MOVE move;
+MOVE move;
 {
-  STRING m = MoveToString( move );
-  printf( "%s", m );
-  SafeFree( m );
+	STRING m = MoveToString( move );
+	printf( "%s", m );
+	SafeFree( m );
 }
 
 /************************************************************************
@@ -993,15 +993,15 @@ void PrintMove (move)
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-    STRING m = (STRING) SafeMalloc( 5 );
+	STRING m = (STRING) SafeMalloc( 5 );
 
-    if (theMove == PASSMOVE)
-      sprintf( m, "pass");
-    else
-      sprintf( m, "%d", theMove);
-    return m;
+	if (theMove == PASSMOVE)
+		sprintf( m, "pass");
+	else
+		sprintf( m, "%d", theMove);
+	return m;
 }
 
 /************************************************************************
@@ -1017,7 +1017,7 @@ STRING MoveToString (theMove)
 
 int NumberOfOptions()
 {
-  return (2 * (MAXWIDTH * (MAXHEIGHT + 1)));
+	return (2 * (MAXWIDTH * (MAXHEIGHT + 1)));
 }
 
 /************************************************************************
@@ -1034,19 +1034,19 @@ int NumberOfOptions()
 
 int getOption()
 {
-  int opt = 0;
+	int opt = 0;
 
-  int i;
-  for (i = 2; i <= BOARDWIDTH; i++) {
-    opt += (2 * (MAXHEIGHT+1));
-  }
+	int i;
+	for (i = 2; i <= BOARDWIDTH; i++) {
+		opt += (2 * (MAXHEIGHT+1));
+	}
 
-  opt += (2 * BOARDHEIGHT);
+	opt += (2 * BOARDHEIGHT);
 
-  if (!gStandardGame)
-    opt += 1;
+	if (!gStandardGame)
+		opt += 1;
 
-  return opt+1;
+	return opt+1;
 }
 
 /************************************************************************
@@ -1063,24 +1063,24 @@ int getOption()
 
 void setOption(int option)
 {
-  option -= 1;
+	option -= 1;
 
-  BOARDWIDTH = 1;
-  for (; option >= (2 * (MAXHEIGHT+1));) {
-    BOARDWIDTH++;
-    option -= (2 * (MAXHEIGHT+1));
-  }
+	BOARDWIDTH = 1;
+	for (; option >= (2 * (MAXHEIGHT+1)); ) {
+		BOARDWIDTH++;
+		option -= (2 * (MAXHEIGHT+1));
+	}
 
-  BOARDHEIGHT = 0;
-  for (; option >= 2;) {
-    BOARDHEIGHT++;
-    option -= 2;
-  }
+	BOARDHEIGHT = 0;
+	for (; option >= 2; ) {
+		BOARDHEIGHT++;
+		option -= 2;
+	}
 
-  if (option == 1)
-    gStandardGame = FALSE;
-  else
-    gStandardGame = TRUE;
+	if (option == 1)
+		gStandardGame = FALSE;
+	else
+		gStandardGame = TRUE;
 
 }
 
@@ -1099,53 +1099,53 @@ void setOption(int option)
 ************************************************************************/
 
 int ConvertToNumber(input)
-     STRING input;
+STRING input;
 {
-  int x;
+	int x;
 
-  if (strlen(input) == 1) {
-    char a = input[0];
+	if (strlen(input) == 1) {
+		char a = input[0];
 
-    x = a - '0';
-  } else if (strlen(input) == 2) {
-    int a = input[0] - '0';
-    int b = input[1] - '0';
+		x = a - '0';
+	} else if (strlen(input) == 2) {
+		int a = input[0] - '0';
+		int b = input[1] - '0';
 
-    if (a < 1 || b < 0 || a > 9 || b > 9)
-      return -1;
+		if (a < 1 || b < 0 || a > 9 || b > 9)
+			return -1;
 
-    x = 10*a + b;
-  }
+		x = 10*a + b;
+	}
 
-  if (x < 0 || x > BOARDSIZE)
-    return -1;
-    /*  int i;
-	for (i=0; i< BOARDSIZE; i++)
-	if (a == LegendKey[i])
-	return i+1;
-    */
-  return x;
+	if (x < 0 || x > BOARDSIZE)
+		return -1;
+	/*  int i;
+	    for (i=0; i< BOARDSIZE; i++)
+	    if (a == LegendKey[i])
+	    return i+1;
+	 */
+	return x;
 }
 
 char MoveToCharacter(move)
-     MOVE move;
+MOVE move;
 {
-  if (move < 10)
-    return (move + '0');
-  else if (move < 36)
-    return (move + 'a' - 10);
-  else
-    return (move + 'A' - 36);
+	if (move < 10)
+		return (move + '0');
+	else if (move < 36)
+		return (move + 'a' - 10);
+	else
+		return (move + 'A' - 36);
 }
 
 /* PrintSpaces(n) outputs n spaces
  */
 void PrintSpaces (n)
-     int n;
+int n;
 {
-  int i;
-  for (i = 0; i < n; i++)
-    printf(" ");
+	int i;
+	for (i = 0; i < n; i++)
+		printf(" ");
 }
 
 /* Legend will calculate the correct symbol to display on board.
@@ -1155,56 +1155,56 @@ void PrintSpaces (n)
  * returns 0-9,a-z,A-Z
  */
 int Legend (n)
-     int n;
+int n;
 {
-  if (n > 35)
-    n += ('a' - 36);
-  else if (n > 9)
-    n += ('A' - 10);
-  else
-    n += '0';
-  return n;
+	if (n > 35)
+		n += ('a' - 36);
+	else if (n > 9)
+		n += ('A' - 10);
+	else
+		n += '0';
+	return n;
 }
 
 VALUE EndGame(char x, int player) {
-  VALUE EndGame2(VALUE);
+	VALUE EndGame2(VALUE);
 
-  if (x == 'R') {
-    if (player == 1)
-      return (gStandardGame ? win : lose);
-    else
-      return (gStandardGame ? lose : win);
-  } else if (x == 'B') {
-    if (player == 1)
-      return (gStandardGame ? lose : win);
-    else
-      return (gStandardGame ? win : lose);
-  } else
-    return undecided;
+	if (x == 'R') {
+		if (player == 1)
+			return (gStandardGame ? win : lose);
+		else
+			return (gStandardGame ? lose : win);
+	} else if (x == 'B') {
+		if (player == 1)
+			return (gStandardGame ? lose : win);
+		else
+			return (gStandardGame ? win : lose);
+	} else
+		return undecided;
 }
 
 char ThreeInARow(theBlankORB, a, b, c)
-     char theBlankORB[];
-     int a, b, c;
+char theBlankORB[];
+int a, b, c;
 {
-  if (theBlankORB[a] == theBlankORB[b] &&
-      theBlankORB[b] == theBlankORB[c] &&
-      (theBlankORB[c] != EMPTYSPACE || theBlankORB[c] != 'O'))
-    return theBlankORB[a];
-  else
-    return EMPTYSPACE;
+	if (theBlankORB[a] == theBlankORB[b] &&
+	    theBlankORB[b] == theBlankORB[c] &&
+	    (theBlankORB[c] != EMPTYSPACE || theBlankORB[c] != 'O'))
+		return theBlankORB[a];
+	else
+		return EMPTYSPACE;
 }
 
 BOOLEAN AllFilledIn(theBlankORB)
-     char theBlankORB[];
+char theBlankORB[];
 {
-  int i;
+	int i;
 
-  for (i = 0; i < BOARDSIZE; i++) {
-    if (theBlankORB[i]== EMPTYSPACE || theBlankORB[i]=='O')
-      return FALSE;
-  }
-  return TRUE;
+	for (i = 0; i < BOARDSIZE; i++) {
+		if (theBlankORB[i]== EMPTYSPACE || theBlankORB[i]=='O')
+			return FALSE;
+	}
+	return TRUE;
 }
 
 /*** RowNumber() returns the row number of the ith piece.
@@ -1214,21 +1214,21 @@ BOOLEAN AllFilledIn(theBlankORB)
  */
 
 int RowNumber(i)
-     int i;
+int i;
 {
-  int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
+	int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
 
-  while(TRUE) {
-    if (i < CurrentWidth)
-      return CurrentRow;
-    i -= CurrentWidth;
-    if (CurrentRow < BOARDHEIGHT)
-      CurrentWidth += 1;
-    else
-      CurrentWidth -= 1;
-    CurrentRow += 1;
-  }
-  return 0;
+	while(TRUE) {
+		if (i < CurrentWidth)
+			return CurrentRow;
+		i -= CurrentWidth;
+		if (CurrentRow < BOARDHEIGHT)
+			CurrentWidth += 1;
+		else
+			CurrentWidth -= 1;
+		CurrentRow += 1;
+	}
+	return 0;
 }
 
 /*** RowWidth() determines the width of the row i is on.
@@ -1236,21 +1236,21 @@ int RowNumber(i)
  */
 
 int RowWidth(i)
-     int i;
+int i;
 {
-  int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
+	int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
 
-  while(TRUE) {
-    if (i < CurrentWidth)
-      return CurrentWidth;
-    i -= CurrentWidth;
-    if (CurrentRow < BOARDHEIGHT)
-      CurrentWidth += 1;
-    else
-      CurrentWidth -= 1;
-    CurrentRow += 1;
-  }
-  return 0;
+	while(TRUE) {
+		if (i < CurrentWidth)
+			return CurrentWidth;
+		i -= CurrentWidth;
+		if (CurrentRow < BOARDHEIGHT)
+			CurrentWidth += 1;
+		else
+			CurrentWidth -= 1;
+		CurrentRow += 1;
+	}
+	return 0;
 }
 
 /*** ColPosition() determines where in the Row a piece is.
@@ -1261,38 +1261,38 @@ int RowWidth(i)
  */
 
 int ColPosition(i)
-     int i;
+int i;
 {
-  int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
+	int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
 
-  while(TRUE) {
-    if (i < CurrentWidth)
-      return i;
-    i -= CurrentWidth;
-    if (CurrentRow < BOARDHEIGHT)
-      CurrentWidth += 1;
-    else
-      CurrentWidth -= 1;
-    CurrentRow += 1;
-  }
-  return 0;
+	while(TRUE) {
+		if (i < CurrentWidth)
+			return i;
+		i -= CurrentWidth;
+		if (CurrentRow < BOARDHEIGHT)
+			CurrentWidth += 1;
+		else
+			CurrentWidth -= 1;
+		CurrentRow += 1;
+	}
+	return 0;
 }
 
 BOOLEAN passMoveOnly (POSITION pos, MOVE move) {
 
-  int player1 = generic_hash_turn(pos);
+	int player1 = generic_hash_turn(pos);
 
-  POSITION next = DoMove(pos, move);
+	POSITION next = DoMove(pos, move);
 
-  return (generic_hash_turn(next) == player1);
+	return (generic_hash_turn(next) == player1);
 }
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

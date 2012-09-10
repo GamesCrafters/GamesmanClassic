@@ -38,23 +38,23 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Dao"; /* The name of your game */
-STRING   kAuthorName          = "GamesCrafters2005Fa"; /* Your name(s) */
-STRING   kDBName              = "Dao"; /* The name to store the database under */
+STRING kGameName            = "Dao";   /* The name of your game */
+STRING kAuthorName          = "GamesCrafters2005Fa";   /* Your name(s) */
+STRING kDBName              = "Dao";   /* The name to store the database under */
 
-BOOLEAN  kPartizan            = TRUE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = TRUE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN kTieIsPossible       = FALSE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN kLoopy               = TRUE;   /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = FALSE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugMenu           = TRUE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  900900; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  189388; /* x--o -xo- -ox- o--x */ /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
-void*	 gGameSpecificTclInit = NULL;
+void*    gGameSpecificTclInit = NULL;
 
 /*
  * Help strings that are pretty self-explanatory
@@ -62,25 +62,25 @@ void*	 gGameSpecificTclInit = NULL;
  */
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+        "Not written yet";
 
-STRING   kHelpTextInterface    =
-"";
+STRING kHelpTextInterface    =
+        "";
 
-STRING   kHelpOnYourTurn =
-"";
+STRING kHelpOnYourTurn =
+        "";
 
-STRING   kHelpStandardObjective =
-"";
+STRING kHelpStandardObjective =
+        "";
 
-STRING   kHelpReverseObjective =
-"";
+STRING kHelpReverseObjective =
+        "";
 
-STRING   kHelpTieOccursWhen =
-"A tie occurs when ...";
+STRING kHelpTieOccursWhen =
+        "A tie occurs when ...";
 
-STRING   kHelpExample =
-"";
+STRING kHelpExample =
+        "";
 
 
 /*************************************************************************
@@ -112,31 +112,31 @@ STRING   kHelpExample =
 **
 *************************************************************************/
 
-int     BOARD_ROWS          = 4;
-int     BOARD_COLS          = 4;
-int     NUM_TO_WIN          = 4;
+int BOARD_ROWS          = 4;
+int BOARD_COLS          = 4;
+int NUM_TO_WIN          = 4;
 BOOLEAN CAN_MOVE_DIAGONALLY = TRUE;
 BOOLEAN MISERE              = FALSE;
 
 /*the corresponding direction for output*/
 STRING directions[NUM_OF_DIRS] = {
-  "sw", "s", "se",
-  "w",        "e",
-  "nw", "n", "ne"
+	"sw", "s", "se",
+	"w",        "e",
+	"nw", "n", "ne"
 };
 
 /*char* alpha = "abcdefghij";  used to print row letter */
 
 /*the increments to the row and column numbers of the piece *
  * THESE ARE ACCORIDNG TO THE KEYPAD ARRANGEMENTS
- 1  2  3
- 4  5  6
- 7  8  9
-*/
+   1  2  3
+   4  5  6
+   7  8  9
+ */
 int dir_increments[NUM_OF_DIRS][2] = {
-  { -1,  1 } , { 0 , 1 } , { 1 , 1 } ,
-  { -1,  0 } ,             { 1 , 0 } ,
-  { -1, -1 } , { 0, -1 } , { 1 ,-1 }
+	{ -1,  1 }, { 0, 1 }, { 1, 1 },
+	{ -1,  0 },             { 1, 0 },
+	{ -1, -1 }, { 0, -1 }, { 1,-1 }
 };
 
 /*************************************************************************
@@ -146,9 +146,9 @@ int dir_increments[NUM_OF_DIRS][2] = {
 *************************************************************************/
 
 /* External */
-#ifndef MEMWATCH 
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+#ifndef MEMWATCH
+extern GENERIC_PTR      SafeMalloc ();
+extern void             SafeFree ();
 #endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
@@ -163,7 +163,7 @@ void                    PrintPosition(POSITION position, STRING playersName, BOO
 void                    printBoard(char board[]);
 void                    PrintComputersMove(MOVE computersMove, STRING computersName);
 void                    PrintMove(MOVE move);
-STRING			MoveToString(MOVE);
+STRING                  MoveToString(MOVE);
 USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
@@ -201,19 +201,19 @@ POSITION                ActualNumberOfPositions(int variant);
 
 void InitializeGame ()
 {
-  int init_pieces[10];
-  char board[] = "X  O XO  OX O  X";
+	int init_pieces[10];
+	char board[] = "X  O XO  OX O  X";
 
-  initializePiecesArray(init_pieces);
-  gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL, 0);
-   
-  int reflections[] = {0,45,90,135};
-  int rotations[] = {90, 180, 270};
-  generic_hash_init_sym(0, BOARD_ROWS, BOARD_COLS, reflections, 4, rotations, 3, 1); 
-  gInitialPosition = generic_hash_hash(board, PLAYER1_TURN);
+	initializePiecesArray(init_pieces);
+	gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL, 0);
 
-  gMoveToStringFunPtr = &MoveToString;
-  gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+	int reflections[] = {0,45,90,135};
+	int rotations[] = {90, 180, 270};
+	generic_hash_init_sym(0, BOARD_ROWS, BOARD_COLS, reflections, 4, rotations, 3, 1);
+	gInitialPosition = generic_hash_hash(board, PLAYER1_TURN);
+
+	gMoveToStringFunPtr = &MoveToString;
+	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
 
@@ -237,43 +237,43 @@ void InitializeGame ()
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-  MOVELIST *moves = NULL;
-  int i, j, k, di, dj;
-  char board[BOARD_SIZE+1];
-  int player = generic_hash_turn(position);
-  BOOLEAN canProcessDir = FALSE;
+	MOVELIST *moves = NULL;
+	int i, j, k, di, dj;
+	char board[BOARD_SIZE+1];
+	int player = generic_hash_turn(position);
+	BOOLEAN canProcessDir = FALSE;
 
-  generic_hash_unhash (position, board);
-  /* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-  for (i = 0; i < BOARD_ROWS; i++) {
-    for (j = 0; j < BOARD_COLS; j++) {
-      if (((player==1) && (board[Index(i,j)] == PLAYER1_PIECE)) ||
-	  ((player==2) && (board[Index(i,j)] == PLAYER2_PIECE)))
-	{
-	  for (k = 0; k < NUM_OF_DIRS; k++) {
-	    // for every possible movement as specified in dir_increments
-	    // except 5 and the diagonals when !CAN_MOVE_DIAGONALLY
-	    // 0 1 2
-	    // 3   4
-	    // 5 6 7
-	    if ((k == 0) || (k == 2) || (k == 5) || (k == 7))
-	      canProcessDir = CAN_MOVE_DIAGONALLY;
-	    else
-	      canProcessDir = TRUE;
-	    if (canProcessDir) {
-	      di = i + dir_increments[k][0];
-	      dj = j + dir_increments[k][1];
-	      if ((di >= 0) && (dj >= 0) &&
-		  (di < BOARD_ROWS) && (dj < BOARD_COLS) &&
-		  (board[Index(di,dj)] == EMPTY_PIECE)) {
-		moves = CreateMovelistNode(Hasher(i,j,k),moves);
-	      }
-	    }
-	  }
+	generic_hash_unhash (position, board);
+	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
+	for (i = 0; i < BOARD_ROWS; i++) {
+		for (j = 0; j < BOARD_COLS; j++) {
+			if (((player==1) && (board[Index(i,j)] == PLAYER1_PIECE)) ||
+			    ((player==2) && (board[Index(i,j)] == PLAYER2_PIECE)))
+			{
+				for (k = 0; k < NUM_OF_DIRS; k++) {
+					// for every possible movement as specified in dir_increments
+					// except 5 and the diagonals when !CAN_MOVE_DIAGONALLY
+					// 0 1 2
+					// 3   4
+					// 5 6 7
+					if ((k == 0) || (k == 2) || (k == 5) || (k == 7))
+						canProcessDir = CAN_MOVE_DIAGONALLY;
+					else
+						canProcessDir = TRUE;
+					if (canProcessDir) {
+						di = i + dir_increments[k][0];
+						dj = j + dir_increments[k][1];
+						if ((di >= 0) && (dj >= 0) &&
+						    (di < BOARD_ROWS) && (dj < BOARD_COLS) &&
+						    (board[Index(di,dj)] == EMPTY_PIECE)) {
+							moves = CreateMovelistNode(Hasher(i,j,k),moves);
+						}
+					}
+				}
+			}
+		}
 	}
-    }
-  }
-  return moves;
+	return moves;
 
 
 }
@@ -297,29 +297,29 @@ MOVELIST *GenerateMoves (POSITION position)
 
 POSITION DoMove (POSITION position, MOVE move)
 {
-  char board[BOARD_SIZE];
-  int current_player = generic_hash_turn(position);
-  int move_position = Unhasher_Index(move);
-  int row = Row (move_position);
-  int col = Column (move_position);
-  int direction = Unhasher_Direction(move);
-  int new_position;
+	char board[BOARD_SIZE];
+	int current_player = generic_hash_turn(position);
+	int move_position = Unhasher_Index(move);
+	int row = Row (move_position);
+	int col = Column (move_position);
+	int direction = Unhasher_Direction(move);
+	int new_position;
 
-  generic_hash_unhash(position, board);
-  do {
-    row += dir_increments[direction][0];
-    col += dir_increments[direction][1];
-  } while ( (row >= 0) && (col >= 0) &&
-	    (row < BOARD_ROWS) && (col < BOARD_COLS) &&
-	    (board[Index(row,col)] == EMPTY_PIECE));
+	generic_hash_unhash(position, board);
+	do {
+		row += dir_increments[direction][0];
+		col += dir_increments[direction][1];
+	} while ( (row >= 0) && (col >= 0) &&
+	          (row < BOARD_ROWS) && (col < BOARD_COLS) &&
+	          (board[Index(row,col)] == EMPTY_PIECE));
 
-  new_position = Index(row - dir_increments[direction][0],
-		       col - dir_increments[direction][1]);
+	new_position = Index(row - dir_increments[direction][0],
+	                     col - dir_increments[direction][1]);
 
-  generic_hash_unhash (position, board);
-  board[new_position] = board[move_position];
-  board[move_position] = (char) EMPTY_PIECE;
-  return generic_hash_hash(board, (current_player == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN));
+	generic_hash_unhash (position, board);
+	board[new_position] = board[move_position];
+	board[move_position] = (char) EMPTY_PIECE;
+	return generic_hash_hash(board, (current_player == PLAYER1_TURN ? PLAYER2_TURN : PLAYER1_TURN));
 }
 
 
@@ -349,82 +349,82 @@ POSITION DoMove (POSITION position, MOVE move)
 
 VALUE Primitive (POSITION position)
 {
-  /* if it's your turn but there's already a win, then you must have lost!
-   * can think about it this way because players are only allowed to move their
-   * own pieces.
-   */
-  char board[BOARD_SIZE];
-  int r,c,d;
+	/* if it's your turn but there's already a win, then you must have lost!
+	 * can think about it this way because players are only allowed to move their
+	 * own pieces.
+	 */
+	char board[BOARD_SIZE];
+	int r,c,d;
 
-  generic_hash_unhash(position, board);
+	generic_hash_unhash(position, board);
 
-  for (r = 0; r < BOARD_ROWS; r++) /*horizontal*/
-    for (c = 0; c < BOARD_COLS+1-NUM_TO_WIN; c++)
-      if (board[Index(r,c)] != EMPTY_PIECE) {
-	for (d = 1; d < NUM_TO_WIN; d++)
-	  if (board[Index(r,c+d-1)] != board[Index(r,c+d)])
-	    break;
-	if (d == NUM_TO_WIN) return (gStandardGame ? lose : win);
-      }
+	for (r = 0; r < BOARD_ROWS; r++) /*horizontal*/
+		for (c = 0; c < BOARD_COLS+1-NUM_TO_WIN; c++)
+			if (board[Index(r,c)] != EMPTY_PIECE) {
+				for (d = 1; d < NUM_TO_WIN; d++)
+					if (board[Index(r,c+d-1)] != board[Index(r,c+d)])
+						break;
+				if (d == NUM_TO_WIN) return (gStandardGame ? lose : win);
+			}
 
-  for (r = 0; r < BOARD_ROWS+1-NUM_TO_WIN; r++) /*vertical*/
-    for (c = 0; c < BOARD_COLS; c++)
-      if (board[Index(r,c)] != EMPTY_PIECE) {
-	for (d = 1; d < NUM_TO_WIN; d++)
-	  if (board[Index(r+d-1,c)] != board[Index(r+d,c)])
-	    break;
-	if (d == NUM_TO_WIN) return (gStandardGame ? lose : win);
-      }
+	for (r = 0; r < BOARD_ROWS+1-NUM_TO_WIN; r++) /*vertical*/
+		for (c = 0; c < BOARD_COLS; c++)
+			if (board[Index(r,c)] != EMPTY_PIECE) {
+				for (d = 1; d < NUM_TO_WIN; d++)
+					if (board[Index(r+d-1,c)] != board[Index(r+d,c)])
+						break;
+				if (d == NUM_TO_WIN) return (gStandardGame ? lose : win);
+			}
 
-  for (r = 0; r < BOARD_ROWS-1; r++) /*square*/
-    for (c = 0; c < BOARD_COLS-1; c++)
-      if (board[Index(r,c)] != EMPTY_PIECE) {
-	if ( (board[Index(r,c)] == board[Index(r,c+1)]) &&
-	     (board[Index(r,c)] == board[Index(r+1,c)]) &&
-	     (board[Index(r,c)] == board[Index(r+1,c+1)]) )
-	return (gStandardGame ? lose : win);
-     }
+	for (r = 0; r < BOARD_ROWS-1; r++) /*square*/
+		for (c = 0; c < BOARD_COLS-1; c++)
+			if (board[Index(r,c)] != EMPTY_PIECE) {
+				if ( (board[Index(r,c)] == board[Index(r,c+1)]) &&
+				     (board[Index(r,c)] == board[Index(r+1,c)]) &&
+				     (board[Index(r,c)] == board[Index(r+1,c+1)]) )
+					return (gStandardGame ? lose : win);
+			}
 
-  if ( (board[Index(0,0)] != EMPTY_PIECE) && /* four corners */
-       (board[Index(0,0)] == board[Index(0,BOARD_COLS-1)]) &&
-       (board[Index(0,0)] == board[Index(BOARD_ROWS-1,0)]) &&
-       (board[Index(0,0)] == board[Index(BOARD_ROWS-1,BOARD_COLS-1)]) )
-       return (gStandardGame ? lose : win);
+	if ( (board[Index(0,0)] != EMPTY_PIECE) && /* four corners */
+	     (board[Index(0,0)] == board[Index(0,BOARD_COLS-1)]) &&
+	     (board[Index(0,0)] == board[Index(BOARD_ROWS-1,0)]) &&
+	     (board[Index(0,0)] == board[Index(BOARD_ROWS-1,BOARD_COLS-1)]) )
+		return (gStandardGame ? lose : win);
 
-  if ( ( (board[Index(0,0)] != EMPTY_PIECE) && /* trapping */
-	 (board[Index(1,0)] != EMPTY_PIECE) &&
-	 (board[Index(0,1)] != EMPTY_PIECE) &&
-	 (board[Index(1,1)] != EMPTY_PIECE) &&
-	 (board[Index(0,0)] != board[Index(0,1)]) &&
-	 (board[Index(0,0)] != board[Index(1,0)]) &&
-	 (board[Index(0,0)] != board[Index(1,1)])) ||
+	if ( ( (board[Index(0,0)] != EMPTY_PIECE) && /* trapping */
+	       (board[Index(1,0)] != EMPTY_PIECE) &&
+	       (board[Index(0,1)] != EMPTY_PIECE) &&
+	       (board[Index(1,1)] != EMPTY_PIECE) &&
+	       (board[Index(0,0)] != board[Index(0,1)]) &&
+	       (board[Index(0,0)] != board[Index(1,0)]) &&
+	       (board[Index(0,0)] != board[Index(1,1)])) ||
 
-       ( (board[Index(0,BOARD_COLS-1)] != EMPTY_PIECE) &&
-	 (board[Index(1,BOARD_COLS-1)] != EMPTY_PIECE) &&
-	 (board[Index(0,BOARD_COLS-2)] != EMPTY_PIECE) &&
-	 (board[Index(1,BOARD_COLS-2)] != EMPTY_PIECE) &&
-	 (board[Index(0,BOARD_COLS-1)] != board[Index(0,BOARD_COLS-2)]) &&
-	 (board[Index(0,BOARD_COLS-1)] != board[Index(1,BOARD_COLS-1)]) &&
-	 (board[Index(0,BOARD_COLS-1)] != board[Index(1,BOARD_COLS-2)])) ||
+	     ( (board[Index(0,BOARD_COLS-1)] != EMPTY_PIECE) &&
+	       (board[Index(1,BOARD_COLS-1)] != EMPTY_PIECE) &&
+	       (board[Index(0,BOARD_COLS-2)] != EMPTY_PIECE) &&
+	       (board[Index(1,BOARD_COLS-2)] != EMPTY_PIECE) &&
+	       (board[Index(0,BOARD_COLS-1)] != board[Index(0,BOARD_COLS-2)]) &&
+	       (board[Index(0,BOARD_COLS-1)] != board[Index(1,BOARD_COLS-1)]) &&
+	       (board[Index(0,BOARD_COLS-1)] != board[Index(1,BOARD_COLS-2)])) ||
 
-       ( (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-2,BOARD_COLS-1)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-1,BOARD_COLS-2)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-2,BOARD_COLS-2)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != board[Index(BOARD_ROWS-1,BOARD_COLS-2)]) &&
-	 (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != board[Index(BOARD_ROWS-2,BOARD_COLS-1)]) &&
-	 (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != board[Index(BOARD_ROWS-2,BOARD_COLS-2)])) ||
+	     ( (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-2,BOARD_COLS-1)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-1,BOARD_COLS-2)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-2,BOARD_COLS-2)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != board[Index(BOARD_ROWS-1,BOARD_COLS-2)]) &&
+	       (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != board[Index(BOARD_ROWS-2,BOARD_COLS-1)]) &&
+	       (board[Index(BOARD_ROWS-1,BOARD_COLS-1)] != board[Index(BOARD_ROWS-2,BOARD_COLS-2)])) ||
 
-       ( (board[Index(BOARD_ROWS-1,0)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-2,0)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-1,1)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-2,1)] != EMPTY_PIECE) &&
-	 (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-1,1)]) &&
-	 (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-2,0)]) &&
-	 (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-2,1)])) )
-	return (gStandardGame ? win : lose);
+	     ( (board[Index(BOARD_ROWS-1,0)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-2,0)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-1,1)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-2,1)] != EMPTY_PIECE) &&
+	       (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-1,1)]) &&
+	       (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-2,0)]) &&
+	       (board[Index(BOARD_ROWS-1,0)] != board[Index(BOARD_ROWS-2,1)])) )
+		return (gStandardGame ? win : lose);
 
-  return undecided;
+	return undecided;
 }
 
 
@@ -446,32 +446,32 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-  char board[BOARD_SIZE];
+	char board[BOARD_SIZE];
 
-  generic_hash_unhash (position, board);
-  printf (" The game board as %s sees it:\n", playersName);
-  printBoard (board);
+	generic_hash_unhash (position, board);
+	printf (" The game board as %s sees it:\n", playersName);
+	printBoard (board);
 }
 
 void printBoard (char *board) {
-  int i,j;
+	int i,j;
 
-  for (i = 0; i < BOARD_ROWS; i++) {
-    printf ("  +");
-    for (j = 0; j < BOARD_COLS; j++)
-      printf ("-+");
-    printf ( "\n%d " , BOARD_ROWS-i );
-    for (j = 0; j < BOARD_COLS; j++)
-      printf ("|%c", board[Index(i,j)]);
-    printf("|\n");
-  }
-  printf("  +");
-  for (j = 0; j < BOARD_COLS; j++)
-    printf("-+");
-  printf("\n   ");
-  for (j = 0; j < BOARD_COLS; j++)
-    printf("%c ", j+ROW_START);  /*start count from 1*/
-  printf("\n");
+	for (i = 0; i < BOARD_ROWS; i++) {
+		printf ("  +");
+		for (j = 0; j < BOARD_COLS; j++)
+			printf ("-+");
+		printf ( "\n%d ", BOARD_ROWS-i );
+		for (j = 0; j < BOARD_COLS; j++)
+			printf ("|%c", board[Index(i,j)]);
+		printf("|\n");
+	}
+	printf("  +");
+	for (j = 0; j < BOARD_COLS; j++)
+		printf("-+");
+	printf("\n   ");
+	for (j = 0; j < BOARD_COLS; j++)
+		printf("%c ", j+ROW_START); /*start count from 1*/
+	printf("\n");
 }
 
 
@@ -488,12 +488,12 @@ void printBoard (char *board) {
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-  int position = Unhasher_Index(computersMove);
-  int direction = Unhasher_Direction(computersMove);
+	int position = Unhasher_Index(computersMove);
+	int direction = Unhasher_Direction(computersMove);
 
-  printf ("%s moves the piece %c%d%s\n", computersName, \
-	  Column(position)+ROW_START, BOARD_ROWS-Row (position), \
-	  directions[direction]);
+	printf ("%s moves the piece %c%d%s\n", computersName, \
+	        Column(position)+ROW_START, BOARD_ROWS-Row (position), \
+	        directions[direction]);
 }
 
 
@@ -509,7 +509,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-  printf( "%s", MoveToString(move) );
+	printf( "%s", MoveToString(move) );
 }
 
 /************************************************************************
@@ -523,17 +523,17 @@ void PrintMove (MOVE move)
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING move = (STRING) SafeMalloc(5);
+	STRING move = (STRING) SafeMalloc(5);
 
-  int position = Unhasher_Index(theMove);
-  int direction = Unhasher_Direction(theMove);
+	int position = Unhasher_Index(theMove);
+	int direction = Unhasher_Direction(theMove);
 
-  sprintf (move, "%c%d%s", Column (position)+ROW_START, BOARD_ROWS-Row (position),
-	  directions[direction]);
+	sprintf (move, "%c%d%s", Column (position)+ROW_START, BOARD_ROWS-Row (position),
+	         directions[direction]);
 
-  return move;
+	return move;
 }
 
 
@@ -559,24 +559,24 @@ STRING MoveToString (theMove)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-  USERINPUT input;
-  USERINPUT HandleDefaultTextInput();
-  char player_char = (generic_hash_turn(position) == PLAYER1_TURN)?PLAYER1_PIECE:PLAYER2_PIECE;
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
+	char player_char = (generic_hash_turn(position) == PLAYER1_TURN) ? PLAYER1_PIECE : PLAYER2_PIECE;
 
-  for (;;) {
-    /***********************************************************
-     * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-     ***********************************************************/
-    printf("%8s's (%c) move [(undo)/<row><col><dir>] : ", playersName, player_char);
+	for (;; ) {
+		/***********************************************************
+		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+		***********************************************************/
+		printf("%8s's (%c) move [(undo)/<row><col><dir>] : ", playersName, player_char);
 
-    input = HandleDefaultTextInput(position, move, playersName);
+		input = HandleDefaultTextInput(position, move, playersName);
 
-    if (input != Continue)
-      return input;
-  }
+		if (input != Continue)
+			return input;
+	}
 
-  /* NOTREACHED */
-  return Continue;
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -607,18 +607,18 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-  char *dirstr;
-  int i;
-  if ((strlen(input) != 3) && (strlen(input) != 4))
-    return FALSE;
-  if ((input[0] < ROW_START) || (input[0] > (ROW_START+BOARD_COLS)) ||
-      (input[1] < '1') || (input[1] > '1'+BOARD_ROWS))
-    return FALSE;
-  dirstr = input+2; /*dir points at the first character of the direction*/
-  for (i = 0; i < NUM_OF_DIRS; i++)
-    if (strcmp(dirstr, directions[i]) == 0)
-      return TRUE;
-  return FALSE;
+	char *dirstr;
+	int i;
+	if ((strlen(input) != 3) && (strlen(input) != 4))
+		return FALSE;
+	if ((input[0] < ROW_START) || (input[0] > (ROW_START+BOARD_COLS)) ||
+	    (input[1] < '1') || (input[1] > '1'+BOARD_ROWS))
+		return FALSE;
+	dirstr = input+2; /*dir points at the first character of the direction*/
+	for (i = 0; i < NUM_OF_DIRS; i++)
+		if (strcmp(dirstr, directions[i]) == 0)
+			return TRUE;
+	return FALSE;
 }
 
 
@@ -638,15 +638,15 @@ BOOLEAN ValidTextInput (STRING input)
 
 MOVE ConvertTextInputToMove (STRING input)
 {
-  int row, col, dir;
-  char *dirstr;
+	int row, col, dir;
+	char *dirstr;
 
-  col = input[0] - 'a';
-  row = BOARD_ROWS - (input[1] - '1') - 1;
-  dirstr = input+2;
-  for (dir = 0; strcmp(directions[dir], dirstr) != 0; dir++)
-    ;
-  return Hasher (row, col, dir);
+	col = input[0] - 'a';
+	row = BOARD_ROWS - (input[1] - '1') - 1;
+	dirstr = input+2;
+	for (dir = 0; strcmp(directions[dir], dirstr) != 0; dir++)
+		;
+	return Hasher (row, col, dir);
 }
 
 
@@ -703,7 +703,7 @@ void SetTclCGameSpecificOptions (int options[])
 
 POSITION GetInitialPosition ()
 {
-    return 0;
+	return 0;
 }
 
 
@@ -720,7 +720,7 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-    return 1;
+	return 1;
 }
 
 
@@ -738,10 +738,10 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
-    return 0;
+	/* If you have implemented symmetries you should
+	   include the boolean variable gSymmetries in your
+	   hash */
+	return 0;
 }
 
 
@@ -758,9 +758,9 @@ int getOption ()
 
 void setOption (int option)
 {
-    /* If you have implemented symmetries you should
-       include the boolean variable gSymmetries in your
-       hash */
+	/* If you have implemented symmetries you should
+	   include the boolean variable gSymmetries in your
+	   hash */
 }
 
 
@@ -794,69 +794,69 @@ void DebugMenu ()
 **
 ************************************************************************/
 void initializePiecesArray(int p_a[]) {
-  /* {'X', 4, 4, 'O', 4, 4, '-', 8, 8, -1} */
-  /*   0   1  2   3   4  5   6   7  8  9  */
-  p_a[0] = PLAYER1_PIECE;
-  p_a[3] = PLAYER2_PIECE;
-  p_a[6] = EMPTY_PIECE;
-  p_a[9] = -1;
-  p_a[1] = p_a[2] = p_a[4] = p_a[5] = PLAYER_PIECES;
-  p_a[7] = p_a[8] = EMPTY_PIECES;
+	/* {'X', 4, 4, 'O', 4, 4, '-', 8, 8, -1} */
+	/*   0   1  2   3   4  5   6   7  8  9  */
+	p_a[0] = PLAYER1_PIECE;
+	p_a[3] = PLAYER2_PIECE;
+	p_a[6] = EMPTY_PIECE;
+	p_a[9] = -1;
+	p_a[1] = p_a[2] = p_a[4] = p_a[5] = PLAYER_PIECES;
+	p_a[7] = p_a[8] = EMPTY_PIECES;
 }
 
 void initializeBoard (char board[]) {
-  int x,y;
-  char piece;
+	int x,y;
+	char piece;
 
-  for (x = 0; x < BOARD_COLS; x++) {
-    for (y = 0; y < BOARD_ROWS; y++) {
-      if (y == 0) {
-	piece = (x % 2) ? PLAYER2_PIECE : PLAYER1_PIECE;
-      } else if (y == BOARD_ROWS-1) {
-	piece = (x % 2) ? PLAYER1_PIECE : PLAYER2_PIECE;
-      } else {
-	piece = EMPTY_PIECE;
-      }
-      board[Index(y, x)] = (char) piece;
-    }
-  }
+	for (x = 0; x < BOARD_COLS; x++) {
+		for (y = 0; y < BOARD_ROWS; y++) {
+			if (y == 0) {
+				piece = (x % 2) ? PLAYER2_PIECE : PLAYER1_PIECE;
+			} else if (y == BOARD_ROWS-1) {
+				piece = (x % 2) ? PLAYER1_PIECE : PLAYER2_PIECE;
+			} else {
+				piece = EMPTY_PIECE;
+			}
+			board[Index(y, x)] = (char) piece;
+		}
+	}
 }
 
 int Index(int row, int col) {
-  return  (row*BOARD_COLS+col);
+	return  (row*BOARD_COLS+col);
 }
 
 int Row(int Pos) {
-  return (Pos/BOARD_COLS);
+	return (Pos/BOARD_COLS);
 }
 
 int Column(int Pos) {
-  return (Pos%BOARD_COLS);
+	return (Pos%BOARD_COLS);
 }
 
 MOVE Hasher(int row, int col, int dir) {
-  return (MOVE) ( ( Index(row, col) )* NUM_OF_DIRS + dir);
+	return (MOVE) ( ( Index(row, col) )* NUM_OF_DIRS + dir);
 }
 
 int Unhasher_Index(MOVE hashed_move) {
-  return (hashed_move / NUM_OF_DIRS);
+	return (hashed_move / NUM_OF_DIRS);
 }
 
 int Unhasher_Direction(MOVE hashed_move) {
-  return (hashed_move % NUM_OF_DIRS);
+	return (hashed_move % NUM_OF_DIRS);
 }
 
 POSITION ActualNumberOfPositions(int variant) {
-  return 1768108;
+	return 1768108;
 }
 
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

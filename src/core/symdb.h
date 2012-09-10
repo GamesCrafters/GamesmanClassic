@@ -31,7 +31,7 @@
 **************************************************************************/
 /* DISCLAIMER:  This is pretty much just a copy and paste of Ken Elkabany's
                 Bit Perfect Database
-*/
+ */
 
 
 #ifndef GMCORE_SYMDB_H
@@ -47,8 +47,8 @@
 
 GMSTATUS
 symdb_init(
-                DB_Table *new_db
-                );
+        DB_Table *new_db
+        );
 
 void
 symdb_free( );
@@ -59,64 +59,64 @@ symdb_free_slice( );
 // get/set value
 VALUE
 symdb_get_value(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 VALUE
 symdb_set_value(
-                POSITION pos,
-                VALUE val
-                );
+        POSITION pos,
+        VALUE val
+        );
 
 // get/set remoteness
 REMOTENESS
 symdb_get_remoteness(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 symdb_set_remoteness(
-                POSITION pos,
-                REMOTENESS val
-                );
+        POSITION pos,
+        REMOTENESS val
+        );
 
 // get/set visited
 BOOLEAN
 symdb_check_visited(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 symdb_mark_visited(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 symdb_unmark_visited(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 // get/set mex
 MEX
 symdb_get_mex(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 symdb_set_mex(
-                POSITION pos,
-                MEX mex);
+        POSITION pos,
+        MEX mex);
 
 // get/set winby
 WINBY
 symdb_get_winby(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 symdb_set_winby(
-                POSITION pos,
-                WINBY winBy);
+        POSITION pos,
+        WINBY winBy);
 
 //
 // functions for internal use
@@ -125,53 +125,53 @@ symdb_set_winby(
 inline
 UINT64
 symdb_get_slice_slot(
-                UINT64 position,
-                UINT8 index
-                );
+        UINT64 position,
+        UINT8 index
+        );
 
 inline
 UINT64
 symdb_set_slice_slot(
-                UINT64 position,
-                UINT8 index,
-                UINT64 value
-                );
+        UINT64 position,
+        UINT8 index,
+        UINT64 value
+        );
 
 inline
 UINT64
 symdb_set_slice_slot_max(
-                UINT64 position,
-                UINT8 index
-                );
+        UINT64 position,
+        UINT8 index
+        );
 
 GMSTATUS
 symdb_add_slot(
-                UINT8 size,
-                char *name,
-                BOOLEAN write,
-                BOOLEAN adjust,
-                BOOLEAN reservemax,
-                UINT32 *slotindex
-                );
+        UINT8 size,
+        char *name,
+        BOOLEAN write,
+        BOOLEAN adjust,
+        BOOLEAN reservemax,
+        UINT32 *slotindex
+        );
 
 GMSTATUS
 symdb_grow_slice(
-                BYTE *symdb_array,
-                SLICE symdb_slice,
-                UINT8 index,
-                UINT64 value
-                );
+        BYTE *symdb_array,
+        SLICE symdb_slice,
+        UINT8 index,
+        UINT64 value
+        );
 
 GMSTATUS
 symdb_shrink_slice(
-                BYTE *symdb_array,
-                SLICE symdb_slice,
-                UINT8 index
-                );
+        BYTE *symdb_array,
+        SLICE symdb_slice,
+        UINT8 index
+        );
 
 GMSTATUS
 symdb_allocate(
-                );
+        );
 
 
 //
@@ -196,41 +196,41 @@ symdb_save_database( );
 
 GMSTATUS
 symdb_generic_save_database(
-                SCHEME scheme,
-                char *outfilename
-                );
+        SCHEME scheme,
+        char *outfilename
+        );
 
 BOOLEAN
 symdb_load_database( );
 
 GMSTATUS
 symdb_generic_load_database(
-                dbFILE *inFile,
-                SCHEME scheme
-                );
+        dbFILE *inFile,
+        SCHEME scheme
+        );
 
 
 BOOLEAN
 symdb_generic_write_varnum(
-                dbFILE *outFile,
-                SCHEME scheme,
-                BYTE **curBuffer,
-                BYTE *outputBuffer,
-                UINT32 bufferLength,
-                UINT8 *offset,
-                UINT64 consecutiveSkips
-                );
+        dbFILE *outFile,
+        SCHEME scheme,
+        BYTE **curBuffer,
+        BYTE *outputBuffer,
+        UINT32 bufferLength,
+        UINT8 *offset,
+        UINT64 consecutiveSkips
+        );
 
 
 UINT64
 symdb_generic_read_varnum(
-                dbFILE *inFile,
-                SCHEME scheme,
-                BYTE **curBuffer,
-                BYTE *inputBuffer,
-                UINT32 length,
-                UINT8 *offset,
-                BOOLEAN alreadyReadFirstBit
-                );
+        dbFILE *inFile,
+        SCHEME scheme,
+        BYTE **curBuffer,
+        BYTE *inputBuffer,
+        UINT32 length,
+        UINT8 *offset,
+        BOOLEAN alreadyReadFirstBit
+        );
 
 #endif /* GMCORE_SYMDB_H */

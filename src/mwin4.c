@@ -1,36 +1,36 @@
 /************************************************************************
-c**
-** NAME:        mwin4.c
-**
-** DESCRIPTION: Connect-4
-**
-** AUTHOR:      Michael Thon, University of Berkeley
-**              Copyright (C) Michael Thon, 2002. All rights reserved.
-**
-** DATE:        07/12/02
-**
-** UPDATE HIST:
-**
-**  7-12-02 1.0 : Getting started (not using RCS though)
-**                will first attempt only 5x4 size boards
-**  9-12-02 1.1 : Board sizes (smaller than 5x5) can be set in mwin4.h
-**                Text-based module works for these.
-**                ToDo: -graphics
-**                      -help-Information
-**                      -documentation
-** 10-12-02 1.2 : - Board sizes now set in this file (no more mwin4.h)
-**                  MUST ALSO SET IN mwin4.tcl !! (gSlotsX and Y)
-**                  Feasale sizes are 5x4 or 4x5 (both interesting)
-**                - Program will probably SegFault if sizeof(int)<4
-**                  Would be nice to have POSITION be long int or even
-**                  unsigned long int
-**                - Graphical Module mwin4.tcl done
-**
-** 08-19-06	: change to GetMyInt();
-**
-** 02-23-06       Ilya Landa
-**                Implementing symmetries
-**************************************************************************/
+   c**
+ ** NAME:        mwin4.c
+ **
+ ** DESCRIPTION: Connect-4
+ **
+ ** AUTHOR:      Michael Thon, University of Berkeley
+ **              Copyright (C) Michael Thon, 2002. All rights reserved.
+ **
+ ** DATE:        07/12/02
+ **
+ ** UPDATE HIST:
+ **
+ **  7-12-02 1.0 : Getting started (not using RCS though)
+ **                will first attempt only 5x4 size boards
+ **  9-12-02 1.1 : Board sizes (smaller than 5x5) can be set in mwin4.h
+ **                Text-based module works for these.
+ **                ToDo: -graphics
+ **                      -help-Information
+ **                      -documentation
+ ** 10-12-02 1.2 : - Board sizes now set in this file (no more mwin4.h)
+ **                  MUST ALSO SET IN mwin4.tcl !! (gSlotsX and Y)
+ **                  Feasale sizes are 5x4 or 4x5 (both interesting)
+ **                - Program will probably SegFault if sizeof(int)<4
+ **                  Would be nice to have POSITION be long int or even
+ **                  unsigned long int
+ **                - Graphical Module mwin4.tcl done
+ **
+ ** 08-19-06	: change to GetMyInt();
+ **
+ ** 02-23-06       Ilya Landa
+ **                Implementing symmetries
+ **************************************************************************/
 
 /* a position seem to be made with this: (4x4)
  * 10100 10010 11010 01110
@@ -52,50 +52,50 @@ c**
 POSITION gNumberOfPositions   = 0; // Initialized to MyNumberOfPos()
 POSITION gInitialPosition     = 0;     // Initialized to MyInitialPosition()
 POSITION kBadPosition         = 0;     // This can never be the rep.
-                                      // of a position
+                                       // of a position
 
 POSITION gMinimalPosition     =  0;
-STRING 	 kDBName 	      = "win4" ;
-STRING   kAuthorName          = "Michael Thon";
-STRING   kGameName            = "Connect-4";
-BOOLEAN  kPartizan            = TRUE;
-BOOLEAN  kSupportsHeuristic   = FALSE;
-BOOLEAN  kSupportsSymmetries  = FALSE;
-BOOLEAN  kSupportsGraphics    = TRUE;
-BOOLEAN  kDebugMenu           = FALSE; //What for??
-BOOLEAN  kGameSpecificMenu    = TRUE;
-BOOLEAN  kTieIsPossible       = TRUE;
-BOOLEAN  kLoopy               = FALSE;
-BOOLEAN  kDebugDetermineValue = FALSE;
+STRING kDBName              = "win4";
+STRING kAuthorName          = "Michael Thon";
+STRING kGameName            = "Connect-4";
+BOOLEAN kPartizan            = TRUE;
+BOOLEAN kSupportsHeuristic   = FALSE;
+BOOLEAN kSupportsSymmetries  = FALSE;
+BOOLEAN kSupportsGraphics    = TRUE;
+BOOLEAN kDebugMenu           = FALSE;  //What for??
+BOOLEAN kGameSpecificMenu    = TRUE;
+BOOLEAN kTieIsPossible       = TRUE;
+BOOLEAN kLoopy               = FALSE;
+BOOLEAN kDebugDetermineValue = FALSE;
 
-void*	 gGameSpecificTclInit = NULL;
+void*    gGameSpecificTclInit = NULL;
 
-STRING   kHelpGraphicInterface =
-"Click on a highlighted sqare to make your move there.";
+STRING kHelpGraphicInterface =
+        "Click on a highlighted sqare to make your move there.";
 
-STRING   kHelpTextInterface    =
-"On your turn, enter the number (usually 1 through 5) corresponding to a\n\
+STRING kHelpTextInterface    =
+        "On your turn, enter the number (usually 1 through 5) corresponding to a\n\
 slot that is not yet full. This will ''drop'' a piece of yours into the\n\
 slot. If at any point you have made a mistake, you can type u and hit\n\
-return and the system will revert back to your most recent position.";
+return and the system will revert back to your most recent position."                                                                                                                                                                                                                                        ;
 
-STRING   kHelpOnYourTurn =
-"''Drop'' one of your pieces into an open slot by entering the \n\
-corresponding number. ";
+STRING kHelpOnYourTurn =
+        "''Drop'' one of your pieces into an open slot by entering the \n\
+corresponding number. "                                                                           ;
 
-STRING   kHelpStandardObjective =
-"To get four of your pieces in a row, either horizontally, vertically,\n\
- or diagonally.";
+STRING kHelpStandardObjective =
+        "To get four of your pieces in a row, either horizontally, vertically,\n\
+ or diagonally."                                                                                  ;
 
-STRING   kHelpReverseObjective =
-"To force your opponent into getting four of his pieces  in a row, either \n\
- horizontally, vertically, or diagonally.";
+STRING kHelpReverseObjective =
+        "To force your opponent into getting four of his pieces  in a row, either \n\
+ horizontally, vertically, or diagonally."                                                                                      ;
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"the board fills up without either player getting four-in-a-row.";
+STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+                            "the board fills up without either player getting four-in-a-row.";
 
-STRING   kHelpExample = 
-"Just go ahead and try it out for yourself. No need to be scared...";
+STRING kHelpExample =
+        "Just go ahead and try it out for yourself. No need to be scared...";
 
 /*************************************************************************
 **
@@ -114,10 +114,10 @@ STRING   kHelpExample =
 **  Game Specific Global Variables
 **
 ************************************************************************/
-int  WIN4_WIDTH = 4;
-int  WIN4_HEIGHT = 4;
-int  TIER_COL_BITS; //Represents how many bits are needed to encode the number of pieces in all columns.
-int  COLSIGBITS; //Represents how many bits are needed to encode the number of pieces per column.
+int WIN4_WIDTH = 4;
+int WIN4_HEIGHT = 4;
+int TIER_COL_BITS;  //Represents how many bits are needed to encode the number of pieces in all columns.
+int COLSIGBITS;  //Represents how many bits are needed to encode the number of pieces per column.
 int WIN4_WIDTH_MINUS_ONE; //Stored globally for optimization purposes.
 int WIN4_HEIGHT_PLUS_ONE; //Stored globally for optimization purposes.
 int WIN4_WIDTH_PLUS_ONE;
@@ -130,15 +130,15 @@ int WIN4_WIDTH_PLUS_ONE;
 #define DIRECTION_PAIRS 4
 #define NO_COLUMN -1
 
-BOOLEAN  gLibraries           = FALSE;
+BOOLEAN gLibraries           = FALSE;
 
 typedef enum possibleBoardPieces {
 	x, o, Blank
 } XOBlank;
 
-char 	       *gBlankOXString[] = { "X", "O", "-" };
+char           *gBlankOXString[] = { "X", "O", "-" };
 
-int		gContinuousPiecesGoal = 4;
+int gContinuousPiecesGoal = 4;
 
 typedef struct {
 	int *convert;
@@ -168,68 +168,68 @@ typedef enum {
 	DIRECTIONS
 } Direction;
 
-Direction 	gDirections[DIRECTION_PAIRS][2] = {{LEFT, UP},
-						   {NO_DIRECTION, UP},
-						   {RIGHT, UP},
-						   {LEFT, NO_DIRECTION}};
+Direction gDirections[DIRECTION_PAIRS][2] = {{LEFT, UP},
+					     {NO_DIRECTION, UP},
+					     {RIGHT, UP},
+					     {LEFT, NO_DIRECTION}};
 
-Direction 	gOppositeDirections[DIRECTIONS];
+Direction gOppositeDirections[DIRECTIONS];
 
 /* stage-based bottom-up solver variables */
-POSITION	currentHeights[MAXW];
+POSITION currentHeights[MAXW];
 
-POSITION	currentPieces[MAXW];
+POSITION currentPieces[MAXW];
 
 POSITIONLIST   *currentStage;
 
 
 /** Function Prototypes **/
-POSITION 	MyInitialPosition();
-POSITION 	MyNumberOfPos();
+POSITION        MyInitialPosition();
+POSITION        MyNumberOfPos();
 
-void		CountPieces(POSITION pos, int *xcount, int *ocount);
+void            CountPieces(POSITION pos, int *xcount, int *ocount);
 
-void		SetHeights(int currentcol, int piecesleft);
-void		SetPieces(int currentcol);
-void		RecordPosition(POSITION pos, POSITIONLIST *head);
+void            SetHeights(int currentcol, int piecesleft);
+void            SetPieces(int currentcol);
+void            RecordPosition(POSITION pos, POSITIONLIST *head);
 POSITIONLIST   *EnumerateWithinStage(int stage);
 
-int 		CountContinuousPieces(int column, int row, Direction horizontalDirection,
-				      Direction verticalDirection);
-void 		PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
+int             CountContinuousPieces(int column, int row, Direction horizontalDirection,
+                                      Direction verticalDirection);
+void            PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
 
 void            linearUnhash2(POSITION pos, XOBlank* board);
-void 		InitPieceToNumConvs(); 
-void 		UndoMove(MOVE move);
-void		SetupTierStuff();
-void		positionToBinary(POSITION p);
-STRING		MoveToString( MOVE );
+void            InitPieceToNumConvs();
+void            UndoMove(MOVE move);
+void            SetupTierStuff();
+void            positionToBinary(POSITION p);
+STRING          MoveToString( MOVE );
 POSITION        GetCanonicalPosition(POSITION position);
 
-TIER		PositionToTier(POSITION pos);
-TIERPOSITION	PositionToTierPos(POSITION pos, TIER tier);
-TIERLIST	*TierChildren(TIER tier);
-int		**GeneratePermutations(int x, int y);
-BOOLEAN 	IsLegal(POSITION pos);
-STRING 		TierToString(TIER tier);
-TIERPOSITION	PiecePermutation(int pcs, int cols);
-TIERPOSITION	NumberOfTierPositions(TIER tier);
-int		MostSigBit(uint num);
-POSITION	ModPosToPosition(POSITION p);
-POSITION	PositionToModPos(POSITION p, TIER t);
+TIER            PositionToTier(POSITION pos);
+TIERPOSITION    PositionToTierPos(POSITION pos, TIER tier);
+TIERLIST        *TierChildren(TIER tier);
+int             **GeneratePermutations(int x, int y);
+BOOLEAN         IsLegal(POSITION pos);
+STRING          TierToString(TIER tier);
+TIERPOSITION    PiecePermutation(int pcs, int cols);
+TIERPOSITION    NumberOfTierPositions(TIER tier);
+int             MostSigBit(uint num);
+POSITION        ModPosToPosition(POSITION p);
+POSITION        PositionToModPos(POSITION p, TIER t);
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
 **              it in the space pointed to by initialPosition;
-** 
+**
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
 
 POSITION GetInitialPosition() {
-    return MyInitialPosition();
+	return MyInitialPosition();
 }
 
 void InitializeGame()
@@ -238,9 +238,9 @@ void InitializeGame()
 	gNumberOfPositions = MyNumberOfPos();
 	gInitialPosition    = MyInitialPosition();
 	gEnumerateWithinStage = &EnumerateWithinStage;
-	
-	gMinimalPosition = gInitialPosition ;
-	
+
+	gMinimalPosition = gInitialPosition;
+
 	gOppositeDirections[NO_DIRECTION] = NO_DIRECTION;
 	gOppositeDirections[DOWN] = UP;
 	gOppositeDirections[LEFT] = RIGHT;
@@ -251,15 +251,15 @@ void InitializeGame()
 
 	for (i = 0; i < WIN4_WIDTH; ++i) {
 		gPosition.heights[i] = 0;
-		
+
 		for (j = 0; j < WIN4_HEIGHT; ++j) {
 			if (gPosition.board[i][j] == Blank)
 				break;
-			
+
 			++gPosition.heights[i];
 		}
 	}
-	
+
 	gPosition.lastColumn = NO_COLUMN;
 	gPosition.nextPiece = x;
 	gPosition.piecesPlaced = 0;
@@ -277,14 +277,14 @@ void InitializeGame()
 ** DESCRIPTION: Menu used to change game-specific parmeters, such as
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
-** 
+**
 ************************************************************************/
 
-void GameSpecificMenu() { 
+void GameSpecificMenu() {
 
 	int temp;
 	char tChar;
-  
+
 	do {
 		printf("?\n\t----- Game-specific options for %s -----\n\n", kGameName);
 		printf("\tp)\tContinuous (P)ieces goal (%d)\n", gContinuousPiecesGoal);
@@ -292,14 +292,14 @@ void GameSpecificMenu() {
 		printf("\th)\tChoose the board (H)eight (%d through %d) Currently: %d\n",MINH,MAXH,WIN4_HEIGHT);
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		if (gLibraries) {
-		  printf("\tl)\tToggle use of game function libraries. Currently: On");
+			printf("\tl)\tToggle use of game function libraries. Currently: On");
 		} else {
-		  printf("\tl)\tToggle use of game function libraries. Currently: Off");
+			printf("\tl)\tToggle use of game function libraries. Currently: Off");
 		}
 		printf("\n\nSelect an option: ");
-		
+
 		switch(GetMyChar()) {
-                        
+
 
 		case 'Q': case 'q':
 			ExitStageRight();
@@ -308,11 +308,11 @@ void GameSpecificMenu() {
 			printf("Enter continuous pieces goal: ");
 			gContinuousPiecesGoal = GetMyInt();
 			break;
-		case 'W' : case 'w':
+		case 'W': case 'w':
 			printf("Enter a width (%d through %d): ",MINW,MAXW);
 			temp = GetMyInt();
-			
-			while(temp > MAXW || temp < MINW){
+
+			while(temp > MAXW || temp < MINW) {
 				printf("Out of range\n");
 				printf("Enter a width (%d through %d): ",MINW,MAXW);
 				tChar = GetMyChar();
@@ -323,8 +323,8 @@ void GameSpecificMenu() {
 		case 'H': case 'h':
 			printf("Enter a height (%d through %d): ",MINH,MAXH);
 			temp = GetMyInt();
-			
-			while(temp > MAXH || temp < MINH){
+
+			while(temp > MAXH || temp < MINH) {
 				printf("Out of range\n");
 				printf("Enter a height (%d through %d): ",MINH,MAXH);
 				tChar = GetMyChar();
@@ -334,20 +334,20 @@ void GameSpecificMenu() {
 			break;
 
 		case 'L': case 'l':
-		  if (gLibraries) {
-		    gLibraries = FALSE;
-		  } else {
-		    gLibraries = TRUE;
-		  }
-		  break;
+			if (gLibraries) {
+				gLibraries = FALSE;
+			} else {
+				gLibraries = TRUE;
+			}
+			break;
 
 		case 'b': case 'B':
-		  
-		        if (gLibraries) {      
-			  LibInitialize(4,WIN4_HEIGHT,WIN4_WIDTH,TRUE);
-			  Test();
+
+			if (gLibraries) {
+				LibInitialize(4,WIN4_HEIGHT,WIN4_WIDTH,TRUE);
+				Test();
 			}
-		
+
 			return;
 		default:
 			printf("\nSorry, I don't know that option. Try another.\n");
@@ -363,7 +363,7 @@ void GameSpecificMenu() {
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int theOptions[])
@@ -377,7 +377,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
-** 
+**
 ** INPUTS:      POSITION position : The old position
 **              MOVE     move     : The move to apply.
 **
@@ -391,7 +391,7 @@ POSITION DoMove(POSITION position, MOVE move)
 {
 	XOBlank turn,WhoseTurn();
 	POSITION turn2;
-	int i,free=0; 
+	int i,free=0;
 	POSITION permutation_index, sizebits, remainderbits, temp=1;
 	TIER tier; TIERPOSITION tierpos;
 	POSITION modpos, bitmask, tierbits, temp1, temp2, temp3=2;
@@ -406,13 +406,13 @@ POSITION DoMove(POSITION position, MOVE move)
 		modpos <<= (64 - tier - TIER_COL_BITS);
 		position = ModPosToPosition(modpos);
 
-	}	
+	}
 
 	for (i=move*(WIN4_HEIGHT+1)+WIN4_HEIGHT; (position & (temp1 = (temp << i))) == 0; --i)
 		free++;
-	
+
 	if (free == 0) return kBadPosition;
-	
+
 	turn = gUseGPS ? gPosition.nextPiece : WhoseTurn(position);
 	turn2 = (POSITION)turn;
 	position &= ~(temp1);
@@ -455,9 +455,9 @@ void UndoMove(MOVE move)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
-** 
-** INPUTS:      MOVE   *computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE   *computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
@@ -472,13 +472,13 @@ void PrintComputersMove(MOVE computersMove,STRING computersName)
 **
 ** DESCRIPTION: Return the value of a position if it fulfills certain
 **              'primitive' constraints. Some examples of this is having
-**              four-in-a-row. There are two 
+**              four-in-a-row. There are two
 **              primitives it can immediately check for, when the board
 **              is filled but nobody has won = primitive tie. Four in
 **              a row is a primitive lose, because the player who faces
 **              this board has just lost. I.e. the player before him
 **              created the board and won. Otherwise undecided.
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
@@ -491,74 +491,108 @@ void PrintComputersMove(MOVE computersMove,STRING computersName)
 
 VALUE Primitive(POSITION position)
 {
-  if (!gLibraries) {
+	if (!gLibraries) {
 
-	if (gUseGPS) {
-		int count, index;
-		Direction horizontalDirection, verticalDirection;
-		int lastRow = gPosition.heights[gPosition.lastColumn] - 1;
-		
-		for (index = 0; index < DIRECTION_PAIRS; ++index) {
-			count = 1;
-			horizontalDirection = gDirections[index][0];
-			verticalDirection = gDirections[index][1];
-			count += CountContinuousPieces(gPosition.lastColumn, lastRow,
-						       horizontalDirection, verticalDirection);
-			
-			if (count >= gContinuousPiecesGoal)
-				return gStandardGame ? lose : win;
-			
-			count += CountContinuousPieces(gPosition.lastColumn, lastRow,
-						       gOppositeDirections[horizontalDirection],
-						       gOppositeDirections[verticalDirection]);
+		if (gUseGPS) {
+			int count, index;
+			Direction horizontalDirection, verticalDirection;
+			int lastRow = gPosition.heights[gPosition.lastColumn] - 1;
 
-			if (count >= gContinuousPiecesGoal)
-				return gStandardGame ? lose : win;
-		}
+			for (index = 0; index < DIRECTION_PAIRS; ++index) {
+				count = 1;
+				horizontalDirection = gDirections[index][0];
+				verticalDirection = gDirections[index][1];
+				count += CountContinuousPieces(gPosition.lastColumn, lastRow,
+				                               horizontalDirection, verticalDirection);
 
-		return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
-	}
+				if (count >= gContinuousPiecesGoal)
+					return gStandardGame ? lose : win;
 
-	int ul[WIN4_WIDTH][WIN4_HEIGHT];//upper left
-	int l[WIN4_WIDTH][WIN4_HEIGHT];//left
-	int ll[WIN4_WIDTH][WIN4_HEIGHT];//lower left
-	int u[WIN4_WIDTH][WIN4_HEIGHT];//up
-	XOBlank board[WIN4_WIDTH][WIN4_HEIGHT+1];
-	int col,row;
-	PositionToBoard(position, gPosition.board); // Temporary storage.
-	for (col=0;col<WIN4_WIDTH;col++)
-		board[col][WIN4_HEIGHT]=2;
-	for (col=0;col<WIN4_WIDTH;col++)
-		for (row=0;row<WIN4_HEIGHT;row++)
-			board[col][row] = gPosition.board[col][row];
-	// Check for four in a row
-	// First do column 0:
-	col=0;
-	row=WIN4_HEIGHT-1;
-	while (row>=0) {
-		if (board[0][row]==2) {
-			ul[0][row]=0;
-			l[0][row]=0;
-			ll[0][row]=0;
-			u[0][row]=0;
-		}
-		else {
-			ul[0][row]=1;
-			l[0][row]=1;
-			ll[0][row]=1;
-			if (board[0][row+1]==board[0][row]) {
-				u[0][row]=u[0][row+1]+1;
-				if (u[0][row] == gContinuousPiecesGoal)
+				count += CountContinuousPieces(gPosition.lastColumn, lastRow,
+				                               gOppositeDirections[horizontalDirection],
+				                               gOppositeDirections[verticalDirection]);
+
+				if (count >= gContinuousPiecesGoal)
 					return gStandardGame ? lose : win;
 			}
-			else u[0][row]=1;
+
+			return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
 		}
-		row--;
-	}
-	// Now do the other columns
-	for (col=1;col<WIN4_WIDTH;col++) {
+
+		int ul[WIN4_WIDTH][WIN4_HEIGHT]; //upper left
+		int l[WIN4_WIDTH][WIN4_HEIGHT]; //left
+		int ll[WIN4_WIDTH][WIN4_HEIGHT]; //lower left
+		int u[WIN4_WIDTH][WIN4_HEIGHT]; //up
+		XOBlank board[WIN4_WIDTH][WIN4_HEIGHT+1];
+		int col,row;
+		PositionToBoard(position, gPosition.board); // Temporary storage.
+		for (col=0; col<WIN4_WIDTH; col++)
+			board[col][WIN4_HEIGHT]=2;
+		for (col=0; col<WIN4_WIDTH; col++)
+			for (row=0; row<WIN4_HEIGHT; row++)
+				board[col][row] = gPosition.board[col][row];
+		// Check for four in a row
+		// First do column 0:
+		col=0;
 		row=WIN4_HEIGHT-1;
-		while (row>0) {
+		while (row>=0) {
+			if (board[0][row]==2) {
+				ul[0][row]=0;
+				l[0][row]=0;
+				ll[0][row]=0;
+				u[0][row]=0;
+			}
+			else {
+				ul[0][row]=1;
+				l[0][row]=1;
+				ll[0][row]=1;
+				if (board[0][row+1]==board[0][row]) {
+					u[0][row]=u[0][row+1]+1;
+					if (u[0][row] == gContinuousPiecesGoal)
+						return gStandardGame ? lose : win;
+				}
+				else u[0][row]=1;
+			}
+			row--;
+		}
+		// Now do the other columns
+		for (col=1; col<WIN4_WIDTH; col++) {
+			row=WIN4_HEIGHT-1;
+			while (row>0) {
+				if (board[col][row]==2) {
+					ul[col][row]=0;
+					l[col][row]=0;
+					ll[col][row]=0;
+					u[col][row]=0;
+				}
+				else {
+					if (board[col][row]==board[col][row+1]) {
+						u[col][row]=u[col][row+1]+1;
+						if (u[col][row] == gContinuousPiecesGoal)
+							return gStandardGame ? lose : win;
+					}
+					else u[col][row]=1;
+					if (board[col][row]==board[col-1][row+1]) {
+						ul[col][row]=ul[col-1][row+1]+1;
+						if (ul[col][row] == gContinuousPiecesGoal)
+							return gStandardGame ? lose : win;
+					}
+					else ul[col][row]=1;
+					if (board[col][row]==board[col-1][row]) {
+						l[col][row]=l[col-1][row]+1;
+						if (l[col][row] == gContinuousPiecesGoal)
+							return gStandardGame ? lose : win;
+					}
+					else l[col][row]=1;
+					if (board[col][row]==board[col-1][row-1]) {
+						ll[col][row]=ll[col-1][row-1]+1;
+						if (ll[col][row] == gContinuousPiecesGoal)
+							return gStandardGame ? lose : win;
+					}
+					else ll[col][row]=1;
+				}
+				row--;
+			}
 			if (board[col][row]==2) {
 				ul[col][row]=0;
 				l[col][row]=0;
@@ -584,94 +618,60 @@ VALUE Primitive(POSITION position)
 						return gStandardGame ? lose : win;
 				}
 				else l[col][row]=1;
-				if (board[col][row]==board[col-1][row-1]) {
-					ll[col][row]=ll[col-1][row-1]+1;
-					if (ll[col][row] == gContinuousPiecesGoal)
-						return gStandardGame ? lose : win;
+				ll[col][row]=1;
+			}
+		}
+
+		//Now check if the board is full:
+		for (col=0; col<WIN4_WIDTH; col++)
+			for (row=0; row<WIN4_HEIGHT; row++)
+				if (board[col][row]==2) return(undecided);
+
+		return(tie);
+
+	} else {
+
+		int col, row, xx=0, oo=1, bb=2;
+		XOBlank linearBoard[WIN4_WIDTH*WIN4_HEIGHT], WhoseTurn();
+
+		if (gUseGPS) {
+			int lastRow = gPosition.heights[gPosition.lastColumn];
+
+			//copy the board into 1D representation
+			for(row=WIN4_HEIGHT-1; row>=0; row--) {
+				for(col=0; col<WIN4_WIDTH; col++) {
+					linearBoard[col+WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = gPosition.board[col][row];
 				}
-				else ll[col][row]=1;
 			}
-			row--;
-		}
-		if (board[col][row]==2) {
-			ul[col][row]=0;
-			l[col][row]=0;
-			ll[col][row]=0;
-			u[col][row]=0;
-		}
-		else {
-			if (board[col][row]==board[col][row+1]) {
-				u[col][row]=u[col][row+1]+1;
-				if (u[col][row] == gContinuousPiecesGoal)
+
+			if (gPosition.nextPiece == o) {
+				if (NinaRow(linearBoard,&xx,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal)) {
 					return gStandardGame ? lose : win;
-			}
-			else u[col][row]=1;
-			if (board[col][row]==board[col-1][row+1]) {
-				ul[col][row]=ul[col-1][row+1]+1;
-				if (ul[col][row] == gContinuousPiecesGoal)
+				}
+			} else { //nextPiece == x
+				if (NinaRow(linearBoard,&oo,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal)) {
 					return gStandardGame ? lose : win;
+				}
 			}
-			else ul[col][row]=1;
-			if (board[col][row]==board[col-1][row]) {
-				l[col][row]=l[col-1][row]+1;
-				if (l[col][row] == gContinuousPiecesGoal)
-					return gStandardGame ? lose : win;
-			}
-			else l[col][row]=1;
-			ll[col][row]=1;
+
+			return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
 		}
+
+		linearUnhash2(position, linearBoard); // Temporary storage.
+
+		if (WhoseTurn(position) == x) {
+			if (statelessNinaRow(linearBoard,&oo,gContinuousPiecesGoal)) {
+				return gStandardGame ? lose : win;
+			}
+		} else { //o's turn
+			if (statelessNinaRow(linearBoard,&xx,gContinuousPiecesGoal)) {
+				return gStandardGame ? lose : win;
+			}
+		}
+
+		return amountOfWhat(linearBoard,&bb,1,TRUE) ? undecided : tie;
+
 	}
-
-	//Now check if the board is full:
-	for (col=0;col<WIN4_WIDTH;col++)
-		for (row=0;row<WIN4_HEIGHT;row++)
-			if (board[col][row]==2) return(undecided);
-	
-	return(tie);
-  
-  } else {
-
-        int col, row, xx=0, oo=1, bb=2;
-	XOBlank linearBoard[WIN4_WIDTH*WIN4_HEIGHT], WhoseTurn();
-
-        if (gUseGPS) {
-	  int lastRow = gPosition.heights[gPosition.lastColumn];
-
-	  //copy the board into 1D representation
-	  for(row=WIN4_HEIGHT-1;row>=0;row--) {
-	    for(col=0;col<WIN4_WIDTH;col++) {
-	      linearBoard[col+WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = gPosition.board[col][row];
-	    }
-	  }	  
-	  
-	  if (gPosition.nextPiece == o) {
-	    if (NinaRow(linearBoard,&xx,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal)) {
-	      return gStandardGame ? lose : win;
-	    }
-	  } else { //nextPiece == x
-	    if (NinaRow(linearBoard,&oo,gPosition.lastColumn + WIN4_WIDTH*(WIN4_HEIGHT - lastRow),gContinuousPiecesGoal)) {
-	      return gStandardGame ? lose : win;
-	    }
-	  }
-	  
-	  return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
-        }
-
-	linearUnhash2(position, linearBoard); // Temporary storage.
-
-	if (WhoseTurn(position) == x) {
-	  if (statelessNinaRow(linearBoard,&oo,gContinuousPiecesGoal)) {
-	    return gStandardGame ? lose : win;
-	  }
-	} else { //o's turn
-	  if (statelessNinaRow(linearBoard,&xx,gContinuousPiecesGoal)) {
-	    return gStandardGame ? lose : win;
-	  }
-	}
-
-	return amountOfWhat(linearBoard,&bb,1,TRUE) ? undecided : tie;
-
-  }
 
 }
 
@@ -682,7 +682,7 @@ VALUE Primitive(POSITION position)
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position   : The position to pretty print.
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
@@ -704,17 +704,17 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 	PositionToBoard(position,board);
 
 	printf("\n      ");
-	for (i=1;i<=WIN4_WIDTH;i++)
+	for (i=1; i<=WIN4_WIDTH; i++)
 		printf(" %i",i);
 	printf("\n      ");
-	for (i=1;i<=WIN4_WIDTH;i++)
+	for (i=1; i<=WIN4_WIDTH; i++)
 		printf(" |");
 	printf("\n      ");
-	for (i=1;i<=WIN4_WIDTH;i++)
+	for (i=1; i<=WIN4_WIDTH; i++)
 		printf(" V");
-	for (row=WIN4_HEIGHT-1;row>=0;row--) {
+	for (row=WIN4_HEIGHT-1; row>=0; row--) {
 		printf("\n\n      ");
-		for (i=0;i<WIN4_WIDTH;i++)
+		for (i=0; i<WIN4_WIDTH; i++)
 			printf(" %s",gBlankOXString[(int)board[i][row]]);
 	}
 
@@ -736,10 +736,10 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 ** DESCRIPTION: Create a linked list of every move that can be reached
 **              from this position. Return a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : The position to branch off of.
 **
-** OUTPUTS:     (MOVELIST *), a pointer that points to the first item  
+** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
 ** CALLS:       MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
@@ -754,13 +754,13 @@ MOVELIST *GenerateMoves(POSITION position)
 	if (!gUseGPS)
 		PositionToBoard(position, gPosition.board); // Temporary storage.
 
-	for(i = 0 ; i < WIN4_WIDTH ; i++) {
+	for(i = 0; i < WIN4_WIDTH; i++) {
 		if(gPosition.board[i][WIN4_HEIGHT-1] == Blank)
 			head = CreateMovelistNode(i,head);
 	}
-	
+
 	return(head);
-	
+
 }
 
 /************************************************************************
@@ -770,9 +770,9 @@ MOVELIST *GenerateMoves(POSITION position)
 ** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
 **              If so, return Undo or Abort and don't change theMove.
 **              Otherwise get the new theMove and fill the pointer up.
-** 
-** INPUTS:      POSITION *thePosition : The position the user is at. 
-**              MOVE *theMove         : The move to fill with user's move. 
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
 **              STRING playerName     : The name of the player whose turn it is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
@@ -788,11 +788,11 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 
 	do {
 		printf("%8s's move [(u)ndo/1-5] :  ", playerName);
-    
+
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if(ret != Continue)
 			return(ret);
-    
+
 	}
 	while (TRUE);
 	return(Continue); /* this is never reached, but lint is now happy */
@@ -808,7 +808,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 **              valid, but anything from 1-9 IS, regardless if the slot
 **              is filled or not. Whether the slot is filled is left up
 **              to another routine.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     BOOLEAN : TRUE iff the input is a valid text input.
@@ -826,7 +826,7 @@ BOOLEAN ValidTextInput(STRING input)
 ** NAME:        ConvertTextInputToMove
 **
 ** DESCRIPTION: Convert the string input to the internal move representation.
-** 
+**
 ** INPUTS:      STRING input : The string input the user typed.
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
@@ -843,16 +843,16 @@ MOVE ConvertTextInputToMove(STRING input)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Print the move in a nice format.
-** 
-** INPUTS:      MOVE *theMove         : The move to print. 
+**
+** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
 
 void PrintMove(MOVE theMove)
 {
-    STRING str = MoveToString( theMove );
-    printf( "%s", str );
-    SafeFree( str );
+	STRING str = MoveToString( theMove );
+	printf( "%s", str );
+	SafeFree( str );
 }
 
 
@@ -861,18 +861,18 @@ void PrintMove(MOVE theMove)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
 
 STRING MoveToString (MOVE theMove)
 {
-  STRING m = (STRING) SafeMalloc( 3 );
-  /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-  sprintf( m, "%d", theMove + 1); 
+	STRING m = (STRING) SafeMalloc( 3 );
+	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+	sprintf( m, "%d", theMove + 1);
 
-  return m;
+	return m;
 }
 
 
@@ -881,15 +881,15 @@ STRING MoveToString (MOVE theMove)
 ** NAME:        PositionToBoard
 **
 ** DESCRIPTION: convert an internal position to a XOBlank-matrix.
-** 
-** INPUTS:      POSITION thePos   : The position input. 
-**              XOBlank *board    : The converted XOBlank output matrix. 
+**
+** INPUTS:      POSITION thePos   : The position input.
+**              XOBlank *board    : The converted XOBlank output matrix.
 **
 ************************************************************************/
 
 void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 {
-     	int col, row, h;
+	int col, row, h;
 	POSITION permutation_index, tierbits, temp1, temp2, temp3=1;
 	TIER tier;
 	TIERPOSITION tierpos, modpos;
@@ -905,8 +905,8 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 		pos = ModPosToPosition(modpos);
 	}
 
-	
-	for (col=0; col<WIN4_WIDTH;col++) {
+
+	for (col=0; col<WIN4_WIDTH; col++) {
 		row=WIN4_HEIGHT-1;
 		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
 		     (pos & (temp1 = (temp3 << h))) == 0;
@@ -927,10 +927,10 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 
 
 void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
-  int col, row, h; 
-  POSITION permutation_index, tierbits, temp1, temp2, temp3 = 1;
-  TIER tier;
-  TIERPOSITION tierpos, modpos;
+	int col, row, h;
+	POSITION permutation_index, tierbits, temp1, temp2, temp3 = 1;
+	TIER tier;
+	TIERPOSITION tierpos, modpos;
 
 	if (gHashWindowInitialized) {
 		gUnhashToTierPosition(pos, &tierpos, &tier);
@@ -945,22 +945,22 @@ void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
 
 
 
- 		for (col=0; col<WIN4_WIDTH;col++) {
-    			row=WIN4_HEIGHT-1;
-    			for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
-	 			(pos & (temp1 = (temp3 << h))) == 0;
-	 			h--) {
-      					board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 2;
-      					row--;
-    			}
-    		h--;
-    	while (row >=0) {
-      	if ((pos & (temp2 = (temp3<<h))) != 0) board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 1;
-      	else board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 0;
-      	row--;
-      	h--;
-    	}
-  	}
+	for (col=0; col<WIN4_WIDTH; col++) {
+		row=WIN4_HEIGHT-1;
+		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT;
+		     (pos & (temp1 = (temp3 << h))) == 0;
+		     h--) {
+			board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 2;
+			row--;
+		}
+		h--;
+		while (row >=0) {
+			if ((pos & (temp2 = (temp3<<h))) != 0) board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 1;
+			else board[col + WIN4_WIDTH*(WIN4_HEIGHT - 1 - row)] = 0;
+			row--;
+			h--;
+		}
+	}
 }
 
 
@@ -971,7 +971,7 @@ void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
 ** DESCRIPTION: Return whose turn it is - either x or o. Since x always
 **              goes first, we know that if the board has an equal number
 **              of x's and o's, that it's x's turn. Otherwise it's o's.
-** 
+**
 ** INPUTS:      POSITION  : a position
 **
 ** OUTPUTS:     (XOBlank) : Either x or o, depending on whose turn it is
@@ -996,7 +996,7 @@ XOBlank WhoseTurn(POSITION pos)
 ** NAME:        MyInitialPosition
 **
 ** DESCRIPTION: Calculates the initial position
-** 
+**
 ** INPUTS:      none
 **
 ** OUTPUTS:     POSITION (Initial Position)
@@ -1007,7 +1007,7 @@ POSITION MyInitialPosition()
 {
 	POSITION p=1;
 	int i;
-	for (i=1;i<WIN4_WIDTH;++i)
+	for (i=1; i<WIN4_WIDTH; ++i)
 		p = (p << (WIN4_HEIGHT+1))+1;
 	return p;
 }
@@ -1017,7 +1017,7 @@ POSITION MyInitialPosition()
 ** NAME:        MyNumberOfPos()
 **
 ** DESCRIPTION: Calculates an upper bound for a position
-** 
+**
 ** INPUTS:      none
 **
 ** OUTPUTS:     unsigned long int (number)
@@ -1039,7 +1039,7 @@ POSITION MyNumberOfPos()
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
-** 
+**
 ************************************************************************/
 
 void DebugMenu()
@@ -1049,7 +1049,7 @@ void DebugMenu()
 		printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		printf("\n\nSelect an option: ");
-		
+
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
@@ -1063,26 +1063,26 @@ void DebugMenu()
 			HitAnyKeyToContinue();
 			break;
 		}
-	} while(TRUE);  
+	} while(TRUE);
 }
 
 int NumberOfOptions()
 {
-        return 2 ;
+	return 2;
 }
 
 int getOption()
-{    
-        if(gStandardGame) return 1 ;
-        return 2 ;
+{
+	if(gStandardGame) return 1;
+	return 2;
 }
-   
+
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+	if(option == 1)
+		gStandardGame = TRUE;
+	else
+		gStandardGame = FALSE;
 }
 
 int CountContinuousPieces(int column, int row, Direction horizontalDirection,
@@ -1093,7 +1093,7 @@ int CountContinuousPieces(int column, int row, Direction horizontalDirection,
 	do {
 		++count;
 		piece = gPosition.board[column][row];
-		
+
 		switch (horizontalDirection) {
 		case LEFT:
 			--column;
@@ -1104,7 +1104,7 @@ int CountContinuousPieces(int column, int row, Direction horizontalDirection,
 		default:
 			;
 		}
-		
+
 		switch (verticalDirection) {
 		case DOWN:
 			--row;
@@ -1118,7 +1118,7 @@ int CountContinuousPieces(int column, int row, Direction horizontalDirection,
 	}
 	while (column >= 0 && column < WIN4_WIDTH && row >= 0 && row < WIN4_HEIGHT &&
 	       gPosition.board[column][row] == piece);
-	
+
 	return count;
 }
 
@@ -1126,10 +1126,10 @@ void CountPieces(POSITION pos, int *xcount, int *ocount)
 {
 	int row, col, h;
 	POSITION temp1, temp2, temp3=1;
-	for (col=0; col<WIN4_WIDTH;col++) {
+	for (col=0; col<WIN4_WIDTH; col++) {
 		row=WIN4_HEIGHT-1;
 		for (h=col*(WIN4_HEIGHT+1)+WIN4_HEIGHT; (pos & (temp1=(temp3 << h)))==0; h--)
-		        row--;
+			row--;
 		h--;
 		while (row >=0) {
 			if ((pos & (temp2=(temp3<<h))) != 0) (*ocount)++;
@@ -1159,15 +1159,15 @@ void SetPieces(int currentcol)
 		for(i=0; i<WIN4_WIDTH; i++)
 			pos |= (currentPieces[MAXW] << (i*(WIN4_HEIGHT+1)));
 		CountPieces(pos, &xcount, &ocount);
-		if ((xcount == ocount) || (xcount == ocount+1)) {//seems like a valid pos
+		if ((xcount == ocount) || (xcount == ocount+1)) { //seems like a valid pos
 			StorePositionInList(pos, currentStage);
-			
+
 			for (i=0; i< 20; i++) {
 				printf("%d", (int)(pos & 1));
 				pos = pos >> 1;
 			}
-		
-		}			
+
+		}
 	} else {
 		for (currentPieces[currentcol] = (temp1 = (temp3 << currentHeights[currentcol]));
 		     currentPieces[currentcol] < (temp2 = (temp3 << (currentHeights[currentcol]+1)));
@@ -1183,7 +1183,7 @@ void SetHeights(int currentcol, int piecesleft)
 	} else {
 		for (currentHeights[currentcol] = min(WIN4_HEIGHT, piecesleft);
 		     currentHeights[currentcol] >= 0;
-		     currentHeights[currentcol] --) {
+		     currentHeights[currentcol]--) {
 			SetHeights(currentcol + 1, piecesleft - currentHeights[currentcol]);
 		}
 	}
@@ -1195,11 +1195,11 @@ void SetHeights(int currentcol, int piecesleft)
 POSITIONLIST *EnumerateWithinStage(int stage) {
 
 	/*
-	if(stage == TOTALSTAGE)
-		return head;
-	*/
-	
-	assert(currentStage == NULL); 
+	   if(stage == TOTALSTAGE)
+	        return head;
+	 */
+
+	assert(currentStage == NULL);
 
 	SetHeights(0, stage);
 
@@ -1215,7 +1215,7 @@ POSITIONLIST *EnumerateWithinStage(int stage) {
 ** DESCRIPTION: Takes a 1D position array, imagines it as a
 **                2D [column][row] positon array, and swaps
 **                columns around the middle.
-** 
+**
 ** INPUTS:      short* bits - 1D positon array
 **              short  columns - # of columns on the board
 **
@@ -1224,15 +1224,15 @@ POSITIONLIST *EnumerateWithinStage(int stage) {
 **
 ************************************************************************/
 void array_symm(short* bits, short columns){
-  short a, t, i = -1, j = columns;
-  short col_sz = WIN4_HEIGHT + 1;
-  while (++i < --j){
-    for (a = 0; a < (WIN4_HEIGHT + 1); a++){
-      t = bits[i * col_sz + a];
-      bits[i * col_sz + a] = bits[j * col_sz + a];
-      bits[j * col_sz + a] = t;
-    }
-  }
+	short a, t, i = -1, j = columns;
+	short col_sz = WIN4_HEIGHT + 1;
+	while (++i < --j) {
+		for (a = 0; a < (WIN4_HEIGHT + 1); a++) {
+			t = bits[i * col_sz + a];
+			bits[i * col_sz + a] = bits[j * col_sz + a];
+			bits[j * col_sz + a] = t;
+		}
+	}
 }
 
 /************************************************************************
@@ -1240,37 +1240,37 @@ void array_symm(short* bits, short columns){
 ** NAME:        GetCanonicalPosition
 **
 ** DESCRIPTION: Looks at a position and returns its canonical form
-** 
+**
 ** INPUTS:      POSITION p: a passed position
 **
 ** OUTPUTS:     POSITION  : position's canonical form
 **
 ************************************************************************/
 POSITION GetCanonicalPosition(POSITION p){
-  POSITION temp , hold; // new, hold;
-  int column = WIN4_HEIGHT + 1;
-  short i, size = column * WIN4_WIDTH;
-  short bits[size];
+	POSITION temp, hold; // new, hold;
+	int column = WIN4_HEIGHT + 1;
+	short i, size = column * WIN4_WIDTH;
+	short bits[size];
 
-  //Copy position into an array
-  temp = p;
-  //                               Copy the orig position into an array
-  hold = temp;
-  for (i = 0; i < size; i++){
-    bits[i] = temp & 1;
-    temp = temp >> 1;
-  }
-  temp = hold;
-  //                               Process an array
-  array_symm(bits, WIN4_WIDTH );
-  //                               Copy an array into the new position
-  temp = 0;
-  for (i = size-1; i >= 0; i--){
-    temp = temp | bits[i];
-    if (i != 0)
-      temp = temp << 1;
-  }
-  return ((temp < p) ? temp : p);  // Choose the smallest position
+	//Copy position into an array
+	temp = p;
+	//                               Copy the orig position into an array
+	hold = temp;
+	for (i = 0; i < size; i++) {
+		bits[i] = temp & 1;
+		temp = temp >> 1;
+	}
+	temp = hold;
+	//                               Process an array
+	array_symm(bits, WIN4_WIDTH );
+	//                               Copy an array into the new position
+	temp = 0;
+	for (i = size-1; i >= 0; i--) {
+		temp = temp | bits[i];
+		if (i != 0)
+			temp = temp << 1;
+	}
+	return ((temp < p) ? temp : p); // Choose the smallest position
 }
 
 
@@ -1280,15 +1280,15 @@ POSITION GetCanonicalPosition(POSITION p){
 /* Initialize Tier Stuff. */
 void SetupTierStuff() {
 	kSupportsTierGamesman = TRUE;
-        gTierChildrenFunPtr             = &TierChildren;
-        gNumberOfTierPositionsFunPtr    = &NumberOfTierPositions;
-	gTierToStringFunPtr		= &TierToString;
-        gInitialTier = 0;
+	gTierChildrenFunPtr             = &TierChildren;
+	gNumberOfTierPositionsFunPtr    = &NumberOfTierPositions;
+	gTierToStringFunPtr             = &TierToString;
+	gInitialTier = 0;
 	gInitialTierPosition = 0;
 	COLSIGBITS = MostSigBit(WIN4_HEIGHT);
 	TIER_COL_BITS = WIN4_WIDTH * COLSIGBITS;
-        WIN4_WIDTH_MINUS_ONE = WIN4_WIDTH - 1;
-        WIN4_HEIGHT_PLUS_ONE = WIN4_HEIGHT + 1;
+	WIN4_WIDTH_MINUS_ONE = WIN4_WIDTH - 1;
+	WIN4_HEIGHT_PLUS_ONE = WIN4_HEIGHT + 1;
 	WIN4_WIDTH_PLUS_ONE = WIN4_WIDTH + 1;
 
 	NumToPieceDist = (NumToPieceConv *)(SafeMalloc(sizeof(NumToPieceConv)*(WIN4_WIDTH*WIN4_HEIGHT+1)));
@@ -1297,7 +1297,7 @@ void SetupTierStuff() {
 }
 
 
-/* Returns list of all children for a particular tier. */  
+/* Returns list of all children for a particular tier. */
 TIERLIST* TierChildren(TIER tier) {
 	if (tier<WIN4_WIDTH*WIN4_HEIGHT)
 		return CreateTierlistNode(tier+1, NULL);
@@ -1312,8 +1312,8 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 
 /* Given a position, returns the tier number of it (i.e. number of pieces placed on the board) */
 TIER PositionToTier(POSITION position) {
-	int bitmask = (1 << WIN4_HEIGHT_PLUS_ONE ) - 1, num_pieces = 0, i; 
-	
+	int bitmask = (1 << WIN4_HEIGHT_PLUS_ONE ) - 1, num_pieces = 0, i;
+
 	for (i=0; i<WIN4_WIDTH; i++) {
 		num_pieces += MostSigBit(bitmask & position) - 1;
 		position >>= WIN4_HEIGHT_PLUS_ONE;
@@ -1325,7 +1325,7 @@ TIER PositionToTier(POSITION position) {
 /* Given a number, returns the position of the most significant bit. */
 int MostSigBit(uint num) {
 	int k=0;
-	
+
 	while (num > 0) {
 		num >>= 1;
 		k++;
@@ -1337,7 +1337,7 @@ int MostSigBit(uint num) {
 /* Initializes hashes that go from position number to piece distributions. */
 void InitPieceToNumConvs() {
 	int tiernum, num_dists, **board_confs, bitrep, j, k;
-	
+
 	for (tiernum=0; tiernum <= WIN4_WIDTH*WIN4_HEIGHT; tiernum++) {
 		num_dists = PiecePermutation(tiernum, WIN4_WIDTH);
 		NumToPieceDist[tiernum].convert = (int *)(SafeMalloc(sizeof(int) * num_dists));
@@ -1346,7 +1346,7 @@ void InitPieceToNumConvs() {
 
 		for (j=0; j<num_dists; j++) {
 			bitrep = 0;
-			
+
 			for (k=0; k<WIN4_WIDTH; k++) {
 				bitrep += board_confs[j][k];
 
@@ -1376,7 +1376,7 @@ TIERPOSITION PiecePermutation(int num_pieces, int num_cols) {
 		return 1;
 
 
-	if (num_cols == 1 && num_pieces > WIN4_HEIGHT) 
+	if (num_cols == 1 && num_pieces > WIN4_HEIGHT)
 		return 0;
 
 	for (i=0; i<=WIN4_HEIGHT; i++)
@@ -1389,10 +1389,10 @@ TIERPOSITION PiecePermutation(int num_pieces, int num_cols) {
 int **GeneratePermutations(int num_pieces, int num_cols) {
 	int i, j, k, perm=0, num_perms = PiecePermutation(num_pieces, num_cols);
 	int **sub_perm_list, **perm_list;
-	
+
 	if (!num_perms)
 		return NULL;
-		
+
 	perm_list = (int **)(SafeMalloc(sizeof(int *) * num_perms));
 
 	for (k=0; k<num_perms; k++)
@@ -1406,22 +1406,22 @@ int **GeneratePermutations(int num_pieces, int num_cols) {
 	for (i=0; i<=WIN4_HEIGHT; i++) {
 		num_perms = PiecePermutation(num_pieces-i, num_cols-1);
 		sub_perm_list = GeneratePermutations(num_pieces - i, num_cols - 1);
-	
-		if (sub_perm_list) {	
+
+		if (sub_perm_list) {
 			for (k=0; k<num_perms; k++) {
 				perm_list[perm][0]=i;
-			
+
 				for (j=0; j<num_cols-1; j++)
 					perm_list[perm][j+1] = sub_perm_list[k][j];
 
 				SafeFree(sub_perm_list[k]);
 				perm++;
-			} 
+			}
 			SafeFree(sub_perm_list);
 		}
-	} 
+	}
 
-	return perm_list; 
+	return perm_list;
 }
 
 POSITION ModPosToPosition(POSITION modpos) {
@@ -1430,7 +1430,7 @@ POSITION ModPosToPosition(POSITION modpos) {
 
 	modpos >>= 64 - TIER_COL_BITS;
 	bitmask = (1 << COLSIGBITS) - 1;
-	
+
 	for (i=0; i<WIN4_WIDTH; i++) {
 		col_heights[WIN4_WIDTH_MINUS_ONE - i] = bitmask & modpos;
 		modpos >>= COLSIGBITS;
@@ -1459,14 +1459,14 @@ POSITION PositionToModPos(POSITION position, TIER tier) {
 	for (i=0; i<WIN4_WIDTH_MINUS_ONE; i++) {
 		modpos += MostSigBit(bitmask & position) - 1;
 		position >>= WIN4_HEIGHT_PLUS_ONE;
-		modpos <<= COLSIGBITS;		
+		modpos <<= COLSIGBITS;
 	}
 
 	modpos += MostSigBit(bitmask & position) - 1;
 
 	for (i=0; i<WIN4_WIDTH; i++) {
 		num_pieces_col = MostSigBit(bitmask & position_cpy) - 1;
-		
+
 		if (!num_pieces_col) {
 			position_cpy >>= WIN4_HEIGHT_PLUS_ONE;
 			continue;
@@ -1508,7 +1508,7 @@ void positionToBinary(POSITION pos) {
 
 	board[64]='\n';
 	board[65]='\0';
-	
+
 	printf(board);
 	SafeFree(board);
 }
@@ -1516,12 +1516,12 @@ void positionToBinary(POSITION pos) {
 
 
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

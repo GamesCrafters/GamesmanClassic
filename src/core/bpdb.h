@@ -41,16 +41,16 @@
 //
 
 typedef struct sliceformat {
-    UINT8 *size;
-    UINT32 *offset;
-    UINT64 *maxvalue;
-    UINT64 *maxseen;
-    char **name;
-    UINT8 slots;
-    UINT32 bits;
-    BOOLEAN *overflowed;
-    BOOLEAN *adjust;
-    BOOLEAN *reservemax;
+	UINT8 *size;
+	UINT32 *offset;
+	UINT64 *maxvalue;
+	UINT64 *maxseen;
+	char **name;
+	UINT8 slots;
+	UINT32 bits;
+	BOOLEAN *overflowed;
+	BOOLEAN *adjust;
+	BOOLEAN *reservemax;
 } *SLICE;
 
 
@@ -60,8 +60,8 @@ typedef struct sliceformat {
 
 GMSTATUS
 bpdb_init(
-                DB_Table *new_db
-                );
+        DB_Table *new_db
+        );
 
 void
 bpdb_free( );
@@ -72,64 +72,64 @@ bpdb_free_slice( );
 // get/set value
 VALUE
 bpdb_get_value(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 VALUE
 bpdb_set_value(
-                POSITION pos,
-                VALUE val
-                );
+        POSITION pos,
+        VALUE val
+        );
 
 // get/set remoteness
 REMOTENESS
 bpdb_get_remoteness(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 bpdb_set_remoteness(
-                POSITION pos,
-                REMOTENESS val
-                );
+        POSITION pos,
+        REMOTENESS val
+        );
 
 // get/set visited
 BOOLEAN
 bpdb_check_visited(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 bpdb_mark_visited(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 bpdb_unmark_visited(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 // get/set mex
 MEX
 bpdb_get_mex(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 bpdb_set_mex(
-                POSITION pos,
-                MEX mex);
+        POSITION pos,
+        MEX mex);
 
 // get/set winby
 WINBY
 bpdb_get_winby(
-                POSITION pos
-                );
+        POSITION pos
+        );
 
 void
 bpdb_set_winby(
-                POSITION pos,
-                WINBY winBy);
+        POSITION pos,
+        WINBY winBy);
 
 //
 // functions for internal use
@@ -138,53 +138,53 @@ bpdb_set_winby(
 inline
 UINT64
 bpdb_get_slice_slot(
-                UINT64 position,
-                UINT8 index
-                );
+        UINT64 position,
+        UINT8 index
+        );
 
 inline
 UINT64
 bpdb_set_slice_slot(
-                UINT64 position,
-                UINT8 index,
-                UINT64 value
-                );
+        UINT64 position,
+        UINT8 index,
+        UINT64 value
+        );
 
 inline
 UINT64
 bpdb_set_slice_slot_max(
-                UINT64 position,
-                UINT8 index
-                );
+        UINT64 position,
+        UINT8 index
+        );
 
 GMSTATUS
 bpdb_add_slot(
-                UINT8 size,
-                char *name,
-                BOOLEAN write,
-                BOOLEAN adjust,
-                BOOLEAN reservemax,
-                UINT32 *slotindex
-                );
+        UINT8 size,
+        char *name,
+        BOOLEAN write,
+        BOOLEAN adjust,
+        BOOLEAN reservemax,
+        UINT32 *slotindex
+        );
 
 GMSTATUS
 bpdb_grow_slice(
-                BYTE *bpdb_array,
-                SLICE bpdb_slice,
-                UINT8 index,
-                UINT64 value
-                );
+        BYTE *bpdb_array,
+        SLICE bpdb_slice,
+        UINT8 index,
+        UINT64 value
+        );
 
 GMSTATUS
 bpdb_shrink_slice(
-                BYTE *bpdb_array,
-                SLICE bpdb_slice,
-                UINT8 index
-                );
+        BYTE *bpdb_array,
+        SLICE bpdb_slice,
+        UINT8 index
+        );
 
 GMSTATUS
 bpdb_allocate(
-                );
+        );
 
 
 //
@@ -209,41 +209,41 @@ bpdb_save_database( );
 
 GMSTATUS
 bpdb_generic_save_database(
-                SCHEME scheme,
-                char *outfilename
-                );
+        SCHEME scheme,
+        char *outfilename
+        );
 
 BOOLEAN
 bpdb_load_database( );
 
 GMSTATUS
 bpdb_generic_load_database(
-                dbFILE *inFile,
-                SCHEME scheme
-                );
+        dbFILE *inFile,
+        SCHEME scheme
+        );
 
 
 BOOLEAN
 bpdb_generic_write_varnum(
-                dbFILE *outFile,
-                SCHEME scheme,
-                BYTE **curBuffer,
-                BYTE *outputBuffer,
-                UINT32 bufferLength,
-                UINT8 *offset,
-                UINT64 consecutiveSkips
-                );
+        dbFILE *outFile,
+        SCHEME scheme,
+        BYTE **curBuffer,
+        BYTE *outputBuffer,
+        UINT32 bufferLength,
+        UINT8 *offset,
+        UINT64 consecutiveSkips
+        );
 
 
 UINT64
 bpdb_generic_read_varnum(
-                dbFILE *inFile,
-                SCHEME scheme,
-                BYTE **curBuffer,
-                BYTE *inputBuffer,
-                UINT32 length,
-                UINT8 *offset,
-                BOOLEAN alreadyReadFirstBit
-                );
+        dbFILE *inFile,
+        SCHEME scheme,
+        BYTE **curBuffer,
+        BYTE *inputBuffer,
+        UINT32 length,
+        UINT8 *offset,
+        BOOLEAN alreadyReadFirstBit
+        );
 
 #endif /* GMCORE_BPDB_H */

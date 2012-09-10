@@ -10,9 +10,9 @@
 
 typedef struct StringBuilderStruct
 {
-    unsigned int capacity;
-    unsigned int length;
-    char *string;
+	unsigned int capacity;
+	unsigned int length;
+	char *string;
 } STRINGBUILDER;
 
 STRINGBUILDER* sbMake();

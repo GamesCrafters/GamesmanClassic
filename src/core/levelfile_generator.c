@@ -39,88 +39,88 @@ gzFile*        compressed_filep_type2;
 gzFile*        compressed_filep_type3;
 
 /********************************************************************************
-* Description
-*      WriteLevelFile reads an array of hash values and returns a
-*      level file. This file may be of any format type. The function
-*      optimizes for size by generating all types sequentially and
-*      comparing size of file after each file is generated. If the endIndex
-*      is greater than the startIndex then the function knows that the
-*      array has been corrupted at some other level
-* Arguments
-*      char* compressed_filename
-*      BITARRAY *array
-*      POSITION startIndex
-*      POSITION endIndex
-* Return Values
-*      int 0 for success -1 for error
-*********************************************************************************/
+ * Description
+ *      WriteLevelFile reads an array of hash values and returns a
+ *      level file. This file may be of any format type. The function
+ *      optimizes for size by generating all types sequentially and
+ *      comparing size of file after each file is generated. If the endIndex
+ *      is greater than the startIndex then the function knows that the
+ *      array has been corrupted at some other level
+ * Arguments
+ *      char* compressed_filename
+ *      BITARRAY *array
+ *      POSITION startIndex
+ *      POSITION endIndex
+ * Return Values
+ *      int 0 for success -1 for error
+ *********************************************************************************/
 int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startIndex, POSITION endIndex)
 {
-    char filename_type0[82];
-    char filename_type1[82];
-    char filename_type2[82];
-    char filename_type3[82];
-    UINT64 minHashValue, maxHashValue;
-    char* check ="1";
+	char filename_type0[82];
+	char filename_type1[82];
+	char filename_type2[82];
+	char filename_type3[82];
+	UINT64 minHashValue, maxHashValue;
+	char* check ="1";
 	struct stat fileinfo0;
 	struct stat fileinfo1;
 	struct stat fileinfo2;
 	struct stat fileinfo3;
-    minHashValue = startIndex + findMinValueFromArray(array, endIndex-startIndex);
-    maxHashValue = startIndex + findMaxValueFromArray(array, endIndex-startIndex);
-	
-    int type = 0;
-    
+	minHashValue = startIndex + findMinValueFromArray(array, endIndex-startIndex);
+	maxHashValue = startIndex + findMaxValueFromArray(array, endIndex-startIndex);
+
+	int type = 0;
+
 	if(endIndex < startIndex)
 	{
-	    return 1;
+		return 1;
 	}
 	UINT64 bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
 
-	// 	UINT64 length = ceil((maxHashValue - minHashValue)/BITSINBYTE);
-	
-	while(type < NUMOFTYPES)// create the four file types
-	{
-	    if(type == 0)
-	    {
-		strncpy(filename_type0, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
-		filename_type0[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
-		strcat(filename_type0, "_0.dat.gz");
-		printf("0: Compressed_filename is:  %s \n", filename_type0);
-		compressed_filep_type0 = gzopen(filename_type0, "wb");
-		if(!compressed_filep_type0)
-		{
-			printf("0: Couldn't open file");
-			return 1;
-		}
-		writeHeader(compressed_filep_type0, minHashValue, maxHashValue, 0, type);
-		printf("0: Header is Written to File\n");
-		ArrayToType0Write(array, startIndex, maxHashValue);
-		printf("0: Body is Written to File\n");
-		bitlib_file_write_bytes(compressed_filep_type0, check, strlen(check));
-		gzclose(compressed_filep_type0);
+	//      UINT64 length = ceil((maxHashValue - minHashValue)/BITSINBYTE);
 
-	    }
-	    
-	    if(type == 1)
-	    {
-		strncpy(filename_type1, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
-		filename_type1[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
-		strcat(filename_type1, "_1.dat.gz");
-		printf("1: Compressed_filename is:  %s \n", filename_type1);
-		compressed_filep_type1 = gzopen(filename_type1, "wb");
-		if(!compressed_filep_type1)
+	while(type < NUMOFTYPES) // create the four file types
+	{
+		if(type == 0)
 		{
-			printf("1: couldn't open file");
-			return 1;
+			strncpy(filename_type0, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
+			filename_type0[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
+			strcat(filename_type0, "_0.dat.gz");
+			printf("0: Compressed_filename is:  %s \n", filename_type0);
+			compressed_filep_type0 = gzopen(filename_type0, "wb");
+			if(!compressed_filep_type0)
+			{
+				printf("0: Couldn't open file");
+				return 1;
+			}
+			writeHeader(compressed_filep_type0, minHashValue, maxHashValue, 0, type);
+			printf("0: Header is Written to File\n");
+			ArrayToType0Write(array, startIndex, maxHashValue);
+			printf("0: Body is Written to File\n");
+			bitlib_file_write_bytes(compressed_filep_type0, check, strlen(check));
+			gzclose(compressed_filep_type0);
+
 		}
-		writeHeader(compressed_filep_type1, minHashValue, maxHashValue, 0,  type);
-		printf("1: Header is Written to File\n");
-		ArrayToType1Write(array, startIndex, maxHashValue, bitsPerPosition, minHashValue);
-		printf("1: Body is Written to File\n");
-		bitlib_file_write_bytes(compressed_filep_type1, check, strlen(check));
-		gzclose(compressed_filep_type1);
-	    }
+
+		if(type == 1)
+		{
+			strncpy(filename_type1, compressed_filename, strlen(compressed_filename)-LENGTHOFEXT);
+			filename_type1[strlen(compressed_filename)-LENGTHOFEXT] = '\0';
+			strcat(filename_type1, "_1.dat.gz");
+			printf("1: Compressed_filename is:  %s \n", filename_type1);
+			compressed_filep_type1 = gzopen(filename_type1, "wb");
+			if(!compressed_filep_type1)
+			{
+				printf("1: couldn't open file");
+				return 1;
+			}
+			writeHeader(compressed_filep_type1, minHashValue, maxHashValue, 0,  type);
+			printf("1: Header is Written to File\n");
+			ArrayToType1Write(array, startIndex, maxHashValue, bitsPerPosition, minHashValue);
+			printf("1: Body is Written to File\n");
+			bitlib_file_write_bytes(compressed_filep_type1, check, strlen(check));
+			gzclose(compressed_filep_type1);
+		}
 
 		if(type == 2)
 		{
@@ -159,7 +159,7 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 			}
 			writeHeader(compressed_filep_type3, minHashValue, maxHashValue, 0, type);
 			printf("3: Header is Written to File\n");
-			 
+
 			ArrayToType3Write(array, startIndex, minHashValue, maxHashValue);
 			printf("3: Body is Written to File\n");
 			bitlib_file_write_bytes(compressed_filep_type3, check, strlen(check));
@@ -168,130 +168,130 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 
 		type++;
 	}
-	
-	char* fnameChosen = NULL;/*s
-    stat(filename_type0, &fileinfo0);
-    stat(filename_type1, &fileinfo1);
-    stat(filename_type2, &fileinfo2);
-    stat(filename_type3, &fileinfo3);
-    if(fileinfo1.st_size > fileinfo0.st_size)
-    {
-	    if(fileinfo2.st_size > fileinfo1.st_size)
-		{
-		    if(fileinfo3.st_size > fileinfo2.st_size)
-		    {
-				compressed_filep = compressed_filep_type3;
-				fnameChosen = filename_type3;
-			    remove(filename_type0);
-			    remove(filename_type1);
-			    remove(filename_type2);
-				printf("type 3a");
-		    }
-		    else
-		    {
-				compressed_filep = compressed_filep_type2;
-				fnameChosen = filename_type2;
-			    remove(filename_type0);
-			    remove(filename_type1);
-			    remove(filename_type3);
-				printf("type 2a");
-		    }
-		}
-		else
-		{
-		    if(fileinfo3.st_size > fileinfo1.st_size)
-		    {
-				compressed_filep = compressed_filep_type3;
-				fnameChosen = filename_type3;
-			    remove(filename_type0);
-			    remove(filename_type1);
-			    remove(filename_type2);
-				 printf("type 3b");
-		    }
-		    else
-		    {
-				compressed_filep = compressed_filep_type1;
-				fnameChosen = filename_type1;
-			    remove(filename_type0);
-			    remove(filename_type3);
-			    remove(filename_type2);
-				 printf("type 1a");
-		    }
-		}
-    }
-    else
-    {
-		if(fileinfo2.st_size > fileinfo0.st_size)
-		{
-		    if(fileinfo3.st_size > fileinfo2.st_size)
-		    {
-				compressed_filep = compressed_filep_type3;
-				fnameChosen = filename_type3;
-			    remove(filename_type0);
-			    remove(filename_type1);
-			    remove(filename_type2);
-				 printf("type 3c");
-		    }
-		    else
-		    {
-				compressed_filep = compressed_filep_type2;
-				fnameChosen = filename_type2;
-			    remove(filename_type0);
-			    remove(filename_type1);
-			    remove(filename_type3);
-				 printf("type 2b");
-		    }
-		}
-		else
-		{
-		    if(fileinfo3.st_size > fileinfo0.st_size)
-		    {
-				compressed_filep = compressed_filep_type3;
-				fnameChosen = filename_type3;
-			    remove(filename_type0);
-			    remove(filename_type1);
-			    remove(filename_type2);
-				 printf("type 3d");
-		    }
-		    else
-		    {
-				compressed_filep = compressed_filep_type0;
-				fnameChosen = filename_type0;
-			    remove(filename_type3);
-			    remove(filename_type1);
-			    remove(filename_type2);
-				 printf("type 0a");
-		    }
-		}
-    }*/
-    compressed_filep = compressed_filep_type0;
-    fnameChosen = filename_type0;
-    remove(filename_type3);
-    remove(filename_type1);
-    remove(filename_type2);
-    rename(fnameChosen, compressed_filename);
-    
+
+	char* fnameChosen = NULL; /*s
+	                             stat(filename_type0, &fileinfo0);
+	                             stat(filename_type1, &fileinfo1);
+	                             stat(filename_type2, &fileinfo2);
+	                             stat(filename_type3, &fileinfo3);
+	                             if(fileinfo1.st_size > fileinfo0.st_size)
+	                             {
+	                             if(fileinfo2.st_size > fileinfo1.st_size)
+	                             {
+	                             if(fileinfo3.st_size > fileinfo2.st_size)
+	                             {
+	                             compressed_filep = compressed_filep_type3;
+	                             fnameChosen = filename_type3;
+	                             remove(filename_type0);
+	                             remove(filename_type1);
+	                             remove(filename_type2);
+	                             printf("type 3a");
+	                             }
+	                             else
+	                             {
+	                             compressed_filep = compressed_filep_type2;
+	                             fnameChosen = filename_type2;
+	                             remove(filename_type0);
+	                             remove(filename_type1);
+	                             remove(filename_type3);
+	                             printf("type 2a");
+	                             }
+	                             }
+	                             else
+	                             {
+	                             if(fileinfo3.st_size > fileinfo1.st_size)
+	                             {
+	                             compressed_filep = compressed_filep_type3;
+	                             fnameChosen = filename_type3;
+	                             remove(filename_type0);
+	                             remove(filename_type1);
+	                             remove(filename_type2);
+	                             printf("type 3b");
+	                             }
+	                             else
+	                             {
+	                             compressed_filep = compressed_filep_type1;
+	                             fnameChosen = filename_type1;
+	                             remove(filename_type0);
+	                             remove(filename_type3);
+	                             remove(filename_type2);
+	                             printf("type 1a");
+	                             }
+	                             }
+	                             }
+	                             else
+	                             {
+	                             if(fileinfo2.st_size > fileinfo0.st_size)
+	                             {
+	                             if(fileinfo3.st_size > fileinfo2.st_size)
+	                             {
+	                             compressed_filep = compressed_filep_type3;
+	                             fnameChosen = filename_type3;
+	                             remove(filename_type0);
+	                             remove(filename_type1);
+	                             remove(filename_type2);
+	                             printf("type 3c");
+	                             }
+	                             else
+	                             {
+	                             compressed_filep = compressed_filep_type2;
+	                             fnameChosen = filename_type2;
+	                             remove(filename_type0);
+	                             remove(filename_type1);
+	                             remove(filename_type3);
+	                             printf("type 2b");
+	                             }
+	                             }
+	                             else
+	                             {
+	                             if(fileinfo3.st_size > fileinfo0.st_size)
+	                             {
+	                             compressed_filep = compressed_filep_type3;
+	                             fnameChosen = filename_type3;
+	                             remove(filename_type0);
+	                             remove(filename_type1);
+	                             remove(filename_type2);
+	                             printf("type 3d");
+	                             }
+	                             else
+	                             {
+	                             compressed_filep = compressed_filep_type0;
+	                             fnameChosen = filename_type0;
+	                             remove(filename_type3);
+	                             remove(filename_type1);
+	                             remove(filename_type2);
+	                             printf("type 0a");
+	                             }
+	                             }
+	                             }*/
+	compressed_filep = compressed_filep_type0;
+	fnameChosen = filename_type0;
+	remove(filename_type3);
+	remove(filename_type1);
+	remove(filename_type2);
+	rename(fnameChosen, compressed_filename);
+
 	return 0;
 }
 
 /****************************************************************************
-* Description                                                               
-*      writeHeader writes the header information and header comments        
-*      to the file                                                          
-* Arguments                                                                 
-*      gzFile *file                                                         
-*      UINT64 minHashValue                                                  
-*      UINT64 maxHashValue                                                  
-*      int type                                                             
-* Return Values                                                             
-*      0 upon success or 1 upon error                                       
+* Description
+*      writeHeader writes the header information and header comments
+*      to the file
+* Arguments
+*      gzFile *file
+*      UINT64 minHashValue
+*      UINT64 maxHashValue
+*      int type
+* Return Values
+*      0 upon success or 1 upon error
 ****************************************************************************/
 int writeHeader(gzFile *file, UINT64 minHashValue, UINT64 maxHashValue, UINT64 lastZero, int type)
 {
 	int goodCompression;
 	char* check= "1\n";
 	char comment1[80];
-	char comment2[80];	
+	char comment2[80];
 	int status;
 	char* typeH = (char*)malloc((1+log(UINT8_MAX))+ sizeof(char));
 	char* header = (char*)malloc((log(UINT64_MAX)+1)*3 + sizeof(UINT8) + 3*sizeof(char));
@@ -375,15 +375,15 @@ int isValidLevelFile(char* compressed_filename)
 	return 1;
 }
 /****************************************************************************
-* Description                                                               
-*      ArrayToType0Write reads in an array of BYTE values and               
-*      creates a Type 0 level File.                                        
-* Arguments                                                                 
-*      BITARRAY *array                                                      
-*      UINT64 startIndex                                                    
-*      UINT64 maxHashValue                                                 
-* Return Values                                                             
-*      0 upon success or 1 upon error                                       
+* Description
+*      ArrayToType0Write reads in an array of BYTE values and
+*      creates a Type 0 level File.
+* Arguments
+*      BITARRAY *array
+*      UINT64 startIndex
+*      UINT64 maxHashValue
+* Return Values
+*      0 upon success or 1 upon error
 ****************************************************************************/
 int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 {
@@ -419,17 +419,17 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 }
 
 /****************************************************************************
-* Description                                                               
-*      ArrayToType1Write reads in an array of BYTE values and               
-*      creates a Type 0 level File.                                         
-* Arguments                                                                 
-*      BYTE *array                                                          
-*      UINT64 startIndex                                                    
-*      UINT64 maxHashValue                                                  
-*      UINT8 bitsPerPosition                                                
-*      UINT64 offset                                                        
-* Return Values                                                             
-*      0 upon success or 1 upon error                                       
+* Description
+*      ArrayToType1Write reads in an array of BYTE values and
+*      creates a Type 0 level File.
+* Arguments
+*      BYTE *array
+*      UINT64 startIndex
+*      UINT64 maxHashValue
+*      UINT8 bitsPerPosition
+*      UINT64 offset
+* Return Values
+*      0 upon success or 1 upon error
 ****************************************************************************/
 int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT64 bitsPerPosition, UINT64 offset)
 {
@@ -445,19 +445,19 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 	UINT64 offsetValue;
 	int leftShift;
 	/*
-	take the first one, bitshift by bpp. Then print the floor(first bpp/8) Bytes.
-	 set leftOffset to 8-(bpp%8) and take the next Byte and set to buffer Prev
-	take 2nd value, shift left bpp - leftOffset
-	 or byte 1 with buffer Prev, Print all bytes up to floor(bitsPerPosition+leftOffset)/8
-	 set leftOffset to 8-(bpp+leftOffset)%8 set bufferPrev to the next Byte
-	*/
+	   take the first one, bitshift by bpp. Then print the floor(first bpp/8) Bytes.
+	   set leftOffset to 8-(bpp%8) and take the next Byte and set to buffer Prev
+	   take 2nd value, shift left bpp - leftOffset
+	   or byte 1 with buffer Prev, Print all bytes up to floor(bitsPerPosition+leftOffset)/8
+	   set leftOffset to 8-(bpp+leftOffset)%8 set bufferPrev to the next Byte
+	 */
 	while(counter <= maxHashValue)
 	{
 		bitcounter=0;
 		currentByte = *array;
 		while(status == STATUS_SUCCESS && counter <= maxHashValue && bitcounter < BITSINBYTE)
 		{
-			if(counter >= offset && getBitValue(currentByte, bitcounter))// you have a position
+			if(counter >= offset && getBitValue(currentByte, bitcounter)) // you have a position
 			{
 				offsetValue = counter - offset;
 				leftShift = 8*8 - leftOffset - bitsPerPosition;
@@ -467,7 +467,7 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 //				printf("counter %d amountt %d", counter, (UINT8)(bitsPerPosition));
 				numBytesInCurrent = floor((leftOffset + bitsPerPosition)/8);
 				bufferPrev = *(bufferCurr + (UINT8)floor((leftOffset+bitsPerPosition)/8));
-				leftOffset = ((bitsPerPosition+leftOffset)%8);			
+				leftOffset = ((bitsPerPosition+leftOffset)%8);
 			}
 			bitcounter++;
 			counter++;
@@ -489,16 +489,16 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 }
 
 /****************************************************************************
-* Description                                                               
-*      positionToByteArray takes a 64 bit integer and puts it in a          
-*      BITARRAY. It also takes in a bufferPrev, which will bit-wise OR the  
-*      first BYTE of the return value with the value of bufferPrev          
-* Arguments                                                                 
-*      BITARRAY* buffer                                                     
-*      UINT64 value                                                         
-*      BYTE bufferPrev                                                       
-* Return Values                                                             
-*      0 upon success or 1 upon error                                       
+* Description
+*      positionToByteArray takes a 64 bit integer and puts it in a
+*      BITARRAY. It also takes in a bufferPrev, which will bit-wise OR the
+*      first BYTE of the return value with the value of bufferPrev
+* Arguments
+*      BITARRAY* buffer
+*      UINT64 value
+*      BYTE bufferPrev
+* Return Values
+*      0 upon success or 1 upon error
 ****************************************************************************/
 int positionToByteArray(BITARRAY* buffer, UINT64 value, BYTE bufferPrev)
 {
@@ -509,7 +509,7 @@ int positionToByteArray(BITARRAY* buffer, UINT64 value, BYTE bufferPrev)
 	{
 		UINT8 bitsTillDesiredByte, bitsInSevenBytes;
 		bitsTillDesiredByte = byteNum*BITSINBYTE;
-		bitsInSevenBytes = 56;//(sizeof(UINT64)-1)*BITSINBYTE;
+		bitsInSevenBytes = 56; //(sizeof(UINT64)-1)*BITSINBYTE;
 		oneByte = (BYTE)((value << bitsTillDesiredByte) >> bitsInSevenBytes);
 //        printf("%x ", oneByte);
 		if(byteNum == 0)
@@ -525,21 +525,21 @@ int positionToByteArray(BITARRAY* buffer, UINT64 value, BYTE bufferPrev)
 }
 
 /****************************************************************************
-* Description                                                               
-*      ArrayToType2Write reads in an array of BYTE values and               
-*      creates a Type 1 level File.                                         
-* Arguments                                                                 
-*      BITARRAY *array                                                      
-*      UINT64 startIndex                                                    
-*      UINT64 maxHashValue                                                  
-*      UINT8 bitsPerPosition                                                
-*      UINT64 offset                                                        
-* Return Values                                                             
-*      0 upon success or 1 upon error                                       
+* Description
+*      ArrayToType2Write reads in an array of BYTE values and
+*      creates a Type 1 level File.
+* Arguments
+*      BITARRAY *array
+*      UINT64 startIndex
+*      UINT64 maxHashValue
+*      UINT8 bitsPerPosition
+*      UINT64 offset
+* Return Values
+*      0 upon success or 1 upon error
 ****************************************************************************/
 int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT64 bitsPerPosition, UINT64 offset)
 {
-	 POSITION counter = startIndex;
+	POSITION counter = startIndex;
 	UINT8 bitcounter = 0, currentByte;
 	BYTE bufferPrev = 0;
 	BYTE* bufferCurr = (BYTE*)malloc(sizeof(UINT64));
@@ -550,19 +550,19 @@ int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 	UINT64 offsetValue;
 	int leftShift;
 	/*
-	take the first one, bitshift by bpp. Then print the floor(first bpp/8) Bytes.
-	 set leftOffset to 8-(bpp%8) and take the next Byte and set to buffer Prev
-	take 2nd value, shift left bpp - leftOffset
-	 or byte 1 with buffer Prev, Print all bytes up to floor(bitsPerPosition+leftOffset)/8
-	 set leftOffset to 8-(bpp+leftOffset)%8 set bufferPrev to the next Byte
-	*/
+	   take the first one, bitshift by bpp. Then print the floor(first bpp/8) Bytes.
+	   set leftOffset to 8-(bpp%8) and take the next Byte and set to buffer Prev
+	   take 2nd value, shift left bpp - leftOffset
+	   or byte 1 with buffer Prev, Print all bytes up to floor(bitsPerPosition+leftOffset)/8
+	   set leftOffset to 8-(bpp+leftOffset)%8 set bufferPrev to the next Byte
+	 */
 	while(counter <= maxHashValue)
 	{
 		bitcounter=0;
 		currentByte = *array;
 		while(status == STATUS_SUCCESS && counter <= maxHashValue && bitcounter < BITSINBYTE)
 		{
-			if(counter >= offset && !getBitValue(currentByte, bitcounter))// you have a position
+			if(counter >= offset && !getBitValue(currentByte, bitcounter)) // you have a position
 			{
 				offsetValue = counter - offset;
 				leftShift = 8*8 - leftOffset - bitsPerPosition;
@@ -571,7 +571,7 @@ int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 				numBytesInCurrent = floor((leftOffset + bitsPerPosition)/8);
 				bufferPrev = *(bufferCurr + (UINT8)floor((leftOffset+bitsPerPosition)/8));
 				leftOffset = ((bitsPerPosition+leftOffset)%8);
-		}
+			}
 			bitcounter++;
 			counter++;
 		}
@@ -590,15 +590,15 @@ int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 }
 
 /****************************************************************************
-* Description                                                               
-*      ArrayToType3Write reads in an array of BYTE values and               
-*      creates a Type 2 level File.                                         
-* Arguments                                                                 
-*      BITARRAY *array                                                      
-*      UINT64 minHashValue                                                  
-*      UINT64 maxHashValue                                                  
-* Return Values                                                             
-*      0 upon success or 1 upon error                                       
+* Description
+*      ArrayToType3Write reads in an array of BYTE values and
+*      creates a Type 2 level File.
+* Arguments
+*      BITARRAY *array
+*      UINT64 minHashValue
+*      UINT64 maxHashValue
+* Return Values
+*      0 upon success or 1 upon error
 ****************************************************************************/
 int ArrayToType3Write(BITARRAY *array, UINT64 startIndex, UINT64 minHashValue, UINT64 maxHashValue)
 {
@@ -609,9 +609,9 @@ int ArrayToType3Write(BITARRAY *array, UINT64 startIndex, UINT64 minHashValue, U
 	UINT64 temp = minHashValue - startIndex;
 	int offset = temp % 8;
 	array += (temp / 8);
-	
 
-	
+
+
 // Get this to just rite the 8 bits skipping the 0's between start index and minHashValue
 	while(counter <= maxHashValue)
 	{
@@ -630,16 +630,16 @@ int ArrayToType3Write(BITARRAY *array, UINT64 startIndex, UINT64 minHashValue, U
 }
 
 /****************************************************************************
-* Description                                                               
-*      ReadLevelFile takes a pointer to a bitarray and a compressed file    
-*      and creates a bitarray starting at the files minHashValue until      
-*      its maxHashValue (0=not valid, 1 = valid                             
-* Arguments                                                                 
-*      char* compressed_filename                                            
-*      BITARRAY *array                                                      
-*      int length   (maxHashValue-minHashValue)                             
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      ReadLevelFile takes a pointer to a bitarray and a compressed file
+*      and creates a bitarray starting at the files minHashValue until
+*      its maxHashValue (0=not valid, 1 = valid
+* Arguments
+*      char* compressed_filename
+*      BITARRAY *array
+*      int length   (maxHashValue-minHashValue)
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 int ReadLevelFile(char* compressed_filename, BITARRAY *array, int length)
 {
@@ -669,16 +669,16 @@ int ReadLevelFile(char* compressed_filename, BITARRAY *array, int length)
 	return 0;
 }
 /****************************************************************************
-* Description                                                               
-*      readLevelFileType0 takes a pointer to a bitarray and a compressed file    
-*      and creates a bitarray starting at the files minHashValue until      
-*      its maxHashValue (0=not valid, 1 = valid                             
-* Arguments                                                                 
-*      char* compressed_filename                                            
-*      BITARRAY *array                                                      
-*      int length   (maxHashValue-minHashValue)                             
-* Return Values                                                            
-*      UINT8 status                                                         
+* Description
+*      readLevelFileType0 takes a pointer to a bitarray and a compressed file
+*      and creates a bitarray starting at the files minHashValue until
+*      its maxHashValue (0=not valid, 1 = valid
+* Arguments
+*      char* compressed_filename
+*      BITARRAY *array
+*      int length   (maxHashValue-minHashValue)
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 {
@@ -712,13 +712,13 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 	while(index <= length && *buffer!= 0x0C)
 	{
-	  //   printf("buffer %d", *buffer);
-		if((*buffer) != 0x20)//create number
+		//   printf("buffer %d", *buffer);
+		if((*buffer) != 0x20) //create number
 		{
-			   temp = temp * 10 + ((*buffer) - '0');
+			temp = temp * 10 + ((*buffer) - '0');
 //		  printf(" number %d  --", temp);
-	    }
-		else//number done, put in array
+		}
+		else //number done, put in array
 		{
 			diff = temp - minHashValue;
 			while(index < diff)
@@ -728,12 +728,12 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 				{
 					(*array) = 0;
 				}
-				index ++;
+				index++;
 				if(bitValue == 7)
 				{
 //					printf("== %d %x==", bitValue, *array);
 					array++;
-				}	
+				}
 			}
 			if(index == diff)
 			{
@@ -751,7 +751,7 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 //				printf("== %d %x==", bitValue, *array);
 				array++;
 			}
-			  temp = 0;
+			temp = 0;
 		}
 		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 	}
@@ -765,33 +765,33 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 }
 
 /****************************************************************************
-* Description                                                               
-*      readLevelFileType1 takes a pointer to a bitarray and a compressed    
-*      file and creates a bitarray starting at the files minHashValue until 
-*      its maxHashValue (0=not valid, 1 = valid                             
-* Arguments                                                                 
-*      char* compressed_filename                                            
-*      BITARRAY *array                                                      
-*      int length   (maxHashValue-minHashValue)                             
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      readLevelFileType1 takes a pointer to a bitarray and a compressed
+*      file and creates a bitarray starting at the files minHashValue until
+*      its maxHashValue (0=not valid, 1 = valid
+* Arguments
+*      char* compressed_filename
+*      BITARRAY *array
+*      int length   (maxHashValue-minHashValue)
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length)
 {
 	int index = 0;
-	UINT64    minHashValue = getLevelFileMinHashValue(compressed_filename);
-	UINT64    maxHashValue = getLevelFileMaxHashValue(compressed_filename);
-	UINT64     bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
+	UINT64 minHashValue = getLevelFileMinHashValue(compressed_filename);
+	UINT64 maxHashValue = getLevelFileMaxHashValue(compressed_filename);
+	UINT64 bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
 	BYTE*     buffer = (BYTE*)malloc(sizeof(BYTE));
-	int       status = STATUS_SUCCESS;
-	int       endSectionCounter = 0;
-	int       bitCounter=0;
+	int status = STATUS_SUCCESS;
+	int endSectionCounter = 0;
+	int bitCounter=0;
 
- //    BITARRAY* bitArray = (BITARRAY*)malloc(sizeof(BITARRAY)*BITSINPOS/BITSINBYTE);
-	int       currentIndex = 0;
+	//    BITARRAY* bitArray = (BITARRAY*)malloc(sizeof(BITARRAY)*BITSINPOS/BITSINBYTE);
+	int currentIndex = 0;
 	BYTE*     currentByte = (BYTE*)malloc(sizeof(BYTE));
-	int       indexInPrevByte;
-		
+	int indexInPrevByte;
+
 	compressed_filep = gzopen(compressed_filename, "rb");
 	(*bitArray) = 0;
 	//skips header section which has two 0xC 's(at end of header) and all other ASCII chars
@@ -817,7 +817,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 	while((lastTempNumber+1) < length)
 	{
-		if(tempBitIndexInByte != 1)//stll evaluating same byte
+		if(tempBitIndexInByte != 1) //stll evaluating same byte
 		{
 			printf("case1\n");
 			printf("--- %x %d\n", *buffer, currentIndex);
@@ -848,7 +848,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 						{
 							(*bitArray) = 0;
 						}
-						counter ++;
+						counter++;
 					}
 					if(counter == tempNumber)
 					{
@@ -869,13 +869,13 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 				tempNumber = 0;
 				currentIndex =0;
 			}
-			else// uses up rest of Byte
+			else // uses up rest of Byte
 			{
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (tempBitIndexInByte - 1));
 				printf(" *** %d %d ", currentIndex, tempBitIndexInByte);
 				currentIndex += (8-(tempBitIndexInByte-1));
 				tempBitIndexInByte = 1;
-				if(currentIndex >= bitsPerPosition)//add number to bitArray
+				if(currentIndex >= bitsPerPosition) //add number to bitArray
 				{
 //					printf("add case1b to array ");
 					///ADDNUMBERTOBITARRAY
@@ -900,7 +900,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 							{
 								(*bitArray) = 0;
 							}
-							counter ++;
+							counter++;
 							if(bitValue == 7)
 							{
 								bitArray++;
@@ -932,11 +932,11 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 			printf("case2\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 			printf("--- %x %d\n", *buffer, currentIndex);
-			index ++;
+			index++;
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
 			tempBitIndexInByte = 1;
 			currentIndex += 8;
-			if(currentIndex >= bitsPerPosition)//add number to bitArray
+			if(currentIndex >= bitsPerPosition) //add number to bitArray
 			{
 				printf("3tempNumber %d\n", tempNumber);
 				///ADDNUMBERTOBITARRAY
@@ -963,7 +963,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 						{
 							bitArray++;
 						}
-						counter ++;
+						counter++;
 					}
 					if(counter == tempNumber)
 					{
@@ -990,7 +990,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 			printf("case3\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 			printf("--- %x %d\n", *buffer, currentIndex);
-			index ++;
+			index++;
 			if(currentIndex)
 				tempNumber = (tempNumber << (bitsPerPosition - currentIndex))  + ((*buffer) >> (8-(bitsPerPosition-currentIndex)));
 			else
@@ -1023,7 +1023,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 						{
 							(*bitArray) = 0;
 						}
-						counter ++;
+						counter++;
 						if(bitValue == 7)
 						{
 							bitArray++;
@@ -1064,34 +1064,34 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 	return 0;
 }
 /****************************************************************************
-* Description                                                               
-*      readLevelFileType2 takes a pointer to a bitarray and a compressed    
-*      file and creates a bitarray starting at the files minHashValue until 
-*      its maxHashValue (0=not valid, 1 = valid                             
-* Arguments                                                                 
-*      char* compressed_filename                                            
-*      BITARRAY *array                                                      
-*      int length   (maxHashValue-minHashValue)                             
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      readLevelFileType2 takes a pointer to a bitarray and a compressed
+*      file and creates a bitarray starting at the files minHashValue until
+*      its maxHashValue (0=not valid, 1 = valid
+* Arguments
+*      char* compressed_filename
+*      BITARRAY *array
+*      int length   (maxHashValue-minHashValue)
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length)
 {
 	int index = 0;
-	UINT64    minHashValue = getLevelFileMinHashValue(compressed_filename);
-	UINT64    maxHashValue = getLevelFileMaxHashValue(compressed_filename);
-	UINT64    lastZero = getLastZero(compressed_filename);
-	UINT64    bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
+	UINT64 minHashValue = getLevelFileMinHashValue(compressed_filename);
+	UINT64 maxHashValue = getLevelFileMaxHashValue(compressed_filename);
+	UINT64 lastZero = getLastZero(compressed_filename);
+	UINT64 bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
 	BYTE*     buffer = (BYTE*)malloc(sizeof(BYTE));
-	int       status = STATUS_SUCCESS;
-	int       endSectionCounter = 0;
-	int       bitCounter=0;
+	int status = STATUS_SUCCESS;
+	int endSectionCounter = 0;
+	int bitCounter=0;
 
- //    BITARRAY* bitArray = (BITARRAY*)malloc(sizeof(BITARRAY)*BITSINPOS/BITSINBYTE);
-	int       currentIndex = 0;
+	//    BITARRAY* bitArray = (BITARRAY*)malloc(sizeof(BITARRAY)*BITSINPOS/BITSINBYTE);
+	int currentIndex = 0;
 	BYTE*     currentByte = (BYTE*)malloc(sizeof(BYTE));
-	int       indexInPrevByte;
-		
+	int indexInPrevByte;
+
 	compressed_filep = gzopen(compressed_filename, "rb");
 	(*bitArray) = 0;
 	//skips header section which has two 0xC 's(at end of header) and all other ASCII chars
@@ -1117,7 +1117,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 	while(counter <= lastZero)
 	{
-		if(tempBitIndexInByte != 1)//stll evaluating same byte
+		if(tempBitIndexInByte != 1) //stll evaluating same byte
 		{
 //			printf("case1\n");
 			if((8 - (tempBitIndexInByte - 1)) > bitsPerPosition) // doesn't use up rest of byte
@@ -1155,7 +1155,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 						{
 							(*bitArray) = 0;
 						}
-						counter ++;
+						counter++;
 					}
 					if(bitValue == 7)
 					{
@@ -1166,12 +1166,12 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 				tempNumber = 0;
 				currentIndex =0;
 			}
-			else// uses up rest of Byte
+			else // uses up rest of Byte
 			{
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (tempBitIndexInByte - 1));
 				currentIndex = (8-(tempBitIndexInByte-1));
 				tempBitIndexInByte = 1;
-				if(currentIndex >= bitsPerPosition)//add number to bitArray
+				if(currentIndex >= bitsPerPosition) //add number to bitArray
 				{
 					///ADDNUMBERTOBITARRAY
 					lastTempNumber = tempNumber;
@@ -1184,7 +1184,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 							free(currentByte);
 						return 0;
 					}
-				else
+					else
 					{
 						while(counter < tempNumber)
 						{
@@ -1203,13 +1203,13 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 							{
 								(*bitArray) = 0;
 							}
-							counter ++;
+							counter++;
 						}
 						if(bitValue == 7)
 						{
 							bitArray++;
 						}
-				
+
 						currentIndex = 0;
 						tempNumber = 0;
 					}
@@ -1260,11 +1260,11 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 				}
 				endSectionCounter = 0;
 			}
-			index ++;
+			index++;
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
 			tempBitIndexInByte = 1;
 			currentIndex += 8;
-			if(currentIndex >= bitsPerPosition)//add number to bitArray
+			if(currentIndex >= bitsPerPosition) //add number to bitArray
 			{
 				///ADDNUMBERTOBITARRAY
 				lastTempNumber = tempNumber;
@@ -1291,13 +1291,13 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 					}
 					if(counter == tempNumber)
 					{
-						
+
 						bitValue = counter % 8;
 						if(bitValue ==0)
 						{
 							(*bitArray) = 0;
 						}
-						counter ++;
+						counter++;
 					}
 					if(bitValue == 7)
 					{
@@ -1377,8 +1377,8 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 					}
 				}
 			}
-				
-					//ENDADDNUMBERTOBITARRAY
+
+			//ENDADDNUMBERTOBITARRAY
 			//printf("bitInByte %d  CurrentIndex %d \n", tempBitIndexInByte, currentIndex);
 		}
 	}
@@ -1397,16 +1397,16 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 }
 
 /****************************************************************************
-* Description                                                              
-*      readLevelFileType3 takes a pointer to a bitarray and a compressed file    
-*      and creates a bitarray starting at the files minHashValue until      
-*      its maxHashValue (0=not valid, 1 = valid                             
-* Arguments                                                                 
-*      char* compressed_filename                                            
-*      BITARRAY *array                                                      
-*      int length   (maxHashValue-minHashValue)                             
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      readLevelFileType3 takes a pointer to a bitarray and a compressed file
+*      and creates a bitarray starting at the files minHashValue until
+*      its maxHashValue (0=not valid, 1 = valid
+* Arguments
+*      char* compressed_filename
+*      BITARRAY *array
+*      int length   (maxHashValue-minHashValue)
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 int readLevelFileType3(char* compressed_filename, BITARRAY *array, int length)
 {
@@ -1434,7 +1434,7 @@ int readLevelFileType3(char* compressed_filename, BITARRAY *array, int length)
 		index += 8;
 		array++;
 	}
-	
+
 	gzclose(compressed_filep);
 	if(buffer)
 		free(buffer);
@@ -1442,12 +1442,12 @@ int readLevelFileType3(char* compressed_filename, BITARRAY *array, int length)
 }
 
 /****************************************************************************
-* Description                                                               
-*      getType returns the levelfile type of the argument file              
-* Arguments                                                                 
-*      char* compressed_filename                                            
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      getType returns the levelfile type of the argument file
+* Arguments
+*      char* compressed_filename
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 int getLevelFileType(char* compressed_filename)
 {
@@ -1458,21 +1458,21 @@ int getLevelFileType(char* compressed_filename)
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
-		return -1;//check bit
+		return -1; //check bit
 	}
 	else
 	{
 		while(status == STATUS_SUCCESS)
 		{
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-			if(*buffer == '#')//IGNORE COMMENTS TILL NEWLINE
+			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0x0A && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 			}
-			else if(*buffer==0x0A){}//IGNORE EXTRA NEWLINES
+			else if(*buffer==0x0A) {} //IGNORE EXTRA NEWLINES
 			else
 			{
 				gzclose(compressed_filep);
@@ -1487,12 +1487,12 @@ int getLevelFileType(char* compressed_filename)
 }
 
 /****************************************************************************
-* Description                                                               
-*      getMinHashValue returns the minHashValue of the file                 
-* Arguments                                                                 
-*      char* compressed_filename                                            
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      getMinHashValue returns the minHashValue of the file
+* Arguments
+*      char* compressed_filename
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 UINT64 getLevelFileMinHashValue(char* compressed_filename)
 {
@@ -1505,38 +1505,38 @@ UINT64 getLevelFileMinHashValue(char* compressed_filename)
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
-		return -1;//check bit
+		return -1; //check bit
 	}
 	else
 	{
 		while(status == STATUS_SUCCESS && pastType ==0)
 		{
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-			if(*buffer == '#')//IGNORE COMMENTS TILL NEWLINE
+			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0x0A && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 			}
-			else if(*buffer==0xA){}//IGNORE EXTRA NEWLINES
+			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
 			else
 			{
 				pastType = 1;
 			}
 		}
-		
+
 		while(status == STATUS_SUCCESS && pastType ==1)
 		{
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-			if(*buffer == '#')//IGNORE COMMENTS TILL NEWLINE
+			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0x0A && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 			}
-			else if(*buffer==0x0A){}//IGNORE EXTRA NEWLINES
+			else if(*buffer==0x0A) {} //IGNORE EXTRA NEWLINES
 			else
 			{
 				minHashValue = (BYTE)(*buffer)-'0';
@@ -1561,12 +1561,12 @@ UINT64 getLevelFileMinHashValue(char* compressed_filename)
 	return -1;
 }
 /****************************************************************************
-* Description                                                               
-*      getMaxHashValue returns the maxHashValue of the file                 
-* Arguments                                                                 
-*      char* compressed_filename                                            
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      getMaxHashValue returns the maxHashValue of the file
+* Arguments
+*      char* compressed_filename
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 {
@@ -1580,21 +1580,21 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
-		return -1;//check bit
+		return -1; //check bit
 	}
 	else
 	{
 		while(status == STATUS_SUCCESS && pastType ==0)
 		{
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-			if(*buffer == '#')//IGNORE COMMENTS TILL NEWLINE
+			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 			}
-			else if(*buffer==0xA){}//IGNORE EXTRA NEWLINES
+			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
 			else
 			{
 				pastType = 1;
@@ -1603,14 +1603,14 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 		while(status == STATUS_SUCCESS && pastType ==1)
 		{
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-			if(*buffer == '#')//IGNORE COMMENTS TILL NEWLINE
+			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 			}
-			else if(*buffer==0xA){}//IGNORE EXTRA NEWLINES
+			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
 			else
 			{
 
@@ -1643,12 +1643,12 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 
 }
 /****************************************************************************
-* Description                                                               
-*      getBitsPerPosition returns the bitsPerPosition of the file           
-* Arguments                                                                 
-*      char* compressed_filename                                            
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      getBitsPerPosition returns the bitsPerPosition of the file
+* Arguments
+*      char* compressed_filename
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 UINT64 getLevelFileBitsPerPosition(char* compressed_filename)
 {
@@ -1661,14 +1661,14 @@ UINT64 getLevelFileBitsPerPosition(char* compressed_filename)
 }
 
 /****************************************************************************
-* Description                                                               
+* Description
 *      getBitValue determines whether the bitnum bit in the byte currentByte
-*      is a 0 or 1                                                          
-* Arguments                                                                 
-*      BYTE* currentByte                                                    
-*      UINT8 bitnum                                                         
-* Return Values                                                             
-*      UINT8 value                                                          
+*      is a 0 or 1
+* Arguments
+*      BYTE* currentByte
+*      UINT8 bitnum
+* Return Values
+*      UINT8 value
 ****************************************************************************/
 UINT8 getBitValue(BYTE currentByte, UINT8 bitnum)
 {
@@ -1678,14 +1678,14 @@ UINT8 getBitValue(BYTE currentByte, UINT8 bitnum)
 }
 
 /****************************************************************************
-* Description                                                               
-*      findMinValueFromArray determines the minimum bitIndex of a one in   
-*      the array.                                                           
-* Arguments                                                                 
-*      BITARRAY* array                                                      
-*      UINT64 length                                                        
-* Return Values                                                             
-*      UINT64 minIndex                                                      
+* Description
+*      findMinValueFromArray determines the minimum bitIndex of a one in
+*      the array.
+* Arguments
+*      BITARRAY* array
+*      UINT64 length
+* Return Values
+*      UINT64 minIndex
 ****************************************************************************/
 UINT64 findMinValueFromArray(BITARRAY* array, UINT64 length)
 {
@@ -1712,14 +1712,14 @@ UINT64 findMinValueFromArray(BITARRAY* array, UINT64 length)
 	return 0;
 }
 /****************************************************************************
-* Description                                                               
-*      findMaxValueFromArray determines the maximum bitIndex of a one in    
-*      the array.                                                           
-* Arguments                                                                 
-*      BITARRAY* array                                                      
-*      UINT64 length                                                        
-* Return Values                                                             
-*      UINT64 maxIndex                                                      
+* Description
+*      findMaxValueFromArray determines the maximum bitIndex of a one in
+*      the array.
+* Arguments
+*      BITARRAY* array
+*      UINT64 length
+* Return Values
+*      UINT64 maxIndex
 ****************************************************************************/
 UINT64 findMaxValueFromArray(BITARRAY* array, UINT64 length)
 {
@@ -1749,14 +1749,14 @@ UINT64 findMaxValueFromArray(BITARRAY* array, UINT64 length)
 }
 
 /****************************************************************************
-* Description                                                               
-*      findMaxValueFromArray determines the maximum bitIndex of a one in    
-*      the array.                                                           
-* Arguments                                                                 
-*      BITARRAY* array                                                      
-*      UINT64 length                                                        
-* Return Values                                                             
-*      UINT64 maxIndex                                                      
+* Description
+*      findMaxValueFromArray determines the maximum bitIndex of a one in
+*      the array.
+* Arguments
+*      BITARRAY* array
+*      UINT64 length
+* Return Values
+*      UINT64 maxIndex
 ****************************************************************************/
 UINT64 findLastZero(BITARRAY* array, UINT64 length)
 {
@@ -1784,12 +1784,12 @@ UINT64 findLastZero(BITARRAY* array, UINT64 length)
 	return lastVal;
 }
 /****************************************************************************
-* Description                                                               
-*      getLastZero returns the findLastZero of the file                 
-* Arguments                                                                 
-*      char* compressed_filename                                            
-* Return Values                                                             
-*      UINT8 status                                                         
+* Description
+*      getLastZero returns the findLastZero of the file
+* Arguments
+*      char* compressed_filename
+* Return Values
+*      UINT8 status
 ****************************************************************************/
 int getLastZero(char* compressed_filename)
 {
@@ -1804,21 +1804,21 @@ int getLastZero(char* compressed_filename)
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
-		return -1;//check bit
+		return -1; //check bit
 	}
 	else
 	{
 		while(status == STATUS_SUCCESS && pastType ==0)
 		{
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-			if(*buffer == '#')//IGNORE COMMENTS TILL NEWLINE
+			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 			}
-			else if(*buffer==0xA){}//IGNORE EXTRA NEWLINES
+			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
 			else
 			{
 				pastType = 1;
@@ -1827,14 +1827,14 @@ int getLastZero(char* compressed_filename)
 		while(status == STATUS_SUCCESS && pastType ==1)
 		{
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-			if(*buffer == '#')//IGNORE COMMENTS TILL NEWLINE
+			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 			}
-			else if(*buffer==0xA){}//IGNORE EXTRA NEWLINES
+			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
 			else
 			{
 
@@ -1843,14 +1843,14 @@ int getLastZero(char* compressed_filename)
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 				if(*buffer == 0x20)
-					 pastMin=1;
+					pastMin=1;
 				status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
 				if(*buffer == 0x20)
-					 pastMax=1;
+					pastMax=1;
 				status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				lastZero = (BYTE)(*buffer)-'0';
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS&& pastMax == 1)

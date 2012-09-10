@@ -35,13 +35,13 @@
 void            twobitdb_free ();
 
 /* Value */
-VALUE		twobitdb_get_value		(POSITION position);
-VALUE		twobitdb_set_value		(POSITION position, VALUE value);
+VALUE           twobitdb_get_value              (POSITION position);
+VALUE           twobitdb_set_value              (POSITION position, VALUE value);
 
 /* Visited */
-BOOLEAN		twobitdb_check_visited   	(POSITION position);
-void		twobitdb_mark_visited    	(POSITION position);
-void		twobitdb_unmark_visited		(POSITION position);
+BOOLEAN         twobitdb_check_visited          (POSITION position);
+void            twobitdb_mark_visited           (POSITION position);
+void            twobitdb_unmark_visited         (POSITION position);
 
 
 int* twobitdb_database; //a cell has 8 bits
@@ -53,84 +53,84 @@ int* twobitdb_visited;  //a cell has 8 bits
 
 void twobitdb_init(DB_Table *new_db) {
 
-    //we need two bits per position, so 4 values per byte
-    size_t dbSize = (gNumberOfPositions >> 2) + 1;
-    //we need one bit per position, so 8 visited values per byte
-    size_t visitedSize = (gNumberOfPositions >> 3) + 1;
+	//we need two bits per position, so 4 values per byte
+	size_t dbSize = (gNumberOfPositions >> 2) + 1;
+	//we need one bit per position, so 8 visited values per byte
+	size_t visitedSize = (gNumberOfPositions >> 3) + 1;
 
-    twobitdb_database = (int*) SafeMalloc(dbSize);
-    memset(twobitdb_database, 0xffff, dbSize);
-    twobitdb_visited = (int*) SafeMalloc(visitedSize);
-    memset(twobitdb_visited, 0, visitedSize);
+	twobitdb_database = (int*) SafeMalloc(dbSize);
+	memset(twobitdb_database, 0xffff, dbSize);
+	twobitdb_visited = (int*) SafeMalloc(visitedSize);
+	memset(twobitdb_visited, 0, visitedSize);
 
-    //set function pointers
-    new_db->get_value = twobitdb_get_value;
-    new_db->put_value = twobitdb_set_value;
-    new_db->check_visited = twobitdb_check_visited;
-    new_db->mark_visited = twobitdb_mark_visited;
-    new_db->unmark_visited = twobitdb_unmark_visited;
-  
-    new_db->free_db = twobitdb_free;
+	//set function pointers
+	new_db->get_value = twobitdb_get_value;
+	new_db->put_value = twobitdb_set_value;
+	new_db->check_visited = twobitdb_check_visited;
+	new_db->mark_visited = twobitdb_mark_visited;
+	new_db->unmark_visited = twobitdb_unmark_visited;
 
-    return;
+	new_db->free_db = twobitdb_free;
+
+	return;
 
 }
 
 void twobitdb_free(){
-    if(twobitdb_visited)
-	SafeFree(twobitdb_visited);
-    if(twobitdb_database)
-	SafeFree(twobitdb_database);
+	if(twobitdb_visited)
+		SafeFree(twobitdb_visited);
+	if(twobitdb_database)
+		SafeFree(twobitdb_database);
 }
 
 int* twobitdb_get_raw_ptr(POSITION position){
-    return (&twobitdb_database[position>>4]);
+	return (&twobitdb_database[position>>4]);
 }
 
 VALUE twobitdb_set_value(POSITION position, VALUE value)
 {
-    int shamt;
-    int* ptr;
+	int shamt;
+	int* ptr;
 
-    ptr = twobitdb_get_raw_ptr(position);
-    shamt = (position & 15) << 1;
+	ptr = twobitdb_get_raw_ptr(position);
+	shamt = (position & 15) << 1;
 
-    //printf("set --- pos: %llu, before: %d, value: %d, shamt: %d", position, *ptr, value, shamt);
+	//printf("set --- pos: %llu, before: %d, value: %d, shamt: %d", position, *ptr, value, shamt);
 
-    *ptr = ((*ptr & ~(3 << shamt)) | ((3 & value) << shamt));
+	*ptr = ((*ptr & ~(3 << shamt)) | ((3 & value) << shamt));
 
-    //printf(" after: %d\n", *ptr);
+	//printf(" after: %d\n", *ptr);
 
-    return value;
+	return value;
 }
 
 // This is it
 VALUE twobitdb_get_value(POSITION position)
 {
-    int* ptr;
-    int shamt, value;
+	int* ptr;
+	int shamt, value;
 
-    ptr = twobitdb_get_raw_ptr(position);
-    shamt = (position & 15) << 1;
-    value = (VALUE)(3 & (*ptr >> shamt));
-    //printf("get --- pos: %llu, shamt: %d, value: %d\n", position, shamt, value);
-    return value;
+	ptr = twobitdb_get_raw_ptr(position);
+	shamt = (position & 15) << 1;
+	value = (VALUE)(3 & (*ptr >> shamt));
+	//printf("get --- pos: %llu, shamt: %d, value: %d\n", position, shamt, value);
+	return value;
 
 }
 
 BOOLEAN twobitdb_check_visited(POSITION position)
 {
-    return ((twobitdb_visited[position >> 5] >> (position & 31)) & 1);
+	return ((twobitdb_visited[position >> 5] >> (position & 31)) & 1);
 }
 
 void twobitdb_mark_visited (POSITION position)
 {
-    twobitdb_visited[position >> 5] |= 1 << (position & 31);
-    return;
+	twobitdb_visited[position >> 5] |= 1 << (position & 31);
+	return;
 }
 
 void twobitdb_unmark_visited (POSITION position)
 {
-    twobitdb_visited[position >> 5] &= ~(1 << (position & 31));
-    return;
+	twobitdb_visited[position >> 5] &= ~(1 << (position & 31));
+	return;
 }

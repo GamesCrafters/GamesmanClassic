@@ -62,21 +62,21 @@ void        db_destroy();
 void        db_initialize();
 
 /* these are generic functions that will be executed when the database is uninitialized */
-void		db_free			();
-VALUE		db_get_value		(POSITION pos);
-VALUE		db_put_value		(POSITION pos, VALUE data);
-REMOTENESS	db_get_remoteness	(POSITION pos);
-void		db_put_remoteness	(POSITION pos, REMOTENESS data);
-BOOLEAN		db_check_visited	(POSITION pos);
-void		db_mark_visited		(POSITION pos);
-void		db_unmark_visited	(POSITION pos);
-MEX	       	db_get_mex		(POSITION pos);
-void		db_put_mex		(POSITION pos, MEX theMex);
+void            db_free                 ();
+VALUE           db_get_value            (POSITION pos);
+VALUE           db_put_value            (POSITION pos, VALUE data);
+REMOTENESS      db_get_remoteness       (POSITION pos);
+void            db_put_remoteness       (POSITION pos, REMOTENESS data);
+BOOLEAN         db_check_visited        (POSITION pos);
+void            db_mark_visited         (POSITION pos);
+void            db_unmark_visited       (POSITION pos);
+MEX             db_get_mex              (POSITION pos);
+void            db_put_mex              (POSITION pos, MEX theMex);
 WINBY           db_get_winby            (POSITION pos);
 void            db_put_winby            (POSITION pos, WINBY winBy);
-BOOLEAN		db_save_database	();
-BOOLEAN		db_load_database	();
-void 		db_get_bulk		(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
+BOOLEAN         db_save_database        ();
+BOOLEAN         db_load_database        ();
+void            db_get_bulk             (POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
 
 /*internal variables*/
 
@@ -87,358 +87,358 @@ DB_Table *db_functions;
 */
 void db_create() {
 
-    /*if there is an old database table, get rid of it*/
-    db_destroy();
+	/*if there is an old database table, get rid of it*/
+	db_destroy();
 
-    /* get a new table */
-    db_functions = (DB_Table *) SafeMalloc(sizeof(DB_Table));
+	/* get a new table */
+	db_functions = (DB_Table *) SafeMalloc(sizeof(DB_Table));
 
-    /*set all function pointers to NULL, and each database can choose*/
-    /*whatever ones they wanna implement and associate them*/
+	/*set all function pointers to NULL, and each database can choose*/
+	/*whatever ones they wanna implement and associate them*/
 
-    db_functions->get_value = db_get_value;
-    db_functions->put_value = db_put_value;
-    db_functions->get_remoteness = db_get_remoteness;
-    db_functions->put_remoteness = db_put_remoteness;
-    db_functions->check_visited = db_check_visited;
-    db_functions->mark_visited = db_mark_visited;
-    db_functions->unmark_visited = db_unmark_visited;
-    db_functions->get_mex = db_get_mex;
-    db_functions->put_mex = db_put_mex;
-    db_functions->get_winby = db_get_winby;
-    db_functions->put_winby = db_put_winby;
-    db_functions->save_database = db_save_database;
-    db_functions->load_database = db_load_database;
-    db_functions->free_db = db_free;
-    db_functions->get_bulk = db_get_bulk;
+	db_functions->get_value = db_get_value;
+	db_functions->put_value = db_put_value;
+	db_functions->get_remoteness = db_get_remoteness;
+	db_functions->put_remoteness = db_put_remoteness;
+	db_functions->check_visited = db_check_visited;
+	db_functions->mark_visited = db_mark_visited;
+	db_functions->unmark_visited = db_unmark_visited;
+	db_functions->get_mex = db_get_mex;
+	db_functions->put_mex = db_put_mex;
+	db_functions->get_winby = db_get_winby;
+	db_functions->put_winby = db_put_winby;
+	db_functions->save_database = db_save_database;
+	db_functions->load_database = db_load_database;
+	db_functions->free_db = db_free;
+	db_functions->get_bulk = db_get_bulk;
 }
 
 void db_destroy() {
-    if(db_functions) {
+	if(db_functions) {
 		if(db_functions->free_db)
-	    	db_functions->free_db();
+			db_functions->free_db();
 		SafeFree(db_functions);
-    }
+	}
 }
 
 void db_initialize() {
-    GMSTATUS status = STATUS_SUCCESS;
+	GMSTATUS status = STATUS_SUCCESS;
 
 	if (kSupportsTierGamesman && gTierGamesman) {
 		tierdb_init(db_functions);
 	} else if (gBitPerfectDB) {
-	  if (gSymmetries)
-	    status = symdb_init(db_functions);
-	  else
-	    status = bpdb_init(db_functions);
-	  if(!GMSUCCESS(status)) {
-            BPDB_TRACE("db_initialize()", "Attempt to initialize the bpdb by calling bpdb_init failed", status);
-            goto _bailout;
-        }
-    } else if(gTwoBits) {
-        twobitdb_init(db_functions);
-    } else if(gCollDB){
-        colldb_init(db_functions);
-    }
-
-#ifdef HAVE_GMP
-    else if(gUnivDB) {
-	db_functions = univdb_init();
-    }
-#endif
-
-    else if(gNetworkDB) {
-	netdb_init(db_functions);
-    }
-
-	else if(gFileDB) {
-	filedb_init(db_functions);
+		if (gSymmetries)
+			status = symdb_init(db_functions);
+		else
+			status = bpdb_init(db_functions);
+		if(!GMSUCCESS(status)) {
+			BPDB_TRACE("db_initialize()", "Attempt to initialize the bpdb by calling bpdb_init failed", status);
+			goto _bailout;
+		}
+	} else if(gTwoBits) {
+		twobitdb_init(db_functions);
+	} else if(gCollDB) {
+		colldb_init(db_functions);
 	}
 
-    else {
-	memdb_init(db_functions);
-    }
-    //printf("\nCalling hooking function\n");
-    //db_analysis_hook();
+#ifdef HAVE_GMP
+	else if(gUnivDB) {
+		db_functions = univdb_init();
+	}
+#endif
+
+	else if(gNetworkDB) {
+		netdb_init(db_functions);
+	}
+
+	else if(gFileDB) {
+		filedb_init(db_functions);
+	}
+
+	else {
+		memdb_init(db_functions);
+	}
+	//printf("\nCalling hooking function\n");
+	//db_analysis_hook();
 _bailout:
-    return;
+	return;
 }
 
 void db_analysis_hook() {
-    db_functions->original_put_value = db_functions->put_value;
-    db_functions->put_value = AnalyzePosition;
+	db_functions->original_put_value = db_functions->put_value;
+	db_functions->put_value = AnalyzePosition;
 
-    if (db_functions->put_value == NULL) {
-        printf("Function hook failed\n");
-    } else {
-        printf("Function successfully hooked\n");
-    }
+	if (db_functions->put_value == NULL) {
+		printf("Function hook failed\n");
+	} else {
+		printf("Function successfully hooked\n");
+	}
 }
 
 VALUE db_original_put_value(POSITION pos, VALUE data) {
-    return(db_functions->original_put_value(pos, data));
+	return(db_functions->original_put_value(pos, data));
 }
 
 void db_free(){
-    return ;
+	return;
 }
 
 VALUE db_get_value(POSITION pos){
-    printf("DB: Cannot read value of position " POSITION_FORMAT ". The database is uninitialized.\n", pos);
-    ExitStageRight();
-    exit(0);
+	printf("DB: Cannot read value of position " POSITION_FORMAT ". The database is uninitialized.\n", pos);
+	ExitStageRight();
+	exit(0);
 }
 
 VALUE db_put_value(POSITION pos, VALUE data){
-    printf("DB: Cannot store value of position " POSITION_FORMAT ". The database is uninitialized.\n", pos);
-    ExitStageRight();
-    exit(0);
+	printf("DB: Cannot store value of position " POSITION_FORMAT ". The database is uninitialized.\n", pos);
+	ExitStageRight();
+	exit(0);
 }
 
 REMOTENESS db_get_remoteness(POSITION pos){
-    return kBadRemoteness;
+	return kBadRemoteness;
 }
 
 void db_put_remoteness(POSITION pos, REMOTENESS data){
-    return;
+	return;
 }
 
 BOOLEAN db_check_visited(POSITION pos){
-    return FALSE;
+	return FALSE;
 }
 
 void db_mark_visited(POSITION pos){
-    return;
+	return;
 }
 
 void db_unmark_visited(POSITION pos){
-    return;
+	return;
 }
 
 MEX db_get_mex(POSITION pos){
-    return kBadMexValue;
+	return kBadMexValue;
 }
 
 void db_put_mex(POSITION pos, MEX theMex){
-    return;
+	return;
 }
 
 WINBY db_get_winby(POSITION pos) {
-    return 0;
+	return 0;
 }
 
 void db_put_winby(POSITION pos, WINBY winBy) {
-    return;
+	return;
 }
 
 BOOLEAN db_save_database(){
-    //printf("NOTE: The database cannot be saved.");
-    return FALSE;
+	//printf("NOTE: The database cannot be saved.");
+	return FALSE;
 }
 
 BOOLEAN db_load_database(){
-    //printf("NOTE: The database cannot be loaded.");
-    return FALSE;
+	//printf("NOTE: The database cannot be loaded.");
+	return FALSE;
 }
 
 void db_get_bulk (POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length) {
-    int i;
-    for (i = 0; i < length; i++) {
-        ValueArray[i] = GetValueOfPosition(positions[i]);
-        remotenessArray[i] = Remoteness(positions[i]);
-    }
+	int i;
+	for (i = 0; i < length; i++) {
+		ValueArray[i] = GetValueOfPosition(positions[i]);
+		remotenessArray[i] = Remoteness(positions[i]);
+	}
 }
 
 void CreateDatabases()
 {
-    db_create();
+	db_create();
 }
 
 void InitializeDatabases()
 {
-    db_initialize();
+	db_initialize();
 }
 
 void DestroyDatabases()
 {
-    db_destroy();
+	db_destroy();
 }
 
 GMSTATUS
 Allocate ( )
 {
-    return db_functions->allocate();
+	return db_functions->allocate();
 }
 
 UINT64
 GetSlot(
-                UINT64 position,
-                UINT8 index
-                )
+        UINT64 position,
+        UINT8 index
+        )
 {
-    if(gSymmetries)
-	    position = gCanonicalPosition(position);
-    return db_functions->get_slice_slot(position, index);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
+	return db_functions->get_slice_slot(position, index);
 }
 
 UINT64
 SetSlot(
-                UINT64 position,
-                UINT8 index,
-                UINT64 value
-                )
+        UINT64 position,
+        UINT8 index,
+        UINT64 value
+        )
 {
-    if(gSymmetries)
-	    position = gCanonicalPosition(position);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
 	if(index == gValueSlot)
 		AnalyzePosition(position, value);
-    return db_functions->set_slice_slot(position, index, value);
+	return db_functions->set_slice_slot(position, index, value);
 }
 
 UINT64
 SetSlotMax(
-                UINT64 position,
-                UINT8 index
-                )
+        UINT64 position,
+        UINT8 index
+        )
 {
-    if(gSymmetries)
-	    position = gCanonicalPosition(position);
-    return db_functions->set_slice_slot_max(position, index);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
+	return db_functions->set_slice_slot_max(position, index);
 }
 
 GMSTATUS
 AddSlot(
-                UINT8 size,
-                char *name,
-                BOOLEAN write,
-                BOOLEAN adjust,
-                BOOLEAN reservemax,
-                UINT32 *slotindex
-                )
+        UINT8 size,
+        char *name,
+        BOOLEAN write,
+        BOOLEAN adjust,
+        BOOLEAN reservemax,
+        UINT32 *slotindex
+        )
 {
 	GMSTATUS value = db_functions->add_slot(size, name, write, adjust, reservemax, slotindex);;
 	if (strcmp(name, "VALUE") == 0)
 		gValueSlot = *slotindex;
-    return value;
+	return value;
 }
 
 VALUE StoreValueOfPosition(POSITION position, VALUE value)
 {
-    showStatus(Update);
+	showStatus(Update);
 
-    if(gSymmetries)
-    	position = gCanonicalPosition(position);
-    AnalyzePosition(position,value);
-    return db_functions->put_value(position,value);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
+	AnalyzePosition(position,value);
+	return db_functions->put_value(position,value);
 }
 
 
 VALUE GetValueOfPosition(POSITION position)
 {
-    if(((gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
-	position = gCanonicalPosition(position);
-    return db_functions->get_value(position);
+	if(((gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
+		position = gCanonicalPosition(position);
+	return db_functions->get_value(position);
 }
 
 
 REMOTENESS Remoteness(POSITION position)
 {
-    if(((gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
-	position = gCanonicalPosition(position);
-    return db_functions->get_remoteness(position);
+	if(((gMenuMode != Analysis) || gMenuMode == Evaluated) && gSymmetries)
+		position = gCanonicalPosition(position);
+	return db_functions->get_remoteness(position);
 }
 
 
 void SetRemoteness (POSITION position, REMOTENESS remoteness)
 {
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
-    db_functions->put_remoteness(position,remoteness);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
+	db_functions->put_remoteness(position,remoteness);
 }
 
 
 BOOLEAN Visited(POSITION position)
 {
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
-    return db_functions->check_visited(position);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
+	return db_functions->check_visited(position);
 }
 
 
 void MarkAsVisited (POSITION position)
 {
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
-    db_functions->mark_visited(position);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
+	db_functions->mark_visited(position);
 }
 
 void UnMarkAsVisited (POSITION position)
 {
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
-    db_functions->unmark_visited(position);
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
+	db_functions->unmark_visited(position);
 }
 
 void UnMarkAllAsVisited()
 {
-    int i;
+	int i;
 
-    for(i = 0; i < gNumberOfPositions; i++)
-    {
-        db_functions->unmark_visited(i);
-    }
+	for(i = 0; i < gNumberOfPositions; i++)
+	{
+		db_functions->unmark_visited(i);
+	}
 
 }
 
 
 void MexStore(POSITION position, MEX theMex)
 {
-    /* do we need this?? */
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
+	/* do we need this?? */
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
 
-    db_functions->put_mex(position, theMex);
+	db_functions->put_mex(position, theMex);
 }
 
 MEX MexLoad(POSITION position)
 {
-    /* do we need this?? */
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
+	/* do we need this?? */
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
 
-    return db_functions->get_mex(position);
+	return db_functions->get_mex(position);
 }
 
 void WinByStore(POSITION position, WINBY winBy)
 {
-    /* do we need this?? */
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
+	/* do we need this?? */
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
 
-    db_functions->put_winby(position, winBy);
+	db_functions->put_winby(position, winBy);
 }
 
 WINBY WinByLoad(POSITION position)
 {
-  WINBY result;
-  /* do we need this?? */
-    if(gSymmetries)
-	position = gCanonicalPosition(position);
+	WINBY result;
+	/* do we need this?? */
+	if(gSymmetries)
+		position = gCanonicalPosition(position);
 
-    result = db_functions->get_winby(position);
-    if (result > ((1 << (MEX_BITS-1))-1))
-      result |= ~MEX_MAX;
-    return result;
+	result = db_functions->get_winby(position);
+	if (result > ((1 << (MEX_BITS-1))-1))
+		result |= ~MEX_MAX;
+	return result;
 }
 
 BOOLEAN SaveDatabase() {
-    return db_functions->save_database();
+	return db_functions->save_database();
 }
 
 BOOLEAN LoadDatabase() {
-    return db_functions->load_database();
+	return db_functions->load_database();
 }
 
 void GetValueAndRemotenessOfPositionBulk(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length) {
-    db_functions->get_bulk(positions, ValueArray, remotenessArray, length);
+	db_functions->get_bulk(positions, ValueArray, remotenessArray, length);
 }

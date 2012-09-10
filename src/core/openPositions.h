@@ -1,7 +1,7 @@
 /*
-* Experimental Open Positions code by David Eitan Poll
-* Exploring re-evaluation of Draw Positions
-*/
+ * Experimental Open Positions code by David Eitan Poll
+ * Exploring re-evaluation of Draw Positions
+ */
 #ifndef OPEN_POSITIONS
 
 #define OPEN_POSITIONS
@@ -14,35 +14,35 @@
 #include "misc.h"
 
 /*
-* use 32 bits for storage of openPos info as follows:
-* Starting from LSB=bit 0
-*
-* bit 0..1   : openPositions value (win, loss, undecided)
-* bit 2      : fringe bit
-* bit 3..11  : corruption level
-* bit 12..21 : level number
-* bit 22..31 : fringe remoteness (fremoteness)
-*/
+ * use 32 bits for storage of openPos info as follows:
+ * Starting from LSB=bit 0
+ *
+ * bit 0..1   : openPositions value (win, loss, undecided)
+ * bit 2      : fringe bit
+ * bit 3..11  : corruption level
+ * bit 12..21 : level number
+ * bit 22..31 : fringe remoteness (fremoteness)
+ */
 #define OPEN_POS_DATA unsigned int
 
 
 /* constants */
 /*#define DRAW_UNDEC  0
-#define DRAW_WIN    1
-#define DRAW_LOSE   2
-#define PARITY_EVEN 0
+  #define DRAW_WIN    1
+  #define DRAW_LOSE   2
+  #define PARITY_EVEN 0
 #define PARITY_ODD  1*/
 
 /*enum open_pos_value_enum { draw_undecided, draw_win, draw_lose };*/
 
 /* masks */
 /*#define DV_MASK 0x3
-#define IV_MASK 0xC
-#define C_MASK  0x10
-#define CP_MASK 0x20
-#define DR_MASK 0x00007FC0
-#define IR_MASK 0x00FF8000
-#define OL_MASK 0xFF000000*/
+   #define IV_MASK 0xC
+   #define C_MASK  0x10
+   #define CP_MASK 0x20
+   #define DR_MASK 0x00007FC0
+   #define IR_MASK 0x00FF8000
+ #define OL_MASK 0xFF000000*/
 
 #define DV_MASK 0x3
 #define FB_MASK 0x4
@@ -52,12 +52,12 @@
 
 /* bit shift amounts (based on first bit position */
 /*#define DV_SHIFT 0
-#define IV_SHIFT 2
-#define C_SHIFT  4
-#define CP_SHIFT 5
-#define DR_SHIFT 6
-#define IR_SHIFT 15
-#define OL_SHIFT 24*/
+   #define IV_SHIFT 2
+   #define C_SHIFT  4
+   #define CP_SHIFT 5
+   #define DR_SHIFT 6
+   #define IR_SHIFT 15
+ #define OL_SHIFT 24*/
 
 #define DV_SHIFT 0
 #define FB_SHIFT 2
@@ -70,20 +70,20 @@
 
 /* macros */
 /*#define drawValue(entry)          (((entry)&DV_MASK)>>DV_SHIFT)
-#define infiniteValue(entry)      (((entry)&IV_MASK)>>IV_SHIFT)
-#define isCorrupted(entry)        (((entry)&C_MASK)>>C_SHIFT)
-#define corruptedParity(entry)    (((entry)&CP_MASK)>>CP_SHIFT)
-#define drawRemoteness(entry)     (((entry)&DR_MASK)>>DR_SHIFT)
-#define infiniteRemoteness(entry) (((entry)&IR_MASK)>>IR_SHIFT)
-#define openPosLevel(entry)       (((entry)&OL_MASK)>>OL_SHIFT)
+   #define infiniteValue(entry)      (((entry)&IV_MASK)>>IV_SHIFT)
+   #define isCorrupted(entry)        (((entry)&C_MASK)>>C_SHIFT)
+   #define corruptedParity(entry)    (((entry)&CP_MASK)>>CP_SHIFT)
+   #define drawRemoteness(entry)     (((entry)&DR_MASK)>>DR_SHIFT)
+   #define infiniteRemoteness(entry) (((entry)&IR_MASK)>>IR_SHIFT)
+   #define openPosLevel(entry)       (((entry)&OL_MASK)>>OL_SHIFT)
 
-#define setDrawValue(entry, newval)          (((entry)|DV_MASK)&(((newval)<<DV_SHIFT)|(~DV_MASK)))
-#define setInfiniteValue(entry, newval)      (((entry)|IV_MASK)&(((newval)<<IV_SHIFT)|(~IV_MASK)))
-#define setCorrupted(entry, newval)          (((entry)|C_MASK)&(((newval)<<C_SHIFT)|(~C_MASK)))
-#define setCorruptedParity(entry, newval)    (((entry)|CP_MASK)&(((newval)<<CP_SHIFT)|(~CP_MASK)))
-#define setDrawRemoteness(entry, newval)     (((entry)|DR_MASK)&(((newval)<<DR_SHIFT)|(~DR_MASK)))
-#define setInfiniteRemoteness(entry, newval) (((entry)|IR_MASK)&(((newval)<<IR_SHIFT)|(~IR_MASK)))
-#define setOpenPosLevel(entry, newval)       (((entry)|OL_MASK)&(((newval)<<OL_SHIFT)|(~OL_MASK)))*/
+   #define setDrawValue(entry, newval)          (((entry)|DV_MASK)&(((newval)<<DV_SHIFT)|(~DV_MASK)))
+   #define setInfiniteValue(entry, newval)      (((entry)|IV_MASK)&(((newval)<<IV_SHIFT)|(~IV_MASK)))
+   #define setCorrupted(entry, newval)          (((entry)|C_MASK)&(((newval)<<C_SHIFT)|(~C_MASK)))
+   #define setCorruptedParity(entry, newval)    (((entry)|CP_MASK)&(((newval)<<CP_SHIFT)|(~CP_MASK)))
+   #define setDrawRemoteness(entry, newval)     (((entry)|DR_MASK)&(((newval)<<DR_SHIFT)|(~DR_MASK)))
+   #define setInfiniteRemoteness(entry, newval) (((entry)|IR_MASK)&(((newval)<<IR_SHIFT)|(~IR_MASK)))
+ #define setOpenPosLevel(entry, newval)       (((entry)|OL_MASK)&(((newval)<<OL_SHIFT)|(~OL_MASK)))*/
 
 #define GetDrawValue(entry)          (((entry)&DV_MASK)>>DV_SHIFT)
 #define GetCorruptionLevel(entry)    (((entry)&CL_MASK)>>CL_SHIFT)
@@ -97,7 +97,7 @@
 #define SetFremoteness(entry, newval)        (((entry)|FR_MASK)&(((newval)<<FR_SHIFT)|(~FR_MASK)))
 #define SetFringe(entry, newval)             (((entry)|FB_MASK)&(((newval)<<FB_SHIFT)|(~FB_MASK)))
 
-#define OPEN_FILE_VER 1		/* Open positions DB file version */
+#define OPEN_FILE_VER 1         /* Open positions DB file version */
 /* headers */
 
 /* These are the core library functions for use elsewhere */

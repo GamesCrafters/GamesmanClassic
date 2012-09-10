@@ -34,19 +34,19 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING   kAuthorName         = "Gamescrafters";
-STRING   kGameName           = "Fandango";
-BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = TRUE;
-BOOLEAN  kGameSpecificMenu   = TRUE;
-BOOLEAN  kTieIsPossible      = FALSE;
-BOOLEAN  kLoopy               = TRUE;
-BOOLEAN  kDebugDetermineValue = FALSE;
+STRING kAuthorName         = "Gamescrafters";
+STRING kGameName           = "Fandango";
+BOOLEAN kPartizan           = TRUE;
+BOOLEAN kDebugMenu          = TRUE;
+BOOLEAN kGameSpecificMenu   = TRUE;
+BOOLEAN kTieIsPossible      = FALSE;
+BOOLEAN kLoopy               = TRUE;
+BOOLEAN kDebugDetermineValue = FALSE;
 
-STRING   kHelpGraphicInterface ="";
+STRING kHelpGraphicInterface ="";
 
-STRING   kHelpTextInterface    =
-"On your turn use the file letter and row number to determine the piece you wish\n\
+STRING kHelpTextInterface    =
+        "On your turn use the file letter and row number to determine the piece you wish\n\
 to move, the direction and attack method. A move consists of moving a piece to an\n\
 empty adjacent spot. You can capture either by approach or withdrawal. If you move\n\
 towards the opponent, so that your piece is next to the opposing piece, then you have\n\
@@ -55,31 +55,31 @@ are separated by empty spaces or the opponent's piece. To capture by withdrawal,
 must be moved away from the opponent's piece. This will capture any pieces that are in a\n\
 continuous line with the captured piece. Any captured pieces are removed from the board\n\
 If you have made a wrong move at any point,you can type u to revert back to the previous state.\n\
-";
+"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ;
 
 
-STRING   kHelpOnYourTurn =
-"Move one of your pieces in one of the eight directions by selecting the letter and row\n"
-"number,direction, and attack method. Capturing can be done by withdrawal or approach. To\n"
-"capture by approach the player must move towards the opponent piece so that it is\n"
-"adjacent to the piece. Any enemy pieces that are in a continuous line with the piece\n"
-"are also captured. To capture by withdrawal, move a piece that is adjacent to the\n"
-"opponent's piece away from the opposing piece.";
+STRING kHelpOnYourTurn =
+        "Move one of your pieces in one of the eight directions by selecting the letter and row\n"
+        "number,direction, and attack method. Capturing can be done by withdrawal or approach. To\n"
+        "capture by approach the player must move towards the opponent piece so that it is\n"
+        "adjacent to the piece. Any enemy pieces that are in a continuous line with the piece\n"
+        "are also captured. To capture by withdrawal, move a piece that is adjacent to the\n"
+        "opponent's piece away from the opposing piece.";
 
 
-STRING   kHelpStandardObjective =
-"To capture all of your opponents pieces or to leave them in a position where they have\n"
-"no more available moves.";
+STRING kHelpStandardObjective =
+        "To capture all of your opponents pieces or to leave them in a position where they have\n"
+        "no more available moves.";
 
 
-STRING   kHelpReverseObjective =
-"To get all of your pieces captured.\n";
+STRING kHelpReverseObjective =
+        "To get all of your pieces captured.\n";
 
 
-STRING   kHelpTieOccursWhen ="";
+STRING kHelpTieOccursWhen ="";
 
-STRING   kHelpExample =
-"            BOARD \n\n\
+STRING kHelpExample =
+        "            BOARD \n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    O --- O --- O          NW  N  NE        N = no action \n\
         |  \\  |  /  |            \\ | / \n\
@@ -213,7 +213,7 @@ Computer\'s move              : 159\n\n\n\
         |  /  |  \\  |            / | \\\n\
    3    . --- . --- .          SW  S  SE        W = capture by withdraw\n\n\n\n\
 (Player will Lose in 0)  \n\n\
-Computer wins. Nice try, Player.\n";
+Computer wins. Nice try, Player.\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ;
 
 /*************************************************************************
 **
@@ -285,7 +285,7 @@ STRING MoveToString(MOVE);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void dbg(char* msg) {
-  if(printMethods) puts(msg);
+	if(printMethods) puts(msg);
 };
 
 /************************************************************************
@@ -297,112 +297,113 @@ void dbg(char* msg) {
 ************************************************************************/
 
 void InitHash() {
-  gBlankOXString[0]=B;
-  gBlankOXString[1]=O;
-  gBlankOXString[2]=X;
+	gBlankOXString[0]=B;
+	gBlankOXString[1]=O;
+	gBlankOXString[2]=X;
 
-  myPieces_array[0]=B;
-  myPieces_array[1]=BOARDSIZE-MAX_O-MAX_X;
-  myPieces_array[2]=BOARDSIZE-1;
-  myPieces_array[3]=O;
-  myPieces_array[4]=0;
-  myPieces_array[5]=MAX_O;
-  myPieces_array[6]=X;
-  myPieces_array[7]=0;
-  myPieces_array[8]=MAX_X;
-  myPieces_array[9]=-1;
+	myPieces_array[0]=B;
+	myPieces_array[1]=BOARDSIZE-MAX_O-MAX_X;
+	myPieces_array[2]=BOARDSIZE-1;
+	myPieces_array[3]=O;
+	myPieces_array[4]=0;
+	myPieces_array[5]=MAX_O;
+	myPieces_array[6]=X;
+	myPieces_array[7]=0;
+	myPieces_array[8]=MAX_X;
+	myPieces_array[9]=-1;
 
-  gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL, 0);  // pass null for function pointer
-  //printf(POSITION_FORMAT"\n", gNumberOfPositions);
+	gNumberOfPositions = generic_hash_init(BOARDSIZE, myPieces_array, NULL, 0); // pass null for function pointer
+	//printf(POSITION_FORMAT"\n", gNumberOfPositions);
 }
 
 void DefaultPieces(BlankOX* board) {
-  int i;
-  int topRow = 0;
-  int bottomRow = BOARDHEIGHT - 1;
+	int i;
+	int topRow = 0;
+	int bottomRow = BOARDHEIGHT - 1;
 
-  // clear board
-  for(i = 0; i < BOARDSIZE; i ++)
-    board[i] = B;
+	// clear board
+	for(i = 0; i < BOARDSIZE; i++)
+		board[i] = B;
 
-  // sanity check
-  if( (BOARDHEIGHT < 3) || (BOARDWIDTH < 3))
-    return;  // blank board
+	// sanity check
+	if( (BOARDHEIGHT < 3) || (BOARDWIDTH < 3))
+		return; // blank board
 
-  while( (bottomRow - topRow) > 1) {
-    // fill a row with a player's pieces for each side
-    for(i = 0; i < BOARDWIDTH; i++) {
-      board[topRow*BOARDWIDTH + i] = O; MAX_O++;
-      board[bottomRow*BOARDWIDTH + i] = X; MAX_X++;
-    }
-    bottomRow--; topRow++;
-  }
+	while( (bottomRow - topRow) > 1) {
+		// fill a row with a player's pieces for each side
+		for(i = 0; i < BOARDWIDTH; i++) {
+			board[topRow*BOARDWIDTH + i] = O; MAX_O++;
+			board[bottomRow*BOARDWIDTH + i] = X; MAX_X++;
+		}
+		bottomRow--; topRow++;
+	}
 
-  int forward = 0;
-  int backward = BOARDWIDTH - 1;
+	int forward = 0;
+	int backward = BOARDWIDTH - 1;
 
-  for(forward = 0; (forward+1) < backward; forward++,backward--) {
-    board[topRow*BOARDWIDTH + forward] = (forward % 2) == 0? X : O;
-    board[topRow*BOARDWIDTH + backward] = (forward % 2) == 0? O : X;
-    if(topRow < bottomRow) {
-      board[bottomRow*BOARDWIDTH + forward] = (forward % 2) == 0? X : O;
-      board[bottomRow*BOARDWIDTH + backward] = (forward % 2) == 0? O : X;
-    }
-  }
+	for(forward = 0; (forward+1) < backward; forward++,backward--) {
+		board[topRow*BOARDWIDTH + forward] = (forward % 2) == 0 ? X : O;
+		board[topRow*BOARDWIDTH + backward] = (forward % 2) == 0 ? O : X;
+		if(topRow < bottomRow) {
+			board[bottomRow*BOARDWIDTH + forward] = (forward % 2) == 0 ? X : O;
+			board[bottomRow*BOARDWIDTH + backward] = (forward % 2) == 0 ? O : X;
+		}
+	}
 
-  // count X and O s
-  MAX_X = 0;
-  MAX_O = 0;
-  for(i = 0; i < BOARDSIZE; i++)
-    if(board[i] == X)
-      MAX_X++;
-    else if(board[i] == O)
-      MAX_O++;
+	// count X and O s
+	MAX_X = 0;
+	MAX_O = 0;
+	for(i = 0; i < BOARDSIZE; i++)
+		if(board[i] == X)
+			MAX_X++;
+		else if(board[i] == O)
+			MAX_O++;
 }
 
 void dispVitals() {
-  printf("BS BW BH MAX_X MAX_O %d %d %d, %d %d\n",BOARDSIZE,BOARDWIDTH, BOARDHEIGHT, MAX_X, MAX_O);
+	printf("BS BW BH MAX_X MAX_O %d %d %d, %d %d\n",BOARDSIZE,BOARDWIDTH, BOARDHEIGHT, MAX_X, MAX_O);
 }
 void printBoard(BlankOX* board) {
-  int i = 0;
-  for(i =0; i<BOARDSIZE; i++) {
-    if(!((i)%BOARDWIDTH))
-      puts("");
-    putchar(board[i]);
-  }
-  puts("");
+	int i = 0;
+	for(i =0; i<BOARDSIZE; i++) {
+		if(!((i)%BOARDWIDTH))
+			puts("");
+		putchar(board[i]);
+	}
+	puts("");
 }
 
 void InitializeGame()
 {
-  BlankOX initialBoard[BOARDSIZE];
+	BlankOX initialBoard[BOARDSIZE];
 
-  if(placedPieces) {
-    placedPieces = FALSE;
-    PositionToBlankOX(gInitialPosition, initialBoard);
-  } else {  // changedBoardSize or firstime
-    DefaultPieces(initialBoard);
-    InitHash();
-  }
+	if(placedPieces) {
+		placedPieces = FALSE;
+		PositionToBlankOX(gInitialPosition, initialBoard);
+	} else { // changedBoardSize or firstime
+		DefaultPieces(initialBoard);
+		InitHash();
+	}
 
-  char turn = X;   // start out with X's turn
+	char turn = X; // start out with X's turn
 
-  POSITION initialPos =  BlankOXToPosition(initialBoard, turn);
+	POSITION initialPos =  BlankOXToPosition(initialBoard, turn);
 
-  // set the function to handle GoAgain? decisions
-  //  gGoAgain = GoAgain;
-  //  gSolver = lgas_DetermineValue;
+	// set the function to handle GoAgain? decisions
+	//  gGoAgain = GoAgain;
+	//  gSolver = lgas_DetermineValue;
 
-  movingAgain = FALSE;
+	movingAgain = FALSE;
 
-  gInitialPosition = initialPos;
-  gMinimalPosition = initialPos;
+	gInitialPosition = initialPos;
+	gMinimalPosition = initialPos;
 
-  gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
-{}
+{
+}
 
 /************************************************************************
 **
@@ -414,7 +415,8 @@ void FreeGame()
 ************************************************************************/
 
 void DebugMenu()
-{}
+{
+}
 
 /************************************************************************
 **
@@ -427,49 +429,49 @@ void DebugMenu()
 ************************************************************************/
 
 void GameSpecificMenu() {
-  char GetMyChar();
-  int done = 0;
-  do {
-    printf("\t----- Game specific options for %s -----\n\n",kGameName);
-    printf("\tCurrent Initial Position:\n");
-    PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
-    puts("");
-    printf("\tD)\tChange board (d)imensions.\n");
-    printf("\tC)\t(C)lear board pieces.\n");
-    printf("\tP)\tManually (p)lace board pieces.\n");
-    printf("\tF)\tToggle Forced Capture. Currently: "); forcedCapture?puts("ON"):puts("OFF");
-    printf("\tH)\t(H)elp\n");
-    printf("\n\tQ)\t(Q)uit\n");
-    printf("\n\tB)\t(B)ack to previous activity.\n");
-    printf("\nSelect an option: ");
+	char GetMyChar();
+	int done = 0;
+	do {
+		printf("\t----- Game specific options for %s -----\n\n",kGameName);
+		printf("\tCurrent Initial Position:\n");
+		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
+		puts("");
+		printf("\tD)\tChange board (d)imensions.\n");
+		printf("\tC)\t(C)lear board pieces.\n");
+		printf("\tP)\tManually (p)lace board pieces.\n");
+		printf("\tF)\tToggle Forced Capture. Currently: "); forcedCapture ? puts("ON") : puts("OFF");
+		printf("\tH)\t(H)elp\n");
+		printf("\n\tQ)\t(Q)uit\n");
+		printf("\n\tB)\t(B)ack to previous activity.\n");
+		printf("\nSelect an option: ");
 
-    switch(toupper(GetMyChar())) {
-    case 'Q':
-      ExitStageRight();
-    case 'H':
-      HelpMenus();
-      break;
-    case 'D':
-      ChangeBoardSize();
-      break;
-    case 'C':
-      ClearBoardPieces();
-      break;
-    case 'F':
-      forcedCapture = FALSE;
-      break;
-    case 'P':
-      PlacePieces();
-      break;
-    case 'B':
-      done = 1;
-      break;
-    default:
-      printf("\nSorry, I don't know that option. Try another.\n");
-      HitAnyKeyToContinue();
-      break;
-    }
-  }while(!done);
+		switch(toupper(GetMyChar())) {
+		case 'Q':
+			ExitStageRight();
+		case 'H':
+			HelpMenus();
+			break;
+		case 'D':
+			ChangeBoardSize();
+			break;
+		case 'C':
+			ClearBoardPieces();
+			break;
+		case 'F':
+			forcedCapture = FALSE;
+			break;
+		case 'P':
+			PlacePieces();
+			break;
+		case 'B':
+			done = 1;
+			break;
+		default:
+			printf("\nSorry, I don't know that option. Try another.\n");
+			HitAnyKeyToContinue();
+			break;
+		}
+	} while(!done);
 }
 
 /************************************************************************
@@ -484,7 +486,7 @@ void GameSpecificMenu() {
 void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
-  /* No need to have anything here, we have no extra options */
+	/* No need to have anything here, we have no extra options */
 }
 
 /************************************************************************
@@ -504,133 +506,133 @@ int theOptions[];
 ************************************************************************/
 
 POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
-     MOVE theMove;
+POSITION thePosition;
+MOVE theMove;
 {
-  BlankOX board[BOARDSIZE];
-  POSITION newPosition;
-  char turn = WhoseTurn(thePosition);
-  BOOLEAN captured;
+	BlankOX board[BOARDSIZE];
+	POSITION newPosition;
+	char turn = WhoseTurn(thePosition);
+	BOOLEAN captured;
 
-  PositionToBlankOX(thePosition, board);
-  CarryOutMove(board, turn, theMove, &captured);
+	PositionToBlankOX(thePosition, board);
+	CarryOutMove(board, turn, theMove, &captured);
 
-  if(GoAgain(thePosition, theMove)) {
-    movingAgain = TRUE;
-  } else {
-    turn = (turn==X? O : X);
-    movingAgain = FALSE;
-  }
+	if(GoAgain(thePosition, theMove)) {
+		movingAgain = TRUE;
+	} else {
+		turn = (turn==X ? O : X);
+		movingAgain = FALSE;
+	}
 
-  // return new state in hashed form
-  newPosition = BlankOXToPosition(board, turn);
-  return newPosition;
+	// return new state in hashed form
+	newPosition = BlankOXToPosition(board, turn);
+	return newPosition;
 }
 
 Coordinates CarryOutMove(BlankOX* board, char turn, MOVE theMove, BOOLEAN* captured)
 {
-  int index,intdir,cap;
-  Direction dir;
-  char movingPiece;
-  Coordinates coord;
-  Coordinates result;
-  *captured = FALSE;
+	int index,intdir,cap;
+	Direction dir;
+	char movingPiece;
+	Coordinates coord;
+	Coordinates result;
+	*captured = FALSE;
 
-  // extract the information from theMove
-  cap = 3 & theMove;
-  intdir = (28 & theMove) >> 2;
-  index = (0xffffffe0 & theMove) >> 5;
+	// extract the information from theMove
+	cap = 3 & theMove;
+	intdir = (28 & theMove) >> 2;
+	index = (0xffffffe0 & theMove) >> 5;
 
-  // unpack the direction to more than 3 bits
-  intdir++;
-  if(intdir>=5)
-    intdir++;
+	// unpack the direction to more than 3 bits
+	intdir++;
+	if(intdir>=5)
+		intdir++;
 
-  // convert integer direction to enum direction
-  dir = (Direction)intdir;
-  Direction otherDir = OtherDirection(dir);
+	// convert integer direction to enum direction
+	dir = (Direction)intdir;
+	Direction otherDir = OtherDirection(dir);
 
-  coord = IndexToCoordinates(index);
+	coord = IndexToCoordinates(index);
 
-  // do the actual move
-  movingPiece = board[index];
-  char otherPlayer = (movingPiece == X ? O : X);
-  board[index] = B;
-  board[CoordinatesToIndex(Neighbor(coord,dir))] = movingPiece;
-  result = Neighbor(coord,dir);
-  lastMovedAt = result;
+	// do the actual move
+	movingPiece = board[index];
+	char otherPlayer = (movingPiece == X ? O : X);
+	board[index] = B;
+	board[CoordinatesToIndex(Neighbor(coord,dir))] = movingPiece;
+	result = Neighbor(coord,dir);
+	lastMovedAt = result;
 
-  Coordinates attacking;
-  // check for capture, railgun style
-  if(cap == 1) {  // if by approach
-    attacking = Neighbor(Neighbor(coord,dir),dir);
-    while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
-      board[CoordinatesToIndex(attacking)] = B;
-      attacking = Neighbor(attacking,dir);
-    }
-    *captured = TRUE;
-  }else if(cap == 2) { // if by withdraw
-    attacking = Neighbor(coord,otherDir);
-    while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
-      board[CoordinatesToIndex(attacking)] = B;
-      attacking = Neighbor(attacking,otherDir);
-    }
-    *captured = TRUE;
-  }
-  return result;
+	Coordinates attacking;
+	// check for capture, railgun style
+	if(cap == 1) { // if by approach
+		attacking = Neighbor(Neighbor(coord,dir),dir);
+		while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
+			board[CoordinatesToIndex(attacking)] = B;
+			attacking = Neighbor(attacking,dir);
+		}
+		*captured = TRUE;
+	}else if(cap == 2) { // if by withdraw
+		attacking = Neighbor(coord,otherDir);
+		while(InBounds(attacking) && (board[CoordinatesToIndex(attacking)] == otherPlayer)) {
+			board[CoordinatesToIndex(attacking)] = B;
+			attacking = Neighbor(attacking,otherDir);
+		}
+		*captured = TRUE;
+	}
+	return result;
 }
 
 BOOLEAN CanStillCap(BlankOX* board, Coordinates pos, Direction prevdir) {
-  Direction dir;
-  Coordinates attack, approach, withdraw;
-  char movingPiece = board[CoordinatesToIndex(pos)];
-  char enemy = (movingPiece == X ? O : X);
+	Direction dir;
+	Coordinates attack, approach, withdraw;
+	char movingPiece = board[CoordinatesToIndex(pos)];
+	char enemy = (movingPiece == X ? O : X);
 
-  for(dir=left;dir!=0; dir=NextDirection(pos, dir)) {
-    attack = Neighbor(pos,dir);
-    if( InBounds(attack) &&
-	( (dir != prevdir) || (dir != OtherDirection(prevdir)) ) &&  // if not on same line
-	( board[CoordinatesToIndex(attack)] == B ) ) {
-      approach = Neighbor(attack,dir);
-      withdraw = Neighbor(pos,OtherDirection(dir));
-      if( InBounds(approach) &&
-	  (board[CoordinatesToIndex(approach)] == enemy) )
-	return TRUE;
-      else if( InBounds(withdraw) &&
-	       (board[CoordinatesToIndex(withdraw)] == enemy) )
-	return TRUE;
-    }
-  }
-  // if got to here, there was no continuiation attack
-  return FALSE;
+	for(dir=left; dir!=0; dir=NextDirection(pos, dir)) {
+		attack = Neighbor(pos,dir);
+		if( InBounds(attack) &&
+		    ( (dir != prevdir) || (dir != OtherDirection(prevdir)) ) && // if not on same line
+		    ( board[CoordinatesToIndex(attack)] == B ) ) {
+			approach = Neighbor(attack,dir);
+			withdraw = Neighbor(pos,OtherDirection(dir));
+			if( InBounds(approach) &&
+			    (board[CoordinatesToIndex(approach)] == enemy) )
+				return TRUE;
+			else if( InBounds(withdraw) &&
+			         (board[CoordinatesToIndex(withdraw)] == enemy) )
+				return TRUE;
+		}
+	}
+	// if got to here, there was no continuiation attack
+	return FALSE;
 }
 
 BOOLEAN GoAgain(POSITION position, MOVE theMove) {
-  return FALSE;
-  BlankOX board[BOARDSIZE];
-  int intdir;
-  BOOLEAN captured;
-  char turn = WhoseTurn(position);
+	return FALSE;
+	BlankOX board[BOARDSIZE];
+	int intdir;
+	BOOLEAN captured;
+	char turn = WhoseTurn(position);
 
-  intdir = (28 & theMove) >> 2;
-  // unpack the direction to more than 3 bits
-  intdir++;
-  if(intdir>=5)
-    intdir++;
-  Direction dir = (Direction)intdir;
+	intdir = (28 & theMove) >> 2;
+	// unpack the direction to more than 3 bits
+	intdir++;
+	if(intdir>=5)
+		intdir++;
+	Direction dir = (Direction)intdir;
 
-  PositionToBlankOX(position, board);
-  //Coordinates moved = CarryOutMove(board, wturn, theMove, &captured);
-  Coordinates moved = CarryOutMove(board, WhoseTurn(position), theMove, &captured);
-  putchar(turn);
-  if(captured) {  // if the move had captures
-    BOOLEAN temp = CanStillCap(board, moved, dir);  // and can still cap with that piece
-    temp?puts("GA:TRUE"):puts("GA:FALSE");
-    return temp;
-  } else {   // no chance to move again without any capture
-    puts("GA:FALSE");
-    return FALSE;
-  }
+	PositionToBlankOX(position, board);
+	//Coordinates moved = CarryOutMove(board, wturn, theMove, &captured);
+	Coordinates moved = CarryOutMove(board, WhoseTurn(position), theMove, &captured);
+	putchar(turn);
+	if(captured) { // if the move had captures
+		BOOLEAN temp = CanStillCap(board, moved, dir); // and can still cap with that piece
+		temp ? puts("GA:TRUE") : puts("GA:FALSE");
+		return temp;
+	} else { // no chance to move again without any capture
+		puts("GA:FALSE");
+		return FALSE;
+	}
 }
 
 
@@ -647,7 +649,7 @@ BOOLEAN GoAgain(POSITION position, MOVE theMove) {
 
 POSITION GetInitialPosition()
 {
-  return gInitialPosition;
+	return gInitialPosition;
 }
 
 /************************************************************************
@@ -662,11 +664,11 @@ POSITION GetInitialPosition()
 ************************************************************************/
 
 void PrintComputersMove(computersMove,computersName)
-     MOVE computersMove;
-     STRING computersName;
+MOVE computersMove;
+STRING computersName;
 {
-  dbg("->PrintComputersMove");
-  printf("%8s's move              : %2d\n", computersName, computersMove+1);
+	dbg("->PrintComputersMove");
+	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
 /************************************************************************
@@ -687,17 +689,17 @@ void PrintComputersMove(computersMove,computersName)
 ************************************************************************/
 
 VALUE Primitive(position)
-     POSITION position;
+POSITION position;
 {
-  dbg("->Primitive");
-  BlankOX board[BOARDSIZE];
+	dbg("->Primitive");
+	BlankOX board[BOARDSIZE];
 
-  PositionToBlankOX(position,board);
+	PositionToBlankOX(position,board);
 
-  if (!AnyPiecesLeft(board,X) || !AnyPiecesLeft(board,O))   /* if either type of pieces is extinct */
-    return(gStandardGame ? lose : win);                     /* that means last player to go captured last piece of current player? */
-  else
-    return(undecided);
+	if (!AnyPiecesLeft(board,X) || !AnyPiecesLeft(board,O)) /* if either type of pieces is extinct */
+		return(gStandardGame ? lose : win);         /* that means last player to go captured last piece of current player? */
+	else
+		return(undecided);
 }
 
 /************************************************************************
@@ -719,228 +721,228 @@ VALUE Primitive(position)
 
 //shing
 void PrintPosition(position,playerName,usersTurn)
-     POSITION position;
-     STRING playerName;
-     BOOLEAN  usersTurn;
+POSITION position;
+STRING playerName;
+BOOLEAN usersTurn;
 {
-  dbg("->PrintPos");
-  int x, y;
-  int displayBoardWidth = (BOARDWIDTH - 1 ) * 6 + 1;
-  int displayBoardHeight = (BOARDHEIGHT - 1) * 2 + 1;
-  int numOfDigit = 0;
-  int temp;
-  int maxX;
-  int maxY;
-  int slashFlag = 1;
-  int commentx;
-  int myBoardStartAt;
-  int myDirectionStartAt;
-  int myActionStartAt;
-  int boardIndex;
-  int rowNum = 1;
+	dbg("->PrintPos");
+	int x, y;
+	int displayBoardWidth = (BOARDWIDTH - 1 ) * 6 + 1;
+	int displayBoardHeight = (BOARDHEIGHT - 1) * 2 + 1;
+	int numOfDigit = 0;
+	int temp;
+	int maxX;
+	int maxY;
+	int slashFlag = 1;
+	int commentx;
+	int myBoardStartAt;
+	int myDirectionStartAt;
+	int myActionStartAt;
+	int boardIndex;
+	int rowNum = 1;
 
-  //STRING  GetPrediction();
-  //VALUE   GetValueOfPosition();
+	//STRING  GetPrediction();
+	//VALUE   GetValueOfPosition();
 
-  BlankOX theBoard[BOARDSIZE];
+	BlankOX theBoard[BOARDSIZE];
 
-  PositionToBlankOX(position,theBoard);
+	PositionToBlankOX(position,theBoard);
 
-  // get the maximum num of digit of the position
-  temp = BOARDWIDTH*BOARDHEIGHT;
-  numOfDigit = getNumOfDigit(temp) - 1;
+	// get the maximum num of digit of the position
+	temp = BOARDWIDTH*BOARDHEIGHT;
+	numOfDigit = getNumOfDigit(temp) - 1;
 
-  // the word "BOARD" starts at location:
-  myBoardStartAt = ceil((displayBoardWidth - 5)/2.0)  + 8;
-  // the word "LEGEND" starts at location:
-  // myLegendStartAt = ceil((displayBoardWidth -6)/2.0) + 8 + 8 + displayBoardWidth;
-  // the word "DIREDTION" starts at location:
-  //myDirectionStartAt = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 2;
-  myDirectionStartAt = 5 + displayBoardWidth + 8;
-  // the word "ACTION" starts at location:
-  myActionStartAt = myDirectionStartAt + 9 + 8 + 1;
+	// the word "BOARD" starts at location:
+	myBoardStartAt = ceil((displayBoardWidth - 5)/2.0)  + 8;
+	// the word "LEGEND" starts at location:
+	// myLegendStartAt = ceil((displayBoardWidth -6)/2.0) + 8 + 8 + displayBoardWidth;
+	// the word "DIREDTION" starts at location:
+	//myDirectionStartAt = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 2;
+	myDirectionStartAt = 5 + displayBoardWidth + 8;
+	// the word "ACTION" starts at location:
+	myActionStartAt = myDirectionStartAt + 9 + 8 + 1;
 
-  // get the maximum width
-  //maxX = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 9 + 8 + 24;
-  maxX = 5 + displayBoardWidth + 8 + 9 + 8 + 24;
+	// get the maximum width
+	//maxX = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 9 + 8 + 24;
+	maxX = 5 + displayBoardWidth + 8 + 9 + 8 + 24;
 
-  maxY = displayBoardHeight;
+	maxY = displayBoardHeight;
 
-  // hrs to shing: commented below because bug when #rows is 2
+	// hrs to shing: commented below because bug when #rows is 2
 
-  // get the maximum height
-  if (displayBoardHeight>5)
-    maxY = displayBoardHeight;
-  else
-    maxY = 5;
-
-  maxY = maxY + 2;
-  commentx = maxX + 1 + COMMENTSPACE;
-
-
-  /*
-   // Display title
-  for (x=0; x<maxX; x++)
-    {
-      // display "BOARD"
-      if ((x >= myBoardStartAt) && ( x <= myBoardStartAt +5))
-	{
-	  printf("%c",myBoard[x - myBoardStartAt]);
-	}
-      // display "LEGEND"
-      else if ((x >= myLegendStartAt) && ( x <= myLegendStartAt +6))
-	{
-	  printf("%c",myLegend[x - myLegendStartAt]);
-	}
-      // display "DIRECTION"
-      else if ((x >= myDirectionStartAt) && ( x <= myDirectionStartAt +9))
-	{
-	  printf("%c",myDirection[x - myDirectionStartAt]);
-	}
-      // display "ACTION"
-      else if ((x >= myActionStartAt) && ( x <= myActionStartAt +6))
-	{
-	  printf("%c",myAction[x - myActionStartAt]);
-	}
-      else
-	space(1);
-
-    }
-  puts("");
-  puts("");
-*/
-
-
-  // Display BOARD
-  puts("");
-  puts("");
-  space(myBoardStartAt);
-  printf("BOARD");
-
-  puts("");
-  puts("");
-
-  // Display coordinate A, B, C, ...
-  printf("        ");
-  for (x=0; x<BOARDWIDTH; x++)
-    printf("%c     ",x+65);
-  space(5);
-  printf("DIRECTION");
-  space(8);
-  printf("ACTION");
-  printf("\n");
-  printf("\n");
-
-      // for board
-      for (y = 0; y < maxY; y++) {
-
-	space(3);
-	if ((y % 2 == 0) && (y < displayBoardHeight))
-	  {
-	    printf("%d",rowNum++);
-	    for (x=1; x<=5 - getNumOfDigit(rowNum - 1); x++)
-	      printf(" ");
-	  }
+	// get the maximum height
+	if (displayBoardHeight>5)
+		maxY = displayBoardHeight;
 	else
-	space(5);
+		maxY = 5;
 
-	slashFlag = !slashFlag;
+	maxY = maxY + 2;
+	commentx = maxX + 1 + COMMENTSPACE;
 
-	// display board
-	if (y < displayBoardHeight)
-	  for ( x = 0; x < displayBoardWidth; x++) {
-	    if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
-	      putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
-	      slashFlag = !slashFlag;
-	    }
-	    else {                                                     // rows with cells
-	      if ((x % 6) == 0) {                                      // if it's time to print a cell
-		boardIndex = (y/2) * BOARDWIDTH + (x/6);
-		putchar(theBoard[boardIndex]);
-	      } else if ( (x % 6) == 1 || (x % 6) == 5 )
-		putchar(' ');
-	      else
-		putchar('-');
-	    }
-	  } // end display board
-	else
-	  space(displayBoardWidth);
-
-	space(10);
-	//slashFlag = 0;
-	slashFlag = !slashFlag;
 
 	/*
-	//display legend
-	if (y < displayBoardHeight)
-	  for ( x = 0; x < displayBoardWidth+1; x++) {
-	    if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
-	      putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
-	      slashFlag = !slashFlag;
-	    }
-	    else  if ((x % 6) == 0) {                                      // if it's time to print a cell
-	      //boardIndex = (y/2) * BOARDWIDTH + (x/6);
-	      //putchar(theBoard[boardIndex]);
-	      legendNum++;
-	      printf("%d",legendNum);
-	      x = x + getNumOfDigit(legendNum) -1;
-
-	    }
-	    else
+	   // Display title
+	   for (x=0; x<maxX; x++)
+	   {
+	    // display "BOARD"
+	    if ((x >= myBoardStartAt) && ( x <= myBoardStartAt +5))
 	      {
-
-		temp = getNumOfDigit(legendNum);
-		// (temp == 1 )
-		temp --;
-		if (  (x % 6 == (1+temp)) || (x % 6 ==  5      ) )
-		  putchar(' ');
-		else
-		  putchar('-');
+	        printf("%c",myBoard[x - myBoardStartAt]);
 	      }
+	    // display "LEGEND"
+	    else if ((x >= myLegendStartAt) && ( x <= myLegendStartAt +6))
+	      {
+	        printf("%c",myLegend[x - myLegendStartAt]);
+	      }
+	    // display "DIRECTION"
+	    else if ((x >= myDirectionStartAt) && ( x <= myDirectionStartAt +9))
+	      {
+	        printf("%c",myDirection[x - myDirectionStartAt]);
+	      }
+	    // display "ACTION"
+	    else if ((x >= myActionStartAt) && ( x <= myActionStartAt +6))
+	      {
+	        printf("%c",myAction[x - myActionStartAt]);
+	      }
+	    else
+	      space(1);
 
-	  } // end display board
-	else
-	  space(displayBoardWidth);
-	*/
+	   }
+	   puts("");
+	   puts("");
+	 */
 
-	//display direction
-	//	if (y < 5)
-	//space(8-getNumOfDigit(legendNum)-1);
-	//space(8);
-	switch(y)
-	  {
-	  case 0:
-	    printf("NW  N  NE        N = no action");
-	    break;
-	  case 1:
-	    printf("  \\ | / ");
-	    break;
-	  case 2:
-	    printf("W - * - E        A = capture by approach");
-	    break;
-	  case 3:
-	    printf("  / | \\");
-	    break;
-	  case 4:
-	    printf("SW  S  SE        W = capture by withdraw");
-	    break;
-	  }
+
+	// Display BOARD
+	puts("");
+	puts("");
+	space(myBoardStartAt);
+	printf("BOARD");
+
+	puts("");
+	puts("");
+
+	// Display coordinate A, B, C, ...
+	printf("        ");
+	for (x=0; x<BOARDWIDTH; x++)
+		printf("%c     ",x+65);
+	space(5);
+	printf("DIRECTION");
+	space(8);
+	printf("ACTION");
+	printf("\n");
+	printf("\n");
+
+	// for board
+	for (y = 0; y < maxY; y++) {
+
+		space(3);
+		if ((y % 2 == 0) && (y < displayBoardHeight))
+		{
+			printf("%d",rowNum++);
+			for (x=1; x<=5 - getNumOfDigit(rowNum - 1); x++)
+				printf(" ");
+		}
+		else
+			space(5);
+
+		slashFlag = !slashFlag;
+
+		// display board
+		if (y < displayBoardHeight)
+			for ( x = 0; x < displayBoardWidth; x++) {
+				if ( y % 2 == 1 ) {                  // rows with slashes  |  \  |  / ...
+					putchar(slash[(x + (slashFlag ? 0 : 6)) % 12]);
+					slashFlag = !slashFlag;
+				}
+				else {                                 // rows with cells
+					if ((x % 6) == 0) {            // if it's time to print a cell
+						boardIndex = (y/2) * BOARDWIDTH + (x/6);
+						putchar(theBoard[boardIndex]);
+					} else if ( (x % 6) == 1 || (x % 6) == 5 )
+						putchar(' ');
+					else
+						putchar('-');
+				}
+			} // end display board
+		else
+			space(displayBoardWidth);
+
+		space(10);
+		//slashFlag = 0;
+		slashFlag = !slashFlag;
+
+		/*
+		   //display legend
+		   if (y < displayBoardHeight)
+		   for ( x = 0; x < displayBoardWidth+1; x++) {
+		    if ( y % 2 == 1 ) {                                      // rows with slashes  |  \  |  / ...
+		      putchar(slash[(x + (slashFlag? 0 : 6)) % 12]);
+		      slashFlag = !slashFlag;
+		    }
+		    else  if ((x % 6) == 0) {                                      // if it's time to print a cell
+		      //boardIndex = (y/2) * BOARDWIDTH + (x/6);
+		      //putchar(theBoard[boardIndex]);
+		      legendNum++;
+		      printf("%d",legendNum);
+		      x = x + getNumOfDigit(legendNum) -1;
+
+		    }
+		    else
+		      {
+
+		        temp = getNumOfDigit(legendNum);
+		        // (temp == 1 )
+		        temp --;
+		        if (  (x % 6 == (1+temp)) || (x % 6 ==  5      ) )
+		          putchar(' ');
+		        else
+		          putchar('-');
+		      }
+
+		   } // end display board
+		   else
+		   space(displayBoardWidth);
+		 */
+
+		//display direction
+		//	if (y < 5)
+		//space(8-getNumOfDigit(legendNum)-1);
+		//space(8);
+		switch(y)
+		{
+		case 0:
+			printf("NW  N  NE        N = no action");
+			break;
+		case 1:
+			printf("  \\ | / ");
+			break;
+		case 2:
+			printf("W - * - E        A = capture by approach");
+			break;
+		case 3:
+			printf("  / | \\");
+			break;
+		case 4:
+			printf("SW  S  SE        W = capture by withdraw");
+			break;
+		}
+
+
+
+
+
+		puts("");
+
+	} // end loop y
 
 
 
 
 
 	puts("");
-
-      } // end loop y
-
-
-
-
-
-  puts("");
-  puts(GetPrediction(position,playerName,usersTurn));
-  dbg("<-PrintPos");
+	puts(GetPrediction(position,playerName,usersTurn));
+	dbg("<-PrintPos");
 }
 
 // if it's one digit, return 0
@@ -951,22 +953,22 @@ void PrintPosition(position,playerName,usersTurn)
 // if it's n digit, return n-1
 int getNumOfDigit(int n)
 {
-  int numOfDigit = 0;
+	int numOfDigit = 0;
 
-  while (n != 0)
-    {
-      n = n /10;
-      numOfDigit++;
-    }
-  return numOfDigit;
+	while (n != 0)
+	{
+		n = n /10;
+		numOfDigit++;
+	}
+	return numOfDigit;
 
-  return numOfDigit;
+	return numOfDigit;
 }
 
 void space(int n) {
-  int i = 0;
-  for(; i < n; i++)
-    putchar(' ');
+	int i = 0;
+	for(; i < n; i++)
+		putchar(' ');
 }
 
 /************************************************************************
@@ -990,104 +992,104 @@ void space(int n) {
 ************************************************************************/
 
 MOVELIST *GenerateMoves(position)
-     POSITION position;
+POSITION position;
 {
-  MOVELIST *CreateMovelistNode(), *head = NULL;
-  VALUE Primitive();
-  Coordinates IndexToCoordinates(int);
-  int CoordinatesToIndex(Coordinates);
-  int InBounds(Coordinates);
-  Coordinates Neighbor(Coordinates,Direction);
-  Direction NextDirection(Coordinates, Direction);
-  Direction OtherDirection(Direction);
-  BlankOX OtherPlayer(char current);
-  BlankOX WhoseTurn(int);
+	MOVELIST *CreateMovelistNode(), *head = NULL;
+	VALUE Primitive();
+	Coordinates IndexToCoordinates(int);
+	int CoordinatesToIndex(Coordinates);
+	int InBounds(Coordinates);
+	Coordinates Neighbor(Coordinates,Direction);
+	Direction NextDirection(Coordinates, Direction);
+	Direction OtherDirection(Direction);
+	BlankOX OtherPlayer(char current);
+	BlankOX WhoseTurn(int);
 
-  char thisPlayer = WhoseTurn(position);
-  char otherPlayer = thisPlayer==X ? O : X;
+	char thisPlayer = WhoseTurn(position);
+	char otherPlayer = thisPlayer==X ? O : X;
 
 
-  BlankOX board[BOARDSIZE];
-  int i;
-  Direction dir;
-  int intdir;
-  Coordinates pos,attackingpos;
-  int cap=0;   // capture mode
-  int numofcaps; //number of captures possible for one direction of move
-  int move;
+	BlankOX board[BOARDSIZE];
+	int i;
+	Direction dir;
+	int intdir;
+	Coordinates pos,attackingpos;
+	int cap=0; // capture mode
+	int numofcaps; //number of captures possible for one direction of move
+	int move;
 
-  if (Primitive(position) == undecided) {
-    PositionToBlankOX(position,board);
-    for(i = 0 ; i < BOARDSIZE ; i++) {
-      if((board[i] == thisPlayer) && (movingAgain? CoordinatesToIndex(lastMovedAt)==i: TRUE)) {
-	// if current player's piece and if movingAgain must be same piece then we consider where we can move this
-	pos = IndexToCoordinates(i);
-	for(dir = left; dir!=0; dir = NextDirection(pos, dir)) {
-	  intdir = (int)dir;
-	  if(intdir>=5)  // collapse direction into 3 bits instead of 4
-	    intdir--;    // 5 is not a direction, don't need that
-	  intdir--;      // start at 0
+	if (Primitive(position) == undecided) {
+		PositionToBlankOX(position,board);
+		for(i = 0; i < BOARDSIZE; i++) {
+			if((board[i] == thisPlayer) && (movingAgain ? CoordinatesToIndex(lastMovedAt)==i : TRUE)) {
+				// if current player's piece and if movingAgain must be same piece then we consider where we can move this
+				pos = IndexToCoordinates(i);
+				for(dir = left; dir!=0; dir = NextDirection(pos, dir)) {
+					intdir = (int)dir;
+					if(intdir>=5) // collapse direction into 3 bits instead of 4
+						intdir--; // 5 is not a direction, don't need that
+					intdir--; // start at 0
 
-	  numofcaps=0;
-	  if(InBounds(Neighbor(pos,dir)) && board[CoordinatesToIndex(Neighbor(pos,dir))]==B) {      // vacant neighboring cell exists
-	    attackingpos = Neighbor(Neighbor(pos,dir),dir);
+					numofcaps=0;
+					if(InBounds(Neighbor(pos,dir)) && board[CoordinatesToIndex(Neighbor(pos,dir))]==B) { // vacant neighboring cell exists
+						attackingpos = Neighbor(Neighbor(pos,dir),dir);
 
-	    // by approach
-	    if( InBounds(attackingpos) &&                                // position is within board
-		board[CoordinatesToIndex(attackingpos)]==otherPlayer) {  // have enemy, can attack by approach
-	      cap = 1;  // attack by approach mode
-	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      if(movingAgain) {                             // if moving again, then we need to move the same piece as b4
-		if(CoordinatesToIndex(lastMovedAt)==i) {
-		  numofcaps++;
-		  head = CreateMovelistNode(move, head);
-		}
-	      } else {
-		numofcaps++;
-		head = CreateMovelistNode(move, head);
-	      }
-	      if(!forcedCapture) {  // not forced to capture, then can move beside enemy with no killing
-		move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
-		head = CreateMovelistNode(move, head);
-	      }
-	    } // end if can attack by approach
+						// by approach
+						if( InBounds(attackingpos) && // position is within board
+						    board[CoordinatesToIndex(attackingpos)]==otherPlayer) { // have enemy, can attack by approach
+							cap = 1; // attack by approach mode
+							move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
+							if(movingAgain) { // if moving again, then we need to move the same piece as b4
+								if(CoordinatesToIndex(lastMovedAt)==i) {
+									numofcaps++;
+									head = CreateMovelistNode(move, head);
+								}
+							} else {
+								numofcaps++;
+								head = CreateMovelistNode(move, head);
+							}
+							if(!forcedCapture) { // not forced to capture, then can move beside enemy with no killing
+								move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0; // cap = 0
+								head = CreateMovelistNode(move, head);
+							}
+						} // end if can attack by approach
 
-	    // by withdraw
-	    attackingpos = Neighbor(pos,OtherDirection(dir));
-	    if(InBounds(attackingpos) &&                               // position is within board
-		board[CoordinatesToIndex(attackingpos)]==otherPlayer) { // have enemy, can attack by withdraw
-	      cap = 2; // attack by withdraw mode
-	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      if(movingAgain) {                                    // if moving again, we need to move same piece as before
-		if(CoordinatesToIndex(lastMovedAt)==i) {
-		  numofcaps++;
-		  head = CreateMovelistNode(move, head);
-		}
-	      }else {
-		numofcaps++;
-		head = CreateMovelistNode(move, head);
-	      }
-	      if(!forcedCapture) {
-		move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0;  // cap = 0
-		printf("Adding move:\n");
-		PrintMove(move);
-		head = CreateMovelistNode(move, head);
-	      }
-	    } // end if can attack by withdraw
+						// by withdraw
+						attackingpos = Neighbor(pos,OtherDirection(dir));
+						if(InBounds(attackingpos) && // position is within board
+						   board[CoordinatesToIndex(attackingpos)]==otherPlayer) { // have enemy, can attack by withdraw
+							cap = 2; // attack by withdraw mode
+							move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
+							if(movingAgain) { // if moving again, we need to move same piece as before
+								if(CoordinatesToIndex(lastMovedAt)==i) {
+									numofcaps++;
+									head = CreateMovelistNode(move, head);
+								}
+							}else {
+								numofcaps++;
+								head = CreateMovelistNode(move, head);
+							}
+							if(!forcedCapture) {
+								move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0; // cap = 0
+								printf("Adding move:\n");
+								PrintMove(move);
+								head = CreateMovelistNode(move, head);
+							}
+						} // end if can attack by withdraw
 
-	    if(numofcaps==0) { // no captures possible for this move direction
-	      cap = 0;
-	      move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
-	      head = CreateMovelistNode( move, head);
-	    } //end if no possible captures
-	  } // end if vacant target cell (i.e. can move)
-	} // end for this direction
-      } // end if this piece is current players piece
-    } // end for this cell of board
-    return(head);
-  } else { // end if undecided (not win or lose)
-    return(NULL);
-  }
+						if(numofcaps==0) { // no captures possible for this move direction
+							cap = 0;
+							move = CoordinatesToIndex(pos)<<5 | intdir<<2 | cap;
+							head = CreateMovelistNode( move, head);
+						} //end if no possible captures
+					} // end if vacant target cell (i.e. can move)
+				} // end for this direction
+			} // end if this piece is current players piece
+		} // end for this cell of board
+		return(head);
+	} else { // end if undecided (not win or lose)
+		return(NULL);
+	}
 }
 
 /************************************************************************
@@ -1097,30 +1099,30 @@ MOVELIST *GenerateMoves(position)
  * Calls:
  ***********************************************************************/
 Direction NextDirection(Coordinates pos, Direction dir) {
-  if( (pos.x & 1) == (pos.y & 1) ) {
-    switch(dir) {
-    case left: return dir=upleft;
-    case upleft: return dir=up;
-    case up: return dir=upright;
-    case upright: return dir=right;
-    case right: return dir=lowright;
-    case lowright: return dir=down;
-    case down: return dir=lowleft;
-    case lowleft: return dir=nodir;
-    case nodir: return dir=left;
-    }
-  }else {
-    switch(dir) {
-    case left: return dir=up;
-    case up: return dir=right;
-    case right: return dir=down;
-    case down: return dir=nodir;
-    case nodir: return dir=left;
-    default: return nodir;  //this should never happen, I think
-    }
-  }
+	if( (pos.x & 1) == (pos.y & 1) ) {
+		switch(dir) {
+		case left: return dir=upleft;
+		case upleft: return dir=up;
+		case up: return dir=upright;
+		case upright: return dir=right;
+		case right: return dir=lowright;
+		case lowright: return dir=down;
+		case down: return dir=lowleft;
+		case lowleft: return dir=nodir;
+		case nodir: return dir=left;
+		}
+	}else {
+		switch(dir) {
+		case left: return dir=up;
+		case up: return dir=right;
+		case right: return dir=down;
+		case down: return dir=nodir;
+		case nodir: return dir=left;
+		default: return nodir; //this should never happen, I think
+		}
+	}
 
-  return nodir; //should never be reached
+	return nodir; //should never be reached
 }
 
 /************************************************************************
@@ -1129,18 +1131,18 @@ Direction NextDirection(Coordinates pos, Direction dir) {
  * Calls:
  ***********************************************************************/
 Direction OtherDirection(Direction dir) {
-  switch(dir) {
-  case up: return down;
-  case down: return up;
-  case left: return right;
-  case right: return left;
-  case upleft: return lowright;
-  case upright: return lowleft;
-  case lowleft: return upright;
-  case lowright: return upleft;
-  default: return nodir;
-  }
-  return nodir;  // never reached
+	switch(dir) {
+	case up: return down;
+	case down: return up;
+	case left: return right;
+	case right: return left;
+	case upleft: return lowright;
+	case upright: return lowleft;
+	case lowleft: return upright;
+	case lowright: return upleft;
+	default: return nodir;
+	}
+	return nodir; // never reached
 }
 
 /************************************************************************
@@ -1149,17 +1151,17 @@ Direction OtherDirection(Direction dir) {
  * Calls:
  ***********************************************************************/
 Coordinates Neighbor(Coordinates pos, Direction dir) {
-  if (dir == up || dir == upleft || dir == upright)
-    pos.y--;
-  else if (dir == down || dir == lowleft || dir == lowright)
-    pos.y++;
+	if (dir == up || dir == upleft || dir == upright)
+		pos.y--;
+	else if (dir == down || dir == lowleft || dir == lowright)
+		pos.y++;
 
-  if (dir == left || dir == upleft || dir == lowleft)
-    pos.x--;
-  else if (dir == right || dir == upright || dir == lowright)
-    pos.x++;
+	if (dir == left || dir == upleft || dir == lowleft)
+		pos.x--;
+	else if (dir == right || dir == upright || dir == lowright)
+		pos.x++;
 
-  return pos;
+	return pos;
 }
 
 /************************************************************************
@@ -1168,7 +1170,7 @@ Coordinates Neighbor(Coordinates pos, Direction dir) {
  * Calls: IndexToCoordinates(...)
  ***********************************************************************/
 int InBounds(Coordinates pos) {
-  return (pos.x>=0) && (pos.x<BOARDWIDTH) && (pos.y>=0) && (pos.y<BOARDHEIGHT);
+	return (pos.x>=0) && (pos.x<BOARDWIDTH) && (pos.y>=0) && (pos.y<BOARDHEIGHT);
 }
 
 /************************************************************************
@@ -1178,10 +1180,10 @@ int InBounds(Coordinates pos) {
  * Calls:
  ***********************************************************************/
 Coordinates IndexToCoordinates(int index) {
-  Coordinates pos;
-  pos.y = index / BOARDWIDTH;
-  pos.x = index % BOARDWIDTH;
-  return pos;
+	Coordinates pos;
+	pos.y = index / BOARDWIDTH;
+	pos.x = index % BOARDWIDTH;
+	return pos;
 }
 
 /************************************************************************
@@ -1189,9 +1191,9 @@ Coordinates IndexToCoordinates(int index) {
  * Description: returns array index corresponding to position given by input
  * Calls:
  ***********************************************************************/
- int CoordinatesToIndex(Coordinates pos) {
-   return pos.x + pos.y*BOARDWIDTH;
- }
+int CoordinatesToIndex(Coordinates pos) {
+	return pos.x + pos.y*BOARDWIDTH;
+}
 
 /************************************************************************
 **
@@ -1213,24 +1215,24 @@ Coordinates IndexToCoordinates(int index) {
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-     POSITION thePosition;
-     MOVE *theMove;
-     STRING playerName;
+POSITION thePosition;
+MOVE *theMove;
+STRING playerName;
 {
-  dbg("->GetAndPrintPlayersMove");
-  BOOLEAN ValidMove();
-  USERINPUT ret, HandleDefaultTextInput();
+	dbg("->GetAndPrintPlayersMove");
+	BOOLEAN ValidMove();
+	USERINPUT ret, HandleDefaultTextInput();
 
-  do {
-    printf("%8s's move [(u)ndo/1-9] :  ", playerName);
+	do {
+		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
 
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if(ret != Continue)
-      return(ret);
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
 
-  }
-  while (TRUE);
-  return(Continue); /* this is never reached, but lint is now happy */
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -1246,104 +1248,104 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 ************************************************************************/
 
 BOOLEAN ValidTextInput(input)
-     STRING input;
+STRING input;
 {
-  dbg("->ValidTextInput");
+	dbg("->ValidTextInput");
 
-  char file;
-  int row;
-  char temp[4];
-  int dir;
-  int cap;
-  int i;
-  char c,d;
+	char file;
+	int row;
+	char temp[4];
+	int dir;
+	int cap;
+	int i;
+	char c,d;
 
-  while(*input == ' ') input++;
-  if(!(*input)) return FALSE;
+	while(*input == ' ') input++;
+	if(!(*input)) return FALSE;
 
-  if(!isalpha(*input))
-    return FALSE;
-  else {
-    file = toupper(*input);
-    input++;
-  }
+	if(!isalpha(*input))
+		return FALSE;
+	else {
+		file = toupper(*input);
+		input++;
+	}
 
-  i = 0;
-  while(!isalpha(input[i])) {
-    if(i >3)
-      return FALSE;
-    else {
-      temp[i] = input[i];
-      i++;
-    }
-  }
-  input += i;
-  temp[i] = (char)0;
+	i = 0;
+	while(!isalpha(input[i])) {
+		if(i >3)
+			return FALSE;
+		else {
+			temp[i] = input[i];
+			i++;
+		}
+	}
+	input += i;
+	temp[i] = (char)0;
 
-  row = atoi(temp);
+	row = atoi(temp);
 
-  while(*input == ' ') input++;
-  if(!(*input)) return FALSE;
+	while(*input == ' ') input++;
+	if(!(*input)) return FALSE;
 
-  c = toupper(*input); input++;
-  d = toupper(*input); input++;
+	c = toupper(*input); input++;
+	d = toupper(*input); input++;
 
-  if(c == 'N') {
-    dir = 8;
-    if(d == 'E')
-      dir++;
-    else if(d == 'W')
-      dir--;
-    else if(d != ' ')
-      return FALSE;
-  }else if(c == 'S') {
-    dir = 2;
-    if(d == 'E')
-      dir++;
-    else if(d == 'W')
-      dir--;
-    else if(d != ' ')
-      return FALSE;
-  }else if(c=='W') {
-    dir = 4;
-    if(d!=' ')
-      return FALSE;
-  }else if(c=='E') {
-    dir = 6;
-    if(d!=' ')
-      return FALSE;
-  }else {
-    return FALSE;
-  }
+	if(c == 'N') {
+		dir = 8;
+		if(d == 'E')
+			dir++;
+		else if(d == 'W')
+			dir--;
+		else if(d != ' ')
+			return FALSE;
+	}else if(c == 'S') {
+		dir = 2;
+		if(d == 'E')
+			dir++;
+		else if(d == 'W')
+			dir--;
+		else if(d != ' ')
+			return FALSE;
+	}else if(c=='W') {
+		dir = 4;
+		if(d!=' ')
+			return FALSE;
+	}else if(c=='E') {
+		dir = 6;
+		if(d!=' ')
+			return FALSE;
+	}else {
+		return FALSE;
+	}
 
-  while(*input == ' ') input++;
-  if(!(*input)) return FALSE;
+	while(*input == ' ') input++;
+	if(!(*input)) return FALSE;
 
-  c = toupper(*input);
+	c = toupper(*input);
 
-  cap = -1;
-  if(c == 'A') {
-    cap = 1;
-  } else if(c == 'W')
-    cap = 2;
-  else if(c == 'N')
-    cap = 0;
-  else {
-    return FALSE;
-  }
+	cap = -1;
+	if(c == 'A') {
+		cap = 1;
+	} else if(c == 'W')
+		cap = 2;
+	else if(c == 'N')
+		cap = 0;
+	else {
+		return FALSE;
+	}
 
-  int pos = (row-1)*BOARDWIDTH + (file - 'A');
+	int pos = (row-1)*BOARDWIDTH + (file - 'A');
 
-  if(pos<0 || pos>=BOARDSIZE)
-    return FALSE;
+	if(pos<0 || pos>=BOARDSIZE)
+		return FALSE;
 
-  if(dir==5 || dir<0 || dir>9)
-    return FALSE;
+	if(dir==5 || dir<0 || dir>9)
+		return FALSE;
 
-  if(cap<0 || cap>3)
-    return FALSE;
+	if(cap<0 || cap>3)
+		return FALSE;
 
-  return TRUE;
+	return TRUE;
 }
 
 /************************************************************************
@@ -1359,107 +1361,107 @@ BOOLEAN ValidTextInput(input)
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(input)
-     STRING input;
+STRING input;
 {
 
-  char file;
-  int row;
-  char temp[4];
-  int dir;
-  int cap;
-  int i;
-  char c,d;
+	char file;
+	int row;
+	char temp[4];
+	int dir;
+	int cap;
+	int i;
+	char c,d;
 
-  while(*input == ' ') input++;
+	while(*input == ' ') input++;
 
-  if(!isalpha(*input))
-    return FALSE;
-  else {
-    file = toupper(*input);
-    input++;
-  }
+	if(!isalpha(*input))
+		return FALSE;
+	else {
+		file = toupper(*input);
+		input++;
+	}
 
-  i = 0;
-  while(!isalpha(input[i])) {
-    if(i >3)
-      return FALSE;
-    else {
-      temp[i] = input[i];
-      i++;
-    }
-  }
-  input += i;
-  temp[i] = (char)0; // null char
+	i = 0;
+	while(!isalpha(input[i])) {
+		if(i >3)
+			return FALSE;
+		else {
+			temp[i] = input[i];
+			i++;
+		}
+	}
+	input += i;
+	temp[i] = (char)0; // null char
 
-  row = atoi(temp);
+	row = atoi(temp);
 
-  int pos = (row-1)*BOARDWIDTH + (file - 'A');
+	int pos = (row-1)*BOARDWIDTH + (file - 'A');
 
-  while(*input == ' ') input++;
+	while(*input == ' ') input++;
 
-  c = toupper(*input); input++;
-  d = toupper(*input); input++;
+	c = toupper(*input); input++;
+	d = toupper(*input); input++;
 
-  if(c == 'N') {
-    dir = 8;
-    if(d == 'E')
-      dir++;
-    else if(d == 'W')
-      dir--;
-    else if(d != ' ')
-      return FALSE;
-  }else if(c == 'S') {
-    dir = 2;
-    if(d == 'E')
-      dir++;
-    else if(d == 'W')
-      dir--;
-    else if(d != ' ')
-      return FALSE;
-  }else if(c=='W') {
-    dir = 4;
-    if(d!=' ')
-      return FALSE;
-  }else if(c=='E') {
-    dir = 6;
-    if(d!=' ')
-      return FALSE;
-  }else {
-    return FALSE;
-  }
+	if(c == 'N') {
+		dir = 8;
+		if(d == 'E')
+			dir++;
+		else if(d == 'W')
+			dir--;
+		else if(d != ' ')
+			return FALSE;
+	}else if(c == 'S') {
+		dir = 2;
+		if(d == 'E')
+			dir++;
+		else if(d == 'W')
+			dir--;
+		else if(d != ' ')
+			return FALSE;
+	}else if(c=='W') {
+		dir = 4;
+		if(d!=' ')
+			return FALSE;
+	}else if(c=='E') {
+		dir = 6;
+		if(d!=' ')
+			return FALSE;
+	}else {
+		return FALSE;
+	}
 
 
-  while(*input == ' ') input++;
-  if(!(*input)) return FALSE;
+	while(*input == ' ') input++;
+	if(!(*input)) return FALSE;
 
-  c = toupper(*input);
+	c = toupper(*input);
 
-  cap = -1;
-  if(c == 'A') {
-    cap = 1;
-  } else if(c == 'W')
-    cap = 2;
-  else if(c == 'N')
-    cap = 0;
-  else {
-    return FALSE;
-  }
+	cap = -1;
+	if(c == 'A') {
+		cap = 1;
+	} else if(c == 'W')
+		cap = 2;
+	else if(c == 'N')
+		cap = 0;
+	else {
+		return FALSE;
+	}
 
-  /* we want:
-     ___________________________________________
-     |              27: pos     | 3:dir | 2:cap |
-     -------------------------------------------*/
-      /* encode 'a' as 01, 'w' as 10 and n as 00 */
+	/* we want:
+	   ___________________________________________
+	 |              27: pos     | 3:dir | 2:cap |
+	   -------------------------------------------*/
+	/* encode 'a' as 01, 'w' as 10 and n as 00 */
 
-  if(dir >= 5)
-    dir--;    // 5 is not a dir
-  dir--;      // make dir start at 0
+	if(dir >= 5)
+		dir--; // 5 is not a dir
+	dir--; // make dir start at 0
 
-  int move = (pos<<5) | (dir<<2) | cap;
-  if(debug>1) printf("Resulting move %d\n",move);
+	int move = (pos<<5) | (dir<<2) | cap;
+	if(debug>1) printf("Resulting move %d\n",move);
 
-  // mask everything into the MOVE to return
-  return move;
+	// mask everything into the MOVE to return
+	return move;
 }
 
 /************************************************************************
@@ -1473,9 +1475,9 @@ MOVE ConvertTextInputToMove(input)
 ************************************************************************/
 
 void PrintMove(theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  printf( "%s", MoveToString(theMove) );
+	printf( "%s", MoveToString(theMove) );
 }
 
 /************************************************************************
@@ -1489,76 +1491,76 @@ void PrintMove(theMove)
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING move = (STRING) SafeMalloc( 13 );
-  int pos,dir,cap;
+	STRING move = (STRING) SafeMalloc( 13 );
+	int pos,dir,cap;
 
-  cap = 3 & theMove;
-  dir = (28 & theMove) >> 2;
-  pos = (0xffffffe0 & theMove) >> 5;
+	cap = 3 & theMove;
+	dir = (28 & theMove) >> 2;
+	pos = (0xffffffe0 & theMove) >> 5;
 
-  dir++;
-  if(dir >= 5)
-    dir++;
+	dir++;
+	if(dir >= 5)
+		dir++;
 
-  char* position = StringPos( pos );
-  char* direction = StringDir( dir );
-  char* capture = StringCap( cap );
+	char* position = StringPos( pos );
+	char* direction = StringDir( dir );
+	char* capture = StringCap( cap );
 
-  sprintf( move, "[ %s %s %s ]", position, direction, capture );
+	sprintf( move, "[ %s %s %s ]", position, direction, capture );
 
 
-  SafeFree( position );
-  SafeFree( direction );
-  SafeFree( capture );
+	SafeFree( position );
+	SafeFree( direction );
+	SafeFree( capture );
 
-  return move;
+	return move;
 }
 
 char* StringCap(int cap) {
-  char* capture = (char*) SafeMalloc( 2 );
+	char* capture = (char*) SafeMalloc( 2 );
 
-  if(cap==0)
-    sprintf( capture, "N" );
-  else if(cap==1)
-    sprintf( capture, "A" );
-  else
-    sprintf( capture, "W" );
+	if(cap==0)
+		sprintf( capture, "N" );
+	else if(cap==1)
+		sprintf( capture, "A" );
+	else
+		sprintf( capture, "W" );
 
-  return capture;
+	return capture;
 }
 
 char* StringDir(int dir) {
-  char* direction = (char*) SafeMalloc( 3 );
+	char* direction = (char*) SafeMalloc( 3 );
 
-  if(dir==8)
-    sprintf( direction, "N" );
-  else if(dir==9)
-    sprintf( direction, "NE" );
-  else if(dir==6)
-    sprintf( direction, "E" );
-  else if(dir==3)
-    sprintf( direction, "SE" );
-  else if(dir==2)
-    sprintf( direction, "S" );
-  else if(dir==1)
-    sprintf( direction, "SW" );
-  else if(dir==4)
-    sprintf( direction, "W" );
-  else
-    sprintf( direction, "NW" );
+	if(dir==8)
+		sprintf( direction, "N" );
+	else if(dir==9)
+		sprintf( direction, "NE" );
+	else if(dir==6)
+		sprintf( direction, "E" );
+	else if(dir==3)
+		sprintf( direction, "SE" );
+	else if(dir==2)
+		sprintf( direction, "S" );
+	else if(dir==1)
+		sprintf( direction, "SW" );
+	else if(dir==4)
+		sprintf( direction, "W" );
+	else
+		sprintf( direction, "NW" );
 
-  return direction;
+	return direction;
 }
 
 char* StringPos(int pos) {
-  int row = (pos/BOARDWIDTH) + 1;
-  char file = 'a' + (pos%BOARDWIDTH);
-  char* position = (char*) SafeMalloc(3);
-  sprintf( position, "%c%d", file, row );
+	int row = (pos/BOARDWIDTH) + 1;
+	char file = 'a' + (pos%BOARDWIDTH);
+	char* position = (char*) SafeMalloc(3);
+	sprintf( position, "%c%d", file, row );
 
-  return position;
+	return position;
 }
 
 /************************************************************************
@@ -1583,8 +1585,8 @@ char* StringPos(int pos) {
  * Calls: generic_hash_unhash(...)
  **********************************************************************/
 void PositionToBlankOX(POSITION position, BlankOX *board) {
-  dbg("->PositionToBlankOX");
-  generic_hash_unhash(position,(char *)board);
+	dbg("->PositionToBlankOX");
+	generic_hash_unhash(position,(char *)board);
 }
 
 /************************************************************************
@@ -1596,8 +1598,8 @@ void PositionToBlankOX(POSITION position, BlankOX *board) {
  * Calls: generic_hash_hash(...)
  ***********************************************************************/
 POSITION BlankOXToPosition(BlankOX *board, char turn) {
-  dbg("->BlankOXToPosition");
-  return generic_hash_hash((char *)board, turn==X?1:2 );
+	dbg("->BlankOXToPosition");
+	return generic_hash_hash((char *)board, turn==X ? 1 : 2 );
 }
 
 /***********************************************************************
@@ -1609,15 +1611,15 @@ POSITION BlankOXToPosition(BlankOX *board, char turn) {
  * Calls:
  **********************************************************************/
 int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
-  dbg("->AnyPiecesLeft");
-  int i;
-  int anyLeft = 0;    /* assume there are none left, then set true if we see one */
+	dbg("->AnyPiecesLeft");
+	int i;
+	int anyLeft = 0; /* assume there are none left, then set true if we see one */
 
-  for(i=0; i<BOARDSIZE; i++)
-    if(theBoard[i] == thePiece)
-      anyLeft = 1;    /* we saw one, so set to true */
+	for(i=0; i<BOARDSIZE; i++)
+		if(theBoard[i] == thePiece)
+			anyLeft = 1; /* we saw one, so set to true */
 
-  return anyLeft;
+	return anyLeft;
 }
 
 /************************************************************************
@@ -1630,152 +1632,152 @@ int AnyPiecesLeft(BlankOX theBoard[], BlankOX thePiece) {
  * Calls:
  ***********************************************************************/
 BlankOX WhoseTurn(int pos) {
-  //printf("WhoseMove: %d\n", generic_hash_turn(pos));
-  return (generic_hash_turn(pos) == 1 ? X : O);
+	//printf("WhoseMove: %d\n", generic_hash_turn(pos));
+	return (generic_hash_turn(pos) == 1 ? X : O);
 }
 
 BlankOX OtherPlayer(char current) {
-  return current==X ? O : X;
+	return current==X ? O : X;
 }
 
-STRING kDBName = "fandan" ;
+STRING kDBName = "fandan";
 
 int NumberOfOptions()
 {
-        return 2 ;
+	return 2;
 }
 
 int getOption()
 {
-        if(gStandardGame) return 1 ;
-        return 2 ;
+	if(gStandardGame) return 1;
+	return 2;
 }
 
 void setOption(int option)
 {
-        if(option == 1)
-                gStandardGame = TRUE ;
-        else
-                gStandardGame = FALSE ;
+	if(option == 1)
+		gStandardGame = TRUE;
+	else
+		gStandardGame = FALSE;
 }
 
 void ChangeBoardSize() {
-  char GetMyChar();
-  int width, height;
-  printf("\nEnter the dimensions of the board (width then height): ");
-  scanf("%d %d", &width, &height);
-  BOARDWIDTH = width;
-  BOARDHEIGHT = height;
-  BOARDSIZE = width*height;
-  changedBoardSize = TRUE;
-  InitializeGame();
+	char GetMyChar();
+	int width, height;
+	printf("\nEnter the dimensions of the board (width then height): ");
+	scanf("%d %d", &width, &height);
+	BOARDWIDTH = width;
+	BOARDHEIGHT = height;
+	BOARDSIZE = width*height;
+	changedBoardSize = TRUE;
+	InitializeGame();
 }
 
 void ClearBoardPieces() {
-  BlankOX board[BOARDSIZE];
-  int i;
-  for(i = 1; i < BOARDSIZE; i++) {
-    board[i] = B;
-  }
-  board[0] = O;
-  board[BOARDSIZE-1] = X;
+	BlankOX board[BOARDSIZE];
+	int i;
+	for(i = 1; i < BOARDSIZE; i++) {
+		board[i] = B;
+	}
+	board[0] = O;
+	board[BOARDSIZE-1] = X;
 
-  MAX_X = 1;
-  MAX_O = 1;
-  InitHash();
-  placedPieces = TRUE;  // to signal initializer not to stomp our new board placement
-  gInitialPosition = BlankOXToPosition(board, X);
-  gMinimalPosition = gInitialPosition;
+	MAX_X = 1;
+	MAX_O = 1;
+	InitHash();
+	placedPieces = TRUE; // to signal initializer not to stomp our new board placement
+	gInitialPosition = BlankOXToPosition(board, X);
+	gMinimalPosition = gInitialPosition;
 }
 
 void PlacePieces() {
-  char GetMyChar();
-  char file;
-  int row;
-  char piece;
-  int done = 0;
-  int index;
-  BlankOX board[BOARDSIZE];
-  PositionToBlankOX(gInitialPosition, board);
+	char GetMyChar();
+	char file;
+	int row;
+	char piece;
+	int done = 0;
+	int index;
+	BlankOX board[BOARDSIZE];
+	PositionToBlankOX(gInitialPosition, board);
 
-  // get the file letter
-  while(!done) {
-    printf("\nEnter the file to place piece or Q to quit: ");
-    file = toupper(GetMyChar());
-    if('Q' == file)
-      return;
+	// get the file letter
+	while(!done) {
+		printf("\nEnter the file to place piece or Q to quit: ");
+		file = toupper(GetMyChar());
+		if('Q' == file)
+			return;
 
-    if(('A' <= file) && (file <= ('A' + BOARDWIDTH)))
-      done = 1;
-    else
-      printf("\n\\Incorrect file\n");
-  }
+		if(('A' <= file) && (file <= ('A' + BOARDWIDTH)))
+			done = 1;
+		else
+			printf("\n\\Incorrect file\n");
+	}
 
-  // get the row number
-  done = 0;
-  while(!done) {
-    printf("\nEnter the row to place piece: ");
-    if(0 == scanf("%d",&row)) {
-      printf("Please enter a number.\n");
-      getchar();
-    } else
-      done = 1;
-  }
-  index = FileRowToIndex(file,row);
+	// get the row number
+	done = 0;
+	while(!done) {
+		printf("\nEnter the row to place piece: ");
+		if(0 == scanf("%d",&row)) {
+			printf("Please enter a number.\n");
+			getchar();
+		} else
+			done = 1;
+	}
+	index = FileRowToIndex(file,row);
 
-  // get the piece to place
-  done = 0;
-  while(!done) {
-    printf("\nEnter the piece to place X O or D to delete: ");
-    piece = toupper(GetMyChar());
-    switch(piece) {
-    case 'X':
-      if(board[index] == X) {
-      }else if(board[index] == B) {
-	MAX_X++;
-      }else if(board[index] == O) {
-	MAX_O--;
-	MAX_X++;
-      }
-      board[index] = piece;
-      done = 1;
-      break;
-    case 'O':
-      if(board[index] == O) {
-      }else if(board[index] == B) {
-	MAX_O++;
-      }else if(board[index] == X) {
-	MAX_X--;
-	MAX_O++;
-      }
-      board[index] = piece;
-      done = 1;
-      break;
-    case 'D':
-      if((MAX_X + MAX_O) == 1) {
-	printf("\nSorry, must maintain at least one piece on board.\n");
-	break;
-      }
-	if(board[index] == O)
-	MAX_O--;
-      else if(board[index] == X)
-	MAX_X--;
-      board[index] = B;
-      done = 1;
-      break;
-    default:
-      printf("Unknown piece\n");
-    }
-  }
+	// get the piece to place
+	done = 0;
+	while(!done) {
+		printf("\nEnter the piece to place X O or D to delete: ");
+		piece = toupper(GetMyChar());
+		switch(piece) {
+		case 'X':
+			if(board[index] == X) {
+			}else if(board[index] == B) {
+				MAX_X++;
+			}else if(board[index] == O) {
+				MAX_O--;
+				MAX_X++;
+			}
+			board[index] = piece;
+			done = 1;
+			break;
+		case 'O':
+			if(board[index] == O) {
+			}else if(board[index] == B) {
+				MAX_O++;
+			}else if(board[index] == X) {
+				MAX_X--;
+				MAX_O++;
+			}
+			board[index] = piece;
+			done = 1;
+			break;
+		case 'D':
+			if((MAX_X + MAX_O) == 1) {
+				printf("\nSorry, must maintain at least one piece on board.\n");
+				break;
+			}
+			if(board[index] == O)
+				MAX_O--;
+			else if(board[index] == X)
+				MAX_X--;
+			board[index] = B;
+			done = 1;
+			break;
+		default:
+			printf("Unknown piece\n");
+		}
+	}
 
-  placedPieces = TRUE;
-  InitHash();
-  gInitialPosition = BlankOXToPosition(board, X);
-  gMinimalPosition = gInitialPosition;
+	placedPieces = TRUE;
+	InitHash();
+	gInitialPosition = BlankOXToPosition(board, X);
+	gMinimalPosition = gInitialPosition;
 }
 
 int FileRowToIndex(char file, int row) {
-  return(((row-1)*BOARDWIDTH)+(toupper(file) - 'A'));
+	return(((row-1)*BOARDWIDTH)+(toupper(file) - 'A'));
 }
 
 /* ----- Shing ----------------------------------------
@@ -1786,11 +1788,11 @@ int FileRowToIndex(char file, int row) {
 
      A     B     C     D     E         DIRECTION          ACTION
 
-1    o --- o --- o --- o --- o         7   8   9          0 = no action
-     |  \  |  /  |  \  |  /  |           \ | /
-2    o --- x --- . --- o --- x         4 - * - 6          1 = capture by approach
-     |  /  |  \  |  /  |  \  |           / | \
-3    x --- x --- x --- x --- x         1   2   3          2 = capture by withdraw
+   1    o --- o --- o --- o --- o         7   8   9          0 = no action
+ |  \  |  /  |  \  |  /  |           \ | /
+   2    o --- x --- . --- o --- x         4 - * - 6          1 = capture by approach
+ |  /  |  \  |  /  |  \  |           / | \
+   3    x --- x --- x --- x --- x         1   2   3          2 = capture by withdraw
 
 
 
@@ -1803,38 +1805,38 @@ int FileRowToIndex(char file, int row) {
 
 
         o --- o --- o --- o         1 --- 2 --- 3 --- 4            7   8   9          0 = no action
-        |  \  |  /  |  \  |         |  \  |  /  |  \  |              \ | /
+ |  \  |  /  |  \  |         |  \  |  /  |  \  |              \ | /
         o --- x --- . --- o         6 --- 7 --- 8 --- 9           4 - * - 6          1 = capture by approach
-        |  /  |  \  |  /  |         |  /  |  \  |  /  |              / | \
+ |  /  |  \  |  /  |         |  /  |  \  |  /  |              / | \
         x --- x --- x --- x         11 -- 12 -- 13 -- 14            1   2   3          2 = capture by withdraw
 
 
-space(8)  board space(8) legend space(8) direction space(8) action
+   space(8)  board space(8) legend space(8) direction space(8) action
 
 
 
-  //  (o)-(o)-(o)-(o)-(o)
-  //   | \ | / | \ | / |
-  //  (o)-(x)-( )-(o)-(x)
-  //   | / | \ | / | \ |
-  //  (x)-(x)-(x)-(x)-(x)
+   //  (o)-(o)-(o)-(o)-(o)
+   //   | \ | / | \ | / |
+   //  (o)-(x)-( )-(o)-(x)
+   //   | / | \ | / | \ |
+   //  (x)-(x)-(x)-(x)-(x)
 
-  //  [o]-[o]-[o]-[o]-[o]
-  //   | \ | / | \ | / |
-  //  (o)-(x)-( )-(o)-(x)
-  //   | / | \ | / | \ |
-  //  (x)-(x)-(x)-(x)-(x)
+   //  [o]-[o]-[o]-[o]-[o]
+   //   | \ | / | \ | / |
+   //  (o)-(x)-( )-(o)-(x)
+   //   | / | \ | / | \ |
+   //  (x)-(x)-(x)-(x)-(x)
 
-  // ----------------------------------------------------
-  */
+   // ----------------------------------------------------
+ */
 
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

@@ -55,31 +55,31 @@ POSITION gInitialPosition    = 812760; /* The initial position (starting board) 
 POSITION gMinimalPosition    = 0; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING   kGameName           = "Asalto"; /* The name of your game */
-STRING   kDBName             = "Asalto"; /* The name to store the database under */
-STRING  kAuthorName          = "Robert Liao and Michael Chen";
-BOOLEAN  kPartizan           = TRUE; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kDebugMenu          = FALSE; /* TRUE while debugging */
-BOOLEAN  kGameSpecificMenu   = TRUE; /* TRUE if there is a game specific menu*/
-BOOLEAN  kTieIsPossible      = FALSE; /* TRUE if a tie is possible */
-BOOLEAN  kLoopy               = TRUE; /* TRUE if the game tree will have cycles (a rearranger style game) */
-BOOLEAN  kDebugDetermineValue = FALSE; /* TRUE while debugging */
-void*	 gGameSpecificTclInit = NULL;
+STRING kGameName           = "Asalto";   /* The name of your game */
+STRING kDBName             = "Asalto";   /* The name to store the database under */
+STRING kAuthorName          = "Robert Liao and Michael Chen";
+BOOLEAN kPartizan           = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kDebugMenu          = FALSE;  /* TRUE while debugging */
+BOOLEAN kGameSpecificMenu   = TRUE;  /* TRUE if there is a game specific menu*/
+BOOLEAN kTieIsPossible      = FALSE;  /* TRUE if a tie is possible */
+BOOLEAN kLoopy               = TRUE;  /* TRUE if the game tree will have cycles (a rearranger style game) */
+BOOLEAN kDebugDetermineValue = FALSE;  /* TRUE while debugging */
+void*    gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface = "init_game_help not run!";
 
-STRING   kHelpTextInterface  = "init_game_help not run!";
+STRING kHelpTextInterface  = "init_game_help not run!";
 
-STRING   kHelpOnYourTurn     = "init_game_help not run!";
+STRING kHelpOnYourTurn     = "init_game_help not run!";
 
-STRING   kHelpStandardObjective = "init_game_help not run!";
+STRING kHelpStandardObjective = "init_game_help not run!";
 
-STRING   kHelpReverseObjective  = "init_game_help not run!";
+STRING kHelpReverseObjective  = "init_game_help not run!";
 
-STRING   kHelpTieOccursWhen =  "init_game_help not run!";
+STRING kHelpTieOccursWhen =  "init_game_help not run!";
 /* Should follow 'A Tie occurs when... */
 
-STRING   kHelpExample = "init_game_help not run!";
+STRING kHelpExample = "init_game_help not run!";
 
 /*************************************************************************
 **
@@ -138,10 +138,10 @@ int WHITESPACE = 0; /* There is a bug in the generic hash function dealing with 
 #define SETOPTION_DEBUG 0
 
 char start_standard_board[]={                'G','G','G',
-			                 ' ',' ',' ',' ',' ',
-				         ' ',' ',' ',' ',' ',
-				         ' ',' ',' ',' ',' ',
-				             'F',' ','F'};
+	                                     ' ',' ',' ',' ',' ',
+	                                     ' ',' ',' ',' ',' ',
+	                                     ' ',' ',' ',' ',' ',
+	                                     'F',' ','F'};
 
 
 /*************************************************************************
@@ -222,9 +222,9 @@ STRING MoveToString( MOVE );
 
 
 /* External */
-#ifndef MEMWATCH 
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+#ifndef MEMWATCH
+extern GENERIC_PTR      SafeMalloc ();
+extern void             SafeFree ();
 #endif
 
 /************************************************************************
@@ -254,7 +254,7 @@ void InitializeGame ()
 void init_board_hash()
 {
 	int hash_data[] =  {' ', WHITESPACE, BOARDSIZE,
-		  	    'F', FOX_MIN, FOX_MAX,
+		            'F', FOX_MIN, FOX_MAX,
 		            'G', GEESE_HASH_MIN, GEESE_MAX, -1};
 	int max;
 	int init;
@@ -294,8 +294,8 @@ void init_game_help()
 {
 	if (variant_goAgain)
 	{
-kHelpTextInterface    =
-"Your move consists of the location of the piece you want to move\n\
+		kHelpTextInterface    =
+		        "Your move consists of the location of the piece you want to move\n\
 and the location of where you want to move the piece to.\n\
 \nFor example, the move\n\
 \t[c4 c5]  (brackets are not necessary)\n\
@@ -312,12 +312,12 @@ The jump will kill the geese and remove the piece from the board.\n\
 Sometimes the fox has the option of jumping multiple times,\n\
 Enter in the move of your first jump. You will then be given the\n\
 chance to enter the moves of your second jump. When you don't want\n\
-to jump any longer, enter a 'd' (Done) to end your turn.";
+to jump any longer, enter a 'd' (Done) to end your turn."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 	}
 	else
 	{
-kHelpTextInterface    =
-"Your move consists of the location of the piece you want to move\n\
+		kHelpTextInterface    =
+		        "Your move consists of the location of the piece you want to move\n\
 and the location of where you want to move the piece to.\n\
 \nFor example, the move\n\
 \t[c4 c5]  (brackets are not necessary)\n\
@@ -331,26 +331,26 @@ A fox must jump when given the opportunity.\n\
 entering in the coordinates of the piece you want to move and\n\
 the coordinates you want to jump to.\n\
 The jump will kill the geese and remove the piece from the board.\n\
-You have disabled the opportunity to perform multiple jumps.";
+You have disabled the opportunity to perform multiple jumps."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ;
 	}
 	if (variant_geeseMoveBackwards)
 	{
-kHelpOnYourTurn =
-"Both the fox and the geese can move to any adjacent empty square that\n\
+		kHelpOnYourTurn =
+		        "Both the fox and the geese can move to any adjacent empty square that\n\
 is connected to a piece by a line. Note that you can only move to a\n\
-few spots using a diagonal route.";
+few spots using a diagonal route."                                                                                                                                                                         ;
 	}
 	else
 	{
-kHelpOnYourTurn =
-"Both the fox and the geese can move to any adjacent empty square that\n\
+		kHelpOnYourTurn =
+		        "Both the fox and the geese can move to any adjacent empty square that\n\
 is connected to a piece by a line. Note that you can only move to a\n\
 few spots using a diagonal route. The geese cannot move away from the\n\
-'castle' area.";
+'castle' area."                                                                                                                                                                                                                                                  ;
 	}
 
-kHelpStandardObjective =
-"If you're the fox...\n\
+	kHelpStandardObjective =
+	        "If you're the fox...\n\
 \n\
 Kill all the geese before they occupy the 'castle' area.\n\
 In general, this means kill as many as you can.\n\
@@ -362,10 +362,10 @@ Alternately, the geese can win if they trap the foxes so they\n\
 cannot move.\n\
 \n\
 The castle is defined to be the locations of these coordinates:\n\
-b1, c1, d2, b2, c2, d2.";
+b1, c1, d2, b2, c2, d2."                                                                                                                                                                                                                                                                                                                                                                                                                       ;
 
-kHelpReverseObjective =
-"If you're the fox...\n\
+	kHelpReverseObjective =
+	        "If you're the fox...\n\
 \n\
 Try to let the geese take over the 'castle' area, or \n\
 let them trap you.\n\
@@ -375,15 +375,15 @@ If you're the geese...\n\
 Try to let the fox kill you.\n\
 \n\
 The castle is defined to be the locations of these coordinates:\n\
-b1, c1, d2, b2, c2, d2.";
+b1, c1, d2, b2, c2, d2."                                                                                                                                                                                                                                                                     ;
 
-kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"A tie can never occur in Asalto.";
+	kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
+	                     "A tie can never occur in Asalto.";
 
-kHelpGraphicInterface =
-"No Graphic Interface with Asalto Right Now";
+	kHelpGraphicInterface =
+	        "No Graphic Interface with Asalto Right Now";
 
-kHelpExample = "Type '?' if you need assistance... \n \
+	kHelpExample = "Type '?' if you need assistance... \n \
 \n \
 \n \
         +-------------------------------------------+\n \
@@ -561,7 +561,7 @@ void GameSpecificMenu ()
 		else
 		{
 			printf("DISABLED to ENABLED.\n");
-		}if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n");  }
+		} if (INIT_DEBUG) { printf("mASALTO - InitializeGame() --> generic_hash_init\n");  }
 		printf("\tn)\tChange (N)umber of Geese in Castle To Win (Currently %d)\n",GEESE_MIN);
 
 		printf("\tb)\t(B)ack to previous menu\n\n");
@@ -569,55 +569,55 @@ void GameSpecificMenu ()
 		selection = toupper(GetMyChar());
 		switch (selection)
 		{
-			case 'M':
-				gInitialPosition = GetInitialPosition();
-				break;
-			case 'G':
-				variant_goAgain = (variant_goAgain) ? 0 : 1;
-				selection = 'Z';
-				break;
-			case 'D':
-				variant_diagonals = (variant_diagonals) ? 0 : 1;
-				selection = 'Z';
-				break;
-			case 'A':
-				variant_geeseMoveBackwards = (variant_geeseMoveBackwards) ? 0 : 1;
-				selection = 'Z';
-				break;
-			case 'N':
-				{
-				int OLD_GEESE_MIN = GEESE_MIN;
-					do
-					{
-						char input[80];
+		case 'M':
+			gInitialPosition = GetInitialPosition();
+			break;
+		case 'G':
+			variant_goAgain = (variant_goAgain) ? 0 : 1;
+			selection = 'Z';
+			break;
+		case 'D':
+			variant_diagonals = (variant_diagonals) ? 0 : 1;
+			selection = 'Z';
+			break;
+		case 'A':
+			variant_geeseMoveBackwards = (variant_geeseMoveBackwards) ? 0 : 1;
+			selection = 'Z';
+			break;
+		case 'N':
+		{
+			int OLD_GEESE_MIN = GEESE_MIN;
+			do
+			{
+				char input[80];
 
-						printf("How many geese are needed to win [(C)ancel]? "); GetMyStr(input, 80);
-						input[0] = toupper(input[0]);
-						if (input[0] == 'C')
-						{
-							GEESE_MIN = OLD_GEESE_MIN;
-						}
-						else
-						{
-							GEESE_MIN = input[0] - '0';
-							if ((GEESE_MIN < 0 || 6 < GEESE_MIN))
-							{
-								printf("At least 1 goose and at most 6 geese can be set as a winning condition for Asalto.\n\n");
-							}
-							else if (GEESE_MIN > GEESE_MAX)
-							{
-								printf("You can only require at most %d geese because you only have %d geese on the board!\n\n",GEESE_MAX,GEESE_MAX);
-							}
-						}
-					}while (GEESE_MIN < 0 || 6 < GEESE_MIN || GEESE_MIN > GEESE_MAX);
-					selection = 'Z';
+				printf("How many geese are needed to win [(C)ancel]? "); GetMyStr(input, 80);
+				input[0] = toupper(input[0]);
+				if (input[0] == 'C')
+				{
+					GEESE_MIN = OLD_GEESE_MIN;
 				}
-				break;
-			case 'B':
-				return;
-			default:
-				printf("Invalid Option.\n");
-				break;
+				else
+				{
+					GEESE_MIN = input[0] - '0';
+					if ((GEESE_MIN < 0 || 6 < GEESE_MIN))
+					{
+						printf("At least 1 goose and at most 6 geese can be set as a winning condition for Asalto.\n\n");
+					}
+					else if (GEESE_MIN > GEESE_MAX)
+					{
+						printf("You can only require at most %d geese because you only have %d geese on the board!\n\n",GEESE_MAX,GEESE_MAX);
+					}
+				}
+			} while (GEESE_MIN < 0 || 6 < GEESE_MIN || GEESE_MIN > GEESE_MAX);
+			selection = 'Z';
+		}
+		break;
+		case 'B':
+			return;
+		default:
+			printf("Invalid Option.\n");
+			break;
 		}
 		selection = '0';
 		init_board_hash();
@@ -635,7 +635,7 @@ void GameSpecificMenu ()
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (options)
-	int options[];
+int options[];
 {
 }
 
@@ -670,7 +670,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 
 	if (DOMOVE_DEBUG) { printf("mASALTO - DoMove() Running...\n"); }
 	generic_hash_unhash(getPosition(thePosition), board);
-	if (DOMOVE_TEST) { printf("CURRENT BOARD: %d\n",theMove); PrintBoard(board);}
+	if (DOMOVE_TEST) { printf("CURRENT BOARD: %d\n",theMove); PrintBoard(board); }
 
 	unHashMove(theMove, move);
 
@@ -691,7 +691,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	locationToCoord(destination,coord_destination);
 	/* Now check if we need to remove pieces */
 	if(origPiece == 'F' &&
-	  (abs(coord_origin[0] - coord_destination[0]) == 2 || abs(coord_origin[1] - coord_destination[1]) == 2))
+	   (abs(coord_origin[0] - coord_destination[0]) == 2 || abs(coord_origin[1] - coord_destination[1]) == 2))
 	{
 		int del_coord[2];
 		int del_loc=-1;
@@ -761,18 +761,18 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 			char board[BOARDSIZE];
 			generic_hash_unhash(getPosition(pos), board);
 			unHashMove(move,moveArray);
-			if(GAMESMAN_GOAGAIN_DEBUG) {printf("GO AGAIN %d \n", MoreKillMoves(board, moveArray[1], FOX_PLAYER));}
+			if(GAMESMAN_GOAGAIN_DEBUG) {printf("GO AGAIN %d \n", MoreKillMoves(board, moveArray[1], FOX_PLAYER)); }
 			return MoreKillMoves(board, moveArray[1], FOX_PLAYER);
 		}
 		else
 		{
-			if(GAMESMAN_GOAGAIN_DEBUG){ printf("NO GO AGAIN\n");}
+			if(GAMESMAN_GOAGAIN_DEBUG) { printf("NO GO AGAIN\n"); }
 			return 0;
 		}
 	}
 	else
 	{
-		if(GAMESMAN_GOAGAIN_DEBUG) {printf("NO GO AGAIN\n");}
+		if(GAMESMAN_GOAGAIN_DEBUG) {printf("NO GO AGAIN\n"); }
 		return 0;
 	}
 	return 0;
@@ -791,7 +791,7 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 
 POSITION GetInitialPosition()
 {
-        int boardStats[2];
+	int boardStats[2];
 	char selection = 'Z';
 
 	do
@@ -820,19 +820,19 @@ POSITION GetInitialPosition()
 		selection = toupper(GetMyChar());
 		switch (selection)
 		{
-			case 'G':
-				AddRemoveGeese(start_standard_board);
-				selection = 'Z';
-				break;
-			case 'F':
-				AddRemoveFoxes(start_standard_board);
-				selection= 'Z';
-				break;
-			case 'B':
-				break;
-			default:
-				printf("Invalid option. Try again\n");
-				selection = -1;
+		case 'G':
+			AddRemoveGeese(start_standard_board);
+			selection = 'Z';
+			break;
+		case 'F':
+			AddRemoveFoxes(start_standard_board);
+			selection= 'Z';
+			break;
+		case 'B':
+			break;
+		default:
+			printf("Invalid option. Try again\n");
+			selection = -1;
 		}
 		boardPieceStats(start_standard_board, boardStats);
 		GEESE_MAX = numGeese(boardStats);
@@ -1048,7 +1048,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 		piece = 'Z';
 	}
 
-	if (PRINTPOSITION_DEBUG) { printf("Position Hash " POSITION_FORMAT "\n",position);}
+	if (PRINTPOSITION_DEBUG) { printf("Position Hash " POSITION_FORMAT "\n",position); }
 
 	printf("\n");
 
@@ -1067,7 +1067,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 void PrintSpaces(int spaces)
 {
-	for ( ; spaces > 0; spaces--)
+	for (; spaces > 0; spaces--)
 	{
 		printf(" ");
 	}
@@ -1311,7 +1311,7 @@ int CantMove(const char board[BOARDSIZE], int player)
 	int candidate_move[2] = {-1, -1};
 	int location = 0;
 
-	for (location = 0; location <= 33; location ++)
+	for (location = 0; location <= 33; location++)
 	{
 		candidate_move[0] = location;
 		locationToCoord(location,origin_coord);
@@ -1383,38 +1383,38 @@ int validMove(const char board[BOARDSIZE], int move[2],int player)
 		{
 			switch(origin_coord[1])
 			{
-				case 0:
-				case 1:
-					if (variant_diagonals && diagonal)
-					{
-						return (board[move[1]]) ? 1 : 0;
-					}
-					else
-					{
-						return (board[move[1]] && abs(delta_row) != abs(delta_col)) ? 1 : 0;
-					}
-					break;
-				case 2:
-					if (variant_diagonals && diagonal)
-					{
-						return (board[move[1]]) ? 1 : 0;
-					}
-					else
-					{
-						return (board[move[1]] && abs(delta_row) != abs(delta_col)) ? 1 : 0;
-					}
-					break;
-				case 3:
-				case 4:
-					if (variant_diagonals && diagonal)
-					{
-						return (board[move[1]]) ? 1 : 0;
-					}
-					else
-					{
-						return (board[move[1]] && abs(delta_row) != abs(delta_col)) ? 1 : 0;
-					}
-					break;
+			case 0:
+			case 1:
+				if (variant_diagonals && diagonal)
+				{
+					return (board[move[1]]) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				break;
+			case 2:
+				if (variant_diagonals && diagonal)
+				{
+					return (board[move[1]]) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				break;
+			case 3:
+			case 4:
+				if (variant_diagonals && diagonal)
+				{
+					return (board[move[1]]) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				break;
 
 			}
 		}
@@ -1422,38 +1422,38 @@ int validMove(const char board[BOARDSIZE], int move[2],int player)
 		{
 			switch(origin_coord[1])
 			{
-				case 0:
-				case 1:
-					if (variant_diagonals && diagonal)
-					{
-						return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
-					}
-					else
-					{
-						return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
-					}
-					break;
-				case 2:
-					if (variant_diagonals && diagonal)
-					{
-						return (board[move[1]] && delta_row >= 0) ? 1 : 0;
-					}
-					else
-					{
-						return (board[move[1]] && delta_row >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
-					}
-					break;
-				case 3:
-				case 4:
-					if (variant_diagonals && diagonal)
-					{
-						return (board[move[1]] && delta_row >= 0 && delta_col <= 0) ? 1 : 0;
-					}
-					else
-					{
-						return (board[move[1]] && delta_row >= 0 && delta_col <= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
-					}
-					break;
+			case 0:
+			case 1:
+				if (variant_diagonals && diagonal)
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col >= 0) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				break;
+			case 2:
+				if (variant_diagonals && diagonal)
+				{
+					return (board[move[1]] && delta_row >= 0) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && delta_row >= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				break;
+			case 3:
+			case 4:
+				if (variant_diagonals && diagonal)
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col <= 0) ? 1 : 0;
+				}
+				else
+				{
+					return (board[move[1]] && delta_row >= 0 && delta_col <= 0 && abs(delta_row) != abs(delta_col)) ? 1 : 0;
+				}
+				break;
 
 			}
 		}
@@ -1499,7 +1499,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if (GETANDPRINT_DEBUG) {printf("mASALTO - GetAndPrintPlayersMove() Returning\n"); }
 		if(ret != Continue)
-		return(ret);
+			return(ret);
 	}
 	while (TRUE);
 	return(Continue); /* this is never reached, but lint is now happy */
@@ -1526,7 +1526,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 BOOLEAN ValidTextInput (STRING input)
 {
 	if (VALIDTEXT_DEBUG) {printf("mASALTO - ValidTextInput() Start\n");
-			      printf("mASALTO - ValidTextInput() <-- %s\n",input);}
+		              printf("mASALTO - ValidTextInput() <-- %s\n",input); }
 
 	if(strlen(input) == 1)
 	{
@@ -1541,21 +1541,21 @@ BOOLEAN ValidTextInput (STRING input)
 		{
 			printf("String Length 5\n");
 			printf("Result: %d\n",('A' <= input[0] && input[0] <= 'E')
-			&&
-			('1' <= input[1] && input[1] <= '5')
-			&&
-			('A' <= input[3] && input[3] <= 'E')
-			&&
-			('1' <= input[4] && input[4] <= '5'));
+			       &&
+			       ('1' <= input[1] && input[1] <= '5')
+			       &&
+			       ('A' <= input[3] && input[3] <= 'E')
+			       &&
+			       ('1' <= input[4] && input[4] <= '5'));
 		}
 
-		return  ('A' <= input[0] && input[0] <= 'E')
-			&&
-			('1' <= input[1] && input[1] <= '5')
-			&&
-			('A' <= input[3] && input[3] <= 'E')
-			&&
-			('1' <= input[4] && input[4] <= '5');
+		return ('A' <= input[0] && input[0] <= 'E')
+		       &&
+		       ('1' <= input[1] && input[1] <= '5')
+		       &&
+		       ('A' <= input[3] && input[3] <= 'E')
+		       &&
+		       ('1' <= input[4] && input[4] <= '5');
 	}
 	else if (strlen(input) == 7)
 	{
@@ -1566,28 +1566,28 @@ BOOLEAN ValidTextInput (STRING input)
 		{
 			printf("String Length 7\n");
 			printf("Result: %d\n",
-			('A' <= input[0] && input[0] <= 'E')
-			&&
-			('1' <= input[1] && input[1] <= '5')
-			&&
-			('A' <= input[3] && input[3] <= 'E')
-			&&
-			('1' <= input[4] && input[4] <= '5')
-			&&
-			input[6] == 'G'
-			);
+			       ('A' <= input[0] && input[0] <= 'E')
+			       &&
+			       ('1' <= input[1] && input[1] <= '5')
+			       &&
+			       ('A' <= input[3] && input[3] <= 'E')
+			       &&
+			       ('1' <= input[4] && input[4] <= '5')
+			       &&
+			       input[6] == 'G'
+			       );
 		}
 
-		return  ('A' <= input[0] && input[0] <= 'E')
-			&&
-			('1' <= input[1] && input[1] <= '5')
-			&&
-			('A' <= input[3] && input[3] <= 'E')
-			&&
-			('1' <= input[4] && input[4] <= '5')
-			&&
-			input[6] == 'G'
-			;
+		return ('A' <= input[0] && input[0] <= 'E')
+		       &&
+		       ('1' <= input[1] && input[1] <= '5')
+		       &&
+		       ('A' <= input[3] && input[3] <= 'E')
+		       &&
+		       ('1' <= input[4] && input[4] <= '5')
+		       &&
+		       input[6] == 'G'
+		;
 	}
 	else
 	{
@@ -1665,7 +1665,7 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void PrintMove (MOVE move)
 {
-  printf( "%s", MoveToString( move ) );
+	printf( "%s", MoveToString( move ) );
 }
 
 
@@ -1680,27 +1680,27 @@ void PrintMove (MOVE move)
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING move = (STRING) SafeMalloc(9);
+	STRING move = (STRING) SafeMalloc(9);
 
-  int moveArray[2];
-  char origin_grid[2];
-  char destination_grid[2];
-  int origin_coord[2];
-  int destination_coord[2];
+	int moveArray[2];
+	char origin_grid[2];
+	char destination_grid[2];
+	int origin_coord[2];
+	int destination_coord[2];
 
-  unHashMove(theMove,moveArray);
+	unHashMove(theMove,moveArray);
 
-  locationToCoord(moveArray[0], origin_coord);
-  locationToCoord(moveArray[1], destination_coord);
+	locationToCoord(moveArray[0], origin_coord);
+	locationToCoord(moveArray[1], destination_coord);
 
-  coordToGridCoordinate(origin_coord, origin_grid);
-  coordToGridCoordinate(destination_coord, destination_grid);
+	coordToGridCoordinate(origin_coord, origin_grid);
+	coordToGridCoordinate(destination_coord, destination_grid);
 
-  sprintf(move, "[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
+	sprintf(move, "[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
 
-  return move;
+	return move;
 }
 
 
@@ -1741,10 +1741,10 @@ int getOption()
 	if (SETOPTION_DEBUG)
 	{
 		printf("\nBEFORE   GoAgain %d   Diagonals %d   MoveBackwards %d  GeeseMin %d\n",
-		        variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
+		       variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
 		setOption(hashed);
 		printf("HASH %d   GoAgain %d   Diagonals %d   MoveBackwards %d  GeeseMin %d\n",
-		        hashed, variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
+		       hashed, variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
 	}
 	return hashed;
 }
@@ -1764,16 +1764,16 @@ int getOption()
 
 void setOption(int option)
 {
-	           variant_goAgain = option & 0x1; /* 0b001 */
-	         variant_diagonals = option >> 1 & 0x1;
+	variant_goAgain = option & 0x1;            /* 0b001 */
+	variant_diagonals = option >> 1 & 0x1;
 	variant_geeseMoveBackwards = option >> 2 & 0x1;
-	                 GEESE_MIN = option >> 3;
-		    GEESE_HASH_MIN = GEESE_MIN - 1;
-		    init_board_hash();
+	GEESE_MIN = option >> 3;
+	GEESE_HASH_MIN = GEESE_MIN - 1;
+	init_board_hash();
 	if (SETOPTION_DEBUG)
 	{
 		printf("\nGoAgain %d   Diagonals %d   MoveBackwards %d  GeeseMin %d\n",
-		        variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
+		       variant_goAgain, variant_diagonals, variant_geeseMoveBackwards, GEESE_MIN);
 	}
 }
 
@@ -1837,11 +1837,11 @@ void PrintBoard (char board[])
 int diagonalConnect(int location)
 {
 	return
-	(location == 1)
-	||
-	( (4 <= location && location <= 17) && location%2 == 0)
-	||
-	(location == 19);
+	        (location == 1)
+	        ||
+	        ( (4 <= location && location <= 17) && location%2 == 0)
+	        ||
+	        (location == 19);
 }
 
 void AddRemoveFoxes(char board[])
@@ -1875,67 +1875,67 @@ void AddRemoveFoxes(char board[])
 		selection = toupper(GetMyChar());
 		switch (selection)
 		{
-			case 'A':
-				printf("Where do you wish to add a fox [(S)top]?\n");
-				validCoord = 0;
-				do
-				{
-					UserInputCoordinate(coordinate);
-					if(coordinate[0] < 0)
-					{
-						break;
-					}
-					location = coordToLocation(coordinate);
-					if (board[location] == ' ')
-					{
-						board[location] = 'F';
-						validCoord = 1;
-					}
-					else
-					{
-						printf("A piece is already there.\n");
-						validCoord = 0;
-					}
-				}while(!validCoord);
-				selection = 'Z';
-				break;
-			case 'R':
-				printf("Where do you wish to remove a fox?\n");
-				validCoord = 0;
-				do
-				{
-					UserInputCoordinate(coordinate);
-					if(coordinate[0] < 0)
-					{
-						break;
-					}
-					location = coordToLocation(coordinate);
-					if (board[location] == 'F')
-					{
-						board[location] = ' ';
-						validCoord = 1;
-					}
-					else
-					{
-						printf("That's not a fox.");
-						validCoord = 0;
-					}selection = 'Z';
-				}while(!validCoord);
-				selection = 'Z';
-				break;
-			case 'B':
-				if (numFoxes(boardStats) < 2)
-				{
-					printf("You must have two foxes on the board.\n");
-					selection = 'Z';
-				}
-				else
+		case 'A':
+			printf("Where do you wish to add a fox [(S)top]?\n");
+			validCoord = 0;
+			do
+			{
+				UserInputCoordinate(coordinate);
+				if(coordinate[0] < 0)
 				{
 					break;
 				}
-			default:
-				printf("Invalid option. Try again\n");
+				location = coordToLocation(coordinate);
+				if (board[location] == ' ')
+				{
+					board[location] = 'F';
+					validCoord = 1;
+				}
+				else
+				{
+					printf("A piece is already there.\n");
+					validCoord = 0;
+				}
+			} while(!validCoord);
+			selection = 'Z';
+			break;
+		case 'R':
+			printf("Where do you wish to remove a fox?\n");
+			validCoord = 0;
+			do
+			{
+				UserInputCoordinate(coordinate);
+				if(coordinate[0] < 0)
+				{
+					break;
+				}
+				location = coordToLocation(coordinate);
+				if (board[location] == 'F')
+				{
+					board[location] = ' ';
+					validCoord = 1;
+				}
+				else
+				{
+					printf("That's not a fox.");
+					validCoord = 0;
+				} selection = 'Z';
+			} while(!validCoord);
+			selection = 'Z';
+			break;
+		case 'B':
+			if (numFoxes(boardStats) < 2)
+			{
+				printf("You must have two foxes on the board.\n");
 				selection = 'Z';
+			}
+			else
+			{
+				break;
+			}
+		default:
+			printf("Invalid option. Try again\n");
+			selection = 'Z';
 		}
 		boardPieceStats(start_standard_board, boardStats);
 		GEESE_MAX = numGeese(boardStats);
@@ -1970,59 +1970,59 @@ void AddRemoveGeese(char board[])
 		selection = toupper(GetMyChar());
 		switch (selection)
 		{
-			case 'A':
-				printf("Where do you wish to add a goose [(S)top]?\n");
-				validCoord = 0;
-				do
+		case 'A':
+			printf("Where do you wish to add a goose [(S)top]?\n");
+			validCoord = 0;
+			do
+			{
+				UserInputCoordinate(coordinate);
+				if(coordinate[0] < 0)
 				{
-					UserInputCoordinate(coordinate);
-					if(coordinate[0] < 0)
-					{
-						break;
-					}
-					location = coordToLocation(coordinate);
-					if (board[location] == ' ')
-					{
-						board[location] = 'G';
-						validCoord = 1;
-					}
-					else
-					{
-						printf("A piece is already there.\n");
-						validCoord = 0;
-					}
-				}while(!validCoord);
-				selection = 'Z';
-				break;
-			case 'R':
-				printf("Where do you wish to remove a goose [(S)top]?\n");
-				validCoord = 0;
-				do
+					break;
+				}
+				location = coordToLocation(coordinate);
+				if (board[location] == ' ')
 				{
-					UserInputCoordinate(coordinate);
-					if(coordinate[0] < 0)
-					{
-						break;
-					}
-					location = coordToLocation(coordinate);
-					if (board[location] == 'G')
-					{
-						board[location] = ' ';
-						validCoord = 1;
-					}
-					else
-					{
-						printf("That's not a goose.");
-						validCoord = 0;
-					}
-				}while(!validCoord);
-				selection = 'Z';
-				break;
-			case 'B':
-				return;
-			default:
-				printf("Invalid option. Try again\n");
-				selection = 'Z';
+					board[location] = 'G';
+					validCoord = 1;
+				}
+				else
+				{
+					printf("A piece is already there.\n");
+					validCoord = 0;
+				}
+			} while(!validCoord);
+			selection = 'Z';
+			break;
+		case 'R':
+			printf("Where do you wish to remove a goose [(S)top]?\n");
+			validCoord = 0;
+			do
+			{
+				UserInputCoordinate(coordinate);
+				if(coordinate[0] < 0)
+				{
+					break;
+				}
+				location = coordToLocation(coordinate);
+				if (board[location] == 'G')
+				{
+					board[location] = ' ';
+					validCoord = 1;
+				}
+				else
+				{
+					printf("That's not a goose.");
+					validCoord = 0;
+				}
+			} while(!validCoord);
+			selection = 'Z';
+			break;
+		case 'B':
+			return;
+		default:
+			printf("Invalid option. Try again\n");
+			selection = 'Z';
 		}
 		boardPieceStats(start_standard_board, boardStats);
 		GEESE_MAX = numGeese(boardStats);
@@ -2067,15 +2067,15 @@ void boardPieceStats(char board[BOARDSIZE], int stats[3])
 
 int numFoxes(int stats[3])
 {
-  return stats[0];
+	return stats[0];
 }
 int numGeese(int stats[3])
 {
-  return stats[1];
+	return stats[1];
 }
 int numWinGeese(int stats[3])
 {
-  return stats[2];
+	return stats[2];
 }
 
 int coordToLocation(int coordinates[2])
@@ -2123,7 +2123,7 @@ void locationToCoord(int location, int coordinates[2])
 	}
 	else if (18 <= location && location <= 20)
 	{
-	/* Translate 5 Down */
+		/* Translate 5 Down */
 		location -= 18;
 		coordinates[1] = location + 1;
 		coordinates[0] = 4;
@@ -2150,9 +2150,9 @@ int validCoord(int coord[2])
 }
 
 /*
-	unsafe....
+        unsafe....
 
-*/
+ */
 
 void UserInput(char input[])
 {
@@ -2187,59 +2187,59 @@ void UserInputCoordinate(int coordinate[2])
 			printf("Invalid coordinate. Use coordinates of this style: C3\n");
 		}
 
-	}while(validCoord(coord) != 1);
+	} while(validCoord(coord) != 1);
 }
 
 int mergePositionGoAgain(int position, int goAgainPos)
 {
-        return goAgainPos | position << NUM_GOAGAIN_BITS;
+	return goAgainPos | position << NUM_GOAGAIN_BITS;
 }
 
 void mergePositionSetRequiredBits(int numFoxes)
 {
-        numFoxes += 1;
-        if (1 < numFoxes && numFoxes <= 3)
-        {
-                NUM_GOAGAIN_BITS=2;
-        }
-        else if (3 < numFoxes && numFoxes <= 7)
-        {
-                NUM_GOAGAIN_BITS=3;
-        }
-        else if (7 < numFoxes && numFoxes <= 15)
-        {
-                NUM_GOAGAIN_BITS=4;
-        }
-        else if (15 < numFoxes && numFoxes <= 31)
-        {
-                NUM_GOAGAIN_BITS=5;
-        }
+	numFoxes += 1;
+	if (1 < numFoxes && numFoxes <= 3)
+	{
+		NUM_GOAGAIN_BITS=2;
+	}
+	else if (3 < numFoxes && numFoxes <= 7)
+	{
+		NUM_GOAGAIN_BITS=3;
+	}
+	else if (7 < numFoxes && numFoxes <= 15)
+	{
+		NUM_GOAGAIN_BITS=4;
+	}
+	else if (15 < numFoxes && numFoxes <= 31)
+	{
+		NUM_GOAGAIN_BITS=5;
+	}
 
 }
 
 int getPosition(int mergedPos)
 {
-        return mergedPos >> NUM_GOAGAIN_BITS;
+	return mergedPos >> NUM_GOAGAIN_BITS;
 }
 
 int getGoAgainFoxNum(int mergedPos)
 {
-        return mergedPos & (intpow(2,NUM_GOAGAIN_BITS) - 1);
+	return mergedPos & (intpow(2,NUM_GOAGAIN_BITS) - 1);
 }
 int GoAgainPos(int mergedPos)
 {
 
-        return (variant_goAgain && (getGoAgainFoxNum(mergedPos) > 0));
+	return (variant_goAgain && (getGoAgainFoxNum(mergedPos) > 0));
 }
 
 int intpow (int base, int exp)
 {
-        int product = 1;
-        for (; exp > 0; exp--)
-        {
-                product *= base;
-        }
-        return product;
+	int product = 1;
+	for (; exp > 0; exp--)
+	{
+		product *= base;
+	}
+	return product;
 }
 
 int getFoxNumber(const char board[BOARDSIZE], int loc)
@@ -2273,12 +2273,12 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum)
 	return -1;
 }
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

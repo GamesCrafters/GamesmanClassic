@@ -4,76 +4,76 @@
 #include "gamesman.h"
 
 /*
-  Type declarations
-*/
+   Type declarations
+ */
 
-typedef BOOLEAN (*univht_equal) (void *, void*);
-typedef unsigned long long (*univht_hashcode) (void *);
-typedef void (*univht_destructor) (void *);
-typedef void *(*univht_visitor) (void *, void *);
+typedef BOOLEAN (*univht_equal)(void *, void*);
+typedef unsigned long long (*univht_hashcode)(void *);
+typedef void (*univht_destructor)(void *);
+typedef void *(*univht_visitor)(void *, void *);
 
 typedef struct {
 
-  /* Number of slots in hash table */
-  unsigned long int slots;
+	/* Number of slots in hash table */
+	unsigned long int slots;
 
-  /* Number of entries in hash table */
-  unsigned long int entries;
+	/* Number of entries in hash table */
+	unsigned long int entries;
 
-  /* The prime modulus */
-  unsigned long int modulus;
-  
-  /* The linear coefficient to ax + b */
-  unsigned long int a;
+	/* The prime modulus */
+	unsigned long int modulus;
 
-  /* The constant coefficient to ax + b */
-  unsigned long int b;
+	/* The linear coefficient to ax + b */
+	unsigned long int a;
 
-  /* Load factor allowed until insert causes resizing */
-  float load_factor;
+	/* The constant coefficient to ax + b */
+	unsigned long int b;
 
-  /* Function to compare two table entries */
-  univht_equal equal;
+	/* Load factor allowed until insert causes resizing */
+	float load_factor;
 
-  /* Function to calculate hash code for entry */
-  univht_hashcode hashcode;
+	/* Function to compare two table entries */
+	univht_equal equal;
 
-  /* Function to destroy entry */
-  univht_destructor destructor;
+	/* Function to calculate hash code for entry */
+	univht_hashcode hashcode;
 
-  /* Array storage */
-  void **table;
-  
-  /* Offset of chain within entry object */
-  int entry_chain_offset;
-  
-  /***
-      Statistical entries
-  ***/
-  
-  /* Length of longest chain */
-  unsigned long int stat_max_chain_length;
-  
-  /* Chain length on average (excludes 0 length chains) */
-  double stat_avg_chain_length;
-  
-  /* Number of lookups for most looked up entry in table */
-  unsigned long int stat_max_entry_lookup;
-  
-  /* Average number of lookups for entry in table */
-  double stat_avg_entry_lookup;
-  
-  /* Entry size in bytes (constant across all entries, but is only used for statistical purposes) */
-  unsigned int stat_entry_size;
-  
-  /* Number of chains (occupied slots) in hash table */
-  unsigned long int stat_chains;
+	/* Function to destroy entry */
+	univht_destructor destructor;
+
+	/* Array storage */
+	void **table;
+
+	/* Offset of chain within entry object */
+	int entry_chain_offset;
+
+	/***
+	    Statistical entries
+	 ***/
+
+	/* Length of longest chain */
+	unsigned long int stat_max_chain_length;
+
+	/* Chain length on average (excludes 0 length chains) */
+	double stat_avg_chain_length;
+
+	/* Number of lookups for most looked up entry in table */
+	unsigned long int stat_max_entry_lookup;
+
+	/* Average number of lookups for entry in table */
+	double stat_avg_entry_lookup;
+
+	/* Entry size in bytes (constant across all entries, but is only used for statistical purposes) */
+	unsigned int stat_entry_size;
+
+	/* Number of chains (occupied slots) in hash table */
+	unsigned long int stat_chains;
 
 } univht;
 
 /*
-  Function prototypes
-*/
+   Function prototypes
+ */
 
 /* Generation of random prime between number and 2 * number */
 unsigned long int find_next_random_prime(unsigned long int number);

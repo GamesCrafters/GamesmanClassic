@@ -45,25 +45,25 @@
 
 typedef gzFile dbFILE;
 /*
-typedef unsigned char BYTE;
-typedef unsigned char UINT8;
-typedef unsigned int UINT32;
-typedef long long int INT64;
-typedef unsigned long long int UINT64;
+   typedef unsigned char BYTE;
+   typedef unsigned char UINT8;
+   typedef unsigned int UINT32;
+   typedef long long int INT64;
+   typedef unsigned long long int UINT64;
 
-typedef UINT32 GMSTATUS;
-*/
+   typedef UINT32 GMSTATUS;
+ */
 
 
 #define BITSINBYTE 8
 #define BITSINPOS 64
 
 #define SAFE_FREE(ptr) \
-        if(NULL != ptr) \
-            free(ptr);
+	if(NULL != ptr) \
+		free(ptr);
 
 #define BPDB_TRACE(fnc, msg, err) \
-        fprintf(stderr, "\nERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg));
+	fprintf(stderr, "\nERROR CODE 0x%04x : %s : %s\n", (err), (fnc), (msg));
 
 #define STATUS_SUCCESS                      0x0
 #define STATUS_NOT_ENOUGH_MEMORY            0x1
@@ -73,7 +73,7 @@ typedef UINT32 GMSTATUS;
 #define STATUS_FILE_COULD_NOT_BE_CLOSED     0x4
 #define STATUS_BAD_COMPRESSION              0x5
 #define STATUS_BAD_DECOMPRESSION            0x6
-#define STATUS_FILE_COULD_NOT_BE_SEEKED		0x7
+#define STATUS_FILE_COULD_NOT_BE_SEEKED         0x7
 
 #define STATUS_MISSING_DEPENDENT_MODULE     0x10
 #define STATUS_NO_SCHEMES_INSTALLED         0x11
@@ -83,7 +83,7 @@ typedef UINT32 GMSTATUS;
 #define STATUS_INVALID_OPERATION            0x99
 
 #define GMSUCCESS(status) \
-        (STATUS_SUCCESS == (status))
+	(STATUS_SUCCESS == (status))
 
 #define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
 
@@ -94,11 +94,11 @@ typedef UINT32 GMSTATUS;
 
 typedef struct singlylinkedlist {
 
-    // object stored in the linked list
-    void            *obj;
+	// object stored in the linked list
+	void            *obj;
 
-    // pointer to the next node
-    struct singlylinkedlist *next;
+	// pointer to the next node
+	struct singlylinkedlist *next;
 } *SLIST;
 
 SLIST
@@ -106,19 +106,19 @@ slist_new( );
 
 SLIST
 slist_add(
-                SLIST sl,
-                void *obj
-                );
+        SLIST sl,
+        void *obj
+        );
 
 UINT32
 slist_size(
-                SLIST sl
-                );
+        SLIST sl
+        );
 
 void
 slist_free(
-                SLIST sl
-                );
+        SLIST sl
+        );
 
 
 //
@@ -127,11 +127,11 @@ slist_free(
 
 typedef struct hashtable_singlylinkedlist {
 
-    UINT32 key;
-    UINT32 value;
+	UINT32 key;
+	UINT32 value;
 
-    // pointer to the next node
-    struct hashtable_singlylinkedlist *next;
+	// pointer to the next node
+	struct hashtable_singlylinkedlist *next;
 } *HTABLE_SLIST;
 
 HTABLE_SLIST
@@ -139,61 +139,61 @@ htable_slist_new( );
 
 HTABLE_SLIST
 htable_slist_add(
-                HTABLE_SLIST sl,
-                UINT32 key,
-                UINT32 value
-                );
+        HTABLE_SLIST sl,
+        UINT32 key,
+        UINT32 value
+        );
 
 UINT32
 htable_slist_size(
-                HTABLE_SLIST sl
-                );
+        HTABLE_SLIST sl
+        );
 
 void
 htable_slist_free(
-                HTABLE_SLIST sl
-                );
+        HTABLE_SLIST sl
+        );
 
 
 typedef struct hashtable {
-    UINT32 size;
-    HTABLE_SLIST *buckets;
+	UINT32 size;
+	HTABLE_SLIST *buckets;
 } *HTABLE;
 
 HTABLE
 htable_new(
-                UINT32 size
-                );
+        UINT32 size
+        );
 
 void
 htable_add(
-                HTABLE ht,
-                UINT32 key,
-                UINT32 value
-                );
+        HTABLE ht,
+        UINT32 key,
+        UINT32 value
+        );
 
 void
 htable_set(
-                HTABLE ht,
-                UINT32 key,
-                UINT32 value
-                );
+        HTABLE ht,
+        UINT32 key,
+        UINT32 value
+        );
 
 BOOLEAN
 htable_contains(
-                HTABLE ht,
-                UINT32 key
-                );
+        HTABLE ht,
+        UINT32 key
+        );
 
 UINT32
 htable_get(
-                HTABLE ht,
-                UINT32 key
-                );
+        HTABLE ht,
+        UINT32 key
+        );
 
 void
 htable_free(
-                HTABLE ht
-                );
+        HTABLE ht
+        );
 
 #endif /* GMCORE_BPDB_MISC_H */

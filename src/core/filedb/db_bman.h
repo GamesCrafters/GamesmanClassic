@@ -36,9 +36,9 @@
 #include "db_basichash.h"
 #include "db_buf.h"
 
-gamesdb_bman* 	gamesdb_bman_init();//,frame_id (*r_fn) (db_bman*));
-gamesdb_frameid	gamesdb_bman_find(gamesdb*, gamesdb_pageid);
-gamesdb_frameid	gamesdb_bman_replace(gamesdb*, gamesdb_pageid);
-void			gamesdb_bman_destroy(gamesdb_bman*);
+gamesdb_bman*   gamesdb_bman_init(); //,frame_id (*r_fn) (db_bman*));
+gamesdb_frameid gamesdb_bman_find(gamesdb*, gamesdb_pageid);
+gamesdb_frameid gamesdb_bman_replace(gamesdb*, gamesdb_pageid);
+void                    gamesdb_bman_destroy(gamesdb_bman*);
 
 #endif /* GMCORE_DB_BMAN_H */

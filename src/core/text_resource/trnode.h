@@ -10,18 +10,18 @@ enum TRNODETYPE {TRNODE_STRING, TRNODE_SWITCH, TRNODE_REPR, TRNODE_TEXT};
 typedef struct trnode {
 	enum TRNODETYPE type;
 	struct trnode* children_list;
-	
+
 	//structural linked-list (old c development style =P, since we DON'T HAVE STL)
 	struct trnode* next;
-	
+
 	//node specific data
 	union {
 		//we are string or case node
 		bstring caseValue; //not null if we are actually a case
-		
+
 		//we are switch node
 		bstring switchVar;
-		
+
 		//we are repr or cond node
 		struct {
 			bstring reprKey;
@@ -29,7 +29,7 @@ typedef struct trnode {
 			bstring condKey; //not null if we are actually a cond
 			bstring condValue;
 		};
-		
+
 		//we are text node
 		bstring textData;
 	};

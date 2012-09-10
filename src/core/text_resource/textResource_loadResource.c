@@ -21,15 +21,15 @@ static void die(char* msg) {
 //helper func for finding attr in attrlist
 static const XML_Char* _trl_findAttr(const XML_Char** atts, const char* key) {
 	int i=0;
-	
+
 	while (atts[i] != NULL) {
 		if (!strcmp(atts[i],key))
 			return atts[i+1];
 		i+=2;
 	}
-	
+
 	return NULL;
-	
+
 }
 
 //helper func to push the node to top of stack
@@ -48,16 +48,16 @@ static trnode_t* _trl_pop() {
 }
 
 static void _trl_elem_start(void *userData,
-        const XML_Char *name,
-        const XML_Char **atts) {
+                            const XML_Char *name,
+                            const XML_Char **atts) {
 	gLastNode = NULL;
 	if (gNodeStack) {
 		switch(gNodeStack->type) {
-		case TRNODE_STRING:			//in it we expect cond and repr
+		case TRNODE_STRING:                     //in it we expect cond and repr
 
 			; //this semicolon is very important.
 			trnode_t* node;
-			
+
 			if (!strcmp(name,"cond")) {
 				const XML_Char* key = _trl_findAttr(atts,"key");
 				if (!key) die("cond node must contain 'key' attribute");
@@ -65,17 +65,17 @@ static void _trl_elem_start(void *userData,
 				if (!var) die("cond node must contain 'var' attribute");
 				const XML_Char* value = _trl_findAttr(atts,"value");
 				if (!value) die("cond node must contain 'value' attribute");
-				
+
 				node = trnode_createReprNode(key,var,value);
 			} else if (!strcmp(name,"repr")) {
 				const XML_Char* key = _trl_findAttr(atts,"key");
 				if (!key) die("repr node must contain 'key' attribute");
-				
+
 				node = trnode_createReprNode(key,NULL,NULL);
 			} else {
 				fprintf(stderr,"Got '%s': ",name);
 				die("STRING/CASE nodes should "
-						"only contain \"cond\" or \"repr\" nodes");
+				    "only contain \"cond\" or \"repr\" nodes");
 			}
 			_trl_push(node);
 			break;
@@ -100,12 +100,12 @@ static void _trl_elem_start(void *userData,
 			break;
 		}
 	}
-	
+
 	//we are on root node
 	if (!strcmp(name,"string")) {
 		const XML_Char* key = _trl_findAttr(atts,"key");
 		if (!key) die("string node must contain 'key' attribute");
-		
+
 		trnode_t* node = trnode_createStringNode(NULL);
 		//put this in our TextResource hashtable
 		ght_insert(gCurrentResource->strings,node,strlen(key),key);
@@ -115,7 +115,7 @@ static void _trl_elem_start(void *userData,
 		if (!key) die("switch node must contain 'key' attribute");
 		const XML_Char* var = _trl_findAttr(atts,"var");
 		if (!var) die("switch node must contain 'var' attribute");
-		
+
 		trnode_t* node = trnode_createSwitchNode(var);
 		ght_insert(gCurrentResource->strings,node,strlen(key),key);
 		_trl_push(node);
@@ -131,7 +131,7 @@ static void _trl_elem_end(void *userData, const XML_Char *name) {
 	else { //this is a top level node
 
 	}
-		
+
 }
 
 static void _trl_elem_text(void *userData,const XML_Char *s,int len) {
@@ -139,11 +139,11 @@ static void _trl_elem_text(void *userData,const XML_Char *s,int len) {
 	bstring newline = bfromcstr("\n");
 	bstring tab = bfromcstr("\t");
 	bstring space = bfromcstr(" ");
-	
+
 	//create a text node and stick it to the end of the current list, trim spaces of course
 	if (gNodeStack && gNodeStack->type == TRNODE_STRING) {
 		bstring str = blk2bstr(s,len);
-		
+
 		bfindreplace(str,newline,space,0);
 		bfindreplace(str,tab,space,0);
 		if (blength(str)) {
@@ -158,7 +158,7 @@ static void _trl_elem_text(void *userData,const XML_Char *s,int len) {
 		}
 		bdestroy(str);
 	}
-	
+
 	bdestroy(newline);
 	bdestroy(tab);
 	bdestroy(space);
@@ -172,22 +172,22 @@ int _TextResource_loadResource(TextResource tr, const char* filename) {
 	gNodeStack = NULL;
 	gCurrentResource = tr;
 	gLastNode = NULL;
-	
+
 	XML_Parser p = XML_ParserCreate(NULL);
-	
+
 	if (p == NULL) {
 		fprintf(stderr,"XML_Parser allocation fail\n");
 	}
-	
+
 	XML_SetElementHandler(p,_trl_elem_start, _trl_elem_end);
 	XML_SetCharacterDataHandler(p,_trl_elem_text);
-	
+
 	FILE* file = fopen(filename,"r");
-	
+
 	if (file == NULL)
 		fprintf(stderr, "Text Resource File open failed.\n");
 
-	for (;;) {
+	for (;; ) {
 		int done;
 		int len;
 
@@ -201,8 +201,8 @@ int _TextResource_loadResource(TextResource tr, const char* filename) {
 
 		if (!XML_Parse(p, gBuff, len, done)) {
 			fprintf(stderr, "Text Resource File Parse error at line %d:\n%s\n",
-					XML_GetCurrentLineNumber(p),
-					XML_ErrorString(XML_GetErrorCode(p)));
+			        XML_GetCurrentLineNumber(p),
+			        XML_ErrorString(XML_GetErrorCode(p)));
 			fclose(file);
 			exit(-1);
 		}
@@ -212,6 +212,6 @@ int _TextResource_loadResource(TextResource tr, const char* filename) {
 	}
 	fclose(file);
 	XML_ParserFree(p);
-	
+
 	return 1;
 }

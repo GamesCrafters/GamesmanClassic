@@ -37,56 +37,56 @@
 **
 **************************************************************************/
 
-STRING   kGameName            = "Odd or Even"; /* The name of your game */
-STRING   kAuthorName          = "Peter Yu"; /* Your name(s) */
-STRING   kDBName              = "ooe"; /* The name to store the database under */
+STRING kGameName            = "Odd or Even";   /* The name of your game */
+STRING kAuthorName          = "Peter Yu";   /* Your name(s) */
+STRING kDBName              = "ooe";   /* The name to store the database under */
 
 void* gGameSpecificTclInit = NULL;
 
-BOOLEAN  kPartizan            = FALSE ; /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN  kGameSpecificMenu    = FALSE ; /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN  kTieIsPossible       = FALSE ; /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN  kLoopy               = FALSE ; /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN kPartizan            = FALSE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
+BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
+BOOLEAN kTieIsPossible       = FALSE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
+BOOLEAN kLoopy               = FALSE;   /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
-BOOLEAN  kDebugMenu           = TRUE ; /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN  kDebugDetermineValue = TRUE ; /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugMenu           = TRUE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = TRUE;   /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  3000000; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-						 /* Don't know */
+/* Don't know */
 POSITION gInitialPosition     =  1150000; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 
-/* 
+/*
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
 STRING kHelpGraphicInterface =
-"Not written yet";
+        "Not written yet";
 
-STRING   kHelpTextInterface    =
-"On your turn, type in the number 1, 2, or 3 and hit return. If at any point\n\
+STRING kHelpTextInterface    =
+        "On your turn, type in the number 1, 2, or 3 and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position."; 
+revert back to your most recent position."                                                                                                                                                                        ;
 
-STRING   kHelpOnYourTurn =
-"You can enter 1, 2, or 3 to indicate how many match(es) you want take off board.\
+STRING kHelpOnYourTurn =
+        "You can enter 1, 2, or 3 to indicate how many match(es) you want take off board.\
 A running total of how many matches you and your opponents have will be kept.\
 Keep in mind though that the objective is not to get the last match; instead, you would have to have\
-an even number of matches to win";
+an even number of matches to win"                                                                                                                                                                                                                                                                                   ;
 
-STRING   kHelpStandardObjective =
-"At the end game, to have an even number of matches.";
+STRING kHelpStandardObjective =
+        "At the end game, to have an even number of matches.";
 
-STRING   kHelpReverseObjective =
-"At the end game, to have an odd number of matches. (i.e. to force your opponent to take a total of even number\
-of matches.";
+STRING kHelpReverseObjective =
+        "At the end game, to have an odd number of matches. (i.e. to force your opponent to take a total of even number\
+of matches."                                                                                                                          ;
 
-STRING   kHelpTieOccursWhen =
-"There cannot be a tie";
+STRING kHelpTieOccursWhen =
+        "There cannot be a tie";
 
-STRING   kHelpExample =
-"";
+STRING kHelpExample =
+        "";
 
 
 /*************************************************************************
@@ -124,9 +124,9 @@ int power(int number, int pow);
 STRING MoveToString(MOVE);
 
 /* External */
-#ifndef MEMWATCH 
-extern GENERIC_PTR	SafeMalloc ();
-extern void		SafeFree (); 
+#ifndef MEMWATCH
+extern GENERIC_PTR      SafeMalloc ();
+extern void             SafeFree ();
 #endif
 
 
@@ -137,12 +137,12 @@ extern void		SafeFree ();
 ** DESCRIPTION: Prepares the game for execution.
 **              Initializes required variables.
 **              Sets up gDatabase (if necessary).
-** 
+**
 ************************************************************************/
 
 void InitializeGame ()
 {
-  gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -153,7 +153,7 @@ void InitializeGame ()
 ** DESCRIPTION: Creates a linked list of every move that can be reached
 **              from this position. Returns a pointer to the head of the
 **              linked list.
-** 
+**
 ** INPUTS:      POSITION position : Current position for move
 **                                  generation.
 **
@@ -167,15 +167,15 @@ void InitializeGame ()
 /* Move is in form of 103, where 1 is the player's turn and 3 is the matches taken off */
 MOVELIST *GenerateMoves (POSITION position)
 {
-      MOVELIST *moves = NULL;
+	MOVELIST *moves = NULL;
 	int matchCount = numberOfMatches(position);
 	int whoseTurn = playersTurn(position);
 	int moveCount = 1; /* Minimum move is 1 */
 	if(matchCount == 0) {
 		moves = CreateMovelistNode(whoseTurn*MULTIPLE, moves);
 	}
-else
-    if(whoseTurn == FIRST_TURN) {
+	else
+	if(whoseTurn == FIRST_TURN) {
 		while(matchCount > 0 && moveCount <= MAXMOVE) {
 			moves = CreateMovelistNode(FIRST_TURN*MULTIPLE + moveCount, moves);
 			--matchCount;
@@ -189,8 +189,8 @@ else
 			++moveCount;
 		}
 	}
-    
-    return moves;
+
+	return moves;
 }
 
 
@@ -199,7 +199,7 @@ else
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Applies the move to the position.
-** 
+**
 ** INPUTS:      POSITION position : The old position
 **              MOVE     move     : The move to apply to the position
 **
@@ -219,15 +219,15 @@ POSITION DoMove (POSITION position, MOVE move)
 		addition = matches * MULTIPLE;
 		matches = matches * power(MULTIPLE, 2);
 		/*if(matchesLeft - matches <= 0)
-			currentTurn = FIRST_TURN;
-		else*/
-			currentTurn = SECOND_TURN;
+		        currentTurn = FIRST_TURN;
+		   else*/
+		currentTurn = SECOND_TURN;
 		return (position + power(MULTIPLE, 3) - matches + addition);
 		/* Add 1000000 to get second player turn*/
 	}
 	else {
 		/*FOR DEBUG ONLY */
-		
+
 		/*FOR DEBUG ONLY */
 		addition = matches;
 		matches = matches * power(MULTIPLE, 2);
@@ -235,7 +235,7 @@ POSITION DoMove (POSITION position, MOVE move)
 		return (position - power(MULTIPLE, 3) - matches + addition);
 		/* Subtract 1000000 to get first player turn*/
 	}
-	printf("Current Turn: %d" , currentTurn);
+	printf("Current Turn: %d", currentTurn);
 }
 
 
@@ -253,28 +253,28 @@ POSITION DoMove (POSITION position, MOVE move)
 **              Current player sees three in a row    lose
 **              Entire board filled                   tie
 **              All other cases                       undecided
-** 
+**
 ** INPUTS:      POSITION position : The position to inspect.
 **
 ** OUTPUTS:     (VALUE)           : one of
 **                                  (win, lose, tie, undecided)
 **
-** CALLS:       None              
+** CALLS:       None
 **
 ************************************************************************/
 
 /* Actually there is a tie... If there are even matches, even though it doesn't make sense */
 VALUE Primitive (POSITION position)
 {
-	
-    if(gameOver(position)) {
+
+	if(gameOver(position)) {
 		int whoseTurn = playersTurn(position);
 		int firstMatches = firstPlayerMatches(position);
 		int secondMatches = secondPlayerMatches(position);
-		if(whoseTurn == FIRST_TURN) { 
-			if((firstMatches % 2) != 0) 
+		if(whoseTurn == FIRST_TURN) {
+			if((firstMatches % 2) != 0)
 				return lose;
-			else 
+			else
 				return win;
 		}
 		else {
@@ -283,9 +283,9 @@ VALUE Primitive (POSITION position)
 			else
 				return win;
 		}
-    }
+	}
 	else
-  		return undecided;
+		return undecided;
 
 }
 
@@ -296,7 +296,7 @@ VALUE Primitive (POSITION position)
 **
 ** DESCRIPTION: Prints the position in a pretty format, including the
 **              prediction of the game's outcome.
-** 
+**
 ** INPUTS:      POSITION position    : The position to pretty print.
 **              STRING   playersName : The name of the player.
 **              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
@@ -334,15 +334,15 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely formats the computers move.
-** 
-** INPUTS:      MOVE    computersMove : The computer's move. 
-**              STRING  computersName : The computer's name. 
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
 **
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-    printf("%s just removed %d matches from the table.\n", computersName, computersMove % MULTIPLE);
+	printf("%s just removed %d matches from the table.\n", computersName, computersMove % MULTIPLE);
 }
 
 
@@ -351,16 +351,16 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** NAME:        PrintMove
 **
 ** DESCRIPTION: Prints the move in a nice format.
-** 
-** INPUTS:      MOVE move         : The move to print. 
+**
+** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
 
 void PrintMove (MOVE move)
 {
-  STRING m = MoveToString( move );
-  printf( "%s", m );
-  SafeFree( m );
+	STRING m = MoveToString( move );
+	printf( "%s", m );
+	SafeFree( m );
 }
 
 /************************************************************************
@@ -368,18 +368,18 @@ void PrintMove (MOVE move)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING move = (STRING) SafeMalloc(5);
-  /* Not quitesure whether this is only for player's move, but... */
-  sprintf(move, "[%d]", theMove % 100);
-  return move;
+	STRING move = (STRING) SafeMalloc(5);
+	/* Not quitesure whether this is only for player's move, but... */
+	sprintf(move, "[%d]", theMove % 100);
+	return move;
 }
 
 
@@ -389,10 +389,10 @@ STRING MoveToString (theMove)
 **
 ** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
 **              some other gamesman option. The gamesman core does
-**              most of the work here. 
+**              most of the work here.
 **
 ** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move. 
+**              MOVE     *move       : The move to fill with user's move.
 **              STRING   playersName : Current Player's Name
 **
 ** OUTPUTS:     USERINPUT          : One of
@@ -405,23 +405,23 @@ STRING MoveToString (theMove)
 
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
-    USERINPUT input;
-    USERINPUT HandleDefaultTextInput();
-    
-    for (;;) {
-        /***********************************************************
-         * CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-         ***********************************************************/
-	printf("%8s's move [(u)ndo/1/2/3] : ", playersName);
-	
-	input = HandleDefaultTextInput(position, move, playersName);
-	
-	if (input != Continue)
-		return input;
-    }
+	USERINPUT input;
+	USERINPUT HandleDefaultTextInput();
 
-    /* NOTREACHED */
-    return Continue;
+	for (;; ) {
+		/***********************************************************
+		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
+		***********************************************************/
+		printf("%8s's move [(u)ndo/1/2/3] : ", playersName);
+
+		input = HandleDefaultTextInput(position, move, playersName);
+
+		if (input != Continue)
+			return input;
+	}
+
+	/* NOTREACHED */
+	return Continue;
 }
 
 
@@ -438,7 +438,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              ?, s, u, r, h, a, c, q
 **                                          However, something like a3
 **                                          is okay.
-** 
+**
 **              Example: Tic-tac-toe Move Format : Integer from 1 to 9
 **                       Only integers between 1 to 9 are accepted
 **                       regardless of board position.
@@ -452,8 +452,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-	
-  return (input[0] <= (MAXMOVE + '0') && input[0] >= '1');
+
+	return (input[0] <= (MAXMOVE + '0') && input[0] >= '1');
 }
 
 
@@ -464,7 +464,7 @@ BOOLEAN ValidTextInput (STRING input)
 ** DESCRIPTION: Converts the string input your internal move representation.
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
-** 
+**
 ** INPUTS:      STRING input : The VALID string input from the user.
 **
 ** OUTPUTS:     MOVE         : Move converted from user input.
@@ -489,14 +489,14 @@ MOVE ConvertTextInputToMove (STRING input)
 **              If kGameSpecificMenu == FALSE
 **                   Gamesman will not enable GameSpecificMenu
 **                   Gamesman will not call this function
-** 
+**
 **              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
 
 void GameSpecificMenu ()
 {
-    
+
 }
 
 
@@ -506,15 +506,15 @@ void GameSpecificMenu ()
 **
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
-** 
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[])
 {
-    
+
 }
-  
-  
+
+
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -523,7 +523,7 @@ void SetTclCGameSpecificOptions (int options[])
 **              position. Asks the user for an initial position.
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
-** 
+**
 ** OUTPUTS:     POSITION : New Initial Position
 **
 ************************************************************************/
@@ -531,11 +531,11 @@ void SetTclCGameSpecificOptions (int options[])
 POSITION GetInitialPosition ()
 {
 	int totalMatches; /* first and second Matches probably should not be changed */
-  	printf("Please input the total number of matches: ");
-  	scanf("%d",&totalMatches);
+	printf("Please input the total number of matches: ");
+	scanf("%d",&totalMatches);
 	printf("Total matches is: %d \n", totalMatches);
 	currentTurn = FIRST_TURN;
-  	return FIRST_TURN*power(MULTIPLE, 3) + totalMatches*power(MULTIPLE, 2);
+	return FIRST_TURN*power(MULTIPLE, 3) + totalMatches*power(MULTIPLE, 2);
 
 }
 
@@ -553,8 +553,8 @@ POSITION GetInitialPosition ()
 
 int NumberOfOptions ()
 {
-	
-    return 1; /* Currently only have the option of changing the number of matches */
+
+	return 1; /* Currently only have the option of changing the number of matches */
 }
 
 
@@ -572,7 +572,7 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-    return 1; /* ???? */
+	return 1; /* ???? */
 }
 
 
@@ -591,9 +591,9 @@ void setOption (int option)
 {
 	int maxMoves;
 	printf("Please enter the number of matches you allow to be taken off board each time:");
-    scanf("%d", &maxMoves);
+	scanf("%d", &maxMoves);
 	MAXMOVE = maxMoves;
-	
+
 }
 
 
@@ -607,12 +607,12 @@ void setOption (int option)
 **              If kDebugMenu == FALSE
 **                   Gamesman will not display a debug menu option
 **                   Gamesman will not call this function
-** 
+**
 ************************************************************************/
 
 void DebugMenu ()
 {
-    /* Check undo, because it doesn't work right now*/
+	/* Check undo, because it doesn't work right now*/
 }
 
 
@@ -624,7 +624,7 @@ void DebugMenu ()
 ** Move Hasher
 ** Move Unhasher
 ** Any other function you deem necessary to help the ones above.
-** 
+**
 ************************************************************************/
 
 /* Note: the number of representation we are temporarily supporting is in the form of 1234567,
@@ -656,21 +656,21 @@ int secondPlayerMatches(POSITION position) {
 }
 
 int power(int number, int pow) {
-  int i;
-  int answer = 1;
-    for(i = 0; i < pow; i++){
-      answer = answer*number;
-    }
+	int i;
+	int answer = 1;
+	for(i = 0; i < pow; i++) {
+		answer = answer*number;
+	}
 
-  return answer;
+	return answer;
 }
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

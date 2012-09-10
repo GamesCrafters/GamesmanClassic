@@ -38,47 +38,47 @@
 #include "bpdb_misc.h"
 
 typedef struct  dbscheme {
-    // numeric identifier
-    UINT32          id;
+	// numeric identifier
+	UINT32 id;
 
-    // functional pointer to calculate the number of consecutive 1s
-    // needed to encode the number of skipped slices
-    UINT8           (*varnum_gap_bits)      ( UINT64 consecutiveSkips );
+	// functional pointer to calculate the number of consecutive 1s
+	// needed to encode the number of skipped slices
+	UINT8 (*varnum_gap_bits)( UINT64 consecutiveSkips );
 
-    // functional pointer to calculate the number of bits that are used
-    // to encode the size of the gap
-    UINT8           (*varnum_size_bits)     ( UINT8 leftBits );
+	// functional pointer to calculate the number of bits that are used
+	// to encode the size of the gap
+	UINT8 (*varnum_size_bits)( UINT8 leftBits );
 
-    // functional pointer to calculate the number of skipped slices
-    // implicit in the number of bits used to encode the size of the gap
-    UINT64          (*varnum_implicit_amt)  ( UINT8 leftBits );
+	// functional pointer to calculate the number of skipped slices
+	// implicit in the number of bits used to encode the size of the gap
+	UINT64 (*varnum_implicit_amt)( UINT8 leftBits );
 
-    void            (*varnum_free)          ( );
+	void (*varnum_free)( );
 
-    // whether or not this scheme performs variable-skips encoding
-    BOOLEAN         indicator;
+	// whether or not this scheme performs variable-skips encoding
+	BOOLEAN indicator;
 
-    // whether or not this scheme should be used for encoding dbs
-    BOOLEAN         save;
+	// whether or not this scheme should be used for encoding dbs
+	BOOLEAN save;
 
 } *SCHEME;
 
 SCHEME
 scheme_new(
-                UINT32 id,
-                UINT8 (*varnum_gap_bits) ( UINT64 consecutiveSkips ),
-                UINT8 (*varnum_size_bits) ( UINT8 leftBits ),
-                UINT64 (*varnum_implicit_amt) ( UINT8 leftBits ),
-                void (*varnum_init) ( ),
-                void (*varnum_free) ( ),
-                BOOLEAN indicator,
-                BOOLEAN save
-                );
+        UINT32 id,
+        UINT8 (*varnum_gap_bits)( UINT64 consecutiveSkips ),
+        UINT8 (*varnum_size_bits)( UINT8 leftBits ),
+        UINT64 (*varnum_implicit_amt)( UINT8 leftBits ),
+        void (*varnum_init)( ),
+        void (*varnum_free)( ),
+        BOOLEAN indicator,
+        BOOLEAN save
+        );
 
 void
 scheme_free(
-                SCHEME s
-                );
+        SCHEME s
+        );
 
 extern
 UINT64 *bpdb_generic_varnum_precomputed_gap_bits;
@@ -91,32 +91,32 @@ bpdb_generic_varnum_free( );
 
 UINT8
 bpdb_generic_varnum_gap_bits(
-                UINT64 consecutiveSkips
-                );
+        UINT64 consecutiveSkips
+        );
 
 UINT64
 bpdb_generic_varnum_implicit_amt(
-                UINT8 leftBits
-                );
+        UINT8 leftBits
+        );
 
 UINT8
 bpdb_generic_varnum_size_bits(
-                UINT8 leftBits
-                );
+        UINT8 leftBits
+        );
 
 UINT8
 bpdb_ken_varnum_gap_bits(
-                UINT64 consecutiveSkips
-                );
+        UINT64 consecutiveSkips
+        );
 
 UINT64
 bpdb_ken_varnum_implicit_amt(
-                UINT8 leftBits
-                );
+        UINT8 leftBits
+        );
 
 UINT8
 bpdb_ken_varnum_size_bits(
-                UINT8 leftBits 
-                );
+        UINT8 leftBits
+        );
 
 #endif /* GMCORE_BPDB_SCHEME_H */

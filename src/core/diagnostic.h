@@ -19,34 +19,34 @@
  ***/
 
 /*
-  Function: diagnostic_set_flag
+   Function: diagnostic_set_flag
     Toggles all levels of debugging flag on
-    
-  Arguments:
+
+   Arguments:
     flag - flag to toggle on
-*/
+ */
 void diagnostic_set_flag(char flag);
 
 /*
-  Function: diagnostic_set_flag_level
+   Function: diagnostic_set_flag_level
      Toggles given level of debugging flag on
-     
-  Arguments:
+
+   Arguments:
      flag  - flag to operate on
      level - level of flag to enable
-*/
+ */
 void diagnostic_set_flag_level(char flag, unsigned short level);
 
 /*
-  Function: diagnostic
+   Function: diagnostic
      Prints diagnostic message to debugging console if flag level is set
-     
-  Arguments:
+
+   Arguments:
      flag   - debug flag of message
      level  - debug level of message
      format - format string
      ...    - variable number of arguments corresponding to format string
-*/
+ */
 void diagnostic(char flag, unsigned short level, char *format, ...);
 
 #endif /* GMCORE_DIAGNOSTIC_H */

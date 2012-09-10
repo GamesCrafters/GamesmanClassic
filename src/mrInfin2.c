@@ -11,7 +11,7 @@
 **
 ** UPDATES HISTORY:
 **           - Apr 3, 2002  - Fixed bug for Special/normal piece.
-**           - Mar 1-2, 2002   - Attempt REDUCT again (EM) 
+**           - Mar 1-2, 2002   - Attempt REDUCT again (EM)
 **           - Jan 2-4, 2002 - Make Gametree smaller by hard-coding possible move positions. The
 **                           reduction will still use 60 megs. Changes are tagged "REDUCT" (EM)
 **           - Dec 25-27, 2001 - Aesthetic fixes. :) (EM)
@@ -55,10 +55,10 @@
 **
 **
 ** BUG REPORT II: NEED TO BE FIXED!!!!
-**  20. REDUCT: The return value of the game is LOSE, instead of a 
+**  20. REDUCT: The return value of the game is LOSE, instead of a
 ** TIE. The game SHOULD be a TIE.
-**      - ThreeInARow works. Try looking at the Static Eval and 
- * Fuzzy methods...(EM) 
+**      - ThreeInARow works. Try looking at the Static Eval and
+* Fuzzy methods...(EM)
 **
 **
 **
@@ -181,53 +181,53 @@ POSITION gNumberOfPositions  = 7425000; // REDUCT: 11*10*10*15^3*2
                                         //43302600<--old num (11*100*3^9*2)
 
 POSITION gInitialPosition    = 3375000; // REDUCT: score = 5, everythign else 0
-                                // 19683000<-- old num; //
+// 19683000<-- old num; //
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position  */
 
-STRING   kAuthorName         = "Edwin Mach and Chi Huynh";
-STRING   kGameName           = "Rubik's Infinity";
-STRING   kDBName             = "rinfin2";
-BOOLEAN  kPartizan           = TRUE;
-BOOLEAN  kDebugMenu          = FALSE;
-BOOLEAN  kGameSpecificMenu   = FALSE;
-BOOLEAN  kTieIsPossible      = TRUE;
-BOOLEAN  kLoopy               = TRUE;
-BOOLEAN  kDebugDetermineValue = FALSE;
+STRING kAuthorName         = "Edwin Mach and Chi Huynh";
+STRING kGameName           = "Rubik's Infinity";
+STRING kDBName             = "rinfin2";
+BOOLEAN kPartizan           = TRUE;
+BOOLEAN kDebugMenu          = FALSE;
+BOOLEAN kGameSpecificMenu   = FALSE;
+BOOLEAN kTieIsPossible      = TRUE;
+BOOLEAN kLoopy               = TRUE;
+BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING   kHelpGraphicInterface =
-"The LEFT button puts an X or O (depending on whether you went first\n\
+STRING kHelpGraphicInterface =
+        "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
-it reverts back to your your most recent position.";
+it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING   kHelpTextInterface    =
-"On your turn, use the LEGEND to determine which number to choose (between\n\
+STRING kHelpTextInterface    =
+        "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 6, with 1 - 3 as inputting the normal pieces into columns 1-3 and\n\
 humbers 4-6 as the optional pieces into columns 1-3 (Basically, subtract 3\n\
 from your option 4-6.) Then hit return. If at any point you have made a mistake,\n\
 you can type u and hit return and the system will\n\
-revert back to your most recent position.";
+revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING   kHelpOnYourTurn =
-"You place one of your pieces into any of the columns (1-3). For putting in\n\
-special pieces use move Numbers (4-6).";
+STRING kHelpOnYourTurn =
+        "You place one of your pieces into any of the columns (1-3). For putting in\n\
+special pieces use move Numbers (4-6)."                                                                                       ;
 
-STRING   kHelpStandardObjective =
-"To get three of your markers (either X or O) in a row, either\n\
+STRING kHelpStandardObjective =
+        "To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. Two 3-in-a-row WINS the game\n\
-automatically.";
+automatically."                                                                                                                                                   ;
 
-STRING   kHelpReverseObjective =
-"To force your opponent into getting three of his markers (either X or\n\
+STRING kHelpReverseObjective =
+        "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES.";
+LOSES."                                                                                                                                                             ;
 
-STRING   kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */
-"you just can't beat the computer.";
+STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+                            "you just can't beat the computer.";
 
-STRING   kHelpExample = 
-"         |:Rubik:|                    |:Infin:|\n\
+STRING kHelpExample =
+        "         |:Rubik:|                    |:Infin:|\n\
          | _ _ _ |                    | - - - |\n\
 LEGEND:  | _ _ _ |                    | - - - |\n\
          | _ _ _ |                    | - - - |\n\
@@ -323,7 +323,7 @@ LEGEND:  | _ _ _ |                    | x O - |\n\
 \n\
 Current Score: 0\n\
 Game is currently even.\n\
-(Dan will Lose in 22)  ";
+(Dan will Lose in 22)  "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ;
 
 
 /*************************************************************************
@@ -346,7 +346,7 @@ Game is currently even.\n\
 #define REDUCTBOARDSIZE 7
 
 typedef enum possibleBoardPieces {
-  Blank, o, x,
+	Blank, o, x,
 } BlankOX;
 
 char *gBlankOXString[] = { "-", "o", "x"}; // will change later to add o, x
@@ -354,20 +354,20 @@ char *gBlankOXString[] = { "-", "o", "x"}; // will change later to add o, x
 // REDUCT
 // hardcode of all possible positions
 char gBlankOXPosition[15][4] = { "---", // 0
-				 "--o", //1
-				 "-ox", //2
-				 "-oo",
-				 "oxx", //4
-				 "oxo",
-				 "oox",
-				 "ooo", //7
-				 "--x", //8
-				 "-xo", //9
-				 "-xx",
-				 "xoo", //11
-				 "xox",
-				 "xxo",
-				 "xxx"  //14
+	                         "--o", //1
+	                         "-ox", //2
+	                         "-oo",
+	                         "oxx", //4
+	                         "oxo",
+	                         "oox",
+	                         "ooo", //7
+	                         "--x", //8
+	                         "-xo", //9
+	                         "-xx",
+	                         "xoo", //11
+	                         "xox",
+	                         "xxo",
+	                         "xxx"  //14
 }; // 15 possible positions
 
 /** Function Prototypes **/
@@ -385,7 +385,7 @@ STRING MoveToString( MOVE );
 ************************************************************************/
 
 void InitializeGame() {
-  gMoveToStringFunPtr = &MoveToString;
+	gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -412,7 +412,8 @@ void DebugMenu()
 **
 ************************************************************************/
 
-void GameSpecificMenu() { }
+void GameSpecificMenu() {
+}
 
 /************************************************************************
 **
@@ -426,7 +427,7 @@ void GameSpecificMenu() { }
 void SetTclCGameSpecificOptions(theOptions)
 int theOptions[];
 {
-  /* No need to have anything here, we have no extra options */
+	/* No need to have anything here, we have no extra options */
 }
 
 /************************************************************************
@@ -446,622 +447,622 @@ int theOptions[];
 ************************************************************************/
 
 POSITION DoMove(thePosition, theMove)
-     POSITION thePosition;
-     MOVE theMove;
+POSITION thePosition;
+MOVE theMove;
 {
-  //if theMove goes beyond 1, 2, 3, or 4, 5, 6 (for the special pieces)then throw error
-  int currentScore, tempScore;
-  int matchingYellow, matchingBlue, totalmatches;
-  int c1, c2, c3, c4, c5, c6, c7, c8;  // ints to find columns,rows,diags
+	//if theMove goes beyond 1, 2, 3, or 4, 5, 6 (for the special pieces)then throw error
+	int currentScore, tempScore;
+	int matchingYellow, matchingBlue, totalmatches;
+	int c1, c2, c3, c4, c5, c6, c7, c8; // ints to find columns,rows,diags
 
-  BlankOX theBlankOX[REDUCTBOARDSIZE], WhoseTurn();
+	BlankOX theBlankOX[REDUCTBOARDSIZE], WhoseTurn();
 
-  int columnNum, turn;
-  int b0, b1, b2, b3,b4,b5,b6; //immediate retrieval of thePosition's values
+	int columnNum, turn;
+	int b0, b1, b2, b3,b4,b5,b6; //immediate retrieval of thePosition's values
 
-  PositionToBlankOX(thePosition,theBlankOX);
-  // EVERY VARIABLE INIT needs to be before this line!
+	PositionToBlankOX(thePosition,theBlankOX);
+	// EVERY VARIABLE INIT needs to be before this line!
 
-  // Create and store the variables b*
-  b6 = thePosition % 2; // turn
-  b5 = (thePosition / 2) % 15; // 3rd column
-  b4 = (thePosition / (2*15)) % 15; //2nd column
-  b3 = (thePosition / (2*15*15)) % 15; //1st column
-  b2 = (thePosition / (2*15*15*15)) % 10; // white
-  b1 = (thePosition / (2*15*15*15*10)) % 10; //black
-  b0 = (thePosition / (2*15*15*15*10*10)) % 11; // score
+	// Create and store the variables b*
+	b6 = thePosition % 2; // turn
+	b5 = (thePosition / 2) % 15; // 3rd column
+	b4 = (thePosition / (2*15)) % 15; //2nd column
+	b3 = (thePosition / (2*15*15)) % 15; //1st column
+	b2 = (thePosition / (2*15*15*15)) % 10; // white
+	b1 = (thePosition / (2*15*15*15*10)) % 10; //black
+	b0 = (thePosition / (2*15*15*15*10*10)) % 11; // score
 
-  //this tells us which bucket will be changed
+	//this tells us which bucket will be changed
 
-  if (theMove > 3)
-    columnNum = theMove - 3;
-  else
-    columnNum = theMove;
+	if (theMove > 3)
+		columnNum = theMove - 3;
+	else
+		columnNum = theMove;
 
-  //this gets the number position/number currently in the bucket that will be changed
-  turn = b6;
+	//this gets the number position/number currently in the bucket that will be changed
+	turn = b6;
 
-  //printf("Inside DoMove!");
+	//printf("Inside DoMove!");
 
-  if (turn == 0){ // white's turn
-    //O's turn, meaning change it to X's turn
-    b6 = 1;
-    // bump special pieces up
-    // 1. Find what column or movenumber = columnNum
-    // 2. Find where the special piece exists from theBlankOX
-    // 3. Find what special piece it is
-    // 4. if special piece exists at the top, we reset it back to 0, because it's gone
-    //if a special piece was just inserted, then assign it's position
+	if (turn == 0) { // white's turn
+		//O's turn, meaning change it to X's turn
+		b6 = 1;
+		// bump special pieces up
+		// 1. Find what column or movenumber = columnNum
+		// 2. Find where the special piece exists from theBlankOX
+		// 3. Find what special piece it is
+		// 4. if special piece exists at the top, we reset it back to 0, because it's gone
+		//if a special piece was just inserted, then assign it's position
 
-    if (columnNum == 1) { // do Column1
-      // check for special pieces
-      
-      // normal moves
-      if (b3 == 0) {
-	b3=1;
-      }
-      else if (b3 == 1) {
-	b3=3;
-      }
-      else if (b3 == 2) {
-	b3=5;
-      }
-      else if (b3 == 3) {
-	b3=7;
-      }
-      else if (b3 == 4) {
-	b3=13;
-      }
-      else if (b3 == 5) {
-	b3=11;
-      }
-      else if (b3 == 6) {
-	b3=5;
-	// check if o was special
-      }
-      else if (b3 == 7) {
-	b3=7; // same
-      }
-      else if (b3 == 8) {
-	b3=9;
-      }
-      else if (b3 == 9) {
-	b3=11;
-      }
-      else if (b3 == 10) {
-	b3=13;
-      }
-      else if (b3 == 11) {
-	b3=7;
-      }
-      else if (b3 == 12) {
-	b3=5;
-      }
-      else if (b3 == 13) {
-	b3=11;
-      }
-      else if (b3 == 14) {
-	b3=13;
-      }
-      else {}
+		if (columnNum == 1) { // do Column1
+			// check for special pieces
 
-      // for all the special pieces
-      // black
-      if (b1 == 1) {
-	b1 = 0;
-      }
-      if (b1 == 4) {
-	b1 = 1;
-      }
-      if (b1 == 7) {
-	b1 = 4;
-      }
-      // white
-      if (b2 == 1) {
-	b2 = 0;
-      }
-      if (b2 == 4) {
-	b2 = 1;
-      }
-      if (b2 == 7) {
-	 b2 = 4;
-      }
-      if (theMove == 4) {
-	b2=7; // white on pos7
-      }
+			// normal moves
+			if (b3 == 0) {
+				b3=1;
+			}
+			else if (b3 == 1) {
+				b3=3;
+			}
+			else if (b3 == 2) {
+				b3=5;
+			}
+			else if (b3 == 3) {
+				b3=7;
+			}
+			else if (b3 == 4) {
+				b3=13;
+			}
+			else if (b3 == 5) {
+				b3=11;
+			}
+			else if (b3 == 6) {
+				b3=5;
+				// check if o was special
+			}
+			else if (b3 == 7) {
+				b3=7; // same
+			}
+			else if (b3 == 8) {
+				b3=9;
+			}
+			else if (b3 == 9) {
+				b3=11;
+			}
+			else if (b3 == 10) {
+				b3=13;
+			}
+			else if (b3 == 11) {
+				b3=7;
+			}
+			else if (b3 == 12) {
+				b3=5;
+			}
+			else if (b3 == 13) {
+				b3=11;
+			}
+			else if (b3 == 14) {
+				b3=13;
+			}
+			else {}
 
-    }
-    else if (columnNum == 2) {
-      
-      if (b4 == 0) {
-	b4 =1;
-      }
-      else if (b4 == 1) {
-	b4 = 3;
-      }
-      else if (b4 == 2) {
-	b4 = 5;
-      }
-      else if (b4 == 3) {
-	b4 = 7;
-      }
-      else if (b4 == 4) {
-	b4 = 13;
-      }
-      else if (b4 == 5) {
-	b4 = 11;
-      }
-      else if (b4 == 6) {
-	b4 = 5;
-      }
-      else if ( b4 == 7) {
-	b4 = 7;
-      }
-      else if (b4 == 8) {
-	b4 = 9;
-      }
-      else if (b4 ==9) {
-	b4 = 11;
-      }
-      else if (b4 == 10) {
-	b4 = 13;
-      }
-      else if (b4 == 11) {
-	b4 = 7;
-      }
-      else if (b4 == 12) {
-	b4 = 5;
-      }
-      else if (b4 == 13) {
-	b4 = 11;
-      }
-      else if (b4 == 14) {
-	b4 = 13;
-      }
-      else {}
+			// for all the special pieces
+			// black
+			if (b1 == 1) {
+				b1 = 0;
+			}
+			if (b1 == 4) {
+				b1 = 1;
+			}
+			if (b1 == 7) {
+				b1 = 4;
+			}
+			// white
+			if (b2 == 1) {
+				b2 = 0;
+			}
+			if (b2 == 4) {
+				b2 = 1;
+			}
+			if (b2 == 7) {
+				b2 = 4;
+			}
+			if (theMove == 4) {
+				b2=7; // white on pos7
+			}
 
-      // for all the special pieces
-      // black
-      if (b1 == 2) {
-	b1 = 0;
-      }
-      if (b1 == 5) {
-	b1 = 2;
-      }
-      if (b1 == 8) {
-	b1 = 5;
-      }
-      // white
-      if (b2 == 2) {
-	b2 = 0;
-      }
-      if (b2 == 5) {
-	b2 = 2;
-      }
-      if (b2 == 8) {
-	b2 = 5;
-      }
-      if (theMove == 5) {
-	b2 = 8;
-      }
+		}
+		else if (columnNum == 2) {
 
-      
-    }
-    else if (columnNum == 3) {
-     
+			if (b4 == 0) {
+				b4 =1;
+			}
+			else if (b4 == 1) {
+				b4 = 3;
+			}
+			else if (b4 == 2) {
+				b4 = 5;
+			}
+			else if (b4 == 3) {
+				b4 = 7;
+			}
+			else if (b4 == 4) {
+				b4 = 13;
+			}
+			else if (b4 == 5) {
+				b4 = 11;
+			}
+			else if (b4 == 6) {
+				b4 = 5;
+			}
+			else if ( b4 == 7) {
+				b4 = 7;
+			}
+			else if (b4 == 8) {
+				b4 = 9;
+			}
+			else if (b4 ==9) {
+				b4 = 11;
+			}
+			else if (b4 == 10) {
+				b4 = 13;
+			}
+			else if (b4 == 11) {
+				b4 = 7;
+			}
+			else if (b4 == 12) {
+				b4 = 5;
+			}
+			else if (b4 == 13) {
+				b4 = 11;
+			}
+			else if (b4 == 14) {
+				b4 = 13;
+			}
+			else {}
 
-      if (b5 == 0) {
-	b5 =1;
-      }
-      else if (b5 == 1) {
-	b5 = 3;
-      }
-      else if (b5 == 2) {
-	b5 = 5;
-      }
-      else if (b5 == 3) {
-	b5 = 7;
-      }
-      else if (b5 == 4) {
-	b5 = 13;
-      }
-      else if (b5 == 5) {
-	b5 = 11;
-      }
-      else if (b5 == 6) {
-	b5 = 5;
-      }
-      else if ( b5 == 7) {
-	b5 = 7;
-      }
-      else if (b5 == 8) {
-	b5 = 9;
-      }
-      else if (b5 ==9) {
-	b5 = 11;
-      }
-      else if (b5 == 10) {
-	b5 = 13;
-      }
-      else if (b5 == 11) {
-	b5 = 7;
-      }
-      else if (b5 == 12) {
-	b5 = 5;
-      }
-      else if (b5 == 13) {
-	b5 = 11;
-      }
-      else if (b5 == 14) {
-	b5 = 13;
-      }
-      else {}
+			// for all the special pieces
+			// black
+			if (b1 == 2) {
+				b1 = 0;
+			}
+			if (b1 == 5) {
+				b1 = 2;
+			}
+			if (b1 == 8) {
+				b1 = 5;
+			}
+			// white
+			if (b2 == 2) {
+				b2 = 0;
+			}
+			if (b2 == 5) {
+				b2 = 2;
+			}
+			if (b2 == 8) {
+				b2 = 5;
+			}
+			if (theMove == 5) {
+				b2 = 8;
+			}
 
-      // for all the special pieces
-      // black
-      if (b1 == 3) {
-	b1 = 0;
-      }
-      if (b1 == 6) {
-	b1 = 3;
-      }
-      if (b1 == 9) {
-	b1 = 6;
-      }
-      // white
-      if (b2 == 3) {
-	b2 = 0;
-      }
-      if (b2 == 6) {
-	b2 = 3;
-      }
-      if (b2 == 9) {
-	b2 = 6;
-      }
-      if (theMove == 6) {
-	b2 = 9;
-      }
-    }
-    else { }
 
-  }
-  else {
-    // X's turn,so change it to O's turn
-    b6 = 0;
+		}
+		else if (columnNum == 3) {
 
-    if (columnNum == 1) {
-      
-      if (b3 == 0) {
-	b3 =8;
-      }
-      else if (b3 == 1) {
-	b3 = 2;
-      }
-      else if (b3 == 2) {
-	b3 = 4;
-      }
-      else if (b3 == 3) {
-	b3 = 6;
-      }
-      else if (b3 == 4) {
-	b3 = 14;
-      }
-      else if (b3 == 5) {
-	b3 = 12;
-      }
-      else if (b3 == 6) {
-	b3 = 4;
-      }
-      else if ( b3 == 7) {
-	b3 = 6;
-      }
-      else if (b3 == 8) {
-	b3 = 10;
-      }
-      else if (b3 ==9) {
-	b3 = 12;
-      }
-      else if (b3 == 10) {
-	b3 = 14;
-      }
-      else if (b3 == 11) {
-	b3 = 6;
-      }
-      else if (b3 == 12) {
-	b3 = 4;
-      }
-      else if (b3 == 13) {
-	b3 = 12;
-      }
-      else if (b3 == 14) {
-	b3 = 14;
-      }
-      else {}
 
-      // for all the special pieces
-      // black
-      if (b1 == 1) {
-	b1 = 0;
-      }
-      if (b1 == 4) {
-	b1 = 1;
-      }
-      if (b1 == 7) {
-	b1 = 4;
-      } 
-      if (theMove == 4) {
-	b1 = 7;
-      }
-      // white
-      if (b2 == 1) {
-	b2 = 0;
-      }
-      if (b2 == 4) {
-	b2 = 1;
-      }
-      if (b2 == 7) {
-	b2 = 4;
-      }
-    }
-    if (columnNum == 2) {
+			if (b5 == 0) {
+				b5 =1;
+			}
+			else if (b5 == 1) {
+				b5 = 3;
+			}
+			else if (b5 == 2) {
+				b5 = 5;
+			}
+			else if (b5 == 3) {
+				b5 = 7;
+			}
+			else if (b5 == 4) {
+				b5 = 13;
+			}
+			else if (b5 == 5) {
+				b5 = 11;
+			}
+			else if (b5 == 6) {
+				b5 = 5;
+			}
+			else if ( b5 == 7) {
+				b5 = 7;
+			}
+			else if (b5 == 8) {
+				b5 = 9;
+			}
+			else if (b5 ==9) {
+				b5 = 11;
+			}
+			else if (b5 == 10) {
+				b5 = 13;
+			}
+			else if (b5 == 11) {
+				b5 = 7;
+			}
+			else if (b5 == 12) {
+				b5 = 5;
+			}
+			else if (b5 == 13) {
+				b5 = 11;
+			}
+			else if (b5 == 14) {
+				b5 = 13;
+			}
+			else {}
 
-      
-      if (b4 == 0) {
-	b4 =8;
-      }
-      else if (b4 == 1) {
-	b4 = 2;
-      }
-      else if (b4 == 2) {
-	b4 = 4;
-      }
-      else if (b4 == 3) {
-	b4 = 6;
-      }
-      else if (b4 == 4) {
-	b4 = 14;
-      }
-      else if (b4 == 5) {
-	b4 = 12;
-      }
-      else if (b4 == 6) {
-	b4 = 4;
-      }
-      else if ( b4 == 7) {
-	b4 = 6;
-      }
-      else if (b4 == 8) {
-	b4 = 10;
-      }
-      else if (b4 == 9) {
-	b4 = 12;
-      }
-      else if (b4 == 10) {
-	b4 = 14;
-      }
-      else if (b4 == 11) {
-	b4 = 6;
-      }
-      else if (b4 == 12) {
-	b4 = 4;
-      }
-      else if (b4 == 13) {
-	b4 = 12;
-      }
-      else if (b4 == 14) {
-	b4 = 14;
-      }
-      else {}
+			// for all the special pieces
+			// black
+			if (b1 == 3) {
+				b1 = 0;
+			}
+			if (b1 == 6) {
+				b1 = 3;
+			}
+			if (b1 == 9) {
+				b1 = 6;
+			}
+			// white
+			if (b2 == 3) {
+				b2 = 0;
+			}
+			if (b2 == 6) {
+				b2 = 3;
+			}
+			if (b2 == 9) {
+				b2 = 6;
+			}
+			if (theMove == 6) {
+				b2 = 9;
+			}
+		}
+		else { }
 
-      // for all the special pieces
-      // black
-      if (b1 == 2) {
-	b1 = 0;
-      }
-      if (b1 == 5) {
-	b1 = 2;
-      }      
-      if (b1 == 8) {
-         b1 = 5;
-      }
-      if (theMove == 5) {
-	b1 = 8;
-      }
-      
-      // white
-      if (b2 == 2) {
-	b2 = 0;
-      }
-      if (b2 == 5) {
-	b2 = 2;
-      }
-      if (b2 == 8) {
-	b2 = 5;
-      }
-    }
+	}
+	else {
+		// X's turn,so change it to O's turn
+		b6 = 0;
 
-    if (columnNum == 3) {
-      
-      if (b5 == 0) {
-	b5 =8;
-      }
-      else if (b5 == 1) {
-	b5 = 2;
-      }
-      else if (b5 == 2) {
-	b5 = 4;
-      }
-      else if (b5 == 3) {
-	b5 = 6;
-      }
-      else if (b5 == 4) {
-	b5 = 14;
-      }
-      else if (b5 == 5) {
-	b5 = 12;
-      }
-      else if (b5 == 6) {
-	b5 = 4;
-      }
-      else if ( b5 == 7) {
-	b5 = 6;
-      }
-      else if (b5 == 8) {
-	b5 = 10;
-      }
-      else if (b5 ==9) {
-	b5 = 12;
-      }
-      else if (b5 == 10) {
-	b5 = 14;
-      }
-      else if (b5 == 11) {
-	b5 = 6;
-      }
-      else if (b5 == 12) {
-	b5 = 4;
-      }
-      else if (b5 == 13) {
-	b5 = 12;
-      }
-      else if (b5 == 14) {
-	b5 = 14;
-      }
-      else {}
+		if (columnNum == 1) {
 
-      // for all the special pieces
-      // black
-      if (b1 == 3) {
-	b1 = 0;
-      }
-      if (b1 == 6) {
-	b1 = 3;
-      }      
-      if (b1 == 9) {
-	b1 = 6;
-      }
-      if (theMove == 6) {
-	b1 = 9;
-      }
-      
-      // white
-      if (b2 == 3) {
-	b2 = 0;
-      }
-      if (b2 == 6) {
-	b2 = 3;
-      }
-      if (b2 == 9) {
-	b2 = 6;
-      }
-    }
-    else { } // end columnNum
+			if (b3 == 0) {
+				b3 =8;
+			}
+			else if (b3 == 1) {
+				b3 = 2;
+			}
+			else if (b3 == 2) {
+				b3 = 4;
+			}
+			else if (b3 == 3) {
+				b3 = 6;
+			}
+			else if (b3 == 4) {
+				b3 = 14;
+			}
+			else if (b3 == 5) {
+				b3 = 12;
+			}
+			else if (b3 == 6) {
+				b3 = 4;
+			}
+			else if ( b3 == 7) {
+				b3 = 6;
+			}
+			else if (b3 == 8) {
+				b3 = 10;
+			}
+			else if (b3 ==9) {
+				b3 = 12;
+			}
+			else if (b3 == 10) {
+				b3 = 14;
+			}
+			else if (b3 == 11) {
+				b3 = 6;
+			}
+			else if (b3 == 12) {
+				b3 = 4;
+			}
+			else if (b3 == 13) {
+				b3 = 12;
+			}
+			else if (b3 == 14) {
+				b3 = 14;
+			}
+			else {}
 
-  } // end else
+			// for all the special pieces
+			// black
+			if (b1 == 1) {
+				b1 = 0;
+			}
+			if (b1 == 4) {
+				b1 = 1;
+			}
+			if (b1 == 7) {
+				b1 = 4;
+			}
+			if (theMove == 4) {
+				b1 = 7;
+			}
+			// white
+			if (b2 == 1) {
+				b2 = 0;
+			}
+			if (b2 == 4) {
+				b2 = 1;
+			}
+			if (b2 == 7) {
+				b2 = 4;
+			}
+		}
+		if (columnNum == 2) {
 
-  //printf("%d", &b3);
 
-  // Check for the score
-  currentScore = b0;
-  tempScore = 0;
+			if (b4 == 0) {
+				b4 =8;
+			}
+			else if (b4 == 1) {
+				b4 = 2;
+			}
+			else if (b4 == 2) {
+				b4 = 4;
+			}
+			else if (b4 == 3) {
+				b4 = 6;
+			}
+			else if (b4 == 4) {
+				b4 = 14;
+			}
+			else if (b4 == 5) {
+				b4 = 12;
+			}
+			else if (b4 == 6) {
+				b4 = 4;
+			}
+			else if ( b4 == 7) {
+				b4 = 6;
+			}
+			else if (b4 == 8) {
+				b4 = 10;
+			}
+			else if (b4 == 9) {
+				b4 = 12;
+			}
+			else if (b4 == 10) {
+				b4 = 14;
+			}
+			else if (b4 == 11) {
+				b4 = 6;
+			}
+			else if (b4 == 12) {
+				b4 = 4;
+			}
+			else if (b4 == 13) {
+				b4 = 12;
+			}
+			else if (b4 == 14) {
+				b4 = 14;
+			}
+			else {}
 
-  matchingYellow = 0;
-  matchingBlue = 0;
+			// for all the special pieces
+			// black
+			if (b1 == 2) {
+				b1 = 0;
+			}
+			if (b1 == 5) {
+				b1 = 2;
+			}
+			if (b1 == 8) {
+				b1 = 5;
+			}
+			if (theMove == 5) {
+				b1 = 8;
+			}
 
-  //update theBlankOX(just the piece locations) before sending it
-  //to threeInaRow
-  theBlankOX[0] = b0;
-  theBlankOX[1] = b1;
-  theBlankOX[2] = b2;
-  theBlankOX[3] = b3;
-  theBlankOX[4] = b4;
-  theBlankOX[5] = b5;
-  theBlankOX[6] = b6;
+			// white
+			if (b2 == 2) {
+				b2 = 0;
+			}
+			if (b2 == 5) {
+				b2 = 2;
+			}
+			if (b2 == 8) {
+				b2 = 5;
+			}
+		}
 
-  // hardcode the score calculation
-  // ThreeInARow will handle SPECIAL pieces
-  c1 = ThreeInARow( theBlankOX, 8,7,6); //bot row
-  c2 = ThreeInARow( theBlankOX, 5,4,3 ); // mid row
-  c3 = ThreeInARow( theBlankOX,2,1,0); //top row
-  c4 = ThreeInARow( theBlankOX,8,5,2);//right col
-  c5 = ThreeInARow( theBlankOX,7,4,1);  // mid col
-  c6 = ThreeInARow( theBlankOX,6,3,0);  //left col
-  c7 = ThreeInARow( theBlankOX, 8,4,0); //diag
-  c8 = ThreeInARow( theBlankOX,6,4,2);  //diag
+		if (columnNum == 3) {
 
-  //printf("%d %d %d %d %d %d %d %d<--3 in a row", c1, c2, c3, c4, c5, c6, c7, c8);
+			if (b5 == 0) {
+				b5 =8;
+			}
+			else if (b5 == 1) {
+				b5 = 2;
+			}
+			else if (b5 == 2) {
+				b5 = 4;
+			}
+			else if (b5 == 3) {
+				b5 = 6;
+			}
+			else if (b5 == 4) {
+				b5 = 14;
+			}
+			else if (b5 == 5) {
+				b5 = 12;
+			}
+			else if (b5 == 6) {
+				b5 = 4;
+			}
+			else if ( b5 == 7) {
+				b5 = 6;
+			}
+			else if (b5 == 8) {
+				b5 = 10;
+			}
+			else if (b5 ==9) {
+				b5 = 12;
+			}
+			else if (b5 == 10) {
+				b5 = 14;
+			}
+			else if (b5 == 11) {
+				b5 = 6;
+			}
+			else if (b5 == 12) {
+				b5 = 4;
+			}
+			else if (b5 == 13) {
+				b5 = 12;
+			}
+			else if (b5 == 14) {
+				b5 = 14;
+			}
+			else {}
 
-  // Count the numbers of rows matched for each player
-  matchingYellow = 0; matchingBlue = 0; totalmatches = 0;
-  if (c1 > 0)
-    matchingYellow += 1;
-  else if (c1 <0)
-    matchingBlue += 1;
+			// for all the special pieces
+			// black
+			if (b1 == 3) {
+				b1 = 0;
+			}
+			if (b1 == 6) {
+				b1 = 3;
+			}
+			if (b1 == 9) {
+				b1 = 6;
+			}
+			if (theMove == 6) {
+				b1 = 9;
+			}
 
-  if ( c2 > 0)
-    matchingYellow += 1;
-  else if (c2 < 0 )
-    matchingBlue += 1;
+			// white
+			if (b2 == 3) {
+				b2 = 0;
+			}
+			if (b2 == 6) {
+				b2 = 3;
+			}
+			if (b2 == 9) {
+				b2 = 6;
+			}
+		}
+		else { } // end columnNum
 
-  if ( c3 > 0)
-    matchingYellow += 1;
-  else if (c3 < 0 )
-    matchingBlue += 1;
+	} // end else
 
-  if ( c4 > 0)
-    matchingYellow += 1;
-  else if (c4 < 0 )
-    matchingBlue += 1;
+	//printf("%d", &b3);
 
-  if ( c5 > 0)
-    matchingYellow += 1;
-  else if (c5 < 0 )
-    matchingBlue += 1;
+	// Check for the score
+	currentScore = b0;
+	tempScore = 0;
 
-  if ( c6 > 0)
-    matchingYellow += 1;
-  else if (c6 < 0 )
-    matchingBlue += 1;
+	matchingYellow = 0;
+	matchingBlue = 0;
 
-  if ( c7 > 0)
-    matchingYellow += 1;
-  else if (c7 < 0 )
-    matchingBlue += 1;
+	//update theBlankOX(just the piece locations) before sending it
+	//to threeInaRow
+	theBlankOX[0] = b0;
+	theBlankOX[1] = b1;
+	theBlankOX[2] = b2;
+	theBlankOX[3] = b3;
+	theBlankOX[4] = b4;
+	theBlankOX[5] = b5;
+	theBlankOX[6] = b6;
 
-  if ( c8 > 0)
-    matchingYellow += 1;
-  else if (c8 < 0 )
-    matchingBlue += 1;
+	// hardcode the score calculation
+	// ThreeInARow will handle SPECIAL pieces
+	c1 = ThreeInARow( theBlankOX, 8,7,6); //bot row
+	c2 = ThreeInARow( theBlankOX, 5,4,3 ); // mid row
+	c3 = ThreeInARow( theBlankOX,2,1,0); //top row
+	c4 = ThreeInARow( theBlankOX,8,5,2); //right col
+	c5 = ThreeInARow( theBlankOX,7,4,1); // mid col
+	c6 = ThreeInARow( theBlankOX,6,3,0); //left col
+	c7 = ThreeInARow( theBlankOX, 8,4,0); //diag
+	c8 = ThreeInARow( theBlankOX,6,4,2); //diag
 
-  totalmatches = matchingYellow - matchingBlue;
-  if (totalmatches >= 2) {
-    // now, we know that yellow has 2 or more matches than blue, and thus constitutes a possible GAME WIN
-    b0 = 10; // yellow increases, blue decreases
-  }
-  else if (totalmatches <= -2 ) {
-    // now we know that BLUE has 2 or more matches than yellow, and thus constitutes a possible GAME WIN
-    b0 = 0; // blue decreases to 0
-  }
-  else {
-    // just add the score to b0
-    tempScore = c1 + c2 + c3 + c4 + c5 + c6 + c7 + c8;
-    currentScore += tempScore;
-    b0 = currentScore;
-    // incase the score goes over 10 or 0
-    if ( b0 > 10)
-      b0 = 10;
-    else if (b0 < 0)
-      b0 = 0;
-    else {}
-  }
+	//printf("%d %d %d %d %d %d %d %d<--3 in a row", c1, c2, c3, c4, c5, c6, c7, c8);
 
-  return b6 + (2*b5) + (2*15*b4) + (2*15*15*b3) +
-    (2*15*15*15*b2) + (2*15*15*15*10*b1) + (2*15*15*15*100*b0);
+	// Count the numbers of rows matched for each player
+	matchingYellow = 0; matchingBlue = 0; totalmatches = 0;
+	if (c1 > 0)
+		matchingYellow += 1;
+	else if (c1 <0)
+		matchingBlue += 1;
 
-  /* return b13 + (2*b12) + (2*3*b11) + (2*9*b10) + (2*3*3*3*b9) +
-     (2*27*3*b8) + (2*27*9*b7) + (2*27*27*b6)+
-     (2*27*27*3*b5) + (2*27*27*9*b4) + (2*27*27*27*b3) +
-     (2*27*27*27*10*b2) + (2*27*27*27*100*b1); */
+	if ( c2 > 0)
+		matchingYellow += 1;
+	else if (c2 < 0 )
+		matchingBlue += 1;
+
+	if ( c3 > 0)
+		matchingYellow += 1;
+	else if (c3 < 0 )
+		matchingBlue += 1;
+
+	if ( c4 > 0)
+		matchingYellow += 1;
+	else if (c4 < 0 )
+		matchingBlue += 1;
+
+	if ( c5 > 0)
+		matchingYellow += 1;
+	else if (c5 < 0 )
+		matchingBlue += 1;
+
+	if ( c6 > 0)
+		matchingYellow += 1;
+	else if (c6 < 0 )
+		matchingBlue += 1;
+
+	if ( c7 > 0)
+		matchingYellow += 1;
+	else if (c7 < 0 )
+		matchingBlue += 1;
+
+	if ( c8 > 0)
+		matchingYellow += 1;
+	else if (c8 < 0 )
+		matchingBlue += 1;
+
+	totalmatches = matchingYellow - matchingBlue;
+	if (totalmatches >= 2) {
+		// now, we know that yellow has 2 or more matches than blue, and thus constitutes a possible GAME WIN
+		b0 = 10; // yellow increases, blue decreases
+	}
+	else if (totalmatches <= -2 ) {
+		// now we know that BLUE has 2 or more matches than yellow, and thus constitutes a possible GAME WIN
+		b0 = 0; // blue decreases to 0
+	}
+	else {
+		// just add the score to b0
+		tempScore = c1 + c2 + c3 + c4 + c5 + c6 + c7 + c8;
+		currentScore += tempScore;
+		b0 = currentScore;
+		// incase the score goes over 10 or 0
+		if ( b0 > 10)
+			b0 = 10;
+		else if (b0 < 0)
+			b0 = 0;
+		else {}
+	}
+
+	return b6 + (2*b5) + (2*15*b4) + (2*15*15*b3) +
+	       (2*15*15*15*b2) + (2*15*15*15*10*b1) + (2*15*15*15*100*b0);
+
+	/* return b13 + (2*b12) + (2*3*b11) + (2*9*b10) + (2*3*3*3*b9) +
+	   (2*27*3*b8) + (2*27*9*b7) + (2*27*27*b6)+
+	   (2*27*27*3*b5) + (2*27*27*9*b4) + (2*27*27*27*b3) +
+	   (2*27*27*27*10*b2) + (2*27*27*27*100*b1); */
 }
 
 
@@ -1078,110 +1079,110 @@ POSITION DoMove(thePosition, theMove)
 
 POSITION GetInitialPosition()
 {
-  POSITION BlankOXToPosition();
-  BlankOX theBlankOX[REDUCTBOARDSIZE], whosTurn, temp;
-  signed char c;
-  int i;
-  int c1,c2,c3,c4,c5,c6,c7,c8,c9; // REDUCT: These nums stores all the values first before actually storing them into theBlankOX var
-  int column1, column2, column3;
+	POSITION BlankOXToPosition();
+	BlankOX theBlankOX[REDUCTBOARDSIZE], whosTurn, temp;
+	signed char c;
+	int i;
+	int c1,c2,c3,c4,c5,c6,c7,c8,c9; // REDUCT: These nums stores all the values first before actually storing them into theBlankOX var
+	int column1, column2, column3;
 
-  printf("\n\n\t----- Get Initial Position -----\n");
-  printf("\n\tPlease input the position to begin with.\n");
-  printf("\tNote that it should be in the following format:\n\n");
-  printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-  printf("n such that n is a number between 1 and 9, inclusive, where 1 means that blue needs one more point to win and 9 means that yellow needs just one more point to win.");
+	printf("\n\n\t----- Get Initial Position -----\n");
+	printf("\n\tPlease input the position to begin with.\n");
+	printf("\tNote that it should be in the following format:\n\n");
+	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
+	printf("n such that n is a number between 1 and 9, inclusive, where 1 means that blue needs one more point to win and 9 means that yellow needs just one more point to win.");
 
-  getchar();
-
-
-  //makes it such that the initial positions of the special pieces are off the board. THIS METHOD IS STILL IN QUESTION.
-
-  // REDUCT NEED TO CHANGE THIS CODE
-  // Store all the 9 inputs before the decision is made
-  for (i = 0; i < REALBOARDSIZE && (c = getchar()) != EOF; i += 1) {
-    if(c == 'x' || c == 'X')
-      temp = x;
-    else if(c == 'o' || c == 'O' || c == '0')
-      temp = o;
-    else if(c == '-')
-      temp = Blank;
-    else
-      ; /* do nothing */
-    if (i ==0) { c1 = temp; }
-    else if ( i == 1) { c2 = temp; }
-    else if ( i == 2) { c3 = temp; }
-    else if ( i == 3) { c4 = temp; }
-    else if ( i == 4) { c5 = temp; }
-    else if ( i == 5) { c6 = temp; }
-    else if ( i == 6) { c7 = temp; }
-    else if ( i == 7) { c8 = temp; }
-    else if ( i == 8) { c9 = temp; }
-    else {}
-
-  }
-
-  // hardcode matching of gBlankOXPosition
-  // Column1 first
-  if (c1 == Blank && c4 == Blank && c7 == Blank) { column1 = 0; }
-  else if (c1 == Blank && c4 == Blank && c7 == o){ column1 = 1; }
-  else if (c1 == Blank && c4 == o && c7 == x) { column1 = 2; }
-  else if (c1 == Blank && c4 == o && c7 == o) { column1 = 3; }
-  else if (c1 == o && c4 == x && c7 == x) { column1 = 4; }
-  else if (c1 == o && c4 == x && c7 == o) { column1 = 5; }
-  else if (c1 == o && c4 == o && c7 == x) { column1 = 6; }
-  else if (c1 == o && c4 == o && c7 == o) { column1 = 7; }
-  else if (c1 == Blank && c4 == Blank && c7 == x) { column1 = 8; }
-  else if (c1 == Blank && c4 == x && c7 == o) { column1 = 9; }
-  else if (c1 == Blank && c4 == x && c7 == x) { column1 = 10; }
-  else if (c1 == x && c4 == o && c7 == o) { column1 = 11; }
-  else if (c1 == x && c4 == o && c7 == x) { column1 = 12; }
-  else if (c1 == x && c4 == x && c7 == o) { column1 = 13; }
-  else if (c1 == x && c4 == x && c7 == x) { column1 = 14; }
-  else {}
-
-  // col 2
-  if (c2 == Blank && c5 == Blank && c8 == Blank) { column2 = 0; }
-  else if (c2 == Blank && c5 == Blank && c8 == o){ column2 = 1; }
-  else if (c2 == Blank && c5 == o && c8 == x) { column2 = 2; }
-  else if (c2 == Blank && c5 == o && c8 == o) { column2 = 3; }
-  else if (c2 == o && c5 == x && c8 == x) { column2 = 4; }
-  else if (c2 == o && c5 == x && c8 == o) { column2 = 5; }
-  else if (c2 == o && c5 == o && c8 == x) { column2 = 6; }
-  else if (c2 == o && c5 == o && c8 == o) { column2 = 7; }
-  else if (c2 == Blank && c5 == Blank && c8 == x) { column2 = 8; }
-  else if (c2 == Blank && c5 == x && c8 == o) { column2 = 9; }
-  else if (c2 == Blank && c5 == x && c8 == x) { column2 = 10; }
-  else if (c2 == x && c5 == o && c8 == o) { column2 = 11; }
-  else if (c2 == x && c5 == o && c8 == x) { column2 = 12; }
-  else if (c2 == x && c5 == x && c8 == o) { column2 = 13; }
-  else if (c2 == x && c5 == x && c8 == x) { column2 = 14; }
-  else {}
-
-  // col 3
-  if (c3 == Blank && c6 == Blank && c9 == Blank) { column3 = 0; }
-  else if (c3 == Blank && c6 == Blank && c9 == o){ column3 = 1; }
-  else if (c3 == Blank && c6 == o && c9 == x) { column3 = 2; }
-  else if (c3 == Blank && c6 == o && c9 == o) { column3 = 3; }
-  else if (c3 == o && c6 == x && c9 == x) { column3 = 4; }
-  else if (c3 == o && c6 == x && c9 == o) { column3 = 5; }
-  else if (c3 == o && c6 == o && c9 == x) { column3 = 6; }
-  else if (c3 == o && c6 == o && c9 == o) { column3 = 7; }
-  else if (c3 == Blank && c6 == Blank && c9 == x) { column3 = 8; }
-  else if (c3 == Blank && c6 == x && c9 == o) { column3 = 9; }
-  else if (c3 == Blank && c6 == x && c9 == x) { column3 = 10; }
-  else if (c3 == x && c6 == o && c9 == o) { column3 = 11; }
-  else if (c3 == x && c6 == o && c9 == x) { column3 = 12; }
-  else if (c3 == x && c6 == x && c9 == o) { column3 = 13; }
-  else if (c3 == x && c6 == x && c9 == x) { column3 = 14; }
-  else {}
-
-  theBlankOX[3] = column1;
-  theBlankOX[4] = column2;
-  theBlankOX[5] = column3;
+	getchar();
 
 
-  // 9 becuase the first 9 indexes of theBlankOX are the pieces
-  /*  while(i < REALBOARDSIZE && (c = getchar()) != EOF) { */
+	//makes it such that the initial positions of the special pieces are off the board. THIS METHOD IS STILL IN QUESTION.
+
+	// REDUCT NEED TO CHANGE THIS CODE
+	// Store all the 9 inputs before the decision is made
+	for (i = 0; i < REALBOARDSIZE && (c = getchar()) != EOF; i += 1) {
+		if(c == 'x' || c == 'X')
+			temp = x;
+		else if(c == 'o' || c == 'O' || c == '0')
+			temp = o;
+		else if(c == '-')
+			temp = Blank;
+		else
+			; /* do nothing */
+		if (i ==0) { c1 = temp; }
+		else if ( i == 1) { c2 = temp; }
+		else if ( i == 2) { c3 = temp; }
+		else if ( i == 3) { c4 = temp; }
+		else if ( i == 4) { c5 = temp; }
+		else if ( i == 5) { c6 = temp; }
+		else if ( i == 6) { c7 = temp; }
+		else if ( i == 7) { c8 = temp; }
+		else if ( i == 8) { c9 = temp; }
+		else {}
+
+	}
+
+	// hardcode matching of gBlankOXPosition
+	// Column1 first
+	if (c1 == Blank && c4 == Blank && c7 == Blank) { column1 = 0; }
+	else if (c1 == Blank && c4 == Blank && c7 == o) { column1 = 1; }
+	else if (c1 == Blank && c4 == o && c7 == x) { column1 = 2; }
+	else if (c1 == Blank && c4 == o && c7 == o) { column1 = 3; }
+	else if (c1 == o && c4 == x && c7 == x) { column1 = 4; }
+	else if (c1 == o && c4 == x && c7 == o) { column1 = 5; }
+	else if (c1 == o && c4 == o && c7 == x) { column1 = 6; }
+	else if (c1 == o && c4 == o && c7 == o) { column1 = 7; }
+	else if (c1 == Blank && c4 == Blank && c7 == x) { column1 = 8; }
+	else if (c1 == Blank && c4 == x && c7 == o) { column1 = 9; }
+	else if (c1 == Blank && c4 == x && c7 == x) { column1 = 10; }
+	else if (c1 == x && c4 == o && c7 == o) { column1 = 11; }
+	else if (c1 == x && c4 == o && c7 == x) { column1 = 12; }
+	else if (c1 == x && c4 == x && c7 == o) { column1 = 13; }
+	else if (c1 == x && c4 == x && c7 == x) { column1 = 14; }
+	else {}
+
+	// col 2
+	if (c2 == Blank && c5 == Blank && c8 == Blank) { column2 = 0; }
+	else if (c2 == Blank && c5 == Blank && c8 == o) { column2 = 1; }
+	else if (c2 == Blank && c5 == o && c8 == x) { column2 = 2; }
+	else if (c2 == Blank && c5 == o && c8 == o) { column2 = 3; }
+	else if (c2 == o && c5 == x && c8 == x) { column2 = 4; }
+	else if (c2 == o && c5 == x && c8 == o) { column2 = 5; }
+	else if (c2 == o && c5 == o && c8 == x) { column2 = 6; }
+	else if (c2 == o && c5 == o && c8 == o) { column2 = 7; }
+	else if (c2 == Blank && c5 == Blank && c8 == x) { column2 = 8; }
+	else if (c2 == Blank && c5 == x && c8 == o) { column2 = 9; }
+	else if (c2 == Blank && c5 == x && c8 == x) { column2 = 10; }
+	else if (c2 == x && c5 == o && c8 == o) { column2 = 11; }
+	else if (c2 == x && c5 == o && c8 == x) { column2 = 12; }
+	else if (c2 == x && c5 == x && c8 == o) { column2 = 13; }
+	else if (c2 == x && c5 == x && c8 == x) { column2 = 14; }
+	else {}
+
+	// col 3
+	if (c3 == Blank && c6 == Blank && c9 == Blank) { column3 = 0; }
+	else if (c3 == Blank && c6 == Blank && c9 == o) { column3 = 1; }
+	else if (c3 == Blank && c6 == o && c9 == x) { column3 = 2; }
+	else if (c3 == Blank && c6 == o && c9 == o) { column3 = 3; }
+	else if (c3 == o && c6 == x && c9 == x) { column3 = 4; }
+	else if (c3 == o && c6 == x && c9 == o) { column3 = 5; }
+	else if (c3 == o && c6 == o && c9 == x) { column3 = 6; }
+	else if (c3 == o && c6 == o && c9 == o) { column3 = 7; }
+	else if (c3 == Blank && c6 == Blank && c9 == x) { column3 = 8; }
+	else if (c3 == Blank && c6 == x && c9 == o) { column3 = 9; }
+	else if (c3 == Blank && c6 == x && c9 == x) { column3 = 10; }
+	else if (c3 == x && c6 == o && c9 == o) { column3 = 11; }
+	else if (c3 == x && c6 == o && c9 == x) { column3 = 12; }
+	else if (c3 == x && c6 == x && c9 == o) { column3 = 13; }
+	else if (c3 == x && c6 == x && c9 == x) { column3 = 14; }
+	else {}
+
+	theBlankOX[3] = column1;
+	theBlankOX[4] = column2;
+	theBlankOX[5] = column3;
+
+
+	// 9 becuase the first 9 indexes of theBlankOX are the pieces
+	/*  while(i < REALBOARDSIZE && (c = getchar()) != EOF) { */
 /*      if(c == 'x' || c == 'X') */
 /*        theBlankOX[i++] = x; */
 /*      else if(c == 'o' || c == 'O' || c == '0') */
@@ -1193,7 +1194,7 @@ POSITION GetInitialPosition()
 /*    }  */
 
 
-  return(BlankOXToPosition(theBlankOX,whosTurn));
+	return(BlankOXToPosition(theBlankOX,whosTurn));
 }
 
 /************************************************************************
@@ -1208,17 +1209,17 @@ POSITION GetInitialPosition()
 ************************************************************************/
 
 void PrintComputersMove(computersMove,computersName)
-     MOVE computersMove;
-     STRING computersName;
+MOVE computersMove;
+STRING computersName;
 {
-  if (computersMove <= 3 && computersMove >= 1) {
-    printf("%8s's move              : %2d\n", computersName, computersMove);
-  }
-  else {
-    printf("\n%8s's move              : %2d\n\n Computer placed a SPECIAL PIECE. Watch out! :)\n", computersName, computersMove );
-  }
+	if (computersMove <= 3 && computersMove >= 1) {
+		printf("%8s's move              : %2d\n", computersName, computersMove);
+	}
+	else {
+		printf("\n%8s's move              : %2d\n\n Computer placed a SPECIAL PIECE. Watch out! :)\n", computersName, computersMove );
+	}
 
-    // THIS METHOD IS STILL IN QUESTION.
+	// THIS METHOD IS STILL IN QUESTION.
 }
 
 /************************************************************************
@@ -1243,57 +1244,57 @@ void PrintComputersMove(computersMove,computersName)
 ************************************************************************/
 
 VALUE Primitive(position)
-     POSITION position;
+POSITION position;
 {
-  int ThreeInARow();
-  BlankOX theBlankOX[REDUCTBOARDSIZE];
+	int ThreeInARow();
+	BlankOX theBlankOX[REDUCTBOARDSIZE];
 
-  int turn;
-  int b0,b6;
-  int currentScore, tempScore;
-  
-  PositionToBlankOX(position,theBlankOX);
-  // EVERY VARIABLE INIT needs to be before this line!
+	int turn;
+	int b0,b6;
+	int currentScore, tempScore;
 
-  b6 = position % 2; // turn
-  b0 = (position / (2*15*15*15*10*10)) % 11; // score
-  turn = b6;
-  currentScore = b0; // attempt to keep the score current, not delayed by 1
-  tempScore = 0;
+	PositionToBlankOX(position,theBlankOX);
+	// EVERY VARIABLE INIT needs to be before this line!
 
-  // NOTE: Something different than Dan's code is that we return WIN when Dan's code returns LOSE,
-  // and vice-versa
+	b6 = position % 2; // turn
+	b0 = (position / (2*15*15*15*10*10)) % 11; // score
+	turn = b6;
+	currentScore = b0; // attempt to keep the score current, not delayed by 1
+	tempScore = 0;
 
-  // First we have to check if we have a winner already!
-  if (currentScore == 0) {
-    if (gStandardGame){
-      if (turn == 0)
-	return (lose);
-      else
-	return (win);
-    }
-    else {
-      if (turn == 0)
-	return (win);
-      else
-	return (lose);
-    }
-  }
-  if (currentScore == 10) {
-    if (gStandardGame){
-      if (turn == 0)
-	return (win);
-      else
-	return (lose);
-    }
-    else {
-      if (turn == 0)
-	return (lose);
-    else
-      return (win);
-    }
-  }
-  return (undecided);
+	// NOTE: Something different than Dan's code is that we return WIN when Dan's code returns LOSE,
+	// and vice-versa
+
+	// First we have to check if we have a winner already!
+	if (currentScore == 0) {
+		if (gStandardGame) {
+			if (turn == 0)
+				return (lose);
+			else
+				return (win);
+		}
+		else {
+			if (turn == 0)
+				return (win);
+			else
+				return (lose);
+		}
+	}
+	if (currentScore == 10) {
+		if (gStandardGame) {
+			if (turn == 0)
+				return (win);
+			else
+				return (lose);
+		}
+		else {
+			if (turn == 0)
+				return (lose);
+			else
+				return (win);
+		}
+	}
+	return (undecided);
 
 
 }
@@ -1317,128 +1318,128 @@ VALUE Primitive(position)
 ************************************************************************/
 
 void PrintPosition(position,playerName,usersTurn)
-     POSITION position;
-     STRING playerName;
-     BOOLEAN  usersTurn;
+POSITION position;
+STRING playerName;
+BOOLEAN usersTurn;
 {
-  /* All our variables before functions */
-  BlankOX theBlankOX[REDUCTBOARDSIZE];
-  char elt[REALBOARDSIZE];
-  char *meters[] = { "----------@",
-		     "---------@-",
-		     "--------@--",
-		     "-------@---",
-		     "------@----",
-		     "-----@-----",
-		     "----@------",
-		     "---@-------",
-		     "--@--------",
-		     "-@---------",
-		     "@----------" };
-  int white,black;
-  int yellowLeads;
-  int score;
-  int tempScore;
-  int b0, b1, b2, b3,b4,b5,b6; //immediate retrieval of thePosition's values
-  PositionToBlankOX(position,theBlankOX);
+	/* All our variables before functions */
+	BlankOX theBlankOX[REDUCTBOARDSIZE];
+	char elt[REALBOARDSIZE];
+	char *meters[] = { "----------@",
+		           "---------@-",
+		           "--------@--",
+		           "-------@---",
+		           "------@----",
+		           "-----@-----",
+		           "----@------",
+		           "---@-------",
+		           "--@--------",
+		           "-@---------",
+		           "@----------" };
+	int white,black;
+	int yellowLeads;
+	int score;
+	int tempScore;
+	int b0, b1, b2, b3,b4,b5,b6; //immediate retrieval of thePosition's values
+	PositionToBlankOX(position,theBlankOX);
 
-  // Create and store the variables b*
-  b6 = position % 2; // turn
-  b5 = (position / 2) % 15; // 3rd column
-  b4 = (position / (2*15)) % 15; //2nd column
-  b3 = (position / (2*15*15)) % 15; //1st column
-  b2 = (position / (2*15*15*15)) % 10; // white
-  b1 = (position / (2*15*15*15*10)) % 10; //black
-  b0 = (position / (2*15*15*15*10*10)) % 11; // score
+	// Create and store the variables b*
+	b6 = position % 2; // turn
+	b5 = (position / 2) % 15; // 3rd column
+	b4 = (position / (2*15)) % 15; //2nd column
+	b3 = (position / (2*15*15)) % 15; //1st column
+	b2 = (position / (2*15*15*15)) % 10; // white
+	b1 = (position / (2*15*15*15*10)) % 10; //black
+	b0 = (position / (2*15*15*15*10*10)) % 11; // score
 
-  elt[8] = gBlankOXPosition[b5][2]; //9
-  elt[7] = gBlankOXPosition[b4][2];
-  elt[6] = gBlankOXPosition[b3][2];
+	elt[8] = gBlankOXPosition[b5][2]; //9
+	elt[7] = gBlankOXPosition[b4][2];
+	elt[6] = gBlankOXPosition[b3][2];
 
-  //printf("%d %d %d <-- b3 b4 b5\n", b3, b4, b5);
+	//printf("%d %d %d <-- b3 b4 b5\n", b3, b4, b5);
 
-  elt[5] = gBlankOXPosition[b5][1]; // 6.
-  elt[4] = gBlankOXPosition[b4][1];
-  elt[3] = gBlankOXPosition[b3][1];
+	elt[5] = gBlankOXPosition[b5][1]; // 6.
+	elt[4] = gBlankOXPosition[b4][1];
+	elt[3] = gBlankOXPosition[b3][1];
 
-  elt[2] = gBlankOXPosition[b5][0];
-  elt[1] = gBlankOXPosition[b4][0];
-  elt[0] = gBlankOXPosition[b3][0]; //1.
+	elt[2] = gBlankOXPosition[b5][0];
+	elt[1] = gBlankOXPosition[b4][0];
+	elt[0] = gBlankOXPosition[b3][0]; //1.
 
-  black = b1;
-  if ( black != 0) {
-    // black piece location
-    elt[ black -1 ] = 'X';
-  }
-  white = b2;
-  if (white != 0) {
-    elt[white -1] = 'O';
-  }
+	black = b1;
+	if ( black != 0) {
+		// black piece location
+		elt[ black -1 ] = 'X';
+	}
+	white = b2;
+	if (white != 0) {
+		elt[white -1] = 'O';
+	}
 
-  // Calculate score BEFORE we print
-  yellowLeads = 0;
-  tempScore = b0 - 5;
+	// Calculate score BEFORE we print
+	yellowLeads = 0;
+	tempScore = b0 - 5;
 
-  if (tempScore > 0) {
-    yellowLeads = 1;
-    score = tempScore;
-  }
-  else if (tempScore < 0){
-    yellowLeads = 2;
-    score = tempScore;
-  }
-  else
-    score = tempScore;
-
-
-  // start printing out
-  printf("\n");
-  printf("                 |:Rubik:|       |:Infin:|       \n");
-  printf("                 | _ _ _ |       | %c %c %c |       :Score:\n",
-	 elt[0], elt[1], elt[2]);
-  printf("      LEGEND:    | _ _ _ |       | %c %c %c |       :Meter:\n",
-	 elt[3], elt[4], elt[5]);
-  printf("                 | _ _ _ |       | %c %c %c |  \n",
-	 elt[6], elt[7], elt[8]);
-  printf("                   ^ ^ ^           ^ ^ ^\n");
-
-  // 2nd to the last line
-  printf("  Normal piece ->  1 2 3");
-  // print player's piece
-  if (gStandardGame) {
-    printf("                    O ");
-  } else {
-    printf("                    X ");
-  }
-  printf("|%s| ", meters[score+5]);
-  if (gStandardGame) {  printf("X\n"); }
-  else { printf("O\n"); }
-
-  // print the special piece line ONLY if the user can put a special piece
-  // if it's your turn, and yourspeical piece is no on the board (EM)
-  if (gStandardGame && white) {
-    //don't print out anything
-  } else {
-    printf(" Special piece ->  4 5 6  \n");
-  }
-  printf("\n");
+	if (tempScore > 0) {
+		yellowLeads = 1;
+		score = tempScore;
+	}
+	else if (tempScore < 0) {
+		yellowLeads = 2;
+		score = tempScore;
+	}
+	else
+		score = tempScore;
 
 
-  //printf("Current Score: %d \n", score);
-  /* if (yellowLeads == 1)
-    //printf ("Yellow is leading.\n");
-  else if (yellowLeads == 2)
-    //printf ("Blue is leading.\n");
-  else
-    //printf ("Game is currently even.\n");
-  */
+	// start printing out
+	printf("\n");
+	printf("                 |:Rubik:|       |:Infin:|       \n");
+	printf("                 | _ _ _ |       | %c %c %c |       :Score:\n",
+	       elt[0], elt[1], elt[2]);
+	printf("      LEGEND:    | _ _ _ |       | %c %c %c |       :Meter:\n",
+	       elt[3], elt[4], elt[5]);
+	printf("                 | _ _ _ |       | %c %c %c |  \n",
+	       elt[6], elt[7], elt[8]);
+	printf("                   ^ ^ ^           ^ ^ ^\n");
 
-  printf (" %s \n\n", GetPrediction(position,playerName,usersTurn));
+	// 2nd to the last line
+	printf("  Normal piece ->  1 2 3");
+	// print player's piece
+	if (gStandardGame) {
+		printf("                    O ");
+	} else {
+		printf("                    X ");
+	}
+	printf("|%s| ", meters[score+5]);
+	if (gStandardGame) {  printf("X\n"); }
+	else { printf("O\n"); }
 
-  if (b6 == 0 && gStandardGame)
-    printf("It is \"O\"'s turn.  ");
-  else if (b6 == 1)
-    printf ("It is \"X\"'s turn.  ");
+	// print the special piece line ONLY if the user can put a special piece
+	// if it's your turn, and yourspeical piece is no on the board (EM)
+	if (gStandardGame && white) {
+		//don't print out anything
+	} else {
+		printf(" Special piece ->  4 5 6  \n");
+	}
+	printf("\n");
+
+
+	//printf("Current Score: %d \n", score);
+	/* if (yellowLeads == 1)
+	   //printf ("Yellow is leading.\n");
+	   else if (yellowLeads == 2)
+	   //printf ("Blue is leading.\n");
+	   else
+	   //printf ("Game is currently even.\n");
+	 */
+
+	printf (" %s \n\n", GetPrediction(position,playerName,usersTurn));
+
+	if (b6 == 0 && gStandardGame)
+		printf("It is \"O\"'s turn.  ");
+	else if (b6 == 1)
+		printf ("It is \"X\"'s turn.  ");
 
 }
 
@@ -1460,57 +1461,57 @@ void PrintPosition(position,playerName,usersTurn)
 ************************************************************************/
 
 MOVELIST *GenerateMoves(position)
-     POSITION position;
+POSITION position;
 {
-  MOVELIST *CreateMovelistNode(), *head = NULL;
-  VALUE Primitive();
-  BlankOX theBlankOX[REDUCTBOARDSIZE];
+	MOVELIST *CreateMovelistNode(), *head = NULL;
+	VALUE Primitive();
+	BlankOX theBlankOX[REDUCTBOARDSIZE];
 
-  int i;
-  int turn = position % 2; //theBlankOX[6];
-  int black = (position / (2*15*15*15*10)) % 10 ; // theBlankOX[1];
-  int white = (position / (2*15*15*15)) % 10; //theBlankOX[2];
+	int i;
+	int turn = position % 2; //theBlankOX[6];
+	int black = (position / (2*15*15*15*10)) % 10; // theBlankOX[1];
+	int white = (position / (2*15*15*15)) % 10; //theBlankOX[2];
 
-  //printf("Inside GenerateMoves %n", position);
+	//printf("Inside GenerateMoves %n", position);
 
-  //depending on whose turn it is, we have to check to see if
-  //their special piece has been used.
+	//depending on whose turn it is, we have to check to see if
+	//their special piece has been used.
 
-  if (Primitive(position) == undecided) {
-    PositionToBlankOX(position,theBlankOX);
-    //Black's turn
-    if (turn == 1){
-      if (black == 0){
-	for (i = 1; i <= 6; i ++) {
-	  head = CreateMovelistNode(i, head);
+	if (Primitive(position) == undecided) {
+		PositionToBlankOX(position,theBlankOX);
+		//Black's turn
+		if (turn == 1) {
+			if (black == 0) {
+				for (i = 1; i <= 6; i++) {
+					head = CreateMovelistNode(i, head);
+				}
+			}
+			else {
+				for (i = 1; i <= 3; i++) {
+					head = CreateMovelistNode(i, head);
+				}
+			}
+		}
+		//White's turn
+		else if (turn == 0) {
+			if (white == 0) {
+				for (i = 1; i <= 6; i++) {
+					head = CreateMovelistNode(i, head);
+				}
+			}
+			else {
+				for (i = 1; i <= 3; i++) {
+					head = CreateMovelistNode(i,head);
+				}
+			}
+		}
+
+		return(head);
 	}
-      }
-      else {
-	for (i = 1; i <= 3; i ++){
-	  head = CreateMovelistNode(i, head);
-	}
-      }
-    }
-    //White's turn
-    else if (turn == 0){
-      if (white == 0){
-	for (i = 1; i <= 6; i ++){
-	  head = CreateMovelistNode(i, head);
-	}
-      }
-      else {
-	for (i = 1; i <= 3; i ++){
-	  head = CreateMovelistNode(i,head);
-	}
-      }
-    }
 
-    return(head);
-  }
-
-  else {
-    return(NULL);
-  }
+	else {
+		return(NULL);
+	}
 }
 
 
@@ -1524,8 +1525,8 @@ MOVELIST *GenerateMoves(position)
 **
 ** INPUTS:      POSITION *thePosition : The position the user is at.
 **              MOVE *theMove         : The move to fill with user's move.
-**              STRING playerName     : The name of the player whose turn it 
-is
+**              STRING playerName     : The name of the player whose turn it
+   is
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
 **
@@ -1535,22 +1536,22 @@ is
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-     POSITION thePosition;
-     MOVE *theMove;
-     STRING playerName;
+POSITION thePosition;
+MOVE *theMove;
+STRING playerName;
 {
-  USERINPUT ret;
+	USERINPUT ret;
 
-  do {
-    printf("%8s's move [(u)ndo/1-6] :  ", playerName);
+	do {
+		printf("%8s's move [(u)ndo/1-6] :  ", playerName);
 
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-    if(ret != Continue)
-      return(ret);
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
 
-  }
-  while (TRUE);
-  return(Continue); /* this is never reached, but lint is now happy */
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -1571,9 +1572,9 @@ USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
 ************************************************************************/
 
 BOOLEAN ValidTextInput(input)
-     STRING input;
+STRING input;
 {
-  return (input[0] <= '6' && input[0] >= '1');
+	return (input[0] <= '6' && input[0] >= '1');
 
 }
 
@@ -1590,10 +1591,10 @@ BOOLEAN ValidTextInput(input)
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(input)
-     STRING input;
+STRING input;
 {
-  return((MOVE) input[0] -'0'); // hehe, i fixed this!! (EM)
-  // our game takes in input from 1-6 ONLY.
+	return((MOVE) input[0] -'0'); // hehe, i fixed this!! (EM)
+	// our game takes in input from 1-6 ONLY.
 }
 
 /************************************************************************
@@ -1607,11 +1608,11 @@ MOVE ConvertTextInputToMove(input)
 ************************************************************************/
 
 void PrintMove(theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING m = MoveToString( theMove );
-  printf( "%s", m );
-  SafeFree( m );
+	STRING m = MoveToString( theMove );
+	printf( "%s", m );
+	SafeFree( m );
 }
 
 /************************************************************************
@@ -1619,38 +1620,38 @@ void PrintMove(theMove)
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
-** 
+**
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
 
 STRING MoveToString (theMove)
-     MOVE theMove;
+MOVE theMove;
 {
-  STRING m = (STRING) SafeMalloc( 2 );
+	STRING m = (STRING) SafeMalloc( 2 );
 
-  // Our theMove is from 1-6, because of special pieces
-  sprintf( m, "%d", theMove);
-  return m;
+	// Our theMove is from 1-6, because of special pieces
+	sprintf( m, "%d", theMove);
+	return m;
 }
 
 /*** Database Functions ***/
 int NumberOfOptions() {
-  return 2;
+	return 2;
 }
 
 int getOption() {
-  int option = 1;
-  
-  option += (gStandardGame ? 0 : 1);
+	int option = 1;
 
-  return option;
+	option += (gStandardGame ? 0 : 1);
+
+	return option;
 }
 
 void setOption(int option) {
-  option--;
-  
-  gStandardGame = (option%2==0);
+	option--;
+
+	gStandardGame = (option%2==0);
 }
 
 
@@ -1674,26 +1675,26 @@ void setOption(int option) {
 ************************************************************************/
 
 void PositionToBlankOX(thePos,theBlankOX)
-     POSITION thePos;
-     BlankOX *theBlankOX;
+POSITION thePos;
+BlankOX *theBlankOX;
 {
-  int b0,b1, b2, b3, b4, b5, b6;
+	int b0,b1, b2, b3, b4, b5, b6;
 
-   b6 = thePos % 2; // turn
-   b5 = (thePos / 2) % 15; // 3rd column
-   b4 = (thePos / (2*15)) % 15; //2nd column
-   b3 = (thePos / (2*15*15)) % 15; //1st column
-   b2 = (thePos / (2*15*15*15)) % 10; // white
-   b1 = (thePos / (2*15*15*15*10)) % 10; //black
-   b0 = (thePos / (2*15*15*15*10*10)) % 11; // score
+	b6 = thePos % 2; // turn
+	b5 = (thePos / 2) % 15; // 3rd column
+	b4 = (thePos / (2*15)) % 15; //2nd column
+	b3 = (thePos / (2*15*15)) % 15; //1st column
+	b2 = (thePos / (2*15*15*15)) % 10; // white
+	b1 = (thePos / (2*15*15*15*10)) % 10; //black
+	b0 = (thePos / (2*15*15*15*10*10)) % 11; // score
 
-   theBlankOX[0] = b0; //score
-   theBlankOX[1] = b1; //black
-   theBlankOX[2] = b2; //white
-   theBlankOX[3] = b3; //1st column
-   theBlankOX[4] = b4; //2nd column
-   theBlankOX[5] = b5; //3rd column
-   theBlankOX[6] = b6; // turn
+	theBlankOX[0] = b0; //score
+	theBlankOX[1] = b1; //black
+	theBlankOX[2] = b2; //white
+	theBlankOX[3] = b3; //1st column
+	theBlankOX[4] = b4; //2nd column
+	theBlankOX[5] = b5; //3rd column
+	theBlankOX[6] = b6; // turn
 
 }
 
@@ -1711,28 +1712,28 @@ void PositionToBlankOX(thePos,theBlankOX)
 ************************************************************************/
 
 POSITION BlankOXToPosition(theBlankOX)
-     BlankOX *theBlankOX;
+BlankOX *theBlankOX;
 {
-  POSITION position = 0;
+	POSITION position = 0;
 
-  int turn = theBlankOX[6];
-  int white = theBlankOX[2];
-  int black = theBlankOX[1];
-  int score = theBlankOX[0];
-  int p1 = theBlankOX[3];
-  int p2 = theBlankOX[4];
-  int p3 = theBlankOX[5];
+	int turn = theBlankOX[6];
+	int white = theBlankOX[2];
+	int black = theBlankOX[1];
+	int score = theBlankOX[0];
+	int p1 = theBlankOX[3];
+	int p2 = theBlankOX[4];
+	int p3 = theBlankOX[5];
 
-  position = turn + (2*p3) + (2*15*p2) + (2*15*15*p1) + (2*15*15*15*white) +
-    (2*15*15*15*10*black) + (2*15*15*15*100*score);
+	position = turn + (2*p3) + (2*15*p2) + (2*15*15*p1) + (2*15*15*15*white) +
+	           (2*15*15*15*10*black) + (2*15*15*15*100*score);
 
-  /* position = turn + (2*p9) + (2*3*p8) + (2*3*3*p7) + (2*27*p6) + 
-(2*27*3*p5) + (2*27*9*p4) +
-     (2*27*27*p3) + (2*27*27*3*p2) + (2*27*27*9*p1) + (2*27*27*27*white) + 
-(2*27*27*27*10*black) +
-     (2*27*27*27*100*score); */
+	/* position = turn + (2*p9) + (2*3*p8) + (2*3*3*p7) + (2*27*p6) +
+	   (2*27*3*p5) + (2*27*9*p4) +
+	   (2*27*27*p3) + (2*27*27*3*p2) + (2*27*27*9*p1) + (2*27*27*27*white) +
+	   (2*27*27*27*10*black) +
+	   (2*27*27*27*100*score); */
 
-  return(position);
+	return(position);
 }
 
 
@@ -1750,98 +1751,98 @@ POSITION BlankOXToPosition(theBlankOX)
 ************************************************************************/
 
 int ThreeInARow(theBlankOX,a,b,c)
-     BlankOX theBlankOX[];
-     int a,b,c;
+BlankOX theBlankOX[];
+int a,b,c;
 {
-  // the arguments, A,B,C passed into this function is in decreasing order.
+	// the arguments, A,B,C passed into this function is in decreasing order.
 
-  int blackpiece = (int)theBlankOX[1];
-  int whitepiece = (int)theBlankOX[2];
-  int column1 = (int)theBlankOX[3];
-  int column2 = (int)theBlankOX[4];
-  int column3 = (int)theBlankOX[5];
+	int blackpiece = (int)theBlankOX[1];
+	int whitepiece = (int)theBlankOX[2];
+	int column1 = (int)theBlankOX[3];
+	int column2 = (int)theBlankOX[4];
+	int column3 = (int)theBlankOX[5];
 
-  char piece1, piece2, piece3;
+	char piece1, piece2, piece3;
 
-  // get the pieces
-  if (a == 8) {
-    piece1 =  gBlankOXPosition[column3][2] ;
-    if (b == 7) { // horizontal bottom
-      piece2 = gBlankOXPosition[column2][2];
-      piece3 = gBlankOXPosition[column1][2];
-    }
-    if (b == 5) { // vert right
-      piece2 = gBlankOXPosition[column3][1];
-      piece3 = gBlankOXPosition[column3][0];
-    }
-    if (b== 4) { // diag top->bot
-      piece2 = gBlankOXPosition[column2][1];
-      piece3 = gBlankOXPosition[column1][0];
-    }
-  }
-  else if (a == 7) { // vert mid
-    piece1 =  gBlankOXPosition[column2][2];
-    piece2 =  gBlankOXPosition[column2][1];
-    piece3 =  gBlankOXPosition[column2][0];
-  }
-  else if (a == 6) { 
-    piece1 =  gBlankOXPosition[column1][2];
-    if (b == 4) { // diag bot->top
-      piece2 =  gBlankOXPosition[column2][1];
-      piece3 =  gBlankOXPosition[column3][0];
-    }
-    if (b == 3) { // vert left
-      piece2 = gBlankOXPosition[column1][1];
-      piece3 =  gBlankOXPosition[column1][0];
-    }
-  }
-  else if (a == 5) { //horizontal middle
-    piece1 =  gBlankOXPosition[column3][1];
-    piece2 =  gBlankOXPosition[column2][1];
-    piece3 =  gBlankOXPosition[column1][1];
-  }
-  else if (a == 2 ) { // horizontal top
-    piece1 =  gBlankOXPosition[column3][0];
-    piece2 =  gBlankOXPosition[column2][0];
-    piece3 =  gBlankOXPosition[column1][0];
-  }
-  else {}
+	// get the pieces
+	if (a == 8) {
+		piece1 =  gBlankOXPosition[column3][2];
+		if (b == 7) { // horizontal bottom
+			piece2 = gBlankOXPosition[column2][2];
+			piece3 = gBlankOXPosition[column1][2];
+		}
+		if (b == 5) { // vert right
+			piece2 = gBlankOXPosition[column3][1];
+			piece3 = gBlankOXPosition[column3][0];
+		}
+		if (b== 4) { // diag top->bot
+			piece2 = gBlankOXPosition[column2][1];
+			piece3 = gBlankOXPosition[column1][0];
+		}
+	}
+	else if (a == 7) { // vert mid
+		piece1 =  gBlankOXPosition[column2][2];
+		piece2 =  gBlankOXPosition[column2][1];
+		piece3 =  gBlankOXPosition[column2][0];
+	}
+	else if (a == 6) {
+		piece1 =  gBlankOXPosition[column1][2];
+		if (b == 4) { // diag bot->top
+			piece2 =  gBlankOXPosition[column2][1];
+			piece3 =  gBlankOXPosition[column3][0];
+		}
+		if (b == 3) { // vert left
+			piece2 = gBlankOXPosition[column1][1];
+			piece3 =  gBlankOXPosition[column1][0];
+		}
+	}
+	else if (a == 5) { //horizontal middle
+		piece1 =  gBlankOXPosition[column3][1];
+		piece2 =  gBlankOXPosition[column2][1];
+		piece3 =  gBlankOXPosition[column1][1];
+	}
+	else if (a == 2 ) { // horizontal top
+		piece1 =  gBlankOXPosition[column3][0];
+		piece2 =  gBlankOXPosition[column2][0];
+		piece3 =  gBlankOXPosition[column1][0];
+	}
+	else {}
 
-  //printf("%c %c %c<--1,2,3", piece1, piece2, piece3);
+	//printf("%c %c %c<--1,2,3", piece1, piece2, piece3);
 
-  // for x
-  if ('x' == piece1) {
-    if (piece1 == piece2 && piece2 == piece3) {
-      if (blackpiece == (a+1) || blackpiece == (b+1) || blackpiece == (c+1) 
-){
-	return (-2);
-      }
-      else {
-	return (-1);
-      }
-    }
-    else {
-      return (0);
-    }
-  }
-  // if o matches
-  else if ('o' == piece1){
-    if (piece1 == piece2 && piece2 == piece3){
-      if (whitepiece == (a+1) || whitepiece == (b+1) || whitepiece == (c+1) 
-){
-	return (2);
-      }
-      else {
-	return (1);
-      }
-    }
-    else {
-      return (0);
-    }
-  }
-  else {
-    return (0);
-  }
+	// for x
+	if ('x' == piece1) {
+		if (piece1 == piece2 && piece2 == piece3) {
+			if (blackpiece == (a+1) || blackpiece == (b+1) || blackpiece == (c+1)
+			    ) {
+				return (-2);
+			}
+			else {
+				return (-1);
+			}
+		}
+		else {
+			return (0);
+		}
+	}
+	// if o matches
+	else if ('o' == piece1) {
+		if (piece1 == piece2 && piece2 == piece3) {
+			if (whitepiece == (a+1) || whitepiece == (b+1) || whitepiece == (c+1)
+			    ) {
+				return (2);
+			}
+			else {
+				return (1);
+			}
+		}
+		else {
+			return (0);
+		}
+	}
+	else {
+		return (0);
+	}
 }
 
 /***********************************************************************
@@ -1857,20 +1858,20 @@ int ThreeInARow(theBlankOX,a,b,c)
 ***********************************************************************/
 int ConvertBackToInt(char* letter)
 {
-  printf("In ConvertBackToInt");
+	printf("In ConvertBackToInt");
 
-  if (strcmp("x", letter) == 0) {
-    return x;
-  }
-  else if (strcmp("-", letter) == 0) {
-    return Blank;
-  }
-  else if (strcmp("o", letter) == 0) {
-    return o;
-  }
+	if (strcmp("x", letter) == 0) {
+		return x;
+	}
+	else if (strcmp("-", letter) == 0) {
+		return Blank;
+	}
+	else if (strcmp("o", letter) == 0) {
+		return o;
+	}
 
-  //never reaches here
-  return Blank;
+	//never reaches here
+	return Blank;
 }
 
 /************************************************************************
@@ -1886,15 +1887,15 @@ int ConvertBackToInt(char* letter)
 ************************************************************************/
 // WE NEVER NEED TO USE THIS FUNCTION
 BOOLEAN AllFilledIn(theBlankOX)
-     BlankOX theBlankOX[];
+BlankOX theBlankOX[];
 {
-  BOOLEAN answer = TRUE;
-  int i;
+	BOOLEAN answer = TRUE;
+	int i;
 
-  for(i = 0; i < REALBOARDSIZE; i++)
-    answer &= (theBlankOX[i] == o || theBlankOX[i] == x);
+	for(i = 0; i < REALBOARDSIZE; i++)
+		answer &= (theBlankOX[i] == o || theBlankOX[i] == x);
 
-  return (answer);
+	return (answer);
 }
 
 /************************************************************************
@@ -1912,16 +1913,16 @@ BOOLEAN AllFilledIn(theBlankOX)
 ************************************************************************/
 
 BlankOX WhoseTurn(theBlankOX)
-     BlankOX *theBlankOX;
+BlankOX *theBlankOX;
 {
-  //printf("Inside WhoseTurn");
+	//printf("Inside WhoseTurn");
 
-  if (theBlankOX[6] == 1 ) {
-    return (x); // this is the REAL LINE
-  }
-  else {
-    return (o); // this is the REAL LINE
-  }
+	if (theBlankOX[6] == 1 ) {
+		return (x); // this is the REAL LINE
+	}
+	else {
+		return (o); // this is the REAL LINE
+	}
 }
 
 
@@ -1936,12 +1937,12 @@ BlankOX WhoseTurn(theBlankOX)
 
 
 POSITION StringToPosition(char* board, int option, char* move, char* params) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+	// FIXME: this is just a stub
+	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos, int move, int option) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+	// FIXME: this is just a stub
+	return "Implement Me";
 }

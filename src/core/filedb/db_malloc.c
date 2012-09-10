@@ -35,19 +35,19 @@
 
 
 void* gamesdb_SafeMalloc(gamesdb_offset num_bytes){
-  void* ret;
+	void* ret;
 
-  ret = (void*) malloc(num_bytes);
+	ret = (void*) malloc(num_bytes);
 
-  if(ret == NULL)
-    fprintf(stderr,"Error in database SafeMalloc, unable to allocate space\n");
+	if(ret == NULL)
+		fprintf(stderr,"Error in database SafeMalloc, unable to allocate space\n");
 
-  return ret;
+	return ret;
 }
 
 void gamesdb_SafeFree(void* mem){
-  free(mem);
+	free(mem);
 }
 
 
-  
+

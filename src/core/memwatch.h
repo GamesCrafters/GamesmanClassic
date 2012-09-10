@@ -24,7 +24,7 @@
 **
 ************************************************************************
 
-	This file is part of MEMWATCH.
+        This file is part of MEMWATCH.
 
     MEMWATCH is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -550,13 +550,13 @@ char* mwStrdup( const char *, const char*, int );
 #ifndef __MEMWATCH_C
 #ifdef MEMWATCH
 
-#define mwASSERT(exp)   while(mwAssert((int)(exp),#exp,__FILE__,__LINE__))
+#define mwASSERT(exp)   while(mwAssert((int)(exp),# exp,__FILE__,__LINE__))
 #ifndef MW_NOASSERT
 #ifndef ASSERT
 #define ASSERT          mwASSERT
 #endif /* !ASSERT */
 #endif /* !MW_NOASSERT */
-#define mwVERIFY(exp)   while(mwVerify((int)(exp),#exp,__FILE__,__LINE__))
+#define mwVERIFY(exp)   while(mwVerify((int)(exp),# exp,__FILE__,__LINE__))
 #ifndef MW_NOVERIFY
 #ifndef VERIFY
 #define VERIFY          mwVERIFY
@@ -576,9 +576,9 @@ char* mwStrdup( const char *, const char*, int );
 #endif
 
 /* Added for Gamesman */
-#define SafeMalloc(n)		mwMalloc(n,__FILE__,__LINE__)
-#define SafeRealloc(p,n)	mwRealloc(p,n,__FILE__,__LINE__)
-#define SafeFree(p)			mwFree(p,__FILE__,__LINE__)
+#define SafeMalloc(n)           mwMalloc(n,__FILE__,__LINE__)
+#define SafeRealloc(p,n)        mwRealloc(p,n,__FILE__,__LINE__)
+#define SafeFree(p)                     mwFree(p,__FILE__,__LINE__)
 
 #define malloc(n)       mwMalloc(n,__FILE__,__LINE__)
 #define strdup(p)       mwStrdup(p,__FILE__,__LINE__)
@@ -588,7 +588,7 @@ char* mwStrdup( const char *, const char*, int );
 #define CHECK()         mwTest(__FILE__,__LINE__,MW_TEST_ALL)
 #define CHECK_THIS(n)   mwTest(__FILE__,__LINE__,n)
 #define CHECK_BUFFER(b) mwTestBuffer(__FILE__,__LINE__,b)
-#define MARK(p)         mwMark(p,#p,__FILE__,__LINE__)
+#define MARK(p)         mwMark(p,# p,__FILE__,__LINE__)
 #define UNMARK(p)       mwUnmark(p,__FILE__,__LINE__)
 
 #else /* MEMWATCH */
@@ -608,7 +608,7 @@ char* mwStrdup( const char *, const char*, int );
 #endif /* !MW_NOVERIFY */
 
 /*lint -esym(773,mwTRACE) */
-#define mwTRACE         /*lint -save -e506 */ 1?(void)0:mwDummyTraceFunction /*lint -restore */
+#define mwTRACE         /*lint -save -e506 */ 1 ? (void)0 : mwDummyTraceFunction /*lint -restore */
 #ifndef MW_NOTRACE
 #ifndef TRACE
 /*lint -esym(773,TRACE) */
@@ -656,7 +656,7 @@ extern void mwDummyTraceFunction(const char *,...);
 #endif /* !__MEMWATCH_C */
 
 #ifdef __cplusplus
-    }
+}
 #endif
 
 #if 0 /* 980317: disabled C++ */
@@ -691,12 +691,12 @@ extern const char *mwNFile;
 extern int mwNLine;
 class MemWatch {
 public:
-    MemWatch();
-    ~MemWatch();
-    };
+MemWatch();
+~MemWatch();
+};
 void * operator new(size_t);
 void * operator new(size_t,const char *,int);
-void * operator new[] (size_t,const char *,int);	// hjc 07/16/02
+void * operator new[] (size_t,const char *,int);        // hjc 07/16/02
 void operator delete(void *);
 #define mwNew new(__FILE__,__LINE__)
 #define mwDelete (mwNCur=1,mwNFile=__FILE__,mwNLine=__LINE__),delete
