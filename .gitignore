@@ -10,3 +10,7 @@ autom4te.cache
 *.dat
 *.gz
 *.export
+
+# Vim and Emacs autosaves
+*.swp
+.#*
