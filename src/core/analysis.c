@@ -35,6 +35,7 @@
 #include "openPositions.h"
 #include "textui.h"
 #include <math.h>
+#include <stdint.h>
 
 /*
 ** Globals
@@ -104,14 +105,12 @@ void PrintRawGameValues(BOOLEAN toFile)
 	if (!toFile) printf("\n");
 	fprintf(fp,"%s\n", kGameName);
 	fprintf(fp,"Position,Value,Remoteness%s\n",
-	        (!kPartizan && !gTwoBits) ? ",MexValue" : "");
+			(!kPartizan && !gTwoBits) ? ",MexValue" : "");
 
 	for(i=0; i<gNumberOfPositions; i++)
 		if((value = GetValueOfPosition((POSITION)i)) != undecided) {
-			fprintf(fp,POSITION_FORMAT ",%c,%d",
-			        i,
-			        gValueLetter[value],
-			        Remoteness((POSITION)i));
+			fprintf(fp,POSITION_FORMAT ",%c,%d", i,
+			gValueLetter[value], Remoteness((POSITION)i));
 			if(!kPartizan && !gTwoBits)
 				fprintf(fp,",%d\n",MexLoad((POSITION)i));
 			else
@@ -124,6 +123,36 @@ void PrintRawGameValues(BOOLEAN toFile)
 	}
 }
 
+void PrintBinaryGameValuesToFile()
+{
+	FILE *fp;
+	char filename[80];
+	POSITION i;
+	VALUE value;
+	BOOLEAN toFile = 0;
+
+	printf("File to save to: ");
+	scanf("%s",filename);
+
+	if((fp = fopen(filename, "w")) == NULL) {
+		ExitStageRightErrorString("Couldn't open file, sorry.");
+		exit(0);
+	}
+	printf("Writing to %s...", filename);
+	fflush(stdout);
+
+	if (!toFile) printf("\n");
+
+	for(i=0; i<gNumberOfPositions; i++)
+		if((value = GetValueOfPosition((POSITION)i)) != undecided) {
+			/* TODO: implement the writer. */
+		}
+
+	if(toFile) {
+		fclose(fp);
+		printf("done\n");
+	}
+}
 void PrintBadPositions(char c,int maxPositions, POSITIONLIST* badWinPositions, POSITIONLIST* badTiePositions, POSITIONLIST* badLosePositions)
 {
 	POSITIONLIST *ptr = NULL;

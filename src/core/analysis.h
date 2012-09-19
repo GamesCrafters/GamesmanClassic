@@ -17,6 +17,7 @@
 /* Functions to output sets of data */
 
 void    PrintRawGameValues              (BOOLEAN toFile);
+void    PrintBinaryGameValuesToFile     ();
 void    PrintBadPositions               (char value, int maxPos, POSITIONLIST* badWinPos,
                                          POSITIONLIST* badTiePos, POSITIONLIST* badLosePos);
 void    PrintMexValues                  (MEX value, int maxpos);
