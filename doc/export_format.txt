@@ -1,0 +1,6 @@
+Little endian.
+
+Header:
+| uint64_t remoteness_size | uint64_t mex_value_size | uint64_t hash_t_size  | uint64_t move_counts               |
+Lines:
+| Win / Lose / Tie byte    | byte * remoteness_size  | byte * mex_value_size | (byte * hash_t_size) * move_counts |
