@@ -428,7 +428,11 @@ STRING getScaleFnName(fList feature) {
 		scaleFnName = "logistic";
 	else if( feature->scale==&quadratic )
 		scaleFnName = "quadratic";
+#ifdef WIN32
+    else if( feature->scale==&booleanA )
+#else
 	else if( feature->scale==&boolean )
+#endif
 		scaleFnName = "boolean";
 	else {
 		scaleFnName = NULL;
@@ -668,9 +672,16 @@ float quadratic(float value,float params[]){
 	return ans;
 }
 
-float boolean(float value,float params[]) {
-	return (value>params[0] ? 1 : -1);
+#ifdef WIN32
+float booleanA(float value,float params[]) {
+    return (value>params[0] ? 1 : -1);
 }
+#else
+float boolean(float value,float params[]) {
+    return (value>params[0] ? 1 : -1);
+}
+#endif
+
 
 //Params are {value*10 where y==1 for log10(abs(value*9)+1) (Default=1)}
 float logarithmic(float value,float params[]){
