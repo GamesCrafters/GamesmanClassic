@@ -2,6 +2,7 @@
 #ifndef GMCORE_MISC_H
 #define GMCORE_MISC_H
 
+size_t          MoveListLength                  (MOVELIST *ptr);
 void            FreeMoveList                    (MOVELIST* ptr);
 void            FreeRemotenessList              (REMOTENESSLIST* ptr);
 void            FreePositionList                (POSITIONLIST* ptr);

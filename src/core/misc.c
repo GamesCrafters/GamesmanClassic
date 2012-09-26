@@ -51,6 +51,16 @@ char kHelpStar[1024];
 ** Code
 */
 
+size_t MoveListLength(MOVELIST *ptr)
+{
+	size_t output = 0;
+	while (ptr) {
+		ptr = ptr->next;
+		++output;
+	}
+	return output;
+}
+
 void FreeMoveList(MOVELIST* ptr)
 {
 	MOVELIST *last;

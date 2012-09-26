@@ -123,29 +123,87 @@ void PrintRawGameValues(BOOLEAN toFile)
 	}
 }
 
-void PrintBinaryGameValuesToFile()
+void PrintBinaryGameValuesToFile(char * filename)
 {
 	FILE *fp;
-	char filename[80];
-	POSITION i;
-	VALUE value;
+	char filename_array[80];
+	POSITION i = 0;
+	VALUE value = 0;
+	REMOTENESS remoteness = 0;
+	MEX mex = 0;
 	BOOLEAN toFile = 0;
+	uint64_t output = 0;
+	MOVELIST *next_moves = NULL;
+	MOVELIST *current_move = NULL;
+	uint64_t max_move_choices = 0;
+	uint64_t possible_move_choices = 0;
+	POSITION choice = 0;
+	int j = 0;
 
-	printf("File to save to: ");
-	scanf("%s",filename);
+	if (!filename) {
+		printf("File to save to: ");
+		scanf("%s",filename_array);
+		filename = filename_array;
+	}
 
 	if((fp = fopen(filename, "w")) == NULL) {
 		ExitStageRightErrorString("Couldn't open file, sorry.");
 		exit(0);
 	}
-	printf("Writing to %s...", filename);
+
+	printf("Writing to %s...\n", filename);
 	fflush(stdout);
 
-	if (!toFile) printf("\n");
+	/* Header */
+	output = sizeof(VALUE);
+	fwrite(&output, sizeof(uint64_t), 1, fp);
+	if(!kPartizan && !gTwoBits) {
+		output = sizeof(MEX);
+	} else {
+		output = 0;
+	}
+	fwrite(&output, sizeof(uint64_t), 1, fp);
+	output = sizeof(POSITION);
+	fwrite(&output, sizeof(uint64_t), 1, fp);
+
+	/* move_counts */
+	for(i=0; i<gNumberOfPositions; i++)
+		if((value = GetValueOfPosition((POSITION)i)) != undecided) {
+			next_moves = GenerateMoves(i);
+			possible_move_choices = MoveListLength(next_moves);
+			if (possible_move_choices > max_move_choices) {
+				max_move_choices = possible_move_choices;
+			}
+			FreeMoveList(next_moves);
+		}
+	output = max_move_choices;
+	fwrite(&output, sizeof(uint64_t), 1, fp);
+
+	/* output = GetInitialPosition(); */
+	output = gInitialPosition;
+	fwrite(&output, sizeof(uint64_t), 1, fp);
 
 	for(i=0; i<gNumberOfPositions; i++)
 		if((value = GetValueOfPosition((POSITION)i)) != undecided) {
-			/* TODO: implement the writer. */
+			fwrite(gValueLetter + value, sizeof(char), 1, fp);
+			remoteness = Remoteness(i);
+			fwrite(&remoteness, sizeof(REMOTENESS), 1, fp);
+			if(!kPartizan && !gTwoBits) {
+				mex = MexLoad(i);
+				fwrite(&mex, sizeof(MEX), 1, fp);
+			}
+			current_move = next_moves = GenerateMoves(i);
+			for (j = 0; j < max_move_choices; ++j) {
+				if (current_move) {
+					choice = DoMove(i, current_move->move);
+					current_move = current_move->next;
+				} else {
+					/* choice = kBadPosition; */
+					choice = -1;
+				}
+				fwrite(&choice, sizeof(POSITION), 1, fp);
+			}
+			FreeMoveList(next_moves);
 		}
 
 	if(toFile) {
@@ -153,6 +211,7 @@ void PrintBinaryGameValuesToFile()
 		printf("done\n");
 	}
 }
+
 void PrintBadPositions(char c,int maxPositions, POSITIONLIST* badWinPositions, POSITIONLIST* badTiePositions, POSITIONLIST* badLosePositions)
 {
 	POSITIONLIST *ptr = NULL;

@@ -1214,7 +1214,7 @@ void AnalysisMenu()
 		printf("\n\tp)\t(P)rint the overall summmary of game values\n");
 		printf("\ta)\tPrint detailed (A)nalysis of game values and remoteness distribution\n");  // New printf added
 		printf("\tf)\tPrint to an ascii (F)ile the raw game values + remoteness\n");
-		printf("\tz)\tPrint to an binary (F)ile the raw game values + remoteness\n");
+		printf("\tz)\tPrint to an binary export File the raw game values + remoteness (z)\n");
 		printf("\to)\tPrint to std(O)ut the raw game values + remoteness\n");
 
 		printf("\td)\tPrint (D)atabase comb visualization (POSitions vs NEGativeSpace)\n");
@@ -1258,7 +1258,7 @@ void AnalysisMenu()
 			PrintRawGameValues(TRUE);
 			break;
 		case 'Z': case 'z':
-			PrintBinaryGameValuesToFile();
+			PrintBinaryGameValuesToFile(NULL);
 			break;
 		case 'O': case 'o':
 			PrintRawGameValues(FALSE);
