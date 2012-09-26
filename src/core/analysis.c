@@ -139,6 +139,8 @@ void PrintBinaryGameValuesToFile(char * filename)
 	uint64_t possible_move_choices = 0;
 	POSITION choice = 0;
 	int j = 0;
+	POSITION max_position = gNumberOfPositions - 1;
+	size_t count = 1;
 
 	if (!filename) {
 		printf("File to save to: ");
@@ -146,65 +148,81 @@ void PrintBinaryGameValuesToFile(char * filename)
 		filename = filename_array;
 	}
 
-	if((fp = fopen(filename, "w")) == NULL) {
+	if ((fp = fopen(filename, "wb")) == NULL) {
 		ExitStageRightErrorString("Couldn't open file, sorry.");
 		exit(0);
 	}
 
-	printf("Writing to %s...\n", filename);
+	printf("Writing to %s\n", filename);
 	fflush(stdout);
 
 	/* Header */
 	output = sizeof(VALUE);
-	fwrite(&output, sizeof(uint64_t), 1, fp);
+	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1); 
 	if(!kPartizan && !gTwoBits) {
 		output = sizeof(MEX);
 	} else {
 		output = 0;
 	}
-	fwrite(&output, sizeof(uint64_t), 1, fp);
+	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
 	output = sizeof(POSITION);
-	fwrite(&output, sizeof(uint64_t), 1, fp);
+	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
 
+	printf("Finding maximum number of move counts:\n");
+	printf("Progress: [%3d%%]", 0);
 	/* move_counts */
-	for(i=0; i<gNumberOfPositions; i++)
-		if((value = GetValueOfPosition((POSITION)i)) != undecided) {
-			next_moves = GenerateMoves(i);
-			possible_move_choices = MoveListLength(next_moves);
-			if (possible_move_choices > max_move_choices) {
-				max_move_choices = possible_move_choices;
-			}
-			FreeMoveList(next_moves);
+	for(i=0; i<=max_position; i++) {
+		printf("\rProgress: [%3d%%]", (int) ((100 * i) / max_position));
+		next_moves = GenerateMoves(i);
+		possible_move_choices = MoveListLength(next_moves);
+		if (possible_move_choices > max_move_choices) {
+			max_move_choices = possible_move_choices;
 		}
+		FreeMoveList(next_moves);
+	}
+
+	printf("\rProgress: [%3d%%]\n", 100);
+
+	printf("Maximum move choices: %lu\n", max_move_choices);
+
 	output = max_move_choices;
-	fwrite(&output, sizeof(uint64_t), 1, fp);
+	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
 
 	/* output = GetInitialPosition(); */
 	output = gInitialPosition;
-	fwrite(&output, sizeof(uint64_t), 1, fp);
+	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
 
-	for(i=0; i<gNumberOfPositions; i++)
-		if((value = GetValueOfPosition((POSITION)i)) != undecided) {
-			fwrite(gValueLetter + value, sizeof(char), 1, fp);
-			remoteness = Remoteness(i);
-			fwrite(&remoteness, sizeof(REMOTENESS), 1, fp);
-			if(!kPartizan && !gTwoBits) {
-				mex = MexLoad(i);
-				fwrite(&mex, sizeof(MEX), 1, fp);
-			}
-			current_move = next_moves = GenerateMoves(i);
-			for (j = 0; j < max_move_choices; ++j) {
-				if (current_move) {
-					choice = DoMove(i, current_move->move);
-					current_move = current_move->next;
-				} else {
-					/* choice = kBadPosition; */
-					choice = -1;
-				}
-				fwrite(&choice, sizeof(POSITION), 1, fp);
-			}
-			FreeMoveList(next_moves);
+	printf("Final export pass:\n");
+
+	printf("Progress: [%3d%%]", 0);
+	for(i=0; i <= max_position - 1; i++) {
+		printf("\rProgress: [%3d%%]", (int) ((100 * i) / max_position));
+		fflush(stdout);
+		count = (count == 1) && (fwrite(gValueLetter + value, sizeof(char), 1, fp) == 1);
+		remoteness = Remoteness(i);
+		count = (count == 1) && (fwrite(&remoteness, sizeof(REMOTENESS), 1, fp) == 1);
+		if(!kPartizan && !gTwoBits) {
+			mex = MexLoad(i);
+			count = (count == 1) && (fwrite(&mex, sizeof(MEX), 1, fp) == 1);
 		}
+		current_move = next_moves = GenerateMoves(i);
+		for (j = 0; j < max_move_choices; ++j) {
+			if (current_move) {
+				choice = DoMove(i, current_move->move);
+				current_move = current_move->next;
+			} else {
+				/* choice = kBadPosition; */
+				choice = -1;
+			}
+			count = (count == 1) && (fwrite(&choice, sizeof(POSITION), 1, fp) == 1);
+		}
+		FreeMoveList(next_moves);
+	}
+	printf("\rProgress: [%3d%%]\n", 100);
+
+	if (count != 1) {
+		printf("EXPORT FAILURE: an error occured in writing the file.\n");
+	}
 
 	if(toFile) {
 		fclose(fp);
