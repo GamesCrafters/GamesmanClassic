@@ -198,7 +198,8 @@ void PrintBinaryGameValuesToFile(char * filename)
 	for(i=0; i <= max_position - 1; i++) {
 		printf("\rProgress: [%3d%%]", (int) ((100 * i) / max_position));
 		fflush(stdout);
-		count = (count == 1) && (fwrite(gValueLetter + value, sizeof(char), 1, fp) == 1);
+		value = GetValueOfPosition((POSITION)i);
+		count = (count == 1) && (fwrite(&gValueLetter[value], sizeof(char), 1, fp) == 1);
 		remoteness = Remoteness(i);
 		count = (count == 1) && (fwrite(&remoteness, sizeof(REMOTENESS), 1, fp) == 1);
 		if(!kPartizan && !gTwoBits) {
