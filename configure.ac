@@ -108,7 +108,7 @@ case $machine in
   i*86)
   		  OUTCFLAGS="$OUTCFLAGS -march=$machine";;
   powerpc)
-          OUTCFLAGS="$OUTCFLAGS -mpowerpc";;
+          OUTCFLAGS="$OUTCFLAGS ";;
   *)
           AC_MSG_WARN(Unusual processor architecture detected. Skipping architecture specifiers for gcc.);;
 esac
