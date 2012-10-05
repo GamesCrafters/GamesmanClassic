@@ -91,7 +91,11 @@ float linear(float,float[]);
 float logarithmic(float,float[]);
 float logistic(float,float[]);
 float quadratic(float,float[]);
-float boolean(float,float[]);
+#ifdef WIN32
+    float booleanA(float, float[]);
+#else
+    float boolean(float,float[]);
+#endif
 
 void NewTraitMenu(STRING);
 fList ParameterizeTrait(int, int);
