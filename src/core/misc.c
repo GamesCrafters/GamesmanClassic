@@ -596,3 +596,9 @@ STRING kHelpStarWritten() {
 	        strcmp(kHelpExample, "Not written yet") ? "" : "Example help not written");
 	return kHelpStar;
 }
+
+BOOLEAN FirstWordMatches(STRING to_compare, STRING word) {
+	return (strstr(to_compare, word) == to_compare &&
+	        (strchr(to_compare, ' ') == to_compare + strlen(word) ||
+	         strlen(to_compare) == strlen(word)));
+}

@@ -6,10 +6,10 @@ void    Initialize              ();
 
 void    StartGame               ();
 void    SolveAndStore           ();
+void    ServerInteractLoop      ();
 VALUE   DetermineValue          (POSITION start);
-void HandleArguments         (int argc, char *argv[]);
-
-int main                    (int argc, char *argv[]);
+void    HandleArguments         (int argc, char *argv[]);
+int     main                    (int argc, char *argv[]);
 
 /* Real main to be called by wrapper main() or by external linked modules */
 int     gamesman_main           ();

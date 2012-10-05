@@ -133,7 +133,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	MEX mex = 0;
 	BOOLEAN toFile = 0;
 	uint64_t output = 0;
-	MOVELIST *next_moves = NULL;
+	MOVELIST *all_next_moves = NULL;
 	MOVELIST *current_move = NULL;
 	uint64_t max_move_choices = 0;
 	uint64_t possible_move_choices = 0;
@@ -179,12 +179,12 @@ void PrintBinaryGameValuesToFile(char * filename)
 			printf("\r    Progress: [%3d%%]", last_printed);
 			fflush(stdout);
 		}
-		next_moves = GenerateMoves(i);
-		possible_move_choices = MoveListLength(next_moves);
+		all_next_moves = GenerateMoves(i);
+		possible_move_choices = MoveListLength(all_next_moves);
 		if (possible_move_choices > max_move_choices) {
 			max_move_choices = possible_move_choices;
 		}
-		FreeMoveList(next_moves);
+		FreeMoveList(all_next_moves);
 	}
 
 	printf("\r    Progress: [%3d%%]\n", 100);
@@ -194,7 +194,6 @@ void PrintBinaryGameValuesToFile(char * filename)
 	output = max_move_choices;
 	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
 
-	/* output = GetInitialPosition(); */
 	output = gInitialPosition;
 	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
 
@@ -207,7 +206,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 			printf("\r    Progress: [%3d%%]", last_printed);
 			fflush(stdout);
 		}
-		value = GetValueOfPosition((POSITION)i);
+		value = GetValueOfPosition(i);
 		count = (count == 1) && (fwrite(&gValueLetter[value], sizeof(char), 1, fp) == 1);
 		remoteness = Remoteness(i);
 		count = (count == 1) && (fwrite(&remoteness, sizeof(REMOTENESS), 1, fp) == 1);
@@ -215,7 +214,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 			mex = MexLoad(i);
 			count = (count == 1) && (fwrite(&mex, sizeof(MEX), 1, fp) == 1);
 		}
-		current_move = next_moves = GenerateMoves(i);
+		current_move = all_next_moves = GenerateMoves(i);
 		for (j = 0; j < max_move_choices; ++j) {
 			if (current_move) {
 				choice = DoMove(i, current_move->move);
@@ -226,7 +225,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 			}
 			count = (count == 1) && (fwrite(&choice, sizeof(POSITION), 1, fp) == 1);
 		}
-		FreeMoveList(next_moves);
+		FreeMoveList(all_next_moves);
 	}
 	printf("\r    Progress: [%3d%%]\n", 100);
 

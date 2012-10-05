@@ -195,6 +195,7 @@ STRING kCommandSyntaxHelp =
         "\t--GenerateMoves <args>} | --lightplayer | --netDb | --hashCounting |\n"
         "\t--help}\n\n"
         "--export <filename>\t\t\tSolves the game (if needed) then exports to filename.\n"
+        "--interact\t\t\tSolves the game (if needed) then enters server interaction mode.\n"
         "--nodb\t\t\tStarts game without loading or saving to the database.\n"
         "--newdb\t\t\tStarts game and clobbers the old database.\n"
         "--filedb\t\tStarts game with file-based database.\n"

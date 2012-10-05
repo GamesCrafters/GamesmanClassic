@@ -10,6 +10,8 @@ void            FreeValueMoves                  (VALUE_MOVES* ptr);
 void            FreeTierList                    (TIERLIST* ptr);
 void            FreeUndoMoveList                (UNDOMOVELIST* ptr);
 
+BOOLEAN         FirstWordMatches                (STRING to_compare, STRING word);
+
 BOOLEAN         ValidMove                       (POSITION pos, MOVE move);
 
 int             GetRandomNumber                 (int max);
