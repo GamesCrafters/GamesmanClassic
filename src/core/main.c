@@ -66,7 +66,7 @@ static void    SetSolver ();
 BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
 	char * next_word = strchr(input, ' ');
 	if (!next_word) {
-		printf(" error =>> missing position in %s request\n", input);
+		printf(" error =>> missing position in %s request", input);
 		return FALSE;
 	}
 	*result = strtoul(next_word, NULL, 10);
