@@ -141,6 +141,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	int j = 0;
 	POSITION max_position = gNumberOfPositions - 1;
 	size_t count = 1;
+	int last_printed = 0;
 
 	if (!filename) {
 		printf("File to save to: ");
@@ -169,10 +170,15 @@ void PrintBinaryGameValuesToFile(char * filename)
 	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
 
 	printf("Finding maximum number of move counts:\n");
-	printf("Progress: [%3d%%]", 0);
+	printf("    Progress: [%3d%%]", 0);
+
 	/* move_counts */
 	for(i=0; i<=max_position; i++) {
-		printf("\rProgress: [%3d%%]", (int) ((100 * i) / max_position));
+		if (last_printed != ((100 * i) / max_position)) {
+			last_printed = ((100 * i) / max_position);
+			printf("\r    Progress: [%3d%%]", last_printed);
+			fflush(stdout);
+		}
 		next_moves = GenerateMoves(i);
 		possible_move_choices = MoveListLength(next_moves);
 		if (possible_move_choices > max_move_choices) {
@@ -181,7 +187,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 		FreeMoveList(next_moves);
 	}
 
-	printf("\rProgress: [%3d%%]\n", 100);
+	printf("\r    Progress: [%3d%%]\n", 100);
 
 	printf("Maximum move choices: %lu\n", max_move_choices);
 
@@ -194,10 +200,13 @@ void PrintBinaryGameValuesToFile(char * filename)
 
 	printf("Final export pass:\n");
 
-	printf("Progress: [%3d%%]", 0);
+	printf("    Progress: [%3d%%]", 0);
 	for(i=0; i <= max_position - 1; i++) {
-		printf("\rProgress: [%3d%%]", (int) ((100 * i) / max_position));
-		fflush(stdout);
+		if (last_printed != ((100 * i) / max_position)) {
+			last_printed = ((100 * i) / max_position);
+			printf("\r    Progress: [%3d%%]", last_printed);
+			fflush(stdout);
+		}
 		value = GetValueOfPosition((POSITION)i);
 		count = (count == 1) && (fwrite(&gValueLetter[value], sizeof(char), 1, fp) == 1);
 		remoteness = Remoteness(i);
@@ -219,7 +228,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 		}
 		FreeMoveList(next_moves);
 	}
-	printf("\rProgress: [%3d%%]\n", 100);
+	printf("\r    Progress: [%3d%%]\n", 100);
 
 	if (count != 1) {
 		printf("EXPORT FAILURE: an error occured in writing the file.\n");

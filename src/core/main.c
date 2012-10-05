@@ -566,6 +566,17 @@ void HandleArguments (int argc, char *argv[])
 			}
 			i += argc;
 			gMessage = TRUE;
+		} else if (!strcasecmp(argv[i], "--export")) {
+			i += 1;
+			if (argc > i) {
+				gJustSolving = TRUE;
+				gamesman_main(argv[0]);
+				printf("\n");
+				PrintBinaryGameValuesToFile(argv[i]);
+				gMessage = TRUE;
+			} else {
+				printf("--export requires a filname.");
+			}
 		} else {
 			fprintf(stderr, "\nInvalid option or missing parameter: %s, use %s --help for help\n\n", argv[i], argv[0]);
 			gMessage = TRUE;
