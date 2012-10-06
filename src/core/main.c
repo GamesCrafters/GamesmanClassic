@@ -102,9 +102,18 @@ void ServerInteractLoop(void) {
 	STRING move_string = NULL;
 	STRING board = NULL;
 	MEX mex = 0;
+	/* Set stdout to do by line buffering so that sever interaction works right.
+	 * Otherwise the "ready =>>" message will sit in the buffer forever while
+	 * the server waits for it.
+	 */
+	setvbuf(stdout, NULL, _IOLBF, 1024);
 	while (running) {
 		memset(input, 0, input_size);
 		printf("\n ready =>> ");
+		fflush(stdout);
+		/* Flush stdout so that the server knows the process is ready.
+		 * In other words, this flush really matters.
+		 */
 		fgets(input, input_size - 1, stdin);
 		/* The -1 is to ensure input is always null-terminated.
 		 * However, the next statements don't require that it be so.
@@ -130,7 +139,7 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			InteractCheckErrantExtra(input, 2);
-			printf(RESULT "%c\n", gValueLetter[GetValueOfPosition(pos)]);
+			printf(RESULT "%c", gValueLetter[GetValueOfPosition(pos)]);
 		} else if (FirstWordMatches(input, "choices")) {
 			if (!InteractReadPosition(input, &pos)) {
 				continue;
@@ -162,7 +171,7 @@ void ServerInteractLoop(void) {
 					printf(", ");
 				}
 			}
-			printf("]\n");
+			printf("]");
 			move_string = NULL;
 			FreeMoveList(all_next_moves);
 		} else if (FirstWordMatches(input, "named_moves")) {
@@ -181,7 +190,7 @@ void ServerInteractLoop(void) {
 					printf(", ");
 				}
 			}
-			printf("]\n");
+			printf("]");
 			move_string = NULL;
 			FreeMoveList(all_next_moves);
 		} else if (FirstWordMatches(input, "board")) {
