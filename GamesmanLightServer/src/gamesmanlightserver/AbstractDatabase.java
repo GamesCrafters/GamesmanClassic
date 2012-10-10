@@ -9,17 +9,17 @@ package gamesmanlightserver;
  * @author Stephen
  */
 
-class Header {
+class DBHeader {
     
 }
 
-class Row {
+class DBRow {
     public String val;
     public long remoteness;
 }
 
 public abstract class AbstractDatabase {
-    abstract Row getRow(long hash);
-    abstract Header getHeader();
+    abstract DBRow getRow(long hash);
+    abstract DBHeader getHeader();
     
 }
