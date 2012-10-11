@@ -17,6 +17,7 @@ autom4te.cache
 # Vim and Emacs autosaves
 *.swp
 .#*
+
 #################
 ## Eclipse
 #################
@@ -180,3 +181,9 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+
+#############
+## Java
+#############
+*.class
