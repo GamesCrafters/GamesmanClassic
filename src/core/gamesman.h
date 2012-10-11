@@ -35,6 +35,7 @@
 #include "misc.h"
 #include "textui.h"
 #include "mlib.h"
+#include "interact.h"
 #include "main.h"
 #include "seval.h"
 

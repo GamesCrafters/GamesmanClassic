@@ -6,7 +6,6 @@ void    Initialize              ();
 
 void    StartGame               ();
 void    SolveAndStore           ();
-void    ServerInteractLoop      ();
 VALUE   DetermineValue          (POSITION start);
 void    HandleArguments         (int argc, char *argv[]);
 int     main                    (int argc, char *argv[]);
