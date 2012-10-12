@@ -139,7 +139,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	uint64_t possible_move_choices = 0;
 	POSITION choice = 0;
 	int j = 0;
-	POSITION max_position = gNumberOfPositions - 1;
+	POSITION max_position = gNumberOfPositions;
 	size_t count = 1;
 	int last_printed = 0;
 
