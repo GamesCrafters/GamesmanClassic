@@ -177,7 +177,7 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
-char *gBlankOXString[] = { "-", "O", "X" };
+char *gBlankOXString[] = { " ", "o", "x" };
 
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
@@ -975,14 +975,23 @@ POSITION StringToPosition(char* boardStr, int move, int option) {
 		else if (boardStr[i] == 'x') {
 			board[i] = x;
 		}
-		else if (boardStr[i] == '_') {
+		else if (boardStr[i] == ' ') {
 			board[i] = Blank;
 		}
 	}
 
 	return BlankOXToPosition(board);
 }
+
+
+char gBoardString[BOARDSIZE];
 char* PositionToString(POSITION pos, int move, int option) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankOX theBlankOX[BOARDSIZE];
+	int i;
+	memset(gBoardString, 0, BOARDSIZE);
+	PositionToBlankOX(pos, theBlankOX);
+	for (i = 0; i < BOARDSIZE; i++) {
+		gBoardString[i] = *gBlankOXString[(int)theBlankOX[i]];
+	}
+	return gBoardString;
 }
