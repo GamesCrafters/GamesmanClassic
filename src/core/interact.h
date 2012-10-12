@@ -4,11 +4,16 @@
 #include "constants.h"
 #include "misc.h"
 #include "openPositions.h"
+#include "globals.h"
 #include <string.h>
 #include <stdlib.h>
 
 
 BOOLEAN InteractReadPosition(STRING input, POSITION * result);
+BOOLEAN InteractReadBoardString(STRING input, STRING * result);
+STRING InteractValueCharToValueString(char value_char);
+void InteractPrintJSONPositionValue(POSITION pos);
+void InteractFreeBoardSting(STRING board);
 void InteractCheckErrantExtra(STRING input, int max_words);
 void ServerInteractLoop(void);
 extern POSITION gInitialPosition;

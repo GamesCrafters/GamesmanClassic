@@ -15,6 +15,48 @@ BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
 	return TRUE;
 }
 
+BOOLEAN InteractReadBoardString(STRING input, STRING * result) {
+	/* Extract a valid board string surrounded in "
+	 * result will be *inside* input and null-terminated.
+	 * Note that input will be modified in the process.
+	 */
+	char * start_of_board_string = strchr(input, '"');
+	char * end_of_board_string;
+	char * scan;
+	if (!start_of_board_string) {
+		printf(" error =>> missing board string in %s request", input);
+		return FALSE;
+	}
+	++start_of_board_string;
+	end_of_board_string = strchr(start_of_board_string, '"');
+	if (!end_of_board_string) {
+		printf(" error =>> missing end quotes on board string in %s request", input);
+		return FALSE;
+	}
+	scan = start_of_board_string;
+	*end_of_board_string = '\0';
+	while (*scan) {
+		switch (*scan) {
+		case ' ':
+			break;
+		case 'x':
+			break;
+		case 'o':
+			break;
+		case '_':
+			*scan = ' ';
+			break;
+		default:
+			printf(" error =>> incorrect char %c in board string in %s request", *scan, input);
+			return FALSE;
+		}
+		++scan;
+	}
+	/* Re-use the input string. */
+	*result = start_of_board_string;
+	return TRUE;
+}
+
 void InteractCheckErrantExtra(STRING input, int max_words) {
 	int i = 1;
 	input = strchr(input, ' ');
@@ -27,13 +69,41 @@ void InteractCheckErrantExtra(STRING input, int max_words) {
 	}
 }
 
+STRING InteractValueCharToValueString(char value_char) {
+	switch(value_char) {
+	case 'T':
+		return "tie";
+	case 'W':
+		return "win";
+	case 'L':
+		return "lose";
+	default:
+		return "error";
+	}
+}
+
+void InteractPrintJSONPositionValue(POSITION pos) {
+	char value_char = gValueLetter[GetValueOfPosition(pos)];
+	if (value_char != 'U') {
+		/* The quote at the beginning is because value might be omitted. */
+		printf(",\"value\":\"%s\"", InteractValueCharToValueString(value_char));
+	}
+}
+
+void InteractFreeBoardSting(STRING board) {
+	if (!strcmp(board, "Implement Me")) {
+	} else {
+		/* SafeFree(board); */
+	}
+}
+
 void ServerInteractLoop(void) {
 	BOOLEAN running = TRUE;
-	int input_size = 100;
+	int input_size = 512;
 	STRING input = (STRING) SafeMalloc(input_size);
 	#define RESULT "result =>> "
-    POSITION pos;
-    POSITION choice;
+	POSITION pos;
+	POSITION choice;
 	MOVELIST *all_next_moves = NULL;
 	MOVELIST *current_move = NULL;
 	MOVE move;
@@ -68,6 +138,7 @@ void ServerInteractLoop(void) {
 		*strchr(input, '\n') = '\0';
 		if (FirstWordMatches(input, "shutdown") || FirstWordMatches(input, "quit")) {
 			InteractCheckErrantExtra(input, 1);
+			printf("\n");
 			running = FALSE;
 		} else if (FirstWordMatches(input, "start")) {
 			InteractCheckErrantExtra(input, 1);
@@ -141,8 +212,8 @@ void ServerInteractLoop(void) {
 				printf(RESULT "not implemented");
 			} else {
 				printf(RESULT "\"%s\"", board);
-				SafeFree(board);
 			}
+			InteractFreeBoardSting(board);
 		} else if (FirstWordMatches(input, "remoteness")) {
 			if (!InteractReadPosition(input, &pos)) {
 				continue;
@@ -175,6 +246,51 @@ void ServerInteractLoop(void) {
 			} else {
 				printf(" error =>> missing move number in result request\n");
 			}
+		} else if (FirstWordMatches(input, "get_move_value_response")) {
+			if (!InteractReadBoardString(input, &board)) {
+				continue;
+			}
+			printf(RESULT "{\"status\":\"ok\",\"response\":{");
+			printf("\"board\":\"%s\",", board);
+			/* StringToPosition takes two arguments, int move and int option.
+			 * Both appear to be ignored in every instance.
+			 * This line may need to be changed if they're not.
+			 */
+			pos = StringToPosition(board, 0, 0);
+			printf("\"remoteness\":%d", Remoteness(pos));
+			InteractPrintJSONPositionValue(pos);
+			printf("}}");
+		} else if (FirstWordMatches(input, "get_next_move_values_response")) {
+			if (!InteractReadBoardString(input, &board)) {
+				continue;
+			}
+			/* StringToPosition takes two arguments, int move and int option.
+			 * Both appear to be ignored in every instance.
+			 * This line may need to be changed if they're not.
+			 */
+			pos = StringToPosition(board, 0, 0);
+			printf(RESULT "{\"status\":\"ok\",\"response\":[");
+			current_move = all_next_moves = GenerateMoves(pos);
+			while (current_move) {
+				/* There needs to be some consensus on whether board strings need to be freed. */
+				choice = DoMove(pos, current_move->move);
+				board = PositionToString(choice);
+				printf("{\"board\":\"%s\"", board);
+				InteractFreeBoardSting(board);
+				printf(",remoteness\":%d", Remoteness(pos));
+				InteractPrintJSONPositionValue(pos);
+				move_string = MoveToString(current_move->move);
+				printf(",\"move\":\"%s\"", move_string);
+				SafeFree(move_string);
+				current_move = current_move->next;
+				printf("}");
+				if (current_move) {
+					printf(", ");
+				}
+			}
+			move_string = NULL;
+			FreeMoveList(all_next_moves);
+			printf("]}");
 		} else {
 			printf(" error =>> unknown command: '%s'", input);
 			continue;
