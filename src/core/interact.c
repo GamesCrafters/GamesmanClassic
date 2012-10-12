@@ -277,8 +277,8 @@ void ServerInteractLoop(void) {
 				board = PositionToString(choice);
 				printf("{\"board\":\"%s\"", board);
 				InteractFreeBoardSting(board);
-				printf(",remoteness\":%d", Remoteness(pos));
-				InteractPrintJSONPositionValue(pos);
+				printf(",remoteness\":%d", Remoteness(choice));
+				InteractPrintJSONPositionValue(choice);
 				move_string = MoveToString(current_move->move);
 				printf(",\"move\":\"%s\"", move_string);
 				SafeFree(move_string);
