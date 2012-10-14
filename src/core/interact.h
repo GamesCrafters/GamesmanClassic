@@ -5,8 +5,10 @@
 #include "misc.h"
 #include "openPositions.h"
 #include "globals.h"
-#include <string.h>
+#include <errno.h>
+#include <signal.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 BOOLEAN InteractReadPosition(STRING input, POSITION * result);

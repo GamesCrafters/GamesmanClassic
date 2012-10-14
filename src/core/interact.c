@@ -43,6 +43,12 @@ BOOLEAN InteractReadBoardString(STRING input, STRING * result) {
 			break;
 		case 'o':
 			break;
+		case 'X':
+			*scan = 'x';
+			break;
+		case 'O':
+			*scan = 'o';
+			break;
 		case '_':
 			*scan = ' ';
 			break;
@@ -98,7 +104,6 @@ void InteractFreeBoardSting(STRING board) {
 }
 
 void ServerInteractLoop(void) {
-	BOOLEAN running = TRUE;
 	int input_size = 512;
 	STRING input = (STRING) SafeMalloc(input_size);
 	#define RESULT "result =>> "
@@ -115,17 +120,22 @@ void ServerInteractLoop(void) {
 	 * the server waits for it.
 	 */
 	setvbuf(stdout, NULL, _IOLBF, 1024);
-	while (running) {
+	while (TRUE) {
 		memset(input, 0, input_size);
 		printf("\n ready =>> ");
 		fflush(stdout);
 		/* Flush stdout so that the server knows the process is ready.
 		 * In other words, this flush really matters.
 		 */
-		fgets(input, input_size - 1, stdin);
-		/* The -1 is to ensure input is always null-terminated.
-		 * However, the next statements don't require that it be so.
-		 */
+		if(!fgets(input, input_size - 1, stdin)) {
+			/* The -1 is to ensure input is always null-terminated.
+			 */
+			/* If the pipe to the server gets broken (probably though the server
+			 * receiving SIGKILL) then this process needs to exit.
+			 */
+			break;
+		}
+		printf("\n");
 		if (!strchr(input, '\n')) {
 			printf(" error =>> input too long");
 			/* Clear out any excess so that it won't be read in after displaying
@@ -139,7 +149,7 @@ void ServerInteractLoop(void) {
 		if (FirstWordMatches(input, "shutdown") || FirstWordMatches(input, "quit")) {
 			InteractCheckErrantExtra(input, 1);
 			printf("\n");
-			running = FALSE;
+			break;
 		} else if (FirstWordMatches(input, "start")) {
 			InteractCheckErrantExtra(input, 1);
 			printf(RESULT POSITION_FORMAT, gInitialPosition);
@@ -246,7 +256,7 @@ void ServerInteractLoop(void) {
 			} else {
 				printf(" error =>> missing move number in result request\n");
 			}
-		} else if (FirstWordMatches(input, "get_move_value_response")) {
+		} else if (FirstWordMatches(input, "move_value_response")) {
 			if (!InteractReadBoardString(input, &board)) {
 				continue;
 			}
@@ -260,7 +270,7 @@ void ServerInteractLoop(void) {
 			printf("\"remoteness\":%d", Remoteness(pos));
 			InteractPrintJSONPositionValue(pos);
 			printf("}}");
-		} else if (FirstWordMatches(input, "get_next_move_values_response")) {
+		} else if (FirstWordMatches(input, "next_move_values_response")) {
 			if (!InteractReadBoardString(input, &board)) {
 				continue;
 			}
