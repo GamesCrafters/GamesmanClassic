@@ -963,8 +963,7 @@ POSITION ActualNumberOfPositions(int variant) {
 POSITION StringToPosition(char* boardStr, int move, int option) {
 	// change boardStr to BlankOX
 	BlankOX board[BOARDSIZE];
-	if (strlen(boardStr) < BOARDSIZE) {
-		printf("String to Position for TTT failed\n");
+	if (strlen(boardStr) != BOARDSIZE) {
 		return -1;
 	}
 	int i;

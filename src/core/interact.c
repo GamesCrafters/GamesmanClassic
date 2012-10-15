@@ -111,6 +111,8 @@ void ServerInteractLoop(void) {
 	POSITION choice;
 	MOVELIST *all_next_moves = NULL;
 	MOVELIST *current_move = NULL;
+	STRING invalid_board_string = 
+		"\n" RESULT "{\"status\":\"error\",\"reason\":\"Invalid board string.\"}";
 	MOVE move;
 	STRING move_string = NULL;
 	STRING board = NULL;
@@ -258,6 +260,12 @@ void ServerInteractLoop(void) {
 			}
 		} else if (FirstWordMatches(input, "move_value_response")) {
 			if (!InteractReadBoardString(input, &board)) {
+				printf(invalid_board_string);
+				continue;
+			}
+			pos = StringToPosition(board, 0, 0);
+			if (pos == -1) {
+				printf(invalid_board_string);
 				continue;
 			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
@@ -266,12 +274,12 @@ void ServerInteractLoop(void) {
 			 * Both appear to be ignored in every instance.
 			 * This line may need to be changed if they're not.
 			 */
-			pos = StringToPosition(board, 0, 0);
 			printf("\"remoteness\":%d", Remoteness(pos));
 			InteractPrintJSONPositionValue(pos);
 			printf("}}");
 		} else if (FirstWordMatches(input, "next_move_values_response")) {
 			if (!InteractReadBoardString(input, &board)) {
+				printf(invalid_board_string);
 				continue;
 			}
 			/* StringToPosition takes two arguments, int move and int option.
@@ -279,6 +287,10 @@ void ServerInteractLoop(void) {
 			 * This line may need to be changed if they're not.
 			 */
 			pos = StringToPosition(board, 0, 0);
+			if (pos == -1) {
+				printf(invalid_board_string);
+				continue;
+			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":[");
 			current_move = all_next_moves = GenerateMoves(pos);
 			while (current_move) {

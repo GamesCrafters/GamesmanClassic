@@ -236,8 +236,11 @@ setTimeout( function () {
   respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getMoveValue;blargh=100;board="  O X    "', console.log)
   respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getNextMoveValues;blargh=100;board=%20%20O%20X%20%20%20%20', console.log)
   respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getNextMoveValues;blargh=100;board="  O X    "', console.log)
+}, 6000)
+
+setTimeout(function () {
   start_shell(game_table.ttt.processes[0])
-}, 2000)
+}, 7000)
 
 setTimeout( function () {
   var server = http.createServer(function (req, res) {
