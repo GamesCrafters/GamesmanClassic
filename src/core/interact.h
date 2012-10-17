@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 
 BOOLEAN InteractReadPosition(STRING input, POSITION * result);

@@ -5,6 +5,7 @@ var util = require('util')
 var fs = require('fs')
 var http = require('http')
 var async = require('async')
+var repl = require('repl')
 
 var root_game_dir = './bin/';
 var root_script_dir = './src/js/games/';
@@ -136,7 +137,7 @@ function start_game_process (root_game_dir, game, continuation) {
   })
 }
 
-function start_shell (game) {
+function start_shell (game, continuation) {
   var readline = require('readline')
   var completions = ('quit shutdown start value choices moves ' +
                      'named_moves board remoteness mex result ' +
@@ -160,6 +161,7 @@ function start_shell (game) {
   game.on('exit', function () {
     rl.close()
   })
+  continuation(rl)
 }
 
 function respond_to_url (the_url, continuation) {
@@ -232,15 +234,44 @@ function start_games () {
 
 start_games()
 
-setTimeout( function () {
+function test_ttt_response () {
   respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getMoveValue;blargh=100;board="  O X    "', console.log)
   respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getNextMoveValues;blargh=100;board=%20%20O%20X%20%20%20%20', console.log)
   respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getNextMoveValues;blargh=100;board="  O X    "', console.log)
-}, 6000)
+}
 
-setTimeout(function () {
-  start_shell(game_table.ttt.processes[0])
-}, 7000)
+global.test_ttt_response = test_ttt_response
+
+global.start_game = start_game
+global.start_games = start_games
+global.respond_to_url = respond_to_url
+global.game_table = game_table
+global.start_game_process = start_game_process
+global.start_shell = function (proc) {
+  console.log(repl_server)
+  pause_repl()
+  start_shell(proc, function (rl) {
+    rl.on('close', function () {
+      resume_repl()
+    })
+  })
+}
+
+function pause_repl () {
+  repl_server.rli.close()
+}
+
+function resume_repl () {
+  repl_server = repl.start({
+    useGlobal: true,
+    ignoreUndefined: true
+  })
+}
+
+var repl_server;
+resume_repl()
+
+global.repl_server = repl_server
 
 setTimeout( function () {
   var server = http.createServer(function (req, res) {
@@ -253,4 +284,4 @@ setTimeout( function () {
     })
   }).listen(8080)
   console.log('Server ready')
-}, 500)
+}, 0)
