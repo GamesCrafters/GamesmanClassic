@@ -12,11 +12,6 @@ var root_script_dir = './src/js/games/';
 var process_timeout = 5000;
 var error_trace_printed = false
 
-value_conversion_table = {
-  T : "tie",
-  L : "lost",
-  W : "win"
-}
 process.setMaxListeners(500)
 
 function start_game_process (root_game_dir, game, continuation) {
@@ -41,7 +36,6 @@ function start_game_process (root_game_dir, game, continuation) {
   process.on('exit', kill_game)
   process.on('SIGINT', kill_game)
   process.on('SIGTERM', kill_game)
-  process.on('SIGKILL', kill_game)
   process.on('uncaughtException', handle_uncaught_exception)
   // Unless the game_p has already died.
   game_p.on('exit', function () {
@@ -49,7 +43,6 @@ function start_game_process (root_game_dir, game, continuation) {
     process.removeListener('exit', kill_game)
     process.removeListener('SIGINT', kill_game)
     process.removeListener('SIGTERM', kill_game)
-    process.removeListener('SIGKILL', kill_game)
     process.removeListener('uncaughtException', handle_uncaught_exception)
   })
   game_p.stdout.setEncoding('utf8')
@@ -90,7 +83,13 @@ function start_game_process (root_game_dir, game, continuation) {
   }
   function handle_request (qry, continuation) {
     if ("getMoveValue" in qry) {
-      get_slot(util.format('move_value_response %s', qry.board), function (err, response) {
+      var request_string = ''
+      if (qry.board[0] == '"') {
+        request_string = util.format('move_value_response %s', qry.board)
+      } else {
+        request_string = util.format('move_value_response "%s"', qry.board)
+      }
+      get_slot(request_string, function (err, response) {
         if (err) {
           continuation('{"status":"error"}')
         } else {
@@ -102,7 +101,7 @@ function start_game_process (root_game_dir, game, continuation) {
       if (qry.board[0] == '"') {
         request_string = util.format('next_move_values_response %s', qry.board)
       } else {
-        request_string = util.format('next_move_values_response %j', qry.board)
+        request_string = util.format('next_move_values_response "%s"', qry.board)
       }
       get_slot(request_string, function (err, response) {
         if (err) {
@@ -268,7 +267,7 @@ function resume_repl () {
   })
 }
 
-var repl_server;
+var repl_server
 resume_repl()
 
 global.repl_server = repl_server
