@@ -960,37 +960,4 @@ POSITION ActualNumberOfPositions(int variant) {
 	return 5478;
 }
 
-POSITION StringToPosition(char* boardStr, int move, int option) {
-	// change boardStr to BlankOX
-	BlankOX board[BOARDSIZE];
-	if (strlen(boardStr) != BOARDSIZE) {
-		return -1;
-	}
-	int i;
-	for (i = 0; i < BOARDSIZE; i++) {
-		if (boardStr[i] == 'o') {
-			board[i] = o;
-		}
-		else if (boardStr[i] == 'x') {
-			board[i] = x;
-		}
-		else if (boardStr[i] == ' ') {
-			board[i] = Blank;
-		}
-	}
-
-	return BlankOXToPosition(board);
-}
-
-
-char gBoardString[BOARDSIZE];
-char* PositionToString(POSITION pos, int move, int option) {
-	BlankOX theBlankOX[BOARDSIZE];
-	int i;
-	memset(gBoardString, 0, BOARDSIZE);
-	PositionToBlankOX(pos, theBlankOX);
-	for (i = 0; i < BOARDSIZE; i++) {
-		gBoardString[i] = *gBlankOXString[(int)theBlankOX[i]];
-	}
-	return gBoardString;
-}
+GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
