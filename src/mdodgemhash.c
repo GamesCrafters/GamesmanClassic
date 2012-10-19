@@ -798,7 +798,7 @@ STRING computersName;
 		}
 
 
-	        char* PositionToString(POSITION pos, int move, int option) {
+	        char* PositionToString(POSITION pos) {
 	                // FIXME: this is just a stub
 	                return "Implement Me";
 		}

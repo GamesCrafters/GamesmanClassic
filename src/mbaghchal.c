@@ -1378,7 +1378,7 @@ int symmetry;
 		SafeFree(unflipped);
 	return(hash(board, turn, goatsLeft));
 }
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }

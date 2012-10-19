@@ -34,7 +34,7 @@ typedef struct lb {
 extern LocalBoard lBoard;
 
 #define GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS() \
-	POSITION StringToPosition(char* boardStr, int move, int option) { \
+	POSITION StringToPosition(char* boardStr) { \
 		BlankOX board[BOARDSIZE]; \
 		int i; \
 		if (strlen(boardStr) != BOARDSIZE) { \
@@ -54,7 +54,7 @@ extern LocalBoard lBoard;
 		return BlankOXToPosition(board); \
 	} \
 	char gPositionToStringStorage[BOARDSIZE]; \
-	char* PositionToString(POSITION pos, int move, int option) { \
+	char* PositionToString(POSITION pos) { \
 		BlankOX theBlankOX[BOARDSIZE]; \
 		int i; \
 		memset(gPositionToStringStorage, 0, BOARDSIZE); \

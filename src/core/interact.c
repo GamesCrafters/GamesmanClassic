@@ -267,7 +267,7 @@ void ServerInteractLoop(void) {
 				printf(invalid_board_string);
 				continue;
 			}
-			pos = StringToPosition(board, 0, 0);
+			pos = StringToPosition(board);
 			if (pos == -1) {
 				printf(invalid_board_string);
 				continue;

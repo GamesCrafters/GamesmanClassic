@@ -533,7 +533,8 @@ void HandleArguments (int argc, char *argv[])
 						if (InitializeGetMoveValuesStuff()) {
 							while (moves != NULL) {
 								POSITION child = DoMove(pos, moves->move);
-								char* childPosition = PositionToString(child, whoseMove, option);
+								/* Broken. */
+								/* char* childPosition = PositionToString(child, whoseMove, option); */
 
 								// flip move values to change perspective
 								VALUE value = GetValueOfPosition(child);
@@ -542,8 +543,9 @@ void HandleArguments (int argc, char *argv[])
 								} else if (value == lose) {
 									value = win;
 								}
-								printf("(%s, %s, %d)", childPosition, MoveToString(moves->move),
-								       GetValueOfPosition(child));
+								/* Broken. */
+								/* printf("(%s, %s, %d)", childPosition, MoveToString(moves->move), */
+								/*        GetValueOfPosition(child)); */
 								moves = moves->next;
 								if (moves != NULL) {
 									printf(", ");

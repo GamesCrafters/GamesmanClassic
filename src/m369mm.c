@@ -2246,7 +2246,7 @@ char* smallUnhash(POSITION pos, char* turn)
    we should use the one liner functions from, to, and remove.
         it makes the code a whole lot easier to read and reduces likely hood of errors... such as the mistake in DoMove earlier
  */
-POSITION StringToPosition(char* board, int move, int option) {
+POSITION StringToPosition(char* board) {
 
 	char realBoard[BOARDSIZE];
 	int i = 0;
@@ -2254,12 +2254,12 @@ POSITION StringToPosition(char* board, int move, int option) {
 		realBoard[i] = board[i];
 
 	}
-	return generic_hash_hash(realBoard,move);
+	return generic_hash_hash(realBoard, 0);
 }
 
 
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	char board[BOARDSIZE];
 	int i = 0;
 	generic_hash_unhash(pos, &board);

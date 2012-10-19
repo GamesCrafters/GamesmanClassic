@@ -1277,7 +1277,7 @@ POSITION ActualNumberOfPositions(int variant) {
 // fixed CVS tags, turned off kDebugMenu.  GameTree printer still in DebugMenu, however. -Elmer
 //
 
-POSITION StringToPosition(char* boardStr, int move, int option) {
+POSITION StringToPosition(char* boardStr) {
 	// change boardStr to BlankOX
 	BlankOX board[BOARDSIZE];
 	if (strlen(boardStr) < BOARDSIZE) {
@@ -1296,9 +1296,9 @@ POSITION StringToPosition(char* boardStr, int move, int option) {
 			board[i] = Blank;
 		}
 	}
-	return BlankOXToPosition(board, move);
+	return BlankOXToPosition(board, 0);
 }
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	// change boardStr to BlankOX
 	BlankOX board[BOARDSIZE];
 	BlankOX whoseMove;
