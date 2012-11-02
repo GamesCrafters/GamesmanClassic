@@ -918,7 +918,7 @@ void PrintMovePrompt(char *name) {
 }
 
 void *gGameSpecificTclInit = NULL;
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

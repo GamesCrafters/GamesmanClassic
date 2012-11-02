@@ -971,7 +971,7 @@ void setOption(int option)
 	gDiagonalLeftGravity = option/(2*2*2)%2==1;
 	gDiagonalRightGravity = option/(2*2*2*2)%2==1;
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

@@ -3131,7 +3131,7 @@ BOOLEAN isLegalPos(POSITION pos)
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

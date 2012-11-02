@@ -287,7 +287,7 @@ void setOption(int option)
 	rows = option/2%(MAX_ROWS-MIN_ROWS+1)+MIN_ROWS;
 }
 
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

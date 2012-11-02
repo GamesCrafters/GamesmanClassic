@@ -3678,7 +3678,7 @@ POSITION hash(char* board, int turn)
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
 
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

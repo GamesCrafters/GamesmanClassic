@@ -1733,7 +1733,7 @@ void setOption(int option)
 	extract = option & 7;
 	cols = extract;
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

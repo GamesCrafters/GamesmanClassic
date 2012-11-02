@@ -1441,7 +1441,7 @@ BOOLEAN valid_move(int source_pos, int dest_pos, char* board) {
 	else return FALSE;
 	return TRUE;
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

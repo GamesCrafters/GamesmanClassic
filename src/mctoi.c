@@ -2439,7 +2439,7 @@ STRING unhash (POSITION pos) {
 	board[BOARDSIZE] = '\0';
 	return board;
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

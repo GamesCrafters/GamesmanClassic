@@ -3186,7 +3186,7 @@ STRING TierToString(TIER tier) {
 // Revision 1.46  2005/09/15 04:34:32  ogren
 // capitalized CVS keywords
 //
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }

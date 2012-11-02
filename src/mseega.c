@@ -1392,7 +1392,7 @@ int forbiddenSpot(int r) {
 		}
 	}
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
