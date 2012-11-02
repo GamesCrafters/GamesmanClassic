@@ -7,9 +7,10 @@ var http = require('http')
 var async = require('async')
 var repl = require('repl')
 
-var root_game_dir = './bin/';
-var root_script_dir = './src/js/games/';
-var process_timeout = 5000;
+var root_game_dir = './bin/'
+var root_script_dir = './src/js/games/'
+var game_list_url = 'somewebsite.com/subdir/test.html'
+var process_timeout = 5000 // Milliseconds
 var error_trace_printed = false
 
 process.setMaxListeners(500)
@@ -212,26 +213,54 @@ function start_game (name, continuation) {
 var game_table = {
 }
 
-function start_games () {
+function get_game_list (continuation) {
+  http.get(game_list_url, function (response) {
+    if (response.statusCode != 200) {
+      continuation({message: "http.get status is %s".format(response.statusCode)}, null)
+    } else {
+      response.on('data', function (text) {
+        continuation(null, text)
+      }).setEncoding('utf8')
+    }
+  }).on('error', function (err) {
+    continuation(err, null)
+  })
+}
+
+function add_game_to_table (game) {
+  game_table[game.name] = game
+  console.log(game.name + ' added.')
+}
+
+function start_games (all_from_dir) {
   fs.readdir(root_game_dir, function add_games_to_table (error, files) {
     if (error) {
       console.log('error, could not read game directory ' + root_game_dir)
-      return;
-    }
-    for (file in files) {
-      if (files[file][0] == 'm') {
-        var game_name = files[file].slice(1)
-        console.log('starting ' + game_name)
-        start_game(game_name, function add_game_to_table (game) {
-          game_table[game.name] = game
-          console.log(game.name + ' added.')
-        })
-      }
+    } else if (all_from_dir) {
+        for (file in files) {
+          if (files[file][0] == 'm') {
+            var game_name = files[file].slice(1)
+            console.log('starting ' + game_name)
+            start_game(game_name, add_game_to_table)
+          }
+        }
+    } else {
+      get_game_list(function (err, text) {
+        if (err) {
+          console.log(util.format('error, could not get game list from %s', game_list_url))
+          console.log(util.format('error message: %s', err.message))
+        } else {
+          games = text.split(' ')
+          for (game in games) {
+            start_game(game_name, add_game_to_table)
+          }
+        }
+      })
     }
   })
 }
 
-start_games()
+start_games(false)
 
 function test_ttt_response () {
   respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getMoveValue;blargh=100;board="  O X    "', console.log)
