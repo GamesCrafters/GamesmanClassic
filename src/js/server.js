@@ -8,10 +8,23 @@ var async = require('async')
 var repl = require('repl')
 
 var root_game_dir = './bin/'
-var root_script_dir = './src/js/games/'
 var game_list_url = 'somewebsite.com/subdir/test.html'
 var process_timeout = 5000 // Milliseconds
 var error_trace_printed = false
+var local_games = []
+var java_games  = ['pegsolitaire', 'pyraminx', 'tcross', 'atarigo',
+    'lightsout', 'connect4', 'othello', 'rubik', 'oskarscubel', 'dino', 'y']
+var java_host = 'nyc.cs.berkeley.edu'
+var java_port = '8080'
+
+function in_array (array, item) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] === item) {
+      return true
+    }
+  }
+  return false
+}
 
 process.setMaxListeners(500)
 
@@ -135,6 +148,10 @@ function start_game_process (root_game_dir, game, continuation) {
     game_p.removeListener('exit', set_broken)
     continuation(game_p)
   })
+  game_p.close = function close_game_process() {
+    game_p.removeListener('exit', set_broken)
+    game_p.kill('SIGTERM')
+  }
 }
 
 function start_shell (game, continuation) {
@@ -164,6 +181,37 @@ function start_shell (game, continuation) {
   continuation(rl)
 }
 
+function respond_to_java_request(game, parsed, qry, continuation) {
+  console.log('Sending request for java game:', game)
+  request = {
+    host: java_host,
+    port: java_port,
+    path: parsed.path,
+  }
+  console.log('request:', request)
+  console.log('qry:', qry)
+  req = http.request(request, function (res) {
+    res.setEncoding('utf8')
+    res.on('data', function (data) {
+      try {
+        JSON.parse(data)
+        continuation(data)
+      } catch (syntax_err) {
+        continuation('{"status": "error", "reason":"Java server did not return JSON."}')
+      }
+    })
+  })
+  req.on('error', function (err) {
+    console.log('error when querying java server: ', err.message)
+    continuation(util.format(
+      '{"status": "error", "reason":"Error when connecting to Java server: %s"}',
+      escape(util.format(err.message))))
+    // The call to escape ensures that the result is valid JSON,
+    // since it can't contain double quotes.
+  })
+  req.end()
+}
+
 function respond_to_url (the_url, continuation) {
   var parsed = url.parse(the_url)
   var path = parsed.path.split('/')
@@ -175,8 +223,23 @@ function respond_to_url (the_url, continuation) {
     } else if ("getNextMoveValues" in qry) {
       game_table[game].addRequest(qry, continuation)
     } else {
-      continuation('{"status":"error","reason":"Did not receive getMoveValue or getNextMoveValues command."')
+      continuation('{"status":"error","reason":"Did not receive getMoveValue or getNextMoveValues command."}')
     }
+  } else if (in_array(java_games, game)) {
+    respond_to_java_request(game, parsed, qry, continuation)
+  } else if (in_array(local_games, game)) {
+    if (!game.broken) {
+      start_game(game, function (game) {
+        add_game_to_table(game)
+        game.addRequest(qry, continuation)
+      })
+    } else {
+      continuation('{"status":"error","reason":"Game appears to be broken."}')
+    }
+    // It should be easy to make games close automatically here.
+    // When doing so, use the game processes close method.
+    // Otherwise, the game will be marked as broken, and won't be
+    // started by the server automatically.
   } else {
     continuation(util.format('{"status":"error","reason":"%s is not loaded by the server."}', game))
   }
@@ -232,34 +295,37 @@ function add_game_to_table (game) {
   console.log(game.name + ' added.')
 }
 
-function start_games (all_from_dir) {
+function start_games (start_all) {
   fs.readdir(root_game_dir, function add_games_to_table (error, files) {
     if (error) {
       console.log('error, could not read game directory ' + root_game_dir)
-    } else if (all_from_dir) {
-        for (file in files) {
-          if (files[file][0] == 'm') {
-            var game_name = files[file].slice(1)
+    } else {
+      for (file in files) {
+        if (files[file][0] == 'm') {
+          var game_name = files[file].slice(1)
+          local_games.push(game_name)
+          if (start_all) {
             console.log('starting ' + game_name)
             start_game(game_name, add_game_to_table)
           }
         }
+      }
+    }
+  })
+  get_game_list(function (err, text) {
+    if (err) {
+      console.log(util.format('error, could not get game list from %s', game_list_url))
+      console.log(util.format('error message: %s', err.message))
     } else {
-      get_game_list(function (err, text) {
-        if (err) {
-          console.log(util.format('error, could not get game list from %s', game_list_url))
-          console.log(util.format('error message: %s', err.message))
-        } else {
-          games = text.split(' ')
-          for (game in games) {
-            start_game(game_name, add_game_to_table)
-          }
-        }
-      })
+      games = text.split(' ')
+      for (game in games) {
+        start_game(game_name, add_game_to_table)
+      }
     }
   })
 }
 
+// Change the false here to true to automatically start all the games.
 start_games(false)
 
 function test_ttt_response () {
@@ -275,6 +341,13 @@ global.start_games = start_games
 global.respond_to_url = respond_to_url
 global.game_table = game_table
 global.start_game_process = start_game_process
+global.root_game_dir = './bin/'
+global.game_list_url = game_list_url
+global.process_timeout = process_timeout
+global.local_games = local_games
+global.java_games = java_games
+global.java_host = java_host
+global.java_port = java_port
 global.start_shell = function (proc) {
   console.log(repl_server)
   pause_repl()
@@ -301,15 +374,21 @@ resume_repl()
 
 global.repl_server = repl_server
 
+
 setTimeout( function () {
   var server = http.createServer(function (req, res) {
-    respond_to_url(req.url, function (body) {
-      res.writeHead(200, {
-        'Content-Length': body.length,
-        'Content-Type': 'text/plain' });
-      res.write(body)
-      res.end()
-    })
+    console.log('request:', req)
+    try {
+      respond_to_url(req.url, function (body) {
+        res.writeHead(200, {
+          'Content-Length': body.length,
+          'Content-Type': 'text/plain' });
+        res.write(body)
+        res.end()
+      })
+    } catch (error) {
+      console.log('received error:', error, 'in response to request:', req)
+    }
   }).listen(8080)
   console.log('Server ready')
 }, 0)
