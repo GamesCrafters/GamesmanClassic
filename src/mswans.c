@@ -231,7 +231,7 @@ int gNumSwans = 0;
 
 /* local prototypes */
 void generic_hash_unhash2(int, char*, char*, int*, int*);
-int generic_hash_hash2(char*, char, int, int);
+POSITION generic_hash_hash2(char*, char, int, int);
 BOOLEAN OkMove(char[], char, SLOT, int);
 BOOLEAN CantMove(POSITION);
 void MoveToSlots(MOVE theMove,SLOT *fromSlot, SLOT *toSlot);
@@ -1023,9 +1023,10 @@ SLOT fromSlot, toSlot;
 **
 ************************************************************************/
 
-int generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
+POSITION generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
 {
-	int temp, whoseTurnTemp;
+	POSITION temp;
+	int whoseTurnTemp;
 
 	if (whosTurn == 'o')
 		whoseTurnTemp = 1;
@@ -1096,27 +1097,27 @@ void setOption(int option)
 POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	//printf("%c, %d, %d\n", board[0], gPhase, gNumSwans);
-	/*
+	
 	char * boardTemp = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
 	int i;
 	for (i = 0; i < BOARDSIZE; i++) {
 	  char toBeInserted = board[i];
-	  if (toBeInserted == 'b') {
-	    toBeInserted = ' ';
+	  if (toBeInserted == ' ') {
+	    toBeInserted = 'b';
 	  }
 	  sprintf(boardTemp + i, "%c", toBeInserted);
 	}
 	boardTemp[i] = '\0';
-	*/
-	//POSITION p = generic_hash_hash2(board, gTurn, gPhase, gNumSwans);
-	/*
+	
+	POSITION p = generic_hash_hash2(boardTemp, gTurn, gPhase, gNumSwans);
+	
 	if (boardTemp != NULL) {
 	  SafeFree(boardTemp);
 	}
-	*/
+	
 	//printf("%d", (unsigned int) p);
-	//return p;
-	return atoi(board);
+	return p;
+	//return atoi(board);
 }
 
 
