@@ -1,4 +1,9 @@
 #include "interact.h"
+#include "hashwindow.h"
+
+STRING MoveToString(MOVE mv);
+STRING PositionToString(POSITION pos);
+POSITION StringToPosition(STRING str);
 
 /* Reads a position from stdin, returns FALSE on error. */
 BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
@@ -12,6 +17,7 @@ BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
 	 * in which case the above line needs to be changed.
 	 * Unfortunately, the C standard provides no stroull.
 	 */
+	gInitializeHashWindowToPosition(result);
 	return TRUE;
 }
 
@@ -268,16 +274,13 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			pos = StringToPosition(board);
+			gInitializeHashWindowToPosition(&pos);
 			if (pos == -1) {
 				printf(invalid_board_string);
 				continue;
 			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
 			printf("\"board\":\"%s\",", board);
-			/* StringToPosition takes two arguments, int move and int option.
-			 * Both appear to be ignored in every instance.
-			 * This line may need to be changed if they're not.
-			 */
 			printf("\"remoteness\":%d", Remoteness(pos));
 			InteractPrintJSONPositionValue(pos);
 			printf("}}");
@@ -286,11 +289,8 @@ void ServerInteractLoop(void) {
 				printf(invalid_board_string);
 				continue;
 			}
-			/* StringToPosition takes two arguments, int move and int option.
-			 * Both appear to be ignored in every instance.
-			 * This line may need to be changed if they're not.
-			 */
-			pos = StringToPosition(board, 0, 0);
+			pos = StringToPosition(board);
+			gInitializeHashWindowToPosition(&pos);
 			if (pos == -1) {
 				printf(invalid_board_string);
 				continue;
