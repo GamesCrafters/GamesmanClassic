@@ -1319,3 +1319,4 @@ char* PositionToString(POSITION pos) {
 	return _PositionToString(pos);
 }
 
+//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()

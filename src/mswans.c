@@ -63,7 +63,7 @@ STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
 STRING kHelpExample =
-        "         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+"         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
 LEGEND:  ( 5  6  7  8 )  TOTAL:   : - - - -\n\
          ( 9 10 11 12 )           : - - - -\n\
          (13 14 15 16 )           : X - - X\n\n\
@@ -223,6 +223,12 @@ BOOLEAN gToTrapIsToWin = TRUE;  /* Being stuck is when you can't move. */
 
 int gNumDragons = MIN_DRAGONS;
 
+//game scope turn, scope, numSwans for print functions at the end of file
+char gTurn = 'o';
+int gPhase = 0;
+int gNumSwans = 0;
+
+
 /* local prototypes */
 void generic_hash_unhash2(int, char*, char*, int*, int*);
 int generic_hash_hash2(char*, char, int, int);
@@ -237,7 +243,7 @@ STRING MoveToString( MOVE );
 void InitializeGame()
 {
 	int numSwans = 12;
-	int numDragons = gNumDragons;
+	int numDragons = gNumDragons;	
 
 	int pieces_array[] = { 'o', 0, numSwans, 'x', numDragons, numDragons, 'b', 0, BOARDSIZE, -1};
 	gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL, 0)<<1<<4;
@@ -370,7 +376,7 @@ MOVE theMove;
 	SLOT fromSlot, toSlot;
 	char whosTurn;
 	int phase, numSwans;
-
+	
 	generic_hash_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
 	theMove = theMove >> 1; /* shift phase bit off of theMove */
 	if ((whosTurn == 'o') && (numSwans != 0)) { /* placing swans on the board */
@@ -1086,13 +1092,59 @@ void setOption(int option)
 	gToTrapIsToWin = (option/2%2==0);
 	gNumDragons = (option/4)+MIN_DRAGONS;
 }
+
 POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
+	//printf("%c, %d, %d\n", board[0], gPhase, gNumSwans);
+	/*
+	char * boardTemp = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
+	int i;
+	for (i = 0; i < BOARDSIZE; i++) {
+	  char toBeInserted = board[i];
+	  if (toBeInserted == 'b') {
+	    toBeInserted = ' ';
+	  }
+	  sprintf(boardTemp + i, "%c", toBeInserted);
+	}
+	boardTemp[i] = '\0';
+	*/
+	//POSITION p = generic_hash_hash2(board, gTurn, gPhase, gNumSwans);
+	/*
+	if (boardTemp != NULL) {
+	  SafeFree(boardTemp);
+	}
+	*/
+	//printf("%d", (unsigned int) p);
+	//return p;
 	return atoi(board);
 }
 
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+		
+	int phase, numSwans;
+	char whosTurn;
+	char * board = (char *) SafeMalloc(sizeof(char) * BOARDSIZE);
+	generic_hash_unhash2(pos, board, &whosTurn, &phase, &numSwans);
+	
+	gTurn = whosTurn;
+	gPhase = phase;
+	gNumSwans = numSwans;
+	
+	int i;
+	char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1)) ;
+	for (i = 0; i < BOARDSIZE; i++) {
+	  //sprintf with pointer argument to start of string
+	  char toBeInserted = board[i];
+	  if (toBeInserted == 'b') {
+	    toBeInserted = ' ';
+	  }
+	  sprintf(retString + i, "%c", toBeInserted);
+	}
+	retString[i] = '\0';
+	
+	if (board != NULL) {
+	  SafeFree(board);
+	}
+	return retString;		
 }

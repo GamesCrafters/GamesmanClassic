@@ -971,6 +971,7 @@ void setOption(int option)
 	gDiagonalLeftGravity = option/(2*2*2)%2==1;
 	gDiagonalRightGravity = option/(2*2*2*2)%2==1;
 }
+
 POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
@@ -981,3 +982,5 @@ char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
+
+//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
