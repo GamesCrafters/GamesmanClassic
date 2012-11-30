@@ -223,12 +223,6 @@ BOOLEAN gToTrapIsToWin = TRUE;  /* Being stuck is when you can't move. */
 
 int gNumDragons = MIN_DRAGONS;
 
-//game scope turn, scope, numSwans for print functions at the end of file
-char gTurn = 'o';
-int gPhase = 0;
-int gNumSwans = 0;
-
-
 /* local prototypes */
 void generic_hash_unhash2(int, char*, char*, int*, int*);
 POSITION generic_hash_hash2(char*, char, int, int);
@@ -1095,8 +1089,6 @@ void setOption(int option)
 }
 
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	//printf("%c, %d, %d\n", board[0], gPhase, gNumSwans);
 	
 	char * boardTemp = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
 	int i;
@@ -1108,16 +1100,35 @@ POSITION StringToPosition(char* board) {
 	  sprintf(boardTemp + i, "%c", toBeInserted);
 	}
 	boardTemp[i] = '\0';
+
+	char turn = board[i];
+
+	char * phaseString = (char *) SafeMalloc(sizeof(char) * 5);
+	phaseString[0] = board[i + 1];
+	phaseString[1] = board[i + 2];
+	phaseString[2] = board[i + 3];
+	phaseString[3] = board[i + 4];
+	phaseString[4] = '\0';
+
+	char * numSwansString = (char *) SafeMalloc(sizeof(char) * 5);
+	numSwansString[0] = board[i + 5];
+	numSwansString[1] = board[i + 6];
+	numSwansString[2] = board[i + 7];
+	numSwansString[3] = board[i + 8];
+	numSwansString[4] = '\0';
 	
-	POSITION p = generic_hash_hash2(boardTemp, gTurn, gPhase, gNumSwans);
+	POSITION p = generic_hash_hash2(boardTemp, turn, atoi(phaseString), atoi(numSwansString));
 	
 	if (boardTemp != NULL) {
 	  SafeFree(boardTemp);
+	}	
+	if (phaseString != NULL) {
+	  SafeFree(phaseString);
 	}
-	
-	//printf("%d", (unsigned int) p);
+	if (numSwansString != NULL) {
+	  SafeFree(numSwansString);
+	}
 	return p;
-	//return atoi(board);
 }
 
 
@@ -1127,22 +1138,19 @@ char* PositionToString(POSITION pos) {
 	char whosTurn;
 	char * board = (char *) SafeMalloc(sizeof(char) * BOARDSIZE);
 	generic_hash_unhash2(pos, board, &whosTurn, &phase, &numSwans);
-	
-	gTurn = whosTurn;
-	gPhase = phase;
-	gNumSwans = numSwans;
-	
 	int i;
-	char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1)) ;
+	char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 10)) ;
 	for (i = 0; i < BOARDSIZE; i++) {
-	  //sprintf with pointer argument to start of string
 	  char toBeInserted = board[i];
 	  if (toBeInserted == 'b') {
 	    toBeInserted = ' ';
 	  }
 	  sprintf(retString + i, "%c", toBeInserted);
 	}
-	retString[i] = '\0';
+	sprintf(retString + i, "%c", whosTurn);
+	sprintf(retString + i + 1, "%d", phase);
+	sprintf(retString + i + 5, "%d", numSwans);
+	sprintf(retString + i + 9, "%c", '\0');
 	
 	if (board != NULL) {
 	  SafeFree(board);
