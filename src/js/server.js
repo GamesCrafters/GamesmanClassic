@@ -265,10 +265,10 @@ function respond_to_url (the_url, continuation) {
         add_game_to_table(game)
         game.addRequest(qry, function check_is_json (data) {
           try {
-            console.log('attempt to send:', data)
-            JSON.parse(data)
+            console.log(JSON.parse(data))
             continuation(data)
           } catch (syntax_err) {
+            console.log('attempt to send:', data)
             continuation('{"status":"error", "reason":"C process did not return JSON."}')
           }
         })
