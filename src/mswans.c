@@ -1091,31 +1091,27 @@ void setOption(int option)
 POSITION StringToPosition(char* board) {
 	
 	char * boardTemp = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
+	char * starting = board;
 	int i;
 	for (i = 0; i < BOARDSIZE; i++) {
-	  char toBeInserted = board[i];
+	  char toBeInserted = starting[i];
 	  if (toBeInserted == ' ') {
 	    toBeInserted = 'b';
 	  }
 	  sprintf(boardTemp + i, "%c", toBeInserted);
+	  starting++;
 	}
 	boardTemp[i] = '\0';
 
-	char turn = board[i];
+	char turn = *starting;
+	starting++;
 
-	char * phaseString = (char *) SafeMalloc(sizeof(char) * 5);
-	phaseString[0] = board[i + 1];
-	phaseString[1] = board[i + 2];
-	phaseString[2] = board[i + 3];
-	phaseString[3] = board[i + 4];
-	phaseString[4] = '\0';
-
-	char * numSwansString = (char *) SafeMalloc(sizeof(char) * 5);
-	numSwansString[0] = board[i + 5];
-	numSwansString[1] = board[i + 6];
-	numSwansString[2] = board[i + 7];
-	numSwansString[3] = board[i + 8];
-	numSwansString[4] = '\0';
+	char * phaseString = (char *) SafeMalloc(sizeof(char) * 16);
+	sprintf(phaseString, "%d", *starting);
+	starting += strlen(phaseString) + 1;
+	char * numSwansString = (char *) SafeMalloc(sizeof(char) * 16);
+	sprintf(numSwansString, "%d", *starting);	
+	//printf("%d, %d", atoi(phaseString), atoi(numSwansString));
 	
 	POSITION p = generic_hash_hash2(boardTemp, turn, atoi(phaseString), atoi(numSwansString));
 	
@@ -1139,21 +1135,30 @@ char* PositionToString(POSITION pos) {
 	char * board = (char *) SafeMalloc(sizeof(char) * BOARDSIZE);
 	generic_hash_unhash2(pos, board, &whosTurn, &phase, &numSwans);
 	int i;
-	char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 10)) ;
+	char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 34)) ;
+	char * starting = retString;
 	for (i = 0; i < BOARDSIZE; i++) {
 	  char toBeInserted = board[i];
 	  if (toBeInserted == 'b') {
 	    toBeInserted = ' ';
 	  }
-	  sprintf(retString + i, "%c", toBeInserted);
+	  *retString = toBeInserted;
+          retString++;
 	}
-	sprintf(retString + i, "%c", whosTurn);
-	sprintf(retString + i + 1, "%d", phase);
-	sprintf(retString + i + 5, "%d", numSwans);
-	sprintf(retString + i + 9, "%c", '\0');
-	
+	printf("%d, %d\n", numSwans, phase);
+	//sprintf(retString + i, "%c", whosTurn);
+	*retString = whosTurn;
+	retString++;
+	sprintf(retString, "%d", phase);
+	retString += strlen(retString);
+	*retString = '|';
+	retString++;
+	sprintf(retString, "%d", numSwans);
+	//retString += strlen(retString);
+	//sprintf(retString + i + 33, "%c", '\0');
+	//printf("%s\n", retString);
 	if (board != NULL) {
 	  SafeFree(board);
 	}
-	return retString;		
+	return starting;		
 }
