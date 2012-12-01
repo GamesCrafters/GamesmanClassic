@@ -226,7 +226,7 @@ function respond_to_java_request(game, parsed, qry, continuation) {
     res.setEncoding('utf8')
     res.on('data', function (data) {
       try {
-        JSON.parse(data)
+        console.log(JSON.parse(data))
         continuation(data)
       } catch (syntax_err) {
         continuation('{"status": "error", "reason":"Java server did not return JSON."}')
@@ -244,6 +244,18 @@ function respond_to_java_request(game, parsed, qry, continuation) {
   req.end()
 }
 
+function make_check_is_json (continuation) {
+  return function check_is_json (data) {
+    try {
+      console.log(JSON.parse(data))
+      continuation(data)
+    } catch (syntax_err) {
+      console.log('attempt to send:', data)
+      continuation('{"status":"error", "reason":"Process did not return JSON."}')
+    }
+  }
+}
+
 function respond_to_url (the_url, continuation) {
   var parsed = url.parse(the_url)
   var path = parsed.path.split('/')
@@ -251,27 +263,19 @@ function respond_to_url (the_url, continuation) {
   var game = path[path.length - 2]
   if (game in game_table) {
     if ("getMoveValue" in qry) {
-      game_table[game].addRequest(qry, continuation)
+      game_table[game].addRequest(qry, make_check_is_json(continuation))
     } else if ("getNextMoveValues" in qry) {
-      game_table[game].addRequest(qry, continuation)
+      game_table[game].addRequest(qry, make_check_is_json(continuation))
     } else {
       continuation('{"status":"error","reason":"Did not receive getMoveValue or getNextMoveValues command."}')
     }
   } else if (use_java && in_array(java_games, game)) {
-    respond_to_java_request(game, parsed, qry, continuation)
+    respond_to_java_request(game, parsed, qry, make_check_is_json(continuation))
   } else if (in_array(local_games, game)) {
     if (!game.broken) {
       start_game(game, function (game) {
         add_game_to_table(game)
-        game.addRequest(qry, function check_is_json (data) {
-          try {
-            console.log(JSON.parse(data))
-            continuation(data)
-          } catch (syntax_err) {
-            console.log('attempt to send:', data)
-            continuation('{"status":"error", "reason":"C process did not return JSON."}')
-          }
-        })
+        game.addRequest(qry, make_check_is_json(continuation))
       })
     } else {
       continuation('{"status":"error","reason":"Game appears to be broken."}')
