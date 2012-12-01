@@ -35,7 +35,7 @@ process.setMaxListeners(500)
 
 function start_game_process (root_game_dir, game, continuation) {
   var game_p = child.spawn(root_game_dir + 'm' + game.name
-                        ,['--interact']
+                        ,['--interact', '--notiers']
                         ,{stdio: 'pipe'})
   function kill_game () {
     console.log('Killing ' + game.name + '.')
@@ -65,9 +65,6 @@ function start_game_process (root_game_dir, game, continuation) {
     process.removeListener('SIGINT', kill_game)
     process.removeListener('SIGTERM', kill_game)
     process.removeListener('uncaughtException', handle_uncaught_exception)
-    game_p.requests.worker = function (qry, continuation) {
-      continuation('{"status":"error", "reason":"Process killed."}')
-    }
   })
   game_p.stdout.setEncoding('utf8')
   game_p.stderr.setEncoding('utf8')
