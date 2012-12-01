@@ -17,7 +17,9 @@ BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
 	 * in which case the above line needs to be changed.
 	 * Unfortunately, the C standard provides no stroull.
 	 */
-	gInitializeHashWindowToPosition(result);
+	if (kSupportsTierGamesman && gTierGamesman) {
+		gInitializeHashWindowToPosition(result);
+	}
 	return TRUE;
 }
 
@@ -274,7 +276,9 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			pos = StringToPosition(board);
-			gInitializeHashWindowToPosition(&pos);
+			if (kSupportsTierGamesman && gTierGamesman) {
+				gInitializeHashWindowToPosition(&pos);
+			}
 			if (pos == -1) {
 				printf(invalid_board_string);
 				continue;
@@ -290,7 +294,9 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			pos = StringToPosition(board);
-			gInitializeHashWindowToPosition(&pos);
+			if (kSupportsTierGamesman && gTierGamesman) {
+				gInitializeHashWindowToPosition(&pos);
+			}
 			if (pos == -1) {
 				printf(invalid_board_string);
 				continue;
@@ -303,7 +309,7 @@ void ServerInteractLoop(void) {
 				board = PositionToString(choice);
 				printf("{\"board\":\"%s\"", board);
 				InteractFreeBoardSting(board);
-				printf(",remoteness\":%d", Remoteness(choice));
+				printf(",\"remoteness\":%d", Remoteness(choice));
 				InteractPrintJSONPositionValue(choice);
 				move_string = MoveToString(current_move->move);
 				printf(",\"move\":\"%s\"", move_string);
