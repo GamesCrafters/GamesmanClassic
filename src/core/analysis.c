@@ -34,6 +34,7 @@
 #include "db.h"
 #include "openPositions.h"
 #include "textui.h"
+#include "hashwindow.h"
 #include <math.h>
 #include <stdint.h>
 
@@ -173,7 +174,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	printf("    Progress: [%3d%%]", 0);
 
 	/* move_counts */
-	for(i=0; i<=max_position; i++) {
+	for(i=0; i < max_position; i++) {
 		if (last_printed != ((100 * i) / max_position)) {
 			last_printed = ((100 * i) / max_position);
 			printf("\r    Progress: [%3d%%]", last_printed);
@@ -200,11 +201,14 @@ void PrintBinaryGameValuesToFile(char * filename)
 	printf("Final export pass:\n");
 
 	printf("    Progress: [%3d%%]", 0);
-	for(i=0; i <= max_position - 1; i++) {
+	for(i=0; i < gNumberOfPositions; i++) {
 		if (last_printed != ((100 * i) / max_position)) {
 			last_printed = ((100 * i) / max_position);
 			printf("\r    Progress: [%3d%%]", last_printed);
 			fflush(stdout);
+		}
+		if (kSupportsTierGamesman && gTierGamesman) {
+			gInitializeHashWindowToPosition(&i);
 		}
 		value = GetValueOfPosition(i);
 		count = (count == 1) && (fwrite(&gValueLetter[value], sizeof(char), 1, fp) == 1);

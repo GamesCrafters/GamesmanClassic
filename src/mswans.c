@@ -63,7 +63,7 @@ STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
 STRING kHelpExample =
-        "         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
+"         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
 LEGEND:  ( 5  6  7  8 )  TOTAL:   : - - - -\n\
          ( 9 10 11 12 )           : - - - -\n\
          (13 14 15 16 )           : X - - X\n\n\
@@ -225,7 +225,7 @@ int gNumDragons = MIN_DRAGONS;
 
 /* local prototypes */
 void generic_hash_unhash2(int, char*, char*, int*, int*);
-int generic_hash_hash2(char*, char, int, int);
+POSITION generic_hash_hash2(char*, char, int, int);
 BOOLEAN OkMove(char[], char, SLOT, int);
 BOOLEAN CantMove(POSITION);
 void MoveToSlots(MOVE theMove,SLOT *fromSlot, SLOT *toSlot);
@@ -237,7 +237,7 @@ STRING MoveToString( MOVE );
 void InitializeGame()
 {
 	int numSwans = 12;
-	int numDragons = gNumDragons;
+	int numDragons = gNumDragons;	
 
 	int pieces_array[] = { 'o', 0, numSwans, 'x', numDragons, numDragons, 'b', 0, BOARDSIZE, -1};
 	gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL, 0)<<1<<4;
@@ -370,7 +370,7 @@ MOVE theMove;
 	SLOT fromSlot, toSlot;
 	char whosTurn;
 	int phase, numSwans;
-
+	
 	generic_hash_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
 	theMove = theMove >> 1; /* shift phase bit off of theMove */
 	if ((whosTurn == 'o') && (numSwans != 0)) { /* placing swans on the board */
@@ -1017,9 +1017,10 @@ SLOT fromSlot, toSlot;
 **
 ************************************************************************/
 
-int generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
+POSITION generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
 {
-	int temp, whoseTurnTemp;
+	POSITION temp;
+	int whoseTurnTemp;
 
 	if (whosTurn == 'o')
 		whoseTurnTemp = 1;
@@ -1086,13 +1087,78 @@ void setOption(int option)
 	gToTrapIsToWin = (option/2%2==0);
 	gNumDragons = (option/4)+MIN_DRAGONS;
 }
+
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	
+	char * boardTemp = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
+	char * starting = board;
+	int i;
+	for (i = 0; i < BOARDSIZE; i++) {
+	  char toBeInserted = starting[i];
+	  if (toBeInserted == ' ') {
+	    toBeInserted = 'b';
+	  }
+	  sprintf(boardTemp + i, "%c", toBeInserted);
+	  starting++;
+	}
+	boardTemp[i] = '\0';
+
+	char turn = *starting;
+	starting++;
+
+	char * phaseString = (char *) SafeMalloc(sizeof(char) * 16);
+	sprintf(phaseString, "%d", *starting);
+	starting += strlen(phaseString) + 1;
+	char * numSwansString = (char *) SafeMalloc(sizeof(char) * 16);
+	sprintf(numSwansString, "%d", *starting);	
+	//printf("%d, %d", atoi(phaseString), atoi(numSwansString));
+	
+	POSITION p = generic_hash_hash2(boardTemp, turn, atoi(phaseString), atoi(numSwansString));
+	
+	if (boardTemp != NULL) {
+	  SafeFree(boardTemp);
+	}	
+	if (phaseString != NULL) {
+	  SafeFree(phaseString);
+	}
+	if (numSwansString != NULL) {
+	  SafeFree(numSwansString);
+	}
+	return p;
 }
 
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+		
+	int phase, numSwans;
+	char whosTurn;
+	char * board = (char *) SafeMalloc(sizeof(char) * BOARDSIZE);
+	generic_hash_unhash2(pos, board, &whosTurn, &phase, &numSwans);
+	int i;
+	char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 34)) ;
+	char * starting = retString;
+	for (i = 0; i < BOARDSIZE; i++) {
+	  char toBeInserted = board[i];
+	  if (toBeInserted == 'b') {
+	    toBeInserted = ' ';
+	  }
+	  *retString = toBeInserted;
+          retString++;
+	}
+	printf("%d, %d\n", numSwans, phase);
+	//sprintf(retString + i, "%c", whosTurn);
+	*retString = whosTurn;
+	retString++;
+	sprintf(retString, "%d", phase);
+	retString += strlen(retString);
+	*retString = '|';
+	retString++;
+	sprintf(retString, "%d", numSwans);
+	//retString += strlen(retString);
+	//sprintf(retString + i + 33, "%c", '\0');
+	//printf("%s\n", retString);
+	if (board != NULL) {
+	  SafeFree(board);
+	}
+	return starting;		
 }

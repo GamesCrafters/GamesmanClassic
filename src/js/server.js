@@ -7,11 +7,29 @@ var http = require('http')
 var async = require('async')
 var repl = require('repl')
 
+var server_port = 8081
 var root_game_dir = './bin/'
-var root_script_dir = './src/js/games/'
-var game_list_url = 'somewebsite.com/subdir/test.html'
+var game_list_url = ''
 var process_timeout = 5000 // Milliseconds
 var error_trace_printed = false
+var local_games = []
+var java_games  = ['pegsolitaire', 'pyraminx', 'tcross', 'atarigo',
+    'lightsout', 'connect4', 'othello', 'rubik', 'oskarscubel', 'dino', 'y']
+var java_host = 'localhost' // 'nyc.cs.berkeley.edu'
+var java_port = '8080'
+var use_java = false
+
+var game_table = {}
+
+
+function in_array (array, item) {
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] === item) {
+      return true
+    }
+  }
+  return false
+}
 
 process.setMaxListeners(500)
 
@@ -39,12 +57,17 @@ function start_game_process (root_game_dir, game, continuation) {
   process.on('SIGTERM', kill_game)
   process.on('uncaughtException', handle_uncaught_exception)
   // Unless the game_p has already died.
+  game_p.exited = false
   game_p.on('exit', function () {
+    game_p.exited = true
     console.log(game.name + ' exited.')
     process.removeListener('exit', kill_game)
     process.removeListener('SIGINT', kill_game)
     process.removeListener('SIGTERM', kill_game)
     process.removeListener('uncaughtException', handle_uncaught_exception)
+    game_p.requests.worker = function (qry, continuation) {
+      continuation('{"status":"error", "reason":"Process killed."}')
+    }
   })
   game_p.stdout.setEncoding('utf8')
   game_p.stderr.setEncoding('utf8')
@@ -80,39 +103,58 @@ function start_game_process (root_game_dir, game, continuation) {
     }
     game_p.stdout.on('data', inner)
     var encoded_request = util.format('%s\n', request)
-    game_p.stdin.write(encoded_request)
+    if (!game_p.exited) {
+      // This can still crash if another request kills the process between these lines
+      game_p.stdin.write(encoded_request)
+    }
   }
   function handle_request (qry, continuation) {
-    if ("getMoveValue" in qry) {
-      var request_string = ''
-      if (qry.board[0] == '"') {
-        request_string = util.format('move_value_response %s', qry.board)
-      } else {
-        request_string = util.format('move_value_response "%s"', qry.board)
+    try {
+      if (game_p.exited) {
+        continuation('{"status":"error", "reason":"Process killed."}')
       }
-      get_slot(request_string, function (err, response) {
-        if (err) {
-          continuation('{"status":"error"}')
-        } else {
-          continuation(response)
+      var response_done = false
+      setTimeout(function () {
+        if (!response_done) {
+          continuation('{"status":"error", "reason":"Process timed out."}')
         }
-      })
-    } else if ("getNextMoveValues" in qry) {
-      var request_string = ''
-      if (qry.board[0] == '"') {
-        request_string = util.format('next_move_values_response %s', qry.board)
+      }, process_timeout)
+      if ("getMoveValue" in qry) {
+        var request_string = ''
+        if (qry.board[0] == '"') {
+          request_string = util.format('move_value_response %s', qry.board)
+        } else {
+          request_string = util.format('move_value_response "%s"', qry.board)
+        }
+        get_slot(request_string, function (err, response) {
+          response_done = true
+          if (err) {
+            continuation('{"status":"error"}')
+          } else {
+            continuation(response)
+          }
+        })
+      } else if ("getNextMoveValues" in qry) {
+        var request_string = ''
+        if (qry.board[0] == '"') {
+          request_string = util.format('next_move_values_response %s', qry.board)
+        } else {
+          request_string = util.format('next_move_values_response "%s"', qry.board)
+        }
+        get_slot(request_string, function (err, response) {
+          response_done = true
+          if (err) {
+            continuation('{"status":"error"}')
+          } else {
+            continuation(response)
+          }
+        })
       } else {
-        request_string = util.format('next_move_values_response "%s"', qry.board)
+        response_done = true
+        continuation('{"status":"error", "reason":"Could not parse request."}')
       }
-      get_slot(request_string, function (err, response) {
-        if (err) {
-          continuation('{"status":"error"}')
-        } else {
-          continuation(response)
-        }
-      })
-    } else {
-      continuation('{"status":"error"}')
+    } catch (e) {
+      continuation('{"satus":"error", "reason":"Unknown."}')
     }
   }
   var timeout_game = setTimeout(function () {
@@ -135,6 +177,13 @@ function start_game_process (root_game_dir, game, continuation) {
     game_p.removeListener('exit', set_broken)
     continuation(game_p)
   })
+  game_p.on('exit', function () {
+    game_p.requests
+  })
+  game_p.close = function close_game_process() {
+    game_p.removeListener('exit', set_broken)
+    game_p.kill('SIGTERM')
+  }
 }
 
 function start_shell (game, continuation) {
@@ -164,6 +213,49 @@ function start_shell (game, continuation) {
   continuation(rl)
 }
 
+function respond_to_java_request(game, parsed, qry, continuation) {
+  console.log('Sending request for java game:', game)
+  request = {
+    host: java_host,
+    port: java_port,
+    path: parsed.path,
+  }
+  console.log('request:', request)
+  console.log('qry:', qry)
+  req = http.request(request, function (res) {
+    res.setEncoding('utf8')
+    res.on('data', function (data) {
+      try {
+        console.log(JSON.parse(data))
+        continuation(data)
+      } catch (syntax_err) {
+        continuation('{"status": "error", "reason":"Java server did not return JSON."}')
+      }
+    })
+  })
+  req.on('error', function (err) {
+    console.log('error when querying java server: ', err.message)
+    continuation(util.format(
+      '{"status": "error", "reason":"Error when connecting to Java server: %s"}',
+      escape(util.format(err.message))))
+    // The call to escape ensures that the result is valid JSON,
+    // since it can't contain double quotes.
+  })
+  req.end()
+}
+
+function make_check_is_json (continuation) {
+  return function check_is_json (data) {
+    try {
+      console.log(JSON.parse(data))
+      continuation(data)
+    } catch (syntax_err) {
+      console.log('attempt to send:', data)
+      continuation('{"status":"error", "reason":"Process did not return JSON."}')
+    }
+  }
+}
+
 function respond_to_url (the_url, continuation) {
   var parsed = url.parse(the_url)
   var path = parsed.path.split('/')
@@ -171,12 +263,27 @@ function respond_to_url (the_url, continuation) {
   var game = path[path.length - 2]
   if (game in game_table) {
     if ("getMoveValue" in qry) {
-      game_table[game].addRequest(qry, continuation)
+      game_table[game].addRequest(qry, make_check_is_json(continuation))
     } else if ("getNextMoveValues" in qry) {
-      game_table[game].addRequest(qry, continuation)
+      game_table[game].addRequest(qry, make_check_is_json(continuation))
     } else {
-      continuation('{"status":"error","reason":"Did not receive getMoveValue or getNextMoveValues command."')
+      continuation('{"status":"error","reason":"Did not receive getMoveValue or getNextMoveValues command."}')
     }
+  } else if (use_java && in_array(java_games, game)) {
+    respond_to_java_request(game, parsed, qry, make_check_is_json(continuation))
+  } else if (in_array(local_games, game)) {
+    if (!game.broken) {
+      start_game(game, function (game) {
+        add_game_to_table(game)
+        game.addRequest(qry, make_check_is_json(continuation))
+      })
+    } else {
+      continuation('{"status":"error","reason":"Game appears to be broken."}')
+    }
+    // It should be easy to make games close automatically here.
+    // When doing so, use the game processes close method.
+    // Otherwise, the game will be marked as broken, and won't be
+    // started by the server automatically.
   } else {
     continuation(util.format('{"status":"error","reason":"%s is not loaded by the server."}', game))
   }
@@ -210,9 +317,6 @@ function start_game (name, continuation) {
   })
 }
 
-var game_table = {
-}
-
 function get_game_list (continuation) {
   http.get(game_list_url, function (response) {
     if (response.statusCode != 200) {
@@ -232,84 +336,56 @@ function add_game_to_table (game) {
   console.log(game.name + ' added.')
 }
 
-function start_games (all_from_dir) {
+function start_games (start_all) {
   fs.readdir(root_game_dir, function add_games_to_table (error, files) {
     if (error) {
       console.log('error, could not read game directory ' + root_game_dir)
-    } else if (all_from_dir) {
-        for (file in files) {
-          if (files[file][0] == 'm') {
-            var game_name = files[file].slice(1)
+    } else {
+      for (file in files) {
+        if (files[file][0] == 'm') {
+          var game_name = files[file].slice(1)
+          local_games.push(game_name)
+          if (start_all) {
             console.log('starting ' + game_name)
             start_game(game_name, add_game_to_table)
           }
         }
+      }
+    }
+  })
+  get_game_list(function (err, text) {
+    if (err) {
+      console.log(util.format('could not get game list from %s, but got error %s', game_list_url, err.message))
     } else {
-      get_game_list(function (err, text) {
-        if (err) {
-          console.log(util.format('error, could not get game list from %s', game_list_url))
-          console.log(util.format('error message: %s', err.message))
-        } else {
-          games = text.split(' ')
-          for (game in games) {
-            start_game(game_name, add_game_to_table)
-          }
-        }
-      })
+      games = text.split(' ')
+      for (game in games) {
+        start_game(game_name, add_game_to_table)
+      }
     }
   })
 }
 
+// Change the false here to true to automatically start all the games.
 start_games(false)
 
-function test_ttt_response () {
-  respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getMoveValue;blargh=100;board="  O X    "', console.log)
-  respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getNextMoveValues;blargh=100;board=%20%20O%20X%20%20%20%20', console.log)
-  respond_to_url('http://localhost:8080/gcweb/service/gamesman/puzzles/ttt/getNextMoveValues;blargh=100;board="  O X    "', console.log)
-}
-
-global.test_ttt_response = test_ttt_response
-
-global.start_game = start_game
-global.start_games = start_games
-global.respond_to_url = respond_to_url
-global.game_table = game_table
-global.start_game_process = start_game_process
-global.start_shell = function (proc) {
-  console.log(repl_server)
-  pause_repl()
-  start_shell(proc, function (rl) {
-    rl.on('close', function () {
-      resume_repl()
+setTimeout(function () {
+  try {
+    var server = http.createServer(function (req, res) {
+      try {
+        respond_to_url(req.url, function (body) {
+          res.writeHead(200, {
+            'Content-Length': body.length,
+            'Content-Type': 'text/plain',
+            'Access-Control-Allow-Origin': '*'});
+          res.write(body)
+          res.end()
+        })
+      } catch (error) {
+        console.log('received error:', error, 'in response to request:', req)
+      }
+    }).listen(server_port).on('error', function (e) {
+      console.log('Problem starting server. Check that port', server_port, 'is available.')
     })
-  })
-}
-
-function pause_repl () {
-  repl_server.rli.close()
-}
-
-function resume_repl () {
-  repl_server = repl.start({
-    useGlobal: true,
-    ignoreUndefined: true
-  })
-}
-
-var repl_server
-resume_repl()
-
-global.repl_server = repl_server
-
-setTimeout( function () {
-  var server = http.createServer(function (req, res) {
-    respond_to_url(req.url, function (body) {
-      res.writeHead(200, {
-        'Content-Length': body.length,
-        'Content-Type': 'text/plain' });
-      res.write(body)
-      res.end()
-    })
-  }).listen(8080)
-  console.log('Server ready')
+  } catch (e) {
+  }
 }, 0)

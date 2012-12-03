@@ -1525,3 +1525,5 @@ char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
+
+//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()

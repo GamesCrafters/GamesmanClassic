@@ -717,7 +717,8 @@ MOVE theMove;
 
 void PositionToBlankOX(thePos,theBlankOX,whosTurn)
 POSITION thePos;
-BlankOX *theBlankOX, *whosTurn;
+BlankOX *theBlankOX;
+BlankOX *whosTurn;
 {
 	int i;
 
@@ -869,3 +870,5 @@ char* PositionToString(POSITION pos) {
 STRING MoveToString(MOVE theMove) {
 	return "Implement MoveToString";
 }
+
+//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
