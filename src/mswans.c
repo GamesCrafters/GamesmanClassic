@@ -1089,7 +1089,9 @@ void setOption(int option)
 }
 
 POSITION StringToPosition(char* board) {
-	
+	/*TODO: Check numSwans and phase encoding.
+		May need fixing!
+	*/
 	char * boardTemp = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
 	char * starting = board;
 	int i;
@@ -1103,17 +1105,22 @@ POSITION StringToPosition(char* board) {
 	}
 	boardTemp[i] = '\0';
 
-	char turn = *starting;
-	starting++;
+	char * turn = (char *) SafeMalloc(sizeof(char) * 16);
+	if (*starting == 'o')
+	  sprintf(turn, "%d", 0);
+	else
+	  sprintf(turn, "%d", 1);
+	starting += strlen(turn);
 
 	char * phaseString = (char *) SafeMalloc(sizeof(char) * 16);
 	sprintf(phaseString, "%d", *starting);
 	starting += strlen(phaseString) + 1;
+
 	char * numSwansString = (char *) SafeMalloc(sizeof(char) * 16);
 	sprintf(numSwansString, "%d", *starting);	
-	//printf("%d, %d", atoi(phaseString), atoi(numSwansString));
+	//printf("%s, %s, %s", phaseString, numSwansString, turn);
 	
-	POSITION p = generic_hash_hash2(boardTemp, turn, atoi(phaseString), atoi(numSwansString));
+	POSITION p = generic_hash_hash2(boardTemp, atoi(turn), atoi(phaseString), atoi(numSwansString));
 	
 	if (boardTemp != NULL) {
 	  SafeFree(boardTemp);
@@ -1145,8 +1152,6 @@ char* PositionToString(POSITION pos) {
 	  *retString = toBeInserted;
           retString++;
 	}
-	printf("%d, %d\n", numSwans, phase);
-	//sprintf(retString + i, "%c", whosTurn);
 	*retString = whosTurn;
 	retString++;
 	sprintf(retString, "%d", phase);
@@ -1154,9 +1159,6 @@ char* PositionToString(POSITION pos) {
 	*retString = '|';
 	retString++;
 	sprintf(retString, "%d", numSwans);
-	//retString += strlen(retString);
-	//sprintf(retString + i + 33, "%c", '\0');
-	//printf("%s\n", retString);
 	if (board != NULL) {
 	  SafeFree(board);
 	}
