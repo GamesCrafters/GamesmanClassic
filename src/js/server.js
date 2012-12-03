@@ -9,6 +9,7 @@ var repl = require('repl')
 
 var server_port = 8081
 var root_game_dir = './bin/'
+var use_remote_game_list = false
 var game_list_url = ''
 var process_timeout = 5000 // Milliseconds
 var error_trace_printed = false
@@ -350,16 +351,18 @@ function start_games (start_all) {
       }
     }
   })
-  get_game_list(function (err, text) {
-    if (err) {
-      console.log(util.format('could not get game list from %s, but got error %s', game_list_url, err.message))
-    } else {
-      games = text.split(' ')
-      for (game in games) {
-        start_game(game_name, add_game_to_table)
+  if (use_remote_game_list) {
+    get_game_list(function (err, text) {
+      if (err) {
+        console.log(util.format('could not get game list from %s, but got error %s', game_list_url, err.message))
+      } else {
+        games = text.split(' ')
+        for (game in games) {
+          start_game(game_name, add_game_to_table)
+        }
       }
-    }
-  })
+    })
+  }
 }
 
 // Change the false here to true to automatically start all the games.
