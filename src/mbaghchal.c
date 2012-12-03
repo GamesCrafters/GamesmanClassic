@@ -1260,7 +1260,7 @@ MOVE move;
 	int jump, direction, i, j, x, y;
 	STRING moveStr = (STRING) SafeMalloc(sizeof(char)*4);
 	if(move < boardSize) { // This is just a goat being placed
-		i = get_x(move);
+	  i = get_x(move);
 		j = get_y(move);
 		sprintf(moveStr, "%c%c%c%c", ' ',' ',j + 'a' - 1, '0' +length - i + 1);
 		return moveStr;
