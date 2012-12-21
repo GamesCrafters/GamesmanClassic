@@ -24,6 +24,7 @@
 #include "gamesman.h"
 #include <stdio.h>
 
+
 extern POSITION gInitialPosition;  /* The initial position of the game */
 
 int gR[] = {   0, 139, 255, 0 };   /* Change the last number to 255 - white */
@@ -42,9 +43,13 @@ typedef struct pixelbuffer_struct {
 } PIXELBUFFER;
 
 /* S(0) = 1; S(n) = 3 * S(n-1) + 2; */
-int gS[] = {  1, 5, 17, 53, 161, 485, 1457, 4373, 13121, 39365 };
+/////int gS[] = {  1, 5, 17, 53, 161, 485, 1457, 4373, 13121, 39365 };/////////
+
+/* S(0) = 1; S(1) = 5; S(n) = 3 * S(n-1) + (2/3)(S(n-1)) */
+int gS[] = {  1, 5, 17, 63, 231, 847, 3106, 11389, 41760, 153120 };
 int gX[] = {  -1, 0, 1, -1, 0, 1, -1, 0, 1 };
 int gY[] = {  -1, -1, -1, 0, 0, 0, 1, 1, 1 };
+
 
 /***** Prototypes *****/
 PIXELBUFFER *CreatePixelBuffer();
@@ -115,8 +120,10 @@ int toPS, toFile;
 
 	printf("Filling %s...\n",toPS ? (toFile ? "file" : "screen") : "buffer");
 
-	if(toPS && toFile)
+	if(toPS && toFile) {
 		WritePreamblePS(fp,scale,depth);
+
+	}
 
 	tttppmrecur(fp,pixbuf,cx,cy,gInitialPosition,depth,0,toPS);
 
@@ -135,12 +142,38 @@ int toPS, toFile;
 	if(toFile)
 		fprintf(fp,"showpage\n");
 
+	if(toPS && toFile) {
+		fclose(fp);
+		int z;
+		int x;
+		const char *myFirst = "pstoedit -f plot-svg ";
+		char command[256];
+		int k;
+		for (k =0; k<20; k++) {
+			command[k] = myFirst[k];
+		}
+		for (k = 21; k<101; k++) {
+			command[20] = " ";
+			command[k] = (char)filename[k-21];
+		}
+		for (k = 102; k<182; k++) {
+			command[101] = " ";
+			command[k+1] = (char)filename[k-102];
+		}
+		command[185] = ".";
+		command[186] = "s";
+		command[187] = "v";
+		command[188] = "g";
+		printf(command);
+		system(command);
+	}
+
 	printf("done...\n");
 
 	if (!toPS)
 		SafeFree(pixbuf);
 
-	if(toFile)
+	if(toFile && !toPS)
 		fclose(fp);
 }
 
@@ -207,6 +240,7 @@ closepath stroke clear\n\
 U %d 0 0 F\n\
 ",scale,gS[depth],gS[depth]);
 }
+
 
 /************************************************************************
 **
@@ -312,11 +346,13 @@ POSITION pos;
 		fprintf(fp,"%s %d %d %d B\n",gPScmd[(int)color],edge,cx-halfedge,cy-halfedge);
 	else
 		for(i=0; i<edge; i++) {
-			WriteBuffer(pixbuf,cx-halfedge+i,cy-halfedge,color);
-			WriteBuffer(pixbuf,cx-halfedge+i,cy+halfedge,color);
-			WriteBuffer(pixbuf,cx-halfedge,cy-halfedge+i,color);
-			WriteBuffer(pixbuf,cx+halfedge,cy-halfedge+i,color);
-		}
+			for(j=0; j<edge/17; j++) {
+			WriteBuffer(pixbuf,cx-halfedge+i,cy-halfedge+j,color);
+			WriteBuffer(pixbuf,cx-halfedge+j,cy-halfedge+i,color);
+			WriteBuffer(pixbuf,cx-halfedge+i,cy+halfedge-j,color);
+			WriteBuffer(pixbuf,cx+halfedge-j,cy-halfedge+i,color);
+			}
+ }
 }
 
 /************************************************************************
@@ -567,4 +603,3 @@ int i,j;
    added prototypes for COLOR SwapWinLoseColor, int GetOffset. Must still decide between typing file/buffer access functions as void or prototyping them as int. -Elmer
 
  */
-
