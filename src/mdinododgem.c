@@ -1390,7 +1390,7 @@ BlankOX getwhosTurnfromMove(MOVE theMove) {
 	player = theMove & 255;
 	return (player == 1) ? o : x;
 }
-POSITION StringToPosition(char* board, int move, int option) {
+POSITION StringToPosition(char* board) {
 
 	BlankOX realBoard[boardsize];
 	int i = 0;
@@ -1398,12 +1398,12 @@ POSITION StringToPosition(char* board, int move, int option) {
 		realBoard[i] = board[i];
 
 	}
-	return generic_hash_hash(realBoard,move);
+	return generic_hash_hash(realBoard,0);
 }
 
 
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	BlankOX board[boardsize];
 	int i = 0;
 	generic_hash_unhash(pos, &board);

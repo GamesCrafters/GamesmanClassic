@@ -1,3 +1,5 @@
+package gamesmanlightserver;
+
 import java.io.*;
 
 public class Importer{
@@ -21,7 +23,9 @@ public class Importer{
         try{
             long position = header.headerSize() + rowSize * hash;
             file.seek(position);
-            return new Row(file, header);
+            Row row = new Row(file, header);
+            row.hash = hash;
+            return row;
         } catch (IOException e){
             System.out.println(e);
             return null;
@@ -64,11 +68,13 @@ class Header{
 }
 
 class Row{
-    public long result, remoteness, mex_value;
+    public char result;
+    public long remoteness, mex_value;
     public long[] target_position;
     private int move_size;
+    public long hash;
     public Row(RandomAccessFile file, Header header) throws IOException{
-        result = readFile(file, 1);
+        result = (char)readFile(file, 1);
         remoteness = readFile(file, header.remoteness_size);
         mex_value = readFile(file, header.mex_value_size);
         move_size = header.move_size;

@@ -1416,7 +1416,7 @@ POSITION StringToPosition(char* board, int option, int move, char* params) {
 }
 
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }

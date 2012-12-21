@@ -3186,13 +3186,13 @@ STRING TierToString(TIER tier) {
 // Revision 1.46  2005/09/15 04:34:32  ogren
 // capitalized CVS keywords
 //
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
 
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }

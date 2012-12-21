@@ -733,7 +733,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 }
 
 
-/************************************************************************
+/***v*********************************************************************
 **
 ** NAME:        ValidTextInput
 **
@@ -1260,7 +1260,7 @@ MOVE move;
 	int jump, direction, i, j, x, y;
 	STRING moveStr = (STRING) SafeMalloc(sizeof(char)*4);
 	if(move < boardSize) { // This is just a goat being placed
-		i = get_x(move);
+	  i = get_x(move);
 		j = get_y(move);
 		sprintf(moveStr, "%c%c%c%c", ' ',' ',j + 'a' - 1, '0' +length - i + 1);
 		return moveStr;
@@ -1378,10 +1378,63 @@ int symmetry;
 		SafeFree(unflipped);
 	return(hash(board, turn, goatsLeft));
 }
-char* PositionToString(POSITION pos, int move, int option) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+char* PositionToString(POSITION pos) {
+	int i, j;
+	int turn, goatsLeft;
+	char* board = unhash(pos, &turn, &goatsLeft);
+	int total_length = boardSize;
+	char* string = (char*) SafeMalloc((total_length + 18) * sizeof(char));
+	char piece;
+	for(i = 1; i <= length; i++) { // print the rows one by one
+			for(j = 1; j <= width; j++) {
+			  piece = board[translate(i, j)];
+			  if (piece == '+'){
+			    *string = ' ';
+			  } else if(piece == 'T') {
+				  *string = 'O';
+				} else {
+				  *string = 'X';
+				}
+				string++;
+			}
+	}
+	
+	sprintf(string, "%d", turn);
+	string++;
+	sprintf(string, "%d", goatsLeft);
+	string += 16;
+	*string = '\0';
+	if (board != NULL)
+		SafeFree(board);
+	return string - total_length - 17;
 }
+
+POSITION StringToPosition(char* string){
+  int total_length = boardSize;
+  char* board = (char*) SafeMalloc(total_length * sizeof(char));
+  int i = 0;
+  while (i < total_length){
+    if (*string == ' '){
+	    *board = '+';
+	  } else if(*string == 'O' || *string == 'o') {
+		  *board = 'T';
+		} else if (*string == 'X' || *string == 'x'){
+		  *board = 'G';
+		}
+		string++;
+		board++;
+		i++;
+  }
+  board = board - total_length;
+  char* turn_string = (char*) SafeMalloc(2 * sizeof(char));
+  *turn_string = *string;
+  *(turn_string + 1) = '\0';
+  int turn = atoi(turn_string);
+  string++;
+  int goats = atoi(string);
+  return hash(board, turn, goats);
+}
+
 /***************************
  ******  TIER API    ********
  ****************************/
@@ -1707,11 +1760,6 @@ STRING TierToString(TIER tier) {
 		sprintf(tierStr, "Stage 1 (TIGER's Turn), %d Goats, %d To Place",
 		        goatsOnBoard, goatsLeft);
 	return tierStr;
-}
-
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
-	// FIXME: this is just a stub
-	return atoi(board);
 }
 
 // $Log: not supported by cvs2svn $

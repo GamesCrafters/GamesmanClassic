@@ -1903,7 +1903,7 @@ void printBoard(char* board) {
 		printf("\nHUGE ERROR...I IS TOO BIG, meaning the BOARD SHOULD BE SMALLER THAN IT REALLY IS!!!! ==> %d\n\n",i);
 
 }
-POSITION StringToPosition(char* board, int move, int option) {
+POSITION StringToPosition(char* board) {
 	// currently our server doesn't allow spaces in any value it receives
 	// we ask users to provide us _ for blank pieces instead and replace it
 	// to the real BLANKPIECE value when we process the board
@@ -1920,11 +1920,12 @@ POSITION StringToPosition(char* board, int move, int option) {
 		}
 	}
 	// getPosition calls SafeFree() on the string it is passed
-	return getPosition(temp, move);
+	/* return getPosition(temp, move); */
+	return -1;
 }
 
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	int boardsize = OthRows * OthCols;
 	char RETURNEDBLANKPIECE = '_';
 	char* rtnBoard = (char*) SafeMalloc(boardsize+1);

@@ -1131,13 +1131,13 @@ void getIntVal(int* target) {
 ** Revision 1.10  2006/04/25 01:33:06  ogren
 ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
 ************************************************************************/
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
 
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }

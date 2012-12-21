@@ -1746,13 +1746,13 @@ void PrettyPrintDir (const char* dir, const char* extension)
 
 	SafeFree(tmp);
 }
-POSITION StringToPosition(char* board, int option, char* move, char* params) {
+POSITION StringToPosition(char* board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
 
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }

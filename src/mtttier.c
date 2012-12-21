@@ -900,7 +900,7 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 
-POSITION StringToPosition(char* boardStr, int move, int option) {
+POSITION StringToPosition(char* boardStr) {
 	// change boardStr to BlankOX
 	BlankOX *board = malloc(sizeof(BlankOX)* BOARDSIZE);
 	if (strlen(boardStr) < BOARDSIZE) {
@@ -922,7 +922,7 @@ POSITION StringToPosition(char* boardStr, int move, int option) {
 	return BlankOXToPosition(board);
 }
 
-char* PositionToString(POSITION pos, int move, int option) {
+char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
