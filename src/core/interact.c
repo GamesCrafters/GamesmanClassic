@@ -160,7 +160,7 @@ void ServerInteractLoop(void) {
 		}
 		/* Clear the '\n' so that string comparison is clearer. */
 		*strchr(input, '\n') = '\0';
-		if (FirstWordMatches(input, "shutdown") || FirstWordMatches(input, "quit") || FirstWordMatches(input, "exit") {
+		if (FirstWordMatches(input, "shutdown") || FirstWordMatches(input, "quit") || FirstWordMatches(input, "exit")) {
 			InteractCheckErrantExtra(input, 1);
 			printf("\n");
 			break;
