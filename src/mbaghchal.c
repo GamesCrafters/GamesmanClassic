@@ -67,7 +67,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-
+#include <string.h>
 
 /*************************************************************************
 **
@@ -1378,35 +1378,40 @@ int symmetry;
 		SafeFree(unflipped);
 	return(hash(board, turn, goatsLeft));
 }
+
+// I assumed that turn is always one bit
 char* PositionToString(POSITION pos) {
-	int i, j;
-	int turn, goatsLeft;
-	char* board = unhash(pos, &turn, &goatsLeft);
-	int total_length = boardSize;
-	char* string = (char*) SafeMalloc((total_length + 18) * sizeof(char));
-	char piece;
-	for(i = 1; i <= length; i++) { // print the rows one by one
-			for(j = 1; j <= width; j++) {
-			  piece = board[translate(i, j)];
-			  if (piece == '+'){
-			    *string = ' ';
-			  } else if(piece == 'T') {
-				  *string = 'O';
-				} else {
-				  *string = 'X';
-				}
-				string++;
-			}
-	}
-	
-	sprintf(string, "%d", turn);
-	string++;
-	sprintf(string, "%d", goatsLeft);
-	string += 16;
-	*string = '\0';
-	if (board != NULL)
-		SafeFree(board);
-	return string - total_length - 17;
+  int i, j;
+  int turn, goatsLeft;
+  char* board = unhash(pos, &turn, &goatsLeft);
+  int total_length = boardSize;
+  char* string = (char*) SafeMalloc((total_length + 29) * sizeof(char));
+  char piece;
+  for(i = 1; i <= length; i++) { // print the rows one by one
+    for(j = 1; j <= width; j++) {
+      piece = board[translate(i, j)];
+      if (piece == '+'){
+        *string = ' ';
+      } else if(piece == 'T') {
+        *string = 'O';
+      } else {
+        *string = 'X';
+      }
+      string++;
+    }
+  }
+  char* turnString = ";turn=";
+  strcpy(string, turnString);
+  string += 6;
+  sprintf(string, "%d", turn);
+  string++;
+  char* goatString = ";goatsLeft=";
+  strcpy(string, goatString);
+  string += 11;
+  sprintf(string, "%d", goatsLeft);
+  if (board != NULL)
+    SafeFree(board);
+  return string - total_length - 18;
 }
 
 POSITION StringToPosition(char* string){
@@ -1415,23 +1420,21 @@ POSITION StringToPosition(char* string){
   int i = 0;
   while (i < total_length){
     if (*string == ' '){
-	    *board = '+';
-	  } else if(*string == 'O' || *string == 'o') {
-		  *board = 'T';
-		} else if (*string == 'X' || *string == 'x'){
-		  *board = 'G';
-		}
-		string++;
-		board++;
-		i++;
+      *board = '+';
+    } else if(*string == 'O' || *string == 'o') {
+      *board = 'T';
+    } else if (*string == 'X' || *string == 'x'){
+      *board = 'G';
+    }
+    string++;
+    board++;
+    i++;
   }
-  board = board - total_length;
-  char* turn_string = (char*) SafeMalloc(2 * sizeof(char));
-  *turn_string = *string;
-  *(turn_string + 1) = '\0';
-  int turn = atoi(turn_string);
   string++;
-  int goats = atoi(string);
+  board = board - total_length;
+  int goats;
+  int turn;
+  StringLookup(string, "turn", &turn, "goatsLeft", &goats, "");
   return hash(board, turn, goats);
 }
 

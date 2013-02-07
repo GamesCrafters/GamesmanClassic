@@ -288,7 +288,15 @@ void ServerInteractLoop(void) {
 			printf("\"remoteness\":%d", Remoteness(pos));
 			InteractPrintJSONPositionValue(pos);
 			printf("}}");
-		} else if (FirstWordMatches(input, "next_move_values_response")) {
+		} else if (FirstWordMatches(input, "position")) {
+            if (!InteractReadBoardString(input, &board)) {
+                printf(invalid_board_string);
+                continue;
+            }
+            pos = StringToPosition(board);
+            printf("board: %d",pos);
+            
+        } else if (FirstWordMatches(input, "next_move_values_response")) {
 			if (!InteractReadBoardString(input, &board)) {
 				printf(invalid_board_string);
 				continue;
@@ -330,4 +338,56 @@ void ServerInteractLoop(void) {
 	}
 	SafeFree(input);
 	#undef RESULT
+}
+
+int FindAndStore(char* string, char* key, int* placeholder){
+  int count = 0;
+  char* temp = NULL;
+  char* end = NULL;
+  while (string != NULL){
+    temp = strchr(string,'=');
+    if(temp == NULL){
+      printf("ERROR: string is not in key=value; format");
+      return 0;
+    }
+    *temp = '\0';
+    end = strchr(temp+1, ';');
+    if(strcmp(string, key) == 0){
+        if(end != NULL){
+          *end = '\0';
+        }
+        *placeholder = atoi(temp+1);
+        count++;
+    }
+    if( end != NULL){
+        *end = ';';
+        end++;
+    }
+    *temp = '=';
+    string = end;
+  }
+  if (count == 0 || count > 1){
+    printf("ERROR: couldn't find %s as a key within the string\n", key);
+    return 0;
+  } else if (count > 1){
+    printf("ERROR: found the key more than once in the string\n");
+    return 0;
+  }
+  return 1;
+}
+
+
+int StringLookup(char* string, ...){
+  va_list arguments;
+  va_start( arguments, string);
+  char* key;
+  int* placeholder;
+  while(*(key =  va_arg(arguments, char*)) != '\0'){
+    placeholder = va_arg(arguments, int*);
+    if(FindAndStore(string, key, placeholder) == 0){
+      return 0;
+    }
+  }
+  va_end(arguments);
+  return 1;
 }
