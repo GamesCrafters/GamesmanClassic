@@ -1385,7 +1385,7 @@ char* PositionToString(POSITION pos) {
   int turn, goatsLeft;
   char* board = unhash(pos, &turn, &goatsLeft);
   int total_length = boardSize;
-  char* string = (char*) SafeMalloc((total_length + 29) * sizeof(char));
+  char* string = (char*) SafeMalloc(total_length * sizeof(char));
   char piece;
   for(i = 1; i <= length; i++) { // print the rows one by one
     for(j = 1; j <= width; j++) {
@@ -1400,18 +1400,16 @@ char* PositionToString(POSITION pos) {
       string++;
     }
   }
-  char* turnString = ";turn=";
-  strcpy(string, turnString);
-  string += 6;
-  sprintf(string, "%d", turn);
-  string++;
-  char* goatString = ";goatsLeft=";
-  strcpy(string, goatString);
-  string += 11;
-  sprintf(string, "%d", goatsLeft);
+  string -= total_length;
+  char* turnValue = (char*) SafeMalloc(2);
+  sprintf(turnValue, "%d", turn);
+  char* goatValue = (char*) SafeMalloc(11);
+  sprintf(goatValue, "%d", goatsLeft);
+  char* retString = MakeBoardString(string, "turn", turnValue, "goatsLeft", goatValue, "");
   if (board != NULL)
     SafeFree(board);
-  return string - total_length - 18;
+  SafeFree(string);
+  return retString;
 }
 
 POSITION StringToPosition(char* string){
