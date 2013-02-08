@@ -4,7 +4,7 @@
 
 /* In case strdup isn't defined. */
 char * StringDup( char * s ) {
-	char * a = (char *)malloc(strlen(s) + 1);
+	char * a = (char *)SafeMalloc(strlen(s) + 1);
 	/* 1 is for null character. */
 	if (a) {
 		strcpy(a, s);
@@ -50,13 +50,13 @@ static char * AllocVa(va_list lst, size_t accum, size_t * total) {
 				out[i + n] = val[n];
 			}
 		}
-		free(val);
+		SafeFree(val);
 		return out;
 	} else {
 		/* Base case, alloc the array. */
-		out = (char *) malloc(accum);
+		out = (char *) SafeMalloc(accum + 1);
 		if (out) {
-			out[accum - 1] = '\0';
+			out[accum] = '\0';
 			*total = accum;
 		}
 		return out;
