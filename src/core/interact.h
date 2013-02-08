@@ -21,4 +21,7 @@ void InteractCheckErrantExtra(STRING input, int max_words);
 void ServerInteractLoop(void);
 extern POSITION gInitialPosition;
 int StringLookup(char* string, ...);
+char * make_board_string(char * first, ...);
+char * string_dup( char * s );
+
 #endif /* GMCORE_INTERACT_H */

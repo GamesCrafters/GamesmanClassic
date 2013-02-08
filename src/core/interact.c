@@ -1,9 +1,83 @@
 #include "interact.h"
 #include "hashwindow.h"
+#include <stdarg.h>
+
+/* In case strdup isn't defined. */
+char * string_dup( char * s ) {
+	char * a = (char *)malloc(strlen(s) + 1);
+	/* 1 is for null character. */
+	if (a) {
+		strcpy(a, s);
+	}
+	return a;
+}
 
 STRING MoveToString(MOVE mv);
 STRING PositionToString(POSITION pos);
 POSITION StringToPosition(STRING str);
+
+static char * alloc_va(va_list lst, size_t accum, size_t * total) {
+	char * key = va_arg(lst, char *);
+	char * val;
+	char * out;
+	size_t self_size;
+	size_t key_size;
+	size_t val_size;
+	size_t n;
+	if (!key) {
+		return NULL;
+	}
+	if ( *key ) {
+		/* The key is not the empty string. */
+		val = va_arg(lst, char *);
+		if (!val) {
+			return NULL;
+		}
+		key_size = strlen(key);
+		val_size = strlen(val);
+		self_size = key_size + val_size + 2;
+		/* Request enough memory for ;key=val */
+		out = alloc_va( lst, accum + self_size, total );
+		if ( out ) {
+			size_t i = accum;
+			out[i++] = ';';
+			for (n = 0; n < key_size; n++) {
+				out[i + n] = key[n];
+			}
+			i += key_size;
+			out[i++] = '=';
+			for (n = 0; n < val_size; n++) {
+				out[i + n] = val[n];
+			}
+		}
+		free(val);
+		return out;
+	} else {
+		/* Base case, alloc the array. */
+		out = (char *) malloc(accum);
+		if (out) {
+			out[accum - 1] = '\0';
+			*total = accum;
+		}
+		return out;
+	}
+}
+
+char * make_board_string(char * first, ...) {
+	va_list lst;
+	va_start(lst, first);
+	size_t first_len = strlen(first);
+	size_t total;
+	char * out = alloc_va(lst, first_len, &total);
+	size_t i;
+	if (out) {
+		for (i = 0; i < first_len; i++) {
+			out[i] = first[i];
+		}
+	}
+	va_end(lst);
+	return out;
+}
 
 /* Reads a position from stdin, returns FALSE on error. */
 BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
