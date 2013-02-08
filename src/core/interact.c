@@ -3,7 +3,7 @@
 #include <stdarg.h>
 
 /* In case strdup isn't defined. */
-char * string_dup( char * s ) {
+char * StringDup( char * s ) {
 	char * a = (char *)malloc(strlen(s) + 1);
 	/* 1 is for null character. */
 	if (a) {
@@ -16,7 +16,7 @@ STRING MoveToString(MOVE mv);
 STRING PositionToString(POSITION pos);
 POSITION StringToPosition(STRING str);
 
-static char * alloc_va(va_list lst, size_t accum, size_t * total) {
+static char * AllocVa(va_list lst, size_t accum, size_t * total) {
 	char * key = va_arg(lst, char *);
 	char * val;
 	char * out;
@@ -37,7 +37,7 @@ static char * alloc_va(va_list lst, size_t accum, size_t * total) {
 		val_size = strlen(val);
 		self_size = key_size + val_size + 2;
 		/* Request enough memory for ;key=val */
-		out = alloc_va( lst, accum + self_size, total );
+		out = AllocVa( lst, accum + self_size, total );
 		if ( out ) {
 			size_t i = accum;
 			out[i++] = ';';
@@ -63,12 +63,12 @@ static char * alloc_va(va_list lst, size_t accum, size_t * total) {
 	}
 }
 
-char * make_board_string(char * first, ...) {
+char * MakeBoardString(char * first, ...) {
 	va_list lst;
 	va_start(lst, first);
 	size_t first_len = strlen(first);
 	size_t total;
-	char * out = alloc_va(lst, first_len, &total);
+	char * out = AllocVa(lst, first_len, &total);
 	size_t i;
 	if (out) {
 		for (i = 0; i < first_len; i++) {
@@ -368,7 +368,7 @@ void ServerInteractLoop(void) {
                 continue;
             }
             pos = StringToPosition(board);
-            printf("board: %d",pos);
+            printf("board: " POSITION_FORMAT,pos);
             
         } else if (FirstWordMatches(input, "next_move_values_response")) {
 			if (!InteractReadBoardString(input, &board)) {
