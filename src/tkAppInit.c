@@ -315,11 +315,11 @@ int argc;
 char **argv;
 {
 	if (argc != 1) {
-		interp->result ="wrong # args: shouldn't be any";
+		Tcl_SetResult(interp, "wrong # args: shouldn't be any", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	// Ported from tkAppInitHash, correct version tbd
-	sprintf(interp->result,"%d",(int)gInitialPosition);
+	Tcl_SetResult(interp, StrFromI(gInitialPosition), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -332,22 +332,21 @@ char **argv;
 {
 	/* argv[1] is position, argv[2] USED to be boardsize */
 	if (!(argc == 2 || argc == 3)) {
-		interp->result = "wrong # args: should be 1 (or 2 for backwards compat)";
+		Tcl_SetResult(interp,  "wrong # args: should be 1 (or 2 for backwards compat)", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	// Ported from tkAppInitHash, correct version tbd
 	char *board;
 	POSITION pos = atoi(argv[1]);
 	board = generic_hash_unhash_tcl(pos);
-	sprintf(interp->result, "%s",board);
-	SafeFree(board);
+	Tcl_SetResult(interp, board, SafeFreeString);
 	return TCL_OK;
 	/*
 	   char *board;
 	   int n;
 	   board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
 	   generic_hash_unhash(atoi(argv[1]),board);
-	   sprintf(interp->result, "%s",board);
+	   Tcl_SetResult(interp, board, SafeFreeString);
 	   return TCL_OK;
 	 */
 }
@@ -361,18 +360,17 @@ char **argv;
 {
 	/* argv[1] is position, argv[2] USED to be boardsize */
 	if (!(argc == 2 || argc == 3)) {
-		interp->result = "wrong # args: should be 1 (or 2 for backwards compat)";
+		Tcl_SetResult(interp,  "wrong # args: should be 1 (or 2 for backwards compat)", TCL_STATIC);
 		return TCL_ERROR;
 	} else if (gCustomUnhash == NULL) {
-		interp->result = "CustomUnhash is not defined for this game";
+		Tcl_SetResult(interp,  "CustomUnhash is not defined for this game", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	// Ported from tkAppInitHash, correct version tbd
 	char *board;
 	POSITION pos = atoi(argv[1]);
 	board = gCustomUnhash(pos);
-	sprintf(interp->result, "%s",board);
-	SafeFree(board);
+	Tcl_SetResult(interp, board, SafeFreeString);
 	return TCL_OK;
 }
 
@@ -386,17 +384,17 @@ char **argv;
 {
 	/* argv[1] is position, argv[2] USED to be boardsize */
 	if (!(argc == 2 || argc == 3)) {
-		interp->result = "wrong # args: should be 1 (or 2 for backwards compat)";
+		Tcl_SetResult(interp,  "wrong # args: should be 1 (or 2 for backwards compat)", TCL_STATIC);
 		return TCL_ERROR;
 	} else if (gReturnTurn == NULL) {
-		interp->result = "ReturnTurn is not defined for this game";
+		Tcl_SetResult(interp,  "ReturnTurn is not defined for this game", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	// Ported from tkAppInitHash, correct version tbd
 	char turn;
 	POSITION pos = atoi(argv[1]);
 	turn = gReturnTurn(pos);
-	sprintf(interp->result, "%c",turn);
+	Tcl_SetResult(interp, StrFormat(1, "%c", turn), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -415,7 +413,7 @@ char **argv;
 	//char *theAnswer = (char *) malloc (10000);
 	//char *tmp = (char *) malloc (10000);
 	if (argc != 2) {
-		interp->result = "wrong # args: PossibleMoves (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: PossibleMoves (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -455,7 +453,7 @@ char **argv;                            /* Argument strings. */
 		return TCL_ERROR;
 	}
 	else {
-		interp->result = "Dan Garcia";
+		Tcl_SetResult(interp,  "Dan Garcia", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -470,7 +468,7 @@ char **argv;                            /* Argument strings. */
 	char **ap, *args[20];
 	int numArgs = 0;
 	if (argc != 2) {
-		interp->result = "wrong # args: shouldn't have any args";
+		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -486,7 +484,7 @@ char **argv;                            /* Argument strings. */
 		HandleArguments(numArgs, args);
 		gTierSolverMenu = FALSE; // For TIER-GAMESMAN, makes sure to turn off the menu and auto-solve
 		Initialize();
-		interp->result = "System Initialized";
+		Tcl_SetResult(interp,  "System Initialized", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -499,13 +497,13 @@ int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: shouldn't have any args";
+		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		gHashWindowInitialized = FALSE; // For TIER-GAMESMAN, just in case
 		InitializeGame();
-		interp->result = "Game Initialized";
+		Tcl_SetResult(interp,  "Game Initialized", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -518,12 +516,12 @@ int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: shouldn't have any args";
+		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		InitializeDatabases();
-		interp->result = "Databases Initialized";
+		Tcl_SetResult(interp,  "Databases Initialized", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -539,14 +537,14 @@ char **argv;                            /* Argument strings. */
 	POSITION position;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: GetComputersMove (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: GetComputersMove (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",(int)GetComputersMove(position));
+		Tcl_SetResult(interp, StrFromI(GetComputersMove(position)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -566,7 +564,7 @@ char **argv;                            /* Argument strings. */
 	char* move;
 
 	if (argc != 6) {
-		interp->result = "wrong # args: GetRemotePlayersMove (char*)$username (char*)$password (char*)$sessionId (char*)gameId (int)$position";
+		Tcl_SetResult(interp,  "wrong # args: GetRemotePlayersMove (char*)$username (char*)$password (char*)$sessionId (char*)gameId (int)$position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -580,17 +578,17 @@ char **argv;                            /* Argument strings. */
 		{
 			if (move == NULL)
 			{
-				sprintf(interp->result,"%d:",errCode);
+				Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 			}
 			else
 			{
-				sprintf(interp->result,"%d:%s",errCode,move);
+				Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,move), SafeFreeString);
 				free(move);
 			}
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -612,7 +610,7 @@ char **argv;                            /* Argument strings. */
 	char* errMsg;
 
 	if (argc != 7) {
-		interp->result = "wrong # args: SendLocalPlayersMove (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (int)$position (int)$prevMove";
+		Tcl_SetResult(interp,  "wrong # args: SendLocalPlayersMove (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (int)$position (int)$prevMove", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -624,11 +622,11 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)SendNewOnlineMove((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[6], &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -649,7 +647,7 @@ char **argv;                            /* Argument strings. */
 	char* errMsg;
 
 	if (argc != 5) {
-		interp->result = "wrong # args: SendGameOver (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: SendGameOver (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -657,11 +655,11 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)SendGameOver((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -682,7 +680,7 @@ char **argv;                            /* Argument strings. */
 	char* errMsg;
 
 	if (argc != 5) {
-		interp->result = "wrong # args: SendResign (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: SendResign (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -690,11 +688,11 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)SendResign((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -717,7 +715,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 3)
 	{
-		interp->result = "wrong # args: LoginUser (char*)$username (char*)$password";
+		Tcl_SetResult(interp,  "wrong # args: LoginUser (char*)$username (char*)$password", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -725,13 +723,13 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)LoginUser((STRING)argv[1], (STRING)argv[2], &sessionId, &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:%s",errCode,sessionId);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,sessionId), SafeFreeString);
 			if (sessionId != NULL)
 				free(sessionId);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -753,7 +751,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 4)
 	{
-		interp->result = "wrong # args: LogoutUser (char*)$username (char*)$password (char*)$sessionId";
+		Tcl_SetResult(interp,  "wrong # args: LogoutUser (char*)$username (char*)$password (char*)$sessionId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -761,11 +759,11 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)LogoutUser((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -787,7 +785,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 3)
 	{
-		interp->result = "wrong # args: RegisterUser (char*)$username (char*)$password";
+		Tcl_SetResult(interp,  "wrong # args: RegisterUser (char*)$username (char*)$password", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -795,11 +793,11 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)RegisterUser((STRING)argv[1], (STRING)argv[2], &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -822,7 +820,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 4)
 	{
-		interp->result = "wrong # args: GetUsers (char*)$username (char*)$password (char*)$sessionId";
+		Tcl_SetResult(interp,  "wrong # args: GetUsers (char*)$username (char*)$password (char*)$sessionId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -834,17 +832,17 @@ char **argv;                            /* Argument strings. */
 			{
 				// Return the request body (users variable) that should contain user/game records.
 				// Each one terminated by "\n". Where the fields in each record are delimited by ":".
-				sprintf(interp->result,"%d:%s",errCode,users);
+				Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,users), SafeFreeString);
 				free(users);
 			}
 			else
 			{
-				sprintf(interp->result,"%d:",errCode);
+				Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 			}
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -867,7 +865,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 8)
 	{
-		interp->result = "wrong # args: RegisterGame (char*)$username (char*)$password (char*)$sessionId (char*)$gamename (char*)$gamevariation (char*)$gamedesc (char*)$iMoveFirst";
+		Tcl_SetResult(interp,  "wrong # args: RegisterGame (char*)$username (char*)$password (char*)$sessionId (char*)$gamename (char*)$gamevariation (char*)$gamedesc (char*)$iMoveFirst", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -875,13 +873,13 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)RegisterGame((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[5], (STRING)argv[6], (STRING)argv[7], &gameId, &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:%s",errCode,gameId);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,gameId), SafeFreeString);
 			if (gameId != NULL)
 				free(gameId);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -903,7 +901,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 5)
 	{
-		interp->result = "wrong # args: JoinGame (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: JoinGame (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -911,11 +909,11 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)JoinGame((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -938,7 +936,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 5)
 	{
-		interp->result = "wrong # args: ReceivedChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: ReceivedChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -946,13 +944,13 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)ReceivedChallenge((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &status, &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:%s",errCode,status);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,status), SafeFreeString);
 			if (status != NULL)
 				free(status);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -975,7 +973,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 6)
 	{
-		interp->result = "wrong # args: AcceptChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (char*)$accept";
+		Tcl_SetResult(interp,  "wrong # args: AcceptChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (char*)$accept", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -983,13 +981,13 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)AcceptChallenge((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[5], &moveFirst, &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:%s",errCode,moveFirst);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,moveFirst), SafeFreeString);
 			if (moveFirst != NULL)
 				free(moveFirst);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -1012,7 +1010,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 5)
 	{
-		interp->result = "wrong # args: GetGameStatus (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: GetGameStatus (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -1024,17 +1022,17 @@ char **argv;                            /* Argument strings. */
 			{
 				// Return the request body (users variable) that should contain user records.
 				// Each one terminated by "\n". Where the fields in each record are delimited by ":".
-				sprintf(interp->result,"%d:%s",errCode,users);
+				Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,users), SafeFreeString);
 				free(users);
 			}
 			else
 			{
-				sprintf(interp->result,"%d:",errCode);
+				Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 			}
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -1058,7 +1056,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 5)
 	{
-		interp->result = "wrong # args: AcceptedChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: AcceptedChallenge (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -1068,19 +1066,19 @@ char **argv;                            /* Argument strings. */
 		{
 			if (moveFirst != NULL)
 			{
-				sprintf(interp->result,"%d:%s:%s",errCode,status,moveFirst);
+				Tcl_SetResult(interp, StringFormat(256, "%d:%s:%s",errCode,status,moveFirst), SafeFreeString);
 				free(moveFirst);
 			}
 			else
 			{
-				sprintf(interp->result,"%d:%s:",errCode,status);
+				Tcl_SetResult(interp, StringFormat(256, "%d:%s:",errCode,status), SafeFreeString);
 			}
 			if (status != NULL)
 				free(status);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -1103,7 +1101,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 5)
 	{
-		interp->result = "wrong # args: UnregisterGame (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: UnregisterGame (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -1111,17 +1109,17 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)UnregisterGame((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &challenger, &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else if (errCode == 312)
 		{
-			sprintf(interp->result,"%d:%s",errCode,challenger);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,challenger), SafeFreeString);
 			if (challenger != NULL)
 				free(challenger);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -1144,7 +1142,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 5)
 	{
-		interp->result = "wrong # args: DeselectChallenger (char*)$username (char*)$password (char*)$sessionId (char*)$gameId";
+		Tcl_SetResult(interp,  "wrong # args: DeselectChallenger (char*)$username (char*)$password (char*)$sessionId (char*)$gameId", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -1152,17 +1150,17 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)DeselectChallenger((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], &challenger, &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else if (errCode == 312)
 		{
-			sprintf(interp->result,"%d:%s",errCode,challenger);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,challenger), SafeFreeString);
 			if (challenger != NULL)
 				free(challenger);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -1185,7 +1183,7 @@ char **argv;                            /* Argument strings. */
 
 	if (argc != 6)
 	{
-		interp->result = "wrong # args: SelectChallenger (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (char*)$selChallenger";
+		Tcl_SetResult(interp,  "wrong # args: SelectChallenger (char*)$username (char*)$password (char*)$sessionId (char*)$gameId (char*)$selChallenger", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else
@@ -1193,17 +1191,17 @@ char **argv;                            /* Argument strings. */
 		errCode = (int)SelectChallenger((STRING)argv[1], (STRING)argv[2], (STRING)argv[3], (STRING)argv[4], (STRING)argv[5], &challenger, &errMsg);
 		if (errCode == 0)
 		{
-			sprintf(interp->result,"%d:",errCode);
+			Tcl_SetResult(interp, StringFormat(256, "%d:",errCode), SafeFreeString);
 		}
 		else if (errCode == 312)
 		{
-			sprintf(interp->result,"%d:%s",errCode,challenger);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,challenger), SafeFreeString);
 			if (challenger != NULL)
 				free(challenger);
 		}
 		else
 		{
-			sprintf(interp->result,"%d:%s",errCode,errMsg);
+			Tcl_SetResult(interp, StringFormat(256, "%d:%s",errCode,errMsg), SafeFreeString);
 			if (errMsg != NULL)
 				free(errMsg);
 		}
@@ -1222,12 +1220,12 @@ char **argv;                            /* Argument strings. */
 	int standardGame = 0;
 
 	if (argc < 2) {
-		interp->result = "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options";
+		Tcl_SetResult(interp,  "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
 	if (argc > 102) {
-		interp->result = "too many arguments: SetGameSpecificOptions (boolean)Standard-Game-p [, (boolean)option_n]*";
+		Tcl_SetResult(interp,  "too many arguments: SetGameSpecificOptions (boolean)Standard-Game-p [, (boolean)option_n]*", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
@@ -1259,7 +1257,7 @@ char **argv;                            /* Argument strings. */
 	char script[50] = "advanceProgressBar 0";
 
 	if (argc != 2) {
-		interp->result = "wrong # args: DetermineValue (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: DetermineValue (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1269,7 +1267,7 @@ char **argv;                            /* Argument strings. */
 		Tcl_Eval(interp, script);
 
 		gMenuMode = BeforeEvaluation; /* Some solvers use this for optimization */
-		interp->result = gValueString[(int)DetermineValue(position)];
+		Tcl_SetResult(interp,  gValueString[(int)DetermineValue(position)], TCL_STATIC);
 		gMenuMode = Evaluated;
 
 		return TCL_OK;
@@ -1287,13 +1285,13 @@ char **argv;                            /* Argument strings. */
 	VALUE GetValueOfPosition();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: GetValueOfPosition (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: GetValueOfPosition (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
-		interp->result = gValueString[(int)GetValueOfPosition(position)];
+		Tcl_SetResult(interp,  gValueString[(int)GetValueOfPosition(position)], TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -1310,13 +1308,13 @@ char **argv;                            /* Argument strings. */
 	REMOTENESS Remoteness();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Remoteness (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: Remoteness (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
-		sprintf(interp->result,"%d",(int)Remoteness(position));
+		Tcl_SetResult(interp, StrFromI(Remoteness(position)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1333,7 +1331,7 @@ char **argv;                            /* Argument strings. */
 	void MexFormat();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Mex (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: Mex (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1341,9 +1339,9 @@ char **argv;                            /* Argument strings. */
 			return TCL_ERROR;
 
 		if(!kPartizan)
-			MexFormat(position,interp->result);
+			MexFormat(position,Tcl_GetResult(interp));
 		else
-			sprintf(interp->result," ");
+			Tcl_SetResult(interp, " ", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -1361,7 +1359,7 @@ char **argv;                            /* Argument strings. */
 	POSITION DoMove();
 
 	if (argc != 3) {
-		interp->result = "wrong # args: DoMove (int)Position (int)Move";
+		Tcl_SetResult(interp,  "wrong # args: DoMove (int)Position (int)Move", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1370,7 +1368,7 @@ char **argv;                            /* Argument strings. */
 		if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",(int)DoMove(position,move));
+		Tcl_SetResult(interp, StrFromI(DoMove(position,move)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1387,7 +1385,7 @@ char **argv;                            /* Argument strings. */
 	extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
 	if (argc != 3) {
-		interp->result = "wrong # args: GoAgain (int)Position (int)Move";
+		Tcl_SetResult(interp,  "wrong # args: GoAgain (int)Position (int)Move", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1396,7 +1394,7 @@ char **argv;                            /* Argument strings. */
 		if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",(int)gGoAgain(position,move));
+		Tcl_SetResult(interp, StrFromI(gGoAgain(position,move)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1412,14 +1410,14 @@ char **argv;                            /* Argument strings. */
 	VALUE Primitive();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Primitive (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: Primitive (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		interp->result = gValueString[(int)Primitive(position)];
+		Tcl_SetResult(interp,  gValueString[(int)Primitive(position)], TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -1448,7 +1446,7 @@ char **argv;                            /* Argument strings. */
 	VALUE_MOVES *vMoves;
 	REMOTENESS remote, delta;
 	if (argc != 3) {
-		interp->result = "wrong # args: GetValueMoves (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: GetValueMoves (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1539,14 +1537,14 @@ char **argv;                            /* Argument strings. */
 	int n;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Random (int)n";
+		Tcl_SetResult(interp,  "wrong # args: Random (int)n", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if(Tcl_GetInt(interp, argv[1], &n) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",GetRandomNumber(n));
+		Tcl_SetResult(interp, StrFromI(GetRandomNumber(n)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1562,7 +1560,7 @@ char **argv;                            /* Argument strings. */
 	STRING playerName, prediction;
 
 	if (argc != 3) {
-		interp->result = "wrong # args: GetPrediction position playerName";
+		Tcl_SetResult(interp,  "wrong # args: GetPrediction position playerName", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
@@ -1572,7 +1570,7 @@ char **argv;                            /* Argument strings. */
 		playerName = (STRING) argv[2];
 
 		prediction =  GetPrediction(position, playerName, TRUE);
-		sprintf(interp->result,"%s",prediction);
+		Tcl_SetResult(interp, StringDup(prediction), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1588,13 +1586,13 @@ char **argv;                            /* Argument strings. */
 	STRING smartnessString;
 
 	if (argc > 3 || argc < 2) {
-		interp->result = "wrong # args: SetSmarterComputer smartness [scale]";
+		Tcl_SetResult(interp,  "wrong # args: SetSmarterComputer smartness [scale]", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
 	else {
 		smartnessString = (STRING) argv[1];
-		sprintf(interp->result, "Setting smarter computer to %s\n", smartnessString);
+		Tcl_SetResult(interp, StringFormat(256,  "Setting smarter computer to %s\n", smartnessString), SafeFreeString);
 
 		if (strcmp(smartnessString, "Perfectly") == 0) {
 			smartness = SMART;
@@ -1630,7 +1628,7 @@ char **argv;                            /* Argument strings. */
 	int option;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: SetOption (int)option";
+		Tcl_SetResult(interp,  "wrong # args: SetOption (int)option", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1653,13 +1651,13 @@ char **argv;                            /* Argument strings. */
 	int option;
 
 	if (argc != 1) {
-		interp->result = "wrong # args: GetOption";
+		Tcl_SetResult(interp,  "wrong # args: GetOption", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 
 		option = getOption();
-		sprintf(interp->result,"%d",option);
+		Tcl_SetResult(interp, StrFromI(option), SafeFreeString);
 
 		return TCL_OK;
 	}
@@ -1673,11 +1671,11 @@ int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: PercentDone";
+		Tcl_SetResult(interp,  "wrong # args: PercentDone", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
-		sprintf(interp->result,"%f3.0",PercentDone(2));
+		Tcl_SetResult(interp, StringFormat(256, "%f3.0",PercentDone(2)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1691,12 +1689,12 @@ char **argv;                            /* Argument strings. */
 {
 
 	if (argc != 1) {
-		interp->result ="wrong # args: shouldn't be any";
+		Tcl_SetResult(interp, "wrong # args: shouldn't be any", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
 	else {
-		interp->result = kHelpStandardObjective;
+		Tcl_SetResult(interp,  kHelpStandardObjective, TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -1710,12 +1708,12 @@ char **argv;                            /* Argument strings. */
 {
 
 	if (argc != 1) {
-		interp->result ="wrong # args: shouldn't be any";
+		Tcl_SetResult(interp, "wrong # args: shouldn't be any", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
 	else {
-		interp->result = kHelpReverseObjective;
+		Tcl_SetResult(interp,  kHelpReverseObjective, TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -1728,7 +1726,7 @@ int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
 	if (argc != 2) {
-		interp->result = "wrong # args: MoveToString";
+		Tcl_SetResult(interp,  "wrong # args: MoveToString", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1736,9 +1734,9 @@ char **argv;                /* Argument strings. */
 		if(Tcl_GetInt(interp, argv[1], &theMove) != TCL_OK)
 			return TCL_ERROR;
 		if (gMoveToStringFunPtr == NULL) {
-			sprintf(interp->result,"%d",theMove);
+			Tcl_SetResult(interp, StrFromI(theMove), SafeFreeString);
 		} else {
-			sprintf(interp->result,"%s",gMoveToStringFunPtr(theMove));
+			Tcl_SetResult(interp, StringDup(gMoveToStringFunPtr(theMove)), SafeFreeString);
 		}
 		return TCL_OK;
 	}
@@ -1757,7 +1755,7 @@ char **argv;                            /* Argument strings. */
 	int n,k;
 
 	if (argc != 3) {
-		interp->result = "wrong # args: Random (int)n";
+		Tcl_SetResult(interp,  "wrong # args: Random (int)n", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1766,7 +1764,7 @@ char **argv;                            /* Argument strings. */
 		if(Tcl_GetInt(interp, argv[2], &k) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",ComputeC(n,k));
+		Tcl_SetResult(interp, StrFromI(ComputeC(n,k)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1784,14 +1782,14 @@ int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: UsingTiers";
+		Tcl_SetResult(interp,  "wrong # args: UsingTiers", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (gHashWindowInitialized) // TIER GAMESMAN
-			sprintf(interp->result,"%d",1);
+			Tcl_SetResult(interp, StrFromI(1), SafeFreeString);
 		else
-			sprintf(interp->result,"%d",0);
+			Tcl_SetResult(interp, StrFromI(0), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1806,7 +1804,7 @@ char **argv;                /* Argument strings. */
 	POSITION position;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: InitHashWindow (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: InitHashWindow (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1818,7 +1816,7 @@ char **argv;                /* Argument strings. */
 			position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
 		} // else, just spit the argument back (for non-tier games)
 
-		sprintf(interp->result,"%d",(int)position);
+		Tcl_SetResult(interp, StrFromI(position), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1833,7 +1831,7 @@ char **argv;                /* Argument strings. */
 	POSITION position;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: HashWindow (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: HashWindow (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1843,7 +1841,7 @@ char **argv;                /* Argument strings. */
 		if (gHashWindowInitialized)
 			gInitializeHashWindowToPosition(&position);
 
-		sprintf(interp->result,"%d",(int)position);
+		Tcl_SetResult(interp, StrFromI(position), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1858,7 +1856,7 @@ char **argv;                /* Argument strings. */
 	TIER tier;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: HashWindowUndo (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: HashWindowUndo (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1868,7 +1866,7 @@ char **argv;                /* Argument strings. */
 		if (gHashWindowInitialized)
 			gInitializeHashWindow(tier, TRUE);
 
-		sprintf(interp->result,"%d",1);
+		Tcl_SetResult(interp, StrFromI(1), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1881,14 +1879,14 @@ int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: UsingTiers";
+		Tcl_SetResult(interp,  "wrong # args: UsingTiers", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (gHashWindowInitialized) // TIER GAMESMAN
-			sprintf(interp->result,"%d",(int)gCurrentTier);
+			Tcl_SetResult(interp, StrFromI(gCurrentTier), SafeFreeString);
 		else
-			sprintf(interp->result,"%d",-1);
+			Tcl_SetResult(interp, StrFromI(-1), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -1903,7 +1901,7 @@ char **argv;                /* Argument strings. */
 	POSITION position;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: UsingTiers";
+		Tcl_SetResult(interp,  "wrong # args: UsingTiers", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -1911,9 +1909,9 @@ char **argv;                /* Argument strings. */
 			return TCL_ERROR;
 
 		if (kSupportsTierGamesman && gTierGamesman) // TIER GAMESMAN
-			sprintf(interp->result,"%d",(int)InitTierGamesman());
+			Tcl_SetResult(interp, StrFromI(InitTierGamesman()), SafeFreeString);
 		else // no tiers, just return the position directly for non-tier games
-			sprintf(interp->result,"%d",(int)position);
+			Tcl_SetResult(interp, StrFromI(position), SafeFreeString);
 		return TCL_OK;
 	}
 }

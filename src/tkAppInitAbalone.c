@@ -196,10 +196,10 @@ int argc;
 char **argv;
 {
 	if (argc != 1) {
-		interp->result ="wrong # args: shouldn't be any";
+		Tcl_SetResult(interp, "wrong # args: shouldn't be any", TCL_STATIC);
 		return TCL_ERROR;
 	}
-	sprintf(interp->result,"%d",(int)getInitialPosition());
+	Tcl_SetResult(interp, StrFromI((int)getInitialPosition()), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -212,13 +212,13 @@ char **argv;
 {
 	//argv[1] is position, argv[2] is boardsize
 	if (argc != 3) {
-		interp->result = "wrong # args: should be 2";
+		Tcl_SetResult(interp,  "wrong # args: should be 2", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	char *board;
 	board = (char *) SafeMalloc (sizeof(char)*(atoi(argv[2])));
 	generic_hash_unhash(atoi(argv[1]),board);
-	sprintf(interp->result, "%s",board);
+	Tcl_SetResult(interp, StringDup(board), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -231,10 +231,10 @@ char **argv;
 {
 	//argv[1] is slot#, argv[2] is direction#
 	if (argc != 3) {
-		interp->result = "wrong # args: should be 2";
+		Tcl_SetResult(interp,  "wrong # args: should be 2", TCL_STATIC);
 		return TCL_ERROR;
 	}
-	sprintf(interp->result, "%d", destination(atoi(argv[1]), atoi(argv[2])));
+	Tcl_SetResult(interp, StrFromI( destination(atoi(argv[1]), atoi(argv[2]))), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -247,10 +247,10 @@ char **argv;
 {
 	//argv1-3 are slot #s, argv[4] is direction #
 	if (argc !=5) {
-		interp->result = "wrong # args: should be 4";
+		Tcl_SetResult(interp,  "wrong # args: should be 4", TCL_STATIC);
 		return TCL_ERROR;
 	}
-	sprintf(interp->result, "%d", move_hash(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4])));
+	Tcl_SetResult(interp, StrFromI( move_hash(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]))), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -274,10 +274,10 @@ int argc;
 char **argv;
 {
 	if (argc !=2) {
-		interp->result = "wrong # args: should be one";
+		Tcl_SetResult(interp,  "wrong # args: should be one", TCL_STATIC);
 		return TCL_ERROR;
 	}
-	sprintf(interp->result,"%d", generic_hash_turn(atoi(argv[1])));
+	Tcl_SetResult(interp, StrFromI( generic_hash_turn(atoi(argv[1]))), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -294,7 +294,7 @@ char **argv;                            /* Argument strings. */
 		return TCL_ERROR;
 	}
 	else {
-		interp->result = "Dan Garcia";
+		Tcl_SetResult(interp,  "Dan Garcia", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -307,12 +307,12 @@ int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: shouldn't have any args";
+		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		Initialize();
-		interp->result = "System Initialized";
+		Tcl_SetResult(interp,  "System Initialized", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -325,12 +325,12 @@ int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: shouldn't have any args";
+		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		InitializeGame();
-		interp->result = "Game Initialized";
+		Tcl_SetResult(interp,  "Game Initialized", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -343,12 +343,12 @@ int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
 	if (argc != 1) {
-		interp->result = "wrong # args: shouldn't have any args";
+		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		InitializeDatabases();
-		interp->result = "Databases Initialized";
+		Tcl_SetResult(interp,  "Databases Initialized", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -364,14 +364,14 @@ char **argv;                            /* Argument strings. */
 	POSITION position;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: GetComputerMove (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: GetComputerMove (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",(int)GetComputersMove(position));
+		Tcl_SetResult(interp, StrFromI((int)GetComputersMove(position)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -387,12 +387,12 @@ char **argv;                            /* Argument strings. */
 	int standardGame = 0;
 
 	if (argc < 2) {
-		interp->result = "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options";
+		Tcl_SetResult(interp,  "wrong # args: SetGameSpecificOptions (boolean)Standard-Game-p (optional)Other-Game-Specific-Options", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
 	if (argc > 102) {
-		interp->result = "too many arguments: SetGameSpecificOptions (boolean)Standard-Game-p [, (boolean)option_n]*";
+		Tcl_SetResult(interp,  "too many arguments: SetGameSpecificOptions (boolean)Standard-Game-p [, (boolean)option_n]*", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
@@ -421,14 +421,14 @@ char **argv;                            /* Argument strings. */
 	VALUE DetermineValue(), DetermineLoopyValue();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: DetermineValue (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: DetermineValue (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		interp->result = gValueString[(int)DetermineValue(position)];
+		Tcl_SetResult(interp,  gValueString[(int)DetermineValue(position)], TCL_STATIC);
 
 		return TCL_OK;
 	}
@@ -445,14 +445,14 @@ char **argv;                            /* Argument strings. */
 	VALUE GetValueOfPosition();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: GetValueOfPosition (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: GetValueOfPosition (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		interp->result = gValueString[(int)GetValueOfPosition(position)];
+		Tcl_SetResult(interp,  gValueString[(int)GetValueOfPosition(position)], TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -468,14 +468,14 @@ char **argv;                            /* Argument strings. */
 	REMOTENESS Remoteness();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Remoteness (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: Remoteness (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",(int)Remoteness(position));
+		Tcl_SetResult(interp, StrFromI((int)Remoteness(position)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -491,7 +491,7 @@ char **argv;                            /* Argument strings. */
 	REMOTENESS Remoteness();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Mex (POSITION)Position";
+		Tcl_SetResult(interp,  "wrong # args: Mex (POSITION)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -499,9 +499,9 @@ char **argv;                            /* Argument strings. */
 			return TCL_ERROR;
 
 		if(!kPartizan)
-			MexFormat(position,interp->result);
+			MexFormat(position,Tcl_GetResult(interp));
 		else
-			sprintf(interp->result," ");
+			Tcl_SetResult(interp, " ", TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -518,7 +518,7 @@ char **argv;                            /* Argument strings. */
 	POSITION DoMove();
 
 	if (argc != 3) {
-		interp->result = "wrong # args: DoMove (int)Position (int)Move";
+		Tcl_SetResult(interp,  "wrong # args: DoMove (int)Position (int)Move", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -527,7 +527,7 @@ char **argv;                            /* Argument strings. */
 		if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",(int)DoMove(position,move));
+		Tcl_SetResult(interp, StrFromI((int)DoMove(position,move)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -544,7 +544,7 @@ char **argv;                            /* Argument strings. */
 	extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
 
 	if (argc != 3) {
-		interp->result = "wrong # args: GoAgain (int)Position (int)Move";
+		Tcl_SetResult(interp,  "wrong # args: GoAgain (int)Position (int)Move", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -553,7 +553,7 @@ char **argv;                            /* Argument strings. */
 		if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",(int)gGoAgain(position,move));
+		Tcl_SetResult(interp, StrFromI((int)gGoAgain(position,move)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -569,14 +569,14 @@ char **argv;                            /* Argument strings. */
 	VALUE Primitive();
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Primitive (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: Primitive (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		interp->result = gValueString[(int)Primitive(position)];
+		Tcl_SetResult(interp,  gValueString[(int)Primitive(position)], TCL_STATIC);
 		return TCL_OK;
 	}
 }
@@ -594,7 +594,7 @@ char **argv;                            /* Argument strings. */
 	char theAnswer[10000], tmp[1000];
 
 	if (argc != 2) {
-		interp->result = "wrong # args: GetValueMoves (int)Position";
+		Tcl_SetResult(interp,  "wrong # args: GetValueMoves (int)Position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -640,14 +640,14 @@ char **argv;                            /* Argument strings. */
 	int n;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Random (int)n";
+		Tcl_SetResult(interp,  "wrong # args: Random (int)n", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 		if(Tcl_GetInt(interp, argv[1], &n) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",GetRandomNumber(n));
+		Tcl_SetResult(interp, StrFromI(GetRandomNumber(n)), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -663,7 +663,7 @@ char **argv;                            /* Argument strings. */
 	STRING playerName, prediction;
 
 	if (argc != 3) {
-		interp->result = "wrong # args: GetPrediction position playerName";
+		Tcl_SetResult(interp,  "wrong # args: GetPrediction position playerName", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
@@ -673,7 +673,7 @@ char **argv;                            /* Argument strings. */
 		playerName = (STRING) argv[2];
 
 		prediction =  GetPrediction(position, playerName, TRUE);
-		sprintf(interp->result,"%s",prediction);
+		Tcl_SetResult(interp, StringDup(prediction), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -689,13 +689,13 @@ char **argv;                            /* Argument strings. */
 	STRING smartnessString;
 
 	if (argc > 3 || argc < 2) {
-		interp->result = "wrong # args: SetSmarterComputer smartness [scale]";
+		Tcl_SetResult(interp,  "wrong # args: SetSmarterComputer smartness [scale]", TCL_STATIC);
 		return TCL_ERROR;
 	}
 
 	else {
 		smartnessString = (STRING) argv[1];
-		sprintf(interp->result, "Setting smarter computer to %s\n", smartnessString);
+		Tcl_SetResult(interp, StringFormat(256,  "Setting smarter computer to %s\n", smartnessString), SafeFreeString);
 
 		if (strcmp(smartnessString, "Perfectly") == 0) {
 			smartness = SMART;
@@ -731,7 +731,7 @@ char **argv;                            /* Argument strings. */
 	int option;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: SetOption (int)option";
+		Tcl_SetResult(interp,  "wrong # args: SetOption (int)option", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -754,13 +754,13 @@ char **argv;                            /* Argument strings. */
 	int option;
 
 	if (argc != 1) {
-		interp->result = "wrong # args: GetOption";
+		Tcl_SetResult(interp,  "wrong # args: GetOption", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
 
 		option = getOption();
-		sprintf(interp->result,"%d",option);
+		Tcl_SetResult(interp, StrFromI(option), SafeFreeString);
 
 		return TCL_OK;
 	}
@@ -778,7 +778,7 @@ char **argv;                            /* Argument strings. */
 	int n,k;
 
 	if (argc != 3) {
-		interp->result = "wrong # args: Random (int)n";
+		Tcl_SetResult(interp,  "wrong # args: Random (int)n", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -787,7 +787,7 @@ char **argv;                            /* Argument strings. */
 		if(Tcl_GetInt(interp, argv[2], &k) != TCL_OK)
 			return TCL_ERROR;
 
-		sprintf(interp->result,"%d",ComputeC(n,k));
+		Tcl_SetResult(interp, StrFromI(ComputeC(n,k)), SafeFreeString);
 		return TCL_OK;
 	}
 }

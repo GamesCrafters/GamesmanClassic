@@ -247,7 +247,7 @@ char **argv;                            /* Argument strings. */
 	POSITION position;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Hash (STRING)board";
+		Tcl_SetResult(interp, "wrong # args: Hash (STRING)board", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -260,7 +260,7 @@ char **argv;                            /* Argument strings. */
 			}
 		}
 		position = BlankOXToPosition(board);
-		sprintf(interp->result, POSITION_FORMAT, position);
+		Tcl_SetResult(interp, StrFromI(position), SafeFreeString);
 		return TCL_OK;
 	}
 }
@@ -278,7 +278,7 @@ char **argv;                            /* Argument strings. */
 	int i;
 
 	if (argc != 2) {
-		interp->result = "wrong # args: Unhash (POSITION)position";
+		Tcl_SetResult(interp, "wrong # args: Unhash (POSITION)position", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	else {
@@ -290,7 +290,7 @@ char **argv;                            /* Argument strings. */
 		}
 		boardString[BOARDSIZE] = '\0';
 
-		sprintf(interp->result, "%s", boardString);
+		Tcl_SetResult(interp, StringDup(boardString), SafeFreeString);
 		return TCL_OK;
 	}
 }

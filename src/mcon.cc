@@ -190,7 +190,7 @@ XYtoPos(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   int x,y;
 
   if (argc != 3) {
-    interp->result = "wrong # args: Scored (int)x (int)y";
+    Tcl_SetResult(interp,  "wrong # args: Scored (int)x (int)y", TCL_STATIC);
     return TCL_ERROR;
   }
   else {
@@ -199,7 +199,7 @@ XYtoPos(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
     if (sscanf(argv[2], "%d", &y) == EOF)
       return TCL_ERROR;
     
-    sprintf(interp->result,POSITION_FORMAT,(POSITION)Con::Pos(x,y));
+		Tcl_SetResult(interp, StrFromI((POSITION)Con::Pos(x,y)), SafeFreeString);
     return TCL_OK;
   }
 }
@@ -210,7 +210,7 @@ GetTurn(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   POSITION pos;
 
   if (argc != 2) {
-    interp->result = "wrong # args: Scored (int)Position";
+    Tcl_SetResult(interp,  "wrong # args: Scored (int)Position", TCL_STATIC);
     return TCL_ERROR;
   }
   else {
@@ -218,7 +218,7 @@ GetTurn(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
       return TCL_ERROR;
     
     Con board(pos);
-    sprintf(interp->result,"%d",(int)board.Turn());
+    Tcl_SetResult(interp, StrFromI(board.Turn()), SafeFreeString);
     return TCL_OK;
   }
 }
@@ -229,7 +229,7 @@ MoveToInter(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   POSITION pos;
 
   if (argc != 2) {
-    interp->result = "wrong # args: Scored (int)Position";
+    Tcl_SetResult(interp,  "wrong # args: Scored (int)Position", TCL_STATIC);
     return TCL_ERROR;
   }
   else {
@@ -244,7 +244,7 @@ MoveToInter(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
 	  xypos=i+j*(BoardSize+1);
       }
 	
-    sprintf(interp->result,"%d",(int)xypos);
+    Tcl_SetResult(interp, StrFromI(xypos), SafeFreeString);
     return TCL_OK;
   }
 }

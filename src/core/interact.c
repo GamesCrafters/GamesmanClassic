@@ -12,6 +12,29 @@ char * StringDup( char * s ) {
 	return a;
 }
 
+void SafeFreeString(char * string) {
+	SafeFree((void *) string);
+}
+
+char * StrFromI( long long i ) {
+	char * str = (char *) SafeMalloc( 22 ); /* 20 for 64 bit number + sign + null character. */
+	if ( str ) {
+		sprintf( str, "%lld", i);
+	}
+	return str;
+}
+
+char * StrFormat(size_t max_size, char * format_str, ...) {
+	va_list args;
+	char * str = (char *) SafeMalloc( max_size + 1 );
+	if (str) {
+		va_start(args, format_str);
+		vsnprintf(str, max_size + 1, format_str, args);
+	}
+	va_end(args);
+	return str;
+}
+
 STRING MoveToString(MOVE mv);
 STRING PositionToString(POSITION pos);
 POSITION StringToPosition(STRING str);

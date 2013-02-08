@@ -912,7 +912,7 @@ ScoredCmd(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
   int position,x,y;
 
   if (argc != 4) {
-    interp->result = "wrong # args: Scored (int)Position (int)x (int)y";
+    Tcl_SetResult(interp,  "wrong # args: Scored (int)Position (int)x (int)y", TCL_STATIC);
     return TCL_ERROR;
   }
   else {
@@ -925,8 +925,7 @@ ScoredCmd(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
 
     DNB board(position);
     
-    sprintf(interp->result,"%d",(int)board.BoxCompleted(x,y)?
-	    (!TrackBoxOwners)?2:board.Scored(x,y)?1:0:-1);
+    Tcl_SetResult(interp, StrFromI(board.BoxCompleted(x,y)?  (!TrackBoxOwners)?2:board.Scored(x,y)?1:0:-1), SafeFreeString);
     return TCL_OK;
   }
 }
@@ -939,7 +938,7 @@ GoAgainCmd(ClientData dummy, Tcl_Interp* interp, int argc, char ** argv)
   POSITION DoMove();
     
   if (argc != 3) {
-    interp->result = "wrong # args: GoAgain (int)Position (int)Move";
+    Tcl_SetResult(interp,  "wrong # args: GoAgain (int)Position (int)Move", TCL_STATIC);
     return TCL_ERROR;
   }
   else {
@@ -948,7 +947,7 @@ GoAgainCmd(ClientData dummy, Tcl_Interp* interp, int argc, char ** argv)
     if(Tcl_GetInt(interp, argv[2], &move) != TCL_OK)
       return TCL_ERROR;
     
-    sprintf(interp->result,"%d",(int)DNBGoAgain(position,move));
+    Tcl_SetResult(interp, StrFromI(DNBGoAgain(position,move)), SafeFreeString);
     return TCL_OK;
   }
 }

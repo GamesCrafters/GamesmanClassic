@@ -23,5 +23,8 @@ extern POSITION gInitialPosition;
 int StringLookup(char* string, ...);
 char * MakeBoardString(char * first, ...);
 char * StringDup( char * s );
+void SafeFreeString(char * string);
+char * StrFromI( long long i );
+char * StrFormat(size_t max_size, char * format_str, ...);
 
 #endif /* GMCORE_INTERACT_H */
