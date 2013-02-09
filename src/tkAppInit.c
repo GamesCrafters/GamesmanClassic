@@ -394,7 +394,7 @@ char **argv;
 	char turn;
 	POSITION pos = atoi(argv[1]);
 	turn = gReturnTurn(pos);
-	Tcl_SetResult(interp, StrFormat(1, "%c", turn), SafeFreeString);
+	Tcl_SetResult(interp, StringFormat(1, "%c", turn), SafeFreeString);
 	return TCL_OK;
 }
 
@@ -1339,7 +1339,7 @@ char **argv;                            /* Argument strings. */
 			return TCL_ERROR;
 
 		if(!kPartizan)
-			MexFormat(position,Tcl_GetResult(interp));
+			MexFormat(position,Tcl_GetStringResult(interp));
 		else
 			Tcl_SetResult(interp, " ", TCL_STATIC);
 		return TCL_OK;

@@ -421,7 +421,7 @@ char **argv;                            /* Argument strings. */
 			return TCL_ERROR;
 
 		if(!kPartizan)
-			MexFormat(position,Tcl_GetResult(interp));
+			MexFormat(position,Tcl_GetStringResult(interp));
 		else
 			Tcl_SetResult(interp, " ", TCL_STATIC);
 		return TCL_OK;

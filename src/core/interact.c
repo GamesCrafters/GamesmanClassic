@@ -24,7 +24,7 @@ char * StrFromI( long long i ) {
 	return str;
 }
 
-char * StrFormat(size_t max_size, char * format_str, ...) {
+char * StringFormat(size_t max_size, char * format_str, ...) {
 	va_list args;
 	char * str = (char *) SafeMalloc( max_size + 1 );
 	if (str) {
