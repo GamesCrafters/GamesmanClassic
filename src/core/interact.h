@@ -27,4 +27,11 @@ void SafeFreeString(char * string);
 char * StrFromI( long long i );
 char * StringFormat(size_t max_size, char * format_str, ...);
 
+typedef BOOLEAN (* get_value_func_t)( char *, void *);
+
+#define GetValue(board_string, key, func, target) \
+	0 ? func("", target) : GetValueInner(board_string, key, (get_value_func_t) func, (void *) target)
+
+BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target);
+
 #endif /* GMCORE_INTERACT_H */

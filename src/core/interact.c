@@ -488,3 +488,18 @@ int StringLookup(char* string, ...){
   va_end(arguments);
   return 1;
 }
+
+BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target) {
+	char * c = board_string;
+	int j;
+	for( c = board_string; *c; c++) {
+		if (*c == ';') {
+			for (j = 0; c[j] && key[j] && c[j] == key[j]; j++) { }
+			if (!key[j] && !c[j]) {
+				/* Match! */
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
