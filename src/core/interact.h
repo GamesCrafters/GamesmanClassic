@@ -20,7 +20,6 @@ void InteractFreeBoardSting(STRING board);
 void InteractCheckErrantExtra(STRING input, int max_words);
 void ServerInteractLoop(void);
 extern POSITION gInitialPosition;
-int StringLookup(char* string, ...);
 char * MakeBoardString(char * first, ...);
 char * StringDup( char * s );
 void SafeFreeString(char * string);
@@ -34,4 +33,6 @@ typedef BOOLEAN (* get_value_func_t)( char *, void *);
 
 BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target);
 
+BOOLEAN GetInt(char* value, int* placeholder);
+BOOLEAN GetChar(char* value, char* placeholder);
 #endif /* GMCORE_INTERACT_H */

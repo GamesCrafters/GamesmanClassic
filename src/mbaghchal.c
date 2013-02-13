@@ -1432,7 +1432,12 @@ POSITION StringToPosition(char* string){
   board = board - total_length;
   int goats;
   int turn;
-  StringLookup(string, "turn", &turn, "goatsLeft", &goats, "");
+  int success = GetValue(string, "turn", GetInt, &turn) &&
+                GetValue(string, "goatsLeft", GetInt, &goats);
+  if (success == 0){
+    printf("ERROR: something went wrong in getting the values out of the string \n");
+    return -1;
+  }
   return hash(board, turn, goats);
 }
 

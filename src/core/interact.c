@@ -437,23 +437,25 @@ void ServerInteractLoop(void) {
 	#undef RESULT
 }
 
-int FindAndStore(char* string, char* key, int* placeholder){
+BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target) {
   int count = 0;
   char* temp = NULL;
   char* end = NULL;
-  while (string != NULL){
-    temp = strchr(string,'=');
+  while (board_string != NULL){
+    temp = strchr(board_string,'=');
     if(temp == NULL){
       printf("ERROR: string is not in key=value; format");
-      return 0;
+      return FALSE;
     }
     *temp = '\0';
     end = strchr(temp+1, ';');
-    if(strcmp(string, key) == 0){
+    if(strcmp(board_string, key) == 0){
         if(end != NULL){
           *end = '\0';
         }
-        *placeholder = atoi(temp+1);
+        if(func(temp+1, target) != TRUE){
+          printf("ERROR: found a value for %s, but it isn't in the format we expected\n");
+        }
         count++;
     }
     if( end != NULL){
@@ -461,45 +463,24 @@ int FindAndStore(char* string, char* key, int* placeholder){
         end++;
     }
     *temp = '=';
-    string = end;
+    board_string = end;
   }
   if (count == 0 || count > 1){
     printf("ERROR: couldn't find %s as a key within the string\n", key);
-    return 0;
+    return FALSE;
   } else if (count > 1){
     printf("ERROR: found the key more than once in the string\n");
-    return 0;
+    return FALSE;
   }
-  return 1;
+  return TRUE;
 }
 
-
-int StringLookup(char* string, ...){
-  va_list arguments;
-  va_start( arguments, string);
-  char* key;
-  int* placeholder;
-  while(*(key =  va_arg(arguments, char*)) != '\0'){
-    placeholder = va_arg(arguments, int*);
-    if(FindAndStore(string, key, placeholder) == 0){
-      return 0;
-    }
-  }
-  va_end(arguments);
-  return 1;
+BOOLEAN GetInt(char* value, int* placeholder){
+  *placeholder = atoi(value);
+  return TRUE;
 }
 
-BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target) {
-	char * c = board_string;
-	int j;
-	for( c = board_string; *c; c++) {
-		if (*c == ';') {
-			for (j = 0; c[j] && key[j] && c[j] == key[j]; j++) { }
-			if (!key[j] && !c[j]) {
-				/* Match! */
-				return TRUE;
-			}
-		}
-	}
-	return FALSE;
+BOOLEAN GetChar(char* value, char* placeholder){
+  *placeholder = *value; 
+  return TRUE;
 }
