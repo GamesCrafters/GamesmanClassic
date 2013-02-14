@@ -915,7 +915,7 @@ POSITION StringToPosition(char* boardStr) {
 		else if (boardStr[i] == 'x') {
 			board[i] = x;
 		}
-		else if (boardStr[i] == '_') {
+		else if (boardStr[i] == ' ') {
 			board[i] = Blank;
 		}
 	}
@@ -923,7 +923,21 @@ POSITION StringToPosition(char* boardStr) {
 }
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+    BlankOX *board = PositionToBlankOX(pos);
+    int i;
+    char* safe_board = (char*)SafeMalloc((BOARDSIZE + 1) * sizeof(char));
+    for (i = 0; i < BOARDSIZE; i++) {
+        if (board[i] == o) {
+            safe_board[i] = 'o';
+        }
+        else if (board[i] == x) {
+            safe_board[i] = 'x';
+        }
+        else if (board[i] == Blank) {
+            safe_board[i] = ' ';
+        }
+    }
+    *(safe_board+BOARDSIZE) = '\0';
+	return safe_board;
 }
 

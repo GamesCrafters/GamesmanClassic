@@ -19,6 +19,7 @@ typedef int WINBY;                       /* WinBy can be positive or negative */
 typedef unsigned long int MEXCALC;       /* ...since we use a long int here */
 
 typedef unsigned long long POSITION;           /* This used to be determined by mTempTypedef.h */
+#define INVALID_POSITION ~((POSITION)0)
 typedef int MOVE;                              /* but I decided to hardcode it for now, so as  */
 typedef int MOVES;                              /* to make it a leeeetle bit easier and cleaner */
 

@@ -1436,7 +1436,7 @@ POSITION StringToPosition(char* string){
                 GetValue(string, "goatsLeft", GetInt, &goats);
   if (success == 0){
     printf("ERROR: something went wrong in getting the values out of the string \n");
-    return -1;
+    return INVALID_POSITION;
   }
   return hash(board, turn, goats);
 }

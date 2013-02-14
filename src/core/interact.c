@@ -455,6 +455,7 @@ BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, vo
         }
         if(func(temp+1, target) != TRUE){
           printf("ERROR: found a value for %s, but it isn't in the format we expected\n");
+          return FALSE;
         }
         count++;
     }
@@ -476,11 +477,17 @@ BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, vo
 }
 
 BOOLEAN GetInt(char* value, int* placeholder){
+  if (value == NULL || placeholder == NULL){
+    return FALSE;
+  }
   *placeholder = atoi(value);
   return TRUE;
 }
 
 BOOLEAN GetChar(char* value, char* placeholder){
+  if (value == NULL || placeholder == NULL){
+    return FALSE;
+  }
   *placeholder = *value; 
   return TRUE;
 }
