@@ -638,7 +638,6 @@ symdb_get_winby(
 
    --*/
 
-inline
 UINT64
 symdb_set_slice_slot(
         UINT64 position,
@@ -736,7 +735,6 @@ symdb_set_slice_slot(
 
    --*/
 
-inline
 UINT64
 symdb_set_slice_slot_max(
         UINT64 position,
@@ -1249,14 +1247,12 @@ _bailout:
 
    --*/
 
-inline
 UINT64
 symdb_get_slice_slot_disk(
         UINT64 position,
         UINT8 index
         );
 
-inline
 UINT64
 symdb_get_slice_slot(
         UINT64 position,
@@ -1287,7 +1283,6 @@ symdb_get_slice_slot(
 	return bitlib_read_bits( symdb_array + byteOffset, bitOffset, symdb_slice->size[index] );
 }
 
-inline
 UINT64
 symdb_get_slice_slot_disk(
         UINT64 position,
@@ -2352,7 +2347,7 @@ symdb_generic_load_database(
 		}
 	} else {
 
-		gzrewind(inFile);
+		gzrewind(*inFile);
 		bitlib_file_seek( inFile, symdb_readStart, SEEK_SET);
 		bitlib_file_read_bytes( inFile,
 		                        symdb_write_array,

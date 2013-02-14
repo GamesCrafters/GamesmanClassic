@@ -432,7 +432,7 @@ void VSSetParents (POSITION parent, POSITION root)
 				if (gSymmetries)
 					child = gCanonicalPosition(child);
 
-				if (child < 0 || child >= gNumberOfPositions)
+				if (child >= gNumberOfPositions)
 					FoundBadPosition(child, pos, moveptr->move);
 				++gVSNumberChildren[(int)pos];
 				++gVSNumberChildrenOriginal[(int)pos];

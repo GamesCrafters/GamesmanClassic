@@ -729,8 +729,10 @@ MOVE ChooseSmartComputerMove(POSITION from, MOVELIST * moves, REMOTENESSLIST * r
 	{
 		m=RandomSmallestRemotenessMove(dM,dF);
 	}
-	else
+	else {
 		BadElse("GetSmartComputerMove");
+		m=0;
+	}
 	FreeMoveList(lM);
 	FreeMoveList(wM);
 	FreeMoveList(dM);

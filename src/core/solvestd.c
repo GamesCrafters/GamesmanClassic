@@ -77,7 +77,7 @@ VALUE DetermineValueSTD(POSITION position)
 			if(gSymmetries)
 				child = gCanonicalPosition(child);
 
-			if (child < 0 || child >= gNumberOfPositions)
+			if (child >= gNumberOfPositions)
 				FoundBadPosition(child, position, move);
 
 			value = DetermineValueSTD(child); /* DFS call */

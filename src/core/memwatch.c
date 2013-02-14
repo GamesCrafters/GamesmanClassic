@@ -550,7 +550,6 @@ void mwAbort( void ) {
 				errors++;
 				mwWrite( "internal: NML/unfreed scan restarting\n" );
 				FLUSH();
-				mwHead = mwHead;
 				continue;
 			}
 			mwWrite( "internal: NML/unfreed scan aborted, heap too damaged\n" );
@@ -1269,7 +1268,7 @@ int mwAssert( int exp, const char *exps, const char *fn, int ln ) {
 		/* any debuggers or OS stack traces */
 		FLUSH();
 		/*lint -save -e413 */
-		i = *((int*)NULL);
+		i = *((volatile int*)NULL);
 		mwDummy( (char)i );
 		/*lint -restore */
 	}
@@ -1316,7 +1315,7 @@ int mwVerify( int exp, const char *exps, const char *fn, int ln ) {
 			/* any debuggers or OS stack traces */
 			FLUSH();
 			/*lint -save -e413 */
-			i = *((int*)NULL);
+			i = *((volatile int*)NULL);
 			mwDummy( (char)i );
 			/*lint -restore */
 		}
@@ -2408,7 +2407,6 @@ static void mwSIGSEGV( int n );
 
 static void mwSIGSEGV( int n )
 {
-	n = n;
 	longjmp( mwSIGSEGVjump, 1 );
 }
 

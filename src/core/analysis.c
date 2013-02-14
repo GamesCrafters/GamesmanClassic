@@ -905,7 +905,7 @@ void writeVarStat(char * statName, char * text, FILE *rowp)
 
 
 	fprintf(filep,"<!-- AUTO CREATED, do //not modify-->\n");
-	fprintf(filep,text);
+	fprintf(filep,"%s",text);
 	fprintf(filep,"\n");
 
 

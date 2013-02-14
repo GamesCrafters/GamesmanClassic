@@ -652,7 +652,6 @@ void drawDashes(char* line, POSITION position, int whoseTurn, int maxR, int maxT
 	int remoteness = Remoteness(position);
 
 	int dividers[6];
-	getDividers(dividers, maxR, maxTR)[0];
 
 	int leftWin = dividers[0];
 	int rightWin;
@@ -1682,7 +1681,7 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
 			childValue = win;
 			break;
 		default:
-			childValue = childValue;
+			break;
 		}
 	}
 

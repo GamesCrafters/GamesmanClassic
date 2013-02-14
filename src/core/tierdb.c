@@ -87,7 +87,7 @@ tierdb_cellValue*       tierdb_get_raw_ptr              (POSITION pos);
 tierdb_cellValue*       tierdb_array;
 
 char tierdb_outfilename[80];
-gzFile*         tierdb_filep;
+gzFile         tierdb_filep;
 short tierdb_dbVer[1];
 POSITION tierdb_numPos[1];
 int tierdb_goodCompression, tierdb_goodDecompression, tierdb_goodClose;

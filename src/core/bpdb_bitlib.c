@@ -122,7 +122,6 @@ bitlib_print_bytes_in_bits(
 
    --*/
 
-inline
 GMSTATUS
 bitlib_file_write_bytes(
         dbFILE *file,
@@ -132,7 +131,7 @@ bitlib_file_write_bytes(
 {
 	GMSTATUS status = STATUS_SUCCESS;
 
-	if(gzwrite(file, buffer, length) != length) {
+	if(gzwrite(*file, buffer, length) != length) {
 		status = STATUS_BAD_COMPRESSION;
 		BPDB_TRACE("bitlib_file_write_bytes()", "call to gzwrite returned an improper value", status);
 	}
@@ -163,7 +162,6 @@ bitlib_file_write_bytes(
 
    --*/
 
-inline
 GMSTATUS
 bitlib_file_read_bytes(
         dbFILE *file,
@@ -174,7 +172,7 @@ bitlib_file_read_bytes(
 	GMSTATUS status = STATUS_SUCCESS;
 	int ret = 0;
 
-	if((ret = gzread(file, buffer, length)) <= 0) {
+	if((ret = gzread(*file, buffer, length)) <= 0) {
 		status = STATUS_BAD_DECOMPRESSION;
 		// Commented out because, when using level files, this isn't always an "error"...
 		//BPDB_TRACE("bitlib_file_read_bytes()", "call to gzread returned a failed value", status);
@@ -214,7 +212,7 @@ bitlib_file_open(
 {
 	GMSTATUS status = STATUS_SUCCESS;
 
-	*db = gzopen(filename, mode);
+	**db = gzopen(filename, mode);
 	if(NULL == *db) {
 		status = STATUS_FILE_COULD_NOT_BE_OPENED;
 		BPDB_TRACE("bitlib_file_open()", "gzopen failed to open file", status);
@@ -257,10 +255,10 @@ bitlib_file_seek(
 	GMSTATUS status = STATUS_SUCCESS;
 	int ret;
 
-	if((ret = gzseek(db, byteIndex, whence)) < 0) {
+	if((ret = gzseek(*db, byteIndex, whence)) < 0) {
 		status = STATUS_FILE_COULD_NOT_BE_SEEKED;
 		BPDB_TRACE("bitlib_file_open()", "gzopen failed to seek in file", status);
-		printf("Gzip error: %s\n", gzerror(db, &ret));
+		printf("Gzip error: %s\n", gzerror(*db, &ret));
 		goto _bailout;
 	}
 
@@ -292,10 +290,10 @@ bitlib_file_close(
 	GMSTATUS status = STATUS_SUCCESS;
 	int ret;
 
-	if((ret = gzclose(file)) != 0) {
+	if((ret = gzclose(*file)) != 0) {
 		status = STATUS_FILE_COULD_NOT_BE_CLOSED;
 		BPDB_TRACE("bitlib_file_close()", "gzclose failed to close file", status);
-		printf("Gzip error: %s\n", gzerror(file, &ret));
+		printf("Gzip error: %s\n", gzerror(*file, &ret));
 		goto _bailout;
 	}
 
@@ -327,7 +325,6 @@ _bailout:
 
    --*/
 
-inline
 void
 bitlib_insert_bits(
         BYTE *slice,
@@ -383,7 +380,6 @@ bitlib_insert_bits(
 
    --*/
 
-inline
 BYTE
 bitlib_get_bits_range(
         UINT64 value,
@@ -419,7 +415,6 @@ bitlib_get_bits_range(
 
    --*/
 
-inline
 BYTE
 bitlib_right_mask8(
         UINT8 maskbits
@@ -454,7 +449,6 @@ bitlib_right_mask8(
 
    --*/
 
-inline
 UINT64
 bitlib_right_mask64(
         UINT8 maskbits
@@ -492,7 +486,6 @@ bitlib_right_mask64(
 
    --*/
 
-inline
 UINT64
 bitlib_read_bits(
         BYTE *slice,
@@ -531,7 +524,6 @@ bitlib_read_bits(
 }
 
 
-inline
 void
 bitlib_value_to_buffer(
         dbFILE *file,
@@ -567,7 +559,6 @@ bitlib_value_to_buffer(
 	}
 }
 
-inline
 UINT64
 bitlib_read_from_buffer(
         dbFILE *inFile,

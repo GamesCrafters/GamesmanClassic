@@ -77,7 +77,7 @@ void gUnhashToTierPosition(POSITION position, TIERPOSITION* tierposition,
 	if (!gHashWindowInitialized) {
 		printf("ERROR: Hash Window is not initialized!\n");
 		ExitStageRight();
-	} if (position < 0 || position >= gNumberOfPositions) {
+	} if (position >= gNumberOfPositions) {
 		printf("ERROR: Hash Window function \"gUnhashToTierPosition\" called with\n"
 		       " illegal POSITION: %llu\n"
 		       "(Current Hash Window's range is from 0 to %llu)\n",
@@ -104,7 +104,7 @@ POSITION gHashToWindowPosition(TIERPOSITION tierposition, TIER tier) {
 	int i;
 	for(i = 1; i < gNumTiersInHashWindow; i++) {
 		if (gTierInHashWindow[i] == tier) {
-			if (tierposition < 0 || tierposition > gMaxPosOffset[i]) {
+			if (tierposition > gMaxPosOffset[i]) {
 				printf("ERROR: Hash Window function \"gHashToWindowPosition\" called with\n"
 				       "illegal TIERPOSITION: %llu\n"
 				       "(Tier %llu's reported range is from 0 to %llu)\n",

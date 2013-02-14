@@ -427,7 +427,7 @@ void SetParents (POSITION parent, POSITION root)
 				if (gSymmetries)
 					child = gCanonicalPosition(child);
 
-				if (child < 0 || child >= gNumberOfPositions)
+				if (child >= gNumberOfPositions)
 					FoundBadPosition(child, pos, moveptr->move);
 				++gNumberChildren[(int)pos];
 				++gNumberChildrenOriginal[(int)pos];

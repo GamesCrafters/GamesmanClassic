@@ -32,11 +32,11 @@
 #include "levelfile_generator.h"
 
 // GLOBAL VARIABLES
-gzFile*        compressed_filep;
-gzFile*        compressed_filep_type0;
-gzFile*        compressed_filep_type1;
-gzFile*        compressed_filep_type2;
-gzFile*        compressed_filep_type3;
+gzFile        compressed_filep;
+gzFile        compressed_filep_type0;
+gzFile        compressed_filep_type1;
+gzFile        compressed_filep_type2;
+gzFile        compressed_filep_type3;
 
 /********************************************************************************
  * Description
@@ -62,10 +62,6 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 	char filename_type3[82];
 	UINT64 minHashValue, maxHashValue;
 	char* check ="1";
-	struct stat fileinfo0;
-	struct stat fileinfo1;
-	struct stat fileinfo2;
-	struct stat fileinfo3;
 	minHashValue = startIndex + findMinValueFromArray(array, endIndex-startIndex);
 	maxHashValue = startIndex + findMaxValueFromArray(array, endIndex-startIndex);
 
@@ -93,11 +89,11 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 				printf("0: Couldn't open file");
 				return 1;
 			}
-			writeHeader(compressed_filep_type0, minHashValue, maxHashValue, 0, type);
+			writeHeader(&compressed_filep_type0, minHashValue, maxHashValue, 0, type);
 			printf("0: Header is Written to File\n");
 			ArrayToType0Write(array, startIndex, maxHashValue);
 			printf("0: Body is Written to File\n");
-			bitlib_file_write_bytes(compressed_filep_type0, check, strlen(check));
+			bitlib_file_write_bytes(&compressed_filep_type0, (BYTE *)check, strlen(check));
 			gzclose(compressed_filep_type0);
 
 		}
@@ -114,11 +110,11 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 				printf("1: couldn't open file");
 				return 1;
 			}
-			writeHeader(compressed_filep_type1, minHashValue, maxHashValue, 0,  type);
+			writeHeader(&compressed_filep_type1, minHashValue, maxHashValue, 0,  type);
 			printf("1: Header is Written to File\n");
 			ArrayToType1Write(array, startIndex, maxHashValue, bitsPerPosition, minHashValue);
 			printf("1: Body is Written to File\n");
-			bitlib_file_write_bytes(compressed_filep_type1, check, strlen(check));
+			bitlib_file_write_bytes(&compressed_filep_type1, (BYTE *)check, strlen(check));
 			gzclose(compressed_filep_type1);
 		}
 
@@ -136,12 +132,12 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 				return 1;
 			}
 //			printf("bpppppp %llu %llu %llu", bitsPerPosition, maxHashValue, minHashValue);
-			writeHeader(compressed_filep_type2, minHashValue, maxHashValue, findLastZero(array, maxHashValue-minHashValue) - findMinValueFromArray(array, endIndex-startIndex), type);
+			writeHeader(&compressed_filep_type2, minHashValue, maxHashValue, findLastZero(array, maxHashValue-minHashValue) - findMinValueFromArray(array, endIndex-startIndex), type);
 			printf("2: Header is Written to File\n");
 			ArrayToType2Write(array, startIndex, maxHashValue, bitsPerPosition, minHashValue);
 
 			printf("2: Body is Written to File\n");
-			bitlib_file_write_bytes(compressed_filep_type2, check, strlen(check));
+			bitlib_file_write_bytes(&compressed_filep_type2, (BYTE *)check, strlen(check));
 			gzclose(compressed_filep_type2);
 		}
 
@@ -157,12 +153,12 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 				printf("3: couldn't open file");
 				return 1;
 			}
-			writeHeader(compressed_filep_type3, minHashValue, maxHashValue, 0, type);
+			writeHeader(&compressed_filep_type3, minHashValue, maxHashValue, 0, type);
 			printf("3: Header is Written to File\n");
 
 			ArrayToType3Write(array, startIndex, minHashValue, maxHashValue);
 			printf("3: Body is Written to File\n");
-			bitlib_file_write_bytes(compressed_filep_type3, check, strlen(check));
+			bitlib_file_write_bytes(&compressed_filep_type3, (BYTE *)check, strlen(check));
 			gzclose(compressed_filep_type3);
 		}
 
@@ -288,7 +284,6 @@ int WriteLevelFile(char* compressed_filename, BITARRAY* array, POSITION startInd
 ****************************************************************************/
 int writeHeader(gzFile *file, UINT64 minHashValue, UINT64 maxHashValue, UINT64 lastZero, int type)
 {
-	int goodCompression;
 	char* check= "1\n";
 	char comment1[80];
 	char comment2[80];
@@ -304,11 +299,11 @@ int writeHeader(gzFile *file, UINT64 minHashValue, UINT64 maxHashValue, UINT64 l
 	else
 		sprintf(header, "%llu %llu %llu %c\n", minHashValue, maxHashValue, lastZero, 0x0C);
 
-	status = bitlib_file_write_bytes(file, check, strlen(check));
-	status = bitlib_file_write_bytes(file, comment1, strlen(comment1));
-	status = bitlib_file_write_bytes(file, comment2, strlen(comment2));
-	status = bitlib_file_write_bytes(file, typeH, strlen(typeH));
-	status = bitlib_file_write_bytes(file, header, strlen(header));
+	status = bitlib_file_write_bytes(file, (BYTE *)check, strlen(check));
+	status = bitlib_file_write_bytes(file, (BYTE *)comment1, strlen(comment1));
+	status = bitlib_file_write_bytes(file, (BYTE *)comment2, strlen(comment2));
+	status = bitlib_file_write_bytes(file, (BYTE *)typeH, strlen(typeH));
+	status = bitlib_file_write_bytes(file, (BYTE *)header, strlen(header));
 	if(typeH)
 		free(typeH);
 	if(header)
@@ -331,14 +326,14 @@ int isValidLevelFile(char* compressed_filename)
 	int sawx0C = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
 	compressed_filep = gzopen(compressed_filename, "rb");
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	if((BYTE)(*buffer)=='1')
 	{
 		firstValid = 1;
 	}
 	while(status == STATUS_SUCCESS && endSectionCounter < 3)
 	{
-		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+		status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 		if(status)
 		{
 			return 1;
@@ -356,7 +351,7 @@ int isValidLevelFile(char* compressed_filename)
 			}
 		}
 	}
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	if((BYTE)(*buffer)!='1')
 	{
 		if(buffer)
@@ -389,7 +384,6 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 {
 	POSITION counter = startIndex;
 	UINT8 bitcounter = 0, currentByte;
-	int success;
 	BYTE* buffer = (BYTE*)malloc(sizeof(UINT64));
 	GMSTATUS status = STATUS_SUCCESS;
 	char positionString[22];
@@ -403,7 +397,7 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 			if(getBitValue(currentByte, bitcounter))
 			{
 				sprintf(positionString, "%llu ", counter);
-				status = bitlib_file_write_bytes(compressed_filep_type0, positionString, strlen(positionString));
+				status = bitlib_file_write_bytes(&compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
 			}
 			bitcounter++;
 			counter++;
@@ -412,7 +406,7 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 	}
 	char endline = 0x0C;
 	sprintf(positionString, "%c\n", endline);
-	status = bitlib_file_write_bytes(compressed_filep_type0, positionString, strlen(positionString));
+	status = bitlib_file_write_bytes(&compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
 	if(buffer)
 		free(buffer);
 	return 0;
@@ -462,7 +456,7 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 				offsetValue = counter - offset;
 				leftShift = 8*8 - leftOffset - bitsPerPosition;
 				positionToByteArray(bufferCurr, offsetValue << leftShift, bufferPrev);
-				status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, floor((bitsPerPosition + leftOffset)/8));
+				status = bitlib_file_write_bytes(&compressed_filep_type1, bufferCurr, floor((bitsPerPosition + leftOffset)/8));
 //				bitlib_print_bytes_in_bits(bufferCurr, floor((bitsPerPosition + leftOffset)/8));
 //				printf("counter %d amountt %d", counter, (UINT8)(bitsPerPosition));
 				numBytesInCurrent = floor((leftOffset + bitsPerPosition)/8);
@@ -474,7 +468,7 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 		}
 		if(bufferPrev !=0)
 		{
-			status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, 1);
+			status = bitlib_file_write_bytes(&compressed_filep_type1, bufferCurr, 1);
 			//bitlib_print_bytes_in_bits(bufferCurr, 1);
 
 		}
@@ -482,7 +476,7 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 	}
 
 	sprintf(positionString, "%c\n", 0x0C);
-	status = bitlib_file_write_bytes(compressed_filep_type0, positionString, strlen(positionString));
+	status = bitlib_file_write_bytes(&compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
 	if(bufferCurr)
 		free(bufferCurr);
 	return 0;
@@ -567,7 +561,7 @@ int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 				offsetValue = counter - offset;
 				leftShift = 8*8 - leftOffset - bitsPerPosition;
 				positionToByteArray(bufferCurr, offsetValue << (64 - bitsPerPosition-leftOffset), bufferPrev);
-				status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, floor((bitsPerPosition + leftOffset)/8));
+				status = bitlib_file_write_bytes(&compressed_filep_type1, bufferCurr, floor((bitsPerPosition + leftOffset)/8));
 				numBytesInCurrent = floor((leftOffset + bitsPerPosition)/8);
 				bufferPrev = *(bufferCurr + (UINT8)floor((leftOffset+bitsPerPosition)/8));
 				leftOffset = ((bitsPerPosition+leftOffset)%8);
@@ -577,13 +571,13 @@ int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 		}
 		if(bufferPrev !=0)
 		{
-			status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, 1);
+			status = bitlib_file_write_bytes(&compressed_filep_type1, bufferCurr, 1);
 		}
 		array++;
 	}
 
 	sprintf(positionString, "%c\n", 0x0C);
-	status = bitlib_file_write_bytes(compressed_filep_type0, positionString, strlen(positionString));
+	status = bitlib_file_write_bytes(&compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
 	if(bufferCurr)
 		free(bufferCurr);
 	return 0;
@@ -616,14 +610,14 @@ int ArrayToType3Write(BITARRAY *array, UINT64 startIndex, UINT64 minHashValue, U
 	while(counter <= maxHashValue)
 	{
 		*buffer = (*array << offset) + (*(array+1) >> (8-offset));
-		status = bitlib_file_write_bytes(compressed_filep_type3, buffer, 1);
+		status = bitlib_file_write_bytes(&compressed_filep_type3, buffer, 1);
 		counter+=8;
 		array++;
 
 	}
 
 	sprintf(positionString, "%c\n", 0x0C);
-	status = bitlib_file_write_bytes(compressed_filep_type0, positionString, strlen(positionString));
+	status = bitlib_file_write_bytes(&compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
 	if(buffer)
 		free(buffer);
 	return 0;
@@ -696,7 +690,7 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 	while(status == STATUS_SUCCESS && endSectionCounter < 2)
 	{
 		//printf("Begining Header Parse");
-		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+		status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 		if(status)
 		{
 			return 1;
@@ -708,8 +702,8 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 	}
 	//copies data into the bitarray
 	temp = 0;
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1); // new line
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1); // new line
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	while(index <= length && *buffer!= 0x0C)
 	{
 		//   printf("buffer %d", *buffer);
@@ -753,7 +747,7 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 			}
 			temp = 0;
 		}
-		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+		status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	}
 	printf("== %d %x==", bitValue, *array);
 
@@ -785,19 +779,17 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 	BYTE*     buffer = (BYTE*)malloc(sizeof(BYTE));
 	int status = STATUS_SUCCESS;
 	int endSectionCounter = 0;
-	int bitCounter=0;
 
 	//    BITARRAY* bitArray = (BITARRAY*)malloc(sizeof(BITARRAY)*BITSINPOS/BITSINBYTE);
 	int currentIndex = 0;
 	BYTE*     currentByte = (BYTE*)malloc(sizeof(BYTE));
-	int indexInPrevByte;
 
 	compressed_filep = gzopen(compressed_filename, "rb");
 	(*bitArray) = 0;
 	//skips header section which has two 0xC 's(at end of header) and all other ASCII chars
 	while(status == STATUS_SUCCESS && endSectionCounter < 2)
 	{
-		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+		status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 		if(status)
 		{
 			return status;
@@ -811,10 +803,9 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 	int tempBitIndexInByte = 1;
 	UINT8 tempNumber = 0;
 	int bitValue;
-	int i = 0;
 	int counter = 0;
 	int lastTempNumber = -1;
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	while((lastTempNumber+1) < length)
 	{
 		if(tempBitIndexInByte != 1) //stll evaluating same byte
@@ -930,7 +921,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 		else if((currentIndex + 8) < bitsPerPosition) //if using whole Byte
 		{
 			printf("case2\n");
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			printf("--- %x %d\n", *buffer, currentIndex);
 			index++;
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
@@ -988,7 +979,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 		else // getting new byte but only using some of it
 		{
 			printf("case3\n");
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			printf("--- %x %d\n", *buffer, currentIndex);
 			index++;
 			if(currentIndex)
@@ -1085,19 +1076,17 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 	BYTE*     buffer = (BYTE*)malloc(sizeof(BYTE));
 	int status = STATUS_SUCCESS;
 	int endSectionCounter = 0;
-	int bitCounter=0;
 
 	//    BITARRAY* bitArray = (BITARRAY*)malloc(sizeof(BITARRAY)*BITSINPOS/BITSINBYTE);
 	int currentIndex = 0;
 	BYTE*     currentByte = (BYTE*)malloc(sizeof(BYTE));
-	int indexInPrevByte;
 
 	compressed_filep = gzopen(compressed_filename, "rb");
 	(*bitArray) = 0;
 	//skips header section which has two 0xC 's(at end of header) and all other ASCII chars
 	while(status == STATUS_SUCCESS && endSectionCounter < 2)
 	{
-		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+		status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 		if(status)
 		{
 			return 1;
@@ -1111,10 +1100,9 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 	int tempBitIndexInByte = 1;
 	UINT8 tempNumber = 0;
 	int bitValue;
-	int i = 0;
 	int counter = 0;
 	int lastTempNumber = -1;
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	while(counter <= lastZero)
 	{
 		if(tempBitIndexInByte != 1) //stll evaluating same byte
@@ -1221,7 +1209,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 		else if((currentIndex + 8) < bitsPerPosition) //if using whole Byte
 		{
 //			printf("case2\n");
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == 0x0C)
 				endSectionCounter = 1;
 			else
@@ -1312,7 +1300,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 		else // getting new byte but only using some of it
 		{
 //			printf("case3\n");
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == 0x0C)
 			{
 				printf("ksljfd?");
@@ -1419,17 +1407,17 @@ int readLevelFileType3(char* compressed_filename, BITARRAY *array, int length)
 	//skips header section which has one 0xC (at end of header) and all other ASCII chars
 	while(status == STATUS_SUCCESS && endSectionCounter < 2)
 	{
-		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+		status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 		if(*buffer == 0x0C)
 		{
 			endSectionCounter++;
 		}
 	}
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1); //newline
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1); //newline
 	//copies data into the bitarray
 	while(status == STATUS_SUCCESS && index <= length)
 	{
-		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+		status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 		*array = *buffer;
 		index += 8;
 		array++;
@@ -1454,7 +1442,7 @@ int getLevelFileType(char* compressed_filename)
 	int status;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
 	compressed_filep = gzopen(compressed_filename, "rb");
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
@@ -1464,12 +1452,12 @@ int getLevelFileType(char* compressed_filename)
 	{
 		while(status == STATUS_SUCCESS)
 		{
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0x0A && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 			}
 			else if(*buffer==0x0A) {} //IGNORE EXTRA NEWLINES
@@ -1501,7 +1489,7 @@ UINT64 getLevelFileMinHashValue(char* compressed_filename)
 	int pastType = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
 	compressed_filep = gzopen(compressed_filename, "rb");
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
@@ -1511,12 +1499,12 @@ UINT64 getLevelFileMinHashValue(char* compressed_filename)
 	{
 		while(status == STATUS_SUCCESS && pastType ==0)
 		{
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0x0A && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 			}
 			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
@@ -1528,12 +1516,12 @@ UINT64 getLevelFileMinHashValue(char* compressed_filename)
 
 		while(status == STATUS_SUCCESS && pastType ==1)
 		{
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0x0A && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 			}
 			else if(*buffer==0x0A) {} //IGNORE EXTRA NEWLINES
@@ -1542,7 +1530,7 @@ UINT64 getLevelFileMinHashValue(char* compressed_filename)
 				minHashValue = (BYTE)(*buffer)-'0';
 				while(*buffer>='0' && *buffer <='9'&& status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 					if(*buffer>='0' && *buffer <='9'&& status == STATUS_SUCCESS)
 					{
 						minHashValue = minHashValue*10 + ((BYTE)(*buffer)-'0');
@@ -1576,7 +1564,7 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 	int pastType = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
 	compressed_filep = gzopen(compressed_filename, "rb");
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
@@ -1586,12 +1574,12 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 	{
 		while(status == STATUS_SUCCESS && pastType ==0)
 		{
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 			}
 			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
@@ -1602,12 +1590,12 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 		}
 		while(status == STATUS_SUCCESS && pastType ==1)
 		{
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 			}
 			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
@@ -1616,14 +1604,14 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 					pastMin=1;
 				}
-				status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+				status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				maxHashValue = (BYTE)(*buffer)-'0';
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS&& pastMin == 1)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 					if(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS)
 					{
 						maxHashValue = maxHashValue*10 + ((BYTE)(*buffer)-'0');
@@ -1652,7 +1640,6 @@ UINT64 getLevelFileMaxHashValue(char* compressed_filename)
 ****************************************************************************/
 UINT64 getLevelFileBitsPerPosition(char* compressed_filename)
 {
-	int status;
 	UINT64 max = getLevelFileMaxHashValue(compressed_filename);
 	UINT64 min = getLevelFileMinHashValue(compressed_filename);
 	UINT64 maxValue = max - min;
@@ -1800,7 +1787,7 @@ int getLastZero(char* compressed_filename)
 	int pastType = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
 	compressed_filep = gzopen(compressed_filename, "rb");
-	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+	status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 	if((BYTE)(*buffer)!='1')
 	{
 		gzclose(compressed_filep);
@@ -1810,12 +1797,12 @@ int getLastZero(char* compressed_filename)
 	{
 		while(status == STATUS_SUCCESS && pastType ==0)
 		{
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 			}
 			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
@@ -1826,12 +1813,12 @@ int getLastZero(char* compressed_filename)
 		}
 		while(status == STATUS_SUCCESS && pastType ==1)
 		{
-			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+			status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 			if(*buffer == '#') //IGNORE COMMENTS TILL NEWLINE
 			{
 				while(*buffer!=0xA && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 			}
 			else if(*buffer==0xA) {} //IGNORE EXTRA NEWLINES
@@ -1840,22 +1827,22 @@ int getLastZero(char* compressed_filename)
 
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 				if(*buffer == 0x20)
 					pastMin=1;
-				status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+				status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				}
 				if(*buffer == 0x20)
 					pastMax=1;
-				status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+				status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 				lastZero = (BYTE)(*buffer)-'0';
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS&& pastMax == 1)
 				{
-					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
+					status = bitlib_file_read_bytes(&compressed_filep, buffer, 1);
 					if(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS)
 					{
 						lastZero = lastZero*10 + ((BYTE)(*buffer)-'0');

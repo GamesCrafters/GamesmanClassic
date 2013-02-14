@@ -53,6 +53,7 @@ SCORE generate_score(VALUE value, REMOTENESS remoteness, REMOTENESS min_remotene
 		break;
 	case undecided:
 		fprintf(stderr, "ERROR: generate_score invoked with undecided game value\n");
+		score = INT_MAX;
 		break;
 	default:
 		printf("Invalid game value: %d\n", value);
@@ -142,7 +143,7 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 				}
 
 				/* If position hash value is illegal, report error */
-				if (child < 0 || child >= gNumberOfPositions) {
+				if (child >= gNumberOfPositions) {
 
 					/* Report bad position */
 					FoundBadPosition(child, position, move_node->move);

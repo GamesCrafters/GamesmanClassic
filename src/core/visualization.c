@@ -621,7 +621,7 @@ void WriteBoards() {
 }
 
 FILE *PrepareDOTFile() {
-	FILE *fp;
+	//FILE *fp;
 	//char fileName[256];
 	char dirName[256];
 
@@ -642,7 +642,8 @@ FILE *PrepareDOTFile() {
 	//fprintf(DOTFile, "\tlabelloc = \"top\"\n");
 	//fprintf(DOTFile, "\tnode [shape = \"circle\"]\n");
 
-	return fp;
+	//return fp;
+	return NULL;
 }
 
 void CloseDOTFile(FILE *fp) {

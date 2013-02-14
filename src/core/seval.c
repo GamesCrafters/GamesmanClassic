@@ -689,7 +689,7 @@ float logarithmic(float value,float params[]){
 	int sign = (int) value / absValue;
 	float scaleFactor = (params==NULL || params[0]==0) ? 1 : params[0];
 	float ans = log10( (absValue*9+1) / scaleFactor );
-	return sign * (absValue>1 || ans>1) ? 1 : ans;
+	return (sign * (absValue>1 || ans>1)) ? 1 : ans;
 }
 
 /************************************************************************
@@ -890,7 +890,7 @@ void RequestPiece(fList currFeature) {
 void RequestBoolean(STRING title,int paramNum,fList currFeature) {
 	char choice;
 
-	printf(title);
+	printf("%s",title);
 	printf("(0 for false, 1 for true)\n");
 
 	while(TRUE) {
@@ -917,7 +917,7 @@ void RequestValue(STRING title,int paramNum,int paramType,fList currFeature) {
 	float scaleChoice;
 	char temp[80];
 
-	printf(title);
+	printf("%s",title);
 
 
 	if(paramType==0) {

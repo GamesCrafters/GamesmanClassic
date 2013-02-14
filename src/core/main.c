@@ -44,6 +44,7 @@
 #include "visualization.h"
 #include "openPositions.h"
 //#include "Parallel.h"
+extern POSITION StringToPosition(STRING str);
 
 /*
 ** Globals
@@ -509,7 +510,7 @@ void HandleArguments (int argc, char *argv[])
 				BOOLEAN getNextMoveValues =
 				        !strcasecmp(argv[i], "--GetNextMoveValues");
 				char *boardStr = argv[2];
-				int whoseMove = atoi(argv[3]);
+				/* int whoseMove = atoi(argv[3]); */
 				int option = atoi(argv[4]);
 
 				setOption(option);
@@ -521,7 +522,8 @@ void HandleArguments (int argc, char *argv[])
 				// where "position" is a board string, "move" is a move string
 				// that describes how to reach the specified board from its
 				// parent, and "value" specifies the win/lose/tie value.
-				POSITION pos = StringToPosition(boardStr, whoseMove, option);
+				/* POSITION pos = StringToPosition(boardStr, whoseMove, option); */
+				POSITION pos = StringToPosition(boardStr);
 				VALUE primitiveValue = Primitive(pos);
 				if (getNextMoveValues) {
 					if (primitiveValue) {

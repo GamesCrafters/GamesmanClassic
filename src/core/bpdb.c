@@ -2365,7 +2365,7 @@ bpdb_generic_load_database(
 		}
 	} else {
 
-		gzrewind(inFile);
+		gzrewind(*inFile);
 		bitlib_file_seek( inFile, bpdb_readStart, SEEK_SET);
 		bitlib_file_read_bytes( inFile,
 		                        bpdb_write_array,

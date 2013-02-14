@@ -100,7 +100,7 @@ BOOLEAN r_checkStr(char*, char*, int*);
 char* r_intToString(int);
 // Level File Functions
 BOOLEAN l_readFullLevelFile(POSITION*, POSITION*);
-inline BOOLEAN l_isInLevelFile(TIERPOSITION);
+BOOLEAN l_isInLevelFile(TIERPOSITION);
 void l_freeBitArray();
 BOOLEAN l_levelFileExists(TIER tier);
 BOOLEAN SolveLevelFile(POSITION, POSITION);
@@ -551,7 +551,7 @@ BOOLEAN setInitialTierPosition() {
 				printf("Tier %llu either isn't solved yet, or is an illegal tier!\n", t);
 				continue;
 			}
-			if (tp < 0 || tp >= gNumberOfTierPositionsFunPtr(t)) {
+			if (tp >= gNumberOfTierPositionsFunPtr(t)) {
 				printf("Tierposition %llu isn't a valid position in tier %llu!\n", tp, t);
 				continue;
 			}
@@ -1192,7 +1192,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, gCurrentTier);
 			for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
 				parent = gUnDoMoveFunPtr(child, parentsPtr->undomove);
-				if (parent < 0 || parent >= gCurrentTierSize) {
+				if (parent >= gCurrentTierSize) {
 					TIERPOSITION tp; TIER t;
 					gUnhashToTierPosition(parent, &tp, &t);
 					printf("ERROR: %llu generated undo-parent %llu (Tier: %llu, TierPosition: %llu),\n"
@@ -1928,7 +1928,7 @@ void RemoteSolveTier(TIER tier, TIERPOSITION start, TIERPOSITION finish) {
 	// two sanity checkers, to check if we actually solve
 	// first can I actually solve this tier?
 	// second, are the args correct?
-	if (!RemoteCanISolveTier(tier) || start < 0 || start >= finish
+	if (!RemoteCanISolveTier(tier) || start >= finish
 	    || finish > gNumberOfTierPositionsFunPtr(tier))
 		return;
 	gInitializeHashWindow(tier, TRUE);
@@ -2117,7 +2117,7 @@ void RemoteSolveLevelFile(TIER tier, TIERPOSITION start, TIERPOSITION finish) {
 	// two sanity checkers, to check if we actually solve
 	// first can I actually solve this tier?
 	// second, are the args correct?
-	if (!RemoteCanISolveLevelFile(tier) || start < 0 || start >= finish
+	if (!RemoteCanISolveLevelFile(tier) || start >= finish
 	    || finish > gNumberOfTierPositionsFunPtr(tier))
 		return;
 	gInitializeHashWindow(tier, FALSE);
@@ -2265,7 +2265,7 @@ void l_freeBitArray() {
 
 // This is so we can treat l_bitArray as a sort of visited database, abstractly
 // Assumes pos >= l_min, pos < l_max
-inline BOOLEAN l_isInLevelFile(TIERPOSITION pos) {
+BOOLEAN l_isInLevelFile(TIERPOSITION pos) {
 	POSITION base = pos-l_min;
 	POSITION cell = base/8;
 	return (l_bitArray[cell] >> (7 - (base % 8))) & 1; // get the right bit in the cell
@@ -2288,12 +2288,12 @@ void l_initWindowBitArray() {
 }
 
 // Next, an additional helper to STORE into the "visited database"
-inline void l_storeToLevelFile(TIERPOSITION pos) {
+void l_storeToLevelFile(TIERPOSITION pos) {
 	POSITION cell = pos/8;
 	l_windowBitArray[cell] |= 1 << (7 - (pos % 8)); // get the right bit in the cells
 }
 
-inline BOOLEAN l_isInWindowLevelFile(TIERPOSITION pos) {
+BOOLEAN l_isInWindowLevelFile(TIERPOSITION pos) {
 	return (l_windowBitArray[(pos/8)] >> (7 - (pos % 8))) & 1; // get the right bit in the cell
 }
 
