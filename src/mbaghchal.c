@@ -1407,7 +1407,6 @@ char* PositionToString(POSITION pos) {
   char* goatValue = (char*) SafeMalloc(11);
   sprintf(goatValue, "%d", goatsLeft);
   char* retString = MakeBoardString(string, "turn", turnValue, "goatsLeft", goatValue, "");
-	printf("%s", string);
   if (board != NULL)
     SafeFree(board);
   SafeFree(string);
