@@ -114,9 +114,6 @@ BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
 	 * in which case the above line needs to be changed.
 	 * Unfortunately, the C standard provides no stroull.
 	 */
-	if (kSupportsTierGamesman && gTierGamesman) {
-		gInitializeHashWindowToPosition(result);
-	}
 	return TRUE;
 }
 
@@ -264,6 +261,14 @@ void ServerInteractLoop(void) {
 		} else if (FirstWordMatches(input, "start")) {
 			InteractCheckErrantExtra(input, 1);
 			printf(RESULT POSITION_FORMAT, gInitialPosition);
+		} else if (FirstWordMatches(input, "start_board")) {
+			board = PositionToString(gInitialPosition);
+			if (!strcmp(board, "Implement Me")) {
+				printf(RESULT "not implemented");
+			} else {
+				printf(RESULT "\"%s\"", board);
+			}
+			InteractFreeBoardSting(board);
 		} else if (FirstWordMatches(input, "value")) {
 			if (!InteractReadPosition(input, &pos)) {
 				continue;
@@ -373,9 +378,6 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			pos = StringToPosition(board);
-			if (kSupportsTierGamesman && gTierGamesman) {
-				gInitializeHashWindowToPosition(&pos);
-			}
 			if (pos == -1) {
 				printf(invalid_board_string);
 				continue;
@@ -399,9 +401,6 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			pos = StringToPosition(board);
-			if (kSupportsTierGamesman && gTierGamesman) {
-				gInitializeHashWindowToPosition(&pos);
-			}
 			if (pos == -1) {
 				printf(invalid_board_string);
 				continue;
@@ -438,56 +437,48 @@ void ServerInteractLoop(void) {
 }
 
 BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target) {
-  int count = 0;
-  char* temp = NULL;
-  char* end = NULL;
-  while (board_string != NULL){
-    temp = strchr(board_string,'=');
-    if(temp == NULL){
-      printf("ERROR: string is not in key=value; format");
-      return FALSE;
-    }
-    *temp = '\0';
-    end = strchr(temp+1, ';');
-    if(strcmp(board_string, key) == 0){
-        if(end != NULL){
-          *end = '\0';
-        }
-        if(func(temp+1, target) != TRUE){
-          printf("ERROR: found a value for %s, but it isn't in the format we expected\n");
-          return FALSE;
-        }
-        count++;
-    }
-    if( end != NULL){
-        *end = ';';
-        end++;
-    }
-    *temp = '=';
-    board_string = end;
-  }
-  if (count == 0 || count > 1){
-    printf("ERROR: couldn't find %s as a key within the string\n", key);
-    return FALSE;
-  } else if (count > 1){
-    printf("ERROR: found the key more than once in the string\n");
-    return FALSE;
-  }
-  return TRUE;
+	char * outer = board_string;
+	char * semicolon;
+	int i;
+	BOOLEAN result = FALSE;
+	for (outer = board_string; *outer; outer++) {
+		if (*outer == ';') {
+			outer += 1;
+			for(i = 0; key[i] && outer[i] == key[i]; i++) {}
+			if ( ( !outer[i] || outer[i] == '=' ) && (!key[i]) ) {
+				/* Match. */
+				i += 1; /* Skip '='. */
+				semicolon = strchr(outer + i, ';');
+				if (semicolon) {
+					*semicolon = '\0';
+				}
+				result = func(outer + i, target);
+				if (semicolon) {
+					*semicolon = ';';
+				}
+				if (result && semicolon) {
+					/* Check for duplicates. */
+					result = ! GetValueInner(semicolon + 1, key, func, target);
+				}
+				return result;
+			}
+		}
+	}
+	return result;
 }
 
 BOOLEAN GetInt(char* value, int* placeholder){
-  if (value == NULL || placeholder == NULL){
-    return FALSE;
-  }
-  *placeholder = atoi(value);
-  return TRUE;
+	if (value == NULL || placeholder == NULL){
+		return FALSE;
+	}
+	*placeholder = atoi(value);
+	return TRUE;
 }
 
 BOOLEAN GetChar(char* value, char* placeholder){
-  if (value == NULL || placeholder == NULL){
-    return FALSE;
-  }
-  *placeholder = *value; 
-  return TRUE;
+	if (value == NULL || placeholder == NULL){
+		return FALSE;
+	}
+	*placeholder = *value; 
+	return TRUE;
 }

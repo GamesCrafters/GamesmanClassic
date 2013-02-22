@@ -3679,12 +3679,47 @@ POSITION hash(char* board, int turn)
 //
 
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	int turn = 0;
+	POSITION pos;
+	char * first_semicolon = strchr(board, ';');
+	if ( GetValue(board, "turn", GetInt, &turn) ) {
+		*first_semicolon = '\0';
+		pos = hash(board, turn);
+		*first_semicolon = ';';
+		return pos;
+	} else {
+		printf("Error: StringToPosition could not determine turn from board \"%s\".", board);
+		return INVALID_POSITION;
+	}
 }
 
+char * position_to_string_storage = NULL;
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	int turn;
+	char * turn_string = (char *) malloc( 2 * sizeof(char) );
+	char * board_string = (char *) malloc(rows * cols);
+	char * formatted;
+
+	unhash(pos, board_string);
+	board_string[rows*cols] = '\0';
+
+	turn = generic_hash_turn(pos);
+	turn_string[1] = '\0';
+	switch(turn) {
+		case 1:
+			turn_string[0] = '1';
+			break;
+		case 2:
+			turn_string[0] = '2';
+			break;
+		default:
+			printf("ERROR: turn = %d\n", turn);
+	}
+
+	formatted = MakeBoardString(board_string,
+	                            "turn", turn_string,
+	                            "");
+	free(board_string);
+	return formatted;
 }
