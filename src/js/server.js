@@ -90,7 +90,7 @@ function start_game_process (root_game_dir, game, continuation) {
       }
       if (result[0] == ' error') {
         game_p.stdout.removeListener('data', inner)
-        callback('error', null)
+        callback('error', data)
       } else if (result[0] == 'result') {
         game_p.stdout.removeListener('data', inner)
         callback(null, result[1])
@@ -127,7 +127,8 @@ function start_game_process (root_game_dir, game, continuation) {
         get_slot(request_string, function (err, response) {
           response_done = true
           if (err) {
-            continuation('{"status":"error"}')
+            console.log(response)
+            continuation(util.format('{"status":"error", "subprocess_output": %j}', response))
           } else {
             continuation(response)
           }
@@ -142,7 +143,8 @@ function start_game_process (root_game_dir, game, continuation) {
         get_slot(request_string, function (err, response) {
           response_done = true
           if (err) {
-            continuation('{"status":"error"}')
+            console.log(response)
+            continuation(util.format('{"status":"error", "subprocess_output": %j}', response))
           } else {
             continuation(response)
           }
@@ -257,7 +259,14 @@ function make_check_is_json (continuation) {
 function respond_to_url (the_url, continuation) {
   var parsed = url.parse(the_url)
   var path = parsed.path.split('/')
-  var qry = query.parse(path[path.length - 1], ';', '=')
+
+  var path_end = path[path.length - 1]
+  var board_string = Object.keys(query.parse(path_end.substring(path_end.search('=') + 1), sep='/', eq='/'))[0]
+
+  var qry = {}
+  qry[path_end.split(';', 1)] = '';
+  qry['board'] = board_string
+
   var game = path[path.length - 2]
   if (game in game_table) {
     if ("getMoveValue" in qry) {
