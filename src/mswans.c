@@ -1139,28 +1139,42 @@ char* PositionToString(POSITION pos) {
 		
 	int phase, numSwans;
 	char whosTurn;
-	char * board = (char *) SafeMalloc(sizeof(char) * BOARDSIZE);
+	char * board = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1)); //+1 for the null character
 	generic_hash_unhash2(pos, board, &whosTurn, &phase, &numSwans);
 	int i;
-	char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 34)) ;
-	char * starting = retString;
+	// char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 34)) ;
+	// char * starting = retString;
 	for (i = 0; i < BOARDSIZE; i++) {
 	  char toBeInserted = board[i];
+      // printf("%c", toBeInserted);
 	  if (toBeInserted == 'b') {
-	    toBeInserted = ' ';
+	    // toBeInserted = ' ';
+        board[i] = ' ';
 	  }
-	  *retString = toBeInserted;
-          retString++;
+	  // *retString = toBeInserted;
+          // retString++;
 	}
-	*retString = whosTurn;
-	retString++;
-	sprintf(retString, "%d", phase);
-	retString += strlen(retString);
-	*retString = '|';
-	retString++;
-	sprintf(retString, "%d", numSwans);
+    board[BOARDSIZE] = '\0';
+	// *retString = whosTurn;
+	// retString++;
+	// sprintf(retString, "%d", phase);
+    char* phaseValue = (char*) SafeMalloc(11);
+    sprintf(phaseValue, "%d", phase);
+
+    char* numSwansValue = (char*) SafeMalloc(11);
+    sprintf(numSwansValue, "%d", numSwans);
+
+    char* whosTurnValue = (char*) SafeMalloc(2);
+    sprintf(whosTurnValue, "%c", whosTurn);
+
+    char* retString = MakeBoardString(board, "phase", phaseValue, "numSwans", numSwansValue, 
+        "whosTurn", whosTurnValue, "");
+	// retString += strlen(retString);
+	// *retString = '|';
+	// retString++;
+	// sprintf(retString, "%d", numSwans);
 	if (board != NULL) {
 	  SafeFree(board);
 	}
-	return starting;		
+	return retString;		
 }
