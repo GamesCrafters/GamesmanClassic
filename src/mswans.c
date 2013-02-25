@@ -1088,76 +1088,53 @@ void setOption(int option)
 	gNumDragons = (option/4)+MIN_DRAGONS;
 }
 
-POSITION StringToPosition(char* board) {
-	/*TODO: Check numSwans and phase encoding.
-		May need fixing!
-	*/
-	char * boardTemp = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
-	char * starting = board;
+POSITION StringToPosition(char* string) {
+	char * board = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
 	int i;
 	for (i = 0; i < BOARDSIZE; i++) {
-	  char toBeInserted = starting[i];
+	  char toBeInserted = string[i];
 	  if (toBeInserted == ' ') {
 	    toBeInserted = 'b';
 	  }
-	  sprintf(boardTemp + i, "%c", toBeInserted);
-	  starting++;
+	  sprintf(board + i, "%c", toBeInserted);
 	}
-	boardTemp[i] = '\0';
+	board[i] = '\0';
 
-	char * turn = (char *) SafeMalloc(sizeof(char) * 16);
-	if (*starting == 'o')
-	  sprintf(turn, "%d", 0);
-	else
-	  sprintf(turn, "%d", 1);
-	starting += strlen(turn);
+    int phase, numSwans;
+    char whosTurn;
 
-	char * phaseString = (char *) SafeMalloc(sizeof(char) * 16);
-	sprintf(phaseString, "%d", *starting);
-	starting += strlen(phaseString) + 1;
+    BOOLEAN success = GetValue(string, "phase", GetInt, &phase) &&
+                        GetValue(string, "numSwans", GetInt, &numSwans) &&
+                        GetValue(string, "whosTurn", GetChar, &whosTurn);
+    if(success == FALSE){
+        printf("ERROR: something went wrong in getting the values out of the string \n");
+        return INVALID_POSITION;
+    }
 
-	char * numSwansString = (char *) SafeMalloc(sizeof(char) * 16);
-	sprintf(numSwansString, "%d", *starting);	
-	//printf("%s, %s, %s", phaseString, numSwansString, turn);
+    POSITION p = generic_hash_hash2(board, whosTurn, phase, numSwans);
 	
-	POSITION p = generic_hash_hash2(boardTemp, atoi(turn), atoi(phaseString), atoi(numSwansString));
-	
-	if (boardTemp != NULL) {
-	  SafeFree(boardTemp);
+	if (board != NULL) {
+	  SafeFree(board);
 	}	
-	if (phaseString != NULL) {
-	  SafeFree(phaseString);
-	}
-	if (numSwansString != NULL) {
-	  SafeFree(numSwansString);
-	}
+
 	return p;
 }
 
 
 char* PositionToString(POSITION pos) {
-		
 	int phase, numSwans;
 	char whosTurn;
 	char * board = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1)); //+1 for the null character
 	generic_hash_unhash2(pos, board, &whosTurn, &phase, &numSwans);
-	int i;
-	// char* retString = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 34)) ;
-	// char * starting = retString;
+	
+    int i;
 	for (i = 0; i < BOARDSIZE; i++) {
-	  char toBeInserted = board[i];
-      // printf("%c", toBeInserted);
-	  if (toBeInserted == 'b') {
-	    // toBeInserted = ' ';
+	  if (board[i] == 'b') {
         board[i] = ' ';
 	  }
-	  // *retString = toBeInserted;
-          // retString++;
 	}
     board[BOARDSIZE] = '\0';
-	// *retString = whosTurn;
-	// retString++;
-	// sprintf(retString, "%d", phase);
+
     char* phaseValue = (char*) SafeMalloc(11);
     sprintf(phaseValue, "%d", phase);
 
@@ -1169,12 +1146,10 @@ char* PositionToString(POSITION pos) {
 
     char* retString = MakeBoardString(board, "phase", phaseValue, "numSwans", numSwansValue, 
         "whosTurn", whosTurnValue, "");
-	// retString += strlen(retString);
-	// *retString = '|';
-	// retString++;
-	// sprintf(retString, "%d", numSwans);
+
 	if (board != NULL) {
 	  SafeFree(board);
 	}
+
 	return retString;		
 }
