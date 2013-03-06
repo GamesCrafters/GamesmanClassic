@@ -395,7 +395,7 @@ void ServerInteractLoop(void) {
             pos = StringToPosition(board);
             printf("board: " POSITION_FORMAT,pos);
             
-        } else if (FirstWordMatches(input, "next_move_values_response")) {
+        } else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
 			if (!InteractReadBoardString(input, &board)) {
 				printf(invalid_board_string);
 				continue;
