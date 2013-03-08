@@ -223,6 +223,7 @@ void ServerInteractLoop(void) {
 	STRING move_string = NULL;
 	STRING board = NULL;
 	MEX mex = 0;
+	TIER tier = 0;
 	/* Set stdout to do by line buffering so that sever interaction works right.
 	 * Otherwise the "ready =>>" message will sit in the buffer forever while
 	 * the server waits for it.
@@ -399,6 +400,9 @@ void ServerInteractLoop(void) {
 			if (!InteractReadBoardString(input, &board)) {
 				printf(invalid_board_string);
 				continue;
+			}
+			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetInt, &tier)) {
+				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = StringToPosition(board);
 			if (pos == -1) {

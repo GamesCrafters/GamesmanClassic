@@ -3700,8 +3700,15 @@ char* PositionToString(POSITION pos) {
 	char * turn_string = (char *) malloc( 2 * sizeof(char) );
 	char * board_string = (char *) malloc(rows * cols);
 	char * formatted;
+	char * tier_string;
+	TIERPOSITION tierpos;
+	TIER tier;
 
 	unhash(pos, board_string);
+
+	gUnhashToTierPosition(pos, &tierpos, &tier);
+	tier_string = StrFromI(tier);
+
 	board_string[rows*cols] = '\0';
 
 	turn = generic_hash_turn(pos);
@@ -3719,6 +3726,7 @@ char* PositionToString(POSITION pos) {
 
 	formatted = MakeBoardString(board_string,
 	                            "turn", turn_string,
+	                            "tier", tier_string,
 	                            "");
 	free(board_string);
 	return formatted;
