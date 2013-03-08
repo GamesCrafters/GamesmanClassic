@@ -1429,7 +1429,6 @@ POSITION StringToPosition(char* string){
     board++;
     i++;
   }
-  string++;
   board = board - total_length;
   int goats;
   int turn;
