@@ -19,6 +19,7 @@ var java_games  = ['pegsolitaire', 'pyraminx', 'tcross', 'atarigo',
 var java_host = 'localhost' // 'nyc.cs.berkeley.edu'
 var java_port = '8080'
 var use_java = false
+var allow_game_restart = true
 
 var game_table = {}
 
@@ -279,7 +280,7 @@ function respond_to_url (the_url, continuation) {
   } else if (use_java && in_array(java_games, game)) {
     respond_to_java_request(game, parsed, qry, make_check_is_json(continuation))
   } else if (in_array(local_games, game)) {
-    if (!game.broken) {
+    if (!game.broken || allow_game_restart) {
       start_game(game, function (game) {
         add_game_to_table(game)
         game.addRequest(qry, make_check_is_json(continuation))
@@ -301,6 +302,12 @@ function start_game (name, continuation) {
     name : name,
     processes : [],
     broken : false,
+    makeProcess : function (continuation) {
+        start_game_process(root_game_dir, game, function (game_p) {
+          game.processes.push(game_p)
+          continuation(game_p)
+        })
+    },
     addRequest : function addRequest (qry, continuation) {
       game.getProcess(function add_request (err, proc) {
         if (err) {
@@ -311,15 +318,26 @@ function start_game (name, continuation) {
       })
     },
     getProcess : function getProcess (continuation) {
+      // Remove exited processes
+      for (var i = 0; i < game.processes.length; i++) {
+        if (game.processes[i].exited) {
+          game.processes.splice(i, 1)
+        }
+      }
       if (game.processes.length != 0) {
         continuation(null, game.processes[0])
       } else {
-        continuation("error", null)
+        if (allow_game_restart) {
+          game.makeProcess(function (game_p) {
+            continuation(null, game_p)
+          })
+        } else {
+          continuation("error", null)
+        }
       }
     }
   }
-  start_game_process(root_game_dir, game, function (game_p) {
-    game.processes.push(game_p)
+  game.makeProcess(function (game_p) {
     continuation(game)
   })
 }
