@@ -1072,9 +1072,10 @@ BlankOX *theBlankOX,whosTurn;
 {
 	int i;
 	POSITION position = 0;
-
-	for(i = 0; i < BOARDSIZE; i++)
+	
+	for(i = 0; i < BOARDSIZE; i++){
 		position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
+	}
 
 	if(whosTurn == x)
 		position += POSITION_OFFSET; /* account for whose turn it is */
@@ -1292,10 +1293,10 @@ POSITION StringToPosition(char* boardStr) {
 		else if (boardStr[i] == 'x') {
 			board[i] = x;
 		}
-		else if (boardStr[i] == '_') {
+		else if (boardStr[i] == ' ') {
 			board[i] = Blank;
 		}
-	}
+	}	
 	return BlankOXToPosition(board, 0);
 }
 char* PositionToString(POSITION pos) {
@@ -1313,7 +1314,7 @@ char* PositionToString(POSITION pos) {
 			boardStr[i] = 'x';
 		}
 		else if (board[i] == Blank) {
-			boardStr[i] = '_';
+			boardStr[i] = ' ';
 		}
 	}
 	return _PositionToString(pos);
