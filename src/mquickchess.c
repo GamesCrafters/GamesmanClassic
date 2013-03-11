@@ -3726,7 +3726,7 @@ char* PositionToString(POSITION pos) {
 
 	formatted = MakeBoardString(board_string,
 	                            "turn", turn_string,
-	                            "tier", StrFromI(pos),
+	                            "tier", StrFromI(tier),
 	                            "");
 	free(board_string);
 	return formatted;
