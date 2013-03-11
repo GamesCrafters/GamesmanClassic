@@ -419,7 +419,6 @@ void ServerInteractLoop(void) {
 			printf(RESULT "{\"status\":\"ok\",\"response\":[");
 			current_move = all_next_moves = GenerateMoves(pos);
 			while (current_move) {
-				/* There needs to be some consensus on whether board strings need to be freed. */
 				choice = DoMove(pos, current_move->move);
 				board = PositionToString(choice);
 				printf("{\"board\":\"%s\"", board);

@@ -555,7 +555,10 @@ POSITION DoMove (POSITION position, MOVE move)
 		}
 	}
 
-	return hash(boardArray, opposingPlayer(currentPlayer));
+	POSITION out = hash(boardArray, opposingPlayer(currentPlayer));
+
+
+	return out;
 }
 
 
@@ -3485,7 +3488,6 @@ int getNumPieces(int* piecesArray) {
 
 char* unhash(POSITION position, char* board)
 {
-	//char* board = (char *) SafeMalloc(BOARDSIZE * sizeof(char));
 	if (gHashWindowInitialized) {
 		TIERPOSITION tierpos;
 		TIER tier;
@@ -3700,18 +3702,16 @@ char* PositionToString(POSITION pos) {
 	char * turn_string = (char *) malloc( 2 * sizeof(char) );
 	char * board_string = (char *) malloc(rows * cols);
 	char * formatted;
-	/*char * tier_string;*/
-	/*TIERPOSITION tierpos;*/
-	/*TIER tier;*/
+	TIERPOSITION tierpos;
+	TIER tier;
 
 	unhash(pos, board_string);
 
-	/*gUnhashToTierPosition(pos, &tierpos, &tier);*/
-	/*tier_string = StrFromI(tier);*/
-
 	board_string[rows*cols] = '\0';
+	gUnhashToTierPosition(pos, &tierpos, &tier);
 
-	turn = generic_hash_turn(pos);
+	turn = generic_hash_turn(tierpos);
+
 	turn_string[1] = '\0';
 	switch(turn) {
 		case 1:
@@ -3726,7 +3726,7 @@ char* PositionToString(POSITION pos) {
 
 	formatted = MakeBoardString(board_string,
 	                            "turn", turn_string,
-	                            "tier", TierstringFromPosition(pos),
+	                            "tier", StrFromI(pos),
 	                            "");
 	free(board_string);
 	return formatted;

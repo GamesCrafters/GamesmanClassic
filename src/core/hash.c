@@ -371,6 +371,9 @@ POSITION generic_hash_hash(char* board, int player) {
 	}
 	temp = cCon->hashOffset[searchIndices(sum)];
 	temp += hash_cruncher(board);
+	if (temp > cCon->maxPos) {
+		ExitStageRightErrorString("generic_hash encountered position larger than maxPos.");
+	}
 	if (cCon->player != 0) // using single-player boards, ignore "player"
 		return temp;
 	else return temp + (player-1)*(cCon->maxPos); //accomodates generic_hash_turn
