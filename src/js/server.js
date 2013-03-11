@@ -259,16 +259,12 @@ function make_check_is_json (continuation) {
 
 function respond_to_url (the_url, continuation) {
   var parsed = url.parse(the_url)
-  var path = parsed.path.split('/')
+	var qry = query.parse(parsed.query)
+	var path = parsed.pathname.split('/')
+	var request_type = path[path.length - 1]
+	qry[request_type] = true
+	var game = path[path.length - 2]
 
-  var path_end = path[path.length - 1]
-  var board_string = Object.keys(query.parse(path_end.substring(path_end.search('=') + 1), sep='/', eq='/'))[0]
-
-  var qry = {}
-  qry[path_end.split(';', 1)] = '';
-  qry['board'] = board_string
-
-  var game = path[path.length - 2]
   if (game in game_table) {
     if ("getMoveValue" in qry) {
       game_table[game].addRequest(qry, make_check_is_json(continuation))
