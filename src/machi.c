@@ -1299,6 +1299,7 @@ POSITION StringToPosition(char* boardStr) {
 	}	
 	return BlankOXToPosition(board, 0);
 }
+
 char* PositionToString(POSITION pos) {
 	// change boardStr to BlankOX
 	BlankOX board[BOARDSIZE];

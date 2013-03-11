@@ -24,6 +24,7 @@ char * MakeBoardString(char * first, ...);
 char * StringDup( char * s );
 void SafeFreeString(char * string);
 char * StrFromI( long long i );
+char * TierstringFromPosition(POSITION pos);
 char * StringFormat(size_t max_size, char * format_str, ...);
 
 typedef BOOLEAN (* get_value_func_t)( char *, void *);
@@ -35,4 +36,5 @@ BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, vo
 
 BOOLEAN GetInt(char* value, int* placeholder);
 BOOLEAN GetChar(char* value, char* placeholder);
+
 #endif /* GMCORE_INTERACT_H */

@@ -53,16 +53,16 @@ extern LocalBoard lBoard;
 		} \
 		return BlankOXToPosition(board); \
 	} \
-	char gPositionToStringStorage[BOARDSIZE]; \
 	char* PositionToString(POSITION pos) { \
 		BlankOX theBlankOX[BOARDSIZE]; \
 		int i; \
-		memset(gPositionToStringStorage, 0, BOARDSIZE); \
+		char * board = (char*) SafeMalloc(BOARDSIZE + 1); \
+		memset(board, 0, BOARDSIZE + 1); \
 		PositionToBlankOX(pos, theBlankOX); \
 		for (i = 0; i < BOARDSIZE; i++) { \
-			gPositionToStringStorage[i] = *gBlankOXString[(int)theBlankOX[i]]; \
+			board[i] = *gBlankOXString[(int)theBlankOX[i]]; \
 		} \
-		return gPositionToStringStorage; \
+		return board; \
 	}
 
 #endif

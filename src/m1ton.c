@@ -478,12 +478,13 @@ void setOption(int option)
 
 
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
 	return atoi(board);
 }
 
-
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	char buffer[32];
+	snprintf(buffer, 32, "%lld",pos);
+	char* ret = malloc(sizeof(char)*(strlen(buffer)+1));
+	strncpy(ret, buffer, (strlen(buffer)+1));
+	return ret;
 }

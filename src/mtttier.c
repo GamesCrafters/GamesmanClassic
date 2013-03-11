@@ -926,6 +926,7 @@ char* PositionToString(POSITION pos) {
     BlankOX *board = PositionToBlankOX(pos);
     int i;
     char* safe_board = (char*)SafeMalloc((BOARDSIZE + 1) * sizeof(char));
+		char* whole_board = NULL;
     for (i = 0; i < BOARDSIZE; i++) {
         if (board[i] == o) {
             safe_board[i] = 'o';
@@ -938,6 +939,10 @@ char* PositionToString(POSITION pos) {
         }
     }
     *(safe_board+BOARDSIZE) = '\0';
-	return safe_board;
+		whole_board = MakeBoardString(safe_board,
+				"tier", TierstringFromPosition(pos),
+				"");
+		SafeFree(safe_board);
+	return whole_board;
 }
 

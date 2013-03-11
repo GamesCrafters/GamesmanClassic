@@ -1411,8 +1411,8 @@ BOOLEAN canmovedownright(int arraynum)
 
 
 
-POSITION StringToPosition(char* board, int option, int move, char* params) {
-	return generic_hash_hash(board, move);
+POSITION StringToPosition(char* board) {
+	return -1;
 }
 
 

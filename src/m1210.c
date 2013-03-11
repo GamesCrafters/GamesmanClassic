@@ -536,6 +536,7 @@ STRING GetNextMoveValues(char* board, int option) {
 
 	return NULL;
 }
+
 POSITION StringToPosition(char* board) {
 	return atoi(board);
 }

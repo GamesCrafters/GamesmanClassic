@@ -24,6 +24,13 @@ char * StrFromI( long long i ) {
 	return str;
 }
 
+char * TierstringFromPosition(POSITION pos) {
+	TIER tier;
+	TIERPOSITION tierpos;
+	gUnhashToTierPosition(pos, &tierpos, &tier);
+	return StrFromI(tier);
+}
+
 char * StringFormat(size_t max_size, char * format_str, ...) {
 	va_list args;
 	char * str = (char *) SafeMalloc( max_size + 1 );
@@ -205,7 +212,7 @@ void InteractPrintJSONPositionValue(POSITION pos) {
 void InteractFreeBoardSting(STRING board) {
 	if (!strcmp(board, "Implement Me")) {
 	} else {
-		/* SafeFree(board); */
+		SafeFree(board);
 	}
 }
 
@@ -479,7 +486,7 @@ BOOLEAN GetInt(char* value, int* placeholder){
 	return TRUE;
 }
 
-BOOLEAN GetChar(char* value, char* placeholder){
+BOOLEAN GetChar(char* value, char* placeholder) {
 	if (value == NULL || placeholder == NULL){
 		return FALSE;
 	}
