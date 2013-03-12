@@ -3700,7 +3700,7 @@ char * position_to_string_storage = NULL;
 char* PositionToString(POSITION pos) {
 	int turn;
 	char * turn_string = (char *) malloc( 2 * sizeof(char) );
-	char * board_string = (char *) malloc(rows * cols);
+	char * board_string = (char *) malloc(rows * cols + 1);
 	char * formatted;
 	TIERPOSITION tierpos;
 	TIER tier;
