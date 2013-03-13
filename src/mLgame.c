@@ -283,18 +283,6 @@ int transArr[8][16] = { /*Gives the L-piece # for a given orienation and corner*
 	{45, 48, 0, 0, 44, 47, 0, 0, 43, 46, 0, 0, 0, 0, 0, 0}
 };
 
-#define BOARDSIZE     9           /* 3x3 board */
-#define NUMSYMMETRIES 8           /* 4 rotations, 4 flipped rotations */
-
-typedef enum possibleBoardPieces {
-	Blank, o, x
-} BlankOX;
-
-char *gBlankOXString[] = { "-", "O", "X" };
-
-/* Powers of 3 - this is the way I encode the position, as an integer */
-int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
-
 /*static int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];*/
 
 /* Proofs of correctness for the below arrays:
@@ -1944,15 +1932,44 @@ void setOption(int option)
 }
 
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	// FIXME
+	POSITION pos = 0;
+	if ( GetValue(board, "pos", GetInt, &pos) ) {
+		return pos;
+	} else {
+		return INVALID_POSITION;
+	}
 }
 
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	char * board_string = (char *) malloc(sizeof(char) * 4 * 4 + 1);
+	int L1 = unhashL1(pos);
+	int L2 = unhashL2(pos);
+	int S1 = unhashS1(pos);
+	int S2 = unhashS2(pos);
+	int i;
+	char* color;
+	char* formatted;
+
+	L2 = Make48(L1, L2);
+	S1 = Make8to16(L1, L2, S1);
+	S2 = Make7to16(L1, L2, S1, S2);
+
+	board_string[16] = '\0';
+	for (i = 0; i<16; i++)
+		board_string[i] = ' ';
+	for (i = 0; i<4; i++) {
+		board_string[FOURSQUARES[L1][i]] = 'x';
+		board_string[FOURSQUARES[L2][i]] = 'o';
+	}
+	board_string[S1] = 'w';
+	board_string[S2] = 'g';
+
+	formatted = MakeBoardString(board_string + 1,
+	                            "turn", StrFromI(unhashTurn(pos)),
+	                            "pos", StrFromI(pos),
+	                            "");
+	free(board_string);
+	return formatted;
 }
-
-
-//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
