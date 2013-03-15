@@ -1956,15 +1956,16 @@ char* PositionToString(POSITION pos) {
 	S1 = Make8to16(L1, L2, S1);
 	S2 = Make7to16(L1, L2, S1, S2);
 
-	board_string[16] = '\0';
-	for (i = 0; i<16; i++)
+	for (i = 0; i<16; i++) {
 		board_string[i] = ' ';
+	}
 	for (i = 0; i<4; i++) {
 		board_string[FOURSQUARES[L1][i]] = 'x';
 		board_string[FOURSQUARES[L2][i]] = 'o';
 	}
 	board_string[S1] = 'w';
 	board_string[S2] = 'g';
+	board_string[16] = '\0';
 
 	formatted = MakeBoardString(board_string + 1,
 	                            "turn", StrFromI(unhashTurn(pos)),
