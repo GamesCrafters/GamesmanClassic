@@ -145,29 +145,10 @@ BOOLEAN InteractReadBoardString(STRING input, STRING * result) {
 	scan = start_of_board_string;
 	*end_of_board_string = '\0';
 	while (*scan) {
-		switch (*scan) {
-		case ' ':
-			break;
-		case 'x':
-			break;
-		case 'o':
-			break;
-		case 'X':
-			*scan = 'x';
-			break;
-		case 'O':
-			*scan = 'o';
-			break;
-		case '-':
-		case '_':
-			*scan = ' ';
-			break;
-		default:
-			if (iscntrl(*scan)) {
-				/* Might want to do additional error checking here. */
-				printf(" error =>> incorrect char %c in board string in %s request", *scan, input);
-				return FALSE;
-			}
+		if (iscntrl(*scan)) {
+			/* Might want to do additional error checking here. */
+			printf(" error =>> incorrect char %c in board string in %s request", *scan, input);
+			return FALSE;
 		}
 		++scan;
 	}
