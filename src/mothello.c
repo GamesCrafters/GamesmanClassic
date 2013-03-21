@@ -1907,7 +1907,7 @@ POSITION StringToPosition(char* board) {
 	int turn = 0;
 	POSITION pos;
     char * first_semicolon;
-	char * board_copy = malloc(OthRows * OthCols + 1);
+	char * board_copy = SafeMalloc(strlen(board) + 1);
 	strcpy(board_copy, board);
 	first_semicolon = strchr(board_copy, ';');
 	if ( board_copy && GetValue(board_copy, "turn", GetInt, &turn) ) {
