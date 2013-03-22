@@ -1965,7 +1965,7 @@ char* PositionToString(POSITION pos) {
 	}
 	board_string[S1] = 'w';
 	board_string[S2] = 'g';
-	board_string[16] = '\0';
+	board_string[17] = '\0';
 
 	formatted = MakeBoardString(board_string + 1,
 	                            "turn", StrFromI(unhashTurn(pos)),
