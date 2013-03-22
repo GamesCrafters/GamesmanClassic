@@ -1278,30 +1278,17 @@ POSITION ActualNumberOfPositions(int variant) {
 // fixed CVS tags, turned off kDebugMenu.  GameTree printer still in DebugMenu, however. -Elmer
 //
 
-POSITION StringToPosition(char* boardStr) {
-	// change boardStr to BlankOX
-	BlankOX board[BOARDSIZE];
-	if (strlen(boardStr) < BOARDSIZE) {
-		printf("String to Position for TTT failed\n");
-		return -1;
+POSITION StringToPosition(char* board) {
+	// FIXME
+	POSITION pos = 0;
+	if ( GetValue(board, "pos", GetInt, &pos) ) {
+		return pos;
+	} else {
+		return INVALID_POSITION;
 	}
-	int i;
-	for (i = 0; i < BOARDSIZE; i++) {
-		if (boardStr[i] == 'o') {
-			board[i] = o;
-		}
-		else if (boardStr[i] == 'x') {
-			board[i] = x;
-		}
-		else if (boardStr[i] == ' ') {
-			board[i] = Blank;
-		}
-	}	
-	return BlankOXToPosition(board, 0);
 }
 
 char* PositionToString(POSITION pos) {
-	// change boardStr to BlankOX
 	BlankOX board[BOARDSIZE];
 	BlankOX whoseMove;
 	PositionToBlankOX(pos, board, &whoseMove);
@@ -1318,7 +1305,8 @@ char* PositionToString(POSITION pos) {
 			boardStr[i] = ' ';
 		}
 	}
-	return _PositionToString(pos);
+	boardStr[BOARDSIZE] = '\0';
+	return MakeBoardString(boardStr, "pos", StrFromI(pos), "");
 }
 
 //GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
