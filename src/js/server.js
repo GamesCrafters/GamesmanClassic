@@ -151,12 +151,7 @@ function start_game_process (root_game_dir, game, continuation) {
           }
         })
       } else if ("getStart" in qry) {
-        var request_string = ''
-        if (qry.board[0] == '"') {
-          request_string = util.format('start_response %s', qry.board)
-        } else {
-          request_string = util.format('start_response "%s"', qry.board)
-        }
+        request_string = util.format('start_response', qry.board)
         get_slot(request_string, function (err, response) {
           response_done = true
           if (err) {
