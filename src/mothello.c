@@ -1904,41 +1904,29 @@ void printBoard(char* board) {
 
 }
 POSITION StringToPosition(char* board) {
-	// currently our server doesn't allow spaces in any value it receives
-	// we ask users to provide us _ for blank pieces instead and replace it
-	// to the real BLANKPIECE value when we process the board
-
-	char RECEIVEDBLANKPIECE = '_';
-	int boardsize = OthRows * OthCols;
-	char* temp = (char*) SafeMalloc(boardsize+1);
-	int i;
-	for (i = 0; i < boardsize+1; i++) {
-		if (board[i] == RECEIVEDBLANKPIECE) {
-			temp[i] = BLANKPIECE;
-		} else {
-			temp[i] = board[i];
-		}
+	int turn = 0;
+	POSITION pos;
+	char * first_semicolon = strchr(board, ';');
+	char * board_copy = malloc(OthRows * OthCols + 1);
+	strcpy(board_copy, board);
+	if ( board_copy && GetValue(board_copy, "turn", GetInt, &turn) ) {
+		strcpy(board_copy, board);
+		*first_semicolon = '\0';
+		pos = getPosition(board_copy, turn);
+		*first_semicolon = ';';
+		return pos;
+	} else {
+		SafeFree(board_copy);
+		printf("Error: StringToPosition could not determine turn from board \"%s\".", board_copy);
+		return INVALID_POSITION;
 	}
-	// getPosition calls SafeFree() on the string it is passed
-	/* return getPosition(temp, move); */
-	return -1;
 }
 
 
 char* PositionToString(POSITION pos) {
-	int boardsize = OthRows * OthCols;
-	char RETURNEDBLANKPIECE = '_';
-	char* rtnBoard = (char*) SafeMalloc(boardsize+1);
 	char* board = getBoard(pos);
-	int i;
-	for (i = 0; i < boardsize+1; i++) {
-		if (board[i] == BLANKPIECE) {
-			rtnBoard[i] = RETURNEDBLANKPIECE;
-		} else {
-			rtnBoard[i] = board[i];
-		}
-	}
+	int turn = generic_hash_turn(pos);
+	char * formatted = MakeBoardString(board, "turn", StrFromI(turn), "");
 	SafeFree(board);
-	return rtnBoard;
-	return rtnBoard;
+	return formatted;
 }
