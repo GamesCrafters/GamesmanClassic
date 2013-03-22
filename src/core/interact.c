@@ -258,6 +258,16 @@ void ServerInteractLoop(void) {
 				printf(RESULT "\"%s\"", board);
 			}
 			InteractFreeBoardSting(board);
+		} else if (FirstWordMatches(input, "start_response")) {
+			board = PositionToString(gInitialPosition);
+			printf(RESULT "{\"status\":\"ok\",\"response\":");
+			if (!strcmp(board, "Implement Me")) {
+				printf("\"not implemented\"");
+			} else {
+				printf("\"%s\"", board);
+			}
+			printf("}");
+			InteractFreeBoardSting(board);
 		} else if (FirstWordMatches(input, "value")) {
 			if (!InteractReadPosition(input, &pos)) {
 				continue;

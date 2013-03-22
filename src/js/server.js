@@ -15,7 +15,7 @@ var process_timeout = 5000 // Milliseconds
 var error_trace_printed = false
 var local_games = []
 var java_games  = ['pegsolitaire', 'pyraminx', 'tcross', 'atarigo',
-    'lightsout', 'connect4', 'othello', 'rubik', 'oskarscubel', 'dino', 'y']
+                   'lightsout', 'connect4', 'othello', 'rubik', 'oskarscubel', 'dino', 'y']
 var java_host = 'localhost' // 'nyc.cs.berkeley.edu'
 var java_port = '8080'
 var use_java = false
@@ -37,8 +37,8 @@ process.setMaxListeners(500)
 
 function start_game_process (root_game_dir, game, continuation) {
   var game_p = child.spawn(root_game_dir + 'm' + game.name
-                        ,['--interact', '--notiers']
-                        ,{stdio: 'pipe'})
+                           ,['--interact', '--notiers']
+                           ,{stdio: 'pipe'})
   function kill_game () {
     console.log('Killing ' + game.name + '.')
     game_p.kill('SIGTERM')
@@ -140,6 +140,22 @@ function start_game_process (root_game_dir, game, continuation) {
           request_string = util.format('next_move_values_response %s', qry.board)
         } else {
           request_string = util.format('next_move_values_response "%s"', qry.board)
+        }
+        get_slot(request_string, function (err, response) {
+          response_done = true
+          if (err) {
+            console.log(response)
+            continuation(util.format('{"status":"error", "subprocess_output": %j}', response))
+          } else {
+            continuation(response)
+          }
+        })
+      } else if ("getStart" in qry) {
+        var request_string = ''
+        if (qry.board[0] == '"') {
+          request_string = util.format('start_response %s', qry.board)
+        } else {
+          request_string = util.format('start_response "%s"', qry.board)
         }
         get_slot(request_string, function (err, response) {
           response_done = true
@@ -259,16 +275,18 @@ function make_check_is_json (continuation) {
 
 function respond_to_url (the_url, continuation) {
   var parsed = url.parse(the_url)
-	var qry = query.parse(parsed.query)
-	var path = parsed.pathname.split('/')
-	var request_type = path[path.length - 1]
-	qry[request_type] = true
-	var game = path[path.length - 2]
-
+  var qry = query.parse(parsed.query)
+  var path = parsed.pathname.split('/')
+  var request_type = path[path.length - 1]
+  qry[request_type] = true
+  var game = path[path.length - 2]
+  
   if (game in game_table) {
     if ("getMoveValue" in qry) {
       game_table[game].addRequest(qry, make_check_is_json(continuation))
     } else if ("getNextMoveValues" in qry) {
+      game_table[game].addRequest(qry, make_check_is_json(continuation))
+    } else if ("getStart" in qry) {
       game_table[game].addRequest(qry, make_check_is_json(continuation))
     } else {
       continuation('{"status":"error","reason":"Did not receive getMoveValue or getNextMoveValues command."}')
@@ -299,10 +317,10 @@ function start_game (name, continuation) {
     processes : [],
     broken : false,
     makeProcess : function (continuation) {
-        start_game_process(root_game_dir, game, function (game_p) {
-          game.processes.push(game_p)
-          continuation(game_p)
-        })
+      start_game_process(root_game_dir, game, function (game_p) {
+        game.processes.push(game_p)
+        continuation(game_p)
+      })
     },
     addRequest : function addRequest (qry, continuation) {
       game.getProcess(function add_request (err, proc) {
