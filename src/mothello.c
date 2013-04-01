@@ -1906,14 +1906,13 @@ void printBoard(char* board) {
 POSITION StringToPosition(char* board) {
 	int turn = 0;
 	POSITION pos;
-	char * first_semicolon = strchr(board, ';');
+    char * first_semicolon;
 	char * board_copy = malloc(OthRows * OthCols + 1);
 	strcpy(board_copy, board);
+	first_semicolon = strchr(board_copy, ';');
 	if ( board_copy && GetValue(board_copy, "turn", GetInt, &turn) ) {
-		strcpy(board_copy, board);
 		*first_semicolon = '\0';
 		pos = getPosition(board_copy, turn);
-		*first_semicolon = ';';
 		return pos;
 	} else {
 		SafeFree(board_copy);
