@@ -1,6 +1,9 @@
 #!/usr/bin/env python2.7
 from __future__ import print_function
 
+import asyncore
+import asynchat
+import socket
 import BaseHTTPServer
 import urllib
 import urlparse
@@ -15,10 +18,33 @@ import Queue
 import threading
 import time
 import select
+import cStringIO
 
 class BadUrlException(Exception): pass
 
-class GameRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class GameRequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler):
+
+    def __init__(self, sock, address, server):
+        self.client_address = address
+        self.connection = sock
+        asynchat.async_chat.__init__(self, sock=sock)
+        self.server = server
+
+        self.set_terminator('\r\n\r\n')
+
+        self.in_buffer = []
+
+    def collect_incoming_data(self, data):
+        self.in_buffer.append(data)
+
+    def found_terminator(self):
+        self.rfile = cStringIO.StringIO(''.join(self.in_buffer))
+        self.rfile.seek(0)
+        self.wfile = cStringIO.StringIO()
+        self.raw_requestline = self.rfile.readline()
+        self.parse_request()
+        if self.command == 'GET':
+            self.do_GET()
 
     def do_GET(self):
         unquoted = urllib.unquote(self.path)
@@ -39,19 +65,40 @@ class GameRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.server.log.info('GET: {}'.format(unquoted))
 
         game = self.server.get_game(game_name)
-        game.push_request(GameRequest(self, query))
+        c_command = {
+            'getStart' : 'start_response',
+            'getNextMoveValues':
+            'next_move_values_response {}'.format(query['board']),
+            'getMoveValue': 'move_value_response {}'.format(query['board'])
+        }[command]
+        game.push_request(GameRequest(self, query, c_command))
 
     def respond(self, response):
-        self.wfile.write(response)
+        self.send_header('Content-Length', len(response))
+        self.send_header('Content-Type', 'text/plain')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.push(response)
+        self.close_when_done()
 
 
-class GameRequestServer(BaseHTTPServer.HTTPServer):
+class GameRequestServer(asyncore.dispatcher):
 
     def __init__(self, address, handler, log=logging.getLogger("server")):
-        BaseHTTPServer.HTTPServer.__init__(self, address, handler)
+        self.ip, self.port = address
         self.log = log
-        self.log.info('Starting server on port {}.'.format(address[1]))
+        self.handler = handler
+        self.log.info('Starting server on port {}.'.format(self.port))
         self._game_table = {}
+        asyncore.dispatcher.__init__(self)
+
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        self.set_reuse_addr()
+
+        self.bind(address)
+
+        self.listen(4096)
 
     def get_game(self, name):
         try:
@@ -64,12 +111,24 @@ class GameRequestServer(BaseHTTPServer.HTTPServer):
         self._game_table[name] = game
         return game
 
+    def serve_forever(self):
+        asyncore.loop(0.01)
+
+    def handle_accept(self):
+        try:
+            connection, address = self.accept()
+        except socket.error:
+            self.log.error('Server accept() failed.')
+        else:
+            self.handler(connection, address, self)
+
 
 class GameRequest(object):
 
-    def __init__(self, handler, query):
+    def __init__(self, handler, query, command):
         self.handler = handler
         self.query = query
+        self.command = command
 
 class GameProcessRequest(object):
 
@@ -92,7 +151,7 @@ class GameProcess(object):
         # process
         self.req_timeout = 10
         # Seconds to wait for a response from the process
-        self.read_timeout = 0.5
+        self.read_timeout = 5
 
         self.timeout_error = 'Game subprocess failed.'
 
@@ -150,31 +209,30 @@ class GameProcess(object):
             try:
                 request = self.queue.get(block=True, timeout=self.req_timeout)
             except Queue.Empty as e:
+                self.server.log.error(
+                    '{} closed from lack of use.'.format(self.game.name))
                 live = False
             else:
                 self.process.stdin.write(request.command + '\n')
                 response = ''
+                timeout = 0.01
+                count = 0
                 while True:
-                    #sys.exit(0)
-                    rlist, _, _ = select.select([self.process.stdout], [], [],
-                            self.read_timeout)
-                    #assert 0
-                    if not rlist:
+                    count += 1
+                    if count * timeout >= self.read_timeout:
                         # Did not receive a response from the subprocess, so
                         # exit and kill it.
-                        self.server.log.error('Process {} timed \
-                                out!'.format(self.game.name))
+                        self.server.log.error('Did not receive result'
+                            'from {}!'.format(self.game.name))
                         live = False
                         break
-                    else:
-                        #print('Response +=', response)
-                        response += self.process.stdout.read()
-                    #print('Response =', response)
-                    #assert 0
+                    rlist, _, _ = select.select([self.process.stdout], [], [], timeout)
+                    response += self.process.stdout.readline()
                     if self.is_response(response):
                         parsed = self.parse_response(response)
                         self.server.log.info('Send response: {}'.format(parsed))
                         request.respond(parsed)
+                        break
         while not self.queue.empty():
             self.queue.get().respond(self.timeout_error)
         self.close()
@@ -190,6 +248,7 @@ class Game(object):
 
     def get_process(self, query):
         opt = self.get_option(query)
+
         # different from (opt in self.processes)
         if self.processes.get(opt, False):
             return self.processes[opt][0]
@@ -216,7 +275,7 @@ class Game(object):
     def push_request(self, request):
         proc = self.get_process(request.query)
         if proc:
-            proc.push_request(GameProcessRequest(request.handler, 'start_response'))
+            proc.push_request(GameProcessRequest(request.handler, request.command))
 
     def get_option(self, query):
         return None
@@ -234,8 +293,7 @@ class Game(object):
 port = 8081
 root_game_directory = './bin/'
 log_filename = 'server.log'
-#max_log_size = 10 * 1024 **2
-max_log_size = 1000
+max_log_size = 10 * 1024 **2
 
 
 def get_log():
