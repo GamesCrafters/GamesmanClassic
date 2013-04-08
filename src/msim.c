@@ -982,16 +982,39 @@ POSITION GetCanonical (POSITION p){
 	}
 	return canonP;
 }
-/*
+
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+  BlankOX theBlankOx[BOARDSIZE];
+  int i;
+  for(i = 0; i < BOARDSIZE; i++){
+    if(board[i] == 'o')
+      theBlankOx[i] = o;
+    else if(board[i] == 'x')
+      theBlankOx[i] = x;
+  else if(board[i] == ' ')
+      theBlankOx[i] = Blank;
+  }
+  return BlankOXToPosition(theBlankOx);
 }
 
 
-char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+char* PositionToString(POSITION position) {
+  int i;
+  BlankOX theBlankOx[BOARDSIZE];
+  PositionToBlankOX(position,theBlankOx);
+  char * board = SafeMalloc(BOARDSIZE + 1);
+
+  for(i = 0; i < BOARDSIZE; i++){
+    if(theBlankOx[i] == o)
+      board[i] = 'o';
+    else if(theBlankOx[i] == x)
+      board[i] = 'x';
+    else if(theBlankOx[i] == Blank)
+      board[i] = ' ';
+  }
+  board[BOARDSIZE] = '\0';
+
+  return board;
 }
-*/
+
 GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
