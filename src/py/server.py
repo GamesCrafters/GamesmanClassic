@@ -19,10 +19,39 @@ import threading
 import time
 import select
 import cStringIO
+import json
 
-class BadUrlException(Exception): pass
+bytes_per_mb = 1024 ** 2
 
-class GameRequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHandler):
+max_log_size = 10 * bytes_per_mb
+
+port = 8081
+root_game_directory = './bin/'
+log_filename = 'server.log'
+
+indent_response = True
+close_on_timeout = False
+
+# Seconds to wait for a response from the process before sending timeout_msg
+subprocess_reponse_timeout = 0.2  # Seconds
+
+# Number of seconds to wait without a request before shutting down
+# process
+subprocess_idle_timeout = 600  # Seconds
+
+log_to_file = True
+log_to_stdout = True
+log_to_stderr = False
+
+could_not_parse_msg = '{"status":"error", "reason":"Could not parse request."}'
+could_not_start_msg = '{"status":"error", "reason":"Could not start game."}'
+timeout_msg = '{"status":"error", "reason":"Subprocess timed out."}'
+crash_msg = '{"status":"error", "reason":"Subprocess crashed."}'
+closed_msg = '{"status":"error", "reason":"Subprocess was closed."}'
+
+
+class GameRequestHandler(asynchat.async_chat,
+                         BaseHTTPServer.BaseHTTPRequestHandler):
 
     def __init__(self, sock, address, server):
         self.client_address = address
@@ -52,6 +81,8 @@ class GameRequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHand
         self.parsed_path = parsed
         path = parsed.path.split('/')
         command = path[-1]
+        if command == 'favicon.ico':
+            return
         game_name = path[-2]
 
         # Can't use urlparse.parse_qs because of equal signs in board string
@@ -65,15 +96,24 @@ class GameRequestHandler(asynchat.async_chat, BaseHTTPServer.BaseHTTPRequestHand
         self.server.log.info('GET: {}'.format(unquoted))
 
         game = self.server.get_game(game_name)
-        c_command = {
-            'getStart' : 'start_response',
-            'getNextMoveValues':
-            'next_move_values_response {}'.format(query['board']),
-            'getMoveValue': 'move_value_response {}'.format(query['board'])
-        }[command]
-        game.push_request(GameRequest(self, query, c_command))
+        try:
+            c_command = {
+                'getStart':
+                'start_response',
+
+                'getNextMoveValues':
+                'next_move_values_response {}'.format(query['board']),
+
+                'getMoveValue':
+                'move_value_response {}'.format(query['board'])
+            }[command]
+        except KeyError:
+            self.respond(could_not_parse_msg)
+        else:
+            game.push_request(GameRequest(self, query, c_command))
 
     def respond(self, response):
+        self.server.log.info('Sent response: {}'.format(response))
         self.send_header('Content-Length', len(response))
         self.send_header('Content-Type', 'text/plain')
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -130,12 +170,6 @@ class GameRequest(object):
         self.query = query
         self.command = command
 
-class GameProcessRequest(object):
-
-    def __init__(self, handler, command):
-        self.command = command
-        self.handler = handler
-
     def respond(self, response):
         self.handler.respond(response)
 
@@ -147,65 +181,109 @@ class GameProcess(object):
         self.game = game
         self.queue = Queue.Queue()
         self.option_num = option_num
-        # Number of seconds to wait without a request before shutting down
-        # process
-        self.req_timeout = 10
-        # Seconds to wait for a response from the process
-        self.read_timeout = 5
-
-        self.timeout_error = 'Game subprocess failed.'
-
-        self.alive = True
+        self.req_timeout = subprocess_idle_timeout
+        self.read_timeout = subprocess_reponse_timeout
 
         # Note that arguments to GamesmanClassic must be given in the right
         # order (this one, to be precise).
-        arg_list = [bin_path] 
+        arg_list = [bin_path]
         if option_num is not None:
             arg_list.append('--option={}'.format(option_num))
-        #arg_list.append('--notiers')
         arg_list.append('--interact')
 
         # Open a subprocess, connecting all of its file descriptors to pipes,
         # and set it to line buffer mode.
         self.process = subprocess.Popen(arg_list, stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, bufsize=1,
-                close_fds=True)
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT, bufsize=1,
+                                        close_fds=True)
         self.thread = threading.Thread(target=self.request_loop)
         self.thread.daemon = True
         self.thread.start()
 
-    def check_alive(self):
-        assert self.alive, "Zombie thread in GameProcess."
+        self.timeout_msg = timeout_msg
+        self.crash_msg = crash_msg
+        self.closed_msg = closed_msg
 
     def push_request(self, request):
         self.queue.put(request)
 
-    def close(self):
-        self.check_alive()
-        self.alive = False
-        self.server.log.info('Closing {}.'.format(self))
-        self.process.terminate()
-        time.sleep(1)
-        self.process.kill()
-        self.game.remove_process(self)
+    @property
+    def alive(self):
+        return self.thread.is_alive()
 
-    def is_response(self, response):
-        return 'result' in response
+    def close(self):
+        while not self.queue.empty():
+            self.queue.get().respond(self.closed_msg)
+        self.server.log.info('Closing {}.'.format(self.game.name))
+        self.game.remove_process(self)
+        try:
+            self.process.terminate()
+            time.sleep(1)
+            self.process.kill()
+        except OSError as e:
+            pass
 
     def parse_response(self, response):
+        if 'result' not in response:
+            return None
         lines = response.split('\n')
         for line in lines:
             if line.startswith('result'):
-                result = line.split('=>>')[1].strip()
-                self.server.log.info('Parsed response to {}.'.format(result))
-                return result
+                try:
+                    result = line.split('=>>')[1].strip()
+                    parsed = json.loads(result)
+                except Exception as e:
+                    # Catches problems with split, indexing, and non json
+                    # together
+                    return None
+                formatted = json.dumps(parsed, indent=indent_response)
+                return formatted
 
+    def handle_timeout(self, request, response):
+        # Did not receive a response from the subprocess, so
+        # exit and kill it.
+        self.server.log.error('Did not receive result '
+                              'from {}!'.format(self.game.name))
+        self.server.log.error('Process sent output:\n'
+                              '{}'.format(response))
+        if self.process.poll() is not None:
+            # If the process is no longer running
+            self.server.log.error('{} crashed!'.format(self.game.name))
+            request.respond(self.crash_msg)
+            return False
+        else:
+            self.server.log.error('{} timed out!'.format(self.game.name))
+            request.respond(self.timeout_msg)
+            return not close_on_timeout
+
+    def handle(self, request):
+        self.server.log.debug('Sent command {}'.format(request.command))
+        try:
+            self.process.stdin.write(request.command + '\n')
+        except IOError as e:
+            # This case can be hit if the subprocess crashes between requests
+            # (known to occasionally happen).
+            self.server.log.error('{} crashed!'.format(self.game.name))
+            request.respond(self.crash_msg)
+            return False
+        response = ''
+        timeout = 0.01
+        count = 0
+        parsed = None
+        while not parsed:
+            count += 1
+            if count * timeout >= self.read_timeout:
+                return self.handle_timeout(request, response)
+            rlist, _, _ = select.select([self.process.stdout], [], [], timeout)
+            response += self.process.stdout.readline()
+            parsed = self.parse_response(response)
+        request.respond(parsed)
+        return True
 
     def request_loop(self):
-        self.check_alive()
         live = True
         while live:
-            self.check_alive()
             try:
                 request = self.queue.get(block=True, timeout=self.req_timeout)
             except Queue.Empty as e:
@@ -213,28 +291,7 @@ class GameProcess(object):
                     '{} closed from lack of use.'.format(self.game.name))
                 live = False
             else:
-                self.process.stdin.write(request.command + '\n')
-                response = ''
-                timeout = 0.01
-                count = 0
-                while True:
-                    count += 1
-                    if count * timeout >= self.read_timeout:
-                        # Did not receive a response from the subprocess, so
-                        # exit and kill it.
-                        self.server.log.error('Did not receive result'
-                            'from {}!'.format(self.game.name))
-                        live = False
-                        break
-                    rlist, _, _ = select.select([self.process.stdout], [], [], timeout)
-                    response += self.process.stdout.readline()
-                    if self.is_response(response):
-                        parsed = self.parse_response(response)
-                        self.server.log.info('Send response: {}'.format(parsed))
-                        request.respond(parsed)
-                        break
-        while not self.queue.empty():
-            self.queue.get().respond(self.timeout_error)
+                live = self.handle(request)
         self.close()
 
 
@@ -244,24 +301,28 @@ class Game(object):
         self.server = server
         self.name = name
         self.root_dir = root_game_directory
-        self.processes = {}
+        self.processes = collections.defaultdict(list)
 
     def get_process(self, query):
+        self.delete_closed_processes()
         opt = self.get_option(query)
 
-        # different from (opt in self.processes)
-        if self.processes.get(opt, False):
+        # Check that there is a non-empty list of processes for this option
+        if self.processes[opt]:
             return self.processes[opt][0]
         else:
-            return self.start_process(query)
+            return self.start_process(query, opt)
 
-    def start_process(self, query):
+    def delete_closed_processes(self):
+        for k, ps in self.processes.items():
+            self.processes[k] = filter(lambda p: p.alive, ps)
+
+    def start_process(self, query, opt):
         bin_name = 'm' + self.name
         for f in os.listdir(self.root_dir):
             if f == bin_name:
                 self.server.log.info('Starting {}.'.format(self.name))
                 bin_path = os.path.join(self.root_dir, bin_name)
-                opt = self.get_option(query)
                 gp = None
                 try:
                     gp = GameProcess(self.server, self, bin_path, opt)
@@ -275,13 +336,16 @@ class Game(object):
     def push_request(self, request):
         proc = self.get_process(request.query)
         if proc:
-            proc.push_request(GameProcessRequest(request.handler, request.command))
+            proc.push_request(request)
+        else:
+            # Handles game not being present
+            request.respond(could_not_start_msg)
 
     def get_option(self, query):
         return None
 
     def remove_process(self, process):
-        self.server.log.info('Removing {}.'.format(process))
+        self.server.log.info('Removing {}.'.format(self.name))
         try:
             self.processes[process.option_num].remove(process)
         except ValueError as e:
@@ -289,24 +353,25 @@ class Game(object):
             because it could not be found.'.format(self.name))
 
 
-
-port = 8081
-root_game_directory = './bin/'
-log_filename = 'server.log'
-max_log_size = 10 * 1024 **2
-
-
 def get_log():
     log = logging.getLogger('server')
 
-    file_logger = logging.handlers.RotatingFileHandler(log_filename,
-        maxBytes=max_log_size)
-    file_logger.setLevel(logging.DEBUG)
-    log.addHandler(file_logger)
+    if log_to_file:
+        file_logger = \
+            logging.handlers.RotatingFileHandler(log_filename,
+                                                 maxBytes=max_log_size)
+        file_logger.setLevel(logging.DEBUG)
+        log.addHandler(file_logger)
 
-    stdout_logger = logging.StreamHandler(sys.stdout)
-    stdout_logger.setLevel(logging.DEBUG)
-    log.addHandler(file_logger)
+    if log_to_stdout:
+        stdout_logger = logging.StreamHandler(sys.stdout)
+        stdout_logger.setLevel(logging.DEBUG)
+        log.addHandler(stdout_logger)
+
+    if log_to_stderr:
+        stderr_logger = logging.StreamHandler(sys.stderr)
+        stderr_logger.setLevel(logging.ERROR)
+        log.addHandler(stderr_logger)
 
     log.setLevel(logging.DEBUG)
     return log
