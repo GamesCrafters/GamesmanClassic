@@ -1,25 +1,29 @@
 #!/usr/bin/env python2.7
 from __future__ import print_function
 
-import asyncore
-import asynchat
-import socket
 import BaseHTTPServer
-import urllib
-import urlparse
-import os
-import os.path
+import Queue
+import asynchat
+import asyncore
+import cStringIO
+import collections
+import imp
+import json
 import logging
 import logging.handlers
-import sys
-import collections
+import os
+import os.path
+import select
+import socket
 import subprocess
-import Queue
+import sys
 import threading
 import time
-import select
-import cStringIO
-import json
+import urllib
+import urlparse
+
+import game
+Game = game.Game
 
 bytes_per_mb = 1024 ** 2
 
@@ -28,6 +32,8 @@ max_log_size = 10 * bytes_per_mb
 port = 8081
 root_game_directory = './bin/'
 log_filename = 'server.log'
+
+game_script_directory = './src/py/games/'
 
 indent_response = True
 close_on_timeout = False
@@ -91,7 +97,10 @@ class GameRequestHandler(asynchat.async_chat,
         for t in query_lst:
             if t != '':
                 p = t.split('=', 1)
-                query[p[0]] = p[1]
+                if len(p) == 2:
+                    query[p[0]] = p[1]
+                else:
+                    query[p[0]] = ''
 
         self.server.log.info('GET: {}'.format(unquoted))
 
@@ -122,47 +131,6 @@ class GameRequestHandler(asynchat.async_chat,
         self.close_when_done()
 
 
-class GameRequestServer(asyncore.dispatcher):
-
-    def __init__(self, address, handler, log=logging.getLogger("server")):
-        self.ip, self.port = address
-        self.log = log
-        self.handler = handler
-        self.log.info('Starting server on port {}.'.format(self.port))
-        self._game_table = {}
-        asyncore.dispatcher.__init__(self)
-
-        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        self.set_reuse_addr()
-
-        self.bind(address)
-
-        self.listen(4096)
-
-    def get_game(self, name):
-        try:
-            return self._game_table[name]
-        except KeyError:
-            return self.load_game(name)
-
-    def load_game(self, name):
-        game = Game(self, name)
-        self._game_table[name] = game
-        return game
-
-    def serve_forever(self):
-        asyncore.loop(0.01)
-
-    def handle_accept(self):
-        try:
-            connection, address = self.accept()
-        except socket.error:
-            self.log.error('Server accept() failed.')
-        else:
-            self.handler(connection, address, self)
-
-
 class GameRequest(object):
 
     def __init__(self, handler, query, command):
@@ -188,7 +156,8 @@ class GameProcess(object):
         # order (this one, to be precise).
         arg_list = [bin_path]
         if option_num is not None:
-            arg_list.append('--option={}'.format(option_num))
+            arg_list.append('--option')
+            arg_list.append(str(option_num))
         arg_list.append('--interact')
 
         # Open a subprocess, connecting all of its file descriptors to pipes,
@@ -295,62 +264,67 @@ class GameProcess(object):
         self.close()
 
 
-class Game(object):
+class GameRequestServer(asyncore.dispatcher):
 
-    def __init__(self, server, name):
-        self.server = server
-        self.name = name
-        self.root_dir = root_game_directory
-        self.processes = collections.defaultdict(list)
+    could_not_start_msg = could_not_parse_msg
+    root_game_directory = root_game_directory
+    GameProcess = GameProcess
 
-    def get_process(self, query):
-        self.delete_closed_processes()
-        opt = self.get_option(query)
+    def __init__(self, address, handler, log=logging.getLogger("server")):
+        self.ip, self.port = address
+        self.log = log
+        self.handler = handler
+        self.log.info('Starting server on port {}.'.format(self.port))
+        self._game_table = {}
+        asyncore.dispatcher.__init__(self)
 
-        # Check that there is a non-empty list of processes for this option
-        if self.processes[opt]:
-            return self.processes[opt][0]
-        else:
-            return self.start_process(query, opt)
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def delete_closed_processes(self):
-        for k, ps in self.processes.items():
-            self.processes[k] = filter(lambda p: p.alive, ps)
+        self.set_reuse_addr()
 
-    def start_process(self, query, opt):
-        bin_name = 'm' + self.name
-        for f in os.listdir(self.root_dir):
-            if f == bin_name:
-                self.server.log.info('Starting {}.'.format(self.name))
-                bin_path = os.path.join(self.root_dir, bin_name)
-                gp = None
-                try:
-                    gp = GameProcess(self.server, self, bin_path, opt)
-                except OSError as err:
-                    self.server.log.error('Ran out of file descriptors!')
-                else:
-                    proc_list = self.processes.setdefault(opt, [])
-                    proc_list.append(gp)
-                return gp
+        self.bind(address)
 
-    def push_request(self, request):
-        proc = self.get_process(request.query)
-        if proc:
-            proc.push_request(request)
-        else:
-            # Handles game not being present
-            request.respond(could_not_start_msg)
+        self.listen(4096)
 
-    def get_option(self, query):
-        return None
-
-    def remove_process(self, process):
-        self.server.log.info('Removing {}.'.format(self.name))
+    def get_game(self, name):
         try:
-            self.processes[process.option_num].remove(process)
-        except ValueError as e:
-            self.server.log.error('Trying to remove subprocess of {} failed \
-            because it could not be found.'.format(self.name))
+            return self._game_table[name]
+        except KeyError:
+            return self.load_game(name)
+
+    def load_game(self, name):
+        script_name = name + '.py'
+        rel_path = os.path.join(game_script_directory, script_name)
+        game_class = None
+        game = None
+        try:
+            for s in os.listdir(game_script_directory):
+                if s == script_name:
+                    with open(rel_path) as script:
+                        module = imp.load_module(name, script, '',
+                                                 ('py', 'r', imp.PY_SOURCE))
+                        game_class = module.__dict__[name]
+                        self.log.debug('Loaded script for {}'.format(name))
+        except Exception as e:
+            self.log.error('Could not load script for {}'.format(name,
+                                                                 e.message))
+        if not game_class:
+            self.log.debug('Could not find script for {}'.format(name))
+            game_class = Game
+        game = game_class(self, name)
+        self._game_table[name] = game
+        return game
+
+    def serve_forever(self):
+        asyncore.loop(0.01)
+
+    def handle_accept(self):
+        try:
+            connection, address = self.accept()
+        except socket.error:
+            self.log.error('Server accept() failed.')
+        else:
+            self.handler(connection, address, self)
 
 
 def get_log():
