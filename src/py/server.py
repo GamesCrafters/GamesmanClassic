@@ -122,14 +122,18 @@ class GameRequestHandler(asynchat.async_chat,
             game.push_request(GameRequest(self, query, c_command))
 
     def respond(self, response):
-        self.server.lock.acquire()
-        self.send_header('Content-Length', len(response))
-        self.send_header('Content-Type', 'text/plain')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.push(response)
-        self.close_when_done()
-        self.server.lock.release()
+        try:
+            self.server.lock.acquire()
+            self.send_header('Content-Length', len(response))
+            self.send_header('Content-Type', 'text/plain')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.push(response)
+            self.close_when_done()
+        except Exception:
+            pass
+        finally:
+            self.server.lock.release()
         self.server.log.info('Sent response: {}'.format(response))
 
 
@@ -235,7 +239,7 @@ class GameProcess(object):
         except IOError as e:
             # This case can be hit if the subprocess crashes between requests
             # (known to occasionally happen).
-            self.server.log.error('{} crashed!'.format(self.game.name))
+            self.server.log.error('{} crashed on write!'.format(self.game.name))
             request.respond(self.crash_msg)
             return False
         response = ''
