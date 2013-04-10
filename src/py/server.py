@@ -122,13 +122,15 @@ class GameRequestHandler(asynchat.async_chat,
             game.push_request(GameRequest(self, query, c_command))
 
     def respond(self, response):
-        self.server.log.info('Sent response: {}'.format(response))
+        self.server.lock.acquire()
         self.send_header('Content-Length', len(response))
         self.send_header('Content-Type', 'text/plain')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.push(response)
         self.close_when_done()
+        self.server.lock.release()
+        self.server.log.info('Sent response: {}'.format(response))
 
 
 class GameRequest(object):
@@ -285,6 +287,8 @@ class GameRequestServer(asyncore.dispatcher):
         self.bind(address)
 
         self.listen(4096)
+
+        self.lock = threading.Lock()
 
     def get_game(self, name):
         try:
