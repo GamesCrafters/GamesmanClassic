@@ -1016,5 +1016,3 @@ char* PositionToString(POSITION position) {
 
   return board;
 }
-
-GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
