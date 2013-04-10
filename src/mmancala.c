@@ -1501,12 +1501,54 @@ int my_nCr(int n, int r)
 
 void* gGameSpecificTclInit = NULL;
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+    int *arrayHashBoard = SafeMalloc(sizeof(int) * (boardSize + 1)), i;
+    char *split;
+    for (i = 0; i < boardSize; i++) {
+        split = strchr(board, 's');
+        if (!split) {
+            split = strchr(board, ';');
+        }
+        *split = '\0';
+        arrayHashBoard[i] = atoi(board);
+        board = split + 1;
+    }
+    board --;
+    *board = ';';
+    int success = GetValue(board, "turn", GetInt, &arrayHashBoard[turn]);
+    return array_unhash(arrayHashBoard);
 }
 
+int numDigits(int number){
+    int digits = 0;
+    if (number == 0) digits = 1;
+    while (number > 0) {
+        number /= 10;
+        digits++;
+    }
+    return digits;
+}
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	int *arrayHashedBoard = array_hash(pos), i;
+    int digitLength = 0;
+    for (i = 0; i < boardSize; i++) {
+        digitLength += numDigits(arrayHashedBoard[i]);
+    }
+    char *board = SafeMalloc(boardSize + digitLength + 1);
+    char *start = board;
+    for(i = 0; i < boardSize; i++){
+        board += sprintf(board, "%d", arrayHashedBoard[i]); 
+        if (i < boardSize - 1) {
+            *board = 's';
+            board++;
+        }
+    }
+    
+    *board = '\0';
+    char* turnValue = (char*) SafeMalloc(numDigits(arrayHashedBoard[turn]));
+    sprintf(turnValue, "%d", arrayHashedBoard[turn]);
+    char* retString = MakeBoardString(start, "turn", turnValue, "");
+
+    SafeFree(arrayHashedBoard);
+	return retString;
 }

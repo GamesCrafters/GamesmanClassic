@@ -76,7 +76,7 @@ color=1
 basename=lite3
 
 [Mancala]
-color=1
+color=5
 basename=mancala
 
 [Mu Torere]
