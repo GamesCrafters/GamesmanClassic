@@ -23,6 +23,11 @@ class Game(object):
 
     def delete_closed_processes(self):
         for k, ps in self.processes.items():
+            for proc in ps:
+                try:
+                    proc.process.kill()
+                except Exception:
+                    pass
             self.processes[k] = filter(lambda p: p.alive, ps)
 
     def start_process(self, query, opt):
