@@ -108,7 +108,7 @@ color=1
 basename=seega
 
 [Sim]
-color=1
+color=5
 basename=sim
 
 [Slide-N]
