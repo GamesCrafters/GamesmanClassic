@@ -3,7 +3,7 @@ import server
 
 class quickchess(game.Game):
 
-    def QuickchessProcess(server.GameProcess):
+    class QuickchessProcess(server.GameProcess):
 
         def __init__(self, *args, **kwargs):
             server.GameProcess.__init__(self, *args, **kwargs)
@@ -12,7 +12,7 @@ class quickchess(game.Game):
 
     def __init__(self, server, name):
         game.Game.__init__(self, server, name)
-        self.process_class = QuickchessProcess
+        self.process_class = self.QuickchessProcess
 
     def get_option(self, query):
         if query['misere']:
