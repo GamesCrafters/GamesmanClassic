@@ -129,7 +129,7 @@ class GameRequestHandler(asynchat.async_chat,
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.push(response)
-            self.close()
+            self.close_when_done()
         except Exception:
             pass
         finally:
