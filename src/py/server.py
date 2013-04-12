@@ -68,6 +68,7 @@ class GameRequestHandler(asynchat.async_chat,
         self.set_terminator('\r\n\r\n')
 
         self.in_buffer = []
+        self.wfile = cStringIO.StringIO()
 
     def collect_incoming_data(self, data):
         self.in_buffer.append(data)
@@ -75,7 +76,6 @@ class GameRequestHandler(asynchat.async_chat,
     def found_terminator(self):
         self.rfile = cStringIO.StringIO(''.join(self.in_buffer))
         self.rfile.seek(0)
-        self.wfile = cStringIO.StringIO()
         self.raw_requestline = self.rfile.readline()
         self.parse_request()
         if self.command == 'GET':
@@ -129,10 +129,15 @@ class GameRequestHandler(asynchat.async_chat,
     def respond(self, response):
         try:
             self.server.lock.acquire()
+            self.send_response(200)
             self.send_header('Content-Length', len(response))
             self.send_header('Content-Type', 'text/plain')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
+            self.wfile.seek(0)
+            headers = self.wfile.read()
+            self.server.log.debug('Sent headers {}'.format(headers))
+            self.push(headers)
             self.push(response)
             self.close_when_done()
         except Exception:
