@@ -105,6 +105,11 @@ class GameRequestHandler(asynchat.async_chat,
         self.server.log.info('GET: {}'.format(unquoted))
 
         game = self.server.get_game(game_name)
+        
+        # Fix missing quotes on the board string
+        if query['board'] != '' and query['board'][0] != '"':
+            query['board'] = '"{}"'.format(query['board'])
+
         try:
             c_command = {
                 'getStart':
