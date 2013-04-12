@@ -1943,20 +1943,20 @@ POSITION StringToPosition(char* board) {
 
 
 char* PositionToString(POSITION pos) {
-	char * board_string = (char *) malloc(sizeof(char) * 4 * 4 + 1);
+	int len = sizeof(char) * 4 * 4 + 1;
+	char * board_string = (char *) malloc(len + 1);
 	int L1 = unhashL1(pos);
 	int L2 = unhashL2(pos);
 	int S1 = unhashS1(pos);
 	int S2 = unhashS2(pos);
 	int i;
-	char* color;
 	char* formatted;
 
 	L2 = Make48(L1, L2);
 	S1 = Make8to16(L1, L2, S1);
 	S2 = Make7to16(L1, L2, S1, S2);
 
-	for (i = 0; i<16; i++) {
+	for (i = 0; i<len; i++) {
 		board_string[i] = ' ';
 	}
 	for (i = 0; i<4; i++) {
@@ -1965,7 +1965,7 @@ char* PositionToString(POSITION pos) {
 	}
 	board_string[S1] = 'w';
 	board_string[S2] = 'g';
-	board_string[17] = '\0';
+	board_string[len] = '\0';
 
 	formatted = MakeBoardString(board_string + 1,
 	                            "turn", StrFromI(unhashTurn(pos)),
