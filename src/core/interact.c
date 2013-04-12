@@ -232,7 +232,6 @@ void ServerInteractLoop(void) {
 			 */
 			break;
 		}
-		printf("\n");
 		if (!strchr(input, '\n')) {
 			printf(" error =>> input too long");
 			/* Clear out any excess so that it won't be read in after displaying

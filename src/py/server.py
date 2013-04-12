@@ -7,13 +7,13 @@ import asynchat
 import asyncore
 import cStringIO
 import collections
+import fcntl
 import imp
 import json
 import logging
 import logging.handlers
 import os
 import os.path
-import select
 import socket
 import subprocess
 import sys
@@ -129,7 +129,7 @@ class GameRequestHandler(asynchat.async_chat,
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.push(response)
-            self.close_when_done()
+            self.close()
         except Exception:
             pass
         finally:
@@ -170,15 +170,23 @@ class GameProcess(object):
         # and set it to line buffer mode.
         self.process = subprocess.Popen(arg_list, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT, bufsize=1,
+                                        stderr=subprocess.STDOUT, 
+                                        bufsize=1,
                                         close_fds=True)
-        self.thread = threading.Thread(target=self.request_loop)
-        self.thread.daemon = True
-        self.thread.start()
+        self.setup_subprocess_pipe(self.process.stdout)
 
         self.timeout_msg = timeout_msg
         self.crash_msg = crash_msg
         self.closed_msg = closed_msg
+
+        self.thread = threading.Thread(target=self.request_loop)
+        self.thread.daemon = True
+        self.thread.start()
+
+    def setup_subprocess_pipe(self, pipe):
+        descriptor = pipe.fileno()
+        flags = fcntl.fcntl(descriptor, fcntl.F_GETFL)
+        fcntl.fcntl(descriptor, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
     def push_request(self, request):
         self.queue.put(request)
@@ -232,9 +240,36 @@ class GameProcess(object):
             request.respond(self.timeout_msg)
             return not close_on_timeout
 
+    def wait_for_ready(self, timeout):
+        last_output = ''
+        read_timeout = 0.00001
+        total_time = read_timeout
+        while total_time < timeout:
+            total_time += read_timeout
+            time.sleep(read_timeout)
+            try:
+                last_output = self.process.stdout.read()
+            except IOError:
+                # Probably no data to read.
+                # Subprocess could have could have crashed, but we'll timeout
+                # anyways.
+                continue
+            self.server.log.debug('{} read:\n'
+                                  '{}'.format(self.game.name, last_output))
+            if ' ready =>>' in last_output:
+                self.server.log.debug('Found ready prompt in {} '
+                                      'seconds.'.format(total_time))
+                return timeout - total_time
+        self.server.log.error('Could not find ready prompt for '
+                '{}'.format(self.game.name))
+        return timeout - total_time
+
     def handle(self, request):
-        self.server.log.debug('Sent command {}'.format(request.command))
+        time_remaining = self.wait_for_ready(self.read_timeout)
+        if time_remaining <= 0:
+            return self.handle_timeout(request, '')
         try:
+            self.server.log.debug('Sent command {}'.format(request.command))
             self.process.stdin.write(request.command + '\n')
         except IOError as e:
             # This case can be hit if the subprocess crashes between requests
@@ -244,14 +279,16 @@ class GameProcess(object):
             return False
         response = ''
         timeout = 0.01
-        count = 0
         parsed = None
         while not parsed:
-            count += 1
-            if count * timeout >= self.read_timeout:
+            if time_remaining <= 0:
+                self.server.log.debug('timeout')
                 return self.handle_timeout(request, response)
-            rlist, _, _ = select.select([self.process.stdout], [], [], timeout)
-            response += self.process.stdout.readline()
+            time_remaining -= timeout
+            time.sleep(timeout)
+            to_add = self.process.stdout.readline()
+            self.server.log.debug('subprocess sent output ' + to_add)
+            response += to_add
             parsed = self.parse_response(response)
         request.respond(parsed)
         return True
