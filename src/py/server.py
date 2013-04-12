@@ -286,7 +286,10 @@ class GameProcess(object):
                 return self.handle_timeout(request, response)
             time_remaining -= timeout
             time.sleep(timeout)
-            to_add = self.process.stdout.readline()
+            try:
+                to_add = self.process.stdout.readline()
+            except IOError:
+                continue
             self.server.log.debug('subprocess sent output ' + to_add)
             response += to_add
             parsed = self.parse_response(response)
