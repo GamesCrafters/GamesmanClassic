@@ -69,6 +69,7 @@ class GameRequestHandler(asynchat.async_chat,
 
         self.in_buffer = []
         self.wfile = cStringIO.StringIO()
+        self.protocol_version = 'HTTP/1.1'
 
     def collect_incoming_data(self, data):
         self.in_buffer.append(data)
