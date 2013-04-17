@@ -15,6 +15,6 @@ class quickchess(game.Game):
         self.process_class = self.QuickchessProcess
 
     def get_option(self, query):
-        if query['misere']:
+        if query['misere'] == 'yes':
             return 2
 
