@@ -664,13 +664,25 @@ int power(int number, int pow) {
 
 	return answer;
 }
-POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char* string) {
+	int matches, first_player_matches, second_player_matches, position;
+	int success = GetValue(string, "matches", GetInt, &matches) &&
+                  GetValue(string, "first_player_matches", GetInt, &first_player_matches) &&
+                  GetValue(string, "second_player_matches", GetInt, &second_player_matches) &&
+                  GetValue(string, "position", GetInt, &position);
+    if(success){
+    	return position;
+    } else {
+    	return INVALID_POSITION;
+    }    
 }
 
 
-char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+char* PositionToString(POSITION position) {
+	// char* emptyBoard = (char *) SafeMalloc(1);
+	int matches = numberOfMatches(position);
+	int first_player_matches = firstPlayerMatches(position);
+	int second_player_matches = secondPlayerMatches(position);
+	return MakeBoardString("", "matches", StrFromI(matches), "first_player_matches", StrFromI(first_player_matches), 
+		"second_player_matches", StrFromI(second_player_matches), "position", StrFromI(position), "");
 }
