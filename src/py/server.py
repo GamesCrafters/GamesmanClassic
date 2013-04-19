@@ -138,8 +138,7 @@ class GameRequestHandler(asynchat.async_chat,
             self.wfile.seek(0)
             headers = self.wfile.read()
             self.server.log.debug('Sent headers {}'.format(headers))
-            self.push(headers)
-            self.push(response)
+            self.push(headers + response)
             self.close_when_done()
         except Exception:
             pass
