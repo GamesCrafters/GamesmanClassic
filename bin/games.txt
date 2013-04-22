@@ -1,11 +1,11 @@
 [Config]
 
 [Colors]
+green=0
 gold=1
 grey=2
 brown=3
 black=4
-green=5
 
 [1,2,...,10]
 color=1
@@ -16,7 +16,7 @@ color=1
 basename=abalone
 
 [Achi]
-color=5
+color=0
 basename=achi
 
 [Asalto]
@@ -76,7 +76,7 @@ color=1
 basename=lite3
 
 [Mancala]
-color=5
+color=0
 basename=mancala
 
 [Mu Torere]
@@ -92,7 +92,7 @@ color=1
 basename=ooe
 
 [Othello]
-color=5
+color=0
 basename=othello
 
 [QuickCross]
@@ -108,7 +108,7 @@ color=1
 basename=seega
 
 [Sim]
-color=5
+color=0
 basename=sim
 
 [Slide-N]
@@ -124,7 +124,7 @@ color=1
 basename=tactix
 
 [Tic-Tac-Toe]
-color=5
+color=0
 basename=ttt3
 
 [Wuzhi]
@@ -132,7 +132,7 @@ color=1
 basename=wuzhi
 
 [L Game]
-color=5
+color=0
 basename=lgame
 
 [3-Spot]
@@ -168,7 +168,7 @@ color=4
 basename=ataxx
 
 [Bagh Chal]
-color=5
+color=0
 basename=baghchal
 
 [Blocking]
@@ -236,7 +236,7 @@ color=4
 basename=qland
 
 [Quick Chess]
-color=5
+color=0
 basename=quickchess
 
 [Rubik's Checkers]
@@ -252,7 +252,7 @@ color=4
 basename=squaredance
 
 [Dragons & Swans]
-color=5
+color=0
 basename=swans
 
 [Tile Chess]
