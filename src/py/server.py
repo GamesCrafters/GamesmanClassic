@@ -49,6 +49,7 @@ subprocess_idle_timeout = 600  # Seconds
 log_to_file = True
 log_to_stdout = True
 log_to_stderr = False
+log_level = logging.DEBUG
 
 could_not_parse_msg = '{"status":"error", "reason":"Could not parse request."}'
 could_not_start_msg = '{"status":"error", "reason":"Could not start game."}'
@@ -386,7 +387,6 @@ class GameRequestServer(asyncore.dispatcher):
             self.handler(connection, address, self)
 
 
-
 def get_log():
     log = logging.getLogger('server')
 
@@ -407,7 +407,7 @@ def get_log():
         stderr_logger.setLevel(logging.ERROR)
         log.addHandler(stderr_logger)
 
-    log.setLevel(logging.DEBUG)
+    log.setLevel(log_level)
     return log
 
 
@@ -416,11 +416,16 @@ def main():
     parser.add_argument('--list-working', const=True, action='store_const')
     args = parser.parse_args()
     if args.list_working:
+        global log_to_stdout, log_to_stderr
+        log_to_stdout = False
+        log_to_stderr = False
         httpd = GameRequestServer(('', port), GameRequestHandler,
-                log=logging.getLogger('server'))
+                log=get_log())
         for s in os.listdir(root_game_directory):
+            if s[0] != 'm':
+                continue
             game_name = s[1:]
-            if game_name == 'kono':
+            if game_name in ['kono', '369mm', 'graph']:
                 continue
             game = httpd.get_game(game_name)
             print(game_name)
