@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import BaseHTTPServer
 import Queue
+import argparse
 import asynchat
 import asyncore
 import cStringIO
@@ -385,6 +386,7 @@ class GameRequestServer(asyncore.dispatcher):
             self.handler(connection, address, self)
 
 
+
 def get_log():
     log = logging.getLogger('server')
 
@@ -410,8 +412,23 @@ def get_log():
 
 
 def main():
-    httpd = GameRequestServer(('', port), GameRequestHandler, log=get_log())
-    httpd.serve_forever()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--list-working', const=True, action='store_const')
+    args = parser.parse_args()
+    if args.list_working:
+        httpd = GameRequestServer(('', port), GameRequestHandler,
+                log=logging.getLogger('server'))
+        for s in os.listdir(root_game_directory):
+            game_name = s[1:]
+            if game_name == 'kono':
+                continue
+            game = httpd.get_game(game_name)
+            print(game_name)
+            print('Working', game.working)
+            print('Has script', game.has_script)
+    else:
+        httpd = GameRequestServer(('', port), GameRequestHandler, log=get_log())
+        httpd.serve_forever()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,8 @@
 import collections
 import os
 import os.path
+import json
+import time
 
 class Game(object):
 
@@ -10,6 +12,7 @@ class Game(object):
         self.root_dir = server.root_game_directory
         self.processes = collections.defaultdict(list)
         self.process_class = server.GameProcess
+        self._working = 'maybe'
 
     def get_process(self, query):
         self.delete_closed_processes()
@@ -20,6 +23,57 @@ class Game(object):
             return self.processes[opt][0]
         else:
             return self.start_process(query, opt)
+
+    @property
+    def has_script(self):
+        return type(self) != Game
+
+    @property
+    def working(self):
+        if self._working == 'maybe':
+            self._working = self.check_if_working()
+        return self._working
+
+    def check_if_working(self):
+        proc = self.get_process(collections.defaultdict(str))
+        time_remaining = 600
+        time_step = 0.01
+        class CloseProc(object):
+
+            def __init__(self):
+                self.command = 'quit'
+
+            def respond(self, response):
+                pass
+
+        class TestRequest(object):
+
+            def __init__(self, game, proc):
+                self.query = collections.defaultdict(str)
+                self.command = 'start_response'
+                self.game = game
+                self.proc = proc
+
+            def respond(self, response):
+                try:
+                    parsed = json.loads(response)
+                    self.game._working = parsed[u'response'] != u'not implemented'
+                except Exception:
+                    pass
+                finally:
+                    self.proc.push_request(CloseProc())
+        try:
+            proc.push_request(TestRequest(self, proc))
+        except AttributeError:
+            return False
+        while proc.alive and time_remaining > 0:
+            time_remaining -= time_step
+            time.sleep(time_step)
+        if self._working == 'maybe':
+            return False
+        else:
+            return self._working
+        
 
     def delete_closed_processes(self):
         for k, ps in self.processes.items():
