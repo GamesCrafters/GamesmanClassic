@@ -2439,13 +2439,36 @@ STRING unhash (POSITION pos) {
 	board[BOARDSIZE] = '\0';
 	return board;
 }
-POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char* string) {
+	// BlankoxOX* board = (char *) SafeMalloc(size(BlankoxOX) * (BOARDSIZE + 1));
+	static BlankoxOX board[BOARDSIZE];
+	int i;
+	for(i = 0; i < BOARDSIZE; i++){
+		if (string[i] == '-')
+			board[i] = Blank;
+		else if (string[i] == 'X')
+			board[i] = Rx;
+		else if (string[i] =='x')
+			board[i] = Wx;
+		else if (string[i] == 'T')
+			board[i] = Rt;
+		else if (string[i] == 't')
+			board[i] = Wt;
+	}
+	int index = strcspn(string, "=");
+	char turn = string[index + 1];
+
+	if (turn == 'r')
+		return HashChungToi(board, Rx);
+	else
+		return HashChungToi(board, Wx);
 }
 
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankoxOX turn = GetTurn(pos);
+	if(turn == Rx)
+		return MakeBoardString(unhash(pos), "turn" , StringDup("red"), "");
+	else
+		return MakeBoardString(unhash(pos), "turn" , StringDup("white"), "");
 }
