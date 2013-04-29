@@ -1514,8 +1514,14 @@ POSITION StringToPosition(char* board) {
     }
     board --;
     *board = ';';
-    int success = GetValue(board, "turn", GetInt, &arrayHashBoard[turn]);
-    return array_unhash(arrayHashBoard);
+    POSITION pos;
+    if (GetValue(board, "turn", GetInt, &arrayHashBoard[turn]) == 0) {
+        pos = INVALID_POSITION;
+    } else {
+        pos = array_unhash(arrayHashBoard);
+    }
+    SafeFree(arrayHashBoard);
+    return pos;
 }
 
 int numDigits(int number){
