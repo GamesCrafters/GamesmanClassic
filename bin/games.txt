@@ -8,7 +8,7 @@ brown=3
 black=4
 
 [1,2,...,10]
-color=1
+color=0
 basename=1210
 
 [Abalone]
@@ -32,7 +32,7 @@ color=1
 basename=change
 
 [Chung-Toi]
-color=1
+color=0
 basename=ctoi
 
 [Connect-4]
@@ -40,7 +40,7 @@ color=1
 basename=win4
 
 [Dao]
-color=1
+color=0
 basename=dao
 
 [Dino Dodgem]
@@ -88,7 +88,7 @@ color=1
 basename=nim
 
 [Odd or Even]
-color=1
+color=0
 basename=ooe
 
 [Othello]

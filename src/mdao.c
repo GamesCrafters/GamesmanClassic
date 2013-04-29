@@ -851,12 +851,29 @@ POSITION ActualNumberOfPositions(int variant) {
 }
 
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	int i, turn;
+	char board_char[BOARD_SIZE];
+	for(i = 0; i < BOARD_SIZE; i++){
+		board_char[i] = board[i];
+	}
+
+	int success = GetValue(board, "turn", GetInt, &turn);
+    if(success){
+    	return generic_hash_hash(board_char, turn);
+    } else {
+    	return INVALID_POSITION;
+    }
 }
 
-
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	char board[BOARD_SIZE];
+	int current_player = generic_hash_turn(pos);
+	generic_hash_unhash (pos, board);
+	char * str = SafeMalloc(sizeof(char) * (BOARD_SIZE + 1));
+	int i = 0;
+	for(i; i < BOARD_SIZE; i++){
+		str[i] = board[i];
+	}
+	str[BOARD_SIZE] = '\0'; 
+	return MakeBoardString(str, "turn",  StrFromI(current_player), "");
 }
