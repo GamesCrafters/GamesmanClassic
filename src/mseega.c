@@ -251,10 +251,10 @@ int fromWhere(SMove m); // applies only if !placingBoard(b)
 int toWhere(SMove m);
 int toWhere2(SMove m); // applies only if placingBoard(b)
 
-inline int whoToInt(char c); // converts 'x' or 'o' to 1 or 2 for generic_hash.
+int whoToInt(char c); // converts 'x' or 'o' to 1 or 2 for generic_hash.
 
 // Are we in the opening phase of the game?
-inline BOOLEAN placingBoard(Board b);
+BOOLEAN placingBoard(Board b);
 BOOLEAN fullBoard(Board b);
 
 void setWhoseBoard(Board b, char t);
@@ -265,8 +265,8 @@ void setPlacingBoard(Board b, BOOLEAN t);
 
 void makeRandomBoard(Board b);
 
-inline POSITION hash(Board b);
-inline void unhash(Board b, POSITION p);
+POSITION hash(Board b);
+void unhash(Board b, POSITION p);
 
 
 /* A few helper functions for GenerateMoves. */
@@ -1181,58 +1181,58 @@ void setOption (int option) {
 *************************************************************************
 ************************************************************************/
 
-inline char whoseBoard(Board b) {
+char whoseBoard(Board b) {
 	return b[width*height+1];
 }
-inline char getpce(Board b, int r) {
+char getpce(Board b, int r) {
 	return b[r];
 }
-inline char getPiece(Board b, int x, int y) {
+char getPiece(Board b, int x, int y) {
 	return getpce(b,x*width+y);
 }
-inline char otherPlayer(char c) {
+char otherPlayer(char c) {
 	return c=='x' ? 'o' : 'x';
 }
 
-inline POSITION hash(Board b) {
+POSITION hash(Board b) {
 	return generic_hash_hash(b,whoToInt(whoseBoard(b)));
 }
-inline void unhash(Board b, POSITION p) {
+void unhash(Board b, POSITION p) {
 	generic_hash_unhash(p, b);
 	setWhoseBoard(b, generic_hash_turn(p)==1 ? 'x' : 'o');
 }
 
-inline int fromWhere(SMove m) { // applies only if !placingBoard(b)
+int fromWhere(SMove m) { // applies only if !placingBoard(b)
 	return (*m>>(8*sizeof(MOVE)/2)) & ((1<<8*sizeof(MOVE)/2)-1);
 }
-inline int toWhere(SMove m) {
+int toWhere(SMove m) {
 	return *m & ((1<<8*sizeof(MOVE)/2)-1);
 }
-inline int toWhere2(SMove m) { // applies only if placingBoard(b)
+int toWhere2(SMove m) { // applies only if placingBoard(b)
 	return (*m>>(8*sizeof(MOVE)/2)) & ((1<<8*sizeof(MOVE)/2)-1);
 }
 
-inline int whoToInt(char c) {
+int whoToInt(char c) {
 	// converts 'x' or 'o' to 1 or 2 for generic_hash.
 	if (c!='x' && c!='o')
 		BadElse("whoToInt got something not 'x' or 'o'.");
 	return c=='x' ? 1 : 2;
 }
 
-inline BOOLEAN placingBoard(Board b) {
+BOOLEAN placingBoard(Board b) {
 	return b[width*height]==P1;
 }
 
-inline void setWhoseBoard(Board b, char t) {
+void setWhoseBoard(Board b, char t) {
 	b[width*height+1]=t;
 }
-inline void setpce(Board b, int r, char c) {
+void setpce(Board b, int r, char c) {
 	b[r]=c;
 }
-inline void setMove2(SMove m, int val){
+void setMove2(SMove m, int val){
 	*m=val;
 }
-inline void setMove(SMove m, char who, int rfrom, int rto) {
+void setMove(SMove m, char who, int rfrom, int rto) {
 	/* TODO: figure out how we're supposed to encode invariants.
 	   if ((unsigned int)rfrom >= 1<<8*sizeof(MOVE)/2 ||
 	   (unsigned int)rto >= 1<<8*sizeof(MOVE)/2)
@@ -1240,7 +1240,7 @@ inline void setMove(SMove m, char who, int rfrom, int rto) {
 	 */
 	*m = rfrom<<8*sizeof(MOVE)/2 | rto;
 }
-inline void setPlacingBoard(Board b, BOOLEAN t) {
+void setPlacingBoard(Board b, BOOLEAN t) {
 	b[width*height]=t ? P1 : blank;
 }
 

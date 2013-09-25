@@ -651,7 +651,7 @@ bpdb_get_winby(
 
    --*/
 
-inline
+
 UINT64
 bpdb_set_slice_slot(
         UINT64 position,
@@ -749,7 +749,7 @@ bpdb_set_slice_slot(
 
    --*/
 
-inline
+
 UINT64
 bpdb_set_slice_slot_max(
         UINT64 position,
@@ -1262,14 +1262,14 @@ _bailout:
 
    --*/
 
-inline
+
 UINT64
 bpdb_get_slice_slot_disk(
         UINT64 position,
         UINT8 index
         );
 
-inline
+
 UINT64
 bpdb_get_slice_slot(
         UINT64 position,
@@ -1300,7 +1300,7 @@ bpdb_get_slice_slot(
 	return bitlib_read_bits( bpdb_array + byteOffset, bitOffset, bpdb_slice->size[index] );
 }
 
-inline
+
 UINT64
 bpdb_get_slice_slot_disk(
         UINT64 position,

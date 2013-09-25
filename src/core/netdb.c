@@ -385,7 +385,7 @@ void netdb_get_bulk (POSITION* positions, VALUE* ValueArray, REMOTENESS* remoten
 
 //easy way to issue a single query
 //really should be inlined
-inline cellValue netdb_single_query(POSITION pos){
+cellValue netdb_single_query(POSITION pos){
 	cellValue cell;
 
 	netdb_get_raw(&pos,&cell,1);
