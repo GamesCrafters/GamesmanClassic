@@ -242,14 +242,14 @@ int defaultForbidden = TRUE;
 
 int forbiddenSpot(int r);
 
-inline char whoseBoard(Board b);
-inline char getpce(Board b, int r);
-inline char getPiece(Board b, int x, int y);
-inline char otherPlayer(char c);
+char whoseBoard(Board b);
+char getpce(Board b, int r);
+char getPiece(Board b, int x, int y);
+char otherPlayer(char c);
 
-inline int fromWhere(SMove m); // applies only if !placingBoard(b)
-inline int toWhere(SMove m);
-inline int toWhere2(SMove m); // applies only if placingBoard(b)
+int fromWhere(SMove m); // applies only if !placingBoard(b)
+int toWhere(SMove m);
+int toWhere2(SMove m); // applies only if placingBoard(b)
 
 inline int whoToInt(char c); // converts 'x' or 'o' to 1 or 2 for generic_hash.
 
@@ -257,11 +257,11 @@ inline int whoToInt(char c); // converts 'x' or 'o' to 1 or 2 for generic_hash.
 inline BOOLEAN placingBoard(Board b);
 BOOLEAN fullBoard(Board b);
 
-inline void setWhoseBoard(Board b, char t);
-inline void setpce(Board b, int r, char c);
-inline void setMove2(SMove m,int val);
-inline void setMove(SMove m, char who, int rfrom, int rto);
-inline void setPlacingBoard(Board b, BOOLEAN t);
+void setWhoseBoard(Board b, char t);
+void setpce(Board b, int r, char c);
+void setMove2(SMove m,int val);
+void setMove(SMove m, char who, int rfrom, int rto);
+void setPlacingBoard(Board b, BOOLEAN t);
 
 void makeRandomBoard(Board b);
 
