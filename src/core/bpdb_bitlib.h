@@ -61,7 +61,7 @@ bitlib_file_seek(
         int whence
         );
 
-inline
+
 GMSTATUS
 bitlib_file_write_bytes(
         dbFILE *file,
@@ -69,7 +69,7 @@ bitlib_file_write_bytes(
         UINT32 length
         );
 
-inline
+
 GMSTATUS
 bitlib_file_read_bytes(
         dbFILE *file,
@@ -77,19 +77,19 @@ bitlib_file_read_bytes(
         UINT32 length
         );
 
-inline
+
 BYTE
 bitlib_right_mask8(
         UINT8 maskbits
         );
 
-inline
+
 UINT64
 bitlib_right_mask64(
         UINT8 maskbits
         );
 
-inline
+
 void
 bitlib_insert_bits(
         BYTE *slice,
@@ -98,7 +98,7 @@ bitlib_insert_bits(
         UINT8 bitsToOutput
         );
 
-inline
+
 BYTE
 bitlib_get_bits_range(
         UINT64 value,
@@ -106,7 +106,7 @@ bitlib_get_bits_range(
         UINT8 length
         );
 
-inline
+
 UINT64
 bitlib_read_bits(
         BYTE *slice,
@@ -125,7 +125,7 @@ bitlib_print_bytes_in_bits(
         UINT8 bytes
         );
 
-inline
+
 void
 bitlib_value_to_buffer(
         dbFILE *file,
@@ -137,7 +137,7 @@ bitlib_value_to_buffer(
         UINT8 bitsToOutput
         );
 
-inline
+
 UINT64
 bitlib_read_from_buffer(
         dbFILE *inFile,

@@ -122,14 +122,14 @@ symdb_set_winby(
 // functions for internal use
 //
 
-inline
+
 UINT64
 symdb_get_slice_slot(
         UINT64 position,
         UINT8 index
         );
 
-inline
+
 UINT64
 symdb_set_slice_slot(
         UINT64 position,
@@ -137,7 +137,7 @@ symdb_set_slice_slot(
         UINT64 value
         );
 
-inline
+
 UINT64
 symdb_set_slice_slot_max(
         UINT64 position,

@@ -135,14 +135,12 @@ bpdb_set_winby(
 // functions for internal use
 //
 
-inline
 UINT64
 bpdb_get_slice_slot(
         UINT64 position,
         UINT8 index
         );
 
-inline
 UINT64
 bpdb_set_slice_slot(
         UINT64 position,
@@ -150,7 +148,6 @@ bpdb_set_slice_slot(
         UINT64 value
         );
 
-inline
 UINT64
 bpdb_set_slice_slot_max(
         UINT64 position,
