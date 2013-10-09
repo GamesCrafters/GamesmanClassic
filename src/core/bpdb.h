@@ -215,14 +215,14 @@ bpdb_load_database( );
 
 GMSTATUS
 bpdb_generic_load_database(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme
         );
 
 
 BOOLEAN
 bpdb_generic_write_varnum(
-        dbFILE *outFile,
+        dbFILE outFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *outputBuffer,
@@ -234,7 +234,7 @@ bpdb_generic_write_varnum(
 
 UINT64
 bpdb_generic_read_varnum(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *inputBuffer,

@@ -59,7 +59,7 @@
 
 DB_Table    *functionsMapping;
 
-dbFILE          *bpdb_readFile = NULL;
+dbFILE          bpdb_readFile = NULL;
 BOOLEAN bpdb_readFromDisk = FALSE;
 SCHEME bpdb_readScheme = NULL;
 UINT32 bpdb_readStart = 0;
@@ -1926,7 +1926,7 @@ _bailout:
 
 BOOLEAN
 bpdb_generic_write_varnum(
-        dbFILE *outFile,
+        dbFILE outFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *outputBuffer,
@@ -1989,7 +1989,7 @@ bpdb_generic_save_database(
 	UINT8 i, j;
 
 	// gzip file ptr
-	dbFILE *outFile = NULL;
+	dbFILE outFile = NULL;
 
 	UINT64 slice;
 	UINT8 slot;
@@ -2114,7 +2114,7 @@ bpdb_load_database( )
 	// filename
 	char outfilename[256];
 
-	dbFILE *inFile = NULL;
+	dbFILE inFile = NULL;
 	FILE *testOpen = NULL;
 
 	// file information
@@ -2225,7 +2225,7 @@ _bailout:
 
 GMSTATUS
 bpdb_generic_load_database(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme
         )
 {
@@ -2365,7 +2365,7 @@ bpdb_generic_load_database(
 		}
 	} else {
 
-		gzrewind(*inFile);
+		gzrewind(inFile);
 		bitlib_file_seek( inFile, bpdb_readStart, SEEK_SET);
 		bitlib_file_read_bytes( inFile,
 		                        bpdb_write_array,
@@ -2417,7 +2417,7 @@ _bailout:
 
 UINT64
 bpdb_generic_read_varnum(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *inputBuffer,

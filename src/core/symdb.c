@@ -46,7 +46,7 @@
 
 extern DB_Table    *functionsMapping;
 
-dbFILE          *symdb_readFile = NULL;
+dbFILE          symdb_readFile = NULL;
 BOOLEAN symdb_readFromDisk = FALSE;
 SCHEME symdb_readScheme = NULL;
 UINT32 symdb_readStart = 0;
@@ -1908,7 +1908,7 @@ _bailout:
 
 BOOLEAN
 symdb_generic_write_varnum(
-        dbFILE *outFile,
+        dbFILE outFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *outputBuffer,
@@ -1971,7 +1971,7 @@ symdb_generic_save_database(
 	UINT8 i, j;
 
 	// gzip file ptr
-	dbFILE *outFile = NULL;
+	dbFILE outFile = NULL;
 
 	UINT64 slice;
 	UINT8 slot;
@@ -2096,7 +2096,7 @@ symdb_load_database( )
 	// filename
 	char outfilename[256];
 
-	dbFILE *inFile = NULL;
+	dbFILE inFile = NULL;
 	FILE *testOpen = NULL;
 
 	// file information
@@ -2207,7 +2207,7 @@ _bailout:
 
 GMSTATUS
 symdb_generic_load_database(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme
         )
 {
@@ -2347,7 +2347,7 @@ symdb_generic_load_database(
 		}
 	} else {
 
-		gzrewind(*inFile);
+		gzrewind(inFile);
 		bitlib_file_seek( inFile, symdb_readStart, SEEK_SET);
 		bitlib_file_read_bytes( inFile,
 		                        symdb_write_array,
@@ -2399,7 +2399,7 @@ _bailout:
 
 UINT64
 symdb_generic_read_varnum(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *inputBuffer,

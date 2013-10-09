@@ -46,17 +46,17 @@ GMSTATUS
 bitlib_file_open(
         char *filename,
         char *mode,
-        dbFILE **db
+        dbFILE *db
         );
 
 GMSTATUS
 bitlib_file_close(
-        dbFILE *file
+        dbFILE file
         );
 
 GMSTATUS
 bitlib_file_seek(
-        dbFILE *db,
+        dbFILE db,
         UINT32 byteIndex,
         int whence
         );
@@ -64,7 +64,7 @@ bitlib_file_seek(
 
 GMSTATUS
 bitlib_file_write_bytes(
-        dbFILE *file,
+        dbFILE file,
         BYTE *buffer,
         UINT32 length
         );
@@ -72,7 +72,7 @@ bitlib_file_write_bytes(
 
 GMSTATUS
 bitlib_file_read_bytes(
-        dbFILE *file,
+        dbFILE file,
         BYTE *buffer,
         UINT32 length
         );
@@ -128,7 +128,7 @@ bitlib_print_bytes_in_bits(
 
 void
 bitlib_value_to_buffer(
-        dbFILE *file,
+        dbFILE file,
         BYTE **curBuffer,
         BYTE *outputBuffer,
         UINT32 bufferLength,
@@ -140,7 +140,7 @@ bitlib_value_to_buffer(
 
 UINT64
 bitlib_read_from_buffer(
-        dbFILE *inFile,
+        dbFILE inFile,
         BYTE **curBuffer,
         BYTE *inputBuffer,
         UINT32 bufferLength,

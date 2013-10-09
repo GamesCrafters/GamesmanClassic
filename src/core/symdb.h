@@ -205,14 +205,14 @@ symdb_load_database( );
 
 GMSTATUS
 symdb_generic_load_database(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme
         );
 
 
 BOOLEAN
 symdb_generic_write_varnum(
-        dbFILE *outFile,
+        dbFILE outFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *outputBuffer,
@@ -224,7 +224,7 @@ symdb_generic_write_varnum(
 
 UINT64
 symdb_generic_read_varnum(
-        dbFILE *inFile,
+        dbFILE inFile,
         SCHEME scheme,
         BYTE **curBuffer,
         BYTE *inputBuffer,

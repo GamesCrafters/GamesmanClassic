@@ -49,7 +49,7 @@ typedef unsigned char BITARRAY;
 
 
 int WriteLevelFile(char* compressed_filename, BITARRAY *array, POSITION minHashValue, POSITION maxHashValue);
-int writeHeader(gzFile *file, UINT64 minHashValue, UINT64 maxHashValue, UINT64 lastZero, int type);
+int writeHeader(gzFile file, UINT64 minHashValue, UINT64 maxHashValue, UINT64 lastZero, int type);
 int ArrayToType0Write(BITARRAY *array, UINT64 minHashValue, UINT64 maxHashValue);
 int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT64 bitsPerPosition, UINT64 offset);
 int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, UINT64 bitsPerPosition, UINT64 offset);
