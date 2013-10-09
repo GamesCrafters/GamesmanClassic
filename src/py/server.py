@@ -321,6 +321,35 @@ class GameProcess(object):
                 live = self.handle(request)
         self.close()
 
+def start_game(name, server):
+    script_name = name + '.py'
+    rel_path = os.path.join(game_script_directory, script_name)
+    game_class = None
+    game = None
+    try:
+        for s in os.listdir(game_script_directory):
+            if s == script_name:
+                with open(rel_path) as script:
+                    module = imp.load_module(name, script, '',
+                                             ('py', 'r', imp.PY_SOURCE))
+                    game_class = module.__dict__[name]
+                    server.log.debug('Loaded script for {}'.format(name))
+    except Exception as e:
+        server.log.error('Could not load script for {}'.format(name,
+                                                             e.message))
+    if not game_class:
+        server.log.debug('Could not find script for {}'.format(name))
+        game_class = Game
+    return game_class(server, name)
+
+class DummyServer(object):
+
+    could_not_start_msg = could_not_parse_msg
+    root_game_directory = root_game_directory
+    GameProcess = GameProcess
+
+    def __init__(self, log):
+        self.log = log
 
 class GameRequestServer(asyncore.dispatcher):
 
@@ -328,7 +357,7 @@ class GameRequestServer(asyncore.dispatcher):
     root_game_directory = root_game_directory
     GameProcess = GameProcess
 
-    def __init__(self, address, handler, log=logging.getLogger("server")):
+    def __init__(self, address, handler, log):
         self.ip, self.port = address
         self.log = log
         self.handler = handler
@@ -386,6 +415,60 @@ class GameRequestServer(asyncore.dispatcher):
         else:
             self.handler(connection, address, self)
 
+class GameStatusServer(object):
+    
+    could_not_start_msg = could_not_parse_msg
+    root_game_directory = root_game_directory
+    GameProcess = GameProcess
+
+    def __init__(self, log):
+        self._run = True
+        self.log = log
+        self._game_table = {}
+        self._done = False
+        self.thread = threading.Thread(target=self.check_loop)
+        self.thread.daemon = True
+        self.thread.start()
+
+    def close(self):
+        self._run = False
+
+    @property
+    def done(self):
+        return self._done
+
+    @property
+    def running(self):
+        return self._run
+
+    def _add_game(self, name):
+        self._game_table[name] = {'capabilities':[]}
+
+    def _get_game(self, name):
+        if name not in self._game_table:
+            self._add_game(name)
+        return self._game_table[name]
+
+    def check_loop(self):
+        for s in os.listdir(root_game_directory):
+            if not self._run:
+                return
+            if s[0] != 'm':
+                continue
+            game_name = s[1:]
+            if game_name in ['kono', '369mm', 'graph']:
+                continue
+            game = start_game(game_name, self)
+            game_entry = self._get_game(game_name)
+            if game.working:
+                game_entry['capabilities'].append('data')
+            if game.has_script:
+                game_entry['capabilities'].append('script')
+        self._done = True
+
+    def get_game_status_table(self):
+        return json.dumps(self._game_table, indent=indent_response)
+
 
 def get_log():
     log = logging.getLogger('server')
@@ -410,27 +493,40 @@ def get_log():
     log.setLevel(log_level)
     return log
 
+def get_status_log():
+    log = logging.getLogger('status')
+
+    if log_to_file:
+        file_logger = \
+            logging.handlers.RotatingFileHandler(log_filename,
+                                                 maxBytes=max_log_size)
+        file_logger.setLevel(logging.DEBUG)
+        log.addHandler(file_logger)
+
+    if log_to_stdout:
+        stdout_logger = logging.StreamHandler(sys.stdout)
+        stdout_logger.setLevel(logging.DEBUG)
+        log.addHandler(stdout_logger)
+
+    if log_to_stderr:
+        stderr_logger = logging.StreamHandler(sys.stderr)
+        stderr_logger.setLevel(logging.ERROR)
+        log.addHandler(stderr_logger)
+
+    log.setLevel(logging.FATAL)
+    return log
+
+
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--list-working', const=True, action='store_const')
     args = parser.parse_args()
     if args.list_working:
-        global log_to_stdout, log_to_stderr
-        log_to_stdout = False
-        log_to_stderr = False
-        httpd = GameRequestServer(('', port), GameRequestHandler,
-                log=get_log())
-        for s in os.listdir(root_game_directory):
-            if s[0] != 'm':
-                continue
-            game_name = s[1:]
-            if game_name in ['kono', '369mm', 'graph']:
-                continue
-            game = httpd.get_game(game_name)
-            print(game_name)
-            print('Working', game.working)
-            print('Has script', game.has_script)
+        server = GameStatusServer(get_status_log())
+        while not server.done:
+            time.sleep(1)
+        print(server.get_game_status_table())
     else:
         httpd = GameRequestServer(('', port), GameRequestHandler, log=get_log())
         httpd.serve_forever()
