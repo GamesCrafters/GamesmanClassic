@@ -30,6 +30,8 @@ bytes_per_mb = 1024 ** 2
 
 max_log_size = 10 * bytes_per_mb
 
+max_memory_percent_per_process = 5.0
+
 port = 8081
 root_game_directory = './bin/'
 log_filename = 'server.log'
@@ -49,7 +51,9 @@ subprocess_idle_timeout = 600  # Seconds
 log_to_file = True
 log_to_stdout = True
 log_to_stderr = False
-log_level = logging.DEBUG
+#log_level = logging.DEBUG
+#log_level = logging.INFO
+log_level = logging.WARN
 
 could_not_parse_msg = ('{'
                        '\n "status":"error",'
@@ -118,6 +122,7 @@ class GameRequestHandler(asynchat.async_chat,
                     'status': 'ok',
                     'response': self.server.status_server.get_table()},
                     indent=indent_response))
+            return
         game_name = path[-2]
 
         # Can't use urlparse.parse_qs because of equal signs in board string
@@ -165,14 +170,14 @@ class GameRequestHandler(asynchat.async_chat,
             self.end_headers()
             self.wfile.seek(0)
             headers = self.wfile.read()
-            self.server.log.debug('Sent headers {}'.format(headers))
+            self.server.log.debug('Sent headers {}.'.format(headers))
             self.push(headers + response)
             self.close_when_done()
         except Exception:
             pass
         finally:
             self.server.lock.release()
-        self.server.log.info('Sent response: {}'.format(response))
+        self.server.log.info('Sent response {}.'.format(response))
 
 
 class GameRequest(object):
@@ -194,6 +199,7 @@ class GameProcess(object):
         self.queue = Queue.Queue()
         self.option_num = option_num
         self.req_timeout = subprocess_idle_timeout
+        self.req_timeout_step = 0.1
         self.read_timeout = subprocess_reponse_timeout
 
         # Note that arguments to GamesmanClassic must be given in the right
@@ -295,11 +301,11 @@ class GameProcess(object):
             self.server.log.debug('{} read:\n'
                                   '{}'.format(self.game.name, last_output))
             if ' ready =>>' in last_output:
-                self.server.log.debug('Found ready prompt in {} '
-                                      'seconds.'.format(total_time))
+                self.server.log.debug('Found ready prompt in {} seconds.'
+                                      .format(total_time))
                 return timeout - total_time
-        self.server.log.error('Could not find ready prompt for '
-                '{}'.format(self.game.name))
+        self.server.log.error('Could not find ready prompt for {}.'
+                              .format(self.game.name))
         return timeout - total_time
 
     def handle(self, request):
@@ -307,7 +313,7 @@ class GameProcess(object):
         if time_remaining <= 0:
             return self.handle_timeout(request, '')
         try:
-            self.server.log.debug('Sent command {}'.format(request.command))
+            self.server.log.debug('Sent command {}.'.format(request.command))
             self.process.stdin.write(request.command + '\n')
         except IOError as e:
             # This case can be hit if the subprocess crashes between requests
@@ -336,16 +342,44 @@ class GameProcess(object):
 
     def request_loop(self):
         live = True
+        total_idle_time = 0.0
         while live:
+            self.server.log.debug(
+                'In request loop for {}.'.format(self.game.name))
             try:
-                request = self.queue.get(block=True, timeout=self.req_timeout)
+                request = self.queue.get(block=True,
+                        timeout=self.req_timeout_step)
             except Queue.Empty as e:
-                self.server.log.error(
-                    '{} closed from lack of use.'.format(self.game.name))
-                live = False
+                total_idle_time += self.req_timeout_step
+                if total_idle_time > self.req_timeout:
+                    self.server.log.error(
+                        '{} closed from lack of use.'.format(self.game.name))
+                    live = False
             else:
+                total_idle_time = 0.0
                 live = self.handle(request)
+            self.server.log.debug('{} is using {}% of memory.'
+                .format(self.game.name, self.memory_percent_usage()))
+            if self.memory_percent_usage() > max_memory_percent_per_process:
+                self.server.log.error('{} used too much memory!'
+                                      .format(self.game.name))
+                live = False
         self.close()
+
+    def memory_percent_usage(self):
+        try:
+            ps_output = subprocess.check_output('ps -o pmem'.split() +
+                [str(self.process.pid)])
+            percent = float(ps_output.split('\n')[1].strip())
+            self.server.log.debug('{} is using {}% of memory.'
+                .format(self.game.name, percent))
+            return percent
+        except Exception as e:
+            self.server.log.error('Could not get memory use of {}, '
+                                  'because of error: {}.'
+                                  .format(self.game.name, e))
+        return 0.0
+
 
 def start_game(name, server):
     script_name = name + '.py'
@@ -359,12 +393,12 @@ def start_game(name, server):
                     module = imp.load_module(name, script, '',
                                              ('py', 'r', imp.PY_SOURCE))
                     game_class = module.__dict__[name]
-                    server.log.debug('Loaded script for {}'.format(name))
+                    server.log.debug('Loaded script for {}.'.format(name))
     except Exception as e:
-        server.log.error('Could not load script for {}'.format(name,
+        server.log.error('Could not load script for {}.'.format(name,
                                                              e.message))
     if not game_class:
-        server.log.debug('Could not find script for {}'.format(name))
+        server.log.debug('Could not find script for {}.'.format(name))
         game_class = Game
     return game_class(server, name)
 
@@ -420,12 +454,12 @@ class GameRequestServer(asyncore.dispatcher):
                         module = imp.load_module(name, script, '',
                                                  ('py', 'r', imp.PY_SOURCE))
                         game_class = module.__dict__[name]
-                        self.log.debug('Loaded script for {}'.format(name))
+                        self.log.debug('Loaded script for {}.'.format(name))
         except Exception as e:
-            self.log.error('Could not load script for {}'.format(name,
+            self.log.error('Could not load script for {}.'.format(name,
                                                                  e.message))
         if not game_class:
-            self.log.debug('Could not find script for {}'.format(name))
+            self.log.debug('Could not find script for {}.'.format(name))
             game_class = Game
         game = game_class(self, name)
         self._game_table[name] = game
@@ -483,8 +517,6 @@ class GameStatusServer(object):
             if s[0] != 'm':
                 continue
             game_name = s[1:]
-            if game_name in ['kono', 'graph']:
-                continue
             game = start_game(game_name, self)
             game_entry = self._get_game(game_name)
             if game.working:
@@ -545,7 +577,6 @@ def get_status_log():
 
     log.setLevel(logging.FATAL)
     return log
-
 
 
 def main():
