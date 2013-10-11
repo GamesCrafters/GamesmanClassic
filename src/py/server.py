@@ -51,11 +51,26 @@ log_to_stdout = True
 log_to_stderr = False
 log_level = logging.DEBUG
 
-could_not_parse_msg = '{"status":"error", "reason":"Could not parse request."}'
-could_not_start_msg = '{"status":"error", "reason":"Could not start game."}'
-timeout_msg = '{"status":"error", "reason":"Subprocess timed out."}'
-crash_msg = '{"status":"error", "reason":"Subprocess crashed."}'
-closed_msg = '{"status":"error", "reason":"Subprocess was closed."}'
+could_not_parse_msg = ('{'
+                       '\n "status":"error",'
+                       '\n "reason":"Could not parse request."'
+                       '\n}')
+could_not_start_msg = ('{'
+                     '\n "status":"error",'
+                     '\n "reason":"Could not start game."'
+                     '\n}')
+timeout_msg = ('{'
+             '\n "status":"error",'
+             '\n "reason":"Subprocess timed out."'
+             '\n}')
+crash_msg = ('{'
+           '\n "status":"error",'
+           '\n "reason":"Subprocess crashed."'
+           '\n}')
+closed_msg = ('{'
+            '\n "status":"error",'
+            '\n "reason":"Subprocess was closed."'
+            '\n}')
 
 
 class GameRequestHandler(asynchat.async_chat,
@@ -92,6 +107,17 @@ class GameRequestHandler(asynchat.async_chat,
         command = path[-1]
         if command == 'favicon.ico':
             return
+        if command == 'getGames':
+            if self.server.status_server == None:
+                self.respond(json.dumps({
+                    'status': 'error',
+                    'reason': 'Could not get game list.' },
+                    indent=indent_response))
+            else:
+                self.respond(json.dumps({
+                    'status': 'ok',
+                    'response': self.server.status_server.get_table()},
+                    indent=indent_response))
         game_name = path[-2]
 
         # Can't use urlparse.parse_qs because of equal signs in board string
@@ -363,6 +389,7 @@ class GameRequestServer(asyncore.dispatcher):
         self.handler = handler
         self.log.info('Starting server on port {}.'.format(self.port))
         self._game_table = {}
+        self.status_server = None
         asyncore.dispatcher.__init__(self)
 
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -463,11 +490,14 @@ class GameStatusServer(object):
             if game.working:
                 game_entry['capabilities'].append('data')
             if game.has_script:
-                game_entry['capabilities'].append('script')
+                game_entry['capabilities'].append('variants')
         self._done = True
 
     def get_game_status_table(self):
         return json.dumps(self._game_table, indent=indent_response)
+
+    def get_table(self):
+        return self._game_table
 
 
 def get_log():
@@ -519,17 +549,10 @@ def get_status_log():
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--list-working', const=True, action='store_const')
-    args = parser.parse_args()
-    if args.list_working:
-        server = GameStatusServer(get_status_log())
-        while not server.done:
-            time.sleep(1)
-        print(server.get_game_status_table())
-    else:
-        httpd = GameRequestServer(('', port), GameRequestHandler, log=get_log())
-        httpd.serve_forever()
+    status_server = GameStatusServer(get_status_log())
+    httpd = GameRequestServer(('', port), GameRequestHandler, log=get_log())
+    httpd.status_server = status_server
+    httpd.serve_forever()
 
 
 if __name__ == '__main__':
