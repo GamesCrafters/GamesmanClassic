@@ -2251,8 +2251,11 @@ POSITION StringToPosition(char* board) {
 	char realBoard[BOARDSIZE];
 	int i = 0;
 	for (i = 0; i < BOARDSIZE; i++) {
-		realBoard[i] = board[i];
-
+                if (board[i] == ' ') {
+		        realBoard[i] = '·';
+                } else {
+		        realBoard[i] = board[i];
+                }
 	}
 	return generic_hash_hash(realBoard, 0);
 }
@@ -2265,7 +2268,11 @@ char* PositionToString(POSITION pos) {
 	generic_hash_unhash(pos, &board);
 	char* finalBoard = calloc((BOARDSIZE+1), sizeof(char));
 	for (i = 0; i < BOARDSIZE; i++) {
-		finalBoard[i] = board[i];
+                if (board[i] == '·') {
+                        finalBoard[i] = ' ';
+                } else {
+		        finalBoard[i] = board[i];
+                }
 	}
 	return finalBoard;
 }

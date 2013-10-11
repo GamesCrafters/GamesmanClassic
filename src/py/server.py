@@ -483,7 +483,7 @@ class GameStatusServer(object):
             if s[0] != 'm':
                 continue
             game_name = s[1:]
-            if game_name in ['kono', '369mm', 'graph']:
+            if game_name in ['kono', 'graph']:
                 continue
             game = start_game(game_name, self)
             game_entry = self._get_game(game_name)
