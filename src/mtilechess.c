@@ -3132,16 +3132,39 @@ BOOLEAN isLegalPos(POSITION pos)
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	POSITION pos = INVALID_POSITION;
+	if ( GetValue ( board, "pos", GetUnsignedLongLong, &pos ) ) {
+		printf ( "pos = %lld\n", pos );
+		return pos;
+	} else {
+		printf("Error: StringToPosition could not determine pos from board \"%s\".", board);
+		return INVALID_POSITION;
+	}
 }
 
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	char * board = unhashBoard(pos);
+	if (gHashWindowInitialized) {
+		char * formatted = MakeBoardString(board,
+			"turn", StrFromI(getCurrTurn(pos)),
+			"pos", StrFromI(pos),
+			"tier", TierstringFromPosition(pos),
+			"");
+		free ( board );
+		return formatted;
+	}
+	else {
+		char * formatted = MakeBoardString(board,
+			"turn", StrFromI(getCurrTurn(pos)),
+			"pos", StrFromI(pos),
+			"");
+		free ( board );
+		return formatted;
+	}
+
 }
 
 STRING MoveToString(MOVE theMove) {
-	return "Implement MoveToString";
+	return StringDup("");
 }
