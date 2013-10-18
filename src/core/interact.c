@@ -43,7 +43,7 @@ char * StringFormat(size_t max_size, char * format_str, ...) {
 }
 
 STRING MoveToString(MOVE mv);
-STRING PositionToString(POSITION pos);
+char * PositionToString(POSITION pos);
 POSITION StringToPosition(STRING str);
 
 static char * AllocVa(va_list lst, size_t accum, size_t * total) {
@@ -199,7 +199,7 @@ void InteractFreeBoardSting(STRING board) {
 
 void ServerInteractLoop(void) {
 	int input_size = 512;
-	STRING input = (STRING) SafeMalloc(input_size);
+	char* input = (char *) SafeMalloc(input_size);
 	#define RESULT "result =>> "
 	POSITION pos;
 	POSITION choice;
@@ -209,7 +209,7 @@ void ServerInteractLoop(void) {
 		"\n" RESULT "{\"status\":\"error\",\"reason\":\"Invalid board string.\"}";
 	MOVE move;
 	STRING move_string = NULL;
-	STRING board = NULL;
+	char * board = NULL;
 	MEX mex = 0;
 	TIER tier = 0;
 	/* Set stdout to do by line buffering so that sever interaction works right.
@@ -371,13 +371,13 @@ void ServerInteractLoop(void) {
 				printf(" error =>> missing move number in result request\n");
 			}
 		} else if (FirstWordMatches(input, "move_value_response")) {
-			if (!InteractReadBoardString(input, &board)) {
-				printf(invalid_board_string);
+			if (!InteractReadBoardString(input, (const char **) &board)) {
+				printf("%s", invalid_board_string);
 				continue;
 			}
 			pos = StringToPosition(board);
 			if (pos == -1) {
-				printf(invalid_board_string);
+				printf("%s", invalid_board_string);
 				continue;
 			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
@@ -386,24 +386,24 @@ void ServerInteractLoop(void) {
 			InteractPrintJSONPositionValue(pos);
 			printf("}}");
 		} else if (FirstWordMatches(input, "position")) {
-            if (!InteractReadBoardString(input, &board)) {
-                printf(invalid_board_string);
+            if (!InteractReadBoardString(input, (const char **) &board)) {
+                printf("%s", invalid_board_string);
                 continue;
             }
             pos = StringToPosition(board);
             printf("board: " POSITION_FORMAT,pos);
             
         } else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
-			if (!InteractReadBoardString(input, &board)) {
-				printf(invalid_board_string);
+			if (!InteractReadBoardString(input, (const char **) &board)) {
+				printf("%s", invalid_board_string);
 				continue;
 			}
-			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetInt, &tier)) {
+			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = StringToPosition(board);
 			if (pos == -1) {
-				printf(invalid_board_string);
+				printf("%s", invalid_board_string);
 				continue;
 			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":[");
@@ -473,6 +473,15 @@ BOOLEAN GetInt(char* value, int* placeholder){
 	}
 	*placeholder = atoi(value);
 	return TRUE;
+}
+
+BOOLEAN GetUnsignedLongLong(char* value, unsigned long long* placeholder){
+	if (value == NULL || placeholder == NULL){
+		return FALSE;
+	}
+        errno = 0;
+	*placeholder = strtoull(value, NULL, 10);
+	return errno == 0;
 }
 
 BOOLEAN GetChar(char* value, char* placeholder) {

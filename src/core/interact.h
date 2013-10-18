@@ -35,6 +35,7 @@ typedef BOOLEAN (* get_value_func_t)( char *, void *);
 BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target);
 
 BOOLEAN GetInt(char* value, int* placeholder);
+BOOLEAN GetUnsignedLongLong(char* value, unsigned long long* placeholder);
 BOOLEAN GetChar(char* value, char* placeholder);
 
 #endif /* GMCORE_INTERACT_H */
