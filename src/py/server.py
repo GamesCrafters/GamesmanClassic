@@ -60,21 +60,21 @@ could_not_parse_msg = ('{'
                        '\n "reason":"Could not parse request."'
                        '\n}')
 could_not_start_msg = ('{'
-                     '\n "status":"error",'
-                     '\n "reason":"Could not start game."'
-                     '\n}')
+                       '\n "status":"error",'
+                       '\n "reason":"Could not start game."'
+                       '\n}')
 timeout_msg = ('{'
-             '\n "status":"error",'
-             '\n "reason":"Subprocess timed out."'
-             '\n}')
+               '\n "status":"error",'
+               '\n "reason":"Subprocess timed out."'
+               '\n}')
 crash_msg = ('{'
-           '\n "status":"error",'
-           '\n "reason":"Subprocess crashed."'
-           '\n}')
+             '\n "status":"error",'
+             '\n "reason":"Subprocess crashed."'
+             '\n}')
 closed_msg = ('{'
-            '\n "status":"error",'
-            '\n "reason":"Subprocess was closed."'
-            '\n}')
+              '\n "status":"error",'
+              '\n "reason":"Subprocess was closed."'
+              '\n}')
 
 
 class GameRequestHandler(asynchat.async_chat,
@@ -112,10 +112,10 @@ class GameRequestHandler(asynchat.async_chat,
         if command == 'favicon.ico':
             return
         if command == 'getGames':
-            if self.server.status_server == None:
+            if self.server.status_server is None:
                 self.respond(json.dumps({
                     'status': 'error',
-                    'reason': 'Could not get game list.' },
+                    'reason': 'Could not get game list.'},
                     indent=indent_response))
             else:
                 self.respond(json.dumps({
@@ -139,7 +139,7 @@ class GameRequestHandler(asynchat.async_chat,
         self.server.log.info('GET: {}'.format(unquoted))
 
         game = self.server.get_game(game_name)
-        
+
         # Fix missing quotes on the board string
         if query['board'] != '' and query['board'][0] != '"':
             query['board'] = '"{}"'.format(query['board'])
@@ -214,7 +214,7 @@ class GameProcess(object):
         # and set it to line buffer mode.
         self.process = subprocess.Popen(arg_list, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
-                                        stderr=subprocess.STDOUT, 
+                                        stderr=subprocess.STDOUT,
                                         bufsize=1,
                                         close_fds=True)
         self.setup_subprocess_pipe(self.process.stdout)
@@ -318,7 +318,8 @@ class GameProcess(object):
         except IOError as e:
             # This case can be hit if the subprocess crashes between requests
             # (known to occasionally happen).
-            self.server.log.error('{} crashed on write!'.format(self.game.name))
+            self.server.log.error('{} crashed on write!'
+                                  .format(self.game.name))
             request.respond(self.crash_msg)
             return False
         response = ''
@@ -348,7 +349,7 @@ class GameProcess(object):
                 'In request loop for {}.'.format(self.game.name))
             try:
                 request = self.queue.get(block=True,
-                        timeout=self.req_timeout_step)
+                                         timeout=self.req_timeout_step)
             except Queue.Empty as e:
                 total_idle_time += self.req_timeout_step
                 if total_idle_time > self.req_timeout:
@@ -369,10 +370,10 @@ class GameProcess(object):
     def memory_percent_usage(self):
         try:
             ps_output = subprocess.check_output('ps -o pmem'.split() +
-                [str(self.process.pid)])
+                                                [str(self.process.pid)])
             percent = float(ps_output.split('\n')[1].strip())
             self.server.log.debug('{} is using {}% of memory.'
-                .format(self.game.name, percent))
+                                  .format(self.game.name, percent))
             return percent
         except Exception as e:
             self.server.log.error('Could not get memory use of {}, '
@@ -396,11 +397,12 @@ def start_game(name, server):
                     server.log.debug('Loaded script for {}.'.format(name))
     except Exception as e:
         server.log.error('Could not load script for {}.'.format(name,
-                                                             e.message))
+                                                                e.message))
     if not game_class:
         server.log.debug('Could not find script for {}.'.format(name))
         game_class = Game
     return game_class(server, name)
+
 
 class DummyServer(object):
 
@@ -410,6 +412,7 @@ class DummyServer(object):
 
     def __init__(self, log):
         self.log = log
+
 
 class GameRequestServer(asyncore.dispatcher):
 
@@ -457,7 +460,7 @@ class GameRequestServer(asyncore.dispatcher):
                         self.log.debug('Loaded script for {}.'.format(name))
         except Exception as e:
             self.log.error('Could not load script for {}.'.format(name,
-                                                                 e.message))
+                                                                  e.message))
         if not game_class:
             self.log.debug('Could not find script for {}.'.format(name))
             game_class = Game
@@ -476,8 +479,9 @@ class GameRequestServer(asyncore.dispatcher):
         else:
             self.handler(connection, address, self)
 
+
 class GameStatusServer(object):
-    
+
     could_not_start_msg = could_not_parse_msg
     root_game_directory = root_game_directory
     GameProcess = GameProcess
@@ -503,7 +507,7 @@ class GameStatusServer(object):
         return self._run
 
     def _add_game(self, name):
-        self._game_table[name] = {'capabilities':[]}
+        self._game_table[name] = {'capabilities': []}
 
     def _get_game(self, name):
         if name not in self._game_table:
@@ -554,6 +558,7 @@ def get_log():
 
     log.setLevel(log_level)
     return log
+
 
 def get_status_log():
     log = logging.getLogger('status')
