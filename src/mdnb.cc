@@ -703,7 +703,7 @@ EXTERNC MOVELIST *GenerateMoves(POSITION position)
 
 EXTERNC USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName)
 {
-  BOOLEAN ValidMove();
+  BOOLEAN ValidMove = FALSE;
   USERINPUT ret; 
   
   do {

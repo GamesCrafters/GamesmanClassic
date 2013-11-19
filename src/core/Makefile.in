@@ -21,7 +21,7 @@
 # @configure_input@
 
 CC		= @CC@
-CFLAGS		= @CFLAGS@ @TCLCFLAGS@ @GMPCFLAGS@ @XMLCFLAGS@
+CFLAGS		= @CFLAGS@ @TCLCFLAGS@ @GMPCFLAGS@ @XMLCFLAGS@ -std=gnu99
 AR		= @AR@ cr
 RANLIB		= @RANLIB@
 
