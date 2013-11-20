@@ -225,7 +225,7 @@ MOVELIST *GenerateMoves(POSITION position)
 	{
     while (i < upper)
     {
-      if ((mask & position) == 0)
+      if (((mask << i) & position) == 0)
       {
         head = CreateMovelistNode( (MOVE) i+1, head);
       }
