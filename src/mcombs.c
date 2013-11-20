@@ -183,8 +183,10 @@ VALUE Primitive(POSITION position)
 {
   // losing position if the 
   // first bit is on (1 is picked)
-	if (position % 2 == 1)
-		return win;
+  if ((position & 0x6) == 0x6)
+      return lose;
+	/*if (position % 2 == 1)*/
+		/*return win;*/
 
 	return undecided;
 }
@@ -219,7 +221,7 @@ MOVELIST *GenerateMoves(POSITION position)
 	// Here, use head = CreateMovelistNode(move,head) ;
 	// then return head when done
 	MOVELIST *CreateMovelistNode(), *head = NULL;
-	int i = 0;
+	int i = 1;
   unsigned long long mask = 1;
 	if(Primitive(position) == undecided)
 	{
