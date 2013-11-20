@@ -522,7 +522,7 @@ int isDraw(int remoteness)
 }
 
 
-int* getDividers(int *dividers, int maxR, int maxTR)
+void getDividers(int *dividers, int maxR, int maxTR)
 {
 	if (tiesExist) {
 		dividers[0] = 0;
@@ -539,7 +539,6 @@ int* getDividers(int *dividers, int maxR, int maxTR)
 		dividers[4] = -1;
 		dividers[5] = dividers[2];
 	}
-	return dividers;
 }
 
 
@@ -569,7 +568,8 @@ char* addDividers(char* line, int maxR, int maxTR)
 {
 	int i;
 	int dividers[6];
-	int divider1 = getDividers(dividers, maxR, maxTR)[0];
+        getDividers(dividers, maxR, maxTR);
+	int divider1 = dividers[0];
 	int divider2 = dividers[1];
 	int divider3 = dividers[2];
 	int divider4 = dividers[3];
@@ -652,6 +652,7 @@ void drawDashes(char* line, POSITION position, int whoseTurn, int maxR, int maxT
 	int remoteness = Remoteness(position);
 
 	int dividers[6];
+        getDividers(dividers, maxR, maxTR);
 
 	int leftWin = dividers[0];
 	int rightWin;
