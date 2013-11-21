@@ -197,7 +197,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   printf("TURN: %s\n", playerName);
   printf("UNAVAILABLE NUMBERS: ");
   int mask = 1;
-  for (int i=0; i<upper; i++) 
+  for (int i=1; i<upper; i++) 
   {
     if (position & (mask << i)) 
     {
@@ -205,7 +205,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     }
   }
   printf("\nAVAILABLE NUMBERS: ");
-  for (int i=0; i<upper; i++)
+  for (int i=1; i<upper; i++)
   {
     if (!(position & (mask << i))) 
     {
