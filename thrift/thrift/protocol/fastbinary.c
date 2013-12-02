@@ -169,7 +169,7 @@ static PyObject* INTERN_STRING(cstringio_buf);
 /** Pointer to interned string to speed up attribute lookup. */
 static PyObject* INTERN_STRING(cstringio_refill);
 
-static inline bool
+static bool
 check_ssize_t_32(Py_ssize_t len) {
   // error from getting the int
   if (INT_CONV_ERROR_OCCURRED(len)) {
@@ -182,7 +182,7 @@ check_ssize_t_32(Py_ssize_t len) {
   return true;
 }
 
-static inline bool
+static bool
 parse_pyint(PyObject* o, int32_t* ret, int32_t min, int32_t max) {
   long val = PyInt_AsLong(o);
 

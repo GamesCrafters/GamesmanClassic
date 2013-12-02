@@ -129,13 +129,13 @@ void univht_generate_function(univht *ht) {
 
 }
 
-inline void univht_resize(univht *ht);
-inline unsigned long int univht_key(univht *ht, void *object);
+void univht_resize(univht *ht);
+unsigned long int univht_key(univht *ht, void *object);
 
 unsigned long int univht_insert(univht *ht, void *entry) {
 
-	// inline void univht_resize(univht *ht);
-	// inline unsigned long int univht_key(univht *ht, void *object);
+	// void univht_resize(univht *ht);
+	// unsigned long int univht_key(univht *ht, void *object);
 
 	unsigned long int key;
 	int num_entries;
@@ -183,7 +183,7 @@ unsigned long int univht_insert(univht *ht, void *entry) {
 
 }
 
-inline unsigned long int univht_key(univht *ht, void *object);
+unsigned long int univht_key(univht *ht, void *object);
 
 void *univht_lookup(univht *ht, void *entry) {
 

@@ -42,19 +42,19 @@
 #define FLAGS_INTERNAL 1 /* The item is internal to the hash table */
 
 /* Prototypes */
-static inline void              transpose(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry);
-static inline void              move_to_front(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry);
-static inline void              free_entry_chain(ght_hash_table_t *p_ht, ght_hash_entry_t *p_entry);
-static inline ght_hash_entry_t *search_in_bucket(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_key_t *p_key, unsigned char i_heuristics);
+static void              transpose(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry);
+static void              move_to_front(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry);
+static void              free_entry_chain(ght_hash_table_t *p_ht, ght_hash_entry_t *p_entry);
+static ght_hash_entry_t *search_in_bucket(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_key_t *p_key, unsigned char i_heuristics);
 
-static inline void              hk_fill(ght_hash_key_t *p_hk, int i_size, const void *p_key);
-static inline ght_hash_entry_t *he_create(ght_hash_table_t *p_ht, void *p_data, unsigned int i_key_size, const void *p_key_data);
-static inline void              he_finalize(ght_hash_table_t *p_ht, ght_hash_entry_t *p_he);
+static void              hk_fill(ght_hash_key_t *p_hk, int i_size, const void *p_key);
+static ght_hash_entry_t *he_create(ght_hash_table_t *p_ht, void *p_data, unsigned int i_key_size, const void *p_key_data);
+static void              he_finalize(ght_hash_table_t *p_ht, ght_hash_entry_t *p_he);
 
 /* --- private methods --- */
 
 /* Move p_entry one up in its list. */
-static inline void transpose(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry)
+static void transpose(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry)
 {
 	/*
 	 *  __    __    __    __
@@ -94,7 +94,7 @@ static inline void transpose(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_
 }
 
 /* Move p_entry first */
-static inline void move_to_front(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry)
+static void move_to_front(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p_entry)
 {
 	/*
 	 *  __    __    __
@@ -123,7 +123,7 @@ static inline void move_to_front(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, 
 	p_ht->pp_entries[l_bucket] = p_entry;
 }
 
-static inline void remove_from_chain(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p)
+static void remove_from_chain(ght_hash_table_t *p_ht, ght_uint32_t l_bucket, ght_hash_entry_t *p)
 {
 	if (p->p_prev)
 	{
@@ -157,7 +157,7 @@ static inline void remove_from_chain(ght_hash_table_t *p_ht, ght_uint32_t l_buck
 }
 
 /* Search for an element in a bucket */
-static inline ght_hash_entry_t *search_in_bucket(ght_hash_table_t *p_ht, ght_uint32_t l_bucket,
+static ght_hash_entry_t *search_in_bucket(ght_hash_table_t *p_ht, ght_uint32_t l_bucket,
                                                  ght_hash_key_t *p_key, unsigned char i_heuristics)
 {
 	ght_hash_entry_t *p_e;
@@ -188,7 +188,7 @@ static inline ght_hash_entry_t *search_in_bucket(ght_hash_table_t *p_ht, ght_uin
 }
 
 /* Free a chain of entries (in a bucket) */
-static inline void free_entry_chain(ght_hash_table_t *p_ht, ght_hash_entry_t *p_entry)
+static void free_entry_chain(ght_hash_table_t *p_ht, ght_hash_entry_t *p_entry)
 {
 	ght_hash_entry_t *p_e = p_entry;
 
@@ -202,7 +202,7 @@ static inline void free_entry_chain(ght_hash_table_t *p_ht, ght_hash_entry_t *p_
 
 
 /* Fill in the data to a existing hash key */
-static inline void hk_fill(ght_hash_key_t *p_hk, int i_size, const void *p_key)
+static void hk_fill(ght_hash_key_t *p_hk, int i_size, const void *p_key)
 {
 	assert(p_hk);
 
@@ -211,7 +211,7 @@ static inline void hk_fill(ght_hash_key_t *p_hk, int i_size, const void *p_key)
 }
 
 /* Create an hash entry */
-static inline ght_hash_entry_t *he_create(ght_hash_table_t *p_ht, void *p_data,
+static ght_hash_entry_t *he_create(ght_hash_table_t *p_ht, void *p_data,
                                           unsigned int i_key_size, const void *p_key_data)
 {
 	ght_hash_entry_t *p_he;
@@ -251,7 +251,7 @@ static inline ght_hash_entry_t *he_create(ght_hash_table_t *p_ht, void *p_data,
 }
 
 /* Finalize (free) a hash entry */
-static inline void he_finalize(ght_hash_table_t *p_ht, ght_hash_entry_t *p_he)
+static void he_finalize(ght_hash_table_t *p_ht, ght_hash_entry_t *p_he)
 {
 	assert(p_he);
 
@@ -270,7 +270,7 @@ static inline void he_finalize(ght_hash_table_t *p_ht, ght_hash_entry_t *p_he)
 /* Tried this to avoid recalculating hash values by caching
  * them. Overhead larger than benefits.
  */
-static inline ght_uint32_t get_hash_value(ght_hash_table_t *p_ht, ght_hash_key_t *p_key)
+static ght_uint32_t get_hash_value(ght_hash_table_t *p_ht, ght_hash_key_t *p_key)
 {
 	int i;
 
@@ -592,7 +592,7 @@ void *ght_remove(ght_hash_table_t *p_ht,
 	return p_ret;
 }
 
-static inline void *first_keysize(ght_hash_table_t *p_ht, ght_iterator_t *p_iterator, const void **pp_key, unsigned int *size)
+static void *first_keysize(ght_hash_table_t *p_ht, ght_iterator_t *p_iterator, const void **pp_key, unsigned int *size)
 {
 	assert(p_ht && p_iterator);
 
@@ -631,7 +631,7 @@ void *ght_first_keysize(ght_hash_table_t *p_ht, ght_iterator_t *p_iterator, cons
 }
 
 
-static inline void *next_keysize(ght_hash_table_t *p_ht, ght_iterator_t *p_iterator, const void **pp_key, unsigned int *size)
+static void *next_keysize(ght_hash_table_t *p_ht, ght_iterator_t *p_iterator, const void **pp_key, unsigned int *size)
 {
 	assert(p_ht && p_iterator);
 

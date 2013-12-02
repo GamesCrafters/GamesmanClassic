@@ -585,7 +585,7 @@ STRING computersName;
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
-** CALLS:       inline int getTopPieceColor(layer_t slot)
+** CALLS:       int getTopPieceColor(layer_t slot)
 **              int getTopPieceSize ( layer_t slot )
 **
 **

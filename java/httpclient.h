@@ -13,11 +13,11 @@
 //byte conversion for 64 bit integers
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-static inline uint64_t ntohll(uint64_t x) { return bswap_64(x); }
-static inline uint64_t htonll(uint64_t x) { return bswap_64(x); }
+static uint64_t ntohll(uint64_t x) { return bswap_64(x); }
+static uint64_t htonll(uint64_t x) { return bswap_64(x); }
 #elif __BYTE_ORDER == __BIG_ENDIAN
-static inline uint64_t ntohll(uint64_t x) { return x; }
-static inline uint64_t htonll(uint64_t x) { return x; }
+static uint64_t ntohll(uint64_t x) { return x; }
+static uint64_t htonll(uint64_t x) { return x; }
 #endif
 
 

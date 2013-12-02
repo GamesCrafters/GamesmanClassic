@@ -150,7 +150,7 @@
 **                           Added bounds checking for options.
 **                           Implemented get, set, and return options
 ** 10 Mar 2008 EthanR+AlanW: Further refined options
-** 04 Apr 2010 ide: Updated inline function declarations for gcc 4.4
+** 04 Apr 2010 ide: Updated function declarations for gcc 4.4
 **************************************************************************/
 
 
@@ -2097,7 +2097,7 @@ void yanpeiTestHash() {
 	printPos = oldPrintPos;
 }
 
-static inline QTBPtr rotateBoard90(QTBPtr b) {
+static QTBPtr rotateBoard90(QTBPtr b) {
 
 	QTBPtr c = MallocBoard();
 	short i,j;
@@ -2117,7 +2117,7 @@ static inline QTBPtr rotateBoard90(QTBPtr b) {
 	return c;
 }
 
-static inline QTBPtr reflectBoard(QTBPtr b) {
+static QTBPtr reflectBoard(QTBPtr b) {
 
 	QTBPtr c = MallocBoard();
 	short i,j;
@@ -2137,7 +2137,7 @@ static inline QTBPtr reflectBoard(QTBPtr b) {
 	return c;
 }
 
-static inline void swap_columns(short *pieces, short count, short this, short that) {
+static void swap_columns(short *pieces, short count, short this, short that) {
 
 	/* Placeholder for index to pieces in pieces array */
 	int piece;
@@ -2165,7 +2165,7 @@ static inline void swap_columns(short *pieces, short count, short this, short th
 }
 
 
-static inline short *normalize(short *pieces, short count) {
+static short *normalize(short *pieces, short count) {
 
 	/* Array to store sequences of individual bits across the different pieces */
 	/* The first row of each column contains 0 (which will be the final value of the first piece */
@@ -2292,7 +2292,7 @@ static inline short *normalize(short *pieces, short count) {
 
 
 
-static inline QTBPtr normalizeBoard(QTBPtr board) {
+static QTBPtr normalizeBoard(QTBPtr board) {
 
 	// Array of ordered pieces to be normalized
 	short pieces[board->piecesInPlay];
@@ -3084,7 +3084,7 @@ STRING TierToString(TIER tier) {
 // Options team implemented options on mquarto
 //
 // Revision 1.73  2007/11/19 03:40:23  ddgarcia
-// Rearranged the inline functions since my gcc is a one-pass compiler;
+// Rearranged the functions since my gcc is a one-pass compiler;
 // also, I have to add -std=c99 to get mquarto.c to compile. I guess I
 // need to do some configure.ac hacking to get that put in... :( -dan
 //
