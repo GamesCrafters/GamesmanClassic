@@ -1281,7 +1281,7 @@ POSITION ActualNumberOfPositions(int variant) {
 POSITION StringToPosition(char* board) {
 	// FIXME
 	POSITION pos = 0;
-	if ( GetValue(board, "pos", GetInt, &pos) ) {
+	if ( GetValue(board, "pos", GetUnsignedLongLong, &pos) ) {
 		return pos;
 	} else {
 		return INVALID_POSITION;
