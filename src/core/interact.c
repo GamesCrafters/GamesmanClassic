@@ -124,7 +124,7 @@ BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
 	return TRUE;
 }
 
-BOOLEAN InteractReadBoardString(STRING input, STRING * result) {
+BOOLEAN InteractReadBoardString(STRING input, char ** result) {
 	/* Extract a valid board string surrounded in "
 	 * result will be *inside* input and null-terminated.
 	 * Note that input will be modified in the process.
@@ -177,6 +177,8 @@ STRING InteractValueCharToValueString(char value_char) {
 		return "win";
 	case 'L':
 		return "lose";
+	case 'U':
+		return "undecided";
 	default:
 		return "error";
 	}
@@ -184,10 +186,7 @@ STRING InteractValueCharToValueString(char value_char) {
 
 void InteractPrintJSONPositionValue(POSITION pos) {
 	char value_char = gValueLetter[GetValueOfPosition(pos)];
-	if (value_char != 'U') {
-		/* The quote at the beginning is because value might be omitted. */
-		printf(",\"value\":\"%s\"", InteractValueCharToValueString(value_char));
-	}
+	printf("\"value\":\"%s\"", InteractValueCharToValueString(value_char));
 }
 
 void InteractFreeBoardSting(STRING board) {
@@ -267,6 +266,19 @@ void ServerInteractLoop(void) {
 			}
 			printf("}");
 			InteractFreeBoardSting(board);
+		} else if (FirstWordMatches(input, "end_response")) {
+			if (!InteractReadBoardString(input, &board)) {
+				printf("%s", invalid_board_string);
+				continue;
+			}
+			pos = StringToPosition(board);
+			if (pos == -1) {
+				printf("%s", invalid_board_string);
+				continue;
+			}
+			printf(RESULT "{\"status\":\"ok\",\"response\":{");
+			InteractPrintJSONPositionValue(pos);
+			printf("}}");
 		} else if (FirstWordMatches(input, "value")) {
 			if (!InteractReadPosition(input, &pos)) {
 				continue;
@@ -371,7 +383,7 @@ void ServerInteractLoop(void) {
 				printf(" error =>> missing move number in result request\n");
 			}
 		} else if (FirstWordMatches(input, "move_value_response")) {
-			if (!InteractReadBoardString(input, (const char **) &board)) {
+			if (!InteractReadBoardString(input, &board)) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -382,19 +394,19 @@ void ServerInteractLoop(void) {
 			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
 			printf("\"board\":\"%s\",", board);
-			printf("\"remoteness\":%d", Remoteness(pos));
+			printf("\"remoteness\":%d,", Remoteness(pos));
 			InteractPrintJSONPositionValue(pos);
 			printf("}}");
 		} else if (FirstWordMatches(input, "position")) {
-            if (!InteractReadBoardString(input, (const char **) &board)) {
-                printf("%s", invalid_board_string);
-                continue;
-            }
-            pos = StringToPosition(board);
-            printf("board: " POSITION_FORMAT,pos);
-            
-        } else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
-			if (!InteractReadBoardString(input, (const char **) &board)) {
+			if (!InteractReadBoardString(input, &board)) {
+				printf("%s", invalid_board_string);
+				continue;
+			}
+			pos = StringToPosition(board);
+			printf("board: " POSITION_FORMAT,pos);
+
+			} else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
+			if (!InteractReadBoardString(input, &board)) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -411,9 +423,9 @@ void ServerInteractLoop(void) {
 			while (current_move) {
 				choice = DoMove(pos, current_move->move);
 				board = PositionToString(choice);
-				printf("{\"board\":\"%s\"", board);
+				printf("{\"board\":\"%s\",", board);
 				InteractFreeBoardSting(board);
-				printf(",\"remoteness\":%d", Remoteness(choice));
+				printf("\"remoteness\":%d,", Remoteness(choice));
 				InteractPrintJSONPositionValue(choice);
 				move_string = MoveToString(current_move->move);
 				printf(",\"move\":\"%s\"", move_string);

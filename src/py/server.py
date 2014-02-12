@@ -149,6 +149,9 @@ class GameRequestHandler(asynchat.async_chat,
                 'getStart':
                 'start_response',
 
+                'getEnd':
+                'end_response {}'.format(query['board']),
+
                 'getNextMoveValues':
                 'next_move_values_response {}'.format(query['board']),
 

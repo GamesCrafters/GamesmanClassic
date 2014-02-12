@@ -13,7 +13,7 @@
 
 
 BOOLEAN InteractReadPosition(STRING input, POSITION * result);
-BOOLEAN InteractReadBoardString(STRING input, STRING * result);
+BOOLEAN InteractReadBoardString(STRING input, char ** result);
 STRING InteractValueCharToValueString(char value_char);
 void InteractPrintJSONPositionValue(POSITION pos);
 void InteractFreeBoardSting(STRING board);
