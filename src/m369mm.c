@@ -2276,3 +2276,7 @@ char* PositionToString(POSITION pos) {
 	}
 	return finalBoard;
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

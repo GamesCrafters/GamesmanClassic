@@ -1949,3 +1949,7 @@ char* PositionToString(POSITION pos) {
 */
 
 GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

@@ -1153,3 +1153,7 @@ char* PositionToString(POSITION pos) {
 
 	return retString;		
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

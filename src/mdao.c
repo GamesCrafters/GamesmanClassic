@@ -877,3 +877,7 @@ char* PositionToString(POSITION pos) {
 	str[BOARD_SIZE] = '\0'; 
 	return MakeBoardString(str, "turn",  StrFromI(current_player), "");
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

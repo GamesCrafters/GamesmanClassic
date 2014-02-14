@@ -1974,3 +1974,7 @@ char* PositionToString(POSITION pos) {
 	free(board_string);
 	return formatted;
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

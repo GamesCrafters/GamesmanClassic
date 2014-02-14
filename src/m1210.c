@@ -548,3 +548,7 @@ char* PositionToString(POSITION pos) {
 	strncpy(ret, buffer, (strlen(buffer)+1));
 	return ret;
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

@@ -631,3 +631,7 @@ char* PositionToString(POSITION pos) {
 STRING MoveToString(MOVE theMove) {
 	return "Implement MoveToString";
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

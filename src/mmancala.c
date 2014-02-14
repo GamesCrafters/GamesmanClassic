@@ -1558,3 +1558,7 @@ char* PositionToString(POSITION pos) {
     SafeFree(arrayHashedBoard);
 	return retString;
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

@@ -618,6 +618,10 @@ EXTERNC char* PositionToString(POSITION pos) {
     return "Implement Me";
 }
 
+EXTERNC char * PositionToEndData(POSITION pos) {
+	return NULL;
+}
+
 EXTERNC STRING MoveToString(MOVE theMove) {
     return "Implement MoveToString";
 }

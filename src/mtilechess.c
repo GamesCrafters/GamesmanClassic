@@ -3168,3 +3168,7 @@ char* PositionToString(POSITION pos) {
 STRING MoveToString(MOVE theMove) {
 	return StringDup("");
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

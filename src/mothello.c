@@ -1123,7 +1123,8 @@ MOVE theMove;
 
 int NumberOfOptions ()
 {
-	return 2;
+	/*return 2;*/
+  return INT_MAX;
 }
 
 
@@ -1928,4 +1929,8 @@ char* PositionToString(POSITION pos) {
 	char * formatted = MakeBoardString(board, "turn", StrFromI(turn), "");
 	SafeFree(board);
 	return formatted;
+}
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
 }

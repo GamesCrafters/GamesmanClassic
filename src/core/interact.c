@@ -44,6 +44,7 @@ char * StringFormat(size_t max_size, char * format_str, ...) {
 
 STRING MoveToString(MOVE mv);
 char * PositionToString(POSITION pos);
+char * PositionToEndData(POSITION pos);
 POSITION StringToPosition(STRING str);
 
 static char * AllocVa(va_list lst, size_t accum, size_t * total) {
@@ -209,6 +210,7 @@ void ServerInteractLoop(void) {
 	MOVE move;
 	STRING move_string = NULL;
 	char * board = NULL;
+        char * data = NULL;
 	MEX mex = 0;
 	TIER tier = 0;
 	/* Set stdout to do by line buffering so that sever interaction works right.
@@ -277,7 +279,14 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
+			/* For debuggin purposes. */
+			/*printf("\"board\": \"%s\",",  board);*/
 			InteractPrintJSONPositionValue(pos);
+			data = PositionToEndData(pos);
+			if (data) {
+				printf(",%s", data);
+				SafeFree(data);
+			}
 			printf("}}");
 		} else if (FirstWordMatches(input, "value")) {
 			if (!InteractReadPosition(input, &pos)) {

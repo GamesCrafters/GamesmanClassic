@@ -802,3 +802,7 @@ STRING computersName;
 	                // FIXME: this is just a stub
 	                return "Implement Me";
 		}
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

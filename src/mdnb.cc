@@ -795,6 +795,10 @@ EXTERNC char* PositionToString(POSITION pos) {
 EXTERNC STRING MoveToString(MOVE theMove) {
     return "Implement MoveToString";
 }
+
+EXTERNC char * PositionToEndData(POSITION pos) {
+	return NULL;
+}
 /*
 EXTERNC VALUE *GetRawValueFromDatabase(POSITION position)
 {
@@ -954,3 +958,4 @@ GoAgainCmd(ClientData dummy, Tcl_Interp* interp, int argc, char ** argv)
 */
 
 #endif
+

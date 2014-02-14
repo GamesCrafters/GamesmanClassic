@@ -1870,3 +1870,7 @@ STRING TierToString(TIER tier) {
 // Exact details on the exact changes I made to the core files can be found
 // in a comment on solveretrograde.c. -Max
 //
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

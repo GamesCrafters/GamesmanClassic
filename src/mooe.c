@@ -686,3 +686,7 @@ char* PositionToString(POSITION position) {
 	return MakeBoardString("", "matches", StrFromI(matches), "first_player_matches", StrFromI(first_player_matches), 
 		"second_player_matches", StrFromI(second_player_matches), "position", StrFromI(position), "");
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

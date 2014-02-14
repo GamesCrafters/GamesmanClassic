@@ -946,3 +946,7 @@ char* PositionToString(POSITION pos) {
 	return whole_board;
 }
 
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

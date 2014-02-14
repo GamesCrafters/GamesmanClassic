@@ -1016,3 +1016,7 @@ char* PositionToString(POSITION position) {
 
   return board;
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

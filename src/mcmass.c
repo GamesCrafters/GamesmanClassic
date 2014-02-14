@@ -1392,4 +1392,6 @@ char* PositionToString(POSITION pos) {
 	return "Implement Me";
 }
 
-//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

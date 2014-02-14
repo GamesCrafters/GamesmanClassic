@@ -2923,3 +2923,7 @@ POSITION StringToPosition(char* board) {
 	return atoi(board);
 }
 
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

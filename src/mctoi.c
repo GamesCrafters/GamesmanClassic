@@ -2472,3 +2472,7 @@ char* PositionToString(POSITION pos) {
 	else
 		return MakeBoardString(unhash(pos), "turn" , StringDup("white"), "");
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

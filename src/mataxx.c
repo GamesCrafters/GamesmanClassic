@@ -1018,3 +1018,7 @@ char* PositionToString(POSITION pos) {
 	return "Implement Me";
 }
 
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}

@@ -1257,3 +1257,7 @@ char* PositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
+
+char * PositionToEndData(POSITION pos) {
+	return NULL;
+}
