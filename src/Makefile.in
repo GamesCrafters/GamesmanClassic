@@ -356,7 +356,7 @@ TTTPPM_OBJ		= mtttppm$(OBJSUFFIX)
 TTT_SO			= $(LIBDIR)/libmttt$(LIBSUFFIX)
 TTT_PEN_OBJ		= $(ANOTO_PEN_DIR)/pttt$(OBJSUFFIX)
 
-TT2_EXE			= $(BINDIR)/mtt2$(EXESUFFIX)	# The awesome game of Tic-Tac-Two
+TT2_EXE			= $(BINDIR)/mtt2$(EXESUFFIX)	# The also awesome game of Tic-Tac-Two
 TT2_OBJ			= mtt2$(OBJSUFFIX)
 
 WIN4_EXE		= $(BINDIR)/mwin4$(EXESUFFIX)	# The cool game of Connect-4
