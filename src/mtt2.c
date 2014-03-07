@@ -58,7 +58,7 @@ STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions.";
 
 STRING kHelpStandardObjective =
-        "To get three of your markers (either X or O) in a row, either\n\
+        "To get three of your markers (either X/+ or O/*) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
 
 STRING kHelpReverseObjective =
@@ -125,17 +125,18 @@ Computer wins. Nice try, Niko."                                                 
 **
 **************************************************************************/
 
-#define BOARDSIZE     27           /* 3x9 board */
+#define BOARDSIZE     18           /* 3x6 board */
 
 typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
-char *gBlankOXString[] = { " ", "o", "x" };
+char *gBlankOXString[] = { " ", "o", "x"};
 
 /*HERE*/
 /* Powers of 3 - this is the way I encode the position, as an integer */
-int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
+/*Too Big!!!!, Gona need to rethink the encoding algorythm*/
+int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163};
 
 /* Global position solver variables.*/
 struct {
@@ -160,7 +161,7 @@ POSITION ActualNumberOfPositions(int variant);
 /**************** SYMMETRY FUN BEGIN **************/
 /**************************************************/
 
-BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
+BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries, temporarally false untill everything else is done (check me colby)*/
 
 #define NUMSYMMETRIES 8   /*  4 rotations, 4 flipped rotations */
 
@@ -171,7 +172,7 @@ int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
 ** FLIP						ROTATE
 **
 ** 0 1 2	2 1 0		0 1 2		6 3 0		8 7 6		2 5 8
-** 3 4 5  ->    5 4 3		3 4 5	->	7 4 1  ->	5 4 3	->	1 4 7
+** 3 4 5 -> 5 4 3		3 4 5  ->	7 4 1  ->	5 4 3	->	1 4 7
 ** 6 7 8	8 7 6		6 7 8		8 5 2		2 1 0		0 3 6
 */
 
@@ -245,9 +246,10 @@ void FreeGame()
 
 void DebugMenu()
 {
+    #if 0
 	int tttppm();
 	char GetMyChar();
-
+    
 	do {
 		printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
 
@@ -284,7 +286,7 @@ void DebugMenu()
 			break;
 		}
 	} while(TRUE);
-
+    #endif
 }
 
 /************************************************************************
@@ -314,10 +316,12 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 
 void SetTclCGameSpecificOptions(int theOptions[])
 {
+    #if 0
 	// Anoto pen support
 	if ((gPenFile != NULL) && (gTclInterp != NULL)) {
 		gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
 	}
+	#endif
 }
 
 /************************************************************************
@@ -455,15 +459,26 @@ VALUE Primitive(POSITION position)
 {
 	if (!gUseGPS)
 		PositionToBlankOX(position, gPosition.board); // Temporary storage.
-
-	if (ThreeInARow(gPosition.board, 0, 1, 2) ||
+		
+	/**
+	 * 0 1 2 | 9  10 11
+	 * 3 4 5 | 12 13 14
+	 * 6 7 8 | 15 16 17
+	 *
+	 **/
+	 
+	if (ThreeInARow(gPosition.board, 0, 1, 2) || //All the front threeinarows
 	    ThreeInARow(gPosition.board, 3, 4, 5) ||
 	    ThreeInARow(gPosition.board, 6, 7, 8) ||
 	    ThreeInARow(gPosition.board, 0, 3, 6) ||
 	    ThreeInARow(gPosition.board, 1, 4, 7) ||
 	    ThreeInARow(gPosition.board, 2, 5, 8) ||
 	    ThreeInARow(gPosition.board, 0, 4, 8) ||
-	    ThreeInARow(gPosition.board, 2, 4, 6))
+	    ThreeInARow(gPosition.board, 2, 4, 6)
+	    
+	    
+	    
+	    )
 		return gStandardGame ? lose : win;
 	else if ((gUseGPS && (gPosition.piecesPlaced == BOARDSIZE)) ||
 	         ((!gUseGPS) && AllFilledIn(gPosition.board)))
@@ -498,19 +513,32 @@ BOOLEAN usersTurn;
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n         ( 1 2 3 )           : %s %s %s\n",
+	printf("\n         (  1  2  3 )           : %s %s %s\n",
 	       gBlankOXString[(int)theBlankOx[0]],
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]] );
-	printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %s %s %s\n",
+	printf("LEGEND:  (  4  5  6 )  TOTAL:   : %s %s %s\n",
 	       gBlankOXString[(int)theBlankOx[3]],
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]] );
-	printf("         ( 7 8 9 )           : %s %s %s %s\n\n",
+	printf("         (  7  8  9 )           : %s %s %s\n\n",
 	       gBlankOXString[(int)theBlankOx[6]],
 	       gBlankOXString[(int)theBlankOx[7]],
-	       gBlankOXString[(int)theBlankOx[8]],
-	       GetPrediction(position,playerName,usersTurn));
+	       gBlankOXString[(int)theBlankOx[8]] );
+	       
+	printf("\n         ( 10 11 12 )           : %s %s %s\n",
+	       gBlankOXString[(int)theBlankOx[9]],
+	       gBlankOXString[(int)theBlankOx[10]],
+	       gBlankOXString[(int)theBlankOx[11]] );
+	printf("LEGEND:  ( 13 14 15 )  TOTAL:   : %s %s %s\n",
+	       gBlankOXString[(int)theBlankOx[12]],
+	       gBlankOXString[(int)theBlankOx[13]],
+	       gBlankOXString[(int)theBlankOx[14]] );
+	printf("         ( 16 17 18 )           : %s %s %s %s\n\n",
+	       gBlankOXString[(int)theBlankOx[15]],
+	       gBlankOXString[(int)theBlankOx[16]],
+	       gBlankOXString[(int)theBlankOx[17]],
+            GetPrediction(position,playerName,usersTurn));
 }
 
 /************************************************************************
@@ -646,7 +674,7 @@ STRING playerName;
 	USERINPUT ret;
 
 	do {
-		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
+		printf("%8s's move [(u)ndo/01-18] :  ", playerName);
 
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if(ret != Continue)
@@ -677,7 +705,7 @@ STRING playerName;
 BOOLEAN ValidTextInput(input)
 STRING input;
 {
-	return(input[0] <= '9' && input[0] >= '1');
+	return TRUE;//((input[0] <= '9' && input[0] >= '1')&&(input[1] <= '9' && input[0] >= '1'));
 }
 
 /************************************************************************
@@ -695,7 +723,13 @@ STRING input;
 MOVE ConvertTextInputToMove(input)
 STRING input;
 {
-	return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
+    //Converts the input into an integer, then subtracts 1 from the interger 
+    //and turns it back into a string for the internal representation
+    //Is atoi a function?
+    
+    //return((MOVE) input[0] - '1'); (Old Code)
+    int int_move = atoi(input) - 1;
+	return((MOVE) int_move); /* user input is 01-18, our rep. is 0-17 */
 }
 
 /************************************************************************
@@ -767,7 +801,7 @@ POSITION thePos;
 BlankOX *theBlankOX;
 {
 	int i;
-	for(i = 8; i >= 0; i--) {
+	for(i = 17; i >= 0; i--) {
 		if(thePos >= ((int)x * g3Array[i])) {
 			theBlankOX[i] = x;
 			thePos -= (int)x * g3Array[i];
@@ -826,9 +860,43 @@ BOOLEAN ThreeInARow(theBlankOX,a,b,c)
 BlankOX theBlankOX[];
 int a,b,c;
 {
+    /**
+     * FRONT | BACK
+	 * 0 1 2 | 9  10 11
+	 * 3 4 5 | 12 13 14
+	 * 6 7 8 | 15 16 17
+	 *
+	**/
+	
+	//front view
+	BlankOX af = theBlankOX[a], bf = theBlankOX[b], cf = theBlankOX[c];
+	//back view
+	BlankOX ab = theBlankOX[a + 9], bb = theBlankOX[b + 9], cb = theBlankOX[c + 9];
+	
+	if(af == Blank) {
+	    af = ab;
+	}
+	else if(ab == Blank) ab = af;
+	
+	if(bf == Blank) {
+	    bf = bb;
+	}
+	else if(bb == Blank) bb = bf;
+	
+	if(cf == Blank) {
+	    cf = cb;
+	}
+	else if(cb == Blank) cb = cf;
+	
+	/* ttt version
 	return(       theBlankOX[a] == theBlankOX[b] &&
 	              theBlankOX[b] == theBlankOX[c] &&
 	              theBlankOX[c] != Blank );
+	              
+	*/
+	
+	return( (af == bf && bf == cf && cf != Blank) ||
+	        (ab == bb && bb == cb && cb != Blank) );
 }
 
 /************************************************************************
@@ -916,3 +984,9 @@ POSITION ActualNumberOfPositions(int variant) {
 }
 
 GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
+
+
+char * PositionToEndData(POSITION pos)
+{
+	return NULL;
+}
