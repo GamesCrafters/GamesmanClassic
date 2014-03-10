@@ -955,7 +955,7 @@ BlankOX *theBlankOX;
 		return(o);
 }
 
-STRING kDBName = "ttt";
+STRING kDBName = "tt2";
 
 int NumberOfOptions()
 {
