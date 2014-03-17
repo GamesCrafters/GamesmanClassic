@@ -428,25 +428,27 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			printf(RESULT "{\"status\":\"ok\",\"response\":[");
-			current_move = all_next_moves = GenerateMoves(pos);
-			while (current_move) {
-				choice = DoMove(pos, current_move->move);
-				board = PositionToString(choice);
-				printf("{\"board\":\"%s\",", board);
-				InteractFreeBoardSting(board);
-				printf("\"remoteness\":%d,", Remoteness(choice));
-				InteractPrintJSONPositionValue(choice);
-				move_string = MoveToString(current_move->move);
-				printf(",\"move\":\"%s\"", move_string);
-				SafeFree(move_string);
-				current_move = current_move->next;
-				printf("}");
-				if (current_move) {
-					printf(", ");
+                        if (Primitive(pos) == undecided) {
+				current_move = all_next_moves = GenerateMoves(pos);
+				while (current_move) {
+					choice = DoMove(pos, current_move->move);
+					board = PositionToString(choice);
+					printf("{\"board\":\"%s\",", board);
+					InteractFreeBoardSting(board);
+					printf("\"remoteness\":%d,", Remoteness(choice));
+					InteractPrintJSONPositionValue(choice);
+					move_string = MoveToString(current_move->move);
+					printf(",\"move\":\"%s\"", move_string);
+					SafeFree(move_string);
+					current_move = current_move->next;
+					printf("}");
+					if (current_move) {
+						printf(", ");
+					}
 				}
-			}
-			move_string = NULL;
-			FreeMoveList(all_next_moves);
+				move_string = NULL;
+				FreeMoveList(all_next_moves);
+                        }
 			printf("]}");
 		} else {
 			printf(" error =>> unknown command: '%s'", input);
