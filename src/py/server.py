@@ -38,7 +38,6 @@ log_filename = 'server.log'
 
 game_script_directory = './src/py/games/'
 
-indent_response = True
 close_on_timeout = False
 
 # Seconds to wait for a response from the process before sending timeout_msg
@@ -116,12 +115,12 @@ class GameRequestHandler(asynchat.async_chat,
                 self.respond(json.dumps({
                     'status': 'error',
                     'reason': 'Could not get game list.'},
-                    indent=indent_response))
+                    indent=self.game.indent_response))
             else:
                 self.respond(json.dumps({
                     'status': 'ok',
                     'response': self.server.status_server.get_table()},
-                    indent=indent_response))
+                    indent=self.game.indent_response))
             return
         game_name = path[-2]
 
@@ -159,7 +158,10 @@ class GameRequestHandler(asynchat.async_chat,
                 'move_value_response {}'.format(query['board'])
             }[command]
         except KeyError:
-            self.respond(could_not_parse_msg)
+            try:
+                game.respond_to_unknown_request(GameRequest(self, query, command))
+            except Exception:
+                self.respond(could_not_parse_msg)
         else:
             game.push_request(GameRequest(self, query, c_command))
 
@@ -267,8 +269,7 @@ class GameProcess(object):
                     # Catches problems with split, indexing, and non json
                     # together
                     return None
-                formatted = json.dumps(parsed, indent=indent_response)
-                return formatted
+                return self.game.format_parsed(parsed)
 
     def handle_timeout(self, request, response):
         # Did not receive a response from the subprocess, so
@@ -533,7 +534,7 @@ class GameStatusServer(object):
         self._done = True
 
     def get_game_status_table(self):
-        return json.dumps(self._game_table, indent=indent_response)
+        return json.dumps(self._game_table, indent=self.game.indent_response)
 
     def get_table(self):
         return self._game_table

@@ -5,6 +5,7 @@ import json
 import time
 
 class Game(object):
+    indent_response = True
 
     def __init__(self, server, name):
         self.server = server
@@ -23,6 +24,9 @@ class Game(object):
             return self.processes[opt][0]
         else:
             return self.start_process(query, opt)
+
+    def format_parsed(self, parsed):
+        return json.dumps(parsed, indent=self.indent_response)
 
     @property
     def has_script(self):
@@ -111,6 +115,9 @@ class Game(object):
 
     def get_option(self, query):
         return None
+
+    def respond_to_unknown_request(self, req):
+        raise Exception("Cannot handle query.")
 
     def remove_process(self, process):
         self.server.log.info('Removing {}.'.format(self.name))
