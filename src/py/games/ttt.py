@@ -14,3 +14,5 @@ class ttt(game.Game):
             req.respond(self.format_parsed(
                 {'status': 'ok',
                 'response': options}))
+        else:
+            raise NotImplemented()
