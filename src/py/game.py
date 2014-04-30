@@ -17,7 +17,9 @@ class Game(object):
 
     def get_process(self, query):
         self.delete_closed_processes()
-        opt = self.get_option(query)
+        opt = query.get('number', None)
+        if opt is None:
+            opt = self.get_option(query)
 
         # Check that there is a non-empty list of processes for this option
         if self.processes[opt]:
