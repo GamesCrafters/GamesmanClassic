@@ -50,9 +50,9 @@ subprocess_idle_timeout = 600  # Seconds
 log_to_file = True
 log_to_stdout = True
 log_to_stderr = False
-#log_level = logging.DEBUG
-#log_level = logging.INFO
 log_level = logging.WARN
+# log_level = logging.DEBUG
+# log_level = logging.INFO
 
 could_not_parse_msg = ('{'
                        '\n "status":"error",'
@@ -159,7 +159,9 @@ class GameRequestHandler(asynchat.async_chat,
             }[command]
         except KeyError:
             try:
-                game.respond_to_unknown_request(GameRequest(self, query, command))
+                game.respond_to_unknown_request(GameRequest(self,
+                                                            query,
+                                                            command))
             except Exception:
                 self.respond(could_not_parse_msg)
         else:
@@ -364,7 +366,8 @@ class GameProcess(object):
                 total_idle_time = 0.0
                 live = self.handle(request)
             self.server.log.debug('{} is using {}% of memory.'
-                .format(self.game.name, self.memory_percent_usage()))
+                                  .format(self.game.name,
+                                          self.memory_percent_usage()))
             if self.memory_percent_usage() > max_memory_percent_per_process:
                 self.server.log.error('{} used too much memory!'
                                       .format(self.game.name))

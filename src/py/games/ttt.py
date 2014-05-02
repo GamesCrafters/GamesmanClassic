@@ -1,5 +1,6 @@
 import game
 
+
 class ttt(game.Game):
 
     def get_option(self, query):
@@ -19,6 +20,6 @@ class ttt(game.Game):
                        {}]
             req.respond(self.format_parsed(
                 {'status': 'ok',
-                'response': options}))
+                 'response': options}))
         else:
             raise NotImplemented()
