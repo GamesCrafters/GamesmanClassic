@@ -1037,14 +1037,24 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	POSITION pos = 0;
+	if (GetValue(board, "pos", GetUnsignedLongLong, &pos)) {
+		return pos;
+	} else {
+		return INVALID_POSITION;
+	}
 }
 
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	int turn;
+    char *board = unhash(pos, &turn);
+	char *out = MakeBoardString(board,
+							    "turn", StrFromI(turn),
+								"pos", StrFromI(pos),
+								"");
+	SafeFree(board);
+	return out;
 }
 
 char * PositionToEndData(POSITION pos) {

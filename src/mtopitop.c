@@ -3354,14 +3354,26 @@ BOOLEAN IsLegal(POSITION position) {
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
 POSITION StringToPosition(char* board) {
-  // FIXME: this is just a stub
-  return atoi(board);
+	POSITION pos = INVALID_POSITION;
+	GetValue(board, "pos", GetUnsignedLongLong, &pos);
+	return pos;
 }
 
 
 char* PositionToString(POSITION pos) {
-  // FIXME: this is just a stub
-  return "Implement Me";
+  BoardAndTurn bt = arrayUnhash(pos);
+  char *out = MakeBoardString(bt->theBoard,
+			      "turn", StrFromI(bt->theTurn),
+			      "smallSandPiles", StrFromI(bt->data->smallSandPiles),
+			      "largeSandPiles", StrFromI(bt->data->largeSandPiles),
+			      "redBuckets", StrFromI(bt->data->redBuckets),
+			      "blueBuckets", StrFromI(bt->data->blueBuckets),
+			      "redCastles", StrFromI(bt->redCastles),
+			      "blueCastles", StrFromI(bt->blueCastles),
+			      "pos", StrFromI(pos),
+			      "");
+  SafeFree(bt);
+  return out;
 }
 
 STRING MoveToString(MOVE theMove)

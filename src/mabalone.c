@@ -2459,14 +2459,18 @@ STRING TierToString(TIER tier) {
 // added : $, : $, changed kGameName = Abalone
 //
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	POSITION pos = INVALID_POSITION;
+	GetValue(board, "pos", GetUnsignedLongLong, &pos);
+	return pos;
 }
 
-
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	int whoseMove;
+	unhash(pos, &whoseMove);
+	return MakeBoardString(gBoard,
+			       "turn", StrFromI(whoseMove),
+			       "pos", StrFromI(pos),
+	                       "");
 }
 
 char * PositionToEndData(POSITION pos) {

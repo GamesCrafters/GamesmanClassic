@@ -1379,14 +1379,29 @@ void setOption(int option)
 
 
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	POSITION pos = 0;
+	if (GetValue(board, "pos", GetUnsignedLongLong, &pos)) {
+		return pos;
+	} else {
+		return INVALID_POSITION;
+	}
 }
 
 
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	ClearTheBoard();
+
+	theBoard[pieceToBoard(GetRedPosition(pos),0)] = 'R';
+	theBoard[pieceToBoard(GetRedPosition(pos),1)] = 'R';
+	theBoard[pieceToBoard(GetBluePosition(pos),0)] = 'B';
+	theBoard[pieceToBoard(GetBluePosition(pos),1)] = 'B';
+	theBoard[pieceToBoard(GetWhitePosition(pos),0)] = 'W';
+	theBoard[pieceToBoard(GetWhitePosition(pos),1)] = 'W';
+
+
+        return MakeBoardString(theBoard,
+                               "pos", StrFromI(pos),
+                               "");
 }
 
 char * PositionToEndData(POSITION pos) {
