@@ -115,12 +115,12 @@ class GameRequestHandler(asynchat.async_chat,
                 self.respond(json.dumps({
                     'status': 'error',
                     'reason': 'Could not get game list.'},
-                    indent=self.game.indent_response))
+                    indent=Game.indent_response))
             else:
                 self.respond(json.dumps({
                     'status': 'ok',
                     'response': self.server.status_server.get_table()},
-                    indent=self.game.indent_response))
+                    indent=Game.indent_response))
             return
         game_name = path[-2]
 
@@ -537,7 +537,7 @@ class GameStatusServer(object):
         self._done = True
 
     def get_game_status_table(self):
-        return json.dumps(self._game_table, indent=self.game.indent_response)
+        return json.dumps(self._game_table, indent=Game.indent_response)
 
     def get_table(self):
         return self._game_table
