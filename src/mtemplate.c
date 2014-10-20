@@ -87,9 +87,6 @@ void DebugMenu()
 void GameSpecificMenu() {
 }
 
-// Anoto pen support - implemented in core/pen/pttt.c
-extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, int debug);
-
 /************************************************************************
 **
 ** NAME: SetTclCGameSpecificOptions
@@ -121,6 +118,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 
 POSITION DoMove(POSITION position, MOVE move)
 {
+  return 0;
 }
 
 void UndoMove(MOVE move)
@@ -140,6 +138,7 @@ void UndoMove(MOVE move)
 
 POSITION GetInitialPosition()
 {
+  return 0;
 }
 
 /************************************************************************
@@ -184,6 +183,7 @@ STRING computersName;
 
 VALUE Primitive(POSITION position)
 {
+  return UNDECIDED;
 }
 
 /************************************************************************
@@ -226,6 +226,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 MOVELIST *GenerateMoves(POSITION position)
 {
+  return NULL;
 }
 
 /**************************************************/
@@ -248,6 +249,7 @@ MOVELIST *GenerateMoves(POSITION position)
 
 POSITION GetCanonicalPosition(POSITION position)
 {
+  return position;
 }
 
 /************************************************************************
@@ -267,6 +269,7 @@ POSITION GetCanonicalPosition(POSITION position)
 
 POSITION DoSymmetry(POSITION position, int symmetry)
 {
+  return position;
 }
 
 /**************************************************/
@@ -297,6 +300,7 @@ POSITION thePosition;
 MOVE *theMove;
 STRING playerName;
 {
+  return Continue;
 }
 
 /************************************************************************
@@ -318,6 +322,7 @@ STRING playerName;
 
 BOOLEAN ValidTextInput(STRING input)
 {
+  return TRUE;
 }
 
 /************************************************************************
@@ -334,6 +339,7 @@ BOOLEAN ValidTextInput(STRING input)
 
 MOVE ConvertTextInputToMove(STRING input)
 {
+  return 0;
 }
 
 /************************************************************************
@@ -363,16 +369,19 @@ void PrintMove(MOVE theMove)
 
 STRING MoveToString (MOVE theMove)
 {
+  return NULL;
 }
 
 STRING kDBName = "";
 
 int NumberOfOptions()
 {
+  return 1;
 }
 
 int getOption()
 {
+  return 0;
 }
 
 void setOption(int option)
@@ -381,17 +390,21 @@ void setOption(int option)
 
 POSITION ActualNumberOfPositions(int variant)
 {
+  return 0;
 }
 
 
 POSITION StringToPosition(STRING board)
 {
+  return 0;
 }
 
 STRING PositionToString(POSITION pos)
 {
+  return NULL;
 }
 
 char * PositionToEndData(POSITION pos)
 {
+  return NULL;
 }
