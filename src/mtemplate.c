@@ -1,603 +1,397 @@
-/************************************************************************
-**
-** NAME:        NAME OF FILE
-**
-** DESCRIPTION: GAME NAME
-**
-** AUTHOR:      YOUR NAMES HERE
-**
-** DATE:        WHEN YOU START/FINISH
-**
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**
-** LAST CHANGE: $Id: mtemplate.c,v 1.12 2006-12-27 23:51:23 arabani Exp $
-**
-**************************************************************************/
-
-/*************************************************************************
-**
-** Everything below here must be in every game file
-**
-**************************************************************************/
-
 #include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
+POSITION gNumberOfPositions = 0;
+POSITION kBadPosition = -1;
+
+POSITION gInitialPosition = 0;
+POSITION gMinimalPosition = 0;
+
+STRING kAuthorName = "";
+STRING kGameName = "";
+BOOLEAN kPartizan = TRUE;
+BOOLEAN kDebugMenu = TRUE;
+BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kTieIsPossible = TRUE;
+BOOLEAN kLoopy = FALSE;
+BOOLEAN kDebugDetermineValue = FALSE;
+void* gGameSpecificTclInit = NULL;
+
+STRING kHelpGraphicInterface = "";
+
+STRING kHelpTextInterface = "":
+
+STRING kHelpOnYourTurn = "";
+
+STRING kHelpStandardObjective = "";
+
+STRING kHelpReverseObjective = "";
+
+STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+
+STRING kHelpExample = "";
 
 /*************************************************************************
 **
-** Game-specific constants
+** Everything above here must be in every game file
 **
 **************************************************************************/
 
-STRING kGameName            = "";   /* The name of your game */
-STRING kAuthorName          = "";   /* Your name(s) */
-STRING kDBName              = "";   /* The name to store the database under */
-
-BOOLEAN kPartizan            = FALSE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
-BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
-BOOLEAN kTieIsPossible       = FALSE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
-BOOLEAN kLoopy               = FALSE;   /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
-
-BOOLEAN kDebugMenu           = TRUE;   /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when on release. */
-
-POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
-POSITION kBadPosition         = -1; /* A position that will never be used */
-
-void*    gGameSpecificTclInit = NULL;
-
-/**
- * Help strings that are pretty self-explanatory
- * Strings than span more than one line should have backslashes (\) at the end of the line.
- * These help strings should be updated and dynamically changed using
- * InitializeHelpStrings()
- **/
-
-STRING kHelpGraphicInterface =
-        "Help strings not initialized!";
-
-STRING kHelpTextInterface =
-        "Help strings not initialized!";
-
-STRING kHelpOnYourTurn =
-        "Help strings not initialized!";
-
-STRING kHelpStandardObjective =
-        "Help strings not initialized!";
-
-STRING kHelpReverseObjective =
-        "Help strings not initialized!";
-
-STRING kHelpTieOccursWhen =
-        "Help strings not initialized!";
-
-STRING kHelpExample =
-        "Help strings not initialized!";
-
-
-
 /*************************************************************************
 **
-** #defines and structs
+** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
 
-
-/*************************************************************************
-**
-** Global Variables
-**
-*************************************************************************/
-
-
-/*************************************************************************
-**
-** Function Prototypes
-**
-*************************************************************************/
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
-STRING                  MoveToString(MOVE move);
-STRING                                  GetVarString();
+BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
 /************************************************************************
 **
-** NAME:        InitializeGame
+** NAME: InitializeDatabases
 **
-** DESCRIPTION: Prepares the game for execution.
-**              Initializes required variables.
+** DESCRIPTION: Initialize the gDatabase, a global variable.
 **
 ************************************************************************/
 
-void InitializeGame ()
+void InitializeGame()
 {
-	InitializeHelpStrings();
-	/* Once the functions MoveToString() and GetVarString() are written,
-	 * uncomment the following two lines: */
-
-	//gMoveToStringFunPtr = &MoveToString;
-	//gGetVarStringPtr = &GetVarString;
 }
 
+void FreeGame()
+{
+}
 
 /************************************************************************
 **
-** NAME:        InitializeHelpStrings
+** NAME: DebugMenu
 **
-** DESCRIPTION: Sets up the help strings based on chosen game options.
-**
-** NOTES:       Should be called whenever the game options are changed.
-**              (e.g., InitializeGame() and GameSpecificMenu())
-**
-************************************************************************/
-void InitializeHelpStrings ()
-{
-
-	kHelpGraphicInterface =
-	        "";
-
-	kHelpTextInterface =
-	        "";
-
-	kHelpOnYourTurn =
-	        "";
-
-	kHelpStandardObjective =
-	        "";
-
-	kHelpReverseObjective =
-	        "";
-
-	kHelpTieOccursWhen =
-	        "A tie occurs when ...";
-
-	kHelpExample =
-	        "";
-
-	gMoveToStringFunPtr = &MoveToString;
-
-}
-
-
-/************************************************************************
-**
-** NAME:        GenerateMoves
-**
-** DESCRIPTION: Creates a linked list of every move that can be reached
-**              from this position. Returns a pointer to the head of the
-**              linked list.
-**
-** INPUTS:      POSITION position : Current position to generate moves
-**
-** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
-**                                  the linked list of generated moves
-**
-** CALLS:       MOVELIST *CreateMovelistNode();
+** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+** kDebugMenu == FALSE
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (POSITION position)
+void DebugMenu()
 {
-	MOVELIST *moves = NULL;
-
-	/* Use CreateMovelistNode(move, next) to 'cons' together a linked list */
-
-	return moves;
 }
-
 
 /************************************************************************
 **
-** NAME:        DoMove
+** NAME: GameSpecificMenu
 **
-** DESCRIPTION: Applies the move to the position.
-**
-** INPUTS:      POSITION position : The old position
-**              MOVE     move     : The move to apply to the position
-**
-** OUTPUTS:     (POSITION)        : The position that results from move
-**
-** CALLS:       Some Board Hash Function
-**              Some Board Unhash Function
-**
-*************************************************************************/
-
-POSITION DoMove (POSITION position, MOVE move)
-{
-	return 0;
-}
-
-
-/************************************************************************
-**
-** NAME:        Primitive
-**
-** DESCRIPTION: Returns the value of a position if it fulfills certain
-**              'primitive' constraints.
-**
-**              Example: Tic-tac-toe - Last piece already placed
-**
-**              Case                                  Return Value
-**              *********************************************************
-**              Current player sees three in a row    lose
-**              Entire board filled                   tie
-**              All other cases                       undecided
-**
-** INPUTS:      POSITION position : The position to inspect.
-**
-** OUTPUTS:     (VALUE)           : one of
-**                                  (win, lose, tie, undecided)
-**
-** CALLS:       None
+** DESCRIPTION: Menu used to change game-specific parmeters, such as
+** the side of the board in an nxn Nim board, etc. Does
+** nothing if kGameSpecificMenu == FALSE
 **
 ************************************************************************/
 
-VALUE Primitive (POSITION position)
-{
-	return undecided;
+void GameSpecificMenu() {
 }
 
+// Anoto pen support - implemented in core/pen/pttt.c
+extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, int debug);
 
 /************************************************************************
 **
-** NAME:        PrintPosition
+** NAME: SetTclCGameSpecificOptions
 **
-** DESCRIPTION: Prints the position in a pretty format, including the
-**              prediction of the game's outcome.
-**
-** INPUTS:      POSITION position    : The position to pretty print.
-**              STRING   playersName : The name of the player.
-**              BOOLEAN  usersTurn   : TRUE <==> it's a user's turn.
-**
-** CALLS:       Unhash()
-**              GetPrediction()      : Returns the prediction of the game
+** DESCRIPTION: Set the C game-specific options (called from Tcl)
+** Ignore if you don't care about Tcl for now.
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
+void SetTclCGameSpecificOptions(int theOptions[])
 {
-
 }
-
 
 /************************************************************************
 **
-** NAME:        PrintComputersMove
+** NAME: DoMove
 **
-** DESCRIPTION: Nicely formats the computers move.
+** DESCRIPTION: Apply the move to the position.
 **
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
+** INPUTS: POSITION position : The old position
+** MOVE move : The move to apply.
+**
+** OUTPUTS: (POSITION) : The position that results after the move.
+**
+** CALLS: PositionToBlankOX(POSITION,*BlankOX)
+** BlankOX WhosTurn(*BlankOX)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
+POSITION DoMove(POSITION position, MOVE move)
 {
-
 }
 
+void UndoMove(MOVE move)
+{
+}
 
 /************************************************************************
 **
-** NAME:        PrintMove
+** NAME: GetInitialPosition
 **
-** DESCRIPTION: Prints the move in a nice format.
+** DESCRIPTION: Ask the user for an initial position for testing. Store
+** it in the space pointed to by initialPosition;
 **
-** INPUTS:      MOVE move         : The move to print.
+** OUTPUTS: POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
 
-void PrintMove (MOVE move)
+POSITION GetInitialPosition()
 {
-	STRING str = MoveToString( move );
-	printf( "%s", str );
-	SafeFree( str );
+}
+
+/************************************************************************
+**
+** NAME: PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS: MOVE *computersMove : The computer's move.
+** STRING computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove(computersMove,computersName)
+MOVE computersMove;
+STRING computersName;
+{
+}
+
+/************************************************************************
+**
+** NAME: Primitive
+**
+** DESCRIPTION: Return the value of a position if it fulfills certain
+** 'primitive' constraints. Some examples of this is having
+** three-in-a-row with TicTacToe. TicTacToe has two
+** primitives it can immediately check for, when the board
+** is filled but nobody has one = primitive tie. Three in
+** a row is a primitive lose, because the player who faces
+** this board has just lost. I.e. the player before him
+** created the board and won. Otherwise undecided.
+**
+** INPUTS: POSITION position : The position to inspect.
+**
+** OUTPUTS: (VALUE) an enum which is oneof: (win,lose,tie,undecided)
+**
+** CALLS: BOOLEAN ThreeInARow()
+** BOOLEAN AllFilledIn()
+** PositionToBlankOX()
+**
+************************************************************************/
+
+VALUE Primitive(POSITION position)
+{
+}
+
+/************************************************************************
+**
+** NAME: PrintPosition
+**
+** DESCRIPTION: Print the position in a pretty format, including the
+** prediction of the game's outcome.
+**
+** INPUTS: POSITION position : The position to pretty print.
+** STRING playerName : The name of the player.
+** BOOLEAN usersTurn : TRUE <==> it's a user's turn.
+**
+** CALLS: PositionToBlankOX()
+** GetValueOfPosition()
+** GetPrediction()
+**
+************************************************************************/
+
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
+{
+}
+
+/************************************************************************
+**
+** NAME: GenerateMoves
+**
+** DESCRIPTION: Create a linked list of every move that can be reached
+** from this position. Return a pointer to the head of the
+** linked list.
+**
+** INPUTS: POSITION position : The position to branch off of.
+**
+** OUTPUTS: (MOVELIST *), a pointer that points to the first item
+** in the linked list of moves that can be generated.
+**
+** CALLS: MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
+**
+************************************************************************/
+
+MOVELIST *GenerateMoves(POSITION position)
+{
+}
+
+/**************************************************/
+/**************** SYMMETRY FUN BEGIN **************/
+/**************************************************/
+
+/************************************************************************
+**
+** NAME: GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+** equivalent and return the SMALLEST, which will be used
+** as the canonical element for the equivalence set.
+**
+** INPUTS: POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS: POSITION : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(POSITION position)
+{
+}
+
+/************************************************************************
+**
+** NAME: DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+** on the position specified by the input and return the
+** new position, even if it's the same as the input.
+**
+** INPUTS: POSITION position : The position to branch the symmetry from.
+** int symmetry : The number of the symmetry operation.
+**
+** OUTPUTS: POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(POSITION position, int symmetry)
+{
+}
+
+/**************************************************/
+/**************** SYMMETRY FUN END ****************/
+/**************************************************/
+
+/************************************************************************
+**
+** NAME: GetAndPrintPlayersMove
+**
+** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
+** If so, return Undo or Abort and don't change theMove.
+** Otherwise get the new theMove and fill the pointer up.
+**
+** INPUTS: POSITION *thePosition : The position the user is at.
+** MOVE *theMove : The move to fill with user's move.
+** STRING playerName : The name of the player whose turn it is
+**
+** OUTPUTS: USERINPUT : Oneof( Undo, Abort, Continue )
+**
+** CALLS: ValidMove(MOVE, POSITION)
+** BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
+**
+************************************************************************/
+
+USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
+POSITION thePosition;
+MOVE *theMove;
+STRING playerName;
+{
+}
+
+/************************************************************************
+**
+** NAME: ValidTextInput
+**
+** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
+** For example, if the user is allowed to select one slot
+** from the numbers 1-9, and the user chooses 0, it's not
+** valid, but anything from 1-9 IS, regardless if the slot
+** is filled or not. Whether the slot is filled is left up
+** to another routine.
+**
+** INPUTS: STRING input : The string input the user typed.
+**
+** OUTPUTS: BOOLEAN : TRUE iff the input is a valid text input.
+**
+************************************************************************/
+
+BOOLEAN ValidTextInput(STRING input)
+{
+}
+
+/************************************************************************
+**
+** NAME: ConvertTextInputToMove
+**
+** DESCRIPTION: Convert the string input to the internal move representation.
+**
+** INPUTS: STRING input : The string input the user typed.
+**
+** OUTPUTS: MOVE : The move corresponding to the user's input.
+**
+************************************************************************/
+
+MOVE ConvertTextInputToMove(STRING input)
+{
+}
+
+/************************************************************************
+**
+** NAME: PrintMove
+**
+** DESCRIPTION: Print the move in a nice format.
+**
+** INPUTS: MOVE *theMove : The move to print.
+**
+************************************************************************/
+
+void PrintMove(MOVE theMove)
+{
 }
 
 
 /************************************************************************
 **
-** NAME:        MoveToString
+** NAME: MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
 **
-** INPUTS:      MOVE *move         : The move to put into a string.
+** INPUTS: MOVE *move : The move to put into a string.
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
+STRING MoveToString (MOVE theMove)
 {
-	return NULL;
 }
 
+STRING kDBName = "";
 
-/************************************************************************
-**
-** NAME:        GetVarString
-**
-** DESCRIPTION: Returns English description of current option as a STRING
-**
-************************************************************************/
-
-STRING GetVarString ()
+int NumberOfOptions()
 {
-	return NULL;
 }
 
-
-
-/************************************************************************
-**
-** NAME:        GetAndPrintPlayersMove
-**
-** DESCRIPTION: Finds out if the player wishes to undo, abort, or use
-**              some other gamesman option. The gamesman core does
-**              most of the work here.
-**
-** INPUTS:      POSITION position    : Current position
-**              MOVE     *move       : The move to fill with user's move.
-**              STRING   playersName : Current Player's Name
-**
-** OUTPUTS:     USERINPUT          : One of
-**                                   (Undo, Abort, Continue)
-**
-** CALLS:       USERINPUT HandleDefaultTextInput(POSITION, MOVE*, STRING)
-**                                 : Gamesman Core Input Handling
-**
-************************************************************************/
-
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
+int getOption()
 {
-	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
-
-	for (;; ) {
-		/***********************************************************
-		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-		***********************************************************/
-		printf("%8s's move [(undo)/(MOVE FORMAT)] : ", playersName);
-
-		input = HandleDefaultTextInput(position, move, playersName);
-
-		if (input != Continue)
-			return input;
-	}
-
-	/* NOTREACHED */
-	return Continue;
 }
 
-
-/************************************************************************
-**
-** NAME:        ValidTextInput
-**
-** DESCRIPTION: Rudimentary check to check if input is in the move form
-**              you are expecting. Does not check if it is a valid move.
-**              Only checks if it fits the move form.
-**
-**              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
-**                                          COMMANDS IN YOUR GAME
-**              ?, s, u, r, h, a, c, q
-**                                          However, something like a3
-**                                          is okay.
-**
-**              Example: Tic-tac-toe Move Format : Integer from 1 to 9
-**                       Only integers between 1 to 9 are accepted
-**                       regardless of board position.
-**                       Moves will be checked by the core.
-**
-** INPUTS:      STRING input : The string input the user typed.
-**
-** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
-**
-************************************************************************/
-
-BOOLEAN ValidTextInput (STRING input)
+void setOption(int option)
 {
-	return FALSE;
 }
 
-
-/************************************************************************
-**
-** NAME:        ConvertTextInputToMove
-**
-** DESCRIPTION: Converts the string input your internal move representation.
-**              Gamesman already checked the move with ValidTextInput
-**              and ValidMove.
-**
-** INPUTS:      STRING input : The VALID string input from the user.
-**
-** OUTPUTS:     MOVE         : Move converted from user input.
-**
-************************************************************************/
-
-MOVE ConvertTextInputToMove (STRING input)
+POSITION ActualNumberOfPositions(int variant)
 {
-	return 0;
 }
 
 
-/************************************************************************
-**
-** NAME:        GameSpecificMenu
-**
-** DESCRIPTION: Prints, receives, and sets game-specific parameters.
-**
-**              Examples
-**              Board Size, Board Type
-**
-**              If kGameSpecificMenu == FALSE
-**                   Gamesman will not enable GameSpecificMenu
-**                   Gamesman will not call this function
-**
-**              Resets gNumberOfPositions if necessary
-**
-************************************************************************/
-
-void GameSpecificMenu ()
+POSITION StringToPosition(STRING board)
 {
-	InitializeHelpStrings();
 }
 
-
-/************************************************************************
-**
-** NAME:        SetTclCGameSpecificOptions
-**
-** DESCRIPTION: Set the C game-specific options (called from Tcl)
-**              Ignore if you don't care about Tcl for now.
-**
-************************************************************************/
-
-void SetTclCGameSpecificOptions (int options[])
+STRING PositionToString(POSITION pos)
 {
-
 }
 
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
+char * PositionToEndData(POSITION pos)
 {
-	return 0;
-}
-
-
-/************************************************************************
-**
-** NAME:        NumberOfOptions
-**
-** DESCRIPTION: Calculates and returns the number of variants
-**              your game supports.
-**
-** OUTPUTS:     int : Number of Game Variants
-**
-************************************************************************/
-
-int NumberOfOptions ()
-{
-	return 0;
-}
-
-
-/************************************************************************
-**
-** NAME:        getOption
-**
-** DESCRIPTION: A hash function that returns a number corresponding
-**              to the current variant of the game.
-**              Each set of variants needs to have a different number.
-**
-** OUTPUTS:     int : the number representation of the options.
-**
-************************************************************************/
-
-int getOption ()
-{
-	/* If you have implemented symmetries you should
-	   include the boolean variable gSymmetries in your
-	   hash */
-	return 0;
-}
-
-
-/************************************************************************
-**
-** NAME:        setOption
-**
-** DESCRIPTION: The corresponding unhash function for game variants.
-**              Unhashes option and sets the necessary variants.
-**
-** INPUT:       int option : the number representation of the options.
-**
-************************************************************************/
-
-void setOption (int option)
-{
-	/* If you have implemented symmetries you should
-	   include the boolean variable gSymmetries in your
-	   hash */
-}
-
-
-/************************************************************************
-**
-** NAME:        DebugMenu
-**
-** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
-**              debug menu). Menu used to debug internal problems.
-**
-**              If kDebugMenu == FALSE
-**                   Gamesman will not display a debug menu option
-**                   Gamesman will not call this function
-**
-************************************************************************/
-
-void DebugMenu ()
-{
-
-}
-
-
-/************************************************************************
-**
-** Everything specific to this module goes below these lines.
-**
-** Things you want down here:
-** Move Hasher
-** Move Unhasher
-** Any other function you deem necessary to help the ones above.
-**
-************************************************************************/
-
-
-
-
-
-
-
-/************************************************************************
-** Changelog
-**
-** $Log: not supported by cvs2svn $
-** Revision 1.11  2006/12/19 20:00:51  arabani
-** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
-**
-** Revision 1.10  2006/04/25 01:33:06  ogren
-** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
-**
-************************************************************************/
-
-POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
-}
-
-
-char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
 }
