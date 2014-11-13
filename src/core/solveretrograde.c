@@ -374,7 +374,7 @@ void GenerateTierTree() {
 		ifprintf(gTierSolvePrint, "Opening file...\n");
 		char filename[150];
 		mkdir("tiervis", 0755);
-		sprintf(filename, "tiervis/Tier_vis_%s.dotty", kDBName);
+		sprintf(filename, "tiervis/Tier_vis_%s.dot", kDBName);
 		fp = fopen(filename, "w+");
 
 		ifprintf(gTierSolvePrint, "File opened, printing header info...\n");
