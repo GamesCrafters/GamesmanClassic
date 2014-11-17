@@ -113,6 +113,7 @@ class Game(object):
             proc.push_request(request)
         else:
             # Handles game not being present
+            self.server.log.debug('No process for game {}.'.format(self.name))
             request.respond(self.server.could_not_start_msg)
 
     def get_option(self, query):
