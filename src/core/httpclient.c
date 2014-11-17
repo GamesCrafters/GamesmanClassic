@@ -55,6 +55,7 @@
    }
  */
 
+#ifndef MACOSX
 /**
  * Converts an unsigned long long from host byte order to network byte order
  * depending on the endian-ness of the host system.
@@ -70,7 +71,7 @@ unsigned long long htonll(unsigned long long n)
 	else
 		return (((unsigned long long)htonl(n)) << 32) + htonl(n >> 32);
 }
-
+#endif
 
 /**
  * Copies the http response status into the status handle.

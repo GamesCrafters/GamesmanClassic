@@ -43,7 +43,9 @@ typedef struct httpres_struct httpres;
 
 
 /* FUNCTION DECLARATIONS */
-unsigned long long htonll(unsigned long long n); // convert from host to network byte order for long longs
+#ifndef MACOSX
+unsigned long long htonll(unsigned long long n); // convert from host to network byte order for long longs */
+#endif
 void net_itoa(int n, char s[]); //convert int to char
 int parse(char url[], httpreq *req, char** errMsg); //parse (private)
 int newrequest(char url[], httpreq**req, char** errMsg);  //insantiate a request with a url
