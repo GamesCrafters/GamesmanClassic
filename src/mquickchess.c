@@ -2734,10 +2734,10 @@ MOVE move;
 	coli = ((move >> 12) & 15) - 10 + 97;
 	replacementPiece =  move >> 16;
 	if (replacementPiece == 0) {
-		moveStr = (STRING) SafeMalloc(sizeof(char)*4);
+		moveStr = (STRING) SafeMalloc(sizeof(char)*4 + 1);
 		sprintf(moveStr, "%c%c%c%c", coli, rowi, colf, rowf);
 	} else {
-		moveStr = (STRING) SafeMalloc(sizeof(char)*6);
+		moveStr = (STRING) SafeMalloc(sizeof(char)*6 + 1);
 		sprintf(moveStr, "%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);
 	}
 	return moveStr;
