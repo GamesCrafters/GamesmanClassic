@@ -43,7 +43,7 @@ typedef struct httpres_struct httpres;
 
 
 /* FUNCTION DECLARATIONS */
-#ifndef MACOSX
+#ifndef htonll
 unsigned long long htonll(unsigned long long n); // convert from host to network byte order for long longs */
 #endif
 void net_itoa(int n, char s[]); //convert int to char

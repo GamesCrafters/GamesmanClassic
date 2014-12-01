@@ -55,7 +55,7 @@
    }
  */
 
-#ifndef MACOSX
+#ifndef htonll
 /**
  * Converts an unsigned long long from host byte order to network byte order
  * depending on the endian-ness of the host system.

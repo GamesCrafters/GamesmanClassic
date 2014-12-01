@@ -1038,7 +1038,6 @@ void SolveWithLoopyAlgorithm(POSITION start, POSITION end) {
 	}
 
 	//int i,numMoves; // the generateMovesEfficient stuff is commented out for now
-	ifprintf(gTierSolvePrint, "DAN GARCIA\n");
 	ifprintf(gTierSolvePrint, "--Setting up Child Counters and Frontier Hashtables...\n");
 	rInitFRStuff();
 	ifprintf(gTierSolvePrint, "--Doing an sweep of the tier, and setting up the frontier...\n");
