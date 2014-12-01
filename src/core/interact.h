@@ -12,8 +12,9 @@
 #include <ctype.h>
 
 
-BOOLEAN InteractReadPosition(STRING input, POSITION * result);
-BOOLEAN InteractReadBoardString(STRING input, char ** result);
+STRING InteractReadPosition(STRING input, POSITION * result);
+STRING InteractReadLong(STRING input, long * result);
+STRING InteractReadBoardString(STRING input, char ** result);
 STRING InteractValueCharToValueString(char value_char);
 void InteractPrintJSONPositionValue(POSITION pos);
 void InteractFreeBoardSting(STRING board);
@@ -30,12 +31,13 @@ char * StringFormat(size_t max_size, char * format_str, ...);
 typedef BOOLEAN (* get_value_func_t)( char *, void *);
 
 #define GetValue(board_string, key, func, target) \
-	0 ? func("", target) : GetValueInner(board_string, key, (get_value_func_t) func, (void *) target)
+	(0 ? func("", target) : GetValueInner(board_string, key, (get_value_func_t) func, (void *) target))
 
 BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, void * target);
 
 BOOLEAN GetInt(char* value, int* placeholder);
 BOOLEAN GetUnsignedLongLong(char* value, unsigned long long* placeholder);
 BOOLEAN GetChar(char* value, char* placeholder);
+void PrintLevel(POSITION pos, unsigned int depth, char * move_string);
 
 #endif /* GMCORE_INTERACT_H */

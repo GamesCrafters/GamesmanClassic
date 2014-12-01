@@ -110,22 +110,42 @@ char * MakeBoardString(char * first, ...) {
 	return out;
 }
 
-/* Reads a position from stdin, returns FALSE on error. */
-BOOLEAN InteractReadPosition(STRING input, POSITION * result) {
+/* Reads a position from stdin, returns NULL on error. Otherwise, returns a
+ * pointer to the rest of the string.
+ */
+STRING InteractReadPosition(STRING input, POSITION * result) {
 	char * next_word = strchr(input, ' ');
+	char * end = NULL;
 	if (!next_word) {
 		printf(" error =>> missing position in %s request", input);
-		return FALSE;
+		return NULL;
 	}
-	*result = strtoul(next_word, NULL, 10);
+	*result = strtoul(next_word, &end, 10);
 	/* POSITION might be larger than unsigned long,
 	 * in which case the above line needs to be changed.
 	 * Unfortunately, the C standard provides no stroull.
 	 */
-	return TRUE;
+	return end;
 }
 
-BOOLEAN InteractReadBoardString(STRING input, char ** result) {
+/* Reads a long from stdin, returns NULL on error. Otherwise, returns a
+ * pointer to the rest of the string.
+ */
+STRING InteractReadLong(STRING input, long * result) {
+	char * next_word = strchr(input, ' ');
+	char * end = NULL;
+	if (!next_word) {
+		printf(" error =>> missing expected integer in %s request", input);
+		return NULL;
+	}
+	// Skip the space.
+	next_word = next_word + 1;
+	printf("reading from %s\n", next_word);
+	*result = strtol(next_word, &end, 10);
+	return end;
+}
+
+STRING InteractReadBoardString(STRING input, char ** result) {
 	/* Extract a valid board string surrounded in "
 	 * result will be *inside* input and null-terminated.
 	 * Note that input will be modified in the process.
@@ -135,13 +155,13 @@ BOOLEAN InteractReadBoardString(STRING input, char ** result) {
 	char * scan;
 	if (!start_of_board_string) {
 		printf(" error =>> missing board string in %s request", input);
-		return FALSE;
+		return NULL;
 	}
 	++start_of_board_string;
 	end_of_board_string = strchr(start_of_board_string, '"');
 	if (!end_of_board_string) {
 		printf(" error =>> missing end quotes on board string in %s request", input);
-		return FALSE;
+		return NULL;
 	}
 	scan = start_of_board_string;
 	*end_of_board_string = '\0';
@@ -149,13 +169,15 @@ BOOLEAN InteractReadBoardString(STRING input, char ** result) {
 		if (iscntrl(*scan)) {
 			/* Might want to do additional error checking here. */
 			printf(" error =>> incorrect char %c in board string in %s request", *scan, input);
-			return FALSE;
+			return NULL;
 		}
 		++scan;
 	}
 	/* Re-use the input string. */
 	*result = start_of_board_string;
-	return TRUE;
+	/* Skip the null character. */
+	++end_of_board_string;
+	return end_of_board_string;
 }
 
 void InteractCheckErrantExtra(STRING input, int max_words) {
@@ -414,7 +436,7 @@ void ServerInteractLoop(void) {
 			pos = StringToPosition(board);
 			printf("board: " POSITION_FORMAT,pos);
 
-			} else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
+		} else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
 			if (!InteractReadBoardString(input, &board)) {
 				printf("%s", invalid_board_string);
 				continue;
@@ -427,8 +449,8 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
-			printf(RESULT "{\"status\":\"ok\",\"response\":[");
-                        if (Primitive(pos) == undecided) {
+			printf(RESULT "{\"status\":\"ok\",\"response\":");
+			if (Primitive(pos) == undecided) {
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
 					choice = DoMove(pos, current_move->move);
@@ -448,8 +470,30 @@ void ServerInteractLoop(void) {
 				}
 				move_string = NULL;
 				FreeMoveList(all_next_moves);
-                        }
+			}
 			printf("]}");
+		} else if (FirstWordMatches(input, "tree_response")) {
+			char * next_word = InteractReadBoardString(input, &board);
+			if (!next_word) {
+				printf("%s", invalid_board_string);
+				continue;
+			}
+			long depth = 0;
+			next_word = InteractReadLong(next_word, &depth);
+			if (!next_word) {
+				continue;
+			}
+			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
+				gInitializeHashWindow(tier, TRUE);
+			}
+			pos = StringToPosition(board);
+			if (pos == -1) {
+				printf("%s", invalid_board_string);
+				continue;
+			}
+			printf(RESULT "{\"status\":\"ok\",\"response\":");
+			PrintLevel(pos, depth, NULL);
+			printf("}");
 		} else {
 			printf(" error =>> unknown command: '%s'", input);
 			continue;
@@ -513,4 +557,46 @@ BOOLEAN GetChar(char* value, char* placeholder) {
 	}
 	*placeholder = *value; 
 	return TRUE;
+}
+
+void PrintLevel(POSITION pos, unsigned int depth, char * move_string) {
+	TIER tier = 0;
+	if (kSupportsTierGamesman && gTierGamesman) {
+		TIERPOSITION tierpos = 0;
+		gUnhashToTierPosition(pos, &tierpos, &tier);
+		gInitializeHashWindow(tier, TRUE);
+		pos = gHashToWindowPosition(tierpos, tier);
+	}
+	char * board = PositionToString(pos);
+	printf("{\"board\":\"%s\",", board);
+	printf("\"remoteness\":%d,", Remoteness(pos));
+	if (move_string) {
+		printf("\"move\":\"%s\",", move_string);
+	}
+	if (depth == 0 || Primitive(pos) != undecided) {
+		InteractPrintJSONPositionValue(pos);
+	} else {
+		printf("\"children\":[");
+		if (Primitive(pos) == undecided) {
+			MOVELIST *all_next_moves = GenerateMoves(pos);
+			MOVELIST *current_move = all_next_moves;
+			while (current_move) {
+				POSITION choice = DoMove(pos, current_move->move);
+				char * move_string = MoveToString(current_move->move);
+				PrintLevel(choice, depth - 1, move_string);
+				if (tier) {
+					gInitializeHashWindow(tier, TRUE);
+				}
+				SafeFree(move_string);
+				current_move = current_move->next;
+				if (current_move) {
+				  printf(",");
+				}
+			}
+			FreeMoveList(all_next_moves);
+		}
+		printf("]");
+	}
+	printf("}");
+	InteractFreeBoardSting(board);
 }
