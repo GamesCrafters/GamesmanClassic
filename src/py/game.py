@@ -44,14 +44,6 @@ class Game(object):
         proc = self.get_process(collections.defaultdict(str))
         time_remaining = 600
         time_step = 0.01
-        class CloseProc(object):
-
-            def __init__(self):
-                self.command = 'quit'
-
-            def respond(self, response):
-                pass
-
         class TestRequest(object):
 
             def __init__(self, game, proc):
@@ -67,7 +59,7 @@ class Game(object):
                 except Exception:
                     pass
                 finally:
-                    self.proc.push_request(CloseProc())
+                    self.proc.close()
         try:
             proc.push_request(TestRequest(self, proc))
         except AttributeError:
