@@ -48,7 +48,7 @@ AC_ARG_WITH(tk, AC_HELP_STRING([--with-tk=path], [use the specified tkConfig.sh 
 #AC_ARG_WITH(wish, AC_HELP_STRING([--with-wish=path], [use the specified wish shell to run Gamesman (default: look in common locations)]),
 #		wish="$with_wish",
 #		wish="")
-AC_ARG_WITH(aqua, AC_HELP_STRING([--with-aqua], [use Aqua Tcl/Tk instead of X for graphics (Mac OS X only) (default: no)]),
+AC_ARG_WITH(aqua, AC_HELP_STRING([--with-aqua], [use Aqua Tcl/Tk instead of X for graphics (Mac OS X only) (default: yes)]),
 		aqua="yes",
 		aqua="no")
 AC_PREFIX_DEFAULT(.)
