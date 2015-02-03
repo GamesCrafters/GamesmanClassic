@@ -102,7 +102,8 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 	MOVE move;
 	UNDO *undo;
 	VALUE value;
-	BOOLEAN error, player_draw;
+	BOOLEAN error;
+	BOOLEAN player_draw = FALSE;
 	/*BOOLEAN playing = TRUE;*/
 	gPlaying = TRUE;
 	BOOLEAN aborted = FALSE;
@@ -128,6 +129,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 	while(gPlaying) {
 
 		while(!aborted &&
+		      !player_draw &&
 		      ((value = Primitive(position)) == undecided ||
 		       userInput==Configure ||
 		       userInput==Switch)) {
