@@ -449,7 +449,7 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
-			printf(RESULT "{\"status\":\"ok\",\"response\":");
+			printf(RESULT "{\"status\":\"ok\",\"response\":[");
 			if (Primitive(pos) == undecided) {
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
