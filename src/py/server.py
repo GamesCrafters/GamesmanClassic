@@ -260,14 +260,20 @@ class GameProcess(object):
 
     def parse_response(self, response):
         if 'result' not in response:
+            self.server.log.debug('"result" not in string to parse: {!r}'
+                                 .format(response))
             return None
         lines = response.split('\n')
         for line in lines:
             if line.startswith('result'):
+                self.server.log.debug('Parsing line starting with result.')
                 try:
                     result = line.split('=>>')[1].strip()
+                    self.server.log.debug('Split off "result =>>"')
                     parsed = json.loads(result)
+                    self.server.log.debug('Parsed json from {!r}'.format(result))
                 except Exception as e:
+                    self.server.log.debug('Could not parse: {!r}'.format(result))
                     # Catches problems with split, indexing, and non json
                     # together
                     return None
