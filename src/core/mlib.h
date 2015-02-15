@@ -50,6 +50,9 @@ extern LocalBoard lBoard;
 			else if (boardStr[i] == ' ') { \
 				board[i] = Blank; \
 			} \
+			else { \
+				return INVALID_POSITION; \
+			} \
 		} \
 		return BlankOXToPosition(board); \
 	} \
