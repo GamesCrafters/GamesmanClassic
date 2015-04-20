@@ -103,7 +103,12 @@ char * MakeBoardString(char * first, ...) {
 	size_t i;
 	if (out) {
 		for (i = 0; i < first_len; i++) {
-			out[i] = first[i];
+			if (first[i] == ' ') {
+				out[i] = '+';
+		}
+		else {
+				out[i] = first[i];
+			}
 		}
 	}
 	va_end(lst);
@@ -170,6 +175,8 @@ STRING InteractReadBoardString(STRING input, char ** result) {
 			/* Might want to do additional error checking here. */
 			printf(" error =>> incorrect char %c in board string in %s request", *scan, input);
 			return NULL;
+		} else if (*scan == '+') {
+			*scan = ' ';
 		}
 		++scan;
 	}
