@@ -1,5 +1,5 @@
 #ifndef GMCORE_SOLVEWEAKAB_H
-#define GMCORE_SOVLEWEAKAB_H
+#define GMCORE_SOLVEWEAKAB_H
 
 #include "gamesman.h"
 
