@@ -190,7 +190,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 
 	printf("\r    Progress: [%3d%%]\n", 100);
 
-	printf("Maximum move choices: %lu\n", max_move_choices);
+	printf("Maximum move choices: %llu\n", max_move_choices);
 
 	output = max_move_choices;
 	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
