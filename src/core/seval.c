@@ -685,7 +685,7 @@ float boolean(float value,float params[]) {
 
 //Params are {value*10 where y==1 for log10(abs(value*9)+1) (Default=1)}
 float logarithmic(float value,float params[]){
-	float absValue = abs(value);
+	float absValue = fabs(value);
 	int sign = (int) value / absValue;
 	float scaleFactor = (params==NULL || params[0]==0) ? 1 : params[0];
 	float ans = log10( (absValue*9+1) / scaleFactor );
