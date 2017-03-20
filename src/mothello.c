@@ -206,25 +206,23 @@ void InitializeGame ()
 	int hash_data[] =  {BLANKPIECE, 0, OthCols * OthRows,
 		            WHITEPIECE, 0, OthCols * OthRows,
 		            BLACKPIECE, 0, OthCols * OthRows, -1};
-	int max;
-	int init;
-
-	if (DEBUG) { printf("InitializeGame() Running...\n"); }
+#if DEBUG 
+	printf("InitializeGame() Running...\n")
 	/* Initialize Hash Function */
 
-	if (DEBUG) {
-		printf("InitializeGame() --> generic_hash_init\n");
-		max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
-	}
+	printf("InitializeGame() --> generic_hash_init\n");
+	max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
+#endif
+
 	if (SOLVERCOUNTER) solvercountermax = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
 
-	if (DEBUG) { printf("InitializeGame() <-- generic_hash_init: %d\n",max); }
-
-	if (DEBUG) { printf("InitalizeGame() --> generic_hash_hash\n"); init = getPosition(start_standard_board, BLACK); }
-
-	if (DEBUG) { printf("INIT CURRENT BOARD\n, START%s, %cEND", start_standard_board, start_standard_board[14]); }
-
-	if (DEBUG) { printf("InitializeGame() <-- generic_hash: %d\n",init); }
+#if DEBUG
+	printf("InitializeGame() <-- generic_hash_init: %d\n",max);
+	printf("InitalizeGame() --> generic_hash_hash\n"); 
+	init = getPosition(start_standard_board, BLACK);
+	printf("INIT CURRENT BOARD\n, START%s, %cEND", start_standard_board, start_standard_board[14]);
+	printf("InitializeGame() <-- generic_hash: %d\n",init);
+#endif
 
 	init_board_hash();
 	int rots[3] = {90, 180, 270};
@@ -239,15 +237,14 @@ void InitializeGame ()
 		generic_hash_init_sym(0, OthRows, OthCols, refs, 2, rots, 1, 0);
 	}
 
-	if (DEBUG)
-	{
-		char* test_board;
-		printf("Hash Test. Unhashed Board. Hash Value %d\n", init);
-		test_board = getBoard(gInitialPosition);
-		printf("\nBoard is... %s\n", test_board);
-	}
+#if DEBUG
+	char* test_board;
+	printf("Hash Test. Unhashed Board. Hash Value %d\n", init);
+	test_board = getBoard(gInitialPosition);
+	printf("\nBoard is... %s\n", test_board);
+	printf("InitializeGame() Done\n");
+#endif
 
-	if (DEBUG) { printf("InitializeGame() Done\n"); }
 	fflush( stdout );
 
 	gMoveToStringFunPtr = &MoveToString;
@@ -362,7 +359,9 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	char* board;
 	int MoveArrayNum = (int) theMove;
 
-	if(DEBUG) printf("\nDoMove starting at Move %d\n", MoveArrayNum);
+#if DEBUG
+	printf("\nDoMove starting at Move %d\n", MoveArrayNum);
+#endif
 
 	board = getBoard(thePosition);
 	whoseturn = getTurn(thePosition);
@@ -523,12 +522,16 @@ void init_board_hash()
 
 	POSITION max;
 	POSITION init;
-	if(DEBUG) printf("OthRows = %d, OthCols = %d", OthRows, OthCols);
-	if(DEBUG) printf("\ninit_board_hash starting...\n");
+#if DEBUG
+	printf("OthRows = %d, OthCols = %d", OthRows, OthCols);
+	printf("\ninit_board_hash starting...\n");
+#endif
 	max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
 	//init = generic_hash_hash(start_standard_board, BLACK);
 	init = MakeInitialSquare();
-	if(DEBUG) printf("\nmax is \n"POSITION_FORMAT, max);
+#if DEBUG 
+	printf("\nmax is \n"POSITION_FORMAT, max);
+#endif
 	gInitialPosition = init;
 	gNumberOfPositions = max;
 }
@@ -588,7 +591,9 @@ VALUE Primitive (POSITION pos)
 	int i, blanktally = 0, blacktally = 0, whitetally = 0, whoseturn;
 	char* board;
 
-	if(DEBUG) { printf("Primitive Starting"); }
+#if DEBUG
+	printf("Primitive Starting");
+#endif
 
 	board = getBoard(pos);
 	whoseturn = (int) getTurn(pos);
@@ -670,7 +675,9 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 	//for loops inits
 	int i, j, alpha, hyphens;
 
-	if(DEBUG) printf("\nPrintPosition starting\n");
+#if DEBUG
+	printf("\nPrintPosition starting\n");
+#endif
 
 	/*Information gathering*/
 	board = getBoard(position);
@@ -829,7 +836,9 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 
 
-	if(DEBUG) printf("\nEnd PrintPosition\n");
+#if DEBUG
+	printf("\nEnd PrintPosition\n");
+#endif
 }
 
 
@@ -864,7 +873,9 @@ MOVELIST *GenerateMoves(POSITION position)
 	MOVELIST *CreateMovelistNode(), *head = NULL;
 
 
-	if(DEBUG) printf("\nGenerate Moves starting\n");
+#if DEBUG
+	printf("\nGenerate Moves starting\n");
+#endif
 
 	if(SOLVERCOUNTER && (solvercounter != -1))
 	{
@@ -874,7 +885,9 @@ MOVELIST *GenerateMoves(POSITION position)
 		solvercounter++;
 		if(solvercounter > solvercountermax - 1)
 		{
-			if(DEBUG) printf("Solvercounter ended");
+#if DEBUG 
+			printf("Solvercounter ended");
+#endif
 			solvercounter = -1;
 		}
 	}
@@ -917,7 +930,9 @@ MOVELIST *GenerateMoves(POSITION position)
 	if(!AnyMovesAtAll)
 		head = CreateMovelistNode(PASSMOVE, head);
 
-	if(DEBUG) printf("\nEnd Generate Moves\n");
+#if DEBUG
+	printf("\nEnd Generate Moves\n");
+#endif
 
 	return(head);
 }
@@ -948,7 +963,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 	USERINPUT ret, HandleDefaultTextInput();
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
 
-	if (DEBUG) {printf("GetAndPrintPlayersMove Start\n"); }
+#if DEBUG
+	printf("GetAndPrintPlayersMove Start\n");
+#endif
 
 	do
 	{
@@ -956,7 +973,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING pl
 		       playerName, alphabet[OthCols - 1], OthRows);
 
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-		if (DEBUG) {printf("GetAndPrintPlayersMove Returning\n"); }
+#if DEBUG
+		printf("GetAndPrintPlayersMove Returning\n");
+#endif
 		if(ret != Continue)
 			return(ret);
 	}
@@ -986,7 +1005,9 @@ BOOLEAN ValidTextInput (STRING input)
 {
 	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	if(DEBUG) printf("ValidTextInput Starting. Strlen = %d\n", (int) strlen(input));
+#if DEBUG
+	printf("ValidTextInput Starting. Strlen = %d\n", (int) strlen(input));
+#endif
 
 	if(strlen(input) == 1)
 	{
@@ -1074,7 +1095,9 @@ void PrintMove (MOVE move)
 	int ArrayNum, mymove[2];
 	char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
 
-	if(DEBUG) printf("PrintMove starting at %d\n", move);
+#if DEBUG
+	printf("PrintMove starting at %d\n", move);
+#endif
 
 	ArrayNum = (int) move;
 	if(ArrayNum == PASSMOVE)
@@ -1358,7 +1381,9 @@ void PrintBoard(char board[])
 	//for loops inits
 	int i, j, alpha, hyphens;
 
-	if(DEBUG) printf("\nPrintPosition starting\n");
+#if DEBUG
+	printf("\nPrintPosition starting\n");
+#endif
 
 
 	//Top Row Alphabet Legend
@@ -1408,7 +1433,9 @@ void PrintBoard(char board[])
 	//End Alphabet Legend
 
 
-	if(DEBUG) printf("\nEnd Board\n");
+#if DEBUG
+	printf("\nEnd Board\n");
+#endif
 }
 
 int AddRemovePieces(char board[], int tally, char ownpiece)
@@ -1525,7 +1552,9 @@ BOOLEAN quickgeneratemoves(char board[], int whoseturn)
 	int i, j;
 	char ownpiece, opponentpiece;
 
-	if(DEBUG) printf("\nQuick Generate Moves starting\n\n");
+#if DEBUG
+	printf("\nQuick Generate Moves starting\n\n");
+#endif
 
 	//assigning opponent pieces and own pieces
 	if(whoseturn == 1)
