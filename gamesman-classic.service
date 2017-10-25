@@ -2,5 +2,6 @@
 Description=GamesmanClassic Python Bridge
 
 [Service]
+User=gamescrafters
 WorkingDirectory=/home/gamescrafters/GamesmanClassic/
 ExecStart=/usr/bin/python2.7 src/py/server.py
