@@ -503,6 +503,24 @@ void ServerInteractLoop(void) {
 			printf("}");
 		} else {
 			printf(" error =>> unknown command: '%s'", input);
+			printf(" valid moves are:\n");
+			printf("   start_response\n");
+			printf("   tree_response <board string> <depth>\n");
+			printf("   next_move_values_response <board string>\n");
+			printf("   move_value_response <board string>\n");
+			printf("   position <board string>\n");
+			printf("   result <hashed position>\n");
+			printf("   mex <hashed position>\n");
+			printf("   remoteness <hashed position>\n");
+			printf("   board <hashed position>\n");
+			printf("   named_moves <hashed position>\n");
+			printf("   choices <hashed position>\n");
+			printf("   value <hashed position>\n");
+			printf("   end_response <board string>\n");
+			printf("   start\n");
+			printf("   quit\n");
+			printf("   shutdown\n");
+			printf("   exit\n");
 			continue;
 		}
 	}
