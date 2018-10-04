@@ -5,3 +5,5 @@ Description=GamesmanClassic Python Bridge
 User=gamescrafters
 WorkingDirectory=/home/gamescrafters/GamesmanClassic/
 ExecStart=/usr/bin/python2.7 src/py/server.py
+Restart=on-failure
+RestartSec=5
