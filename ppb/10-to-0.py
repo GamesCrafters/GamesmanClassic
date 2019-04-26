@@ -64,7 +64,7 @@ def stat(position):
 def next_stats(position):
 	next_moves = generate_moves(position)
 	next_positions = [do_move(position, nm) for nm in next_moves]
-	return [ppb.make_next_stat(str(next_moves[i]), str(next_positions[i]), REMOTE_CACHE[next_positions[i]], CACHE[next_positions[i]], None) for i in range(len(next_moves))]
+	return [ppb.make_next_stat(str(next_moves[i]), str(next_positions[i]), REMOTE_CACHE[next_positions[i]], CACHE[next_positions[i]], False) for i in range(len(next_moves))]
 
 
 solve(STARTING_NUM)
