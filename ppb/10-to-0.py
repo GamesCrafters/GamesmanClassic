@@ -2,8 +2,8 @@ import ppb
 
 STARTING_NUMBER = 10
 
-CACHE = [-1] * (STARTING_NUM + 1)
-REMOTE_CACHE = [-1] * (STARTING_NUM + 1)
+CACHE = [-1] * (STARTING_NUMBER + 1)
+REMOTE_CACHE = [-1] * (STARTING_NUMBER + 1)
 
 def game_over(p):
 	return p == 0
@@ -52,7 +52,7 @@ def solve(p):
 
 @ppb.start
 def start():
-	return str(STATING_NUMBER)
+	return str(STARTING_NUMBER)
 
 
 @ppb.stat
@@ -62,12 +62,12 @@ def stat(position):
 
 @ppb.next_stats
 def next_stats(position):
-	next_moves = generate_moves(position)
-	next_positions = [do_move(position, nm) for nm in next_moves]
+	next_moves = generate_moves(int(position))
+	next_positions = [do_move(int(position), nm) for nm in next_moves]
 	return [ppb.make_next_stat(str(next_moves[i]), str(next_positions[i]), REMOTE_CACHE[next_positions[i]], CACHE[next_positions[i]], False) for i in range(len(next_moves))]
 
 
-solve(STARTING_NUM)
+solve(STARTING_NUMBER)
 
 # Create an infinite while loop that waits for user input
 ppb.serve()
