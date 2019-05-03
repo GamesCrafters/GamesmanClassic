@@ -154,4 +154,46 @@ extern OPEN_POS_DATA* openPosData;
 extern POSITION openPosArrLen;
 extern BOOLEAN gOpenDataLoaded;
 
+/* Globals relative to purity */
+extern VALUE*              gPositionValue;
+extern REMOTENESS*         gPositionLevel;
+extern POSITIONLIST**      gDrawParents;
+
+/* Functions relative to purity */
+BOOLEAN RunPurityCheck();
+//void SetDrawParents(POSITION parent, POSITION root);
+//void DrawParentInitialize();
+
+/** PURITY */
+BOOLEAN           DeterminePure             (POSITION position);
+
+//void      InitializeVisitedArray     (void);
+//void      FreeVisitedArray     (void);
+
+void            DrawNumberChildrenInitialize        (void);
+void            DrawNumberChildrenFree              (void);
+void            InitializeDR                    (void);
+
+POSITION        DeQueueWinDR                    (void);
+POSITION        DeQueueLoseDR                   (void);
+POSITION        DeQueueTieDR                    (void);
+void            InsertWinDR                     (POSITION pos);
+void            InsertLoseDR                    (POSITION pos);
+void            InsertTieDR                     (POSITION pos);
+void            SetNewLevelFringe               (void);
+BOOLEAN         ExistsUnsolvedPosition          (void);
+BOOLEAN         isPure                          (void);
+
+/* Loopy globals */
+
+extern FRnode*          gHeadWinDR;
+extern FRnode*          gTailWinDR;
+extern FRnode*          gHeadLoseDR;
+extern FRnode*          gTailLoseDR;
+extern FRnode*          gHeadTieDR;
+extern FRnode*          gTailTieDR;
+
+extern POSITIONLIST**   gDrawParents;
+extern char*            gDrawNumberChildren;
+
 #endif
