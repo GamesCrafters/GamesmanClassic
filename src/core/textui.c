@@ -33,6 +33,7 @@
 #include "gamesman.h"
 #include <time.h>
 #include "solveretrograde.h" // for InitTierGamesman()
+#include "openPositions.h"
 
 #define DEFAULTLENGTH MAXINPUTLENGTH
 
@@ -188,6 +189,8 @@ void MenusBeforeEvaluation()
 	if (kSupportsTierGamesman && !kExclusivelyTierGamesman)
 		// Only show/accept this choice if module supports Tier Gamesman, and can switch on/off
 		printf("\tt)\tToggle (T)ier-Gamesman Mode (currently %s)\n", gTierGamesman ? "ON" : "OFF");
+	// if (kLoopy)
+	// 	printf("\tc)\tRun Purity Check\n"); // Matthew's WORK***************
 	printf("\to)\t(O)bjective toggle from %s to %s\n",
 	       gStandardGame ? "STANDARD" : "REVERSE ",
 	       gStandardGame ? "REVERSE " : "STANDARD");
@@ -729,6 +732,10 @@ void MenusEvaluated()
 		printf("\n\ta)\t(A)nalyze the game\n");
 	}
 
+	if(kLoopy && !(gTierGamesman && kSupportsTierGamesman)) {
+		printf("\n\tr)\t(R)un Purity Check\n");
+	}
+
 
 	if(kDebugMenu)
 		printf("\n\td)\t(D)ebug Game AFTER Evaluation\n");
@@ -812,7 +819,7 @@ void ParseBeforeEvaluationMenuChoice(char c)
 	}
 	case 'o': case 'O':
 		gStandardGame = !gStandardGame;
-		break;
+		break; 
 	case 'D': case 'd':
 		if(kDebugMenu)
 			DebugModule();
@@ -972,6 +979,18 @@ void ParseEvaluatedMenuChoice(char c)
 		}
 		else
 			BadElse("Invalid Opponent to play!");
+		break;
+	case 'r': case 'R':
+		if (kLoopy && !(gTierGamesman && kSupportsTierGamesman)) {
+			if (gCheckPure) {
+				gPure = DeterminePure(gInitialPosition);
+				gCheckPure = FALSE;
+			}
+			printf("\tThe game is%s pure\n", gPure ? "" : " not");
+		} else {
+			BadMenuChoice();
+		}
+		HitAnyKeyToContinue();
 		break;
 
 

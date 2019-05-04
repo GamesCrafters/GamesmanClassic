@@ -877,6 +877,7 @@ BOOLEAN LoadOpenPositionsData()
 REMOTENESS*  		gPositionLevel = NULL;  /* A list of each position's draw level */
 VALUE*  			gPositionValue = NULL;	/* A list of each position's value (win/lose/undecided/draw) */
 int 				level = 0;
+int 				maxLevel = 0;
 FRnode*         	gHeadWinDR = NULL;      /* The FRontier Win Queue */
 FRnode*         	gTailWinDR = NULL;
 FRnode*         	gHeadLoseDR = NULL;     /* The FRontier Lose Queue */
@@ -886,6 +887,8 @@ FRnode*         	gTailTieDR = NULL;
 POSITIONLIST**  	gDrawParents = NULL;        /* The Parent of each node in a list */
 char*           	gDrawNumberChildren = NULL; /* The Number of children (used for Loopy games) */
 char*       		gDrawNumberChildrenOriginal = NULL;
+int 				*gNumWins = NULL;
+int 				*gNumLoses = NULL;
 
 
 /*
@@ -903,7 +906,6 @@ BOOLEAN DeterminePure(POSITION position)
 	InitializeDR();
 	DrawParentInitialize();
 	DrawNumberChildrenInitialize();
-
 	/* Set each positions parent's list */
 	SetDrawParents(kBadPosition,gInitialPosition);
 
@@ -911,11 +913,8 @@ BOOLEAN DeterminePure(POSITION position)
 
 		DeterminePure1(gInitialPosition); /* Solve all positions we can */
 		SetDrawParents(kBadPosition,gInitialPosition); 	/* Must be reset because the gDrawParents variable is manipulated in the DeterminePure1 function */
-
 		SetNewLevelFringe(); /* Set all undecided positions with winning children to loses */
-
 		level++;
-
 		/* Check if we should stop */
 		if (!ExistsUnsolvedPosition() || level > 100) {
 			if (level > 100) {
@@ -928,9 +927,14 @@ BOOLEAN DeterminePure(POSITION position)
 	/* Run the actual Purity check */
 	tmp = isPure();
 
+	/* This is for post-run Analysis */
+	SetAnalysisOfDrawPositions();
+
 	/* free */
 	DrawNumberChildrenFree();   
 	DrawParentFree();
+
+	PrintDrawAnalysis();
 
 	return tmp;
 }
@@ -991,6 +995,9 @@ void DeterminePure1(POSITION position)
 						if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = 0 into win DR\n",parent,"win");
 						gPositionValue[parent] = win;
 						gPositionLevel[parent] = level;
+						if (level > maxLevel) {
+							maxLevel = level;
+						}
 					}
 					else {
 						/* We already know the parent is a winning position. */
@@ -1022,7 +1029,7 @@ void DeterminePure1(POSITION position)
 
 				/* Make code easier to read */
 				parent = ptr->position;
-				printf("parent: %llu NumberOfChildren: %d\n", parent, gDrawNumberChildren[parent]);
+				//printf("parent: %llu NumberOfChildren: %d\n", parent, gDrawNumberChildren[parent]);
 
 				/* Skip if this is the initial position (parent is kBadPosition) */
 				/* If this is the last unknown child and they were all wins, parent is lose */
@@ -1042,6 +1049,9 @@ void DeterminePure1(POSITION position)
 					** less remoteness first. */
 					gPositionValue[parent] = lose;
 					gPositionLevel[parent] = level;
+					if (level > maxLevel) {
+						maxLevel = level;
+					}
 				} else if (parent != kBadPosition) {
 					F0EdgeCount++;
 				}
@@ -1085,6 +1095,9 @@ void DeterminePure1(POSITION position)
 				if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = 0 into win FR\n",parent,"tie");
 				gPositionValue[parent] = tie;
 				gPositionLevel[parent] = level;
+				if (level > maxLevel) {
+					maxLevel = level;
+				}
 				/*
 				   gNumberChildren[parent] -= 1;
 				   gNumberChildrenOriginal[parent] -=1; //As it is now, fringe0 can't have tie children
@@ -1210,6 +1223,9 @@ void SetDrawParents (POSITION parent, POSITION root)
 					}
 					gPositionValue[child] = value;
 					gPositionLevel[child] = level;
+					if (level > maxLevel) {
+						maxLevel = level;
+					}
 				} else {
 					nextLevel = StorePositionInList(child, nextLevel);
 				}
@@ -1391,6 +1407,9 @@ void SetNewLevelFringe()
 				if (gPositionValue[parent] == undecided) {
 					gPositionValue[parent] = lose;
 					gPositionLevel[parent] = level + 1;
+					if (level + 1 > maxLevel) {
+						maxLevel = level + 1;
+					}
 					InsertLoseDR(parent);
 				}
 				ptr = ptr->next;
@@ -1452,6 +1471,50 @@ BOOLEAN isPure()
 	printf("numTie: %d\n", numTie);
 
 	return TRUE;
+}
+
+void SetAnalysisOfDrawPositions() {
+	POSITION i;
+	int k;
+
+	int tmpOne[maxLevel + 1];
+	int tmpTwo[maxLevel + 1];
+	gNumWins = tmpOne;
+	gNumLoses = tmpTwo;
+	
+	// numWins = (int *) SafeMalloc ((maxLevel + 1) * sizeof(int));
+	// numLoses = (int *) SafeMalloc ((maxLevel + 1) * sizeof(int));
+
+	for (k=0; k<=maxLevel; k++) {
+		gNumWins[k] = 0;
+		gNumLoses[k] = 0;
+	}
+
+	for (i=0; i < gNumberOfPositions; i++) {
+		if (gPositionValue[i] == win) {
+			gNumWins[gPositionLevel[i]]++;
+		} else if (gPositionValue[i] == lose) {
+			gNumLoses[gPositionLevel[i]]++;
+		}
+	}
+
+	PrintDrawAnalysis();
+
+	// SET SOMETHING ELSE
+
+	// SafeFree(numWins);
+	// SafeFree(numLoses);
+}
+
+void PrintDrawAnalysis() {
+	int k;
+
+	for (k=0; k <= maxLevel; k++) {
+		printf("\n");
+		printf("Draw Level %d\n", k);
+		printf("NumWins: %d\n", gNumWins[k]);
+		printf("NumLoses %d\n", gNumLoses[k]);
+	}
 }
 
 // End Loopy

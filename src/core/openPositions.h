@@ -183,6 +183,8 @@ void            InsertTieDR                     (POSITION pos);
 void            SetNewLevelFringe               (void);
 BOOLEAN         ExistsUnsolvedPosition          (void);
 BOOLEAN         isPure                          (void);
+void            SetAnalysisOfDrawPositions      (void);
+void            PrintDrawAnalysis               (void);
 
 /* Loopy globals */
 
@@ -195,5 +197,7 @@ extern FRnode*          gTailTieDR;
 
 extern POSITIONLIST**   gDrawParents;
 extern char*            gDrawNumberChildren;
+extern int              *gNumLoses;
+extern int              *gNumWins;
 
 #endif

@@ -188,3 +188,6 @@ STRING  *gCustomTraits = NULL;
 STRING gPenFile = NULL;
 BOOLEAN gPenDebug = FALSE;
 
+/* Loopy Analysis */
+BOOLEAN gPure = FALSE;
+BOOLEAN gCheckPure = TRUE;

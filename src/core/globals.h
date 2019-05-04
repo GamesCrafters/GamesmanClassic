@@ -183,5 +183,9 @@ extern Tcl_Interp*              gTclInterp;
 extern STRING gPenFile;
 extern BOOLEAN gPenDebug;
 
+/* Loopy Analysis */
+extern BOOLEAN gPure;
+extern BOOLEAN gCheckPure;
+
 
 #endif /* GMCORE_GLOBALS_H */
