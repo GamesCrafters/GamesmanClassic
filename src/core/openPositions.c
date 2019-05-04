@@ -887,8 +887,8 @@ FRnode*         	gTailTieDR = NULL;
 POSITIONLIST**  	gDrawParents = NULL;        /* The Parent of each node in a list */
 char*           	gDrawNumberChildren = NULL; /* The Number of children (used for Loopy games) */
 char*       		gDrawNumberChildrenOriginal = NULL;
-int 				*gNumWins = NULL;
-int 				*gNumLoses = NULL;
+POSITION 			gNumWins[101]; // The reason we use 101 is because we set a hard max of 100 as the largest draw level and we needed a high bound on the array.
+POSITION 			gNumLoses[101];
 
 
 /*
@@ -931,7 +931,7 @@ BOOLEAN DeterminePure(POSITION position)
 	SetAnalysisOfDrawPositions();
 
 	/* free */
-	DrawNumberChildrenFree();   
+	DrawNumberChildrenFree();  
 	DrawParentFree();
 
 	PrintDrawAnalysis();
@@ -1003,13 +1003,13 @@ void DeterminePure1(POSITION position)
 						/* We already know the parent is a winning position. */
 
 						if (gPositionValue[parent] != win) {
-							printf(POSITION_FORMAT " should be win.  Instead it is %d.\n", parent, gPositionValue[parent]);
-							if (gPositionValue[parent] == lose) {
-								printf("This is an early indicator of Impurity. We might be able to stop here. I'll ask Dan Tomorrow\n");
-								// PrintPosition(child, "child", TRUE);
-								// PrintPosition(parent, "parent", TRUE);
-							}
-							BadElse("DetermineLoopyValue");
+							// printf(POSITION_FORMAT " should be win.  Instead it is %d.\n", parent, gPositionValue[parent]);
+							// if (gPositionValue[parent] == lose) {
+							// 	printf("This is an early indicator of Impurity. We might be able to stop here. I'll ask Dan Tomorrow\n");
+							// 	// PrintPosition(child, "child", TRUE);
+							// 	// PrintPosition(parent, "parent", TRUE);
+							// }
+							// BadElse("DetermineLoopyValue");
 						}
 
 						/* This should always hold because the frontier is a queue.
@@ -1147,10 +1147,6 @@ void DeterminePure1(POSITION position)
 	if (gInterestingness) {
 		DetermineInterestingness(position);
 	}
-
-	gAnalysis.F0EdgeCount = F0EdgeCount;
-	gAnalysis.F0NodeCount = F0NodeCount;
-	gAnalysis.F0DrawEdgeCount = F0DrawEdgeCount;
 }
 
 /*
@@ -1222,7 +1218,6 @@ void SetDrawParents (POSITION parent, POSITION root)
 					default: BadElse("SetParents found bad primitive value");
 					}
 					gPositionValue[child] = value;
-					gPositionLevel[child] = level;
 					if (level > maxLevel) {
 						maxLevel = level;
 					}
@@ -1435,16 +1430,11 @@ BOOLEAN ExistsUnsolvedPosition()
 BOOLEAN isPure()
 {
 	POSITION i, parent;
-	int numLose = 0;
-	int numWin = 0;
-	int numUnd = 0;
-	int numTie = 0;
 	POSITIONLIST* ptr;
 
 	SetDrawParents(kBadPosition, gInitialPosition);
 	for(i=0; i<gNumberOfPositions; i++) {
 		if (gPositionValue[i] == lose) {
-			numLose++;
 			ptr = gDrawParents[i];
 			while (ptr != NULL) {
 				parent = ptr->position;
@@ -1457,18 +1447,8 @@ BOOLEAN isPure()
 				}
 				ptr = ptr->next;
 			}
-		} else if (gPositionValue[i] == win) {
-			numWin++;
-		} else if (gPositionValue[i] == undecided) {
-			numUnd++;
-		} else if (gPositionValue[i] == tie) {
-			numTie++;
 		}
 	}
-	printf("numWins: %d\n", numWin);
-	printf("numLose: %d\n", numLose);
-	printf("numUnd: %d\n", numUnd);
-	printf("numTie: %d\n", numTie);
 
 	return TRUE;
 }
@@ -1476,11 +1456,6 @@ BOOLEAN isPure()
 void SetAnalysisOfDrawPositions() {
 	POSITION i;
 	int k;
-
-	int tmpOne[maxLevel + 1];
-	int tmpTwo[maxLevel + 1];
-	gNumWins = tmpOne;
-	gNumLoses = tmpTwo;
 	
 	// numWins = (int *) SafeMalloc ((maxLevel + 1) * sizeof(int));
 	// numLoses = (int *) SafeMalloc ((maxLevel + 1) * sizeof(int));
@@ -1498,8 +1473,6 @@ void SetAnalysisOfDrawPositions() {
 		}
 	}
 
-	PrintDrawAnalysis();
-
 	// SET SOMETHING ELSE
 
 	// SafeFree(numWins);
@@ -1510,11 +1483,15 @@ void PrintDrawAnalysis() {
 	int k;
 
 	for (k=0; k <= maxLevel; k++) {
-		printf("\n");
-		printf("Draw Level %d\n", k);
-		printf("NumWins: %d\n", gNumWins[k]);
-		printf("NumLoses %d\n", gNumLoses[k]);
+	printf("Draw Level Analysis:\n");
+	printf("\tDraw Level          Win         Lose          Total\n");
+	printf("\t------------------------------------------------------------------------------\n");
+	printf("\t         0   %10llu   %10llu   %10llu\n", gNumWins[0], gNumLoses[0], gNumWins[0] + gNumLoses[0]);
+	for(k=1; k <= maxLevel; k++) {
+		printf("\t%10d   %10llu   %10llu   %10llu\n", k, gNumWins[k], gNumLoses[k], gNumWins[k] + gNumLoses[k]);
+		}
 	}
+	printf("\n");
 }
 
 // End Loopy

@@ -394,6 +394,10 @@ void PrintDetailedGameValueSummary()
 	}
 	printf("\n\n\t----- Detailed Summary of Game values -----\n\n");
 
+	if (!gCheckPure) {
+		PrintDrawAnalysis();
+	}
+
 	printf("\tRemoteness          Win         Lose          Tie         Draw        Total\n");
 	printf("\t------------------------------------------------------------------------------\n");
 	printf("\t       Inf   %10llu   %10llu   %10llu   %10llu   %10llu\n", gAnalysis.DetailedPositionSummary[REMOTENESS_MAX][0],

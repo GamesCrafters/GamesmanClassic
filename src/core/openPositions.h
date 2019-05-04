@@ -197,7 +197,7 @@ extern FRnode*          gTailTieDR;
 
 extern POSITIONLIST**   gDrawParents;
 extern char*            gDrawNumberChildren;
-extern int              *gNumLoses;
-extern int              *gNumWins;
+extern POSITION         gNumLoses[101]; // Notes explaining the 101 are in openPositions.c
+extern POSITION         gNumWins[101];
 
 #endif
