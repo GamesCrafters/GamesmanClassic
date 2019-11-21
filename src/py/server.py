@@ -222,6 +222,7 @@ class GameProcess(object):
         self.process = subprocess.Popen(arg_list, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
+                                        cwd=os.path.join(bin_path, os.pardir),
                                         bufsize=1,
                                         close_fds=True)
         self.setup_subprocess_pipe(self.process.stdout)
