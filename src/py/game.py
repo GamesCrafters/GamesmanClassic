@@ -88,7 +88,7 @@ class Game(object):
         for f in os.listdir(self.root_dir):
             if f == bin_name:
                 self.server.log.info('Starting {}.'.format(self.name))
-                bin_path = os.path.join(self.root_dir, bin_name)
+                bin_path = os.path.join(os.path.curdir, bin_name)
                 gp = None
                 try:
                     gp = self.process_class(self.server, self, bin_path, opt)
