@@ -67,6 +67,8 @@ class Game(object):
         while proc.alive and time_remaining > 0:
             time_remaining -= time_step
             time.sleep(time_step)
+            if self._working != 'maybe':
+                return self._working
         if self._working == 'maybe':
             return False
         else:
