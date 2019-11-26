@@ -410,7 +410,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	char theBlankFg[BOARDSIZE];
 	int whosTurn;
 
-	generic_hash_unhash(position,theBlankFg);
+	generic_hash_unhash(position, theBlankFg);
 	whosTurn = generic_hash_turn(position);
 
 	printf("\t\tLEGEND:\t\t\tPLAYER %s, a.k.a %s's turn\n\n",
@@ -1041,15 +1041,24 @@ void InitializeOrder () {
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
+
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	int whosTurn = board[0] == 'F' ? FOXTURN : GOOSETURN;
+	return generic_hash_hash(&board[1], whosTurn);
 }
 
-
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	char board[BOARDSIZE];
+	generic_hash_unhash(pos, board);
+	int whosTurn = generic_hash_turn(pos);
+
+	char *ret = SafeMalloc(sizeof(char) * (1 + BOARDSIZE + 1));
+
+	ret[0] = whosTurn == FOXTURN ? 'F' : 'G';
+	memcpy(&ret[1], board, sizeof(char) * BOARDSIZE);
+	ret[1 + BOARDSIZE] = '\0';
+
+	return ret;
 }
 
 char * PositionToEndData(POSITION pos) {
