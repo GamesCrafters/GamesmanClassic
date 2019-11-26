@@ -789,6 +789,13 @@ EXTERNC void PrintMove(MOVE theMove)
 }
 
 EXTERNC POSITION StringToPosition(char* board) {
+  // e.g. board == "o010000000000----"
+  //   position == 0b10000000000000010
+  //                 ^ turn
+  //                  ^ 4 owners (<--)
+  //                      ^ verticals (<--)
+  //                            ^ horizontals (<--)
+
   POSITION pos = 0;
 
   unsigned horizontals = BoardSizeX * (BoardSizeY + 1);
@@ -799,21 +806,27 @@ EXTERNC POSITION StringToPosition(char* board) {
 
   // FIXME: These for loops can be optimized
 
+  pos |= (board[count] == 'o') << (horizontals + verticals + owners);
+  count++;
+
   for (unsigned j = 0; j <= BoardSizeY; j++) {
     for (unsigned i = 0; i < BoardSizeX; i++) {
-      pos |= (board[count++] == '1') << (count++);
+      pos |= (board[count] == '1') << count;
+      count++;
     }
   }
 
   for (unsigned j = 0; j < BoardSizeY; j++) {
     for (unsigned i = 0; i <= BoardSizeX; i++) {
-      pos |= (board[count++] == '1') << (count++);
+      pos |= (board[count] == '1') << count;
+      count++;
     }
   }
 
   for (unsigned j = 0; j < BoardSizeY; j++) {
     for (unsigned i = 0; i < BoardSizeX; i++) {
-      pos |= (board[count++] == 'o' ? 1 : 0) << (count++);
+      pos |= (board[count] == 'o' ? 1 : 0) << count;
+      count++;
     }
   }
 
@@ -827,9 +840,11 @@ EXTERNC char* PositionToString(POSITION pos) {
   unsigned verticals = (BoardSizeX + 1) * BoardSizeY;
   unsigned owners = BoardSizeX * BoardSizeY;
 
-  char *ret = (char *) SafeMalloc(sizeof(char) * (horizontals + verticals + owners + 1));
+  char *ret = (char *) SafeMalloc(sizeof(char) * (horizontals + verticals + owners + 1 + 1));
   
   unsigned count = 0;
+
+  ret[count++] = board.Turn() == 1 ? 'o' : 'x';
 
   for (unsigned j = 0; j <= BoardSizeY; j++) {
     for (unsigned i = 0; i < BoardSizeX; i++) {
