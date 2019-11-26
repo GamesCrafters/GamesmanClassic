@@ -196,7 +196,7 @@ void GameSpecificMenu()
 	POSITION GetInitialPosition();
 
 	do {
-		printf(" \n\t----- Game-specific options for %s -----\n\n", kGameName);
+		printf("ï¿½\n\t----- Game-specific options for %s -----\n\n", kGameName);
 
 		printf("\tCurrent Initial Position:\n");
 		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
@@ -1248,14 +1248,58 @@ void setOption(int option)
 }
 
 POSITION StringToPosition(char* board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	BlankBHT realBoard[BOARDSIZE];
+
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (board[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case ' ':
+				realBoard[i] = Blank;
+				break;
+			case 'b':
+				realBoard[i] = b;
+				break;
+			case 'h':
+				realBoard[i] = h;
+				break;
+			case 't':
+				realBoard[i] = t;
+				break;
+		}
+	}
+
+	return SnakeHash(realBoard);
 }
 
-
 char* PositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankBHT board[BOARDSIZE];
+	SnakeUnhash(pos, board);
+
+	char *ret = SafeMalloc(sizeof(*ret) * (BOARDSIZE + 1));
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (board[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected position\n");
+				break;
+			case Blank:
+				ret[i] = ' ';
+				break;
+			case b:
+				ret[i] = 'b';
+				break;
+			case h:
+				ret[i] = 'h';
+				break;
+			case t:
+				ret[i] = 't';
+				break;
+		}
+	}
+	ret[BOARDSIZE] = '\0';
+
+	return ret;
 }
 
 char * PositionToEndData(POSITION pos) {
