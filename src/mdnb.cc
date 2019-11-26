@@ -811,21 +811,21 @@ EXTERNC POSITION StringToPosition(char* board) {
 
   for (unsigned j = 0; j <= BoardSizeY; j++) {
     for (unsigned i = 0; i < BoardSizeX; i++) {
-      pos |= (board[count] == '1') << count;
+      pos |= (board[count] == '1') << (count - 1);
       count++;
     }
   }
 
   for (unsigned j = 0; j < BoardSizeY; j++) {
     for (unsigned i = 0; i <= BoardSizeX; i++) {
-      pos |= (board[count] == '1') << count;
+      pos |= (board[count] == '1') << (count - 1);
       count++;
     }
   }
 
   for (unsigned j = 0; j < BoardSizeY; j++) {
     for (unsigned i = 0; i < BoardSizeX; i++) {
-      pos |= (board[count] == 'o' ? 1 : 0) << count;
+      pos |= (board[count] == 'o' ? 1 : 0) << (count - 1);
       count++;
     }
   }
@@ -844,7 +844,7 @@ EXTERNC char* PositionToString(POSITION pos) {
   
   unsigned count = 0;
 
-  ret[count++] = board.Turn() == 1 ? 'o' : 'x';
+  ret[count++] = (board.Turn() != 0) ? 'o' : 'x';
 
   for (unsigned j = 0; j <= BoardSizeY; j++) {
     for (unsigned i = 0; i < BoardSizeX; i++) {
