@@ -231,30 +231,35 @@ struct DNB {
   char ChoiceV(int i, int j) {return 'a'+VertMoveOffset+i*BoardSizeY+j;}
 
   void Print() {
-    for (unsigned j = 0; j <= BoardSizeY; j++) {
-      for (unsigned i = 0; i < BoardSizeX; i++) {
-	printf("+");
-	if (EdgeH(i,j))
-	  printf("---");
-	else
-	  printf(" %c ",ChoiceH(i,j));
+    for (unsigned j = 0; j <= BoardSizeY; j++)
+    {
+      for (unsigned i = 0; i < BoardSizeX; i++)
+      {
+        printf("+");
+        if (EdgeH(i, j))
+          printf("---");
+        else
+          printf(" %c ", ChoiceH(i, j));
       }
-      if (j==BoardSizeY) break;
+      if (j == BoardSizeY)
+        break;
       printf("+\n");
 
       for (unsigned i = 0; i <= BoardSizeX; i++)
-	printf("%c   ",EdgeV(i,j)?'|':' ');
+        printf("%c   ", EdgeV(i, j) ? '|' : ' ');
       printf("\n");
 
-      for (unsigned i = 0; i <= BoardSizeX; i++) {
-	printf("%c",EdgeV(i,j)?'|':ChoiceV(i,j));
-	if (i == BoardSizeX) break;
-	printf(" %c ",BoxCompleted(i,j)?(!TrackBoxOwners?'?':Scored(i,j))?'O':'X':' ');
+      for (unsigned i = 0; i <= BoardSizeX; i++)
+      {
+        printf("%c", EdgeV(i, j) ? '|' : ChoiceV(i, j));
+        if (i == BoardSizeX)
+          break;
+        printf(" %c ", BoxCompleted(i, j) ? (!TrackBoxOwners ? '?' : Scored(i, j)) ? 'O' : 'X' : ' ');
       }
       printf("\n");
 
       for (unsigned i = 0; i <= BoardSizeX; i++)
-	printf("%c   ",EdgeV(i,j)?'|':' ');
+        printf("%c   ", EdgeV(i, j) ? '|' : ' ');
 
       printf("\n");
     }
@@ -784,16 +789,75 @@ EXTERNC void PrintMove(MOVE theMove)
 }
 
 EXTERNC POSITION StringToPosition(char* board) {
-    // FIXME: this is just a stub    
-    return atoi(board);
+  POSITION pos = 0;
+
+  unsigned horizontals = BoardSizeX * (BoardSizeY + 1);
+  unsigned verticals = (BoardSizeX + 1) * BoardSizeY;
+  unsigned owners = BoardSizeX * BoardSizeY;
+
+  unsigned count = 0;
+
+  // FIXME: These for loops can be optimized
+
+  for (unsigned j = 0; j <= BoardSizeY; j++) {
+    for (unsigned i = 0; i < BoardSizeX; i++) {
+      pos |= (board[count++] == '1') << (count++);
+    }
+  }
+
+  for (unsigned j = 0; j < BoardSizeY; j++) {
+    for (unsigned i = 0; i <= BoardSizeX; i++) {
+      pos |= (board[count++] == '1') << (count++);
+    }
+  }
+
+  for (unsigned j = 0; j < BoardSizeY; j++) {
+    for (unsigned i = 0; i < BoardSizeX; i++) {
+      pos |= (board[count++] == 'o' ? 1 : 0) << (count++);
+    }
+  }
+
+  return pos;
 }
+
 EXTERNC char* PositionToString(POSITION pos) {
-    // FIXME: this is just a stub
-    return "Implement Me";
+  DNB board(pos);
+
+  unsigned horizontals = BoardSizeX * (BoardSizeY + 1);
+  unsigned verticals = (BoardSizeX + 1) * BoardSizeY;
+  unsigned owners = BoardSizeX * BoardSizeY;
+
+  char *ret = (char *) SafeMalloc(sizeof(char) * (horizontals + verticals + owners + 1));
+  
+  unsigned count = 0;
+
+  for (unsigned j = 0; j <= BoardSizeY; j++) {
+    for (unsigned i = 0; i < BoardSizeX; i++) {
+      ret[count++] = board.EdgeH(i, j) ? '1' : '0';
+    }
+  }
+
+  for (unsigned j = 0; j < BoardSizeY; j++) {
+    for (unsigned i = 0; i <= BoardSizeX; i++) {
+      ret[count++] = board.EdgeV(i, j) ? '1' : '0';
+    }
+  }
+
+  for (unsigned j = 0; j < BoardSizeY; j++) {
+    for (unsigned i = 0; i < BoardSizeX; i++) {
+      ret[count++] = board.BoxCompleted(i, j) ? (!TrackBoxOwners ? '?' : board.Scored(i, j)) ? 'o' : 'x' : '-';
+    }
+  }
+
+  ret[count++] = '\0';
+
+  return ret;
 }
 
 EXTERNC STRING MoveToString(MOVE theMove) {
-    return "Implement MoveToString";
+  char *ret = (char *) SafeMalloc(sizeof(char) * (8));
+  snprintf(ret, 8, "%d", theMove);
+  return ret;
 }
 
 EXTERNC char * PositionToEndData(POSITION pos) {
