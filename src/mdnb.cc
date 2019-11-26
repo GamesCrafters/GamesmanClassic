@@ -816,8 +816,8 @@ EXTERNC POSITION StringToPosition(char* board) {
     }
   }
 
-  for (unsigned j = 0; j < BoardSizeY; j++) {
-    for (unsigned i = 0; i <= BoardSizeX; i++) {
+  for (unsigned i = 0; i <= BoardSizeX; i++) {
+    for (unsigned j = 0; j < BoardSizeY; j++) {
       pos |= (board[count] == '1') << (count - 1);
       count++;
     }
@@ -852,8 +852,8 @@ EXTERNC char* PositionToString(POSITION pos) {
     }
   }
 
-  for (unsigned j = 0; j < BoardSizeY; j++) {
-    for (unsigned i = 0; i <= BoardSizeX; i++) {
+  for (unsigned i = 0; i <= BoardSizeX; i++) {
+    for (unsigned j = 0; j < BoardSizeY; j++) {
       ret[count++] = board.EdgeV(i, j) ? '1' : '0';
     }
   }
