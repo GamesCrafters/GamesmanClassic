@@ -196,7 +196,7 @@ void GameSpecificMenu()
 	POSITION GetInitialPosition();
 
 	do {
-		printf("�\n\t----- Game-specific options for %s -----\n\n", kGameName);
+		printf(" \n\t----- Game-specific options for %s -----\n\n", kGameName);
 
 		printf("\tCurrent Initial Position:\n");
 		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
