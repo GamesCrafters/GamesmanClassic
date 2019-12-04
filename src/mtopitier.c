@@ -29,8 +29,12 @@
   **			                 Wrote Primitive() (unsure if it is finished or not)
   **      02/26/2006 - Not sure if total num of positions should include player
 
- // Revision 1.55  2019/12/03 15:54:20  chuxiongquan
- // recover the broken version
+ // Revision 1.56  2019/12/03 14:46:00  chuxiongquan
+ // Complete tier version, but it can't run without better hash function 
+ // (Which can hash board with more pieces efficiently)
+ //
+ // Revision 1.55  2019/12/03 03:20:00  chuxiongquan
+ // brand new tier version!(Directly hash the board without three layers)
  //
  // $Log: not supported by cvs2svn $
  // Revision 1.54  2007/05/17 01:29:09  alexchoy
@@ -396,13 +400,8 @@ STRING kHelpExample =
 #define REDCASTLESTRING "Red Sand Castle"
 #define UNKNOWNSTRING "UNKNOWN PIECE!"
 
-#define HASHBLANK 0
-#define HASHSANDPILE 1
-#define HASHBLUEBUCKET 1
-#define HASHREDBUCKET 2
-
-#define BLUETURN 0
-#define REDTURN 1
+#define BLUETURN 1
+#define REDTURN 2
 
 #define NUMCASTLESTOWIN 2
 
@@ -435,18 +434,6 @@ typedef struct boardAndTurnRep {
 	BoardData data;
 } *BoardAndTurn;
 
-typedef struct tripleBoardRep {
-	char* boardL;   // Holds blanks (0) and large sand piles (1)
-	char* boardS;   // Holds blanks (0) and small sand piles (2)
-	char* boardB;   // Holds blanks (0), blue buckets (1), and red buckets (2).
-} *BoardRep;
-
-typedef struct threePieces {
-	char L;
-	char S;
-	char B;
-} *ThreePiece;
-
 typedef struct cleanMove {
 	int fromPos;    // 0 = dart-board ; 1-9 = move from position
 	int toPos;              // 0-8 = move to position
@@ -457,6 +444,7 @@ typedef struct positionNode {
 	POSITION pos;
 	struct positionNode* next;
 } *PositionList;
+
 
 /*************************************************************************
  **
@@ -519,20 +507,15 @@ int                     getOption();
 void                    setOption(int option);
 void                    DebugMenu();
 /* Game-specific */
-void                                    printTopRow(int rowNum, BoardRep toHash);
-void                                    printMiddleRow(int rowNum, BoardRep toHash);
-void                                    printBottomRow(int rowNum, BoardRep toHash);
+void                                    printTopRow(int rowNum, char* theBoard);
+void                                    printMiddleRow(int rowNum, char* theBoard);
+void                                    printBottomRow(int rowNum, char* theBoard);
 char                                    BoardPieceToChar(BoardPiece piece);
 char                                    HashBoardPieceToChar(HashBoardPiece piece);
 BoardPiece                      CharToBoardPiece(char piece);
 HashBoardPiece                  CharToHashBoardPiece(char piece);
-BoardPiece                              ThreePieceToBoardPiece(ThreePiece lsb);
-char                                    ThreePieceToChar(ThreePiece lsb);
-ThreePiece                              BoardPieceToThreePiece(BoardPiece piece);
-ThreePiece                              CharToThreePiece(char piece);
 char* BoardPieceToString(BoardPiece piece);
 char* HashBoardPieceToString(HashBoardPiece piece);
-BoardRep                                splitBoardLSB(BoardAndTurn board);
 POSITION                                arrayHash(BoardAndTurn board);
 BoardAndTurn                    arrayUnhash(POSITION hashNumber);
 MOVE                                    hashMove(GMove newMove);
@@ -546,6 +529,22 @@ void                                    addToAllPositions(POSITION newPos);
 POSITION                                getFrontFromAllPositions();
 void                                    removeFrontFromAllPositions();
 
+//TIER GAMESMAN
+void                                    SetupTierStuff();
+TIER									BoardToTier(BoardAndTurn);
+TIERLIST*								TierChildren(TIER);
+TIERPOSITION							NumberOfTierPositions(TIER);
+void									GetInitialTierPosition(TIER*, TIERPOSITION*);
+BOOLEAN									IsLegal(POSITION);
+//UNDOMOVELIST*							GenerateUndoMovesToTier(POSITION, TIER);
+STRING									TierToString(TIER);
+//POSITION								UnDoMove(POSITION, UNDOMOVE);
+TIER                                    PiecesToTier(TIER, TIER, TIER, TIER);
+void									CompressBoardandHash(int[]);
+BOOLEAN									ValidPiecesArray(int[]);
+
+
+
 /************************************************************************
  **
  ** NAME:        InitializeGame
@@ -558,38 +557,44 @@ void                                    removeFrontFromAllPositions();
 void InitializeGame()
 {
 	printf("INITIALIZE GAME");
-	int i;
-	int LpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
-	int SpiecesArray[] = { HASHBLANK, 5, 9, HASHSANDPILE, 0, 4, -1 };
-	int BpiecesArray[] = { HASHBLANK, 5, 9, HASHREDBUCKET, 0, 2, HASHBLUEBUCKET, 0, 2, -1 };
+	kExclusivelyTierGamesman = TRUE; //Can be deleted later
+	//discard current hash
+	generic_hash_destroy();
 
-	BoardAndTurn boardArray;
-	boardArray = (BoardAndTurn)SafeMalloc(sizeof(struct boardAndTurnRep));
-	boardArray->theBoard = (char*)SafeMalloc(boardSize * sizeof(char));
+	//Setup Tier Stuff
+	SetupTierStuff();
 
-	if (DEBUG_G) { printf("maxL = %d\n", maxL = generic_hash_init(boardSize, LpiecesArray, NULL, 0)); }
-	if (DEBUG_G) { printf("maxS = %d\n", maxS = generic_hash_init(boardSize, SpiecesArray, NULL, 0)); }
-	if (DEBUG_G) { printf("maxB = %d\n", maxB = generic_hash_init(boardSize, BpiecesArray, NULL, 0)); }
-
-	// init the hash values
-	maxL = generic_hash_init(boardSize, LpiecesArray, NULL, 0);
-	maxS = generic_hash_init(boardSize, SpiecesArray, NULL, 0);
-	maxB = generic_hash_init(boardSize, BpiecesArray, NULL, 0);
-
-	gNumberOfPositions = maxB + maxS * maxB + maxL * maxS * maxB;
-	gWhosTurn = boardArray->theTurn = Blue;
-
-	// begin with the default board, all blanks
-	for (i = 0; i < boardSize; i++) {
-		boardArray->theBoard[i] = BLANKPIECE;
+	// GLOBAL HASH
+	int TOTALTIERPOSITIONS = 225;
+	int piecesArray[] = { LARGEPIECE, 0, 0, SMALLPIECE, 0, 0,
+		BLUEBUCKETPIECE, 0, 0, REDBUCKETPIECE, 0, 0, CASTLEPIECE, 0, 0,
+		BLUESMALLPIECE, 0, 0, REDSMALLPIECE, 0, 0, BLUECASTLEPIECE, 0, 0,
+		REDCASTLEPIECE, 0, 0, BLANKPIECE, 0, 0, -1 };
+	for (int tier = 0; tier < TOTALTIERPOSITIONS; tier++) {
+		piecesArray[1] = piecesArray[2] = tier / 45;
+		piecesArray[4] = piecesArray[5] = (tier % 45) / 9;
+		piecesArray[7] = piecesArray[8] = (tier % 9) % 3;
+		if (tier % 9 <= 2) {
+			piecesArray[10] = piecesArray[11] = 0;
+		}
+		else if (tier % 9 <= 5) {
+			piecesArray[10] = piecesArray[11] = 1;
+		}
+		else {
+			piecesArray[10] = piecesArray[11] = 2;
+		}
+		piecesArray[28] = piecesArray[29] = 9 - piecesArray[1] - piecesArray[4] - piecesArray[7] - piecesArray[10];
+		CompressBoardandHash(piecesArray);
 	}
 
-	gInitialPosition = arrayHash(boardArray); // = currentBoard = prevBoard
-	SafeFree(boardArray->theBoard);
-	SafeFree(boardArray);
-	if (DEBUG_G) { printf("# Of Pos: %d\n", (int)gNumberOfPositions); }
-	if (DEBUG_G) { printf("Init Pos: %d\n", (int)gInitialPosition); }
-	if (DEBUG_TEST) { testHash(); }
+	// gInitialPosition
+	BoardAndTurn boardArray = (BoardAndTurn)SafeMalloc(sizeof(struct boardAndTurnRep));
+	boardArray->theBoard = (char*)SafeMalloc(boardSize * sizeof(char));
+	for (int i = 0; i < boardSize; i++) {
+		boardArray->theBoard[i] = BLANKPIECE;
+	}
+	gWhosTurn = boardArray->theTurn = Blue;
+	gInitialPosition = arrayHash(boardArray);
 }
 
 
@@ -618,7 +623,7 @@ MOVELIST* GenerateMoves(POSITION position)
 
 	printf("GenerateMoves\n");
 
-	BoardAndTurn board = arrayUnhash(position); // here???
+	BoardAndTurn board = arrayUnhash(position); 
 	GMove newMove = (GMove)SafeMalloc(sizeof(struct cleanMove));
 	MOVE tempMove, undoMove = inverseMove(lastMove);
 	int i, j;
@@ -935,14 +940,12 @@ VALUE Primitive(POSITION position) {
 void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
 	BoardAndTurn board;
-	BoardRep toHash;
 	int i;
 
 	printf("PrintPosition\n");
 
 	board = arrayUnhash(position);
-	toHash = splitBoardLSB(board);
-
+	char* theBoard = board->theBoard;
 	if (DEBUG_PP) { printf("\nPOSITION# = %d\n", (int)position); }
 
 	/***********************LINE 1**************************/
@@ -950,14 +953,14 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 	/***********************LINE 2,3,4**************************/
 	printf("       |");
-	printTopRow(1, toHash);
+	printTopRow(1, theBoard);
 
 	printf("\n       |");
-	printMiddleRow(1, toHash);
+	printMiddleRow(1, theBoard);
 	printf("          +------------------------+");
 
 	printf("\n       |");
-	printBottomRow(1, toHash);
+	printBottomRow(1, theBoard);
 	printf("          |    PIECES REMAINING    |");
 	printf("\n");
 
@@ -967,7 +970,7 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 	/***********************LINE 6,7,8**************************/
 	printf("\n       |");
-	printTopRow(2, toHash);
+	printTopRow(2, theBoard);
 	printf("          |Large Piles  [l]:  ");
 	for (i = 0; i < board->data->largeSandPiles; i++) {
 		printf("*");
@@ -978,7 +981,7 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf(" |");
 
 	printf("\nBOARD: |");
-	printMiddleRow(2, toHash);
+	printMiddleRow(2, theBoard);
 	printf("          |Small Piles  [s]:  ");
 	for (i = 0; i < board->data->smallSandPiles; i++) {
 		printf("*");
@@ -989,7 +992,7 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf(" |");
 
 	printf("\n       |");
-	printBottomRow(2, toHash);
+	printBottomRow(2, theBoard);
 	printf("          |Blue Buckets [b]:  ");
 	for (i = 0; i < board->data->blueBuckets; i++) {
 		printf("*");
@@ -1013,14 +1016,14 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 	/***********************LINE 10,11,12**************************/
 	printf("\n       |");
-	printTopRow(3, toHash);
+	printTopRow(3, theBoard);
 	printf("          +------------------------+");
 
 	printf("\n       |");
-	printMiddleRow(3, toHash);
+	printMiddleRow(3, theBoard);
 
 	printf("\n       |");
-	printBottomRow(3, toHash);
+	printBottomRow(3, theBoard);
 	printf("\n");
 
 	/***********************LINE 7**************************/
@@ -1034,56 +1037,36 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn)
 	SafeFree(board->data);
 	SafeFree(board->theBoard);
 	SafeFree(board);
-	SafeFree(toHash->boardL);
-	SafeFree(toHash->boardS);
-	SafeFree(toHash->boardB);
-	SafeFree(toHash);
 }
 
-void printTopRow(int rowNum, BoardRep toHash) {
+void printTopRow(int rowNum, char* theBoard) {
 	int i;
-
 	for (i = (numCols * (rowNum - 1)); i < (numCols * rowNum); i++) {
-		if (toHash->boardL[i] && toHash->boardS[i]) {
-			if (toHash->boardB[i] == HASHBLUEBUCKET) {
-				printf(BLUEBUCKETPIECENUMSTRING, i + 1);
-			}
-			else if (toHash->boardB[i] == HASHREDBUCKET) {
-				printf(REDBUCKETPIECENUMSTRING, i + 1);
-			}
-			else {
-				printf(BLANKPIECENUMSTRING, i + 1);
-			}
-		}
-		else {
+		switch (theBoard[i]) {
+		case BLUECASTLEPIECE:
+			printf(BLUEBUCKETPIECENUMSTRING, i + 1);
+			break;
+		case REDCASTLEPIECE:
+			printf(REDBUCKETPIECENUMSTRING, i + 1);
+			break;
+		default:
 			printf(BLANKPIECENUMSTRING, i + 1);
 		}
 		printf("|");
 	}
 }
 
-void printMiddleRow(int rowNum, BoardRep toHash) {
+void printMiddleRow(int rowNum, char* theBoard) {
 	int i;
-
 	for (i = (numCols * (rowNum - 1)); i < (numCols * rowNum); i++) {
-		if (toHash->boardL[i]) {
-			if (toHash->boardS[i]) {
-				printf(SMALLPIECESTRING);
-			}
-			else {
-				printf(BLANKPIECESTRING);
-			}
+		if (theBoard[i] == CASTLEPIECE || theBoard[i] == BLUECASTLEPIECE || theBoard[i] == REDCASTLEPIECE) {
+			printf(SMALLPIECESTRING);
 		}
-		else if (toHash->boardS[i]) {
-			if (toHash->boardB[i] == HASHBLUEBUCKET) {
-				printf(BLUEBUCKETPIECESTRING);
-			}
-			else if (toHash->boardB[i] == HASHREDBUCKET) {
-				printf(REDBUCKETPIECESTRING);
-			}
-			else {
-				printf(BLANKPIECESTRING);
-			}
+		else if (theBoard[i] == BLUESMALLPIECE) {
+			printf(BLUEBUCKETPIECESTRING);
+		}
+		else if (theBoard[i] == REDSMALLPIECE) {
+			printf(REDBUCKETPIECESTRING);
 		}
 		else {
 			printf(BLANKPIECESTRING);
@@ -1092,20 +1075,19 @@ void printMiddleRow(int rowNum, BoardRep toHash) {
 	}
 }
 
-void printBottomRow(int rowNum, BoardRep toHash) {
+void printBottomRow(int rowNum, char* theBoard) {
 	int i;
-
 	for (i = (numCols * (rowNum - 1)); i < (numCols * rowNum); i++) {
-		if (toHash->boardL[i]) {
+		if (theBoard[i] == LARGEPIECE || theBoard[i] == CASTLEPIECE || theBoard[i] == BLUECASTLEPIECE || theBoard[i] == REDCASTLEPIECE) {
 			printf(LARGEPIECESTRING);
 		}
-		else if (toHash->boardS[i]) {
+		else if (theBoard[i] == SMALLPIECE || theBoard[i] == BLUESMALLPIECE || theBoard[i] == REDSMALLPIECE) {
 			printf(SMALLPIECESTRING);
 		}
-		else if (toHash->boardB[i] == HASHBLUEBUCKET) {
+		else if (theBoard[i] == BLUEBUCKETPIECE) {
 			printf(BLUEBUCKETPIECESTRING);
 		}
-		else if (toHash->boardB[i] == HASHREDBUCKET) {
+		else if (theBoard[i] == REDBUCKETPIECE) {
 			printf(REDBUCKETPIECESTRING);
 		}
 		else {
@@ -1321,8 +1303,8 @@ MOVE ConvertTextInputToMove(STRING input)
 	MOVE thisMove;
 	GMove newMove = (GMove)SafeMalloc(sizeof(struct cleanMove));
 
-	printf("ConvertTextInputToMove, getFrontFromAllPositions() call - %d\n", getFrontFromAllPositions());
 	BoardAndTurn board = arrayUnhash(getFrontFromAllPositions());
+	printf("ConvertTextInputToMove, getFrontFromAllPositions() call - %d\n", getFrontFromAllPositions());
 
 	if (DEBUG_CTITM) {
 		printf("First input = %c\nSecond input = %c\n", first, second);
@@ -1610,128 +1592,6 @@ HashBoardPiece CharToHashBoardPiece(char piece) {
 	return UNKNOWNBOARDPIECE;
 }
 
-BoardPiece ThreePieceToBoardPiece(ThreePiece lsb) {
-	if (lsb->L == HASHBLANK) {
-		if (lsb->S == HASHBLANK) {
-			if (lsb->B == HASHBLANK) {
-				return Blank;
-			}
-			else if (lsb->B == HASHBLUEBUCKET) {
-				return BlueBucket;
-			}
-			else if (lsb->B == HASHREDBUCKET) {
-				return RedBucket;
-			}
-		}
-		else if (lsb->S == HASHSANDPILE) {
-			if (lsb->B == HASHBLANK) {
-				return SmallSand;
-			}
-			else if (lsb->B == HASHBLUEBUCKET) {
-				return BlueSmall;
-			}
-			else if (lsb->B == HASHREDBUCKET) {
-				return RedSmall;
-			}
-		}
-	}
-	else if (lsb->L == HASHSANDPILE) {
-		if (lsb->S == HASHBLANK) {
-			if (lsb->B == HASHBLANK) {
-				return LargeSand;
-			}
-			else if (lsb->B == HASHBLUEBUCKET) {
-				return UNKNOWNBOARDPIECE;
-			}
-			else if (lsb->B == HASHREDBUCKET) {
-				return UNKNOWNBOARDPIECE;
-			}
-		}
-		else if (lsb->S == HASHSANDPILE) {
-			if (lsb->B == HASHBLANK) {
-				return SandCastle;
-			}
-			else if (lsb->B == HASHBLUEBUCKET) {
-				return BlueCastle;
-			}
-			else if (lsb->B == HASHREDBUCKET) {
-				return RedCastle;
-			}
-		}
-	}
-
-	return UNKNOWNBOARDPIECE;
-}
-
-char ThreePieceToChar(ThreePiece lsb) {
-	return BoardPieceToChar(ThreePieceToBoardPiece(lsb));
-}
-
-ThreePiece BoardPieceToThreePiece(BoardPiece piece) {
-	ThreePiece newPiece = (ThreePiece)SafeMalloc(sizeof(struct threePieces));
-
-	switch (piece) {
-	case Blank:
-		newPiece->L = 0;
-		newPiece->S = 0;
-		newPiece->B = 0;
-		break;
-	case BlueBucket:
-		newPiece->L = 0;
-		newPiece->S = 0;
-		newPiece->B = 1;
-		break;
-	case RedBucket:
-		newPiece->L = 0;
-		newPiece->S = 0;
-		newPiece->B = 2;
-		break;
-	case SmallSand:
-		newPiece->L = 0;
-		newPiece->S = 1;
-		newPiece->B = 0;
-		break;
-	case BlueSmall:
-		newPiece->L = 0;
-		newPiece->S = 1;
-		newPiece->B = 1;
-		break;
-	case RedSmall:
-		newPiece->L = 0;
-		newPiece->S = 1;
-		newPiece->B = 2;
-		break;
-	case LargeSand:
-		newPiece->L = 1;
-		newPiece->S = 0;
-		newPiece->B = 0;
-		break;
-	case SandCastle:
-		newPiece->L = 1;
-		newPiece->S = 1;
-		newPiece->B = 0;
-		break;
-	case BlueCastle:
-		newPiece->L = 1;
-		newPiece->S = 1;
-		newPiece->B = 1;
-		break;
-	case RedCastle:
-		newPiece->L = 1;
-		newPiece->S = 1;
-		newPiece->B = 2;
-		break;
-	default:
-		return NULL;
-	}
-
-	return newPiece;
-}
-
-ThreePiece CharToThreePiece(char piece) {
-	return BoardPieceToThreePiece(CharToBoardPiece(piece));
-}
-
 char* BoardPieceToString(BoardPiece piece) {
 	char* pieceString = (char*)SafeMalloc(30 * sizeof(char));
 
@@ -1791,134 +1651,85 @@ char* HashBoardPieceToString(HashBoardPiece piece) {
 	return pieceString;
 }
 
-BoardRep splitBoardLSB(BoardAndTurn board) {
-	BoardRep toHash = (BoardRep)SafeMalloc(sizeof(struct tripleBoardRep));
-	toHash->boardL = (char*)SafeMalloc(boardSize * sizeof(char));
-	toHash->boardS = (char*)SafeMalloc(boardSize * sizeof(char));
-	toHash->boardB = (char*)SafeMalloc(boardSize * sizeof(char));
-	ThreePiece piece;
-	int i;
-
-	for (i = 0; i < boardSize; i++) {
-		piece = CharToThreePiece(board->theBoard[i]);
-		toHash->boardL[i] = piece->L;
-		toHash->boardS[i] = piece->S;
-		toHash->boardB[i] = piece->B;
-		//if (DEBUG_G) { printf("boardL[%d] = %d\n", i, toHash->boardL[i]); }
-		//if (DEBUG_G) { printf("boardS[%d] = %d\n", i, toHash->boardS[i]); }
-		//if (DEBUG_G) { printf("boardB[%d] = %d\n", i, toHash->boardB[i]); }
-	}
-
-	SafeFree(piece);
-	return toHash;
-}
-
-/*
-  arrayHash - hashes the board to a number
-  Since there are 10 different pieces, this hash utilizes this fact and
-*/
 POSITION arrayHash(BoardAndTurn board) {
-	BoardRep toHash = splitBoardLSB(board);
-	POSITION L;
-	POSITION S;
-	POSITION B;
-	generic_hash_context_switch(0);
-	L = generic_hash_hash(toHash->boardL, gWhosTurn);
-	generic_hash_context_switch(1);
-	S = generic_hash_hash(toHash->boardS, gWhosTurn);
-	generic_hash_context_switch(2);
-	B = generic_hash_hash(toHash->boardB, gWhosTurn);
-	if (DEBUG_G) {
-		printf("L = %d\n", (int)L);
-		printf("S = %d\n", (int)S);
-		printf("B = %d\n", (int)B);
-		printf("HASHED # = %d\n", (int)(B + (S * maxB) + (L * maxS * maxB)));
+	POSITION position;
+	if (gHashWindowInitialized) {
+		TIER tier = BoardToTier(board);
+		generic_hash_context_switch(tier);
+		TIERPOSITION tierpos = generic_hash_hash(board->theBoard, board->theTurn);
+		position = gHashToWindowPosition(tierpos, tier);
 	}
-	if (DEBUG_G) { printf("\n********** END arrayHASH **********\n"); }
-
-	SafeFree(toHash->boardL);
-	SafeFree(toHash->boardS);
-	SafeFree(toHash->boardB);
-	SafeFree(toHash);
-
-	return B + (S * maxB) + (L * maxS * maxB);
+	else {
+		position = generic_hash_hash(board->theBoard, board->theTurn);
+	}
+	return position;
 }
 
-BoardAndTurn arrayUnhash(POSITION hashNumber) {
+BoardAndTurn arrayUnhash(POSITION position) {
 	BoardAndTurn board = (BoardAndTurn)SafeMalloc(sizeof(struct boardAndTurnRep));
 	board->theBoard = (char*)SafeMalloc(boardSize * sizeof(char));
 	board->data = (BoardData)SafeMalloc(sizeof(struct boardDataElements));
-	BoardRep toHash = (BoardRep)SafeMalloc(sizeof(struct tripleBoardRep));
-	toHash->boardL = (char*)SafeMalloc(boardSize * sizeof(char));
-	toHash->boardS = (char*)SafeMalloc(boardSize * sizeof(char));
-	toHash->boardB = (char*)SafeMalloc(boardSize * sizeof(char));
-	ThreePiece newPiece = (ThreePiece)SafeMalloc(sizeof(struct threePieces));
-	int i, small = 4, large = 4, redB = 2, blueB = 2, redC = 0, blueC = 0;
-
-	if (DEBUG_AU) { printf("\n********** arrayUNHASH **********\n"); }
-
-	if (DEBUG_AU) { printf("HASHED # = %d\n", (int)hashNumber); }
-
-	POSITION L = hashNumber / (maxS * maxB);
-	POSITION S = (hashNumber % (maxS * maxB)) / maxB;
-	POSITION B = hashNumber % maxB;
-
-	if (DEBUG_AU) {
-		printf("L = %d\n", (int)L);
-		printf("S = %d\n", (int)S);
-		printf("B = %d\n", (int)B);
-	}
-
-	generic_hash_context_switch(0);
-	generic_hash_unhash(L, toHash->boardL);
-	generic_hash_context_switch(1);
-	generic_hash_unhash(S, toHash->boardS);
-	generic_hash_context_switch(2);
-	generic_hash_unhash(B, toHash->boardB);
-
-	for (i = 0; i < boardSize; i++) {
-		newPiece->L = toHash->boardL[i];
-		newPiece->S = toHash->boardS[i];
-		newPiece->B = toHash->boardB[i];
-		//if (DEBUG_AU) { printf("boardL[%d] = %d\n", i, toHash->boardL[i]); }
-		//if (DEBUG_AU) { printf("boardS[%d] = %d\n", i, toHash->boardS[i]); }
-		//if (DEBUG_AU) { printf("boardB[%d] = %d\n", i, toHash->boardB[i]); }
-		board->theBoard[i] = ThreePieceToChar(newPiece);
-		//if (DEBUG_AU) { printf("board[%d] = %c\n", i, board->theBoard[i]); }
-		if (board->theBoard[i] == SMALLPIECE) { small--; }
-		if (board->theBoard[i] == LARGEPIECE) { large--; }
-		if (board->theBoard[i] == CASTLEPIECE) { small--; large--; }
-		if (board->theBoard[i] == BLUEBUCKETPIECE) { blueB--; }
-		if (board->theBoard[i] == REDBUCKETPIECE) { redB--; }
-		if (board->theBoard[i] == BLUESMALLPIECE) { small--; blueB--; }
-		if (board->theBoard[i] == REDSMALLPIECE) { small--; redB--; }
-		if (board->theBoard[i] == BLUECASTLEPIECE) {
-			small--; large--; blueB--; blueC++;
+	if (gHashWindowInitialized) {
+		TIERPOSITION tierpos;
+		TIER tier;
+		gUnhashToTierPosition(position, &tierpos, &tier);
+		generic_hash_context_switch(tier);
+		generic_hash_unhash(tierpos, board->theBoard);
+		int small = 4, large = 4, redB = 2, blueB = 2, redC = 0, blueC = 0;
+		for (int i = 0; i < boardSize; i++) {
+			if (board->theBoard[i] == SMALLPIECE) { small--; }
+			if (board->theBoard[i] == LARGEPIECE) { large--; }
+			if (board->theBoard[i] == CASTLEPIECE) { small--; large--; }
+			if (board->theBoard[i] == BLUEBUCKETPIECE) { blueB--; }
+			if (board->theBoard[i] == REDBUCKETPIECE) { redB--; }
+			if (board->theBoard[i] == BLUESMALLPIECE) { small--; blueB--; }
+			if (board->theBoard[i] == REDSMALLPIECE) { small--; redB--; }
+			if (board->theBoard[i] == BLUECASTLEPIECE) {
+				small--; large--; blueB--; blueC++;
+			}
+			if (board->theBoard[i] == REDCASTLEPIECE) {
+				small--; large--; redB--; redC++;
+			}
 		}
-		if (board->theBoard[i] == REDCASTLEPIECE) {
-			small--; large--; redB--; redC++;
-		}
+		board->data->smallSandPiles = small;
+		board->data->largeSandPiles = large;
+		board->data->redBuckets = redB;
+		board->data->blueBuckets = blueB;
+		board->data->redCastles = redC;
+		board->data->blueCastles = blueC;
+		board->theTurn = generic_hash_turn(position);
+		return board;
 	}
-
-	board->data->smallSandPiles = small;
-	board->data->largeSandPiles = large;
-	board->data->redBuckets = redB;
-	board->data->blueBuckets = blueB;
-	board->data->redCastles = redC;
-	board->data->blueCastles = blueC;
-	board->theTurn = generic_hash_turn(hashNumber);
-
-	if (DEBUG_AU) { printf("\ngeneric_hash_turn(hashNumber) = %d\n", generic_hash_turn(hashNumber)); }
-
-	if (DEBUG_AU) { printf("\n********** END arrayUNHASH **********\n"); }
-
-	SafeFree(toHash->boardL);
-	SafeFree(toHash->boardS);
-	SafeFree(toHash->boardB);
-	SafeFree(toHash);
-	SafeFree(newPiece);
-
-	return board;
+	else {
+		BoardAndTurn board = (BoardAndTurn)SafeMalloc(sizeof(struct boardAndTurnRep));
+		board->theBoard = (char*)SafeMalloc(boardSize * sizeof(char));
+		board->data = (BoardData)SafeMalloc(sizeof(struct boardDataElements));
+		int small = 4, large = 4, redB = 2, blueB = 2, redC = 0, blueC = 0;
+		generic_hash_unhash(position, board->theBoard);
+		for (int i = 0; i < boardSize; i++) {
+			if (board->theBoard[i] == SMALLPIECE) { small--; }
+			if (board->theBoard[i] == LARGEPIECE) { large--; }
+			if (board->theBoard[i] == CASTLEPIECE) { small--; large--; }
+			if (board->theBoard[i] == BLUEBUCKETPIECE) { blueB--; }
+			if (board->theBoard[i] == REDBUCKETPIECE) { redB--; }
+			if (board->theBoard[i] == BLUESMALLPIECE) { small--; blueB--; }
+			if (board->theBoard[i] == REDSMALLPIECE) { small--; redB--; }
+			if (board->theBoard[i] == BLUECASTLEPIECE) {
+				small--; large--; blueB--; blueC++;
+			}
+			if (board->theBoard[i] == REDCASTLEPIECE) {
+				small--; large--; redB--; redC++;
+			}
+		}
+		board->data->smallSandPiles = small;
+		board->data->largeSandPiles = large;
+		board->data->redBuckets = redB;
+		board->data->blueBuckets = blueB;
+		board->data->redCastles = redC;
+		board->data->blueCastles = blueC;
+		board->theTurn = generic_hash_turn(position);
+		return board;
+	}
 }
 
 MOVE hashMove(GMove newMove) {
@@ -2101,12 +1912,299 @@ void removeFrontFromAllPositions() {
 	}
 }
 
+// Compress boards for hashing Tier & TierPosition easier
+void CompressBoardandHash(int piecesArray[]) {
+	if (ValidPiecesArray(piecesArray)) {
+		printf("L:%d S:%d B:%d R:%d LS:%d SB:%d SR:%d LSB:%d LSR:%d BNK:%d\n", piecesArray[1], piecesArray[4], piecesArray[7], piecesArray[10], piecesArray[13], 
+			piecesArray[16], piecesArray[19], piecesArray[22], piecesArray[25], piecesArray[28]);
+		generic_hash_init(boardSize, piecesArray, NULL, 0);
+	}
+	int* nPiecesArray = (int*)SafeMalloc(31 * sizeof(int));
+	// 1. Large and Small
+	if (piecesArray[1] > 0 && piecesArray[4] > 0) {
+		for (int i = 0; i < 31; i++) {
+			nPiecesArray[i] = piecesArray[i];
+		}
+		nPiecesArray[1] = nPiecesArray[2] = piecesArray[1] - 1;
+		nPiecesArray[4] = nPiecesArray[5] = piecesArray[4] - 1;
+		nPiecesArray[13] = nPiecesArray[14] = piecesArray[13] + 1;
+		nPiecesArray[28] = nPiecesArray[29] = piecesArray[28] + 1;
+		CompressBoardandHash(nPiecesArray);
+	}
+	// 2. Small and BlueBucket
+	if (piecesArray[4] > 0 && piecesArray[7] > 0) {
+		for (int i = 0; i < 31; i++) {
+			nPiecesArray[i] = piecesArray[i];
+		}
+		nPiecesArray[4] = nPiecesArray[5] = piecesArray[4] - 1;
+		nPiecesArray[7] = nPiecesArray[8] = piecesArray[7] - 1;
+		nPiecesArray[16] = nPiecesArray[17] = piecesArray[16] + 1;
+		nPiecesArray[28] = nPiecesArray[29] = piecesArray[28] + 1;
+		CompressBoardandHash(nPiecesArray);
+	}
+	// 3. Small and RedBucket
+	if (piecesArray[4] > 0 && piecesArray[10] > 0) {
+		for (int i = 0; i < 31; i++) {
+			nPiecesArray[i] = piecesArray[i];
+		}
+		nPiecesArray[4] = nPiecesArray[5] = piecesArray[4] - 1;
+		nPiecesArray[10] = nPiecesArray[11] = piecesArray[10] - 1;
+		nPiecesArray[19] = nPiecesArray[20] = piecesArray[19] + 1;
+		nPiecesArray[28] = nPiecesArray[29] = piecesArray[28] + 1;
+		CompressBoardandHash(nPiecesArray);
+	}
+	// 4. Large and SmallBlue
+	if (piecesArray[1] > 0 && piecesArray[16] > 0) {
+		for (int i = 0; i < 31; i++) {
+			nPiecesArray[i] = piecesArray[i];
+		}
+		nPiecesArray[1] = nPiecesArray[2] = piecesArray[1] - 1;
+		nPiecesArray[16] = nPiecesArray[17] = piecesArray[16] - 1;
+		nPiecesArray[22] = nPiecesArray[23] = piecesArray[22] + 1;
+		nPiecesArray[28] = nPiecesArray[29] = piecesArray[28] + 1;
+		CompressBoardandHash(nPiecesArray);
+	}
+	// 5. Large and SmallRed
+	if (piecesArray[1] > 0 && piecesArray[19] > 0) {
+		for (int i = 0; i < 31; i++) {
+			nPiecesArray[i] = piecesArray[i];
+		}
+		nPiecesArray[1] = nPiecesArray[2] = piecesArray[1] - 1;
+		nPiecesArray[19] = nPiecesArray[20] = piecesArray[19] - 1;
+		nPiecesArray[25] = nPiecesArray[26] = piecesArray[25] + 1;
+		nPiecesArray[28] = nPiecesArray[29] = piecesArray[28] + 1;
+		CompressBoardandHash(nPiecesArray);
+	}
+	// 6. Castle and BlueBucket
+	if (piecesArray[13] > 0 && piecesArray[7] > 0) {
+		for (int i = 0; i < 31; i++) {
+			nPiecesArray[i] = piecesArray[i];
+		}
+		nPiecesArray[13] = nPiecesArray[14] = piecesArray[13] - 1;
+		nPiecesArray[7] = nPiecesArray[8] = piecesArray[7] - 1;
+		nPiecesArray[22] = nPiecesArray[23] = piecesArray[22] + 1;
+		nPiecesArray[28] = nPiecesArray[29] = piecesArray[28] + 1;
+		CompressBoardandHash(nPiecesArray);
+	}
+	// 7. Castle and RedBucket
+	if (piecesArray[13] > 0 && piecesArray[10] > 0) {
+		for (int i = 0; i < 31; i++) {
+			nPiecesArray[i] = piecesArray[i];
+		}
+		nPiecesArray[13] = nPiecesArray[14] = piecesArray[13] - 1;
+		nPiecesArray[10] = nPiecesArray[11] = piecesArray[10] - 1;
+		nPiecesArray[25] = nPiecesArray[26] = piecesArray[25] + 1;
+		nPiecesArray[28] = nPiecesArray[29] = piecesArray[28] + 1;
+		CompressBoardandHash(nPiecesArray);
+	}
+	SafeFree(nPiecesArray);
+}
+
+// helper function
+BOOLEAN ValidPiecesArray(int piecesArray[]) {
+	int totalPieces = 0;
+	for (int index = 1; index < 28; index += 3) {
+		totalPieces += piecesArray[index];
+	}
+	return (totalPieces <= 9 ? 1 : 0);
+}
+
+TIER BoardToTier(BoardAndTurn board) {
+	char* theBoard = board->theBoard;
+	TIER small = 0, large = 0, blueB = 0, redB = 0;
+	int piece;
+	for (int i = 0; i < boardSize; i++) {
+		piece = theBoard[i];
+		switch (piece)
+		{
+		case SMALLPIECE:
+			small++;
+			break;
+		case LARGEPIECE:
+			large++;
+			break;
+		case CASTLEPIECE:
+			small++;
+			large++;
+			break;
+		case BLUEBUCKETPIECE:
+			blueB++;
+			break;
+		case REDBUCKETPIECE:
+			redB++;
+			break;
+		case BLUESMALLPIECE:
+			small++;
+			blueB++;
+			break;
+		case REDSMALLPIECE:
+			small++;
+			redB++;
+			break;
+		case BLUECASTLEPIECE:
+			small++;
+			large++;
+			blueB++;
+			break;
+		case REDCASTLEPIECE:
+			small++;
+			large++;
+			redB++;
+			break;
+		}
+	}
+	return PiecesToTier(large, small, blueB, redB);
+}
+
+void SetupTierStuff() {
+	// kSupportsTierGamesman
+	kSupportsTierGamesman = TRUE;
+	// All function pointers
+	gTierChildrenFunPtr					= &TierChildren;
+	gNumberOfTierPositionsFunPtr		= &NumberOfTierPositions;
+	gGetInitialTierPositionFunPtr		= &GetInitialTierPosition;
+	gIsLegalFunPtr						= &IsLegal;
+	//gGenerateUndoMovesToTierFunPtr		= &GenerateUndoMovesToTier;
+	//gUnDoMoveFunPtr						= &UnDoMove;
+	gTierToStringFunPtr					= &TierToString;
+
+	//Tier-Specific Hashes
+	int TOTALTIERPOSITIONS = 225;
+	int piecesArray[] = { LARGEPIECE, 0, 0, SMALLPIECE, 0, 0, 
+		BLUEBUCKETPIECE, 0, 0, REDBUCKETPIECE, 0, 0, CASTLEPIECE, 0, 0,
+		BLUESMALLPIECE, 0, 0, REDSMALLPIECE, 0, 0, BLUECASTLEPIECE, 0, 0,
+		REDCASTLEPIECE, 0, 0, BLANKPIECE, 0, 0, -1 };
+	for (int tier = 0; tier < TOTALTIERPOSITIONS; tier++) {
+		piecesArray[1] = piecesArray[2] = tier / 45;
+		piecesArray[4] = piecesArray[5] = (tier % 45) / 9;
+		piecesArray[7] = piecesArray[8] = (tier % 9) % 3;
+		if (tier % 9 <= 2) {
+			piecesArray[10] = piecesArray[11] = 0;
+		}
+		else if (tier % 9 <= 5) {
+			piecesArray[10] = piecesArray[11] = 1;
+		}
+		else {
+			piecesArray[10] = piecesArray[11] = 2;
+		}
+		piecesArray[28] = piecesArray[29] = 9 - piecesArray[1] - piecesArray[4] - piecesArray[7] - piecesArray[10];
+		CompressBoardandHash(piecesArray);
+	}
+	// initial tier
+	gInitialTier = 0;
+	// initial tierPosition
+	BoardAndTurn boardArray = (BoardAndTurn)SafeMalloc(sizeof(struct boardAndTurnRep));
+	boardArray->theBoard = (char*)SafeMalloc(boardSize * sizeof(char));
+	for (int i = 0; i < boardSize; i++) {
+		boardArray->theBoard[i] = BLANKPIECE;
+	}
+	boardArray->theTurn = Blue;
+	gInitialTierPosition = arrayHash(boardArray);
+}
+
+TIERLIST* TierChildren(TIER tier) {
+	TIERLIST* tierlist = NULL;
+	TIER large, small, blueB, redB;
+	large = tier / 45;
+	small = (tier % 45) / 9;
+	blueB = (tier % 9) % 3;
+	if (tier % 9 <= 2) {
+		redB = 0;
+	}
+	else if (tier % 9 <= 5) {
+		redB = 1;
+	}
+	else {
+		redB = 2;
+	}
+	if (large < 4) {
+		tierlist = CreateTierlistNode(PiecesToTier(large + 1, small, blueB, redB), tierlist);
+	}
+	if (small < 4) {
+		tierlist = CreateTierlistNode(PiecesToTier(large, small + 1, blueB, redB), tierlist);
+	}
+	if (blueB < 2) {
+		tierlist = CreateTierlistNode(PiecesToTier(large, small, blueB + 1, redB), tierlist);
+	}
+	if (redB < 2) {
+		tierlist = CreateTierlistNode(PiecesToTier(large, small, blueB, redB + 1), tierlist);
+	}
+	return tierlist;
+}
+
+//helper function
+TIER PiecesToTier(TIER large, TIER small, TIER blueB, TIER redB) {
+	return (45 * large + 9 * small + 3 * redB + blueB);
+}
+
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+	generic_hash_context_switch(tier);
+	return generic_hash_max_pos();
+}
+
+void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
+	BoardAndTurn board;
+	char piece, turn;
+	board = (BoardAndTurn)SafeMalloc(sizeof(struct boardAndTurnRep));
+	board->theBoard = (char*)SafeMalloc(boardSize * sizeof(char));
+	for (int i = 1; i <= boardSize; i++) {
+		do {
+			printf("Input the character at cell %i followed by <enter>: ", i);
+			piece = (char)getchar();
+			getchar();
+		} while (CharToBoardPiece(piece) == UNKNOWNBOARDPIECE);
+		board->theBoard[i - 1] = piece;
+	}
+	do {
+		printf("Input whose turn it is (1 for Blue, 2 for Red): ");
+		turn = (char)getchar();
+		getchar();
+	} while ((turn != '1') && (turn != '2'));
+
+	board->theTurn = atoi(&turn);
+	(*tier) = BoardToTier(board);
+	generic_hash_context_switch(*tier);
+	(*tierposition) = generic_hash_hash(board->theBoard, turn);
+	SafeFree(board->theBoard);
+	SafeFree(board);
+}
+
+BOOLEAN IsLegal(POSITION position) {
+	return TRUE;
+}
+
+/* UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier) {
+	return NULL;
+} */
+
+/* POSITION UnDoMove(POSITION position, UNDOMOVE undomove) {
+	return NULL;
+} */
+
+STRING TierToString(TIER tier) {
+	STRING tierStr = (STRING)SafeMalloc(30 * sizeof(char));
+	TIER large, small, blueB, redB;
+	large = tier / 45;
+	small = ((tier % 45) / 9);
+	blueB = (tier % 9) % 3;
+	if (tier % 9 <= 2) {
+		redB = 0;
+	}
+	else if (tier % 9 <= 5) {
+		redB = 1;
+	}
+	else {
+		redB = 2;
+	}
+	sprintf(tierStr, "large = %llu, small = %llu, red = %llu, blue = %llu", large, small, redB, blueB);
+	return tierStr;
+}
+
 POSITION StringToPosition(char* board) {
 	POSITION pos = INVALID_POSITION;
 	GetValue(board, "pos", GetUnsignedLongLong, &pos);
 	return pos;
 }
-
 
 char* PositionToString(POSITION pos) {
 	BoardAndTurn bt = arrayUnhash(pos);
