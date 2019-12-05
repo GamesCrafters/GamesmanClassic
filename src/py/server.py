@@ -299,7 +299,7 @@ class GameProcess(object):
 
     def wait_for_ready(self, timeout):
         last_output = ''
-        read_timeout = 0.00001
+        read_timeout = 0.001
         total_time = read_timeout
         while total_time < timeout:
             total_time += read_timeout
