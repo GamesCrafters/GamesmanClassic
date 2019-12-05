@@ -937,7 +937,7 @@ void SetupGame() {
 }
 
 char* unhash (POSITION position, int* turn){
-	char* board = (char *) SafeMalloc(boardsize * sizeof(char));
+	char* board = (char *) SafeMalloc(boardsize * sizeof(char) +  1);
 	if (gHashWindowInitialized) {
 		TIERPOSITION tierPos; TIER tier;
 		gUnhashToTierPosition(position, &tierPos, &tier);
@@ -948,6 +948,7 @@ char* unhash (POSITION position, int* turn){
 		(*turn) = generic_hash_turn(position);
 		board = (char *) generic_hash_unhash(position, board);
 	}
+	board[boardsize] = '\0';
 	return board;
 }
 
