@@ -31,11 +31,11 @@ Here are ones you may need to know about:
 
 - `--with-tcl`
 
-    If the configure script fails to find the proper tclConfig.sh file, and you have tcl installed on your system, then you can tell it explicitly the file to find using this option.
+    If the configure script fails to find the proper `tclConfig.sh` file, and you have tcl installed on your system, then you can tell it explicitly the file to find using this option.
 
 - `--with-tk`
 
-    Same as above, except regards the tkConfig.sh
+    Same as above, except regards the `tkConfig.sh`.
 
 - `--with-wish`
 
