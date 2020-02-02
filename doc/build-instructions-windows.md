@@ -25,6 +25,10 @@
     - `git@v2.17.0-1` for cloning the repo
     - `vim@8.1.1772-1` for editing code (opinionated & optional)
 
+#### Optional Dependencies
+
+If you want to compile games with big integer support, you'll need the GMP library (latest version).
+
 ### Install `cygwin`
 
 You can download the `cygwin` installer from the website: https://cygwin.com
@@ -51,7 +55,12 @@ autoconf
 
 # Configure
 ./configure
+```
 
+If you want to change an option such as whether or not to build with graphics, then you may need to change the configuration options.
+The configuration options are available here: [GamesCrafters Configuration Options](build-configuration-options.md).
+
+```bash
 # Build GamesmanClassic
 make
 ```
@@ -69,15 +78,28 @@ jobs # Should say that "startx &" is running
 
 # We also need to let the clients know which X server to connect to
 export DISPLAY=:0.0
+```
 
-# Now we're ready to run the GUI!
+Now that GamesmanClassic is configured and compiled, you can run it by cd'ing to the `bin/` directory inside of the package and running a file that starts with an `m` (such as `machi`, or `mttt`), and play the game from the console.
 
-# Must be in the bin/ directory first
+```bash
+# Must be in the "bin/" directory first
 cd bin
 
+# Run the Tic-Tac-Toe text program for example
+./mttt
+```
+
+To start up the graphical GamesmanClassic interface, you may go to the `bin/` directory and type:
+
+```bash
 # Run the new GUI
 ./XGamesman.new
 ```
+
+Then you will be presented with a list of games currently in GamesmanClassic, and simply click to play.
+
+Happy gaming!
 
 ![GamesmanClassic Running on Google Compute Windows Server Instance with cygwin](build-instructions-windows-cygwin-on-gcp.png)
 

@@ -52,7 +52,6 @@ The games packaged with this distribution are:
 * ttt (Tic Tac Toe) Available in both X-window & text versions
 * wuzhi (WuZhiQi) Available in both X-window & text versions
 
-
 NEW 2003 FEATURES
 =================
 - by Sunil Ramesh
@@ -73,24 +72,7 @@ I spent some time this summer, and have finally put in the ability to:
 BUILDING
 ========
 
-If you only want the text-programs, simply type:
-
-% cd src
-% make text_all
-
-If, however, you want the full, wonderous, graphical experience of GAMESMAN,
-you should install Tcl/Tk on your system (from http://www.scriptics.com/)
-and then type:
-
-% cd src
-% make
-
-I have successfully built GAMESMAN on Linux, Solaris, HP-UX, and IRIX. I 
-also have a Macintosh port and a PC port, but I have only built 1210 for
-the PC port.
-
-For more detailed instructions, please refer to the INSTALL file located
-in the root gamesman directory.
+Please refer to the "doc" folder for instructions to build GAMESMAN.
 
 DEVELOPERS
 ==========
