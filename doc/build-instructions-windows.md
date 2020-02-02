@@ -58,7 +58,7 @@ autoconf
 ```
 
 If you want to change an option such as whether or not to build with graphics, then you may need to change the configuration options.
-The configuration options are available here: [GamesCrafters Configuration Options](build-configuration-options.md).
+The configuration options are available here: [GamesmanClassic Configuration Options](build-configuration-options.md).
 
 ```bash
 # Build GamesmanClassic
