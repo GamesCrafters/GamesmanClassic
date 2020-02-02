@@ -39,7 +39,7 @@ Additionally, the design documents for some of the games can be found at [games/
     - [Level File](files/levelfile.pdf) ([tex](files/files/levelfile.tex))
     - [Tier Gamesman](files/tiergamesman.txt)
     - [Website Analysis Display](files/Website_analysis_display.pdf) ([tex](files/Website_analysis_display.tex))
-- Spring 2005
+- From Spring 2005
     - [Global Positioning System](files/GPS.pdf)
 - Undated
     - [pygamesman](files/pygamesman.txt)
