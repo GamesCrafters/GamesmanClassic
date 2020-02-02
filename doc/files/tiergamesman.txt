@@ -1,0 +1,454 @@
+******************************************
+*     "TIER GAMESMAN" DOCUMENTATION      *
+* Written by Max Delgadillo, Summer 2006 *
+*         Last Updated: 10/14/06         *
+******************************************
+
+This very large documenation file explains the theory and implementation of a set of large changes to Gamesman to include Retrograde Solving and a "Tier"-based Gamesman. Module writers for a "Big Game" are encouraged to read the file in its entirety, as modules using the brand-new "Tier Gamesman" must abide by an API that includes completing additional functions and separating the game into "Tiers", both difficult requirements that most module writers don't have to deal with.
+
+Before we begin, I'd like to make clear that, as far as the core code is concerned, the two Gamesmans are completely independent of each other, and the modules decide which system they're using before the solve process begins (using the normal "global hash" for the normal Gamesman and the new "tier hashes" for the new one, as explained later). With THAT in mind, grab a sandwich and a cup of coffee before reading this MASSIVE documentation of the new system.
+
+-----
+
+This file is composed of 3 main parts:
+1. Retrograde("Tier") Theory - a look into all of the theory behind the changes, and an overview of the new system.
+2. Defining Tiers - help and examples for module writers faced with having to define "Tiers" for their game.
+3. The "Tier Gamesman" API - documentation and pseudocode for the functions that module writers must code if they are to use the new Gamesman system.
+
+GamesCrafters attempting to learn about the new Gamesman changes should focus on part 1, while module writers for Big Games should read all parts but focus primarily on 2 and 3.
+
+*************************
+1. RETROGRADE("TIER") THEORY
+*************************
+
+This part of the documenation concerns itself with describing the theory behind the new changes to Gamesman to include retrograde solving and "tier"-based databases and gameplay.
+
+Up until now, the Gamesman process has essentially been the same for every game: define a global hash that encompasses all the possible positions for a module, solve the game using some sort of algorithm (usually the frontier-based "loopy solver" algorithm), and then play that game with the database that the solver created, using the global hash to discern what POSITION numbers correspond to what game board.
+However, as one moves to the area of "Big Game Hunting", one can see how this system starts to fail. First of all, it might not be possible to have just one global hash that encompasses all possible positions because there just might be TOO many positions for a single hash to handle. Secondly, the game might be too big to store in one database. And finally, solving the entire game in one go presents two large problems: either the algorithm runs out of memory, or the game simply takes WAY too long to solve (we're talking days if not longer).
+
+Retrograde Solving - and the resulting "Tier"-based Gamesman - are the solution to all of these problems. Although it cannot be applied to ALL Big Games (sadly) it does apply to many of the main games we've been looking at (Bagh Chal, Chess, Checkers, etc.), which makes it a possible answer to games that up to now have previously been unsolved.
+The main philosophy behind both of these proposed changes? Think of the game not as a whole, but in smaller, easy-to-manage groups, which we will define as TIERS.
+
+------------------------
+TIERS - THE DEFINITION
+------------------------
+First, we shall go over what a "tier" really is. In the most basic sense, you can think of every possible POSITION in a game (or at least, the legal ones we care about) as belonging to one (and ONLY one) Tier. Thus a Tier is simply a large group of positions, and each tier has its own unique number, a positive integer greater than or equal to 0. But for the "Retrograde" system to work, we impose one and only one constraint on these tiers:
+
+A Tier N is defined such that all of the POSITIONS it encompasses can only lead to POSITIONS in either its own tier or in tiers BELOW it.
+(I use the term "below" in the sense of a non-loopy tree. If Tier N leads to Tier M, then there should be no way to get from Tier M to Tier N again.)
+
+Another way to say this, in Gamesman lingo:
+A Tier N is defined such that calling GenerateMoves() on a POSITION in Tier N will generate moves which result to POSITIONS either in Tier N or in any tier BELOW it.
+
+(Just some terminology: A Tier which has positions leading to other position in that same tier is called a LOOPY Tier. If it only has positions leading downward, it is a NON-LOOPY Tier).
+Thus, POSITIONS don't belong to a Tier arbitrarily: there MUST be this parent-children relationship that cannot be broken. Essentially, if you were to create a chart containing all the Tiers in a game as graph nodes and a directed edge going from every parent to every child, the resulting tree would be a Directed, Acyclic Graph (DAG). Aside from that, however, there is no other limitation on tiers: they can be as large or small as possible, etc.
+
+This limitation, however, results in a powerful idea: no longer do we have to look at the whole game at the same time. Since we know a Tier and its direct children contain one level of calling GenerateMoves on a POSITION (which is in the end all that both the solver and Gamesman are examining at one time anyway), then we simply should be looking at those few Tiers rather than at ALL possible POSITIONS. Even if the entire game doesn't fit in memory, if just looking at a few tiers at a time does indeed do so, then suddenly we have a game that is not only solvable but playable which was previously not so before.
+
+And so, a word before we continue: For some games, this Tier definition comes very naturally: SO naturally, in fact, that we can define a Tier simply by looking at the pieces on the board. For example, in Bagh Chal (Stage 2), we can number tiers simply by numbering the number of Goats on the board: given the way captures work, the parent-children relationship works out fine. The same can be said about Chess - even though there's more pieces involved, the numbering system works out the same way. Even Tic-Tac-Toe (which I will further explore later) can be thought of as numbered by simply the number of pieces on the board - since one piece is placed at every turn and none are ever removed, this is a nice, clean, non-loopy numbering of tiers.
+However... not ALL games fit nicely into this definition. Take Dao, for instance (or any other game like that, with pieces rarely or never removed and sliding to almost anywhere). There is clearly no way to divide all the possible POSITIONS into seperated Tiers: in fact, most of the game (if not all of it) ends up being one massive TIER. In this case, the Retrograde system simply would NOT work for these games, and would be just as inefficient and slow as the existing Gamesman methods. 
+In general, games which are essentially one big "rearranger", as well as games where the number of pieces (or other such game variables) don't tend to change much by the end of the game, are the ones which probably don't divide in this Tier-based way.
+Thus, if you are a module writer and have game that doesn't seem to divide into many Tiers very well, then the Retrograde Solver and Tier-based Gamesman will probably not work for you. It becomes clear that some other smart GamesCrafter should think up of another method of solving Big Games for those games...
+
+In any case, before going back to discuss Tiers in-depth, we move to the theory of solving and playing.
+Let's go back to the three problems with the existing system that I described above, in terms of dealing with Big Games:
+1. Game is too large to store in one database.
+2. Global hash (and entire game in general) is simply too large to fit in memory.
+3. Solving runs out of memory and/or takes a lifetime, not to mention it can't be restarted (if solver crashes at 99% complete, it STILL has to start all the way from the beginning next time, since nothing is saved to a database until it's fully complete).
+
+Let's look at the fixes to each of these in that order. First, the question of the databases:
+
+------------------------
+DB - TIER-SPECIFIC DATABASES
+------------------------
+The change to the database, after introducing tier theory, is a rather simple one: rather than having a single massive database, split it up into many smaller, easy-to-manage databases. The simplest way to choose how to divide them? Tiers!
+Thus, a module will now have one database for every tier it has. So if a module consists of 20 tiers then it will consist of 20 files: none containing the entire game, but rather, each containing their own INDEPENDENT piece of the game. This ensures that a large, otherwise too massive game can be split up into smaller files that are not only easier to manage but easier to distribute, which is an important factor in Gamesman DB's destined life as an online repository of databases.
+Of course, this version of Gamesman works differently than normal, as now Gamesman needs to know how to read from many different files depending on the POSITION's tier rather than just one "main" database. Additionally, now each TIER has its own independent hash, going from 0 to the size of that tier, meaning that the term "POSITION" now has a different definition than before! The solution for this is covered in the API.
+This also means that the module itself (in code) must have complete knowledge of what POSITIONS correspond to what tiers... which, again, is covered in the API later.
+
+Of course, ALL of this will be hidden from the user: the gameplay itself will still progress in the exact same way as with the regular Gamesman (at most, it'll probably be a bit slower). The only change the user will see is in terms of the database: instead of one main database (a.k.a. mgamename_0_memdb.dat.gz), it'll be a directory with that name (mgamename_0_tierdb) containing all the tier databases the game has (mgamename_0_0_memdb.dat.gz, mgamename_0_1_memdb.dat.gz, etc.). The directory will make it very easy to distinguish which databases are for which game and variant, and has the added bonus of making it that much easier to distribute.
+
+Now, moving on to the solver and game playing:
+
+------------------------
+HASH - THE "HASH WINDOW"
+------------------------
+
+The BIG idea that will make this all work was an idea which Dan introduced and has now been worked into the design. Basically, if there are so many tiers (and there ARE so many... Bagh Chal 5x5 has 421, with Chess having MUCH more!), how do we know which tierdb files need to be ready in memory? How do we deal with the hash, if we can't have a large global one thanks to the 64-bit limit?
+The answer? HASH "WINDOWS"!
+
+Basically, the idea of this comes from the fact that at any time, we ONLY need to know the tier we're dealing with, and it's immediate children: the game only needs the tier of the current position we're looking at as well as the tiers that GenerateMoves() might introduce; similarly, the solver only needs the tier it's currently solving and the tiers that contian the children that tell the values of the current tier. So the module should have as its global hash this idea of a "hash window", which is essentially A HASH THAT ONLY CONTAINS A TIER AND ALL OF ITS IMMEDIATE CHILDREN. This ensures that your hash always covers everything you need to cover: GenerateMoves will never give you a tier that isn't already initialized, so every POSITION given is a legal position in respect to the instantiated hash window. And, this window is free to change at any time: it's changed after DoMove by the game player and at the beginning of solving a tier by the solver.
+This is great in that it offers a nice solution to the question of what tiers to have loaded, AND hopefully has it so that all possible hash windows are by themselves small enough to be contained in 64-bits, even if the whole game in general isn't!
+(As reference, by default, the current modules have it so that the whole GAME is an unchanging hash window - it just so happens the hash window includes all possible tiers.)
+
+The best part? TIER GAMESMAN HANDLES ALL THE HASH WINDOW STUFF FOR YOU! The modules don't need to know ANYTHING about the current hash window: all they need to know is, given a tier, how to mess with its individual hash. When it needs to know anything about the current hash window (to hash/unhash global POSITIONS that are defined in a window it knows nothing about) it does this by interfacing with Gamesman via two very simple functions (as discussed later).
+
+An aside: because of both the hash window and the tier-specific databases introduced above, the definition of a "POSITION" has completely changed. Before, the POSITION was a number from 0 to gNumberOfPositions that encompassed a possible position in the ENTIRE GAME. Now, with this new Gamesman system, that is completely gone from the picture. Instead, a POSITION now is always in terms of the HASH WINDOW, meaning the same number might not mean the same game board every time. Additionally, there's another kind of POSITION (which we've termed the TIERPOSITION as seen later) which is always in terms of some tier-specific hash. Keep this in mind whenever we discuss the word "POSITION" for the remainder of this document.
+
+So, for game playing, Gamesman would first start by asking the module to instantiate its hash window such that it includes both the tier that gInitialPosition is in, as well as the tiers that contain the children of gInitialPosition (a.k.a. Positions that are led to by GenerateMoves). This way, the current hash includes all possible POSITIONS that that part of the game could ever possibly be looking at. After a player chooses a move and DoMove is called, we end up with a new current Position, and so the module then discards the old hash window and reinitializes a new one to include that position's tier and its children. This continues recursively until the game is over.
+As for solving:
+
+-----------------------
+SOLVING - THE RETROGRADE SOLVER
+------------------------
+
+The solver is essentially a "retrograde" version of a solver. It uses the hash window idea to integrate the "loopy solver" algorithm as well as the tier theory to solve the game in a controlled, organized step-by-step fashion.
+The basics are simple: instead of just solving the whole game in one go, look at the game in terms of the tiers that define it.
+(For this discussion, pretend the tiers are defined such that lower-numbered tiers are the children of the higher-numbered tiers, starting from 0 and moving up integer by integer up untill some max tier.)
+Now, we know that each tier BY ITSELF doesn't take much time to solve (at least compared to the whole game). Thus, knowing that the children must be solved before the parents (and never the other way around), we realize that solving the whole game in one go is equivalent to first solving Tier 0 in its entirety, then Tier 1, then Tier 2, etc., all the way to the last tier.
+
+Now, obviously, these games are going to take a LONG time to solve, regardless of what algorithm is used. But the idea here is that we can solve each of these tiers step by step: not only that, but the time between solving one tier and another can be as long as needed, since there's no computation or memory needed in between solving tiers. Thus, this means we can have controlled, orgranized solving: even if a tier is huge it still might not take more than, say, a night. Therefore, one can solve Tier 0, take a break (perhaps for days), or even move the results to a different machine, and then begin solving Tier 1, etc., which is much better than solving the whole game by simply pressing "enter" and then waiting as the computer chugs along for days on end. This also allows for effective recovery in the case of interrupting the solver mid-solve (something we didn't have before): since the solver will save the results of each tier to DIFFERENT files, then if we get interrupted in, say, Tier 3, we already have saved and confirmed the results of Tiers 0, 1, and 2, and so we can start by solving Tier 3 next time instead of being forced to start solving all the way at the beginning. The best part is this is at no extra memory: all those databases are saved and stored anyway! This makes the question of limited memory and space obsolete, since now we can always move the results mid-solve to some other computer or put off solving a part of the game to a later date. Finally, the other obvious benefit to this is that are able to PLAY a half-solved game, and if the tiers are defined in a sensible way then we might be able to play end-games of the whole game that are actually interesting and worthy of analysis. (Just look at the Nalimov End Games for Chess!)
+
+As for the solver's algorithm, it basically starts by solving Tier 0, and then literally works it way up from there. This way the solver is guaranteed to have a tier's children already solved by the time it's getting solved (assuming, of course, that the tiers have been defined correctly).
+When solving a tier N, it first calls on the module to instantiate the "hash window" that includes both tier N and all of its children. Thus, all positions from 0 to gNumberOfPositions now include positions that are guaranteed to fully encompass ONLY the tiers we are currently looking at. At that point, it simply places all the non-Tier-N positions into the "frontier" and applies the "loopy solver" algorithm that you should be familiar with.
+
+
+...And THAT concludes the discussion of the theory.
+For the sake of the module writers, before even discussing the code, we will delve into the discussion of how to generate the tiers:
+
+*************************
+2. DEFINING TIERS
+*************************
+
+Before ANY of the API functions are coded, the module writer needs to manually figure out, define, and number every tier for the game. This must also be done IN CODE, which is why thinking it out beforehand and perhaps having a hand-drawn chart is the best thing to do.
+Given that the solver solves the tiers in a certain predetermined order (knowing NOTHING about what those Tiers actually encompass, of course), and the tier-orientedness of the new Gamesman system, then the correct defintion of tiers (as well as correct order of numbering) is important since obviously if done incorrectly (or if any of the API functions are even slightly off) then not only will it solve incorrectly but it probably won't even PLAY correctly either!
+
+Thus, the Big Game module writer will find him/herself having to do a LOT more work than regular module writers... which is why this section of the documentation exists: to help the module writer's job and define the best possible tier system for their game.
+
+--------------------
+DEFINING TIERS
+--------------------
+The first thing to be done is decide how tiers will be defined in the first place: in other words, the best way to divide all the possible positions into different groups.
+In general, here are the guidelines for the best results from Retrograde solving and tier-based playing, in order of importance:
+1. Most importantly, THE TIERS SHOULD FOLLOW THE TIER DEFINITION - A TIER SHOULD ONLY LEAD TO EITHER ITSELF OR TIERS BELOW IT. This is the rule that simply cannot be broken, otherwise the game WILL solve and play incorrectly.
+2. Try to have independent tiers! (These are defined in-depth in a bit, but for now, know that independent tiers are tiers which aren't parents or children of each other in the large tier "tree", and so can be solved in any order in respect to each other.) The more independent tiers you have, the more freedom you have in numbering them (and parallelizing the solving!).
+3. If you're doing SYMMETRIES (which you probably SHOULD be if you're coding a Big Game): try to define tiers with those symmetry benefits in mind. This will have the benefit of having smaller tiers, and if you're REALLY smart then you might end up solving two or more tiers by solving just one (look at the Chess example later for a key example of this)!
+4. In general, non-loopy tiers are nicer than loopy tiers. Non-loopy tiers tend to be smaller (since all positions always lead outside of the tier) and in general tend to be easier to define. However, they ARE rarer than loopy tiers.
+5. The tiers (and the math/computation behind them) should be defined such that changing variants (board size, number of pieces, etc.) DOESN'T change the way the tiers are defined/numbered. This makes things MUCH easier as then you don't have to check the current variants just to see what tier a position is in. (That said, it's certainly okay to include such global variables as "boardsize" or "max_number_of_some_piece" in your tier-number computations: that isn't "changing your math", it's simply including global variables in your computations to keep it generic, which doesn't take any extra computation time. What you want to avoid is things like having a "switch" statement with the "boardsize" variable and doing a different equation for every possible boardsize.)
+6. Remember that ALL of these tiers will have to have their own custom HASH defining them. So you should go with a defintion of tiers that isn't TOO hard to enumerate or has POSITIONS that are too difficult to hash/unhash.
+7. The tiers should be as small as possible, without sacrificing simplicity of definition. If the definition of a tier includes having to calculate multitudes of things for a board, the cost of time in hashing and unhashing might overshadow the benefit of having tiny tiers. But in general, try to make it so that all possible "hash windows" fit into memory cleanly.
+8. As a general rule of simplicity, try to make your bottom-most Tier something that makes sense to have as a "primitive" tier (it doesn't have to contain ALL Primitives, but it should contain quite a few). Note that ALL other tiers CAN have Primitive Positions, naturally!
+9. Finally, not really a guideline but a comment, you can have a MASSIVE amount of tiers! The more, the better! (with limits...) Bagh Chal has 421 Tiers, with 400 of those simply encompassing the first stage of the game!
+
+These basic rules mean that MOST modules will be divided based on pieces on the board (or captured, inversely). This is because, in general, pieces that are captured aren't placed back on the board (so tiers don't lead UPWARD) and the number of pieces don't change on the board until one or more get captured (so we go to a tier DOWNWARD), and Tier 0 nicely means that there's no pieces (or only uncapturable pieces) on the board. Plus, the pieces that ARE on the board usually can move from anywhere to anyway so there's not any way to divide that tier even further. Bagh Chal Stage 2 and Chess are just like this.
+However, sometimes you CAN place pieces on the board. And not all games are like described above. So you'll need to think of some other way (perhaps by Player's Turn) to define the tiers. Bagh Chal Stage 1 is like this, using a combination of pieces (Goats) on the board, pieces left to place, and player's turn to divide the tiers.
+
+Of course, it ALL depends on your game. Try to get to know your game and find the BEST way to define tiers (hopefully containing MANY independent and non-loopy tiers), as it IS different for every game.
+
+In any case, once you DO decide on how the tiers are defined, the next step is to draw out the tier parent-children diagrams (for ALL possible variants if needed). For examples of this, see below:
+
+--------------------
+NUMBERING TIERS
+--------------------
+Finally, there's the process of numbering the tiers. In your code (and to the solver and Gamesman), ALL it will know is a tier number - it's up to YOU (and, of course, your module's code) to know what, say, "Tier 13" ACTUALLY means. This means you'll want to use a numbering system that makes sense to humans AND is easy for your code to figure out (usually it will just be handed a POSITION, and it's up to the module to unhash that position and study the resulting board to find which tier it's in).
+The fact is, you can number the tiers whatever you want, since, as you'll see by the API later, one of your functions will allow Tier Gamesman to figure out what order to solve the tiers in for you.
+Now, you COULD define your tiers so that they fit the example I used when first discussing the solver: number them from 0 to some max tier, so that 0 is at the very bottom and it works it way up from there. Then the solve order would just be: (0, 1, 2, ...) etc.
+However, some games might not fit neatly into that definition. And since your code has to be able to calculate a tier's children on the fly, it might be wise to choose some smart numbering setup.
+
+That said, if you have no independent tiers (which I'm about to define), then you don't have much of a choice. In this case you probably should just follow the 0-1-2-etc. convention above (parents numbered higher than children), or perhaps even N - (N-1) - (N-2) - ... 1 - 0.
+
+Take Tic-Tac-Toe for example. If we define the tiers by the number of pieces on the board, we end up with a chart that looks like this:
+(The BRACKETS are Tiers. The number inside the brackets is how many pieces are on the board. The arrows explain their relationship: they all point RIGHT here, signifying that parents are on the left and children are on the right. Finally, the number below the tier in pointy brackets is the number assigned to that tier)
+
+[0]->[1]->[2]->[3]->[4]->[5]->[6]->[7]->[8]->[9]
+<9>  <8>  <7>  <6>  <5>  <4>  <3>  <2>  <1>  <0>
+
+Tier Solve List: 0 1 2 3 4 5 6 7 8 9
+
+A few things to notice. Firstly, possibly the most confusing is that Tier 0 is actually the boards with 9 pieces on the board (ALL Primitives), while Tier 9 (the maximum tier) is the one with 0 pieces! This is because of the way we must number them. Since the boards with 9 pieces are at the end of the game, and ones with 0 at the beginning, it's a bit more intuitive in terms of how it's solved. So we number the tiers NOT by how many pieces are placed, but by how many are LEFT to place, if we think of X as having 5 pieces and O as having 4.
+(Of course, we COULD just go ahead and number the tiers by the pieces on the board. Then the solve list would be: 9 8 7 6 5 4 3 2 1 0. It's always up to the module writer.)
+Next, as an aside, these are all non-loopy (all the positions with 4 pieces on the board always lead to positions with 5 pieces on the board). Plus, each tier has only one parent (except Tier 9) and one child (except Tier 0) right below it. This leads to a very clean numbering system in general (which, sadly, doesn't show up in many games, given that Big Games are much more complicated than Tic-Tac-Toe).
+Finally, note that this ignores unreachable positions! Tier 9 in this case has only ONE legal POSITION! This is just fine: since the game won't naturally get there, it doesn't matter that illegal positions are assigned a tier number since we'll never see them. Also, since the solver will use GenerateUndoMoves to traverse up the tree (a detail talked about MUCH later) then HOPEFULLY it won't generate TOO many illegal positions (if any). And thanks to the use of gzip for the databases, the db file will compress just fine to accomodate the fact that only one position has a value recorded. So illegal positions shouldn't be something to care about too much (or, I should say, it should be as much of an issue as it's ALWAYS been, even with regular Gamesman).
+While I'm on the subject, though... if there's illegal POSITIONS that simply aren't in any tier (or if the module writer is REALLY picky about illegal POSITIONS in legal tiers) there's also an extra tier, defined by "kBadTier" (a.k.a. Tier -1). Any POSITIONS belonging to kBadTier are purposely ignored by the solver, and so will remain with "unknown" values. ANY POSITION can be assigned to kBadTier, but use this carefully as you wouldn't want a legal position to accidentally go unsolved!
+
+Now, let's look into the Three-Piece Chess endgame so we can finally look at exactly what an independent tier is, and how numbering the tiers can get much, much more complicated.
+
+For these ASCII pictures, the tiers will be labeled by their pieces inside the brackets. The lines are all meant to be pointing DOWNWARD.
+
+Now, the two piece game has only the White King (K) and the Black King (k), so the chart just looks like this:
+
+[Kk]
+
+So let's just call it Tier 0 by default.
+Tier 0 looks lonely, so let's add the three-piece game. This introduces 10 tiers total, 5 per player, one for each piece aside from the king.
+So here's that chart, excluding the pawns (because they're a special case):
+
+[KQk] [KRk] [KBk] [KNk] [Kkq] [Kkr] [Kkb] [Kkn]
+  |     |     |     |     |     |     |     |
+  +-----+-----+-----+-----+-----+-----+-----+
+                       |
+                     [Kk]
+
+Now, the four on the left are the White pieces (so the left-most tier is White King, White Queen, Black King), and the four right ones are for the Black pieces. Note that, in any of the above tiers, a move either leads right back to that tier (no capture), or the non-King piece gets captured, which leads right to Tier 0. (Sure the game can also end at these tiers, but it doesn't matter since we're considering the WHOLE game in general.)
+This chart tells us the two important things about numbering tiers:
+(a) We have that Tier 0 has 8 parents, and each of those 8 parents have only one child. This is the much-important tier relationship: this means that the eight parent tiers MUST be solved AFTER Tier 0.
+This makes sense: the Kk game NEEDS to be solved before the three-piece games are solved, so obviously the solver should solve the Kk game before it starts to solve the three-piece game.
+(b) However, note that those 8 parents are also INDEPENDENT of each other: there's NO way to go from one parent to another: their only commonality, in the tier-world, is their common child. So this means two things: one, it doesn't matter which ORDER the solver solves them in, as long as their common child is solved before all of them. You can solve left-to-right or right-to-left or whatever and the final solved result will be exactly the same. So, what this means for you is that IT DOESNT MATTER WHICH ORDER YOU PUT THEM IN THE SOLVE LIST (in respect to each other). Whether KQk is solved before KRk doesn't matter, as long as it's of course after Tier 0 (Kk) in the list.
+
+So now you know what an independent tier is. These are nice because, as said, it doesn't matter which order you number (and thus, solve) them in. But it also means something even greater: these could conceivably be solved AT THE SAME TIME. Once Tier 0 is solved, one could send the results to 8 different computers and have them each solve one of the 8 parents, and then combine the results, and that would result in the EXACT same result of doing it all on one computer! Thus, defining a tier system that maximizes independent tiers will do wonders for when Gamesman solving finally goes distributed.
+
+Now, to solidify this, and to finish drawing out the whole three-piece game, let's introduce pawns. Pawns are special in that they either (a) don't do anything special, in which case we stay in the same tier, (b) get captured, in which case we go right to the Kk game, or (c) they get promoted, in which case we go to one of the parent tiers from before.
+Thus the chart looks something like this:
+
+           +----[KPk]----+     +----[Kkp]-----+
+           |             |     |              |
+  +-----+--+--+-----+    |     |     +-----+--+--+-----+ 
+  |     |     |     |    |     |     |     |     |     |
+[KQk] [KRk] [KBk] [KNk]  |     |   [Kkq] [Kkr] [Kkb] [Kkn]
+  |     |     |     |    |     |     |     |     |     |
+  +-----+-----+-----+----+--+--+-----+-----+-----+-----+
+                            |
+                          [Kk]
+
+(Now, I'm overlooking the fact that there's the two variants, one where the pawn can always promote to ANYTHING, and the other where the pawn only promotes to a piece that's already captured. However, again, it doesn't matter: that's only something that a procedure like GenerateMoves() cares about, since the tiers are concerning the WHOLE game in general.)
+Now, clearly there's a difference between the pawn tiers and the other tiers: pawn tiers are parents not only of the Kk game but also of the four tiers corresponding to their player's other pieces. So the pawn tiers are NOT independent to the other three-piece tiers because you HAVE to solve the other three-piece tiers before you solve the pawn tiers. However, note that the two pawn tiers are themselves independent, for obvious reasons.
+You'll notice that there's there "levels" of tiers, in a sense, where all the tiers in a level are independent: the Kk tier, the non-pawn three-piece tiers, and the pawn there-piece tiers. That's also how I made the diagrams.
+
+So, THAT'S the whole three-piece game. Now let's number this puppy.
+The MAIN thing to keep in mind is the parent-child relationship: The Kk tier (a.k.a. Tier 0) MUST be found first on the solve list, and non-pawn tiers MUST appear before both pawn tiers in the list.
+But ASIDE from that, you're free to number and list the independent tiers in any way you like.
+
+Thus you should probably number them in a way that makes sense, and makes tier calculations easy.
+For example, let's assign a set value to each piece:
+Queen = 1
+Rook = 2
+Bishop = 3
+Knight = 4
+Pawn = 5
+(Since EVERY tier MUST include Kk in Chess, we ignore the two pieces.)
+Now, a tier number just tells what piece, aside from the two Kings, is on the board.
+If the Piece is BLACK though, we also have a +5 offset, so that White tiers don't overlap with Black tiers.
+Now, if a piece is CAPTURED, you subtract the piece's number and that's the tier you end up in (of course, in this case you always end up at 0). If you have a pawn and its PROMOTED then you subtract the pawn's number and add the number of the piece you brought in (remember the offsets).
+
+So as you see, numbering tiers and finding out their children on the fly is VERY easy both by hand and in the code.
+You don't have to use those values for those pieces, and you don't even have to do it this way at all (using a binary bit-field system is probably better, for example). But I hope you see how choosing a logical numbering system will allow for MUCH easier coding later!
+
+So, continuing with our example and putting the tier numbers inside pointy brackets under their tiers, you can number them like this:
+
+           +----[KPk]----+     +----[Kkp]-----+
+           |     <5>     |     |     <10>     |
+           |             |     |              |
+  +-----+--+--+-----+    |     |     +-----+--+--+-----+ 
+  |     |     |     |    |     |     |     |     |     |
+[KQk] [KRk] [KBk] [KNk]  |     |   [Kkq] [Kkr] [Kkb] [Kkn]
+ <1>   <2>   <3>   <4>   |     |    <6>   <7>   <8>   <9>
+  |     |     |     |    |     |     |     |     |     |
+  +-----+-----+-----+----+--+--+-----+-----+-----+-----+
+                            |
+                          [Kk]
+                           <0>
+
+This is just one way of doing it, but you get the idea.
+
+Lastly, note that the idea of symmetries blends with all this tier defining quite nicely. Remember what I said about symmetries a while ago? Well, although it may not be completely obvious, there exists a symmetry in Chess in that pieces can be mirrored (example: the KQk and the Kkq game are EXACTLY the same, if you switch the two players' turns). Therefore YOU END UP ONLY HAVING TO SOLVE THE WHITE'S TIERS, since you get Black's for free! So the right side of the diagram can be completely ignored, and the game is still able to be fully solved!
+So look for shortcuts wherever you can use them!
+
+Thus, hopefully by now the complications (good AND bad!) of numbering tiers for Big Games are evident. This gives you the liberty to choose a numbering that both (a) makes sense to humans, and (b) can be figured out numerically easily in the code.
+So, my suggestion is that before you even worry about filling in those functions in the API, you should have this numbering set up already (for ALL variants). I would start by quite literally drawing the WHOLE game's chart out, and THEN looking at it (after you're sure it's correct) and figuring out how you're going to number it.
+
+After that comes the API...
+
+*************************
+3. THE "TIER GAMESMAN" API
+*************************
+
+Before describing the API itself, I will discuss exactly what changes I made to the core to make this all work. The REAL reason for this, besides documenation, is to introduce the new definitions and data structures that the API functions will employ.
+
+First of all, given how solidified the "tier" is in Gamemsman lingo by now, I've added new definitions:
+-typedef unsigned int TIER
+-typedef struct ... TIERLIST (along with FreeTierList and CreateTierListNode in misc.c)
+
+Also, to clarify between the global POSITION (now the "hash window POSITION") and the new tier-specific POSITION, I've added this:
+-typedef POSITION TIERPOSITION
+
+Finally, as part of the two "Undo Moves" functions below (discussed more in detail later), I added these two:
+-typedef int UNDOMOVE
+-typedef struct ... UNDOMOVELIST (along with FreeUndoMoveList and CreateUndoMovelistNode in misc.c)
+
+
+Now, the API. Probably the main reason to even be reading this large document.
+I've included a detailed explanation and some VERY basic pseudocode for each. I also included the "default" action of the functions, which translates to what the current Gamesman and modules would do, for reference.
+
+For examples for ALL of these, please look at gamesman/src/mtttier.c. It's a version of Tic-Tac-Toe that properly employs all of the API, and serves as a good example of what you should be doing. All the API is placed at the bottom of the file for easy reference.
+
+Finally, as a helpful note, note that proper use of the generic hash makes a LOT of these API functions very easy. So be sure to read the Generic Hash API documentation for details on how to use the generic hash.
+
+First, the two non-function parts which must be dealt with in your InitializeGame():
+
+--------------------
+BOOLEAN kSupportsTierGamesman;
+--------------------
+SOMEWHERE in InitializeGame() for your module (or, if you KNOW it's never going to change, include it right at the top of the file with your other variable declarations), you MUST include this line:
+
+kSupportsTierGamesman = TRUE;
+
+This lets Gamesman know that you want to use the Tier Gamesman system talked about in this file instead of the regular Gamesman. If you leave the boolean as FALSE (as the non-tier based modules would want), the old Gamesman will take over, and so it will know nothing about any tiers or hash windows you've defined. Which means that, to keep compatibility to the old Gamesman, make sure that you STILL define a global hash AND have it be the global hash active when InitializeGame() returns.
+Thus, for the Retrograde Solver and Tier Gamesman to take over, REMEMBER TO PLACE THAT LINE IN YOUR CODE!
+
+--------------------
+BOOLEAN kExclusivelyTierGamesman;
+--------------------
+This is an optional variable.
+
+Perhaps your game (in either big-board versions, or in general) is just WAY too big to fit into some great global hash - so much that, if you try doing it, the game literally freezes or just quits. In that case, you don't want to include a global hash. However, this means that the old Gamesman straight-up CANNOT play your game.
+In THAT case, you set kExclusivelyTierGamesman to TRUE before InitializeGame() returns. This will let Gamesman know that it should ALWAYS use Tier Gamesman no matter what.
+
+--------------------
+
+...Now, the actual functions.
+
+First, let me discuss a function which, although completely not required by Tier Gamesman, is a VERY useful asset to have:
+
+--------------------
+TIER gBoardToTier(BOARD);
+--------------------
+-This is completely optional and Tier Gamesman doesn't need to know about it at all... I simply list it because it would be VERY helpful to have for implementing a lot of these functions. Namely, it takes in some BOARD configuration (which might include the board's state, who's turn it is, etc.) and tells its TIER. It's useful because, since it's dealing with the discreet BOARD, there's no hashing/unhashing occuring, which makes that nightmare easy to handle.
+-PSEUDOCODE {
+     analyze the board's contents
+     return the tier that BOARD is in
+}
+-DEFAULT: always return 0. This means the maximum tier number is 0, so it only solves tier 0 in one go, which is perfect since now the game is ALL tier 0. So basically this is a normal solve, in a sense.
+
+--------------------
+
+Next are the two REQUIRED functions. These are used by both the SOLVER and GAMESMAN:
+
+--------------------
+TIERLIST* gTierChildren(TIER);
+--------------------
+-Give a list of all the TIERs which the TIER argument directly points/leads to. If the argument is a non-loopy tier (a.k.a. is points to itself) then it MUST include itself SOMEWHERE in the list. Order, obviously, doesn't matter. Can return a null list if it's a non-loopy tier with no children. Also, obviously, it's independent of the current hash window (since it's dealing strictly with the tier number world). The children could be found either with clever math, or analysis of the tier's contents..
+-PSEUDOCODE {
+  TIERLIST* list = NULL;
+  find the tiers this TIER leads to in SOME way, put them in list
+  use CreateTierlistNode(TIER, TIERLIST) to create the list
+  return list
+}
+-DEFAULT: always return 0. All tiers lead to tier 0 if EVERYTHING is in tier 0.
+
+--------------------
+TIERPOSITION gNumberOfTierPositions(TIER);
+--------------------
+-Sort of like a gNumberOfPositions for each of the tier hashes. Namely, takes in a TIER and returns its size (i.e. how many TIERPOSITIONS it has). That's it.
+Used by the core to know how big to make the hash windows.
+-PSEUDOCODE {
+  switch to the tier argument's specific hash
+  find out its maximum number of positions
+  alternately, recall the number from somewhere if pre-computed
+  return that number
+}
+-DEFAULT: always return gNumberOfPositions, since there's only that one hash.
+
+--------------------
+
+
+
+--------------------
+TIERPOSITION gNumberOfTierPositions(TIER);
+--------------------
+-Sort of like a gNumberOfPositions for each of the tier hashes. Namely, takes in a TIER and returns its size (i.e. how many TIERPOSITIONS it has). That's it.
+Used by the core to know how big to make the hash windows.
+-PSEUDOCODE {
+  switch to the tier argument's specific hash
+  find out its maximum number of positions
+  alternately, recall the number from somewhere if pre-computed
+  return that number
+}
+-DEFAULT: always return gNumberOfPositions, since there's only that one hash.
+
+
+
+
+
+
+
+--------------------
+
+These last two functions, which are based off of Mario Tanev's great UndoMove idea, are used by the SOLVER only (in implementing a parent-pointer-free loopy solver).
+
+If you don't know what an UndoMove is, I will explain in it a nutshell. Basically, a regular-old MOVE represents a (legal) move that leads from some POSITION to some other child POSITION. That child POSITION represents the result of applying the MOVE to the original POSITION. So the move is something like a piece moving, a capture, etc.
+Now, an UNDOMOVE is its inverse: it leads back UP the tree rather than DOWN. It represents undoing a move that went from some parent POSITION to the current POSITION (just literally picture being on a POSITION and pressing "undo" to go back to how the game was before. Your job is to generate ALL the possible legal positions that could result by that press of "undo"). So an undo move could also be a piece moving back to where it was, but also more complicated stuff like inverse-captures (having to place a piece back to where it was before it was captured before). That's why we now have an UNDOMOVE definition aside from the MOVE definition: because the UNDOMOVE could use a much different representation than a MOVE - an UNDOMOVE might not only include the fact that there was a capture, but also what piece to place back in the capture's spot, for example.
+Finally, as a side note, since these are all two-player games, note that the result of doing UndoMove, just like the result of doing DoMove, will lead to a board where (assuming no GoAgains and such) it's the OPPOSITE player's turn than the one who was doing/undoing the move.
+
+Now that that's clear, here are the remaining two functions, almost analogous to their MOVE counterparts:
+
+--------------------
+UNDOMOVELIST* gGenerateUndoMovesToTier(POSITION, TIER);
+--------------------
+This is just like Mario's GenerateUndoMoves idea (a.k.a. the UNDOMOVE version of the regular-old GenerateMoves), with a slight twist: NOW it's only in respect to a certain tier. In order words, it'll ONLY return moves which lead from the POSITION argument to another POSITION in the TIER argument. So that means this could conceivably be returning an empty list if it just so happens that it doesn't have any "parents" in the TIER argument. It doesn't seem that this is that much harder to code (e.g. look at a POSITION's tier, compare it to the TIER argument, and realize you only need to figure out captures, etc.), but if not, then this can simply be implemented by using Mario's GenerateUndoMoves and just checking the move's UndoMove result's tier with gPositionToTier, but this is obviously quite a speed hit with all the hashing and unhashing so it's just a last resort (or a quick way to do it fast for testing).
+(The reason for all this, by the way, is to make things a lot faster for the solver: since it's only solving one tier at a time anyway, it only needs the "parent pointers" leading to the tier it's currently solving, so it's a LOT faster to do it like this instead of calling gPositionToTier for EVERY move it gets on the list to know which to use.)
+Oh, and naturally, the POSITION argument is in respect to the current hash window.
+-PSEUDOCODE {
+  thisTier = gPositionToTier(POSITION)
+  if (TIER isn't a direct parent of thisTier)
+    return empty UNDOMOVELIST
+  else {
+    BOARD = unhash(POSITION)
+    generate all undo moves leading to a position in TIER, put them in list
+    return list
+  }
+}
+DEFAULT: the default is just Mario's GenerateUndoMoves, since all position are in tier 0 so all undo moves are valid.
+
+--------------------
+POSITION gUnDoMove(POSITION, UNDOMOVE);
+--------------------
+-This is pretty much Mario's UndoMove - namely, the UNDOMOVE version of DoMove. The only thing I'll note about this and the function above is to keep in mind that UNDOMOVE has been differentiated from MOVE for a reason: they COULD be very different, and would make coding easier if they were (like specifying WHICH piece to bring back in an "undo capture" move).
+(As a side-note to the REALLY knowledgable GamesCrafters architects: This is called gUnDoMove rather than gUndoMove to avoid conflicts with the gUndoMove function pointer that GPS uses.)
+-PSEUDOCODE: Not much to say... just like regular DoMove, only doing it with UNDOMOVES instead of MOVES.
+-DEFAULT: Err... again, no difference AT ALL between this and Mario's UndoMove, since tiers or hash windows don't really come into play (it's guaranteed the hash window will include both the tier it's from and the tier it's going to).
+
+
+--------------------
+PSEUDOCODE FOR SOLVING AND PLAYING:
+--------------------
+
+Ok, FINALLY, that's ALL the functions required. Big Game module writers have quite a bit more to do now...
+BUT, the pay-off is clear: their games will not only solve, but play very quickly! (Well, hopefully...)
+
+So, to FINALLY finish this documentation, and now that you know what the functions mean, here's the pseudocodes for the NEW Retrograde Solver AND the NEW Gamesman playing loop:
+
+SOLVING: {
+  for all "tier" in gTierSolveList {
+    gInitializeHashWindow(tier, kBadPosition);
+    for all "position" possible in the current hash window {
+      if (gPositionToTier(position) == kBadTier) {
+        continue;
+      } else if (gPositionToTier(position) == tier) {
+        if (Primitive(position) || GenerateMoves(position) returns an empty list) {
+          tierPosition = gPositionToTierPosition(position, tier);
+          save tierPosition's slice to tier's db
+        } else {
+          create a "Child Counter" for position
+        }
+      } else {
+        Add position to frontier (if it's not a DRAW of course)
+      }
+    }
+    Solve tier using "loopy solver" algorithm and current frontier
+    Use gGenerateUndoMovesForTier instead of parent pointers
+    And the "Child Counters" to determine loses.
+    Also, use gPositionToTierPosition to know where in the db to save the slices
+    At the end, set the visited, undecided positions to draws
+    Finally, save results to the database specific to this tier
+  }
+}
+
+GAMESMAN (PLAYING): {
+  position = gInitialPosition);
+  while (!Primitive(position)) {
+    tier = gPositionToTier(position);
+    position = gInitializeHashWindow(tier, position);
+    Go through the normal "make a move" process with position
+    Will use gPositionToTierPosition calls to load values from databases
+    Player will give the MOVE s/he chose, called "move"
+    position = DoMove(move) as before
+  }
+}
+
+--------------------
+
+And... that's it.
+
+Thank you for having the patience to reach the end of this LOOOONG documentation. Please offer any comments/changes/corrections/suggestions to me!
+
+-Max Delgadillo

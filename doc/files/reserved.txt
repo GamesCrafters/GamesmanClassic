@@ -1,0 +1,172 @@
+// $Id: reserved.txt,v 1.2 2006-05-02 05:17:45 arabani Exp $
+
+This lists all reserved characters used by the Gamesman core, ordered by menu.
+
+DO NOT use ANY of these characters in their respective menus for your module.
+Violators will be crucified.
+
+Any changes to the reserved characters must be added to this list as well.
+
+
+**NOTE: All reserved characters include upper as well as lower-case
+
+==============================================================================
+
+
+Play screen>
+?
+s
+p
+u
+r
+h
+a
+c
+q
+
+
+Main menu>
+s
+w
+
+o
+g
+d
+2
+p
+l
+m
+
+h
+
+q
+
+
+Game Specific menu>
+b
+
+
+Debug Before Evaluation menu>
+1
+2
+3
+4
+
+b
+
+
+Help menu>
+1
+2
+3
+4
+5
+6
+
+7
+8
+
+9
+0
+
+b
+
+
+Play menu>
+1
+2
+3
+
+4
+5
+
+6
+7
+
+a
+c
+
+s
+d
+
+p
+
+m
+
+h
+
+q
+
+
+Analysis menu>
+i
+n
+
+w
+l
+t
+
+p
+a
+f
+o
+d
+g
+
+c
+
+h
+
+b
+
+
+Visualization menu>
+e
+n
+r
+
+v
+
+h
+
+b
+
+
+Computer Intelligence menu>
+p
+i
+r
+m
+
+g
+
+h
+
+b
+
+q
+
+
+Debug After Evaluation menu>
+c
+i
+s
+f
+
+b
+
+
+
+//$Log: not supported by cvs2svn $
+//Revision 1.1  2005/10/09 19:35:37  hevanm
+//Moved all documentation files into gamesman/doc
+//Combined howto.txt and the tcl README into newgame.txt
+//Renamed restrictions.txt to status.txt
+//Changed extensions for all files to txt
+//
+//Revision 1.2  2005/09/22 05:01:47  ogren
+//Should be raw text now. -Elmer
+//
+//Revision 1.1  2005/09/21 23:12:59  ogren
+//Started Reserved Characters list -Elmer
+//
