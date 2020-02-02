@@ -30,3 +30,7 @@ The original folder structure is preserved; files now inside the `/misc/src/` fo
 
   Seems to be an attempt to write a thrift server for GamesmanClassic.
   Perhaps well coupled with GamesmanWeb but it's not in use as of Spring 2018.
+
+- `doc/games/html/`
+
+  Game documentations superceded by http://gamescrafters.berkeley.edu/games.php
