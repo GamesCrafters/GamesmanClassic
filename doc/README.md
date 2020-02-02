@@ -19,6 +19,8 @@
     - [Reserved Keys](files/reserved.txt)
     - [Text Resource Files](files/UsingTextResourceFiles.pdf)
 
+Additionally, the design documents for some of the games can be found at [games/](games/).
+
 ## Presentations
 
 - [Symmetries](files/Symmetries.pdf) ([ppt](files/Symmetries.ppt))
