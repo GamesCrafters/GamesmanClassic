@@ -182,7 +182,7 @@ BOOLEAN rookVariant = FALSE;
 *************************************************************************/
 STRING MToS(MOVE theMove);
 void reverse(char s[]);
-void itoa(long long unsigned n, char s[], int base);
+void llutoa(long long unsigned n, char s[], int base);
 long long unsigned power(int base, int exp);
 long long unsigned atobi(char s[], int base);
 BOOLEAN isEqualString(char s[], char t[]);
@@ -1005,7 +1005,7 @@ long long unsigned atobi(char s[], int base) {
    base 'base' number n
    POSTCONDITION: s ends in a null character contains
    the digits of n*/
-void itoa(long long unsigned n, char s[], int base){
+void llutoa(long long unsigned n, char s[], int base){
 	int i, nmodbase;
 	long long unsigned sign;
 	if ((sign = n) <0)
@@ -1102,7 +1102,7 @@ int isLegalPlacement(long long unsigned place, int sideLength, int numPieces, BO
 	pieces = fpCounter = 0;
 	pA = (char *)SafeMalloc((boardSize+2) * sizeof(char));
 	place = place | (long long unsigned)pow(2,boardSize);
-	itoa(place,pA,2);
+	llutoa(place,pA,2);
 	pA++;
 	i = 0;
 	while (pA[i] == '0') {
@@ -1344,7 +1344,7 @@ char *unhashBoardWithoutTiers(POSITION position) {
 	generic_hash_context_switch(temp->context);
 	generic_hash_unhash(B - temp->offset,pieces);
 	A = indexToBoard[position/BMAX] | (int)pow(2,boardLength);
-	itoa(A,placement,2);
+	llutoa(A,placement,2);
 	bA = FillBoardArray(pieces,placement);
 	return bA;
 }
