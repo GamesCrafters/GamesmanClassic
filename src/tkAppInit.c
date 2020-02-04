@@ -35,10 +35,18 @@ extern STRING kHelpReverseObjective;
 /*
  * The following variable is a special hack that is needed in order for
  * Sun shared libraries to be used for Tcl.
+ * 
+ * For more recent versions of Tcl, the hack may no longer be applicable.
+ * We avoid the matherr() function for Tcl beginning 8.4.
+ * See: https://wiki.tcl-lang.org/page/tclDummyMathPtr
  */
 
+#define TCL_VERSION_NUM (TCL_MAJOR_VERSION * 100 + TCL_MINOR_VERSION)
+
+#if TCL_VERSION_NUM < 804
 extern int matherr();
 int *tclDummyMathPtr = (int *) matherr;
+#endif
 
 /*************************************************************************
 **
