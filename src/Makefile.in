@@ -97,9 +97,11 @@ GAMESDB_DEPS		:= $(shell ls core/filedb/*.c)
 1210_OBJ		= m1210$(OBJSUFFIX)
 1210_SO			= $(LIBDIR)/libm1210$(LIBSUFFIX)
 
-TIGERS_EXE		= $(BINDIR)/mtigers$(EXESUFFIX) # The game of Tigers and Buffalo
-TIGERS_OBJ		= mtigers$(OBJSUFFIX)
-TIGERS_SO		= $(LIBDIR)/libmtigers$(LIBSUFFIX)
+
+#Not necessary
+#TIGERS_EXE		= $(BINDIR)/mtigers$(EXESUFFIX) # The game of Tigers and Buffalo
+#TIGERS_OBJ		= mtigers$(OBJSUFFIX)
+#TIGERS_SO		= $(LIBDIR)/libmtigers$(LIBSUFFIX)
 
 1TON_EXE		= $(BINDIR)/m1ton$(EXESUFFIX) #yay
 1TON_OBJ		= m1ton$(OBJSUFFIX)
