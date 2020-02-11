@@ -48,50 +48,65 @@ char * PositionToEndData(POSITION pos);
 POSITION StringToPosition(STRING str);
 
 static char * AllocVa(va_list lst, size_t accum, size_t * total) {
-	char * key = va_arg(lst, char *);
-	char * val;
-	char * out;
+    char * key = va_arg(lst, char *);
+	char * val = NULL;
+	char * out = NULL;
 	size_t self_size;
 	size_t key_size;
 	size_t val_size;
 	size_t n;
-	if (!key) {
-		return NULL;
-	}
-	if ( *key ) {
-		/* The key is not the empty string. */
-		val = va_arg(lst, char *);
-		if (!val) {
-			return NULL;
-		}
-		key_size = strlen(key);
-		val_size = strlen(val);
-		self_size = key_size + val_size + 2;
-		/* Request enough memory for ;key=val */
-		out = AllocVa( lst, accum + self_size, total );
-		if ( out ) {
-			size_t i = accum;
-			out[i++] = ';';
-			for (n = 0; n < key_size; n++) {
-				out[i + n] = key[n];
-			}
-			i += key_size;
-			out[i++] = '=';
-			for (n = 0; n < val_size; n++) {
-				out[i + n] = val[n];
-			}
-		}
-		SafeFree(val);
-		return out;
-	} else {
-		/* Base case, alloc the array. */
-		out = (char *) SafeMalloc(accum + 1);
-		if (out) {
-			out[accum] = '\0';
-			*total = accum;
-		}
-		return out;
-	}
+    while(1){
+        key = va_arg(lst, char *);
+	    val = NULL;
+	    out = NULL;
+
+        if(!key){
+            if(val){
+                SafeFree(val);
+            }
+            return NULL;
+        }
+
+        if(*key) {
+            /* The key is not the empty string. */
+		    val = va_arg(lst, char *);
+		    if (!val) {
+			    return NULL;
+		    }
+
+		    key_size = strlen(key);
+		    val_size = strlen(val);
+		    self_size = key_size + val_size + 2;
+		    /* Request enough memory for ;key=val */
+            accum += self_size;
+        } else {
+            /* Base case, alloc the array. */
+            out = (char *) SafeMalloc(accum + 1);
+            if(out) {
+                out[accum] = '\0';
+                *total = accum;
+            }
+
+            if ( out ) {
+                size_t i = accum;
+                out[i++] = ';';
+                for(n = 0; n < key_size; n++){
+                    out[i + n] = key[n];
+                }
+                i += key_size;
+                out[i++] = '=';
+                for(n = 0; n < val_size; n++){
+                    out[i + n] = val[n];
+                }
+            }
+
+            if(val) {
+                SafeFree(val);
+            }
+
+            return out;
+        }
+    }
 }
 
 char * MakeBoardString(char * first, ...) {
