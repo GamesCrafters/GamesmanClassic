@@ -1282,12 +1282,12 @@ POSITION InteractStringToPosition(STRING str) {
 	// Parse UWAPI standard position string & get UWAPI standard board string
 	enum UWAPI_TURN turn;
 	unsigned int num_rows, num_columns;
-	char *board;
+	STRING board;
 	UWAPI_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board);
 
 	// Validate parsed board size
 	if (num_rows != 3 || num_columns != 3) {
-		SafeFreeString(board);
+		SafeFreeString(board); // Free the string!
 		return INVALID_POSITION;
 	}
 
@@ -1302,7 +1302,7 @@ POSITION InteractStringToPosition(STRING str) {
 		} else if (board[i] == '-') {
 			oxboard[i] = Blank;
 		} else {
-			SafeFreeString(board);
+			SafeFreeString(board); // Free the string!
 			return INVALID_POSITION;
 		}
 	}
@@ -1312,7 +1312,7 @@ POSITION InteractStringToPosition(STRING str) {
 	POSITION position = BlankOXToPosition(oxboard, whosTurn);
 
 	// Return internal position
-	SafeFreeString(board);
+	SafeFreeString(board); // Free the string!
 	return position;
 }
 
