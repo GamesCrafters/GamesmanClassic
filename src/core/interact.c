@@ -231,7 +231,7 @@ char * UWAPI_Regular2D_MakeAddString(char piece, unsigned int to) {
 	return str;
 }
 
-char * UWAPI_Regular2D_MakeMoveString(char piece, unsigned int to) {
+char * UWAPI_Regular2D_MakeMoveString(char from, unsigned int to) {
 	// Format: "M-<from>-<to>"
 
 	char * str = SafeMalloc(
@@ -241,7 +241,7 @@ char * UWAPI_Regular2D_MakeMoveString(char piece, unsigned int to) {
 
 	if (str == NULL) return str;
 
-	sprintf(str, "M_%c_%d", piece, to);
+	sprintf(str, "M_%c_%d", from, to);
 	return str;
 }
 

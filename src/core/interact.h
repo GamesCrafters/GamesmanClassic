@@ -40,7 +40,7 @@ char * UWAPI_Regular2D_MakePositionString(
 	unsigned int num_columns,
 	char const * board);
 char * UWAPI_Regular2D_MakeAddString(char piece, unsigned int to);
-char * UWAPI_Regular2D_MakeMoveString(char piece, unsigned int to);
+char * UWAPI_Regular2D_MakeMoveString(char from, unsigned int to);
 
 char * StringDup( char const * s );
 void SafeFreeString(char * string);
