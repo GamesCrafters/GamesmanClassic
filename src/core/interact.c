@@ -241,7 +241,7 @@ char * UWAPI_Regular2D_MakeMoveString(char from, unsigned int to) {
 
 	if (str == NULL) return str;
 
-	sprintf(str, "M_%c_%d", from, to);
+	sprintf(str, "M_%d_%d", from, to);
 	return str;
 }
 
