@@ -94,7 +94,7 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
-char *gBlankOXString[] = { "·", "#", "$" };
+char *gBlankOXString[] = { "ï¿½", "#", "$" };
 
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
@@ -1171,19 +1171,19 @@ STRING GetVarString() {
 	switch (getOption())
 	{
 	case 1:
-		return "Misère game with standard diagonal moves";
+		return "Misï¿½re game with standard diagonal moves";
 		break;
 	case 2:
 		return "Standard game with standard diagonal moves";
 		break;
 	case 3:
-		return "Misère game with all possible diagonal moves";
+		return "Misï¿½re game with all possible diagonal moves";
 		break;
 	case 4:
 		return "Standard game with all possible diagonal moves";
 		break;
 	case 5:
-		return "Misère game with no diagonal moves";
+		return "Misï¿½re game with no diagonal moves";
 		break;
 	case 6:
 		return "Standard game with no diagonal moves";
@@ -1278,7 +1278,7 @@ POSITION ActualNumberOfPositions(int variant) {
 // fixed CVS tags, turned off kDebugMenu.  GameTree printer still in DebugMenu, however. -Elmer
 //
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	// FIXME
 	POSITION pos = 0;
 	if (GetValue(board, "pos", GetUnsignedLongLong, &pos)) {
@@ -1288,7 +1288,7 @@ POSITION StringToPosition(char* board) {
 	}
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	BlankOX board[BOARDSIZE];
 	BlankOX whoseMove;
 	PositionToBlankOX(pos, board, &whoseMove);
@@ -1309,8 +1309,10 @@ char* PositionToString(POSITION pos) {
 	return MakeBoardString(boardStr, "pos", StrFromI(pos), "");
 }
 
-//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
-
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

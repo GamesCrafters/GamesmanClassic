@@ -11,6 +11,10 @@
 #include <string.h>
 #include <ctype.h>
 
+enum UWAPI_TURN {
+	UWAPI_TURN_A = 'A',
+	UWAPI_TURN_B = 'B'
+};
 
 STRING InteractReadPosition(STRING input, POSITION * result);
 STRING InteractReadLong(STRING input, long * result);
@@ -21,8 +25,24 @@ void InteractFreeBoardSting(STRING board);
 void InteractCheckErrantExtra(STRING input, int max_words);
 void ServerInteractLoop(void);
 extern POSITION gInitialPosition;
+
 char * MakeBoardString(char * first, ...);
-char * StringDup( char * s );
+
+BOOLEAN UWAPI_Regular2D_ParsePositionString(
+	char const * str,
+	enum UWAPI_TURN * turn,
+	unsigned int * num_rows,
+	unsigned int * num_columns,
+	char ** board);
+char * UWAPI_Regular2D_MakePositionString(
+	enum UWAPI_TURN turn,
+	unsigned int num_rows,
+	unsigned int num_columns,
+	char const * board);
+char * UWAPI_Regular2D_MakeAddString(char piece, unsigned int to);
+char * UWAPI_Regular2D_MakeMoveString(char piece, unsigned int to);
+
+char * StringDup( char const * s );
 void SafeFreeString(char * string);
 char * StrFromI( long long i );
 char * TierstringFromPosition(POSITION pos);

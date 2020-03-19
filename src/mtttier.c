@@ -900,7 +900,7 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 
-POSITION StringToPosition(char* boardStr) {
+POSITION InteractStringToPosition(STRING boardStr) {
 	// change boardStr to BlankOX
 	BlankOX *board = malloc(sizeof(BlankOX)* BOARDSIZE);
 	if (strlen(boardStr) < BOARDSIZE) {
@@ -922,7 +922,7 @@ POSITION StringToPosition(char* boardStr) {
 	return BlankOXToPosition(board);
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
     BlankOX *board = PositionToBlankOX(pos);
     int i;
     char* safe_board = (char*)SafeMalloc((BOARDSIZE + 1) * sizeof(char));
@@ -946,7 +946,10 @@ char* PositionToString(POSITION pos) {
 	return whole_board;
 }
 
-
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

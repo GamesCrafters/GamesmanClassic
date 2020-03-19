@@ -1500,7 +1500,7 @@ int my_nCr(int n, int r)
 
 
 void* gGameSpecificTclInit = NULL;
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
     int *arrayHashBoard = SafeMalloc(sizeof(int) * (boardSize + 1)), i;
     char *split;
     for (i = 0; i < boardSize; i++) {
@@ -1534,7 +1534,7 @@ int numDigits(int number){
     return digits;
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	int *arrayHashedBoard = array_hash(pos), i;
     int digitLength = 0;
     for (i = 0; i < boardSize; i++) {
@@ -1559,6 +1559,10 @@ char* PositionToString(POSITION pos) {
 	return retString;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

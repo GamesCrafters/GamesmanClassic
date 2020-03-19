@@ -44,7 +44,7 @@
 #include "visualization.h"
 #include "openPositions.h"
 //#include "Parallel.h"
-extern POSITION StringToPosition(STRING str);
+extern POSITION InteractStringToPosition(STRING str);
 
 /*
 ** Globals
@@ -522,8 +522,8 @@ void HandleArguments (int argc, char *argv[])
 				// where "position" is a board string, "move" is a move string
 				// that describes how to reach the specified board from its
 				// parent, and "value" specifies the win/lose/tie value.
-				/* POSITION pos = StringToPosition(boardStr, whoseMove, option); */
-				POSITION pos = StringToPosition(boardStr);
+				/* POSITION pos = InteractStringToPosition(boardStr, whoseMove, option); */
+				POSITION pos = InteractStringToPosition(boardStr);
 				VALUE primitiveValue = Primitive(pos);
 				if (getNextMoveValues) {
 					if (primitiveValue) {
@@ -536,7 +536,7 @@ void HandleArguments (int argc, char *argv[])
 							while (moves != NULL) {
 								POSITION child = DoMove(pos, moves->move);
 								/* Broken. */
-								/* char* childPosition = PositionToString(child, whoseMove, option); */
+								/* char* childPosition = InteractPositionToString(child, whoseMove, option); */
 
 								// flip move values to change perspective
 								VALUE value = GetValueOfPosition(child);

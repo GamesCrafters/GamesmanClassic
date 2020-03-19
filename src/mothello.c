@@ -1933,7 +1933,8 @@ void printBoard(char* board) {
 		printf("\nHUGE ERROR...I IS TOO BIG, meaning the BOARD SHOULD BE SMALLER THAN IT REALLY IS!!!! ==> %d\n\n",i);
 
 }
-POSITION StringToPosition(char* board) {
+
+POSITION InteractStringToPosition(STRING board) {
 	int turn = 0;
 	POSITION pos;
     char * first_semicolon;
@@ -1946,13 +1947,12 @@ POSITION StringToPosition(char* board) {
 		return pos;
 	} else {
 		SafeFree(board_copy);
-		printf("Error: StringToPosition could not determine turn from board \"%s\".", board_copy);
+		printf("Error: InteractStringToPosition could not determine turn from board \"%s\".", board_copy);
 		return INVALID_POSITION;
 	}
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	char* board = getBoard(pos);
 	int turn = generic_hash_turn(pos);
 	char * formatted = MakeBoardString(board, "turn", StrFromI(turn), "");
@@ -1960,6 +1960,10 @@ char* PositionToString(POSITION pos) {
 	return formatted;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

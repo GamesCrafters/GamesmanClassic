@@ -1247,7 +1247,7 @@ void setOption(int option)
 
 }
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	BlankBHT realBoard[BOARDSIZE];
 
 	for (int i = 0; i < BOARDSIZE; i++) {
@@ -1273,7 +1273,7 @@ POSITION StringToPosition(char* board) {
 	return SnakeHash(realBoard);
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	BlankBHT board[BOARDSIZE];
 	SnakeUnhash(pos, board);
 
@@ -1302,6 +1302,10 @@ char* PositionToString(POSITION pos) {
 	return ret;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

@@ -983,7 +983,7 @@ POSITION GetCanonical (POSITION p){
 	return canonP;
 }
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
   BlankOX theBlankOx[BOARDSIZE];
   int i;
   for(i = 0; i < BOARDSIZE; i++){
@@ -997,8 +997,7 @@ POSITION StringToPosition(char* board) {
   return BlankOXToPosition(theBlankOx);
 }
 
-
-char* PositionToString(POSITION position) {
+STRING InteractPositionToString(POSITION position) {
   int i;
   BlankOX theBlankOx[BOARDSIZE];
   PositionToBlankOX(position,theBlankOx);
@@ -1017,6 +1016,10 @@ char* PositionToString(POSITION position) {
   return board;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

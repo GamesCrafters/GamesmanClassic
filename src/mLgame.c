@@ -1931,7 +1931,7 @@ void setOption(int option)
 	mustMove = option/(2*3)%2==1;
 }
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	// FIXME
 	POSITION pos = 0;
 	if ( GetValue(board, "pos", GetInt, &pos) ) {
@@ -1941,8 +1941,7 @@ POSITION StringToPosition(char* board) {
 	}
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	int len = sizeof(char) * 4 * 4 + 1;
 	char * board_string = (char *) malloc(len + 1);
 	int L1 = unhashL1(pos);
@@ -1975,6 +1974,10 @@ char* PositionToString(POSITION pos) {
 	return formatted;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

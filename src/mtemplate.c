@@ -394,17 +394,21 @@ POSITION ActualNumberOfPositions(int variant)
 }
 
 
-POSITION StringToPosition(STRING board)
+POSITION InteractStringToPosition(STRING board)
 {
   return 0;
 }
 
-STRING PositionToString(POSITION pos)
+STRING InteractPositionToString(POSITION pos)
 {
   return NULL;
 }
 
-char * PositionToEndData(POSITION pos)
+STRING InteractInteractPositionToEndData(POSITION pos)
 {
   return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  return MoveToString(mv);
 }

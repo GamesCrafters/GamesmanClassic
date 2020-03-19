@@ -664,7 +664,8 @@ int power(int number, int pow) {
 
 	return answer;
 }
-POSITION StringToPosition(char* string) {
+
+POSITION InteractStringToPosition(STRING string) {
 	int matches, first_player_matches, second_player_matches, position;
 	int success = GetValue(string, "matches", GetInt, &matches) &&
                   GetValue(string, "first_player_matches", GetInt, &first_player_matches) &&
@@ -677,8 +678,7 @@ POSITION StringToPosition(char* string) {
     }    
 }
 
-
-char* PositionToString(POSITION position) {
+STRING InteractPositionToString(POSITION position) {
 	// char* emptyBoard = (char *) SafeMalloc(1);
 	int matches = numberOfMatches(position);
 	int first_player_matches = firstPlayerMatches(position);
@@ -687,6 +687,10 @@ char* PositionToString(POSITION position) {
 		"second_player_matches", StrFromI(second_player_matches), "position", StrFromI(position), "");
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

@@ -850,7 +850,7 @@ POSITION ActualNumberOfPositions(int variant) {
 	return 1768108;
 }
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	int i, turn;
 	char board_char[BOARD_SIZE];
 	for(i = 0; i < BOARD_SIZE; i++){
@@ -865,7 +865,7 @@ POSITION StringToPosition(char* board) {
     }
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	char board[BOARD_SIZE];
 	int current_player = generic_hash_turn(pos);
 	generic_hash_unhash (pos, board);
@@ -878,6 +878,10 @@ char* PositionToString(POSITION pos) {
 	return MakeBoardString(str, "turn",  StrFromI(current_player), "");
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

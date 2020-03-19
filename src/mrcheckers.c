@@ -1733,17 +1733,21 @@ void setOption(int option)
 	extract = option & 7;
 	cols = extract;
 }
-POSITION StringToPosition(char* board) {
+
+POSITION InteractStringToPosition(STRING board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

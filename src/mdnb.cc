@@ -788,7 +788,7 @@ EXTERNC void PrintMove(MOVE theMove)
 	printf("%c", i+'a'); 
 }
 
-EXTERNC POSITION StringToPosition(char* board) {
+EXTERNC POSITION InteractStringToPosition(STRING board) {
   // e.g. board == "o010000000000----"
   //   position == 0b10000000000000010
   //                 ^ turn
@@ -833,7 +833,7 @@ EXTERNC POSITION StringToPosition(char* board) {
   return pos;
 }
 
-EXTERNC char* PositionToString(POSITION pos) {
+EXTERNC STRING InteractPositionToString(POSITION pos) {
   DNB board(pos);
 
   unsigned horizontals = BoardSizeX * (BoardSizeY + 1);
@@ -875,9 +875,14 @@ EXTERNC STRING MoveToString(MOVE theMove) {
   return ret;
 }
 
-EXTERNC char * PositionToEndData(POSITION pos) {
+EXTERNC STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
+
+EXTERNC STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  return MoveToString(mv);
+}
+
 /*
 EXTERNC VALUE *GetRawValueFromDatabase(POSITION position)
 {

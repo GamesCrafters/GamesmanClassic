@@ -1037,7 +1037,8 @@ STRING TierToString(TIER tier) {
 	sprintf(tierStr, "%llu Pieces Placed", boardsize-tier);
 	return tierStr;
 }
-POSITION StringToPosition(char* board) {
+
+POSITION InteractStringToPosition(STRING board) {
 	POSITION pos = 0;
 	if (GetValue(board, "pos", GetUnsignedLongLong, &pos)) {
 		return pos;
@@ -1046,8 +1047,7 @@ POSITION StringToPosition(char* board) {
 	}
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	int turn;
     char *board = unhash(pos, &turn);
 	char *out = MakeBoardString(board,
@@ -1058,6 +1058,10 @@ char* PositionToString(POSITION pos) {
 	return out;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

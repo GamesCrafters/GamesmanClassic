@@ -105,7 +105,7 @@ int maxb;
 
 
 
-#define BLANK '·'
+#define BLANK '.'
 #define X 'X'
 #define O 'O'
 
@@ -2246,13 +2246,13 @@ char* smallUnhash(POSITION pos, char* turn)
    we should use the one liner functions from, to, and remove.
         it makes the code a whole lot easier to read and reduces likely hood of errors... such as the mistake in DoMove earlier
  */
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 
 	char realBoard[BOARDSIZE];
 	int i = 0;
 	for (i = 0; i < BOARDSIZE; i++) {
                 if (board[i] == ' ') {
-		        realBoard[i] = '·';
+		        realBoard[i] = '.';
                 } else {
 		        realBoard[i] = board[i];
                 }
@@ -2262,13 +2262,13 @@ POSITION StringToPosition(char* board) {
 
 
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	char board[BOARDSIZE];
 	int i = 0;
 	generic_hash_unhash(pos, &board);
 	char* finalBoard = calloc((BOARDSIZE+1), sizeof(char));
 	for (i = 0; i < BOARDSIZE; i++) {
-                if (board[i] == '·') {
+                if (board[i] == '.') {
                         finalBoard[i] = ' ';
                 } else {
 		        finalBoard[i] = board[i];
@@ -2277,6 +2277,10 @@ char* PositionToString(POSITION pos) {
 	return finalBoard;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

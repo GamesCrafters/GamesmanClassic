@@ -1088,7 +1088,7 @@ void setOption(int option)
 	gNumDragons = (option/4)+MIN_DRAGONS;
 }
 
-POSITION StringToPosition(char* string) {
+POSITION InteractStringToPosition(STRING string) {
 	char * board = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
 	int i;
 	for (i = 0; i < BOARDSIZE; i++) {
@@ -1121,7 +1121,7 @@ POSITION StringToPosition(char* string) {
 }
 
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	int phase, numSwans;
 	char whosTurn;
 	char * board = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1)); //+1 for the null character
@@ -1154,6 +1154,10 @@ char* PositionToString(POSITION pos) {
 	return retString;		
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

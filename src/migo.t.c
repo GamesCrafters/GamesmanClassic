@@ -141,11 +141,20 @@ int comparePosToStr(GoPosition pos, const char* str) {
 }
 
 
-char* PositionToString(POSITION pos) {
+POSITION InteractStringToPosition(STRING board) {
+	// FIXME: this is just a stub
+	return atoi(board);
+}
+
+STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

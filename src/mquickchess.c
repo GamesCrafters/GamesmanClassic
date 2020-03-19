@@ -3680,7 +3680,7 @@ POSITION hash(char* board, int turn)
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	int turn = 0;
 	POSITION pos;
 	char * first_semicolon = strchr(board, ';');
@@ -3690,14 +3690,14 @@ POSITION StringToPosition(char* board) {
 		*first_semicolon = ';';
 		return pos;
 	} else {
-		printf("Error: StringToPosition could not determine turn from board \"%s\".", board);
+		printf("Error: InteractStringToPosition could not determine turn from board \"%s\".", board);
 		return INVALID_POSITION;
 	}
 }
 
 char * position_to_string_storage = NULL;
 
-char* PositionToString(POSITION pos) {
+char* InteractPositionToString(POSITION pos) {
 	int turn;
 	char * turn_string = (char *) malloc( 2 * sizeof(char) );
 	char * board_string = (char *) malloc(rows * cols + 1);
@@ -3732,6 +3732,10 @@ char* PositionToString(POSITION pos) {
 	return formatted;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }
