@@ -1355,6 +1355,6 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		return UWAPI_Regular2D_MakeAddString((whosTurn == o) ? 'o' : 'x', mv);
 	} else {
 		// Move piece
-		return UWAPI_Regular2D_MakeMoveString(mv / 10, mv % 10);
+		return UWAPI_Regular2D_MakeMoveString(mv / 10 - 1, mv % 10 - 1);
 	}
 }
