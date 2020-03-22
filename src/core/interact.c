@@ -120,7 +120,7 @@ static BOOLEAN isalnumdash(char c) {
 }
 
 BOOLEAN UWAPI_Regular2D_ParsePositionString(char const * str, enum UWAPI_TURN * turn, unsigned int * num_rows, unsigned int * num_columns, char ** board) {
-	// Format: "R-<turn>-<rows>-<columns>-<cells...>"
+	// Format: "R_<turn>_<rows>_<columns>_<cells...>"
 	
 	static char * sep = "_";
 	char * str_dup = StringDup(str);
@@ -175,6 +175,7 @@ BOOLEAN UWAPI_Regular2D_ParsePositionString(char const * str, enum UWAPI_TURN * 
 		i++;
 	}
 	if (pch[i] != '\0') {
+		SafeFreeString(str_dup);
 		return FALSE; // Board string too long
 	}
 	if (board != NULL) *board = StringDup(pch);
@@ -184,7 +185,7 @@ BOOLEAN UWAPI_Regular2D_ParsePositionString(char const * str, enum UWAPI_TURN * 
 }
 
 char * UWAPI_Regular2D_MakePositionString(enum UWAPI_TURN turn, unsigned int num_rows, unsigned int num_columns, char const * board) {
-	// Format: "R-<turn>-<rows>-<columns>-<cells...>"
+	// Format: "R_<turn>_<rows>_<columns>_<cells...>"
 	
 	unsigned int num_cells = num_rows * num_columns;
 
@@ -218,7 +219,7 @@ char * UWAPI_Regular2D_MakePositionString(enum UWAPI_TURN turn, unsigned int num
 }
 
 char * UWAPI_Regular2D_MakeAddString(char piece, unsigned int to) {
-	// Format: "A-<piece>-<to>"
+	// Format: "A_<piece>_<to>"
 
 	char * str = SafeMalloc(
 		1 + 1 + 
@@ -232,7 +233,7 @@ char * UWAPI_Regular2D_MakeAddString(char piece, unsigned int to) {
 }
 
 char * UWAPI_Regular2D_MakeMoveString(char from, unsigned int to) {
-	// Format: "M-<from>-<to>"
+	// Format: "M_<from>_<to>"
 
 	char * str = SafeMalloc(
 		1 + 1 + 
