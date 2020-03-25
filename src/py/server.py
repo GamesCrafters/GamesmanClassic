@@ -32,7 +32,7 @@ max_log_size = 10 * bytes_per_mb
 
 max_memory_percent_per_process = 5.0
 
-port = 8081
+port = 8083
 root_game_directory = './bin/'
 log_filename = 'server.log'
 
