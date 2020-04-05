@@ -16,6 +16,11 @@ enum UWAPI_TURN {
 	UWAPI_TURN_B = 'B'
 };
 
+enum UWAPI_REGULAR2D_SHIFT_DIRECTION {
+	UWAPI_REGULAR2D_SHIFT_DIRECTION_LEFT = 'L',
+	UWAPI_REGULAR2D_SHIFT_DIRECTION_RIGHT = 'R'
+};
+
 STRING InteractReadPosition(STRING input, POSITION * result);
 STRING InteractReadLong(STRING input, long * result);
 STRING InteractReadBoardString(STRING input, char ** result);
@@ -41,6 +46,10 @@ char * UWAPI_Regular2D_MakePositionString(
 	char const * board);
 char * UWAPI_Regular2D_MakeAddString(char piece, unsigned int to);
 char * UWAPI_Regular2D_MakeMoveString(char from, unsigned int to);
+char * UWAPI_Regular2D_MakeShiftString(
+	enum UWAPI_REGULAR2D_SHIFT_DIRECTION dir,
+	unsigned int row,
+	unsigned int amt);
 
 char * StringDup( char const * s );
 void SafeFreeString(char * string);

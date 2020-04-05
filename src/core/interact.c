@@ -116,7 +116,7 @@ char * MakeBoardString(char * first, ...) {
 }
 
 static BOOLEAN isalnumdash(char c) {
-	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '-';
+	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '-' || c == '*';
 }
 
 BOOLEAN UWAPI_Regular2D_ParsePositionString(char const * str, enum UWAPI_TURN * turn, unsigned int * num_rows, unsigned int * num_columns, char ** board) {
@@ -243,6 +243,21 @@ char * UWAPI_Regular2D_MakeMoveString(char from, unsigned int to) {
 	if (str == NULL) return str;
 
 	sprintf(str, "M_%d_%d", from, to);
+	return str;
+}
+
+char * UWAPI_Regular2D_MakeShiftString(enum UWAPI_REGULAR2D_SHIFT_DIRECTION dir, unsigned int row, unsigned int amt) {
+	// Format: "S_<dir>_<row>_<amt>"
+
+	char * str = SafeMalloc(
+		1 + 1 +
+		/* dir */ 1 + 1 +
+		/* row */ 10 + 1 +
+		/* amt */ 1 + /* null terminator */ 1);
+	
+	if (str == NULL) return str;
+
+	sprintf(str, "S_%c_%d_%d", dir, row, amt);
 	return str;
 }
 
