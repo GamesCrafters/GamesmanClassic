@@ -1349,10 +1349,10 @@ void setOption(int option)
 
 POSITION InteractStringToPosition(STRING str) {
 	// Parse UWAPI standard position string & get UWAPI standard board string
-	enum UWAPI_TURN turn;
+	enum UWAPI_Turn turn;
 	unsigned int num_rows, num_columns;
 	STRING board;
-	UWAPI_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board);
+	UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board);
 
 	// Validate parsed board size
 	if (num_rows != 3 || num_columns != 7) {
@@ -1459,8 +1459,8 @@ STRING InteractPositionToString(POSITION pos) {
 	board[21] = '\0';
 
 	// Return formatted UWAPI position string
-	enum UWAPI_TURN turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Regular2D_MakePositionString(turn, 3, 7, board);
+	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	return UWAPI_Board_Regular2D_MakePositionString(turn, 3, 7, board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -1483,11 +1483,11 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 			char piece = (whosTurn == o) ? 'o' : 'x';
 
 			if (oxboard[mv * 3] == Blank)
-				return UWAPI_Regular2D_MakeAddString(piece, 2 * 7 + 2 + mv);
+				return UWAPI_Board_Regular2D_MakeAddString(piece, 2 * 7 + 2 + mv);
 			else if (oxboard[mv * 3 + 1] == Blank)
-				return UWAPI_Regular2D_MakeAddString(piece, 1 * 7 + 2 + mv);
+				return UWAPI_Board_Regular2D_MakeAddString(piece, 1 * 7 + 2 + mv);
 			else if (oxboard[mv * 3 + 2] == Blank)
-				return UWAPI_Regular2D_MakeAddString(piece, 0 * 7 + 2 + mv);
+				return UWAPI_Board_Regular2D_MakeAddString(piece, 0 * 7 + 2 + mv);
 			else {
 				// Unexpected move
 				fprintf(stderr, "Unexpected move: %d\n", mv);
@@ -1495,8 +1495,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 			}
 		}
 		case 3: case 4: case 5:
-			return UWAPI_Regular2D_MakeShiftString(UWAPI_REGULAR2D_SHIFT_DIRECTION_RIGHT, mv - 3, 1);
+			return UWAPI_Board_Regular2D_MakeShiftString(UWAPI_BOARD_REGULAR2D_SHIFT_DIRECTION_RIGHT, mv - 3, 1);
 		case 6: case 7: case 8:
-			return UWAPI_Regular2D_MakeShiftString(UWAPI_REGULAR2D_SHIFT_DIRECTION_LEFT, mv - 6, 1);
+			return UWAPI_Board_Regular2D_MakeShiftString(UWAPI_BOARD_REGULAR2D_SHIFT_DIRECTION_LEFT, mv - 6, 1);
 	}
 }

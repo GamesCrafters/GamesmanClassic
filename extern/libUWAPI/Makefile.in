@@ -1,0 +1,58 @@
+##############################################################################
+#
+#  Makefile for GAMESMAN
+#  The Finite, Two-person Perfect-Information Game Generator
+#
+#  (G)ame-independent
+#  (A)utomatic
+#  (M)ove-tree
+#  (E)xhaustive
+#  (S)earch,
+#  (M)anipulation
+#  (A)nd
+#  (N)avigation
+#
+#  GamesCrafters Research Group, UC Berkeley
+#  Supervised by Dan Garcia <ddgarcia@cs.berkeley.edu>
+#
+##############################################################################
+
+# @WARNGC@ Makefile.in
+# @configure_input@
+
+CC		= @CC@
+CFLAGS		= @CFLAGS@ @TCLCFLAGS@ @GMPCFLAGS@
+AR		= @AR@ cr
+RANLIB		= @RANLIB@
+
+LIBSUFFIX	= @LIBSUFFIX@
+OBJSUFFIX	= @OBJSUFFIX@
+EXESUFFIX	= @EXESUFFIX@
+
+
+##############################################################################
+### Files
+
+MODULES		= UWAPI_boardstrings$(OBJSUFFIX) UWAPI_boardstrings_R$(OBJSUFFIX) UWAPI_boardstrings_C$(OBJSUFFIX)
+
+INCLUDES	= UWAPI_boardstrings.h
+
+
+##############################################################################
+### Rules
+
+all: libUWAPI_boardstrings.a
+
+dist-clean: clean
+	rm -rf Makefile
+
+clean:
+	rm -rf $(MODULES) *~ libUWAPI_boardstrings.a
+
+libUWAPI_boardstrings.a: $(MODULES)
+	rm -f $@
+	$(AR) $@ $(MODULES) ; $(RANLIB) $@
+	cp libUWAPI_boardstrings.a ../../src/libUWAPI_boardstrings.a ; $(RANLIB) ../../src/libUWAPI_boardstrings.a
+
+$(MODULES): %.o: %.c $(INCLUDES)
+	$(CC) $(CFLAGS) -c -o $@ $<

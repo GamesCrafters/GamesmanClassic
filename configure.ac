@@ -568,5 +568,5 @@ AC_SUBST(XMLLIBFLAGS, $OUTXMLLIBFLAGS)
 ### Do output
 ###
 
-AC_CONFIG_FILES([Makefile src/Makefile src/core/Makefile src/core/filedb/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile src/core/Makefile src/core/filedb/Makefile extern/libUWAPI/Makefile])
 AC_OUTPUT

@@ -11,16 +11,6 @@
 #include <string.h>
 #include <ctype.h>
 
-enum UWAPI_TURN {
-	UWAPI_TURN_A = 'A',
-	UWAPI_TURN_B = 'B'
-};
-
-enum UWAPI_REGULAR2D_SHIFT_DIRECTION {
-	UWAPI_REGULAR2D_SHIFT_DIRECTION_LEFT = 'L',
-	UWAPI_REGULAR2D_SHIFT_DIRECTION_RIGHT = 'R'
-};
-
 STRING InteractReadPosition(STRING input, POSITION * result);
 STRING InteractReadLong(STRING input, long * result);
 STRING InteractReadBoardString(STRING input, char ** result);
@@ -32,24 +22,6 @@ void ServerInteractLoop(void);
 extern POSITION gInitialPosition;
 
 char * MakeBoardString(char * first, ...);
-
-BOOLEAN UWAPI_Regular2D_ParsePositionString(
-	char const * str,
-	enum UWAPI_TURN * turn,
-	unsigned int * num_rows,
-	unsigned int * num_columns,
-	char ** board);
-char * UWAPI_Regular2D_MakePositionString(
-	enum UWAPI_TURN turn,
-	unsigned int num_rows,
-	unsigned int num_columns,
-	char const * board);
-char * UWAPI_Regular2D_MakeAddString(char piece, unsigned int to);
-char * UWAPI_Regular2D_MakeMoveString(char from, unsigned int to);
-char * UWAPI_Regular2D_MakeShiftString(
-	enum UWAPI_REGULAR2D_SHIFT_DIRECTION dir,
-	unsigned int row,
-	unsigned int amt);
 
 char * StringDup( char const * s );
 void SafeFreeString(char * string);
