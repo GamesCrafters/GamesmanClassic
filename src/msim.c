@@ -283,7 +283,7 @@ MOVE theMove;
 POSITION GetInitialPosition()
 {
 	POSITION BlankOXToPosition();
-	BlankOX theBlankOX[BOARDSIZE], whosTurn;
+	BlankOX theBlankOX[BOARDSIZE];
 	signed char c;
 	int i;
 
@@ -305,7 +305,7 @@ POSITION GetInitialPosition()
 			; /* do nothing */
 	}
 
-	return(BlankOXToPosition(theBlankOX,whosTurn));
+	return(BlankOXToPosition(theBlankOX));
 }
 
 /************************************************************************
@@ -983,7 +983,13 @@ POSITION GetCanonical (POSITION p){
 	return canonP;
 }
 
-POSITION InteractStringToPosition(STRING board) {
+POSITION InteractStringToPosition(STRING str) {
+  STRING board;
+  if (!UWAPI_Board_Custom_ParsePositionString(str, &board)) {
+    // Failed to parse string
+    return INVALID_POSITION;
+  }
+
   BlankOX theBlankOx[BOARDSIZE];
   int i;
   for(i = 0; i < BOARDSIZE; i++){
@@ -991,29 +997,31 @@ POSITION InteractStringToPosition(STRING board) {
       theBlankOx[i] = o;
     else if(board[i] == 'x')
       theBlankOx[i] = x;
-  else if(board[i] == ' ')
+    else if(board[i] == '-')
       theBlankOx[i] = Blank;
   }
+
+  SafeFreeString(board); // Free the string!
   return BlankOXToPosition(theBlankOx);
 }
 
 STRING InteractPositionToString(POSITION position) {
-  int i;
   BlankOX theBlankOx[BOARDSIZE];
-  PositionToBlankOX(position,theBlankOx);
-  char * board = SafeMalloc(BOARDSIZE + 1);
-
+  PositionToBlankOX(position, theBlankOx);
+  
+  char board[BOARDSIZE + 1];
+  int i;
   for(i = 0; i < BOARDSIZE; i++){
     if(theBlankOx[i] == o)
       board[i] = 'o';
     else if(theBlankOx[i] == x)
       board[i] = 'x';
     else if(theBlankOx[i] == Blank)
-      board[i] = ' ';
+      board[i] = '-';
   }
   board[BOARDSIZE] = '\0';
 
-  return board;
+  return UWAPI_Board_Custom_MakePositionString(board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {

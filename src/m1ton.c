@@ -477,16 +477,18 @@ void setOption(int option)
 }
 
 
-POSITION InteractStringToPosition(STRING board) {
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	STRING board;
+	UWAPI_Board_Custom_ParsePositionString(str, &board);
+	POSITION pos = atoi(board);
+	SafeFreeString(board); // Free the string!
+	return pos;
 }
 
 STRING InteractPositionToString(POSITION pos) {
 	char buffer[32];
 	snprintf(buffer, 32, "%lld",pos);
-	char* ret = malloc(sizeof(char)*(strlen(buffer)+1));
-	strncpy(ret, buffer, (strlen(buffer)+1));
-	return ret;
+	return UWAPI_Board_Custom_MakePositionString(buffer);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
