@@ -1,6 +1,9 @@
 #ifndef _MLIB_H_
 #define _MLIB_H_
 
+// Include vendored libUWAPI for board string formatting
+#include "../../extern/libUWAPI/UWAPI_boardstrings.h"
+
 /*function prototypes*/
 
 void LibInitialize(int,int,int,BOOLEAN);
@@ -41,7 +44,7 @@ extern LocalBoard lBoard;
 		unsigned int num_rows, num_columns; \
 		STRING board; \
 		\
-		if (!UWAPI_Regular2D_ParsePositionString(str, NULL, &num_rows, &num_columns, &board)) { \
+		if (!UWAPI_Board_Regular2D_ParsePositionString(str, NULL, &num_rows, &num_columns, &board)) { \
 			return INVALID_POSITION; \
 		} \
 		\
@@ -79,7 +82,7 @@ extern LocalBoard lBoard;
 		} \
 		board[BOARDSIZE] = '\0'; \
 		\
-		return UWAPI_Regular2D_MakePositionString( \
+		return UWAPI_Board_Regular2D_MakePositionString( \
 			WhoseTurn(oxboard) == x ? UWAPI_TURN_A : UWAPI_TURN_B, \
 			BOARDROWS, BOARDCOLS, board); \
 	} \
@@ -87,7 +90,7 @@ extern LocalBoard lBoard;
 	STRING InteractMoveToString(POSITION pos, MOVE mv) { \
 		BlankOX oxboard[BOARDSIZE]; \
 		PositionToBlankOX(pos, oxboard); \
-		return UWAPI_Regular2D_MakeAddString(gBlankOXUWAPIChar[WhoseTurn(oxboard)], mv); \
+		return UWAPI_Board_Regular2D_MakeAddString(gBlankOXUWAPIChar[WhoseTurn(oxboard)], mv); \
 	}
 
 #endif

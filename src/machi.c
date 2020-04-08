@@ -1280,10 +1280,13 @@ POSITION ActualNumberOfPositions(int variant) {
 
 POSITION InteractStringToPosition(STRING str) {
 	// Parse UWAPI standard position string & get UWAPI standard board string
-	enum UWAPI_TURN turn;
+	enum UWAPI_Turn turn;
 	unsigned int num_rows, num_columns;
 	STRING board;
-	UWAPI_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board);
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
 
 	// Validate parsed board size
 	if (num_rows != 3 || num_columns != 3) {
@@ -1337,8 +1340,8 @@ STRING InteractPositionToString(POSITION pos) {
 	board[BOARDSIZE] = '\0';
 
 	// Return formatted UWAPI position string
-	enum UWAPI_TURN turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Regular2D_MakePositionString(turn, 3, 3, board);
+	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	return UWAPI_Board_Regular2D_MakePositionString(turn, 3, 3, board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -1352,9 +1355,9 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 
 	if (mv < 9) {
 		// Add piece
-		return UWAPI_Regular2D_MakeAddString((whosTurn == o) ? 'o' : 'x', mv);
+		return UWAPI_Board_Regular2D_MakeAddString((whosTurn == o) ? 'o' : 'x', mv);
 	} else {
 		// Move piece
-		return UWAPI_Regular2D_MakeMoveString(mv / 10 - 1, mv % 10 - 1);
+		return UWAPI_Board_Regular2D_MakeMoveString(mv / 10 - 1, mv % 10 - 1);
 	}
 }
