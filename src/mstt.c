@@ -1352,7 +1352,10 @@ POSITION InteractStringToPosition(STRING str) {
 	enum UWAPI_Turn turn;
 	unsigned int num_rows, num_columns;
 	STRING board;
-	UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board);
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
 
 	// Validate parsed board size
 	if (num_rows != 3 || num_columns != 7) {
