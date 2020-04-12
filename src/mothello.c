@@ -1934,36 +1934,69 @@ void printBoard(char* board) {
 
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	int turn = 0;
-	POSITION pos;
-    char * first_semicolon;
-	char * board_copy = SafeMalloc(strlen(board) + 1);
-	strcpy(board_copy, board);
-	first_semicolon = strchr(board_copy, ';');
-	if ( board_copy && GetValue(board_copy, "turn", GetInt, &turn) ) {
-		*first_semicolon = '\0';
-		pos = getPosition(board_copy, turn);
-		return pos;
-	} else {
-		SafeFree(board_copy);
-		printf("Error: InteractStringToPosition could not determine turn from board \"%s\".", board_copy);
+
+POSITION InteractStringToPosition(STRING pos) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns;
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(pos, &turn, &num_rows, &num_columns, &board)) {
 		return INVALID_POSITION;
 	}
+
+	// Validate parsed board size
+	if (num_rows != OthRows || num_columns != OthCols) {
+		SafeFreeString(board); // Free the string!
+		return INVALID_POSITION;
+	}
+
+	// Convert UWAPI standard board string to internal board representation
+	int BOARDSIZE = num_rows * num_columns;
+	int i;
+	for (i = 0; i < BOARDSIZE; i ++) {
+		if (board[i] == '-') {
+			board[i] = ' ';
+		}
+	}
+
+	int whosTurn = (turn == UWAPI_TURN_A) ? 1 : 2;
+	POSITION position = getPosition(board, whosTurn);
+	// No need to free string because getPosition does it
+	return position;
 }
+
 
 STRING InteractPositionToString(POSITION pos) {
 	char* board = getBoard(pos);
-	int turn = generic_hash_turn(pos);
-	char * formatted = MakeBoardString(board, "turn", StrFromI(turn), "");
+	int whosTurn = generic_hash_turn(pos);
+	int BOARDSIZE = OthRows * OthCols;
+
+	int i;
+	for (i = 0; i < BOARDSIZE; i ++) {
+		if (board[i] == ' ') {
+			board[i] = '-';
+		}
+	}
+	
+	enum UWAPI_Turn turn = (whosTurn == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	char* formatted = UWAPI_Board_Regular2D_MakePositionString(turn, OthRows, OthCols, board);
 	SafeFree(board);
 	return formatted;
 }
+
 
 STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
+
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	if( ((int)mv) == PASSMOVE) {
+		STRING move = (STRING) SafeMalloc(2);
+		sprintf( move, "P" );
+		return move;
+	}  else {
+		int whosTurn = generic_hash_turn(pos);
+		char piece = (whosTurn == BLACK) ? BLACKPIECE : WHITEPIECE;
+		return UWAPI_Board_Regular2D_MakeAddString(piece, mv);
+	}
 }
