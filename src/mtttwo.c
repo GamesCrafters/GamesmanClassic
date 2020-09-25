@@ -52,15 +52,19 @@ STRING kHelpExample = "";
 **************************************************************************/
 
 // NOTE: The inner grid is always 3x3
+#define GRIDROWS    3
+#define GRIDCOLS    3
 #define BOARDROWS   4
 #define BOARDCOLS   4
 #define BOARDSIZE   16
+// NUMPIECES: number of pieces each player has
+#define NUMPIECES   4
 
 typedef enum possibleBoardPieces {
-  Blank, O, X
+  Blank, X, O
 } BlankOX;
 
-char *gBlankOXString[] = { " ", "o", "x" };
+char *gBlankOXString[] = { " ", "x", "o" };
 
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467 };
 
@@ -73,7 +77,9 @@ typedef struct {
   int piecesPlaced;
 } GameBoard;
 
+// Unhash from Position to GameBoard
 void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard);
+// Hash from GameBoard to Position
 POSITION GameBoardToPosition(GameBoard *theGameBoard);
 
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
@@ -171,7 +177,21 @@ void UndoMove(MOVE move)
 
 POSITION GetInitialPosition()
 {
-  return 0;
+  GameBoard gameboard;
+  BlankOX board[BOARDSIZE];
+
+  gameboard.board = board;
+  // Note: x and y offset can be different for different board size
+  gameboard.xoffset = 0;
+  gameboard.yoffset = 0;
+  gameboard.nextPiece = X;
+  gameboard.piecesPlaced = 0;
+  
+  for (int i = 0; i < BOARDSIZE; i++) {
+    board[i] = Blank;     
+  }
+  
+  return GameBoardToPosition(gameboard);
 }
 
 /************************************************************************
@@ -256,6 +276,14 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 ** CALLS: MOVELIST *CreateMovelistNode(MOVE,MOVELIST *)
 **
 ************************************************************************/
+
+// Generate Moves:
+// If there has been fewer than 4 pieces:
+// We can 1) place pieces in empty locations within the grid
+// If there has been at least 4 pieces:
+// We can 1) place pieces in empty locations within the grid
+//        2) move the grid
+//        3) place new pieces on empty locations within the grid
 
 MOVELIST *GenerateMoves(POSITION position)
 {
