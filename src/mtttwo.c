@@ -1,14 +1,22 @@
 #include <stdio.h>
 #include "gamesman.h"
 
+// What needs to be implemented
+// GetInitialPosition 
+// DoMove
+// Primitive
+// PrintPosition
+// GenerateMoves
+// Hash and Unhash
+
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
 
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "";
-STRING kGameName = "";
+STRING kAuthorName = "Stella Wan, Nala Chen";
+STRING kGameName = "Tic-Tac-Two";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -42,6 +50,31 @@ STRING kHelpExample = "";
 ** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
+
+// NOTE: The inner grid is always 3x3
+#define BOARDROWS   4
+#define BOARDCOLS   4
+#define BOARDSIZE   16
+
+typedef enum possibleBoardPieces {
+  Blank, O, X
+} BlankOX;
+
+char *gBlankOXString[] = { " ", "o", "x" };
+
+int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467 };
+
+typedef struct {
+  BlankOX board[BOARDSIZE];
+  int xoffset; // Can only use two lowest bits
+  int yoffset; // Can only use two lowest bits
+  // No need to hash the values below...
+  BlankOX nextPiece;
+  int piecesPlaced;
+} GameBoard;
+
+void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard);
+POSITION GameBoardToPosition(GameBoard *theGameBoard);
 
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
@@ -411,4 +444,32 @@ STRING InteractPositionToEndData(POSITION pos)
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
   return MoveToString(mv);
+}
+
+POSITION GameBoardToPosition(GameBoard *theGameBoard) {
+  POSITION position = 0;
+
+  for (int i = 0; i < BOARDSIZE; i++)
+    position += g3Array[i] * ((int) theGameBoard->board[i]);
+
+  return position + g3Array[BOARDSIZE] * theGameBoard->xoffset + g3Array[BOARDSIZE+1] * theGameBoard->yoffset;
+
+}
+
+void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard) {
+  // NOTE: Avoid division
+
+  // Extract yoffset
+  theGameBoard->yoffset = thePos / g3Array[BOARDSIZE+1];
+  thePos -= g3Array[BOARDSIZE+1] * theGameBoard->yoffset;
+  
+  // Extract xoffset
+  theGameBoard->xoffset = thePos / g3Array[BOARDSIZE];
+  thePos -= g3Array[BOARDSIZE] * theGameBoard->xoffset;
+
+  // Extract boards
+  for (int i = BOARDSIZE-1; i >= 0; i--) {
+    theGameBoard->board[i] = thePos / g3Array[i];
+    thePos -= g3Array[i] * theGameBoard->board[i];
+  }
 }
