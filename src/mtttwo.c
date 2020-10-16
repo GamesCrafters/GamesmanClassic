@@ -188,7 +188,7 @@ POSITION GetInitialPosition()
   gameboard.piecesPlaced = 0;
   
   for (int i = 0; i < BOARDSIZE; i++) {
-    board[i] = Blank;     
+    board[i] = Blank;
   }
   
   return GameBoardToPosition(gameboard);
@@ -215,29 +215,62 @@ STRING computersName;
 **
 ** NAME: Primitive
 **
-** DESCRIPTION: Return the value of a position if it fulfills certain
-** 'primitive' constraints. Some examples of this is having
-** three-in-a-row with TicTacToe. TicTacToe has two
-** primitives it can immediately check for, when the board
-** is filled but nobody has one = primitive tie. Three in
-** a row is a primitive lose, because the player who faces
-** this board has just lost. I.e. the player before him
-** created the board and won. Otherwise undecided.
+** DESCRIPTION: If there is a three in a row in the grid, then that is a
+** losing position, else the position is undecided.
 **
 ** INPUTS: POSITION position : The position to inspect.
 **
 ** OUTPUTS: (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
 ** CALLS: BOOLEAN ThreeInARow()
-** BOOLEAN AllFilledIn()
-** PositionToBlankOX()
+** BOOLEAN PositionToGameBoard()
 **
 ************************************************************************/
 
 VALUE Primitive(POSITION position)
 {
+  // First create a gameboard given the position
+  GameBoard gameboard;
+  // Retrieves all the important information back into the gameboard
+  PositionToGameBoard(position, gameboard);
+  // Here gameboard->xoffset and gameboard->yoffset should tell you
+  // where the top left corner of the grid is
+  int gridx = gameboard->xoffset;
+  int gridy = gameboard->yoffset;
+  // If 3 in a row horizontally
+  for (int i = gridy; i < gridy + GRIDROWS; i += 1) {
+    int index = gridx + i * BOARDCOLS;
+    if (gameboard->board[index] == gameboard->board[index + 1]
+        && gameboard->board[index + 1] == gameboard->board[index + 2]
+        && gameboard->board[index] != Blank) {
+          return lose;
+        }
+  }
+  // If 3 in a row vertically
+  for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
+    int index = i + gridy * BOARDCOLS;
+    if (gameboard->board[index] == gameboard->board[index + BOARDCOLS]
+        && gameboard->board[index + BOARDCOLS] == gameboard->board[index + 2 * BOARDCOLS]
+        && gameboard->board[index] != Blank) {
+          return lose;
+        }
+  }
+  // If 3 in a row diagonally with top left corner
+  int index = gridx + gridy * BOARDCOLS;
+  if (gameboard->board[index] == gameboard->board[index + BOARDCOLS + 1]
+      && gameboard->board[index + BOARDCOLS + 1] == gameboard->board[index + 2 * BOARDCOLS + 2]) {
+        return lose;
+      }
+  // If 3 in a row diagonally with top right corner
+  int index = gridx + gridy * BOARDCOLS + 2;
+  if (gameboard->board[index] == gameboard->board[index + BOARDCOLS - 1]
+      && gameboard->board[index + BOARDCOLS - 1] == gameboard->board[index + 2 * BOARDCOLS - 2]) {
+        return lose;
+      }
   return undecided;
 }
+
+
 
 /************************************************************************
 **
