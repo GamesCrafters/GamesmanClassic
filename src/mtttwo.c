@@ -66,7 +66,7 @@ typedef enum possibleBoardPieces {
 
 char *gBlankOXString[] = { " ", "x", "o" };
 
-int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467 };
+int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467, 3486784401, 10460353203 };
 
 typedef struct {
   BlankOX board[BOARDSIZE];
@@ -232,39 +232,39 @@ VALUE Primitive(POSITION position)
   // First create a gameboard given the position
   GameBoard gameboard;
   // Retrieves all the important information back into the gameboard
-  PositionToGameBoard(position, gameboard);
+  PositionToGameBoard(position, &gameboard);
   // Here gameboard->xoffset and gameboard->yoffset should tell you
   // where the top left corner of the grid is
-  int gridx = gameboard->xoffset;
-  int gridy = gameboard->yoffset;
+  int gridx = gameboard.xoffset;
+  int gridy = gameboard.yoffset;
   // If 3 in a row horizontally
   for (int i = gridy; i < gridy + GRIDROWS; i += 1) {
     int index = gridx + i * BOARDCOLS;
-    if (gameboard->board[index] == gameboard->board[index + 1]
-        && gameboard->board[index + 1] == gameboard->board[index + 2]
-        && gameboard->board[index] != Blank) {
+    if (gameboard.board[index] == gameboard.board[index + 1]
+        && gameboard.board[index + 1] == gameboard.board[index + 2]
+        && gameboard.board[index] != Blank) {
           return lose;
         }
   }
   // If 3 in a row vertically
   for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
     int index = i + gridy * BOARDCOLS;
-    if (gameboard->board[index] == gameboard->board[index + BOARDCOLS]
-        && gameboard->board[index + BOARDCOLS] == gameboard->board[index + 2 * BOARDCOLS]
-        && gameboard->board[index] != Blank) {
+    if (gameboard.board[index] == gameboard.board[index + BOARDCOLS]
+        && gameboard.board[index + BOARDCOLS] == gameboard.board[index + 2 * BOARDCOLS]
+        && gameboard.board[index] != Blank) {
           return lose;
         }
   }
   // If 3 in a row diagonally with top left corner
   int index = gridx + gridy * BOARDCOLS;
-  if (gameboard->board[index] == gameboard->board[index + BOARDCOLS + 1]
-      && gameboard->board[index + BOARDCOLS + 1] == gameboard->board[index + 2 * BOARDCOLS + 2]) {
+  if (gameboard.board[index] == gameboard.board[index + BOARDCOLS + 1]
+      && gameboard.board[index + BOARDCOLS + 1] == gameboard.board[index + 2 * BOARDCOLS + 2]) {
         return lose;
       }
   // If 3 in a row diagonally with top right corner
   int index = gridx + gridy * BOARDCOLS + 2;
-  if (gameboard->board[index] == gameboard->board[index + BOARDCOLS - 1]
-      && gameboard->board[index + BOARDCOLS - 1] == gameboard->board[index + 2 * BOARDCOLS - 2]) {
+  if (gameboard.board[index] == gameboard.board[index + BOARDCOLS - 1]
+      && gameboard.board[index + BOARDCOLS - 1] == gameboard.board[index + 2 * BOARDCOLS - 2]) {
         return lose;
       }
   return undecided;
@@ -320,7 +320,22 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 MOVELIST *GenerateMoves(POSITION position)
 {
-  return NULL;
+  // First create a gameboard given the position
+  GameBoard gameboard;
+  // Retrieves all the important information back into the gameboard
+  PositionToGameBoard(position, &gameboard);
+  if (gameboard.piecesPlaced < 4) {
+    // Can only place new pieces within grid
+
+  } else if (gameboard.piecesPlaced >= 4 && gameboard.piecesPlaced <= 7) {
+    // Can place new pieces within grid, move grid, or move old pieces to empty locations within grid
+
+  } else if (gameboard.piecesPlaced == 8) {
+    // Can only move grid or move old pieces to locations within grid
+
+  } else {
+    return NULL;
+  }
 }
 
 /**************************************************/
@@ -513,12 +528,15 @@ POSITION GameBoardToPosition(GameBoard *theGameBoard) {
   for (int i = 0; i < BOARDSIZE; i++)
     position += g3Array[i] * ((int) theGameBoard->board[i]);
 
-  return position + g3Array[BOARDSIZE] * theGameBoard->xoffset + g3Array[BOARDSIZE+1] * theGameBoard->yoffset;
+  return position + g3Array[BOARDSIZE] * theGameBoard->xoffset + g3Array[BOARDSIZE+1] * theGameBoard->yoffset + g3Array[BOARDSIZE+2] * theGameBoard->nextPiece;
 
 }
 
 void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard) {
   // NOTE: Avoid division
+  // Extract nextPiece
+  theGameBoard->nextPiece = thePos / g3Array[BOARDSIZE+2];
+  thePos -= g3Array[BOARDSIZE+2] * theGameBoard->nextPiece;
 
   // Extract yoffset
   theGameBoard->yoffset = thePos / g3Array[BOARDSIZE+1];
@@ -528,9 +546,16 @@ void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard) {
   theGameBoard->xoffset = thePos / g3Array[BOARDSIZE];
   thePos -= g3Array[BOARDSIZE] * theGameBoard->xoffset;
 
+  // Get the number of pieces placed
+  int numPieces = 0;
   // Extract boards
   for (int i = BOARDSIZE-1; i >= 0; i--) {
     theGameBoard->board[i] = thePos / g3Array[i];
     thePos -= g3Array[i] * theGameBoard->board[i];
+    if (theGameBoard->board[i] != Blank) {
+      numPieces += 1;
+    }
   }
+  theGameBoard->piecesPlaced = numPieces;
+
 }
