@@ -258,13 +258,15 @@ VALUE Primitive(POSITION position)
   // If 3 in a row diagonally with top left corner
   int index = gridx + gridy * BOARDCOLS;
   if (gameboard.board[index] == gameboard.board[index + BOARDCOLS + 1]
-      && gameboard.board[index + BOARDCOLS + 1] == gameboard.board[index + 2 * BOARDCOLS + 2]) {
+      && gameboard.board[index + BOARDCOLS + 1] == gameboard.board[index + 2 * BOARDCOLS + 2]
+      && gameboard.board[index] != Blank) {
         return lose;
       }
   // If 3 in a row diagonally with top right corner
   int index = gridx + gridy * BOARDCOLS + 2;
   if (gameboard.board[index] == gameboard.board[index + BOARDCOLS - 1]
-      && gameboard.board[index + BOARDCOLS - 1] == gameboard.board[index + 2 * BOARDCOLS - 2]) {
+      && gameboard.board[index + BOARDCOLS - 1] == gameboard.board[index + 2 * BOARDCOLS - 2]
+      && gameboard.board[index] != Blank) {
         return lose;
       }
   return undecided;
@@ -324,6 +326,8 @@ MOVELIST *GenerateMoves(POSITION position)
   GameBoard gameboard;
   // Retrieves all the important information back into the gameboard
   PositionToGameBoard(position, &gameboard);
+  // Create a linked list of possible moves
+  MOVELIST *moves = NULL;
   if (gameboard.piecesPlaced < 4) {
     // Can only place new pieces within grid
 
