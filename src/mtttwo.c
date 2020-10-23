@@ -354,15 +354,69 @@ MOVELIST *GenerateMoves(POSITION position)
         moves = CreateMovelistNode(newMove, moves);
       }
       // Move right
+      if (gridx + 1 <= BOARDCOLS - GRIDCOLS) {
+        int source = gridx + gridy * BOARDCOLS; 
+        int destination = (gridx + 1) + gridy * BOARDCOLS; 
+        MOVE newMove = destination + source * 27 + 2 * 729; 
+        moves = CreateMovelistNode(newMove, moves); 
+      }
+
+      // Move up 
+      if (gridy - 1 >= 0){
+        int source = gridx + gridy * BOARDCOLS;  
+        int destination = gridx + (gridy - 1) * BOARDCOLS; 
+        MOVE newMove = destination * source * 27 + 2 * 729; 
+        moves = CreateMovelistNode(newMove, moves); 
+      }
+
+      // Move down
+      if (gridy + 1 <= BOARDROWS - GRIDROWS) {
+        int source = gridx + gridy * BOARDCOLS;  
+        int destination = gridx + (gridy + 1) * BOARDCOLS; 
+        MOVE newMove = destination * source * 27 + 2 * 729; 
+        moves = CreateMovelistNode(newMove, moves); 
+      }
       
       // Move old pieces to empty locations within grid
+      //outer loop: looking through 1D array of Board for your pieces
+      //nested loop: iterate through all x positions in grid
+      //nested loop: iterate through all y pieces in grid 
+      //note: check that curr location == destination from inner for loops 
+      for (int source = 0; source < BOARDSIZE; source ++) {
+        if (gameboard[location] == gameboard.nextPiece) {
+          for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
+            for (int j = gridy; j < gridy + GRIDROWS; j += 1) {
+              int location = i + j * BOARDCOLS;
+              if (gameboard.board[location] == Blank) {
+                // First 3 ternary digits: destination, next 3 ternary digits: source (0), move type (0 = placing new)
+                MOVE newMove = location + source * 27 + 1 * 729;
+                moves = CreateMovelistNode(newMove, moves);
+              }
+            }
+          }
+        }
+      }
       return moves;
     } else {
       return moves;
     }
   } else if (gameboard.piecesPlaced == 8) {
     // Can only move grid or move old pieces to locations within grid
-
+    for (int source = 0; source < BOARDSIZE; source ++) {
+      if (gameboard[location] == gameboard.nextPiece) {
+        for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
+          for (int j = gridy; j < gridy + GRIDROWS; j += 1) {
+            int location = i + j * BOARDCOLS;
+            if (gameboard.board[location] == Blank) {
+              // First 3 ternary digits: destination, next 3 ternary digits: source (0), move type (0 = placing new)
+              MOVE newMove = location + source * 27 + 1 * 729;
+              moves = CreateMovelistNode(newMove, moves);
+            }
+          }
+        }
+      }
+    }
+    return moves;
   } else {
     return NULL;
   }
