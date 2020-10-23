@@ -328,12 +328,38 @@ MOVELIST *GenerateMoves(POSITION position)
   PositionToGameBoard(position, &gameboard);
   // Create a linked list of possible moves
   MOVELIST *moves = NULL;
-  if (gameboard.piecesPlaced < 4) {
-    // Can only place new pieces within grid
-
-  } else if (gameboard.piecesPlaced >= 4 && gameboard.piecesPlaced <= 7) {
-    // Can place new pieces within grid, move grid, or move old pieces to empty locations within grid
-
+  if (gameboard.piecesPlaced < 8) {
+    // Place new pieces in grid
+    int gridx = gameboard.xoffset;
+    int gridy = gameboard.yoffset;
+    for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
+      for (int j = gridy; j < gridy + GRIDROWS; j += 1) {
+        int location = i + j * BOARDCOLS;
+        if (gameboard.board[location] == Blank) {
+          // First 3 ternary digits: destination, next 3 ternary digits: source (0), move type (0 = placing new)
+          MOVE newMove = location + 0 * 27 + 0 * 729;
+          moves = CreateMovelistNode(newMove, moves);
+        }
+      }
+    }
+    if (gameboard.piecesPlaced >= 4) {
+      // Move grid
+      int gridx = gameboard.xoffset;
+      int gridy = gameboard.yoffset;
+      // Move left
+      if (gridx - 1 >= 0) {
+        int source = gridx + gridy * BOARDCOLS;
+        int destination = (gridx - 1) + gridy * BOARDCOLS;
+        MOVE newMove = destination + source * 27 + 2 * 729;
+        moves = CreateMovelistNode(newMove, moves);
+      }
+      // Move right
+      
+      // Move old pieces to empty locations within grid
+      return moves;
+    } else {
+      return moves;
+    }
   } else if (gameboard.piecesPlaced == 8) {
     // Can only move grid or move old pieces to locations within grid
 
