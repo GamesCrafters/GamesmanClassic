@@ -157,7 +157,49 @@ void SetTclCGameSpecificOptions(int theOptions[])
 
 POSITION DoMove(POSITION position, MOVE move)
 {
-  return 0;
+  // First create a gameboard given the position
+  GameBoard gameboard;
+  // Retrieves all the important information back into the gameboard
+  PositionToGameBoard(position, &gameboard);
+  // Get the type of move
+  int type = move / 729;
+  move -= type * 729;
+  int source = move / 27;
+  move -= source * 27;
+  int destination = move;
+  if (type == 0) {
+    // Place new piece onto the grid
+    gameboard.board[destination] = gameboard.nextPiece;
+    if (gameboard.nextPiece == X) {
+      gameboard.nextPiece = O;
+    } else {
+      gameboard.nextPiece = X;
+    }
+    gameboard.piecesPlaced += 1;
+    return GameBoardToPosition(&gameboard);
+  } else if (type == 1) {
+    // Move piece on board
+    gameboard.board[destination] = gameboard.nextPiece;
+    gameboard.board[source] = Blank;
+    if (gameboard.nextPiece == X) {
+      gameboard.nextPiece = O;
+    } else {
+      gameboard.nextPiece = X;
+    }
+    return GameBoardToPosition(&gameboard);
+  } else {
+    // Move grid
+    if (gameboard.nextPiece == X) {
+      gameboard.nextPiece = O;
+    } else {
+      gameboard.nextPiece = X;
+    }
+    int gridy = destination / BOARDROWS;
+    int gridx = destination - gridy * BOARDROWS;
+    gameboard.xoffset = gridx;
+    gameboard.yoffset = gridy;
+    return GameBoardToPosition(&gameboard);
+  }
 }
 
 void UndoMove(MOVE move)
