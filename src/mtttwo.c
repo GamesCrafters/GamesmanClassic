@@ -335,6 +335,47 @@ VALUE Primitive(POSITION position)
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  // Create new gameboard
+  GameBoard gameboard; 
+  // Retrieves all the important information back into the gameboard
+  PositionToGameBoard(position, &gameboard);
+  // Here gameboard->xoffset and gameboard->yoffset should tell you
+  // where the top left corner of the grid is
+  int gridx = gameboard.xoffset;
+  int gridy = gameboard.yoffset;
+  // Print board
+  for (int i = 0; i < BOARDROWS; i++) {
+    // Print two rows for each row in the original board to encode for pieces and inner grid
+    for (int j = 0; j < BOARDCOLS; j++) {
+      printf("  "); 
+      if (board[i][j]!= BLANK) {
+        printf(board[i][j]); 
+        printf("  |")
+      } else {
+        printf("      |"); 
+      }
+      if (i >= gridx && i < gridx + GRIDROWS) {
+        if (i >= gridy && j < gridy + GRIDCOLS) {
+
+        }
+      }
+    }
+    for (int j = 0; j < BOARDCOLS; j++) {
+      printf("  "); 
+      if (board[i][j]!= BLANK) {
+        printf(board[i][j]); 
+        printf("  |")
+      } else {
+        printf("      |"); 
+      }
+      if ((i >= gridx && i < gridx + GRIDROWS) && (i >= gridy && j < gridy + GRIDCOLS)) {
+        printf("#  |");
+      }
+        else {
+        print("      |")
+        }
+    }
+  }
 }
 
 /************************************************************************
