@@ -1,14 +1,6 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-// What needs to be implemented
-// GetInitialPosition 
-// DoMove
-// Primitive
-// PrintPosition
-// GenerateMoves
-// Hash and Unhash
-
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
 
@@ -21,7 +13,7 @@ BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kTieIsPossible = TRUE;
-BOOLEAN kLoopy = FALSE;
+BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
@@ -74,6 +66,8 @@ typedef struct {
   int yoffset; // Can only use two lowest bits
   // No need to hash the values below...
   BlankOX nextPiece;
+  int piecesXPlaced;
+  int piecesOPlaced;
   int piecesPlaced;
 } GameBoard;
 
@@ -171,8 +165,10 @@ POSITION DoMove(POSITION position, MOVE move)
     // Place new piece onto the grid
     gameboard.board[destination] = gameboard.nextPiece;
     if (gameboard.nextPiece == X) {
+      gameboard.piecesXPlaced += 1;
       gameboard.nextPiece = O;
     } else {
+      gameboard.piecesOPlaced += 1;
       gameboard.nextPiece = X;
     }
     gameboard.piecesPlaced += 1;
@@ -228,6 +224,8 @@ POSITION GetInitialPosition()
   gameboard.yoffset = 0;
   gameboard.nextPiece = X;
   gameboard.piecesPlaced = 0;
+  gameboard.piecesOPlaced = 0;
+  gameboard.piecesXPlaced = 0;
   
   for (int i = 0; i < BOARDSIZE; i++) {
     board[i] = Blank;
@@ -411,7 +409,14 @@ MOVELIST *GenerateMoves(POSITION position)
   PositionToGameBoard(position, &gameboard);
   // Create a linked list of possible moves
   MOVELIST *moves = NULL;
-  if (gameboard.piecesPlaced < 8) {
+  // Figure out the player
+  int numPlaced = 0;
+  if (gameboard.nextPiece == X) {
+    numPlaced = gameboard.piecesXPlaced;
+  } else {
+    numPlaced = gameboard.piecesOPlaced;
+  }
+  if (gameboard.piecesPlaced < 8 && numPlaced < 4) {
     // Place new pieces in grid
     int gridx = gameboard.xoffset;
     int gridy = gameboard.yoffset;
@@ -685,16 +690,22 @@ void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard) {
   theGameBoard->xoffset = thePos / g3Array[BOARDSIZE];
   thePos -= g3Array[BOARDSIZE] * theGameBoard->xoffset;
 
-  // Get the number of pieces placed
-  int numPieces = 0;
+  // Get the number of pieces placed for X and O
+  int numX = 0;
+  int numO = 0;
   // Extract boards
   for (int i = BOARDSIZE-1; i >= 0; i--) {
     theGameBoard->board[i] = thePos / g3Array[i];
     thePos -= g3Array[i] * theGameBoard->board[i];
-    if (theGameBoard->board[i] != Blank) {
-      numPieces += 1;
+    if (theGameBoard->board[i] == X) {
+      numX += 1;
+    }
+    if (theGameBoard->board[i] == O) {
+      numO += 1;
     }
   }
-  theGameBoard->piecesPlaced = numPieces;
+  theGameBoard->piecesXPlaced = numX;
+  theGameBoard->piecesOPlaced = numO;
+  theGameBoard->piecesPlaced = numX + numO;
 
 }
