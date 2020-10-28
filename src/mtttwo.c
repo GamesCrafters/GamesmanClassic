@@ -58,7 +58,7 @@ typedef enum possibleBoardPieces {
 
 char *gBlankOXString[] = { " ", "x", "o" };
 
-int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467, 3486784401, 10460353203 };
+int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467 };
 
 typedef struct {
   BlankOX board[BOARDSIZE];
@@ -231,7 +231,7 @@ POSITION GetInitialPosition()
     board[i] = Blank;
   }
   
-  return GameBoardToPosition(gameboard);
+  return GameBoardToPosition(&gameboard);
 }
 
 /************************************************************************
@@ -296,14 +296,14 @@ VALUE Primitive(POSITION position)
         }
   }
   // If 3 in a row diagonally with top left corner
-  int index = gridx + gridy * BOARDCOLS;
+  index = gridx + gridy * BOARDCOLS;
   if (gameboard.board[index] == gameboard.board[index + BOARDCOLS + 1]
       && gameboard.board[index + BOARDCOLS + 1] == gameboard.board[index + 2 * BOARDCOLS + 2]
       && gameboard.board[index] != Blank) {
         return lose;
       }
   // If 3 in a row diagonally with top right corner
-  int index = gridx + gridy * BOARDCOLS + 2;
+  index = gridx + gridy * BOARDCOLS + 2;
   if (gameboard.board[index] == gameboard.board[index + BOARDCOLS - 1]
       && gameboard.board[index + BOARDCOLS - 1] == gameboard.board[index + 2 * BOARDCOLS - 2]
       && gameboard.board[index] != Blank) {
@@ -333,6 +333,36 @@ VALUE Primitive(POSITION position)
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  // Create new gameboard
+  GameBoard gameboard; 
+  // Retrieves all the important information back into the gameboard
+  PositionToGameBoard(position, &gameboard);
+  // Here gameboard->xoffset and gameboard->yoffset should tell you
+  // where the top left corner of the grid is
+  int gridx = gameboard.xoffset;
+  int gridy = gameboard.yoffset;
+  // Print board
+  for (int i = 0; i < BOARDROWS; i++) {
+    // Print two rows for each row in the original board to encode for 
+    // pieces (row 1) and inner grid (row 2) 
+    for (int j = 0; j < BOARDCOLS; j++) {
+      printf("  "); 
+      if (board[i][j]!= BLANK) {
+        printf(board[i][j]); 
+        printf("  |")
+      } else {
+        printf("      |"); 
+      }
+    for (int j = 0; j < BOARDCOLS; j++) {
+      printf("__"); 
+      if ((i >= gridx && i < gridx + GRIDROWS) && (j >= gridy && j < gridy + GRIDCOLS)) {
+        printf("#_|");
+      }
+        else {
+        print("____|")
+        }
+    }
+  }
 }
 
 /************************************************************************
@@ -424,7 +454,7 @@ MOVELIST *GenerateMoves(POSITION position)
     }
     // Move old pieces to empty locations within grid
     for (int source = 0; source < BOARDSIZE; source ++) {
-      if (gameboard[location] == gameboard.nextPiece) {
+      if (gameboard.board[source] == gameboard.nextPiece) {
         for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
           for (int j = gridy; j < gridy + GRIDROWS; j += 1) {
             int location = i + j * BOARDCOLS;
