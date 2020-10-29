@@ -218,7 +218,7 @@ POSITION GetInitialPosition()
   GameBoard gameboard;
   BlankOX board[BOARDSIZE];
 
-  gameboard.board = board;
+  memcpy(gameboard.board, board, BOARDSIZE * sizeof(BlankOX));
   // Note: x and y offset can be different for different board size
   gameboard.xoffset = 0;
   gameboard.yoffset = 0;
@@ -296,7 +296,7 @@ VALUE Primitive(POSITION position)
         }
   }
   // If 3 in a row diagonally with top left corner
-  index = gridx + gridy * BOARDCOLS;
+  int index = gridx + gridy * BOARDCOLS;
   if (gameboard.board[index] == gameboard.board[index + BOARDCOLS + 1]
       && gameboard.board[index + BOARDCOLS + 1] == gameboard.board[index + 2 * BOARDCOLS + 2]
       && gameboard.board[index] != Blank) {
@@ -347,20 +347,21 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     // pieces (row 1) and inner grid (row 2) 
     for (int j = 0; j < BOARDCOLS; j++) {
       printf("  "); 
-      if (board[i][j]!= BLANK) {
-        printf(board[i][j]); 
-        printf("  |")
+      int index = i + j * BOARDCOLS;
+      if (gameboard.board[index]!= Blank) {
+        printf("%c", gameboard.board[index]); 
+        printf("  |");
       } else {
         printf("      |"); 
       }
+    }
     for (int j = 0; j < BOARDCOLS; j++) {
       printf("__"); 
       if ((i >= gridx && i < gridx + GRIDROWS) && (j >= gridy && j < gridy + GRIDCOLS)) {
         printf("#_|");
+      } else {
+        printf("____|");
       }
-        else {
-        print("____|")
-        }
     }
   }
 }
