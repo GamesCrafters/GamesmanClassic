@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions = 0;
+POSITION gNumberOfPositions = 10000;
 POSITION kBadPosition = -1;
 
 POSITION gInitialPosition = 0;
@@ -13,7 +13,7 @@ BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kTieIsPossible = TRUE;
-BOOLEAN kLoopy = TRUE;
+BOOLEAN kLoopy = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
@@ -342,6 +342,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   int gridx = gameboard.xoffset;
   int gridy = gameboard.yoffset;
   // Print board
+  printf("\n");
   for (int i = 0; i < BOARDROWS; i++) {
     // Print two rows for each row in the original board to encode for 
     // pieces (row 1) and inner grid (row 2) 
@@ -352,17 +353,19 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
         printf("%c", gameboard.board[index]); 
         printf("  |");
       } else {
-        printf("      |"); 
+        printf("  |"); 
       }
     }
+    printf("\n");
     for (int j = 0; j < BOARDCOLS; j++) {
       printf("__"); 
       if ((i >= gridx && i < gridx + GRIDROWS) && (j >= gridy && j < gridy + GRIDCOLS)) {
         printf("#_|");
       } else {
-        printf("____|");
+        printf("__|");
       }
     }
+    printf("\n");
   }
 }
 
