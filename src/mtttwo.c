@@ -13,7 +13,7 @@ BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kTieIsPossible = TRUE;
-BOOLEAN kLoopy = FALSE;
+BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
