@@ -155,11 +155,13 @@ POSITION DoMove(POSITION position, MOVE move)
   GameBoard gameboard;
   // Retrieves all the important information back into the gameboard
   PositionToGameBoard(position, &gameboard);
-  // Get the type of move
+  // Get the type of move (0: place new pieces, 1: move existing pieces, 2: move grid)
   int type = move / 729;
   move -= type * 729;
+  // Get the source index
   int source = move / 27;
   move -= source * 27;
+  // Get the destination indexs
   int destination = move;
   if (type == 0) {
     // Place new piece onto the grid
@@ -228,9 +230,9 @@ POSITION GetInitialPosition()
   gameboard.piecesXPlaced = 0;
   
   for (int i = 0; i < BOARDSIZE; i++) {
-    board[i] = Blank;
+    gameboard.board[i] = Blank;
   }
-  
+
   return GameBoardToPosition(&gameboard);
 }
 
@@ -463,7 +465,7 @@ MOVELIST *GenerateMoves(POSITION position)
           for (int j = gridy; j < gridy + GRIDROWS; j += 1) {
             int location = i + j * BOARDCOLS;
             if (gameboard.board[location] == Blank) {
-              // First 3 ternary digits: destination, next 3 ternary digits: source (0), move type (0 = placing new)
+              // First 3 ternary digits: destination, next 3 ternary digits: source (0), move type (1 = move old pieces)
               MOVE newMove = location + source * 27 + 1 * 729;
               moves = CreateMovelistNode(newMove, moves);
             }
@@ -588,20 +590,6 @@ MOVE ConvertTextInputToMove(STRING input)
   return 0;
 }
 
-/************************************************************************
-**
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove)
-{
-}
-
 
 /************************************************************************
 **
@@ -615,7 +603,66 @@ void PrintMove(MOVE theMove)
 
 STRING MoveToString (MOVE theMove)
 {
+  // Divide by 729
+  int type = theMove / 729;
+  // Divide the result by 27: gives us the destination index
+  theMove -= type * 729;
+  // Get the source index
+  int source = theMove / 27;
+  int sourceX = source % BOARDROWS;
+  int sourceY = source / BOARDROWS;
+  theMove -= source * 27;
+  // Get the destination indexs
+  int destination = theMove;
+  int destinationX = destination % BOARDROWS;
+  int destinationY = destination / BOARDROWS;
   return NULL;
+  STRING typeString; 
+  // 0: placing new pieces
+  // message: "Place a new piece on (destinationX, destinationY)"
+  if (type == 0) {
+    typeString = (STRING) SafeMalloc(29); 
+    strcpy(typeString, "Place a new piece on (x, y)."); 
+    typeString[22] = destinationX + '0'; 
+    typeString[25] = destinationY + '0';
+  }
+  // 1: moving existing pieces
+  // message: "Move piece from (sourceX, sourceY) to (destinationX, destinationY)"
+  else if (type == 1) {
+    typeString = (STRING) SafeMalloc(34); 
+    strcpy(typeString, "Move piece from (x, y) to (x, y)."); 
+    typeString[17] = sourceX + '0'; 
+    typeString[20] = sourceY + '0'; 
+    typeString[27] = destinationX + '0'; 
+    typeString[30] = destinationY + '0'; 
+  }
+  // 2: moving the grid
+  // message: "Move grid from (sourceX, sourceY) to (destinationX, destinationY)"
+  else if (type == 2) {
+    typeString = (STRING) SafeMalloc(33); 
+    strcpy(typeString, "Move grid from (x, y) to (x, y)."); 
+    typeString[16] = sourceX + '0'; 
+    typeString[19] = sourceY + '0'; 
+    typeString[26] = destinationX + '0';
+    typeString[29] = destinationY + '0'; 
+  }
+}
+
+/************************************************************************
+**
+** NAME: PrintMove
+**
+** DESCRIPTION: Print the move in a nice format.
+**
+** INPUTS: MOVE *theMove : The move to print.
+**
+************************************************************************/
+
+void PrintMove(MOVE theMove)
+{
+  STRING str = MoveToString(theMove);
+	printf("%s", str);
+	SafeFree(str);
 }
 
 STRING kDBName = "";
@@ -662,8 +709,9 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 POSITION GameBoardToPosition(GameBoard *theGameBoard) {
   POSITION position = 0;
 
-  for (int i = 0; i < BOARDSIZE; i++)
-    position += g3Array[i] * ((int) theGameBoard->board[i]);
+  for (int i = 0; i < BOARDSIZE; i++) {
+    position += g3Array[i] * (theGameBoard->board[i]);
+  }
 
   return position + g3Array[BOARDSIZE] * theGameBoard->xoffset + g3Array[BOARDSIZE+1] * theGameBoard->yoffset + g3Array[BOARDSIZE+2] * theGameBoard->nextPiece;
 
