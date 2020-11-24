@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions = 10000;
+POSITION gNumberOfPositions = 1162261467;
 POSITION kBadPosition = -1;
 
 POSITION gInitialPosition = 0;
@@ -616,7 +616,6 @@ STRING MoveToString (MOVE theMove)
   int destination = theMove;
   int destinationX = destination % BOARDROWS;
   int destinationY = destination / BOARDROWS;
-  return NULL;
   STRING typeString; 
   // 0: placing new pieces
   // message: "Place a new piece on (destinationX, destinationY)"
@@ -646,6 +645,7 @@ STRING MoveToString (MOVE theMove)
     typeString[26] = destinationX + '0';
     typeString[29] = destinationY + '0'; 
   }
+  return typeString;
 }
 
 /************************************************************************
@@ -662,7 +662,11 @@ void PrintMove(MOVE theMove)
 {
   STRING str = MoveToString(theMove);
 	printf("%s", str);
-	SafeFree(str);
+  if (str != NULL) {
+    SafeFree(str);
+  } else {
+    printf("Passed in empty move."); 
+  }
 }
 
 STRING kDBName = "";
