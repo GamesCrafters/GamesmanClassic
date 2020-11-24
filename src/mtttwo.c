@@ -343,6 +343,17 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   // where the top left corner of the grid is
   int gridx = gameboard.xoffset;
   int gridy = gameboard.yoffset;
+  // for (int i = 0; i < BOARDSIZE; i += 1) {
+  //   if (gameboard.board[i] == X) {
+  //     printf("X ");
+  //   } else if (gameboard.board[i] == O) {
+  //     printf("O ");
+  //   } else if (gameboard.board[i] == Blank) {
+  //     printf("- ");
+  //   } else { 
+  //     printf("shouldn't be here");
+  //   }
+  // }
   // Print board
   printf("\n");
   for (int i = 0; i < BOARDROWS; i++) {
@@ -351,9 +362,12 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     for (int j = 0; j < BOARDCOLS; j++) {
       printf("  "); 
       int index = i + j * BOARDCOLS;
-      if (gameboard.board[index]!= Blank) {
-        printf("%c", gameboard.board[index]); 
-        printf("  |");
+      if (gameboard.board[index] == X) {
+        printf("X"); 
+        printf(" |");
+      } else if (gameboard.board[index] == O) {
+        printf("O");
+        printf(" |");
       } else {
         printf("  |"); 
       }
