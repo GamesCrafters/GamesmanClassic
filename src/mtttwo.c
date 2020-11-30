@@ -88,6 +88,7 @@ BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
 void InitializeGame()
 {
+  gInitialPosition = GetInitialPosition();
 }
 
 void FreeGame()
@@ -343,25 +344,13 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   // where the top left corner of the grid is
   int gridx = gameboard.xoffset;
   int gridy = gameboard.yoffset;
-  // for (int i = 0; i < BOARDSIZE; i += 1) {
-  //   if (gameboard.board[i] == X) {
-  //     printf("X ");
-  //   } else if (gameboard.board[i] == O) {
-  //     printf("O ");
-  //   } else if (gameboard.board[i] == Blank) {
-  //     printf("- ");
-  //   } else { 
-  //     printf("shouldn't be here");
-  //   }
-  // }
-  // Print board
   printf("\n");
   for (int i = 0; i < BOARDROWS; i++) {
     // Print two rows for each row in the original board to encode for 
     // pieces (row 1) and inner grid (row 2) 
     for (int j = 0; j < BOARDCOLS; j++) {
       printf("  "); 
-      int index = i + j * BOARDCOLS;
+      int index = j + i * BOARDCOLS;
       if (gameboard.board[index] == X) {
         printf("X"); 
         printf(" |");
@@ -562,6 +551,17 @@ POSITION thePosition;
 MOVE *theMove;
 STRING playerName;
 {
+  USERINPUT ret;
+
+	do {
+		printf("%8s's move:  ", playerName);
+
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
+
+	}
+	while (TRUE);
   return Continue;
 }
 
@@ -601,7 +601,48 @@ BOOLEAN ValidTextInput(STRING input)
 
 MOVE ConvertTextInputToMove(STRING input)
 {
-  return 0;
+  char type = input[0]; 
+  int source; 
+  int dest; 
+  MOVE ret;
+  if (type == 'A') {
+    if (input[3] != 0) {
+      dest = (input[2] - '0') * 10 + (input[3] - '0');
+    } else {
+      dest = input[2] - '0'; 
+    }
+    ret = dest;
+    return ret;
+  }
+  else if (type == 'M' || type == 'G') {
+    // Get source
+    if (input[3] != 0) {
+      source = (input[2] - '0') * 10 + (input[3] - '0');
+      // Get dest 
+      if (input[5] != 0) {
+        dest = (input[5] - '0') * 10 + (input[6] - '0');
+      } else {
+        dest = input[5] - '0'; 
+      }
+    } else {
+      source = input[2] - '0'; 
+      // Get dest 
+      if (input[6] != 0) {
+        dest = (input[6] - '0') * 10 + (input[7] - '0');
+      } else {
+        dest = input[6] - '0'; 
+      }
+    }
+    if (type == "M") {
+      ret = 1 * 729 + source * 27 + dest;
+    } else {
+      ret = 2 * 729 + source * 27 + dest;
+    }
+  }
+  else {
+    printf("You should not be here. Something went wrong."); 
+  }
+  return ret; 
 }
 
 
@@ -613,6 +654,7 @@ MOVE ConvertTextInputToMove(STRING input)
 **
 ** INPUTS: MOVE *move : The move to put into a string.
 **
+** A-DEST, M-SRC-DEST, G-SRC-DEST
 ************************************************************************/
 
 STRING MoveToString (MOVE theMove)
@@ -623,41 +665,44 @@ STRING MoveToString (MOVE theMove)
   theMove -= type * 729;
   // Get the source index
   int source = theMove / 27;
-  int sourceX = source % BOARDROWS;
-  int sourceY = source / BOARDROWS;
   theMove -= source * 27;
   // Get the destination indexs
   int destination = theMove;
-  int destinationX = destination % BOARDROWS;
-  int destinationY = destination / BOARDROWS;
   STRING typeString; 
   // 0: placing new pieces
-  // message: "Place a new piece on (destinationX, destinationY)"
+  // message: "A-DEST"
   if (type == 0) {
-    typeString = (STRING) SafeMalloc(29); 
-    strcpy(typeString, "Place a new piece on (x, y)."); 
-    typeString[22] = destinationX + '0'; 
-    typeString[25] = destinationY + '0';
+    typeString = (STRING) SafeMalloc(3); 
+    strcpy(typeString, "A-"); 
+    STRING destString = (STRING) SafeMalloc(3);
+    sprintf(destString, "%d", destination);
+    strcat(typeString, destString);
   }
   // 1: moving existing pieces
-  // message: "Move piece from (sourceX, sourceY) to (destinationX, destinationY)"
+  // message: "M-SRC-DEST"
   else if (type == 1) {
-    typeString = (STRING) SafeMalloc(34); 
-    strcpy(typeString, "Move piece from (x, y) to (x, y)."); 
-    typeString[17] = sourceX + '0'; 
-    typeString[20] = sourceY + '0'; 
-    typeString[27] = destinationX + '0'; 
-    typeString[30] = destinationY + '0'; 
+    typeString = (STRING) SafeMalloc(3); 
+    strcpy(typeString, "M-"); 
+    STRING sourceString = (STRING) SafeMalloc(3); 
+    sprintf(sourceString, "%d", source); 
+    STRING destString = (STRING) SafeMalloc(3); 
+    sprintf(destString, "%d", destination); 
+    strcat(typeString, sourceString); 
+    strcat(typeString, "-"); 
+    strcat(typeString, destString); 
   }
   // 2: moving the grid
-  // message: "Move grid from (sourceX, sourceY) to (destinationX, destinationY)"
+  // message: "G-SRC-DEST"
   else if (type == 2) {
-    typeString = (STRING) SafeMalloc(33); 
-    strcpy(typeString, "Move grid from (x, y) to (x, y)."); 
-    typeString[16] = sourceX + '0'; 
-    typeString[19] = sourceY + '0'; 
-    typeString[26] = destinationX + '0';
-    typeString[29] = destinationY + '0'; 
+    typeString = (STRING) SafeMalloc(3); 
+    strcpy(typeString, "G-"); 
+    STRING sourceString = (STRING) SafeMalloc(3); 
+    sprintf(sourceString, "%d", source); 
+    STRING destString = (STRING) SafeMalloc(3); 
+    sprintf(destString, "%d", destination); 
+    strcat(typeString, sourceString); 
+    strcat(typeString, "-"); 
+    strcat(typeString, destString);   
   }
   return typeString;
 }
