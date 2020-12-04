@@ -1464,11 +1464,12 @@ void SetAnalysisOfDrawPositions() {
 		gNumWins[k] = 0;
 		gNumLoses[k] = 0;
 	}
-
 	for (i=0; i < gNumberOfPositions; i++) {
 		if (gPositionValue[i] == win) {
+			// position i is a draw win at draw at level gPositionLevel[i]
 			gNumWins[gPositionLevel[i]]++;
 		} else if (gPositionValue[i] == lose) {
+			// position i is a draw lose at draw at level gPositionLevel[i]
 			gNumLoses[gPositionLevel[i]]++;
 		}
 	}

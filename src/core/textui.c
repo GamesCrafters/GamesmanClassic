@@ -1572,6 +1572,19 @@ void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, c
 		case 'Q': case 'q':
 			ExitStageRight();
 			exit(0);
+		case 'd': case 'D':
+			if (kLoopy && !(gTierGamesman && kSupportsTierGamesman)) {
+				if (gCheckPure) {
+					gPure = DeterminePure(gInitialPosition);
+					gCheckPure = FALSE;
+				}
+				printf("\tDraw Level is %s pure\n", gPositionLevel[thePosition]);
+				printf("\tPosition Value relative to draw level is %s \n", gPositionValue[thePosition]);
+			} else {
+				BadMenuChoice();
+			}
+		HitAnyKeyToContinue();
+			return;
 		default:
 			BadMenuChoice();
 			HitAnyKeyToContinue();
