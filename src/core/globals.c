@@ -191,3 +191,4 @@ BOOLEAN gPenDebug = FALSE;
 /* Loopy Analysis */
 BOOLEAN gPure = FALSE;
 BOOLEAN gCheckPure = TRUE;
+BOOLEAN gShouldPrintDrawTable = TRUE;

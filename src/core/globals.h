@@ -186,6 +186,7 @@ extern BOOLEAN gPenDebug;
 /* Loopy Analysis */
 extern BOOLEAN gPure;
 extern BOOLEAN gCheckPure;
+extern BOOLEAN gShouldPrintDrawTable;
 
 
 #endif /* GMCORE_GLOBALS_H */

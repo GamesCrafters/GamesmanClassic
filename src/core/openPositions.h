@@ -200,4 +200,8 @@ extern char*            gDrawNumberChildren;
 extern POSITION         gNumLoses[101]; // Notes explaining the 101 are in openPositions.c
 extern POSITION         gNumWins[101];
 
+REMOTENESS getPositionLevel(POSITION);
+
+VALUE getPositionValue(POSITION);
+
 #endif
