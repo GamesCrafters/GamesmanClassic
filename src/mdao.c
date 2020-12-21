@@ -850,8 +850,8 @@ POSITION ActualNumberOfPositions(int variant) {
 	return 1768108;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	int i, turn;
+POSITION InteractStringToPosition(STRING str) {
+	/*int i, turn;
 	char board_char[BOARD_SIZE];
 	for(i = 0; i < BOARD_SIZE; i++){
 		board_char[i] = board[i];
@@ -862,11 +862,47 @@ POSITION InteractStringToPosition(STRING board) {
     	return generic_hash_hash(board_char, turn);
     } else {
     	return INVALID_POSITION;
-    }
+    }*/
+    enum UWAPI_Turn turn;
+  	unsigned int num_rows, num_columns;
+  	STRING board;
+  	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+  		// Failed to parse string
+  		return INVALID_POSITION;
+  	}
+
+  	// Validate parsed board size
+  	if (num_rows != BOARD_ROWS || num_columns != BOARD_COLS) {
+  		SafeFreeString(board); // Free the string!
+  		return INVALID_POSITION;
+  	}
+
+  	// Convert UWAPI standard board string to internal board representation
+    char oxboard[BOARD_SIZE];
+  	int i;
+  	for (i = 0; i < BOARD_SIZE; i++) {
+  		if (board[i] == 'o') {
+  			oxboard[i] = PLAYER2_PIECE;
+  		} else if (board[i] == 'x') {
+  			oxboard[i] = PLAYER1_PIECE;
+  		} else if (board[i] == '-') {
+  			oxboard[i] = EMPTY_PIECE;
+  		} else {
+  			SafeFreeString(board); // Free the string!
+  			return INVALID_POSITION;
+  		}
+  	}
+
+  	// Convert internal board representation to internal position
+  	POSITION position = generic_hash_hash(oxboard, (turn == UWAPI_TURN_A ? PLAYER1_TURN : PLAYER2_TURN));
+
+  	// Return internal position
+  	SafeFreeString(board); // Free the string!
+  	return position;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char board[BOARD_SIZE];
+	/*char board[BOARD_SIZE];
 	int current_player = generic_hash_turn(pos);
 	generic_hash_unhash (pos, board);
 	char * str = SafeMalloc(sizeof(char) * (BOARD_SIZE + 1));
@@ -874,14 +910,59 @@ STRING InteractPositionToString(POSITION pos) {
 	for(i; i < BOARD_SIZE; i++){
 		str[i] = board[i];
 	}
-	str[BOARD_SIZE] = '\0'; 
-	return MakeBoardString(str, "turn",  StrFromI(current_player), "");
+	str[BOARD_SIZE] = '\0';
+	return MakeBoardString(str, "turn",  StrFromI(current_player), "");*/
+
+  // Convert internal position to internal board representation
+  char oxboard[BOARD_SIZE];
+  int whosturn = generic_hash_turn(pos);
+  generic_hash_unhash(pos, oxboard);
+
+  // Convert internal board representation to UWAPI standard board string
+  char board[BOARD_SIZE + 1];
+  int i;
+  for (i = 0; i < BOARD_SIZE; i++) {
+    if (oxboard[i] == PLAYER2_PIECE) {
+      board[i] = 'o';
+    } else if (oxboard[i] == PLAYER1_PIECE) {
+      board[i] = 'x';
+    } else if (oxboard[i] == EMPTY_PIECE) {
+      board[i] = '-';
+    }
+  }
+  board[BOARD_SIZE] = '\0';
+
+  // Return formatted UWAPI position string
+  enum UWAPI_Turn turn = (whosturn == PLAYER1_TURN) ? UWAPI_TURN_A : UWAPI_TURN_B;
+  return UWAPI_Board_Regular2D_MakePositionString(turn, BOARD_ROWS, BOARD_COLS, board);
+  //return UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, BOARD_ROWS, BOARD_COLS, board, "name", "Diana", "year", "2020", "");
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+STRING InteractMoveToString(POSITION position, MOVE move) {
+		// Move piece as far as possible
+    char board[BOARD_SIZE];
+  	int current_player = generic_hash_turn(position);
+  	int move_position = Unhasher_Index(move);
+  	int row = Row (move_position);
+  	int col = Column (move_position);
+  	int direction = Unhasher_Direction(move);
+  	int new_position;
+
+  	generic_hash_unhash(position, board);
+  	do {
+  		row += dir_increments[direction][0];
+  		col += dir_increments[direction][1];
+  	} while ( (row >= 0) && (col >= 0) &&
+  	          (row < BOARD_ROWS) && (col < BOARD_COLS) &&
+  	          (board[Index(row,col)] == EMPTY_PIECE));
+
+  	new_position = Index(row - dir_increments[direction][0],
+  	                     col - dir_increments[direction][1]);
+
+		return UWAPI_Board_Regular2D_MakeMoveString(move_position, new_position);
+
 }
