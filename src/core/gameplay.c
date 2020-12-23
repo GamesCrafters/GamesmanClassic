@@ -135,6 +135,29 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 		       userInput==Switch)) {
 			oldRemainingGivebacks = remainingGivebacks;
 
+			if (kLoopy && !(gTierGamesman && kSupportsTierGamesman)) {
+				// the game is a pure draw so print the draw state to the game
+				if (gCheckPure) {
+					gShouldPrintDrawTable = FALSE;
+					gPure = DeterminePure(gInitialPosition);
+					gShouldPrintDrawTable = TRUE;
+					gCheckPure = FALSE;
+				}
+				printf("Draw Level: %d", getPositionLevel(position));
+				switch (gPositionValue[position]) {
+					case win: 
+						printf("\nPosition Value: win\n");
+						break;
+					case lose:
+						printf("\nPosition Value: lose\n");
+						break;
+					case tie:
+						printf("\nPosition Value: draw\n");
+						break;
+						
+				}
+			}
+
 			PrintPosition(position, player->name, (player->type==Human ? TRUE : FALSE));
 			userInput = player->GetMove(position,&move,player->name);
 			// (SP07) hfwang - rewrote game loop
