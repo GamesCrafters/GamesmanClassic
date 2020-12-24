@@ -364,7 +364,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     printf("\n");
     for (int j = 0; j < BOARDCOLS; j++) {
       printf("__"); 
-      if ((i >= gridx && i < gridx + GRIDROWS) && (j >= gridy && j < gridy + GRIDCOLS)) {
+      if ((i >= gridy && i < gridy + GRIDROWS) && (j >= gridx && j < gridx + GRIDCOLS)) {
         printf("#_|");
       } else {
         printf("__|");
@@ -451,14 +451,14 @@ MOVELIST *GenerateMoves(POSITION position)
     if (gridy - 1 >= 0){
       int source = gridx + gridy * BOARDCOLS;  
       int destination = gridx + (gridy - 1) * BOARDCOLS; 
-      MOVE newMove = destination * source * 27 + 2 * 729; 
+      MOVE newMove = destination + source * 27 + 2 * 729; 
       moves = CreateMovelistNode(newMove, moves); 
     }
     // Move down
     if (gridy + 1 <= BOARDROWS - GRIDROWS) {
       int source = gridx + gridy * BOARDCOLS;  
       int destination = gridx + (gridy + 1) * BOARDCOLS; 
-      MOVE newMove = destination * source * 27 + 2 * 729; 
+      MOVE newMove = destination + source * 27 + 2 * 729; 
       moves = CreateMovelistNode(newMove, moves); 
     }
     // Move old pieces to empty locations within grid
@@ -612,14 +612,13 @@ MOVE ConvertTextInputToMove(STRING input)
       dest = input[2] - '0'; 
     }
     ret = dest;
-    return ret;
   }
   else if (type == 'M' || type == 'G') {
     // Get source
-    if (input[3] != 0) {
+    if (input[3] != '-') {
       source = (input[2] - '0') * 10 + (input[3] - '0');
       // Get dest 
-      if (input[5] != 0) {
+      if (input[6] != 0) {
         dest = (input[5] - '0') * 10 + (input[6] - '0');
       } else {
         dest = input[5] - '0'; 
@@ -627,13 +626,13 @@ MOVE ConvertTextInputToMove(STRING input)
     } else {
       source = input[2] - '0'; 
       // Get dest 
-      if (input[6] != 0) {
-        dest = (input[6] - '0') * 10 + (input[7] - '0');
+      if (input[5] != 0) {
+        dest = (input[4] - '0') * 10 + (input[5] - '0');
       } else {
-        dest = input[6] - '0'; 
+        dest = input[4] - '0'; 
       }
     }
-    if (type == "M") {
+    if (type == 'M') {
       ret = 1 * 729 + source * 27 + dest;
     } else {
       ret = 2 * 729 + source * 27 + dest;
