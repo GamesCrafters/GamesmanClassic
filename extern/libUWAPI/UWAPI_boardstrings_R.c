@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <stdarg.h>
 
 static BOOLEAN isalnumdash(char c)
 {
@@ -14,7 +15,7 @@ BOOLEAN UWAPI_Board_Regular2D_ParsePositionString(char const *str, enum UWAPI_Tu
 {
     // Format: "R_<turn>_<rows>_<columns>_<cells...>"
 
-    static char *sep = "_";
+    static char const *sep = "_";
     char *str_dup = UWAPI_StringDup(str);
     char *pch;
 
@@ -87,6 +88,41 @@ BOOLEAN UWAPI_Board_Regular2D_ParsePositionString(char const *str, enum UWAPI_Tu
     return TRUE;
 }
 
+char *UWAPI_Board_Regular2D_GetAdditionalParam(char const *str, char const *key)
+{
+    // Query format: _key=
+    size_t key_query_len = strlen(key);
+    char key_query[key_query_len + 3];
+    key_query[0] = '_';
+    memcpy(&(key_query[1]), key, key_query_len);
+    key_query[1 + key_query_len] = '=';
+    key_query[1 + key_query_len + 1] = '\0';
+
+    char *start = strstr(str, key_query);
+    if (start == NULL)
+    {
+        return start;
+    }
+    start += key_query_len + 2;
+
+    size_t val_len;
+    char *end = strstr(start, "_");
+    if (end == NULL)
+    {
+        val_len = strlen(start);
+    }
+    else 
+    {
+        val_len = end - start;
+    }
+
+    char *val = malloc(val_len + 1);
+    memcpy(val, start, val_len);
+    val[val_len] = '\0';
+
+    return val;
+}
+
 char *UWAPI_Board_Regular2D_MakePositionString(enum UWAPI_Turn turn, unsigned int num_rows, unsigned int num_columns, char const *board)
 {
     // Format: "R_<turn>_<rows>_<columns>_<cells...>"
@@ -126,6 +162,87 @@ char *UWAPI_Board_Regular2D_MakePositionString(enum UWAPI_Turn turn, unsigned in
     return str;
 }
 
+/**
+ * Parse the variable arguments and append the formatted string to the input str.
+ *
+ * Will return a string if successfully appended the user parameters, and the input string will be invalidated.
+ * Otherwise will return NULL.
+ */
+static char *UWAPI_AppendAdditionalParams(char *str, size_t offset, va_list vl)
+{
+    char const *key;
+    key = va_arg(vl, char *);
+
+    // End of variable arguments if we see NULL or empty string
+    if (key == NULL || key[0] == '\0')
+    {
+
+        str = realloc(str, offset + 1);
+        if (str == NULL)
+        {
+            // Failed to realloc
+            return str;
+        }
+        // Successful
+        str[offset] = '\0';
+        return str;
+
+    }
+    else
+    {
+
+        char const *val;
+        val = va_arg(vl, char *);
+
+        // If we see NULL as value, substitute as empty string
+        if (val == NULL)
+        {
+            val = "";
+        }
+
+        // Format: _key=val
+        size_t key_len = strlen(key);
+        size_t val_len = strlen(val);
+        size_t keyval_pair_len = key_len + val_len + 2;
+        str = UWAPI_AppendAdditionalParams(str, offset + keyval_pair_len, vl);
+
+        // Return NULL if failed to append the rest of the parameters
+        if (str == NULL)
+        {
+            return str;
+        }
+
+        str[offset] = '_';
+        memcpy(&(str[offset + 1]), key, key_len);
+        str[offset + 1 + key_len] = '=';
+        memcpy(&(str[offset + 1 + key_len + 1]), val, val_len);
+
+        return str;
+
+    }
+}
+
+char *UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(enum UWAPI_Turn turn, unsigned int num_rows, unsigned int num_columns, char const *board, ...)
+{
+    // Format: "R_<turn>_<rows>_<columns>_<cells...>_<additional...>"
+
+    char *str = UWAPI_Board_Regular2D_MakePositionString(turn, num_rows, num_columns, board);
+
+    va_list vl;
+    va_start(vl, board);
+    char *str_with_additional_params = UWAPI_AppendAdditionalParams(str, strlen(str), vl);
+    va_end(vl);
+
+    // If failed to append the parameters, we return NULL
+    if (str_with_additional_params == NULL)
+    {
+        free(str);
+        return NULL;
+    }
+
+    return str;
+}
+
 char *UWAPI_Board_Regular2D_MakeAddString(char piece, unsigned int to)
 {
     // Format: "A_<piece>_<to>"
@@ -142,7 +259,7 @@ char *UWAPI_Board_Regular2D_MakeAddString(char piece, unsigned int to)
     return str;
 }
 
-char *UWAPI_Board_Regular2D_MakeMoveString(char from, unsigned int to)
+char *UWAPI_Board_Regular2D_MakeMoveString(unsigned int from, unsigned int to)
 {
     // Format: "M_<from>_<to>"
 

@@ -3740,7 +3740,14 @@ char* InteractPositionToString(POSITION pos) {
 
   // Return formatted UWAPI position string
   enum UWAPI_Turn turn = (whosturn == BLACK_TURN) ? UWAPI_TURN_B : UWAPI_TURN_A;
-  return UWAPI_Board_Regular2D_MakePositionString(turn, rows, cols, board);
+  STRING UWAPI_String = UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, rows, cols, board, "GamesmanClassic", "", "");
+  if (UWAPI_String == NULL) {
+    return UWAPI_String;
+  } else {
+    STRING final_boardstring = MakeBoardString(UWAPI_String, "tier", StrFromI(tier), "");
+    SafeFreeString(UWAPI_String);
+    return final_boardstring;
+  }
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
