@@ -945,7 +945,6 @@ STRING InteractPositionToEndData(POSITION pos) {
 STRING InteractMoveToString(POSITION position, MOVE move) {
 		// Move piece as far as possible
     char board[BOARD_SIZE];
-  	int current_player = generic_hash_turn(position);
   	int move_position = Unhasher_Index(move);
   	int row = Row (move_position);
   	int col = Column (move_position);
