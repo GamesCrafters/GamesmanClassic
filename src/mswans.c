@@ -1123,7 +1123,7 @@ POSITION InteractStringToPosition(STRING string) {
 
 STRING InteractPositionToString(POSITION pos) {
   char oxboard[BOARDSIZE];
-  int whosTurn;
+  char whosTurn;
   int phase, numSwans;
   generic_hash_unhash2(pos, oxboard, &whosTurn, &phase, &numSwans);
 
