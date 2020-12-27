@@ -851,18 +851,6 @@ POSITION ActualNumberOfPositions(int variant) {
 }
 
 POSITION InteractStringToPosition(STRING str) {
-	/*int i, turn;
-	char board_char[BOARD_SIZE];
-	for(i = 0; i < BOARD_SIZE; i++){
-		board_char[i] = board[i];
-	}
-
-	int success = GetValue(board, "turn", GetInt, &turn);
-    if(success){
-    	return generic_hash_hash(board_char, turn);
-    } else {
-    	return INVALID_POSITION;
-    }*/
     enum UWAPI_Turn turn;
   	unsigned int num_rows, num_columns;
   	STRING board;
@@ -902,16 +890,6 @@ POSITION InteractStringToPosition(STRING str) {
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	/*char board[BOARD_SIZE];
-	int current_player = generic_hash_turn(pos);
-	generic_hash_unhash (pos, board);
-	char * str = SafeMalloc(sizeof(char) * (BOARD_SIZE + 1));
-	int i = 0;
-	for(i; i < BOARD_SIZE; i++){
-		str[i] = board[i];
-	}
-	str[BOARD_SIZE] = '\0';
-	return MakeBoardString(str, "turn",  StrFromI(current_player), "");*/
 
   // Convert internal position to internal board representation
   char oxboard[BOARD_SIZE];
