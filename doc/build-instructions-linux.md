@@ -1,4 +1,4 @@
-# Build Instructions (macOS)
+# Build Instructions (Linux)
 
 ## Prerequisites
 
