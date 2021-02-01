@@ -5,6 +5,8 @@
 - [Building on macOS](build-instructions-macos.md)
 - [Building on Linux](build-instructions-linux.md)
 - [Building on Windows](build-instructions-windows.md)
+    - [Cygwin](build-instructions-windows.md)
+    - [WSL](build-instructions-windows-wsl.md)
 
 ## Development Tutorials
 
