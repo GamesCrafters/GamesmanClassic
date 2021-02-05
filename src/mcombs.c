@@ -58,7 +58,7 @@ STRING kHelpTieOccursWhen     = "A tie is not possible in this game";
 STRING kHelpExample           = "some really long thing<-Actually play a game,then copy/paste";
 STRING kAuthorName            = "Nicholas Herson";
 
-
+static int isLinearCombination(POSITION, int, int);
 STRING MoveToString(MOVE);
 
 void InitializeGame()
@@ -239,7 +239,7 @@ MOVELIST *GenerateMoves(POSITION position)
 
 // returns 1 iff num is a linear combination of the bits flipped
 // on in picks.  Note that picks is 1-indexed.
-int isLinearCombination(POSITION picks, int num, int soFar)
+static int isLinearCombination(POSITION picks, int num, int soFar)
 {
   // base case 0
   if(soFar > num)
