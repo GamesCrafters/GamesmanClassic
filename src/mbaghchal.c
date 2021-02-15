@@ -1380,7 +1380,7 @@ int symmetry;
 }
 
 // I assumed that turn is always one bit
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
   int i, j;
   int turn, goatsLeft;
   char* board = unhash(pos, &turn, &goatsLeft);
@@ -1413,7 +1413,7 @@ char* PositionToString(POSITION pos) {
   return retString;
 }
 
-POSITION StringToPosition(char* string){
+POSITION InteractStringToPosition(STRING string){
   int total_length = boardSize;
   char* board = (char*) SafeMalloc(total_length * sizeof(char));
   int i = 0;
@@ -1871,6 +1871,10 @@ STRING TierToString(TIER tier) {
 // in a comment on solveretrograde.c. -Max
 //
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  return MoveToString(mv);
 }

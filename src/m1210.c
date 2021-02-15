@@ -537,11 +537,11 @@ STRING GetNextMoveValues(char* board, int option) {
 	return NULL;
 }
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	return atoi(board);
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	char buffer[32];
 	snprintf(buffer, 32, "%lld",pos);
 	char* ret = malloc(sizeof(char)*(strlen(buffer)+1));
@@ -549,6 +549,10 @@ char* PositionToString(POSITION pos) {
 	return ret;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

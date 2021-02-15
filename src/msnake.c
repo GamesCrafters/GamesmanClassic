@@ -1247,15 +1247,20 @@ void setOption(int option)
 
 }
 
-POSITION StringToPosition(char* board) {
-	BlankBHT realBoard[BOARDSIZE];
+POSITION InteractStringToPosition(STRING str) {
+	STRING board;
+	if (!UWAPI_Board_Custom_ParsePositionString(str, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
 
+	BlankBHT realBoard[BOARDSIZE];
 	for (int i = 0; i < BOARDSIZE; i++) {
 		switch (board[i]) {
 			default:
 				fprintf(stderr, "Error: Unexpected char in position\n");
 				break;
-			case ' ':
+			case '-':
 				realBoard[i] = Blank;
 				break;
 			case 'b':
@@ -1270,38 +1275,43 @@ POSITION StringToPosition(char* board) {
 		}
 	}
 
+	SafeFreeString(board); // Free the string!
 	return SnakeHash(realBoard);
 }
 
-char* PositionToString(POSITION pos) {
-	BlankBHT board[BOARDSIZE];
-	SnakeUnhash(pos, board);
+STRING InteractPositionToString(POSITION pos) {
+	BlankBHT realBoard[BOARDSIZE];
+	SnakeUnhash(pos, realBoard);
 
-	char *ret = SafeMalloc(sizeof(*ret) * (BOARDSIZE + 1));
+	char board[BOARDSIZE + 1];
 	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (board[i]) {
+		switch (realBoard[i]) {
 			default:
 				fprintf(stderr, "Error: Unexpected position\n");
 				break;
 			case Blank:
-				ret[i] = ' ';
+				board[i] = '-';
 				break;
 			case b:
-				ret[i] = 'b';
+				board[i] = 'b';
 				break;
 			case h:
-				ret[i] = 'h';
+				board[i] = 'h';
 				break;
 			case t:
-				ret[i] = 't';
+				board[i] = 't';
 				break;
 		}
 	}
-	ret[BOARDSIZE] = '\0';
+	board[BOARDSIZE] = '\0';
 
-	return ret;
+	return UWAPI_Board_Custom_MakePositionString(board);
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

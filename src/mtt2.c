@@ -126,6 +126,8 @@ Computer wins. Nice try, Niko."                                                 
 **************************************************************************/
 
 #define BOARDSIZE     18           /* 3x6 board */
+#define BOARDROWS     6
+#define BOARDCOLS     3
 
 typedef enum possibleBoardPieces {
 	Blank, o, x
@@ -985,8 +987,7 @@ POSITION ActualNumberOfPositions(int variant) {
 
 GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
 
-char * PositionToEndData(POSITION pos)
+STRING InteractPositionToEndData(POSITION pos)
 {
 	return NULL;
 }
-

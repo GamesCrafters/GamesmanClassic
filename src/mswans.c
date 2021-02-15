@@ -237,7 +237,7 @@ STRING MoveToString( MOVE );
 void InitializeGame()
 {
 	int numSwans = 12;
-	int numDragons = gNumDragons;	
+	int numDragons = gNumDragons;
 
 	int pieces_array[] = { 'o', 0, numSwans, 'x', numDragons, numDragons, 'b', 0, BOARDSIZE, -1};
 	gNumberOfPositions = generic_hash_init(BOARDSIZE, pieces_array, NULL, 0)<<1<<4;
@@ -370,7 +370,7 @@ MOVE theMove;
 	SLOT fromSlot, toSlot;
 	char whosTurn;
 	int phase, numSwans;
-	
+
 	generic_hash_unhash2(thePosition, gBoard, &whosTurn, &phase, &numSwans);
 	theMove = theMove >> 1; /* shift phase bit off of theMove */
 	if ((whosTurn == 'o') && (numSwans != 0)) { /* placing swans on the board */
@@ -1088,72 +1088,82 @@ void setOption(int option)
 	gNumDragons = (option/4)+MIN_DRAGONS;
 }
 
-POSITION StringToPosition(char* string) {
-	char * board = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1));
-	int i;
-	for (i = 0; i < BOARDSIZE; i++) {
-	  char toBeInserted = string[i];
-	  if (toBeInserted == ' ') {
-	    toBeInserted = 'b';
-	  }
-	  sprintf(board + i, "%c", toBeInserted);
-	}
-	board[i] = '\0';
+POSITION InteractStringToPosition(STRING string) {
+  enum UWAPI_Turn turn;
+  unsigned int num_rows, num_columns;
+  STRING board;
+  if (!UWAPI_Board_Regular2D_ParsePositionString(string, &turn, &num_rows, &num_columns, &board)) {
+    // Failed to parse string
+    return INVALID_POSITION;
+  }
+  STRING phase = UWAPI_Board_Regular2D_GetAdditionalParam(string, "phase");
+  STRING numSwans = UWAPI_Board_Regular2D_GetAdditionalParam(string, "numSwans");
 
-    int phase, numSwans;
-    char whosTurn;
-
-    BOOLEAN success = GetValue(string, "phase", GetInt, &phase) &&
-                        GetValue(string, "numSwans", GetInt, &numSwans) &&
-                        GetValue(string, "whosTurn", GetChar, &whosTurn);
-    if(success == FALSE){
-        printf("ERROR: something went wrong in getting the values out of the string \n");
-        return INVALID_POSITION;
+  // Convert UWAPI standard board string to internal board representation
+  char oxboard[BOARDSIZE];
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (board[i] == '-') {
+      oxboard[i] = 'b';
+    } else {
+      oxboard[i] = board[i];
     }
+  }
 
-    POSITION p = generic_hash_hash2(board, whosTurn, phase, numSwans);
-	
-	if (board != NULL) {
-	  SafeFree(board);
-	}	
+  // Convert internal board representation to internal position
+  POSITION position = generic_hash_hash2(oxboard, (turn == UWAPI_TURN_A ? 'o' : 'x'), atoi(phase), atoi(numSwans));
 
-	return p;
+  // Return internal position
+  SafeFreeString(numSwans);
+  SafeFreeString(phase);
+  SafeFreeString(board); // Free the string!
+  return position;
 }
 
 
-char* PositionToString(POSITION pos) {
-	int phase, numSwans;
-	char whosTurn;
-	char * board = (char *) SafeMalloc(sizeof(char) * (BOARDSIZE + 1)); //+1 for the null character
-	generic_hash_unhash2(pos, board, &whosTurn, &phase, &numSwans);
-	
-    int i;
-	for (i = 0; i < BOARDSIZE; i++) {
-	  if (board[i] == 'b') {
-        board[i] = ' ';
-	  }
-	}
-    board[BOARDSIZE] = '\0';
+STRING InteractPositionToString(POSITION pos) {
+  char oxboard[BOARDSIZE];
+  char whosTurn;
+  int phase, numSwans;
+  generic_hash_unhash2(pos, oxboard, &whosTurn, &phase, &numSwans);
 
-    char* phaseValue = (char*) SafeMalloc(11);
-    sprintf(phaseValue, "%d", phase);
+  char phaseValue[11];
+  sprintf(phaseValue, "%d", phase);
 
-    char* numSwansValue = (char*) SafeMalloc(11);
-    sprintf(numSwansValue, "%d", numSwans);
+  char numSwansValue[11];
+  sprintf(numSwansValue, "%d", numSwans);
 
-    char* whosTurnValue = (char*) SafeMalloc(2);
-    sprintf(whosTurnValue, "%c", whosTurn);
+  // Convert internal board representation to UWAPI standard board string
+  char board[BOARDSIZE + 1];
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (oxboard[i] == 'b') {
+      board[i] = '-';
+    } else {
+      board[i] = oxboard[i];
+    }
+  }
+  board[BOARDSIZE] = '\0';
 
-    char* retString = MakeBoardString(board, "phase", phaseValue, "numSwans", numSwansValue, 
-        "whosTurn", whosTurnValue, "");
-
-	if (board != NULL) {
-	  SafeFree(board);
-	}
-
-	return retString;		
+  // Return formatted UWAPI position string
+  enum UWAPI_Turn turn = (whosTurn == 'o') ? UWAPI_TURN_A : UWAPI_TURN_B;
+  return UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, 4, 4, board, "phase", phaseValue, "numSwans", numSwansValue, "");
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
+	SLOT fromSlot, toSlot;
+	int phase;
+	phase = theMove & 1;
+	theMove = theMove >> 1;
+	if(phase == 0)
+    return UWAPI_Board_Regular2D_MakeAddString('o', theMove);
+	else {
+		MoveToSlots(theMove,&fromSlot,&toSlot);
+		/* MOVE is 0-15 */
+    return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+  }
 }

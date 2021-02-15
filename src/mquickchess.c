@@ -3679,59 +3679,86 @@ POSITION hash(char* board, int turn)
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
+char* InteractPositionToString(POSITION pos);
 
-POSITION StringToPosition(char* board) {
-	int turn = 0;
-	POSITION pos;
-	char * first_semicolon = strchr(board, ';');
-	if ( GetValue(board, "turn", GetInt, &turn) ) {
-		*first_semicolon = '\0';
-		pos = hash(board, turn);
-		*first_semicolon = ';';
-		return pos;
-	} else {
-		printf("Error: StringToPosition could not determine turn from board \"%s\".", board);
-		return INVALID_POSITION;
-	}
+POSITION InteractStringToPosition(STRING str) {
+  enum UWAPI_Turn turn;
+  unsigned int num_rows, num_columns;
+  STRING board;
+  if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+    // Failed to parse string
+    return INVALID_POSITION;
+  }
+
+  // Validate parsed board size
+  if (num_rows != rows || num_columns != cols) {
+    SafeFreeString(board); // Free the string!
+    return INVALID_POSITION;
+  }
+
+  // Convert UWAPI standard board string to internal board representation
+  char oxboard[BOARDSIZE];
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (board[i] == '-') {
+      oxboard[i] = ' ';
+    } else {
+      oxboard[i] = board[i];
+    }
+  }
+
+  // Convert internal board representation to internal position
+  POSITION position = hash(oxboard, (turn == UWAPI_TURN_B ? BLACK_TURN : WHITE_TURN));
+  // Return internal position
+  SafeFreeString(board); // Free the string!
+  return position;
+
 }
 
 char * position_to_string_storage = NULL;
 
-char* PositionToString(POSITION pos) {
-	int turn;
-	char * turn_string = (char *) malloc( 2 * sizeof(char) );
-	char * board_string = (char *) malloc(rows * cols + 1);
-	char * formatted;
-	TIERPOSITION tierpos;
+char* InteractPositionToString(POSITION pos) {
+  char oxboard[BOARDSIZE];
+  unhash(pos, oxboard);
+
+  TIERPOSITION tierpos;
 	TIER tier;
-
-	unhash(pos, board_string);
-
-	board_string[rows*cols] = '\0';
 	gUnhashToTierPosition(pos, &tierpos, &tier);
+  int whosturn = generic_hash_turn(tierpos);
 
-	turn = generic_hash_turn(tierpos);
+  // Convert internal board representation to UWAPI standard board string
+  char board[BOARDSIZE + 1];
+  int i;
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (oxboard[i] == ' ') {
+      board[i] = '-';
+    } else {
+      board[i] = oxboard[i];
+    }
+  }
+  board[BOARDSIZE] = '\0';
 
-	turn_string[1] = '\0';
-	switch(turn) {
-		case 1:
-			turn_string[0] = '1';
-			break;
-		case 2:
-			turn_string[0] = '2';
-			break;
-		default:
-			printf("ERROR: turn = %d\n", turn);
-	}
-
-	formatted = MakeBoardString(board_string,
-	                            "turn", turn_string,
-	                            "tier", StrFromI(tier),
-	                            "");
-	free(board_string);
-	return formatted;
+  // Return formatted UWAPI position string
+  enum UWAPI_Turn turn = (whosturn == BLACK_TURN) ? UWAPI_TURN_B : UWAPI_TURN_A;
+  STRING UWAPI_String = UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, rows, cols, board, "GamesmanClassic", "", "");
+  if (UWAPI_String == NULL) {
+    return UWAPI_String;
+  } else {
+    STRING final_boardstring = MakeBoardString(UWAPI_String, "tier", StrFromI(tier), "");
+    SafeFreeString(UWAPI_String);
+    return final_boardstring;
+  }
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE move) {
+  char rowf, colf, rowi, coli;
+  rowf = (move & 15);
+  colf = ((move >> 4) & 15) - 10;
+  rowi = ((move >> 8) & 15);
+  coli = ((move >> 12) & 15) - 10;
+	return UWAPI_Board_Regular2D_MakeMoveString((rows - rowi)*(cols)+coli, (rows - rowf)*(cols)+colf);
 }

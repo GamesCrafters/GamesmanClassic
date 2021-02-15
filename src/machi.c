@@ -94,7 +94,7 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
-char *gBlankOXString[] = { "·", "#", "$" };
+char *gBlankOXString[] = { "ï¿½", "#", "$" };
 
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
@@ -1072,7 +1072,7 @@ BlankOX *theBlankOX,whosTurn;
 {
 	int i;
 	POSITION position = 0;
-	
+
 	for(i = 0; i < BOARDSIZE; i++){
 		position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
 	}
@@ -1171,19 +1171,19 @@ STRING GetVarString() {
 	switch (getOption())
 	{
 	case 1:
-		return "Misère game with standard diagonal moves";
+		return "Misï¿½re game with standard diagonal moves";
 		break;
 	case 2:
 		return "Standard game with standard diagonal moves";
 		break;
 	case 3:
-		return "Misère game with all possible diagonal moves";
+		return "Misï¿½re game with all possible diagonal moves";
 		break;
 	case 4:
 		return "Standard game with all possible diagonal moves";
 		break;
 	case 5:
-		return "Misère game with no diagonal moves";
+		return "Misï¿½re game with no diagonal moves";
 		break;
 	case 6:
 		return "Standard game with no diagonal moves";
@@ -1278,39 +1278,86 @@ POSITION ActualNumberOfPositions(int variant) {
 // fixed CVS tags, turned off kDebugMenu.  GameTree printer still in DebugMenu, however. -Elmer
 //
 
-POSITION StringToPosition(char* board) {
-	// FIXME
-	POSITION pos = 0;
-	if (GetValue(board, "pos", GetUnsignedLongLong, &pos)) {
-		return pos;
-	} else {
+POSITION InteractStringToPosition(STRING str) {
+	// Parse UWAPI standard position string & get UWAPI standard board string
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns;
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
 		return INVALID_POSITION;
 	}
-}
 
-char* PositionToString(POSITION pos) {
-	BlankOX board[BOARDSIZE];
-	BlankOX whoseMove;
-	PositionToBlankOX(pos, board, &whoseMove);
-	char* boardStr = malloc(sizeof(char) * BOARDSIZE+1);
+	// Validate parsed board size
+	if (num_rows != 3 || num_columns != 3) {
+		SafeFreeString(board); // Free the string!
+		return INVALID_POSITION;
+	}
+
+	// Convert UWAPI standard board string to internal board representation
+	BlankOX oxboard[BOARDSIZE];
 	int i;
 	for (i = 0; i < BOARDSIZE; i++) {
-		if (board[i] == o) {
-			boardStr[i] = 'o';
-		}
-		else if (board[i] == x) {
-			boardStr[i] = 'x';
-		}
-		else if (board[i] == Blank) {
-			boardStr[i] = ' ';
+		if (board[i] == 'o') {
+			oxboard[i] = o;
+		} else if (board[i] == 'x') {
+			oxboard[i] = x;
+		} else if (board[i] == '-') {
+			oxboard[i] = Blank;
+		} else {
+			SafeFreeString(board); // Free the string!
+			return INVALID_POSITION;
 		}
 	}
-	boardStr[BOARDSIZE] = '\0';
-	return MakeBoardString(boardStr, "pos", StrFromI(pos), "");
+
+	// Convert internal board representation to internal position
+	BlankOX whosTurn = (turn == UWAPI_TURN_A) ? o : x;
+	POSITION position = BlankOXToPosition(oxboard, whosTurn);
+
+	// Return internal position
+	SafeFreeString(board); // Free the string!
+	return position;
 }
 
-//GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
+STRING InteractPositionToString(POSITION pos) {
+	// Convert internal position to internal board representation
+	BlankOX oxboard[BOARDSIZE];
+	BlankOX whosTurn;
+	PositionToBlankOX(pos, oxboard, &whosTurn);
 
-char * PositionToEndData(POSITION pos) {
+	// Convert internal board representation to UWAPI standard board string
+	char board[BOARDSIZE + 1];
+	int i;
+	for (i = 0; i < BOARDSIZE; i++) {
+		if (oxboard[i] == o) {
+			board[i] = 'o';
+		} else if (oxboard[i] == x) {
+			board[i] = 'x';
+		} else if (oxboard[i] == Blank) {
+			board[i] = '-';
+		}
+	}
+	board[BOARDSIZE] = '\0';
+
+	// Return formatted UWAPI position string
+	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	return UWAPI_Board_Regular2D_MakePositionString(turn, 3, 3, board);
+}
+
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	BlankOX oxboard[BOARDSIZE];
+	BlankOX whosTurn;
+	PositionToBlankOX(pos, oxboard, &whosTurn);
+
+	if (mv < 9) {
+		// Add piece
+		return UWAPI_Board_Regular2D_MakeAddString((whosTurn == o) ? 'o' : 'x', mv);
+	} else {
+		// Move piece
+		return UWAPI_Board_Regular2D_MakeMoveString(mv / 10 - 1, mv % 10 - 1);
+	}
 }

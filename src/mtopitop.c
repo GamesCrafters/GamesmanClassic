@@ -2101,14 +2101,13 @@ void removeFrontFromAllPositions() {
 	}
 }
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	POSITION pos = INVALID_POSITION;
 	GetValue(board, "pos", GetUnsignedLongLong, &pos);
 	return pos;
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	BoardAndTurn bt = arrayUnhash(pos);
 	char* out = MakeBoardString(bt->theBoard,
 		"turn", StrFromI(bt->theTurn),
@@ -2131,6 +2130,10 @@ STRING MoveToString(MOVE theMove)
 	return "1";
 }
 
-char* PositionToEndData(POSITION Pos) {
+STRING InteractPositionToEndData(POSITION Pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

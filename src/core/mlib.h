@@ -1,6 +1,9 @@
 #ifndef _MLIB_H_
 #define _MLIB_H_
 
+// Include vendored libUWAPI for board string formatting
+#include "../../extern/libUWAPI/UWAPI_boardstrings.h"
+
 /*function prototypes*/
 
 void LibInitialize(int,int,int,BOOLEAN);
@@ -34,38 +37,60 @@ typedef struct lb {
 extern LocalBoard lBoard;
 
 #define GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS() \
-	POSITION StringToPosition(char* boardStr) { \
-		BlankOX board[BOARDSIZE]; \
-		int i; \
-		if (strlen(boardStr) != BOARDSIZE) { \
-			return -1; \
+	\
+	static char gBlankOXUWAPIChar[] = { '-', 'o', 'x' }; \
+	\
+	POSITION InteractStringToPosition(STRING str) { \
+		unsigned int num_rows, num_columns; \
+		STRING board; \
+		\
+		if (!UWAPI_Board_Regular2D_ParsePositionString(str, NULL, &num_rows, &num_columns, &board)) { \
+			return INVALID_POSITION; \
 		} \
+		\
+		if (num_rows != BOARDROWS || num_columns != BOARDCOLS) { \
+			SafeFreeString(board); \
+			return INVALID_POSITION; \
+		} \
+ 		\
+		BlankOX oxboard[BOARDSIZE]; \
+		int i; \
 		for (i = 0; i < BOARDSIZE; i++) { \
-			if (boardStr[i] == 'o') { \
-				board[i] = o; \
-			} \
-			else if (boardStr[i] == 'x') { \
-				board[i] = x; \
-			} \
-			else if (boardStr[i] == ' ') { \
-				board[i] = Blank; \
-			} \
-			else { \
+			if (board[i] == 'o') { \
+				oxboard[i] = o; \
+			} else if (board[i] == 'x') { \
+				oxboard[i] = x; \
+			} else if (board[i] == '-') { \
+				oxboard[i] = Blank; \
+			} else { \
+				SafeFreeString(board); \
 				return INVALID_POSITION; \
 			} \
 		} \
-		return BlankOXToPosition(board); \
+		SafeFreeString(board); \
+		return BlankOXToPosition(oxboard); \
 	} \
-	char* PositionToString(POSITION pos) { \
-		BlankOX theBlankOX[BOARDSIZE]; \
+	\
+	STRING InteractPositionToString(POSITION pos) { \
+		BlankOX oxboard[BOARDSIZE]; \
+		PositionToBlankOX(pos, oxboard); \
+		\
+		char board[BOARDSIZE + 1]; \
 		int i; \
-		char * board = (char*) SafeMalloc(BOARDSIZE + 1); \
-		memset(board, 0, BOARDSIZE + 1); \
-		PositionToBlankOX(pos, theBlankOX); \
 		for (i = 0; i < BOARDSIZE; i++) { \
-			board[i] = *gBlankOXString[(int)theBlankOX[i]]; \
+			board[i] = gBlankOXUWAPIChar[oxboard[i]]; \
 		} \
-		return board; \
+		board[BOARDSIZE] = '\0'; \
+		\
+		return UWAPI_Board_Regular2D_MakePositionString( \
+			WhoseTurn(oxboard) == x ? UWAPI_TURN_A : UWAPI_TURN_B, \
+			BOARDROWS, BOARDCOLS, board); \
+	} \
+	\
+	STRING InteractMoveToString(POSITION pos, MOVE mv) { \
+		BlankOX oxboard[BOARDSIZE]; \
+		PositionToBlankOX(pos, oxboard); \
+		return UWAPI_Board_Regular2D_MakeAddString(gBlankOXUWAPIChar[WhoseTurn(oxboard)], mv); \
 	}
 
 #endif

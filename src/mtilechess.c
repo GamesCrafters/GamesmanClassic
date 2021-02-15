@@ -3131,19 +3131,19 @@ BOOLEAN isLegalPos(POSITION pos)
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
-POSITION StringToPosition(char* board) {
+
+POSITION InteractStringToPosition(STRING board) {
 	POSITION pos = INVALID_POSITION;
 	if ( GetValue ( board, "pos", GetUnsignedLongLong, &pos ) ) {
 		printf ( "pos = %lld\n", pos );
 		return pos;
 	} else {
-		printf("Error: StringToPosition could not determine pos from board \"%s\".", board);
+		printf("Error: InteractStringToPosition could not determine pos from board \"%s\".", board);
 		return INVALID_POSITION;
 	}
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	char * board = unhashBoard(pos);
 	if (gHashWindowInitialized) {
 		char * formatted = MakeBoardString(board,
@@ -3169,6 +3169,10 @@ STRING MoveToString(MOVE theMove) {
 	return StringDup("");
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }
