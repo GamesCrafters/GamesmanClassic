@@ -934,7 +934,9 @@ BOOLEAN DeterminePure(POSITION position)
 	DrawNumberChildrenFree();  
 	DrawParentFree();
 
-	PrintDrawAnalysis();
+	if (gShouldPrintDrawTable) {
+		PrintDrawAnalysis();
+	}
 
 	return tmp;
 }
@@ -1306,8 +1308,8 @@ void DrawNumberChildrenFree()
 {
 	SafeFree(gDrawNumberChildren);
 	SafeFree(gDrawNumberChildrenOriginal);
-	SafeFree(gPositionLevel);
-	SafeFree(gPositionValue);
+	// SafeFree(gPositionLevel);
+	// SafeFree(gPositionValue);
 }
 
 void InitializeDR()
@@ -1464,11 +1466,12 @@ void SetAnalysisOfDrawPositions() {
 		gNumWins[k] = 0;
 		gNumLoses[k] = 0;
 	}
-
 	for (i=0; i < gNumberOfPositions; i++) {
 		if (gPositionValue[i] == win) {
+			// position i is a draw win at draw at level gPositionLevel[i]
 			gNumWins[gPositionLevel[i]]++;
 		} else if (gPositionValue[i] == lose) {
+			// position i is a draw lose at draw at level gPositionLevel[i]
 			gNumLoses[gPositionLevel[i]]++;
 		}
 	}
@@ -1495,6 +1498,14 @@ void PrintDrawAnalysis() {
 }
 
 // End Loopy
+
+REMOTENESS getPositionLevel(POSITION thePosition) {
+	return gPositionLevel[thePosition];
+}
+
+VALUE getPositionValue(POSITION thePosition) {
+	return gPositionValue[thePosition];
+}
 
 
 /* End of purity functions */
