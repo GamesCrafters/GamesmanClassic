@@ -2458,13 +2458,13 @@ STRING TierToString(TIER tier) {
 // Revision 1.25  2005/09/15 03:56:08  ogren
 // added : $, : $, changed kGameName = Abalone
 //
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	POSITION pos = INVALID_POSITION;
 	GetValue(board, "pos", GetUnsignedLongLong, &pos);
 	return pos;
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	int whoseMove;
 	unhash(pos, &whoseMove);
 	return MakeBoardString(gBoard,
@@ -2473,6 +2473,10 @@ char* PositionToString(POSITION pos) {
 	                       "");
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

@@ -608,23 +608,28 @@ EXTERNC void PrintMove(MOVE theMove)
     return;
 }
 
-EXTERNC POSITION StringToPosition(char* board) {
+EXTERNC POSITION InteractStringToPosition(STRING board) {
     // FIXME: this is just a stub    
     return atoi(board);
 }
 
-EXTERNC char* PositionToString(POSITION pos) {
+EXTERNC STRING InteractPositionToString(POSITION pos) {
     // FIXME: this is just a stub
     return "Implement Me";
 }
 
-EXTERNC char * PositionToEndData(POSITION pos) {
+EXTERNC STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
 EXTERNC STRING MoveToString(MOVE theMove) {
     return "Implement MoveToString";
 }
+
+EXTERNC STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  return MoveToString(mv);
+}
+
 /************************************************************************
 *************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE

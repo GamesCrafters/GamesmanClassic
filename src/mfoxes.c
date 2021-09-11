@@ -1042,12 +1042,12 @@ void InitializeOrder () {
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	int whosTurn = board[0] == 'F' ? FOXTURN : GOOSETURN;
 	return generic_hash_hash(&board[1], whosTurn);
 }
 
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	char board[BOARDSIZE];
 	generic_hash_unhash(pos, board);
 	int whosTurn = generic_hash_turn(pos);
@@ -1061,6 +1061,10 @@ char* PositionToString(POSITION pos) {
 	return ret;
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

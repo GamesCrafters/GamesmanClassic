@@ -19,7 +19,7 @@ void* gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "":
+STRING kHelpTextInterface = "";
 
 STRING kHelpOnYourTurn = "";
 
@@ -183,7 +183,7 @@ STRING computersName;
 
 VALUE Primitive(POSITION position)
 {
-  return UNDECIDED;
+  return undecided;
 }
 
 /************************************************************************
@@ -394,17 +394,21 @@ POSITION ActualNumberOfPositions(int variant)
 }
 
 
-POSITION StringToPosition(STRING board)
+POSITION InteractStringToPosition(STRING board)
 {
   return 0;
 }
 
-STRING PositionToString(POSITION pos)
+STRING InteractPositionToString(POSITION pos)
 {
   return NULL;
 }
 
-char * PositionToEndData(POSITION pos)
+STRING InteractPositionToEndData(POSITION pos)
 {
   return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  return MoveToString(mv);
 }

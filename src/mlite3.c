@@ -203,7 +203,7 @@ revert back to your most recent position."                                      
 	        "You place one of your pieces on one of the empty board positions.";
 
 	if (gGameObjective == SURROUND) {
-		kHelpStandardObjective = "Surround your opponent’s piece with three of your\n\
+		kHelpStandardObjective = "Surround your opponentï¿½s piece with three of your\n\
 pieces to win.";
 	}
 	if (gGameObjective == THREE_IN_A_ROW) {
@@ -1130,17 +1130,20 @@ void setOption(int option)
 	InitializeHelpStrings();
 }
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

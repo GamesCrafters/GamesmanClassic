@@ -3,7 +3,7 @@
 #include <stdarg.h>
 
 /* In case strdup isn't defined. */
-char * StringDup( char * s ) {
+char * StringDup( char const * s ) {
 	char * a = (char *)SafeMalloc(strlen(s) + 1);
 	/* 1 is for null character. */
 	if (a) {
@@ -42,10 +42,10 @@ char * StringFormat(size_t max_size, char * format_str, ...) {
 	return str;
 }
 
-STRING MoveToString(MOVE mv);
-char * PositionToString(POSITION pos);
-char * PositionToEndData(POSITION pos);
-POSITION StringToPosition(STRING str);
+STRING InteractPositionToString(POSITION pos);
+POSITION InteractStringToPosition(STRING str);
+STRING InteractPositionToEndData(POSITION pos);
+STRING InteractMoveToString(POSITION pos, MOVE mv);
 
 static char * AllocVa(va_list lst, size_t accum, size_t * total) {
 	char * key = va_arg(lst, char *);
@@ -113,6 +113,10 @@ char * MakeBoardString(char * first, ...) {
 	}
 	va_end(lst);
 	return out;
+}
+
+static BOOLEAN isalnumdash(char c) {
+	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '-' || c == '*';
 }
 
 /* Reads a position from stdin, returns NULL on error. Otherwise, returns a
@@ -280,7 +284,7 @@ void ServerInteractLoop(void) {
 			InteractCheckErrantExtra(input, 1);
 			printf(RESULT POSITION_FORMAT, gInitialPosition);
 		} else if (FirstWordMatches(input, "start_board")) {
-			board = PositionToString(gInitialPosition);
+			board = InteractPositionToString(gInitialPosition);
 			if (!strcmp(board, "Implement Me")) {
 				printf(RESULT "not implemented");
 			} else {
@@ -288,7 +292,7 @@ void ServerInteractLoop(void) {
 			}
 			InteractFreeBoardSting(board);
 		} else if (FirstWordMatches(input, "start_response")) {
-			board = PositionToString(gInitialPosition);
+			board = InteractPositionToString(gInitialPosition);
 			printf(RESULT "{\"status\":\"ok\",\"response\":");
 			if (!strcmp(board, "Implement Me")) {
 				printf("\"not implemented\"");
@@ -302,7 +306,7 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
-			pos = StringToPosition(board);
+			pos = InteractStringToPosition(board);
 			if (pos == -1) {
 				printf("%s", invalid_board_string);
 				continue;
@@ -311,7 +315,7 @@ void ServerInteractLoop(void) {
 			/* For debuggin purposes. */
 			/*printf("\"board\": \"%s\",",  board);*/
 			InteractPrintJSONPositionValue(pos);
-			data = PositionToEndData(pos);
+			data = InteractPositionToEndData(pos);
 			if (data) {
 				printf(",%s", data);
 				SafeFree(data);
@@ -365,7 +369,7 @@ void ServerInteractLoop(void) {
 			printf(RESULT "[");
 			current_move = all_next_moves = GenerateMoves(pos);
 			while (current_move) {
-				move_string = MoveToString(current_move->move);
+				move_string = InteractMoveToString(pos, current_move->move);
 				printf("%s", move_string);
 				SafeFree(move_string);
 				current_move = current_move->next;
@@ -381,7 +385,7 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			InteractCheckErrantExtra(input, 2);
-			board = PositionToString(pos);
+			board = InteractPositionToString(pos);
 			if (!strcmp(board, "Implement Me")) {
 				printf(RESULT "not implemented");
 			} else {
@@ -425,7 +429,7 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
-			pos = StringToPosition(board);
+			pos = InteractStringToPosition(board);
 			if (pos == -1) {
 				printf("%s", invalid_board_string);
 				continue;
@@ -440,7 +444,7 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
-			pos = StringToPosition(board);
+			pos = InteractStringToPosition(board);
 			printf("board: " POSITION_FORMAT,pos);
 
 		} else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
@@ -451,7 +455,7 @@ void ServerInteractLoop(void) {
 			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
 				gInitializeHashWindow(tier, TRUE);
 			}
-			pos = StringToPosition(board);
+			pos = InteractStringToPosition(board);
 			if (pos == -1) {
 				printf("%s", invalid_board_string);
 				continue;
@@ -461,12 +465,13 @@ void ServerInteractLoop(void) {
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
 					choice = DoMove(pos, current_move->move);
-					board = PositionToString(choice);
+					board = InteractPositionToString(choice);
 					printf("{\"board\":\"%s\",", board);
 					InteractFreeBoardSting(board);
 					printf("\"remoteness\":%d,", Remoteness(choice));
 					InteractPrintJSONPositionValue(choice);
-					move_string = MoveToString(current_move->move);
+					move_string = InteractMoveToString(pos, current_move->move);
+					
 					printf(",\"move\":\"%s\"", move_string);
 					SafeFree(move_string);
 					current_move = current_move->next;
@@ -493,7 +498,7 @@ void ServerInteractLoop(void) {
 			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
 				gInitializeHashWindow(tier, TRUE);
 			}
-			pos = StringToPosition(board);
+			pos = InteractStringToPosition(board);
 			if (pos == -1) {
 				printf("%s", invalid_board_string);
 				continue;
@@ -592,7 +597,7 @@ void PrintLevel(POSITION pos, unsigned int depth, char * move_string) {
 		gInitializeHashWindow(tier, TRUE);
 		pos = gHashToWindowPosition(tierpos, tier);
 	}
-	char * board = PositionToString(pos);
+	char * board = InteractPositionToString(pos);
 	printf("{\"board\":\"%s\",", board);
 	printf("\"remoteness\":%d,", Remoteness(pos));
 	if (move_string) {
@@ -607,7 +612,7 @@ void PrintLevel(POSITION pos, unsigned int depth, char * move_string) {
 			MOVELIST *current_move = all_next_moves;
 			while (current_move) {
 				POSITION choice = DoMove(pos, current_move->move);
-				char * move_string = MoveToString(current_move->move);
+				char * move_string = InteractMoveToString(pos, current_move->move);
 				PrintLevel(choice, depth - 1, move_string);
 				if (tier) {
 					gInitializeHashWindow(tier, TRUE);

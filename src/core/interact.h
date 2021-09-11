@@ -11,7 +11,6 @@
 #include <string.h>
 #include <ctype.h>
 
-
 STRING InteractReadPosition(STRING input, POSITION * result);
 STRING InteractReadLong(STRING input, long * result);
 STRING InteractReadBoardString(STRING input, char ** result);
@@ -21,8 +20,10 @@ void InteractFreeBoardSting(STRING board);
 void InteractCheckErrantExtra(STRING input, int max_words);
 void ServerInteractLoop(void);
 extern POSITION gInitialPosition;
+
 char * MakeBoardString(char * first, ...);
-char * StringDup( char * s );
+
+char * StringDup( char const * s );
 void SafeFreeString(char * string);
 char * StrFromI( long long i );
 char * TierstringFromPosition(POSITION pos);

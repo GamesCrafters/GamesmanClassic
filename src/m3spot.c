@@ -1378,7 +1378,7 @@ void setOption(int option)
 }
 
 
-POSITION StringToPosition(char* board) {
+POSITION InteractStringToPosition(STRING board) {
 	POSITION pos = 0;
 	if (GetValue(board, "pos", GetUnsignedLongLong, &pos)) {
 		return pos;
@@ -1387,8 +1387,7 @@ POSITION StringToPosition(char* board) {
 	}
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	ClearTheBoard();
 
 	theBoard[pieceToBoard(GetRedPosition(pos),0)] = 'R';
@@ -1404,6 +1403,10 @@ char* PositionToString(POSITION pos) {
                                "");
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

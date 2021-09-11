@@ -1009,16 +1009,21 @@ int GenerateMovesEfficient (POSITION position)
 //
 // Revision 1.10  2006/04/25 01:33:06  ogren
 // Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
-POSITION StringToPosition(char* board) {
+
+POSITION InteractStringToPosition(STRING board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
-char* PositionToString(POSITION pos) {
+
+STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
 
-
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }

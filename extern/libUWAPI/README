@@ -1,0 +1,16 @@
+libUWAPI
+
+**PLEASE MAKE CHANGES UPSTREAM IN THE GAMESCRAFTERS UNIVERSAL WEB API PROJECT**
+
+This directory contains only the board string formatting code vendored from
+GamesCrafters Universal Web API, since the rest of the libUWAPI is somewhat
+irrelevant for GamesmanClassic.
+
+The Makefile.in is then customized to integrate with building GamesmanClassic.
+
+After copying the libUWAPI header and source files to this directory, check
+Makefile.in so that all files are included. Reconfigure and build the
+GamesmanClassic project, and everything should work.
+
+A justification for not using a git submodule in this case is that it's easier
+to onboard new developers for the project and libUWAPI should change rarely.

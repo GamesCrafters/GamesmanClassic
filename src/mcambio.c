@@ -1755,21 +1755,21 @@ char *PositionToBoard(POSITION position) {
 // Revision 1.3  2005/03/10 02:06:47  ogren
 // Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
 //
-POSITION StringToPosition(char* board) {
+
+POSITION InteractStringToPosition(STRING board) {
 	// FIXME: this is just a stub
 	return atoi(board);
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
 	return "Implement Me";
 }
 
-STRING MoveToString(MOVE theMove) {
-	return "Implement MoveToString";
+STRING InteractPositionToEndData(POSITION pos) {
+	return NULL;
 }
 
-char * PositionToEndData(POSITION pos) {
-	return NULL;
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return "Implement MoveToString";
 }

@@ -2439,7 +2439,8 @@ STRING unhash (POSITION pos) {
 	board[BOARDSIZE] = '\0';
 	return board;
 }
-POSITION StringToPosition(char* string) {
+
+POSITION InteractStringToPosition(STRING string) {
 	// BlankoxOX* board = (char *) SafeMalloc(size(BlankoxOX) * (BOARDSIZE + 1));
 	static BlankoxOX board[BOARDSIZE];
 	int i;
@@ -2464,8 +2465,7 @@ POSITION StringToPosition(char* string) {
 		return HashChungToi(board, Wx);
 }
 
-
-char* PositionToString(POSITION pos) {
+STRING InteractPositionToString(POSITION pos) {
 	BlankoxOX turn = GetTurn(pos);
 	if(turn == Rx)
 		return MakeBoardString(unhash(pos), "turn" , StringDup("red"), "");
@@ -2473,6 +2473,10 @@ char* PositionToString(POSITION pos) {
 		return MakeBoardString(unhash(pos), "turn" , StringDup("white"), "");
 }
 
-char * PositionToEndData(POSITION pos) {
+STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }
