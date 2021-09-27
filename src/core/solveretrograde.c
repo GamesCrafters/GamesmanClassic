@@ -1004,16 +1004,11 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 }
 unsigned long long dedupHashSize = 0ULL; // Number of slots in dedup hash
 unsigned long long dedupHashElem = 0ULL; // Number of entries added to dedup hash
+unsigned long long dedupHashMask = 0LL;
+unsigned long long dedupHashBytes = 0LL;
 DEDUP_HASH_SIZE_INITIAL = 32; // Initial size of Dedup Hash
 DEDUP_HASH_RATIO = 2; // Keep dedup hash size > (dedupHashElem << DEDUP_HASH_RATIO)
 POSITION *dedupHash = NULL; // Dedup hashtable
-
-void *dedupHashReset() {
-	if (dedupHash != NULL) {
-		dedupHashElem = 0LL;
-		memset(dedupHash, 0, dedupHashSize * sizeof(POSITION));
-	}
-}
 
 POSITION *dedupHashExpand() {
     if (dedupHash == NULL) {
@@ -1042,6 +1037,8 @@ POSITION *dedupHashExpand() {
 		}
 		SafeFree(oldDedupHash);
     }
+	dedupHashMask = dedupHashSize - 1;
+	dedupHashBytes = dedupHashSize * sizeof(POSITION);
 }
 
 // if the element exists already, return FALSE
@@ -1051,7 +1048,7 @@ BOOLEAN dedupHashAdd(POSITION pos) {
         dedupHashExpand();
     }
     POSITION posAdjusted = pos + 1;
-	unsigned long long slot = posAdjusted & (dedupHashSize - 1);
+	unsigned long long slot = posAdjusted & dedupHashMask;
 	while (TRUE) {
 		if (dedupHash[slot] == 0) {
 			dedupHash[slot] = posAdjusted;
@@ -1125,15 +1122,16 @@ solve_start: // GASP!! A LABEL!!
 			} else {
 				//if (gGenerateMovesEfficientFunPtr == NULL) { // do the normal stuff
 				moves = movesptr = GenerateMoves(pos);
-				dedupHashReset();
+				if (dedupHash != NULL) {
+					dedupHashElem = 0LL;
+					memset(dedupHash, 0, dedupHashBytes);
+				}
 				if (moves == NULL) { // no chillins
 					printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
 					ExitStageRight();
 				} else {
 					//otherwise, make a Child Counter for it
 					movesptr = moves;
-                    int numSeen = 0;
-                    POSITION seenArray[500];
                     for (; movesptr != NULL; movesptr = movesptr->next) {
                     	child = gSymmetries ? gCanonicalPosition(DoMove(pos, movesptr->move)) : DoMove(pos, movesptr->move);
 						if (gSymmetries && useUndo && !dedupHashAdd(child)) continue;
@@ -1182,11 +1180,13 @@ solve_start: // GASP!! A LABEL!!
 		if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (!useUndo && rParents[pos] == NULL) // if we didn't even see this child, don't put it on frontier!
 			continue;
-		else if (gSymmetries && useUndo && pos != gCanonicalPosition(pos))
-			continue;
-		if (gSymmetries) // use the canonical position's values
-			canonPos = gCanonicalPosition(pos); //to tell where i go!
-		else canonPos = pos; // else ignore
+		if (gSymmetries) {// use the canonical position's values
+			canonPos = gCanonicalPosition(pos);
+			if (useUndo && pos != canonPos)
+				continue;
+		} else {
+			canonPos = pos; // else ignore
+		}
 		value = GetValueOfPosition(canonPos);
 		remoteness = Remoteness(canonPos);
 		if (!((value == tie && remoteness == REMOTENESS_MAX)
@@ -1242,7 +1242,10 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 		child = list->position;
 		if (useUndo) { // use the UndoMove lists
 			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, gCurrentTier);
-			dedupHashReset();
+			if (dedupHash != NULL) {
+				dedupHashElem = 0LL;
+				memset(dedupHash, 0, dedupHashBytes);
+			}
 			for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
 				parent = gSymmetries ? gCanonicalPosition(gUnDoMoveFunPtr(child, parentsPtr->undomove)) : gUnDoMoveFunPtr(child, parentsPtr->undomove);
 				if (gSymmetries && !dedupHashAdd(parent)) continue;
