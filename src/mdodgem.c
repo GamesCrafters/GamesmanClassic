@@ -143,6 +143,8 @@ Computer wins. Nice try, Dan."                                                  
 **************************************************************************/
 
 #define BOARDSIZE        9           /* 3x3 board */
+#define ROWS			 3
+#define COLS			 3
 #define POSITION_OFFSET  19683       /* 3^9 */
 #define OFFTHEBOARD      9           /* Removing that piece from the board */
 #define BADSLOT         -2           /* You've moved off the board in a bad way */
@@ -856,18 +858,73 @@ void setOption(int option) {
 }
 
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING string) {
+
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns;
+	STRING board;
+
+	if (!UWAPI_Board_Regular2D_ParsePositionString(string, &turn, &num_rows, &num_columns, &board)) {
+    	// Failed to parse string
+    	return INVALID_POSITION;
+  	}
+	
+	POSITION position = 0;
+	for (int i = 0; i < BOARDSIZE; i += 1) {
+		if (board[i] == 'x') {
+			position += g3Array[i] * (int) x;
+		} else if (board[i] == 'o') {
+			position += g3Array[i] * (int) o;
+		} else {
+			position += g3Array[i] * (int) Blank;
+		}
+	}
+	
+	// Player X in Dodgem is same as player B in UWAPI
+	if (turn == UWAPI_TURN_B) {
+		position += POSITION_OFFSET;
+	}
+
+	return position;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+
+	char oxboard[BOARDSIZE + 1];
+	enum UWAPI_Turn turn;
+
+	if (pos >= POSITION_OFFSET) {
+		turn = UWAPI_TURN_B;
+		pos -= POSITION_OFFSET;
+	} else {
+		turn = UWAPI_TURN_A;
+	}
+
+	for (int i = BOARDSIZE - 1; i >= 0; i -= 1) {
+		if (pos >= ((int) x * g3Array[i])) {
+			oxboard[i] = 'x';
+			pos -= (int) x * g3Array[i];
+		} else if (pos >= ((int) o * g3Array[i])) {
+			oxboard[i] = 'o';
+			pos -= (int) o * g3Array[i];
+		} else if (pos >= ((int) Blank * g3Array[i])) {
+			oxboard[i] = '-';
+			pos -= (int) Blank * g3Array[i];
+		} else {
+			BadElse("InteractPositionToString");
+		}
+	}
+	oxboard[BOARDSIZE] = '\0';
+
+	return UWAPI_Board_Regular2D_MakePositionString(turn, ROWS, COLS, oxboard);
 }
 
 STRING MoveToString(MOVE theMove) {
-	return "Implement MoveToString";
+
+	SLOT fromSlot, toSlot;
+	MoveToSlots(theMove, &fromSlot, &toSlot);
+
+	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
