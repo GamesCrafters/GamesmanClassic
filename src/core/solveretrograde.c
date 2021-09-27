@@ -1002,6 +1002,72 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 	}
 	if (usingLevelFiles) l_freeBitArray();
 }
+unsigned long long dedupHashSize = 0ULL; // Number of slots in dedup hash
+unsigned long long dedupHashElem = 0ULL; // Number of entries added to dedup hash
+DEDUP_HASH_SIZE_INITIAL = 32; // Initial size of Dedup Hash
+DEDUP_HASH_RATIO = 2; // Keep dedup hash size > (dedupHashElem << DEDUP_HASH_RATIO)
+POSITION *dedupHash = NULL; // Dedup hashtable
+
+void *dedupHashReset() {
+	if (dedupHash != NULL) {
+		dedupHashElem = 0LL;
+		memset(dedupHash, 0, dedupHashSize * sizeof(POSITION));
+	}
+}
+
+POSITION *dedupHashExpand() {
+    if (dedupHash == NULL) {
+        dedupHashSize = DEDUP_HASH_SIZE_INITIAL;
+        dedupHash = (POSITION *) calloc(dedupHashSize, sizeof(POSITION));
+		if (dedupHash == NULL) {
+			fprintf(stderr, "Error: calloc failed to allocate");
+			ExitStageRight();
+			exit(0);
+		}
+	} else {
+        unsigned long long oldDedupHashSize = dedupHashSize;
+		dedupHashSize *= 2;
+        printf("Expanding Dedup Hash to %lld\n", dedupHashSize);
+		POSITION *oldDedupHash = dedupHash;
+        dedupHash = (POSITION *) calloc(dedupHashSize, sizeof(POSITION));
+		if (dedupHash == NULL) {
+			fprintf(stderr, "Error: calloc failed to allocate");
+			ExitStageRight();
+			exit(0);
+		}
+		for (int i = 0; i < oldDedupHashSize; i++) {
+			if (oldDedupHash[i] != 0) {
+				dedupHashAdd(oldDedupHash[i] - 1);
+			}
+		}
+		SafeFree(oldDedupHash);
+    }
+}
+
+// if the element exists already, return FALSE
+// if the element doesn't exist, add it, return TRUE
+BOOLEAN dedupHashAdd(POSITION pos) {
+    if (dedupHashSize <= (dedupHashElem << DEDUP_HASH_RATIO)) {
+        dedupHashExpand();
+    }
+    POSITION posAdjusted = pos + 1;
+	unsigned long long slot = posAdjusted & (dedupHashSize - 1);
+	while (TRUE) {
+		if (dedupHash[slot] == 0) {
+			dedupHash[slot] = posAdjusted;
+			dedupHashElem++;
+			return TRUE;
+		} else if (dedupHash[slot] == posAdjusted) {
+			return FALSE;
+		} else {
+			if (slot == 0) {
+				slot = dedupHashSize - 1;
+			} else {
+				slot -= 1;
+			}
+		}
+	}
+}
 
 /************************************************************************
 **
@@ -1059,50 +1125,34 @@ solve_start: // GASP!! A LABEL!!
 			} else {
 				//if (gGenerateMovesEfficientFunPtr == NULL) { // do the normal stuff
 				moves = movesptr = GenerateMoves(pos);
+				dedupHashReset();
 				if (moves == NULL) { // no chillins
 					printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
 					ExitStageRight();
 				} else {
 					//otherwise, make a Child Counter for it
 					movesptr = moves;
-					for (; movesptr != NULL; movesptr = movesptr->next) {
+                    int numSeen = 0;
+                    POSITION seenArray[500];
+                    for (; movesptr != NULL; movesptr = movesptr->next) {
+                    	child = gSymmetries ? gCanonicalPosition(DoMove(pos, movesptr->move)) : DoMove(pos, movesptr->move);
+						if (gSymmetries && useUndo && !dedupHashAdd(child)) continue;
 						childCounts[pos]++;
-						child = DoMove(pos, movesptr->move);
-						// here's the "partial solving" complication: to solve a position,
-						// we might have to solve another in this tier that's not part of our
-						// bounds! So, we need to run this loop for those guys too. To do this,
-						// we maintain a list of guys to run it for too.
-						// It uses the childCounts to ensure no duplicate iterations
-						if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0
-						    && (child < start || child >= end)) {
-							solveTheseTooList = StorePositionInList(child, solveTheseTooList);
-						}
-						if (!useUndo) { // if parent pointers, add to parent pointer list
-							rParents[child] = StorePositionInList(pos, rParents[child]);
-						}
-					}
-					FreeMoveList(moves);
+
+                    	// here's the "partial solving" complication: to solve a position,
+                    	// we might have to solve another in this tier that's not part of our
+                    	// bounds! So, we need to run this loop for those guys too. To do this,
+                    	// we maintain a list of guys to run it for too.
+                    	// It uses the childCounts to ensure no duplicate iterations
+                    	if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0 && (child < start || child >= end)) {
+                        	solveTheseTooList = StorePositionInList(child, solveTheseTooList);
+                    	}
+                    	if (!useUndo) { // if parent pointers, add to parent pointer list
+                        	rParents[child] = StorePositionInList(pos, rParents[child]);
+                    	}
+                    }
+                    FreeMoveList(moves);
 				}
-				//} else { // do the experimental stuff!
-				//    numMoves = gGenerateMovesEfficientFunPtr(pos);
-				//    if (numMoves == 0) { // no chillins
-				//        printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
-				//        ExitStageRight();
-				//    } else {
-				//        //otherwise, make a Child Counter for it
-				//        for (i = 0; i < numMoves; i++) {
-				//            childCounts[pos]++;
-				//            child = DoMove(pos, gGenerateMovesArray[i]);
-				//            if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0
-				//                    && child < start && child >= end) {
-				//                solveTheseTooList = StorePositionInList(child, solveTheseTooList);
-				//            }
-				//            if (!useUndo) {// if parent pointers, add to parent pointer list
-				//                rParents[child] = StorePositionInList(pos, rParents[child]);
-				//            }
-				//        }
-				//    }
-				//}
 			}
 		}
 		// before ending the for-loop, we need to go through the solveTheseTooList
@@ -1131,6 +1181,8 @@ solve_start: // GASP!! A LABEL!!
 	for (pos = gCurrentTierSize; pos < gNumberOfPositions; pos++) {
 		if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (!useUndo && rParents[pos] == NULL) // if we didn't even see this child, don't put it on frontier!
+			continue;
+		else if (gSymmetries && useUndo && pos != gCanonicalPosition(pos))
 			continue;
 		if (gSymmetries) // use the canonical position's values
 			canonPos = gCanonicalPosition(pos); //to tell where i go!
@@ -1190,10 +1242,14 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 		child = list->position;
 		if (useUndo) { // use the UndoMove lists
 			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, gCurrentTier);
+			dedupHashReset();
 			for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
-				parent = gUnDoMoveFunPtr(child, parentsPtr->undomove);
+				parent = gSymmetries ? gCanonicalPosition(gUnDoMoveFunPtr(child, parentsPtr->undomove)) : gUnDoMoveFunPtr(child, parentsPtr->undomove);
+				if (gSymmetries && !dedupHashAdd(parent)) continue;
+				
 				if (parent >= gCurrentTierSize) {
 					TIERPOSITION tp; TIER t;
+					
 					gUnhashToTierPosition(parent, &tp, &t);
 					printf("ERROR: %llu generated undo-parent %llu (Tier: %llu, TierPosition: %llu),\n"
 					       "which is not in the current tier being solved!\n", child, parent, t, tp);
@@ -1207,7 +1263,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					// Same with tie children.
 					if (valueParents == win || valueParents == tie) {
 						childCounts[parent] = 0; // reset child counter
-						rInsertFR(valueParents, parent, remotenessChild+1);
+						rInsertFR(valueParents, parent, remotenessChild + 1);
 						// With winning children, first decrement the child counter by one. If
 						// child counter reaches 0, put the parent not in the FR but in the miniFR.
 					} else if (valueParents == lose) {
