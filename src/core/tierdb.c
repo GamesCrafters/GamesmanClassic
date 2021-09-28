@@ -303,7 +303,7 @@ BOOLEAN tierdb_save_database ()
 	}
 
 	tierdb_dbVer[0] = htons(tierdb_FILEVER);
-	tierdb_numPos[0] = htonl(gMaxPosOffset[1]);
+	tierdb_numPos[0] = htonl(gMaxPosOffset[1]) | (((POSITION) htonl(gMaxPosOffset[1] >> 32)) << 32);
 	tierdb_goodCompression = gzwrite(tierdb_filep, tierdb_dbVer, sizeof(short));
 	tierdb_goodCompression = gzwrite(tierdb_filep, tierdb_numPos, sizeof(POSITION));
 	for(i=start; i<finish && tierdb_goodCompression; i++) { //convert to network byteorder for platform independence.
@@ -391,7 +391,7 @@ BOOLEAN tierdb_load_database()
 		tierdb_goodDecompression = gzread(tierdb_filep,tierdb_dbVer,sizeof(short));
 		tierdb_goodDecompression = gzread(tierdb_filep,tierdb_numPos,sizeof(POSITION));
 		*tierdb_dbVer = ntohs(*tierdb_dbVer);
-		*tierdb_numPos = ntohl(*tierdb_numPos);
+		*tierdb_numPos = ntohl(*tierdb_numPos) | (((POSITION) ntohl(*tierdb_numPos >> 32)) << 32);
 		if(*tierdb_numPos != (gMaxPosOffset[index]-gMaxPosOffset[index-1])) {
 			if (kDebugDetermineValue)
 				printf("\n\nError in file decompression: Stored gNumberOfPositions differs from internal gNumberOfPositions\n\n");
@@ -429,7 +429,7 @@ int CheckTierDB(TIER tier, int variant) {
 	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_dbVer,sizeof(short));
 	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_numPos,sizeof(POSITION));
 	*tierdb_dbVer = ntohs(*tierdb_dbVer);
-	*tierdb_numPos = ntohl(*tierdb_numPos);
+	*tierdb_numPos = ntohl(*tierdb_numPos) | (((POSITION) ntohl(*tierdb_numPos >> 32)) << 32);
 	tierdb_goodClose = gzclose(tierdb_filep);
 	if(!tierdb_goodDecompression || (*tierdb_numPos != gNumberOfTierPositionsFunPtr(tier))
 	   || (*tierdb_dbVer != tierdb_FILEVER) || (tierdb_goodClose != 0)) {
@@ -457,7 +457,7 @@ BOOLEAN tierdb_load_minifile(char* filename)
 	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_dbVer,sizeof(short));
 	tierdb_goodDecompression = gzread(tierdb_filep,tierdb_numPos,sizeof(POSITION));
 	*tierdb_dbVer = ntohs(*tierdb_dbVer);
-	*tierdb_numPos = ntohl(*tierdb_numPos);
+	*tierdb_numPos = ntohl(*tierdb_numPos) | (((POSITION) ntohl(*tierdb_numPos >> 32)) << 32);
 	if(*tierdb_numPos != gCurrentTierSize)
 		return FALSE;
 	correctDBVer = (*tierdb_dbVer == tierdb_FILEVER);
