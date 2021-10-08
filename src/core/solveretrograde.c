@@ -75,11 +75,11 @@ BOOLEAN ConfirmAction(char);
 void SolveTier(POSITION, POSITION);
 void SolveWithNonLoopyAlgorithm(POSITION, POSITION);
 void SolveWithLoopyAlgorithm(POSITION, POSITION);
-void LoopyParentsHelper(POSITIONLIST*, VALUE, REMOTENESS);
+void LoopyParentsHelper(IPOSITIONLIST*, VALUE, REMOTENESS);
 // Solver ChildCounter and Hashtable functions
 void rInitFRStuff();
 void rFreeFRStuff();
-POSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
+IPOSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
 void rInsertFR(VALUE, POSITION, REMOTENESS);
 // Sanity Checkers
 void checkForCorrectness(POSITION, POSITION);
@@ -751,9 +751,9 @@ POSITIONLIST** rParents;
 /* Rather than a Frontier Queue, this uses a sort of hashtable,
    with a POSITIONLIST for every REMOTENESS from 0 to REMOTENESS_MAX-1.
    It's constant time insert and remove, so it works just fine. */
-FRnode**        rWinFR = NULL;  // The FRontier Win Hashtable
-FRnode**        rLoseFR = NULL; // The FRontier Lose Hashtable
-FRnode**        rTieFR = NULL;  // The FRontier Tie Hashtable
+IFRnode**        rWinFR = NULL;  // The FRontier Win Hashtable
+IFRnode**        rLoseFR = NULL; // The FRontier Lose Hashtable
+IFRnode**        rTieFR = NULL;  // The FRontier Tie Hashtable
 
 // A "hack" for dealing with a later-explained partial solve case
 POSITIONLIST* solveTheseTooList;
@@ -799,9 +799,9 @@ void rInitFRStuff() {
 			rParents[i] = NULL;
 	}
 	// 255 * 4 bytes = 1,020 bytes = ~1 KB
-	rWinFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*));
-	rLoseFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*)); // ~1 KB
-	rTieFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*)); // ~1 KB
+	rWinFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*));
+	rLoseFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*)); // ~1 KB
+	rTieFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*)); // ~1 KB
 	for (i = 0; i < REMOTENESS_MAX; i++)
 		rWinFR[i] = rLoseFR[i] = rTieFR[i] = NULL;
 	solveTheseTooList = NULL;
@@ -822,7 +822,7 @@ void rFreeFRStuff() {
 	if (rTieFR != NULL) SafeFree(rTieFR);
 }
 
-POSITIONLIST* rRemoveFRList(VALUE value, REMOTENESS r) {
+IPOSITIONLIST* rRemoveFRList(VALUE value, REMOTENESS r) {
 	if (value == win)
 		return rWinFR[r];
 	else if (value == lose)
@@ -836,11 +836,11 @@ void rInsertFR(VALUE value, POSITION position, REMOTENESS r) {
 	// this is probably the best place to put this:
 	assert(r >= 0 && r < REMOTENESS_MAX);
 	if(value == win)
-		rWinFR[r] = StorePositionInList(position, rWinFR[r]);
+		rWinFR[r] = StorePositionInIList(position, rWinFR[r]);
 	else if (value == lose)
-		rLoseFR[r] = StorePositionInList(position, rLoseFR[r]);
+		rLoseFR[r] = StorePositionInIList(position, rLoseFR[r]);
 	else if (value == tie)
-		rTieFR[r] = StorePositionInList(position, rTieFR[r]);
+		rTieFR[r] = StorePositionInIList(position, rTieFR[r]);
 }
 
 
@@ -1006,11 +1006,11 @@ unsigned long long dedupHashSize = 0ULL; // Number of slots in dedup hash
 unsigned long long dedupHashElem = 0ULL; // Number of entries added to dedup hash
 unsigned long long dedupHashMask = 0LL;
 unsigned long long dedupHashBytes = 0LL;
-DEDUP_HASH_SIZE_INITIAL = 32; // Initial size of Dedup Hash
-DEDUP_HASH_RATIO = 2; // Keep dedup hash size > (dedupHashElem << DEDUP_HASH_RATIO)
+unsigned long long DEDUP_HASH_SIZE_INITIAL = 32LL; // Initial size of Dedup Hash
+int DEDUP_HASH_RATIO = 2; // Keep dedup hash size > (dedupHashElem << DEDUP_HASH_RATIO)
 POSITION *dedupHash = NULL; // Dedup hashtable
 
-POSITION *dedupHashExpand() {
+void dedupHashExpand() {
     if (dedupHash == NULL) {
         dedupHashSize = DEDUP_HASH_SIZE_INITIAL;
         dedupHash = (POSITION *) calloc(dedupHashSize, sizeof(POSITION));
@@ -1103,7 +1103,7 @@ void SolveWithLoopyAlgorithm(POSITION start, POSITION end) {
 	//int i,numMoves; // the generateMovesEfficient stuff is commented out for now
 	ifprintf(gTierSolvePrint, "--Setting up Child Counters and Frontier Hashtables...\n");
 	rInitFRStuff();
-	ifprintf(gTierSolvePrint, "--Doing an sweep of the tier, and setting up the frontier...\n");
+	ifprintf(gTierSolvePrint, "--Doing a sweep of the tier, and setting up the frontier...\n");
 	for (pos = start; pos < end; pos++) { // SET UP PARENTS
 		posSaver = pos;
 solve_start: // GASP!! A LABEL!!
@@ -1175,7 +1175,7 @@ solve_start: // GASP!! A LABEL!!
 		return;
 	}
 	// SET UP FRONTIER!
-	ifprintf(gTierSolvePrint, "--Doing an sweep of child tiers, and setting up the frontier...\n");
+	ifprintf(gTierSolvePrint, "--Doing a sweep of child tiers, and setting up the frontier...\n");
 	for (pos = gCurrentTierSize; pos < gNumberOfPositions; pos++) {
 		if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (!useUndo && rParents[pos] == NULL) // if we didn't even see this child, don't put it on frontier!
@@ -1193,9 +1193,10 @@ solve_start: // GASP!! A LABEL!!
 		      || value == undecided))
 			rInsertFR(value, pos, remoteness);
 	}
+	tierdb_free_childpositions();
 	if (usingLevelFiles) l_freeBitArray();
 	ifprintf(gTierSolvePrint, "\n--Beginning the loopy algorithm...\n");
-	REMOTENESS r; POSITIONLIST* list;
+	REMOTENESS r; IPOSITIONLIST* list;
 	ifprintf(gTierSolvePrint, "--Processing Lose/Win Frontiers!\n");
 	for (r = 0; r <= REMOTENESS_MAX; r++) {
 		if (r!=REMOTENESS_MAX) {
@@ -1233,13 +1234,19 @@ solve_start: // GASP!! A LABEL!!
 	assert(numSolved == trueSizeOfTier);
 }
 
-void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remotenessChild) {
+void LoopyParentsHelper(IPOSITIONLIST* list, VALUE valueParents, REMOTENESS remotenessChild) {
 	POSITION child, parent;
-	FRnode *miniLoseFR = NULL;
+	IFRnode *miniLoseFR = NULL;
 	UNDOMOVELIST *parents, *parentsPtr;
 	POSITIONLIST *parentList;
-	for (; list != NULL; list = list->next) {
-		child = list->position;
+
+	unsigned long long idx = 0;
+	IPOSITIONSUBLIST *currISL = list->head;
+	while (idx < list->size) {
+		child = currISL->positions[idx & 1023];
+		idx++;
+		if ((idx & 1023) == 0)
+			currISL = currISL->next;
 		if (useUndo) { // use the UndoMove lists
 			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, gCurrentTier);
 			if (dedupHash != NULL) {
@@ -1272,7 +1279,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					} else if (valueParents == lose) {
 						childCounts[parent] -= 1;
 						if (childCounts[parent] != 0) continue;
-						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+						miniLoseFR = StorePositionInIList(parent, miniLoseFR);
 					}
 					SetRemoteness(parent, remotenessChild+1);
 					StoreValueOfPosition(parent, valueParents);
@@ -1291,7 +1298,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					} else if (valueParents == lose) {
 						childCounts[parent] -= 1;
 						if (childCounts[parent] != 0) continue;
-						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+						miniLoseFR = StorePositionInIList(parent, miniLoseFR);
 					}
 					SetRemoteness(parent, remotenessChild+1);
 					StoreValueOfPosition(parent, valueParents);
@@ -1305,7 +1312,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 			miniLoseFR = NULL;
 		}
 	}
-	FreePositionList(list); // no longer need it!
+	FreeIPositionList(list); // no longer need it!
 }
 
 

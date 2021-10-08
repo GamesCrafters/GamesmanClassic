@@ -77,6 +77,29 @@ typedef enum static_func_msg_enum
 }
 STATICMESSAGE;
 
+typedef struct ipositionlistsublist
+{
+	POSITION *positions;
+	struct ipositionlistsublist *next;
+}
+IPOSITIONSUBLIST;
+
+typedef struct ipositionlist
+{
+	unsigned long long size;
+	struct ipositionlistsublist *head;
+	struct ipositionlistsublist *tail;
+}
+IPOSITIONLIST, IFRnode;
+
+typedef struct ipositioniter
+{
+	struct ipositionlist *ipl;
+	struct ipositionlistsublist *currISL;
+	unsigned long long idx;
+}
+IPOSITIONITER;
+
 typedef struct positionlist_item
 {
 	POSITION position;

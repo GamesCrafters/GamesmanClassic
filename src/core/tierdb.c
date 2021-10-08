@@ -122,6 +122,12 @@ void tierdb_init(DB_Table *new_db)
 	new_db->load_database = tierdb_load_database;
 }
 
+void tierdb_free_childpositions()
+{
+	if (tierdb_array)
+		tierdb_array = (tierdb_cellValue *) SafeRealloc(tierdb_array, gCurrentTierSize * sizeof(tierdb_cellValue));
+}
+
 void tierdb_free()
 {
 	if(tierdb_array)
