@@ -10,6 +10,9 @@ TIERLIST* RemoteGetTierSolveOrder();
 TIERPOSITION RemoteGetTierSize(TIER);
 int RemoteGetTierDependencies(TIER);
 
+void dedupHashExpand();
+BOOLEAN dedupHashAdd(POSITION pos);
+
 BOOLEAN RemoteCanISolveTier(TIER);
 void RemoteSolveTier(TIER, TIERPOSITION, TIERPOSITION);
 BOOLEAN RemoteMergeToMakeTierDBIfCan(TIER);

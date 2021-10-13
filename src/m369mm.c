@@ -1439,15 +1439,19 @@ void GameSpecificMenu() {
 			printf("\tm)\tWhen mill is formed, can remove opponent's piece if it is not in a mill, unless if all the remaining pieces are already in a mill.\n");
 		}
 
-		if (gameType == 3) {
-			printf("\tn)\tSwitch to Six Men's Morris.\n");
+		char currentType[10];
+		strcpy(currentType, gameType == 3 ? "Three" : gameType == 6 ? "Six" : "Nine");
+
+		if (gameType != 3) {
+			printf("\t3)\tSwitch from %s Men's Morris to Three Men's Morris.\n", currentType);
 		}
-		else if (gameType == 6) {
-			printf("\tn)\tSwitch to Nine Men's Morris.\n");
+		if (gameType != 6) {
+			printf("\t6)\tSwitch from %s Men's Morris to Six Men's Morris.\n", currentType);
 		}
-		else if (gameType == 9) {
-			printf("\tn)\tSwitch to Three Men's Morris.\n");
+		if (gameType != 9) {
+			printf("\t9)\tSwitch from %s Men's Morris to Nine Men's Morris.\n", currentType);
 		}
+		
 
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		printf("\n\nSelect an option: ");
@@ -1460,15 +1464,16 @@ void GameSpecificMenu() {
 				millType = 2;
 			else if (millType == 2)
 				millType = 0;
-			return;
-		case 'N': case 'n':
-			if (gameType == 3)
-				changeToSix();
-			else if (gameType == 6)
-				changeToNine();
-			else if (gameType == 9)
-				changeToThree();
-			return;
+			break;
+		case '3':
+			changeToThree();
+			break;
+		case '6':
+			changeToSix();
+			break;
+		case '9':
+			changeToNine();
+			break;
 		case 'Q': case 'q':
 			ExitStageRight();
 		case 'H': case 'h':

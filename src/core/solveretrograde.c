@@ -75,11 +75,11 @@ BOOLEAN ConfirmAction(char);
 void SolveTier(POSITION, POSITION);
 void SolveWithNonLoopyAlgorithm(POSITION, POSITION);
 void SolveWithLoopyAlgorithm(POSITION, POSITION);
-void LoopyParentsHelper(POSITIONLIST*, VALUE, REMOTENESS);
+void LoopyParentsHelper(IPOSITIONLIST*, VALUE, REMOTENESS);
 // Solver ChildCounter and Hashtable functions
 void rInitFRStuff();
 void rFreeFRStuff();
-POSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
+IPOSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
 void rInsertFR(VALUE, POSITION, REMOTENESS);
 // Sanity Checkers
 void checkForCorrectness(POSITION, POSITION);
@@ -751,9 +751,9 @@ POSITIONLIST** rParents;
 /* Rather than a Frontier Queue, this uses a sort of hashtable,
    with a POSITIONLIST for every REMOTENESS from 0 to REMOTENESS_MAX-1.
    It's constant time insert and remove, so it works just fine. */
-FRnode**        rWinFR = NULL;  // The FRontier Win Hashtable
-FRnode**        rLoseFR = NULL; // The FRontier Lose Hashtable
-FRnode**        rTieFR = NULL;  // The FRontier Tie Hashtable
+IFRnode**        rWinFR = NULL;  // The FRontier Win Hashtable
+IFRnode**        rLoseFR = NULL; // The FRontier Lose Hashtable
+IFRnode**        rTieFR = NULL;  // The FRontier Tie Hashtable
 
 // A "hack" for dealing with a later-explained partial solve case
 POSITIONLIST* solveTheseTooList;
@@ -799,9 +799,9 @@ void rInitFRStuff() {
 			rParents[i] = NULL;
 	}
 	// 255 * 4 bytes = 1,020 bytes = ~1 KB
-	rWinFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*));
-	rLoseFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*)); // ~1 KB
-	rTieFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*)); // ~1 KB
+	rWinFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*));
+	rLoseFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*)); // ~1 KB
+	rTieFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*)); // ~1 KB
 	for (i = 0; i < REMOTENESS_MAX; i++)
 		rWinFR[i] = rLoseFR[i] = rTieFR[i] = NULL;
 	solveTheseTooList = NULL;
@@ -822,7 +822,7 @@ void rFreeFRStuff() {
 	if (rTieFR != NULL) SafeFree(rTieFR);
 }
 
-POSITIONLIST* rRemoveFRList(VALUE value, REMOTENESS r) {
+IPOSITIONLIST* rRemoveFRList(VALUE value, REMOTENESS r) {
 	if (value == win)
 		return rWinFR[r];
 	else if (value == lose)
@@ -836,11 +836,11 @@ void rInsertFR(VALUE value, POSITION position, REMOTENESS r) {
 	// this is probably the best place to put this:
 	assert(r >= 0 && r < REMOTENESS_MAX);
 	if(value == win)
-		rWinFR[r] = StorePositionInList(position, rWinFR[r]);
+		rWinFR[r] = StorePositionInIList(position, rWinFR[r]);
 	else if (value == lose)
-		rLoseFR[r] = StorePositionInList(position, rLoseFR[r]);
+		rLoseFR[r] = StorePositionInIList(position, rLoseFR[r]);
 	else if (value == tie)
-		rTieFR[r] = StorePositionInList(position, rTieFR[r]);
+		rTieFR[r] = StorePositionInIList(position, rTieFR[r]);
 }
 
 
@@ -1002,6 +1002,69 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 	}
 	if (usingLevelFiles) l_freeBitArray();
 }
+unsigned long long dedupHashSize = 0ULL; // Number of slots in dedup hash
+unsigned long long dedupHashElem = 0ULL; // Number of entries added to dedup hash
+unsigned long long dedupHashMask = 0LL;
+unsigned long long dedupHashBytes = 0LL;
+unsigned long long DEDUP_HASH_SIZE_INITIAL = 32LL; // Initial size of Dedup Hash
+int DEDUP_HASH_RATIO = 2; // Keep dedup hash size > (dedupHashElem << DEDUP_HASH_RATIO)
+POSITION *dedupHash = NULL; // Dedup hashtable
+
+void dedupHashExpand() {
+    if (dedupHash == NULL) {
+        dedupHashSize = DEDUP_HASH_SIZE_INITIAL;
+        dedupHash = (POSITION *) calloc(dedupHashSize, sizeof(POSITION));
+		if (dedupHash == NULL) {
+			fprintf(stderr, "Error: calloc failed to allocate");
+			ExitStageRight();
+			exit(0);
+		}
+	} else {
+        unsigned long long oldDedupHashSize = dedupHashSize;
+		dedupHashSize *= 2;
+        printf("Expanding Dedup Hash to %lld\n", dedupHashSize);
+		POSITION *oldDedupHash = dedupHash;
+        dedupHash = (POSITION *) calloc(dedupHashSize, sizeof(POSITION));
+		if (dedupHash == NULL) {
+			fprintf(stderr, "Error: calloc failed to allocate");
+			ExitStageRight();
+			exit(0);
+		}
+		for (int i = 0; i < oldDedupHashSize; i++) {
+			if (oldDedupHash[i] != 0) {
+				dedupHashAdd(oldDedupHash[i] - 1);
+			}
+		}
+		SafeFree(oldDedupHash);
+    }
+	dedupHashMask = dedupHashSize - 1;
+	dedupHashBytes = dedupHashSize * sizeof(POSITION);
+}
+
+// if the element exists already, return FALSE
+// if the element doesn't exist, add it, return TRUE
+BOOLEAN dedupHashAdd(POSITION pos) {
+    if (dedupHashSize <= (dedupHashElem << DEDUP_HASH_RATIO)) {
+        dedupHashExpand();
+    }
+    POSITION posAdjusted = pos + 1;
+	unsigned long long slot = posAdjusted & dedupHashMask;
+	while (TRUE) {
+		if (dedupHash[slot] == 0) {
+			dedupHash[slot] = posAdjusted;
+			dedupHashElem++;
+			return TRUE;
+		} else if (dedupHash[slot] == posAdjusted) {
+			return FALSE;
+		} else {
+			if (slot == 0) {
+				slot = dedupHashSize - 1;
+			} else {
+				slot -= 1;
+			}
+		}
+	}
+}
 
 /************************************************************************
 **
@@ -1040,7 +1103,7 @@ void SolveWithLoopyAlgorithm(POSITION start, POSITION end) {
 	//int i,numMoves; // the generateMovesEfficient stuff is commented out for now
 	ifprintf(gTierSolvePrint, "--Setting up Child Counters and Frontier Hashtables...\n");
 	rInitFRStuff();
-	ifprintf(gTierSolvePrint, "--Doing an sweep of the tier, and setting up the frontier...\n");
+	ifprintf(gTierSolvePrint, "--Doing a sweep of the tier, and setting up the frontier...\n");
 	for (pos = start; pos < end; pos++) { // SET UP PARENTS
 		posSaver = pos;
 solve_start: // GASP!! A LABEL!!
@@ -1059,50 +1122,35 @@ solve_start: // GASP!! A LABEL!!
 			} else {
 				//if (gGenerateMovesEfficientFunPtr == NULL) { // do the normal stuff
 				moves = movesptr = GenerateMoves(pos);
+				if (dedupHash != NULL) {
+					dedupHashElem = 0LL;
+					memset(dedupHash, 0, dedupHashBytes);
+				}
 				if (moves == NULL) { // no chillins
 					printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
 					ExitStageRight();
 				} else {
 					//otherwise, make a Child Counter for it
 					movesptr = moves;
-					for (; movesptr != NULL; movesptr = movesptr->next) {
+                    for (; movesptr != NULL; movesptr = movesptr->next) {
+                    	child = gSymmetries ? gCanonicalPosition(DoMove(pos, movesptr->move)) : DoMove(pos, movesptr->move);
+						if (gSymmetries && useUndo && !dedupHashAdd(child)) continue;
 						childCounts[pos]++;
-						child = DoMove(pos, movesptr->move);
-						// here's the "partial solving" complication: to solve a position,
-						// we might have to solve another in this tier that's not part of our
-						// bounds! So, we need to run this loop for those guys too. To do this,
-						// we maintain a list of guys to run it for too.
-						// It uses the childCounts to ensure no duplicate iterations
-						if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0
-						    && (child < start || child >= end)) {
-							solveTheseTooList = StorePositionInList(child, solveTheseTooList);
-						}
-						if (!useUndo) { // if parent pointers, add to parent pointer list
-							rParents[child] = StorePositionInList(pos, rParents[child]);
-						}
-					}
-					FreeMoveList(moves);
+
+                    	// here's the "partial solving" complication: to solve a position,
+                    	// we might have to solve another in this tier that's not part of our
+                    	// bounds! So, we need to run this loop for those guys too. To do this,
+                    	// we maintain a list of guys to run it for too.
+                    	// It uses the childCounts to ensure no duplicate iterations
+                    	if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0 && (child < start || child >= end)) {
+                        	solveTheseTooList = StorePositionInList(child, solveTheseTooList);
+                    	}
+                    	if (!useUndo) { // if parent pointers, add to parent pointer list
+                        	rParents[child] = StorePositionInList(pos, rParents[child]);
+                    	}
+                    }
+                    FreeMoveList(moves);
 				}
-				//} else { // do the experimental stuff!
-				//    numMoves = gGenerateMovesEfficientFunPtr(pos);
-				//    if (numMoves == 0) { // no chillins
-				//        printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
-				//        ExitStageRight();
-				//    } else {
-				//        //otherwise, make a Child Counter for it
-				//        for (i = 0; i < numMoves; i++) {
-				//            childCounts[pos]++;
-				//            child = DoMove(pos, gGenerateMovesArray[i]);
-				//            if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0
-				//                    && child < start && child >= end) {
-				//                solveTheseTooList = StorePositionInList(child, solveTheseTooList);
-				//            }
-				//            if (!useUndo) {// if parent pointers, add to parent pointer list
-				//                rParents[child] = StorePositionInList(pos, rParents[child]);
-				//            }
-				//        }
-				//    }
-				//}
 			}
 		}
 		// before ending the for-loop, we need to go through the solveTheseTooList
@@ -1127,23 +1175,28 @@ solve_start: // GASP!! A LABEL!!
 		return;
 	}
 	// SET UP FRONTIER!
-	ifprintf(gTierSolvePrint, "--Doing an sweep of child tiers, and setting up the frontier...\n");
+	ifprintf(gTierSolvePrint, "--Doing a sweep of child tiers, and setting up the frontier...\n");
 	for (pos = gCurrentTierSize; pos < gNumberOfPositions; pos++) {
 		if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (!useUndo && rParents[pos] == NULL) // if we didn't even see this child, don't put it on frontier!
 			continue;
-		if (gSymmetries) // use the canonical position's values
-			canonPos = gCanonicalPosition(pos); //to tell where i go!
-		else canonPos = pos; // else ignore
+		if (gSymmetries) {// use the canonical position's values
+			canonPos = gCanonicalPosition(pos);
+			if (useUndo && pos != canonPos)
+				continue;
+		} else {
+			canonPos = pos; // else ignore
+		}
 		value = GetValueOfPosition(canonPos);
 		remoteness = Remoteness(canonPos);
 		if (!((value == tie && remoteness == REMOTENESS_MAX)
 		      || value == undecided))
 			rInsertFR(value, pos, remoteness);
 	}
+	tierdb_free_childpositions();
 	if (usingLevelFiles) l_freeBitArray();
 	ifprintf(gTierSolvePrint, "\n--Beginning the loopy algorithm...\n");
-	REMOTENESS r; POSITIONLIST* list;
+	REMOTENESS r; IPOSITIONLIST* list;
 	ifprintf(gTierSolvePrint, "--Processing Lose/Win Frontiers!\n");
 	for (r = 0; r <= REMOTENESS_MAX; r++) {
 		if (r!=REMOTENESS_MAX) {
@@ -1181,19 +1234,32 @@ solve_start: // GASP!! A LABEL!!
 	assert(numSolved == trueSizeOfTier);
 }
 
-void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remotenessChild) {
+void LoopyParentsHelper(IPOSITIONLIST* list, VALUE valueParents, REMOTENESS remotenessChild) {
 	POSITION child, parent;
-	FRnode *miniLoseFR = NULL;
+	IFRnode *miniLoseFR = NULL;
 	UNDOMOVELIST *parents, *parentsPtr;
 	POSITIONLIST *parentList;
-	for (; list != NULL; list = list->next) {
-		child = list->position;
+
+	unsigned long long idx = 0;
+	IPOSITIONSUBLIST *currISL = list->head;
+	while (idx < list->size) {
+		child = currISL->positions[idx & 1023];
+		idx++;
+		if ((idx & 1023) == 0)
+			currISL = currISL->next;
 		if (useUndo) { // use the UndoMove lists
 			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, gCurrentTier);
+			if (dedupHash != NULL) {
+				dedupHashElem = 0LL;
+				memset(dedupHash, 0, dedupHashBytes);
+			}
 			for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
-				parent = gUnDoMoveFunPtr(child, parentsPtr->undomove);
+				parent = gSymmetries ? gCanonicalPosition(gUnDoMoveFunPtr(child, parentsPtr->undomove)) : gUnDoMoveFunPtr(child, parentsPtr->undomove);
+				if (gSymmetries && !dedupHashAdd(parent)) continue;
+				
 				if (parent >= gCurrentTierSize) {
 					TIERPOSITION tp; TIER t;
+					
 					gUnhashToTierPosition(parent, &tp, &t);
 					printf("ERROR: %llu generated undo-parent %llu (Tier: %llu, TierPosition: %llu),\n"
 					       "which is not in the current tier being solved!\n", child, parent, t, tp);
@@ -1207,13 +1273,13 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					// Same with tie children.
 					if (valueParents == win || valueParents == tie) {
 						childCounts[parent] = 0; // reset child counter
-						rInsertFR(valueParents, parent, remotenessChild+1);
+						rInsertFR(valueParents, parent, remotenessChild + 1);
 						// With winning children, first decrement the child counter by one. If
 						// child counter reaches 0, put the parent not in the FR but in the miniFR.
 					} else if (valueParents == lose) {
 						childCounts[parent] -= 1;
 						if (childCounts[parent] != 0) continue;
-						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+						miniLoseFR = StorePositionInIList(parent, miniLoseFR);
 					}
 					SetRemoteness(parent, remotenessChild+1);
 					StoreValueOfPosition(parent, valueParents);
@@ -1232,7 +1298,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					} else if (valueParents == lose) {
 						childCounts[parent] -= 1;
 						if (childCounts[parent] != 0) continue;
-						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+						miniLoseFR = StorePositionInIList(parent, miniLoseFR);
 					}
 					SetRemoteness(parent, remotenessChild+1);
 					StoreValueOfPosition(parent, valueParents);
@@ -1246,7 +1312,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 			miniLoseFR = NULL;
 		}
 	}
-	FreePositionList(list); // no longer need it!
+	FreeIPositionList(list); // no longer need it!
 }
 
 
