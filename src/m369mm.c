@@ -404,29 +404,26 @@ typedef struct {
 
 #define HASH_RECORDS 100000
 
-HASH_RECORD hash_records[HASH_RECORDS];
+HASH_RECORD hashRecords[HASH_RECORDS];
 
 int hashCacheInited = 0;
-int hash_file_tier = -1;
-FILE *hash_file_fp = NULL;
 
 void hashCacheInit() {
 	for (long i=0; i<HASH_RECORDS; i++) {
-		hash_records[i].position = -1LL;
+		hashRecords[i].position = -1LL;
 	}
 	hashCacheInited = 1;
-	hash_file_tier = -1;
 }
 
 void hashCachePut(int tier, POSITION position, char *board) {
 	if (!hashCacheInited) hashCacheInit();
 
 	long i = position % HASH_RECORDS;
-	if (hash_records[i].tier != tier ||
-		hash_records[i].position != position) {
-		hash_records[i].tier = tier;
-		hash_records[i].position = position;
-		memcpy(hash_records[i].board, board, BOARDSIZE);
+	if (hashRecords[i].tier != tier ||
+		hashRecords[i].position != position) {
+		hashRecords[i].tier = tier;
+		hashRecords[i].position = position;
+		memcpy(hashRecords[i].board, board, BOARDSIZE);
 	}
 }
 
@@ -435,9 +432,9 @@ BOOLEAN hashCacheGet(int tier, POSITION position, char *board) {
 	if (!hashCacheInited) hashCacheInit();
 
 	long i = position % HASH_RECORDS;
-	if (hash_records[i].tier == tier &&
-		hash_records[i].position == position) {
-		memcpy(board, hash_records[i].board, BOARDSIZE);
+	if (hashRecords[i].tier == tier &&
+		hashRecords[i].position == position) {
+		memcpy(board, hashRecords[i].board, BOARDSIZE);
 		return FALSE;
 	}
 	return TRUE;
@@ -1262,11 +1259,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	SafeFree(board);
 
 	do {
+		int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
 		printf("%8s's move: (u)ndo/", playersName);
 		if (piecesLeft != 0) // STAGE 1 : PLACING
-			printf("0-15/[0-15 0-15]            ");
+			printf("0-%d/[0-%d 0-%d]            ", maxslots, maxslots, maxslots);
 		else {
-			printf("[0-15 0-15]/[0-15 0-15 0-15]");
+			printf("[0-%d 0-%d]/[0-%d 0-%d 0-%d]", maxslots, maxslots, maxslots, maxslots);
 		}
 		printf(": ");
 
@@ -1359,8 +1357,8 @@ MOVE ConvertTextInputToMove(STRING input) {
 		from = 31;
 		remove = 31;
 	}
-	printf("converttextinputtomove.... move = %d\n", MOVE_ENCODE(from, to, remove));
-	printf("from: %d, to: %d, remove: %d\n", from, to, remove);
+	//printf("converttextinputtomove.... move = %d\n", MOVE_ENCODE(from, to, remove));
+	//printf("from: %d, to: %d, remove: %d\n", from, to, remove);
 	return MOVE_ENCODE(from, to, remove); //HASHES THE MOVE
 }
 
