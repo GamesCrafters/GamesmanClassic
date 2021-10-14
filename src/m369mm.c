@@ -84,7 +84,7 @@ STRING kHelpExample =
 ** Variants
 **
 **************************************************************************/
-BOOLEAN gFlying = FALSE;
+BOOLEAN gFlying = TRUE;
 int gameType = 6; // 3,6,9 men's morris
 int millType = 0; // 0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
 
@@ -404,29 +404,26 @@ typedef struct {
 
 #define HASH_RECORDS 100000
 
-HASH_RECORD hash_records[HASH_RECORDS];
+HASH_RECORD hashRecords[HASH_RECORDS];
 
 int hashCacheInited = 0;
-int hash_file_tier = -1;
-FILE *hash_file_fp = NULL;
 
 void hashCacheInit() {
 	for (long i=0; i<HASH_RECORDS; i++) {
-		hash_records[i].position = -1LL;
+		hashRecords[i].position = -1LL;
 	}
 	hashCacheInited = 1;
-	hash_file_tier = -1;
 }
 
 void hashCachePut(int tier, POSITION position, char *board) {
 	if (!hashCacheInited) hashCacheInit();
 
 	long i = position % HASH_RECORDS;
-	if (hash_records[i].tier != tier ||
-		hash_records[i].position != position) {
-		hash_records[i].tier = tier;
-		hash_records[i].position = position;
-		memcpy(hash_records[i].board, board, BOARDSIZE);
+	if (hashRecords[i].tier != tier ||
+		hashRecords[i].position != position) {
+		hashRecords[i].tier = tier;
+		hashRecords[i].position = position;
+		memcpy(hashRecords[i].board, board, BOARDSIZE);
 	}
 }
 
@@ -435,9 +432,9 @@ BOOLEAN hashCacheGet(int tier, POSITION position, char *board) {
 	if (!hashCacheInited) hashCacheInit();
 
 	long i = position % HASH_RECORDS;
-	if (hash_records[i].tier == tier &&
-		hash_records[i].position == position) {
-		memcpy(board, hash_records[i].board, BOARDSIZE);
+	if (hashRecords[i].tier == tier &&
+		hashRecords[i].position == position) {
+		memcpy(board, hashRecords[i].board, BOARDSIZE);
 		return FALSE;
 	}
 	return TRUE;
@@ -1131,108 +1128,24 @@ STRING MoveToString(MOVE move) {
 	int tier, piecesLeft;
 
 	STRING movestring;
-	tier = generic_hash_cur_context();
-	piecesLeft = tier / 100;
-	if (piecesLeft == 0) {
-		if (removeIdx != 31) {
-			movestring = (STRING) SafeMalloc(12);
-			sprintf( movestring, "[%d %d %d]",fromIdx, toIdx, removeIdx);
-		} else {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d %d]", fromIdx, toIdx);
-		}
+	//tier = generic_hash_cur_context();
+	//piecesLeft = tier / 100;
+	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
+		movestring = (STRING) SafeMalloc(12);
+		sprintf( movestring, "[%d-%dr%d]",fromIdx, toIdx, removeIdx);
+	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
+		movestring = (STRING) SafeMalloc(8);
+		sprintf( movestring, "[%d-%d]", fromIdx, toIdx);
+	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
+		movestring = (STRING) SafeMalloc(8);
+		sprintf(movestring, "[%d]", toIdx);
 	} else {
-		if (removeIdx == 31) {//if 1st == 2nd position in move formula
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d]", toIdx);
-		} else {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d %d]", toIdx, removeIdx);
-		}
+		movestring = (STRING) SafeMalloc(8);
+		sprintf(movestring, "[%dr%d]", toIdx, removeIdx);
 	}
 
 	return movestring;
 }
-
-STRING UndoMoveToString(UNDOMOVE move) {
-	int fromIdx = move >> 10;
-	int toIdx = (move >> 5) & 0x1F;
-	int removeIdx = move & 0x1F;
-	/* Correction for PECULIARITY */
-	if (toIdx == removeIdx) {
-		toIdx = fromIdx;
-		fromIdx = 31;
-	}
-	int tier, piecesLeft;
-
-	STRING movestring;
-	tier = generic_hash_cur_context();
-	piecesLeft = tier / 100;
-	if (piecesLeft == 0) {
-		if (removeIdx != 31) {
-			movestring = (STRING) SafeMalloc(12);
-			sprintf( movestring, "[%d %d %d]",fromIdx, toIdx, removeIdx);
-		} else {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d %d]", fromIdx, toIdx);
-		}
-	} else {
-		if (removeIdx == 31) {//if 1st == 2nd position in move formula
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d]", toIdx);
-		} else {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d %d]", toIdx, removeIdx);
-		}
-	}
-
-	return movestring;
-}
-
-
-STRING MoveToStringOld (MOVE move) {
-	int to = (move%(BOARDSIZE*BOARDSIZE)) / BOARDSIZE;
-	int from = move / (BOARDSIZE * BOARDSIZE);
-	int remove = move % BOARDSIZE;
-	int tier, piecesLeft;
-
-	STRING movestring;
-	tier = generic_hash_cur_context();
-	piecesLeft = tier/100;
-	if (piecesLeft == 0)
-	{
-		if(from != remove)
-		{
-			movestring = (STRING) SafeMalloc(12);
-			sprintf( movestring, "[%d %d %d]",from, to, remove );
-		}
-		else if(from == to && to == remove) {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d]", from); //do not remove the '[' or ']' characters. it wil lbreak the gui
-		}
-		else {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d %d]", from, to);
-		}
-	}
-	else
-	{
-		if (from == to) //if 1st == 2nd position in move formula
-		{
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d]", from);
-		}
-		else
-		{
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d %d]", from, to);
-		}
-	}
-
-
-	return movestring;
-}
-
 
 /************************************************************************
 **
@@ -1262,11 +1175,12 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	SafeFree(board);
 
 	do {
+		int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
 		printf("%8s's move: (u)ndo/", playersName);
 		if (piecesLeft != 0) // STAGE 1 : PLACING
-			printf("0-15/[0-15 0-15]            ");
+			printf("0-%d/[0-%d 0-%d]            ", maxslots, maxslots, maxslots);
 		else {
-			printf("[0-15 0-15]/[0-15 0-15 0-15]");
+			printf("[0-%d 0-%d]/[0-%d 0-%d 0-%d]", maxslots, maxslots, maxslots, maxslots, maxslots);
 		}
 		printf(": ");
 
@@ -1308,11 +1222,38 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput(STRING input) {
 	//DONE
-	if(input[0]>57 || input[0]<48)
-		return FALSE;
-	else
-		return TRUE;
-
+	int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
+	int i = 0;
+	BOOLEAN existsR = FALSE;
+	BOOLEAN existsDash = FALSE;
+	int currNum = 0;
+	while (input[i] != '\0') {
+		if (!((input[i] >= 48 && input[i] <= 57) || input[i] == '-' || input[i] == 'r')) {
+			return FALSE;
+		}
+		if (input[i] == '-') {
+			if (existsDash || existsR) {
+				return FALSE;
+			} else {
+				existsDash = TRUE;
+				currNum = 0;
+			}
+		} else if (input[i] == 'r') {
+			if (existsR) {
+				return FALSE;
+			} else {
+				existsR = TRUE;
+				currNum = 0;			
+			}
+		} else {
+			currNum = currNum * 10 + (input[i] - '0');
+			if (currNum > maxslots) {
+				return FALSE;
+			}
+		}
+		i++;
+	}
+	return TRUE;
 }
 
 /************************************************************************
@@ -1331,69 +1272,53 @@ BOOLEAN ValidTextInput(STRING input) {
 
 MOVE ConvertTextInputToMove(STRING input) {
 	//DONE
-	int from, to, remove;
-	STRING afterSpace;
-	STRING after2Space;
-	BOOLEAN hasSpace, has2Space;
+	int from = 31;
+	int to = 31; //that way if no input for remove, it's equal to from. useful in function DoMove
+	int remove = 31; // for stage 1, if there is nothing to remove
 
-	from = atoi(input);
-	to = 31; //that way if no input for remove, it's equal to from. useful in function DoMove
-	remove = 31; // for stage 1, if there is nothing to remove
-
-	hasSpace = index(input, ' ') != NULL;
-
-	if (hasSpace) {
-		afterSpace = index(input, ' ');
-		to = atoi(afterSpace);
-
-		has2Space = index(++afterSpace, ' ') != NULL;
-
-		if (has2Space) {
-			after2Space = index(afterSpace, ' ');
-			remove = atoi(after2Space);
-		} else {
-			remove = to;
+	int i = 0;
+	int phase = 0;
+	int first = 0;
+	int second = 0;
+	int third = 0;
+	BOOLEAN existsSliding = FALSE;
+	while (input[i] != '\0') {
+		if (input[i] == 'r' || input[i] == '-') {
+			if (input[i] == '-') {
+				existsSliding = TRUE;
+			}
+			phase++;
+			i++;
+			continue;
 		}
-	} else {
-		to = from;
-		from = 31;
-		remove = 31;
+		if (phase == 0) {
+			first = first * 10 + (input[i] - '0');
+		} else if (phase == 1) {
+			second = second * 10 + (input[i] - '0');
+		} else {
+			third = third * 10 + (input[i] - '0');
+		}
+		i++;
 	}
-	printf("converttextinputtomove.... move = %d\n", MOVE_ENCODE(from, to, remove));
-	printf("from: %d, to: %d, remove: %d\n", from, to, remove);
+
+	if (phase == 0) { // Placement without removal
+		to = first;
+	} else if (phase == 2) { // Sliding/flying with removal
+		from = first;
+		to = second;
+		remove = third;
+	} else if (existsSliding) { // Sliding/flying without removal
+		from = first;
+		to = second;
+	} else { // Placement with removal peculiarity.
+		from = first;
+		to = second;
+		remove = second;
+	}
+	//printf("converttextinputtomove.... move = %d\n", MOVE_ENCODE(from, to, remove));
+	//printf("from: %d, to: %d, remove: %d\n", from, to, remove);
 	return MOVE_ENCODE(from, to, remove); //HASHES THE MOVE
 }
-
-MOVE ConvertTextInputToMoveOld(STRING input) {
-	//DONE
-	int from, to, remove;
-	STRING afterSpace;
-	STRING after2Space;
-	BOOLEAN hasSpace, has2Space;
-
-	from = atoi(input);
-	remove = from; //that way if no input for remove, it's equal to from. useful in function DoMove
-	to = from; // for stage 1, if there is nothing to remove
-
-	hasSpace = index(input, ' ') != NULL;
-
-	if (hasSpace) {
-		afterSpace = index(input, ' ');
-		to = atoi(afterSpace);
-
-		has2Space = index(++afterSpace, ' ') != NULL;
-
-		if (has2Space) {
-			after2Space = index(afterSpace, ' ');
-			remove = atoi(after2Space);
-		}
-
-	}
-	//printf("converttextinputtomove.... move = %d\n", (from * BOARDSIZE * BOARDSIZE) + (to * BOARDSIZE) + remove);
-	//printf("from: %d, to: %d, remove: %d\n", from, to, remove);
-	return ((from * BOARDSIZE * BOARDSIZE) + (to * BOARDSIZE) + remove); //HASHES THE MOVE
-}
-
 
 /************************************************************************
 **
@@ -1580,7 +1505,7 @@ void setOption(int option) {
 	gStandardGame = (option % 2);
 	gFlying       = (option >> 1) % 2;
 	temp = gameType;
-	gameType = (((option>>2)+1)*3);
+	gameType = ((((option>>2) % 4)+1)*3);
 	millType = (option >> 4);
 	if((temp != gameType) && (gameType==3)) {
 		changeToThree();
