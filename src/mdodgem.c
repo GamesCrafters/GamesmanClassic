@@ -943,7 +943,7 @@ STRING MoveToString(MOVE theMove) {
 
 	fromSlot = fromSlot / 3 + 4 + fromSlot;
 
-	if (toSlot == 9) {
+	if (toSlot == OFFTHEBOARD) {
 		if (fromSlot / 4 == 1) {
 			// If the piece is moving off the board from top row
 			toSlot = fromSlot - 4;
@@ -952,7 +952,7 @@ STRING MoveToString(MOVE theMove) {
 			toSlot = fromSlot + 1;
 		}
 	} else {
-		toSlot = toSlot / 3 + 4 + fromSlot;
+		toSlot = toSlot / 3 + 4 + toSlot;
 	}
 
 	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
