@@ -84,7 +84,7 @@ STRING kHelpExample =
 ** Variants
 **
 **************************************************************************/
-BOOLEAN gFlying = TRUE;
+BOOLEAN gFlying = FALSE;
 int gameType = 6; // 3,6,9 men's morris
 int millType = 0; // 0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
 
@@ -1174,13 +1174,35 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 	char *board = unhash(position, &turn, &piecesLeft, &numx, &numo);
 	SafeFree(board);
 
+	BOOLEAN existsRemoves = FALSE;
+	BOOLEAN allRemoves = TRUE;
+	MOVELIST *moveList = GenerateMoves(position);
+	MOVELIST *moveListPtr = moveList;
+	for (; moveListPtr != NULL; moveListPtr = moveListPtr->next) {
+		if ((moveListPtr->move & 0x1F) != 31) {
+			existsRemoves = TRUE;
+		} else {
+			allRemoves = FALSE;
+		}
+	}
+	SafeFree(moveList);
+
 	do {
 		int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
-		printf("%8s's move: (u)ndo/", playersName);
-		if (piecesLeft != 0) // STAGE 1 : PLACING
-			printf("0-%d/[0-%d 0-%d]            ", maxslots, maxslots, maxslots);
-		else {
-			printf("[0-%d 0-%d]/[0-%d 0-%d 0-%d]", maxslots, maxslots, maxslots, maxslots, maxslots);
+		printf("%8s's move: (u)ndo", playersName);
+		if (!allRemoves) {
+			if (piecesLeft != 0) // STAGE 1 : PLACING
+				printf(" OR [0-%d]", maxslots);
+			else {
+				printf(" OR [0-%d]-[0-%d]", maxslots, maxslots);
+			}
+		}
+		if (existsRemoves) {
+			if (piecesLeft != 0) // STAGE 1 : PLACING
+				printf(" OR [0-%d]r[0-%d]", maxslots, maxslots);
+			else {
+				printf(" OR [0-%d]-[0-%d]r[0-%d]", maxslots, maxslots, maxslots);
+			}
 		}
 		printf(": ");
 
