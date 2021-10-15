@@ -143,11 +143,12 @@ Computer wins. Nice try, Dan."                                                  
 **************************************************************************/
 
 #define BOARDSIZE        9           /* 3x3 board */
-#define ROWS			 3
-#define COLS			 3
 #define POSITION_OFFSET  19683       /* 3^9 */
 #define OFFTHEBOARD      9           /* Removing that piece from the board */
 #define BADSLOT         -2           /* You've moved off the board in a bad way */
+#define INTERACT_ROWS	 4
+#define INTERACT_COLS    4
+#define INTERACT_BOARDSIZE 16
 
 typedef enum possibleBoardPieces {
 	Blank, o, x
@@ -871,9 +872,10 @@ POSITION InteractStringToPosition(STRING string) {
 	
 	POSITION position = 0;
 	for (int i = 0; i < BOARDSIZE; i += 1) {
-		if (board[i] == 'x') {
+		int offset = i / 3 + 4;
+		if (board[i + offset] == 'x') {
 			position += g3Array[i] * (int) x;
-		} else if (board[i] == 'o') {
+		} else if (board[i + offset] == 'o') {
 			position += g3Array[i] * (int) o;
 		} else {
 			position += g3Array[i] * (int) Blank;
@@ -890,7 +892,7 @@ POSITION InteractStringToPosition(STRING string) {
 
 STRING InteractPositionToString(POSITION pos) {
 
-	char oxboard[BOARDSIZE + 1];
+	char oxboard[INTERACT_BOARDSIZE + 1];
 	enum UWAPI_Turn turn;
 
 	if (pos >= POSITION_OFFSET) {
@@ -901,28 +903,57 @@ STRING InteractPositionToString(POSITION pos) {
 	}
 
 	for (int i = BOARDSIZE - 1; i >= 0; i -= 1) {
+		// 12	13	 14	  15
+		// 8    9    10   11
+		// (6)  (7)  (8)      <-- Indices in a 3x3 board
+		// 4    5    6    7
+		// (3)  (4)  (5)      <-- Indices in a 3x3 board
+		// 0    1    2    3 
+		// Therefore, we need to add offset of i/4 when putting it onto a 4x4 board
+		int offset = i / 3 + 4;
 		if (pos >= ((int) x * g3Array[i])) {
-			oxboard[i] = 'x';
+			oxboard[i + offset] = 'x';
 			pos -= (int) x * g3Array[i];
 		} else if (pos >= ((int) o * g3Array[i])) {
-			oxboard[i] = 'o';
+			oxboard[i + offset] = 'o';
 			pos -= (int) o * g3Array[i];
 		} else if (pos >= ((int) Blank * g3Array[i])) {
-			oxboard[i] = '-';
+			oxboard[i + offset] = '-';
 			pos -= (int) Blank * g3Array[i];
 		} else {
 			BadElse("InteractPositionToString");
 		}
 	}
-	oxboard[BOARDSIZE] = '\0';
 
-	return UWAPI_Board_Regular2D_MakePositionString(turn, ROWS, COLS, oxboard);
+	for (int j = 0; j < INTERACT_BOARDSIZE; j += 1) {
+		if (j % 4 == 3 || j / 4 == 0) {
+			oxboard[j] = '*';
+		}
+	}
+
+	oxboard[INTERACT_BOARDSIZE] = '\0';
+
+	return UWAPI_Board_Regular2D_MakePositionString(turn, INTERACT_ROWS, INTERACT_COLS, oxboard);
 }
 
 STRING MoveToString(MOVE theMove) {
 
 	SLOT fromSlot, toSlot;
 	MoveToSlots(theMove, &fromSlot, &toSlot);
+
+	fromSlot = fromSlot / 3 + 4 + fromSlot;
+
+	if (toSlot == 9) {
+		if (fromSlot / 4 == 1) {
+			// If the piece is moving off the board from top row
+			toSlot = fromSlot - 4;
+		} else if (fromSlot % 4 == 0) {
+			// If the piece is moving off the board from the right column
+			toSlot = fromSlot + 1;
+		}
+	} else {
+		toSlot = toSlot / 3 + 4 + fromSlot;
+	}
 
 	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
 }
