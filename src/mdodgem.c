@@ -937,25 +937,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING MoveToString(MOVE theMove) {
-
-	SLOT fromSlot, toSlot;
-	MoveToSlots(theMove, &fromSlot, &toSlot);
-
-	fromSlot = fromSlot / 3 + 4 + fromSlot;
-
-	if (toSlot == OFFTHEBOARD) {
-		if (fromSlot / 4 == 1) {
-			// If the piece is moving off the board from top row
-			toSlot = fromSlot - 4;
-		} else if (fromSlot % 4 == 0) {
-			// If the piece is moving off the board from the right column
-			toSlot = fromSlot + 1;
-		}
-	} else {
-		toSlot = toSlot / 3 + 4 + toSlot;
-	}
-
-	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+	return NULL;
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -963,5 +945,33 @@ STRING InteractPositionToEndData(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+
+	enum UWAPI_Turn turn;
+
+	if (pos >= POSITION_OFFSET) { // Player X
+		turn = UWAPI_TURN_B;
+		pos -= POSITION_OFFSET;
+	} else { // Player O
+		turn = UWAPI_TURN_A;
+	}
+
+	SLOT fromSlot, toSlot;
+	MoveToSlots(mv, &fromSlot, &toSlot);
+
+	fromSlot = fromSlot / 3 + 4 + fromSlot;
+
+	if (toSlot == OFFTHEBOARD) {
+		if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
+			// If the piece is moving off the board from the top row
+			if (turn == UWAPI_TURN_A) {
+				toSlot = fromSlot + 1;
+			} else {
+				toSlot = fromSlot - 4;
+			}
+		}
+	} else {
+		toSlot = toSlot / 3 + 4 + toSlot;
+	}
+
+	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
 }
