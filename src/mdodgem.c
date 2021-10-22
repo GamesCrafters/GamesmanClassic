@@ -950,7 +950,6 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 
 	if (pos >= POSITION_OFFSET) { // Player X
 		turn = UWAPI_TURN_B;
-		pos -= POSITION_OFFSET;
 	} else { // Player O
 		turn = UWAPI_TURN_A;
 	}
@@ -964,9 +963,9 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
 			// If the piece is moving off the board from the top row
 			if (turn == UWAPI_TURN_A) {
-				toSlot = fromSlot + 1;
-			} else {
 				toSlot = fromSlot - 4;
+			} else {
+				toSlot = fromSlot + 1;
 			}
 		}
 	} else {
