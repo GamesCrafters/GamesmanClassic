@@ -40,6 +40,11 @@
 #include "levelfile_generator.h"
 #include <stdio.h>
 
+//danny
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
+
 // TIER VARIABLES
 TIERLIST* tierSolveList; // the total list for the game, w/initial at start
 TIERLIST* solveList; // only the tiers we have yet to solve, REVERSED
@@ -63,6 +68,7 @@ POSITION l_min = 0;
 // Solver procs
 void checkExistingDB();
 void AutoSolveAllTiers();
+void AutoSolveAllTiersMultiProcess();
 BOOLEAN gotoNextTier();
 void solveFirst(TIER);
 void PrepareToSolveNextTier();
@@ -107,8 +113,11 @@ BOOLEAN SolveLevelFile(POSITION, POSITION);
 BOOLEAN l_readPartialLevelFile(POSITION*, POSITION*);
 BOOLEAN l_writeLevelFile(POSITION, POSITION);
 //Tier vis stuff
-void GenerateTierTree();
-void DoTierDependencies(TIER, FILE*);
+void GenerateTierTree(time_t times[][2]);
+void DoTierDependencies(TIER, FILE*, time_t times[][2], time_t, time_t);
+// void GenerateTierTree(time_t times[2][numTiers+1]);
+// void DoTierDependencies(TIER, FILE*, time_t times[2][numTiers+1]);
+
 
 /************************************************************************
 **
@@ -187,7 +196,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	//OK, the pure tier tree is here! let's use it from here
 	if (gVisTiers)
 	{
-		GenerateTierTree();     //Visualuzes the dotty file
+		GenerateTierTree(NULL);     //Visualizes the dotty file
 		ExitStageRight();
 	}
 
@@ -215,7 +224,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	//Now, if we need to genreate a plain file that doesn't include solved tiers, here's our chance
 	if (gVisTiersPlain) {
-		GenerateTierTree();     //outputs tiers that need to be solve to the std output
+		GenerateTierTree(NULL);     //outputs tiers that need to be solve to the std output
 		ExitStageRight();
 	}
 
@@ -248,8 +257,9 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 				printf("\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
 				       "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
 				       "\te)\tL(e)vel File Solver\n\n"
-				       "\ts)\t(S)olve the next tier.\n"
-				       "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
+				       "\ts)\t(S)olve the next tier.\n\n"
+                       "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
+                       "\tm)\tAutomate with (M)ultiple Processes the solving for all the tiers left.\n\n"
 				       "\tt)\tChange the (T)ier Solve Order.\n\n"
 				       "\tb)\t(B)egin the Game before fully solving!\n\n"
 				       "\tq)\t(Q)uit the Retrograde Solver.\n"
@@ -285,6 +295,14 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 				case 'a': case 'A':
 					printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
 					BOOLEAN loop = TRUE;
+
+					TIERLIST *list;
+			  	 list = RemoteGetTierSolveOrder();
+			  	 TIERLIST *ptr;
+			  	 for (ptr = list; ptr != NULL; ptr = ptr->next) {
+			  		 printf("tier %d\n", (int)ptr->tier);
+			  	 }
+
 					while (loop) {
 						PrepareToSolveNextTier();
 						SolveTier(0,gCurrentTierSize);
@@ -294,6 +312,12 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 					printf("\n%s is now fully solved!\n", kGameName);
 					cont = FALSE;
 					break;
+                case 'm': case 'M':
+                    printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
+						  AutoSolveAllTiersMultiProcess();
+                    printf("\n%s is now fully solved!\n", kGameName);
+                    cont = FALSE;
+                    break;
 				case 't': case 'T':
 					changeTierSolveList();
 					break;
@@ -350,21 +374,149 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	return undecided; //just bitter at the fact that this is ignored
 }
 
+
 // Set on by the command line (or the GUI) when no menu must appear
 void AutoSolveAllTiers() {
-	ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
+    ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
+    BOOLEAN loop = TRUE;
+
+	 TIERLIST *list;
+	 list = RemoteGetTierSolveOrder();
+	 TIERLIST *ptr;
+	 for (ptr = list; ptr != NULL; ptr = ptr->next) {
+		 printf("tier %d\n", (int)ptr->tier);
+	 }
+
+    while (loop) {
+
+        PrepareToSolveNextTier();
+        SolveTier(0,gCurrentTierSize);
+        loop = gotoNextTier();
+        ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
+    }
+    ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
+}
+
+// Set on by the command line (or the GUI) when no menu must appear
+
+//Currently spawns processes in batches. I want to make it so that as soon as a process
+//finishes, it will trigger the processes dependent on it to start. However, as of right
+//now I am using a naive way of detecting which tiers can be solved, which loops through
+//all of the tiers and uses an already written function, RemoteCanISolveTier(), to check.
+//Because of this, I have to spawn processes in batches because I cannot check for new tiers
+//to solve if there is a tier already being solved, because this results in spawning a thread
+//to solve a tier which is already in the process of being solved.
+//TODO: fix way by adding reverse-dependency graph
+void AutoSolveAllTiersMultiProcess() {
+    ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
+
+	pid_t wpid = 1;
+	int tiersStarted = 0;
 	BOOLEAN loop = TRUE;
-	while (loop) {
-		PrepareToSolveNextTier();
-		SolveTier(0,gCurrentTierSize);
-		loop = gotoNextTier();
-		ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
+	// int
+
+	TIERLIST *list;
+	list = RemoteGetTierSolveOrder();
+	TIERLIST *ptr;
+	int max = 0;
+
+	time_t rawtime;
+
+	for (ptr = list; ptr != NULL; ptr = ptr->next) {
+		if (ptr->tier > max) {
+			max = (int) ptr->tier;
+		}
 	}
-	ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
+
+	time_t mintime;
+	time_t rawtimes[max+1][2];
+	int finished[max + 1];
+
+	time(&mintime);
+
+    while (loop) {
+        TIERLIST *list;
+        list = RemoteGetTierSolveOrder();
+
+        loop = FALSE;
+
+        TIERLIST *ptr;
+        for (ptr = list; ptr != NULL; ptr = ptr->next) {
+            if (RemoteCanISolveTier(ptr->tier)) {
+                printf("  Forking. Child Process will solve tier %llu \n", ptr->tier);
+
+				time(&rawtime);
+				rawtimes[ptr->tier][0] = rawtime - mintime;
+
+				finished[ptr->tier] = -1;
+
+                loop = TRUE;
+				tiersStarted++;
+
+                pid_t child_pid;
+
+                if ((child_pid = fork()) == 0) {
+                    //child code
+                    RemoteSolveTier(ptr->tier, 0, RemoteGetTierSize(ptr->tier));
+
+                    printf("  Child process finished solving tier %llu \n", ptr->tier);
+
+                    FreeTierList(list);
+
+                    exit(0);
+                }
+            } else {
+				if (finished[ptr->tier] == -1) {
+					finished[ptr->tier] = 0;
+					time(&rawtime);
+  					rawtimes[ptr->tier][1] = rawtime - mintime;
+				}
+			}
+        }
+        FreeTierList(list);
+
+        // printf("Parent is about to wait for children to terminate\n\n");
+        int status = 0;
+		  // wpid = wait(&status);
+		  // ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersStarted, 100*(double)tiersStarted/numTiers, '%');
+        while ((wpid = wait(&status)) > 0);
+        // printf("All children have terminated\n\n");
+    }
+    ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
+
+	// TIERLIST *list;
+	list = RemoteGetTierSolveOrder();
+	// TIERLIST *ptr;
+	for (ptr = list; ptr != NULL; ptr = ptr->next) {
+		time_t a = rawtimes[ptr->tier][0];
+		time_t b = rawtimes[ptr->tier][1];
+		printf("Tier #%d started at %ld and ended at %ld.  Total = %ld seconds\n", (int)ptr->tier, a, b, (b - a));
+
+	}
+	BOOLEAN tempGVisTiers = gVisTiers;
+	gVisTiers = TRUE;
+	GenerateTierTree(rawtimes);
+	gVisTiers = tempGVisTiers;
 }
 
 // this function generates tier trees.
-void GenerateTierTree() {
+void GenerateTierTree(time_t times[][2]) {
+	time_t min_time = 0;
+	time_t max_time = 0;
+	if (times != NULL) {
+		TIERLIST* tier_ptr = solveList;
+		min_time = times[tier_ptr->tier][0];
+		max_time = times[tier_ptr->tier][1];
+		for (; tier_ptr != NULL; tier_ptr = tier_ptr->next)
+		{
+			if (times[tier_ptr->tier][0] < min_time) {
+				min_time = times[tier_ptr->tier][0];
+			}
+			if (times[tier_ptr->tier][1] > max_time) {
+				max_time = times[tier_ptr->tier][1];
+			}
+		}
+	}
 
 	//Make a file and output to it. Don't solve the game
 	FILE* fp;
@@ -389,7 +541,7 @@ void GenerateTierTree() {
 	TIERLIST* temp = solveList;
 	for (; temp != NULL; temp = temp->next)
 	{
-		DoTierDependencies(temp->tier, fp);
+		DoTierDependencies(temp->tier, fp, times, min_time, max_time);
 	}
 	if (gVisTiersPlain)
 	{
@@ -398,7 +550,7 @@ void GenerateTierTree() {
 		temp = solvedList;
 		for (; temp != NULL; temp = temp->next)
 		{
-			DoTierDependencies(temp->tier, fp);
+			DoTierDependencies(temp->tier, fp, times, 0, 0);
 		}
 		printf("ENDALLVTP\n");
 	}
@@ -1002,6 +1154,7 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 	}
 	if (usingLevelFiles) l_freeBitArray();
 }
+
 unsigned long long dedupHashSize = 0ULL; // Number of slots in dedup hash
 unsigned long long dedupHashElem = 0ULL; // Number of entries added to dedup hash
 unsigned long long dedupHashMask = 0LL;
@@ -1936,13 +2089,17 @@ TIERPOSITION NumberOfTierPositions(TIER);
 
 //ADDED TONS OF CODE
 // this is a copy of the above method, with printing stuff added in and stuff.
-void DoTierDependencies(TIER tier, FILE* fp) {
+void DoTierDependencies(TIER tier, FILE* fp, time_t times[][2], time_t min_time, time_t max_time) {
+
 	STRING tierStr = "";
+
+	BOOLEAN verbose = (times == NULL);
+
 	if (gVisTiers) { //This is just the string for the tier description or something
 		if (gTierToStringFunPtr != NULL)
 			tierStr = gTierToStringFunPtr(tier);
 
-		printf("Getting tds for tier %llu(%s)\n", tier, tierStr);
+		ifprintf(verbose, "Getting tds for tier %llu(%s)\n", tier, tierStr);
 		fprintf(fp, "/*This is tier %llu*/\n", tier);
 
 		//get rid of freaking new lines in the string
@@ -1953,7 +2110,49 @@ void DoTierDependencies(TIER tier, FILE* fp) {
 				*ss = ' ';
 			ss++;
 		}
-		fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\"];\n", tier, tier, tierStr);
+
+		if (times == NULL) {
+			fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\"];\n", tier, tier, tierStr);
+		} else {
+			char color1[8];
+			char color2[8];
+			color1[0] = '#';
+			color2[0] = '#';
+			color1[7] = '\0';
+			color2[7] = '\0';
+			time_t diff  = max_time - min_time - 1;
+			if (diff == 0) {
+				diff = 1;
+			}
+
+			time_t s = times[tier][0];
+			time_t e = times[tier][1];
+			// uint8_t r_s = (1 - ((float) (s - min_time) / (float) diff)) * 255;
+			// uint8_t g_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - 97)  + 97;
+			// uint8_t b_s = 255;
+			// uint8_t r_e = (1 - ((float) (e - min_time) / (float) diff)) * 255;
+			// uint8_t g_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - 97)  + 97;
+			// uint8_t b_e = 255;
+
+			int rc = 63, gc = 98, bc = 235;
+			uint8_t r_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - rc) + rc;
+			uint8_t g_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - gc) + gc;
+			uint8_t b_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - bc) + bc;
+			uint8_t r_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - rc) + rc;
+			uint8_t g_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - gc) + gc;
+			uint8_t b_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - bc) + bc;
+
+			sprintf(color1+1, "%x", r_s);
+			sprintf(color1+3, "%x", g_s);
+			sprintf(color1+5, "%x", b_s);
+			sprintf(color2+1, "%x", r_e);
+			sprintf(color2+3, "%x", g_e);
+			sprintf(color2+5, "%x", b_e);
+
+
+			// fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\\nTime Taken: %ld\", color=\"%s\"];\n", tier, tier, tierStr, (e - s), color1);
+			fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\\nTime Taken: %ld\", fillcolor=\"%s:%s\", gradientangle=\"90\"];\n", tier, tier, tierStr, (e - s), color1, color2);
+		}
 	}
 	if (gVisTiersPlain)
 	{
@@ -1972,7 +2171,7 @@ void DoTierDependencies(TIER tier, FILE* fp) {
 		//Print out different things if we are visiuliztion or just plain doing it
 		if (gVisTiers)
 		{
-			printf("Dep on child %llu\n", childPtr->tier);
+			ifprintf(verbose, "Dep on child %llu\n", childPtr->tier);
 			fprintf(fp, "T%llu -> T%llu \n", tier, childPtr->tier);
 		}
 		if (gVisTiersPlain)
@@ -1984,7 +2183,7 @@ void DoTierDependencies(TIER tier, FILE* fp) {
 	}
 
 	if (gVisTiers) {
-		printf("End tds for tier %llu\n", tier);
+		ifprintf(verbose, "End tds for tier %llu\n", tier);
 		fprintf(fp, "/*This is END of tier %llu*/\n\n", tier);
 	}
 }
