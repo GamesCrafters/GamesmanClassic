@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "Starting compilation."
+gcc -c -funsigned-char solver.c
+gcc -c -funsigned-char Connect4.c -o Game.o
+gcc -o connect4.exe solver.o Game.o
+echo "Compilation complete."

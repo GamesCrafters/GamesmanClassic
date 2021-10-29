@@ -1,17 +1,9 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdint.h>
+#include "Game.h"
 
 #define COLUMNCOUNT 5
-#define ROWCOUNT 4
-#define CONNECT 3
-#define LOSS 1
-#define TIE 2
-#define NOT_PRIMITIVE 255
+#define ROWCOUNT 5
+#define CONNECT 4
 
-typedef uint64_t game;
-typedef uint64_t gamehash;
 static uint64_t DOWNDIAGWIN;
 static uint64_t HORIZONTALWIN;
 static uint64_t VERTICALWIN;
@@ -54,9 +46,10 @@ game doMove(game position, char move) {
 
 }
 
-/** Returns the list of viable moves. 
+/** Returns the list of viable moves.
 Assumes retval has length at least COLUMNCOUNT+1*/
-void generateMoves(char* retval, game position) {
+int generateMoves(char* retval, game position) {
+	int k = 0;
     for(int i = 0; i < COLUMNCOUNT; i++)
     {
         char start = (char)((ROWCOUNT+1)*(i+1) - 1);
@@ -65,9 +58,11 @@ void generateMoves(char* retval, game position) {
         {
             *retval = start;
             retval++;
+			k++;
         }
     }
     *retval = -1;
+	return k;
 }
 
 /** Returns if the given position is primitive, assuming that the most recent move is as stated*/
@@ -128,6 +123,14 @@ int getSize() {
     return COLUMNCOUNT*ROWCOUNT;
 }
 
+int getMaxDepth() {
+	return getSize();
+}
+
+int getMaxMoves() {
+	return COLUMNCOUNT+1;
+}
+
 gamehash getHash(game position) {
     game newpos= position & 0x7FFFFFFFFFFFFFFFL;
     game oppositepos = 0;
@@ -138,7 +141,10 @@ gamehash getHash(game position) {
     }
     return oppositepos < newpos ? oppositepos : newpos;
 }
-
+int maxHash()
+{
+	return 1<<((ROWCOUNT+1)*COLUMNCOUNT);
+}
 game hashToPosition(gamehash hash) {
     char emptyspots = 0;
     for(int j = 0; j < COLUMNCOUNT; j++) {
@@ -175,7 +181,7 @@ static void recurse(char* primitives, int* hashsetsize, game position, int layer
     }
 	movestring[layer] = 0;
 }
-int main() {
+static int testC4() {
 	initialize_constants();
     game pos = getStartingPositions();
     char* primitives = calloc(sizeof(char),(1<<((COLUMNCOUNT*(ROWCOUNT+1))-3)));
