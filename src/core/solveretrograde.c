@@ -40,6 +40,11 @@
 #include "levelfile_generator.h"
 #include <stdio.h>
 
+//danny
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
+
 // TIER VARIABLES
 TIERLIST* tierSolveList; // the total list for the game, w/initial at start
 TIERLIST* solveList; // only the tiers we have yet to solve, REVERSED
@@ -63,6 +68,7 @@ POSITION l_min = 0;
 // Solver procs
 void checkExistingDB();
 void AutoSolveAllTiers();
+void AutoSolveAllTiersMultiProcess();
 BOOLEAN gotoNextTier();
 void solveFirst(TIER);
 void PrepareToSolveNextTier();
@@ -75,11 +81,11 @@ BOOLEAN ConfirmAction(char);
 void SolveTier(POSITION, POSITION);
 void SolveWithNonLoopyAlgorithm(POSITION, POSITION);
 void SolveWithLoopyAlgorithm(POSITION, POSITION);
-void LoopyParentsHelper(POSITIONLIST*, VALUE, REMOTENESS);
+void LoopyParentsHelper(IPOSITIONLIST*, VALUE, REMOTENESS);
 // Solver ChildCounter and Hashtable functions
 void rInitFRStuff();
 void rFreeFRStuff();
-POSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
+IPOSITIONLIST* rRemoveFRList(VALUE, REMOTENESS);
 void rInsertFR(VALUE, POSITION, REMOTENESS);
 // Sanity Checkers
 void checkForCorrectness(POSITION, POSITION);
@@ -107,8 +113,11 @@ BOOLEAN SolveLevelFile(POSITION, POSITION);
 BOOLEAN l_readPartialLevelFile(POSITION*, POSITION*);
 BOOLEAN l_writeLevelFile(POSITION, POSITION);
 //Tier vis stuff
-void GenerateTierTree();
-void DoTierDependencies(TIER, FILE*);
+void GenerateTierTree(time_t times[][2]);
+void DoTierDependencies(TIER, FILE*, time_t times[][2], time_t, time_t);
+// void GenerateTierTree(time_t times[2][numTiers+1]);
+// void DoTierDependencies(TIER, FILE*, time_t times[2][numTiers+1]);
+
 
 /************************************************************************
 **
@@ -187,7 +196,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	//OK, the pure tier tree is here! let's use it from here
 	if (gVisTiers)
 	{
-		GenerateTierTree();     //Visualuzes the dotty file
+		GenerateTierTree(NULL);     //Visualizes the dotty file
 		ExitStageRight();
 	}
 
@@ -215,7 +224,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	//Now, if we need to genreate a plain file that doesn't include solved tiers, here's our chance
 	if (gVisTiersPlain) {
-		GenerateTierTree();     //outputs tiers that need to be solve to the std output
+		GenerateTierTree(NULL);     //outputs tiers that need to be solve to the std output
 		ExitStageRight();
 	}
 
@@ -248,8 +257,9 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 				printf("\tc)\tCheck (C)orrectness after solve? Currently: %s\n"
 				       "\tf)\t(F)orce Loopy solve for Non-Loopy tiers? Currently: %s\n\n"
 				       "\te)\tL(e)vel File Solver\n\n"
-				       "\ts)\t(S)olve the next tier.\n"
-				       "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
+				       "\ts)\t(S)olve the next tier.\n\n"
+                       "\ta)\t(A)utomate the solving for all the tiers left.\n\n"
+                       "\tm)\tAutomate with (M)ultiple Processes the solving for all the tiers left.\n\n"
 				       "\tt)\tChange the (T)ier Solve Order.\n\n"
 				       "\tb)\t(B)egin the Game before fully solving!\n\n"
 				       "\tq)\t(Q)uit the Retrograde Solver.\n"
@@ -285,6 +295,14 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 				case 'a': case 'A':
 					printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
 					BOOLEAN loop = TRUE;
+
+					TIERLIST *list;
+			  	 list = RemoteGetTierSolveOrder();
+			  	 TIERLIST *ptr;
+			  	 for (ptr = list; ptr != NULL; ptr = ptr->next) {
+			  		 printf("tier %d\n", (int)ptr->tier);
+			  	 }
+
 					while (loop) {
 						PrepareToSolveNextTier();
 						SolveTier(0,gCurrentTierSize);
@@ -294,6 +312,12 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 					printf("\n%s is now fully solved!\n", kGameName);
 					cont = FALSE;
 					break;
+                case 'm': case 'M':
+                    printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
+						  AutoSolveAllTiersMultiProcess();
+                    printf("\n%s is now fully solved!\n", kGameName);
+                    cont = FALSE;
+                    break;
 				case 't': case 'T':
 					changeTierSolveList();
 					break;
@@ -350,21 +374,149 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	return undecided; //just bitter at the fact that this is ignored
 }
 
+
 // Set on by the command line (or the GUI) when no menu must appear
 void AutoSolveAllTiers() {
-	ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
+    ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
+    BOOLEAN loop = TRUE;
+
+	 TIERLIST *list;
+	 list = RemoteGetTierSolveOrder();
+	 TIERLIST *ptr;
+	 for (ptr = list; ptr != NULL; ptr = ptr->next) {
+		 printf("tier %d\n", (int)ptr->tier);
+	 }
+
+    while (loop) {
+
+        PrepareToSolveNextTier();
+        SolveTier(0,gCurrentTierSize);
+        loop = gotoNextTier();
+        ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
+    }
+    ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
+}
+
+// Set on by the command line (or the GUI) when no menu must appear
+
+//Currently spawns processes in batches. I want to make it so that as soon as a process
+//finishes, it will trigger the processes dependent on it to start. However, as of right
+//now I am using a naive way of detecting which tiers can be solved, which loops through
+//all of the tiers and uses an already written function, RemoteCanISolveTier(), to check.
+//Because of this, I have to spawn processes in batches because I cannot check for new tiers
+//to solve if there is a tier already being solved, because this results in spawning a thread
+//to solve a tier which is already in the process of being solved.
+//TODO: fix way by adding reverse-dependency graph
+void AutoSolveAllTiersMultiProcess() {
+    ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
+
+	pid_t wpid = 1;
+	int tiersStarted = 0;
 	BOOLEAN loop = TRUE;
-	while (loop) {
-		PrepareToSolveNextTier();
-		SolveTier(0,gCurrentTierSize);
-		loop = gotoNextTier();
-		ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersSolved, 100*(double)tiersSolved/numTiers, '%');
+	// int
+
+	TIERLIST *list;
+	list = RemoteGetTierSolveOrder();
+	TIERLIST *ptr;
+	int max = 0;
+
+	time_t rawtime;
+
+	for (ptr = list; ptr != NULL; ptr = ptr->next) {
+		if (ptr->tier > max) {
+			max = (int) ptr->tier;
+		}
 	}
-	ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
+
+	time_t mintime;
+	time_t rawtimes[max+1][2];
+	int finished[max + 1];
+
+	time(&mintime);
+
+    while (loop) {
+        TIERLIST *list;
+        list = RemoteGetTierSolveOrder();
+
+        loop = FALSE;
+
+        TIERLIST *ptr;
+        for (ptr = list; ptr != NULL; ptr = ptr->next) {
+            if (RemoteCanISolveTier(ptr->tier)) {
+                printf("  Forking. Child Process will solve tier %llu \n", ptr->tier);
+
+				time(&rawtime);
+				rawtimes[ptr->tier][0] = rawtime - mintime;
+
+				finished[ptr->tier] = -1;
+
+                loop = TRUE;
+				tiersStarted++;
+
+                pid_t child_pid;
+
+                if ((child_pid = fork()) == 0) {
+                    //child code
+                    RemoteSolveTier(ptr->tier, 0, RemoteGetTierSize(ptr->tier));
+
+                    printf("  Child process finished solving tier %llu \n", ptr->tier);
+
+                    FreeTierList(list);
+
+                    exit(0);
+                }
+            } else {
+				if (finished[ptr->tier] == -1) {
+					finished[ptr->tier] = 0;
+					time(&rawtime);
+  					rawtimes[ptr->tier][1] = rawtime - mintime;
+				}
+			}
+        }
+        FreeTierList(list);
+
+        // printf("Parent is about to wait for children to terminate\n\n");
+        int status = 0;
+		  // wpid = wait(&status);
+		  // ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersStarted, 100*(double)tiersStarted/numTiers, '%');
+        while ((wpid = wait(&status)) > 0);
+        // printf("All children have terminated\n\n");
+    }
+    ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
+
+	// TIERLIST *list;
+	list = RemoteGetTierSolveOrder();
+	// TIERLIST *ptr;
+	for (ptr = list; ptr != NULL; ptr = ptr->next) {
+		time_t a = rawtimes[ptr->tier][0];
+		time_t b = rawtimes[ptr->tier][1];
+		printf("Tier #%d started at %ld and ended at %ld.  Total = %ld seconds\n", (int)ptr->tier, a, b, (b - a));
+
+	}
+	BOOLEAN tempGVisTiers = gVisTiers;
+	gVisTiers = TRUE;
+	GenerateTierTree(rawtimes);
+	gVisTiers = tempGVisTiers;
 }
 
 // this function generates tier trees.
-void GenerateTierTree() {
+void GenerateTierTree(time_t times[][2]) {
+	time_t min_time = 0;
+	time_t max_time = 0;
+	if (times != NULL) {
+		TIERLIST* tier_ptr = solveList;
+		min_time = times[tier_ptr->tier][0];
+		max_time = times[tier_ptr->tier][1];
+		for (; tier_ptr != NULL; tier_ptr = tier_ptr->next)
+		{
+			if (times[tier_ptr->tier][0] < min_time) {
+				min_time = times[tier_ptr->tier][0];
+			}
+			if (times[tier_ptr->tier][1] > max_time) {
+				max_time = times[tier_ptr->tier][1];
+			}
+		}
+	}
 
 	//Make a file and output to it. Don't solve the game
 	FILE* fp;
@@ -389,7 +541,7 @@ void GenerateTierTree() {
 	TIERLIST* temp = solveList;
 	for (; temp != NULL; temp = temp->next)
 	{
-		DoTierDependencies(temp->tier, fp);
+		DoTierDependencies(temp->tier, fp, times, min_time, max_time);
 	}
 	if (gVisTiersPlain)
 	{
@@ -398,7 +550,7 @@ void GenerateTierTree() {
 		temp = solvedList;
 		for (; temp != NULL; temp = temp->next)
 		{
-			DoTierDependencies(temp->tier, fp);
+			DoTierDependencies(temp->tier, fp, times, 0, 0);
 		}
 		printf("ENDALLVTP\n");
 	}
@@ -751,9 +903,9 @@ POSITIONLIST** rParents;
 /* Rather than a Frontier Queue, this uses a sort of hashtable,
    with a POSITIONLIST for every REMOTENESS from 0 to REMOTENESS_MAX-1.
    It's constant time insert and remove, so it works just fine. */
-FRnode**        rWinFR = NULL;  // The FRontier Win Hashtable
-FRnode**        rLoseFR = NULL; // The FRontier Lose Hashtable
-FRnode**        rTieFR = NULL;  // The FRontier Tie Hashtable
+IFRnode**        rWinFR = NULL;  // The FRontier Win Hashtable
+IFRnode**        rLoseFR = NULL; // The FRontier Lose Hashtable
+IFRnode**        rTieFR = NULL;  // The FRontier Tie Hashtable
 
 // A "hack" for dealing with a later-explained partial solve case
 POSITIONLIST* solveTheseTooList;
@@ -799,9 +951,9 @@ void rInitFRStuff() {
 			rParents[i] = NULL;
 	}
 	// 255 * 4 bytes = 1,020 bytes = ~1 KB
-	rWinFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*));
-	rLoseFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*)); // ~1 KB
-	rTieFR = (FRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(FRnode*)); // ~1 KB
+	rWinFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*));
+	rLoseFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*)); // ~1 KB
+	rTieFR = (IFRnode**) SafeMalloc (REMOTENESS_MAX * sizeof(IFRnode*)); // ~1 KB
 	for (i = 0; i < REMOTENESS_MAX; i++)
 		rWinFR[i] = rLoseFR[i] = rTieFR[i] = NULL;
 	solveTheseTooList = NULL;
@@ -822,7 +974,7 @@ void rFreeFRStuff() {
 	if (rTieFR != NULL) SafeFree(rTieFR);
 }
 
-POSITIONLIST* rRemoveFRList(VALUE value, REMOTENESS r) {
+IPOSITIONLIST* rRemoveFRList(VALUE value, REMOTENESS r) {
 	if (value == win)
 		return rWinFR[r];
 	else if (value == lose)
@@ -836,11 +988,11 @@ void rInsertFR(VALUE value, POSITION position, REMOTENESS r) {
 	// this is probably the best place to put this:
 	assert(r >= 0 && r < REMOTENESS_MAX);
 	if(value == win)
-		rWinFR[r] = StorePositionInList(position, rWinFR[r]);
+		rWinFR[r] = StorePositionInIList(position, rWinFR[r]);
 	else if (value == lose)
-		rLoseFR[r] = StorePositionInList(position, rLoseFR[r]);
+		rLoseFR[r] = StorePositionInIList(position, rLoseFR[r]);
 	else if (value == tie)
-		rTieFR[r] = StorePositionInList(position, rTieFR[r]);
+		rTieFR[r] = StorePositionInIList(position, rTieFR[r]);
 }
 
 
@@ -1003,6 +1155,70 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 	if (usingLevelFiles) l_freeBitArray();
 }
 
+unsigned long long dedupHashSize = 0ULL; // Number of slots in dedup hash
+unsigned long long dedupHashElem = 0ULL; // Number of entries added to dedup hash
+unsigned long long dedupHashMask = 0LL;
+unsigned long long dedupHashBytes = 0LL;
+unsigned long long DEDUP_HASH_SIZE_INITIAL = 32LL; // Initial size of Dedup Hash
+int DEDUP_HASH_RATIO = 2; // Keep dedup hash size > (dedupHashElem << DEDUP_HASH_RATIO)
+POSITION *dedupHash = NULL; // Dedup hashtable
+
+void dedupHashExpand() {
+    if (dedupHash == NULL) {
+        dedupHashSize = DEDUP_HASH_SIZE_INITIAL;
+        dedupHash = (POSITION *) calloc(dedupHashSize, sizeof(POSITION));
+		if (dedupHash == NULL) {
+			fprintf(stderr, "Error: calloc failed to allocate");
+			ExitStageRight();
+			exit(0);
+		}
+	} else {
+        unsigned long long oldDedupHashSize = dedupHashSize;
+		dedupHashSize *= 2;
+        printf("Expanding Dedup Hash to %lld\n", dedupHashSize);
+		POSITION *oldDedupHash = dedupHash;
+        dedupHash = (POSITION *) calloc(dedupHashSize, sizeof(POSITION));
+		if (dedupHash == NULL) {
+			fprintf(stderr, "Error: calloc failed to allocate");
+			ExitStageRight();
+			exit(0);
+		}
+		for (int i = 0; i < oldDedupHashSize; i++) {
+			if (oldDedupHash[i] != 0) {
+				dedupHashAdd(oldDedupHash[i] - 1);
+			}
+		}
+		SafeFree(oldDedupHash);
+    }
+	dedupHashMask = dedupHashSize - 1;
+	dedupHashBytes = dedupHashSize * sizeof(POSITION);
+}
+
+// if the element exists already, return FALSE
+// if the element doesn't exist, add it, return TRUE
+BOOLEAN dedupHashAdd(POSITION pos) {
+    if (dedupHashSize <= (dedupHashElem << DEDUP_HASH_RATIO)) {
+        dedupHashExpand();
+    }
+    POSITION posAdjusted = pos + 1;
+	unsigned long long slot = posAdjusted & dedupHashMask;
+	while (TRUE) {
+		if (dedupHash[slot] == 0) {
+			dedupHash[slot] = posAdjusted;
+			dedupHashElem++;
+			return TRUE;
+		} else if (dedupHash[slot] == posAdjusted) {
+			return FALSE;
+		} else {
+			if (slot == 0) {
+				slot = dedupHashSize - 1;
+			} else {
+				slot -= 1;
+			}
+		}
+	}
+}
+
 /************************************************************************
 **
 ** NAME:        SolveWithLoopyAlgorithm
@@ -1040,7 +1256,7 @@ void SolveWithLoopyAlgorithm(POSITION start, POSITION end) {
 	//int i,numMoves; // the generateMovesEfficient stuff is commented out for now
 	ifprintf(gTierSolvePrint, "--Setting up Child Counters and Frontier Hashtables...\n");
 	rInitFRStuff();
-	ifprintf(gTierSolvePrint, "--Doing an sweep of the tier, and setting up the frontier...\n");
+	ifprintf(gTierSolvePrint, "--Doing a sweep of the tier, and setting up the frontier...\n");
 	for (pos = start; pos < end; pos++) { // SET UP PARENTS
 		posSaver = pos;
 solve_start: // GASP!! A LABEL!!
@@ -1059,50 +1275,35 @@ solve_start: // GASP!! A LABEL!!
 			} else {
 				//if (gGenerateMovesEfficientFunPtr == NULL) { // do the normal stuff
 				moves = movesptr = GenerateMoves(pos);
+				if (dedupHash != NULL) {
+					dedupHashElem = 0LL;
+					memset(dedupHash, 0, dedupHashBytes);
+				}
 				if (moves == NULL) { // no chillins
 					printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
 					ExitStageRight();
 				} else {
 					//otherwise, make a Child Counter for it
 					movesptr = moves;
-					for (; movesptr != NULL; movesptr = movesptr->next) {
+                    for (; movesptr != NULL; movesptr = movesptr->next) {
+                    	child = gSymmetries ? gCanonicalPosition(DoMove(pos, movesptr->move)) : DoMove(pos, movesptr->move);
+						if (gSymmetries && useUndo && !dedupHashAdd(child)) continue;
 						childCounts[pos]++;
-						child = DoMove(pos, movesptr->move);
-						// here's the "partial solving" complication: to solve a position,
-						// we might have to solve another in this tier that's not part of our
-						// bounds! So, we need to run this loop for those guys too. To do this,
-						// we maintain a list of guys to run it for too.
-						// It uses the childCounts to ensure no duplicate iterations
-						if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0
-						    && (child < start || child >= end)) {
-							solveTheseTooList = StorePositionInList(child, solveTheseTooList);
-						}
-						if (!useUndo) { // if parent pointers, add to parent pointer list
-							rParents[child] = StorePositionInList(pos, rParents[child]);
-						}
-					}
-					FreeMoveList(moves);
+
+                    	// here's the "partial solving" complication: to solve a position,
+                    	// we might have to solve another in this tier that's not part of our
+                    	// bounds! So, we need to run this loop for those guys too. To do this,
+                    	// we maintain a list of guys to run it for too.
+                    	// It uses the childCounts to ensure no duplicate iterations
+                    	if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0 && (child < start || child >= end)) {
+                        	solveTheseTooList = StorePositionInList(child, solveTheseTooList);
+                    	}
+                    	if (!useUndo) { // if parent pointers, add to parent pointer list
+                        	rParents[child] = StorePositionInList(pos, rParents[child]);
+                    	}
+                    }
+                    FreeMoveList(moves);
 				}
-				//} else { // do the experimental stuff!
-				//    numMoves = gGenerateMovesEfficientFunPtr(pos);
-				//    if (numMoves == 0) { // no chillins
-				//        printf("ERROR: GenerateMoves on %llu returned NULL\n", pos);
-				//        ExitStageRight();
-				//    } else {
-				//        //otherwise, make a Child Counter for it
-				//        for (i = 0; i < numMoves; i++) {
-				//            childCounts[pos]++;
-				//            child = DoMove(pos, gGenerateMovesArray[i]);
-				//            if (partialSolve && child < gCurrentTierSize && childCounts[child] == 0
-				//                    && child < start && child >= end) {
-				//                solveTheseTooList = StorePositionInList(child, solveTheseTooList);
-				//            }
-				//            if (!useUndo) {// if parent pointers, add to parent pointer list
-				//                rParents[child] = StorePositionInList(pos, rParents[child]);
-				//            }
-				//        }
-				//    }
-				//}
 			}
 		}
 		// before ending the for-loop, we need to go through the solveTheseTooList
@@ -1127,23 +1328,28 @@ solve_start: // GASP!! A LABEL!!
 		return;
 	}
 	// SET UP FRONTIER!
-	ifprintf(gTierSolvePrint, "--Doing an sweep of child tiers, and setting up the frontier...\n");
+	ifprintf(gTierSolvePrint, "--Doing a sweep of child tiers, and setting up the frontier...\n");
 	for (pos = gCurrentTierSize; pos < gNumberOfPositions; pos++) {
 		if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (!useUndo && rParents[pos] == NULL) // if we didn't even see this child, don't put it on frontier!
 			continue;
-		if (gSymmetries) // use the canonical position's values
-			canonPos = gCanonicalPosition(pos); //to tell where i go!
-		else canonPos = pos; // else ignore
+		if (gSymmetries) {// use the canonical position's values
+			canonPos = gCanonicalPosition(pos);
+			if (useUndo && pos != canonPos)
+				continue;
+		} else {
+			canonPos = pos; // else ignore
+		}
 		value = GetValueOfPosition(canonPos);
 		remoteness = Remoteness(canonPos);
 		if (!((value == tie && remoteness == REMOTENESS_MAX)
 		      || value == undecided))
 			rInsertFR(value, pos, remoteness);
 	}
+	tierdb_free_childpositions();
 	if (usingLevelFiles) l_freeBitArray();
 	ifprintf(gTierSolvePrint, "\n--Beginning the loopy algorithm...\n");
-	REMOTENESS r; POSITIONLIST* list;
+	REMOTENESS r; IPOSITIONLIST* list;
 	ifprintf(gTierSolvePrint, "--Processing Lose/Win Frontiers!\n");
 	for (r = 0; r <= REMOTENESS_MAX; r++) {
 		if (r!=REMOTENESS_MAX) {
@@ -1181,19 +1387,32 @@ solve_start: // GASP!! A LABEL!!
 	assert(numSolved == trueSizeOfTier);
 }
 
-void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remotenessChild) {
+void LoopyParentsHelper(IPOSITIONLIST* list, VALUE valueParents, REMOTENESS remotenessChild) {
 	POSITION child, parent;
-	FRnode *miniLoseFR = NULL;
+	IFRnode *miniLoseFR = NULL;
 	UNDOMOVELIST *parents, *parentsPtr;
 	POSITIONLIST *parentList;
-	for (; list != NULL; list = list->next) {
-		child = list->position;
+
+	unsigned long long idx = 0;
+	IPOSITIONSUBLIST *currISL = list->head;
+	while (idx < list->size) {
+		child = currISL->positions[idx & 1023];
+		idx++;
+		if ((idx & 1023) == 0)
+			currISL = currISL->next;
 		if (useUndo) { // use the UndoMove lists
 			parents = parentsPtr = gGenerateUndoMovesToTierFunPtr(child, gCurrentTier);
+			if (dedupHash != NULL) {
+				dedupHashElem = 0LL;
+				memset(dedupHash, 0, dedupHashBytes);
+			}
 			for (; parentsPtr != NULL; parentsPtr = parentsPtr->next) {
-				parent = gUnDoMoveFunPtr(child, parentsPtr->undomove);
+				parent = gSymmetries ? gCanonicalPosition(gUnDoMoveFunPtr(child, parentsPtr->undomove)) : gUnDoMoveFunPtr(child, parentsPtr->undomove);
+				if (gSymmetries && !dedupHashAdd(parent)) continue;
+				
 				if (parent >= gCurrentTierSize) {
 					TIERPOSITION tp; TIER t;
+					
 					gUnhashToTierPosition(parent, &tp, &t);
 					printf("ERROR: %llu generated undo-parent %llu (Tier: %llu, TierPosition: %llu),\n"
 					       "which is not in the current tier being solved!\n", child, parent, t, tp);
@@ -1207,13 +1426,13 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					// Same with tie children.
 					if (valueParents == win || valueParents == tie) {
 						childCounts[parent] = 0; // reset child counter
-						rInsertFR(valueParents, parent, remotenessChild+1);
+						rInsertFR(valueParents, parent, remotenessChild + 1);
 						// With winning children, first decrement the child counter by one. If
 						// child counter reaches 0, put the parent not in the FR but in the miniFR.
 					} else if (valueParents == lose) {
 						childCounts[parent] -= 1;
 						if (childCounts[parent] != 0) continue;
-						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+						miniLoseFR = StorePositionInIList(parent, miniLoseFR);
 					}
 					SetRemoteness(parent, remotenessChild+1);
 					StoreValueOfPosition(parent, valueParents);
@@ -1232,7 +1451,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 					} else if (valueParents == lose) {
 						childCounts[parent] -= 1;
 						if (childCounts[parent] != 0) continue;
-						miniLoseFR = StorePositionInList(parent, miniLoseFR);
+						miniLoseFR = StorePositionInIList(parent, miniLoseFR);
 					}
 					SetRemoteness(parent, remotenessChild+1);
 					StoreValueOfPosition(parent, valueParents);
@@ -1246,7 +1465,7 @@ void LoopyParentsHelper(POSITIONLIST* list, VALUE valueParents, REMOTENESS remot
 			miniLoseFR = NULL;
 		}
 	}
-	FreePositionList(list); // no longer need it!
+	FreeIPositionList(list); // no longer need it!
 }
 
 
@@ -1870,13 +2089,17 @@ TIERPOSITION NumberOfTierPositions(TIER);
 
 //ADDED TONS OF CODE
 // this is a copy of the above method, with printing stuff added in and stuff.
-void DoTierDependencies(TIER tier, FILE* fp) {
+void DoTierDependencies(TIER tier, FILE* fp, time_t times[][2], time_t min_time, time_t max_time) {
+
 	STRING tierStr = "";
+
+	BOOLEAN verbose = (times == NULL);
+
 	if (gVisTiers) { //This is just the string for the tier description or something
 		if (gTierToStringFunPtr != NULL)
 			tierStr = gTierToStringFunPtr(tier);
 
-		printf("Getting tds for tier %llu(%s)\n", tier, tierStr);
+		ifprintf(verbose, "Getting tds for tier %llu(%s)\n", tier, tierStr);
 		fprintf(fp, "/*This is tier %llu*/\n", tier);
 
 		//get rid of freaking new lines in the string
@@ -1887,7 +2110,49 @@ void DoTierDependencies(TIER tier, FILE* fp) {
 				*ss = ' ';
 			ss++;
 		}
-		fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\"];\n", tier, tier, tierStr);
+
+		if (times == NULL) {
+			fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\"];\n", tier, tier, tierStr);
+		} else {
+			char color1[8];
+			char color2[8];
+			color1[0] = '#';
+			color2[0] = '#';
+			color1[7] = '\0';
+			color2[7] = '\0';
+			time_t diff  = max_time - min_time - 1;
+			if (diff == 0) {
+				diff = 1;
+			}
+
+			time_t s = times[tier][0];
+			time_t e = times[tier][1];
+			// uint8_t r_s = (1 - ((float) (s - min_time) / (float) diff)) * 255;
+			// uint8_t g_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - 97)  + 97;
+			// uint8_t b_s = 255;
+			// uint8_t r_e = (1 - ((float) (e - min_time) / (float) diff)) * 255;
+			// uint8_t g_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - 97)  + 97;
+			// uint8_t b_e = 255;
+
+			int rc = 63, gc = 98, bc = 235;
+			uint8_t r_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - rc) + rc;
+			uint8_t g_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - gc) + gc;
+			uint8_t b_s = (1 - ((float) (s - min_time) / (float) diff)) * (255 - bc) + bc;
+			uint8_t r_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - rc) + rc;
+			uint8_t g_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - gc) + gc;
+			uint8_t b_e = (1 - ((float) (e - min_time) / (float) diff)) * (255 - bc) + bc;
+
+			sprintf(color1+1, "%x", r_s);
+			sprintf(color1+3, "%x", g_s);
+			sprintf(color1+5, "%x", b_s);
+			sprintf(color2+1, "%x", r_e);
+			sprintf(color2+3, "%x", g_e);
+			sprintf(color2+5, "%x", b_e);
+
+
+			// fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\\nTime Taken: %ld\", color=\"%s\"];\n", tier, tier, tierStr, (e - s), color1);
+			fprintf(fp, "T%llu [style = \"filled\", shape = \"rectangle\", label=\"Tier %llu\\n%s\\nTime Taken: %ld\", fillcolor=\"%s:%s\", gradientangle=\"90\"];\n", tier, tier, tierStr, (e - s), color1, color2);
+		}
 	}
 	if (gVisTiersPlain)
 	{
@@ -1906,7 +2171,7 @@ void DoTierDependencies(TIER tier, FILE* fp) {
 		//Print out different things if we are visiuliztion or just plain doing it
 		if (gVisTiers)
 		{
-			printf("Dep on child %llu\n", childPtr->tier);
+			ifprintf(verbose, "Dep on child %llu\n", childPtr->tier);
 			fprintf(fp, "T%llu -> T%llu \n", tier, childPtr->tier);
 		}
 		if (gVisTiersPlain)
@@ -1918,7 +2183,7 @@ void DoTierDependencies(TIER tier, FILE* fp) {
 	}
 
 	if (gVisTiers) {
-		printf("End tds for tier %llu\n", tier);
+		ifprintf(verbose, "End tds for tier %llu\n", tier);
 		fprintf(fp, "/*This is END of tier %llu*/\n\n", tier);
 	}
 }

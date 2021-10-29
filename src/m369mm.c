@@ -1,8 +1,8 @@
 /************************************************************************
 **
-** NAME:        m6mm.c
+** NAME:        m369mm.c
 **
-** DESCRIPTION: SIX MEN'S MORRIS
+** DESCRIPTION: THREE/SIX/NINE MEN'S MORRIS
 **
 ** AUTHOR:      Patricia Fong & Kevin Liu & Erwin A. Vedar, Wei Tu, Elmer Lee
 **
@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-
+#include <time.h>
 
 /*************************************************************************
 **
@@ -79,16 +79,23 @@ STRING kHelpTieOccursWhen =
 STRING kHelpExample =
         "Help strings not initialized!";
 
-/* Variants */
+/*************************************************************************
+**
+** Variants
+**
+**************************************************************************/
 BOOLEAN gFlying = FALSE;
-int gameType = 6; //3,6,9 men's morris
-int millType = 0; //0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
+int gameType = 6; // 3,6,9 men's morris
+int millType = 0; // 0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
+
 /*************************************************************************
 **
 ** #defines and structs
 **
 **************************************************************************/
 
+#define MOVE_ENCODE(from, to, remove) ((from << 10) | (to << 5) | remove)
+#define THREE_IN_A_ROW(board, slot1, slot2, turn) (board[slot1] == turn && board[slot2] == turn)
 
 /*************************************************************************
 **
@@ -102,25 +109,16 @@ int mino = 2;
 int maxo;  //6mm 6   9mm 9
 int minb;
 int maxb;
-
-
+int (*adjacent)[5]; // Pre-Computed Adjacency Arrays
 
 #define BLANK '.'
 #define X 'X'
 #define O 'O'
-
 #define PLAYER_ONE 1
 #define PLAYER_TWO 2
-
-
-
-//TEMPORARY GLOBALS, UNTIL TIERS IMPLEMENTED
-//KEVIN
-
 int NUMX=0;
 int NUMO=0;
 int totalPieces = 18; //Remove when tiering
-
 
 /*************************************************************************
 **
@@ -160,33 +158,293 @@ void setOption (int option);
 void DebugMenu ();
 char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo);
 POSITION hash(char* board, char turn, int piecesLeft, int numx, int numo);
-POSITION updatepieces(char* board,char turn,int piecesLeft,int numx,int numo,MOVE move, POSITION position);
+POSITION updatepieces(char* board,char turn,int piecesLeft,int numx, int numo, MOVE move, POSITION position);
 BOOLEAN can_be_taken(POSITION position, int slot);
-BOOLEAN all_mills(char *board, int slot);
+BOOLEAN all_mills(char *board, int slot, char turn);
 int find_pieces(char *board, char piece, int *pieces);
 BOOLEAN closes_mill(POSITION position, int raw_move);
-BOOLEAN check_mill(char *board, int slot, char turn);
-BOOLEAN three_in_a_row(char *board, int slot1, int slot2, char turn);
-int find_adjacent(int slot, int *slots);
-POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE move, POSITION position);
+BOOLEAN checkMill(char *board, int slot, char turn);
+//BOOLEAN THREE_IN_A_ROW(char *board, int slot1, int slot2, char turn);
 char returnTurn(POSITION pos);
 char* customUnhash(POSITION pos);
-void changetosix();
-void changetonine();
-void changetothree();
+void changeToSix();
+void changeToNine();
+void changeToThree();
 POSITION GetCanonicalPosition(POSITION);
 POSITION smallHash(char*, char);
 char* smallUnhash(POSITION, char*);
 
+BOOLEAN closesMillNew(char *board, char turn, int fromIdx, int toIdx);
+int findLegalRemoves(char *board, char turn, int *legalRemoves);
+int findAdjacentNew(char *board, int slot, int *slots);
+STRING MoveToStringOld (MOVE move);
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier);
+POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
+int findLegalRemovesUndo(char *board, char turn, int *legalRemoves);
+STRING UndoMoveToString(UNDOMOVE move);
+BOOLEAN allMillsNew(char *board, int slot, char turn);
+POSITION DoMoveSafe(POSITION position, MOVE move);
 
-//SYMMETRIES
-BOOLEAN kSupportsSymmetries = FALSE; /* Default false, true for 9mm*/
+int gSymmetryMatrix3MM[8][24] = {
+    {0,1,2,3,4,5,6,7,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    {6,3,0,7,4,1,8,5,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    {8,7,6,5,4,3,2,1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    {2,5,8,1,4,7,0,3,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    {2,1,0,5,4,3,8,7,6,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    {0,3,6,1,4,7,2,5,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    {6,7,8,3,4,5,0,1,2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    {8,5,2,7,4,1,6,3,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}
+};
 
-#define NUMSYMMETRIES 9   /*  4 rotations, 4 flipped rotations, outer-inner flip */
-#define BOARDSIZE9mm 24
-int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE9mm];
+int gSymmetryMatrix6MM[16][24] = {
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1},
+	{13,6,0,10,7,3,14,11,4,1,12,8,5,15,9,2,-1,-1,-1,-1,-1,-1,-1,-1},
+	{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,-1,-1,-1,-1,-1,-1,-1,-1},
+	{2,9,15,5,8,12,1,4,11,14,3,7,10,0,6,13,-1,-1,-1,-1,-1,-1,-1,-1},
+	{3,4,5,0,1,2,7,6,9,8,13,14,15,10,11,12,-1,-1,-1,-1,-1,-1,-1,-1},
+	{10,7,3,13,6,0,11,14,1,4,15,9,2,12,8,5,-1,-1,-1,-1,-1,-1,-1,-1},
+	{12,11,10,15,14,13,8,9,6,7,2,1,0,5,4,3,-1,-1,-1,-1,-1,-1,-1,-1},
+	{5,8,12,2,9,15,4,1,14,11,0,6,13,3,7,10,-1,-1,-1,-1,-1,-1,-1,-1},
+	{2,1,0,5,4,3,9,8,7,6,12,11,10,15,14,13,-1,-1,-1,-1,-1,-1,-1,-1},
+	{0,6,13,3,7,10,1,4,11,14,5,8,12,2,9,15,-1,-1,-1,-1,-1,-1,-1,-1},
+	{13,14,15,10,11,12,6,7,8,9,3,4,5,0,1,2,-1,-1,-1,-1,-1,-1,-1,-1},
+	{15,9,2,12,8,5,14,11,4,1,10,7,3,13,6,0,-1,-1,-1,-1,-1,-1,-1,-1},
+	{5,4,3,2,1,0,8,9,6,7,15,14,13,12,11,10,-1,-1,-1,-1,-1,-1,-1,-1},
+	{3,7,10,0,6,13,4,1,14,11,2,9,15,5,8,12,-1,-1,-1,-1,-1,-1,-1,-1},
+	{10,11,12,13,14,15,7,6,9,8,0,1,2,3,4,5,-1,-1,-1,-1,-1,-1,-1,-1},
+	{12,8,5,15,9,2,11,14,1,4,13,6,0,10,7,3,-1,-1,-1,-1,-1,-1,-1,-1}
+};
 
+int gSymmetryMatrix9MM[16][24] = { 
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23},
+	{6,7,8,3,4,5,0,1,2,11,10,9,14,13,12,21,22,23,18,19,20,15,16,17},
+	{2,1,0,5,4,3,8,7,6,14,13,12,11,10,9,17,16,15,20,19,18,23,22,21},
+	{8,7,6,5,4,3,2,1,0,12,13,14,9,10,11,23,22,21,20,19,18,17,16,15},
+	{21,22,23,18,19,20,15,16,17,9,10,11,12,13,14,6,7,8,3,4,5,0,1,2},
+	{15,16,17,18,19,20,21,22,23,11,10,9,14,13,12,0,1,2,3,4,5,6,7,8},
+	{23,14,2,20,13,5,17,12,8,22,19,16,7,4,1,15,11,6,18,10,3,21,9,0},
+	{17,12,8,20,13,5,23,14,2,16,19,22,1,4,7,21,9,0,18,10,3,15,11,6},
+	{0,9,21,3,10,18,6,11,15,1,4,7,16,19,22,8,12,17,5,13,20,2,14,23},
+	{6,11,15,3,10,18,0,9,21,7,4,1,22,19,16,2,14,23,5,13,20,8,12,17},
+	{21,9,0,18,10,3,15,11,6,22,19,16,7,4,1,17,12,8,20,13,5,23,14,2},
+	{15,11,6,18,10,3,21,9,0,16,19,22,1,4,7,23,14,2,20,13,5,17,12,8},
+	{23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},
+	{17,16,15,20,19,18,23,22,21,12,13,14,9,10,11,2,1,0,5,4,3,8,7,6},
+	{2,14,23,5,13,20,8,12,17,1,4,7,16,19,22,6,11,15,3,10,18,0,9,21},
+	{8,12,17,5,13,20,2,14,23,7,4,1,22,19,16,0,9,21,3,10,18,6,11,15}
+};
 
+int adjacent3[9][5] = {
+	{1,3,0,0,2},
+	{0,2,4,0,3},
+	{1,5,0,0,2},
+	{0,4,6,0,3},
+	{1,3,5,7,4},
+	{2,4,8,0,3},
+	{3,7,0,0,2},
+	{4,6,8,0,3},
+	{5,7,0,0,2}
+};
+
+int adjacent6[16][5] = {
+	{1,6,0,0,2},
+	{0,2,4,0,3},
+	{1,9,0,0,2},
+	{4,7,0,0,2},
+	{1,3,5,0,3},
+	{4,8,0,0,2},
+	{0,7,13,0,3},
+	{3,6,10,0,3},
+	{5,9,12,0,3},
+	{2,8,15,0,3},
+	{7,11,0,0,2},
+	{10,12,14,0,3},
+	{8,11,0,0,2},
+	{6,14,0,0,2},
+	{11,13,15,0,3},
+	{9,14,0,0,2}
+};
+
+int adjacent9[24][5] = {
+	{1,9,0,0,2},
+	{0,2,4,0,3},
+	{1,14,0,0,2},
+	{4,10,0,0,2},
+	{1,3,5,7,4},
+	{4,13,0,0,2},
+	{7,11,0,0,2},
+	{4,6,8,0,3},
+	{7,12,0,0,2},
+	{0,10,21,0,3},
+	{3,9,11,18,4},
+	{6,10,15,0,3},
+	{8,13,17,0,3},
+	{5,12,14,20,4},
+	{2,13,23,0,3},
+	{11,16,0,0,2},
+	{15,17,19,0,3},
+	{12,16,0,0,2},
+	{10,19,0,0,2},
+	{16,18,20,22,4},
+	{13,19,0,0,2},
+	{9,22,0,0,2},
+	{19,21,23,0,3},
+	{14,22,0,0,2}
+};
+
+int (*symmetriesToUse)[24];
+int totalNumSymmetries;
+
+POSITION fact(int n) {
+     if (n <= 1) return 1;
+	 POSITION prod = 1;
+	 for (int i = 2; i <= n; i++)
+		 prod *= i;
+     return prod;
+}
+
+// calculates the number of combinations
+unsigned long long getNumPos(int boardsize, int numX, int numO) {
+    long long temp = 1;
+    int numB = boardsize - numX - numO;
+
+    // Do fact(boardsize) / fact(numx) / fact(numo) / fact(numb) without overflowing
+    // fact(boardsize) is too big to store in a unsigned long long
+    // so this for loop represents temp = fact(boardsize) / fact(numb)
+	if (numB >= numX && numB >= numO) {
+		for (int i = numB + 1; i <= boardsize; i++)
+        	temp *= i;
+    	return temp / fact(numX) / fact(numO);
+	} else if (numX >= numB && numX >= numO) {
+		for (int i = numX + 1; i <= boardsize; i++)
+        	temp *= i;
+    	return temp / fact(numB) / fact(numO);
+	} else {
+		for (int i = numO + 1; i <= boardsize; i++)
+        	temp *= i;
+    	return temp / fact(numB) / fact(numX);
+	}
+}
+
+// Pre-calculate the number of combinations and store in combinations array
+// Combinations can be retrieved using combinations[boardsize][numx][numo]
+unsigned long long combinations[25][10][10]; // 2400*8bytes
+void combinationsInit() {
+    for (int boardsize=0; boardsize<=24; boardsize++)
+        for (int numx=0; numx<=9; numx++)
+            for (int numo=0; numo<=9; numo++)
+                combinations[boardsize][numx][numo] = getNumPos(boardsize, numx, numo);
+}
+
+/*************************************************************************
+**
+** HASH CACHE FUNCTIONS BEGIN
+**
+**************************************************************************/
+
+// (Perfect) hash the board
+unsigned long long hashIt(int boardsize, int numx, int numo, char *board) {
+    unsigned long long sum=0;
+    for (int i=boardsize-1; i>0; i--) { // no need to calculate i == 0
+        switch (board[i]) {
+            case 'X':
+                numx--;
+                break;
+            case 'O':
+                if (numx > 0) sum += combinations[i][numx-1][numo];
+                numo--;
+                break;
+            case '.':
+                if (numx > 0) sum += combinations[i][numx-1][numo];
+                if (numo > 0) sum += combinations[i][numx][numo-1];
+                break;
+        }
+    }
+    return sum;
+}
+
+void unhashIt(int boardsize, int numx, int numo, POSITION pos, char *board) {
+    POSITION o1, o2;
+    for (int i=boardsize-1; i>=0; i--) {
+        o1 = (numx > 0) ? combinations[i][numx-1][numo] : 0;
+        o2 = o1 + ((numo > 0) ? combinations[i][numx][numo-1] : 0);
+        if (pos >= o2) {
+            board[i] = '.';
+            pos -= o2;
+        }
+        else if (pos >= o1) {
+            if (numo > 0) {
+                board[i] = 'O';
+                numo--;
+            }
+            else
+                board[i] = '.';
+            pos -= o1;
+        }
+        else {
+            if (numx > 0) {
+                board[i] = 'X';
+                numx--;
+            }
+            else if (numo > 0) {
+                board[i] = 'O';
+                numo--;
+            }
+            else
+                board[i] = '.';
+        }
+    }
+}
+
+typedef struct {
+	int tier;
+	POSITION position;
+	char board[24];
+} HASH_RECORD;
+
+#define HASH_RECORDS 100000
+
+HASH_RECORD hashRecords[HASH_RECORDS];
+
+int hashCacheInited = 0;
+
+void hashCacheInit() {
+	for (long i=0; i<HASH_RECORDS; i++) {
+		hashRecords[i].position = -1LL;
+	}
+	hashCacheInited = 1;
+}
+
+void hashCachePut(int tier, POSITION position, char *board) {
+	if (!hashCacheInited) hashCacheInit();
+
+	long i = position % HASH_RECORDS;
+	if (hashRecords[i].tier != tier ||
+		hashRecords[i].position != position) {
+		hashRecords[i].tier = tier;
+		hashRecords[i].position = position;
+		memcpy(hashRecords[i].board, board, BOARDSIZE);
+	}
+}
+
+// Returns TRUE if cache miss, otherwise FALSE
+BOOLEAN hashCacheGet(int tier, POSITION position, char *board) {
+	if (!hashCacheInited) hashCacheInit();
+
+	long i = position % HASH_RECORDS;
+	if (hashRecords[i].tier == tier &&
+		hashRecords[i].position == position) {
+		memcpy(board, hashRecords[i].board, BOARDSIZE);
+		return FALSE;
+	}
+	return TRUE;
+}
+
+/*************************************************************************
+**
+** HASH CACHE FUNCTIONS END
+**
+**************************************************************************/
 
 /************************************************************************
 **
@@ -196,36 +454,33 @@ int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE9mm];
 **              Initializes required variables.
 **
 ************************************************************************/
-
-void InitializeGame ()
-{
+void InitializeGame() {
 	int i;
+	combinationsInit();
+	hashCacheInit();
 	// SYMMETRY
 	gCanonicalPosition = GetCanonicalPosition;
-	if (gameType==3) changetothree();
-	if (gameType==6) changetosix();
-	if (gameType==9) changetonine();
+	if (gameType == 3) changeToThree();
+	if (gameType == 6) changeToSix();
+	if (gameType == 9) changeToNine();
 	char* board = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
 
-	int pminmax[] = {X, 0, maxx, O, 0, maxo,BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
+	int pminmax[] = {X, 0, maxx, O, 0, maxo, BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
 
+	gUnDoMoveFunPtr = &UndoMove;
+	gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
 	gCustomUnhash = &customUnhash;
 	gReturnTurn = &returnTurn;
 	SetupTierStuff();
 
 	for(i = 0; i < BOARDSIZE; i++)
-	{
 		board[i] = BLANK;
-	}
-
 
 	gNumberOfPositions = generic_hash_init(BOARDSIZE, pminmax, NULL, 0);
 	gInitialPosition = hash(board, X, maxx+maxo, 0, 0);
 
 	InitializeHelpStrings();
-	//printf("initialize game done\n");
 }
-
 
 /************************************************************************
 **
@@ -237,9 +492,7 @@ void InitializeGame ()
 **              (e.g., InitializeGame() and GameSpecificMenu())
 **
 ************************************************************************/
-void InitializeHelpStrings ()
-{
-
+void InitializeHelpStrings() {
 	kHelpGraphicInterface =
 	        "";
 
@@ -282,104 +535,239 @@ void InitializeHelpStrings ()
 ** CALLS:       MOVELIST *CreateMovelistNode();
 **
 ************************************************************************/
-
-MOVELIST *GenerateMoves (POSITION position)
-{
-	//printf("%llu\n", position);
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *moves = NULL;
-	//MOVELIST *temp = NULL;	//DEBUG
 	char turn;
-	int piecesLeft;
-	int numx, numo;
-	int numadjacent;
-	int posadjacent[4];
-	int from, to;
-	int i, k;
-	int z = 0;
-	char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
-	//printf("\nPRINT POSITION INSIDE GENERATE MOVES\tturn=%c\n", turn); //DEBUG
-	//PrintPosition(position, "kevin", turn);//DEBUG
+	int piecesLeft, numX, numO;
+	char *board = unhash(position, &turn, &piecesLeft, &numX, &numO);
+	int legalRemoves[BOARDSIZE];
+	int numLegalRemoves = findLegalRemoves(board, turn, legalRemoves);
+	int *legalTos;
+	int numLegalTos;
 
-	//printf("GENERATEMOVES turn: %c\n", turn);
+	if (piecesLeft == 0 && (numX < 3 || numO < 3)) return NULL;
 
-	// get NUMX, NUMO from unhash
-	//printf("ENTERED GENERATE MOVES\n");
-	//stage 2 & 3
-	if(piecesLeft == 0) {
-		for (from = 0; from < BOARDSIZE; from++) {
-			if (board[from] == turn) { //make sure you're trying to move your own stone
-				if (!gFlying || ((turn == X) && (numx > 3)) || ((turn == O) && (numo > 3))) { // STAGE 2 : sliding
-					//printf("inside stage 2 of GenerateMoves\n");
-					numadjacent = find_adjacent(from, posadjacent); //adjacent positions
-					for(i = 0; i < numadjacent; i++) { //check if to is an adjacent position
-						to = posadjacent[i];
-						if(board[to] == BLANK) { //position is empty
-							if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+to*BOARDSIZE+from)) { // the position makes a 3 in a row
-								for(k=0; k<BOARDSIZE; k++) {
-									if (turn != board[k]) { //the piece is opponent's piece
-										if(can_be_taken(position, k)) {
-											z=1;
-											moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
-										}
-									}
-								}
-								if(millType == 2 && z==0) {
-									moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
-								}
-							}
-							else
-								moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
-						}
-					}
-				} else { // STAGE 3 : flying
-					//printf("inside stage 3 of GenerateMoves\n");
-					for (to = 0; to < BOARDSIZE; to++) {
-						if(board[to] == BLANK) { //position is empty
-							if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+to*BOARDSIZE+from)) { // made 3 in a row
-								for(k=0; k<BOARDSIZE; k++) {
-									if(can_be_taken(position, k)) {
-										z=1;
-										moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + k, moves);
-									}
-								}
-								if(millType == 2 && z==0) {
-									moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
-								}
-							}
-							else
-								moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE + from, moves);
-						}
-					}
-				}
+	int allBlanks[BOARDSIZE];
+	int numBlanks = 0;
+	for (int i = 0; i < BOARDSIZE; i++)
+		if (board[i] == BLANK)
+			allBlanks[numBlanks++] = i;
+
+	if (piecesLeft > 0) {
+		for (int i = 0; i < numBlanks; i++)
+			if (closesMillNew(board, turn, 31, allBlanks[i]) && numLegalRemoves > 0)
+				for (int j = 0; j < numLegalRemoves; j++)
+					/* ONLY this type of move is encoded as "from: to, to: remove, remove: remove" instead of 
+					"from: from, to: to, remove: remove" in order to distinguish this type of move (to+remove for placement and removal) 
+					from the other type of two-argument move (from+to for sliding) for the sake of correctly converting 
+					text inputs to moves. All functions that unhash moves will account for this peculiarity 
+					and set from, to, and remove to the correct values.*/
+					moves = CreateMovelistNode(MOVE_ENCODE(allBlanks[i], legalRemoves[j], legalRemoves[j]), moves);
+			else
+				moves = CreateMovelistNode(MOVE_ENCODE(31, allBlanks[i], 31), moves);
+	} else {
+		for (int fromIdx = 0; fromIdx < BOARDSIZE; fromIdx++) {
+			if (gFlying && ((turn == X && numX <= 3) || (turn == O && numO <= 3))) {
+				legalTos = allBlanks;
+				numLegalTos = numBlanks;
+			} else {
+				legalTos = adjacent[fromIdx];
+				numLegalTos = adjacent[fromIdx][4];
 			}
-		}
-	} else { // STAGE 1, placing
-		for (from = 0; from < BOARDSIZE; from++) {
-			if(board[from] == BLANK) { //position is empty
-				if(closes_mill(position, from*BOARDSIZE*BOARDSIZE+from*BOARDSIZE+from)) {
-					//printf("this position closes a mill\n");
-					for(to=0; to < BOARDSIZE; to++) {
-						if(can_be_taken(position, to)  && (board[to] != turn)) {
-							z=1;
-							moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + to*BOARDSIZE+from, moves);
-						}
-					}
-					if(millType == 2 && z==0) {
-						moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
-					}
-				}
-				else {
-					moves = CreateMovelistNode(from*BOARDSIZE*BOARDSIZE + from*BOARDSIZE+from, moves);
+			if (board[fromIdx] == turn) {
+				for (int i = 0; i < numLegalTos; i++) {
+					if (board[legalTos[i]] != BLANK) continue;
+					if (closesMillNew(board, turn, fromIdx, legalTos[i]) && numLegalRemoves > 0)
+						for (int j = 0; j < numLegalRemoves; j++)
+							moves = CreateMovelistNode(MOVE_ENCODE(fromIdx, legalTos[i], legalRemoves[j]), moves);
+					else
+						moves = CreateMovelistNode(MOVE_ENCODE(fromIdx, legalTos[i], 31), moves);
 				}
 			}
 		}
 	}
 
-	//printf("done with GenerateMoves\n");
 	SafeFree(board);
 	return moves;
 }
 
+/*
+Returns true if mill would be created if current player
+places a piece at toIdx (if fromIdx = 31) or slides a piece from fromIdx to toIdx (otherwise).
+*/
+BOOLEAN closesMillNew(char *board, char turn, int fromIdx, int toIdx) {
+	char copy[BOARDSIZE];
+	memcpy(copy, board, sizeof(copy));
+	if (fromIdx != 31) copy[fromIdx] = BLANK; // If sliding.
+	return checkMill(copy, toIdx, turn);
+}
+
+int findLegalRemoves(char *board, char turn, int *legalRemoves) {
+	int numLegalRemoves = 0;
+	char oppTurn = turn == X ? O : X;
+	if (millType == 0) { /* Standard. Removable if piece is not in a mill or all of opponent's pieces are in mills. */
+		for (int i = 0; i < BOARDSIZE; i++)
+			if (board[i] == oppTurn && (!checkMill(board, i, oppTurn) || all_mills(board, i, oppTurn)))
+				legalRemoves[numLegalRemoves++] = i;
+	} else if (millType == 1) { /* Any of opponent's pieces are removable. */
+		for (int i = 0; i < BOARDSIZE; i++)
+			if (board[i] == oppTurn)
+				legalRemoves[numLegalRemoves++] = i;
+	} else { /* Removable only if piece is not in mill. */
+		for (int i = 0; i < BOARDSIZE; i++)
+			if (board[i] == oppTurn && !checkMill(board, i, oppTurn))
+				legalRemoves[numLegalRemoves++] = i;
+	}
+	return numLegalRemoves;
+}
+
+/************************************************************************
+**
+**
+** BEGIN GENERATEUNDOMOVES FUNCTIONS
+**
+**
+*************************************************************************/
+
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
+	UNDOMOVELIST *undoMoves = NULL;
+	char turn;
+	int piecesLeft, numX, numO;
+	char *board = unhash(position, &turn, &piecesLeft, &numX, &numO);
+	char oppTurn = turn == X ? O : X;
+	int *legalFroms;
+	int numLegalFroms;
+	int undoMoveType;
+
+	if (tier < 100 && ((tier / 10) % 10 == 2 || tier % 10 == 2)) return NULL;
+	int currTier = piecesLeft * 100 + numX * 10 + numO;
+	if (currTier == tier - (oppTurn == X ? 91 : 109))
+		// Placement with removal.
+		undoMoveType = 0;
+	else if (currTier == tier - (oppTurn == X ? 90 : 99))
+		// Placement without removal.
+		undoMoveType = 1;
+	else if (currTier < 100 && currTier == tier - (oppTurn == X ? 1 : 10))
+		// Sliding/Flying with removal.
+		undoMoveType = 2;
+	else if (currTier < 100 && currTier == tier)
+		// Sliding/Flying without removal.
+		undoMoveType = 3;
+	else {
+		// Tier is not a parent tier of this position.
+		return NULL;
+	}
+
+	int allBlanks[BOARDSIZE];
+	int numBlanks = 0;
+	for (int i = 0; i < BOARDSIZE; i++)
+		if (board[i] == BLANK)
+			allBlanks[numBlanks++] = i;
+	legalFroms = allBlanks;
+	numLegalFroms = numBlanks;
+
+	int numCurr = turn == X ? numX + (piecesLeft / 2) : numO + (piecesLeft + 1 / 2);
+	int legalRemoves[BOARDSIZE];
+	int numLegalRemoves = findLegalRemovesUndo(board, turn, legalRemoves);
+
+	// if (undoMoveType == 0 && numCurr < maxx) {
+	// 	for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++)
+	// 		if (board[toIdx] == oppTurn && closesMillNew(board, oppTurn, 31, toIdx))
+	// 			for (int i = 0; i < numLegalRemoves; i++)
+	// 				/* ONLY this type of undomove is encoded as "from: to, to: remove, remove: remove" instead of 
+	// 				"from: from, to: to, remove: remove" in order to distinguish this type of move (to+remove for placement and removal) 
+	// 				from the other type of two-argument move (from+to for sliding) for the sake of correctly converting 
+	// 				text inputs to moves. All functions that unhash moves will account for this peculiarity 
+	// 				and set from, to, and remove to the correct values. */
+	// 				undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(toIdx, legalRemoves[i], legalRemoves[i]), undoMoves);
+	// } else if (undoMoveType == 1) {
+	// 	for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++)
+	// 		if (board[toIdx] == oppTurn && (!closesMillNew(board, oppTurn, 31, toIdx) || (millType == 2 && allMillsNew(board, -1, turn))))
+	// 			undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(31, toIdx, 31), undoMoves);
+	// } else
+	if (undoMoveType == 2 && numCurr < maxx) {
+		for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++) {
+			if (gFlying && ((oppTurn == X && numX <= 3) || (oppTurn == O && numO <= 3))) {
+				legalFroms = allBlanks;
+				numLegalFroms = numBlanks;
+			} else {
+				legalFroms = adjacent[toIdx];
+				numLegalFroms = adjacent[toIdx][4];
+			}
+			if (board[toIdx] == oppTurn && closesMillNew(board, oppTurn, 31, toIdx))
+				for (int i = 0; i < numLegalFroms; i++)
+					if (board[legalFroms[i]] == BLANK)
+						for (int j = 0; j < numLegalRemoves; j++)
+							if (legalFroms[i] != legalRemoves[j])
+								undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(legalFroms[i], toIdx, legalRemoves[j]), undoMoves);
+		}
+	} else {
+		for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++) {
+			if (gFlying && ((oppTurn == X && numX <= 3) || (oppTurn == O && numO <= 3))) {
+				legalFroms = allBlanks;
+				numLegalFroms = numBlanks;
+			} else {
+				legalFroms = adjacent[toIdx];
+				numLegalFroms = adjacent[toIdx][4];
+			}
+			if (board[toIdx] == oppTurn && (!closesMillNew(board, oppTurn, 31, toIdx) || (millType == 2 && allMillsNew(board, -1, turn))))
+				for (int i = 0; i < numLegalFroms; i++)
+					if (board[legalFroms[i]] == BLANK)
+						undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(legalFroms[i], toIdx, 31), undoMoves);
+		}
+	}
+
+	SafeFree(board);
+	return undoMoves;
+}
+
+// Given POSITION, slot
+// Return true if player indicated by `turn` has all their pieces in mills.  
+BOOLEAN allMillsNew(char *board, int slot, char turn) {
+	if (slot != -1)
+		board[slot] = turn;
+
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (board[i] == turn) {
+			if (!checkMill(board, i, turn)) {
+				if (slot != -1)
+					board[slot] = BLANK;
+				return FALSE;
+			}
+		}
+	}
+
+	if (slot != -1)
+		board[slot] = BLANK;
+
+	return TRUE;
+}
+
+int findLegalRemovesUndo(char *board, char turn, int *legalRemoves) {
+	int numLegalRemoves = 0;
+	if (millType == 0) { /* Standard. Removable if piece is not in a mill or all of opponent's pieces are in mills. */
+		for (int i = 0; i < BOARDSIZE; i++)
+			if (board[i] == BLANK && (!checkMill(board, i, turn) || allMillsNew(board, i, turn)))
+				legalRemoves[numLegalRemoves++] = i;
+	} else if (millType == 1) { /* Any of opponent's pieces are removable. */
+		for (int i = 0; i < BOARDSIZE; i++)
+			if (board[i] == BLANK)
+				legalRemoves[numLegalRemoves++] = i;
+	} else { /* Removable only if piece is not in mill. */
+		for (int i = 0; i < BOARDSIZE; i++)
+			if (board[i] == BLANK && !checkMill(board, i, turn))
+				legalRemoves[numLegalRemoves++] = i;
+	}
+	return numLegalRemoves;
+}
+
+/************************************************************************
+**
+**
+** END GENERATEUNDOMOVES FUNCTIONS
+**
+**
+*************************************************************************/
 
 /************************************************************************
 **
@@ -396,64 +784,125 @@ MOVELIST *GenerateMoves (POSITION position)
 **              Some Board Unhash Function
 **
 *************************************************************************/
-
-POSITION DoMove (POSITION position, MOVE move)
-{
-	char* board;
+POSITION DoMove(POSITION position, MOVE move) {
 	char turn;
 	int piecesLeft;
-	int numx, numo;
-	POSITION temp;
+	int numX, numO;
+	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
 
-	//printf("inside DoMove\n");
-	board = unhash(position, &turn, &piecesLeft, &numx, &numo);
+	int fromIdx = move >> 10;
+	int toIdx = (move >> 5) & 0x1F;
+	int removeIdx = move & 0x1F;
 
-	//printf("numx: %d, numo:%d, piecesLeft: %d\n", numx, numo, piecesLeft);
-
-	int to = (move%(BOARDSIZE*BOARDSIZE)) / BOARDSIZE;
-	int from = move / (BOARDSIZE * BOARDSIZE);
-	int remove = move % BOARDSIZE;
-
-	if (piecesLeft == 0) // STAGE 2 or 3, SLIDING OR FLYING
-	{
-		//printf("inside DoMove. to=%d, from = %d, remove = %d\n", to, from, remove); //DEBUG
-		board[to] = board[from];
-		board[from] = BLANK;
-		board[remove] = BLANK; //if remove wasn't specified in the string, it is by default equal to from
+	/* Correction for PECULIARITY */
+	if (toIdx == removeIdx) {
+		toIdx = fromIdx;
+		fromIdx = 31;
 	}
 
-	else // STAGE 1 : PLACING
-	{
-		//printf("DoMove stage 1\n");
-		board[from] = turn;
-		if (from != to)
-			board[to] = BLANK;
-	}
-
-	//printf("numx: %d numo: %d\n", numx, numo);
-
-	//printf("DOMOVE TURN: %d\n", turn);
-
+	board[toIdx] = turn;
 
 	if (turn == X) {
-		temp = updatepieces(board,O,piecesLeft, numx, numo, move, position);
-		SafeFree(board);
-
-	}
-	else{
-		temp = updatepieces(board, X, piecesLeft, numx, numo,move,position);
-		SafeFree(board);
-
+		turn = O;
+		if (fromIdx != 31) { // If sliding
+			board[fromIdx] = BLANK;
+		} else { // Phase 1
+			piecesLeft--;
+			numX++;
+		}
+		if (removeIdx != 31) {
+			board[removeIdx] = BLANK;
+			numO--;
+		}
+	} else {
+		turn = X;
+		if (fromIdx != 31) {
+			board[fromIdx] = BLANK;
+		} else {
+			piecesLeft--;
+			numO++;
+		}
+		if (removeIdx != 31) {
+			board[removeIdx] = BLANK;
+			numX--;
+		}
 	}
 
 	TIER tier; TIERPOSITION tierposition;
 	gUnhashToTierPosition(position, &tierposition, &tier);
 	gCurrentTier = tier;
-	//printf("current tier = %d\n", (int)gCurrentTier);
 
-	return temp;
+	POSITION toReturn = hash(board, turn, piecesLeft, numX, numO);
+	SafeFree(board);
+
+	return toReturn;
 }
 
+/************************************************************************
+**
+**
+** BEGIN UNDOMOVE FUNCTIONS
+**
+**
+*************************************************************************/
+
+POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
+	char turn;
+	int piecesLeft;
+	int numX, numO;
+	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
+
+	int fromIdx = undoMove >> 10;
+	int toIdx = (undoMove >> 5) & 0x1F;
+	int removeIdx = undoMove & 0x1F;
+
+	/* Correction for PECULIARITY */
+	if (toIdx == removeIdx) {
+		toIdx = fromIdx;
+		fromIdx = 31;
+	}
+
+	board[toIdx] = BLANK;
+
+	if (turn == X) {
+		turn = O; /* If turn in child position is X, then in parent position is O. */
+		if (fromIdx != 31) { // If sliding
+			board[fromIdx] = O;
+		} else { // Phase 1
+			piecesLeft++;
+			numO--;
+		}
+		if (removeIdx != 31) {
+			board[removeIdx] = X;
+			numX++;
+		}
+	} else {
+		turn = X;
+		if (fromIdx != 31) {
+			board[fromIdx] = X;
+		} else {
+			piecesLeft++;
+			numX--;
+		}
+		if (removeIdx != 31) {
+			board[removeIdx] = O;
+			numO++;
+		}
+	}
+
+	POSITION toReturn = hash(board, turn, piecesLeft, numX, numO);
+	SafeFree(board);
+
+	return toReturn;
+}
+
+/************************************************************************
+**
+**
+** END UNDOMOVE FUNCTIONS
+**
+**
+*************************************************************************/
 
 /************************************************************************
 **
@@ -479,8 +928,7 @@ POSITION DoMove (POSITION position, MOVE move)
 **
 ************************************************************************/
 
-VALUE Primitive (POSITION position)
-{
+VALUE Primitive (POSITION position) {
 	char *board;
 	char turn;
 	int piecesLeft;
@@ -490,12 +938,6 @@ VALUE Primitive (POSITION position)
 	SafeFree(board);
 
 	if(piecesLeft == 0) { // Check if we are in stage 2 (stage 3 included in 2 with special rules)
-		/*
-		   if (((numx < 3) && (turn == O)) || ((numo < 3) && (turn == X))) {
-		   fprintf(stderr, "ERROR: 6mm Primitive had a position with 2 pieces, but it was their turn!\n");
-		   ExitStageRight();
-		   }
-		 */
 		if ((numx < 3) || (numo < 3))
 			return gStandardGame ? lose : win;
 
@@ -504,7 +946,6 @@ VALUE Primitive (POSITION position)
 			return gStandardGame ? lose : win;
 		FreeMoveList(moves);
 	}
-	//printf("inside Primitive\n");
 	return undecided;
 }
 
@@ -525,15 +966,12 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
-{
+void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	char turn;
 	int piecesLeft;
 	int numx, numo;
 
-	//printf("PRINTPOSITION PLAYER: %d\n", generic_hash_turn(position));
 	char* board = unhash(position, &turn, &piecesLeft, &numx, &numo);
-	//printf("PRINTPOSITION PLAYER %d\n", turn);
 
 	if (gameType==3) {
 		printf("\n");
@@ -644,8 +1082,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
 	STRING str = MoveToString( computersMove );
 	printf("%8s's move                                     : %s\n",computersName,str);
 	SafeFree( str );
@@ -662,8 +1099,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 **
 ************************************************************************/
 
-void PrintMove (MOVE move)
-{
+void PrintMove (MOVE move) {
 	STRING str = MoveToString( move );
 	printf( "%s", str );
 	SafeFree( str );
@@ -680,55 +1116,36 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
-{
-	//DONE
-	int to = (move%(BOARDSIZE*BOARDSIZE)) / BOARDSIZE;
-	int from = move / (BOARDSIZE * BOARDSIZE);
-	int remove = move % BOARDSIZE;
+STRING MoveToString(MOVE move) {
+	int fromIdx = move >> 10;
+	int toIdx = (move >> 5) & 0x1F;
+	int removeIdx = move & 0x1F;
+	/* Correction for PECULIARITY */
+	if (toIdx == removeIdx) {
+		toIdx = fromIdx;
+		fromIdx = 31;
+	}
 	int tier, piecesLeft;
 
 	STRING movestring;
-	//printf("MOVE TO STRING\n");
-	tier = generic_hash_cur_context();
-	piecesLeft = tier/100;
-	if (piecesLeft == 0)
-	{
-		if(from != remove)
-		{
-			movestring = (STRING) SafeMalloc(12);
-			sprintf( movestring, "[%d %d %d]",from, to, remove );
-		}
-		else if(from == to && to == remove) {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d]", from); //do not remove the '[' or ']' characters. it wil lbreak the gui
-		}
-		else {
-			movestring = (STRING) SafeMalloc(8);
-			sprintf( movestring, "[%d %d]", from, to);
-		}
+	//tier = generic_hash_cur_context();
+	//piecesLeft = tier / 100;
+	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
+		movestring = (STRING) SafeMalloc(12);
+		sprintf( movestring, "[%d-%dr%d]",fromIdx, toIdx, removeIdx);
+	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
+		movestring = (STRING) SafeMalloc(8);
+		sprintf( movestring, "[%d-%d]", fromIdx, toIdx);
+	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
+		movestring = (STRING) SafeMalloc(8);
+		sprintf(movestring, "[%d]", toIdx);
+	} else {
+		movestring = (STRING) SafeMalloc(8);
+		sprintf(movestring, "[%dr%d]", toIdx, removeIdx);
 	}
-	else
-	{
-		//printf("MOVE TO STRING ELSE\n");
-		//printf("from = %d, to = %d, remove = %d\n", from, to, remove);
-
-		if (from == to) //if 1st == 2nd position in move formula
-		{
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d]", from);
-		}
-		else
-		{
-			movestring = (STRING) SafeMalloc(8);
-			sprintf(movestring, "[%d %d]", from, to);
-		}
-	}
-
 
 	return movestring;
 }
-
 
 /************************************************************************
 **
@@ -750,20 +1167,42 @@ STRING MoveToString (MOVE move)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
-{
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName) {
 	USERINPUT input;
 	char turn;
 	int piecesLeft, numx, numo;
 	char *board = unhash(position, &turn, &piecesLeft, &numx, &numo);
 	SafeFree(board);
 
+	BOOLEAN existsRemoves = FALSE;
+	BOOLEAN allRemoves = TRUE;
+	MOVELIST *moveList = GenerateMoves(position);
+	MOVELIST *moveListPtr = moveList;
+	for (; moveListPtr != NULL; moveListPtr = moveListPtr->next) {
+		if ((moveListPtr->move & 0x1F) != 31) {
+			existsRemoves = TRUE;
+		} else {
+			allRemoves = FALSE;
+		}
+	}
+	SafeFree(moveList);
+
 	do {
-		printf("%8s's move: (u)ndo/", playersName);
-		if (piecesLeft != 0) // STAGE 1 : PLACING
-			printf("0-15/[0-15 0-15]            ");
-		else {
-			printf("[0-15 0-15]/[0-15 0-15 0-15]");
+		int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
+		printf("%8s's move: (u)ndo", playersName);
+		if (!allRemoves) {
+			if (piecesLeft != 0) // STAGE 1 : PLACING
+				printf(" OR [0-%d]", maxslots);
+			else {
+				printf(" OR [0-%d]-[0-%d]", maxslots, maxslots);
+			}
+		}
+		if (existsRemoves) {
+			if (piecesLeft != 0) // STAGE 1 : PLACING
+				printf(" OR [0-%d]r[0-%d]", maxslots, maxslots);
+			else {
+				printf(" OR [0-%d]-[0-%d]r[0-%d]", maxslots, maxslots, maxslots);
+			}
 		}
 		printf(": ");
 
@@ -803,14 +1242,40 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (STRING input)
-{
+BOOLEAN ValidTextInput(STRING input) {
 	//DONE
-	if(input[0]>57 || input[0]<48)
-		return FALSE;
-	else
-		return TRUE;
-
+	int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
+	int i = 0;
+	BOOLEAN existsR = FALSE;
+	BOOLEAN existsDash = FALSE;
+	int currNum = 0;
+	while (input[i] != '\0') {
+		if (!((input[i] >= 48 && input[i] <= 57) || input[i] == '-' || input[i] == 'r')) {
+			return FALSE;
+		}
+		if (input[i] == '-') {
+			if (existsDash || existsR) {
+				return FALSE;
+			} else {
+				existsDash = TRUE;
+				currNum = 0;
+			}
+		} else if (input[i] == 'r') {
+			if (existsR) {
+				return FALSE;
+			} else {
+				existsR = TRUE;
+				currNum = 0;			
+			}
+		} else {
+			currNum = currNum * 10 + (input[i] - '0');
+			if (currNum > maxslots) {
+				return FALSE;
+			}
+		}
+		i++;
+	}
+	return TRUE;
 }
 
 /************************************************************************
@@ -827,37 +1292,55 @@ BOOLEAN ValidTextInput (STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (STRING input)
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	//DONE
-	int from, to, remove;
-	STRING afterSpace;
-	STRING after2Space;
-	BOOLEAN hasSpace, has2Space;
+	int from = 31;
+	int to = 31; //that way if no input for remove, it's equal to from. useful in function DoMove
+	int remove = 31; // for stage 1, if there is nothing to remove
 
-	from = atoi(input);
-	remove = from; //that way if no input for remove, it's equal to from. useful in function DoMove
-	to = from; // for stage 1, if there is nothing to remove
-
-	hasSpace = index(input, ' ') != NULL;
-
-	if (hasSpace) {
-		afterSpace = index(input, ' ');
-		to = atoi(afterSpace);
-
-		has2Space = index(++afterSpace, ' ') != NULL;
-
-		if (has2Space) {
-			after2Space = index(afterSpace, ' ');
-			remove = atoi(after2Space);
+	int i = 0;
+	int phase = 0;
+	int first = 0;
+	int second = 0;
+	int third = 0;
+	BOOLEAN existsSliding = FALSE;
+	while (input[i] != '\0') {
+		if (input[i] == 'r' || input[i] == '-') {
+			if (input[i] == '-') {
+				existsSliding = TRUE;
+			}
+			phase++;
+			i++;
+			continue;
 		}
-
+		if (phase == 0) {
+			first = first * 10 + (input[i] - '0');
+		} else if (phase == 1) {
+			second = second * 10 + (input[i] - '0');
+		} else {
+			third = third * 10 + (input[i] - '0');
+		}
+		i++;
 	}
-	//printf("converttextinputtomove.... move = %d\n", (from * BOARDSIZE * BOARDSIZE) + (to * BOARDSIZE) + remove);
-	//printf("from: %d, to: %d, remove: %d\n", from, to, remove);
-	return ((from * BOARDSIZE * BOARDSIZE) + (to * BOARDSIZE) + remove); //HASHES THE MOVE
-}
 
+	if (phase == 0) { // Placement without removal
+		to = first;
+	} else if (phase == 2) { // Sliding/flying with removal
+		from = first;
+		to = second;
+		remove = third;
+	} else if (existsSliding) { // Sliding/flying without removal
+		from = first;
+		to = second;
+	} else { // Placement with removal peculiarity.
+		from = first;
+		to = second;
+		remove = second;
+	}
+	//printf("converttextinputtomove.... move = %d\n", MOVE_ENCODE(from, to, remove));
+	//printf("from: %d, to: %d, remove: %d\n", from, to, remove);
+	return MOVE_ENCODE(from, to, remove); //HASHES THE MOVE
+}
 
 /************************************************************************
 **
@@ -876,8 +1359,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
-{
+void GameSpecificMenu() {
 	char GetMyChar();
 	POSITION GetInitialPosition();
 
@@ -904,15 +1386,19 @@ void GameSpecificMenu ()
 			printf("\tm)\tWhen mill is formed, can remove opponent's piece if it is not in a mill, unless if all the remaining pieces are already in a mill.\n");
 		}
 
-		if (gameType == 3) {
-			printf("\tn)\tSwitch to Six Men's Morris.\n");
+		char currentType[10];
+		strcpy(currentType, gameType == 3 ? "Three" : gameType == 6 ? "Six" : "Nine");
+
+		if (gameType != 3) {
+			printf("\t3)\tSwitch from %s Men's Morris to Three Men's Morris.\n", currentType);
 		}
-		else if (gameType == 6) {
-			printf("\tn)\tSwitch to Nine Men's Morris.\n");
+		if (gameType != 6) {
+			printf("\t6)\tSwitch from %s Men's Morris to Six Men's Morris.\n", currentType);
 		}
-		else if (gameType == 9) {
-			printf("\tn)\tSwitch to Three Men's Morris.\n");
+		if (gameType != 9) {
+			printf("\t9)\tSwitch from %s Men's Morris to Nine Men's Morris.\n", currentType);
 		}
+		
 
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		printf("\n\nSelect an option: ");
@@ -925,15 +1411,16 @@ void GameSpecificMenu ()
 				millType = 2;
 			else if (millType == 2)
 				millType = 0;
-			return;
-		case 'N': case 'n':
-			if (gameType == 3)
-				changetosix();
-			else if (gameType == 6)
-				changetonine();
-			else if (gameType == 9)
-				changetothree();
-			return;
+			break;
+		case '3':
+			changeToThree();
+			break;
+		case '6':
+			changeToSix();
+			break;
+		case '9':
+			changeToNine();
+			break;
 		case 'Q': case 'q':
 			ExitStageRight();
 		case 'H': case 'h':
@@ -968,7 +1455,7 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (int options[]){
+void SetTclCGameSpecificOptions(int options[]) {
 }
 
 
@@ -985,8 +1472,7 @@ void SetTclCGameSpecificOptions (int options[]){
 **
 ************************************************************************/
 
-POSITION GetInitialPosition ()
-{
+POSITION GetInitialPosition() {
 	return 0;
 }
 
@@ -1002,8 +1488,7 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
+int NumberOfOptions() {
 	return 36; //misere/standard   flying/no-flying   3mm/6mm/9mm millType = 1/2/3
 }
 
@@ -1020,13 +1505,9 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
-{
-	//printf("option = %d\n", 1 + (gFlying<<1) + gStandardGame+ ((gameType/3-1)<<2) + (millType << 4));
-	//printf("millType = %d\n", millType);
+int getOption() {
 	return 1 + (gFlying<<1) + gStandardGame + ((gameType/3-1)<<2) + (millType<<4);
 }
-
 
 /************************************************************************
 **
@@ -1039,24 +1520,23 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (int option)
-{
+void setOption(int option) {
 	// In terms of bits, option is one more than 0bFS (F=flying,S=Standard)
 	int temp;
 	option -= 1;
 	gStandardGame = (option % 2);
 	gFlying       = (option >> 1) % 2;
 	temp = gameType;
-	gameType = (((option>>2)+1)*3);
+	gameType = ((((option>>2) % 4)+1)*3);
 	millType = (option >> 4);
 	if((temp != gameType) && (gameType==3)) {
-		changetothree();
+		changeToThree();
 	}
 	else if((temp != gameType) && (gameType==6)) {
-		changetosix();
+		changeToSix();
 	}
 	else if ((temp != gameType) && (gameType == 9)) {
-		changetonine();
+		changeToNine();
 	}
 }
 
@@ -1074,8 +1554,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu ()
-{
+void DebugMenu() {
 
 }
 
@@ -1091,18 +1570,8 @@ void DebugMenu ()
 **
 ************************************************************************/
 
-void printBoard(char* board) {
-	//int i;
-	//printf("Board is= ");
-	//for (i = 0; i < BOARDSIZE; i++)
-	//printf("%c", board[i]);
-	//printf("\n");
-}
-
-
 //this was made just for "tkAppInit.c" we are returning the turn so that the gui knows whose turn it is.
-char returnTurn(POSITION pos)
-{
+char returnTurn(POSITION pos) {
 	if(gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
 		gUnhashToTierPosition(pos, &tierposition, &tier);
@@ -1113,8 +1582,7 @@ char returnTurn(POSITION pos)
 }
 
 //this was made just for "tkAppInit.c" we are returning the board so that the gui knows whose turn it is.
-char* customUnhash(POSITION pos)
-{
+char* customUnhash(POSITION pos) {
 	//piecesLeft = total pieces left during stage 1 (x + o)
 	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
 	if(gHashWindowInitialized) {
@@ -1127,23 +1595,25 @@ char* customUnhash(POSITION pos)
 }
 
 //this is the main unhash function that the C code uses.
-char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo)
-{
+char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo) {
 	//piecesLeft = total pieces left during stage 1 (x + o)
 	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
-	if(gHashWindowInitialized) {
-		//printf("unhashing with tiers\n");
+	if (gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
 		gUnhashToTierPosition(pos, &tierposition, &tier);
-		//printf("unhashing %d\n", tier);
 		generic_hash_context_switch(tier);
-		(*turn) = (generic_hash_turn(tierposition)==PLAYER_ONE ? X : O);
-		board = (char*)generic_hash_unhash(tierposition, board);
-		*piecesLeft = tier/100;
-		*numx = (tier/10)%10;
-		*numo = tier%10;
-	}
-	else{
+		(*turn) = (generic_hash_turn(tierposition) == PLAYER_ONE ? X : O);
+
+		*piecesLeft = tier / 100;
+		*numx = (tier / 10) % 10;
+		*numo = tier % 10;
+
+		BOOLEAN cache_miss = hashCacheGet(tier, tierposition, board);
+		if (cache_miss) {
+			unhashIt(BOARDSIZE, *numx, *numo, tierposition % combinations[BOARDSIZE][*numx][*numo], board);
+			hashCachePut(tier, tierposition, board);
+		}
+	} else {
 		printf("unhashing without tiers... cannot solve game\n");
 		generic_hash_unhash(pos, board);
 		*piecesLeft = totalPieces; //remove when tiering
@@ -1156,22 +1626,18 @@ char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo)
 	return board;
 }
 
-POSITION hash(char* board, char turn, int piecesLeft, int numx, int numo)
-{
+POSITION hash(char* board, char turn, int piecesLeft, int numx, int numo) {
 	POSITION pos;
-	if(gHashWindowInitialized) {
-		// printf("piecesLeft =%d \t numx: %d \t numo: %d\n", piecesLeft, numx,numo);
-		TIER tier = piecesLeft*100+numx*10+numo;
-
-		//printf(" line 1093 tier = %d\n", tier);
-		//printf("%d\n", tier);
+	if (gHashWindowInitialized) {
+		TIER tier = piecesLeft * 100 + numx * 10 + numo;
 		generic_hash_context_switch(tier);
-		printBoard(board);
-		TIERPOSITION tierposition = generic_hash_hash(board, (turn == X ? PLAYER_ONE : PLAYER_TWO));
-		//printf("line 1096 tierposition = %d\n", tierposition);
+		TIERPOSITION tierposition = hashIt(BOARDSIZE, numx, numo, board);
+
+		if (piecesLeft == 0 && turn == O) {
+			tierposition += combinations[BOARDSIZE][numx][numo];
+		}
 		pos = gHashToWindowPosition(tierposition, tier);
-	}
-	else{
+	} else {
 		pos = generic_hash_hash(board, (turn == X ? PLAYER_ONE : PLAYER_TWO));
 		if (board != NULL)
 			SafeFree(board);
@@ -1183,8 +1649,7 @@ POSITION hash(char* board, char turn, int piecesLeft, int numx, int numo)
 	return pos;
 }
 
-
-void SetupTierStuff(){
+void SetupTierStuff() {
 	generic_hash_destroy();
 	char* board = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
 	kSupportsTierGamesman = TRUE;
@@ -1238,44 +1703,32 @@ void SetupTierStuff(){
 
 TIERLIST* gTierChildren(TIER tier) {
 	TIERLIST* list = NULL;
-	int numx, numo, piecesLeft;
-	piecesLeft=(tier/100);
-	numx=(tier/10)%10;
-	numo=tier%10;
-//printf("tier = %d\t", tier);
-	if (piecesLeft !=0) {
-		if(piecesLeft%2==0) { //meaning it is X's turn
-			//if (((piecesLeft == 2) && (numo > 1) && (numx+1 > 1) ) || (piecesLeft > 1))
+	int piecesLeft = tier / 100;
+	int numX = (tier / 10) % 10;
+	int numO = tier % 10;
+	if (piecesLeft != 0) {
+		if (piecesLeft % 2 == 0) {
 			list = CreateTierlistNode(tier-100+10, list);         //adding piece
-			//}
-			//if (((piecesLeft > 1) &&(numx > 0)) || ((piecesLeft == 2) && (numo-1 > 1) && (numx+1 > 1)))  {
-			if (numx > 1) {
+			if (numX > 1) {
 				list = CreateTierlistNode(tier-100+9, list); //adding and removing
 			}
-		}
-		else{
-			//if (((piecesLeft == 1) && (numo+1 > 1) &&(numx > 1) ) || (piecesLeft > 1)) {
+		} else {
 			list = CreateTierlistNode(tier-100+1, list);         //adding piece
-			//}
-			//if (((piecesLeft > 1) &&(numx > 0)) || ((piecesLeft == 1) && (numo+1 > 1) && (numx-1 > 1))) {
-			if (numo > 1) {
+			if (numO > 1) {
 				list = CreateTierlistNode(tier-100-9, list); //adding and removing
 			}
 		}
-	}
-	else if (piecesLeft==0) { //stage 2 or 3. We do not know the turn, so we assume both paths as tier children
-		list=CreateTierlistNode(tier, list);
-		if (numx > 2 && numo > 2) {
+	} else if (piecesLeft == 0) { //stage 2 or 3. We do not know the turn, so we assume both paths as tier children
+		list = CreateTierlistNode(tier, list);
+		if (numX > 2 && numO > 2) {
 			list = CreateTierlistNode(tier-10, list); //remove X piece
 			list = CreateTierlistNode(tier-1, list); //remove O piece
 		}
 	}
-	//printf("tier = %d\t", tier);
 	return list;
 }
 
 TIERPOSITION gNumberOfTierPositions (TIER tier) {
-	//printf("%d\n",tier);
 	generic_hash_context_switch(tier);
 	return generic_hash_max_pos();
 }
@@ -1292,117 +1745,25 @@ STRING TierToString(TIER tier) {
 	return str;
 }
 
-//updates totalPieces
-POSITION updatepieces(char* board,char turn,int piecesLeft,int numx,int numo,MOVE move, POSITION position)
-{
-
-	int to = (move%(BOARDSIZE*BOARDSIZE)) / BOARDSIZE;
-	int from = move / (BOARDSIZE * BOARDSIZE);
-	int remove = move % BOARDSIZE;
-
-
-	if (piecesLeft != 0)
-	{
-		if (turn != X)
-		{
-			numx++;
-			if (from != to) //1st pos != 2nd pos [removing a piece]
-				numo--;
-		}
-		else
-		{
-			numo++;
-			if (from != to) //1st pos != 2nd pos [removing a piece]
-				numx--;
-		}
-		piecesLeft--;
-	}
-	else if (piecesLeft == 0) //stage 2 & 3
-	{
-		if (turn != X)
-		{
-			if (from != remove) //1st pos != 3nd pos [removing a piece]
-				numo--;
-		}
-		else
-		{
-			if (from != remove) //1st pos != 3rd pos [removing a piece]
-				numx--;
-		}
-	}
-	//printf("turn=%d, numx=%d, numo=%d, totalPieces=%d, turn = %c\n", generic_hash_turn(position), numx, numo, piecesLeft, turn); //debug
-	return hash(board, turn, piecesLeft, numx, numo);
-}
-
-
 // Given POSITION, slot
-// Return true if piece at slot can be taken, false otherwise
-BOOLEAN can_be_taken(POSITION position, int slot)
-{
-	char *board;
-	char turn;
-	int piecesLeft;
-	int numx, numo;
-	board = unhash(position, &turn, &piecesLeft, &numx, &numo);
-	//blankox piece = board[slot];
-	BOOLEAN allMills;
-	BOOLEAN canbetaken;
-	//printf("can_be_taken!!!!!!!!!!!!!!\n");
-	/* According to the rules, a piece can be taken if it is not in a mill
-	        or if the opponent only has mills */
-
-	if (board[slot] == BLANK || board[slot] == turn) {
-		SafeFree(board);
-		return FALSE;
-	}
-
-	allMills = all_mills(board, slot);
-
-	if(millType == 0)
-		canbetaken = ((!check_mill(board, slot, turn==X ? O : X)) || allMills);
-	if(millType == 1)
-		canbetaken = TRUE;
-	if(millType == 2)
-		canbetaken = ((!check_mill(board, slot, turn==X ? O : X)));
-
-	SafeFree(board);
-	return canbetaken;
-	//check mill to see if the position is in a mill
-	//if it is in a mill, it will return false
-	//if it is not a mill, it will be true
-	//allMills returns true if the opponent's pieces are only mills
-	//even if the piece is in a mill, it will return true if allMills is true
-}
-
-
-// Given POSITION, slot
-// Return true if at this position, the player at slot only has mills or has only 3 pieces that are in a mill
-BOOLEAN all_mills(char *board, int slot)
-{
-	char type = board[slot];
-	int pieces[type == X ? maxx : maxo];
-	int num, i;
-	BOOLEAN allMills = TRUE;
-
-	num = find_pieces(board, type, pieces);
-
-	for (i = 0; i < num; i++)
-	{
-		if (!check_mill(board, pieces[i], type)) {
-			allMills = FALSE;
+// Return whether player indicated by `turn` has all pieces in a mill.
+BOOLEAN all_mills(char *board, int slot, char turn) {
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (board[i] == turn) {
+			if (!checkMill(board, i, turn)) {
+				return FALSE;
+			}
 		}
 	}
-	return allMills;
+	return TRUE;
 }
 
 // Given bboard, int array
 // Return number of pieces and array of each slot containing those pieces
-int find_pieces(char *board, char piece, int *pieces)
-{
-	int i;
+int find_pieces(char *board, char piece, int *pieces) {
 	int num = 0;
 
-	for (i = 0; i < BOARDSIZE; i++) {
+	for (int i = 0; i < BOARDSIZE; i++) {
 		if (board[i] == piece) {
 			pieces[num] = i;
 			num++;
@@ -1412,552 +1773,133 @@ int find_pieces(char *board, char piece, int *pieces)
 	return num;
 }
 
-// given old position and the next move
-BOOLEAN closes_mill(POSITION position, int raw_move)
-{
-	char *board;
-	char turn,tempturn;
-	int piecesLeft, numx, numo;
-	BOOLEAN mill;
-	POSITION temppos;
-	board=unhash(position, &turn, &piecesLeft, &numx, &numo); //do the move onto board
-	tempturn = turn;
-	// printf("closesmill tempturn: %c\n", tempturn);
-	temppos = EvalMove(board,turn,piecesLeft,numx,numo,raw_move, position);
-	//printf("turn after EvalMove: %c\n", turn);
-	SafeFree(board);
-	board=unhash(temppos, &turn, &piecesLeft, &numx, &numo); //do the move onto board
-	turn = tempturn;
-	//printf("finalturn: %c\n", turn);
-	if (piecesLeft==0) {
-		mill = check_mill(board, (raw_move%(BOARDSIZE*BOARDSIZE))/BOARDSIZE, turn);
-		SafeFree(board);
-		return mill;
-	}
-	else
-	{
-		//printf("CLOSE MILL ELSE\n");
-		mill = check_mill(board, (raw_move/(BOARDSIZE*BOARDSIZE)), turn);
-		SafeFree(board);
-		return mill;
-	}
-}
-
-POSITION EvalMove(char* board,char turn,int piecesLeft,int numx,int numo,MOVE move, POSITION position)
-{
-
-	//printf("inside DoMove\n");
-
-	//printf("totalPieces: %d\n", totalPieces);
-
-	int to = (move%(BOARDSIZE*BOARDSIZE)) / BOARDSIZE;
-	int from = move / (BOARDSIZE * BOARDSIZE);
-	int remove = move % BOARDSIZE;
-
-	if (piecesLeft == 0) // stage 2
-	{
-		//printf("inside DoMove. to=%d, from = %d, remove = %d\n", to, from, remove); //DEBUG
-		board[to] = board[from];
-		board[from] = BLANK;
-		board[remove] = BLANK; //if remove wasn't specified in the string, it is by default equal to from
-	}
-
-	else // stage 1
-	{
-		//printf("DoMove stage 1\n");
-		board[from] = turn;
-		if (from != to)
-			board[to] = BLANK;
-	}
-
-	//printf("numx: %d numo: %d\n", numx, numo);
-
-	//printf("EVALMOVE TURN: %c\n", turn);
-
-	if (turn == X) {
-		return updatepieces(board,O,piecesLeft, numx, numo, move, position);
-	}
-	else{
-		return updatepieces(board, X, piecesLeft, numx, numo,move,position);
-	}
-
-
-}
 
 // given new board, slot
 // return true if slot is member of mill
-BOOLEAN check_mill(char *board, int slot, char turn)
-{
+BOOLEAN checkMill(char *board, int slot, char turn) {
 	if (gameType == 3) {
 		switch (slot) {
 		case 0:
-			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,3, 6, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 2, turn) || THREE_IN_A_ROW(board, 3, 6, turn);
 		case 1:
-			return three_in_a_row(board, 0, 2, turn)|| three_in_a_row(board,4, 7, turn);
-			break;
+			return THREE_IN_A_ROW(board, 0, 2, turn) || THREE_IN_A_ROW(board, 4, 7, turn);
 		case 2:
-			return three_in_a_row(board, 1, 0, turn)|| three_in_a_row(board,5, 8, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 0, turn) || THREE_IN_A_ROW(board, 5, 8, turn);
 		case 3:
-			return three_in_a_row(board, 4, 5, turn)|| three_in_a_row(board,0, 6, turn);
-			break;
+			return THREE_IN_A_ROW(board, 4, 5, turn) || THREE_IN_A_ROW(board, 0, 6, turn);
 		case 4:
-			return three_in_a_row(board, 1, 7, turn)|| three_in_a_row(board, 3, 5, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 7, turn) || THREE_IN_A_ROW(board, 3, 5, turn);
 		case 5:
-			return three_in_a_row(board, 8, 2, turn)|| three_in_a_row(board,3, 4, turn);
-			break;
+			return THREE_IN_A_ROW(board, 8, 2, turn) || THREE_IN_A_ROW(board, 3, 4, turn);
 		case 6:
-			return three_in_a_row(board, 0, 3, turn)|| three_in_a_row(board,7, 8, turn);
-			break;
+			return THREE_IN_A_ROW(board, 0, 3, turn) || THREE_IN_A_ROW(board, 7, 8, turn);
 		case 7:
-			return three_in_a_row(board, 1, 4, turn)|| three_in_a_row(board,6, 8, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 4, turn) || THREE_IN_A_ROW(board, 6, 8, turn);
 		case 8:
-			return three_in_a_row(board, 5, 2, turn)|| three_in_a_row(board,6, 7, turn);
-			break;
+			return THREE_IN_A_ROW(board, 5, 2, turn) || THREE_IN_A_ROW(board, 6, 7, turn);
 		default:
 			return FALSE;
-			break;
 		}
-	}
-	else if (gameType == 6)
-	{
+	} else if (gameType == 6) {
 		switch (slot) {
 		case 0:
-			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,6, 13, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 2, turn) || THREE_IN_A_ROW(board, 6, 13, turn);
 		case 1:
-			return three_in_a_row(board, 0, 2, turn);
-			break;
+			return THREE_IN_A_ROW(board, 0, 2, turn);
 		case 2:
-			return three_in_a_row(board, 1, 0, turn)|| three_in_a_row(board,9, 15, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 0, turn) || THREE_IN_A_ROW(board, 9, 15, turn);
 		case 3:
-			return three_in_a_row(board, 4, 5, turn)|| three_in_a_row(board,7, 10, turn);
-			break;
+			return THREE_IN_A_ROW(board, 4, 5, turn) || THREE_IN_A_ROW(board, 7, 10, turn);
 		case 4:
-			return three_in_a_row(board, 3, 5, turn);
-			break;
+			return THREE_IN_A_ROW(board, 3, 5, turn);
 		case 5:
-			return three_in_a_row(board, 8, 12, turn)|| three_in_a_row(board,3, 4, turn);
-			break;
+			return THREE_IN_A_ROW(board, 8, 12, turn) || THREE_IN_A_ROW(board, 3, 4, turn);
 		case 6:
-			return three_in_a_row(board, 0, 13, turn);
-			break;
+			return THREE_IN_A_ROW(board, 0, 13, turn);
 		case 7:
-			return three_in_a_row(board, 3, 10, turn);
-			break;
+			return THREE_IN_A_ROW(board, 3, 10, turn);
 		case 8:
-			return three_in_a_row(board, 5, 12, turn);
-			break;
+			return THREE_IN_A_ROW(board, 5, 12, turn);
 		case 9:
-			return three_in_a_row(board, 2, 15, turn);
-			break;
+			return THREE_IN_A_ROW(board, 2, 15, turn);
 		case 10:
-			return three_in_a_row(board, 3, 7, turn) || three_in_a_row(board,11,12, turn);
-			break;
+			return THREE_IN_A_ROW(board, 3, 7, turn) || THREE_IN_A_ROW(board, 11, 12, turn);
 		case 11:
-			return three_in_a_row(board, 10, 12, turn);
-			break;
+			return THREE_IN_A_ROW(board, 10, 12, turn);
 		case 12:
-			return three_in_a_row(board, 10, 11, turn)|| three_in_a_row(board,5, 8, turn);
-			break;
+			return THREE_IN_A_ROW(board, 10, 11, turn) || THREE_IN_A_ROW(board, 5, 8, turn);
 		case 13:
-			return three_in_a_row(board, 14, 15, turn)|| three_in_a_row(board,0, 6, turn);
-			break;
+			return THREE_IN_A_ROW(board, 14, 15, turn) || THREE_IN_A_ROW(board, 0, 6, turn);
 		case 14:
-			return three_in_a_row(board, 13, 15, turn);
-			break;
+			return THREE_IN_A_ROW(board, 13, 15, turn);
 		case 15:
-			return three_in_a_row(board, 13, 14, turn)|| three_in_a_row(board,2, 9, turn);
-			break;
+			return THREE_IN_A_ROW(board, 13, 14, turn) || THREE_IN_A_ROW(board, 2, 9, turn);
 		default:
 			return FALSE;
-			break;
 		}
-	}
-	else if(gameType == 9) {
+	} else if (gameType == 9) {
 		switch (slot) {
 		case 0:
-			return three_in_a_row(board, 1, 2, turn)|| three_in_a_row(board,9, 21, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 2, turn) || THREE_IN_A_ROW(board, 9, 21, turn);
 		case 1:
-			return three_in_a_row(board, 0, 2, turn) || three_in_a_row(board, 4, 7, turn);
-			break;
+			return THREE_IN_A_ROW(board, 0, 2, turn) || THREE_IN_A_ROW(board, 4, 7, turn);
 		case 2:
-			return three_in_a_row(board, 1, 0, turn)|| three_in_a_row(board,14, 23, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 0, turn) || THREE_IN_A_ROW(board, 14, 23, turn);
 		case 3:
-			return three_in_a_row(board, 4, 5, turn)|| three_in_a_row(board,10, 18, turn);
-			break;
+			return THREE_IN_A_ROW(board, 4, 5, turn) || THREE_IN_A_ROW(board, 10, 18, turn);
 		case 4:
-			return three_in_a_row(board, 1, 7, turn) || three_in_a_row(board, 3, 5, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 7, turn) || THREE_IN_A_ROW(board, 3, 5, turn);
 		case 5:
-			return three_in_a_row(board, 4, 3, turn)|| three_in_a_row(board,13, 20, turn);
-			break;
+			return THREE_IN_A_ROW(board, 4, 3, turn) || THREE_IN_A_ROW(board, 13, 20, turn);
 		case 6:
-			return three_in_a_row(board, 7, 8, turn) || three_in_a_row(board, 11, 15, turn);
-			break;
+			return THREE_IN_A_ROW(board, 7, 8, turn) || THREE_IN_A_ROW(board, 11, 15, turn);
 		case 7:
-			return three_in_a_row(board, 1, 4, turn) || three_in_a_row(board, 6, 8, turn);
-			break;
+			return THREE_IN_A_ROW(board, 1, 4, turn) || THREE_IN_A_ROW(board, 6, 8, turn);
 		case 8:
-			return three_in_a_row(board, 7, 6, turn) || three_in_a_row(board, 12, 17, turn);
-			break;
+			return THREE_IN_A_ROW(board, 7, 6, turn) || THREE_IN_A_ROW(board, 12, 17, turn);
 		case 9:
-			return three_in_a_row(board, 0, 21, turn) || three_in_a_row(board, 10, 11, turn);
-			break;
+			return THREE_IN_A_ROW(board, 0, 21, turn) || THREE_IN_A_ROW(board, 10, 11, turn);
 		case 10:
-			return three_in_a_row(board, 9, 11, turn) || three_in_a_row(board,3,18, turn);
-			break;
+			return THREE_IN_A_ROW(board, 9, 11, turn) || THREE_IN_A_ROW(board, 3, 18, turn);
 		case 11:
-			return three_in_a_row(board, 9, 10, turn) || three_in_a_row(board, 6, 15, turn);
-			break;
+			return THREE_IN_A_ROW(board, 9, 10, turn) || THREE_IN_A_ROW(board, 6, 15, turn);
 		case 12:
-			return three_in_a_row(board, 8, 17, turn)|| three_in_a_row(board,13, 14, turn);
-			break;
+			return THREE_IN_A_ROW(board, 8, 17, turn) || THREE_IN_A_ROW(board, 13, 14, turn);
 		case 13:
-			return three_in_a_row(board, 12, 14, turn)|| three_in_a_row(board,5, 20, turn);
-			break;
+			return THREE_IN_A_ROW(board, 12, 14, turn) || THREE_IN_A_ROW(board, 5, 20, turn);
 		case 14:
-			return three_in_a_row(board, 12, 13, turn) || three_in_a_row(board, 2, 23, turn);
-			break;
+			return THREE_IN_A_ROW(board, 12, 13, turn) || THREE_IN_A_ROW(board, 2, 23, turn);
 		case 15:
-			return three_in_a_row(board, 6, 11, turn)|| three_in_a_row(board,16, 17, turn);
-			break;
+			return THREE_IN_A_ROW(board, 6, 11, turn) || THREE_IN_A_ROW(board, 16, 17, turn);
 		case 16:
-			return three_in_a_row(board, 15, 17, turn)|| three_in_a_row(board,19, 22, turn);
-			break;
+			return THREE_IN_A_ROW(board, 15, 17, turn) || THREE_IN_A_ROW(board, 19, 22, turn);
 		case 17:
-			return three_in_a_row(board, 15, 16, turn)|| three_in_a_row(board,8, 12, turn);
-			break;
+			return THREE_IN_A_ROW(board, 15, 16, turn) || THREE_IN_A_ROW(board, 8, 12, turn);
 		case 18:
-			return three_in_a_row(board, 3, 10, turn)|| three_in_a_row(board,19, 20, turn);
-			break;
+			return THREE_IN_A_ROW(board, 3, 10, turn) || THREE_IN_A_ROW(board, 19, 20, turn);
 		case 19:
-			return three_in_a_row(board, 18, 20, turn)|| three_in_a_row(board,16, 22, turn);
-			break;
+			return THREE_IN_A_ROW(board, 18, 20, turn) || THREE_IN_A_ROW(board, 16, 22, turn);
 		case 20:
-			return three_in_a_row(board, 18, 19, turn)|| three_in_a_row(board,5, 13, turn);
-			break;
+			return THREE_IN_A_ROW(board, 18, 19, turn) || THREE_IN_A_ROW(board, 5, 13, turn);
 		case 21:
-			return three_in_a_row(board, 0, 9, turn)|| three_in_a_row(board,22, 23, turn);
-			break;
+			return THREE_IN_A_ROW(board, 0, 9, turn) || THREE_IN_A_ROW(board, 22, 23, turn);
 		case 22:
-			return three_in_a_row(board, 16, 19, turn)|| three_in_a_row(board,21, 23, turn);
-			break;
+			return THREE_IN_A_ROW(board, 16, 19, turn) || THREE_IN_A_ROW(board, 21, 23, turn);
 		case 23:
-			return three_in_a_row(board, 21, 22, turn)|| three_in_a_row(board,2, 14, turn);
-			break;
+			return THREE_IN_A_ROW(board, 21, 22, turn) || THREE_IN_A_ROW(board, 2, 14, turn);
 		default:
 			return FALSE;
-			break;
 		}
 	}
-
 	return FALSE;
 }
 
 // given new board, slots to compare.  if slots all same, then it's a 3
-BOOLEAN three_in_a_row(char *board, int slot1, int slot2, char turn)
-{
+//BOOLEAN THREE_IN_A_ROW(char *board, int slot1, int slot2, char turn) {
+//	return board[slot1] == turn && board[slot2] == turn;
+//}
 
-	//printf("THREE IN A ROW TURN: %c\n", turn);
-	//printf("0: %c\t 1: %c\n", board[0], board[1]);
-
-	return board[slot1] == turn && board[slot2] == turn;
-}
-
-// Given slot, int array
-// Return number of adjacent slots, array of those slot numbers
-int find_adjacent(int slot, int *slots)
-{
-	// multiples of 3 (0, 3, 6, 9, 12, 15, 18, 21) are left-most edge
-	// 0, 1, 2, 3, 5, 6, 8 are top-most
-	// 7, 15, 16, 17, 18, 19, 20, 21, 22, 23 are bottom-most
-	// 2, 5, 8, 11, 14, 17, 20, 23 are right-most (each differs by 3)
-	// 4, 10, 13, 19 are centered (have adjacent pieces in all 4 directions)
-
-	int num = 0;
-
-	if (gameType==3) {
-		switch (slot) {
-		case 0:
-			slots[num++] = 1;
-			slots[num++] = 3;
-			break;
-		case 1:
-			slots[num++] = 0;
-			slots[num++] = 2;
-			slots[num++] = 4;
-			break;
-		case 2:
-			slots[num++] = 1;
-			slots[num++] = 5;
-			break;
-		case 3:
-			slots[num++] = 0;
-			slots[num++] = 4;
-			slots[num++] = 6;
-			break;
-		case 4:
-			slots[num++] = 1;
-			slots[num++] = 3;
-			slots[num++] = 5;
-			slots[num++] = 7;
-			break;
-		case 5:
-			slots[num++] = 2;
-			slots[num++] = 4;
-			slots[num++] = 8;
-			break;
-		case 6:
-			slots[num++] = 7;
-			slots[num++] = 3;
-			break;
-		case 7:
-			slots[num++] = 4;
-			slots[num++] = 6;
-			slots[num++] = 8;
-			break;
-		case 8:
-			slots[num++] = 5;
-			slots[num++] = 7;
-			break;
-		default:
-			num = 0;
-			slots[0] = -1;
-			break;
-		}
-	}
-
-	else if (gameType == 6)
-	{
-		switch (slot) {
-		case 0:
-			slots[num++] = 1;
-			slots[num++] = 6;
-			break;
-		case 1:
-			slots[num++] = 0;
-			slots[num++] = 2;
-			slots[num++] = 4;
-			break;
-		case 2:
-			slots[num++] = 1;
-			slots[num++] = 9;
-			break;
-		case 3:
-			slots[num++] = 4;
-			slots[num++] = 7;
-			break;
-		case 4:
-			slots[num++] = 1;
-			slots[num++] = 3;
-			slots[num++] = 5;
-			break;
-		case 5:
-			slots[num++] = 4;
-			slots[num++] = 8;
-			break;
-		case 6:
-			slots[num++] = 0;
-			slots[num++] = 7;
-			slots[num++] = 13;
-			break;
-		case 7:
-			slots[num++] = 3;
-			slots[num++] = 6;
-			slots[num++] = 10;
-			break;
-		case 8:
-			slots[num++] = 5;
-			slots[num++] = 9;
-			slots[num++] = 12;
-			break;
-		case 9:
-			slots[num++] = 2;
-			slots[num++] = 8;
-			slots[num++] = 15;
-			break;
-		case 10:
-			slots[num++] = 7;
-			slots[num++] = 11;
-			break;
-		case 11:
-			slots[num++] = 10;
-			slots[num++] = 12;
-			slots[num++] = 14;
-			break;
-		case 12:
-			slots[num++] = 8;
-			slots[num++] = 11;
-			break;
-		case 13:
-			slots[num++] = 6;
-			slots[num++] = 14;
-			break;
-		case 14:
-			slots[num++] = 11;
-			slots[num++] = 13;
-			slots[num++] = 15;
-			break;
-		case 15:
-			slots[num++] = 9;
-			slots[num++] = 14;
-			break;
-		default:
-			num = 0;
-			slots[0] = -1;
-			break;
-		}
-	}
-
-
-	if (gameType == 9)
-	{
-		switch (slot) {
-		case 0:
-			// num = 2;
-			slots[num++] = slot + 1;
-			slots[num++] = slot + 9;
-			break;
-		case 3:
-			// num = 2;
-			slots[num++] = slot + 1;
-			slots[num++] = slot + 7;
-			break;
-		case 6:
-			// num = 2;
-			slots[num++] = slot + 1;
-			slots[num++] = slot + 5;
-			break;
-		case 2:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 12;
-			break;
-		case 5:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 8;
-			break;
-		case 8:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 4;
-			break;
-		case 21:
-			// num = 2;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 12;
-			break;
-		case 18:
-			// num = 2;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 8;
-			break;
-		case 15:
-			// num = 2;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 4;
-			break;
-		case 23:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot - 9;
-			break;
-		case 20:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot - 7;
-			break;
-		case 17:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot - 5;
-			break;
-		case 1:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 1;
-			slots[num++] = slot + 3;
-			break;
-		case 16:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 1;
-			slots[num++] = slot + 3;
-			break;
-		case 7:
-			// num = 2;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 3;
-			break;
-		case 22:
-			// num = 3;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 3;
-			break;
-		case 9:
-			// num = 3;
-			slots[num++] = slot + 1;
-			slots[num++] = slot + 12;
-			slots[num++] = slot - 9;
-			break;
-		case 12:
-			// num = 3;
-			slots[num++] = slot + 1;
-			slots[num++] = slot + 5;
-			slots[num++] = slot - 4;
-			break;
-		case 11:
-			// num = 3;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 4;
-			slots[num++] = slot - 5;
-			break;
-		case 14:
-			// num = 3;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 9;
-			slots[num++] = slot - 12;
-			break;
-		case 4: case 19:
-			// num = 4;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 3;
-			slots[num++] = slot - 3;
-			break;
-		case 10:
-			// num = 4;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 8;
-			slots[num++] = slot - 7;
-			break;
-		case 13:
-			// num = 4;
-			slots[num++] = slot + 1;
-			slots[num++] = slot - 1;
-			slots[num++] = slot + 7;
-			slots[num++] = slot - 8;
-			break;
-		default:
-			num = 0;
-			slots[0] = -1;
-			break;
-		}
-	}
-	return num;
-}
-void changetothree(){
+void changeToThree() {
 	gameType = 3;
 	BOARDSIZE = 9;
 	maxx = 3;
@@ -1966,11 +1908,12 @@ void changetothree(){
 	maxb = 4;
 	totalPieces = maxx + maxo;
 	kDBName = "3mm";
+	adjacent = adjacent3;
+	symmetriesToUse = gSymmetryMatrix3MM;
+	totalNumSymmetries = 8;
 }
 
-void changetosix()
-{
-	//printf("changing to 6666666\n");
+void changeToSix() {
 	gameType = 6;
 	BOARDSIZE =16;
 	maxx = 6;
@@ -1979,10 +1922,12 @@ void changetosix()
 	maxb = 11;
 	totalPieces = maxx + maxo;
 	kDBName = "6mm";
+	adjacent = adjacent6;
+	symmetriesToUse = gSymmetryMatrix6MM;
+	totalNumSymmetries = 16;
 }
 
-void changetonine()
-{
+void changeToNine() {
 	gameType = 9;
 	BOARDSIZE = 24;
 	maxx = 9;
@@ -1991,46 +1936,18 @@ void changetonine()
 	maxb = 19;
 	totalPieces = maxx + maxo;
 	kDBName = "9mm";
-
-	//SYMMETRIES
-	kSupportsSymmetries = TRUE; /* Whether we support symmetries */
-
-	int gSymmetryMatrix2[9][24] = { {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23},{2,1,0,5,4,3,8,7,6,14,13,12,11,10,9,17,16,15,20,19,18,23,22,21},{21,22,23,18,19,20,15,16,17,9,10,11,12,13,14,6,7,8,3,4,5,0,1,2},{23,14,2,20,13,5,17,12,8,22,19,16,7,4,1,15,11,6,18,10,3,21,9,0},{0,9,21,3,10,18,6,11,15,1,4,7,16,19,22,8,12,17,5,13,20,2,14,23},{21,9,0,18,10,3,15,11,6,22,19,16,7,4,1,17,12,8,20,13,5,23,14,2},{23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},{2,14,23,5,13,20,8,12,17,1,4,7,16,19,22,6,11,15,3,10,18,0,9,21},{6,7,8,3,4,5,0,1,2,11,10,9,14,13,12,21,22,23,18,19,20,15,16,17} };
-
-	int i, k;
-	for (i=0; i < 9; i++) {
-		for (k=0; k < 24; k++) {
-			//printf("%d", gSymmetryMatrix2[i][k]);
-			gSymmetryMatrix[i][k] = gSymmetryMatrix2[i][k];
-		}
-	}
-	//gSymmetryMatrix = gSymmetryMatrix2;
-	/*gSymmetryMatrixptr = (int *) malloc (sizeof(int*)*NUMSYMMETRIES);
-	   for (int k=0; k < NUMSYMMETRIES); k++){
-	        (*gSymmetryMatrixptr) = (int *) malloc (sizeof(int)*BOARDSIZE);
-	   }*/
-
-	/*NUMSYMMETRIES = 9;   //  4 rotations, 4 flipped rotations, outer-inner flip
-
-	   int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
-
-	   if(kSupportsSymmetries) {
-	        gSymmetryMatrix[0] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
-	        gSymmetryMatrix[1] = {2,1,0,5,4,3,8,7,6,14,13,12,11,10,9,17,16,15,20,19,18,23,22,21};
-	        gSymmetryMatrix[2] = {21,22,23,18,19,20,15,16,17,9,10,11,12,13,14,6,7,8,3,4,5,0,1,2};
-	        gSymmetryMatrix[3] = {23,14,2,20,13,5,17,12,8,22,19,16,7,4,1,15,11,6,18,10,3,21,9,0};
-	        gSymmetryMatrix[4] = {0,9,21,3,10,18,6,11,15,1,4,7,16,19,22,8,12,17,5,13,20,2,14,23};
-	        gSymmetryMatrix[5] = {21,9,0,18,10,3,15,11,6,22,19,16,7,4,1,17,12,8,20,13,5,23,14,2};
-	        gSymmetryMatrix[6] = {23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0};
-	        gSymmetryMatrix[7] = {2,14,23,5,13,20,8,12,17,1,4,7,16,19,22,6,11,15,3,10,18,0,9,21};
-	        gSymmetryMatrix[8] = {6,7,8,3,4,5,0,1,2,11,10,9,14,13,12,21,22,23,18,19,20,15,16,17};
-	   }*/
+	adjacent = adjacent9;
+	symmetriesToUse = gSymmetryMatrix9MM;
+	totalNumSymmetries = 16;
 }
 
 
 /**************************************************/
-/**************** SYMMETRY FUN BEGIN **************/
+/************ SYMMETRY FUNCTIONS BEGIN ************/
 /**************************************************/
+
+//SYMMETRIES
+BOOLEAN kSupportsSymmetries = TRUE;
 
 /************************************************************************
 **
@@ -2046,20 +1963,38 @@ void changetonine()
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(POSITION position)
-{
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
-	int i;
+POSITION GetCanonicalPosition(POSITION position) {
+	char turn;
+	int piecesLeft, numX, numO;
+	char *originalBoard = unhash(position, &turn, &piecesLeft, &numX, &numO);
+	char canonBoard[24];
+    POSITION canonPos = position;
+    int bestSymmetryNum = 0;
 
-	theCanonicalPosition = position;
+    for (int symmetryNum = 1; symmetryNum < totalNumSymmetries; symmetryNum++)
+        for (int i = BOARDSIZE - 1; i >= 0; i--) {
+            char pieceInSymmetry = originalBoard[symmetriesToUse[symmetryNum][i]];
+            char pieceInBest = originalBoard[symmetriesToUse[bestSymmetryNum][i]];
+            if (pieceInSymmetry != pieceInBest) {
+                if (pieceInSymmetry > pieceInBest) // If new smallest hash.
+                    bestSymmetryNum = symmetryNum;
+                break;
+            }
+        };
 
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-		newPosition = DoSymmetry(position, i); /* get new */
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
+    if (bestSymmetryNum == 0) {
+		SafeFree(originalBoard);
+        return position;
 	}
+    
+    for (int i = 0; i < BOARDSIZE; i++) // Transform the rest of the board.
+        canonBoard[i] = originalBoard[symmetriesToUse[bestSymmetryNum][i]];
 
-	return(theCanonicalPosition);
+    canonPos = hash(canonBoard, turn, piecesLeft, numX, numO);
+	
+	SafeFree(originalBoard);
+
+    return canonPos;
 }
 
 /************************************************************************
@@ -2077,54 +2012,9 @@ POSITION GetCanonicalPosition(POSITION position)
 **
 ************************************************************************/
 
-POSITION DoSymmetry(POSITION position, int symmetry)
-{
-	int i;
-	char turn;
-	char* board = smallUnhash(position, &turn);
-	char* symmBoard = (char*) SafeMalloc(BOARDSIZE * sizeof(char));
-
-	/* Copy from the symmetry matrix */
-	//printf("doing symmetry");
-	for(i = 0; i < BOARDSIZE; i++)
-		symmBoard[i] = board[gSymmetryMatrix[symmetry][i]];
-
-	if (board != NULL)
-		SafeFree(board);
-	return(smallHash(symmBoard, turn));
-}
-
-POSITION smallHash(char* board, char turn){
-	POSITION pos;
-	TIER tier = generic_hash_cur_context();
-	generic_hash_context_switch(tier);
-	TIERPOSITION tierpos = generic_hash_hash(board, (turn == X ? PLAYER_ONE : PLAYER_TWO));
-	pos = gHashToWindowPosition(tierpos, tier);
-
-	return pos;
-}
-
-char* smallUnhash(POSITION pos, char* turn)
-{
-	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
-	if(gHashWindowInitialized) {
-		//printf("unhashing with tiers\n");
-		TIER tier; TIERPOSITION tierposition;
-		gUnhashToTierPosition(pos, &tierposition, &tier);
-		//printf("unhashing %d\n", tier);
-		generic_hash_context_switch(tier);
-		board = (char*)generic_hash_unhash(tierposition, board);
-		(*turn) = generic_hash_turn(tierposition);
-	}
-	return board;
-}
-
-
 /**************************************************/
-/**************** SYMMETRY FUN END ****************/
+/************* SYMMETRY FUNCTIONS END *************/
 /**************************************************/
-
-
 
 /************************************************************************
 ** Changelog
@@ -2183,17 +2073,14 @@ char* smallUnhash(POSITION pos, char* turn)
 ** Revision 1.10  2006/04/25 01:33:06  ogren
 ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
 **
-************************************************************************/
-
-/*
+**
    Tier
    1st stage: number of stones for x left, and o, position.
    2nd stage: pieces on the board of each player
    if numx and numo == 9 and piecesleft != 0, then stage 1
    if numx and numo <= 9 and piecesleft == 0, then stage 2
- */
 
-/*Changes:
+Changes:
    unhash is now
    char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo)
    with piecesLeft, numx, and numo being globals until tiers are implemented.
@@ -2245,34 +2132,32 @@ char* smallUnhash(POSITION pos, char* turn)
 
    we should use the one liner functions from, to, and remove.
         it makes the code a whole lot easier to read and reduces likely hood of errors... such as the mistake in DoMove earlier
- */
-POSITION InteractStringToPosition(STRING board) {
+ ************************************************************************/
 
+POSITION InteractStringToPosition(STRING board) {
 	char realBoard[BOARDSIZE];
 	int i = 0;
 	for (i = 0; i < BOARDSIZE; i++) {
-                if (board[i] == ' ') {
-		        realBoard[i] = '.';
-                } else {
-		        realBoard[i] = board[i];
-                }
+        if (board[i] == ' ') {
+			realBoard[i] = '.';
+    	} else {
+		    realBoard[i] = board[i];
+        }
 	}
 	return generic_hash_hash(realBoard, 0);
 }
 
-
-
 STRING InteractPositionToString(POSITION pos) {
 	char board[BOARDSIZE];
 	int i = 0;
-	generic_hash_unhash(pos, &board);
+	generic_hash_unhash(pos, board);
 	char* finalBoard = calloc((BOARDSIZE+1), sizeof(char));
 	for (i = 0; i < BOARDSIZE; i++) {
-                if (board[i] == '.') {
-                        finalBoard[i] = ' ';
-                } else {
-		        finalBoard[i] = board[i];
-                }
+        if (board[i] == '.') {
+            finalBoard[i] = ' ';
+        } else {
+		    finalBoard[i] = board[i];
+        }
 	}
 	return finalBoard;
 }

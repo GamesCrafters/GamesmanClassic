@@ -82,6 +82,23 @@ void FreeRemotenessList(REMOTENESSLIST* ptr)
 	}
 }
 
+void FreeIPositionList(IPOSITIONLIST* ptr)
+{
+	if (ptr != NULL) {
+		if (ptr->head != NULL) {
+			IPOSITIONSUBLIST *tmp = ptr->head;
+			IPOSITIONSUBLIST *tmp2;
+			while (tmp != NULL) {
+				SafeFree(tmp->positions);
+				tmp2 = tmp;
+				tmp = tmp->next;
+				SafeFree(tmp2);
+			}
+		}
+	}
+	SafeFree(ptr);
+}
+
 void FreePositionList(POSITIONLIST* ptr)
 {
 	POSITIONLIST *last;
@@ -328,6 +345,29 @@ MOVELIST *CopyMovelist(MOVELIST* theMovelist)
 	return(head);
 }
 
+int IPOSITION_SUBLIST_SIZE = 1024;
+int IPOSITION_MASK = 1023;
+IPOSITIONLIST *StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePositionList)
+{
+	if (thePositionList == NULL) {
+		thePositionList = (IPOSITIONLIST *) SafeMalloc(sizeof(IPOSITIONLIST));
+		thePositionList->size = 0;
+		thePositionList->head = (IPOSITIONSUBLIST *) SafeMalloc(sizeof(IPOSITIONSUBLIST));
+		thePositionList->tail = thePositionList->head;
+		thePositionList->tail->positions = (POSITION *) SafeMalloc(IPOSITION_SUBLIST_SIZE * sizeof(POSITION));
+		thePositionList->tail->next = NULL;
+	} else if ((thePositionList->size & IPOSITION_MASK) == 0) {
+		IPOSITIONSUBLIST *tmp = (IPOSITIONSUBLIST *) SafeMalloc(sizeof(IPOSITIONSUBLIST));
+		thePositionList->tail->next = tmp;
+		thePositionList->tail = tmp;
+		thePositionList->tail->positions = (POSITION *) SafeMalloc(IPOSITION_SUBLIST_SIZE * sizeof(POSITION));
+		thePositionList->tail->next = NULL;
+	}
+
+	thePositionList->tail->positions[thePositionList->size & IPOSITION_MASK] = thePosition;
+	thePositionList->size += 1;
+	return thePositionList;
+}
 
 POSITIONLIST *StorePositionInList(POSITION thePosition, POSITIONLIST* thePositionList)
 {

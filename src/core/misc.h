@@ -39,6 +39,9 @@ MOVELIST*       CopyMovelist                    (MOVELIST* list);
 POSITIONLIST*   StorePositionInList             (POSITION pos, POSITIONLIST* tail);
 POSITIONLIST*   CopyPositionList                (POSITIONLIST* list);
 
+IPOSITIONLIST*  StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePositionList);
+void            FreeIPositionList(IPOSITIONLIST* ptr);
+
 void            AddPositionToQueue              (POSITION pos, POSITIONQUEUE** tail);
 POSITION        RemovePositionFromQueue         (POSITIONQUEUE** head);
 
