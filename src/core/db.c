@@ -80,8 +80,6 @@ void            db_get_bulk             (POSITION* positions, VALUE* ValueArray,
 
 /*internal variables*/
 
-DB_Table *db_functions;
-
 /*
 ** function code
 */
@@ -257,6 +255,14 @@ void CreateDatabases()
 void InitializeDatabases()
 {
 	db_initialize();
+}
+
+// Returns true if lookup table exists, false otherwise
+BOOLEAN ReinitializeTierDB()
+{
+	// If lookup table exists
+	// Set New Value, Remoteness, Mex functions
+	return tierdb_reinit(db_functions);
 }
 
 void DestroyDatabases()

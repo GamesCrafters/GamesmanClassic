@@ -17,7 +17,7 @@ extern BOOLEAN gStandardGame, gSaveDatabase, gLoadDatabase,
                gGlobalPositionSolver, gZeroMemSolver,
                gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness, gWinByClose,
                gIncludeInterestingnessWithAnalysis,
-               gVisTiers, gVisTiersPlain, gSolveOnlyTier;
+               gVisTiers, gVisTiersPlain, gSolveOnlyTier, gLoadTierdbArray, gIsInteract;
 
 extern char gPlayerName[2][MAXNAME];
 

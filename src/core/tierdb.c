@@ -39,12 +39,20 @@
 
 #include <zlib.h>
 #include <netinet/in.h>
+#include <sys/stat.h>
 #include "gamesman.h"
+#include <dirent.h>
 #include "tierdb.h"
 
 /*internal declarations and definitions*/
 
 #define tierdb_FILEVER 1
+#define FILESIZE 1048576L
+
+POSITION offsets[50000];
+unsigned long numOffsets = 0;
+TIER tierForWhichOffsetsLoaded = -1;
+BOOLEAN alreadyReinitialized = FALSE;
 
 typedef short tierdb_cellValue;
 
@@ -56,37 +64,40 @@ void            tierdb_free                     ();
 void            tierdb_close_file               ();
 
 /* Value */
-VALUE           tierdb_get_value                        (POSITION pos);
-VALUE           tierdb_get_value_file           (POSITION pos);
-VALUE           tierdb_set_value                        (POSITION pos, VALUE val);
+VALUE           tierdb_get_value                (POSITION pos);
+VALUE           tierdb_get_value_from_lookup_table           (POSITION pos);
+VALUE           tierdb_set_value                (POSITION pos, VALUE val);
 
 /* Remoteness */
 REMOTENESS      tierdb_get_remoteness           (POSITION pos);
-REMOTENESS      tierdb_get_remoteness_file      (POSITION pos);
+REMOTENESS      tierdb_get_remoteness_from_lookup_table      (POSITION pos);
 void            tierdb_set_remoteness           (POSITION pos, REMOTENESS val);
 
 /* Visited */
 BOOLEAN         tierdb_check_visited            (POSITION pos);
-BOOLEAN         tierdb_check_visited_file       (POSITION pos);
+BOOLEAN         tierdb_check_visited_from_lookup_table       (POSITION pos);
 void            tierdb_mark_visited             (POSITION pos);
 void            tierdb_unmark_visited           (POSITION pos);
 
 /* Mex */
 MEX             tierdb_get_mex                  (POSITION pos);
-MEX             tierdb_get_mex_file             (POSITION pos);
+MEX             tierdb_get_mex_from_lookup_table             (POSITION pos);
 void            tierdb_set_mex                  (POSITION pos, MEX mex);
 
 /* saving to/reading from a file */
 BOOLEAN         tierdb_save_database            ();
 BOOLEAN         tierdb_load_database            ();
 
-tierdb_cellValue*       (*tierdb_get_raw)(POSITION pos);
+tierdb_cellValue*       (*tierdb_get_raw)       (POSITION pos);
 
-tierdb_cellValue*       tierdb_get_raw_ptr              (POSITION pos);
+tierdb_cellValue*       tierdb_get_raw_ptr      (POSITION pos);
+tierdb_cellValue        tierdb_get_raw_from_lookup_table (POSITION pos);
+void                    load_offsets (TIER tier);
 
 tierdb_cellValue*       tierdb_array;
 
 char tierdb_outfilename[80];
+char tierdb_lookupfilename[80];
 gzFile         tierdb_filep;
 short tierdb_dbVer[1];
 POSITION tierdb_numPos[1];
@@ -98,14 +109,20 @@ int tierdb_goodCompression, tierdb_goodDecompression, tierdb_goodClose;
 
 void tierdb_init(DB_Table *new_db)
 {
+	if (alreadyReinitialized) {
+		return;
+	}
+
 	POSITION i;
 	tierdb_get_raw = tierdb_get_raw_ptr;
 
 	//setup internal memory table
-	tierdb_array = (tierdb_cellValue *) SafeMalloc (gNumberOfPositions * sizeof(tierdb_cellValue));
+	if (gLoadTierdbArray) {
+		tierdb_array = (tierdb_cellValue *) SafeMalloc (gNumberOfPositions * sizeof(tierdb_cellValue));
 
-	for(i = 0; i< gNumberOfPositions; i++)
-		tierdb_array[i] = undecided;
+		for(i = 0; i< gNumberOfPositions; i++)
+			tierdb_array[i] = undecided;
+	}
 
 	new_db->put_value = tierdb_set_value;
 	new_db->put_remoteness = tierdb_set_remoteness;
@@ -120,6 +137,32 @@ void tierdb_init(DB_Table *new_db)
 	new_db->get_mex = tierdb_get_mex;
 	new_db->save_database = tierdb_save_database;
 	new_db->load_database = tierdb_load_database;
+}
+
+/*
+Use getter functions that access the file directly if there
+exists a lookup table. If there is no lookup table, doesn't
+do anything.
+*/
+BOOLEAN tierdb_reinit(DB_Table *new_db)
+{
+	if (alreadyReinitialized) {
+		return TRUE;
+	}
+	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/lookup", kDBName, getOption());
+	DIR* dir = opendir(tierdb_outfilename);
+	if (dir) {
+    	/* Directory exists. */
+    	closedir(dir);
+		new_db->get_value = tierdb_get_value_from_lookup_table;
+		new_db->get_remoteness = tierdb_get_remoteness_from_lookup_table;
+		new_db->check_visited = tierdb_check_visited_from_lookup_table;
+		new_db->get_mex = tierdb_get_mex_from_lookup_table;
+		alreadyReinitialized = TRUE;
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
 
 void tierdb_free_childpositions()
@@ -144,6 +187,73 @@ tierdb_cellValue* tierdb_get_raw_ptr(POSITION pos)
 	return (&tierdb_array[pos]);
 }
 
+void load_offsets(TIER tier) {
+	if (tierForWhichOffsetsLoaded == tier) {
+		return;
+	}
+    FILE *fp;
+	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/lookup/m%s_%d_%llu_tierdb.dat.gz.idx",
+		        kDBName, getOption(), kDBName, getOption(), tier);
+    fp = fopen(tierdb_outfilename, "r");
+    if (fp == NULL) {
+        printf("Can't open %s\n", tierdb_outfilename);
+    	exit(1);
+    }
+
+	offsets[0] = 0;
+    numOffsets = 1; // will be # of lines in the idx file
+    POSITION offset = 0, b;
+    while (!feof(fp)) {
+        int n = fscanf(fp, "%llu", &b);
+        if (n == 1) {
+            offset += b;
+            offsets[numOffsets++] = offset;
+        }
+    }
+    fclose(fp);
+	tierForWhichOffsetsLoaded = tier;
+}
+
+tierdb_cellValue tierdb_get_raw_from_lookup_table(POSITION pos)
+{
+	TIER tier;
+	TIERPOSITION tierposition;
+	gUnhashToTierPosition(pos, &tierposition, &tier);
+	load_offsets(tier);
+
+	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/m%s_%d_%llu_tierdb.dat.gz",
+		        kDBName, getOption(), kDBName, getOption(), tier);
+
+	unsigned long long chunk = (tierposition * 2 + sizeof(short) + sizeof(POSITION)) / FILESIZE;
+    unsigned long seekTo = (tierposition * 2 + sizeof(short) + sizeof(POSITION)) % FILESIZE;
+
+    // Open file using open
+    int fd = open(tierdb_outfilename, O_RDONLY);
+    if (fd < 0) {
+        printf("Unable to open %s\n", tierdb_outfilename);
+        exit(1);
+    }
+
+    // Seek to the correct chunk
+    lseek(fd, offsets[chunk], SEEK_SET);
+
+    // open using gzdopen
+	gzFile gzf = gzdopen(fd, "rb");
+    if (gzf == Z_NULL) {
+        printf("Unable to gzdopen %s\n", tierdb_outfilename);
+        exit(1);
+    }
+
+    // Seek to the right position
+    gzseek(gzf, seekTo, SEEK_CUR);
+    unsigned short buf;
+    gzread(gzf, &buf, 2);
+    gzclose(gzf);
+    close(fd);
+    buf = ntohs(buf);
+    return buf;
+}
+
 VALUE tierdb_set_value(POSITION pos, VALUE val)
 {
 	tierdb_cellValue *ptr;
@@ -164,6 +274,11 @@ VALUE tierdb_get_value(POSITION pos)
 	return((VALUE)((int)*ptr & VALUE_MASK)); /* return pure value */
 }
 
+VALUE tierdb_get_value_from_lookup_table(POSITION pos)
+{
+	return (VALUE) (tierdb_get_raw_from_lookup_table(pos) & VALUE_MASK);
+}
+
 REMOTENESS tierdb_get_remoteness(POSITION pos)
 {
 	tierdb_cellValue *ptr;
@@ -171,6 +286,11 @@ REMOTENESS tierdb_get_remoteness(POSITION pos)
 	ptr = tierdb_get_raw(pos);
 
 	return (REMOTENESS)((((int)*ptr & REMOTENESS_MASK) >> REMOTENESS_SHIFT));
+}
+
+REMOTENESS tierdb_get_remoteness_from_lookup_table(POSITION pos)
+{
+	return (REMOTENESS) ((tierdb_get_raw_from_lookup_table(pos) & REMOTENESS_MASK) >> REMOTENESS_SHIFT);
 }
 
 void tierdb_set_remoteness (POSITION pos, REMOTENESS val)
@@ -195,9 +315,12 @@ BOOLEAN tierdb_check_visited(POSITION pos)
 
 	ptr = tierdb_get_raw(pos);
 
-	//printf("check pos: %llu\n", pos);
-
 	return (BOOLEAN)((((int)*ptr & VISITED_MASK) == VISITED_MASK)); /* Is bit set? */
+}
+
+BOOLEAN tierdb_check_visited_from_lookup_table(POSITION pos)
+{
+	return (BOOLEAN) (((tierdb_get_raw_from_lookup_table(pos) & VISITED_MASK) == VISITED_MASK));
 }
 
 void tierdb_mark_visited (POSITION pos)
@@ -240,6 +363,10 @@ MEX tierdb_get_mex(POSITION pos)
 	return (MEX)(((int)*ptr & MEX_MASK) >> MEX_SHIFT);
 }
 
+MEX tierdb_get_mex_from_lookup_table(POSITION pos)
+{
+	return (MEX) ((tierdb_get_raw_from_lookup_table(pos) & MEX_MASK) >> MEX_SHIFT);
+}
 
 /***********
  ************
@@ -272,6 +399,9 @@ MEX tierdb_get_mex(POSITION pos)
 
 BOOLEAN tierdb_save_database ()
 {
+	struct stat statbuf;
+	statbuf.st_size = 0;
+
 	if(!gHashWindowInitialized)
 		return FALSE;
 
@@ -289,6 +419,9 @@ BOOLEAN tierdb_save_database ()
 	mkdir("data", 0755);
 	sprintf(tierdb_outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
 	mkdir(tierdb_outfilename, 0755);
+	sprintf(tierdb_lookupfilename,"./data/m%s_%d_tierdb/lookup", kDBName, getOption());
+	mkdir(tierdb_lookupfilename, 0755);
+
 	if (gDBTierStart != -1 && gDBTierEnd != -1) { // we're creating a partial tier file!
 		sprintf(tierdb_outfilename, "%s/m%s_%d_%llu__%llu_%llu_minitierdb.dat.gz",
 		        tierdb_outfilename, kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
@@ -300,6 +433,9 @@ BOOLEAN tierdb_save_database ()
 		sprintf(tierdb_outfilename, "%s/m%s_%d_%llu_tierdb.dat.gz",
 		        tierdb_outfilename, kDBName, getOption(), gCurrentTier);
 	}
+	sprintf(tierdb_lookupfilename, "./data/m%s_%d_tierdb/lookup/m%s_%d_%llu_tierdb.dat.gz.idx",
+		        kDBName, getOption(), kDBName, getOption(), gCurrentTier);
+	FILE *indexFP = fopen(tierdb_lookupfilename, "wb");
 
 	if((tierdb_filep = gzopen(tierdb_outfilename, "wb")) == NULL) {
 		if(kDebugDetermineValue) {
@@ -317,9 +453,22 @@ BOOLEAN tierdb_save_database ()
 		tierdb_goodCompression = gzwrite(tierdb_filep, tierdb_array+i, sizeof(tierdb_cellValue));
 		tot += tierdb_goodCompression;
 		tierdb_array[i] = ntohs(tierdb_array[i]);
-		//gzflush(tierdb_filep,Z_FULL_FLUSH);
+
+		if ((sizeof(short) + sizeof(POSITION) + (i + 1) * sizeof(tierdb_cellValue)) % FILESIZE == 0 || i + 1 == finish) {
+			gzclose(tierdb_filep);
+			off_t prevsize = statbuf.st_size;
+			stat(tierdb_outfilename, &statbuf);
+			fprintf(indexFP, "%ld\n",statbuf.st_size - prevsize);
+			if((tierdb_filep = gzopen(tierdb_outfilename, "ab")) == NULL) {
+				if(kDebugDetermineValue) {
+					printf("Unable to create compressed data file\n");
+				}
+				return FALSE;
+			}
+		}
 	}
 	tierdb_goodClose = gzclose(tierdb_filep);
+	fclose(indexFP);
 
 	if(tierdb_goodCompression && (tierdb_goodClose == 0)) {
 		if(kDebugDetermineValue && !gJustSolving) {
@@ -378,7 +527,7 @@ BOOLEAN tierdb_load_database()
 	int index;
 	// always load current tier at BOTTOM, thus it being first
 	for (index = 1; index < gNumTiersInHashWindow; index++) {
-		if (index == 1 && !gDBLoadMainTier) {         // if solving, DONT'T load from file
+		if (index == 1 && !gDBLoadMainTier) {         // if solving, DON'T load from file
 			maxpos = gMaxPosOffset[index];
 			for(j = 0; j < maxpos; j++)
 				tierdb_array[j] = undecided;

@@ -6,7 +6,7 @@
 void gUnhashToTierPosition(POSITION, TIERPOSITION*, TIER*);
 POSITION gHashToWindowPosition(TIERPOSITION, TIER);
 void gInitializeHashWindow(TIER, BOOLEAN);
-void gInitializeHashWindowToPosition(POSITION*);
+void gInitializeHashWindowToPosition(POSITION*, BOOLEAN loadDB);
 BOOLEAN gTierDBExistsForPosition(POSITION);
 
 #endif /* GMCORE_HASHWINDOW_H */
