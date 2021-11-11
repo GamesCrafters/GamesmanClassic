@@ -590,7 +590,6 @@ void HandleArguments (int argc, char *argv[])
 			gIsInteract = TRUE;
 			gJustSolving = TRUE;
 			gamesman_main(argv[0]);
-			printf("ABOUT TO ENTER INTERACTLOOP\n");
 			ServerInteractLoop();
 			gMessage = TRUE;
 		} else {
