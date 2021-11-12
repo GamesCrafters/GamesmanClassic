@@ -55,6 +55,7 @@ void*    gGameSpecificTclInit = NULL;
 
 STRING initial9mmInteractString = "R_A_8_7_9-----9s--s--s-s-s-s---sss--sss-sss--sss---s-s-s-s--s--s";
 int indexMap9mmInteractString[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
+int indexMap9mmMoveString[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
 int turnIndex9mmInteractString = 2;
 int remainingXIndex9mmInteractString = 8;
 int remainingOIndex9mmInteractString = 14;
@@ -489,6 +490,7 @@ void InitializeGame() {
 	if (gIsInteract) {
 		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
 		memset(validTiers, 0, sizeof(char) * 1800);
+		gInitializeHashWindow(1800, FALSE);
 	}
 	/********************************/
 
@@ -2495,11 +2497,11 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 	SafeFree(board);
 
 	if (from != 31 && to != 31) {
-		return UWAPI_Board_Regular2D_MakeMoveString(indexMap9mmInteractString[from], indexMap9mmInteractString[to]);
+		return UWAPI_Board_Regular2D_MakeMoveString(indexMap9mmMoveString[from], indexMap9mmMoveString[to]);
 	} else if (remove != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'o' : 'x', indexMap9mmInteractString[remove]);
+		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'o' : 'x', indexMap9mmMoveString[remove]);
 	} else if (to != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString(turn, indexMap9mmInteractString[to]);
+		return UWAPI_Board_Regular2D_MakeAddString(turn, indexMap9mmMoveString[to]);
 	} else {
 		return NULL;
 	}
