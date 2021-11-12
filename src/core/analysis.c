@@ -208,7 +208,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 			fflush(stdout);
 		}
 		if (kSupportsTierGamesman && gTierGamesman) {
-			gInitializeHashWindowToPosition(&i);
+			gInitializeHashWindowToPosition(&i, TRUE);
 		}
 		value = GetValueOfPosition(i);
 		count = (count == 1) && (fwrite(&gValueLetter[value], sizeof(char), 1, fp) == 1);
