@@ -58,10 +58,16 @@ int indexMap9mmInteractString[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,4
 int turnIndex9mmInteractString = 2;
 int remainingXIndex9mmInteractString = 8;
 int remainingOIndex9mmInteractString = 14;
-STRING baseInteractPlaceRemoveString = "A_X_00";
-STRING baseInteractMoveString = "M_00_00";
 VALUE (*oldvaluegetter)(POSITION) = NULL;
 REMOTENESS (*oldremotenessgetter)(POSITION) = NULL;
+char validTiers[1800];
+
+void logMsg(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    printf(fmt, args);
+    va_end(args);
+}
 
 /**
  * Help strings that are pretty self-explanatory
@@ -199,6 +205,8 @@ STRING UndoMoveToString(UNDOMOVE move);
 BOOLEAN allMillsNew(char *board, int slot, char turn);
 POSITION DoMoveSafe(POSITION position, MOVE move);
 
+STRING InteractPositionToString(POSITION pos);
+POSITION InteractStringToPosition(STRING s);
 MOVELIST *InteractGenerateMoves(POSITION pos);
 POSITION InteractDoMove(POSITION pos, MOVE move);
 VALUE InteractPrimitive(POSITION pos);
@@ -480,6 +488,7 @@ void InitializeGame() {
 	/* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
 	if (gIsInteract) {
 		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+		memset(validTiers, 0, sizeof(char) * 1800);
 	}
 	/********************************/
 
@@ -511,7 +520,7 @@ void InitializeGame() {
 	InitializeHelpStrings();
 
 	if (gIsInteract) {
-		BOOLEAN asdf = ReinitializeTierDB(db_functions);
+		ReinitializeTierDB(db_functions);
 		oldvaluegetter = db_functions->get_value;
 		oldremotenessgetter = db_functions->get_remoteness;
 		db_functions->get_value = InteractGetValue;
@@ -1612,6 +1621,9 @@ void DebugMenu() {
 char returnTurn(POSITION pos) {
 	if(gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
+		if (gIsInteract && isIntermediate(pos)) {
+			pos -= (1UL << 63);
+		}
 		gUnhashToTierPosition(pos, &tierposition, &tier);
 		generic_hash_context_switch(tier);
 		return (generic_hash_turn(tierposition)==PLAYER_ONE ? X : O);
@@ -1625,6 +1637,9 @@ char* customUnhash(POSITION pos) {
 	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
 	if(gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
+		if (gIsInteract && isIntermediate(pos)) {
+			pos -= (1UL << 63);
+		}
 		gUnhashToTierPosition(pos, &tierposition, &tier);
 		generic_hash_context_switch(tier);
 		board = (char*)generic_hash_unhash(tierposition, board);
@@ -1636,15 +1651,32 @@ char* customUnhash(POSITION pos) {
 char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo) {
 	//piecesLeft = total pieces left during stage 1 (x + o)
 	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
+	BOOLEAN intermediate = FALSE;
+	if (gIsInteract && isIntermediate(pos)) {
+		pos -= (1UL << 63);
+		intermediate = TRUE;
+	}
 	if (gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
 		gUnhashToTierPosition(pos, &tierposition, &tier);
+		// printf("THE TIER THAT'S LOADED IS %llu %llu\n", tier, tierposition);
 		generic_hash_context_switch(tier);
 		(*turn) = (generic_hash_turn(tierposition) == PLAYER_ONE ? X : O);
 
 		*piecesLeft = tier / 100;
 		*numx = (tier / 10) % 10;
 		*numo = tier % 10;
+
+		if (gIsInteract && intermediate && *piecesLeft > 0) {
+			*turn = ((*piecesLeft % 2) == 0) ? O : X;
+			//*turn = (*turn == X) ? O : X;
+		}/* else if (gIsInteract && *piecesLeft == 0) {
+			if (tierposition > combinations[BOARDSIZE][*numx][*numo]) {
+				*turn = O;
+			} else {
+				*turn = X;
+			}
+		}*/
 
 		BOOLEAN cache_miss = hashCacheGet(tier, tierposition, board);
 		if (cache_miss) {
@@ -1744,25 +1776,52 @@ TIERLIST* gTierChildren(TIER tier) {
 	int piecesLeft = tier / 100;
 	int numX = (tier / 10) % 10;
 	int numO = tier % 10;
+
+	//printf("gTierChildren called %llu\n", tier);
+
 	if (piecesLeft != 0) {
 		if (piecesLeft % 2 == 0) {
 			list = CreateTierlistNode(tier-100+10, list);         //adding piece
+			validTiers[tier-100+10] = 1;
 			if (numX > 1) {
 				list = CreateTierlistNode(tier-100+9, list); //adding and removing
+				validTiers[tier-100+9] = 1;
 			}
 		} else {
 			list = CreateTierlistNode(tier-100+1, list);         //adding piece
+			validTiers[tier-100+1] = 1;
 			if (numO > 1) {
 				list = CreateTierlistNode(tier-100-9, list); //adding and removing
+				validTiers[tier-100-9] = 1;
 			}
 		}
 	} else if (piecesLeft == 0) { //stage 2 or 3. We do not know the turn, so we assume both paths as tier children
 		list = CreateTierlistNode(tier, list);
 		if (numX > 2 && numO > 2) {
 			list = CreateTierlistNode(tier-10, list); //remove X piece
+			validTiers[tier-10] = 1;
 			list = CreateTierlistNode(tier-1, list); //remove O piece
+			validTiers[tier-1] = 1;
 		}
 	}
+
+	// Support for two-phase moves.
+	if (gIsInteract && piecesLeft > 0) {
+		if (piecesLeft % 2 == 0) { // O is about to remove
+			if (numX > 1 && numO > 2) {
+				if (validTiers[tier - 10]) {
+					list = CreateTierlistNode(tier - 10, list);
+				}
+			}
+		} else { // X is about to remove
+			if (numO > 1 && numX > 2) {
+				if (validTiers[tier - 1]) {
+					list = CreateTierlistNode(tier - 1, list);
+				}
+			}
+		}
+	}
+
 	return list;
 }
 
@@ -2002,6 +2061,9 @@ BOOLEAN kSupportsSymmetries = TRUE;
 ************************************************************************/
 
 POSITION GetCanonicalPosition(POSITION position) {
+	if (isIntermediate(position)) {
+		return position;
+	}
 	char turn;
 	int piecesLeft, numX, numO;
 	char *originalBoard = unhash(position, &turn, &piecesLeft, &numX, &numO);
@@ -2175,6 +2237,9 @@ Changes:
 /// BEGIN ALL INTERACT FUNCTIONS ///
 
 POSITION GetInitialPosition() {
+	if (gIsInteract) {
+		gInitializeHashWindow(1800, FALSE);
+	}
 	return 0;
 }
 
@@ -2183,11 +2248,6 @@ BOOLEAN isIntermediate(POSITION pos) {
 }
 
 MOVELIST *InteractGenerateMoves(POSITION position) {
-	BOOLEAN intermediate = FALSE;
-	if (isIntermediate(position)) {
-		position -= (1UL << 63);
-		intermediate = TRUE;
-	}
 	MOVELIST *moves = NULL;
 	char turn;
 	int piecesLeft, numX, numO;
@@ -2205,7 +2265,7 @@ MOVELIST *InteractGenerateMoves(POSITION position) {
 		if (board[i] == BLANK)
 			allBlanks[numBlanks++] = i;
 
-	if (intermediate) {
+	if (isIntermediate(position)) {
 		for (int j = 0; j < numLegalRemoves; j++)
 			moves = CreateMovelistNode(MOVE_ENCODE(31, 31, legalRemoves[j]), moves);
 	} else {
@@ -2236,68 +2296,55 @@ MOVELIST *InteractGenerateMoves(POSITION position) {
 }
 
 POSITION InteractDoMove(POSITION position, MOVE move) {
+	// Slide
+	// Remove
+	// Place
 	POSITION intermediateMarker = 0;
-	if (isIntermediate(position)) {
-		position -= (1UL << 63);
-	}
 
 	char turn;
 	int piecesLeft;
 	int numX, numO;
 	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
 
+	char newTurn = (turn == X) ? O : X;
+
 	int fromIdx = move >> 10;
 	int toIdx = (move >> 5) & 0x1F;
 	int removeIdx = move & 0x1F;
 
-	/* Correction for PECULIARITY */
-	//if (toIdx == removeIdx) {
-	//	toIdx = fromIdx;
-	//	fromIdx = 31;
-	//}
-
-	board[toIdx] = turn;
-
-	if (turn == X) {
-		turn = O;
-		if (fromIdx != 31) { // If sliding
-			board[fromIdx] = BLANK;
-		} else { // Phase 1
-			piecesLeft--;
-			numX++;
-		}
-		if (removeIdx != 31) {
-			board[removeIdx] = BLANK;
+	if (fromIdx != 31 && toIdx != 31) {
+		board[toIdx] = turn;
+		board[fromIdx] = BLANK;
+	} else if (removeIdx != 31) {
+		board[removeIdx] = BLANK;
+		if (turn == X) {
 			numO--;
-		}
-	} else {
-		turn = X;
-		if (fromIdx != 31) {
-			board[fromIdx] = BLANK;
 		} else {
-			piecesLeft--;
-			numO++;
-		}
-		if (removeIdx != 31) {
-			board[removeIdx] = BLANK;
 			numX--;
 		}
+	} else {
+		board[toIdx] = turn;
+		if (turn == X) {
+			numX++;
+		} else {
+			numO++;
+		}
+		piecesLeft--;
 	}
-
+	
 	if (!isIntermediate(position)) {
 		int legalRemoves[BOARDSIZE];
 		int numLegalRemoves = findLegalRemoves(board, turn, legalRemoves);
 		if (numLegalRemoves > 0 && closesMillNew(board, turn, 31, toIdx)) {
 			intermediateMarker = (1UL << 63);
+			newTurn = turn; // Remain in the same turn.
 		}
-		turn = (turn == X) ? O : X; // Remain in the same turn.
 	}
 
-	//TIER tier; TIERPOSITION tierposition;
-	//gUnhashToTierPosition(position, &tierposition, &tier);
-	//gCurrentTier = tier;
+	//printf("Before Hash: %s, %c, %d, %d, %d\n", board, newTurn, piecesLeft, numX, numO);
+	POSITION toReturn = hash(board, newTurn, piecesLeft, numX, numO) + intermediateMarker;
+	//: %llu\n", toReturn);
 
-	POSITION toReturn = hash(board, turn, piecesLeft, numX, numO) + intermediateMarker;
 	SafeFree(board);
 
 	return toReturn;
@@ -2313,13 +2360,12 @@ VALUE InteractGetValue(POSITION pos) {
 		BOOLEAN existsTie = FALSE;
 		for (; ml != NULL; ml = ml->next) {
 			POSITION childpos = InteractDoMove(pos, ml->move);
-			VALUE childVal = oldvaluegetter(childpos);
-			if (childVal == win) {
+			VALUE childVal = oldvaluegetter(GetCanonicalPosition(childpos));
+			if (childVal == lose) {
 				existsWin = TRUE;
 				break;
 			} else if (childVal == tie) {
 				existsTie = TRUE;
-				break;
 			}
 		}
 		FreeMoveList(mlp);
@@ -2342,25 +2388,25 @@ REMOTENESS InteractGetRemoteness(POSITION pos) {
 			MOVELIST *mlp = ml;
 			for (; ml != NULL; ml = ml->next) {
 				POSITION childpos = InteractDoMove(pos, ml->move);
-				VALUE childVal = oldvaluegetter(childpos);	
-				if (childVal == win) {
-					REMOTENESS childRem = oldremotenessgetter(childpos);
+				VALUE childVal = oldvaluegetter(GetCanonicalPosition(childpos));	
+				if (childVal == lose) {
+					REMOTENESS childRem = oldremotenessgetter(GetCanonicalPosition(childpos));
 					smallestRemoteness = (childRem < smallestRemoteness) ? childRem : smallestRemoteness;
 				}
 			}
 			FreeMoveList(mlp);
-			return smallestRemoteness;
+			return smallestRemoteness + 1;
 		} else if (val == lose) {
 			REMOTENESS largestRemoteness = 0;
 			MOVELIST *ml = InteractGenerateMoves(pos);
 			MOVELIST *mlp = ml;
 			for (; ml != NULL; ml = ml->next) {
 				POSITION childpos = InteractDoMove(pos, ml->move);
-				REMOTENESS childRem = oldremotenessgetter(childpos);
+				REMOTENESS childRem = oldremotenessgetter(GetCanonicalPosition(childpos));
 				largestRemoteness = (childRem > largestRemoteness) ? childRem : largestRemoteness;
 			}
 			FreeMoveList(mlp);
-			return largestRemoteness;
+			return largestRemoteness + 1;
 		} else {
 			return REMOTENESS_MAX;
 		}
@@ -2392,22 +2438,28 @@ POSITION InteractStringToPosition(STRING board) {
 
 	int piecesLeft = (board[remainingXIndex9mmInteractString] - '0') + (board[remainingOIndex9mmInteractString] - '0');
 
-	return hash(realBoard, turn, piecesLeft, numX, numO) + intermediateMarker;
+	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
+	POSITION toReturn = hash(realBoard, turn, piecesLeft, numX, numO) + intermediateMarker;
+	return toReturn;
 }
 
 STRING InteractPositionToString(POSITION pos) {
+
 	char* finalBoard = calloc(65, sizeof(char));
 	memcpy(finalBoard, initial9mmInteractString, 64);
+
+	char turn;
+	int piecesLeft, numX, numO;
+	//printf("Before Unhash: %llu\n", pos);
+	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
+	//printf("After Unhash: %s, %c, %d, %d, %d\n", board, turn, piecesLeft, numX, numO);
+
 	if (isIntermediate(pos)) {
 		for (int i = 9; i <= 13; i++) {
 			finalBoard[i] = 'R';
 		}
 		pos -= (1UL << 63);
 	}
-
-	char turn;
-	int piecesLeft, numX, numO;
-	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
 	TIER tier;
 	TIERPOSITION tierPosition;
 	gUnhashToTierPosition(pos, &tierPosition, &tier);
@@ -2443,11 +2495,11 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 	SafeFree(board);
 
 	if (from != 31 && to != 31) {
-		return UWAPI_Board_Regular2D_MakeMoveString(from, to);
+		return UWAPI_Board_Regular2D_MakeMoveString(indexMap9mmInteractString[from], indexMap9mmInteractString[to]);
 	} else if (remove != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'o' : 'x', remove);
+		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'o' : 'x', indexMap9mmInteractString[remove]);
 	} else if (to != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString(turn, to);
+		return UWAPI_Board_Regular2D_MakeAddString(turn, indexMap9mmInteractString[to]);
 	} else {
 		return NULL;
 	}
