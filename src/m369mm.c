@@ -490,7 +490,6 @@ void InitializeGame() {
 	if (gIsInteract) {
 		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
 		memset(validTiers, 0, sizeof(char) * 1800);
-		gInitializeHashWindow(1800, FALSE);
 	}
 	/********************************/
 
@@ -517,11 +516,12 @@ void InitializeGame() {
 		board[i] = BLANK;
 
 	gNumberOfPositions = generic_hash_init(BOARDSIZE, pminmax, NULL, 0);
-	gInitialPosition = hash(board, X, maxx+maxo, 0, 0);
+	gInitialPosition = 0;//hash(board, X, maxx+maxo, 0, 0);
 
 	InitializeHelpStrings();
 
 	if (gIsInteract) {
+		gInitializeHashWindow(1800, FALSE);
 		ReinitializeTierDB(db_functions);
 		oldvaluegetter = db_functions->get_value;
 		oldremotenessgetter = db_functions->get_remoteness;
