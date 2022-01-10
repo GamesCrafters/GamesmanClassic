@@ -63,6 +63,8 @@ static int maxN = 10;
 static int maxPossibleMoveLength = 30;
 static int maxPossibleLineLength = 256;
 
+BOOLEAN usingLookupTierDB = FALSE;
+
 /*
 ** Local function prototypes
 */
@@ -104,7 +106,6 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 	VALUE value;
 	BOOLEAN error;
 	BOOLEAN player_draw = FALSE;
-	/*BOOLEAN playing = TRUE;*/
 	gPlaying = TRUE;
 	BOOLEAN aborted = FALSE;
 	BOOLEAN menu    = TRUE;
@@ -117,7 +118,8 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 
 	position = gInitialPosition;
 	if (gHashWindowInitialized) { // TIER GAMESMAN
-		gInitializeHashWindow(gInitialTier, TRUE);
+		usingLookupTierDB = ReinitializeTierDB();
+		gInitializeHashWindow(gInitialTier, !usingLookupTierDB);
 		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
 	}
 	undo = InitializeUndo();
@@ -171,7 +173,7 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 				mlist = moveListHandleNewMove(position, move, mlist, generatedMoves);
 				position = DoMove(position,move);
 				if (gHashWindowInitialized)         // TIER GAMESMAN
-					gInitializeHashWindowToPosition(&position);
+					gInitializeHashWindowToPosition(&position, !usingLookupTierDB);
 				undo = UpdateUndo(position,undo,&player_draw);
 				undo->givebackUsed = oldRemainingGivebacks>remainingGivebacks;
 
@@ -437,7 +439,7 @@ void PrintHeader(int maxMoveLength, int maxRemoteness,
 
 	POSITION tmp = gInitialPosition;
 	if (gHashWindowInitialized) {         //Tier-Gamesman
-		gInitializeHashWindow(gInitialTier, TRUE);
+		gInitializeHashWindow(gInitialTier, !usingLookupTierDB);
 		tmp = gInitialTierPosition;
 	}
 	PrintPosition(tmp, gPlayerName[whoseTurn], whoseTurn);
@@ -742,7 +744,7 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
 
 	POSITION position = moveInfo->position;
 	if (gHashWindowInitialized) {         //Tier-Gamesman
-		gInitializeHashWindow(moveInfo->tier, TRUE);
+		gInitializeHashWindow(moveInfo->tier, !usingLookupTierDB);
 		position = moveInfo->tierposition;
 	}
 
@@ -936,7 +938,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	tmp = gInitialPosition;
 	if (gHashWindowInitialized) {         //Tier-Gamesman
-		gInitializeHashWindow(gInitialTier, TRUE);
+		gInitializeHashWindow(gInitialTier, !usingLookupTierDB);
 		tmp = gInitialTierPosition;
 	}
 	updateRemoteness(&maxR, &maxTR, tmp, 0, 0);
@@ -944,7 +946,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 	while(mlist != 0) {
 		tmp = mlist->position;
 		if (gHashWindowInitialized) {                 //Tier-Gamesman
-			gInitializeHashWindow(mlist->tier, TRUE);
+			gInitializeHashWindow(mlist->tier, !usingLookupTierDB);
 			tmp = mlist->tierposition;
 		}
 		updateRemoteness(&maxR, &maxTR, tmp, mlist->move, 1);
@@ -955,7 +957,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	if (gPrintPredictions) {
 		if (gHashWindowInitialized) {                 //Tier-Gamesman
-			gInitializeHashWindowToPosition(&lastPosition);
+			gInitializeHashWindowToPosition(&lastPosition, !usingLookupTierDB);
 		}
 		generatedMoves = GenerateMoves(lastPosition);
 		while(generatedMoves) {
@@ -978,7 +980,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	tmp = gInitialPosition;
 	if (gHashWindowInitialized) {         //Tier-Gamesman
-		gInitializeHashWindow(gInitialTier, TRUE);
+		gInitializeHashWindow(gInitialTier, !usingLookupTierDB);
 		tmp = gInitialTierPosition;
 	}
 
@@ -1010,7 +1012,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	if (gPrintPredictions) {
 		if (gHashWindowInitialized) {                 //Tier-Gamesman
-			gInitializeHashWindowToPosition(&lastPosition);
+			gInitializeHashWindowToPosition(&lastPosition, !usingLookupTierDB);
 		}
 
 		generatedMoves = GenerateMoves(lastPosition);
@@ -1030,7 +1032,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 	// Print footer
 	tmp = position;
 	if (gHashWindowInitialized && position != -1) {         //Tier-Gamesman
-		gInitializeHashWindow(currentTier, TRUE);         // If playing Tier-Gamesman,
+		gInitializeHashWindow(currentTier, !usingLookupTierDB);         // If playing Tier-Gamesman,
 		tmp = currentTP;         // this returns to current hash window before exiting
 	}
 	PrintFooter(maxMoveLength, maxR, maxTR, tmp, whoseTurn);
@@ -1083,7 +1085,7 @@ UNDO *HandleUndoRequest(POSITION* thePosition, UNDO* undo, BOOLEAN* error)
 	}
 
 	if (gHashWindowInitialized) {         //Tier-Gamesman
-		gInitializeHashWindow(undo->tier, TRUE);
+		gInitializeHashWindow(undo->tier, !usingLookupTierDB);
 		*thePosition = undo->tierposition;
 	}
 

@@ -103,6 +103,8 @@ BOOLEAN gUseOpen = FALSE;       /* Use open positions solver, will be set to TRU
 BOOLEAN gVisTiers = FALSE;
 BOOLEAN gVisTiersPlain = FALSE;
 BOOLEAN gSolveOnlyTier = FALSE;
+BOOLEAN gLoadTierdbArray = TRUE;
+BOOLEAN gIsInteract = FALSE;
 
 char gPlayerName[2][MAXNAME] = {"", ""};    /* The names of the players user/user or comp/user */
 
