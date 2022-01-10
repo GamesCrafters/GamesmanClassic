@@ -145,6 +145,10 @@ int maxHash()
 {
 	return 1<<((ROWCOUNT+1)*COLUMNCOUNT);
 }
+int hashLength()
+{
+	return ((ROWCOUNT+1)*COLUMNCOUNT);
+}
 game hashToPosition(gamehash hash) {
     char emptyspots = 0;
     for(int j = 0; j < COLUMNCOUNT; j++) {

@@ -1,11 +1,17 @@
 #include "Game.h"
+#include "memory.h"
 
 
-int main()
+int main(int argc, char** argv)
 {
+	if(argc != 2)
+	{
+		printf("Usage: %s <filename>", argv[0]);
+		return 1;
+	}
   	initialize_constants();
     game pos = getStartingPositions();
-    char* primitives = calloc(sizeof(char),maxHash());
+    solverdata* primitives = initializesolverdata(hashLength());
 	game* fringe = calloc(sizeof(game), getMaxMoves()*getMaxDepth());
 	if(primitives == NULL || fringe == NULL) {
 		printf("Memory allocation error\n");
@@ -22,6 +28,8 @@ int main()
 	int movecount;
 	int i;
 	int oldindex;
+	gamehash minindex = maxHash();
+	gamehash maxindex = 0;
 	int* positionsfound = calloc(sizeof(int), 256);
 	printf("Beginning main loop\n");
 	fflush(stdout);
@@ -30,17 +38,22 @@ int main()
 		minprimitive = 255;
 		oldindex = index;
 		g = fringe[index-1];
+		h = getHash(g);
+		if(solverread(primitives, h)== 0)
+		{
 		movecount = generateMoves((char*)&moves, g);
 		for(i=0;i<movecount;i++)
 		{
 			newg = doMove(g, moves[i]);
 			h = getHash(newg);
-			primitive = primitives[h];
+			primitive = solverread(primitives, h);
 			if(!primitive)
 			{
 				primitive = isPrimitive(newg, moves[i]);
 				if(primitive != (char) NOT_PRIMITIVE) {
-					primitives[h] = primitive;
+					solverinsert(primitives,h,primitive);
+					if(h < minindex) {minindex = h;}
+					if(h > maxindex) {maxindex = h;}
 					//printf("Position 0x%08x determined primitive\n", newg);
 					positionsfound[primitive]++;
 					minprimitive = minprimitive <= primitive ? minprimitive : primitive;
@@ -63,13 +76,19 @@ int main()
 				else minprimitive = minprimitive + 1;
 			}
 			else minprimitive = 255-minprimitive;
-			primitives[getHash(g)] = minprimitive;
+			h = getHash(g);
+			solverinsert(primitives,h,minprimitive);
+			if(h < minindex) minindex = h;
+			if(h > maxindex) maxindex = h;
 			//printf("Position 0x%08x determined fully\n", g);
 			positionsfound[minprimitive]++;
 			index--;
 		}
+		}
+		else { index--;}
 	}
 	printf("Done computing, listing statistics\n");
+	fflush(stdout);
 	int totalpositioncount = 0;
 	for(int i = 1; i < 64; i++)
 	{
@@ -88,9 +107,15 @@ int main()
 	}
 	printf("In total, %d positions found\n", totalpositioncount);
 	printf("%d primitive positions found\n", positionsfound[LOSS]+positionsfound[TIE]);
-	printf("Starting position has value %d\n", primitives[getStartingPositions()]);
-
-	free(primitives);
+	printf("Starting position has value %d\n", solverread(primitives, getStartingPositions()));
+	printf("%llx, %llx\n", minindex, maxindex);
+	printf("Starting output to file %s\n", argv[1]);
+	fflush(stdout);
+	FILE* file = fopen(argv[1], "w");
+	solversave(primitives, file);
+	freesolver(primitives);
+	printf("Done outputting\n");
+	fflush(stdout);
 	free(fringe);
 	free(positionsfound);
 	return 0;

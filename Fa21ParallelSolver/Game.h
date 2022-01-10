@@ -40,4 +40,6 @@ gamehash getHash(game position);
 
 int maxHash();
 
+int hashLength();
+
 game hashToPosition(gamehash hash);
