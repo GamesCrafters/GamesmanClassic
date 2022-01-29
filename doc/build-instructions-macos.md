@@ -46,6 +46,14 @@ autoconf
 ./configure --with-tcl=/usr/local/opt/tcl-tk/lib/tclConfig.sh --with-tk=/usr/local/opt/tcl-tk/lib/tkConfig.sh
 ```
 
+If you get the following error `configure: error: cannot find required auxiliary files: config.guess config.sub`, then run the following:
+
+```
+brew install wget
+wget -O config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
+wget -O config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
+```
+
 If you want to change an option such as whether or not to build with graphics, then you may need to change the configuration options.
 The configuration options are available here: [GamesmanClassic Configuration Options](build-configuration-options.md).
 
