@@ -193,10 +193,10 @@ void gInitializeHashWindow(TIER tier, BOOLEAN loadDB) {
 }
 
 // FOR GAMEPLAY.C
-void gInitializeHashWindowToPosition(POSITION* position, BOOLEAN loadDB) {
+void gInitializeHashWindowToPosition(POSITION* position) {
 	TIERPOSITION tierpos; TIER tier;
 	gUnhashToTierPosition((*position), &tierpos, &tier);
-	gInitializeHashWindow(tier, loadDB);
+	gInitializeHashWindow(tier, TRUE);
 	(*position) = gHashToWindowPosition(tierpos, tier);
 }
 

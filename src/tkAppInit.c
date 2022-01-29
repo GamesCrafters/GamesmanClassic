@@ -1845,7 +1845,7 @@ char **argv;                /* Argument strings. */
 			return TCL_ERROR;
 
 		if (gHashWindowInitialized)
-			gInitializeHashWindowToPosition(&position, TRUE);
+			gInitializeHashWindowToPosition(&position);
 
 		Tcl_SetResult(interp, StrFromI(position), SafeFreeString);
 		return TCL_OK;

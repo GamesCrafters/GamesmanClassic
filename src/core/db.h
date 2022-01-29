@@ -91,8 +91,6 @@ typedef struct db_list_struct {
 	struct db_list_struct *next_db;
 } db_list;
 
-DB_Table *db_functions;
-
 VALUE       db_original_put_value(POSITION pos, VALUE data);
 
 /* external interface functions. Limited to one db at a time, therefore needs to be
@@ -101,8 +99,7 @@ VALUE       db_original_put_value(POSITION pos, VALUE data);
 /* General */
 void            CreateDatabases         ();
 void            InitializeDatabases     ();
-BOOLEAN         ReinitializeTierDB      ();
-void            DestroyDatabases        ();
+void            DestroyDatabases    ();
 
 
 UINT64
