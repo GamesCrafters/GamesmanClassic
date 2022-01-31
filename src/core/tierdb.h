@@ -3,7 +3,6 @@
 
 /* General */
 void    tierdb_init     (DB_Table*);
-BOOLEAN tierdb_reinit (DB_Table*);
 void tierdb_free_childpositions();
 int CheckTierDB     (TIER, int);
 BOOLEAN tierdb_load_minifile (char*);

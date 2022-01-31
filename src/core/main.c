@@ -147,8 +147,6 @@ VALUE DetermineValue(POSITION position)
 	}
 
 	if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
-		BOOLEAN usingLookupTierDB = ReinitializeTierDB();
-		
 		gSolver = &DetermineRetrogradeValue; // force the retrograde solver
 		gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
 		if (gPrintDatabaseInfo)
@@ -156,8 +154,7 @@ VALUE DetermineValue(POSITION position)
 		gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
 		gSolver(position);
 		gDBLoadMainTier = TRUE; // from now on, tierdb loads main tier too
-		//gInitializeHashWindow(gInitialTier, TRUE);
-		gInitializeHashWindow(gInitialTier, !usingLookupTierDB);
+		gInitializeHashWindow(gInitialTier, TRUE);
 		position = gHashToWindowPosition(gInitialTierPosition, gInitialTier);
 		gInitialPosition = position; // saves a LOT of little changes
 
@@ -587,7 +584,6 @@ void HandleArguments (int argc, char *argv[])
 				printf("--export requires a filname.");
 			}
 		} else if (!strcasecmp(argv[i], "--interact")) {
-			gIsInteract = TRUE;
 			gJustSolving = TRUE;
 			gamesman_main(argv[0]);
 			ServerInteractLoop();

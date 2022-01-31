@@ -22,7 +22,6 @@
 
 #include <stdio.h>
 #include "gamesman.h"
-#include "core/db.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -49,26 +48,8 @@ BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
-BOOLEAN isInteractive = FALSE;
 
 void*    gGameSpecificTclInit = NULL;
-
-STRING initial9mmInteractString = "R_A_8_7_9-----9s--s--s-s-s-s---sss--sss-sss--sss---s-s-s-s--s--s";
-int indexMap9mmInteractString[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
-int indexMap9mmMoveString[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
-int turnIndex9mmInteractString = 2;
-int remainingXIndex9mmInteractString = 8;
-int remainingOIndex9mmInteractString = 14;
-VALUE (*oldvaluegetter)(POSITION) = NULL;
-REMOTENESS (*oldremotenessgetter)(POSITION) = NULL;
-char validTiers[1800];
-
-void logMsg(const char* fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    printf(fmt, args);
-    va_end(args);
-}
 
 /**
  * Help strings that are pretty self-explanatory
@@ -103,8 +84,8 @@ STRING kHelpExample =
 ** Variants
 **
 **************************************************************************/
-BOOLEAN gFlying = TRUE;
-int gameType = 9; // 3,6,9 men's morris
+BOOLEAN gFlying = FALSE;
+int gameType = 6; // 3,6,9 men's morris
 int millType = 0; // 0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
 
 /*************************************************************************
@@ -158,10 +139,8 @@ TIERLIST* gTierChildren(TIER tier);
 TIERPOSITION gNumberOfTierPositions (TIER tier);
 STRING TierToString(TIER tier);
 void InitializeHelpStrings ();
-
 MOVELIST *GenerateMoves (POSITION position);
 POSITION DoMove (POSITION position, MOVE move);
-
 VALUE Primitive (POSITION position);
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 void PrintComputersMove (MOVE computersMove, STRING computersName);
@@ -205,15 +184,6 @@ int findLegalRemovesUndo(char *board, char turn, int *legalRemoves);
 STRING UndoMoveToString(UNDOMOVE move);
 BOOLEAN allMillsNew(char *board, int slot, char turn);
 POSITION DoMoveSafe(POSITION position, MOVE move);
-
-STRING InteractPositionToString(POSITION pos);
-POSITION InteractStringToPosition(STRING s);
-MOVELIST *InteractGenerateMoves(POSITION pos);
-POSITION InteractDoMove(POSITION pos, MOVE move);
-VALUE InteractPrimitive(POSITION pos);
-BOOLEAN isIntermediate(POSITION pos);
-VALUE InteractGetValue(POSITION pos);
-REMOTENESS InteractGetRemoteness(POSITION pos);	
 
 int gSymmetryMatrix3MM[8][24] = {
     {0,1,2,3,4,5,6,7,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
@@ -485,15 +455,6 @@ BOOLEAN hashCacheGet(int tier, POSITION position, char *board) {
 **
 ************************************************************************/
 void InitializeGame() {
-
-	/* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
-	if (gIsInteract) {
-		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
-		memset(validTiers, 0, sizeof(char) * 1800);
-	}
-	/********************************/
-
-	gSymmetries = TRUE; // SYMMETRIES UTILIZED BY DEFAULT.
 	int i;
 	combinationsInit();
 	hashCacheInit();
@@ -516,18 +477,9 @@ void InitializeGame() {
 		board[i] = BLANK;
 
 	gNumberOfPositions = generic_hash_init(BOARDSIZE, pminmax, NULL, 0);
-	gInitialPosition = 0;//hash(board, X, maxx+maxo, 0, 0);
+	gInitialPosition = hash(board, X, maxx+maxo, 0, 0);
 
 	InitializeHelpStrings();
-
-	if (gIsInteract) {
-		gInitializeHashWindow(1800, FALSE);
-		ReinitializeTierDB(db_functions);
-		oldvaluegetter = db_functions->get_value;
-		oldremotenessgetter = db_functions->get_remoteness;
-		db_functions->get_value = InteractGetValue;
-		db_functions->get_remoteness = InteractGetRemoteness;
-	}
 }
 
 /************************************************************************
@@ -584,9 +536,6 @@ void InitializeHelpStrings() {
 **
 ************************************************************************/
 MOVELIST *GenerateMoves(POSITION position) {
-	if (gIsInteract) {
-		return InteractGenerateMoves(position);
-	}
 	MOVELIST *moves = NULL;
 	char turn;
 	int piecesLeft, numX, numO;
@@ -613,7 +562,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 					from the other type of two-argument move (from+to for sliding) for the sake of correctly converting 
 					text inputs to moves. All functions that unhash moves will account for this peculiarity 
 					and set from, to, and remove to the correct values.*/
-					moves = CreateMovelistNode(MOVE_ENCODE(31, allBlanks[i], legalRemoves[j]), moves);
+					moves = CreateMovelistNode(MOVE_ENCODE(allBlanks[i], legalRemoves[j], legalRemoves[j]), moves);
 			else
 				moves = CreateMovelistNode(MOVE_ENCODE(31, allBlanks[i], 31), moves);
 	} else {
@@ -836,9 +785,6 @@ int findLegalRemovesUndo(char *board, char turn, int *legalRemoves) {
 **
 *************************************************************************/
 POSITION DoMove(POSITION position, MOVE move) {
-	if (gIsInteract) {
-		return InteractDoMove(position, move);
-	}
 	char turn;
 	int piecesLeft;
 	int numX, numO;
@@ -849,10 +795,10 @@ POSITION DoMove(POSITION position, MOVE move) {
 	int removeIdx = move & 0x1F;
 
 	/* Correction for PECULIARITY */
-	//if (toIdx == removeIdx) {
-	//	toIdx = fromIdx;
-	//	fromIdx = 31;
-	//}
+	if (toIdx == removeIdx) {
+		toIdx = fromIdx;
+		fromIdx = 31;
+	}
 
 	board[toIdx] = turn;
 
@@ -911,10 +857,10 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
 	int removeIdx = undoMove & 0x1F;
 
 	/* Correction for PECULIARITY */
-	//if (toIdx == removeIdx) {
-	//	toIdx = fromIdx;
-	//	fromIdx = 31;
-	//}
+	if (toIdx == removeIdx) {
+		toIdx = fromIdx;
+		fromIdx = 31;
+	}
 
 	board[toIdx] = BLANK;
 
@@ -1053,7 +999,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		else
 			printf("O has %d on the board\n", numo);
 
-		printf("          6 -- 7 -- 8    %c -- %c -- %c   |    %s\n\n", board[6], board[7], board[8], GetPrediction(position, playersName, usersTurn));
+		printf("          6 -- 7 -- 8    %c -- %c -- %c   |    \n\n", board[6], board[7], board[8]);
 
 
 	}
@@ -1112,13 +1058,13 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		else
 			printf("O has %d on the board\n", numo);
 		printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
-		printf("LEGEND: 9 - 10- 11      12- 13- 14      %c - %c - %c       %c - %c - %c\n", board[9], board[10], board[11], board[12], board[13], board[14]);
+		printf("LEGEND: 9 - 10- 11      12- 13- 14      %c - %c - %c       %c - %c - %c    Turn: %c\n", board[9], board[10], board[11], board[12], board[13], board[14], turn);
 		printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
 		printf("        |   |   15- 16- 17  |   |       |   |   %c - %c - %c   |   |\n", board[15], board[16], board[17] );
 		printf("        |   |       |       |   |       |   |       |       |   |\n");
 		printf("        |   18 ---- 19 ---- 20  |       |   %c ----- %c ----- %c   |\n", board[18], board[19], board[20] );
 		printf("        |           |           |       |           |           |\n");
-		printf("        21 -------- 22 -------- 23      %c --------- %c --------- %c    %s\n\n", board[21], board[22], board[23], GetPrediction(position, playersName, usersTurn) );
+		printf("        21 -------- 22 -------- 23      %c --------- %c --------- %c\n\n", board[21], board[22], board[23] );
 
 	}
 	SafeFree(board);
@@ -1138,13 +1084,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
 	STRING str = MoveToString( computersMove );
-	if (gameType == 3) {
-		printf("%8s's Move                                     :    %s\n",computersName,str);
-	} else if (gameType == 6) {
-		printf("%8s's Move                                :    %s\n",computersName,str);
-	} else {
-		printf("%8s's Move                                                 :    %s\n",computersName,str);
-	}
+	printf("%8s's move                                     : %s\n",computersName,str);
 	SafeFree( str );
 }
 
@@ -1181,24 +1121,27 @@ STRING MoveToString(MOVE move) {
 	int toIdx = (move >> 5) & 0x1F;
 	int removeIdx = move & 0x1F;
 	/* Correction for PECULIARITY */
-	//if (toIdx == removeIdx) {
-	//	toIdx = fromIdx;
-	//	fromIdx = 31;
-	//}
+	if (toIdx == removeIdx) {
+		toIdx = fromIdx;
+		fromIdx = 31;
+	}
+	int tier, piecesLeft;
 
 	STRING movestring;
+	//tier = generic_hash_cur_context();
+	//piecesLeft = tier / 100;
 	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
 		movestring = (STRING) SafeMalloc(12);
-		sprintf( movestring, "%d-%dr%d",fromIdx, toIdx, removeIdx);
+		sprintf( movestring, "[%d-%dr%d]",fromIdx, toIdx, removeIdx);
 	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
 		movestring = (STRING) SafeMalloc(8);
-		sprintf( movestring, "%d-%d", fromIdx, toIdx);
+		sprintf( movestring, "[%d-%d]", fromIdx, toIdx);
 	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
 		movestring = (STRING) SafeMalloc(8);
-		sprintf(movestring, "%d", toIdx);
+		sprintf(movestring, "[%d]", toIdx);
 	} else {
 		movestring = (STRING) SafeMalloc(8);
-		sprintf(movestring, "%dr%d", toIdx, removeIdx);
+		sprintf(movestring, "[%dr%d]", toIdx, removeIdx);
 	}
 
 	return movestring;
@@ -1246,31 +1189,22 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 	do {
 		int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
-		int spacemaxslots = (gameType == 3) ? 1 : 2;
-		printf("%8s's Move: (u)ndo", playersName);
-		int numSpaces = (gameType == 9) ? 41 : 24;
+		printf("%8s's move: (u)ndo", playersName);
 		if (!allRemoves) {
-			if (piecesLeft != 0) {// STAGE 1 : PLACING
-				printf("/[0-%d]", maxslots);
-				numSpaces -= (5 + spacemaxslots);
-			} else {
-				printf("/[0-%d]-[0-%d]", maxslots, maxslots);
-				numSpaces -= (10 + spacemaxslots * 2);
+			if (piecesLeft != 0) // STAGE 1 : PLACING
+				printf(" OR [0-%d]", maxslots);
+			else {
+				printf(" OR [0-%d]-[0-%d]", maxslots, maxslots);
 			}
 		}
 		if (existsRemoves) {
-			if (piecesLeft != 0) {// STAGE 1 : PLACING
-				printf("/[0-%d]r[0-%d]", maxslots, maxslots);
-				numSpaces -= (10 + spacemaxslots * 2);
-			} else {
-				printf("/[0-%d]-[0-%d]r[0-%d]", maxslots, maxslots, maxslots);
-				numSpaces -= (15 + spacemaxslots * 3);
+			if (piecesLeft != 0) // STAGE 1 : PLACING
+				printf(" OR [0-%d]r[0-%d]", maxslots, maxslots);
+			else {
+				printf(" OR [0-%d]-[0-%d]r[0-%d]", maxslots, maxslots, maxslots);
 			}
 		}
-		for (int i = 0; i < numSpaces; i++) {
-			printf(" ");
-		}
-		printf(":    ");
+		printf(": ");
 
 		input = HandleDefaultTextInput(position, move, playersName);
 
@@ -1399,9 +1333,8 @@ MOVE ConvertTextInputToMove(STRING input) {
 		from = first;
 		to = second;
 	} else { // Placement with removal peculiarity.
-		//from = first;
-		//to = second;
-		to = first;
+		from = first;
+		to = second;
 		remove = second;
 	}
 	//printf("converttextinputtomove.... move = %d\n", MOVE_ENCODE(from, to, remove));
@@ -1528,6 +1461,24 @@ void SetTclCGameSpecificOptions(int options[]) {
 
 /************************************************************************
 **
+** NAME:        GetInitialPosition
+**
+** DESCRIPTION: Called when the user wishes to change the initial
+**              position. Asks the user for an initial position.
+**              Sets new user defined gInitialPosition and resets
+**              gNumberOfPositions if necessary
+**
+** OUTPUTS:     POSITION : New Initial Position
+**
+************************************************************************/
+
+POSITION GetInitialPosition() {
+	return 0;
+}
+
+
+/************************************************************************
+**
 ** NAME:        NumberOfOptions
 **
 ** DESCRIPTION: Calculates and returns the number of variants
@@ -1623,9 +1574,6 @@ void DebugMenu() {
 char returnTurn(POSITION pos) {
 	if(gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
-		if (gIsInteract && isIntermediate(pos)) {
-			pos -= (1UL << 63);
-		}
 		gUnhashToTierPosition(pos, &tierposition, &tier);
 		generic_hash_context_switch(tier);
 		return (generic_hash_turn(tierposition)==PLAYER_ONE ? X : O);
@@ -1639,9 +1587,6 @@ char* customUnhash(POSITION pos) {
 	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
 	if(gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
-		if (gIsInteract && isIntermediate(pos)) {
-			pos -= (1UL << 63);
-		}
 		gUnhashToTierPosition(pos, &tierposition, &tier);
 		generic_hash_context_switch(tier);
 		board = (char*)generic_hash_unhash(tierposition, board);
@@ -1653,32 +1598,15 @@ char* customUnhash(POSITION pos) {
 char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo) {
 	//piecesLeft = total pieces left during stage 1 (x + o)
 	char* board = (char*)SafeMalloc(BOARDSIZE * sizeof(char));
-	BOOLEAN intermediate = FALSE;
-	if (gIsInteract && isIntermediate(pos)) {
-		pos -= (1UL << 63);
-		intermediate = TRUE;
-	}
 	if (gHashWindowInitialized) {
 		TIER tier; TIERPOSITION tierposition;
 		gUnhashToTierPosition(pos, &tierposition, &tier);
-		// printf("THE TIER THAT'S LOADED IS %llu %llu\n", tier, tierposition);
 		generic_hash_context_switch(tier);
 		(*turn) = (generic_hash_turn(tierposition) == PLAYER_ONE ? X : O);
 
 		*piecesLeft = tier / 100;
 		*numx = (tier / 10) % 10;
 		*numo = tier % 10;
-
-		if (gIsInteract && intermediate && *piecesLeft > 0) {
-			*turn = ((*piecesLeft % 2) == 0) ? O : X;
-			//*turn = (*turn == X) ? O : X;
-		}/* else if (gIsInteract && *piecesLeft == 0) {
-			if (tierposition > combinations[BOARDSIZE][*numx][*numo]) {
-				*turn = O;
-			} else {
-				*turn = X;
-			}
-		}*/
 
 		BOOLEAN cache_miss = hashCacheGet(tier, tierposition, board);
 		if (cache_miss) {
@@ -1778,52 +1706,25 @@ TIERLIST* gTierChildren(TIER tier) {
 	int piecesLeft = tier / 100;
 	int numX = (tier / 10) % 10;
 	int numO = tier % 10;
-
-	//printf("gTierChildren called %llu\n", tier);
-
 	if (piecesLeft != 0) {
 		if (piecesLeft % 2 == 0) {
 			list = CreateTierlistNode(tier-100+10, list);         //adding piece
-			validTiers[tier-100+10] = 1;
 			if (numX > 1) {
 				list = CreateTierlistNode(tier-100+9, list); //adding and removing
-				validTiers[tier-100+9] = 1;
 			}
 		} else {
 			list = CreateTierlistNode(tier-100+1, list);         //adding piece
-			validTiers[tier-100+1] = 1;
 			if (numO > 1) {
 				list = CreateTierlistNode(tier-100-9, list); //adding and removing
-				validTiers[tier-100-9] = 1;
 			}
 		}
 	} else if (piecesLeft == 0) { //stage 2 or 3. We do not know the turn, so we assume both paths as tier children
 		list = CreateTierlistNode(tier, list);
 		if (numX > 2 && numO > 2) {
 			list = CreateTierlistNode(tier-10, list); //remove X piece
-			validTiers[tier-10] = 1;
 			list = CreateTierlistNode(tier-1, list); //remove O piece
-			validTiers[tier-1] = 1;
 		}
 	}
-
-	// Support for two-phase moves.
-	if (gIsInteract && piecesLeft > 0) {
-		if (piecesLeft % 2 == 0) { // O is about to remove
-			if (numX > 1 && numO > 2) {
-				if (validTiers[tier - 10]) {
-					list = CreateTierlistNode(tier - 10, list);
-				}
-			}
-		} else { // X is about to remove
-			if (numO > 1 && numX > 2) {
-				if (validTiers[tier - 1]) {
-					list = CreateTierlistNode(tier - 1, list);
-				}
-			}
-		}
-	}
-
 	return list;
 }
 
@@ -2063,9 +1964,6 @@ BOOLEAN kSupportsSymmetries = TRUE;
 ************************************************************************/
 
 POSITION GetCanonicalPosition(POSITION position) {
-	if (isIntermediate(position)) {
-		return position;
-	}
 	char turn;
 	int piecesLeft, numX, numO;
 	char *originalBoard = unhash(position, &turn, &piecesLeft, &numX, &numO);
@@ -2236,246 +2134,31 @@ Changes:
         it makes the code a whole lot easier to read and reduces likely hood of errors... such as the mistake in DoMove earlier
  ************************************************************************/
 
-/// BEGIN ALL INTERACT FUNCTIONS ///
-
-POSITION GetInitialPosition() {
-	if (gIsInteract) {
-		gInitializeHashWindow(1800, FALSE);
-	}
-	return 0;
-}
-
-BOOLEAN isIntermediate(POSITION pos) {
-	return pos >> 63;
-}
-
-MOVELIST *InteractGenerateMoves(POSITION position) {
-	MOVELIST *moves = NULL;
-	char turn;
-	int piecesLeft, numX, numO;
-	char *board = unhash(position, &turn, &piecesLeft, &numX, &numO);
-	int legalRemoves[BOARDSIZE];
-	int numLegalRemoves = findLegalRemoves(board, turn, legalRemoves);
-	int *legalTos;
-	int numLegalTos;
-
-	if (piecesLeft == 0 && (numX < 3 || numO < 3)) return NULL;
-
-	int allBlanks[BOARDSIZE];
-	int numBlanks = 0;
-	for (int i = 0; i < BOARDSIZE; i++)
-		if (board[i] == BLANK)
-			allBlanks[numBlanks++] = i;
-
-	if (isIntermediate(position)) {
-		for (int j = 0; j < numLegalRemoves; j++)
-			moves = CreateMovelistNode(MOVE_ENCODE(31, 31, legalRemoves[j]), moves);
-	} else {
-		if (piecesLeft > 0) {
-			for (int i = 0; i < numBlanks; i++)
-				moves = CreateMovelistNode(MOVE_ENCODE(31, allBlanks[i], 31), moves);
-		} else {
-			for (int fromIdx = 0; fromIdx < BOARDSIZE; fromIdx++) {
-				if (gFlying && ((turn == X && numX <= 3) || (turn == O && numO <= 3))) {
-					legalTos = allBlanks;
-					numLegalTos = numBlanks;
-				} else {
-					legalTos = adjacent[fromIdx];
-					numLegalTos = adjacent[fromIdx][4];
-				}
-				if (board[fromIdx] == turn) {
-					for (int i = 0; i < numLegalTos; i++) {
-						if (board[legalTos[i]] != BLANK) continue;
-						moves = CreateMovelistNode(MOVE_ENCODE(fromIdx, legalTos[i], 31), moves);
-					}
-				}
-			}
-		}
-	}
-
-	SafeFree(board);
-	return moves;
-}
-
-POSITION InteractDoMove(POSITION position, MOVE move) {
-	// Slide
-	// Remove
-	// Place
-	POSITION intermediateMarker = 0;
-
-	char turn;
-	int piecesLeft;
-	int numX, numO;
-	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
-
-	char newTurn = (turn == X) ? O : X;
-
-	int fromIdx = move >> 10;
-	int toIdx = (move >> 5) & 0x1F;
-	int removeIdx = move & 0x1F;
-
-	if (fromIdx != 31 && toIdx != 31) {
-		board[toIdx] = turn;
-		board[fromIdx] = BLANK;
-	} else if (removeIdx != 31) {
-		board[removeIdx] = BLANK;
-		if (turn == X) {
-			numO--;
-		} else {
-			numX--;
-		}
-	} else {
-		board[toIdx] = turn;
-		if (turn == X) {
-			numX++;
-		} else {
-			numO++;
-		}
-		piecesLeft--;
-	}
-	
-	if (!isIntermediate(position)) {
-		int legalRemoves[BOARDSIZE];
-		int numLegalRemoves = findLegalRemoves(board, turn, legalRemoves);
-		if (numLegalRemoves > 0 && closesMillNew(board, turn, 31, toIdx)) {
-			intermediateMarker = (1UL << 63);
-			newTurn = turn; // Remain in the same turn.
-		}
-	}
-
-	//printf("Before Hash: %s, %c, %d, %d, %d\n", board, newTurn, piecesLeft, numX, numO);
-	POSITION toReturn = hash(board, newTurn, piecesLeft, numX, numO) + intermediateMarker;
-	//: %llu\n", toReturn);
-
-	SafeFree(board);
-
-	return toReturn;
-}
-
-VALUE InteractGetValue(POSITION pos) {
-	// Return regular value unless pos is an intermediate positon.
-	// In which case, return best outcome of all children.
-	if (isIntermediate(pos)) {
-		MOVELIST *ml = InteractGenerateMoves(pos);
-		MOVELIST *mlp = ml;
-		BOOLEAN existsWin = FALSE;
-		BOOLEAN existsTie = FALSE;
-		for (; ml != NULL; ml = ml->next) {
-			POSITION childpos = InteractDoMove(pos, ml->move);
-			VALUE childVal = oldvaluegetter(GetCanonicalPosition(childpos));
-			if (childVal == lose) {
-				existsWin = TRUE;
-				break;
-			} else if (childVal == tie) {
-				existsTie = TRUE;
-			}
-		}
-		FreeMoveList(mlp);
-		return (existsWin) ? win : (existsTie) ? tie : lose;
-	} else {
-		return oldvaluegetter(pos);
-	}
-}
-
-REMOTENESS InteractGetRemoteness(POSITION pos) {
-	// Return regular remoteness unless pos is an intermediate position.
-	// In which case, if pos==win, return smallest win remoteness
-	// else if pos==lose, return largest lose remoteness
-	// else return MAX_REMOTENESS
-	if (isIntermediate(pos)) {
-		VALUE val = InteractGetValue(pos);
-		if (val == win) {
-			REMOTENESS smallestRemoteness = REMOTENESS_MAX;
-			MOVELIST *ml = InteractGenerateMoves(pos);
-			MOVELIST *mlp = ml;
-			for (; ml != NULL; ml = ml->next) {
-				POSITION childpos = InteractDoMove(pos, ml->move);
-				VALUE childVal = oldvaluegetter(GetCanonicalPosition(childpos));	
-				if (childVal == lose) {
-					REMOTENESS childRem = oldremotenessgetter(GetCanonicalPosition(childpos));
-					smallestRemoteness = (childRem < smallestRemoteness) ? childRem : smallestRemoteness;
-				}
-			}
-			FreeMoveList(mlp);
-			return smallestRemoteness + 1;
-		} else if (val == lose) {
-			REMOTENESS largestRemoteness = 0;
-			MOVELIST *ml = InteractGenerateMoves(pos);
-			MOVELIST *mlp = ml;
-			for (; ml != NULL; ml = ml->next) {
-				POSITION childpos = InteractDoMove(pos, ml->move);
-				REMOTENESS childRem = oldremotenessgetter(GetCanonicalPosition(childpos));
-				largestRemoteness = (childRem > largestRemoteness) ? childRem : largestRemoteness;
-			}
-			FreeMoveList(mlp);
-			return largestRemoteness + 1;
-		} else {
-			return REMOTENESS_MAX;
-		}
-	} else {
-		return oldremotenessgetter(pos);
-	}
-}
-
 POSITION InteractStringToPosition(STRING board) {
-	POSITION intermediateMarker = (board[10] == 'R') ? (1UL << 63) : 0;
 	char realBoard[BOARDSIZE];
-	char turn = (board[turnIndex9mmInteractString] == 'A') ? X : O;
-	int numX = 0;
-	int numO = 0;
-	
-	for (int i = 0; i < BOARDSIZE; i++) {
-		char piece = board[indexMap9mmInteractString[i]];
-        if (piece == 's' || piece == '-') {
-			realBoard[i] = BLANK;
+	int i = 0;
+	for (i = 0; i < BOARDSIZE; i++) {
+        if (board[i] == ' ') {
+			realBoard[i] = '.';
     	} else {
-			if (piece == X) {
-				numX++;
-			} else {
-				numO++;
-			}
-		    realBoard[i] = piece;
+		    realBoard[i] = board[i];
         }
 	}
-
-	int piecesLeft = (board[remainingXIndex9mmInteractString] - '0') + (board[remainingOIndex9mmInteractString] - '0');
-
-	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
-	POSITION toReturn = hash(realBoard, turn, piecesLeft, numX, numO) + intermediateMarker;
-	return toReturn;
+	return generic_hash_hash(realBoard, 0);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-
-	char* finalBoard = calloc(65, sizeof(char));
-	memcpy(finalBoard, initial9mmInteractString, 64);
-
-	char turn;
-	int piecesLeft, numX, numO;
-	//printf("Before Unhash: %llu\n", pos);
-	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
-	//printf("After Unhash: %s, %c, %d, %d, %d\n", board, turn, piecesLeft, numX, numO);
-
-	if (isIntermediate(pos)) {
-		for (int i = 9; i <= 13; i++) {
-			finalBoard[i] = 'R';
-		}
-		pos -= (1UL << 63);
-	}
-	TIER tier;
-	TIERPOSITION tierPosition;
-	gUnhashToTierPosition(pos, &tierPosition, &tier);
-	for (int i = 0; i < BOARDSIZE; i++) {
-        if (board[i] != BLANK) {
-		    finalBoard[indexMap9mmInteractString[i]] = board[i];
+	char board[BOARDSIZE];
+	int i = 0;
+	generic_hash_unhash(pos, board);
+	char* finalBoard = calloc((BOARDSIZE+1), sizeof(char));
+	for (i = 0; i < BOARDSIZE; i++) {
+        if (board[i] == '.') {
+            finalBoard[i] = ' ';
+        } else {
+		    finalBoard[i] = board[i];
         }
 	}
-	SafeFree(board);
-
-	finalBoard[turnIndex9mmInteractString] = (turn == X) ? 'A' : 'B';
-	finalBoard[remainingXIndex9mmInteractString] = ((tier / 100) / 2) + '0';
-	finalBoard[remainingOIndex9mmInteractString] = (((tier / 100) + 1) / 2) + '0';
-
 	return finalBoard;
 }
 
@@ -2483,26 +2166,6 @@ STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE move) {
-	// Move will be of the form:
-	// from, to (for sliding only)
-	// remove (for removal only)
-	// to (for placement only)
-	int from = move >> 10;
-	int to = (move >> 5) & 0x1F;
-	int remove = move & 0x1F;
-	char turn;
-	int piecesLeft, numX, numO;
-	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
-	SafeFree(board);
-
-	if (from != 31 && to != 31) {
-		return UWAPI_Board_Regular2D_MakeMoveString(indexMap9mmMoveString[from], indexMap9mmMoveString[to]);
-	} else if (remove != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'o' : 'x', indexMap9mmMoveString[remove]);
-	} else if (to != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString(turn, indexMap9mmMoveString[to]);
-	} else {
-		return NULL;
-	}
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	return MoveToString(mv);
 }
