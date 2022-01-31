@@ -38,7 +38,7 @@ char solverread(solverdata* data, uint64_t key)
 
 static int getpointerlength(int size)
 {
-	return (size+2)>>3;
+	return (size+9)>>3;
 }
 
 static void storepointer(int64_t pointer, int size, char* output) {
