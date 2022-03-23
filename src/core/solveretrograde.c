@@ -39,8 +39,6 @@
 #include "dirent.h"
 #include "levelfile_generator.h"
 #include <stdio.h>
-
-//danny
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <time.h>
@@ -297,11 +295,8 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 					BOOLEAN loop = TRUE;
 
 					TIERLIST *list;
-			  	 list = RemoteGetTierSolveOrder();
-			  	 TIERLIST *ptr;
-			  	 for (ptr = list; ptr != NULL; ptr = ptr->next) {
-			  		 printf("tier %d\n", (int)ptr->tier);
-			  	 }
+					list = RemoteGetTierSolveOrder();
+					TIERLIST *ptr;
 
 					while (loop) {
 						PrepareToSolveNextTier();
@@ -413,7 +408,6 @@ void AutoSolveAllTiersMultiProcess() {
 	pid_t wpid = 1;
 	int tiersStarted = 0;
 	BOOLEAN loop = TRUE;
-	// int
 
 	TIERLIST *list;
 	list = RemoteGetTierSolveOrder();
@@ -421,7 +415,6 @@ void AutoSolveAllTiersMultiProcess() {
 	int max = 0;
 
 	time_t rawtime;
-
 	for (ptr = list; ptr != NULL; ptr = ptr->next) {
 		if (ptr->tier > max) {
 			max = (int) ptr->tier;
@@ -475,18 +468,12 @@ void AutoSolveAllTiersMultiProcess() {
         }
         FreeTierList(list);
 
-        // printf("Parent is about to wait for children to terminate\n\n");
         int status = 0;
-		  // wpid = wait(&status);
-		  // ifprintf(gTierSolvePrint, "\n\n---Tiers left: %llu (%.1f%c Solved)", numTiers-tiersStarted, 100*(double)tiersStarted/numTiers, '%');
-        while ((wpid = wait(&status)) > 0);
-        // printf("All children have terminated\n\n");
+		while ((wpid = wait(&status)) > 0);
     }
     ifprintf(gTierSolvePrint, "\n%s is now fully solved!\n", kGameName);
 
-	// TIERLIST *list;
 	list = RemoteGetTierSolveOrder();
-	// TIERLIST *ptr;
 	for (ptr = list; ptr != NULL; ptr = ptr->next) {
 		time_t a = rawtimes[ptr->tier][0];
 		time_t b = rawtimes[ptr->tier][1];
@@ -556,8 +543,7 @@ void GenerateTierTree(time_t times[][2]) {
 	}
 
 
-	if (gVisTiers)
-	{
+	if (gVisTiers) {
 		fprintf(fp, "}\n");
 		fclose(fp);
 		ifprintf(gTierSolvePrint, "\nFile closed, Tier visualization generated.\n");
