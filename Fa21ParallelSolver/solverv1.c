@@ -1,35 +1,11 @@
 #include "Game.h"
-#include "memory.h"
 
-void discoverfragment(char** inputfiles, char* outputfolder, gamehash minhash, char fragmentsize) {
 
-}
-
-void solvefragment(char* inputfile, char* solvedfragmentfolder, gamehash minhash, char fragmentsize)
+int main()
 {
-  gamehash* childrenshards;
-  int shardcount = getchildrenshards(&childrenshards, fragmentsize, minhash);
-  //Load solved fragments into array on GPU
-  //Load list of target hashes into array on GPU
-  //Create a new solver on GPU
-  for(int i = ; i >= ; i--) // First two values in input file contain the max and min depth
-  {
-  	  //GPU runs one tier of the solver
-  }
-  //Collect the data from the GPU
-  //Compress and save the shard into solvedfragmentfolder
-}
-
-int main(int argc, char** argv)
-{
-	if(argc != 2)
-	{
-		printf("Usage: %s <filename>", argv[0]);
-		return 1;
-	}
   	initialize_constants();
     game pos = getStartingPositions();
-    solverdata* primitives = initializesolverdata(hashLength());
+    char* primitives = calloc(sizeof(char),maxHash());
 	game* fringe = calloc(sizeof(game), getMaxMoves()*getMaxDepth());
 	if(primitives == NULL || fringe == NULL) {
 		printf("Memory allocation error\n");
@@ -56,20 +32,17 @@ int main(int argc, char** argv)
 		minprimitive = 255;
 		oldindex = index;
 		g = fringe[index-1];
-		h = getHash(g);
-		if(solverread(primitives, h)== 0)
-		{
 		movecount = generateMoves((char*)&moves, g);
 		for(i=0;i<movecount;i++)
 		{
 			newg = doMove(g, moves[i]);
 			h = getHash(newg);
-			primitive = solverread(primitives, h);
+			primitive = primitives[h];
 			if(!primitive)
 			{
 				primitive = isPrimitive(newg, moves[i]);
 				if(primitive != (char) NOT_PRIMITIVE) {
-					solverinsert(primitives,h,primitive);
+					primitives[h] = primitive;
 					if(h < minindex) {minindex = h;}
 					if(h > maxindex) {maxindex = h;}
 					//printf("Position 0x%08x determined primitive\n", newg);
@@ -95,18 +68,15 @@ int main(int argc, char** argv)
 			}
 			else minprimitive = 255-minprimitive;
 			h = getHash(g);
-			solverinsert(primitives,h,minprimitive);
+			primitives[h] = minprimitive;
 			if(h < minindex) minindex = h;
 			if(h > maxindex) maxindex = h;
 			//printf("Position 0x%08x determined fully\n", g);
 			positionsfound[minprimitive]++;
 			index--;
 		}
-		}
-		else { index--;}
 	}
 	printf("Done computing, listing statistics\n");
-	fflush(stdout);
 	int totalpositioncount = 0;
 	for(int i = 1; i < 64; i++)
 	{
@@ -125,15 +95,9 @@ int main(int argc, char** argv)
 	}
 	printf("In total, %d positions found\n", totalpositioncount);
 	printf("%d primitive positions found\n", positionsfound[LOSS]+positionsfound[TIE]);
-	printf("Starting position has value %d\n", solverread(primitives, getStartingPositions()));
+	printf("Starting position has value %d\n", primitives[getStartingPositions()]);
 	printf("%llx, %llx\n", minindex, maxindex);
-	printf("Starting output to file %s\n", argv[1]);
-	fflush(stdout);
-	FILE* file = fopen(argv[1], "w");
-	solversave(primitives, file);
-	freesolver(primitives);
-	printf("Done outputting\n");
-	fflush(stdout);
+	free(primitives);
 	free(fringe);
 	free(positionsfound);
 	return 0;

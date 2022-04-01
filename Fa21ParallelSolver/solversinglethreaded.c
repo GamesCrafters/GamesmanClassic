@@ -1,24 +1,6 @@
 #include "Game.h"
 #include "memory.h"
 
-void discoverfragment(char** inputfiles, char* outputfolder, gamehash minhash, char fragmentsize) {
-
-}
-
-void solvefragment(char* inputfile, char* solvedfragmentfolder, gamehash minhash, char fragmentsize)
-{
-  gamehash* childrenshards;
-  int shardcount = getchildrenshards(&childrenshards, fragmentsize, minhash);
-  //Load solved fragments into array on GPU
-  //Load list of target hashes into array on GPU
-  //Create a new solver on GPU
-  for(int i = ; i >= ; i--) // First two values in input file contain the max and min depth
-  {
-  	  //GPU runs one tier of the solver
-  }
-  //Collect the data from the GPU
-  //Compress and save the shard into solvedfragmentfolder
-}
 
 int main(int argc, char** argv)
 {
