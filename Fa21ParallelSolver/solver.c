@@ -7,7 +7,7 @@ void discoverfragment(char** inputfiles, char* outputfolder, gamehash minhash, c
 
 void solvefragment(char* inputfile, char* solvedfragmentfolder, gamehash minhash, char fragmentsize)
 {
-  gamehash* childrenshards;
+  /*gamehash* childrenshards;
   int shardcount = getchildrenshards(&childrenshards, fragmentsize, minhash);
   //Load solved fragments into array on GPU
   //Load list of target hashes into array on GPU
@@ -17,7 +17,7 @@ void solvefragment(char* inputfile, char* solvedfragmentfolder, gamehash minhash
   	  //GPU runs one tier of the solver
   }
   //Collect the data from the GPU
-  //Compress and save the shard into solvedfragmentfolder
+  //Compress and save the shard into solvedfragmentfolder*/
 }
 
 int main(int argc, char** argv)
