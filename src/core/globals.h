@@ -17,7 +17,7 @@ extern BOOLEAN gStandardGame, gSaveDatabase, gLoadDatabase,
                gGlobalPositionSolver, gZeroMemSolver,
                gAnalyzing, gSymmetries, gUseGPS, gBottomUp, gAlphaBeta, gUseOpen, gWinBy, gInterestingness, gWinByClose,
                gIncludeInterestingnessWithAnalysis,
-               gVisTiers, gVisTiersPlain, gSolveOnlyTier;
+               gVisTiers, gVisTiersPlain, gSolveOnlyTier, gIsInteract, gLoadTierdbArray;
 
 extern char gPlayerName[2][MAXNAME];
 
@@ -168,6 +168,7 @@ extern BOOLEAN (*gIsLegalFunPtr)(POSITION);
 extern UNDOMOVELIST*    (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING (*gTierToStringFunPtr)(TIER);
+extern MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*);
 // For the experimental GenerateMoves
 extern int (*gGenerateMovesEfficientFunPtr)(POSITION);
 extern MOVE*            gGenerateMovesArray;

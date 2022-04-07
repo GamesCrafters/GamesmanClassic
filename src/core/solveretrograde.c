@@ -375,15 +375,7 @@ void AutoSolveAllTiers() {
     ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
     BOOLEAN loop = TRUE;
 
-	 TIERLIST *list;
-	 list = RemoteGetTierSolveOrder();
-	 TIERLIST *ptr;
-	 for (ptr = list; ptr != NULL; ptr = ptr->next) {
-		 printf("tier %d\n", (int)ptr->tier);
-	 }
-
     while (loop) {
-
         PrepareToSolveNextTier();
         SolveTier(0,gCurrentTierSize);
         loop = gotoNextTier();

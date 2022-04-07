@@ -103,6 +103,8 @@ BOOLEAN gUseOpen = FALSE;       /* Use open positions solver, will be set to TRU
 BOOLEAN gVisTiers = FALSE;
 BOOLEAN gVisTiersPlain = FALSE;
 BOOLEAN gSolveOnlyTier = FALSE;
+BOOLEAN gIsInteract = FALSE;
+BOOLEAN gLoadTierdbArray = TRUE;
 
 char gPlayerName[2][MAXNAME] = {"", ""};    /* The names of the players user/user or comp/user */
 
@@ -170,6 +172,7 @@ BOOLEAN (*gIsLegalFunPtr)(POSITION) = NULL;
 UNDOMOVELIST*   (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING (*gTierToStringFunPtr)(TIER) = NULL;
+MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*) = NULL;
 // For the experimental GenerateMoves
 int (*gGenerateMovesEfficientFunPtr)(POSITION) = NULL;
 MOVE*           gGenerateMovesArray = NULL;

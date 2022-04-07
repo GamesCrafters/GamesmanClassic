@@ -460,11 +460,15 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
+			POSITIONLIST *nextPositions = NULL;
+			MOVELIST *reversedMoves = NULL;
 			printf(RESULT "{\"status\":\"ok\",\"response\":[");
 			if (Primitive(pos) == undecided) {
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
 					choice = DoMove(pos, current_move->move);
+					nextPositions = StorePositionInList(choice, nextPositions);
+					reversedMoves = CreateMovelistNode(current_move->move, reversedMoves);
 					board = InteractPositionToString(choice);
 					printf("{\"board\":\"%s\",", board);
 					InteractFreeBoardSting(board);
@@ -474,14 +478,60 @@ void ServerInteractLoop(void) {
 					
 					printf(",\"move\":\"%s\"", move_string);
 					SafeFree(move_string);
+
+					if (gMoveToStringFunPtr != NULL) {
+						move_string = gMoveToStringFunPtr(current_move->move);
+						printf(",\"moveName\":\"%s\"", move_string);
+						SafeFree(move_string);
+					}
+
 					current_move = current_move->next;
 					printf("}");
 					if (current_move) {
-						printf(", ");
+						printf(",");
 					}
 				}
 				move_string = NULL;
 				FreeMoveList(all_next_moves);
+
+				if (gGenerateMultipartMoveEdgesFunPtr != NULL) {
+					MULTIPARTEDGELIST *curr_edge, *all_edges;
+					curr_edge = all_edges = gGenerateMultipartMoveEdgesFunPtr(pos, reversedMoves, nextPositions);
+					if (curr_edge != NULL) {
+						printf("],\"multipart\":[");
+						while (curr_edge != NULL) {
+							char *fromPos = InteractPositionToString(curr_edge->from);
+							printf("{\"from\":\"%s\",", fromPos);
+							InteractFreeBoardSting(fromPos);
+							
+							char *toPos = InteractPositionToString(curr_edge->to);
+							printf("\"to\":\"%s\",", toPos);
+							InteractFreeBoardSting(toPos);
+							
+							move_string = InteractMoveToString(pos, curr_edge->partMove);
+							printf("\"partMove\":\"%s\",", move_string);
+							SafeFree(move_string);
+							
+							if (curr_edge->code == 1) {
+								move_string = InteractMoveToString(pos, curr_edge->fullMove);
+								printf("\"move\":\"%s\"", move_string);
+								SafeFree(move_string);
+							} else {
+								printf("\"follow\":\"%s\"", (curr_edge->code) ? "true" : "false");
+							}
+							curr_edge = curr_edge->next;
+							printf("}");
+							
+							if (curr_edge) {
+								printf(",");
+							}
+						}
+						move_string = NULL;
+						FreeMultipartEdgeList(all_edges);
+					}
+				}
+				FreePositionList(nextPositions);
+				FreeMoveList(reversedMoves);
 			}
 			printf("]}");
 		} else if (FirstWordMatches(input, "tree_response")) {

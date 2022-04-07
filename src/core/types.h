@@ -124,6 +124,17 @@ typedef struct booleanlist_item
 }
 BOOLEANLIST;
 
+typedef struct multipartedgelist_item
+{
+	POSITION from;
+	POSITION to;
+	MOVE partMove;
+	MOVE fullMove;
+	short code;
+	struct multipartedgelist_item *next;
+}
+MULTIPARTEDGELIST;
+
 typedef struct movelist_item
 {
 	MOVE move;
