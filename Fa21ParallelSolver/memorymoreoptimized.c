@@ -138,8 +138,17 @@ void solversave(solverdata* data, FILE* fp)
 		printf("Memory allocation error");
 	}
 	int length = solversavefragment(data->size, data->data, result);
-	printf("Compression complete. New length: %d bytes\n", length);
-	fwrite(result, sizeof(char), length, fp);
+	fwrite(&(data->size), sizeof(char), 1, fp);
+	if(length <= 0) {
+		printf("Compression complete. New length: 2 bytes\n");
+		result[0] = 0;
+		result[1] = -length;
+		fwrite(result, sizeof(char), 2, fp);
+	}
+	else {
+		printf("Compression complete. New length: %d bytes\n", length);
+		fwrite(result, sizeof(char), length, fp);
+	}
 	free(result);
 }
 
