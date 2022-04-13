@@ -46,11 +46,11 @@ BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
-
 void*    gGameSpecificTclInit = NULL;
 
 STRING initial9mmInteractString = "R_A_8_7_9-----9-------------------------------------------------";
 int indexMap9mmInteractString[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
+int indexMap9mmMoveString[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
 int turnIndex9mmInteractString = 2;
 int remainingXIndex9mmInteractString = 8;
 int remainingOIndex9mmInteractString = 14;
@@ -463,6 +463,8 @@ BOOLEAN hashCacheGet(int tier, POSITION position, char *board) {
 ************************************************************************/
 void InitializeGame() {
 	
+	gSymmetries = TRUE;
+
 	/* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
 	if (gIsInteract) {
 		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
@@ -1997,7 +1999,7 @@ POSITION InteractStringToPosition(STRING board) {
         if (piece == 's' || piece == '-') {
 			realBoard[i] = BLANK;
     	} else {
-			if (piece == X) {
+			if (piece == 'W') {
 				numX++;
 			} else {
 				numO++;
@@ -2059,11 +2061,11 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 	SafeFree(board);
 
 	if (from != 31 && to != 31) {
-		return UWAPI_Board_Regular2D_MakeMoveString(from, to);
+		return UWAPI_Board_Regular2D_MakeMoveString(indexMap9mmMoveString[from], indexMap9mmMoveString[to]);
 	} else if (remove != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'B' : 'W', remove);
+		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'B' : 'W', indexMap9mmMoveString[remove]);
 	} else if (to != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'W' : 'B', to);
+		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'W' : 'B', indexMap9mmMoveString[to]);
 	} else {
 		return NULL;
 	}
@@ -2091,11 +2093,11 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 				currFrom = from;
 				currTo = to;
 				currIntermediatePosition = DoMove(position, MOVE_ENCODE(from, to, 31));
-				mpel = CreateMultipartEdgeListNode(position, currIntermediatePosition, MOVE_ENCODE(from, to, 31), 0, FALSE, TRUE, mpel);
+				mpel = CreateMultipartEdgeListNode(position, currIntermediatePosition, MOVE_ENCODE(from, to, 31), 0, FALSE, mpel);
 			}
 			
 			// Place selected piece
-			mpel = CreateMultipartEdgeListNode(currIntermediatePosition, positionList->position, MOVE_ENCODE(31, 31, remove), move, TRUE, FALSE, mpel);
+			mpel = CreateMultipartEdgeListNode(currIntermediatePosition, positionList->position, MOVE_ENCODE(31, 31, remove), move, TRUE, mpel);
 		}
 
 		// Ignore sliding moves, they are single-part

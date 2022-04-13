@@ -516,8 +516,6 @@ void ServerInteractLoop(void) {
 								move_string = InteractMoveToString(pos, curr_edge->fullMove);
 								printf("\"move\":\"%s\"", move_string);
 								SafeFree(move_string);
-							} else {
-								printf("\"follow\":\"%s\"", (curr_edge->code) ? "true" : "false");
 							}
 							curr_edge = curr_edge->next;
 							printf("}");

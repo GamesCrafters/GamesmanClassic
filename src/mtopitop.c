@@ -1522,12 +1522,12 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 		if (from == to) {
 			// Select piece to place
 			if (!edgeToAdded[piece]) {
-				mpel = CreateMultipartEdgeListNode(position, position | intermediateMarker, move | 0b10000000000, 0, FALSE, TRUE, mpel);
+				mpel = CreateMultipartEdgeListNode(position, position | intermediateMarker, move | 0b10000000000, 0, FALSE, mpel);
 				edgeToAdded[piece] = TRUE;
 			}
 			
 			// Place selected piece
-			mpel = CreateMultipartEdgeListNode(position | intermediateMarker, positionList->position, move | 0b100000000000, move, TRUE, TRUE, mpel);
+			mpel = CreateMultipartEdgeListNode(position | intermediateMarker, positionList->position, move | 0b100000000000, move, TRUE, mpel);
 		}
 
 		// Ignore sliding moves, they are single-part

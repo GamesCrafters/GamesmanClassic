@@ -585,6 +585,7 @@ void HandleArguments (int argc, char *argv[])
 				printf("--export requires a filname.");
 			}
 		} else if (!strcasecmp(argv[i], "--interact")) {
+			gIsInteract = TRUE;
 			gJustSolving = TRUE;
 			gamesman_main(argv[0]);
 			ServerInteractLoop();

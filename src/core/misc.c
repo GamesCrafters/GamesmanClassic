@@ -339,7 +339,7 @@ MOVELIST *CreateMovelistNode(MOVE theMove, MOVELIST* theNextMove)
 	return(theHead);
 }
 
-MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, BOOLEAN follow, MULTIPARTEDGELIST* next)
+MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST* next)
 {
 	MULTIPARTEDGELIST* theHead;
 
@@ -348,7 +348,7 @@ MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE 
 	theHead->to = to;
 	theHead->partMove = partMove;
 	theHead->fullMove = fullMove;
-	theHead->code = (isTerminal) ? 1 : ((follow) ? 0 : 2);
+	theHead->code = (isTerminal) ? 1 : 0;
 	theHead->next = next;
 
 	return theHead;

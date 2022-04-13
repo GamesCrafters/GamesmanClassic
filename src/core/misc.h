@@ -55,7 +55,7 @@ BOOLEAN         TierInList                              (TIER theTier, TIERLIST*
 BOOLEAN         RemoveTierFromList              (TIER theTier, TIERLIST** theTierlist);
 
 UNDOMOVELIST*   CreateUndoMovelistNode          (UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove);
-MULTIPARTEDGELIST* CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, BOOLEAN follow, MULTIPARTEDGELIST* next);
+MULTIPARTEDGELIST* CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST* next);
 
 void            FoundBadPosition                (POSITION pos, POSITION parent, MOVE move);
 
