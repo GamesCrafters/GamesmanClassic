@@ -1127,7 +1127,6 @@ STRING MoveToString(MOVE move) {
 	int fromIdx = move >> 10;
 	int toIdx = (move >> 5) & 0x1F;
 	int removeIdx = move & 0x1F;
-	int tier, piecesLeft;
 
 	STRING movestring;
 	//tier = generic_hash_cur_context();
@@ -1996,7 +1995,7 @@ POSITION InteractStringToPosition(STRING board) {
 
 	for (int i = 0; i < BOARDSIZE; i++) {
 		char piece = board[indexMap9mmInteractString[i]];
-        if (piece == 's' || piece == '-') {
+        if (piece == '-') {
 			realBoard[i] = BLANK;
     	} else {
 			if (piece == 'W') {
@@ -2004,12 +2003,12 @@ POSITION InteractStringToPosition(STRING board) {
 			} else {
 				numO++;
 			}
-		    realBoard[i] = piece;
+		    realBoard[i] = (piece == 'W') ? X : O;
         }
 	}
 
 	int piecesLeft = (board[remainingXIndex9mmInteractString] - '0') + (board[remainingOIndex9mmInteractString] - '0');
-
+	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
 	return hash(realBoard, turn, piecesLeft, numX, numO) + intermediateMarker;
 }
 

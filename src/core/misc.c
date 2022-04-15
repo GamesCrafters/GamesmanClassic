@@ -348,7 +348,7 @@ MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE 
 	theHead->to = to;
 	theHead->partMove = partMove;
 	theHead->fullMove = fullMove;
-	theHead->code = (isTerminal) ? 1 : 0;
+	theHead->isTerminal = isTerminal;
 	theHead->next = next;
 
 	return theHead;

@@ -509,12 +509,12 @@ void ServerInteractLoop(void) {
 							InteractFreeBoardSting(toPos);
 							
 							move_string = InteractMoveToString(pos, curr_edge->partMove);
-							printf("\"partMove\":\"%s\",", move_string);
+							printf("\"partMove\":\"%s\"", move_string);
 							SafeFree(move_string);
 							
-							if (curr_edge->code == 1) {
+							if (curr_edge->isTerminal) {
 								move_string = InteractMoveToString(pos, curr_edge->fullMove);
-								printf("\"move\":\"%s\"", move_string);
+								printf(",\"move\":\"%s\"", move_string);
 								SafeFree(move_string);
 							}
 							curr_edge = curr_edge->next;

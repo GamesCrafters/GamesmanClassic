@@ -1438,12 +1438,12 @@ int pieceIndexMap[4] = {33, 36, 38, 41};
 POSITION InteractStringToPosition(STRING board) { // Assumes board is non-intermediate
 	char turn = (board[2] == 'A') ? BLUE : RED;
 	char fboard[9] = {board[14], board[15], board[16], board[19], board[20], board[21], board[24], board[25], board[26]};
-	int disallowedMove = (board[DISALLOWEDFROMINDEX] == '-') ? 0 : movesToIds[board[DISALLOWEDFROMINDEX] - 1][board[DISALLOWEDTOINDEX] - 1];
+	int disallowedMove = (board[DISALLOWEDFROMINDEX] == '-') ? 0 : movesToIds[board[DISALLOWEDFROMINDEX] - '1'][board[DISALLOWEDTOINDEX] - '1'];
 
 	TIER tier;
 	TIERPOSITION tierposition;
 	hashBoard(fboard, turn, disallowedMove, &tier, &tierposition);
-	//gInitializeHashWindow(tier, TRUE);
+	gInitializeHashWindow(tier, FALSE);
 	return tierposition;
 }
 
@@ -1454,7 +1454,6 @@ STRING InteractPositionToString(POSITION position) {
 	}
 	char* finalBoard = calloc(49, sizeof(char));
 	memcpy(finalBoard, initialTopitopInteractString, 48);
-
 	char turn;
 	int disallowedMove, blueLeft, redLeft, smallLeft, largeLeft;
 	char *board = unhashPosition(position, &turn, &disallowedMove, &blueLeft, &redLeft, &smallLeft, &largeLeft);
@@ -1487,7 +1486,9 @@ STRING InteractPositionToEndData(POSITION pos) {
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
 	if (move == NULLMOVE) {
-		return "A_P_30";
+		char* finalMove = calloc(7, sizeof(char));
+		memcpy(finalMove, "A_P_30", 6);
+		return finalMove;
 	}
 	BOOLEAN partial = move >> 10;
 	move &= 0b1111111111;
@@ -1515,6 +1516,9 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 	BOOLEAN edgeToAdded[4] = {FALSE, FALSE, FALSE, FALSE};
 	while (moveList != NULL) {
 		MOVE move = moveList->move;
+		if (move == NULLMOVE) {
+			break;
+		}
 		int to = move & 0b1111;
 		int from = (move >> 4) & 0b1111;
 		MOVE piece = (move >> 8) & 0b11;

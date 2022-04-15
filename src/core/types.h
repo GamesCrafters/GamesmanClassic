@@ -130,7 +130,7 @@ typedef struct multipartedgelist_item
 	POSITION to;
 	MOVE partMove;
 	MOVE fullMove;
-	short code;
+	BOOLEAN isTerminal;
 	struct multipartedgelist_item *next;
 }
 MULTIPARTEDGELIST;

@@ -41,6 +41,7 @@ POSITIONLIST*   CopyPositionList                (POSITIONLIST* list);
 
 IPOSITIONLIST*  StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePositionList);
 void            FreeIPositionList(IPOSITIONLIST* ptr);
+void            FreeMultipartEdgeList(MULTIPARTEDGELIST* ptr);
 
 void            AddPositionToQueue              (POSITION pos, POSITIONQUEUE** tail);
 POSITION        RemovePositionFromQueue         (POSITIONQUEUE** head);
