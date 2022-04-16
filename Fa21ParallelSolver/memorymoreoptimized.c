@@ -122,7 +122,7 @@ static int64_t solversavefragment(int size, char* data, char* output)
 		*((output+pointerlength+subpointerlength)) = -leftlength;
 		storepointer(0l, subpointerlength, output+pointerlength+subpointerlength+1);
 		*((output+pointerlength+(subpointerlength<<1)+1)) = -rightlength;
-		return pointerlength+(subpointerlength<<1)+2;
+		return pointerlength+(subpointerlength<<1)+2l;
 	  }
   }
 }
