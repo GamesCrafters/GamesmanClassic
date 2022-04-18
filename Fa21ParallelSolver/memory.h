@@ -40,3 +40,5 @@ char playerread(playerdata* data, uint64_t key);
 
 /*Frees a player*/
 void freeplayer(playerdata* data);
+
+bool verifyPlayerData(const solverdata* sd, const playerdata* pd)
