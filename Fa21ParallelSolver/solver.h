@@ -5,6 +5,8 @@
 #include "Game.h"
 #include "memory.h"
 
-void discoverfragment(char** inputfiles, char* outputfolder, gamehash minhash, char fragmentsize);
+void discoverstartingfragment(char* workingfolder, char fragmentsize);
 
-void solvefragment(char** inputfiles, char* solvedfragmentfolder, gamehash minhash, char fragmentsize);
+void discoverfragment(char* workingfolder, gamehash minhash, char fragmentsize);
+
+void solvefragment(char* workingfolder, gamehash minhash, char fragmentsize);
