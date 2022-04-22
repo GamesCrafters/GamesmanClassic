@@ -12,13 +12,14 @@ typedef struct shardgraph {
 	int childrensolved;
 	shardgraph** childrenshards;
 } shardgraph;
-static void initializeshard(shardgraph* shardlist, char* shardinitialized, uint32_t shardcount, uint32_t startingshard) {
+static int initializeshard(shardgraph* shardlist, char* shardinitialized, uint32_t shardcount, uint32_t startingshard) {
 	
 }
-static void initializeshardlist(shardgraph* shardlist, uint32_t shardcount) {
+//Initializes all relevant shards. Returns the number of shards actually created.
+static int initializeshardlist(shardgraph* shardlist, uint32_t shardcount) {
 	char* shardinitialized = calloc(shardcount, sizeof(char));
 	uint32_t startingshard = getHash(getStartingPositions()) >> shardsize;
-	initializeshard(shardlist, shardcount, startingshard);
+	int validshards = initializeshard(shardlist, shardinitialized, shardcount, startingshard);
 }
 static void freeshardlist(shardgraph* shardlist, uint32_t shardcount) {
 	for(int i = 0; i < shardcount; i++) if(shardlist[i].childrenshards != NULL) free(shardlist[i].childrenshards);
@@ -34,8 +35,7 @@ int main(int argc, char** argv)
 	}
   	initialize_constants();
 	uint32_t shardcount = 1 << (hashLength() - shardsize);
-	shardgraph* ShardList = calloc(shardcount, sizeof(shardgraph));
-
-    game pos = getStartingPositions();
+	shardgraph* shardList = calloc(shardcount, sizeof(shardgraph));
+	int validshards = initializeshardlist(shardList, shardcount);
 	freeshardlist();
 }

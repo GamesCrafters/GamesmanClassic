@@ -45,5 +45,5 @@ int hashLength();
 game hashToPosition(gamehash hash);
 
 /*Returns a list of shard ids which the given parent shard has as children. Ideally, this should be fast enough that the shard graph can be determined by one thread. Return value is the number of children shards.*/
-int getchildrenshards(uint64_t** childrenshards, char shardsize, uint64_t parentshard);
+int getchildrenshards(uint64_t** childrenshards, char shardsize, uint64_t parentshard); //TODO
 
