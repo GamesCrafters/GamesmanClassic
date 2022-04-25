@@ -1066,7 +1066,7 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 		}
 	}
 
-	ifprintf(gTierSolvePrint, "Doing an sweep of the tier, and solving it in one go...\n");
+	ifprintf(gTierSolvePrint, "Doing a sweep of the tier, and solving it in one go...\n");
 	for (pos = start; pos < end; pos++) { // Solve only parents
 		if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (checkLegality && !gIsLegalFunPtr(pos)) continue; //skip

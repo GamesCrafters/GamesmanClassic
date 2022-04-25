@@ -202,6 +202,13 @@ BOOLEAN isLegal(POSITION position);
 int (*symmetriesToUse)[9];
 
 void InitializeGame() {
+
+	/* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
+	/********************************/
+	
 	gCanonicalPosition = GetCanonicalPosition;
 	gMoveToStringFunPtr = &MoveToString;
 
@@ -1510,7 +1517,7 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 			return UWAPI_Board_Regular2D_MakeAddString('x', indexMap[to] - 8);
 	}
 }
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, BOOLEAN follow, MULTIPARTEDGELIST *next)
+// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
 	BOOLEAN edgeToAdded[4] = {FALSE, FALSE, FALSE, FALSE};
