@@ -1750,7 +1750,7 @@ STRING TierToString(TIER tier) {
 }
 
 // ONLY 5x5 supported for now
-STRING initialBaghchalInteractString5 = "R_A_6_6_5T---T4-----3-----2-----1T---T-abcde-00-00";
+STRING initialBaghchalInteractString5 = "R_A_7_6_5T---T4-----3-----2-----1T---T-abcde-00-00";
 int boardToStringIdxMapping5[25] = {9,10,11,12,13,15,16,17,18,19,21,22,23,24,25,27,28,29,30,31,33,34,35,36,37};
 int boardToGridIdxMapping5[25] = {1,2,3,4,5,7,8,9,10,11,13,14,15,16,17,19,20,21,22,23,25,26,27,28,29};
 int goatsLeftTensIdx = 45;
@@ -1765,7 +1765,7 @@ STRING InteractPositionToString(POSITION pos) {
 	int goatsLeft, goatsCaptured;
 	char *board = unhash(pos, &goatsLeft, &goatsCaptured, &turn);
 	for (int i = 0; i < boardSize; i++) {
-		finalBoard[boardToStringIdxMapping5[i]] = board[i];
+		finalBoard[boardToStringIdxMapping5[i]] = (board[i] == SPACE) ? '-' : board[i];
 	}
 	finalBoard[2] = (turn == GOAT) ? 'A' : 'B';
 	finalBoard[goatsLeftTensIdx] = (goatsLeft / 10) + '0';
@@ -1780,7 +1780,8 @@ POSITION InteractStringToPosition(STRING string) {
 	char turn = (string[2] == 'A') ? GOAT : TIGER;
 	char fboard[boardSize];
 	for (int i = 0; i < boardSize; i++) {
-		fboard[i] = string[boardToStringIdxMapping5[i]];
+		char piece = string[boardToStringIdxMapping5[i]];
+		fboard[i] = (piece == '-') ? SPACE : piece;
 	}
 	int goatsLeft = 10 * (string[goatsLeftTensIdx] - '0') + (string[goatsLeftOnesIdx] - '0');
 	int goatsCaptured = 10 * (string[goatsCapturedTensIdx] - '0') + (string[goatsCapturedOnesIdx] - '0');
