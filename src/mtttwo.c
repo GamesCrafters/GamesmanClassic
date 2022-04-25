@@ -1,34 +1,29 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions = 1162261467;
+POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
 
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Stella Wan, Nala Chen";
+STRING kAuthorName = "Stella Wan, Nala Chen, Matthew Yu, Cameron Cheung";
 STRING kGameName = "Tic-Tac-Two";
+STRING kDBName = "tttwo";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 BOOLEAN kTieIsPossible = TRUE;
 BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
 STRING kHelpGraphicInterface = "";
-
 STRING kHelpTextInterface = "";
-
 STRING kHelpOnYourTurn = "";
-
 STRING kHelpStandardObjective = "";
-
 STRING kHelpReverseObjective = "";
-
 STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-
 STRING kHelpExample = "";
 
 /*************************************************************************
@@ -37,46 +32,326 @@ STRING kHelpExample = "";
 **
 **************************************************************************/
 
+void unhashCacheInit();
+void hashCachePut(TIER tier, TIERPOSITION tierposition, char *board, char turn, int xPlaced, int oPlaced, int gridPos);
+BOOLEAN hashCacheGet(TIER tier, POSITION tierposition, char *board, char *turn, int *xPlaced, int *oPlaced, int *gridPos);
+void InitializeGame();
+void DebugMenu();
+void hashBoard(char *board, int xPlaced, int oPlaced, int gridPos, char turn, TIER *tier, TIERPOSITION *tierposition);
+POSITION hash(char *board, int xPlaced, int oPlaced, int gridPos, char turn);
+char* unhashToBoard(TIER tier, TIERPOSITION tierposition, int *xPlaced, int *oPlaced, int *gridPos, char *turn, char *board);
+char *unhash(POSITION position, int *xPlaced, int *oPlaced, int *gridPos, char *turn);
+MOVE hashMove(BOOLEAN isGridMove, int from, int to);
+void unhashMove(MOVE move, BOOLEAN *isGridMove, int *from, int *to);
+void GameSpecificMenu();
+POSITION DoMove(POSITION position, MOVE move);
+POSITION GetInitialPosition();
+void PrintComputersMove(MOVE computersMove, STRING computersName);
+VALUE Primitive(POSITION position);
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
+MOVELIST *GenerateMoves(POSITION position);
+POSITION GetCanonicalPosition(POSITION position);
+void unhashTier(TIER tier, int *xPlaced, int *oPlaced, char *turn);
+TIER hashTier(int xPlaced, int oPlaced, char turn);
+TIERLIST* TierChildren(TIER tier);
+TIERPOSITION NumberOfTierPositions(TIER tier);
+STRING TierToString(TIER tier);
+POSITION UnDoMove(POSITION position, UNDOMOVE undoMove);
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier);
+BOOLEAN ValidTextInput(STRING input);
+MOVE ConvertTextInputToMove(STRING input);
+STRING MoveToString(MOVE theMove);
+void PrintMove(MOVE theMove);
+int NumberOfOptions();
+int getOption();
+void setOption(int option);
+POSITION InteractStringToPosition(STRING board);
+STRING InteractPositionToString(POSITION pos);
+STRING InteractPositionToEndData(POSITION pos);
+STRING InteractMoveToString(POSITION pos, MOVE mv);
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
+
+
 /*************************************************************************
 **
 ** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
 
-// NOTE: The inner grid is always 3x3
-#define GRIDROWS    3
-#define GRIDCOLS    3
-#define BOARDROWS   4
-#define BOARDCOLS   4
-#define BOARDSIZE   16
-// NUMPIECES: number of pieces each player has
-#define NUMPIECES   4
+#define X 'X'
+#define O 'O'
+#define BLANK '-'
+int sideLength = 5;
+int boardSize = 25;
+int numPiecesPerPlayer = 4; // Number of pieces each player has.
+int numGridPlacements = 9; // Number of ways you can place the grid.
 
-typedef enum possibleBoardPieces {
-  Blank, X, O
-} BlankOX;
+int (*gridSlots)[9];
+int (*centerMapping);
+int (*revCenterMapping);
+int (*allTheRows)[8][3];
+int (*symmetriesToUse)[25];
+int (*numGridAdjacencies);
+int (*gridAdjacencies)[8];
 
-char *gBlankOXString[] = { " ", "x", "o" };
+int centerMapping4[16] = {-1,-1,-1,-1,-1,0,1,-1,-1,2,3,-1,-1,-1,-1,-1};
+int revCenterMapping4[4] = {5,6,9,10};
+int gridSlots4[4][9] = {
+  {0,1,2,4,5,6,8,9,10},
+  {1,2,3,5,6,7,9,10,11},
+  {4,5,6,8,9,10,12,13,14},
+  {5,6,7,9,10,11,13,14,15}
+};
+int allTheRows4[4][8][3] = {
+  {
+    {0,1,2},
+    {4,5,6},
+    {8,9,10},
+    {0,4,8},
+    {1,5,9},
+    {2,6,10},
+    {0,5,10},
+    {2,5,8}
+  },
+  {
+    {1,2,3},
+    {5,6,7},
+    {9,10,11},
+    {1,5,9},
+    {2,6,10},
+    {3,7,11},
+    {1,6,11},
+    {3,6,9}
+  },
+  {
+    {4,5,6},
+    {8,9,10},
+    {12,13,14},
+    {4,8,12},
+    {5,9,13},
+    {6,10,14},
+    {4,9,14},
+    {6,9,12}
+  },
+  {
+    {5,6,7},
+    {9,10,11},
+    {13,14,15},
+    {5,9,13},
+    {6,10,14},
+    {7,11,15},
+    {5,10,15},
+    {7,10,13}
+  }
+};
+int numGridAdjacencies4[4] = {3,3,3,3};
+int gridAdjacencies4[4][8] = {
+  {6,9,10,-1,-1,-1,-1,-1},
+  {5,9,10,-1,-1,-1,-1,-1},
+  {5,6,10,-1,-1,-1,-1,-1},
+  {5,6,9,-1,-1,-1,-1,-1},
+};
 
-int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467 };
+int centerMapping5[25] = {-1,-1,-1,-1,-1,-1,0,1,2,-1,-1,3,4,5,-1,-1,6,7,8,-1,-1,-1,-1,-1,-1};
+int revCenterMapping5[9] = {6,7,8,11,12,13,16,17,18};
+int gridSlots5[9][9] = {
+  {0,1,2,5,6,7,10,11,12},
+  {1,2,3,6,7,8,11,12,13},
+  {2,3,4,7,8,9,12,13,14},
+  {5,6,7,10,11,12,15,16,17},
+  {6,7,8,11,12,13,16,17,18},
+  {7,8,9,12,13,14,17,18,19},
+  {10,11,12,15,16,17,20,21,22},
+  {11,12,13,16,17,18,21,22,23},
+  {12,13,14,17,18,19,22,23,24}
+};
+int allTheRows5[9][8][3] = {
+  {
+    {0,1,2},
+    {5,6,7},
+    {10,11,12},
+    {0,5,10},
+    {1,6,11},
+    {2,7,12},
+    {0,6,12},
+    {2,6,10}
+  },
+  {
+    {1,2,3},
+    {6,7,8},
+    {11,12,13},
+    {1,6,11},
+    {2,7,12},
+    {3,8,13},
+    {1,7,13},
+    {3,7,11}
+  },
+  {
+    {2,3,4},
+    {7,8,9},
+    {12,13,14},
+    {2,7,12},
+    {3,8,13},
+    {4,9,14},
+    {2,8,14},
+    {4,8,12}
+  },
+  {
+    {5,6,7},
+    {10,11,12},
+    {15,16,17},
+    {5,10,15},
+    {6,11,16},
+    {7,12,17},
+    {5,11,17},
+    {7,11,15}
+  },
+  {
+    {6,7,8},
+    {11,12,13},
+    {16,17,18},
+    {6,11,16},
+    {7,12,17},
+    {8,13,18},
+    {6,12,18},
+    {8,12,16}
+  },
+  {
+    {7,8,9},
+    {12,13,14},
+    {17,18,19},
+    {7,12,17},
+    {8,13,18},
+    {9,14,19},
+    {7,13,19},
+    {9,13,17}
+  },
+  {
+    {10,11,12},
+    {15,16,17},
+    {20,21,22},
+    {10,15,20},
+    {11,16,21},
+    {12,17,22},
+    {10,16,22},
+    {12,16,20}
+  },
+  {
+    {11,12,13},
+    {16,17,18},
+    {21,22,23},
+    {11,16,21},
+    {12,17,22},
+    {13,18,23},
+    {11,17,23},
+    {13,17,21}
+  },
+  {
+    {12,13,14},
+    {17,18,19},
+    {22,23,24},
+    {12,17,22},
+    {13,18,23},
+    {14,19,24},
+    {12,18,24},
+    {14,18,22}
+  }
+};
+int numGridAdjacencies5[9] = {3,5,3,5,8,5,3,5,3};
+int gridAdjacencies5[9][8] = {
+  {7,11,12,-1,-1,-1,-1,-1},
+  {6,8,11,12,13,-1,-1,-1},
+  {7,12,13,-1,-1,-1,-1,-1},
+  {6,7,12,16,17,-1,-1,-1},
+  {6,7,8,11,13,16,17,18},
+  {7,8,12,17,18,-1,-1,-1},
+  {11,12,17,-1,-1,-1,-1,-1},
+  {11,12,13,16,18,-1,-1,-1},
+  {12,13,17,-1,-1,-1,-1,-1}
+};
+
+int gSymmetryMatrix4[8][25] = {
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,0,0,0,0,0,0,0,0},
+	{3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12,0,0,0,0,0,0,0,0,0},
+	{12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3,0,0,0,0,0,0,0,0,0},
+	{0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15,0,0,0,0,0,0,0,0,0},
+	{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,0,0,0,0,0,0,0,0},
+	{12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3,0,0,0,0,0,0,0,0,0},
+	{3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12,0,0,0,0,0,0,0,0,0},
+	{15,11,7,3,14,10,6,2,13,9,5,1,12,8,4,0,0,0,0,0,0,0,0,0,0}
+};
+
+int gSymmetryMatrix5[8][25] = {
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24},
+	{4,3,2,1,0,9,8,7,6,5,14,13,12,11,10,19,18,17,16,15,24,23,22,21,20},
+	{20,15,10,5,0,21,16,11,6,1,22,17,12,7,2,23,18,13,8,3,24,19,14,9,4},
+	{0,5,10,15,20,1,6,11,16,21,2,7,12,17,22,3,8,13,18,23,4,9,14,19,24},
+	{24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},
+	{20,21,22,23,24,15,16,17,18,19,10,11,12,13,14,5,6,7,8,9,0,1,2,3,4},
+	{4,9,14,19,24,3,8,13,18,23,2,7,12,17,22,1,6,11,16,21,0,5,10,15,20},
+	{24,19,14,9,4,23,18,13,8,3,22,17,12,7,2,21,16,11,6,1,20,15,10,5,0}
+};
+
+POSITION combinations[26][5][5] = {{{1,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}},{{1,1,0,0,0},{1,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}},{{1,2,1,0,0},{2,2,0,0,0},{1,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0}},{{1,3,3,1,0},{3,6,3,0,0},{3,3,0,0,0},{1,0,0,0,0},{0,0,0,0,0}},{{1,4,6,4,1},{4,12,12,4,0},{6,12,6,0,0},{4,4,0,0,0},{1,0,0,0,0}},{{1,5,10,10,5},{5,20,30,20,5},{10,30,30,10,0},{10,20,10,0,0},{5,5,0,0,0}},{{1,6,15,20,15},{6,30,60,60,30},{15,60,90,60,15},{20,60,60,20,0},{15,30,15,0,0}},{{1,7,21,35,35},{7,42,105,140,105},{21,105,210,210,105},{35,140,210,140,35},{35,105,105,35,0}},{{1,8,28,56,70},{8,56,168,280,280},{28,168,420,560,420},{56,280,560,560,280},{70,280,420,280,70}},{{1,9,36,84,126},{9,72,252,504,630},{36,252,756,1260,1260},{84,504,1260,1680,1260},{126,630,1260,1260,630}},{{1,10,45,120,210},{10,90,360,840,1260},{45,360,1260,2520,3150},{120,840,2520,4200,4200},{210,1260,3150,4200,3150}},{{1,11,55,165,330},{11,110,495,1320,2310},{55,495,1980,4620,6930},{165,1320,4620,9240,11550},{330,2310,6930,11550,11550}},{{1,12,66,220,495},{12,132,660,1980,3960},{66,660,2970,7920,13860},{220,1980,7920,18480,27720},{495,3960,13860,27720,34650}},{{1,13,78,286,715},{13,156,858,2860,6435},{78,858,4290,12870,25740},{286,2860,12870,34320,60060},{715,6435,25740,60060,90090}},{{1,14,91,364,1001},{14,182,1092,4004,10010},{91,1092,6006,20020,45045},{364,4004,20020,60060,120120},{1001,10010,45045,120120,210210}},{{1,15,105,455,1365},{15,210,1365,5460,15015},{105,1365,8190,30030,75075},{455,5460,30030,100100,225225},{1365,15015,75075,225225,450450}},{{1,16,120,560,1820},{16,240,1680,7280,21840},{120,1680,10920,43680,120120},{560,7280,43680,160160,400400},{1820,21840,120120,400400,900900}},{{1,17,136,680,2380},{17,272,2040,9520,30940},{136,2040,14280,61880,185640},{680,9520,61880,247520,680680},{2380,30940,185640,680680,1701700}},{{1,18,153,816,3060},{18,306,2448,12240,42840},{153,2448,18360,85680,278460},{816,12240,85680,371280,1113840},{3060,42840,278460,1113840,3063060}},{{1,19,171,969,3876},{19,342,2907,15504,58140},{171,2907,23256,116280,406980},{969,15504,116280,542640,1763580},{3876,58140,406980,1763580,5290740}},{{1,20,190,1140,4845},{20,380,3420,19380,77520},{190,3420,29070,155040,581400},{1140,19380,155040,775200,2713200},{4845,77520,581400,2713200,8817900}},{{1,21,210,1330,5985},{21,420,3990,23940,101745},{210,3990,35910,203490,813960},{1330,23940,203490,1085280,4069800},{5985,101745,813960,4069800,14244300}},{{1,22,231,1540,7315},{22,462,4620,29260,131670},{231,4620,43890,263340,1119195},{1540,29260,263340,1492260,5969040},{7315,131670,1119195,5969040,22383900}},{{1,23,253,1771,8855},{23,506,5313,35420,168245},{253,5313,53130,336490,1514205},{1771,35420,336490,2018940,8580495},{8855,168245,1514205,8580495,34321980}},{{1,24,276,2024,10626},{24,552,6072,42504,212520},{276,6072,63756,425040,2018940},{2024,42504,425040,2691920,12113640},{10626,212520,2018940,12113640,51482970}},{{1,25,300,2300,12650},{25,600,6900,50600,265650},{300,6900,75900,531300,2656500},{2300,50600,531300,3542000,16824500},{12650,265650,2656500,16824500,75710250}}};
+
+BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
 typedef struct {
-  BlankOX board[BOARDSIZE];
-  int xoffset; // Can only use two lowest bits
-  int yoffset; // Can only use two lowest bits
-  // No need to hash the values below...
-  BlankOX nextPiece;
-  int piecesXPlaced;
-  int piecesOPlaced;
-  int piecesPlaced;
-} GameBoard;
+	TIER tier;
+	TIERPOSITION tierposition;
+	char board[25];
+	char turn;
+	int xPlaced;
+	int oPlaced;
+  int gridPos;
+} UNHASH_RECORD;
 
-// Unhash from Position to GameBoard
-void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard);
-// Hash from GameBoard to Position
-POSITION GameBoardToPosition(GameBoard *theGameBoard);
+#define NUM_UNHASH_RECORDS 0b100000000000000
+#define UNHASH_MASK        0b011111111111111
 
-BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
+UNHASH_RECORD unhashRecords[NUM_UNHASH_RECORDS];
+
+int unhashCacheInited = 0;
+
+void unhashCacheInit() {
+	for (long i = 0; i < NUM_UNHASH_RECORDS; i++) {
+		unhashRecords[i].tierposition = -1LL;
+	}
+	unhashCacheInited = 1;
+}
+
+void hashCachePut(TIER tier, TIERPOSITION tierposition, char *board, char turn, int xPlaced, int oPlaced, int gridPos) {
+	if (!unhashCacheInited) unhashCacheInit();
+
+	long i = tierposition & UNHASH_MASK;
+	if (unhashRecords[i].tier != tier ||
+		unhashRecords[i].tierposition != tierposition) {
+		unhashRecords[i].tier = tier;
+		unhashRecords[i].tierposition = tierposition;
+		memcpy(unhashRecords[i].board, board, boardSize);
+		unhashRecords[i].turn = turn;
+		unhashRecords[i].xPlaced = xPlaced;
+		unhashRecords[i].oPlaced = oPlaced;
+    unhashRecords[i].gridPos = gridPos;
+	}
+}
+
+// Returns TRUE if cache miss, otherwise FALSE
+BOOLEAN hashCacheGet(TIER tier, POSITION tierposition, char *board, char *turn, int *xPlaced, int *oPlaced, int *gridPos) {
+	if (!unhashCacheInited) unhashCacheInit();
+
+	long i = tierposition & UNHASH_MASK;
+	if (unhashRecords[i].tier == tier &&
+		unhashRecords[i].tierposition == tierposition) {
+		memcpy(board, unhashRecords[i].board, boardSize);
+		(*turn) = unhashRecords[i].turn;
+		(*xPlaced) = unhashRecords[i].xPlaced;
+		(*oPlaced) = unhashRecords[i].oPlaced;
+    (*gridPos) = unhashRecords[i].gridPos;
+		return FALSE;
+	}
+	return TRUE;
+}
 
 /************************************************************************
 **
@@ -86,26 +361,172 @@ BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 **
 ************************************************************************/
 
-void InitializeGame()
-{
-  gInitialPosition = GetInitialPosition();
-}
+void InitializeGame() {
+  //gSymmetries = TRUE;
+	gCanonicalPosition = GetCanonicalPosition;
+	gMoveToStringFunPtr = &MoveToString;
 
-void FreeGame()
-{
+	kSupportsTierGamesman = TRUE;
+	kExclusivelyTierGamesman = TRUE;
+
+	gTierChildrenFunPtr = &TierChildren;
+	gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+	gTierToStringFunPtr = &TierToString;
+
+  gUnDoMoveFunPtr = &UnDoMove;
+	gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
+  gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
+
+	setOption(getOption());
+
+	unhashCacheInit();
+
+  /*
+  TIER tiers[13] = {0,10,11,21,22,23,24,32,33,34,42,43,44};
+  int xPlaced, oPlaced, gridPos;
+  char turn;
+  for (int i = 0; i < 13; i++) {
+    TIER tier = tiers[i];
+    POSITION total = NumberOfTierPositions(tier);
+    printf("Checking Tier %llu which has %llu positions.\n", tier, total);
+    for (POSITION tierposition = 0; tierposition < total; tierposition++) {
+      char board[boardSize];
+      unhashToBoard(tier, tierposition, &xPlaced, &oPlaced, &gridPos, &turn, board);
+      TIER tier2;
+      TIERPOSITION tierposition2;
+      hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier2, &tierposition2);
+      if (tierposition != tierposition2 || tier != tier2) {
+        printf("ERROR: TP: %llu %llu; T: %llu %llu", tierposition, tierposition2, tier, tier2);
+      }
+      if (tierposition % 100000000 == 0) printf("%llu\n", tierposition);
+    }
+  }*/
 }
 
 /************************************************************************
 **
 ** NAME: DebugMenu
 **
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+** DESCRIPTION: Menu used to debug internal problems. Does nothing if
 ** kDebugMenu == FALSE
 **
 ************************************************************************/
 
-void DebugMenu()
-{
+void DebugMenu() {
+}
+
+void hashBoard(char *board, int xPlaced, int oPlaced, int gridPos, char turn, TIER *tier, TIERPOSITION *tierposition) {
+	POSITION sum = 0;
+	int numX = xPlaced;
+	int numO = oPlaced;
+    for (int i = boardSize - 1; i > 0; i--) { // no need to calculate i == 0
+        switch (board[i]) {
+            case X:
+                numX--;
+                break;
+            case O:
+                if (numX > 0) sum += combinations[i][numO][numX-1];
+                numO--;
+                break;
+            case BLANK:
+                if (numX > 0) sum += combinations[i][numO][numX-1];
+                if (numO > 0) sum += combinations[i][numO-1][numX];
+                break;
+        }
+    }
+	(*tier) = hashTier(xPlaced, oPlaced, turn);
+	(*tierposition) = sum * numGridPlacements + centerMapping[gridPos];
+	if (oPlaced >= 2 && turn == O) {
+		(*tierposition) += (NumberOfTierPositions((*tier)) >> 1);
+	}
+}
+
+POSITION hash(char *board, int xPlaced, int oPlaced, int gridPos, char turn) {
+  if (gHashWindowInitialized) {
+		TIER tier; TIERPOSITION tierposition;
+		hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier, &tierposition);
+		POSITION position = gHashToWindowPosition(tierposition, tier);
+		return position;
+	} else { // Not supported.
+		return 0;
+	}
+}
+
+char* unhashToBoard(TIER tier, TIERPOSITION tierposition, int *xPlaced, int *oPlaced, int *gridPos, char *turn, char *board) {
+  char fakeTurn;
+  unhashTier(tier, xPlaced, oPlaced, &fakeTurn);
+
+  if ((*oPlaced) >= 2) {
+		POSITION half = NumberOfTierPositions(tier) >> 1;
+		(*turn) = X;
+		if (tierposition >= half) {
+			(*turn) = O;
+			tierposition -= half;
+		}
+	} else {
+    (*turn) = fakeTurn;
+  }
+
+  (*gridPos) = revCenterMapping[tierposition % numGridPlacements];
+  tierposition /= numGridPlacements;
+
+	POSITION o1, o2;
+  int numX = (*xPlaced);
+	int numO = (*oPlaced);
+    for (int i = boardSize - 1; i >= 0; i--) {
+        o1 = (numX > 0) ? combinations[i][numO][numX-1] : 0;
+        o2 = o1 + ((numO > 0) ? combinations[i][numO-1][numX] : 0);
+        if (tierposition >= o2) {
+            board[i] = BLANK;
+            tierposition -= o2;
+        }
+        else if (tierposition >= o1) {
+            if (numO > 0) {
+                board[i] = O;
+                numO--;
+            } else
+                board[i] = BLANK;
+            tierposition -= o1;
+        }
+        else {
+            if (numX > 0) {
+                board[i] = X;
+                numX--;
+            } else if (numO > 0) {
+                board[i] = O;
+                numO--;
+            } else
+                board[i] = BLANK;
+        }
+    }
+	return board;
+}
+
+char *unhash(POSITION position, int *xPlaced, int *oPlaced, int *gridPos, char *turn) {
+  if (gHashWindowInitialized) {
+		TIER tier; TIERPOSITION tierposition;
+		gUnhashToTierPosition(position, &tierposition, &tier);
+
+		char* board = (char*) SafeMalloc(boardSize * sizeof(char));
+		BOOLEAN cache_miss = hashCacheGet(tier, tierposition, board, turn, xPlaced, oPlaced, gridPos);
+		if (cache_miss) {
+			unhashToBoard(tier, tierposition, xPlaced, oPlaced, gridPos, turn, board);
+			hashCachePut(tier, tierposition, board, (*turn), (*xPlaced), (*oPlaced), (*gridPos));
+		}
+		return board;
+	} else { // Not supported.
+		return NULL;
+	}
+}
+
+MOVE hashMove(BOOLEAN isGridMove, int from, int to) {
+  return (((isGridMove) ? 1 : 0) << 10) | (from << 5) | (to);
+}
+
+void unhashMove(MOVE move, BOOLEAN *isGridMove, int *from, int *to) {
+  (*isGridMove) = ((move >> 10) > 0) ? TRUE : FALSE;
+  (*from) = (move >> 5) & 0x1F;
+  (*to) = move & 0x1F;
 }
 
 /************************************************************************
@@ -119,6 +540,30 @@ void DebugMenu()
 ************************************************************************/
 
 void GameSpecificMenu() {
+  char c;
+	BOOLEAN cont = TRUE;
+	while (cont) {
+    printf("Currently using default %dx%d game settings.\n\n", sideLength, sideLength);
+		printf("\tGame Options:\n\n"
+		       "\t4)\tLoad default 4x4 Game\n"
+		       "\t5)\tLoad default 5x5 Game\n"
+		       "\tb)\t(B)ack to the main menu\n"
+		       "\nSelect an option:  ");
+		c = GetMyChar();
+		switch (c) {
+		case '4':
+			setOption(1);
+			break;
+		case '5':
+			setOption(0);
+			break;
+		case 'b': case 'B':
+			cont = FALSE;
+			break;
+		default:
+			printf("Invalid option!\n");
+		}
+	}
 }
 
 /************************************************************************
@@ -130,8 +575,7 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions[])
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 }
 
 /************************************************************************
@@ -150,59 +594,31 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(POSITION position, MOVE move)
-{
-  // First create a gameboard given the position
-  GameBoard gameboard;
-  // Retrieves all the important information back into the gameboard
-  PositionToGameBoard(position, &gameboard);
-  // Get the type of move (0: place new pieces, 1: move existing pieces, 2: move grid)
-  int type = move / 729;
-  move -= type * 729;
-  // Get the source index
-  int source = move / 27;
-  move -= source * 27;
-  // Get the destination indexs
-  int destination = move;
-  if (type == 0) {
-    // Place new piece onto the grid
-    gameboard.board[destination] = gameboard.nextPiece;
-    if (gameboard.nextPiece == X) {
-      gameboard.piecesXPlaced += 1;
-      gameboard.nextPiece = O;
-    } else {
-      gameboard.piecesOPlaced += 1;
-      gameboard.nextPiece = X;
-    }
-    gameboard.piecesPlaced += 1;
-    return GameBoardToPosition(&gameboard);
-  } else if (type == 1) {
-    // Move piece on board
-    gameboard.board[destination] = gameboard.nextPiece;
-    gameboard.board[source] = Blank;
-    if (gameboard.nextPiece == X) {
-      gameboard.nextPiece = O;
-    } else {
-      gameboard.nextPiece = X;
-    }
-    return GameBoardToPosition(&gameboard);
-  } else {
-    // Move grid
-    if (gameboard.nextPiece == X) {
-      gameboard.nextPiece = O;
-    } else {
-      gameboard.nextPiece = X;
-    }
-    int gridy = destination / BOARDROWS;
-    int gridx = destination - gridy * BOARDROWS;
-    gameboard.xoffset = gridx;
-    gameboard.yoffset = gridy;
-    return GameBoardToPosition(&gameboard);
-  }
-}
+POSITION DoMove(POSITION position, MOVE move) {
+  char turn;
+  int xPlaced, oPlaced, gridPos;
+  char *board = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+  BOOLEAN isGridMove;
+  int from, to;
+  unhashMove(move, &isGridMove, &from, &to);
 
-void UndoMove(MOVE move)
-{
+  if (isGridMove) {
+    gridPos = to;
+  } else if (from == to) { // Placement
+    if (turn == X)
+      xPlaced++;
+    else
+      oPlaced++;
+    board[to] = turn;
+  } else { // Sliding
+    board[from] = BLANK;
+    board[to] = turn;
+  }
+  turn = (turn == X) ? O : X;
+
+  POSITION toReturn = hash(board, xPlaced, oPlaced, gridPos, turn);
+  SafeFree(board);
+  return toReturn;
 }
 
 /************************************************************************
@@ -216,25 +632,8 @@ void UndoMove(MOVE move)
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
-  GameBoard gameboard;
-  BlankOX board[BOARDSIZE];
-
-  memcpy(gameboard.board, board, BOARDSIZE * sizeof(BlankOX));
-  // Note: x and y offset can be different for different board size
-  gameboard.xoffset = 0;
-  gameboard.yoffset = 0;
-  gameboard.nextPiece = X;
-  gameboard.piecesPlaced = 0;
-  gameboard.piecesOPlaced = 0;
-  gameboard.piecesXPlaced = 0;
-  
-  for (int i = 0; i < BOARDSIZE; i++) {
-    gameboard.board[i] = Blank;
-  }
-
-  return GameBoardToPosition(&gameboard);
+POSITION GetInitialPosition() {
+  return gInitialPosition;
 }
 
 /************************************************************************
@@ -248,10 +647,10 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	printf("%8s's move : ", computersName);
+	PrintMove(computersMove);
+	printf("\n\n");
 }
 
 /************************************************************************
@@ -270,52 +669,28 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(POSITION position)
-{
-  // First create a gameboard given the position
-  GameBoard gameboard;
-  // Retrieves all the important information back into the gameboard
-  PositionToGameBoard(position, &gameboard);
-  // Here gameboard->xoffset and gameboard->yoffset should tell you
-  // where the top left corner of the grid is
-  int gridx = gameboard.xoffset;
-  int gridy = gameboard.yoffset;
-  // If 3 in a row horizontally
-  for (int i = gridy; i < gridy + GRIDROWS; i += 1) {
-    int index = gridx + i * BOARDCOLS;
-    if (gameboard.board[index] == gameboard.board[index + 1]
-        && gameboard.board[index + 1] == gameboard.board[index + 2]
-        && gameboard.board[index] != Blank) {
-          return lose;
-        }
+VALUE Primitive(POSITION position) {
+  char turn;
+  int xPlaced, oPlaced, gridPos;
+  char *board = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+
+  BOOLEAN x3inARow = FALSE;
+  BOOLEAN o3inARow = FALSE;
+  int cmIdx = centerMapping[gridPos];
+  for (int i = 0; i < 8 && !(x3inARow && o3inARow); i++) {
+    char first = board[allTheRows[cmIdx][i][0]];
+    if (first == board[allTheRows[cmIdx][i][1]] && first == board[allTheRows[cmIdx][i][2]]) {
+      if (first == X)
+        x3inARow = TRUE;
+      else if (first == O)
+        o3inARow = TRUE;
+    }
   }
-  // If 3 in a row vertically
-  for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
-    int index = i + gridy * BOARDCOLS;
-    if (gameboard.board[index] == gameboard.board[index + BOARDCOLS]
-        && gameboard.board[index + BOARDCOLS] == gameboard.board[index + 2 * BOARDCOLS]
-        && gameboard.board[index] != Blank) {
-          return lose;
-        }
-  }
-  // If 3 in a row diagonally with top left corner
-  int index = gridx + gridy * BOARDCOLS;
-  if (gameboard.board[index] == gameboard.board[index + BOARDCOLS + 1]
-      && gameboard.board[index + BOARDCOLS + 1] == gameboard.board[index + 2 * BOARDCOLS + 2]
-      && gameboard.board[index] != Blank) {
-        return lose;
-      }
-  // If 3 in a row diagonally with top right corner
-  index = gridx + gridy * BOARDCOLS + 2;
-  if (gameboard.board[index] == gameboard.board[index + BOARDCOLS - 1]
-      && gameboard.board[index + BOARDCOLS - 1] == gameboard.board[index + 2 * BOARDCOLS - 2]
-      && gameboard.board[index] != Blank) {
-        return lose;
-      }
+  SafeFree(board);
+  if (x3inARow && o3inARow) return tie;
+  if (x3inARow || o3inARow) return lose;
   return undecided;
 }
-
-
 
 /************************************************************************
 **
@@ -334,44 +709,58 @@ VALUE Primitive(POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
-{
-  // Create new gameboard
-  GameBoard gameboard; 
-  // Retrieves all the important information back into the gameboard
-  PositionToGameBoard(position, &gameboard);
-  // Here gameboard->xoffset and gameboard->yoffset should tell you
-  // where the top left corner of the grid is
-  int gridx = gameboard.xoffset;
-  int gridy = gameboard.yoffset;
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+  int xPlaced, oPlaced, gridPos;
+  char turn;
+  char *board = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+  /*printf("INFO: %llu %d %d %d %c\n", position, xPlaced, oPlaced, gridPos, turn);
+  for (int m = 0; m < boardSize; m++) {
+    printf("%c ", board[m]);
+  }
+  printf("\n");*/
+  // gridx and gridy tell you where the index of the center of the grid is
+  int gridx = gridPos % sideLength;
+  int gridy = gridPos / sideLength;
   printf("\n");
-  for (int i = 0; i < BOARDROWS; i++) {
+  for (int i = 0; i < sideLength; i++) {
     // Print two rows for each row in the original board to encode for 
     // pieces (row 1) and inner grid (row 2) 
-    for (int j = 0; j < BOARDCOLS; j++) {
+    printf("  |");
+    for (int j = 0; j < sideLength; j++) {
       printf("  "); 
-      int index = j + i * BOARDCOLS;
-      if (gameboard.board[index] == X) {
-        printf("X"); 
-        printf(" |");
-      } else if (gameboard.board[index] == O) {
-        printf("O");
-        printf(" |");
+      int index = j + i * sideLength;
+      if (board[index] == X) {
+        printf("X |");
+      } else if (board[index] == O) {
+        printf("O |");
       } else {
         printf("  |"); 
       }
     }
+    if (i == 1) {
+      printf("   %d X Left to Place", numPiecesPerPlayer - xPlaced);
+    } else if (i == 2) {
+      printf("   Turn: %c", turn);
+    } else if (i == 3) {
+      printf("   %s", GetPrediction(position, playerName, usersTurn));
+    }
     printf("\n");
-    for (int j = 0; j < BOARDCOLS; j++) {
+    printf("  |");
+    for (int j = 0; j < sideLength; j++) {
       printf("__"); 
-      if ((i >= gridy && i < gridy + GRIDROWS) && (j >= gridx && j < gridx + GRIDCOLS)) {
+      if ((i >= gridy - 1 && i <= gridy + 1) && (j >= gridx - 1 && j <= gridx + 1)) {
         printf("#_|");
       } else {
         printf("__|");
       }
     }
+    if (i == 1) {
+      printf("   %d O Left to Place", numPiecesPerPlayer - oPlaced);
+    }
     printf("\n");
   }
+  printf("\n");
+  SafeFree(board);
 }
 
 /************************************************************************
@@ -399,84 +788,38 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 //        2) move the grid
 //        3) place new pieces on empty locations within the grid
 
-MOVELIST *GenerateMoves(POSITION position)
-{
-  // First create a gameboard given the position
-  GameBoard gameboard;
-  // Retrieves all the important information back into the gameboard
-  PositionToGameBoard(position, &gameboard);
-  // Create a linked list of possible moves
+MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
-  // Figure out the player
-  int numPlaced = 0;
-  if (gameboard.nextPiece == X) {
-    numPlaced = gameboard.piecesXPlaced;
-  } else {
-    numPlaced = gameboard.piecesOPlaced;
-  }
-  if (gameboard.piecesPlaced < 8 && numPlaced < 4) {
-    // Place new pieces in grid
-    int gridx = gameboard.xoffset;
-    int gridy = gameboard.yoffset;
-    for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
-      for (int j = gridy; j < gridy + GRIDROWS; j += 1) {
-        int location = i + j * BOARDCOLS;
-        if (gameboard.board[location] == Blank) {
-          // First 3 ternary digits: destination, next 3 ternary digits: source (0), move type (0 = placing new)
-          MOVE newMove = location + 0 * 27 + 0 * 729;
-          moves = CreateMovelistNode(newMove, moves);
-        }
+  char turn;
+  int xPlaced, oPlaced, gridPos;
+  char *board = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+  int cmIdx = centerMapping[gridPos];
+  
+  if ((turn == X && (numPiecesPerPlayer - xPlaced)) || (turn == O && (numPiecesPerPlayer - oPlaced))) {
+    for (int i = 0; i < 9; i++) { // Placement moves
+      int to = gridSlots[cmIdx][i];
+      if (board[to] == BLANK) {
+        moves = CreateMovelistNode(hashMove(FALSE, to, to), moves);
       }
     }
   }
-  if (gameboard.piecesPlaced >= 4) {
-    // Move grid
-    int gridx = gameboard.xoffset;
-    int gridy = gameboard.yoffset;
-    // Move left
-    if (gridx - 1 >= 0) {
-      int source = gridx + gridy * BOARDCOLS;
-      int destination = (gridx - 1) + gridy * BOARDCOLS;
-      MOVE newMove = destination + source * 27 + 2 * 729;
-      moves = CreateMovelistNode(newMove, moves);
-    }
-    // Move right
-    if (gridx + 1 <= BOARDCOLS - GRIDCOLS) {
-      int source = gridx + gridy * BOARDCOLS; 
-      int destination = (gridx + 1) + gridy * BOARDCOLS; 
-      MOVE newMove = destination + source * 27 + 2 * 729; 
-      moves = CreateMovelistNode(newMove, moves); 
-    }
-    // Move up 
-    if (gridy - 1 >= 0){
-      int source = gridx + gridy * BOARDCOLS;  
-      int destination = gridx + (gridy - 1) * BOARDCOLS; 
-      MOVE newMove = destination + source * 27 + 2 * 729; 
-      moves = CreateMovelistNode(newMove, moves); 
-    }
-    // Move down
-    if (gridy + 1 <= BOARDROWS - GRIDROWS) {
-      int source = gridx + gridy * BOARDCOLS;  
-      int destination = gridx + (gridy + 1) * BOARDCOLS; 
-      MOVE newMove = destination + source * 27 + 2 * 729; 
-      moves = CreateMovelistNode(newMove, moves); 
-    }
-    // Move old pieces to empty locations within grid
-    for (int source = 0; source < BOARDSIZE; source ++) {
-      if (gameboard.board[source] == gameboard.nextPiece) {
-        for (int i = gridx; i < gridx + GRIDCOLS; i += 1) {
-          for (int j = gridy; j < gridy + GRIDROWS; j += 1) {
-            int location = i + j * BOARDCOLS;
-            if (gameboard.board[location] == Blank) {
-              // First 3 ternary digits: destination, next 3 ternary digits: source (0), move type (1 = move old pieces)
-              MOVE newMove = location + source * 27 + 1 * 729;
-              moves = CreateMovelistNode(newMove, moves);
-            }
-          }
+
+  if (oPlaced >= 2) { // Grid and sliding moves
+    for (int from = 0; from < boardSize; from++) {
+      if (board[from] == turn) {
+        for (int j = 0; j < 9; j++) { // Sliding Moves
+          int to = gridSlots[cmIdx][j];
+          if (board[to] == BLANK)
+            moves = CreateMovelistNode(hashMove(FALSE, from, to), moves);
         }
       }
     }
+    for (int i = 0; i < numGridAdjacencies[cmIdx]; i++) { // Grid Moves
+      moves = CreateMovelistNode(hashMove(TRUE, gridPos, gridAdjacencies[cmIdx][i]), moves);
+    }
   }
+
+  SafeFree(board);
   return moves;
 }
 
@@ -498,34 +841,194 @@ MOVELIST *GenerateMoves(POSITION position)
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(POSITION position)
-{
-  return position;
+POSITION DoSymmetry(POSITION position, int symmetry, char *originalBoard, int xPlaced, int oPlaced, int gridPos, char turn) {
+	char symBoard[boardSize];
+  int symGridPos;
+
+  for (int i = 0; i < boardSize; i++)
+    symBoard[i] = originalBoard[symmetriesToUse[symmetry][i]];
+  symGridPos = symmetriesToUse[symmetry][gridPos];
+
+  return hash(symBoard, xPlaced, oPlaced, symGridPos, turn);
 }
 
-/************************************************************************
-**
-** NAME: DoSymmetry
-**
-** DESCRIPTION: Perform the symmetry operation specified by the input
-** on the position specified by the input and return the
-** new position, even if it's the same as the input.
-**
-** INPUTS: POSITION position : The position to branch the symmetry from.
-** int symmetry : The number of the symmetry operation.
-**
-** OUTPUTS: POSITION, The position after the symmetry operation.
-**
-************************************************************************/
-
-POSITION DoSymmetry(POSITION position, int symmetry)
-{
-  return position;
+POSITION GetCanonicalPosition(POSITION position) {
+  char turn;
+	int xPlaced, oPlaced, gridPos;
+	char *originalBoard = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+  POSITION canonPos = position;
+  for (int i = 1; i < 8; i++) {
+    POSITION symPos = DoSymmetry(position, i, originalBoard, xPlaced, oPlaced, gridPos, turn);
+    if (symPos < canonPos) canonPos = symPos;
+  }
+  SafeFree(originalBoard);
+  return canonPos;
 }
 
 /**************************************************/
 /**************** SYMMETRY FUN END ****************/
 /**************************************************/
+
+void unhashTier(TIER tier, int *xPlaced, int *oPlaced, char *turn) {
+	(*xPlaced) = (tier / 10) % 10;
+	(*oPlaced) = tier % 10;
+  (*turn) = X;
+  if ((*xPlaced) <= 2 && (*oPlaced) == (*xPlaced) - 1) {
+    (*turn) = O;
+  }
+}
+
+TIER hashTier(int xPlaced, int oPlaced, char turn) {
+	return xPlaced * 10 + oPlaced;
+}
+
+TIERLIST* TierChildren(TIER tier) {
+	TIERLIST* list = NULL;
+
+  switch (tier) {
+    case 0:
+      list = CreateTierlistNode(10, list);
+    break;
+    case 10:
+      list = CreateTierlistNode(11, list);
+    break;
+    case 11:
+      list = CreateTierlistNode(21, list);
+    break;
+    case 21:
+      list = CreateTierlistNode(22, list);
+    break;
+    case 22:
+      list = CreateTierlistNode(22, list);
+      list = CreateTierlistNode(23, list);
+      list = CreateTierlistNode(32, list);
+    break;
+    case 23:
+      list = CreateTierlistNode(23, list);
+      list = CreateTierlistNode(24, list);
+      list = CreateTierlistNode(33, list);
+    break;
+    case 24:
+      list = CreateTierlistNode(24, list);
+      list = CreateTierlistNode(34, list);
+    break;
+    case 32:
+      list = CreateTierlistNode(32, list);
+      list = CreateTierlistNode(33, list);
+      list = CreateTierlistNode(42, list);
+    break;
+    case 33:
+      list = CreateTierlistNode(33, list);
+      list = CreateTierlistNode(34, list);
+      list = CreateTierlistNode(43, list);
+    break;
+    case 34:
+      list = CreateTierlistNode(34, list);
+      list = CreateTierlistNode(44, list);
+    break;
+    case 42:
+      list = CreateTierlistNode(42, list);
+      list = CreateTierlistNode(43, list);
+    break;
+    case 43:
+      list = CreateTierlistNode(43, list);
+      list = CreateTierlistNode(44, list);
+    break;
+    case 44:
+      list = CreateTierlistNode(44, list);
+    break;
+    default:
+    break;
+  }
+
+  return list;
+}
+
+TIERPOSITION NumberOfTierPositions(TIER tier) {
+	int xPlaced, oPlaced;
+  char turn;
+	unhashTier(tier, &xPlaced, &oPlaced, &turn);
+	return ((oPlaced >= 2) ? 2 : 1) * numGridPlacements * combinations[boardSize][oPlaced][xPlaced];
+}
+
+STRING TierToString(TIER tier) {
+	STRING tierStr = (STRING) SafeMalloc(sizeof(char) * 40);
+	int xPlaced, oPlaced;
+	char turn;
+	unhashTier(tier, &xPlaced, &oPlaced, &turn);
+
+  if (oPlaced >= 2) {
+	  sprintf(tierStr, "%d X on board, %d O on board", xPlaced, oPlaced);
+  } else {
+    sprintf(tierStr, "%d X on board, %d O on board, %c's Turn", xPlaced, oPlaced, turn);
+  }
+	return tierStr;
+}
+
+POSITION UnDoMove(POSITION position, UNDOMOVE undoMove) {
+	int xPlaced, oPlaced, gridPos;
+	char turn;
+	char *board = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+	char oppTurn = (turn == X) ? O : X;
+	int from, to;
+  BOOLEAN isGridMove;
+	unhashMove((MOVE) undoMove, &isGridMove, &from, &to);
+
+	if (isGridMove) {
+    gridPos = from;
+  } else {
+    board[to] = BLANK;
+    if (from == to) {
+      if (oppTurn == X) xPlaced--;
+      else oPlaced--;
+    } else {
+      board[from] = oppTurn;
+    }
+  }
+  turn = oppTurn;
+
+	POSITION toReturn = hash(board, xPlaced, oPlaced, gridPos, turn);
+	SafeFree(board);
+	return toReturn;
+}
+
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
+	UNDOMOVELIST *undoMoves = NULL;
+	int xPlaced, oPlaced, gridPos;
+	char turn;
+	char *board = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+	char oppTurn = (turn == X) ? O : X;
+  int cmIdx = centerMapping[gridPos];
+
+	int toXPlaced, toOPlaced;
+	char toTurn;
+	unhashTier(tier, &toXPlaced, &toOPlaced, &toTurn);
+
+  if (xPlaced == toXPlaced && oPlaced == toOPlaced) { // Slide or gridmove
+    for (int from = 0; from < boardSize; from++) {
+      if (board[from] == BLANK) {
+        for (int j = 0; j < 9; j++) { // Sliding Moves
+          int to = gridSlots[cmIdx][j];
+          if (board[to] == oppTurn)
+            undoMoves = CreateUndoMovelistNode(hashMove(FALSE, from, to), undoMoves);
+        }
+      }
+    }
+    for (int i = 0; i < numGridAdjacencies[cmIdx]; i++) { // Grid Moves
+      undoMoves = CreateUndoMovelistNode(hashMove(TRUE, gridAdjacencies[cmIdx][i], gridPos), undoMoves);
+    }
+  } else if ((toXPlaced == xPlaced - 1 && oppTurn == X) || (toOPlaced == oPlaced - 1 && oppTurn == O)) { // xPlaced
+    for (int i = 0; i < 9; i++) { // Placement moves
+      int to = gridSlots[cmIdx][i];
+      if (board[to] == oppTurn)
+        undoMoves = CreateUndoMovelistNode(hashMove(FALSE, to, to), undoMoves);
+    }
+  }
+
+  SafeFree(board);
+
+	return undoMoves;
+}
 
 /************************************************************************
 **
@@ -546,22 +1049,15 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-  USERINPUT ret;
-
-	do {
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+  USERINPUT input;
+	for (;;) {
 		printf("%8s's move:  ", playerName);
-
-		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-		if(ret != Continue)
-			return(ret);
-
+		input = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if (input != Continue) return input;
 	}
-	while (TRUE);
+
+  /* NOTREACHED */
   return Continue;
 }
 
@@ -582,8 +1078,13 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(STRING input)
-{
+BOOLEAN ValidTextInput(STRING input) {
+  if (input[0] != 'A' && input[0] != 'G' && input[0] != 'M') {
+    return FALSE;
+  }
+  if (input[1] != '-') {
+    return FALSE;
+  }
   return TRUE;
 }
 
@@ -599,8 +1100,7 @@ BOOLEAN ValidTextInput(STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(STRING input)
-{
+MOVE ConvertTextInputToMove(STRING input) {
   char type = input[0]; 
   int source; 
   int dest; 
@@ -611,7 +1111,7 @@ MOVE ConvertTextInputToMove(STRING input)
     } else {
       dest = input[2] - '0'; 
     }
-    ret = dest;
+    ret = hashMove(FALSE, dest - 1, dest - 1);
   }
   else if (type == 'M' || type == 'G') {
     // Get source
@@ -633,9 +1133,9 @@ MOVE ConvertTextInputToMove(STRING input)
       }
     }
     if (type == 'M') {
-      ret = 1 * 729 + source * 27 + dest;
+      ret = hashMove(FALSE, source - 1, dest - 1);
     } else {
-      ret = 2 * 729 + source * 27 + dest;
+      ret = hashMove(TRUE, source - 1, dest - 1);
     }
   }
   else {
@@ -643,7 +1143,6 @@ MOVE ConvertTextInputToMove(STRING input)
   }
   return ret; 
 }
-
 
 /************************************************************************
 **
@@ -655,50 +1154,42 @@ MOVE ConvertTextInputToMove(STRING input)
 **
 ** A-DEST, M-SRC-DEST, G-SRC-DEST
 ************************************************************************/
-
-STRING MoveToString (MOVE theMove)
-{
-  // Divide by 729
-  int type = theMove / 729;
-  // Divide the result by 27: gives us the destination index
-  theMove -= type * 729;
-  // Get the source index
-  int source = theMove / 27;
-  theMove -= source * 27;
-  // Get the destination indexs
-  int destination = theMove;
+STRING MoveToString(MOVE theMove) {
+  BOOLEAN isGridMove;
+  int from, to;
+  unhashMove(theMove, &isGridMove, &from, &to);
   STRING typeString; 
   // 0: placing new pieces
   // message: "A-DEST"
-  if (type == 0) {
+  if (from == to) {
     typeString = (STRING) SafeMalloc(3); 
     strcpy(typeString, "A-"); 
     STRING destString = (STRING) SafeMalloc(3);
-    sprintf(destString, "%d", destination);
+    sprintf(destString, "%d", to + 1);
     strcat(typeString, destString);
   }
   // 1: moving existing pieces
   // message: "M-SRC-DEST"
-  else if (type == 1) {
+  else if (!isGridMove) {
     typeString = (STRING) SafeMalloc(3); 
     strcpy(typeString, "M-"); 
     STRING sourceString = (STRING) SafeMalloc(3); 
-    sprintf(sourceString, "%d", source); 
+    sprintf(sourceString, "%d", from + 1); 
     STRING destString = (STRING) SafeMalloc(3); 
-    sprintf(destString, "%d", destination); 
+    sprintf(destString, "%d", to + 1); 
     strcat(typeString, sourceString); 
     strcat(typeString, "-"); 
     strcat(typeString, destString); 
   }
   // 2: moving the grid
   // message: "G-SRC-DEST"
-  else if (type == 2) {
+  else {
     typeString = (STRING) SafeMalloc(3); 
     strcpy(typeString, "G-"); 
     STRING sourceString = (STRING) SafeMalloc(3); 
-    sprintf(sourceString, "%d", source); 
+    sprintf(sourceString, "%d", from + 1); 
     STRING destString = (STRING) SafeMalloc(3); 
-    sprintf(destString, "%d", destination); 
+    sprintf(destString, "%d", to + 1); 
     strcat(typeString, sourceString); 
     strcat(typeString, "-"); 
     strcat(typeString, destString);   
@@ -716,8 +1207,7 @@ STRING MoveToString (MOVE theMove)
 **
 ************************************************************************/
 
-void PrintMove(MOVE theMove)
-{
+void PrintMove(MOVE theMove) {
   STRING str = MoveToString(theMove);
 	printf("%s", str);
   if (str != NULL) {
@@ -727,88 +1217,150 @@ void PrintMove(MOVE theMove)
   }
 }
 
-STRING kDBName = "";
-
-int NumberOfOptions()
-{
-  return 1;
+int NumberOfOptions() {
+  return 2;
 }
 
-int getOption()
-{
-  return 0;
+int getOption() {
+  return (boardSize == 25) ? 0 : 1;
 }
 
-void setOption(int option)
-{
+void setOption(int option) {
+  if (option == 0) {
+    boardSize = 25;
+    sideLength = 5;
+    numGridPlacements = 9;
+    symmetriesToUse = gSymmetryMatrix5;
+    allTheRows = allTheRows5;
+    centerMapping = centerMapping5;
+    revCenterMapping = revCenterMapping5;
+    gridSlots = gridSlots5;
+    numGridAdjacencies = numGridAdjacencies5;
+    gridAdjacencies = gridAdjacencies5;
+
+    char board[25] = {
+			BLANK,BLANK,BLANK,BLANK,BLANK,
+			BLANK,BLANK,BLANK,BLANK,BLANK,
+			BLANK,BLANK,BLANK,BLANK,BLANK,
+			BLANK,BLANK,BLANK,BLANK,BLANK,
+			BLANK,BLANK,BLANK,BLANK,BLANK
+		};
+		hashBoard(board, 0, 0, 12, X, &gInitialTier, &gInitialTierPosition);
+  } else {
+    boardSize = 16;
+    sideLength = 4;
+    numGridPlacements = 4;
+    symmetriesToUse = gSymmetryMatrix4;
+    allTheRows = allTheRows4;
+    centerMapping = centerMapping4;
+    revCenterMapping = revCenterMapping4;
+    gridSlots = gridSlots4;
+    numGridAdjacencies = numGridAdjacencies4;
+    gridAdjacencies = gridAdjacencies4;
+
+    char board[16] = {
+			BLANK,BLANK,BLANK,BLANK,
+			BLANK,BLANK,BLANK,BLANK,
+			BLANK,BLANK,BLANK,BLANK,
+			BLANK,BLANK,BLANK,BLANK
+		};
+		hashBoard(board, 0, 0, 5, X, &gInitialTier, &gInitialTierPosition);
+  }
+
+  gInitialPosition = gInitialTierPosition;
 }
 
-POSITION ActualNumberOfPositions(int variant)
-{
-  return 0;
+int boardToStringIdxMapping5[25] = {9,11,13,15,17,27,29,31,33,35,45,47,49,51,53,63,65,67,69,71,81,83,85,87,89};
+int boardToGridIdxMapping5[25] = {0,2,4,6,8,18,20,22,24,26,36,38,40,42,44,54,56,58,60,62,72,74,76,78,80};
+
+STRING tttwoInteractString[9] = {
+  "R_A_9_10_-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-----G----",
+  "R_A_9_10_-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-----G----",
+  "R_A_9_10_-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-----G----",
+  "R_A_9_10_-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-----G----",
+  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-----G----",
+  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-----G----",
+  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-----G----",
+  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-----G----",
+  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-----G----"
+};
+
+POSITION InteractStringToPosition(STRING str) {
+  char turn = (str[2] == 'A') ? X : O;
+  int xPlaced = 0;
+  int oPlaced = 0;
+  int gridPos = 12;
+  char board[boardSize];
+  for (int i = 0; i < boardSize; i++) {
+    char piece = str[boardToGridIdxMapping5[i]];
+    board[i] = piece;
+    if (piece == X) xPlaced++;
+    else if (piece == O) oPlaced++; 
+  }
+  for (int i = 90; i < 99; i++) {
+    if (str[i] == 'G') {
+      gridPos = revCenterMapping[i - 90];
+      break;
+    }
+  }
+
+  TIER tier;
+	TIERPOSITION tierposition;
+	hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier, &tierposition);
+	gInitializeHashWindow(tier, FALSE);
+	return tierposition;
 }
 
-
-POSITION InteractStringToPosition(STRING board)
-{
-  return 0;
-}
-
-STRING InteractPositionToString(POSITION pos)
-{
+STRING InteractPositionToString(POSITION pos) {
+  int xPlaced, oPlaced, gridPos;
   return NULL;
 }
 
-STRING InteractPositionToEndData(POSITION pos)
-{
+STRING InteractPositionToEndData(POSITION pos) {
   return NULL;
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  /*if ((mv >> 63) & 1) { // Move is "choose to move grid" 1 << 63
+
+  } else if ((mv >> 62) & 1) { // Move is "choose where to move grid" 1 << 62
+
+  } else if ((mv >> 61) & 1) { // Move is "select piece to move" 1 << 61
+
+  } else if ((mv >> 60) & 1) { // Move is "select where to move piece" 1 << 60
+
+  } else if (mv == placement) { // Move is "select where to place" 
+
+  }*/
   return MoveToString(mv);
 }
 
-POSITION GameBoardToPosition(GameBoard *theGameBoard) {
-  POSITION position = 0;
+// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	MULTIPARTEDGELIST *mpel = NULL;
+	/*BOOLEAN edgeToAdded[4] = {FALSE, FALSE, FALSE, FALSE};
+  int idxToAdded[4] = {-1, -1, -1, -1};
+  BOOLEAN gridMoveAdded = FALSE;
+  POSITION gridMoveInterpos = 0;
+	while (moveList != NULL) {
+    BOOLEAN isGridMove;
+    int from, to;
+    unhashMove(move, &isGridMove, &from, &to);
 
-  for (int i = 0; i < BOARDSIZE; i++) {
-    position += g3Array[i] * (theGameBoard->board[i]);
-  }
+    if (isGridMove) {
+      if (!gridMoveAdded) {
+        // Add grid move
+        gridMoveInterpos = position | (1LL << 63);
+        gridMoveAdded = TRUE;
+      }
+      mpel = CreateMultipartEdgeListNode(gridMoveInterpos, positionList->position, MOVE partMove, moveList->move, TRUE, mpel)
+    } else if (from != to) {
 
-  return position + g3Array[BOARDSIZE] * theGameBoard->xoffset + g3Array[BOARDSIZE+1] * theGameBoard->yoffset + g3Array[BOARDSIZE+2] * theGameBoard->nextPiece;
-
-}
-
-void PositionToGameBoard(POSITION thePos, GameBoard *theGameBoard) {
-  // NOTE: Avoid division
-  // Extract nextPiece
-  theGameBoard->nextPiece = thePos / g3Array[BOARDSIZE+2];
-  thePos -= g3Array[BOARDSIZE+2] * theGameBoard->nextPiece;
-
-  // Extract yoffset
-  theGameBoard->yoffset = thePos / g3Array[BOARDSIZE+1];
-  thePos -= g3Array[BOARDSIZE+1] * theGameBoard->yoffset;
-  
-  // Extract xoffset
-  theGameBoard->xoffset = thePos / g3Array[BOARDSIZE];
-  thePos -= g3Array[BOARDSIZE] * theGameBoard->xoffset;
-
-  // Get the number of pieces placed for X and O
-  int numX = 0;
-  int numO = 0;
-  // Extract boards
-  for (int i = BOARDSIZE-1; i >= 0; i--) {
-    theGameBoard->board[i] = thePos / g3Array[i];
-    thePos -= g3Array[i] * theGameBoard->board[i];
-    if (theGameBoard->board[i] == X) {
-      numX += 1;
     }
-    if (theGameBoard->board[i] == O) {
-      numO += 1;
-    }
-  }
-  theGameBoard->piecesXPlaced = numX;
-  theGameBoard->piecesOPlaced = numO;
-  theGameBoard->piecesPlaced = numX + numO;
+    // Ignore placement moves, they're single-part
 
+		moveList = moveList->next;
+		positionList = positionList->next;
+	}*/
+	return mpel;
 }

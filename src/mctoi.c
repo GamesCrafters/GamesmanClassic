@@ -418,6 +418,7 @@ STRING kHelpExample =
         "Help strings not initialized.";
 
 STRING MoveToString(MOVE);
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION, MOVELIST*, POSITIONLIST*);
 
 /*************************************************************************
 **
@@ -506,6 +507,7 @@ void InitializeGame(){
 
 	gCustomUnhash = unhash;
 	gMoveToStringFunPtr = &MoveToString;
+	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
 void FreeGame() {
@@ -1061,6 +1063,7 @@ POSITION position;
 
 						if (gRotateInPlace) {
 							head = CreateMovelistNode ((100 * j) + (10 * j), head );
+							head = CreateMovelistNode ((100 * j) + (10 * j) + 1, head ); // "Pass" Turn
 						}
 
 						for (k = 0; k < 3; k++) { /* Loop through blanks */
@@ -1076,6 +1079,7 @@ POSITION position;
 
 						if (gRotateInPlace) {
 							head = CreateMovelistNode ((100 * j) + (10 * j) + 1, head );
+							head = CreateMovelistNode ((100 * j) + (10 * j), head ); // "Pass" Turn
 						}
 
 						for (k = 0; k < 3; k++) { /* Loop through blanks */
@@ -1095,6 +1099,7 @@ POSITION position;
 
 						if (gRotateInPlace) {
 							head = CreateMovelistNode ((100 * j) + (10 * j), head );
+							head = CreateMovelistNode ((100 * j) + (10 * j) + 1, head ); // "Pass" Turn
 						}
 
 						for (k = 0; k < 3; k++) { /* Loop through blanks */
@@ -1111,6 +1116,7 @@ POSITION position;
 
 						if (gRotateInPlace) {
 							head = CreateMovelistNode ((100 * j) + (10 * j) + 1, head );
+							head = CreateMovelistNode ((100 * j) + (10 * j), head ); // "Pass" Turn
 						}
 
 						for (k = 0; k < 3; k++) { /* Loop through blanks */
@@ -2440,37 +2446,107 @@ STRING unhash (POSITION pos) {
 	return board;
 }
 
+STRING ctoiInitialInteractString = "R_A_6_3_------------------";
+int boardToStringIdxMapping[9] = {8,9,10,11,12,13,14,15,16};
+
 POSITION InteractStringToPosition(STRING string) {
 	// BlankoxOX* board = (char *) SafeMalloc(size(BlankoxOX) * (BOARDSIZE + 1));
-	static BlankoxOX board[BOARDSIZE];
-	int i;
-	for(i = 0; i < BOARDSIZE; i++){
-		if (string[i] == '-')
-			board[i] = Blank;
-		else if (string[i] == 'X')
-			board[i] = Rx;
-		else if (string[i] =='x')
-			board[i] = Wx;
-		else if (string[i] == 'T')
-			board[i] = Rt;
-		else if (string[i] == 't')
-			board[i] = Wt;
-	}
-	int index = strcspn(string, "=");
-	char turn = string[index + 1];
 
-	if (turn == 'r')
-		return HashChungToi(board, Rx);
-	else
-		return HashChungToi(board, Wx);
+	BlankoxOX turn = (string[2] == 'A') ? Rx : Wx;
+	char* copystring = calloc(27, sizeof(char));
+	memcpy(copystring, string, 26);
+	/* Needed for converting intermediate position represented by string to the last non-intermediate position. */
+	if (copystring[22] != '-') {
+		copystring[boardToStringIdxMapping[copystring[22] - '0']] = copystring[25];
+	}
+	
+	static BlankoxOX board[BOARDSIZE];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (copystring[boardToStringIdxMapping[i]]) {
+			case '-':
+			case 'R': // Needed for interposition conversion
+			case 'W': // Needed for interposition conversion
+				board[i] = Blank;
+				break;
+			case 'X':
+				board[i] = Rx;
+				break;
+			case 'x':
+				board[i] = Wx;
+				break;
+			case 'T':
+				board[i] = Rt;
+				break;
+			case 't':
+				board[i] = Wt;
+				break;
+			default:
+				break;
+		}
+	}
+
+	SafeFree(copystring);
+	
+	return HashChungToi(board, turn);
+}
+
+POSITION encodeIntermediatePosition(POSITION position, BOOLEAN isSliding, int from, int to, char p) {
+	// 0b1 1 00000 0; intermediate marker (1), isSliding (1), from (5), piece (4)
+	int piece = (p == 'X') ? 1 : (p == 'x') ? 2 : (p == 'T') ? 3 : (p == 't') ? 4 : 0;
+	//printf("\nENCODE: %llu, %d, %d, %d, %c, %llu\n", position, isSliding, from, to, p, position | (1LL << 63) | (((isSliding) ? 1LL : 0LL) << 62) | (((POSITION) from) << 57) | (((POSITION) to) << 52) | (((POSITION) piece) << 48));
+	return position | (1LL << 63) | (((isSliding) ? 1LL : 0LL) << 62) | (((POSITION) from) << 57) | (((POSITION) to) << 52) | (((POSITION) piece) << 48);
+}
+
+BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN *isSliding, int *from, int *to, char *piece) {
+	(*origPos) = interPos & 0x00000FFFFFFFFFFF;
+	(*isSliding) = ((interPos >> 62) & 1) ? TRUE : FALSE;
+	(*from) = (interPos >> 57) & 0x1F;
+	(*to) = (interPos >> 52) & 0x1F;
+	int p = (interPos >> 48) & 0b111;
+	(*piece) = (p == 1) ? 'X' : (p == 2) ? 'x' : (p == 3) ? 'T' : (p == 4) ? 't' : '-';
+	//printf("\nDECODE: %llu, %llu, %d, %d, %d, %d, %c\n", interPos, (*origPos), (*isSliding), (*from), (*to), p, (*piece));
+	return (interPos >> 63) ? TRUE : FALSE;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	BlankoxOX turn = GetTurn(pos);
-	if(turn == Rx)
-		return MakeBoardString(unhash(pos), "turn" , StringDup("red"), "");
-	else
-		return MakeBoardString(unhash(pos), "turn" , StringDup("white"), "");
+	char* finalBoard = calloc(27, sizeof(char));
+	memcpy(finalBoard, ctoiInitialInteractString, 26);
+
+	POSITION origPos;
+	BOOLEAN isSliding;
+	int from, to;
+	char piece;
+
+	BOOLEAN isIntermediate = decodeIntermediatePosition(pos, &origPos, &isSliding, &from, &to, &piece);
+	BlankoxOX turn = GetTurn(origPos);
+	char *board = unhash(origPos);
+
+	if (turn == Wx) finalBoard[2] = 'B';
+
+	for (int i = 0; i < BOARDSIZE; i++) {
+		finalBoard[boardToStringIdxMapping[i]] = board[i];
+	}
+
+	if (isIntermediate) {
+		if (turn == Rx) {
+			finalBoard[20] = 'X';
+			finalBoard[21] = 'T';
+		} else {
+			finalBoard[20] = 'x';
+			finalBoard[21] = 't';
+		}
+		if (isSliding) {
+			finalBoard[22] = from + '0';
+			finalBoard[25] = piece;
+			finalBoard[boardToStringIdxMapping[from]] = '-';
+		} else {
+			finalBoard[22] = to + '0';
+		}
+		finalBoard[boardToStringIdxMapping[to]] = (turn == Rx) ? 'R' : 'W';
+	}
+
+	SafeFree(board);
+	return finalBoard;
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -2478,5 +2554,70 @@ STRING InteractPositionToEndData(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	if (mv >= 300000) { // Select where to place; encoded as 300000 + original mv 
+		mv %= 100000;
+		return UWAPI_Board_Regular2D_MakeAddString((WhoseTurn(pos) == Rx) ? 'R' : 'W', MoveTo(mv));
+	} else if (mv >= 200000) { // Select which and where to move; encoded as 200000 + original mv
+		mv %= 100000;
+		int from = MoveFrom(mv);
+		int to = MoveTo(mv);
+		if (from == to) {
+			char *board = unhash(pos);
+			STRING toReturn = UWAPI_Board_Regular2D_MakeAddString(board[from], to);
+			SafeFree(board);
+			return toReturn;
+		} else {
+			return UWAPI_Board_Regular2D_MakeMoveString(from, to);
+		}
+	} else if (mv >= 100000) { // Select orientationl encoded as 100000 + original mv
+		mv %= 100000;
+		return UWAPI_Board_Regular2D_MakeAddString('B', (MoveOrientation(mv)) ? 16 : 15);
+	} else {
+		return MoveToString(mv);
+	}
+}
+
+// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	MULTIPARTEDGELIST *mpel = NULL;
+	BOOLEAN edgeFromToAdded[9][9] = {
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
+		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}
+	};
+	BOOLEAN edgeToAdded[9] = {FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
+	char *board = unhash(position);
+	
+	while (moveList != NULL) {
+		int from = MoveFrom(moveList->move);
+		int to = MoveTo(moveList->move);
+
+		if (from == 9) {
+			POSITION interPos = encodeIntermediatePosition(position, FALSE, 9, to, 't');
+			//printf("INTERPOS: %llu, %llu, %d, %d, %d, %d\n", interPos, position, FALSE, 9, to, Rx);
+			if (!edgeToAdded[to]) {
+				mpel = CreateMultipartEdgeListNode(position, interPos, 300000 + moveList->move, 0, FALSE, mpel);
+				edgeToAdded[to] = TRUE;
+			}
+			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, 100000 + moveList->move, moveList->move, TRUE, mpel);
+		} else {
+			POSITION interPos = encodeIntermediatePosition(position, TRUE, from, to, board[from]);
+			if (!edgeFromToAdded[from][to]) {
+				mpel = CreateMultipartEdgeListNode(position, interPos, 200000 + moveList->move, 0, FALSE, mpel);
+				edgeFromToAdded[from][to] = TRUE;
+			}
+			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, 100000 + moveList->move, moveList->move, TRUE, mpel);
+		}
+
+		moveList = moveList->next;
+		positionList = positionList->next;
+	}
+	SafeFree(board);
+	return mpel;
 }
