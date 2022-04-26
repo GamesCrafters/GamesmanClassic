@@ -41,9 +41,7 @@ game getStartingPositions() {
     * 0b0001011 + 1<<move = 0b0010011 = ---YYRR
     * 0b0001011 + 1<<(move+1) = 0b0011011 = ---RYRR*/
 game doMove(game position, char move) {
-
     return (position ^ 0x8000000000000000L)+(1L<<(move+(position >> 63)));
-
 }
 
 /** Returns the list of viable moves.
@@ -53,7 +51,7 @@ int generateMoves(char* retval, game position) {
     for(int i = 0; i < COLUMNCOUNT; i++)
     {
         char start = (char)((ROWCOUNT+1)*(i+1) - 1);
-        while((position & (1L<<start))==0) start--;
+        while((position & (1L<<start))==0) start--; // this is what sigbit does
         if(start != (char)(ROWCOUNT+1)*(i+1)-1)
         {
             *retval = start;
@@ -195,5 +193,136 @@ static int testC4() {
     printf("Number of primitives: %d", hashsetsize);
 	free(primitives);
 	free(movestring);
-
 }
+
+inline bool sigbit(uint64_t shard, int col, char shardsize) {
+	int id_size = hashLength() - shardsize;
+	int r = id_size % (ROWCOUNT+1);
+	if (col == 0 && r == 0) {
+		return shard > 0;
+	} else if (col == 0) {
+		return shard & (1 << r - 1) > 0;
+	}
+	return shard & (1 << (col * (ROWCOUNT+1) + r - 1)) > 0;
+}
+
+inline uint64_t makeColumnMove(uint64_t shard, char move, char mode) {
+    return shard + (1<<(move + mode));
+}
+int getchildrenshards(uint64_t** childrenshards, char shardsize, uint64_t parentshard) {
+	// Column size is not 7
+	int id_size = hashLength() - shardsize; // size in bits
+	int full_cols = (int)(id_size / (ROWCOUNT+1));
+	int remainders = id_size % (ROWCOUNT+1);
+	int length = 0;
+
+	// Count the number of non-full 7-sized columns
+	for (int i = 1; i < full_cols+1; i++) {
+		if (!sigbit(parentshard, i, shardsize)) {
+			length = length + 2;
+		}
+	}
+	// Count the number of non-full <7-sized columns
+	int filter = (1<<remainders) - 1
+	if (!sigbit(parentshard, 0, shardsize) && parentshard & filter > 0) {
+		length = length + 2;
+	} else if (parentshard & filter <= 0 && !sigbit(parentshard, 0, shardsize)){
+		length = length + 1;
+	}
+	uint64_t* children = malloc(length * sizeof(uint64_t));
+	int i = id_size - 1;
+	int added = 0;
+	int full_c_passed = 0;
+	while (i >= 0 || added < length) {
+		if (full_c_passed >= full_cols && parentshard & filter <= 0) {
+			*(children + added) = parentshard + 1;
+			added++;
+			break;
+		}
+		if ((parentshard>>i) & 1 > 0) {
+			if (((i+1)-remainders) % (ROWCOUNT + 1) == 0) {
+				i = (int)((i-2)/(ROWCOUNT+1)) * (ROWCOUNT+1) - 1 + remainders;
+        full_c_passed += 1;
+			} else {
+				*(children + added) = makeColumnMove(parentshard, i, 0);
+        added += 1;
+        *children + added) = makeColumnMove(parentshard, i, 1);
+        added += 1;
+        full_c_passed += 1;
+        i = (int)((i-1)/(ROWCOUNT+1)) * (ROWCOUNT+1) - 1 + remainders;
+			}
+		} else {
+			i -= 1;
+		}
+	}
+	*childrenshards = children; // no free
+	return length;
+}
+
+/* KEENE'S PYTHON CODE CAUSE I WAS LAZY TO DEBUG IN C
+ROWCOUNT = 6
+COLUMNCOUNT = 7
+def makeColumnMove(shard, move, mode):
+return shard + (1<<(move + mode));
+def hashLength():
+	return ((ROWCOUNT+1)*COLUMNCOUNT);
+def sigbit(shard, col, shardsize):
+id_size = hashLength() - shardsize
+remainders = id_size % (ROWCOUNT+1)
+if (col == 0 and remainders == 0):
+	return shard > 0
+elif (col == 0):
+	return shard & (1 << remainders - 1) > 0
+return shard & (1 << (col * (ROWCOUNT+1) + remainders - 1)) > 0
+
+def getchildrenshards(childrenshards, shardsize, parentshard):
+id_size = hashLength() - shardsize
+full_cols = (int)(id_size / (ROWCOUNT+1))
+remainders = id_size % (ROWCOUNT+1)
+length = 0
+for i in range(1, full_cols+1):
+	pp = parentshard
+	if not sigbit(pp, i, shardsize):
+		length+=2
+filter = ((1<<remainders)-1)
+if (not sigbit(parentshard, 0, shardsize) and parentshard & filter > 0):
+	length+=2
+elif (parentshard & filter <= 0 and not sigbit(parentshard, 0, shardsize)):
+	length+=1
+children = [0 for _ in range(length)]
+i = id_size - 1;
+added = 0
+full_c_passed = 0
+while (i >= 0 and added < length):
+	if (full_c_passed >= full_cols and parentshard & filter <= 0):
+			children[added] = parentshard+1
+			added += 1
+			break
+	if ((parentshard>>i) & 1 > 0):
+		if (((i+1)-remainders) % (ROWCOUNT + 1) == 0):
+			i = ((i-2)//(ROWCOUNT+1)) * (ROWCOUNT+1) - 1 + remainders
+
+			full_c_passed += 1
+		else:
+			children[added] = makeColumnMove(parentshard, i, 0)
+			added += 1
+			children[added] = makeColumnMove(parentshard, i, 1)
+			added += 1
+			full_c_passed += 1
+			i = ((i-1)//(ROWCOUNT+1)) * (ROWCOUNT+1) - 1 + remainders
+	else:
+		i-=1
+return children, length
+def print_b(num):
+print("{0:b}".format(num))
+# print_b(1)
+# print_b(makeColumnMove(1, 0, 1))
+# print_b(makeColumnMove(1, 0, 0))
+c, l = getchildrenshards([], 33, 0b1100011110001101)
+print([bin(k) for k in c])
+# print(c)
+# print(l)
+# 4 --> 2
+print("YO",((4-1)//(6+1)) * (6+1) + 2)
+
+*/
