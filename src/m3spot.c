@@ -1426,7 +1426,7 @@ POSITION InteractStringToPosition(STRING str) {
 	POSITION ptsB = (10 * (str[36] - '0') + (str[37] - '0'));
 	if (str[35] != '-') {
 		if (turn) {
-			ptsA -= pointsEarned[red - 2];
+			ptsA -= pointsEarned[(red >> 8) - 2];
 			red = (str[35] - 'a') << 8;
 		} else {
 			ptsB -= pointsEarned[blue - 2];
