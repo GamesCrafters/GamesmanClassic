@@ -187,6 +187,7 @@ void SetTargetScoresMenu();
 void SetDotPositionMenu();
 void ClearTheBoard();
 int pieceToBoard(int pos, int piecePart);
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
 /*********************************************
 ** get the red piece's position on the board *
@@ -291,7 +292,7 @@ int GetWhoseTurn(POSITION thePosition){
 #ifdef x
 	printf("player%d's turn\n",(thePosition >> 20) + 1);
 #endif
-	return thePosition >> 20;
+	return (thePosition >> 20) & 1;
 }
 
 /*
@@ -310,6 +311,7 @@ int GetWhoseTurn(POSITION thePosition){
 void InitializeGame()
 {
 	gMoveToStringFunPtr = &MoveToString;
+	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
 void FreeGame()
@@ -1377,30 +1379,93 @@ void setOption(int option)
 	winScore2 = option/(2*2*2*MAX_SCORE)%(MAX_SCORE-MIN_SCORE+1)+MIN_SCORE;
 }
 
+STRING initial3SpotInteractString = "R_A_6_5_--------------------o-o-o00-00";
+int strLen = 38;
+int posMap[9] = {8,10,12,18,20,22,28,30,32}; //{0,2,4,10,12,14,20,22,24};
+int betweenMap[14] = {-1,-1,21,5,11,7,1,9,23,15,13,17,3,19};
+int horList[2][6] = {{0,1,3,4,6,7}, {1,2,4,5,7,8}};
+int verList[2][6] = {{0,1,2,3,4,5}, {3,4,5,6,7,8}};
+//int betweenMap[14] = {-1,-1,29,13,19,15,9,17,31,23,21,25,11,27};
 
-POSITION InteractStringToPosition(STRING board) {
-	POSITION pos = 0;
-	if (GetValue(board, "pos", GetUnsignedLongLong, &pos)) {
-		return pos;
-	} else {
-		return INVALID_POSITION;
+POSITION InteractStringToPosition(STRING str) {
+	POSITION turn = (str[2] == 'A') ? 0x100000LL : 0;
+	POSITION red = 0;
+	POSITION white = 0;
+	POSITION blue = 0; 
+
+	for (int i = 0; i < 6; i++) {
+		char h1 = str[posMap[horList[0][i]]];
+		char h2 = str[posMap[horList[1][i]]];
+		char v1 = str[posMap[verList[0][i]]];
+		char v2 = str[posMap[verList[1][i]]];
+		if (h1 == h2) {
+			int value = boardToPos(horList[0][i], 'h');
+			//printf("hi,%d,%d ", horList[0][i], value);
+			if (h1 == 'R') {
+				red = value << 8;
+			} else if (h1 == 'W') {
+				white = value << 4;
+			} else if (h1 == 'B') {
+				blue = value;
+			}
+		}
+		if (v1 == v2) {
+			int value = boardToPos(verList[0][i], 'v');
+			//printf("vi,%d,%d ", verList[0][i],value);
+			if (v1 == 'R') {
+				red = value << 8;
+			} else if (v1 == 'W') {
+				white = value << 4;
+			} else if (v1 == 'B') {
+				blue = value;
+			}
+		}
 	}
+
+	POSITION ptsA = (10 * (str[33] - '0') + (str[34] - '0'));
+	POSITION ptsB = (10 * (str[36] - '0') + (str[37] - '0'));
+	if (str[35] != '-') {
+		if (turn) {
+			ptsA -= pointsEarned[red - 2];
+			red = (str[35] - 'a') << 8;
+		} else {
+			ptsB -= pointsEarned[blue - 2];
+			blue = str[35] - 'a';
+		}
+	}
+	ptsA <<= 16;
+	ptsB <<= 12;
+	//printf("HashTo: %llu, %llu %llu %llu %llu %llu %llu\n", turn | ptsA | ptsB | red | white | blue, turn >> 20, ptsA >> 16, ptsB >> 12, red >> 8, white >> 4, blue );
+	return turn | ptsA | ptsB | red | white | blue;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	ClearTheBoard();
+	char *boardString = calloc(strLen + 1, sizeof(char));
+	memcpy(boardString, initial3SpotInteractString, strLen);
+	
 
-	theBoard[pieceToBoard(GetRedPosition(pos),0)] = 'R';
-	theBoard[pieceToBoard(GetRedPosition(pos),1)] = 'R';
-	theBoard[pieceToBoard(GetBluePosition(pos),0)] = 'B';
-	theBoard[pieceToBoard(GetBluePosition(pos),1)] = 'B';
-	theBoard[pieceToBoard(GetWhitePosition(pos),0)] = 'W';
-	theBoard[pieceToBoard(GetWhitePosition(pos),1)] = 'W';
+	boardString[2] = (GetWhoseTurn(pos)) ? 'A' : 'B';
 
+	if (pos >> 63) {
+		boardString[35] = 'a' + ((pos >> 59) & 0b1111);
+		pos &= 0xFFFFFFFFFFF;
+	}
 
-        return MakeBoardString(theBoard,
-                               "pos", StrFromI(pos),
-                               "");
+	boardString[posMap[pieceToBoard(GetRedPosition(pos),0)]] = 'R';
+	boardString[posMap[pieceToBoard(GetRedPosition(pos),1)]] = 'R';
+	boardString[posMap[pieceToBoard(GetBluePosition(pos),0)]] = 'B';
+	boardString[posMap[pieceToBoard(GetBluePosition(pos),1)]] = 'B';
+	boardString[posMap[pieceToBoard(GetWhitePosition(pos),0)]] = 'W';
+	boardString[posMap[pieceToBoard(GetWhitePosition(pos),1)]] = 'W';
+
+	int player1Score = GetPlayer1Score(pos);
+	int player2Score = GetPlayer2Score(pos);
+	boardString[33] = (player1Score / 10) + '0';
+	boardString[34] = (player1Score % 10) + '0';
+	boardString[36] = (player2Score / 10) + '0';
+	boardString[37] = (player2Score % 10) + '0';
+	
+	return boardString;
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -1408,5 +1473,49 @@ STRING InteractPositionToEndData(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	
+	if (mv >> 9) { // Placing player's piece.	
+		return UWAPI_Board_Regular2D_MakeAddString('t', betweenMap[(mv >> 4) & 0xF]);
+	} else if ((mv >> 8) & 1) { // Placing neutral piece.
+		return UWAPI_Board_Regular2D_MakeAddString('t', betweenMap[mv & 0xF]);
+	} else {
+		return MoveToString(mv);
+	}
+}
+
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	MULTIPARTEDGELIST *mpel = NULL;
+	BOOLEAN edgeFromAdded[16] = {FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
+	if (GetWhoseTurn(position)) {
+		while (moveList != NULL) {
+			MOVE move = moveList->move;
+			POSITION origRed = (position >> 8) & 0xF;
+			POSITION interPos = (1LL << 63) | (origRed << 59) | (position & 0xFFF0F0FF) | (positionList->position & 0xF0000) | ((move >> 4) << 8);
+			if (!edgeFromAdded[move >> 4]) {
+				mpel = CreateMultipartEdgeListNode(position, interPos, move | 0x200, 0, FALSE, mpel);
+				edgeFromAdded[move >> 4] = TRUE;
+			}
+			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, move | 0x100, move, TRUE, mpel);
+			
+			moveList = moveList->next;
+			positionList = positionList->next;
+		}
+	} else {
+		while (moveList != NULL) {
+			MOVE move = moveList->move;
+
+			POSITION origBlue = position & 0xF;
+			POSITION interPos = (1LL << 63) | (origBlue << 59) | (position & 0xFFFF0FF0) | (positionList->position & 0xF000) | (move >> 4);
+			if (!edgeFromAdded[move >> 4]) {
+				mpel = CreateMultipartEdgeListNode(position, interPos, move | 0x200, 0, FALSE, mpel);
+				edgeFromAdded[move >> 4] = TRUE;
+			}
+			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, move | 0x100, move, TRUE, mpel);
+			
+			moveList = moveList->next;
+			positionList = positionList->next;
+		}
+	}
+
+	return mpel;
 }

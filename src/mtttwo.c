@@ -362,7 +362,13 @@ BOOLEAN hashCacheGet(TIER tier, POSITION tierposition, char *board, char *turn, 
 ************************************************************************/
 
 void InitializeGame() {
-  //gSymmetries = TRUE;
+
+  /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
+	/********************************/
+
 	gCanonicalPosition = GetCanonicalPosition;
 	gMoveToStringFunPtr = &MoveToString;
 
@@ -1269,38 +1275,99 @@ void setOption(int option) {
 
   gInitialPosition = gInitialTierPosition;
 }
-
+/*
 int boardToStringIdxMapping5[25] = {9,11,13,15,17,27,29,31,33,35,45,47,49,51,53,63,65,67,69,71,81,83,85,87,89};
 int boardToGridIdxMapping5[25] = {0,2,4,6,8,18,20,22,24,26,36,38,40,42,44,54,56,58,60,62,72,74,76,78,80};
+int xLeftIdx = 90;
+int oLeftIdx = 91;
+int gridPosTensIdx = 92;
+int gridPosOnesIdx = 93;
+int selectMoveGridIdx = 94;
+int iPosFromTensIdx = 97;
+int iPosFromOnesIdx = 98;
+int strLen = 108;
 
 STRING tttwoInteractString[9] = {
-  "R_A_9_10_-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-----G----",
-  "R_A_9_10_-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-----G----",
-  "R_A_9_10_-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-----G----",
-  "R_A_9_10_-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-----G----",
-  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-----G----",
-  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-----G----",
-  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-----G----",
-  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-----G----",
-  "R_A_9_10_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-----G----"
+  "R_A_11_9_-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-4406-----G--------",
+  "R_A_11_9_-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-4407------G-------",
+  "R_A_11_9_-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-4408-------G------",
+  "R_A_11_9_-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-4411--------G-----",
+  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-4412---------G----",
+  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-4413----------G---",
+  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-4416-----------G--",
+  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-4417------------G-",
+  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-4418-------------G"
+};*/
+
+int boardToStringIdxMapping5[25] = {
+  8,9,10,11,12,
+  13,14,15,16,17,
+  18,19,20,21,22,
+  23,24,25,26,27,
+  28,29,30,31,32
 };
+int boardToGridIdxMapping5[25] = {
+  0,1,2,3,4,
+  5,6,7,8,9,
+  10,11,12,13,14,
+  15,16,17,18,19,
+  20,21,22,23,24
+};
+int xLeftIdx = 33;
+int oLeftIdx = 34;
+//int gridPosTensIdx = 35;
+//int gridPosOnesIdx = 36;
+int selectMoveGridIdx = 37;
+int iPosFromTensIdx = 35;
+int iPosFromOnesIdx = 36;
+int strLen = 53;
+STRING tttwoInteractString[9] = {
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+  "R_A_6_5_-------------------------44---",
+};
+
+POSITION encodeIntermediatePosition(POSITION position, BOOLEAN isGridMove, int from) {
+	// 0b1 1 00000 0; intermediate marker (1), isGridMove (1), from (5)
+	return position | (1LL << 63) | (((isGridMove) ? 1LL : 0LL) << 62) | (((POSITION) from) << 57); 
+}
+
+BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN *isGridMove, int *from) {
+	(*origPos) = interPos & 0xFFFFFFFFFFFFFF;
+	(*isGridMove) = ((interPos >> 62) & 1) ? TRUE : FALSE;
+	(*from) = (interPos >> 57) & 0x1F;
+	return (interPos >> 63) ? TRUE : FALSE;
+}
 
 POSITION InteractStringToPosition(STRING str) {
   char turn = (str[2] == 'A') ? X : O;
-  int xPlaced = 0;
-  int oPlaced = 0;
+  int xPlaced = numPiecesPerPlayer - (str[xLeftIdx] - '0');
+  int oPlaced = numPiecesPerPlayer - (str[oLeftIdx] - '0');
   int gridPos = 12;
   char board[boardSize];
   for (int i = 0; i < boardSize; i++) {
-    char piece = str[boardToGridIdxMapping5[i]];
-    board[i] = piece;
-    if (piece == X) xPlaced++;
-    else if (piece == O) oPlaced++; 
-  }
-  for (int i = 90; i < 99; i++) {
-    if (str[i] == 'G') {
-      gridPos = revCenterMapping[i - 90];
-      break;
+    board[i] = str[boardToStringIdxMapping5[i]];
+    switch (board[gridPos]) {
+      case 'a':
+        gridPos = i;
+        board[i] = X;
+        break;
+      case 'b':
+        gridPos = i;
+        board[i] = O;
+        break;
+      case 's':
+        gridPos = i;
+        board[i] = BLANK;
+        break;
+      default:
+        break;
     }
   }
 
@@ -1311,9 +1378,90 @@ POSITION InteractStringToPosition(STRING str) {
 	return tierposition;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+/*
+POSITION InteractStringToPosition(STRING str) {
+  char turn = (str[2] == 'A') ? X : O;
+  int xPlaced = numPiecesPerPlayer - (str[xLeftIdx] - '0');
+  int oPlaced = numPiecesPerPlayer - (str[oLeftIdx] - '0');
+  int gridPos = 10 * (str[gridPosTensIdx] - '0') + (str[gridPosOnesIdx] - '0');
+  char board[boardSize];
+  for (int i = 0; i < boardSize; i++) {
+    board[i] = str[boardToStringIdxMapping5[i]];
+  }
+
+  TIER tier;
+	TIERPOSITION tierposition;
+	hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier, &tierposition);
+	gInitializeHashWindow(tier, FALSE);
+	return tierposition;
+}*/
+
+/*
+STRING InteractPositionToString(POSITION interPos) {
+  POSITION pos;
+  BOOLEAN isGridMove;
+  int from;
+  BOOLEAN isIntermediate = decodeIntermediatePosition(interPos, &pos, &isGridMove, &from);
+
   int xPlaced, oPlaced, gridPos;
-  return NULL;
+  char turn;
+  char *board = unhash(pos, &xPlaced, &oPlaced, &gridPos, &turn);
+
+  char *finalBoard = calloc(strLen + 1, sizeof(char));
+  int cmIdx = centerMapping[gridPos];
+  memcpy(finalBoard, tttwoInteractString[cmIdx], strLen);
+
+  finalBoard[2] = (turn == X) ? 'A' : 'B';
+  for (int i = 0; i < boardSize; i++) {
+    finalBoard[boardToStringIdxMapping5[i]] = board[i];
+  }
+  finalBoard[xLeftIdx] = (numPiecesPerPlayer - xPlaced) + '0';
+  finalBoard[oLeftIdx] = (numPiecesPerPlayer - oPlaced) + '0';
+  finalBoard[gridPosTensIdx] = (gridPos / 10) + '0';
+  finalBoard[gridPosOnesIdx] = (gridPos % 10) + '0';
+  if (isIntermediate) {
+    if (isGridMove) {
+      finalBoard[selectMoveGridIdx] = 'G';
+    } else {
+      finalBoard[iPosFromTensIdx] = (from / 10) + '0';
+      finalBoard[iPosFromOnesIdx] = (from % 10) + '0';
+    }
+  }
+  SafeFree(board);
+  return finalBoard;
+}*/
+
+STRING InteractPositionToString(POSITION interPos) {
+  POSITION pos;
+  BOOLEAN isGridMove;
+  int from;
+  BOOLEAN isIntermediate = decodeIntermediatePosition(interPos, &pos, &isGridMove, &from);
+
+  int xPlaced, oPlaced, gridPos;
+  char turn;
+  char *board = unhash(pos, &xPlaced, &oPlaced, &gridPos, &turn);
+
+  char *finalBoard = calloc(strLen + 1, sizeof(char));
+  int cmIdx = centerMapping[gridPos];
+  memcpy(finalBoard, tttwoInteractString[cmIdx], strLen);
+
+  finalBoard[2] = (turn == X) ? 'A' : 'B';
+  for (int i = 0; i < boardSize; i++) {
+    finalBoard[boardToStringIdxMapping5[i]] = board[i];
+  }
+  finalBoard[xLeftIdx] = (numPiecesPerPlayer - xPlaced) + '0';
+  finalBoard[oLeftIdx] = (numPiecesPerPlayer - oPlaced) + '0';
+  if (isIntermediate) {
+    if (isGridMove) {
+      finalBoard[selectMoveGridIdx] = 'G';
+    } else {
+      finalBoard[iPosFromTensIdx] = (from / 10) + '0';
+      finalBoard[iPosFromOnesIdx] = (from % 10) + '0';
+    }
+  }
+  finalBoard[gridPos + 8] = (board[gridPos] == X) ? 'a' : (board[gridPos] == O) ? 'b' : 's';
+  SafeFree(board);
+  return finalBoard;
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -1321,46 +1469,57 @@ STRING InteractPositionToEndData(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-  /*if ((mv >> 63) & 1) { // Move is "choose to move grid" 1 << 63
-
-  } else if ((mv >> 62) & 1) { // Move is "choose where to move grid" 1 << 62
-
-  } else if ((mv >> 61) & 1) { // Move is "select piece to move" 1 << 61
-
-  } else if ((mv >> 60) & 1) { // Move is "select where to move piece" 1 << 60
-
-  } else if (mv == placement) { // Move is "select where to place" 
-
-  }*/
-  return MoveToString(mv);
+  int isGridMove, from, to;
+  unhashMove(mv % 100000, &isGridMove, &from, &to);
+  if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv
+    return UWAPI_Board_Regular2D_MakeAddString('G', selectMoveGridIdx - 9);
+  } else if (mv >= 400000) { // Move is "choose where to move grid" 400000 + mv
+    return UWAPI_Board_Regular2D_MakeAddString('G', boardToGridIdxMapping5[to]);
+  } else if (mv >= 300000) { // Move is "select piece to move" 300000 + mv
+    return UWAPI_Board_Regular2D_MakeAddString('m', boardToGridIdxMapping5[from]);
+  } else if (mv >= 200000) { // Move is "select where to move piece" 200000 + mv
+    return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping5[from], boardToGridIdxMapping5[to]);
+  } else {
+    if (from == to) {
+      return UWAPI_Board_Regular2D_MakeAddString('a', boardToGridIdxMapping5[to]);
+    } else {
+      return MoveToString(mv);
+    }
+  }
 }
 
 // CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
-	/*BOOLEAN edgeToAdded[4] = {FALSE, FALSE, FALSE, FALSE};
-  int idxToAdded[4] = {-1, -1, -1, -1};
+	BOOLEAN edgeFromAdded[25] = {FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
   BOOLEAN gridMoveAdded = FALSE;
-  POSITION gridMoveInterpos = 0;
+  POSITION gridMoveInterPos = encodeIntermediatePosition(position, TRUE, 0);
 	while (moveList != NULL) {
     BOOLEAN isGridMove;
     int from, to;
-    unhashMove(move, &isGridMove, &from, &to);
+    unhashMove(moveList->move, &isGridMove, &from, &to);
 
     if (isGridMove) {
       if (!gridMoveAdded) {
-        // Add grid move
-        gridMoveInterpos = position | (1LL << 63);
+        // Add "choose to move grid" partMove
+        mpel = CreateMultipartEdgeListNode(position, gridMoveInterPos, 500000 + moveList->move, 0, FALSE, mpel);
         gridMoveAdded = TRUE;
       }
-      mpel = CreateMultipartEdgeListNode(gridMoveInterpos, positionList->position, MOVE partMove, moveList->move, TRUE, mpel)
+      // Add "choose where to move grid" partMove
+      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, positionList->position, 400000 + moveList->move, moveList->move, TRUE, mpel);
     } else if (from != to) {
-
+      POSITION slideMoveInterPos = encodeIntermediatePosition(position, FALSE, from);
+      if (!edgeFromAdded[from]) {
+        // Add "select piece to move" partMove
+        mpel = CreateMultipartEdgeListNode(position, slideMoveInterPos, 300000 + moveList->move, 0, FALSE, mpel);
+        edgeFromAdded[from] = TRUE;
+      }
+      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, positionList->position, 200000 + moveList->move, moveList->move, TRUE, mpel);
     }
     // Ignore placement moves, they're single-part
 
 		moveList = moveList->next;
 		positionList = positionList->next;
-	}*/
+	}
 	return mpel;
 }
