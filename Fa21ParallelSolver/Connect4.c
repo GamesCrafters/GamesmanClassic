@@ -195,7 +195,7 @@ static int testC4() {
 	free(movestring);
 }
 
-inline bool sigbit(uint64_t shard, int col, char shardsize) {
+static inline bool sigbit(uint64_t shard, int col, char shardsize) {
 	int id_size = hashLength() - shardsize;
 	int r = id_size % (ROWCOUNT+1);
 	if (col == 0 && r == 0) {
@@ -206,9 +206,10 @@ inline bool sigbit(uint64_t shard, int col, char shardsize) {
 	return shard & (1 << (col * (ROWCOUNT+1) + r - 1)) > 0;
 }
 
-inline uint64_t makeColumnMove(uint64_t shard, char move, char mode) {
+static inline uint64_t makeColumnMove(uint64_t shard, char move, char mode) {
     return shard + (1<<(move + mode));
 }
+
 int getchildrenshards(uint64_t** childrenshards, char shardsize, uint64_t parentshard) {
 	// Column size is not 7
 	int id_size = hashLength() - shardsize; // size in bits
@@ -223,7 +224,7 @@ int getchildrenshards(uint64_t** childrenshards, char shardsize, uint64_t parent
 		}
 	}
 	// Count the number of non-full <7-sized columns
-	int filter = (1<<remainders) - 1
+	int filter = (1<<remainders) - 1;
 	if (!sigbit(parentshard, 0, shardsize) && parentshard & filter > 0) {
 		length = length + 2;
 	} else if (parentshard & filter <= 0 && !sigbit(parentshard, 0, shardsize)){
@@ -246,7 +247,7 @@ int getchildrenshards(uint64_t** childrenshards, char shardsize, uint64_t parent
 			} else {
 				*(children + added) = makeColumnMove(parentshard, i, 0);
         added += 1;
-        *children + added) = makeColumnMove(parentshard, i, 1);
+        *(children + added) = makeColumnMove(parentshard, i, 1);
         added += 1;
         full_c_passed += 1;
         i = (int)((i-1)/(ROWCOUNT+1)) * (ROWCOUNT+1) - 1 + remainders;
