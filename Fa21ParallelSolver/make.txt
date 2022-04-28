@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Starting compilation."
+mkdir -p build
 gcc -c -funsigned-char solver.c -o build/solver.o
 gcc -c -funsigned-char Connect4.c -o build/Game.o
 gcc -c -funsigned-char memorymoreoptimized.c -o build/memory.o
