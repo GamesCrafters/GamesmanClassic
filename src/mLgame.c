@@ -2087,9 +2087,7 @@ POSITION InteractStringToPosition(STRING str) {
 	L2 = Make24(L1, L2);
 	//printf("HA: %d %d %d %d,", L1, L2, S1, S2);
 
-	POSITION toReturn = hash(L1, L2, S1, S2, whoseMove);
-	printf("%llu", toReturn);
-	return toReturn;
+	return hash(L1, L2, S1, S2, whoseMove);
 }
 
 /*
@@ -2124,6 +2122,9 @@ STRING InteractPositionToString(POSITION interpos) {
 				board_string[posMap[S1]] = 'W';
 				board_string[posMap[fromSPiece]] = '-';
 			}
+		} else {
+			board_string[posMap[S1]] = 'W';
+			board_string[posMap[S2]] = 'G';
 		}
 		
 		if (whoseTurn == 1) {
@@ -2182,15 +2183,21 @@ STRING InteractPositionToEndData(POSITION pos) {
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >= 300000) { // Selecting L: corner and orientation
 		int L = unhashMoveL(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString(((L - 1) / 6) + '1', 56 + L);
+		return UWAPI_Board_Regular2D_MakeAddString(((L - 1) / 6) + '1', 47 + L);
 	} else if (mv >= 200000) { // Selecting which neutral piece to place
 		int SP = unhashMoveSPiece(mv % 100000);
 		// SP will NOT be 0 if mv is a part-move
+		int L1 = unhashL1(pos);
+		int L2 = unhashL2(pos);
+		int S1 = unhashS1(pos);
+		int S2 = unhashS2(pos);
+
+		L2 = Make48(L1, L2);
+		S1 = Make8to16(L1, L2, S1);
+		S2 = Make7to16(L1, L2, S1, S2);
 		if (SP == 1) { 
-			int S1 = unhashS1(pos);
 			return UWAPI_Board_Regular2D_MakeAddString('W', gridMap[S1]);
 		} else {
-			int S2 = unhashS2(pos);
 			return UWAPI_Board_Regular2D_MakeAddString('G', gridMap[S2]);
 		}
 	} else if (mv >= 100000) {
@@ -2258,20 +2265,13 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 				prevSP = SP;
 				continue;
 			} else {
+				
 				if (SP == 1) {
-					if (whoseTurn == 1) {
-						interPos2 = encodeInterpos(position, 2, L1, 1, S1, L);
-					} else {
-						interPos2 = encodeInterpos(position, 2, L2, 1, S1, L);
-					}
+					interPos2 = interPos2w;
 				} else {
-					if (whoseTurn == 1) {
-						interPos2 = encodeInterpos(position, 2, L1, 2, S2, L);
-					} else {
-						interPos2 = encodeInterpos(position, 2, L2, 2, S2, L);
-					}
+					interPos2 = interPos2g;
 				}
-				mpel = CreateMultipartEdgeListNode(interPos1, interPos2, moveList->move + 200000, 0, FALSE, mpel); // from L to SP
+				//mpel = CreateMultipartEdgeListNode(interPos1, interPos2, moveList->move + 200000, 0, FALSE, mpel); // from L to SP
 				prevSP = SP;
 			}
 		}
