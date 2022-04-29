@@ -147,7 +147,10 @@ VALUE DetermineValue(POSITION position)
 	}
 
 	if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
-		BOOLEAN usingLookupTierDB = ReinitializeTierDB();
+		BOOLEAN usingLookupTierDB = FALSE;
+		if (gIsInteract) {
+			usingLookupTierDB = ReinitializeTierDB();
+		}
 		gSolver = &DetermineRetrogradeValue; // force the retrograde solver
 		gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
 		if (gPrintDatabaseInfo)

@@ -8,6 +8,8 @@
 **              Copyright (C) Dan Garcia, 1995. All rights reserved.
 **              Farzad H. Eskafi
 **              Erwin A. Vedar
+**              Matthew Yu
+**              Cameron Cheung
 **
 ** DATE:        2001/10/29
 **
@@ -381,7 +383,7 @@ POSITION gMinimalPosition    = 0;
 /*static char board[BOARDSIZE];*/
 int gCTOffsets[OFFSETSIZE] = {1, 19, 307, 2323, 14419, 54739, 162259};
 
-STRING kAuthorName          = "Dan Garcia, Farzad H. Eskafi, and Erwin A. Vedar";
+STRING kAuthorName          = "Dan Garcia, Farzad H. Eskafi, Erwin A. Vedar, Matthew Yu, and Cameron Cheung";
 STRING kGameName            = "Chung-Toi";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kSupportsHeuristic   = TRUE;

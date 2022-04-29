@@ -7,7 +7,7 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Stella Wan, Nala Chen, Matthew Yu, Cameron Cheung";
+STRING kAuthorName = "Stella Wan, Nala Chen, Matthew Yu, and Cameron Cheung";
 STRING kGameName = "Tic-Tac-Two";
 STRING kDBName = "tttwo";
 BOOLEAN kPartizan = TRUE;
@@ -1353,7 +1353,7 @@ POSITION InteractStringToPosition(STRING str) {
   char board[boardSize];
   for (int i = 0; i < boardSize; i++) {
     board[i] = str[boardToStringIdxMapping5[i]];
-    switch (board[gridPos]) {
+    switch (board[i]) {
       case 'a':
         gridPos = i;
         board[i] = X;
@@ -1472,7 +1472,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
   int isGridMove, from, to;
   unhashMove(mv % 100000, &isGridMove, &from, &to);
   if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv
-    return UWAPI_Board_Regular2D_MakeAddString('G', selectMoveGridIdx - 9);
+    return UWAPI_Board_Regular2D_MakeAddString('G', selectMoveGridIdx - 8);
   } else if (mv >= 400000) { // Move is "choose where to move grid" 400000 + mv
     return UWAPI_Board_Regular2D_MakeAddString('G', boardToGridIdxMapping5[to]);
   } else if (mv >= 300000) { // Move is "select piece to move" 300000 + mv

@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: 3Dot
 **
-** AUTHOR:      Attila Gyulassy
+** AUTHOR:      Attila Gyulassy, Matthew Yu, Cameron Cheung
 **
 ** DATE:        02/02/02
 **
@@ -96,7 +96,7 @@ POSITION gInitialPosition    =  0x001009BD;
 POSITION gMinimalPosition = 0x001009BD;
 POSITION kBadPosition = -1;
 
-STRING kAuthorName         = "Attila Gyulassy";
+STRING kAuthorName         = "Attila Gyulassy, Matthew Yu, Cameron Cheung";
 STRING kGameName           = "3Spot";
 
 //?
@@ -1379,7 +1379,7 @@ void setOption(int option)
 	winScore2 = option/(2*2*2*MAX_SCORE)%(MAX_SCORE-MIN_SCORE+1)+MIN_SCORE;
 }
 
-STRING initial3SpotInteractString = "R_A_6_5_--------------------o-o-o00-00";
+STRING initial3SpotInteractString = "R_A_6_5_-------------------------00-00";
 int strLen = 38;
 int posMap[9] = {8,10,12,18,20,22,28,30,32}; //{0,2,4,10,12,14,20,22,24};
 int betweenMap[14] = {-1,-1,21,5,11,7,1,9,23,15,13,17,3,19};
@@ -1475,9 +1475,9 @@ STRING InteractPositionToEndData(POSITION pos) {
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	
 	if (mv >> 9) { // Placing player's piece.	
-		return UWAPI_Board_Regular2D_MakeAddString('t', betweenMap[(mv >> 4) & 0xF]);
+		return UWAPI_Board_Regular2D_MakeAddString('p', betweenMap[(mv >> 4) & 0xF]);
 	} else if ((mv >> 8) & 1) { // Placing neutral piece.
-		return UWAPI_Board_Regular2D_MakeAddString('t', betweenMap[mv & 0xF]);
+		return UWAPI_Board_Regular2D_MakeAddString('n', betweenMap[mv & 0xF]);
 	} else {
 		return MoveToString(mv);
 	}

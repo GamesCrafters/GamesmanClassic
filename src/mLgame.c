@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: L-game
 **
-** AUTHORS:     Michael Savitzky & Alexander John Kozlowski
+** AUTHORS:     Michael Savitzky, Alexander John Kozlowski, Matthew Yu, Cameron Cheung
 **
 ** DATE:        12/15/01
 **
@@ -26,7 +26,7 @@ POSITION gNumberOfPositions  = 129022;  /* (6 + 7*7 + 23*7*8 + 47*7*8*24)*2 */
 POSITION gInitialPosition    =  19388;
 POSITION gMinimalPosition    =  19388;
 
-STRING kAuthorName         = "Michael Savitzky and Alexander John Kozlowski";
+STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, Matthew Yu, and Cameron Cheung";
 STRING kGameName           = "L-game";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
@@ -272,7 +272,7 @@ int transPairs[49][2] = { /*Gives orientation and corner position of each L-piec
 	{8, 9}, {8, 5}, {8, 1}, {8, 10}, {8, 6}, {8, 2}
 };
 
-int transArr[8][16] = { /*Gives the L-piece # for a given orienation and corner*/
+int transArr[8][16] = { /*Gives the L-piece # for a given orientation and corner*/
 	{1, 2, 3, 0, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 7, 8, 9, 0, 10, 11, 12, 0, 0, 0, 0, 0, 0, 0, 0},
 	{0, 0, 16, 13, 0, 0, 17, 14, 0, 0, 18, 15, 0, 0, 0, 0},
@@ -328,6 +328,7 @@ int clearS1(int L1, int L2, int S1);
 int clearS2(int L1, int L2, int S1, int S2);
 int checkCor(int Lo, int Lc);
 int checkOrient(int Lo, int L1);
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
 /************************************************************************
 **
@@ -340,6 +341,7 @@ int checkOrient(int Lo, int L1);
 void InitializeGame()
 {
 	gMoveToStringFunPtr = &MoveToString;
+	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
 void FreeGame()
@@ -773,10 +775,12 @@ VALUE Primitive(POSITION position) {
 	inPrimitive = 1;
 	head = ptr = GenerateMoves(position);
 	inPrimitive = 0;
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return(gStandardGame ? lose : win);
-	else
+	} else {
+		FreeMoveList(head);
 		return(undecided);
+	}
 }
 
 /************************************************************************
@@ -921,6 +925,29 @@ MOVELIST *GenerateMoves(POSITION position) {
 			    hash(i, Make24(i, newL2Piece), Make16to8(i, newL2Piece, newS1Piece), Make16to7(i, newL2Piece, newS1Piece, newS2Piece), whosMove) != position) {
 				if (!mustMove)
 					head = CreateMovelistNode(hashMove(i, 0, 0), head);
+
+				for (j = 0; j<6; j++) {
+					if (white1) {
+						head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
+						if (inPrimitive)
+							return(head);
+					} else {
+						head = CreateMovelistNode(hashMove(i, 2, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
+						if (inPrimitive)
+							return(head);
+					}
+				}
+
+				if (!oneL) {
+					for (j = 0; j < 6; j++) {
+						if (white1) {
+							head = CreateMovelistNode(hashMove(i, 2, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
+						} else {
+							head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
+						}
+					}
+				}
+				/*
 				for (j = 0; j<6; j++) {
 					if (white1) {
 						head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
@@ -936,7 +963,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 						if (!oneL)
 							head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -951,6 +978,30 @@ MOVELIST *GenerateMoves(POSITION position) {
 			    hash(L1, Make24(L1, i), Make16to8(L1, i, newS1Piece), Make16to7(L1, i, newS1Piece,newS2Piece), whosMove) != position && Make24(L1, i) != 0) {
 				if (!mustMove)
 					head = CreateMovelistNode(hashMove(i, 0, 0), head);
+
+				for (j = 0; j<6; j++) {
+					if (white1) {
+						head = CreateMovelistNode(hashMove(i, 2, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
+						if (inPrimitive)
+							return(head);
+					} else {
+						head = CreateMovelistNode(hashMove(i, 1, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
+						if (inPrimitive)
+							return(head);
+					}
+				}
+
+				if (!oneL) {
+					for (j = 0; j<6; j++) {
+						if (white1) {
+							head = CreateMovelistNode(hashMove(i, 1, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
+						} else {
+							head = CreateMovelistNode(hashMove(i, 2, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
+						}
+					}
+				}
+
+				/*
 				for (j = 0; j<6; j++) {
 					if (white1) {
 						if (!oneL)
@@ -966,7 +1017,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 						if (inPrimitive)
 							return(head);
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -1931,47 +1982,197 @@ void setOption(int option)
 	mustMove = option/(2*3)%2==1;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME
-	POSITION pos = 0;
-	if ( GetValue(board, "pos", GetInt, &pos) ) {
-		return pos;
-	} else {
-		return INVALID_POSITION;
-	}
+// 1 11111111 11111 isIntermediate(2), fromLPiece (8), NPiece(2), fromNPiece (5), toLPiece(8)
+
+/*
+R_A_8_12_----WBB----------RB----------RB-----00---RRG-000111111222222333333444444555555666666777777888888
+
+R_A_8_12_
+----WBB-----
+-----RB-----
+-----RB-----
+00---RRG-000
+111111222222
+333333444444
+555555666666
+777777888888
+*/
+
+//STRING initialLGameInteractString = "R_A_8_12_----WRR----------BR----------BR-----00---BBG-000111111222222333333444444555555666666777777888888";
+STRING initialLGameInteractString = "R_A_8_12_------------------------------------aa-------aaa------------------------------------------------";
+int posMap[17] = {-1, 13,14,15,16,25,26,27,28, 37,38,39,40, 49,50,51,52};
+int gridMap[17] = {-1, 4,5,6,7,16,17,18,19, 28,29,30,31, 40,41,42,43};
+int strLen = 105;
+
+POSITION encodeInterpos(POSITION origPos, POSITION isIntermediate, POSITION fromLPiece, POSITION SPiece, POSITION fromSPiece, POSITION toLPiece) {
+	return origPos | (isIntermediate << 62) | (fromLPiece << 54) | (SPiece << 52) | (fromSPiece << 47) | (toLPiece << 39);
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	int len = sizeof(char) * 4 * 4 + 1;
-	char * board_string = (char *) malloc(len + 1);
+POSITION decodeInterpos(POSITION interPos, int *isIntermediate, int *fromLPiece, int *SPiece, int *fromSPiece, int *toLPiece) {
+	(*isIntermediate) = interPos >> 62;
+	(*fromLPiece) = (interPos >> 54) & 0xFF;
+	(*SPiece) = (interPos >> 52) & 0b11;
+	(*fromSPiece) = (interPos >> 47) & 0x1F;
+	(*toLPiece) = (interPos >> 39) & 0xFF;
+	return interPos & 0x0000000FFFFFFFFF;
+}
+
+POSITION InteractStringToPosition(STRING str) {
+	BOOLEAN L1Found = FALSE, L2Found = FALSE, S1Found = FALSE, S2Found = FALSE;
+	int L1 = 0, L2 = 0, S1 = 0, S2 = 0;
+	int whoseMove = (str[2] == 'A') ? 1 : 2;
+	int prevL = 10 * (str[45] - 'a') + (str[46] - 'a');
+	int prevS = 10 * (str[55] - 'a') + (str[56] - 'a');
+	int whichS = str[54] - 'a';
+	if (prevL != 0) {
+		if (whichS == 1) {
+			S1 = prevS;
+			S1Found = TRUE;
+		} else if (whichS == 2) {
+			S2 = prevS;
+			S2Found = TRUE;
+		}
+		if (whoseMove == 1) {
+			L1 = prevL;
+			L1Found = TRUE;
+		} else {
+			L2 = prevL;
+			L2Found = TRUE;
+		}
+	}
+
+	if (!S1Found) {
+		for (int i = 1; i <= 16; i++) {
+			if (str[posMap[i]] == 'W') {
+				S1 = i;
+				break;
+			}
+		}
+	}
+	if (!S2Found) {
+		for (int i = 1; i <= 16; i++) {
+			if (str[posMap[i]] == 'G') {
+				S2 = i;
+				break;
+			}
+		}
+	}
+
+	if (!L1Found) {
+		for (int i = 1; i <= 48; i++) {
+			if (str[posMap[FOURSQUARES[i][0]]] == 'R' && 
+			str[posMap[FOURSQUARES[i][1]]] == 'R' &&
+			str[posMap[FOURSQUARES[i][2]]] == 'R' &&
+			str[posMap[FOURSQUARES[i][3]]] == 'R') {
+				L1 = i;
+				break;
+			}
+		}
+	}
+	if (!L2Found) {
+		for (int i = 1; i <= 48; i++) {
+			if (str[posMap[FOURSQUARES[i][0]]] == 'B' && 
+			str[posMap[FOURSQUARES[i][1]]] == 'B' &&
+			str[posMap[FOURSQUARES[i][2]]] == 'B' &&
+			str[posMap[FOURSQUARES[i][3]]] == 'B') {
+				L2 = i;
+				break;
+			}
+		}
+	}
+	
+	//printf("H: %d %d %d %d,", L1, L2, S1, S2);
+	S2 = Make16to7(L1, L2, S1, S2);
+	S1 = Make16to8(L1, L2, S1);
+	L2 = Make24(L1, L2);
+	//printf("HA: %d %d %d %d,", L1, L2, S1, S2);
+
+	POSITION toReturn = hash(L1, L2, S1, S2, whoseMove);
+	printf("%llu", toReturn);
+	return toReturn;
+}
+
+/*
+"R_A_8_12_----WRR----------BR----------BR-----aa---BBG-aaa--1-----2---3--------------5-----6--------------"
+*/
+STRING InteractPositionToString(POSITION interpos) {
+	int isIntermediate, fromLPiece, SPiece, fromSPiece, toLPiece;
+	POSITION pos = decodeInterpos(interpos, &isIntermediate, &fromLPiece, &SPiece, &fromSPiece, &toLPiece);
+	char *board_string = (char *) calloc(strLen + 1, sizeof(char));
+	memcpy(board_string, initialLGameInteractString, strLen);
 	int L1 = unhashL1(pos);
 	int L2 = unhashL2(pos);
 	int S1 = unhashS1(pos);
 	int S2 = unhashS2(pos);
-	int i;
-	char* formatted;
+	int whoseTurn = unhashTurn(pos);
+
+	board_string[2] = (whoseTurn == 1) ? 'A' : 'B';
+	//printf("POS: %llu, %d %d %d %d", pos, L1, L2, S1, S2);
 
 	L2 = Make48(L1, L2);
 	S1 = Make8to16(L1, L2, S1);
 	S2 = Make7to16(L1, L2, S1, S2);
 
-	for (i = 0; i<len; i++) {
-		board_string[i] = ' ';
+	//printf("%d %d %d %d", L1, L2, S1, S2);
+	if (isIntermediate > 0) {
+		if (isIntermediate > 1) {
+			//printf("\nFROMSPIECE: %d, isIntermediate: %d\n", fromSPiece, isIntermediate);
+			if (SPiece == 1) {
+				board_string[posMap[fromSPiece]] = '-';
+				board_string[posMap[S2]] = 'G';
+			} else {
+				board_string[posMap[S1]] = 'W';
+				board_string[posMap[fromSPiece]] = '-';
+			}
+		}
+		
+		if (whoseTurn == 1) {
+			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[toLPiece][i]]] = 'R';
+			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
+		} else {
+			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
+			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[toLPiece][i]]] = 'B';
+		}
+		board_string[45] = (fromLPiece / 10) + 'a';
+		board_string[46] = (fromLPiece % 10) + 'a';
+		board_string[54] = SPiece + 'a';
+		board_string[55] = (fromSPiece / 10) + 'a';
+		board_string[56] = (fromSPiece % 10) + 'a';
+	} else {
+		board_string[posMap[S1]] = 'W';
+		board_string[posMap[S2]] = 'G';
+		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
+		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
+		if (whoseTurn == 1) {
+			for (int i = 1; i < 48; i++) {
+				if (L1 != i) {
+					if (
+						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'R') &&
+						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'R') &&
+						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'R') && 
+						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'R')
+					) {
+						board_string[56 + i] = ((i - 1) / 6) + '1';
+					}
+				}
+			}
+		} else {
+			for (int i = 1; i < 48; i++) {
+				if (L2 != i) {
+					if (
+						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'B') &&
+						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'B') &&
+						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'B') && 
+						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'B')
+					) {
+						board_string[56 + i] = ((i - 1) / 6) + '1';
+					}
+				}
+			}
+		}
 	}
-	for (i = 0; i<4; i++) {
-		board_string[FOURSQUARES[L1][i]] = 'x';
-		board_string[FOURSQUARES[L2][i]] = 'o';
-	}
-	board_string[S1] = 'w';
-	board_string[S2] = 'g';
-	board_string[len] = '\0';
-
-	formatted = MakeBoardString(board_string + 1,
-	                            "turn", StrFromI(unhashTurn(pos)),
-	                            "pos", StrFromI(pos),
-	                            "");
-	free(board_string);
-	return formatted;
+	
+	return board_string;
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -1979,5 +2180,106 @@ STRING InteractPositionToEndData(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	if (mv >= 300000) { // Selecting L: corner and orientation
+		int L = unhashMoveL(mv % 100000);
+		return UWAPI_Board_Regular2D_MakeAddString(((L - 1) / 6) + '1', 56 + L);
+	} else if (mv >= 200000) { // Selecting which neutral piece to place
+		int SP = unhashMoveSPiece(mv % 100000);
+		// SP will NOT be 0 if mv is a part-move
+		if (SP == 1) { 
+			int S1 = unhashS1(pos);
+			return UWAPI_Board_Regular2D_MakeAddString('W', gridMap[S1]);
+		} else {
+			int S2 = unhashS2(pos);
+			return UWAPI_Board_Regular2D_MakeAddString('G', gridMap[S2]);
+		}
+	} else if (mv >= 100000) {
+		int SP = unhashMoveSPiece(mv % 100000);
+		int SV = unhashMoveSValue(mv % 100000);
+		return UWAPI_Board_Regular2D_MakeAddString((SP == 1) ? 'W' : 'G', gridMap[SV]);
+	} else {
+		return MoveToString(mv);
+	}
+}
+
+// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	// Assumes moveList is grouped by L, then grouped by SPiece. Assumes no-neutral-move move comes before neutral-move moves
+	MULTIPARTEDGELIST *mpel = NULL;
+	int prevL = -1;
+	int prevSP = -1;
+
+	POSITION interPos1 = 0, interPos2w = 0, interPos2g = 0, interPos2 = 0;
+	MOVE moveW = 0, moveG = 0;
+
+	int L1 = unhashL1(position);
+	int L2 = unhashL2(position);
+	int S1 = unhashS1(position);
+	int S2 = unhashS2(position);
+	int whoseTurn = unhashTurn(position);
+
+	L2 = Make48(L1, L2);
+	S1 = Make8to16(L1, L2, S1);
+	S2 = Make7to16(L1, L2, S1, S2);
+
+	while (moveList != NULL) {
+		int L = unhashMoveL(moveList->move);
+		int SP = unhashMoveSPiece(moveList->move);
+
+		if (L != prevL) {
+			if (whoseTurn == 1) {
+				interPos1 = encodeInterpos(position, 1, L1, 0, 0, L);
+			} else {
+				interPos1 = encodeInterpos(position, 1, L2, 0, 0, L);
+			}
+			mpel = CreateMultipartEdgeListNode(position, interPos1, moveList->move + 300000, 0, FALSE, mpel); // from position to L
+			prevL = L;
+		}
+		if (SP != prevSP) {
+			if (SP == 0) {
+				if (whoseTurn == 1) {
+					interPos2w = encodeInterpos(position, 2, L1, 1, S1, L);
+					moveW = hashMove(L1, 1, S1);
+					interPos2g = encodeInterpos(position, 2, L1, 2, S2, L);
+					moveG = hashMove(L1, 2, S2);
+				} else {
+					interPos2w = encodeInterpos(position, 2, L2, 1, S1, L);
+					moveW = hashMove(L2, 1, S1);
+					interPos2g = encodeInterpos(position, 2, L2, 2, S2, L);
+					moveG = hashMove(L2, 2, S2);
+				}
+				
+				mpel = CreateMultipartEdgeListNode(interPos1, interPos2w, moveW + 200000, 0, FALSE, mpel); // from L to w
+				mpel = CreateMultipartEdgeListNode(interPos2w, positionList->position, moveW + 100000, moveList->move, TRUE, mpel); // from w to end
+				mpel = CreateMultipartEdgeListNode(interPos1, interPos2g, moveG + 200000, 0, FALSE, mpel); // from L to g
+				mpel = CreateMultipartEdgeListNode(interPos2g, positionList->position, moveG + 100000, moveList->move, TRUE, mpel); // from g to end
+				moveList = moveList->next;
+				positionList = positionList->next;
+				prevSP = SP;
+				continue;
+			} else {
+				if (SP == 1) {
+					if (whoseTurn == 1) {
+						interPos2 = encodeInterpos(position, 2, L1, 1, S1, L);
+					} else {
+						interPos2 = encodeInterpos(position, 2, L2, 1, S1, L);
+					}
+				} else {
+					if (whoseTurn == 1) {
+						interPos2 = encodeInterpos(position, 2, L1, 2, S2, L);
+					} else {
+						interPos2 = encodeInterpos(position, 2, L2, 2, S2, L);
+					}
+				}
+				mpel = CreateMultipartEdgeListNode(interPos1, interPos2, moveList->move + 200000, 0, FALSE, mpel); // from L to SP
+				prevSP = SP;
+			}
+		}
+
+		mpel = CreateMultipartEdgeListNode(interPos2, positionList->position, moveList->move + 100000, moveList->move, TRUE, mpel); // from SP to end
+
+		moveList = moveList->next;
+		positionList = positionList->next;
+	}
+	return mpel;
 }

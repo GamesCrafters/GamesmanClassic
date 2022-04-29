@@ -292,6 +292,9 @@ void ServerInteractLoop(void) {
 			}
 			InteractFreeBoardSting(board);
 		} else if (FirstWordMatches(input, "start_response")) {
+			if (kExclusivelyTierGamesman) {
+				gInitializeHashWindow(gInitialTier, FALSE);
+			}
 			board = InteractPositionToString(gInitialPosition);
 			printf(RESULT "{\"status\":\"ok\",\"response\":");
 			if (!strcmp(board, "Implement Me")) {
