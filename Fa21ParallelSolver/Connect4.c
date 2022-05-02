@@ -1,6 +1,6 @@
 #include "Game.h"
 
-#define COLUMNCOUNT 5
+#define COLUMNCOUNT 6
 #define ROWCOUNT 5
 #define CONNECT 4
 
@@ -14,7 +14,7 @@ static bool isawin(game position, game pieces);
 
 void initialize_constants() {
 	uint64_t l = 0;
-	for(int i = 0; i < COLUMNCOUNT; i++) l |= 1L<<((ROWCOUNT+1)*i);
+	for(int i = 0; i < COLUMNCOUNT; i++) l |= 1ULL<<((ROWCOUNT+1)*i);
 	uint64_t down=0, left=0, updiag=0, downdiag = 0;
 	for(int i = 0; i < CONNECT;i++)
 	{
@@ -41,7 +41,7 @@ game getStartingPositions() {
     * 0b0001011 + 1<<move = 0b0010011 = ---YYRR
     * 0b0001011 + 1<<(move+1) = 0b0011011 = ---RYRR*/
 game doMove(game position, char move) {
-    return (position ^ 0x8000000000000000L)+(1L<<(move+(position >> 63)));
+    return (position ^ 0x8000000000000000L)+(1ULL<<(move+(position >> 63)));
 }
 
 /** Returns the list of viable moves.
@@ -51,7 +51,7 @@ int generateMoves(char* retval, game position) {
     for(int i = 0; i < COLUMNCOUNT; i++)
     {
         char start = (char)((ROWCOUNT+1)*(i+1) - 1);
-        while((position & (1L<<start))==0) start--; // this is what sigbit does
+        while((position & (1ULL<<start))==0) start--; // this is what sigbit does
         if(start != (char)(ROWCOUNT+1)*(i+1)-1)
         {
             *retval = start;
@@ -71,8 +71,8 @@ char isPrimitive(game position, char mostrecentmove) {
         for(int i = 0; i < COLUMNCOUNT; i++)
         {
             char start = (char)((ROWCOUNT+1)*(i+1) - 1);
-            while((position & (1L<<start))==0) start--;
-            position ^= (1L<<start);
+            while((position & (1ULL<<start))==0) start--;
+            position ^= (1ULL<<start);
         }
     }
     else
@@ -81,12 +81,12 @@ char isPrimitive(game position, char mostrecentmove) {
         {
             char start = (char)((ROWCOUNT+1)*(i+1) - 1);
             char start2 = (char)(start+1);
-            while((position & (1L<<start))==0) start--;
-            position |= (1L<<(start2))-(1L << start);
+            while((position & (1ULL<<start))==0) start--;
+            position |= (1ULL<<(start2))-(1L << start);
         }
         position = ~position;
     }
-    position &= (1L<<(COLUMNCOUNT*(ROWCOUNT+1)))-1;
+    position &= (1ULL<<(COLUMNCOUNT*(ROWCOUNT+1)))-1;
     //System.out.printf("%016X %n", position);
     //At this point, the position should contain 1s only on the places that match the most recent move.
     int x = mostrecentmove/(ROWCOUNT+1), y=mostrecentmove%(ROWCOUNT+1);
@@ -134,14 +134,14 @@ gamehash getHash(game position) {
     game oppositepos = 0;
     for(int i = 0; i < COLUMNCOUNT; i++)
     {
-        uint64_t val = (newpos>>(i*(ROWCOUNT+1)))&((1L<<(ROWCOUNT+1))-1);
+        uint64_t val = (newpos>>(i*(ROWCOUNT+1)))&((1ULL<<(ROWCOUNT+1))-1);
         oppositepos |= val<<((ROWCOUNT+1)*(COLUMNCOUNT-i-1));
     }
     return oppositepos < newpos ? oppositepos : newpos;
 }
-int maxHash()
+uint64_t maxHash()
 {
-	return 1<<((ROWCOUNT+1)*COLUMNCOUNT);
+	return 1ULL<<((ROWCOUNT+1)*COLUMNCOUNT);
 }
 int hashLength()
 {
@@ -151,14 +151,14 @@ game hashToPosition(gamehash hash) {
     char emptyspots = 0;
     for(int j = 0; j < COLUMNCOUNT; j++) {
         for (int i = ROWCOUNT; i >= 0; i--) {
-            if((hash&(1L<<(j*(ROWCOUNT+1)+i))) == 0) emptyspots++;
+            if((hash&(1ULL<<(j*(ROWCOUNT+1)+i))) == 0) emptyspots++;
             else break;
         }
     }
     return hash | ((gamehash) ((getSize()-emptyspots)%2)) << 63;
 }
 
-static void recurse(char* primitives, int* hashsetsize, game position, int layer, char* movestring) {
+/*static void recurse(char* primitives, int* hashsetsize, game position, int layer, char* movestring) {
     if(layer < 5) {printf("%s\n", movestring); fflush(stdout);}
 	char moves[COLUMNCOUNT+1];
     generateMoves(moves, position);
@@ -186,14 +186,14 @@ static void recurse(char* primitives, int* hashsetsize, game position, int layer
 static int testC4() {
 	initialize_constants();
     game pos = getStartingPositions();
-    char* primitives = calloc(sizeof(char),(1<<((COLUMNCOUNT*(ROWCOUNT+1))-3)));
+    char* primitives = calloc(sizeof(char),(1ULL<<((COLUMNCOUNT*(ROWCOUNT+1))-3)));
 	int hashsetsize = 0;
 	char* movestring = calloc(sizeof(char), getSize()+1);
     recurse(primitives, &hashsetsize, pos, 0, movestring);
     printf("Number of primitives: %d", hashsetsize);
 	free(primitives);
 	free(movestring);
-}
+}*/
 
 static inline bool sigbit(uint64_t shard, int col, char shardsize) {
 	int id_size = hashLength() - shardsize;

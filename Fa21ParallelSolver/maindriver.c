@@ -4,27 +4,38 @@
 
 #define shardsize 28
 
-typedef struct shardgraph {
-	gamehash minhash;
-	int childrencount;
-	int parentcount;
-	int parentsfinished;
-	int childrensolved;
-	shardgraph** childrenshards;
-} shardgraph;
-static int initializeshard(shardgraph* shardlist, char* shardinitialized, uint32_t shardcount, uint32_t startingshard) {
-	
+//Sends a message to all children/parents that the shard is done computing, and adds workable shards to the work queue
+//issolved is 0 if during discovery, and 1 if during solving.
+static shardgraph* addshardstoqueue(shardgraph* bottomshard, shardgraph* completedshard, int issolved) {
+	if(issolved) {
+		for(int i = 0 ; i < completedshard->parentcount;i++) {
+			shardgraph* parentshard = completedshard->parentshards[i];
+			parentshard->childrensolved++;
+			if(parentshard->childrensolved == parentshard->childrencount)
+			{
+				bottomshard->nextinqueue = parentshard;
+				bottomshard = parentshard;
+			}
+		}
+	}
+	else {
+		for(int i = 0 ; i < completedshard->childrencount;i++) {
+			shardgraph* childshard = completedshard->childrenshards[i];
+			childshard->parentsdiscovered++;
+			if(childshard->parentsdiscovered == childshard->parentcount)
+			{
+				bottomshard->nextinqueue = childshard;
+				bottomshard = childshard;
+			}
+		}
+		if(completedshard->childrencount == 0) {
+			bottomshard->nextinqueue = completedshard;
+			bottomshard = completedshard;
+		}
+	}
+	return bottomshard;
 }
-//Initializes all relevant shards. Returns the number of shards actually created.
-static int initializeshardlist(shardgraph* shardlist, uint32_t shardcount) {
-	char* shardinitialized = calloc(shardcount, sizeof(char));
-	uint32_t startingshard = getHash(getStartingPositions()) >> shardsize;
-	int validshards = initializeshard(shardlist, shardinitialized, shardcount, startingshard);
-}
-static void freeshardlist(shardgraph* shardlist, uint32_t shardcount) {
-	for(int i = 0; i < shardcount; i++) if(shardlist[i].childrenshards != NULL) free(shardlist[i].childrenshards);
-	free(shardlist);
-}
+
 
 int main(int argc, char** argv)
 {
@@ -34,8 +45,48 @@ int main(int argc, char** argv)
 		return 1;
 	}
   	initialize_constants();
-	uint32_t shardcount = 1 << (hashLength() - shardsize);
-	shardgraph* shardList = calloc(shardcount, sizeof(shardgraph));
-	int validshards = initializeshardlist(shardList, shardcount);
-	freeshardlist();
+
+	  shardgraph* shardList;
+
+	int validshards = initializeshardlist(&shardList, shardsize);
+	printf("Shard graph computed: %d shards will be computed\n", validshards);
+	fflush(stdout);
+
+
+	int shardsdiscovered = 0;
+	int shardssolved = 0;
+	shardgraph* topshard = getstartingshard(shardList, shardsize);
+	shardgraph* bottomshard = topshard; //pointers to front and back of work queue
+	char* workingfolder = argv[1];
+	
+	
+	printf("Discovering shard %d/%d with shard id %d\n", shardsdiscovered, validshards, topshard->shardid);	
+	discoverstartingfragment(workingfolder, shardsize); //Initialize work queue and compute furst shard
+	shardsdiscovered++;	
+	bottomshard = addshardstoqueue(bottomshard, bottomshard, 0);
+	topshard->discovered++;
+	shardgraph* oldtopshard = topshard;
+	topshard = topshard->nextinqueue;
+	oldtopshard->nextinqueue = NULL;
+
+	//Compute remaining shards
+	while(topshard!= NULL) {
+		oldtopshard = topshard;
+		topshard = topshard->nextinqueue;
+		oldtopshard->nextinqueue = NULL;
+		if(oldtopshard->discovered) {
+			printf("Solving shard %d/%d with shard id %d\n", shardssolved, validshards, oldtopshard->shardid);
+			solvefragment(workingfolder, oldtopshard, shardsize);
+			shardssolved++;
+		}
+		else {
+			printf("Discovering shard %d/%d with shard id %d\n", shardsdiscovered, validshards, oldtopshard->shardid);
+			discoverfragment(workingfolder, oldtopshard, shardsize);
+			shardsdiscovered++;
+		}
+		addshardstoqueue(bottomshard, oldtopshard, oldtopshard->discovered);
+		oldtopshard->discovered++;
+
+	}
+	freeshardlist(shardList, shardsize); //Clean up
 }

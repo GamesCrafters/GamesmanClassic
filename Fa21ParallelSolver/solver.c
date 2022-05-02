@@ -1,11 +1,14 @@
-#include "Game.h"
-#include "memory.h"
+#include "solver.h"
 
-void discoverfragment(char** inputfiles, char* outputfolder, gamehash minhash, char fragmentsize) {
 
+void discoverstartingfragment(char* workingfolder, char fragmentsize) {
+	return;
+}
+void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmentsize) {
+	return;
 }
 
-void solvefragment(char* inputfile, char* solvedfragmentfolder, gamehash minhash, char fragmentsize)
+void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsize)
 {
   /*gamehash* childrenshards;
   int shardcount = getchildrenshards(&childrenshards, fragmentsize, minhash);
@@ -18,9 +21,74 @@ void solvefragment(char* inputfile, char* solvedfragmentfolder, gamehash minhash
   }
   //Collect the data from the GPU
   //Compress and save the shard into solvedfragmentfolder*/
+  return;
 }
 
-int main(int argc, char** argv)
+
+
+static int initializeshard(shardgraph* shardlist, char* shardinitialized, uint32_t shardsize, uint32_t startingshard) {
+	printf("Initializing shard %d\n", startingshard);
+	fflush(stdout);
+	if(!shardinitialized[startingshard]) {
+		shardinitialized[startingshard] = 1;
+		uint64_t* childrenshards;
+		int childrencount = getchildrenshards(&childrenshards, shardsize, startingshard);
+		shardlist[startingshard].shardid = startingshard;
+		shardlist[startingshard].childrencount = childrencount;
+		shardlist[startingshard].childrenshards = calloc(childrencount, sizeof(shardgraph*));
+		int subshardsadded = 1;
+		for(int i = 0; i < childrencount; i++) {
+			subshardsadded+= initializeshard(shardlist, shardinitialized, shardsize, childrenshards[i]);
+			shardlist[startingshard].childrenshards[i] = shardlist+childrenshards[i];
+			shardlist[childrenshards[i]].parentcount++;
+		}
+		free(childrenshards);
+		return subshardsadded;
+	}
+	else return 0;
+}
+static void initializeparentshard(shardgraph* shardlist, shardgraph* startingshard) {
+	if(!startingshard->parentshards) {
+		startingshard->parentshards = calloc(startingshard->parentcount, sizeof(shardgraph*));
+		startingshard->parentcount = 0;
+		for(int i = 0; i < startingshard->childrencount; i++)
+		{
+			initializeparentshard(shardlist, startingshard->childrenshards[i]);
+			(startingshard->childrenshards[i])->parentshards[(startingshard->childrenshards[i])->parentcount] = startingshard;
+			((startingshard->childrenshards[i])->parentcount)++;
+		}
+	}
+}
+
+shardgraph* getstartingshard(shardgraph* shardlist, int shardsize)
+{
+	return shardlist+(getHash(getStartingPositions()) >> shardsize);
+}
+//Initializes all relevant shards. Returns the number of shards actually created.
+int initializeshardlist(shardgraph** shardlistptr, uint32_t shardsize) {
+	uint32_t shardcount = 1 << (hashLength() - shardsize);
+	shardgraph* shardlist = calloc(shardcount, sizeof(shardgraph));
+	*shardlistptr = shardlist;
+	char* shardinitialized = calloc(shardcount, sizeof(char));
+	uint32_t startingshard = getHash(getStartingPositions()) >> shardsize;
+	int validshards = initializeshard(shardlist, shardinitialized, shardsize, startingshard);
+	printf("%p\n", shardlist);
+	fflush(stdout);
+	initializeparentshard(shardlist, shardlist+startingshard);
+	free(shardinitialized);
+	return validshards;
+}
+void freeshardlist(shardgraph* shardlist, uint32_t shardsize) {
+	uint32_t shardcount = 1 << (hashLength() - shardsize);
+	for(int i = 0; i < shardcount; i++) if(shardlist[i].childrenshards != NULL) {free(shardlist[i].childrenshards); free(shardlist[i].parentshards);}
+	free(shardlist);
+}
+
+
+
+
+
+/*int main(int argc, char** argv)
 {
 	if(argc != 2)
 	{
@@ -137,4 +205,4 @@ int main(int argc, char** argv)
 	free(fringe);
 	free(positionsfound);
 	return 0;
-}
+}*/

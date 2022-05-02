@@ -38,7 +38,7 @@ int getMaxMoves();
 
 gamehash getHash(game position);
 
-int maxHash();
+gamehash maxHash();
 
 int hashLength();
 
