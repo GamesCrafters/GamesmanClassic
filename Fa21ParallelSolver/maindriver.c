@@ -13,6 +13,7 @@ static shardgraph* addshardstoqueue(shardgraph* bottomshard, shardgraph* complet
 			parentshard->childrensolved++;
 			if(parentshard->childrensolved == parentshard->childrencount)
 			{
+				//printf("Added shard %d to queue for solving\n", parentshard->shardid);
 				bottomshard->nextinqueue = parentshard;
 				bottomshard = parentshard;
 			}
@@ -24,11 +25,13 @@ static shardgraph* addshardstoqueue(shardgraph* bottomshard, shardgraph* complet
 			childshard->parentsdiscovered++;
 			if(childshard->parentsdiscovered == childshard->parentcount)
 			{
+				//printf("Added shard %d to queue for discovery\n", childshard->shardid);
 				bottomshard->nextinqueue = childshard;
 				bottomshard = childshard;
 			}
 		}
 		if(completedshard->childrencount == 0) {
+			//printf("Added shard %d to queue for solving\n", completedshard->shardid);
 			bottomshard->nextinqueue = completedshard;
 			bottomshard = completedshard;
 		}
@@ -47,7 +50,6 @@ int main(int argc, char** argv)
   	initialize_constants();
 
 	  shardgraph* shardList;
-
 	int validshards = initializeshardlist(&shardList, shardsize);
 	printf("Shard graph computed: %d shards will be computed\n", validshards);
 	fflush(stdout);
@@ -72,8 +74,6 @@ int main(int argc, char** argv)
 	//Compute remaining shards
 	while(topshard!= NULL) {
 		oldtopshard = topshard;
-		topshard = topshard->nextinqueue;
-		oldtopshard->nextinqueue = NULL;
 		if(oldtopshard->discovered) {
 			printf("Solving shard %d/%d with shard id %d\n", shardssolved, validshards, oldtopshard->shardid);
 			solvefragment(workingfolder, oldtopshard, shardsize);
@@ -84,9 +84,12 @@ int main(int argc, char** argv)
 			discoverfragment(workingfolder, oldtopshard, shardsize);
 			shardsdiscovered++;
 		}
-		addshardstoqueue(bottomshard, oldtopshard, oldtopshard->discovered);
+		bottomshard = addshardstoqueue(bottomshard, oldtopshard, oldtopshard->discovered);
+		topshard = topshard->nextinqueue;
+		oldtopshard->nextinqueue = NULL;
 		oldtopshard->discovered++;
 
 	}
+	printf("Done computing\n");
 	freeshardlist(shardList, shardsize); //Clean up
 }

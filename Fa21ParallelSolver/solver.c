@@ -27,14 +27,16 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 
 
 static int initializeshard(shardgraph* shardlist, char* shardinitialized, uint32_t shardsize, uint32_t startingshard) {
-	printf("Initializing shard %d\n", startingshard);
-	fflush(stdout);
 	if(!shardinitialized[startingshard]) {
+		//printf("Initializing shard %d\n", startingshard);
+		//fflush(stdout);
 		shardinitialized[startingshard] = 1;
 		uint64_t* childrenshards;
 		int childrencount = getchildrenshards(&childrenshards, shardsize, startingshard);
+
 		shardlist[startingshard].shardid = startingshard;
 		shardlist[startingshard].childrencount = childrencount;
+		//printf("Shard %d has %d children\n", startingshard, childrencount);
 		shardlist[startingshard].childrenshards = calloc(childrencount, sizeof(shardgraph*));
 		int subshardsadded = 1;
 		for(int i = 0; i < childrencount; i++) {
@@ -72,8 +74,6 @@ int initializeshardlist(shardgraph** shardlistptr, uint32_t shardsize) {
 	char* shardinitialized = calloc(shardcount, sizeof(char));
 	uint32_t startingshard = getHash(getStartingPositions()) >> shardsize;
 	int validshards = initializeshard(shardlist, shardinitialized, shardsize, startingshard);
-	printf("%p\n", shardlist);
-	fflush(stdout);
 	initializeparentshard(shardlist, shardlist+startingshard);
 	free(shardinitialized);
 	return validshards;

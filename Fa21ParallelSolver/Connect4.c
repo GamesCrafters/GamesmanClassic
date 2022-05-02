@@ -195,16 +195,6 @@ static int testC4() {
 	free(movestring);
 }*/
 
-static inline bool sigbit(uint64_t shard, int col, char shardsize) {
-	int id_size = hashLength() - shardsize;
-	int r = id_size % (ROWCOUNT+1);
-	if (col == 0 && r == 0) {
-		return shard > 0;
-	} else if (col == 0) {
-		return shard & (1 << r - 1) > 0;
-	}
-	return shard & (1 << (col * (ROWCOUNT+1) + r - 1)) > 0;
-}
 
 static inline uint64_t makeColumnMove(uint64_t shard, char move, char mode) {
     return shard + (1<<(move + mode));
@@ -213,49 +203,53 @@ static inline uint64_t makeColumnMove(uint64_t shard, char move, char mode) {
 int getchildrenshards(uint64_t** childrenshards, char shardsize, uint64_t parentshard) {
 	// Column size is not 7
 	int id_size = hashLength() - shardsize; // size in bits
-	int full_cols = (int)(id_size / (ROWCOUNT+1));
+	int full_cols = (id_size / (ROWCOUNT+1));
 	int remainders = id_size % (ROWCOUNT+1);
 	int length = 0;
 
 	// Count the number of non-full 7-sized columns
-	for (int i = 1; i < full_cols+1; i++) {
-		if (!sigbit(parentshard, i, shardsize)) {
-			length = length + 2;
+	for (int i = 0; i < full_cols; i++) {
+		if (!(parentshard&(1<<(id_size-1-((ROWCOUNT+1)*i))))) {
+			length+=2;
 		}
 	}
-	// Count the number of non-full <7-sized columns
-	int filter = (1<<remainders) - 1;
-	if (!sigbit(parentshard, 0, shardsize) && parentshard & filter > 0) {
-		length = length + 2;
-	} else if (parentshard & filter <= 0 && !sigbit(parentshard, 0, shardsize)){
-		length = length + 1;
-	}
+    if(remainders) {
+	    // Count the number of non-full <7-sized columns
+	    int filter = (1<<remainders) - 1;
+	    if (!(parentshard&(1<<(remainders-1)))) {
+	    	length += (parentshard & filter) ? 2 : 1;
+	    } 
+    }
 	uint64_t* children = malloc(length * sizeof(uint64_t));
-	int i = id_size - 1;
-	int added = 0;
-	int full_c_passed = 0;
-	while (i >= 0 || added < length) {
-		if (full_c_passed >= full_cols && parentshard & filter <= 0) {
-			*(children + added) = parentshard + 1;
-			added++;
-			break;
-		}
-		if ((parentshard>>i) & 1 > 0) {
-			if (((i+1)-remainders) % (ROWCOUNT + 1) == 0) {
-				i = (int)((i-2)/(ROWCOUNT+1)) * (ROWCOUNT+1) - 1 + remainders;
-        full_c_passed += 1;
-			} else {
-				*(children + added) = makeColumnMove(parentshard, i, 0);
-        added += 1;
-        *(children + added) = makeColumnMove(parentshard, i, 1);
-        added += 1;
-        full_c_passed += 1;
-        i = (int)((i-1)/(ROWCOUNT+1)) * (ROWCOUNT+1) - 1 + remainders;
-			}
-		} else {
-			i -= 1;
-		}
-	}
+    int allocatedchildren = 0;
+    int columnremainingbits = ROWCOUNT+1;
+    for(int i = id_size - 1; i >= 0;) {
+        if(parentshard&(1<<i)) {
+            //printf("%d %d\n", i, columnremainingbits);
+            if(columnremainingbits != ROWCOUNT+1) {
+                children[allocatedchildren] = parentshard+(1<<i);
+                children[allocatedchildren+1] = parentshard+(1<<(i+1));
+                //printf("%d %d\n", parentshard+(1<<i), parentshard+(1<<(i+1)));
+                allocatedchildren+=2;
+            }
+            i-=columnremainingbits;
+            columnremainingbits = ROWCOUNT+1;
+        }
+        else{
+            columnremainingbits--;
+            i--;
+        }
+    }
+    if(allocatedchildren < length) {
+        children[allocatedchildren] = parentshard+1;
+        allocatedchildren++;
+    }
+    /*printf("Children found for shard %d: ", parentshard);
+    for(int i = 0; i < allocatedchildren; i++) printf("%d ", children[i]);
+    printf("\n");
+    if(allocatedchildren != length) {
+        printf("Error: incorrect children found: %d instead of %d\n", allocatedchildren, length);
+    }*/
 	*childrenshards = children; // no free
 	return length;
 }
