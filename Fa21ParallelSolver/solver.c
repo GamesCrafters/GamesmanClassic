@@ -1,10 +1,7 @@
 #include "solver.h"
 
 
-void discoverstartingfragment(char* workingfolder, char fragmentsize) {
-	return;
-}
-void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmentsize) {
+void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmentsize, bool isstartingfragment) {
 	uint64_t currentshardid = targetshard->shardid;
 
 	// Gives list of children shards that we send discovery children to that we send to
@@ -46,21 +43,8 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	char* filenamewriteaddr = filename+strlen(workingfolder);
 	const int SHARDOFFSETMASK = (1ULL << fragmentsize) - 1;
 
-	//Find all children in childrenshards
-	for (int i = 0; i < targetshard->parentcount; i++) {
-		//Open the file and read the first word to determine how many children are to be read
-		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%d-%d", targetshard->parentshards[i]->shardid, targetshard->shardid);
-		FILE* parentfile = fopen(filename, "r");
-		uint32_t positioncountfromparent;
-		fread(&positioncountfromparent, 4, 1, parentfile);
-
-		for(int j = 0; j < positioncountfromparent; j++) {
-			//For each position in the file, add it to the fringe and run graph traversal from there
-			uint32_t newpositionoffset;
-			fread(&newpositionoffset, 4, 1, parentfile);
-			if(solverread(localpositions, newpositionoffset)) continue; //If the position already is in the solver, we've already traversed from there, so ignore the position.
-			gamehash newpositionhash = ((uint64_t) targetshard->shardid) << fragmentsize + newpositionoffset; //Otherwise, set up the game corresponding to the saved offset.
-			fringe[0] = hashToPosition(newpositionhash);
+	if(isstartingfragment) {
+			fringe[0] = getStartingPositions();
 			index = 1;
 
 
@@ -92,9 +76,58 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 					}
 				}
 			}
-		}
+	}
+	else {
+	//Find all children in childrenshards
+		for (int i = 0; i < targetshard->parentcount; i++) {
+			//Open the file and read the first word to determine how many children are to be read
+			snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%d-%d", targetshard->parentshards[i]->shardid, targetshard->shardid);
+			FILE* parentfile = fopen(filename, "r");
+			uint32_t positioncountfromparent;
+			fread(&positioncountfromparent, 4, 1, parentfile);
 
-		fclose(parentfile); //Clean up
+			for(int j = 0; j < positioncountfromparent; j++) {
+				//For each position in the file, add it to the fringe and run graph traversal from there
+				uint32_t newpositionoffset;
+				fread(&newpositionoffset, 4, 1, parentfile);
+				if(solverread(localpositions, newpositionoffset)) continue; //If the position already is in the solver, we've already traversed from there, so ignore the position.
+				gamehash newpositionhash = ((uint64_t) targetshard->shardid) << fragmentsize + newpositionoffset; //Otherwise, set up the game corresponding to the saved offset.
+				fringe[0] = hashToPosition(newpositionhash);
+				index = 1;
+
+
+				int movecount, k, oldindex, newpositionshard;
+				while (index) {
+					oldindex = index;
+					g = fringe[index - 1];
+					index--; //For discovery, there's no need to keep the current position on the fringe, since we don't need to go back to it.
+					h = getHash(g);
+					if (solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) { //If we don't find this position in our solver, expand it for discovery
+						solverinsert(localpositions, h&(SHARDOFFSETMASK), 1); //Insert 1 here to that position to signify that it has been expanded. Do this now to minimize the time other threads can access this and try to duplicate work.
+					
+						movecount = generateMoves((char*) &moves, g);
+						for (k = 0; k < movecount; k++) { //Iterate through all children of the current position
+							newg = doMove(g, moves[k]);
+							h = getHash(newg);
+							newpositionshard = h >> fragmentsize;
+							if(newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
+								fringe[index++] = newg;
+							}
+							else if(newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
+								for(int l = 0; l < targetshard->childrencount;l++) {
+									if(newpositionshard == targetshard->childrenshards[l]->shardid) {
+										solverinsert(childrenshards[l], h&SHARDOFFSETMASK, 1);
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			fclose(parentfile); //Clean up
+		}
 	}
 
 	//Save all children to appropriate files
