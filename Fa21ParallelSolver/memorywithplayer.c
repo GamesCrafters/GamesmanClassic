@@ -33,7 +33,7 @@ void solverinsert(solverdata* data, uint64_t key, unsigned char val)
 }
 
 /*Reads a data value at the given key, returning 0 if the value has not been inserted*/
-unsigned char solverread(const solverdata* data, uint64_t key)
+unsigned char solverread(solverdata* data, uint64_t key)
 {
     return data->data[key];
 }
@@ -160,7 +160,7 @@ void freesolver(solverdata* data) {
 }
 
 /*Initializes the data structure for a player, read from a given filename*/
-playerdata* initializeplayerdata(char* filename)
+playerdata* initializeplayerdata(int keylen, char* filename)
 {
     FILE* file = fopen(filename, "rb");
     if (!file) {
@@ -179,7 +179,7 @@ static int onRight(uint64_t key, unsigned char size) {
 /* Reads a data value at the given key. Returns a garbage value
    if the key had not received a defined value in the corresponding
    solver. */
-unsigned char playerread(const playerdata* data, uint64_t key) {
+unsigned char playerread(playerdata* data, uint64_t key) {
     rewind(data->file);
     unsigned char size;
     unsigned char res;
@@ -215,7 +215,7 @@ void freeplayer(playerdata* data)
     free(data);
 }
 
-bool verifyPlayerData(const solverdata* sd, const playerdata* pd) {
+bool verifyPlayerData(solverdata* sd, playerdata* pd) {
     int size = (int)sd->size;
     for (uint64_t i = 0; i < (1ul << size); ++i) {
         if (i % 1000000 == 0) {

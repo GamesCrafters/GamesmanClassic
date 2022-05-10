@@ -23,6 +23,7 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 		childrenshards[i] = initializesolverdata(fragmentsize);
 		if(childrenshards[i] == NULL) {
 			printf("Memory allocation error\n");
+			fflush(stdout);
 			return;
 		}
 	}
@@ -30,6 +31,7 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	game* fringe = calloc(sizeof(game), getMaxMoves() * getMaxDepth());
 	if (localpositions == NULL || fringe == NULL) {
 		printf("Memory allocation error\n");
+		fflush(stdout);
 		return;
 	}
 
@@ -38,6 +40,11 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	//Set up the file name
 	int filenamemaxlength = strlen("/transfer-100000000-100000000")+1;
 	char* filename = malloc(sizeof(char)*(filenamemaxlength + strlen(workingfolder)));
+	if(filename == NULL) {
+		printf("Memory allocation error\n");
+		fflush(stdout);
+		return;
+	}
 	strncpy(filename, workingfolder, strlen(workingfolder));
 	char* filenamewriteaddr = filename+strlen(workingfolder);
 	const int SHARDOFFSETMASK = (1ULL << fragmentsize) - 1;
@@ -111,6 +118,11 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 							newpositionshard = h >> fragmentsize;
 							if(newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
 								fringe[index++] = newg;
+								if(index >= getMaxMoves() * getMaxDepth()) {
+									printf("Index out of bounds of fringe\n");
+									fflush(stdout);
+									return;
+								}
 							}
 							else if(newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
 								for(int l = 0; l < targetshard->childrencount;l++) {
@@ -131,7 +143,7 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	//Save all children to appropriate files
 	for(int i = 0; i < childrenshardcount; i++) {
 		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu", currentshardid, targetshard->childrenshards[i]->shardid);
-		printf("Writing transfer file from shard %llu to %llu: ", currentshardid, targetshard->childrenshards[i]->shardid);
+		//printf("Writing transfer file from shard %llu to %llu: ", currentshardid, targetshard->childrenshards[i]->shardid);
 		FILE* childfile = fopen(filename, "w");
 		int positionsfound = 0;
 		fwrite(&positionsfound, 4, 1, childfile); // Store a dummy space of 4 bytes to later save the number of positions found
@@ -141,7 +153,7 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 				positionsfound++;
 			}
 		}
-		printf("%d positions found\n", positionsfound);
+		//printf("%d positions found\n", positionsfound);
 		fseek(childfile, 0, SEEK_SET);
 		fwrite(&positionsfound, 4, 1, childfile);
 		fclose(childfile);

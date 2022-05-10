@@ -15,11 +15,11 @@ solverdata* initializesolverdata(int keylen);
 
 /*Inserts the given (key,val) pair to a solver. It is assumed that any insert either occurs only once
 or occurs with the same value for a given key, and assumes that val != 0*/
-void solverinsert(solverdata* data, uint64_t key, char val);
+void solverinsert(solverdata* data, uint64_t key, unsigned char val);
 
 
 /*Reads a data value at the given key, returning 0 if the value has not been inserted*/
-char solverread(solverdata* data, uint64_t key);
+unsigned char solverread(solverdata* data, uint64_t key);
 
 
 /*Writes to the given file (assumed to be opened and readable) the current solver state.
@@ -36,9 +36,9 @@ playerdata* initializeplayerdata(int keylen, char* filename);
 
 /*Reads a data value at the given key. Returns a random value if the key had not received a
 defined value in the corresponding solver.*/
-char playerread(playerdata* data, uint64_t key);
+unsigned char playerread(playerdata* data, uint64_t key);
 
 /*Frees a player*/
 void freeplayer(playerdata* data);
 
-bool verifyPlayerData(const solverdata* sd, const playerdata* pd);
+bool verifyPlayerData(solverdata* sd, playerdata* pd);
