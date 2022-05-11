@@ -38,7 +38,7 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	// Add incoming Discovery states from parent
 	// Multiple top node in shard
 	//Set up the file name
-	int filenamemaxlength = strlen("/transfer-100000000-100000000")+1;
+	int filenamemaxlength = strlen("/transfer-100000000-100000000-x-primitive")+1;
 	char* filename = malloc(sizeof(char)*(filenamemaxlength + strlen(workingfolder)));
 	if(filename == NULL) {
 		printf("Memory allocation error\n");
@@ -49,58 +49,65 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	char* filenamewriteaddr = filename+strlen(workingfolder);
 	const int SHARDOFFSETMASK = (1ULL << fragmentsize) - 1;
 	if(isstartingfragment) {
-			fringe[0] = getStartingPositions();
-			index = 1;
+		fringe[0] = getStartingPositions();
+		index = 1;
 
-
-			int movecount, k, oldindex, newpositionshard;
-			int positionschecked = 0;
-			while (index) {
-				oldindex = index;
-				g = fringe[index - 1];
-				index--; //For discovery, there's no need to keep the current position on the fringe, since we don't need to go back to it.
-				h = getHash(g);
-				if (solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) { //If we don't find this position in our solver, expand it for discovery
-					solverinsert(localpositions, h&(SHARDOFFSETMASK), 1); //Insert 1 here to that position to signify that it has been expanded. Do this now to minimize the time other threads can access this and try to duplicate work.
+		int movecount, k, oldindex, newpositionshard;
+		int positionschecked = 0;
+		while (index) {
+			oldindex = index;
+			g = fringe[index - 1];
+			index--; //For discovery, there's no need to keep the current position on the fringe, since we don't need to go back to it.
+			h = getHash(g);
+			if (solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) { //If we don't find this position in our solver, expand it for discovery
+				solverinsert(localpositions, h&(SHARDOFFSETMASK), 1); //Insert 1 here to that position to signify that it has been expanded. Do this now to minimize the time other threads can access this and try to duplicate work.
 					
-					movecount = generateMoves((char*) &moves, g);
-					for (k = 0; k < movecount; k++) { //Iterate through all children of the current position
-						newg = doMove(g, moves[k]);
-						h = getHash(newg);
-						newpositionshard = h >> fragmentsize;
-						if(newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
+				movecount = generateMoves((char*) &moves, g);
+				for (k = 0; k < movecount; k++) { //Iterate through all children of the current position
+					newg = doMove(g, moves[k]);
+					h = getHash(newg);
+					newpositionshard = h >> fragmentsize;
+					if(newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
+						if(isPrimitive(newg, moves[k]) == NOT_PRIMITIVE)
 							fringe[index++] = newg;
-						}
-						else if(newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
-							for(int l = 0; l < targetshard->childrencount;l++) {
-								if(newpositionshard == targetshard->childrenshards[l]->shardid) {
-									solverinsert(childrenshards[l], h&SHARDOFFSETMASK, 1);
-									break;
-								}
+						else
+							solverinsert(localpositions, h&(SHARDOFFSETMASK), 2);
+					}
+					else if(newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
+						for(int l = 0; l < targetshard->childrencount;l++) {
+							if(newpositionshard == targetshard->childrenshards[l]->shardid) {
+								if(!solverread(childrenshards[l], h&SHARDOFFSETMASK))
+									solverinsert(childrenshards[l], h&SHARDOFFSETMASK, isPrimitive(newg, moves[k]));
+								break;
 							}
 						}
 					}
 				}
 			}
+		}
 	}
 	else {
 	//Find all children in childrenshards
 		for (int i = 0; i < targetshard->parentcount; i++) {
 			//Open the file and read the first word to determine how many children are to be read
 			snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu", targetshard->parentshards[i]->shardid, targetshard->shardid);
-			FILE* parentfile = fopen(filename, "r");
-			uint32_t positioncountfromparent;
-			fread(&positioncountfromparent, 4, 1, parentfile);
+			FILE* parentfile = fopen(filename, "rb");
+			if(parentfile == NULL) {
+				printf("File Open Error: %s\n", filename);
+				fflush(stdout);
+				return;
+			}
+			int positioncountfromparent;
+			fread(&positioncountfromparent, sizeof(int), 1, parentfile);
 			//printf("%d positions will be checked from parent %llu\n", positioncountfromparent, targetshard->parentshards[i]->shardid);
 			for(int j = 0; j < positioncountfromparent; j++) {
 				//For each position in the file, add it to the fringe and run graph traversal from there
 				uint32_t newpositionoffset;
-				fread(&newpositionoffset, 4, 1, parentfile);
-				if(solverread(localpositions, newpositionoffset)) continue; //If the position already is in the solver, we've already traversed from there, so ignore the position.
+				fread(&newpositionoffset, sizeof(uint32_t), 1, parentfile);
+				if(solverread(localpositions, newpositionoffset)) continue; //If the position already is in the solver, we've already traversed from there, so ignore the position.		
 				gamehash newpositionhash = (((uint64_t) targetshard->shardid) << fragmentsize) + newpositionoffset; //Otherwise, set up the game corresponding to the saved offset.
 				fringe[0] = hashToPosition(newpositionhash);
 				index = 1;
-
 
 				int movecount, k, oldindex, newpositionshard;
 				while (index) {
@@ -117,17 +124,16 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 							h = getHash(newg);
 							newpositionshard = h >> fragmentsize;
 							if(newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
-								fringe[index++] = newg;
-								if(index >= getMaxMoves() * getMaxDepth()) {
-									printf("Index out of bounds of fringe\n");
-									fflush(stdout);
-									return;
-								}
+								if(isPrimitive(newg, moves[k]) == NOT_PRIMITIVE)
+									fringe[index++] = newg;
+								else
+									solverinsert(localpositions, h&(SHARDOFFSETMASK), 2);
 							}
 							else if(newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
 								for(int l = 0; l < targetshard->childrencount;l++) {
 									if(newpositionshard == targetshard->childrenshards[l]->shardid) {
-										solverinsert(childrenshards[l], h&SHARDOFFSETMASK, 1);
+										if(!solverread(childrenshards[l], h&SHARDOFFSETMASK))
+											solverinsert(childrenshards[l], h&SHARDOFFSETMASK, isPrimitive(newg, moves[k]));
 										break;
 									}
 								}
@@ -143,20 +149,44 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	//Save all children to appropriate files
 	for(int i = 0; i < childrenshardcount; i++) {
 		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu", currentshardid, targetshard->childrenshards[i]->shardid);
-		//printf("Writing transfer file from shard %llu to %llu: ", currentshardid, targetshard->childrenshards[i]->shardid);
-		FILE* childfile = fopen(filename, "w");
-		int positionsfound = 0;
-		fwrite(&positionsfound, 4, 1, childfile); // Store a dummy space of 4 bytes to later save the number of positions found
-		for(int j = 0; j < 1<<fragmentsize; j++) { //Could probably be made more efficient, but I think this setup is more easily parallelizable
-			if(solverread(childrenshards[i], j)) { //If the position was found in discovery, save it to the file and increment the number of positions found
-				fwrite(&j, 4, 1, childfile);
-				positionsfound++;
+		FILE* childnonprimitivefile = fopen(filename, "wb"); //Open non-primitive file
+		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu-l-primitive", currentshardid, targetshard->childrenshards[i]->shardid);
+		FILE* childlossfile = fopen(filename, "wb"); //Open loss file
+		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu-t-primitive", currentshardid, targetshard->childrenshards[i]->shardid);
+		FILE* childtiefile = fopen(filename, "wb"); //Open tie file
+		int nppositionsfound = 0, losspositionsfound = 0, tiepositionsfound = 0;
+		fwrite(&nppositionsfound, sizeof(int), 1, childnonprimitivefile); // Store a dummy space of 4 bytes to later save the number of positions found
+		fwrite(&nppositionsfound, sizeof(int), 1, childlossfile); // Store a dummy space of 4 bytes to later save the number of positions found
+		fwrite(&nppositionsfound, sizeof(int), 1, childtiefile); // Store a dummy space of 4 bytes to later save the number of positions found
+		for(uint32_t j = 0; j < 1<<fragmentsize; j++) { //Could probably be made more efficient, but I think this setup is more easily parallelizable
+			switch(solverread(childrenshards[i], j)) { //If the position was found in discovery, save it to the file and increment the number of positions found
+				case NOT_PRIMITIVE: {
+					fwrite(&j, sizeof(uint32_t), 1, childnonprimitivefile);
+					nppositionsfound++;
+					break;
+				}
+				case LOSS: {
+					fwrite(&j, sizeof(uint32_t), 1, childlossfile);
+					losspositionsfound++;
+					break;
+				}
+				case TIE: {
+					fwrite(&j, sizeof(uint32_t), 1, childtiefile);
+					tiepositionsfound++;
+					break;
+				}
 			}
 		}
 		//printf("%d positions found\n", positionsfound);
-		fseek(childfile, 0, SEEK_SET);
-		fwrite(&positionsfound, 4, 1, childfile);
-		fclose(childfile);
+		fseek(childnonprimitivefile, 0, SEEK_SET);
+		fwrite(&nppositionsfound, sizeof(int), 1, childnonprimitivefile);
+		fseek(childlossfile, 0, SEEK_SET);
+		fwrite(&losspositionsfound, sizeof(int), 1, childlossfile);
+		fseek(childtiefile, 0, SEEK_SET);
+		fwrite(&tiepositionsfound, sizeof(int), 1, childtiefile);
+		fclose(childnonprimitivefile);
+		fclose(childlossfile);
+		fclose(childtiefile);
 	}
 	//Clean up
 	free(filename);
@@ -189,13 +219,14 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 	// Next Tier: Use CUDA Malloc when moving to GPU for "moves" and "fringe"
 	solverdata* localpositions = initializesolverdata(fragmentsize);
 	int solvedshardfilenamemaxlength 
-	= strlen("/solved/100000000")+1;
+	= strlen("/solved-100000000")+1;
 	char* solvedshardfilename = malloc(sizeof(char)*(solvedshardfilenamemaxlength + strlen(workingfolder)));
 	strncpy(solvedshardfilename, workingfolder, strlen(workingfolder));
 	char* solvedshardfilenamewriteaddr = solvedshardfilename+strlen(workingfolder);
 	for(int i = 0; i < childrenshardcount; i++) {
-		snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved/%d", targetshard->childrenshards[i]->shardid);
+		snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%d", targetshard->childrenshards[i]->shardid);
 		childrenshards[i] = initializeplayerdata(fragmentsize, solvedshardfilename);
+		printf("Shard %d player loaded\n", targetshard->childrenshards[i]->shardid);
 		if(childrenshards[i] == NULL) {
 			printf("Memory allocation error\n");
 			return;
@@ -211,7 +242,7 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 	// Add incoming Discovery states from parent
 	// Multiple top node in shard
 	//Set up the file name
-	int filenamemaxlength = strlen("/transfer/100000000-100000000")+1;
+	int filenamemaxlength = strlen("/transfer-100000000-100000000")+1;
 	char* filename = malloc(sizeof(char)*(filenamemaxlength + strlen(workingfolder)));
 	strncpy(filename, workingfolder, strlen(workingfolder));
 	char* filenamewriteaddr = filename+strlen(workingfolder);
@@ -219,23 +250,47 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 	//Find all children in childrenshards
 	for (int i = 0; i < targetshard->parentcount; i++) {
 		//Open the file and read the first word to determine how many children are to be read
-		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer/%llu-%llu", targetshard->parentshards[i]->shardid, targetshard->shardid);
-		FILE* parentfile = fopen(filename, "r");
-		uint32_t positioncountfromparent;
-		fread(&positioncountfromparent, 4, 1, parentfile);
+		int positioncountfromparent;
 
+		//Insert the loss positions found from the parent shard
+		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu-l-primitive", currentshardid, targetshard->childrenshards[i]->shardid);
+		FILE* childlossfile = fopen(filename, "rb"); //Open loss file
+		fread(&positioncountfromparent, sizeof(int), 1, childlossfile);
+		for(int j = 0; j < positioncountfromparent; j++) {
+			uint32_t newpositionoffset;
+			fread(&newpositionoffset, sizeof(uint32_t), 1, childlossfile);
+			solverinsert(localpositions, newpositionoffset, LOSS); //Insert is going to be faster than a read and check, so might as well just insert directly.
+		}
+		fclose(childlossfile);
+
+		//Insert the tie positions found from the parent shard
+		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu-t-primitive", currentshardid, targetshard->childrenshards[i]->shardid);
+		FILE* childtiefile = fopen(filename, "rb"); //Open tie file
+		fread(&positioncountfromparent, sizeof(int), 1, childtiefile);
+		for(int j = 0; j < positioncountfromparent; j++) {
+			uint32_t newpositionoffset;
+			fread(&newpositionoffset, sizeof(uint32_t), 1, childtiefile);
+			solverinsert(localpositions, newpositionoffset, TIE);
+		}
+		fclose(childtiefile);
+
+		//Begin computing any nonprimitives found from the parent shard
+		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu", targetshard->parentshards[i]->shardid, targetshard->shardid);
+		FILE* parentfile = fopen(filename, "rb");
+		fread(&positioncountfromparent, sizeof(int), 1, parentfile);
 		for(int j = 0; j < positioncountfromparent; j++) {
 			//For each position in the file, add it to the fringe and run graph traversal from there
 			uint32_t newpositionoffset;
-			fread(&newpositionoffset, 4, 1, parentfile);
+			fread(&newpositionoffset, sizeof(uint32_t), 1, parentfile);
 			if(solverread(localpositions, newpositionoffset)) continue; //If the position already is in the solver, we've already traversed from there, so ignore the position.
-			gamehash newpositionhash = ((uint64_t) targetshard->shardid) << fragmentsize + newpositionoffset; //Otherwise, set up the game corresponding to the saved offset.
+			gamehash newpositionhash = (((uint64_t) targetshard->shardid) << fragmentsize) + newpositionoffset; //Otherwise, set up the game corresponding to the saved offset.
 			fringe[0] = hashToPosition(newpositionhash);
 			index = 1;
 
 
 			int movecount, k, oldindex, newpositionshard;
 			char minprimitive;
+
 			while (index) {
 				minprimitive = 255;
 				oldindex = index;
@@ -295,8 +350,8 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 		fclose(parentfile); //Clean up
 	}
 	//Save shard
-	snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved/%llu", currentshardid);
-	FILE* childfile = fopen(solvedshardfilename, "w");
+	snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%llu", currentshardid);
+	FILE* childfile = fopen(solvedshardfilename, "wb");
 	solversave(localpositions, childfile);
 	fclose(childfile);
 

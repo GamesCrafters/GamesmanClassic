@@ -79,14 +79,13 @@ int main(int argc, char** argv)
 			printf("Solving shard %d/%d with shard id %d\n", shardssolved, validshards, oldtopshard->shardid);
 			fflush(stdout);
 			solvefragment(workingfolder, oldtopshard, shardsize);
+			fflush(stdout);
 			shardssolved++;
 		}
 		else {
 			printf("Discovering shard %d/%d with shard id %d\n", shardsdiscovered, validshards, oldtopshard->shardid);
 			fflush(stdout);
 			discoverfragment(workingfolder, oldtopshard, shardsize, false);
-			printf("Done with discovery\n");
-			fflush(stdout);
 			shardsdiscovered++;
 		}
 		bottomshard = addshardstoqueue(bottomshard, oldtopshard, oldtopshard->discovered);
