@@ -111,8 +111,20 @@ int main(int argc, char** argv)
 	printf("%llx, %llx\n", minindex, maxindex);
 	printf("Starting output to file %s\n", argv[1]);
 	fflush(stdout);
-	FILE* file = fopen(argv[1], "w");
+	FILE* file = fopen(argv[1], "wb");
 	solversave(primitives, file);
+	fclose(file);
+	printf("Initializing player data\n");
+	fflush(stdout);
+	playerdata* p = initializeplayerdata(hashLength(), argv[1]);
+	printf("Done initializing\n");
+	fflush(stdout);
+	if(verifyPlayerData(primitives, p)) {
+		printf("Success\n");
+	}
+	else {
+		printf("Failure\n");
+	}
 	freesolver(primitives);
 	printf("Done outputting\n");
 	fflush(stdout);
