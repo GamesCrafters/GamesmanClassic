@@ -64,7 +64,7 @@ int main(int argc, char** argv)
 	
 	printf("Discovering shard %d/%d with shard id %d\n", shardsdiscovered, validshards, (topshard)->shardid);	
 	fflush(stdout);
-	//discoverfragment(workingfolder, topshard, shardsize, true); //Initialize work queue and compute first shard
+	discoverfragment(workingfolder, topshard, shardsize, true); //Initialize work queue and compute first shard
 	shardsdiscovered++;	
 	bottomshard = addshardstoqueue(bottomshard, bottomshard, 0);
 	topshard->discovered++;
@@ -78,15 +78,15 @@ int main(int argc, char** argv)
 		if(oldtopshard->discovered) {
 			printf("Solving shard %d/%d with shard id %d\n", shardssolved, validshards, oldtopshard->shardid);
 			fflush(stdout);
-			if(shardssolved>=251)
-			solvefragment(workingfolder, oldtopshard, shardsize);
+			//if(shardssolved>=251)
+			solvefragment(workingfolder, oldtopshard, shardsize, oldtopshard == getstartingshard(shardList, shardsize));
 			fflush(stdout);
 			shardssolved++;
 		}
 		else {
 			printf("Discovering shard %d/%d with shard id %d\n", shardsdiscovered, validshards, oldtopshard->shardid);
 			fflush(stdout);
-			//discoverfragment(workingfolder, oldtopshard, shardsize, false);
+			discoverfragment(workingfolder, oldtopshard, shardsize, false);
 			shardsdiscovered++;
 		}
 		bottomshard = addshardstoqueue(bottomshard, oldtopshard, oldtopshard->discovered);

@@ -23,7 +23,7 @@ typedef struct shardgraph {
 
 void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmentsize, bool isstartingfragment);
 
-void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsize);
+void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsize, bool isstartingfragment);
 
 //Shard graph functions
 
