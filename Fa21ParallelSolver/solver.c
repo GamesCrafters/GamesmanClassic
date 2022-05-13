@@ -226,8 +226,8 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 	for(int i = 0; i < childrenshardcount; i++) {
 		snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%d", targetshard->childrenshards[i]->shardid);
 		childrenshards[i] = initializeplayerdata(fragmentsize, solvedshardfilename);
-		printf("Shard %d player loaded\n", targetshard->childrenshards[i]->shardid);
-		fflush(stdout);
+		/*printf("Shard %d player loaded\n", targetshard->childrenshards[i]->shardid);
+		fflush(stdout);*/
 		if(childrenshards[i] == NULL) {
 			printf("Memory allocation error\n");
 			return;
@@ -315,24 +315,24 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 						for(int l = 0; l < targetshard->childrencount;l++) {
 							if(newpositionshard == targetshard->childrenshards[l]->shardid) {
 								primitive = playerread(childrenshards[l], h&SHARDOFFSETMASK);
-								if(primitive == 0)
+								/*if(primitive == 0)
 								{
 									printf("Error in primitive value: position %llx\n", h);
 									printf("Current fringe state: ");
 									for(int m = 0; m < index;m++) printf("%llx ", fringe[m]);
 									printf("\n");
 									exit(1);
-								}
+								}*/
 
 								break;
 							}
-							if(l == targetshard->childrencount - 1) {
+							/*if(l == targetshard->childrencount - 1) {
 								printf("Shard not found in children: %d, %llx, %llx->%llx\n", newpositionshard, h, g, newg);
 								printf("Current fringe state: ");
 								for(int m = 0; m < index;m++) printf("%llx ", fringe[m]);
 								printf("\n");
 								exit(1);
-							}
+							}*/
 						}
 					}
 					else primitive = solverread(localpositions, h&SHARDOFFSETMASK); //Otherwise, check its value in the current shard
@@ -372,15 +372,11 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 
 		fclose(parentfile); //Clean up
 	}
-	printf("Done computing\n");
-	fflush(stdout);
 	//Save shard
 	snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%llu", currentshardid);
 	FILE* childfile = fopen(solvedshardfilename, "wb");
 	solversave(localpositions, childfile);
 	fclose(childfile);
-	printf("Done computing\n");
-	fflush(stdout);
 
 	//Clean up
 	free(filename);
