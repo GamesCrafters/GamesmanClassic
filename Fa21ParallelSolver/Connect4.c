@@ -82,7 +82,7 @@ char isPrimitive(game position, char mostrecentmove) {
             char start = (char)((ROWCOUNT+1)*(i+1) - 1);
             char start2 = (char)(start+1);
             while((position & (1ULL<<start))==0) start--;
-            position |= (1ULL<<(start2))-(1L << start);
+            position |= (1ULL<<(start2))-(1ULL << start);
         }
         position = ~position;
     }
@@ -129,7 +129,7 @@ int getMaxMoves() {
 	return COLUMNCOUNT+1;
 }
 
-gamehash getHash(game position) {
+gamehash getHash(game position) {/*
     game newpos= position & 0x7FFFFFFFFFFFFFFFL;
     game oppositepos = 0;
     for(int i = 0; i < COLUMNCOUNT; i++)
@@ -137,7 +137,8 @@ gamehash getHash(game position) {
         uint64_t val = (newpos>>(i*(ROWCOUNT+1)))&((1ULL<<(ROWCOUNT+1))-1);
         oppositepos |= val<<((ROWCOUNT+1)*(COLUMNCOUNT-i-1));
     }
-    return oppositepos < newpos ? oppositepos : newpos;
+    return oppositepos < newpos ? oppositepos : newpos;*/
+    return position & 0x7FFFFFFFFFFFFFFFL;
 }
 uint64_t maxHash()
 {

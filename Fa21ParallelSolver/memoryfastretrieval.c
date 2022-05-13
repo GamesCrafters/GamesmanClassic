@@ -144,10 +144,12 @@ void solversave(solverdata* data, FILE* fp)
     int length = solversavefragment(data->size, data->data, result);
     fwrite(&(data->size), sizeof(unsigned char), 1, fp);
     if(length <= 0) {
-        printf("Compression complete. New length: 2 bytes\n");
-        result[0] = 0;
-        result[1] = -length;
-        fwrite(result, sizeof(unsigned char), 2, fp);
+        printf("Compression complete. New length: %d bytes\n", getpointerlength(data->size)+1);
+        for(int i = 0; i < getpointerlength(data->size); i++) {
+            result[i] = 0;
+        }
+        result[getpointerlength(data->size)] = -length;
+        fwrite(result, sizeof(unsigned char), getpointerlength(data->size)+1, fp);
     } else {
         printf("Compression complete. New length: %d bytes\n", length);
         fwrite(result, sizeof(unsigned char), length, fp);

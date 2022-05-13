@@ -227,6 +227,7 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 		snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%d", targetshard->childrenshards[i]->shardid);
 		childrenshards[i] = initializeplayerdata(fragmentsize, solvedshardfilename);
 		printf("Shard %d player loaded\n", targetshard->childrenshards[i]->shardid);
+		fflush(stdout);
 		if(childrenshards[i] == NULL) {
 			printf("Memory allocation error\n");
 			return;
@@ -254,7 +255,6 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 
 		//Insert the loss positions found from the parent shard
 		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu-l-primitive", targetshard->parentshards[i]->shardid, targetshard->shardid);
-		fflush(stdout);
 		FILE* childlossfile = fopen(filename, "rb"); //Open loss file
 		fread(&positioncountfromparent, sizeof(int), 1, childlossfile);
 		for(int j = 0; j < positioncountfromparent; j++) {
@@ -278,7 +278,7 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 		snprintf(filenamewriteaddr,filenamemaxlength, "/transfer-%llu-%llu", targetshard->parentshards[i]->shardid, targetshard->shardid);
 		FILE* parentfile = fopen(filename, "rb");
 		fread(&positioncountfromparent, sizeof(int), 1, parentfile);
-		int itcount = 0, misscount = 0;
+		//int itcount = 0, misscount = 0;
 		for(int j = 0; j < positioncountfromparent; j++) {
 			//For each position in the file, add it to the fringe and run graph traversal from there
 			uint32_t newpositionoffset;
@@ -304,7 +304,7 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 				h = getHash(g);
 				if(solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) //If we don't find this position in our solver, expand it for discovery
 				{
-					misscount++;
+					//misscount++;
 				movecount = generateMoves((char*)&moves, g);
 				for(k = 0; k < movecount; k++) //Iterate through all children of the current position
 				{
@@ -316,11 +316,21 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 							if(newpositionshard == targetshard->childrenshards[l]->shardid) {
 								primitive = playerread(childrenshards[l], h&SHARDOFFSETMASK);
 								if(primitive == 0)
+								{
 									printf("Error in primitive value: position %llx\n", h);
+									printf("Current fringe state: ");
+									for(int m = 0; m < index;m++) printf("%llx ", fringe[m]);
+									printf("\n");
+									exit(1);
+								}
+
 								break;
 							}
 							if(l == targetshard->childrencount - 1) {
-								printf("Shard not found in children: %d, %llx\n", newpositionshard, h);
+								printf("Shard not found in children: %d, %llx, %llx->%llx\n", newpositionshard, h, g, newg);
+								printf("Current fringe state: ");
+								for(int m = 0; m < index;m++) printf("%llx ", fringe[m]);
+								printf("\n");
 								exit(1);
 							}
 						}
@@ -362,11 +372,15 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 
 		fclose(parentfile); //Clean up
 	}
+	printf("Done computing\n");
+	fflush(stdout);
 	//Save shard
 	snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%llu", currentshardid);
 	FILE* childfile = fopen(solvedshardfilename, "wb");
 	solversave(localpositions, childfile);
 	fclose(childfile);
+	printf("Done computing\n");
+	fflush(stdout);
 
 	//Clean up
 	free(filename);
