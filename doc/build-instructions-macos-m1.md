@@ -1,6 +1,11 @@
 # Build Instructions (macOS)
 
-**The following building instructions have only been tested on macOS Catalina, but will likely work with older systems.**
+
+Run the following to clone the GamesmanClassic repo.
+```bash
+git clone https://github.com/GamesCrafters/GamesmanClassic.git
+cd GamesmanClassic
+```
 
 ## Prerequisites
 
@@ -34,7 +39,7 @@ autoconf
 
 If you get the following error `configure: error: cannot find required auxiliary files: config.guess config.sub`, then run the following:
 
-```
+```bash
 brew install wget
 wget -O config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
 wget -O config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
