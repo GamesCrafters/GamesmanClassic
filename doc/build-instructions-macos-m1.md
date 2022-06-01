@@ -1,9 +1,11 @@
 # Build Instructions (macOS)
 
+These instructions were tested on May 31, 2022 on macOS Monterey Version 12.3 and tcl-tk version 8.6.12. These instructions may work for other combinations but they have been checked with this combination.
 
 Run the following to clone the GamesmanClassic repo.
 ```bash
 git clone https://github.com/GamesCrafters/GamesmanClassic.git
+
 cd GamesmanClassic
 ```
 
@@ -22,6 +24,22 @@ brew install autoconf zlib tcl-tk
 ### Optional Dependencies
 
 If you want to compile games with big integer support, you'll need the GMP library (latest version).
+
+After you're done editing & saving the init script, reopen a terminal session and the new init script should be in effect. (You can also use the `source` command to load the init script.)
+
+### Caveats of `tcl-tk`
+
+From `brew info tcl-tk`:
+
+> tcl-tk is keg-only, which means it was not symlinked into /usr/local, because tk installs some X11 headers and macOS provides an (older) Tcl/Tk.
+
+We prefer making the `brew`-installed `tcl-tk` default. To do this, we add `tcl-tk` to the `$PATH` in the terminal init script.
+
+Add the following line to the end of `.zshrc` if it is not already there.
+
+```bash
+export PATH="/opt/homebrew/opt/tcl-tk/bin:$PATH"
+```
 
 After you're done editing & saving the init script, reopen a terminal session and the new init script should be in effect. (You can also use the `source` command to load the init script.)
 
