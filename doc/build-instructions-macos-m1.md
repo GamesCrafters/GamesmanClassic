@@ -21,6 +21,11 @@ You can install the required packages with `brew`:
 brew install autoconf zlib tcl-tk
 ```
 
+If you want to check the tcl version being used, run the following command.
+```bash
+echo 'puts [info patchlevel];exit 0' | tclsh
+```
+
 ### Optional Dependencies
 
 If you want to compile games with big integer support, you'll need the GMP library (latest version).
