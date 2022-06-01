@@ -21,11 +21,6 @@ You can install the required packages with `brew`:
 brew install autoconf zlib tcl-tk
 ```
 
-If you want to check the tcl version being used, run the following command.
-```bash
-echo 'puts [info patchlevel];exit 0' | tclsh
-```
-
 ### Optional Dependencies
 
 If you want to compile games with big integer support, you'll need the GMP library (latest version).
@@ -44,6 +39,11 @@ Add the following line to the end of `.zshrc` if it is not already there.
 
 ```bash
 export PATH="/opt/homebrew/opt/tcl-tk/bin:$PATH"
+```
+
+If you want to check the tcl version being used, run the following command.
+```bash
+echo 'puts [info patchlevel];exit 0' | tclsh
 ```
 
 After you're done editing & saving the init script, reopen a terminal session and the new init script should be in effect. (You can also use the `source` command to load the init script.)
