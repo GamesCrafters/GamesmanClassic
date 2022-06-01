@@ -159,6 +159,11 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 		fwrite(&nppositionsfound, sizeof(int), 1, childtiefile); // Store a dummy space of 4 bytes to later save the number of positions found
 		for(uint32_t j = 0; j < 1<<fragmentsize; j++) { //Could probably be made more efficient, but I think this setup is more easily parallelizable
 			switch(solverread(childrenshards[i], j)) { //If the position was found in discovery, save it to the file and increment the number of positions found
+				case NOT_PRIMITIVE: {
+					fwrite(&j, sizeof(uint32_t), 1, childnonprimitivefile);
+					nppositionsfound++;
+					break;
+				}
 				case LOSS: {
 					fwrite(&j, sizeof(uint32_t), 1, childlossfile);
 					losspositionsfound++;
@@ -167,33 +172,6 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 				case TIE: {
 					fwrite(&j, sizeof(uint32_t), 1, childtiefile);
 					tiepositionsfound++;
-					break;
-				}
-				case NOT_PRIMITIVE: {
-					fwrite(&j, sizeof(uint32_t), 1, childnonprimitivefile);
-					nppositionsfound++;
-					//No break here; move to the code in unsavednonprimitive
-				}
-				case UNSAVED_NONPRIMITIVE: {
-					//All children of this position don't need to be sent, since they'll be computed by the parent anyway
-					//Note that this removes all possible positions only because the hash is strictly increasing.
-					//That is, the children of a position always have greater hash values than their parent
-					//When moving to Othello (or the GPU shard solver), this code should be done in a separate loop before saving starts.
-					g = hashToPosition((((uint64_t) targetshard->childrenshards[i]->shardid) << fragmentsize) + j);
-					int movecount = generateMoves((char*) &moves, g);
-					for (int k = 0; k < movecount; k++) { //Iterate through all children of the current position
-						newg = doMove(g, moves[k]);
-						h = getHash(newg);
-						int newpositionshard = h >> fragmentsize;
-						if(newpositionshard == targetshard->childrenshards[i]->shardid) { 
-							if(isPrimitive(newg, moves[k]) == NOT_PRIMITIVE)
-							{
-								solverinsert(childrenshards[i], h&SHARDOFFSETMASK, UNSAVED_NONPRIMITIVE);
-							}
-							else
-								solverinsert(childrenshards[i], h&SHARDOFFSETMASK, UNSAVED_PRIMITIVE);
-						}
-					}
 					break;
 				}
 			}
