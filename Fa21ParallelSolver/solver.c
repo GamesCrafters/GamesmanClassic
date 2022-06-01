@@ -1,5 +1,48 @@
 #include "solver.h"
 
+void discovercurrentfragment(game startinggame, game* fringe, solverdata* localpositions,
+							 const int SHARDOFFSETMASK, uint64_t currentshardid,
+							 solverdata** childrenshards, shardgraph* targetshard,
+							 char *moves, char fragmentsize) {
+	fringe[0] = startinggame;
+	int index = 1;
+
+	int movecount, k, oldindex, newpositionshard;
+	game g;
+	game newg;
+	gamehash h;
+
+	while (index) {
+		oldindex = index;
+		g = fringe[index - 1];
+		index--; //For discovery, there's no need to keep the current position on the fringe, since we don't need to go back to it.
+		h = getHash(g);
+		if (solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) { //If we don't find this position in our solver, expand it for discovery
+			solverinsert(localpositions, h&(SHARDOFFSETMASK), 1); //Insert 1 here to that position to signify that it has been expanded. Do this now to minimize the time other threads can access this and try to duplicate work.
+				
+			movecount = generateMoves(moves, g);
+			for (k = 0; k < movecount; k++) { //Iterate through all children of the current position
+				newg = doMove(g, moves[k]);
+				h = getHash(newg);
+				newpositionshard = h >> fragmentsize;
+				if (newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
+					if(isPrimitive(newg, moves[k]) == NOT_PRIMITIVE)
+						fringe[index++] = newg;
+					else
+						solverinsert(localpositions, h&(SHARDOFFSETMASK), 2);
+				} else if (newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
+					for(int l = 0; l < targetshard->childrencount;l++) {
+						if (newpositionshard == targetshard->childrenshards[l]->shardid) {
+							if (!solverread(childrenshards[l], h&SHARDOFFSETMASK))
+								solverinsert(childrenshards[l], h&SHARDOFFSETMASK, isPrimitive(newg, moves[k]));
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmentsize, bool isstartingfragment) {
 	uint64_t currentshardid = targetshard->shardid;
@@ -7,15 +50,6 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	// Gives list of children shards that we send discovery children to that we send to
 	int childrenshardcount = targetshard->childrencount;
 	solverdata** childrenshards = malloc(sizeof(solverdata*) * childrenshardcount);
-
-	game g;
-	game newg;
-	gamehash h;
-	gamehash minindex = maxHash();
-	gamehash maxindex = 0;
-	char primitive;
-
-	int index = 0;
 
 	// Next Tier: Use CUDA Malloc when moving to GPU for "moves" and "fringe"
 	solverdata* localpositions = initializesolverdata(fragmentsize);
@@ -27,7 +61,7 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 			return;
 		}
 	}
-	char moves[getMaxMoves()];
+	char* moves = malloc(sizeof(char) * getMaxMoves());
 	game* fringe = calloc(sizeof(game), getMaxMoves() * getMaxDepth());
 	if (localpositions == NULL || fringe == NULL) {
 		printf("Memory allocation error\n");
@@ -49,41 +83,8 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	char* filenamewriteaddr = filename+strlen(workingfolder);
 	const int SHARDOFFSETMASK = (1ULL << fragmentsize) - 1;
 	if(isstartingfragment) {
-		fringe[0] = getStartingPositions();
-		index = 1;
-
-		int movecount, k, oldindex, newpositionshard;
-		while (index) {
-			oldindex = index;
-			g = fringe[index - 1];
-			index--; //For discovery, there's no need to keep the current position on the fringe, since we don't need to go back to it.
-			h = getHash(g);
-			if (solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) { //If we don't find this position in our solver, expand it for discovery
-				solverinsert(localpositions, h&(SHARDOFFSETMASK), 1); //Insert 1 here to that position to signify that it has been expanded. Do this now to minimize the time other threads can access this and try to duplicate work.
-					
-				movecount = generateMoves((char*) &moves, g);
-				for (k = 0; k < movecount; k++) { //Iterate through all children of the current position
-					newg = doMove(g, moves[k]);
-					h = getHash(newg);
-					newpositionshard = h >> fragmentsize;
-					if(newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
-						if(isPrimitive(newg, moves[k]) == NOT_PRIMITIVE)
-							fringe[index++] = newg;
-						else
-							solverinsert(localpositions, h&(SHARDOFFSETMASK), 2);
-					}
-					else if(newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
-						for(int l = 0; l < targetshard->childrencount;l++) {
-							if(newpositionshard == targetshard->childrenshards[l]->shardid) {
-								if(!solverread(childrenshards[l], h&SHARDOFFSETMASK))
-									solverinsert(childrenshards[l], h&SHARDOFFSETMASK, isPrimitive(newg, moves[k]));
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
+		discovercurrentfragment(getStartingPositions(), fringe, localpositions, SHARDOFFSETMASK,
+								currentshardid, childrenshards, targetshard, moves, fragmentsize);
 	}
 	else {
 	//Find all children in childrenshards
@@ -105,41 +106,8 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 				fread(&newpositionoffset, sizeof(uint32_t), 1, parentfile);
 				if(solverread(localpositions, newpositionoffset)) continue; //If the position already is in the solver, we've already traversed from there, so ignore the position.		
 				gamehash newpositionhash = (((uint64_t) targetshard->shardid) << fragmentsize) + newpositionoffset; //Otherwise, set up the game corresponding to the saved offset.
-				fringe[0] = hashToPosition(newpositionhash);
-				index = 1;
-
-				int movecount, k, oldindex, newpositionshard;
-				while (index) {
-					oldindex = index;
-					g = fringe[index - 1];
-					index--; //For discovery, there's no need to keep the current position on the fringe, since we don't need to go back to it.
-					h = getHash(g);
-					if (solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) { //If we don't find this position in our solver, expand it for discovery
-						solverinsert(localpositions, h&(SHARDOFFSETMASK), 1); //Insert 1 here to that position to signify that it has been expanded. Do this now to minimize the time other threads can access this and try to duplicate work.
-					
-						movecount = generateMoves((char*) &moves, g);
-						for (k = 0; k < movecount; k++) { //Iterate through all children of the current position
-							newg = doMove(g, moves[k]);
-							h = getHash(newg);
-							newpositionshard = h >> fragmentsize;
-							if(newpositionshard == currentshardid && !(solverread(localpositions, h&SHARDOFFSETMASK))) { //If we have a position in our current shard that hasn't been expanded, add it to the fringe
-								if(isPrimitive(newg, moves[k]) == NOT_PRIMITIVE)
-									fringe[index++] = newg;
-								else
-									solverinsert(localpositions, h&(SHARDOFFSETMASK), 2);
-							}
-							else if(newpositionshard != currentshardid) { // If the child is not in the current shard, insert it into the appropriate child shard
-								for(int l = 0; l < targetshard->childrencount;l++) {
-									if(newpositionshard == targetshard->childrenshards[l]->shardid) {
-										if(!solverread(childrenshards[l], h&SHARDOFFSETMASK))
-											solverinsert(childrenshards[l], h&SHARDOFFSETMASK, isPrimitive(newg, moves[k]));
-										break;
-									}
-								}
-							}
-						}
-					}
-				}
+				discovercurrentfragment(hashToPosition(newpositionhash), fringe, localpositions, SHARDOFFSETMASK,
+										currentshardid, childrenshards, targetshard, moves, fragmentsize);
 			}
 
 			fclose(parentfile); //Clean up
@@ -210,6 +178,7 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 		fclose(childtiefile);
 	}
 	//Clean up
+	free(moves);
 	free(filename);
 	freesolver(localpositions);
 	for(int i = 0; i < childrenshardcount; i++) {
@@ -219,79 +188,35 @@ void discoverfragment(char* workingfolder, shardgraph* targetshard, char fragmen
 	free(fringe);
 }
 
-void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsize, bool isstartingfragment)
-{
-	uint64_t currentshardid = targetshard->shardid;
+void solvecurrentfragment(game startinggame, game* fringe, solverdata* localpositions,
+							 const int SHARDOFFSETMASK, uint64_t currentshardid,
+							 playerdata** childrenshards, shardgraph* targetshard,
+							 char *moves, char fragmentsize) {
+	fringe[0] = startinggame;
+	int index = 1;
 
-	// Gives list of children shards that we send discovery children to that we send to
-	int childrenshardcount = targetshard->childrencount;
-
-	playerdata** childrenshards = malloc(sizeof(playerdata*) * childrenshardcount);
-
+	int movecount, k, oldindex, newpositionshard;
 	game g;
 	game newg;
 	gamehash h;
-	gamehash minindex = maxHash();
-	gamehash maxindex = 0;
+
+	char minprimitive;
 	char primitive;
 
-	int index = 0;
-
-	// Next Tier: Use CUDA Malloc when moving to GPU for "moves" and "fringe"
-	solverdata* localpositions = initializesolverdata(fragmentsize);
-	int solvedshardfilenamemaxlength 
-	= strlen("/solved-100000000")+1;
-	char* solvedshardfilename = malloc(sizeof(char)*(solvedshardfilenamemaxlength + strlen(workingfolder)));
-	strncpy(solvedshardfilename, workingfolder, strlen(workingfolder));
-	char* solvedshardfilenamewriteaddr = solvedshardfilename+strlen(workingfolder);
-	for(int i = 0; i < childrenshardcount; i++) {
-		snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%d", targetshard->childrenshards[i]->shardid);
-		childrenshards[i] = initializeplayerdata(fragmentsize, solvedshardfilename);
-		/*printf("Shard %d player loaded\n", targetshard->childrenshards[i]->shardid);
-		fflush(stdout);*/
-		if(childrenshards[i] == NULL) {
-			printf("Memory allocation error\n");
-			return;
+	while (index) {
+		/*if(itcount <100) {
+			printf("Done with iteration %d with j=%d and miss=%d on position %llx with index %d\n", itcount, j, misscount, fringe[index-1], index);
+			fflush(stdout);
 		}
-	}
-	char moves[getMaxMoves()];
-	game* fringe = calloc(sizeof(game), getMaxMoves() * getMaxDepth());
-	if (localpositions == NULL || fringe == NULL) {
-		printf("Memory allocation error\n");
-		return;
-	}
-
-	// Add incoming Discovery states from parent
-	// Multiple top node in shard
-	//Set up the file name
-	int filenamemaxlength = strlen("/transfer-100000000-100000000-x-primitive")+1;
-	char* filename = malloc(sizeof(char)*(filenamemaxlength + strlen(workingfolder)));
-	strncpy(filename, workingfolder, strlen(workingfolder));
-	char* filenamewriteaddr = filename+strlen(workingfolder);
-	const int SHARDOFFSETMASK = (1ULL << fragmentsize) - 1;
-
-	if(isstartingfragment) {
-		fringe[0] = getStartingPositions();
-		index = 1;
-
-
-		int movecount, k, oldindex, newpositionshard;
-		char minprimitive;
-
-		while (index) {
-			/*if(itcount <100) {
-				printf("Done with iteration %d with j=%d and miss=%d on position %llx with index %d\n", itcount, j, misscount, fringe[index-1], index);
-				fflush(stdout);
-			}
-			itcount++;*/
-			minprimitive = 255;
-			oldindex = index;
-			g = fringe[index-1];
-			h = getHash(g);
-			if(solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) //If we don't find this position in our solver, expand it for discovery
-			{
-				//misscount++;
-			movecount = generateMoves((char*)&moves, g);
+		itcount++;*/
+		minprimitive = 255;
+		oldindex = index;
+		g = fringe[index-1];
+		h = getHash(g);
+		if(solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) //If we don't find this position in our solver, expand it for discovery
+		{
+			//misscount++;
+			movecount = generateMoves(moves, g);
 			for(k = 0; k < movecount; k++) //Iterate through all children of the current position
 			{
 				newg = doMove(g, moves[k]);
@@ -325,35 +250,84 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 				if(!primitive) //Since playerread guarantees nonzero values, only goes through here if it's a local position
 				{
 					primitive = isPrimitive(newg, moves[k]);
-					if(primitive != (char) NOT_PRIMITIVE) {
+					if (primitive != (char) NOT_PRIMITIVE) {
 						solverinsert(localpositions,h&SHARDOFFSETMASK,primitive);
 						minprimitive = minprimitive <= primitive ? minprimitive : primitive;
-					}
-					else {
+					} else {
 						fringe[index] = newg;
 						index++;
 					}
-				}
-				else
-				{
+				} else {
 					minprimitive = minprimitive <= primitive ? minprimitive : primitive;
 				}
 			}
 			if(index == oldindex) 
 			{
-				if(minprimitive & 128)
-				{
-					if(minprimitive & 64) minprimitive = 257-minprimitive;
-					else minprimitive = minprimitive + 1;
+				if (minprimitive & 128) {
+					minprimitive = (minprimitive & 64) ? (257 - minprimitive) : (minprimitive + 1);
+				} else {
+					minprimitive = 255 - minprimitive;
 				}
-				else minprimitive = 255-minprimitive;
 				h = getHash(g);
 				solverinsert(localpositions,h&SHARDOFFSETMASK,minprimitive);
 				index--;
 			}
-			}
-			else { index--;}
 		}
+		else { index--;}
+	}
+}
+
+void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsize, bool isstartingfragment)
+{
+	uint64_t currentshardid = targetshard->shardid;
+
+	// Gives list of children shards that we send discovery children to that we send to
+	int childrenshardcount = targetshard->childrencount;
+
+	playerdata** childrenshards = malloc(sizeof(playerdata*) * childrenshardcount);
+
+	game g;
+	game newg;
+	gamehash h;
+	char primitive;
+
+	int index = 0;
+
+	// Next Tier: Use CUDA Malloc when moving to GPU for "moves" and "fringe"
+	solverdata* localpositions = initializesolverdata(fragmentsize);
+	int solvedshardfilenamemaxlength = strlen("/solved-100000000")+1;
+	char* solvedshardfilename = malloc(sizeof(char)*(solvedshardfilenamemaxlength + strlen(workingfolder)));
+	strncpy(solvedshardfilename, workingfolder, strlen(workingfolder));
+	char* solvedshardfilenamewriteaddr = solvedshardfilename+strlen(workingfolder);
+	for(int i = 0; i < childrenshardcount; i++) {
+		snprintf(solvedshardfilenamewriteaddr,solvedshardfilenamemaxlength, "/solved-%d", targetshard->childrenshards[i]->shardid);
+		childrenshards[i] = initializeplayerdata(fragmentsize, solvedshardfilename);
+		/*printf("Shard %d player loaded\n", targetshard->childrenshards[i]->shardid);
+		fflush(stdout);*/
+		if(childrenshards[i] == NULL) {
+			printf("Memory allocation error\n");
+			return;
+		}
+	}
+	char* moves = malloc(sizeof(char) * getMaxMoves());
+	game* fringe = calloc(sizeof(game), getMaxMoves() * getMaxDepth());
+	if (localpositions == NULL || fringe == NULL) {
+		printf("Memory allocation error\n");
+		return;
+	}
+
+	// Add incoming Discovery states from parent
+	// Multiple top node in shard
+	//Set up the file name
+	int filenamemaxlength = strlen("/transfer-100000000-100000000-x-primitive")+1;
+	char* filename = malloc(sizeof(char)*(filenamemaxlength + strlen(workingfolder)));
+	strncpy(filename, workingfolder, strlen(workingfolder));
+	char* filenamewriteaddr = filename+strlen(workingfolder);
+	const int SHARDOFFSETMASK = (1ULL << fragmentsize) - 1;
+
+	if(isstartingfragment) {
+		solvecurrentfragment(getStartingPositions(), fringe, localpositions, SHARDOFFSETMASK,
+							 currentshardid, childrenshards, targetshard, moves, fragmentsize);
 	}
 	else {
 		//Find all children in childrenshards
@@ -393,89 +367,8 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 				fread(&newpositionoffset, sizeof(uint32_t), 1, parentfile);
 				if(solverread(localpositions, newpositionoffset)) continue; //If the position already is in the solver, we've already traversed from there, so ignore the position.
 				gamehash newpositionhash = (((uint64_t) targetshard->shardid) << fragmentsize) + newpositionoffset; //Otherwise, set up the game corresponding to the saved offset.
-				fringe[0] = hashToPosition(newpositionhash);
-				index = 1;
-
-
-				int movecount, k, oldindex, newpositionshard;
-				char minprimitive;
-
-				while (index) {
-					/*if(itcount <100) {
-						printf("Done with iteration %d with j=%d and miss=%d on position %llx with index %d\n", itcount, j, misscount, fringe[index-1], index);
-						fflush(stdout);
-					}
-					itcount++;*/
-					minprimitive = 255;
-					oldindex = index;
-					g = fringe[index-1];
-					h = getHash(g);
-					if(solverread(localpositions, h&(SHARDOFFSETMASK)) == 0) //If we don't find this position in our solver, expand it for discovery
-					{
-						//misscount++;
-					movecount = generateMoves((char*)&moves, g);
-					for(k = 0; k < movecount; k++) //Iterate through all children of the current position
-					{
-						newg = doMove(g, moves[k]);
-						h = getHash(newg);
-						newpositionshard = h >> fragmentsize;
-						if(newpositionshard != currentshardid) { //If the position isn't in our current shard, we've already solved it. Read the corresponding data
-							for(int l = 0; l < targetshard->childrencount;l++) {
-								if(newpositionshard == targetshard->childrenshards[l]->shardid) {
-									primitive = playerread(childrenshards[l], h&SHARDOFFSETMASK);
-									/*if(primitive == 0)
-									{
-										printf("Error in primitive value: position %llx\n", h);
-										printf("Current fringe state: ");
-										for(int m = 0; m < index;m++) printf("%llx ", fringe[m]);
-										printf("\n");
-										exit(1);
-									}*/
-
-									break;
-								}
-								/*if(l == targetshard->childrencount - 1) {
-									printf("Shard not found in children: %d, %llx, %llx->%llx\n", newpositionshard, h, g, newg);
-									printf("Current fringe state: ");
-									for(int m = 0; m < index;m++) printf("%llx ", fringe[m]);
-									printf("\n");
-									exit(1);
-								}*/
-							}
-						}
-						else primitive = solverread(localpositions, h&SHARDOFFSETMASK); //Otherwise, check its value in the current shard
-						if(!primitive) //Since playerread guarantees nonzero values, only goes through here if it's a local position
-						{
-							primitive = isPrimitive(newg, moves[k]);
-							if(primitive != (char) NOT_PRIMITIVE) {
-								solverinsert(localpositions,h&SHARDOFFSETMASK,primitive);
-								minprimitive = minprimitive <= primitive ? minprimitive : primitive;
-							}
-							else {
-								fringe[index] = newg;
-								index++;
-							}
-						}
-						else
-						{
-							minprimitive = minprimitive <= primitive ? minprimitive : primitive;
-						}
-					}
-					if(index == oldindex) 
-					{
-						if(minprimitive & 128)
-						{
-							if(minprimitive & 64) minprimitive = 257-minprimitive;
-							else minprimitive = minprimitive + 1;
-						}
-						else minprimitive = 255-minprimitive;
-						h = getHash(g);
-						solverinsert(localpositions,h&SHARDOFFSETMASK,minprimitive);
-						index--;
-					}
-					}
-					else { index--;}
-				}
+				solvecurrentfragment(hashToPosition(newpositionhash), fringe, localpositions, SHARDOFFSETMASK,
+							 currentshardid, childrenshards, targetshard, moves, fragmentsize);
 			}
 
 			fclose(parentfile); //Clean up
@@ -490,6 +383,7 @@ void solvefragment(char* workingfolder, shardgraph* targetshard, char fragmentsi
 	fclose(childfile);
 
 	//Clean up
+	free(moves);
 	free(filename);
 	free(solvedshardfilename);
 	freesolver(localpositions);
