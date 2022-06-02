@@ -1,11 +1,11 @@
 #include "Game.h"
 #include "memory.h"
 #include "solver.h"
+#include <omp.h>
 #include <unistd.h>
 #include <time.h>
-#include <mpi.h>
 
-#define shardsize 28
+#define shardsize 26
 
 //Sends a message to all children/parents that the shard is done computing, and adds workable shards to the work queue
 //issolved is 0 if during discovery, and 1 if during solving.
@@ -58,7 +58,6 @@ static void addshardstoqueue(shardgraph** topshard, shardgraph** bottomshard, sh
 
 
 int main(int argc, char** argv) {
-	MPI_Init(&argc, &argv);
 	if (argc != 2) {
 		printf("Usage: %s <foldername>", argv[0]);
 		return 1;
@@ -144,5 +143,4 @@ int main(int argc, char** argv) {
 	printf("Total time taken: %f seconds\n", cpu_time_used);
 	fflush(stdout);
 	freeshardlist(shardList, shardsize); //Clean up
-	MPI_Finalize();
 }
