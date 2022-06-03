@@ -1,7 +1,7 @@
 #include "Game.h"
 
 #define COLUMNCOUNT 6
-#define ROWCOUNT 5
+#define ROWCOUNT 6
 #define CONNECT 4
 
 static uint64_t DOWNDIAGWIN;
