@@ -78,7 +78,7 @@ static void addshardstoqueue(shardgraph** topshard, shardgraph** bottomshard, sh
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
-		printf("Usage: %s <foldername>", argv[0]);
+		printf("Usage: %s <foldername>\n", argv[0]);
 		return 1;
 	}
 	MPI_Init(&argc, &argv); //Initialize the MPI environment (for multiple node work). All code between here and finalize gets run by all nodes.
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &processID);
 
 	if(clusterSize<=1) {
-		printf("Not enough nodes for MPI; use standard code");
+		printf("Not enough nodes for MPI; use standard code\n");
 		MPI_Finalize();
 		return 1;
 	}
@@ -113,8 +113,9 @@ int main(int argc, char** argv) {
 		printf("Discovering shard %d/%d with shard id %d\n", shardsdiscovered, validshards, (topshard)->shardid);	
 		fflush(stdout);
 		//First shard can't be parallelized, and process 0 needs to finish shard computing anyway, so let process 0 run discovery on starting fragment.
-		discoverfragment(workingfolder, topshard, shardsize, true); //Initialize work queue and compute first shard
 		shardsdiscovered++;	
+		discoverfragment(workingfolder, topshard, shardsize, true); //Initialize work queue and compute first shard
+		
 		addshardstoqueue(&topshard, &bottomshard, bottomshard, 0);
 		topshard->discovered++;
 		shardgraph* oldtopshard = topshard;
@@ -198,6 +199,7 @@ int main(int argc, char** argv) {
 				else {
 					discoverfragment(workingfolder, targetshard, shardsize, false);
 				}
+				MPI_Send(&targetshardID, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD);
 			}
 		}
 	}
