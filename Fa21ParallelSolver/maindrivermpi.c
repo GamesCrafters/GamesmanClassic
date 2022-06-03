@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
 		while(true) {
 			MPI_Status status;
 			uint64_t shardcompleted;
-			MPI_recv(&shardcompleted, 1, MPI_UINT64_T, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,&status); //Receive a request from one child process for work
+			MPI_Recv(&shardcompleted, 1, MPI_UINT64_T, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,&status); //Receive a request from one child process for work
 			if(shardcompleted!= -1) {
 				//Some shard was completed. Update the work queue
 				//Note: Assumes that shardList[shardcompleted] has shardid of shardcompleted
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
 				if(shardList+shardcompleted == getstartingshard(shardList, shardsize)) {
 					//The starting shard was worked on. This indicates that it was solved (since discovery happened earlier), and as such, the solve is complete. Begin termination.
 					uint64_t response = TERMINATE;
-					MPI_send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD); //Send termination message. We will send termination messages to remaining processes after the while loop.
+					MPI_Send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD); //Send termination message. We will send termination messages to remaining processes after the while loop.
 					break;
 				}
 			}
@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
 				// printf("Process %d has no work, going to sleep\n", status.MPI_SOURCE);
 				// fflush(stdout);
 				uint64_t response = NOT_ENOUGH_WORK;
-				MPI_send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD); //If there's currently no work to do, send a waiting message
+				MPI_Send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD); //If there's currently no work to do, send a waiting message
 				continue;
 			}
 			oldtopshard = topshard;
@@ -153,13 +153,13 @@ int main(int argc, char** argv) {
 				printf("Solving shard %d/%d with shard id %llu by process %d\n", shardssolved, validshards, oldtopshard->shardid, status.MPI_SOURCE);
 				fflush(stdout);
 				uint64_t response = send_solve_request(oldtopshard->shardid);
-				MPI_send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+				MPI_Send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
 			} else {
 				shardsdiscovered++;
 				printf("Discovering shard %d/%d with shard id %llu by process %d\n", shardsdiscovered, validshards, oldtopshard->shardid, status.MPI_SOURCE);
 				fflush(stdout);
 				uint64_t response = send_discovery_request(oldtopshard->shardid);
-				MPI_send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+				MPI_Send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
 			}
 		}
 		printf("Done computing. Sending termination messages to remaining processes\n");
@@ -167,9 +167,9 @@ int main(int argc, char** argv) {
 		while(processesterminated < (clusterSize - 1)) { //Process 0 doesn't need a termination message
 			MPI_Status status;
 			uint64_t shardcompleted;
-			MPI_recv(&shardcompleted, 1, MPI_UINT64_T, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,&status);
+			MPI_Recv(&shardcompleted, 1, MPI_UINT64_T, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,&status);
 			uint64_t response = TERMINATE;
-			MPI_send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+			MPI_Send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
 		}
 		end = clock();
 		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
@@ -177,14 +177,14 @@ int main(int argc, char** argv) {
 		fflush(stdout);
 	} else {
 		uint64_t senddata = -1; //Done setting up shard graph. Send to main that this process is ready to work.
-		MPI_send(&senddata, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD);
+		MPI_Send(&senddata, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD);
 		while(true) {
 			uint64_t parentmessage;
-			MPI_recv(&parentmessage, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+			MPI_Recv(&parentmessage, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 			if(parentmessage == NOT_ENOUGH_WORK) {
 				sleep(1);
 				senddata = -1;
-				MPI_send(&senddata, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD);
+				MPI_Send(&senddata, 1, MPI_UINT64_T, 0, 0, MPI_COMM_WORLD);
 			}
 			else if(parentmessage == TERMINATE) {
 				break;
