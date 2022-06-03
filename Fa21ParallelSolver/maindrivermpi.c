@@ -171,6 +171,7 @@ int main(int argc, char** argv) {
 			MPI_Recv(&shardcompleted, 1, MPI_UINT64_T, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD,&status);
 			uint64_t response = TERMINATE;
 			MPI_Send(&response, 1, MPI_UINT64_T, status.MPI_SOURCE, 0, MPI_COMM_WORLD);
+			processesterminated++;
 		}
 		end = clock();
 		cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
