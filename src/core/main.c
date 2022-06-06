@@ -310,7 +310,7 @@ void HandleArguments (int argc, char *argv[])
 				gMessage = TRUE;
 			} else {
 				option = atoi(argv[++i]);
-				if(!option || option > NumberOfOptions()) {
+				if(option > NumberOfOptions()) {
 					fprintf(stderr, "\nInvalid option configuration!\n\n");
 					gMessage = TRUE;
 				} else
