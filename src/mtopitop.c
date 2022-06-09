@@ -1494,7 +1494,7 @@ STRING InteractPositionToEndData(POSITION pos) {
 STRING InteractMoveToString(POSITION pos, MOVE move) {
 	if (move == NULLMOVE) {
 		char* finalMove = calloc(7, sizeof(char));
-		memcpy(finalMove, "A_P_30", 6);
+		memcpy(finalMove, "A_P_22", 6);
 		return finalMove;
 	}
 	BOOLEAN partial = move >> 10;

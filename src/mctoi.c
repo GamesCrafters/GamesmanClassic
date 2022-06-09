@@ -55,19 +55,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-
-
-
-
-
 #include "gamesman.h"
-
-/***********************************************************************************************************
- ********************************** FROM HERE, hascode stuff ***********************************************
- **********************************************************************************************************/
-
-#include <stdio.h>
-#include <math.h>
 
 #define BOARDSIZE 9
 /** Function Prototypes **/
@@ -195,13 +183,10 @@ void unhashC(char *board, int sizeOfBoard, int count, int hashCode)
 **
 ** DESCRIPTION: prints the elements in the board. Xs or Os
 **
-**
-**
 ************************************************************************/
 void printBoard(char *board, int size)
 {
-	int i;
-	for (i = 0; i < size; i++) {
+	for (int i = 0; i < size; i++) {
 		printf("%c", board[i]);
 	}
 	printf("\n");
@@ -213,8 +198,6 @@ void printBoard(char *board, int size)
 ** NAME:        hashC2
 **
 ** DESCRIPTION: hashes the ttt board  with two kinds of pieces
-**
-**
 **
 ************************************************************************/
 int  hashC2( char *board) {
@@ -2452,11 +2435,10 @@ STRING ctoiInitialInteractString = "R_A_6_3_------------------";
 int boardToStringIdxMapping[9] = {8,9,10,11,12,13,14,15,16};
 
 POSITION InteractStringToPosition(STRING string) {
-	// BlankoxOX* board = (char *) SafeMalloc(size(BlankoxOX) * (BOARDSIZE + 1));
-
 	BlankoxOX turn = (string[2] == 'A') ? Rx : Wx;
 	char* copystring = calloc(27, sizeof(char));
 	memcpy(copystring, string, 26);
+
 	/* Needed for converting intermediate position represented by string to the last non-intermediate position. */
 	if (copystring[22] != '-') {
 		copystring[boardToStringIdxMapping[copystring[22] - '0']] = copystring[25];
@@ -2488,15 +2470,13 @@ POSITION InteractStringToPosition(STRING string) {
 	}
 
 	SafeFree(copystring);
-	
 	return HashChungToi(board, turn);
 }
 
-POSITION encodeIntermediatePosition(POSITION position, BOOLEAN isSliding, int from, int to, char p) {
-	// 0b1 1 00000 0; intermediate marker (1), isSliding (1), from (5), piece (4)
-	int piece = (p == 'X') ? 1 : (p == 'x') ? 2 : (p == 'T') ? 3 : (p == 't') ? 4 : 0;
-	//printf("\nENCODE: %llu, %d, %d, %d, %c, %llu\n", position, isSliding, from, to, p, position | (1LL << 63) | (((isSliding) ? 1LL : 0LL) << 62) | (((POSITION) from) << 57) | (((POSITION) to) << 52) | (((POSITION) piece) << 48));
-	return position | (1LL << 63) | (((isSliding) ? 1LL : 0LL) << 62) | (((POSITION) from) << 57) | (((POSITION) to) << 52) | (((POSITION) piece) << 48);
+POSITION encodeIntermediatePosition(POSITION position, BOOLEAN isSliding, POSITION from, POSITION to, char p) {
+	// 0b1 1 00000 0; intermediate marker (1), isSliding (1), from (5), to (5), piece (4)
+	POSITION piece = (p == 'X') ? 1LL : (p == 'x') ? 2LL : (p == 'T') ? 3LL : (p == 't') ? 4LL : 0LL;
+	return position | (1LL << 63) | (((isSliding) ? 1LL : 0LL) << 62) | (from << 57) | (to << 52) | (piece << 48);
 }
 
 BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN *isSliding, int *from, int *to, char *piece) {
@@ -2506,7 +2486,6 @@ BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN
 	(*to) = (interPos >> 52) & 0x1F;
 	int p = (interPos >> 48) & 0b111;
 	(*piece) = (p == 1) ? 'X' : (p == 2) ? 'x' : (p == 3) ? 'T' : (p == 4) ? 't' : '-';
-	//printf("\nDECODE: %llu, %llu, %d, %d, %d, %d, %c\n", interPos, (*origPos), (*isSliding), (*from), (*to), p, (*piece));
 	return (interPos >> 63) ? TRUE : FALSE;
 }
 
@@ -2557,8 +2536,7 @@ STRING InteractPositionToEndData(POSITION pos) {
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >= 300000) { // Select where to place; encoded as 300000 + original mv 
-		mv %= 100000;
-		return UWAPI_Board_Regular2D_MakeAddString((WhoseTurn(pos) == Rx) ? 'R' : 'W', MoveTo(mv));
+		return UWAPI_Board_Regular2D_MakeAddString((WhoseTurn(pos) == Rx) ? 'R' : 'W', MoveTo(mv % 100000));
 	} else if (mv >= 200000) { // Select which and where to move; encoded as 200000 + original mv
 		mv %= 100000;
 		int from = MoveFrom(mv);
@@ -2572,8 +2550,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 			return UWAPI_Board_Regular2D_MakeMoveString(from, to);
 		}
 	} else if (mv >= 100000) { // Select orientationl encoded as 100000 + original mv
-		mv %= 100000;
-		return UWAPI_Board_Regular2D_MakeAddString('B', (MoveOrientation(mv)) ? 16 : 15);
+		return UWAPI_Board_Regular2D_MakeAddString('B', (MoveOrientation(mv % 100000)) ? 16 : 15);
 	} else {
 		return MoveToString(mv);
 	}
@@ -2602,7 +2579,6 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 
 		if (from == 9) {
 			POSITION interPos = encodeIntermediatePosition(position, FALSE, 9, to, 't');
-			//printf("INTERPOS: %llu, %llu, %d, %d, %d, %d\n", interPos, position, FALSE, 9, to, Rx);
 			if (!edgeToAdded[to]) {
 				mpel = CreateMultipartEdgeListNode(position, interPos, 300000 + moveList->move, 0, FALSE, mpel);
 				edgeToAdded[to] = TRUE;

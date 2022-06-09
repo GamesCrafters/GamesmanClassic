@@ -22,7 +22,7 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Bagh Chal (Tigers Move)";   /* The name of your game */
+STRING kGameName            = "Bagh-Chal (Tigers Move)";   /* The name of your game */
 STRING kAuthorName          = "Damian Hites, Max Delgadillo, Deepa Mahajan, Cameron Cheung";   /* Your name(s) */
 STRING kDBName              = "baghchal";   /* The name to store the database under */
 
@@ -1099,7 +1099,7 @@ void GameSpecificMenu() {
 		       "\t3)\t(3) Load default 5x5 Game (20 Goats, Tigers Must Remove 5, Diagonals)\n"
 		       "\tc)\t(C)hange the board size (nxn), currently: %d\n"
 		       "\td)\tTurn (D)iagonals %s\n"
-		       "\ti)\tSet the (I)nitial position (starting position)\n"
+		       //"\ti)\tSet the (I)nitial position (starting position)\n"
 		       "\tb)\t(B)ack to the main menu\n"
 		       "\nSelect an option:  ", sideLength, diagonals ? "off" : "on");
 		switch (GetMyChar()) {
