@@ -7,7 +7,7 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Stella Wan, Nala Chen, Matthew Yu, and Cameron Cheung";
+STRING kAuthorName = "Stella Wan, Nala Chen, and Cameron Cheung";
 STRING kGameName = "Tic-Tac-Two";
 STRING kDBName = "tttwo";
 BOOLEAN kPartizan = TRUE;
@@ -1275,29 +1275,6 @@ void setOption(int option) {
 
   gInitialPosition = gInitialTierPosition;
 }
-/*
-int boardToStringIdxMapping5[25] = {9,11,13,15,17,27,29,31,33,35,45,47,49,51,53,63,65,67,69,71,81,83,85,87,89};
-int boardToGridIdxMapping5[25] = {0,2,4,6,8,18,20,22,24,26,36,38,40,42,44,54,56,58,60,62,72,74,76,78,80};
-int xLeftIdx = 90;
-int oLeftIdx = 91;
-int gridPosTensIdx = 92;
-int gridPosOnesIdx = 93;
-int selectMoveGridIdx = 94;
-int iPosFromTensIdx = 97;
-int iPosFromOnesIdx = 98;
-int strLen = 108;
-
-STRING tttwoInteractString[9] = {
-  "R_A_11_9_-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-4406-----G--------",
-  "R_A_11_9_-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-4407------G-------",
-  "R_A_11_9_-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-W-W-4408-------G------",
-  "R_A_11_9_-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-WWWWWWWWW-W-W-W-W-4411--------G-----",
-  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWWWWWWWW-W-W-W-W-4412---------G----",
-  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWWWWWW-W-W-W-W-4413----------G---",
-  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-BBBBBWWWW-B-B-W-W-4416-----------G--",
-  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-B-B-W-WWBBBBBWW-W-B-B-W-WWBBBBBWW-W-B-B-W-4417------------G-",
-  "R_A_11_9_-W-W-W-W-WWWWWWWWW-W-W-W-W-WWWWWWWWW-W-W-B-B-WWWWBBBBB-W-W-B-B-WWWWBBBBB-W-W-B-B-4418-------------G"
-};*/
 
 int boardToStringIdxMapping5[25] = {
   8,9,10,11,12,
@@ -1354,11 +1331,11 @@ POSITION InteractStringToPosition(STRING str) {
   for (int i = 0; i < boardSize; i++) {
     board[i] = str[boardToStringIdxMapping5[i]];
     switch (board[i]) {
-      case 'a':
+      case 'x':
         gridPos = i;
         board[i] = X;
         break;
-      case 'b':
+      case 'o':
         gridPos = i;
         board[i] = O;
         break;
@@ -1378,59 +1355,6 @@ POSITION InteractStringToPosition(STRING str) {
 	return tierposition;
 }
 
-/*
-POSITION InteractStringToPosition(STRING str) {
-  char turn = (str[2] == 'A') ? X : O;
-  int xPlaced = numPiecesPerPlayer - (str[xLeftIdx] - '0');
-  int oPlaced = numPiecesPerPlayer - (str[oLeftIdx] - '0');
-  int gridPos = 10 * (str[gridPosTensIdx] - '0') + (str[gridPosOnesIdx] - '0');
-  char board[boardSize];
-  for (int i = 0; i < boardSize; i++) {
-    board[i] = str[boardToStringIdxMapping5[i]];
-  }
-
-  TIER tier;
-	TIERPOSITION tierposition;
-	hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier, &tierposition);
-	gInitializeHashWindow(tier, FALSE);
-	return tierposition;
-}*/
-
-/*
-STRING InteractPositionToString(POSITION interPos) {
-  POSITION pos;
-  BOOLEAN isGridMove;
-  int from;
-  BOOLEAN isIntermediate = decodeIntermediatePosition(interPos, &pos, &isGridMove, &from);
-
-  int xPlaced, oPlaced, gridPos;
-  char turn;
-  char *board = unhash(pos, &xPlaced, &oPlaced, &gridPos, &turn);
-
-  char *finalBoard = calloc(strLen + 1, sizeof(char));
-  int cmIdx = centerMapping[gridPos];
-  memcpy(finalBoard, tttwoInteractString[cmIdx], strLen);
-
-  finalBoard[2] = (turn == X) ? 'A' : 'B';
-  for (int i = 0; i < boardSize; i++) {
-    finalBoard[boardToStringIdxMapping5[i]] = board[i];
-  }
-  finalBoard[xLeftIdx] = (numPiecesPerPlayer - xPlaced) + '0';
-  finalBoard[oLeftIdx] = (numPiecesPerPlayer - oPlaced) + '0';
-  finalBoard[gridPosTensIdx] = (gridPos / 10) + '0';
-  finalBoard[gridPosOnesIdx] = (gridPos % 10) + '0';
-  if (isIntermediate) {
-    if (isGridMove) {
-      finalBoard[selectMoveGridIdx] = 'G';
-    } else {
-      finalBoard[iPosFromTensIdx] = (from / 10) + '0';
-      finalBoard[iPosFromOnesIdx] = (from % 10) + '0';
-    }
-  }
-  SafeFree(board);
-  return finalBoard;
-}*/
-
 STRING InteractPositionToString(POSITION interPos) {
   POSITION pos;
   BOOLEAN isGridMove;
@@ -1459,7 +1383,7 @@ STRING InteractPositionToString(POSITION interPos) {
       finalBoard[iPosFromOnesIdx] = (from % 10) + '0';
     }
   }
-  finalBoard[gridPos + 8] = (board[gridPos] == X) ? 'a' : (board[gridPos] == O) ? 'b' : 's';
+  finalBoard[gridPos + 8] = (board[gridPos] == X) ? 'x' : (board[gridPos] == O) ? 'o' : 's';
   SafeFree(board);
   return finalBoard;
 }
