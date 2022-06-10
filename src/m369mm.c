@@ -6,7 +6,7 @@
 **
 ** AUTHOR:      Patricia Fong, Kevin Liu, Erwin A. Vedar, Wei Tu, Elmer Lee, Cameron Cheung
 **
-** DATE:        too long to remmeber
+** DATE:        too long to remember
 **
 ** LAST CHANGE: $Id: m369mm.c,v 1.4 2008-09-29 07:33:40 noafroboy Exp $
 **
@@ -48,12 +48,31 @@ POSITION gInitialPosition     =  0; /* The initial hashed position for your star
 POSITION kBadPosition         = -1; /* A position that will never be used */
 void*    gGameSpecificTclInit = NULL;
 
-STRING initial9mmInteractString = "R_A_8_7_9-----9-------------------------------------------------";
-int indexMap9mmInteractString[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
-int indexMap9mmMoveString[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
-int turnIndex9mmInteractString = 2;
-int remainingXIndex9mmInteractString = 8;
-int remainingOIndex9mmInteractString = 14;
+char initial9mmInteractString[] = "R_A_8_7_9-----9-------------------------------------------------";
+char initial6mmInteractString[] = "R_A_6_5_6---6-------------------------";
+
+int indexMapInteractString9[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
+int indexMapMoveString9[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
+
+int remainingXIdxInteractString9 = 8;
+int remainingOIdxInteractString9 = 14;
+int multipartFromIdx9 = 9;
+int multipartToIdx9 = 10;
+
+int indexMapInteractString6[18] = {13,15,17,19,20,21,23,24,26,27,29,30,31,33,35,37};
+int indexMapMoveString6[18] = {5,7,9,11,12,13,15,16,18,19,21,22,23,25,27,29};
+int remainingXIdxInteractString6 = 8;
+int remainingOIdxInteractString6 = 12;
+int multipartFromIdx6 = 9;
+int multipartToIdx6 = 10;
+
+STRING initialInteractString = initial9mmInteractString;
+int (*indexMapInteractString);
+int (*indexMapMoveString);
+int remainingXIdxInteractString;
+int remainingOIdxInteractString;
+int multipartFromIdx;
+int multipartToIdx;
 
 /**
  * Help strings that are pretty self-explanatory
@@ -1911,6 +1930,14 @@ void changeToSix() {
 	adjacent = adjacent6;
 	symmetriesToUse = gSymmetryMatrix6MM;
 	totalNumSymmetries = 16;
+
+	initialInteractString = initial6mmInteractString;
+	indexMapInteractString = indexMapInteractString6;
+	indexMapMoveString = indexMapMoveString6;
+	remainingXIdxInteractString = remainingXIdxInteractString6;
+	remainingOIdxInteractString = remainingOIdxInteractString6;
+	multipartFromIdx = multipartFromIdx6;
+	multipartToIdx = multipartToIdx6;
 }
 
 void changeToNine() {
@@ -1925,6 +1952,14 @@ void changeToNine() {
 	adjacent = adjacent9;
 	symmetriesToUse = gSymmetryMatrix9MM;
 	totalNumSymmetries = 16;
+
+	initialInteractString = initial9mmInteractString;
+	indexMapInteractString = indexMapInteractString9;
+	indexMapMoveString = indexMapMoveString9;
+	remainingXIdxInteractString = remainingXIdxInteractString9;
+	remainingOIdxInteractString = remainingOIdxInteractString9;
+	multipartFromIdx = multipartFromIdx9;
+	multipartToIdx = multipartToIdx9;
 }
 
 
@@ -1982,19 +2017,15 @@ POSITION GetCanonicalPosition(POSITION position) {
     return canonPos;
 }
 
-BOOLEAN isIntermediate(POSITION pos) {
-	return pos >> 63;
-}
-
 POSITION InteractStringToPosition(STRING board) {
-	POSITION intermediateMarker = (board[10] == 'R') ? (1UL << 63) : 0;
+	int origFrom = 31, origTo = 31;
 	char realBoard[BOARDSIZE];
-	char turn = (board[turnIndex9mmInteractString] == 'A') ? X : O;
+	char turn = (board[2] == 'A') ? X : O;
 	int numX = 0;
 	int numO = 0;
 
 	for (int i = 0; i < BOARDSIZE; i++) {
-		char piece = board[indexMap9mmInteractString[i]];
+		char piece = board[indexMapInteractString[i]];
         if (piece == '-') {
 			realBoard[i] = BLANK;
     	} else {
@@ -2007,19 +2038,38 @@ POSITION InteractStringToPosition(STRING board) {
         }
 	}
 
-	int piecesLeft = (board[remainingXIndex9mmInteractString] - '0') + (board[remainingOIndex9mmInteractString] - '0');
+	// Conversion from intermediate to real
+	int isPlacement = 0;
+	if (board[multipartToIdx] != '-') { // Detects if position is intermediate
+		origTo = board[multipartToIdx] - 'A';
+		if (board[multipartFromIdx] != '-') { // Sliding
+			origFrom = board[multipartFromIdx] - 'A';
+			realBoard[origFrom] = realBoard[origTo];
+		} else { // Placing
+			isPlacement = 1;
+			if (turn == X) {
+				numX--;
+			} else {
+				numO--;
+			}
+		}
+		realBoard[origTo] = BLANK;
+	}
+	// End Conversion from intermediate to real
+
+	int piecesLeft = (board[remainingXIdxInteractString] - '0') + (board[remainingOIdxInteractString] - '0') + isPlacement;
 	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
-	return hash(realBoard, turn, piecesLeft, numX, numO) + intermediateMarker;
+	return hash(realBoard, turn, piecesLeft, numX, numO);
 }
 
 STRING InteractPositionToString(POSITION pos) {
 	char* finalBoard = calloc(65, sizeof(char));
-	memcpy(finalBoard, initial9mmInteractString, 64);
-	if (isIntermediate(pos)) {
-		for (int i = 9; i <= 13; i++) {
-			finalBoard[i] = 'R';
-		}
-		pos -= (1UL << 63);
+	memcpy(finalBoard, initialInteractString, 64);
+	int origFrom = 31, origTo = 31;
+	if (pos >> 63) {
+		origFrom = (pos >> 58) & 0x1F;
+		origTo = (pos >> 53) & 0x1F;
+		pos &= 0xFFFFFFFFFFFF;
 	}
 
 	char turn;
@@ -2030,14 +2080,29 @@ STRING InteractPositionToString(POSITION pos) {
 	gUnhashToTierPosition(pos, &tierPosition, &tier);
 	for (int i = 0; i < BOARDSIZE; i++) {
         if (board[i] != BLANK) {
-		    finalBoard[indexMap9mmInteractString[i]] = (board[i] == X) ? 'W' : 'B';
+		    finalBoard[indexMapInteractString[i]] = (board[i] == X) ? 'W' : 'B';
         }
 	}
 	SafeFree(board);
 
-	finalBoard[turnIndex9mmInteractString] = (turn == X) ? 'A' : 'B';
-	finalBoard[remainingXIndex9mmInteractString] = ((tier / 100) / 2) + '0';
-	finalBoard[remainingOIndex9mmInteractString] = (((tier / 100) + 1) / 2) + '0';
+	finalBoard[2] = (turn == X) ? 'A' : 'B';
+	finalBoard[remainingXIdxInteractString] = ((tier / 100) / 2) + '0';
+	finalBoard[remainingOIdxInteractString] = (((tier / 100) + 1) / 2) + '0';
+
+	if (origTo != 31) {
+		finalBoard[indexMapInteractString[origTo]] = (turn == X) ? 'W' : 'B';
+		finalBoard[multipartToIdx] = origTo + 'A';
+		if (origFrom != 31) {
+			finalBoard[indexMapInteractString[origFrom]] = '-';
+			finalBoard[multipartFromIdx] = origFrom + 'A';
+		} else {
+			if (turn == X) {
+				finalBoard[remainingXIdxInteractString]--;
+			} else {
+				finalBoard[remainingOIdxInteractString]--;
+			}
+		}
+	}
 
 	return finalBoard;
 }
@@ -2059,39 +2124,42 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
 	SafeFree(board);
 
-	if (from != 31 && to != 31) {
-		return UWAPI_Board_Regular2D_MakeMoveString(indexMap9mmMoveString[from], indexMap9mmMoveString[to]);
-	} else if (remove != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'B' : 'W', indexMap9mmMoveString[remove]);
-	} else if (to != 31) {
-		return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'W' : 'B', indexMap9mmMoveString[to]);
+	if (to != 31 && remove != 31) { // Fullmove
+		return MoveToString(move);
 	} else {
-		return NULL;
+		if (from != 31 && to != 31) { // Sliding piece partmove
+			return UWAPI_Board_Regular2D_MakeMoveString(indexMapMoveString[from], indexMapMoveString[to]);
+		} else if (to != 31) { // Placing piece partmove
+			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'W' : 'B', indexMapMoveString[to]);
+		} else { // Removing opponent piece partmove
+			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'B' : 'W', indexMapMoveString[remove]);
+		}
 	}
 }
 
+// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
-	// Assumes moves are grouped by from-to (sliding) or to (placement)
+	// Assumes moveList/positionList is same ordering as generated in GenerateMoves
 	MULTIPARTEDGELIST *mpel = NULL;
 	int piecesLeft, numX, numO;
 	char turn;
 	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
 	int currFrom = 31;
 	int currTo = 31;
-	int currIntermediatePosition = 0;
+	POSITION currIntermediatePosition = 0;
 
 	while (moveList != NULL) {
 		MOVE move = moveList->move;
-		int from = move >> 10;
-		int to = (move >> 5) & 0x1F;
-		int remove = move & 0x1F;
+		POSITION from = move >> 10;
+		POSITION to = (move >> 5) & 0x1F;
+		POSITION remove = move & 0x1F;
 
 		if (remove != 31) {
 			// Select piece to place
 			if (currFrom != from || currTo != to) {
 				currFrom = from;
 				currTo = to;
-				currIntermediatePosition = DoMove(position, MOVE_ENCODE(from, to, 31));
+				currIntermediatePosition = (1LL << 63) | (from << 58) | (to << 53) | position;
 				mpel = CreateMultipartEdgeListNode(position, currIntermediatePosition, MOVE_ENCODE(from, to, 31), 0, FALSE, mpel);
 			}
 			
@@ -2100,7 +2168,6 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 		}
 
 		// Ignore sliding moves, they are single-part
-
 		moveList = moveList->next;
 		positionList = positionList->next;
 	}
