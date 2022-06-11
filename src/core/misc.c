@@ -71,6 +71,16 @@ void FreeMoveList(MOVELIST* ptr)
 	}
 }
 
+void FreeMultipartEdgeList(MULTIPARTEDGELIST* ptr)
+{
+	MULTIPARTEDGELIST *last;
+	while (ptr != NULL) {
+		last = ptr;
+		ptr = ptr->next;
+		SafeFree((GENERIC_PTR)last);
+	}
+}
+
 void FreeRemotenessList(REMOTENESSLIST* ptr)
 {
 	REMOTENESSLIST* last;
@@ -327,6 +337,21 @@ MOVELIST *CreateMovelistNode(MOVE theMove, MOVELIST* theNextMove)
 	theHead->next = theNextMove;
 
 	return(theHead);
+}
+
+MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST* next)
+{
+	MULTIPARTEDGELIST* theHead;
+
+	theHead = (MULTIPARTEDGELIST*) SafeMalloc (sizeof(MULTIPARTEDGELIST));
+	theHead->from = from;
+	theHead->to = to;
+	theHead->partMove = partMove;
+	theHead->fullMove = fullMove;
+	theHead->isTerminal = isTerminal;
+	theHead->next = next;
+
+	return theHead;
 }
 
 MOVELIST *CopyMovelist(MOVELIST* theMovelist)

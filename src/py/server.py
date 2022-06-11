@@ -338,6 +338,7 @@ class GameProcess(object):
         response = ''
         timeout = 0.01
         parsed = None
+        curr_time = time.time()
         while not parsed:
             if time_remaining <= 0:
                 self.server.log.debug('timeout')
@@ -345,11 +346,15 @@ class GameProcess(object):
             time_remaining -= timeout
             time.sleep(timeout)
             try:
-                to_add = self.process.stdout.readline()
+                next_char = ''
+                while next_char != '\n':
+                    response += next_char
+                    next_char = self.process.stdout.read(1)
+                    if time.time() - curr_time > 5:
+                        self.server.log.debug('timeout')
+                        return self.handle_timeout(request, response)
             except IOError:
                 continue
-            self.server.log.debug('subprocess sent output ' + to_add)
-            response += to_add
             parsed = self.parse_response(response)
         request.respond(parsed)
         return True

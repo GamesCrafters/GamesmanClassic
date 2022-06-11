@@ -4,11 +4,9 @@
 **
 ** DESCRIPTION: THREE/SIX/NINE MEN'S MORRIS
 **
-** AUTHOR:      Patricia Fong & Kevin Liu & Erwin A. Vedar, Wei Tu, Elmer Lee
+** AUTHOR:      Patricia Fong, Kevin Liu, Erwin A. Vedar, Wei Tu, Elmer Lee, Cameron Cheung
 **
-** DATE:        too long to remmeber
-**
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
+** DATE:        too long to remember
 **
 ** LAST CHANGE: $Id: m369mm.c,v 1.4 2008-09-29 07:33:40 noafroboy Exp $
 **
@@ -34,7 +32,7 @@
 **************************************************************************/
 
 STRING kGameName            = "369 Men's Morris";   /* The name of your game */
-STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee";   /* Your name(s) */
+STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee, Cameron Cheung";   /* Your name(s) */
 STRING kDBName              = "369mm";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -48,8 +46,33 @@ BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
-
 void*    gGameSpecificTclInit = NULL;
+
+char initial9mmInteractString[] = "R_A_8_7_9-----9-------------------------------------------------";
+char initial6mmInteractString[] = "R_A_6_5_6---6-------------------------";
+
+int indexMapInteractString9[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
+int indexMapMoveString9[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
+
+int remainingXIdxInteractString9 = 8;
+int remainingOIdxInteractString9 = 14;
+int multipartFromIdx9 = 9;
+int multipartToIdx9 = 10;
+
+int indexMapInteractString6[18] = {13,15,17,19,20,21,23,24,26,27,29,30,31,33,35,37};
+int indexMapMoveString6[18] = {5,7,9,11,12,13,15,16,18,19,21,22,23,25,27,29};
+int remainingXIdxInteractString6 = 8;
+int remainingOIdxInteractString6 = 12;
+int multipartFromIdx6 = 9;
+int multipartToIdx6 = 10;
+
+STRING initialInteractString = initial9mmInteractString;
+int (*indexMapInteractString);
+int (*indexMapMoveString);
+int remainingXIdxInteractString;
+int remainingOIdxInteractString;
+int multipartFromIdx;
+int multipartToIdx;
 
 /**
  * Help strings that are pretty self-explanatory
@@ -84,8 +107,8 @@ STRING kHelpExample =
 ** Variants
 **
 **************************************************************************/
-BOOLEAN gFlying = FALSE;
-int gameType = 6; // 3,6,9 men's morris
+BOOLEAN gFlying = TRUE;
+int gameType = 9; // 3,6,9 men's morris
 int millType = 0; // 0: can remove piece not from mill unless if only mills left. 1: can remove any piece. 2: can not remove pieces from any mill ever
 
 /*************************************************************************
@@ -184,6 +207,9 @@ int findLegalRemovesUndo(char *board, char turn, int *legalRemoves);
 STRING UndoMoveToString(UNDOMOVE move);
 BOOLEAN allMillsNew(char *board, int slot, char turn);
 POSITION DoMoveSafe(POSITION position, MOVE move);
+
+BOOLEAN isIntermediate(POSITION pos);
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
 int gSymmetryMatrix3MM[8][24] = {
     {0,1,2,3,4,5,6,7,8,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
@@ -455,6 +481,15 @@ BOOLEAN hashCacheGet(int tier, POSITION position, char *board) {
 **
 ************************************************************************/
 void InitializeGame() {
+	
+	gSymmetries = TRUE;
+
+	/* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
+	/********************************/
+
 	int i;
 	combinationsInit();
 	hashCacheInit();
@@ -478,6 +513,8 @@ void InitializeGame() {
 
 	gNumberOfPositions = generic_hash_init(BOARDSIZE, pminmax, NULL, 0);
 	gInitialPosition = hash(board, X, maxx+maxo, 0, 0);
+
+	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 
 	InitializeHelpStrings();
 }
@@ -557,12 +594,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 		for (int i = 0; i < numBlanks; i++)
 			if (closesMillNew(board, turn, 31, allBlanks[i]) && numLegalRemoves > 0)
 				for (int j = 0; j < numLegalRemoves; j++)
-					/* ONLY this type of move is encoded as "from: to, to: remove, remove: remove" instead of 
-					"from: from, to: to, remove: remove" in order to distinguish this type of move (to+remove for placement and removal) 
-					from the other type of two-argument move (from+to for sliding) for the sake of correctly converting 
-					text inputs to moves. All functions that unhash moves will account for this peculiarity 
-					and set from, to, and remove to the correct values.*/
-					moves = CreateMovelistNode(MOVE_ENCODE(allBlanks[i], legalRemoves[j], legalRemoves[j]), moves);
+					moves = CreateMovelistNode(MOVE_ENCODE(31, allBlanks[i], legalRemoves[j]), moves);
 			else
 				moves = CreateMovelistNode(MOVE_ENCODE(31, allBlanks[i], 31), moves);
 	} else {
@@ -794,12 +826,6 @@ POSITION DoMove(POSITION position, MOVE move) {
 	int toIdx = (move >> 5) & 0x1F;
 	int removeIdx = move & 0x1F;
 
-	/* Correction for PECULIARITY */
-	if (toIdx == removeIdx) {
-		toIdx = fromIdx;
-		fromIdx = 31;
-	}
-
 	board[toIdx] = turn;
 
 	if (turn == X) {
@@ -855,12 +881,6 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
 	int fromIdx = undoMove >> 10;
 	int toIdx = (undoMove >> 5) & 0x1F;
 	int removeIdx = undoMove & 0x1F;
-
-	/* Correction for PECULIARITY */
-	if (toIdx == removeIdx) {
-		toIdx = fromIdx;
-		fromIdx = 31;
-	}
 
 	board[toIdx] = BLANK;
 
@@ -999,7 +1019,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		else
 			printf("O has %d on the board\n", numo);
 
-		printf("          6 -- 7 -- 8    %c -- %c -- %c   |    \n\n", board[6], board[7], board[8]);
+		printf("          6 -- 7 -- 8    %c -- %c -- %c   |    %s\n\n", board[6], board[7], board[8], GetPrediction(position, playersName, usersTurn));
 
 
 	}
@@ -1058,13 +1078,13 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 		else
 			printf("O has %d on the board\n", numo);
 		printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
-		printf("LEGEND: 9 - 10- 11      12- 13- 14      %c - %c - %c       %c - %c - %c    Turn: %c\n", board[9], board[10], board[11], board[12], board[13], board[14], turn);
+		printf("LEGEND: 9 - 10- 11      12- 13- 14      %c - %c - %c       %c - %c - %c\n", board[9], board[10], board[11], board[12], board[13], board[14]);
 		printf("        |   |   |       |   |   |       |   |   |       |   |   |\n");
 		printf("        |   |   15- 16- 17  |   |       |   |   %c - %c - %c   |   |\n", board[15], board[16], board[17] );
 		printf("        |   |       |       |   |       |   |       |       |   |\n");
 		printf("        |   18 ---- 19 ---- 20  |       |   %c ----- %c ----- %c   |\n", board[18], board[19], board[20] );
 		printf("        |           |           |       |           |           |\n");
-		printf("        21 -------- 22 -------- 23      %c --------- %c --------- %c\n\n", board[21], board[22], board[23] );
+		printf("        21 -------- 22 -------- 23      %c --------- %c --------- %c    %s\n\n", board[21], board[22], board[23], GetPrediction(position, playersName, usersTurn));
 
 	}
 	SafeFree(board);
@@ -1084,7 +1104,13 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
 	STRING str = MoveToString( computersMove );
-	printf("%8s's move                                     : %s\n",computersName,str);
+	if (gameType == 3) {
+		printf("%8s's Move                                     :    %s\n",computersName,str);
+	} else if (gameType == 6) {
+		printf("%8s's Move                                :    %s\n",computersName,str);
+	} else {
+		printf("%8s's Move                                                 :    %s\n",computersName,str);
+	}
 	SafeFree( str );
 }
 
@@ -1120,28 +1146,22 @@ STRING MoveToString(MOVE move) {
 	int fromIdx = move >> 10;
 	int toIdx = (move >> 5) & 0x1F;
 	int removeIdx = move & 0x1F;
-	/* Correction for PECULIARITY */
-	if (toIdx == removeIdx) {
-		toIdx = fromIdx;
-		fromIdx = 31;
-	}
-	int tier, piecesLeft;
 
 	STRING movestring;
 	//tier = generic_hash_cur_context();
 	//piecesLeft = tier / 100;
 	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
 		movestring = (STRING) SafeMalloc(12);
-		sprintf( movestring, "[%d-%dr%d]",fromIdx, toIdx, removeIdx);
+		sprintf( movestring, "%d-%dr%d",fromIdx, toIdx, removeIdx);
 	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
 		movestring = (STRING) SafeMalloc(8);
-		sprintf( movestring, "[%d-%d]", fromIdx, toIdx);
+		sprintf( movestring, "%d-%d", fromIdx, toIdx);
 	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
 		movestring = (STRING) SafeMalloc(8);
-		sprintf(movestring, "[%d]", toIdx);
+		sprintf(movestring, "%d", toIdx);
 	} else {
 		movestring = (STRING) SafeMalloc(8);
-		sprintf(movestring, "[%dr%d]", toIdx, removeIdx);
+		sprintf(movestring, "%dr%d", toIdx, removeIdx);
 	}
 
 	return movestring;
@@ -1189,22 +1209,31 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 	do {
 		int maxslots = ((gameType == 3) ? 8 : (gameType == 6) ? 15 : 23);
-		printf("%8s's move: (u)ndo", playersName);
+		int spacemaxslots = (gameType == 3) ? 1 : 2;
+		printf("%8s's Move: (u)ndo", playersName);
+		int numSpaces = (gameType == 9) ? 41 : 24;
 		if (!allRemoves) {
-			if (piecesLeft != 0) // STAGE 1 : PLACING
-				printf(" OR [0-%d]", maxslots);
-			else {
-				printf(" OR [0-%d]-[0-%d]", maxslots, maxslots);
+			if (piecesLeft != 0) {// STAGE 1 : PLACING
+				printf("/[0-%d]", maxslots);
+				numSpaces -= (5 + spacemaxslots);
+			} else {
+				printf("/[0-%d]-[0-%d]", maxslots, maxslots);
+				numSpaces -= (10 + spacemaxslots * 2);
 			}
 		}
 		if (existsRemoves) {
-			if (piecesLeft != 0) // STAGE 1 : PLACING
-				printf(" OR [0-%d]r[0-%d]", maxslots, maxslots);
-			else {
-				printf(" OR [0-%d]-[0-%d]r[0-%d]", maxslots, maxslots, maxslots);
+			if (piecesLeft != 0) {// STAGE 1 : PLACING
+				printf("/[0-%d]r[0-%d]", maxslots, maxslots);
+				numSpaces -= (10 + spacemaxslots * 2);
+			} else {
+				printf("/[0-%d]-[0-%d]r[0-%d]", maxslots, maxslots, maxslots);
+				numSpaces -= (15 + spacemaxslots * 3);
 			}
 		}
-		printf(": ");
+		for (int i = 0; i < numSpaces; i++) {
+			printf(" ");
+		}
+		printf(":    ");
 
 		input = HandleDefaultTextInput(position, move, playersName);
 
@@ -1332,13 +1361,10 @@ MOVE ConvertTextInputToMove(STRING input) {
 	} else if (existsSliding) { // Sliding/flying without removal
 		from = first;
 		to = second;
-	} else { // Placement with removal peculiarity.
-		from = first;
-		to = second;
+	} else { // Placement with removal.
+		to = first;
 		remove = second;
 	}
-	//printf("converttextinputtomove.... move = %d\n", MOVE_ENCODE(from, to, remove));
-	//printf("from: %d, to: %d, remove: %d\n", from, to, remove);
 	return MOVE_ENCODE(from, to, remove); //HASHES THE MOVE
 }
 
@@ -1366,24 +1392,19 @@ void GameSpecificMenu() {
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
 
-
-		//printf("\tCurrent Initial Position:\n");
-		//PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
-
 		printf("\n");
-		//printf("\ti)\tChoose the (I)nitial position\n");
 		printf("\tf)\tToggle (F)lying from %s to %s\n",
 		       gFlying ? "ON" : "OFF",
 		       !gFlying ? "ON" : "OFF");
 
 		if (millType == 0) {
-			printf("\tm)\tWhen mill is formed, can remove any opponent's piece.\n");
+			printf("\tm)\tWhen mill is formed, can remove one of opponent's pieces if that piece is not in a mill, unless if all the opponent's remaining pieces are already in a mill.\n");
 		}
 		else if (millType == 1) {
-			printf("\tm)\tWhen mill is formed, can remove opponent's piece if it is not in a mill.\n");
+			printf("\tm)\tWhen mill is formed, can remove one of opponent's pieces.\n");
 		}
 		else if (millType == 2) {
-			printf("\tm)\tWhen mill is formed, can remove opponent's piece if it is not in a mill, unless if all the remaining pieces are already in a mill.\n");
+			printf("\tm)\tWhen mill is formed, can remove one of opponent's pieces if that piece is not in a mill.\n");
 		}
 
 		char currentType[10];
@@ -1426,9 +1447,6 @@ void GameSpecificMenu() {
 		case 'H': case 'h':
 			HelpMenus();
 			break;
-		//    case 'I': case 'i':
-		//gInitialPosition = GetInitialPosition();
-		//break;
 		case 'F': case 'f':
 			gFlying = !gFlying;
 			break;
@@ -1554,9 +1572,7 @@ void setOption(int option) {
 **
 ************************************************************************/
 
-void DebugMenu() {
-
-}
+void DebugMenu() {}
 
 
 /************************************************************************
@@ -1658,7 +1674,6 @@ void SetupTierStuff() {
 	gTierToStringFunPtr = &TierToString;
 	int tier, i, piecesLeft, numx, numo;
 	generic_hash_custom_context_mode(TRUE);
-	//	int pminmax[] = {X, 0, maxx, O, 0, maxo,BLANK, BOARDSIZE-maxx-maxo, BOARDSIZE, -1};
 	int pieces_array[] = {X, 0, 0, O, 0, 0, BLANK, 0, 0, -1  };
 	kExclusivelyTierGamesman = TRUE;
 
@@ -1670,19 +1685,12 @@ void SetupTierStuff() {
 				pieces_array[4]=pieces_array[5]=numo;
 				pieces_array[7]=pieces_array[8]=BOARDSIZE-numx-numo;
 				if (piecesLeft > 0) { //stage1
-					//pieces_array[] = {X, 0, piecesLeft/2+1, O, piecesLeft/2+1, 0, BLANK, 0, 0, -1  } ;
 					generic_hash_init(BOARDSIZE, pieces_array, NULL, (piecesLeft%2)+1);
 				}
 				else{
-					//pieces_array[] = {X, minx, maxx, O, mino, maxo, BLANK, 0, 0, -1  } ;
 					generic_hash_init(BOARDSIZE, pieces_array, NULL, 0);
 				}
 				generic_hash_set_context(tier);
-				//printf("tier %d\t", tier);
-				//int j;
-				//for (j = 0; j < 10; j++)
-				//printf("%d ", pieces_array[j]);
-				//printf("\n");
 			}
 		}
 	}
@@ -1697,8 +1705,6 @@ void SetupTierStuff() {
 		board[i] = BLANK;
 	}
 	gInitialTierPosition = generic_hash_hash(board, PLAYER_ONE);
-	//SafeFree(board);
-	//printf("line 1142 gInitialTierPosition = %d\n",  gInitialTierPosition);
 }
 
 TIERLIST* gTierChildren(TIER tier) {
@@ -1772,7 +1778,6 @@ int find_pieces(char *board, char piece, int *pieces) {
 
 	return num;
 }
-
 
 // given new board, slot
 // return true if slot is member of mill
@@ -1925,6 +1930,14 @@ void changeToSix() {
 	adjacent = adjacent6;
 	symmetriesToUse = gSymmetryMatrix6MM;
 	totalNumSymmetries = 16;
+
+	initialInteractString = initial6mmInteractString;
+	indexMapInteractString = indexMapInteractString6;
+	indexMapMoveString = indexMapMoveString6;
+	remainingXIdxInteractString = remainingXIdxInteractString6;
+	remainingOIdxInteractString = remainingOIdxInteractString6;
+	multipartFromIdx = multipartFromIdx6;
+	multipartToIdx = multipartToIdx6;
 }
 
 void changeToNine() {
@@ -1939,6 +1952,14 @@ void changeToNine() {
 	adjacent = adjacent9;
 	symmetriesToUse = gSymmetryMatrix9MM;
 	totalNumSymmetries = 16;
+
+	initialInteractString = initial9mmInteractString;
+	indexMapInteractString = indexMapInteractString9;
+	indexMapMoveString = indexMapMoveString9;
+	remainingXIdxInteractString = remainingXIdxInteractString9;
+	remainingOIdxInteractString = remainingOIdxInteractString9;
+	multipartFromIdx = multipartFromIdx9;
+	multipartToIdx = multipartToIdx9;
 }
 
 
@@ -1946,7 +1967,6 @@ void changeToNine() {
 /************ SYMMETRY FUNCTIONS BEGIN ************/
 /**************************************************/
 
-//SYMMETRIES
 BOOLEAN kSupportsSymmetries = TRUE;
 
 /************************************************************************
@@ -1997,168 +2017,93 @@ POSITION GetCanonicalPosition(POSITION position) {
     return canonPos;
 }
 
-/************************************************************************
-**
-** NAME:        DoSymmetry
-**
-** DESCRIPTION: Perform the symmetry operation specified by the input
-**              on the position specified by the input and return the
-**              new position, even if it's the same as the input.
-**
-** INPUTS:      POSITION position : The position to branch the symmetry from.
-**              int      symmetry : The number of the symmetry operation.
-**
-** OUTPUTS:     POSITION, The position after the symmetry operation.
-**
-************************************************************************/
-
-/**************************************************/
-/************* SYMMETRY FUNCTIONS END *************/
-/**************************************************/
-
-/************************************************************************
-** Changelog
-**
-** $Log: not supported by cvs2svn $
-** Revision 1.3  2008/05/08 02:28:12  noafroboy
-** latest version
-**
-** Revision 1.2  2008/05/01 03:44:52  noafroboy
-** added the three variants for removing pieces after forming mills
-**
-** Revision 1.13  2008/05/01 02:03:56  noafroboy
-** latest m6mm.c with some bugs fixed... see wiki for details
-**
-** Revision 1.12  2008/04/29 08:42:30  noafroboy
-** fixed the tcl so that 3mm and 6mm work. 9mm works for first 12 moves. possible database error
-**
-** Revision 1.11  2008/04/29 07:18:43  noafroboy
-** added 3mm. starts with 3mm by default for now.
-**
-** Revision 1.10  2008/03/18 02:34:09  noafroboy
-** This version is for the Stanford Demonstration. 9mm has been removed. In addition, gCurrentTier is set each time DoMove is called in order for the GUI to know the phase it is in.
-**
-** Revision 1.9  2007/11/29 05:00:29  noafroboy
-** temporary hack for m6mm.c
-**
-** Revision 1.8  2007/11/26 10:41:26  noafroboy
-** BUGZID:
-** 1.  Added 9 men's morris under game specific options.
-** 2.  Polished PrintPosition for 9mm board.
-** 3.  Slightly edited SetupTierStuff to accomodate above changes.
-**
-** Revision 1.7  2007/11/19 04:32:44  ddgarcia
-** Sooo many changes:
-**
-** 1. Added gFlying (global, changed GenerateMoves, added getOption, setoption)
-**   (now variants are 1-4 ; before they were 0, default is no flying)
-** 2. Supported misere with gStandardGame in Primitive
-** 3. polished PrintPosition
-** 4. Filled in PrintComputersMove
-** 5. Removed [ and ] from single moves in MoveToString
-** 6. Cleaned GetAndPrintPlayersMove
-**
-** Revision 1.6  2007/11/07 03:37:39  patricia_fong
-** fixed a small part in MoveToString
-**
-** Revision 1.5  2007/10/17 10:06:07  patricia_fong
-** added functions to m6mm.c for tcl
-**
-** Revision 1.3  2006/12/19 20:00:50  arabani
-** Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
-**
-** Revision 1.2  2006/12/07 03:37:20  max817
-** Hash and NMM changes.
-**
-** Revision 1.10  2006/04/25 01:33:06  ogren
-** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
-**
-**
-   Tier
-   1st stage: number of stones for x left, and o, position.
-   2nd stage: pieces on the board of each player
-   if numx and numo == 9 and piecesleft != 0, then stage 1
-   if numx and numo <= 9 and piecesleft == 0, then stage 2
-
-Changes:
-   unhash is now
-   char* unhash(POSITION pos, char* turn, int* piecesLeft, int* numx, int* numo)
-   with piecesLeft, numx, and numo being globals until tiers are implemented.
-
-   hash is now
-   POSITION hash(char* board, char turn, int piecesLeft, int numx, int numo)
-
-   with piecesLeft, numx, and numo being globals until tiers are implemented.
-
-   find_adjacent is ready for 6mm.
-
-   ConvertTextInputToMove: need to check:
-   IN STAGE 1:
- * 1 number -placing piece
-               - [1] ~ board[1] = turn;
- * 2 numbers - placing piece and removing opponent's piece
-                        - [1 2] ~ board[1] = turn; board[2] = blank;
-
-
-   IN STAGE 2:
- * 2 numbers - moving from and to
-                - [1 2] ~ board[1] = blank; board[2] = turn <OPPOSITE OF STAGE 1!>
- * 3 numbers - moving from and to and removing opponent's piece
-                        - [1 2 3] ~ board[1] = blank; board[2] = turn; board[3] = blank;
-
-
-   please kill ValidTextInput until we're done with this. Not worth spending time
-   on this right now.
-
-   KEVIN: 10/28
-        - updated whoseMove to generic_hash_turn
-                      generic_hash to generic_hash_hash
-                      generic_unhash to generic_hash_unhash
-                          because Max changed the hash core to those names
-        -fixed a few overlooked bugs: not passing turn, piecesleft, numx, and numo arguments by reference when calling unhash
-        -added NUMX and NUMO globals because you forgot
-   PrintPosition is ready for 6mm.
-        looks good
-   Primitive: nothing has been changed for 6mm... should work for 6mm
-        looks good
-   GENERATEMOVES NEEDS TO BE LOOKED OVER
-        pseudocode written, it looks like we will need to copy a few more of their helper functions over. doing it tomorrow. should be quick.
-   DOMOVE NEEDS TO BE LOOKED OVER
-        finished
-   MOVETOSTRING NEEDS TO BE CHANGED SO THAT IT DOESNT INCLUDE REMOVE NUMBERS IF
-   THERE IS NOTHING TO REMOVE.
-        this was already taken care of previously
-
-
-   we should use the one liner functions from, to, and remove.
-        it makes the code a whole lot easier to read and reduces likely hood of errors... such as the mistake in DoMove earlier
- ************************************************************************/
-
 POSITION InteractStringToPosition(STRING board) {
+	int origFrom = 31, origTo = 31;
 	char realBoard[BOARDSIZE];
-	int i = 0;
-	for (i = 0; i < BOARDSIZE; i++) {
-        if (board[i] == ' ') {
-			realBoard[i] = '.';
+	char turn = (board[2] == 'A') ? X : O;
+	int numX = 0;
+	int numO = 0;
+
+	for (int i = 0; i < BOARDSIZE; i++) {
+		char piece = board[indexMapInteractString[i]];
+        if (piece == '-') {
+			realBoard[i] = BLANK;
     	} else {
-		    realBoard[i] = board[i];
+			if (piece == 'W') {
+				numX++;
+			} else {
+				numO++;
+			}
+		    realBoard[i] = (piece == 'W') ? X : O;
         }
 	}
-	return generic_hash_hash(realBoard, 0);
+
+	// Conversion from intermediate to real
+	int isPlacement = 0;
+	if (board[multipartToIdx] != '-') { // Detects if position is intermediate
+		origTo = board[multipartToIdx] - 'A';
+		if (board[multipartFromIdx] != '-') { // Sliding
+			origFrom = board[multipartFromIdx] - 'A';
+			realBoard[origFrom] = realBoard[origTo];
+		} else { // Placing
+			isPlacement = 1;
+			if (turn == X) {
+				numX--;
+			} else {
+				numO--;
+			}
+		}
+		realBoard[origTo] = BLANK;
+	}
+	// End Conversion from intermediate to real
+
+	int piecesLeft = (board[remainingXIdxInteractString] - '0') + (board[remainingOIdxInteractString] - '0') + isPlacement;
+	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
+	return hash(realBoard, turn, piecesLeft, numX, numO);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char board[BOARDSIZE];
-	int i = 0;
-	generic_hash_unhash(pos, board);
-	char* finalBoard = calloc((BOARDSIZE+1), sizeof(char));
-	for (i = 0; i < BOARDSIZE; i++) {
-        if (board[i] == '.') {
-            finalBoard[i] = ' ';
-        } else {
-		    finalBoard[i] = board[i];
+	char* finalBoard = calloc(65, sizeof(char));
+	memcpy(finalBoard, initialInteractString, 64);
+	int origFrom = 31, origTo = 31;
+	if (pos >> 63) {
+		origFrom = (pos >> 58) & 0x1F;
+		origTo = (pos >> 53) & 0x1F;
+		pos &= 0xFFFFFFFFFFFF;
+	}
+
+	char turn;
+	int piecesLeft, numX, numO;
+	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
+	TIER tier;
+	TIERPOSITION tierPosition;
+	gUnhashToTierPosition(pos, &tierPosition, &tier);
+	for (int i = 0; i < BOARDSIZE; i++) {
+        if (board[i] != BLANK) {
+		    finalBoard[indexMapInteractString[i]] = (board[i] == X) ? 'W' : 'B';
         }
 	}
+	SafeFree(board);
+
+	finalBoard[2] = (turn == X) ? 'A' : 'B';
+	finalBoard[remainingXIdxInteractString] = ((tier / 100) / 2) + '0';
+	finalBoard[remainingOIdxInteractString] = (((tier / 100) + 1) / 2) + '0';
+
+	if (origTo != 31) {
+		finalBoard[indexMapInteractString[origTo]] = (turn == X) ? 'W' : 'B';
+		finalBoard[multipartToIdx] = origTo + 'A';
+		if (origFrom != 31) {
+			finalBoard[indexMapInteractString[origFrom]] = '-';
+			finalBoard[multipartFromIdx] = origFrom + 'A';
+		} else {
+			if (turn == X) {
+				finalBoard[remainingXIdxInteractString]--;
+			} else {
+				finalBoard[remainingOIdxInteractString]--;
+			}
+		}
+	}
+
 	return finalBoard;
 }
 
@@ -2166,6 +2111,67 @@ STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+STRING InteractMoveToString(POSITION pos, MOVE move) {
+	// Move will be of the form:
+	// from, to (for sliding only)
+	// remove (for removal only)
+	// to (for placement only)
+	int from = move >> 10;
+	int to = (move >> 5) & 0x1F;
+	int remove = move & 0x1F;
+	char turn;
+	int piecesLeft, numX, numO;
+	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
+	SafeFree(board);
+
+	if (to != 31 && remove != 31) { // Fullmove
+		return MoveToString(move);
+	} else {
+		if (from != 31 && to != 31) { // Sliding piece partmove
+			return UWAPI_Board_Regular2D_MakeMoveString(indexMapMoveString[from], indexMapMoveString[to]);
+		} else if (to != 31) { // Placing piece partmove
+			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'W' : 'B', indexMapMoveString[to]);
+		} else { // Removing opponent piece partmove
+			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'B' : 'W', indexMapMoveString[remove]);
+		}
+	}
+}
+
+// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	// Assumes moveList/positionList is same ordering as generated in GenerateMoves
+	MULTIPARTEDGELIST *mpel = NULL;
+	int piecesLeft, numX, numO;
+	char turn;
+	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
+	int currFrom = 31;
+	int currTo = 31;
+	POSITION currIntermediatePosition = 0;
+
+	while (moveList != NULL) {
+		MOVE move = moveList->move;
+		POSITION from = move >> 10;
+		POSITION to = (move >> 5) & 0x1F;
+		POSITION remove = move & 0x1F;
+
+		if (remove != 31) {
+			// Select piece to place
+			if (currFrom != from || currTo != to) {
+				currFrom = from;
+				currTo = to;
+				currIntermediatePosition = (1LL << 63) | (from << 58) | (to << 53) | position;
+				mpel = CreateMultipartEdgeListNode(position, currIntermediatePosition, MOVE_ENCODE(from, to, 31), 0, FALSE, mpel);
+			}
+			
+			// Place selected piece
+			mpel = CreateMultipartEdgeListNode(currIntermediatePosition, positionList->position, MOVE_ENCODE(31, 31, remove), move, TRUE, mpel);
+		}
+
+		// Ignore sliding moves, they are single-part
+		moveList = moveList->next;
+		positionList = positionList->next;
+	}
+
+	SafeFree(board);
+	return mpel;
 }
