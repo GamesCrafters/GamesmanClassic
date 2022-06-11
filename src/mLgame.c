@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: L-game
 **
-** AUTHORS:     Michael Savitzky, Alexander John Kozlowski, Matthew Yu, Cameron Cheung
+** AUTHORS:     Michael Savitzky, Alexander John Kozlowski, Cameron Cheung
 **
 ** DATE:        12/15/01
 **
@@ -26,7 +26,7 @@ POSITION gNumberOfPositions  = 129022;  /* (6 + 7*7 + 23*7*8 + 47*7*8*24)*2 */
 POSITION gInitialPosition    =  19388;
 POSITION gMinimalPosition    =  19388;
 
-STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, Matthew Yu, and Cameron Cheung";
+STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, and Cameron Cheung";
 STRING kGameName           = "L-game";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
@@ -159,49 +159,49 @@ int valCor[9][6] = {{},  /* Valid corners (with blank board) for each orientatio
 		    {1, 2, 5, 6, 9, 10}};
 
 int FOURSQUARES[49][4] = {{0, 0, 0, 0},  /*Gives all 4 squares each L-piece covers*/
-			  {9, 5, 1, 2},
+			  {9, 5, 1, 2}, // 1
 			  {10, 6, 2, 3},
 			  {11, 7, 3, 4},
 			  {13, 9, 5, 6},
 			  {14, 10, 6, 7},
 			  {15, 11, 7, 8},
-			  {10, 6, 2, 1},
+			  {10, 6, 2, 1}, // 2
 			  {11, 7, 3, 2},
 			  {12, 8, 4, 3},
 			  {14, 10, 6, 5},
 			  {15, 11, 7, 6},
 			  {16, 12, 8, 7},
-			  {2, 3, 4, 8},
+			  {2, 3, 4, 8}, // 3
 			  {6, 7, 8, 12},
 			  {10, 11, 12, 16},
 			  {1, 2, 3, 7},
 			  {5, 6, 7, 11},
 			  {9, 10, 11, 15},
-			  {6, 7, 8, 4},
+			  {6, 7, 8, 4}, // 4
 			  {10, 11, 12, 8},
 			  {14, 15, 16, 12},
 			  {5, 6, 7, 3},
 			  {9, 10, 11, 7},
 			  {13, 14, 15, 11},
-			  {8, 12, 16, 15},
+			  {8, 12, 16, 15}, // 5
 			  {7, 11, 15, 14},
 			  {6, 10, 14, 13},
 			  {4, 8, 12, 11},
 			  {3, 7, 11, 10},
 			  {2, 6, 10, 9},
-			  {7, 11, 15, 16},
+			  {7, 11, 15, 16}, // 6
 			  {6, 10, 14, 15},
 			  {5, 9, 13, 14},
 			  {3, 7, 11, 12},
 			  {2, 6, 10, 11},
 			  {1, 5, 9, 10},
-			  {15, 14, 13, 9},
+			  {15, 14, 13, 9}, // 7
 			  {11, 10, 9, 5},
 			  {7, 6, 5, 1},
 			  {16, 15, 14, 10},
 			  {12, 11, 10, 6},
 			  {8, 7, 6, 2},
-			  {11, 10, 9, 13},
+			  {11, 10, 9, 13}, // 8
 			  {7, 6, 5, 9},
 			  {3, 2, 1, 5},
 			  {12, 11, 10, 14},
@@ -2145,7 +2145,7 @@ STRING InteractPositionToString(POSITION interpos) {
 		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
 		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
 		if (whoseTurn == 1) {
-			for (int i = 1; i < 48; i++) {
+			for (int i = 1; i < 49; i++) {
 				if (L1 != i) {
 					if (
 						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'R') &&
@@ -2158,7 +2158,7 @@ STRING InteractPositionToString(POSITION interpos) {
 				}
 			}
 		} else {
-			for (int i = 1; i < 48; i++) {
+			for (int i = 1; i < 49; i++) {
 				if (L2 != i) {
 					if (
 						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'B') &&

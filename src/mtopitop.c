@@ -1439,7 +1439,7 @@ STRING initialTopitopInteractString = "R_A_8_5_-------------------------B--R-S--
 #define PIECEBEINGPLACEDINDEX 47
 #define INTERMEDIATEPOSMASK 0xE000000000000000
 int indexMap[9] = {14,15,16,19,20,21,24,25,26};
-char pieceMap[4] = {'B', 'R', 'S', 'L'};
+char pieceMap[4] = {'b', 'r', 's', 'l'};
 int pieceIndexMap[4] = {33, 36, 38, 41};
 
 POSITION InteractStringToPosition(STRING board) { // Assumes board is non-intermediate
@@ -1483,6 +1483,7 @@ STRING InteractPositionToString(POSITION position) {
 	finalBoard[DISALLOWEDTOINDEX] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
 	if (partialInfo) {
 		finalBoard[PIECEBEINGPLACEDINDEX] = pieceMap[partialInfo & 0b11];
+		finalBoard[pieceIndexMap[partialInfo & 0b11]] = pieceMap[partialInfo & 0b11];
 	}
 	return finalBoard;
 }

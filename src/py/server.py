@@ -338,6 +338,7 @@ class GameProcess(object):
         response = ''
         timeout = 0.01
         parsed = None
+        curr_time = time.time()
         while not parsed:
             if time_remaining <= 0:
                 self.server.log.debug('timeout')
@@ -349,6 +350,9 @@ class GameProcess(object):
                 while next_char != '\n':
                     response += next_char
                     next_char = self.process.stdout.read(1)
+                    if time.time() - curr_time > 5:
+                        self.server.log.debug('timeout')
+                        return self.handle_timeout(request, response)
             except IOError:
                 continue
             parsed = self.parse_response(response)
