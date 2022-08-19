@@ -1,5 +1,3 @@
-// $Id: mbaghchal.c,v 1.39 2007-12-07 19:56:04 max817 Exp $
-
 /************************************************************************
 **
 ** NAME:        mbaghchal.c
@@ -9,65 +7,14 @@
 ** AUTHOR:      Damian Hites
 **              Max Delgadillo
 **              Deepa Mahajan
+**              Cameron Cheung
 **
 ** DATE:        2006.9.27
-**
-** UPDATE HIST: -2004.10.21 = Original (Dom's) Version
-**              -2006.3.2 = Updates + Fixes by Max and Deepa
-**                  (Nearly) functional Standard version of game
-**              -2006.3.20 = Includes hack version of the Retrograde Solver
-**					(FAR from complete, but at least it's a working version)
-**					Also a few changes to the game, particular the board display.
-**				-2006.4.11 = Retrograde Solver now moved to its own file.
-**					Diagonals and Variants now implemented correctly.
-**					Fixed ALL the warnings.
-**					Fixed a few more little bugs, non 5x5 game is fully complete.
-**					Added RetrogradeTierValue function pointer implementation.
-**					Added CheckLegality code, but will implement in next update.
-**				-2006.4.16 = Slight bug fixes, like reading double-digit input.
-**					Variant number calculations fixed.
-**					Changed GOATS_MAX to 24 and upper-limit on goats from
-**					  "boardsize-tigers-1" to "boardsize-tigers".
-**					Now 4x4, No Diagonals, 12 Goats is "Dragons and Swans".
-**					Also lowered TIGERS_MAX to 9 to keep it single-digit.
-**					Got rid of any final debugging artifacts for the solver.
-**				-2006.8.4 = Complete clean-up of the game's code. Now doesn't
-**					have awkward semi-state variables like phase1 and NumGoats.
-**					Hash and unhash is done a lot more cleanly and intuitively.
-**					Tier Gamesman additions are in progress, so they are
-**					disabled for now, but will be working by the next update.
-**				-2006.8.7 = Tier Gamesman API functions coded! Unfortunately,
-**					the UndoMove functions don't seem to work... Hopefully,
-**					they'll be fixed soon!
-**				-2006.8.8 = UndoMove functions work perfectly! Now the Tier
-**					Gamesman API is fully implemented for Bagh Chal. It looks
-**					like symmetries are the only thing left to fix.
-**				-2006.9.10 = Fixed an unhash bug which returned the wrong
-**					person's turn in Stage 2 boards. Now it SHOULD be perfect,
-**					excluding IsLegal and Undomove functions of course.
-**					The Undomove functions will be fixed once the solver's
-**					debugger finally works and can help debug the problem.
-**				-2006.9.27 = It turns out Undomove functions were actually
-**					fully correct! The solver's debugger will confirm for sure
-**					once it's finished. Also, got rid of "Tier0Context" since
-**					hash destruction now works.
-**
-**
-**************************************************************************/
-
-/*************************************************************************
-**
-** Everything below here must be in every game file
 **
 **************************************************************************/
 
 #include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <string.h>
 
 /*************************************************************************
 **
@@ -75,8 +22,8 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Bagh Chal (Tigers Move)";   /* The name of your game */
-STRING kAuthorName          = "Damian Hites, Max Delgadillo, and Deepa Mahajan";   /* Your name(s) */
+STRING kGameName            = "Bagh-Chal (Tigers Move)";   /* The name of your game */
+STRING kAuthorName          = "Damian Hites, Max Delgadillo, Deepa Mahajan, Cameron Cheung";   /* Your name(s) */
 STRING kDBName              = "baghchal";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -93,7 +40,7 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
 
 
 BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
-void*    gGameSpecificTclInit = NULL;
+void* gGameSpecificTclInit = NULL;
 
 
 /*
@@ -195,108 +142,538 @@ STRING kHelpExample =
         "Dan's Move: d3\n\n"
         "etc...";
 
-
 /*************************************************************************
 **
 ** #defines and structs
 **
 **************************************************************************/
-#define WIDTH_MAX   5
-#define LENGTH_MAX  5
-#define WIDTH_MIN   3
-#define LENGTH_MIN  3
-#define GOATS_MAX   24
-#define TIGERS_MAX  9
-
 #define GOAT        'G'
 #define TIGER       'T'
 #define SPACE       '+'
-#define PLAYER_ONE  1
-#define PLAYER_TWO  2
-#define UP          0
-#define DOWN        1
-#define UP_RIGHT    2
-#define UP_LEFT     3
-#define DOWN_RIGHT  4
-#define DOWN_LEFT   5
-#define RIGHT       6
-#define LEFT        7
-#define NUMSYMMETRIES 8
+
+int nonDiagNumMoves3[9] = {2,3,2,3,4,3,2,3,2};
+int nonDiagMoveMatrix3[9][2][8] = {
+	{
+		{1,3,-1,-1,-1,-1,-1,-1},
+		{2,6,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,2,4,-1,-1,-1,-1,-1},
+		{-1,-1,7,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,5,-1,-1,-1,-1,-1,-1},
+		{0,8,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,4,6,-1,-1,-1,-1,-1},
+		{-1,5,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,3,5,7,-1,-1,-1,-1},
+		{-1,-1,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{2,4,8,-1,-1,-1,-1,-1},
+		{-1,3,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{3,7,-1,-1,-1,-1,-1,-1},
+		{0,8,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{4,6,8,-1,-1,-1,-1,-1},
+		{1,-1,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{5,7,-1,-1,-1,-1,-1,-1},
+		{2,6,-1,-1,-1,-1,-1,-1}
+	}
+};
+
+int diagNumMoves3[9] = {3,3,3,3,8,3,3,3,3};
+int diagMoveMatrix3[9][2][8] = {
+	{
+		{1,3,4,-1,-1,-1,-1,-1},
+		{2,6,8,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,2,4,-1,-1,-1,-1,-1},
+		{-1,-1,7,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,4,5,-1,-1,-1,-1,-1},
+		{0,6,8,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,4,6,-1,-1,-1,-1,-1},
+		{-1,5,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,1,2,3,5,6,7,8},
+		{-1,-1,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{2,4,8,-1,-1,-1,-1,-1},
+		{-1,3,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{3,4,7,-1,-1,-1,-1,-1},
+		{0,2,8,-1,-1,-1,-1,-1}
+	},
+	{
+		{4,6,8,-1,-1,-1,-1,-1},
+		{1,-1,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{4,5,7,-1,-1,-1,-1,-1},
+		{0,2,6,-1,-1,-1,-1,-1}
+	}
+};
+
+int nonDiagNumMoves4[16] = {2,3,3,2,3,4,4,3,3,4,4,3,2,3,3,2};
+int nonDiagMoveMatrix4[16][2][8] = {
+	{
+		{1,4,-1,-1,-1,-1,-1,-1},
+		{2,8,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,2,5,-1,-1,-1,-1,-1},
+		{-1,3,9,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,3,6,-1,-1,-1,-1,-1},
+		{0,-1,10,-1,-1,-1,-1,-1}
+	},
+	{
+		{2,7,-1,-1,-1,-1,-1,-1},
+		{1,11,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,5,8,-1,-1,-1,-1,-1},
+		{-1,6,12,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,4,6,9,-1,-1,-1,-1},
+		{-1,-1,7,13,-1,-1,-1,-1}
+	},
+	{
+		{2,5,7,10,-1,-1,-1,-1},
+		{-1,4,-1,14,-1,-1,-1,-1}
+	},
+	{
+		{3,6,11,-1,-1,-1,-1,-1},
+		{-1,5,15,-1,-1,-1,-1,-1}
+	},
+	{
+		{4,9,12,-1,-1,-1,-1,-1},
+		{0,10,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{5,8,10,13,-1,-1,-1,-1},
+		{1,-1,11,-1,-1,-1,-1,-1}
+	},
+	{
+		{6,9,11,14,-1,-1,-1,-1},
+		{2,8,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{7,10,15,-1,-1,-1,-1,-1},
+		{3,9,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{8,13,-1,-1,-1,-1,-1,-1},
+		{4,14,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{9,12,14,-1,-1,-1,-1,-1},
+		{5,-1,15,-1,-1,-1,-1,-1}
+	},
+	{
+		{10,13,15,-1,-1,-1,-1,-1},
+		{6,12,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{11,14,-1,-1,-1,-1,-1,-1},
+		{7,13,-1,-1,-1,-1,-1,-1}
+	},
+};
+
+int diagNumMoves4[16] = {3,3,5,2,3,8,4,5,5,4,8,3,2,5,3,3};
+int diagMoveMatrix4[16][2][8] = {
+	{
+		{1,4,5,-1,-1,-1,-1,-1},
+		{2,8,10,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,2,5,-1,-1,-1,-1,-1},
+		{-1,3,9,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,3,5,6,7,-1,-1,-1},
+		{0,-1,8,10,-1,-1,-1,-1}
+	},
+	{
+		{2,7,-1,-1,-1,-1,-1,-1},
+		{1,11,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,5,8,-1,-1,-1,-1,-1},
+		{-1,6,12,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,1,2,4,6,8,9,10},
+		{-1,-1,-1,-1,7,-1,13,15}
+	},
+	{
+		{2,5,7,10,-1,-1,-1,-1},
+		{-1,4,-1,14,-1,-1,-1,-1}
+	},
+	{
+		{2,3,6,10,11,-1,-1,-1},
+		{-1,-1,5,13,15,-1,-1,-1}
+	},
+	{
+		{4,5,9,12,13,-1,-1,-1},
+		{0,2,10,-1,-1,-1,-1,-1}
+	},
+	{
+		{5,8,10,13,-1,-1,-1,-1},
+		{1,-1,11,-1,-1,-1,-1,-1}
+	},
+	{
+		{5,6,7,9,11,13,14,15},
+		{0,2,-1,8,-1,-1,-1,-1}
+	},
+	{
+		{7,10,15,-1,-1,-1,-1,-1},
+		{3,9,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{8,13,-1,-1,-1,-1,-1,-1},
+		{4,14,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{8,9,10,12,14,-1,-1,-1},
+		{-1,5,7,-1,15,-1,-1,-1}
+	},
+	{
+		{10,13,15,-1,-1,-1,-1,-1},
+		{6,12,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{10,11,14,-1,-1,-1,-1,-1},
+		{5,7,13,-1,-1,-1,-1,-1}
+	},
+};
+
+int nonDiagNumMoves5[25] = {2,3,3,3,2,3,4,4,4,3,3,4,4,4,3,3,4,4,4,3,2,3,3,3,2};
+int nonDiagMoveMatrix5[25][2][8] = {
+	{
+		{1,5,-1,-1,-1,-1,-1,-1},
+		{2,10,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,2,6,-1,-1,-1,-1,-1},
+		{-1,3,11,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,3,7,-1,-1,-1,-1,-1},
+		{0,4,12,-1,-1,-1,-1,-1}
+	},
+	{
+		{2,4,8,-1,-1,-1,-1,-1},
+		{1,-1,13,-1,-1,-1,-1,-1}
+	},
+	{
+		{3,9,-1,-1,-1,-1,-1,-1},
+		{2,14,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,6,10,-1,-1,-1,-1,-1},
+		{-1,7,15,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,5,7,11,-1,-1,-1,-1},
+		{-1,-1,8,16,-1,-1,-1,-1}
+	},
+	{
+		{2,6,8,12,-1,-1,-1,-1},
+		{-1,5,9,17,-1,-1,-1,-1}
+	},
+	{
+		{3,7,9,13,-1,-1,-1,-1},
+		{-1,6,-1,18,-1,-1,-1,-1}
+	},
+	{
+		{4,8,14,-1,-1,-1,-1,-1},
+		{-1,7,19,-1,-1,-1,-1,-1}
+	},
+	{
+		{5,11,15,-1,-1,-1,-1,-1},
+		{0,12,20,-1,-1,-1,-1,-1}
+	},
+	{
+		{6,10,12,16,-1,-1,-1,-1},
+		{1,-1,13,21,-1,-1,-1,-1}
+	},
+	{
+		{7,11,13,17,-1,-1,-1,-1},
+		{2,10,14,22,-1,-1,-1,-1}
+	},
+	{
+		{8,12,14,18,-1,-1,-1,-1},
+		{3,11,-1,23,-1,-1,-1,-1}
+	},
+	{
+		{9,13,19,-1,-1,-1,-1,-1},
+		{4,12,24,-1,-1,-1,-1,-1}
+	},
+	{
+		{10,16,20,-1,-1,-1,-1,-1},
+		{5,17,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{11,15,17,21,-1,-1,-1,-1},
+		{6,-1,18,-1,-1,-1,-1,-1}
+	},
+	{
+		{12,16,18,22,-1,-1,-1,-1},
+		{7,15,19,-1,-1,-1,-1,-1}
+	},
+	{
+		{13,17,19,23,-1,-1,-1,-1},
+		{8,16,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{14,18,24,-1,-1,-1,-1,-1},
+		{9,17,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{15,21,-1,-1,-1,-1,-1,-1},
+		{10,22,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{16,20,22,-1,-1,-1,-1,-1},
+		{11,-1,23,-1,-1,-1,-1,-1}
+	},
+	{
+		{17,21,23,-1,-1,-1,-1,-1},
+		{12,20,24,-1,-1,-1,-1,-1}
+	},
+	{
+		{18,22,24,-1,-1,-1,-1,-1},
+		{13,21,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{19,23,-1,-1,-1,-1,-1,-1},
+		{14,22,-1,-1,-1,-1,-1,-1}
+	}
+};
+
+int diagNumMoves5[25] = {3,3,5,3,3,3,8,4,8,3,5,4,8,4,5,3,8,4,8,3,3,3,5,3,3};
+int diagMoveMatrix5[25][2][8] = {
+	{
+		{1,5,6,-1,-1,-1,-1,-1},
+		{2,10,12,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,2,6,-1,-1,-1,-1,-1},
+		{-1,3,11,-1,-1,-1,-1,-1}
+	},
+	{
+		{1,3,6,7,8,-1,-1,-1},
+		{0,4,10,12,14,-1,-1,-1}
+	},
+	{
+		{2,4,8,-1,-1,-1,-1,-1},
+		{1,-1,13,-1,-1,-1,-1,-1}
+	},
+	{
+		{3,8,9,-1,-1,-1,-1,-1},
+		{2,12,14,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,6,10,-1,-1,-1,-1,-1},
+		{-1,7,15,-1,-1,-1,-1,-1}
+	},
+	{
+		{0,1,2,5,7,10,11,12},
+		{-1,-1,-1,-1,8,-1,16,18}
+	},
+	{
+		{2,6,8,12,-1,-1,-1,-1},
+		{-1,5,9,17,-1,-1,-1,-1}
+	},
+	{
+		{2,3,4,7,9,12,13,14},
+		{-1,-1,-1,6,-1,16,18,-1}
+	},
+	{
+		{4,8,14,-1,-1,-1,-1,-1},
+		{-1,7,19,-1,-1,-1,-1,-1}
+	},
+	{
+		{5,6,11,15,16,-1,-1,-1},
+		{0,2,12,20,22,-1,-1,-1}
+	},
+	{
+		{6,10,12,16,-1,-1,-1,-1},
+		{1,-1,13,21,-1,-1,-1,-1}
+	},
+	{
+		{6,7,8,11,13,16,17,18},
+		{0,2,4,10,14,20,22,24}
+	},
+	{
+		{8,12,14,18,-1,-1,-1,-1},
+		{3,11,-1,23,-1,-1,-1,-1}
+	},
+	{
+		{8,9,13,18,19,-1,-1,-1},
+		{2,4,12,22,24,-1,-1,-1}
+	},
+	{
+		{10,16,20,-1,-1,-1,-1,-1},
+		{5,17,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{10,11,12,15,17,20,21,22},
+		{-1,6,8,-1,18,-1,-1,-1}
+	},
+	{
+		{12,16,18,22,-1,-1,-1,-1},
+		{7,15,19,-1,-1,-1,-1,-1}
+	},
+	{
+		{12,13,14,17,19,22,23,24},
+		{6,8,-1,16,-1,-1,-1,-1}
+	},
+	{
+		{14,18,24,-1,-1,-1,-1,-1},
+		{9,17,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{15,16,21,-1,-1,-1,-1,-1},
+		{10,12,22,-1,-1,-1,-1,-1}
+	},
+	{
+		{16,20,22,-1,-1,-1,-1,-1},
+		{11,-1,23,-1,-1,-1,-1,-1}
+	},
+	{
+		{16,17,18,21,23,-1,-1,-1},
+		{10,12,14,20,24,-1,-1,-1}
+	},
+	{
+		{18,22,24,-1,-1,-1,-1,-1},
+		{13,21,-1,-1,-1,-1,-1,-1}
+	},
+	{
+		{18,19,23,-1,-1,-1,-1,-1},
+		{12,14,22,-1,-1,-1,-1,-1}
+	}
+};
+
+int gSymmetryMatrix3[8][25] = {
+    {0,1,2,3,4,5,6,7,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {6,3,0,7,4,1,8,5,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {8,7,6,5,4,3,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {2,5,8,1,4,7,0,3,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {2,1,0,5,4,3,8,7,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,3,6,1,4,7,2,5,8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {6,7,8,3,4,5,0,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+    {8,5,2,7,4,1,6,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+};
+
+// TYPICAL DIHEDRAL GROUP D4 SYMMETRIES DO NOT WORK FOR 4x4 WITH DIAGONALS
+// IT WORKS FOR 4x4 WITHOUT DIAGONALS
+int gSymmetryMatrix4[8][25] = {
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,0,0,0,0,0,0,0,0},
+	{3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12,0,0,0,0,0,0,0,0,0},
+	{12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3,0,0,0,0,0,0,0,0,0},
+	{0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15,0,0,0,0,0,0,0,0,0},
+	{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,0,0,0,0,0,0,0,0},
+	{12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3,0,0,0,0,0,0,0,0,0},
+	{3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12,0,0,0,0,0,0,0,0,0},
+	{15,11,7,3,14,10,6,2,13,9,5,1,12,8,4,0,0,0,0,0,0,0,0,0,0}
+};
+
+int gSymmetryMatrix5[8][25] = {
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24},
+	{4,3,2,1,0,9,8,7,6,5,14,13,12,11,10,19,18,17,16,15,24,23,22,21,20},
+	{20,15,10,5,0,21,16,11,6,1,22,17,12,7,2,23,18,13,8,3,24,19,14,9,4},
+	{0,5,10,15,20,1,6,11,16,21,2,7,12,17,22,3,8,13,18,23,4,9,14,19,24},
+	{24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},
+	{20,21,22,23,24,15,16,17,18,19,10,11,12,13,14,5,6,7,8,9,0,1,2,3,4},
+	{4,9,14,19,24,3,8,13,18,23,2,7,12,17,22,1,6,11,16,21,0,5,10,15,20},
+	{24,19,14,9,4,23,18,13,8,3,22,17,12,7,2,21,16,11,6,1,20,15,10,5,0}
+};
+
+POSITION combinations[26][5][21] = {{{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,3,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{3,6,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,4,6,4,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{4,12,12,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{6,12,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,5,10,10,5,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{5,20,30,20,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{10,30,30,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{10,20,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,6,15,20,15,6,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{6,30,60,60,30,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{15,60,90,60,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{20,60,60,20,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{15,30,15,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,7,21,35,35,21,7,1,0,0,0,0,0,0,0,0,0,0,0,0,0},{7,42,105,140,105,42,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{21,105,210,210,105,21,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{35,140,210,140,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{35,105,105,35,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,8,28,56,70,56,28,8,1,0,0,0,0,0,0,0,0,0,0,0,0},{8,56,168,280,280,168,56,8,0,0,0,0,0,0,0,0,0,0,0,0,0},{28,168,420,560,420,168,28,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{56,280,560,560,280,56,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{70,280,420,280,70,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,9,36,84,126,126,84,36,9,1,0,0,0,0,0,0,0,0,0,0,0},{9,72,252,504,630,504,252,72,9,0,0,0,0,0,0,0,0,0,0,0,0},{36,252,756,1260,1260,756,252,36,0,0,0,0,0,0,0,0,0,0,0,0,0},{84,504,1260,1680,1260,504,84,0,0,0,0,0,0,0,0,0,0,0,0,0,0},{126,630,1260,1260,630,126,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,10,45,120,210,252,210,120,45,10,1,0,0,0,0,0,0,0,0,0,0},{10,90,360,840,1260,1260,840,360,90,10,0,0,0,0,0,0,0,0,0,0,0},{45,360,1260,2520,3150,2520,1260,360,45,0,0,0,0,0,0,0,0,0,0,0,0},{120,840,2520,4200,4200,2520,840,120,0,0,0,0,0,0,0,0,0,0,0,0,0},{210,1260,3150,4200,3150,1260,210,0,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,11,55,165,330,462,462,330,165,55,11,1,0,0,0,0,0,0,0,0,0},{11,110,495,1320,2310,2772,2310,1320,495,110,11,0,0,0,0,0,0,0,0,0,0},{55,495,1980,4620,6930,6930,4620,1980,495,55,0,0,0,0,0,0,0,0,0,0,0},{165,1320,4620,9240,11550,9240,4620,1320,165,0,0,0,0,0,0,0,0,0,0,0,0},{330,2310,6930,11550,11550,6930,2310,330,0,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,12,66,220,495,792,924,792,495,220,66,12,1,0,0,0,0,0,0,0,0},{12,132,660,1980,3960,5544,5544,3960,1980,660,132,12,0,0,0,0,0,0,0,0,0},{66,660,2970,7920,13860,16632,13860,7920,2970,660,66,0,0,0,0,0,0,0,0,0,0},{220,1980,7920,18480,27720,27720,18480,7920,1980,220,0,0,0,0,0,0,0,0,0,0,0},{495,3960,13860,27720,34650,27720,13860,3960,495,0,0,0,0,0,0,0,0,0,0,0,0}},{{1,13,78,286,715,1287,1716,1716,1287,715,286,78,13,1,0,0,0,0,0,0,0},{13,156,858,2860,6435,10296,12012,10296,6435,2860,858,156,13,0,0,0,0,0,0,0,0},{78,858,4290,12870,25740,36036,36036,25740,12870,4290,858,78,0,0,0,0,0,0,0,0,0},{286,2860,12870,34320,60060,72072,60060,34320,12870,2860,286,0,0,0,0,0,0,0,0,0,0},{715,6435,25740,60060,90090,90090,60060,25740,6435,715,0,0,0,0,0,0,0,0,0,0,0}},{{1,14,91,364,1001,2002,3003,3432,3003,2002,1001,364,91,14,1,0,0,0,0,0,0},{14,182,1092,4004,10010,18018,24024,24024,18018,10010,4004,1092,182,14,0,0,0,0,0,0,0},{91,1092,6006,20020,45045,72072,84084,72072,45045,20020,6006,1092,91,0,0,0,0,0,0,0,0},{364,4004,20020,60060,120120,168168,168168,120120,60060,20020,4004,364,0,0,0,0,0,0,0,0,0},{1001,10010,45045,120120,210210,252252,210210,120120,45045,10010,1001,0,0,0,0,0,0,0,0,0,0}},{{1,15,105,455,1365,3003,5005,6435,6435,5005,3003,1365,455,105,15,1,0,0,0,0,0},{15,210,1365,5460,15015,30030,45045,51480,45045,30030,15015,5460,1365,210,15,0,0,0,0,0,0},{105,1365,8190,30030,75075,135135,180180,180180,135135,75075,30030,8190,1365,105,0,0,0,0,0,0,0},{455,5460,30030,100100,225225,360360,420420,360360,225225,100100,30030,5460,455,0,0,0,0,0,0,0,0},{1365,15015,75075,225225,450450,630630,630630,450450,225225,75075,15015,1365,0,0,0,0,0,0,0,0,0}},{{1,16,120,560,1820,4368,8008,11440,12870,11440,8008,4368,1820,560,120,16,1,0,0,0,0},{16,240,1680,7280,21840,48048,80080,102960,102960,80080,48048,21840,7280,1680,240,16,0,0,0,0,0},{120,1680,10920,43680,120120,240240,360360,411840,360360,240240,120120,43680,10920,1680,120,0,0,0,0,0,0},{560,7280,43680,160160,400400,720720,960960,960960,720720,400400,160160,43680,7280,560,0,0,0,0,0,0,0},{1820,21840,120120,400400,900900,1441440,1681680,1441440,900900,400400,120120,21840,1820,0,0,0,0,0,0,0,0}},{{1,17,136,680,2380,6188,12376,19448,24310,24310,19448,12376,6188,2380,680,136,17,1,0,0,0},{17,272,2040,9520,30940,74256,136136,194480,218790,194480,136136,74256,30940,9520,2040,272,17,0,0,0,0},{136,2040,14280,61880,185640,408408,680680,875160,875160,680680,408408,185640,61880,14280,2040,136,0,0,0,0,0},{680,9520,61880,247520,680680,1361360,2042040,2333760,2042040,1361360,680680,247520,61880,9520,680,0,0,0,0,0,0},{2380,30940,185640,680680,1701700,3063060,4084080,4084080,3063060,1701700,680680,185640,30940,2380,0,0,0,0,0,0,0}},{{1,18,153,816,3060,8568,18564,31824,43758,48620,43758,31824,18564,8568,3060,816,153,18,1,0,0},{18,306,2448,12240,42840,111384,222768,350064,437580,437580,350064,222768,111384,42840,12240,2448,306,18,0,0,0},{153,2448,18360,85680,278460,668304,1225224,1750320,1969110,1750320,1225224,668304,278460,85680,18360,2448,153,0,0,0,0},{816,12240,85680,371280,1113840,2450448,4084080,5250960,5250960,4084080,2450448,1113840,371280,85680,12240,816,0,0,0,0,0},{3060,42840,278460,1113840,3063060,6126120,9189180,10501920,9189180,6126120,3063060,1113840,278460,42840,3060,0,0,0,0,0,0}},{{1,19,171,969,3876,11628,27132,50388,75582,92378,92378,75582,50388,27132,11628,3876,969,171,19,1,0},{19,342,2907,15504,58140,162792,352716,604656,831402,923780,831402,604656,352716,162792,58140,15504,2907,342,19,0,0},{171,2907,23256,116280,406980,1058148,2116296,3325608,4157010,4157010,3325608,2116296,1058148,406980,116280,23256,2907,171,0,0,0},{969,15504,116280,542640,1763580,4232592,7759752,11085360,12471030,11085360,7759752,4232592,1763580,542640,116280,15504,969,0,0,0,0},{3876,58140,406980,1763580,5290740,11639628,19399380,24942060,24942060,19399380,11639628,5290740,1763580,406980,58140,3876,0,0,0,0,0}},{{1,20,190,1140,4845,15504,38760,77520,125970,167960,184756,167960,125970,77520,38760,15504,4845,1140,190,20,1},{20,380,3420,19380,77520,232560,542640,1007760,1511640,1847560,1847560,1511640,1007760,542640,232560,77520,19380,3420,380,20,0},{190,3420,29070,155040,581400,1627920,3527160,6046560,8314020,9237800,8314020,6046560,3527160,1627920,581400,155040,29070,3420,190,0,0},{1140,19380,155040,775200,2713200,7054320,14108640,22170720,27713400,27713400,22170720,14108640,7054320,2713200,775200,155040,19380,1140,0,0,0},{4845,77520,581400,2713200,8817900,21162960,38798760,55426800,62355150,55426800,38798760,21162960,8817900,2713200,581400,77520,4845,0,0,0,0}},{{1,21,210,1330,5985,20349,54264,116280,203490,293930,352716,352716,293930,203490,116280,54264,20349,5985,1330,210,21},{21,420,3990,23940,101745,325584,813960,1627920,2645370,3527160,3879876,3527160,2645370,1627920,813960,325584,101745,23940,3990,420,21},{210,3990,35910,203490,813960,2441880,5697720,10581480,15872220,19399380,19399380,15872220,10581480,5697720,2441880,813960,203490,35910,3990,210,0},{1330,23940,203490,1085280,4069800,11395440,24690120,42325920,58198140,64664600,58198140,42325920,24690120,11395440,4069800,1085280,203490,23940,1330,0,0},{5985,101745,813960,4069800,14244300,37035180,74070360,116396280,145495350,145495350,116396280,74070360,37035180,14244300,4069800,813960,101745,5985,0,0,0}},{{1,22,231,1540,7315,26334,74613,170544,319770,497420,646646,705432,646646,497420,319770,170544,74613,26334,7315,1540,231},{22,462,4620,29260,131670,447678,1193808,2558160,4476780,6466460,7759752,7759752,6466460,4476780,2558160,1193808,447678,131670,29260,4620,462},{231,4620,43890,263340,1119195,3581424,8953560,17907120,29099070,38798760,42678636,38798760,29099070,17907120,8953560,3581424,1119195,263340,43890,4620,231},{1540,29260,263340,1492260,5969040,17907120,41783280,77597520,116396280,142262120,142262120,116396280,77597520,41783280,17907120,5969040,1492260,263340,29260,1540,0},{7315,131670,1119195,5969040,22383900,62674920,135795660,232792560,320089770,355655300,320089770,232792560,135795660,62674920,22383900,5969040,1119195,131670,7315,0,0}},{{1,23,253,1771,8855,33649,100947,245157,490314,817190,1144066,1352078,1352078,1144066,817190,490314,245157,100947,33649,8855,1771},{23,506,5313,35420,168245,605682,1716099,3922512,7354710,11440660,14872858,16224936,14872858,11440660,7354710,3922512,1716099,605682,168245,35420,5313},{253,5313,53130,336490,1514205,5148297,13728792,29418840,51482970,74364290,89237148,89237148,74364290,51482970,29418840,13728792,5148297,1514205,336490,53130,5313},{1771,35420,336490,2018940,8580495,27457584,68643960,137287920,223092870,297457160,327202876,297457160,223092870,137287920,68643960,27457584,8580495,2018940,336490,35420,1771},{8855,168245,1514205,8580495,34321980,102965940,240253860,446185740,669278610,818007190,818007190,669278610,446185740,240253860,102965940,34321980,8580495,1514205,168245,8855,0}},{{1,24,276,2024,10626,42504,134596,346104,735471,1307504,1961256,2496144,2704156,2496144,1961256,1307504,735471,346104,134596,42504,10626},{24,552,6072,42504,212520,807576,2422728,5883768,11767536,19612560,27457584,32449872,32449872,27457584,19612560,11767536,5883768,2422728,807576,212520,42504},{276,6072,63756,425040,2018940,7268184,20593188,47070144,88256520,137287920,178474296,194699232,178474296,137287920,88256520,47070144,20593188,7268184,2018940,425040,63756},{2024,42504,425040,2691920,12113640,41186376,109830336,235350720,411863760,594914320,713897184,713897184,594914320,411863760,235350720,109830336,41186376,12113640,2691920,425040,42504},{10626,212520,2018940,12113640,51482970,164745504,411863760,823727520,1338557220,1784742960,1963217256,1784742960,1338557220,823727520,411863760,164745504,51482970,12113640,2018940,212520,10626}},{{1,25,300,2300,12650,53130,177100,480700,1081575,2042975,3268760,4457400,5200300,5200300,4457400,3268760,2042975,1081575,480700,177100,53130},{25,600,6900,50600,265650,1062600,3364900,8652600,18386775,32687600,49031400,62403600,67603900,62403600,49031400,32687600,18386775,8652600,3364900,1062600,265650},{300,6900,75900,531300,2656500,10094700,30284100,73547100,147094200,245157000,343219800,405623400,405623400,343219800,245157000,147094200,73547100,30284100,10094700,2656500,531300},{2300,50600,531300,3542000,16824500,60568200,171609900,392251200,735471000,1144066000,1487285800,1622493600,1487285800,1144066000,735471000,392251200,171609900,60568200,16824500,3542000,531300},{12650,265650,2656500,16824500,75710250,257414850,686439600,1470942000,2574148500,3718214500,4461857400,4461857400,3718214500,2574148500,1470942000,686439600,257414850,75710250,16824500,2656500,265650}}};
+
+char initialBaghchalInteractString3[] = "R_A_4_3_T-T---T-T0-0";
+char initialBaghchalInteractString4[] = "R_A_5_4_T--T--------T--T00-0";
+char initialBaghchalInteractString5[] = "R_A_6_5_T---T---------------T---T00-00";
+
+int boardToStringIdxMapping[25] = {8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
+int boardToGridIdxMapping[25] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
+
+int goatsLeftTensIdx5 = 33;
+int goatsLeftOnesIdx5 = 34;
+int goatsCapturedTensIdx5 = 36;
+int goatsCapturedOnesIdx5 = 37;
+
+int goatsLeftTensIdx4 = 24;
+int goatsLeftOnesIdx4 = 25;
+int goatsCapturedTensIdx4 = 27;
+int goatsCapturedOnesIdx4 = 27;
+
+int goatsLeftTensIdx3 = 17;
+int goatsLeftOnesIdx3 = 17;
+int goatsCapturedTensIdx3 = 19;
+int goatsCapturedOnesIdx3 = 19;
 
 /*************************************************************************
 **
 ** Global Variables
 **
 *************************************************************************/
-int width      = 3;
-int length     = 3;
-int boardSize  = 9;
+int sideLength = 5;
+int boardSize  = 25;
 int tigers     = 4;
-int goats      = 4;
+int goats      = 20;
+int goatCaptureGoal = 5;
+int (*symmetriesToUse)[25] = gSymmetryMatrix5;
+int (*numMoves) = diagNumMoves5;
+int (*moveMatrix)[2][8] = diagMoveMatrix5;
+
+STRING initialBaghchalInteractString = initialBaghchalInteractString5;
+int goatsLeftTensIdx = 45;
+int goatsLeftOnesIdx = 46;
+int goatsCapturedTensIdx = 48;
+int goatsCapturedOnesIdx = 49;
 
 BOOLEAN diagonals = TRUE;
 
 POSITION genericHashMaxPos = 0; //saves a function call
-
-int gSymmetryMatrix5[NUMSYMMETRIES][25];
-/* This is the array used for flipping along the N-S axis */
-int gFlipNewPosition5[] = {4, 3, 2, 1, 0, 9, 8, 7, 6, 5, 14, 13, 12, 11, 10, 19, 18, 17, 16, 15, 24, 23, 22, 21, 20};
-
-/* This is the array used for rotating 90 degrees clockwise */
-int gRotate90CWNewPosition5[] = { 20, 15, 10, 5, 0, 21, 16, 11, 6, 1, 22, 17, 12, 7, 2, 23, 18, 13, 8, 3, 24, 19, 14, 9, 4};
-
-
-int gSymmetryMatrix4[NUMSYMMETRIES][16];
-/* This is the array used for flipping along the N-S axis */
-int gFlipNewPosition4[] = { 3, 2, 1, 0, 7, 6, 5, 4, 11, 10, 9, 8, 15, 14, 13, 12};
-
-/* This is the array used for rotating 90 degrees clockwise */
-int gRotate90CWNewPosition4[] = { 12, 8, 4, 0, 13, 9, 5, 1, 14, 10, 6, 2, 15, 11, 7, 3};
-
-
-int gSymmetryMatrix3[NUMSYMMETRIES][9];
-/* This is the array used for flipping along the N-S axis */
-int gFlipNewPosition3[] = {2, 1, 0, 5, 4, 3, 8, 7, 6};
-
-/* This is the array used for rotating 90 degrees clockwise */
-int gRotate90CWNewPosition3[] = {6, 3, 0, 7, 4, 1, 8, 5, 2 };
-
-/* Proofs of correctness for the below arrays:
-**
-** FLIP
-**
-** 1  2  3  4  5        5  4  3  2  1
-** 6  7  8  9  10  ->   10 9  8  7  6
-** 11 12 13 14 15       15 14 13 12 11
-** 16 17 18 19 20       20 19 18 17 16
-** 21 22 23 24 25       25 24 23 22 21
-**
-** ROTATE
-**
-** 1  2  3  4  5        21 16 11 6  1
-** 6  7  8  9  10  ->   22 17 12 7  2
-** 11 12 13 14 15       23 18 13 8  3
-** 16 17 18 19 20       24 19 14 9  4
-** 21 22 23 24 25       25 20 15 10 5
-*/
 
 /*************************************************************************
 **
 ** Function Prototypes
 **
 *************************************************************************/
-int translate (int x, int y);
-int get_x (int index);
-int get_y (int index);
-POSITION hash (char*, int, int);
+int translate(int x, int y);
+int get_x(int index);
+int get_y(int index);
+POSITION hash(char*, int, int, char);
 char* TclUnhash(POSITION);
-char* unhash (POSITION, int*, int*);
-void ChangeBoardSize ();
-void SetupGame ();
-//BOOLEAN CheckLegality (POSITION position);
+char* unhash(POSITION, int*, int*,char*);
+void ChangeBoardSize();
 STRING MoveToString(MOVE);
 POSITION GetCanonicalPosition(POSITION position);
 POSITION DoSymmetry(POSITION position, int symmetry);
+POSITION GetInitialPosition();
 
 //TIER GAMESMAN
 void SetupTierStuff();
@@ -307,17 +684,70 @@ UNDOMOVELIST* GenerateUndoMovesToTier(POSITION, TIER);
 POSITION UnDoMove(POSITION, UNDOMOVE);
 STRING TierToString(TIER);
 
-void unhashTier(TIER, int*, int*, int*);
-TIER hashTier(int, int, int);
-int numGoatsOnBoard (char*);
-int s1GoatOffset, s1TigerOffset;
-// Actual functions are at the end of this file
+void unhashTier(TIER, int*, int*, char*);
+TIER hashTier(int, int, char);
+void hashBoard(char *board, int goatsLeft, int goatsCaptured, char turn, TIER *tier, TIERPOSITION *tierposition);
+char* unhashToBoard(TIER tier, TIERPOSITION tierposition, int *goatsLeft, int *goatsCaptured, char *turn, char *board);
+void unhashMove(MOVE, int*, int*, int*);
+MOVE hashMove(int, int, int);
+void unhashCacheInit();
+void hashCachePut(TIER tier, TIERPOSITION tierposition, char *board, char turn, int goatsLeft, int goatsCaptured);
+BOOLEAN hashCacheGet(TIER tier, POSITION tierposition, char *board, char *turn, int *goatsLeft, int *goatsCaptured);
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR  SafeMalloc ();
-extern void     SafeFree ();
-#endif
+typedef struct {
+	TIER tier;
+	TIERPOSITION tierposition;
+	char board[25];
+	char turn;
+	int goatsLeft;
+	int goatsCaptured;
+} UNHASH_RECORD;
+
+#define NUM_UNHASH_RECORDS 0b100000000000000
+#define UNHASH_MASK        0b011111111111111
+
+UNHASH_RECORD unhashRecords[NUM_UNHASH_RECORDS];
+
+int unhashCacheInited = 0;
+
+void unhashCacheInit() {
+	for (long i = 0; i < NUM_UNHASH_RECORDS; i++) {
+		unhashRecords[i].tierposition = -1LL;
+	}
+	unhashCacheInited = 1;
+}
+
+void hashCachePut(TIER tier, TIERPOSITION tierposition, char *board, char turn, int goatsLeft, int goatsCaptured) {
+	if (!unhashCacheInited) unhashCacheInit();
+
+	long i = tierposition & UNHASH_MASK;
+	if (unhashRecords[i].tier != tier ||
+		unhashRecords[i].tierposition != tierposition) {
+		unhashRecords[i].tier = tier;
+		unhashRecords[i].tierposition = tierposition;
+		memcpy(unhashRecords[i].board, board, boardSize);
+		unhashRecords[i].turn = turn;
+		unhashRecords[i].goatsLeft = goatsLeft;
+		unhashRecords[i].goatsCaptured = goatsCaptured;
+	}
+}
+
+// Returns TRUE if cache miss, otherwise FALSE
+BOOLEAN hashCacheGet(TIER tier, POSITION tierposition, char *board, char *turn, int *goatsLeft, int *goatsCaptured) {
+	if (!unhashCacheInited) unhashCacheInit();
+
+	long i = tierposition & UNHASH_MASK;
+	if (unhashRecords[i].tier == tier &&
+		unhashRecords[i].tierposition == tierposition) {
+		memcpy(board, unhashRecords[i].board, boardSize);
+		(*turn) = unhashRecords[i].turn;
+		(*goatsLeft) = unhashRecords[i].goatsLeft;
+		(*goatsCaptured) = unhashRecords[i].goatsCaptured;
+		return FALSE;
+	}
+	return TRUE;
+}
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -332,24 +762,44 @@ int vcfg_board(int* configuration) {
 	return 1;
 }
 
-STRING copy(STRING toCopy){
+STRING copy(STRING toCopy) {
 	STRING toReturn = SafeMalloc((strlen(toCopy)+1) * sizeof(char));
 	strcpy(toReturn, toCopy);
 	return toReturn;
 }
 
-void *fakeUnhash(POSITION p){
+void *fakeUnhash(POSITION p) {
 	return (void *) copy("balhblahblah");
 }
 
-void InitializeGame ()
-{
-	gCanonicalPosition = GetCanonicalPosition;
+void InitializeGame() {
 
+	/* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
+	/********************************/
+
+	gSymmetries = TRUE;
+	gCanonicalPosition = GetCanonicalPosition;
 	gMoveToStringFunPtr = &MoveToString;
+
+	kSupportsTierGamesman = TRUE;
+	kExclusivelyTierGamesman = TRUE;
+
+	gTierChildrenFunPtr = &TierChildren;
+	gNumberOfTierPositionsFunPtr = &NumberOfTierPositions;
+	gTierToStringFunPtr = &TierToString;
+
+	gUnDoMoveFunPtr = &UnDoMove;
+	gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
+
+	setOption(getOption());
+
+	unhashCacheInit();
+
 	gCustomUnhash = &TclUnhash;
 	linearUnhash = &fakeUnhash;
-	SetupGame();
 }
 
 
@@ -357,131 +807,32 @@ void InitializeGame ()
 **
 ** NAME:        GenerateMoves
 **
-** DESCRIPTION: Creates a linked list of every move that can be reached
-**              from this position. Returns a pointer to the head of the
-**              linked list.
-**
-** INPUTS:      POSITION position : Current position for move
-**                                  generation.
-**
-** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
-**                                  the linked list of generated moves
-**
-** CALLS:       MOVELIST *CreateMovelistNode();
-**
 ************************************************************************/
 
-MOVELIST *GenerateMoves    (POSITION position)
-{ /*      UP
-	          ^
-	LEFT<---|--> RIGHT
-	          v
-	         DOWN
-	(1,1) IS top left corner and (row,col)=(length, width)= bottom right corner
-	 */
-	int turn, goatsLeft;
-	char* board = unhash(position, &turn, &goatsLeft);
-	char animal;
-	int row = length, col = width;
-	MOVELIST *moves = NULL;
-	int i, j;
-	if(goatsLeft != 0 && turn == PLAYER_ONE)    {
-		// Generates the list of all possible drop locations for Phase 1
-		for(i = 1; i <= row; i++) {
-			for(j = 1; j <= col; j++)    {
-				if(board[translate(i, j)] == SPACE)
-					moves = CreateMovelistNode(translate(i, j), moves);
-			}
-		}
-	}
-	else {
-		// Generates the list of all possible jump/ move locations for Phase 2
-		if(PLAYER_ONE == turn)
-			animal = GOAT;
-		else
-			animal = TIGER;
-
-		for(i = 1; i <= row; i++) {
-			for(j = 1; j <= col; j++)    {
-				if(board[translate(i, j)] == animal) {
-					// Move Up
-					if((i-1 > 0) && (board[translate(i-1, j)] == SPACE))
-						moves = CreateMovelistNode((translate(i, j)*8+UP)*2 + boardSize, moves);
-					// Move Right
-					if((j+1 <= col) && (board[translate(i, j+1)] == SPACE))
-						moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2 + boardSize, moves);
-					// Move Down
-					if((i+1 <= row) && (board[translate(i+1, j)] == SPACE))
-						moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2 + boardSize, moves);
-					// Move Left
-					if((j-1 > 0) && (board[translate(i, j-1)] == SPACE))
-						moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2 + boardSize, moves);
-					//DIAGONAL MOVES
-					if(diagonals) { // Move NW
-						if((i-1 > 0) && (j-1 > 0) && (((i + j) % 2) == 0)    &&
-						   (board[translate(i-1, j-1)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2 + boardSize, moves);
-						// Move NE
-						if((i-1 > 0) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-						   (board[translate(i-1, j+1)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2 + boardSize,moves);
-						// Move SE
-						if((i+1 <= row) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-						   (board[translate(i+1, j+1)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2 + boardSize, moves);
-						// Move SW
-						if((i+1 <= row) && (j-1 > 0) && (((i + j) % 2) == 0) &&
-						   (board[translate(i+1, j-1)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2 + boardSize, moves);
-					}
-					if(animal == TIGER)    {
-						// tigers can jump
-						// Jump Up
-						if((i-1 > 1) && (board[translate(i-1, j)] == GOAT) &&
-						   (board[translate(i-2, j)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+UP)*2+1 + boardSize, moves);
-						// Jump Right
-						if((j+1 < width) && (board[translate(i, j+1)] == GOAT)    &&
-						   (board[translate(i, j+2)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+RIGHT)*2+1 + boardSize, moves);
-						// Jump Down
-						if((i+1 < row) && (board[translate(i+1, j)] == GOAT) &&
-						   (board[translate(i+2, j)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+DOWN)*2+1 + boardSize, moves);
-						// Jump Left
-						if((j-1 > 1) && (board[translate(i, j-1)] == GOAT) &&
-						   (j-2 > 0) && (board[translate(i, j-2)] == SPACE))
-							moves = CreateMovelistNode((translate(i, j)*8+LEFT)*2+1 + boardSize, moves);
-						if(diagonals) { // Jump SW
-							if((i+1 < length) && (j-1 > 1)    &&
-							   (board[translate(i+1, j-1)] == GOAT)    &&
-							   (((i + j) % 2) == 0)    &&
-							   (board[translate(i+2, j-2)] == SPACE))
-								moves = CreateMovelistNode((translate(i, j)*8+DOWN_LEFT)*2+1 + boardSize, moves);
-							// Jump SE
-							if((i+1 < length) && (j+1 < width) &&
-							   (board[translate(i+1, j+1)] == GOAT)    &&
-							   (((i + j) % 2) == 0)    &&
-							   (board[translate(i+2, j+2)] == SPACE))
-								moves = CreateMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2+1 + boardSize, moves);
-							// Jump NE
-							if((i-1 > 1) && (j+1 < width) &&
-							   (board[translate(i-1, j+1)] == GOAT)&& (((i+j) %2) == 0) &&
-							   (board[translate(i-2, j+2)] == SPACE))
-								moves = CreateMovelistNode((translate(i, j)*8+UP_RIGHT)*2+1 + boardSize, moves);
-							// Jump NW
-							if((i-1 > 1) && (j-1 > 1) &&
-							   (board[translate(i-1, j-1)] == GOAT) &&
-							   (i-2 >0) && (j-2 >0) && (((i + j) % 2) == 0) && (board[translate(i-2, j-2)] ==  SPACE))
-								moves = CreateMovelistNode((translate(i, j)*8+UP_LEFT)*2+1 + boardSize, moves);
-						}
-					}
-				}
-			}
-		}
-	}
-	if (board != NULL)
+MOVELIST *GenerateMoves(POSITION position) {
+	int goatsLeft, goatsCaptured;
+	char turn;
+	char *board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
+	if (goatsCaptured >= goatCaptureGoal) {
 		SafeFree(board);
+		return NULL;
+	}
+	MOVELIST *moves = NULL;
+	for (int i = 0; i < boardSize; i++) {
+		if (turn == GOAT && goatsLeft && board[i] == SPACE) {
+			moves = CreateMovelistNode(hashMove(i, i, i), moves);
+		} else if (board[i] == turn && (turn == TIGER || !goatsLeft)) {
+			for (int j = 0; j < numMoves[i]; j++) {
+				int adjIndex = moveMatrix[i][0][j];
+				int jumpIndex =  moveMatrix[i][1][j];
+				if (board[adjIndex] == SPACE)
+					moves = CreateMovelistNode(hashMove(i, adjIndex, adjIndex), moves);
+				else if (turn == TIGER && jumpIndex != -1 && board[adjIndex] == GOAT && board[jumpIndex] == SPACE)
+					moves = CreateMovelistNode(hashMove(i, jumpIndex, adjIndex), moves);
+			}
+		}
+	}
+	SafeFree(board);
 	return moves;
 }
 
@@ -490,96 +841,40 @@ MOVELIST *GenerateMoves    (POSITION position)
 **
 ** NAME:        DoMove
 **
-** DESCRIPTION: Applies the move to the position.
-**
-** INPUTS:      POSITION position : The old position
-**              MOVE     move     : The move to apply to the position
-**
-** OUTPUTS:     (POSITION)        : The position that results from move
-**
-** CALLS:       Some Board Hash Function
-**              Some Board Unhash Function
-**
 *************************************************************************/
 
-POSITION DoMove (POSITION position, MOVE move)
-{
-	int turn, goatsLeft;
-	char* board = unhash(position, &turn, &goatsLeft);
-	char piece;
-	int jump, direction, i, j, jumpI, jumpJ;
-	if(move < boardSize) { // It's only a Goat being placed
-		board[move] = GOAT;
-		turn = PLAYER_TWO;
-		goatsLeft -= 1;
-		return hash(board, turn, goatsLeft);
-	}
-	move -= boardSize;
-	jump = move % 2;
-	move /= 2;
-	direction = move % 8;
-	move /= 8;
-	i = jumpI = get_x(move);
-	j = jumpJ = get_y(move);
-	piece = board[move];
-	board[move] = SPACE; // clear the current location of the piece
-	switch(direction) { // find the appropriate modifiers to i and j
-	case UP: if (jump) { i -= 2; jumpI -= 1; }
-		else i -= 1; break;
-	case DOWN: if (jump) { i += 2; jumpI += 1; }
-		else i += 1; break;
-	case RIGHT: if (jump) { j += 2; jumpJ += 1; }
-		else j += 1; break;
-	case LEFT: if (jump) { j -= 2; jumpJ -= 1; }
-		else j -= 1; break;
-		if (diagonals) {
-		case UP_RIGHT: if (jump) { i -= 2; j += 2; jumpI -= 1; jumpJ += 1; }
-			else { i -= 1; j += 1; } break;
-		case UP_LEFT: if (jump) { i -= 2; j -= 2; jumpI -= 1; jumpJ -= 1; }
-			else { i -= 1; j -= 1; } break;
-		case DOWN_RIGHT: if (jump) { i += 2; j += 2; jumpI += 1; jumpJ += 1; }
-			else { i += 1; j += 1; } break;
-		case DOWN_LEFT: if (jump) { i += 2; j -= 2; jumpI += 1; jumpJ -= 1; }
-			else { i += 1; j -= 1; } break;
-		}
-	}
-	board[translate(i, j)] = piece; // place the piece in its new location
-	board[translate(jumpI, jumpJ)] = SPACE; // erase the piece jumped over
-	turn = (turn == PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE);
-	//goatsLeft stays the same
-	return hash(board, turn, goatsLeft);
-}
+POSITION DoMove(POSITION position, MOVE move) {
+	int goatsLeft, goatsCaptured;
+	char turn;
+	char *board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
+	int from, to, remove;
+	unhashMove(move, &from, &to, &remove);
 
+	board[to] = turn;
+
+	if (from == to) goatsLeft--;
+	else board[from] = SPACE;
+	
+	if (remove != to) {
+		board[remove] = SPACE;
+		goatsCaptured++;
+	}
+
+	turn = (turn == GOAT) ? TIGER : GOAT;
+	POSITION toReturn = hash(board, goatsLeft, goatsCaptured, turn);
+	SafeFree(board);
+	return toReturn;
+}
 
 /************************************************************************
 **
 ** NAME:        Primitive
 **
-** DESCRIPTION: Returns the value of a position if it fulfills certain
-**              'primitive' constraints.
-**
-**              Example: Tic-tac-toe - Last piece already placed
-**
-**              Case                                  Return Value
-**              *********************************************************
-**              Current player sees three in a row    lose
-**              Entire board filled                   tie
-**              All other cases                       undecided
-**
-** INPUTS:      POSITION position : The position to inspect.
-**
-** OUTPUTS:     (VALUE)           : one of
-**                                  (win, lose, tie, undecided)
-**
-** CALLS:       None
-**
 ************************************************************************/
 
-VALUE Primitive (POSITION position)
-{
+VALUE Primitive(POSITION position) {
 	MOVELIST* moves = GenerateMoves(position);
-	if(NULL == moves) // no legal moves left == lose
-		return lose;
+	if (moves == NULL) return lose;
 	FreeMoveList(moves);
 	return undecided;
 }
@@ -601,24 +896,24 @@ VALUE Primitive (POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
-{
+void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	int i, j;
-	int turn, goatsLeft;
-	char* board = unhash(position, &turn, &goatsLeft);
-	printf("\t%s's Turn (%s):\n  ",playersName,(turn==PLAYER_ONE ? "Goat" : "Tiger"));
-	for(i = 1; i <= length+1; i++) { // print the rows one by one
-		if(i <= length) {
-			printf("\t%d ", length-i+1); // first, print the row with the pieces
-			for(j = 1; j <= width; j++) {
+	int goatsLeft, goatsCaptured;
+	char turn;
+	char* board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
+	printf("\t%s's Turn (%s):\n  ", playersName, (turn == GOAT ? "Goat" : "Tiger"));
+	for (i = 1; i <= sideLength + 1; i++) { // print the rows one by one
+		if (i <= sideLength) {
+			printf("\t%d ", sideLength - i + 1); // first, print the row with the pieces
+			for (j = 1; j <= sideLength; j++) {
 				printf("%c", board[translate(i, j)]);
-				if(j < width)
+				if (j < sideLength)
 					printf("-");
 			}
 			printf("\n\t  ");
-			if(i < length) { // then, print the row with the lines (diagonals and such)
-				for(j = 1; j < width; j++) {
-					if(diagonals) {
+			if (i < sideLength) { // then, print the row with the lines (diagonals and such)
+				for (j = 1; j < sideLength; j++) {
+					if (diagonals) {
 						if(j % 2 && i % 2)
 							printf("|\\");
 						else if(j % 2 && ((i % 2) == 0))
@@ -630,19 +925,18 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 					}
 					else printf("| ");
 
-					if(j == width - 1)
+					if (j == sideLength - 1)
 						printf("|");
 				}
 			}
-			if(i == 1) {
-				if(goatsLeft != 0) printf("  <STAGE 1> Goats left to be placed: %d", goatsLeft);
-				else printf("  <STAGE 2>");
+			if (i == 1) {
+				if (goatsLeft != 0) printf("  <STAGE 1> Goats To Place: %d, Goats Captured: %d", goatsLeft, goatsCaptured);
+				else printf("  <STAGE 2> Goats Captured: %d", goatsCaptured);
 			} else if (i == 2)
 				printf("    %s", GetPrediction(position, playersName, usersTurn));
-			if(i<length) printf("\n");
-		}
-		else if(i > length) {
-			for(j = 1; j <= width; j++) // print the column numbers
+			if(i<sideLength) printf("\n");
+		} else if (i > sideLength) {
+			for (j = 1; j <= sideLength; j++) // print the column numbers
 				printf("%c ", j+'a'-1);
 		}
 	}
@@ -650,7 +944,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	if (board != NULL)
 		SafeFree(board);
 }
-
 
 /************************************************************************
 **
@@ -663,13 +956,11 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
 	printf("%8s's move : ", computersName);
 	PrintMove(computersMove);
 	printf("\n\n");
 }
-
 
 /************************************************************************
 **
@@ -681,13 +972,11 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 **
 ************************************************************************/
 
-void PrintMove (MOVE move)
-{
-	STRING s = MoveToString( move );
-	printf( "%s", s );
+void PrintMove (MOVE move) {
+	STRING s = MoveToString(move);
+	printf("%s", s);
 	SafeFree(s);
 }
-
 
 /************************************************************************
 **
@@ -709,19 +998,21 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
-{
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playersName) {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
+	int goatsLeft, goatsCaptured;
+	char turn;
+	char *board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
+	SafeFree(board);
 
-	for (;; ) {
+	for (;;) {
 		/***********************************************************
 		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
 		***********************************************************/
-		if(position >= genericHashMaxPos) //stage1
-			printf("%8s's move [(undo)/([%c-%c][%d-%d])] : ", playersName, 'a', length+'a'-1, 1, width);
+		if(turn == GOAT && goatsLeft > 0) //stage1
+			printf("%8s's move [(undo)/([%c-%c][%d-%d])] : ", playersName, 'a', sideLength + 'a' - 1, 1, sideLength);
 		else
-			printf("%8s's move [(undo)/([%c-%c][%d-%d] [%c-%c][%d-%d])] : ", playersName, 'a', length+'a'-1, 1, width, 'a', length+'a', 1, width);
+			printf("%8s's move [(undo)/([%c-%c][%d-%d] [%c-%c][%d-%d])] : ", playersName, 'a', sideLength + 'a' - 1, 1, sideLength, 'a', sideLength+'a' - 1, 1, sideLength);
 		input = HandleDefaultTextInput(position, move, playersName);
 
 		if (input != Continue)
@@ -741,25 +1032,9 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **              you are expecting. Does not check if it is a valid move.
 **              Only checks if it fits the move form.
 **
-**              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
-**                                          COMMANDS IN YOUR GAME
-**              ?, s, u, r, h, a, c, q
-**                                          However, something like a3
-**                                          is okay.
-**
-**              Example: Tic-tac-toe Move Format : Integer from 1 to 9
-**                       Only integers between 1 to 9 are accepted
-**                       regardless of board position.
-**                       Moves will be checked by the core.
-**
-** INPUTS:      STRING input : The string input the user typed.
-****h
-** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
-**
 ************************************************************************/
 
-BOOLEAN ValidTextInput (STRING input)
-{
+BOOLEAN ValidTextInput(STRING input) {
 	int size = strlen(input);
 	if(size != 2 && size != 4)
 		return FALSE;
@@ -778,68 +1053,30 @@ BOOLEAN ValidTextInput (STRING input)
 **              Gamesman already checked the move with ValidTextInput
 **              and ValidMove.
 **
-** INPUTS:      STRING input : The VALID string input from the user.
-**
-** OUTPUTS:     MOVE         : Move converted from user input.
-**
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (STRING input)
-{
-	int x, y, x1, y1;
-	MOVE move;
-	y = input[0] - 'a' + 1;
-	x = length - input[1] + '1';
-	if(input[2] == '\0') {
-		move = translate(x, y);
-		return move;
+MOVE ConvertTextInputToMove(STRING input) {
+	int y = input[0] - 'a' + 1;
+	int x = sideLength - input[1] + '1';
+	if (input[2] == '\0') {
+		int idx = translate(x,y);
+		return hashMove(idx, idx, idx);
 	}
-	y1 = input[2] - 'a' + 1;
-	x1 = length - input[3] + '1';
-	if(x1 == x+2) {
-		if(y1 == y+2 && diagonals)
-			return (MOVE) (translate(x, y)*8+DOWN_RIGHT)*2+1 + boardSize;
-		else if(y1 == y)
-			return (MOVE) (translate(x, y)*8+DOWN)*2+1 + boardSize;
-		else if(diagonals)
-			return (MOVE) (translate(x, y)*8+DOWN_LEFT)*2+1 + boardSize;
-		else return 0;
-	} else if(x1 == x+1) {
-		if(y1 == y+1 && diagonals)
-			return (MOVE) (translate(x, y)*8+DOWN_RIGHT)*2 + boardSize;
-		else if(y1 == y)
-			return (MOVE) (translate(x, y)*8+DOWN)*2 + boardSize;
-		else if(diagonals)
-			return (MOVE) (translate(x, y)*8+DOWN_LEFT)*2 + boardSize;
-		else
-			return 0;
-	} else if(x1 == x) {
-		if(y1 == y+2)
-			return (MOVE) (translate(x, y)*8+RIGHT)*2+1 + boardSize;
-		else if(y1 == y+1)
-			return (MOVE) (translate(x, y)*8+RIGHT)*2 + boardSize;
-		else if(y1 == y-1)
-			return (MOVE) (translate(x, y)*8+LEFT)*2 + boardSize;
-		else
-			return (MOVE) (translate(x, y)*8+LEFT)*2+1 + boardSize;
-	} else if(x1 == x-1) {
-		if(y1 == y+1 && diagonals)
-			return (MOVE) (translate(x, y)*8+UP_RIGHT)*2 + boardSize;
-		else if(y1 == y)
-			return (MOVE) (translate(x, y)*8+UP)*2 + boardSize;
-		else if (diagonals)
-			return (MOVE) (translate(x, y)*8+UP_LEFT)*2 + boardSize;
-		else return 0;
-	} else {
-		if(y1 == y+2 && diagonals)
-			return (MOVE) (translate(x, y)*8+UP_RIGHT)*2+1 + boardSize;
-		else if(y1 == y)
-			return (MOVE) (translate(x, y)*8+UP)*2+1 + boardSize;
-		else if(diagonals)
-			return (MOVE) (translate(x, y)*8+UP_LEFT)*2+1 + boardSize;
-		else return 0;
-	}
-	return 0;
+	int y1 = input[2] - 'a' + 1;
+	int x1 = sideLength - input[3] + '1';
+	
+	int removeX, removeY;
+	if (x1 > x)
+		removeX = (x1 > x + 1) ? x1 - 1 : x1;
+	else
+		removeX = (x1 < x - 1) ? x1 + 1 : x1;
+	
+	if (y1 > y)
+		removeY = (y1 > y + 1) ? y1 - 1 : y1;
+	else
+		removeY = (y1 < y - 1) ? y1 + 1 : y1;
+
+	return hashMove(translate(x, y), translate(x1, y1), translate(removeX, removeY));
 }
 
 
@@ -849,59 +1086,43 @@ MOVE ConvertTextInputToMove (STRING input)
 **
 ** DESCRIPTION: Prints, receives, and sets game-specific parameters.
 **
-**              Examples
-**              Board Size, Board Type
-**
-**              If kGameSpecificMenu == FALSE
-**                   Gamesman will not enable GameSpecificMenu
-**                   Gamesman will not call this function
-**
-**              Resets gNumberOfPositions if necessary
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
-{
-	char c;
+void GameSpecificMenu() {
 	BOOLEAN cont = TRUE;
-	while(cont) {
-		printf("\n\nCurrent %dx%d board with %d goats:  \n", width, length, goats);
-		PrintPosition(gInitialPosition, "Gamesman", 0);
+	while (cont) {
+		printf("\n\nCurrent %dx%d board with %d goats:  \n", sideLength, sideLength, goats);
 		printf("\tGame Options:\n\n"
-		       "\t1)\t(1) Load default 3x3 Game (4 Goats, Diagonals)\n"
-		       "\t2)\t(2) Load default 4x4 Game (12 Goats. No Diagonals)\n"
-		       "\t3)\t(3) Load default 5x5 Game (20 Goats, Diagonals)\n"
+		       "\t1)\t(1) Load default 3x3 Game (4 Goats, Tigers Must Remove 1, Diagonals)\n"
+		       "\t2)\t(2) Load default 4x4 Game (12 Goats, Tigers Must Remove 3. No Diagonals)\n"
+		       "\t3)\t(3) Load default 5x5 Game (20 Goats, Tigers Must Remove 5, Diagonals)\n"
 		       "\tc)\t(C)hange the board size (nxn), currently: %d\n"
 		       "\td)\tTurn (D)iagonals %s\n"
-		       "\ti)\tSet the (I)nitial position (starting position)\n"
+		       //"\ti)\tSet the (I)nitial position (starting position)\n"
 		       "\tb)\t(B)ack to the main menu\n"
-		       "\nSelect an option:  ", width, diagonals ? "off" : "on");
-		c = GetMyChar();
-		switch(c) {
+		       "\nSelect an option:  ", sideLength, diagonals ? "off" : "on");
+		switch (GetMyChar()) {
 		case '1':
-			width = length = 3; boardSize  = width*length;
-			tigers = 4; goats = 4; diagonals = TRUE;
-			SetupGame();
+			setOption(1);
 			break;
 		case '2':
-			width = length = 4; boardSize  = width*length;
-			tigers = 4; goats = 12; diagonals = FALSE;
-			SetupGame();
+			setOption(2);
 			break;
 		case '3':
-			width = length = 5; boardSize  = width*length;
-			tigers = 4; goats = 20; diagonals = TRUE;
-			SetupGame();
+			setOption(5);
 			break;
 		case 'c': case 'C':
 			ChangeBoardSize();
 			break;
 		case 'd': case 'D':
-			diagonals= !diagonals;
+			setOption(getOption() ^ 1);
 			break;
+		/*
 		case 'i': case 'I':
-			GetInitialPosition();
+			SetInitialPosition();
 			break;
+		*/
 		case 'b': case 'B':
 			cont = FALSE;
 			break;
@@ -910,7 +1131,6 @@ void GameSpecificMenu ()
 		}
 	}
 }
-
 
 /************************************************************************
 **
@@ -924,6 +1144,21 @@ void GameSpecificMenu ()
 void SetTclCGameSpecificOptions (int options[]) {
 }
 
+/************************************************************************
+**
+** NAME:        DebugMenu
+**
+** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
+**              debug menu). Menu used to debug internal problems.
+**
+**              If kDebugMenu == FALSE
+**                   Gamesman will not display a debug menu option
+**                   Gamesman will not call this function
+**
+************************************************************************/
+
+void DebugMenu() {
+}
 
 /************************************************************************
 **
@@ -934,74 +1169,11 @@ void SetTclCGameSpecificOptions (int options[]) {
 **              Sets new user defined gInitialPosition and resets
 **              gNumberOfPositions if necessary
 **
-** OUTPUTS:     POSITION : New Initial Position
-**
 ************************************************************************/
 
-POSITION GetInitialPosition ()
-{
-	int i, j;
-	int turn, goatsLeft;
-	char* board = (char*) SafeMalloc(boardSize * sizeof(char));
-	char line[width], in[2], first;
-	for(i = 0; i < width; i++)
-		line[i] = SPACE;
-	BOOLEAN valid = FALSE;
-	while(!valid) {
-		valid = TRUE;
-		printf("\nCurrent Position: \n");
-		PrintPosition(gInitialPosition, "Fred", 0);
-		printf("Enter a character string to represent the position you want\n"
-		       "%c for tiger, %c for goat, %c for a space.  Example:\n"
-		       "For the initial position of a 5X5 board, the string is:\n"
-		       "%c%c%c%c%c\n"
-		       "%c%c%c%c%c\n"
-		       "%c%c%c%c%c\n"
-		       "%c%c%c%c%c\n"
-		       "%c%c%c%c%c\n\n"
-		       "Enter the character string: \n",TIGER,GOAT,SPACE,TIGER,SPACE,SPACE,SPACE,TIGER,
-		       SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,SPACE,
-		       TIGER,SPACE,SPACE,SPACE,TIGER);
-		for(i = 1; i <= length; i++) {
-			printf(">");
-			scanf("%s", line);
-			for(j = 1; j <= width; j++) {
-				if(line[j-1] != SPACE && line[j-1] != GOAT && line[j-1] != TIGER)
-					valid = FALSE;
-				board[translate(i,j)] = line[j-1];
-			}
-		}
-		printf("Enter how many goats are left to place: ");
-		scanf("%s", in);
-		if (strlen(in) == 1) {
-			goatsLeft = in[0]-48;
-		} else goatsLeft = ((in[0]-48)*10)+(in[1]-48);
-		printf("Enter who you would like to go first: (g)oats or (t)igers: ");
-		first = GetMyChar();
-		if(first == 'g' || first == 'G')
-			turn = PLAYER_ONE;
-		else if(first == 't' || first == 'G')
-			turn = PLAYER_TWO;
-		else valid = FALSE;
-		goats = 0;
-		tigers = 0;
-		for(i = 0; i < boardSize; i++) {
-			if(board[i] == GOAT)
-				goats++;
-			else if(board[i] == TIGER)
-				tigers++;
-		}
-		if (goats > GOATS_MAX || tigers > TIGERS_MAX || goats+goatsLeft > boardSize-tigers)
-			valid = FALSE;
-		goats += goatsLeft;
-		if(!valid)
-			printf("\n\nInvalid board!!!\n\n");
-	}
-	SetupGame();
-	gInitialPosition = hash(board, turn, goatsLeft);
+POSITION GetInitialPosition() {
 	return gInitialPosition;
 }
-
 
 /************************************************************************
 **
@@ -1014,9 +1186,8 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
-	return 2591; //1 + 2( 1 + (2 * ( 2*9*24 + 8*24 +23)))
+int NumberOfOptions() {
+	return 6;
 }
 
 
@@ -1032,17 +1203,8 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
-{
-	int option = 0;
-	option += ((length-3)*TIGERS_MAX*GOATS_MAX + (tigers-1)*GOATS_MAX + (goats-1)) *2;
-	if (diagonals == FALSE)
-	{
-		option +=1;
-	}
-	option *= 2;
-	option += gSymmetries;
-	return option;
+int getOption() {
+	return 2 * (sideLength - 3) + ((diagonals) ? 1 : 0);
 }
 
 /************************************************************************
@@ -1056,40 +1218,76 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (int option)
-{
-	gSymmetries = option %2;
-	option /= 2;
-	if(option%2==1) {
-		diagonals = FALSE;
-		option-=1;
+void setOption(int option) {
+	diagonals = (option % 2 == 1);
+	sideLength = (option / 2) + 3;
+	boardSize = sideLength * sideLength;
+	
+	if (sideLength == 5) {
+		goats = 20;
+		goatCaptureGoal = 5;
+		symmetriesToUse = gSymmetryMatrix5;
+		numMoves = (diagonals) ? diagNumMoves5 : nonDiagNumMoves5;
+		moveMatrix = (diagonals) ? diagMoveMatrix5 : nonDiagMoveMatrix5;
+
+		initialBaghchalInteractString = initialBaghchalInteractString5;
+		goatsLeftTensIdx = goatsLeftTensIdx5;
+		goatsLeftOnesIdx = goatsLeftOnesIdx5;
+		goatsCapturedTensIdx = goatsCapturedTensIdx5;
+		goatsCapturedOnesIdx = goatsCapturedOnesIdx5;
+		
+		char board[25] = {
+			TIGER,SPACE,SPACE,SPACE,TIGER,
+			SPACE,SPACE,SPACE,SPACE,SPACE,
+			SPACE,SPACE,SPACE,SPACE,SPACE,
+			SPACE,SPACE,SPACE,SPACE,SPACE,
+			TIGER,SPACE,SPACE,SPACE,TIGER
+		};
+		hashBoard(board, 20, 0, GOAT, &gInitialTier, &gInitialTierPosition);
+
+	} else if (sideLength == 4) {
+		goats = 12;
+		goatCaptureGoal = 3;
+		symmetriesToUse = gSymmetryMatrix4;
+		numMoves = (diagonals) ? diagNumMoves4 : nonDiagNumMoves4;
+		moveMatrix = (diagonals) ? diagMoveMatrix4 : nonDiagMoveMatrix4;
+
+		initialBaghchalInteractString = initialBaghchalInteractString4;
+		goatsLeftTensIdx = goatsLeftTensIdx4;
+		goatsLeftOnesIdx = goatsLeftOnesIdx4;
+		goatsCapturedTensIdx = goatsCapturedTensIdx4;
+		goatsCapturedOnesIdx = goatsCapturedOnesIdx4;
+		
+		char board[16] = {
+			TIGER,SPACE,SPACE,TIGER,
+			SPACE,SPACE,SPACE,SPACE,
+			SPACE,SPACE,SPACE,SPACE,
+			TIGER,SPACE,SPACE,TIGER
+		};
+		hashBoard(board, 12, 0, GOAT, &gInitialTier, &gInitialTierPosition);
+
+	} else {
+		goats = 4;
+		goatCaptureGoal = 1;
+		symmetriesToUse = gSymmetryMatrix3;
+		numMoves = (diagonals) ? diagNumMoves3 : nonDiagNumMoves3;
+		moveMatrix = (diagonals) ? diagMoveMatrix3 : nonDiagMoveMatrix3;
+
+		initialBaghchalInteractString = initialBaghchalInteractString3;
+		goatsLeftTensIdx = goatsLeftTensIdx3;
+		goatsLeftOnesIdx = goatsLeftOnesIdx3;
+		goatsCapturedTensIdx = goatsCapturedTensIdx3;
+		goatsCapturedOnesIdx = goatsCapturedOnesIdx3;
+
+		char board[9] = {
+			TIGER,SPACE,TIGER,
+			SPACE,SPACE,SPACE,
+			TIGER,SPACE,TIGER};
+		hashBoard(board, 4, 0, GOAT, &gInitialTier, &gInitialTierPosition);
 	}
-	else
-		diagonals = TRUE;
-	option /= 2;
-	width = length = (option / (TIGERS_MAX * GOATS_MAX))+3;
-	boardSize = width*length;
-	tigers = ((option % (TIGERS_MAX * GOATS_MAX)) / GOATS_MAX)+1;
-	goats = ((option % (TIGERS_MAX * GOATS_MAX)) % GOATS_MAX)+1;
+
+	gInitialPosition = gInitialTierPosition;
 }
-
-
-/************************************************************************
-**
-** NAME:        DebugMenu
-**
-** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
-**              debug menu). Menu used to debug internal problems.
-**
-**              If kDebugMenu == FALSE
-**                   Gamesman will not display a debug menu option
-**                   Gamesman will not call this function
-**
-************************************************************************/
-
-void DebugMenu () {
-}
-
 
 /************************************************************************
 **
@@ -1102,46 +1300,133 @@ void DebugMenu () {
 **
 ************************************************************************/
 
-int translate (int x, int y)
-{
-	return (x-1)*width+(y-1);
+int translate (int x, int y) {
+	return (x-1)*sideLength+(y-1);
 }
 
-int get_x (int index)
-{
-	return index / length + 1;
+int get_x (int index) {
+	return index / sideLength + 1;
 }
 
-int get_y (int index)
-{
-	return index % length + 1;
+int get_y (int index) {
+	return index % sideLength + 1;
 }
 
-POSITION hash (char* board, int turn, int goatsLeft)
-{
-	POSITION position;
-	if (gHashWindowInitialized) {
-		int goatsOnBoard = numGoatsOnBoard(board);
-		TIER tier = hashTier(goatsOnBoard, goatsLeft, turn); // find this board's tier
-		generic_hash_context_switch(goatsOnBoard); // switch to that context
-		TIERPOSITION tierpos;
-		if (tier < s1GoatOffset) //stage 2
-			tierpos = generic_hash_hash(board, turn); //hash normally
-		else tierpos = generic_hash_hash(board, 1); //else hash only one player
-		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
-	} else {
-		position = generic_hash_hash(board, turn);
-		position += (genericHashMaxPos * goatsLeft);
+void hashBoard(char *board, int goatsLeft, int goatsCaptured, char turn, TIER *tier, TIERPOSITION *tierposition) {
+	POSITION sum = 0;
+	int numGoats = goats - goatsLeft - goatsCaptured;
+	int numTigers = tigers;
+    for (int i = boardSize - 1; i > 0; i--) { // no need to calculate i == 0
+        switch (board[i]) {
+            case GOAT:
+                numGoats--;
+                break;
+            case TIGER:
+                if (numGoats > 0) sum += combinations[i][numTigers][numGoats-1];
+                numTigers--;
+                break;
+            case SPACE:
+                if (numGoats > 0) sum += combinations[i][numTigers][numGoats-1];
+                if (numTigers > 0) sum += combinations[i][numTigers-1][numGoats];
+                break;
+        }
+    }
+	(*tier) = hashTier(goatsLeft, goatsCaptured, turn);
+	(*tierposition) = sum;
+	if (goatsLeft == 0 && turn == TIGER) {
+		(*tierposition) += (NumberOfTierPositions((*tier)) >> 1);
 	}
-	if (board != NULL)
-		SafeFree(board);
-	return position;
+}
+
+POSITION hash(char* board, int goatsLeft, int goatsCaptured, char turn) {
+	if (gHashWindowInitialized) {
+		TIER tier; TIERPOSITION tierposition;
+		hashBoard(board, goatsLeft, goatsCaptured, turn, &tier, &tierposition);
+		POSITION position = gHashToWindowPosition(tierposition, tier);
+		return position;
+	} else { // Not supported.
+		return 0;
+	}
+}
+
+char* unhashToBoard(TIER tier, TIERPOSITION tierposition, int *goatsLeft, int *goatsCaptured, char *turn, char *board) {
+	char fakeTurn;
+	unhashTier(tier, goatsLeft, goatsCaptured, &fakeTurn);
+	if ((*goatsLeft) > 0) {
+		(*turn) = fakeTurn;
+	} else {
+		POSITION half = NumberOfTierPositions(tier) >> 1;
+		(*turn) = GOAT;
+		if (tierposition >= half) {
+			(*turn) = TIGER;
+			tierposition -= half;
+		}
+	}
+	POSITION o1, o2;
+	int numGoats = goats - (*goatsLeft) - (*goatsCaptured);
+	int numTigers = tigers;
+    for (int i = boardSize - 1; i >= 0; i--) {
+        o1 = (numGoats > 0) ? combinations[i][numTigers][numGoats-1] : 0;
+        o2 = o1 + ((numTigers > 0) ? combinations[i][numTigers-1][numGoats] : 0);
+        if (tierposition >= o2) {
+            board[i] = SPACE;
+            tierposition -= o2;
+        }
+        else if (tierposition >= o1) {
+            if (numTigers > 0) {
+                board[i] = TIGER;
+                numTigers--;
+            } else
+                board[i] = SPACE;
+            tierposition -= o1;
+        }
+        else {
+            if (numGoats > 0) {
+                board[i] = GOAT;
+                numGoats--;
+            } else if (numTigers > 0) {
+                board[i] = TIGER;
+                numTigers--;
+            } else
+                board[i] = SPACE;
+        }
+    }
+	return board;
+}
+
+char* unhash(POSITION position, int *goatsLeft, int *goatsCaptured, char *turn) {
+	if (gHashWindowInitialized) {
+		TIER tier; TIERPOSITION tierposition;
+		gUnhashToTierPosition(position, &tierposition, &tier);
+
+		char* board = (char*) SafeMalloc(boardSize * sizeof(char));
+		BOOLEAN cache_miss = hashCacheGet(tier, tierposition, board, turn, goatsLeft, goatsCaptured);
+		if (cache_miss) {
+			unhashToBoard(tier, tierposition, goatsLeft, goatsCaptured, turn, board);
+			hashCachePut(tier, tierposition, board, (*turn), (*goatsLeft), (*goatsCaptured));
+		}
+		return board;
+	} else { // Not supported.
+		return NULL;
+	}
+}
+
+MOVE hashMove(int from, int to, int remove) {
+	return (from << 10) | (to << 5) | remove;
+}
+
+void unhashMove(MOVE move, int *from, int *to, int *remove) {
+	(*from) = move >> 10;
+	(*to) = (move >> 5) & 0x1F;
+	(*remove) = move & 0x1F;
 }
 
 char* TclUnhash(POSITION position) {
+	/*
 	char* TclBoard = (char*) SafeMalloc((boardSize+3) * sizeof(char));
-	int turn, goatsLeft;
-	char* board = unhash(position, &turn, &goatsLeft);
+	int goatsLeft, goatsCaptured;
+	char turn;
+	char* board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
 
 	TclBoard[0] = turn + 48;
 	TclBoard[1] = ((goatsLeft /= 10) % 10) + 48;
@@ -1151,153 +1436,44 @@ char* TclUnhash(POSITION position) {
 		TclBoard[i+3] = board[i];
 	if (board != NULL)
 		SafeFree(board);
-	return TclBoard;
+	return TclBoard;*/
+	return NULL;
 }
 
-char* unhash (POSITION position, int* turn, int* goatsLeft)
-{
-	char* board = (char*) SafeMalloc(boardSize * sizeof(char));
-	if(gHashWindowInitialized) {
-		TIERPOSITION tierpos; TIER tier;
-		gUnhashToTierPosition(position, &tierpos, &tier); // get tierpos
-		int goatsOnBoard;
-		unhashTier(tier, &goatsOnBoard, goatsLeft, turn); // this sets goatsLeft and turn
-		generic_hash_context_switch(goatsOnBoard); // switch to that tier's context
-		if (tier < s1GoatOffset) // stage 2
-			(*turn) = generic_hash_turn(tierpos); // hash tells the turn
-		generic_hash_unhash(tierpos, board); // unhash in that tier
-	} else {
-		(*goatsLeft) = position / genericHashMaxPos;
-		position %= genericHashMaxPos;
-		(*turn) = generic_hash_turn(position);
-		generic_hash_unhash(position, board);
-	}
-	return board;
-}
-
-void ChangeBoardSize ()
-{
+void ChangeBoardSize() {
 	int change;
 	BOOLEAN cont = TRUE;
 	while (cont) {
 		cont = FALSE;
-		printf("\n\nCurrent board of size %d:\n\n", width);
-		PrintPosition(gInitialPosition, "Fred", 0);
-		printf("\n\nEnter the new board size (%d - %d):  ", WIDTH_MIN, WIDTH_MAX);
-		change = GetMyChar()-48;
-		if(change > WIDTH_MAX || change < WIDTH_MIN) {
+		printf("\n\nCurrent board of size %d:\n\n", sideLength);
+		PrintPosition(gInitialPosition, "", 0);
+		printf("\n\nEnter the new board size (%d - %d):  ", 3, 5);
+		change = GetMyChar() - 48;
+		if (change > 5 || change < 3) {
 			printf("\nInvalid base length!\n");
 			cont = TRUE;
-		}
-		else {
-			width = length = change;
-			boardSize = width*length;
-			tigers = 4;
-			goats = boardSize-tigers-1;
-			SetupGame();
+		} else {
+			setOption(2 * (change - 3) + ((diagonals) ? 1 : 0));
 		}
 	}
 }
 
-
-void SetupGame ()
-{
-	// destroy current hash
-	generic_hash_destroy();
-	// setup the tier hashes
-	SetupTierStuff();
-	// The GLOBAL Hash:
-	int game[10] = {TIGER, tigers, tigers, GOAT, 0, goats, SPACE, boardSize - tigers - goats, boardSize - tigers, -1};
-	genericHashMaxPos = generic_hash_init(boardSize, game, vcfg_board, 0);
-	gNumberOfPositions = genericHashMaxPos * (goats + 1);
-	// Set Initial Position
-	char* board = (char*) SafeMalloc(boardSize * sizeof(char));
-	char* board2 = (char*) SafeMalloc(boardSize * sizeof(char));
-	int i;
-	for(i = 0; i < boardSize; i++)
-		board[i] = SPACE;
-	board[translate(1, 1)] = TIGER;
-	board[translate(1, width)] = TIGER;
-	board[translate(length, 1)] = TIGER;
-	board[translate(length, width)] = TIGER;
-	for (i = 0; i < boardSize; i++)
-		board2[i] = board[i];
-	int turn = 1;
-	int goatsLeft = goats;
-	gInitialPosition = hash(board, turn, goatsLeft);
-	// for gInitialTierPosition
-	int globalHashContext = generic_hash_cur_context();
-	generic_hash_context_switch(0); //switch to hash with 0 goats
-	goatsLeft = 0;
-	gInitialTierPosition = hash(board2, turn, goatsLeft);
-	//gInitialTier set in SetupTierStuff();
-	generic_hash_context_switch(globalHashContext);
+STRING MoveToString(MOVE move) {
+	int from, to, remove;
+	unhashMove(move, &from, &to, &remove);
+	STRING moveStr = (STRING) SafeMalloc(sizeof(char) * 4);
+	int fromX = get_x(from);
+	int fromY = get_y(from);
+	int toX = get_x(to);
+	int toY = get_y(to);
+	if (from == to) { // Placement
+		sprintf(moveStr, "%c%c%c%c", ' ', ' ', toY + 'a' - 1, '0' + sideLength - toX + 1);
+	} else { // Movement
+		sprintf(moveStr, "%c%c%c%c", fromY + 'a' - 1, '0' + sideLength - fromX + 1, toY + 'a' - 1, '0' + sideLength - toX + 1);
+	}
+	return moveStr;
 }
 
-/*
-   BOOLEAN CheckLegality (POSITION position) {
-        char* board = unhash(position);
-        int goatsOnBoard = 0, i, j;
-        UNDOMOVELIST* moves;
-        //determines the number of goats on the board
-        for (i = 1; i <= length; i++){
-                for (j = 1; j <= width; j++){
-                        if (board[translate(i,j)] == GOAT) goatsOnBoard++;
-                }
-        }
-        if (phase1 == TRUE && (goatsOnBoard + NumGoats) != goats)
-                return FALSE;
-        moves = GenerateUndoMovesToTier(position, 0);
-        if (moves == NULL)
-                return FALSE;
-        else return TRUE;
-   }
- */
-
-STRING MoveToString(move)
-MOVE move;
-{
-	int jump, direction, i, j, x, y;
-	STRING moveStr = (STRING) SafeMalloc(sizeof(char)*4);
-	if(move < boardSize) { // This is just a goat being placed
-	  i = get_x(move);
-		j = get_y(move);
-		sprintf(moveStr, "%c%c%c%c", ' ',' ',j + 'a' - 1, '0' +length - i + 1);
-		return moveStr;
-	}
-	else {
-		move -= boardSize;
-		jump = move % 2;
-		move /= 2;
-		direction = move % 8;
-		move /= 8;
-		i = x = get_x(move);
-		j = y = get_y(move);
-		switch(direction) {
-		case UP: if(jump) x -= 2;
-			else x -= 1; break;
-		case LEFT: if(jump) y -= 2;
-			else y -= 1; break;
-		case RIGHT: if(jump) y += 2;
-			else y += 1; break;
-		case DOWN: if(jump) x += 2;
-			else x += 1; break;
-			if(diagonals) {
-
-			case UP_LEFT: if(jump) { y -= 2; x -= 2; }
-				else { y -= 1; x -= 1; } break;
-			case UP_RIGHT: if(jump) { y += 2; x -= 2;  }
-				else { y += 1; x -= 1; } break;
-			case DOWN_LEFT: if(jump) { y -= 2; x += 2; }
-				else { y -= 1; x += 1; } break;
-			case DOWN_RIGHT: if(jump) { y += 2; x += 2; }
-				else { y += 1; x += 1; } break;
-			}
-		}
-		sprintf(moveStr, "%c%c%c%c", j + 'a' - 1, '0'+ length - i + 1, y + 'a' - 1, '0'+length - x + 1);
-		return moveStr;
-	}
-}
 /************************************************************************
 **
 ** NAME:        GetCanonicalPosition
@@ -1312,462 +1488,272 @@ MOVE move;
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
-	int i;
+POSITION GetCanonicalPosition(POSITION position) {
+	char turn;
+	int goatsLeft, goatsPlaced;
+	char *originalBoard = unhash(position, &goatsLeft, &goatsPlaced, &turn);
+	char canonBoard[25];
+    POSITION canonPos = position;
+    int bestSymmetryNum = 0;
 
-	theCanonicalPosition = position;
-	//PrintPosition(position, "bob", 0);
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-		newPosition = DoSymmetry(position, i); /* get new */
-		//PrintPosition(newPosition, "bob", 0);
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
+    for (int symmetryNum = 1; symmetryNum < 8; symmetryNum++)
+        for (int i = boardSize - 1; i >= 0; i--) {
+            char pieceInSymmetry = originalBoard[symmetriesToUse[symmetryNum][i]];
+            char pieceInBest = originalBoard[symmetriesToUse[bestSymmetryNum][i]];
+            if (pieceInSymmetry != pieceInBest) {
+                if (pieceInSymmetry > pieceInBest) // If new smallest hash.
+                    bestSymmetryNum = symmetryNum;
+                break;
+            }
+        };
+
+    if (bestSymmetryNum == 0) {
+		SafeFree(originalBoard);
+        return position;
 	}
+    
+    for (int i = 0; i < boardSize; i++) // Transform the rest of the board.
+        canonBoard[i] = originalBoard[symmetriesToUse[bestSymmetryNum][i]];
 
-	return(theCanonicalPosition);
-}
+    canonPos = hash(canonBoard, goatsLeft, goatsPlaced, turn);
+	
+	SafeFree(originalBoard);
 
-/************************************************************************
-**
-** NAME:        DoSymmetry
-**
-** DESCRIPTION: Perform the symmetry operation specified by the input
-**              on the position specified by the input and return the
-**              new position, even if it's the same as the input.
-**
-** INPUTS:      POSITION position : The position to branch the symmetry
-   from.
-**              int      symmetry : The number of the symmetry operation.
-**
-** OUTPUTS:     POSITION, The position after the symmetry operation.
-**
-************************************************************************/
-
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
-	int turn, goatsLeft;
-	char* board = unhash(position, &turn, &goatsLeft);
-	char* unflipped = (char*) SafeMalloc(boardSize * sizeof(char));
-	int i;
-	for(i = 0; i < boardSize; i++)
-		unflipped[i] = board[i];
-
-	/* Copy from the symmetry matrix */
-
-	if(width == 5)
-	{
-		for(i = 0; i < boardSize; i++)
-			board[i] = unflipped[gSymmetryMatrix5[symmetry][i]];
-	}
-	if(width == 4)
-	{
-		for(i = 0; i < boardSize; i++)
-			board[i] = unflipped[gSymmetryMatrix4[symmetry][i]];
-	}
-	if(width == 3)
-	{
-		for(i = 0; i < boardSize; i++)
-			board[i] = unflipped[gSymmetryMatrix3[symmetry][i]];
-	}
-	if (unflipped != NULL)
-		SafeFree(unflipped);
-	return(hash(board, turn, goatsLeft));
-}
-
-// I assumed that turn is always one bit
-STRING InteractPositionToString(POSITION pos) {
-  int i, j;
-  int turn, goatsLeft;
-  char* board = unhash(pos, &turn, &goatsLeft);
-  int total_length = boardSize;
-  char* string = (char*) SafeMalloc(total_length * sizeof(char));
-  char piece;
-  for(i = 1; i <= length; i++) { // print the rows one by one
-    for(j = 1; j <= width; j++) {
-      piece = board[translate(i, j)];
-      if (piece == '+'){
-        *string = ' ';
-      } else if(piece == 'T') {
-        *string = 'O';
-      } else {
-        *string = 'X';
-      }
-      string++;
-    }
-  }
-	*string = '\0';
-  string -= total_length;
-  char* turnValue = (char*) SafeMalloc(2);
-  sprintf(turnValue, "%d", turn);
-  char* goatValue = (char*) SafeMalloc(11);
-  sprintf(goatValue, "%d", goatsLeft);
-  char* retString = MakeBoardString(string, "turn", turnValue, "goatsLeft", goatValue, "");
-  if (board != NULL)
-    SafeFree(board);
-  SafeFree(string);
-  return retString;
-}
-
-POSITION InteractStringToPosition(STRING string){
-  int total_length = boardSize;
-  char* board = (char*) SafeMalloc(total_length * sizeof(char));
-  int i = 0;
-  while (i < total_length){
-    if (*string == ' '){
-      *board = '+';
-    } else if(*string == 'O' || *string == 'o') {
-      *board = 'T';
-    } else if (*string == 'X' || *string == 'x'){
-      *board = 'G';
-    }
-    string++;
-    board++;
-    i++;
-  }
-  board = board - total_length;
-  int goats;
-  int turn;
-  int success = GetValue(string, "turn", GetInt, &turn) &&
-                GetValue(string, "goatsLeft", GetInt, &goats);
-  if (success == 0){
-    printf("ERROR: something went wrong in getting the values out of the string \n");
-    return INVALID_POSITION;
-  }
-  return hash(board, turn, goats);
+    return canonPos;
 }
 
 /***************************
- ******  TIER API    ********
- ****************************/
+ ******  TIER API    *******
+ ***************************/
 
-/* HOW TIERS WORK:
-   The tiers are defined as follows:
-   FIRST TIER: goats*(goats+1)
-   this is simplified to (goats+1)^2 for easier offsets.
-
-   0 - goats (0 - 20): Stage 2 boards. Tier number = number of Goats on the board.
-   Nice and straightforward like before.
-
-   (goats+1) - (goats+1)^2 (21 - 441): Stage 1, Goat's turn boards. The math is:
-   Take a Stage 2 board. Add to it the number of goats left to place, multiplied
-   by (goats+1).
-   That means that:
-   TIER / (goats+1) = goats left to place
-   TIER % (goats+1) = goats on the board (a.k.a. Stage 2 Tier)
-
-   ((goats+1)^2)+1 - MAX+_TIER (442 - 8380): Stage 1, Tiger's turn boards. The main is:
-   Take a Stage 2 board. Add to it the number of goats left to place, multiple
-   by (goats+1)^2.
-   So:
-   TIER / (goats+1)^2 = goats left to place
-   TIER % (goats+1)^2 = goats on board (a.k.a. Stage 2 Tier)
-
-   Not the most tightly-packed system... but it works. :)
-
-   HOW HASHES WORK:
-   We COULD waste the space and define 3 full copies of each of the Stage 2 boards:
-   one with both players (for Stage 2), and 2 with only one player (for the two
-   Stage 1 types). Instead we only define one: the both player version; so that's
-   goats+1 hashes total, one for each of the Stage 2 boards.
-   Then for the Stage 1's, we just work with offsets: we know that the Goat's turn
-   boards are from 0 through (max_pos/2)-1, and Tiger's turn are max_pos/2 through
-   max_pos-1.
- */
-
-// Hash/unhash helpers for tiers
-void unhashTier(TIER tier, int* goatsOnBoard, int* goatsLeft, int* turn) {
-	if (tier < s1GoatOffset) { //stage 2
-		(*goatsOnBoard) = tier;
-		(*goatsLeft) = 0;
-		(*turn) = 0; // actually undefined since it's BOTH turns, so ignored
-	} else if (tier < s1TigerOffset) { //stage 1, goat
-		(*goatsOnBoard) = tier % s1GoatOffset;
-		(*goatsLeft) = tier / s1GoatOffset;
-		(*turn) = PLAYER_ONE;
-	} else { //stage 1, tiger
-		(*goatsOnBoard) = tier % s1TigerOffset;
-		(*goatsLeft) = tier / s1TigerOffset;
-		(*turn) = PLAYER_TWO;
-	}
+void unhashTier(TIER tier, int *goatsLeft, int *goatsCaptured, char *turn) {
+	(*turn) = (tier >> 10) ? TIGER : GOAT;
+	(*goatsLeft) = tier >> 5 & 0x1F;
+	(*goatsCaptured) = tier & 0x1F;
 }
 
-TIER hashTier(int goatsOnBoard, int goatsLeft, int turn) {
-	if (goatsLeft == 0) //stage 2
-		return goatsOnBoard;
-	else if (turn == PLAYER_ONE) //stage 1, goat
-		return goatsOnBoard + (goatsLeft * s1GoatOffset);
-	else // stage 2, tiger
-		return goatsOnBoard + (goatsLeft * s1TigerOffset);
+TIER hashTier(int goatsLeft, int goatsCaptured, char turn) {
+	// Assumes goatsCaptured is fewer than 5 bits
+	if (goatsLeft == 0) turn = TIGER;
+	return (((turn == TIGER) ? 1 : 0) << 10) | (goatsLeft << 5) | goatsCaptured;
 }
 
-// A helper that comes in handy:
-int numGoatsOnBoard (char* board) {
-	int goat = 0, i;
-	for (i = 0; i < boardSize; i++)
-		if (board[i] == GOAT)
-			goat++;
-	return goat;
-}
-
-void SetupTierStuff() {
-	// gUsingTierGamesman
-	kSupportsTierGamesman = TRUE;
-
-	// offsets for tiers
-	s1GoatOffset = goats+1;
-	s1TigerOffset = (goats+1)*(goats+1);
-
-	// All other function pointers
-	gTierChildrenFunPtr                             = &TierChildren;
-	gNumberOfTierPositionsFunPtr    = &NumberOfTierPositions;
-	//gIsLegalFunPtr				= &IsLegal;
-	gGenerateUndoMovesToTierFunPtr  = &GenerateUndoMovesToTier;
-	gUnDoMoveFunPtr                                 = &UnDoMove;
-	gTierToStringFunPtr                             = &TierToString;
-	// Tier-Specific Hashes (1 per Stage 2 board)
-	int tier, piecesArray[10]= {TIGER, tigers, tigers, GOAT, 0, 0, SPACE, 0, 0, -1};
-	for (tier = 0; tier <= goats; tier++) {
-		// Goats = tier
-		piecesArray[4] = piecesArray[5] = tier;
-		// Blanks = boardSize - tigers - goats(tier)
-		piecesArray[7] = piecesArray[8] = boardSize - tigers - tier;
-		// make the hashes
-		generic_hash_init(boardSize, piecesArray, NULL, 0);
-	}
-	gInitialTier = goats*(goats+1);
-}
-
-// If Stage 2, children are tier and tier-1 (except 0, it's just 0)
-// If Stage 1 goat, one child: the tiger below it with goatsOnBoard+1 and goatsLeft-1
-// If Stage 2 tiger, two children: the goats below, both with same goatsLeft, but
-//                                                      one with same goatsOnBoard and other with goatsOnBoard-1
-TIERLIST* TierChildren(TIER tier)
-{
+TIERLIST* TierChildren(TIER tier) {
 	TIERLIST* list = NULL;
-	int goatsOnBoard, goatsLeft, turn;
-	unhashTier(tier, &goatsOnBoard, &goatsLeft, &turn);
-	if(tier < s1GoatOffset) { //stage2
-		list = CreateTierlistNode(tier, list);
-		if (tier != 0)
-			list = CreateTierlistNode(tier-1, list);
-	} else if (tier < s1TigerOffset) { //stage 1, goat
-		list = CreateTierlistNode(hashTier(goatsOnBoard+1, goatsLeft-1, PLAYER_TWO), list);
-	} else { //stage 1, tiger
-		list = CreateTierlistNode(hashTier(goatsOnBoard, goatsLeft, PLAYER_ONE), list);
-		list = CreateTierlistNode(hashTier(goatsOnBoard-1, goatsLeft, PLAYER_ONE), list);
+	int goatsLeft, goatsCaptured;
+	char turn;
+	unhashTier(tier, &goatsLeft, &goatsCaptured, &turn);
+	if (goatsCaptured < goatCaptureGoal) {
+		if (goatsLeft) { // STAGE 1
+			if (turn == GOAT) {
+				list = CreateTierlistNode(hashTier(goatsLeft - 1, goatsCaptured, TIGER), list);
+			} else {
+				list = CreateTierlistNode(hashTier(goatsLeft, goatsCaptured, GOAT), list);
+				list = CreateTierlistNode(hashTier(goatsLeft, goatsCaptured + 1, GOAT), list);
+			}
+		} else { // STAGE 2
+			list = CreateTierlistNode(tier, list);
+			if (goatsLeft + goatsCaptured < goats) {
+				list = CreateTierlistNode(hashTier(goatsLeft, goatsCaptured + 1, TIGER), list);
+			}
+		}
 	}
 	return list;
 }
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
-	int goatsOnBoard, goatsLeft, turn;
-	unhashTier(tier, &goatsOnBoard, &goatsLeft, &turn);
-	generic_hash_context_switch(goatsOnBoard);
-	if (tier < s1GoatOffset) // stage 2
-		return generic_hash_max_pos();
-	else // stage 1, report only half the boards
-		return generic_hash_max_pos()/2;
+	int goatsLeft, goatsCaptured;
+	char turn;
+	unhashTier(tier, &goatsLeft, &goatsCaptured, &turn);
+	int goatsOnBoard = goats - goatsLeft - goatsCaptured;
+	return ((goatsLeft == 0) ? 2 : 1) * combinations[boardSize][tigers][goatsOnBoard];
 }
 
-BOOLEAN IsLegal(POSITION position) {
-	return TRUE;
-}
+POSITION UnDoMove(POSITION position, UNDOMOVE undoMove) {
+	int goatsLeft, goatsCaptured;
+	char turn;
+	char *board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
+	char oppTurn = (turn == GOAT) ? TIGER : GOAT;
+	int from, to, remove;
+	unhashMove(undoMove, &from, &to, &remove);
 
-POSITION UnDoMove (POSITION position, UNDOMOVE undoMove)
-{
-	int turn, goatsLeft;
-	char* board = unhash(position, &turn, &goatsLeft);
-	char piece;
-	int jump, direction, i, j, jumpI, jumpJ;
-	if(undoMove < boardSize) { // It's only a Goat being removed
-		board[undoMove] = SPACE;
-		turn = PLAYER_ONE;
-		goatsLeft = goatsLeft+1;
-		return hash(board, turn, goatsLeft);
+	board[to] = SPACE;
+	if (to == from) {
+		goatsLeft++;
+	} else {
+		board[from] = oppTurn;
 	}
-	undoMove -= boardSize;
-	jump = undoMove % 2;
-	undoMove /= 2;
-	direction = undoMove % 8;
-	undoMove /= 8;
-	i = jumpI = get_x(undoMove);
-	j = jumpJ = get_y(undoMove);
-	piece = board[undoMove];
-	board[undoMove] = SPACE; // clear the current location of the piece
-	switch(direction) { // find the appropriate modifiers to i and j
-	case UP: if (jump) { i -= 2; jumpI -= 1; }
-		else i -= 1; break;
-	case DOWN: if (jump) { i += 2; jumpI += 1; }
-		else i += 1; break;
-	case RIGHT: if (jump) { j += 2; jumpJ += 1; }
-		else j += 1; break;
-	case LEFT: if (jump) { j -= 2; jumpJ -= 1; }
-		else j -= 1; break;
-		if (diagonals) {
-		case UP_RIGHT: if (jump) { i -= 2; j += 2; jumpI -= 1; jumpJ += 1; }
-			else { i -= 1; j += 1; } break;
-		case UP_LEFT: if (jump) { i -= 2; j -= 2; jumpI -= 1; jumpJ -= 1; }
-			else { i -= 1; j -= 1; } break;
-		case DOWN_RIGHT: if (jump) { i += 2; j += 2; jumpI += 1; jumpJ += 1; }
-			else { i += 1; j += 1; } break;
-		case DOWN_LEFT: if (jump) { i += 2; j -= 2; jumpI += 1; jumpJ -= 1; }
-			else { i += 1; j -= 1; } break;
-		}
+	if (to != remove) {
+		board[remove] = GOAT;
+		goatsCaptured--;
 	}
-	board[translate(i, j)] = piece; // place the piece in its new location
-	if(jump) board[translate(jumpI, jumpJ)] = GOAT; // place the piece jumped over
-	turn = (turn == PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE);
-	return hash(board, turn, goatsLeft);
+	turn = oppTurn;
+
+	POSITION toReturn = hash(board, goatsLeft, goatsCaptured, turn);
+	SafeFree(board);
+	return toReturn;
 }
 
-UNDOMOVELIST* GenerateUndoMovesToTier(POSITION position, TIER tier){
-	/*     UP
-	        ^
-	   LEFT<---|--> RIGHT
-	        v
-	      DOWN
-	   (1,1) IS top left corner and (row,col)=(length, width)= bottom right corner
-	 */
-	int turn, goatsLeft;
-	char* board = unhash(position, &turn, &goatsLeft);
-	char animal;
-	int row = length, col = width;
-	UNDOMOVELIST *moves = NULL;
-	int i, j;
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
+	UNDOMOVELIST *undoMoves = NULL;
+	int goatsLeft, goatsCaptured;
+	char turn;
+	char *board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
+	char oppTurn = (turn == GOAT) ? TIGER : GOAT;
 
-	if(PLAYER_ONE == turn)
-		animal = TIGER; //opposite of what it should be, means player 2, tiger, just moved
-	else
-		animal = GOAT; // means player 1 = goat just moved
-
-	// If tigers turn, the goat was just placed
-	// check if this is the correct parent tier
-	if(animal == GOAT && tier == hashTier(numGoatsOnBoard(board)-1, goatsLeft+1, PLAYER_ONE)) {
-		// Generates the list of all possible undo-drop locations for Phase 1
-		for(i = 1; i <= row; i++) {
-			for(j = 1; j <= col; j++) {
-				if(board[translate(i, j)] == GOAT) {
-					moves = CreateUndoMovelistNode(translate(i, j), moves);
+	int toGoatsLeft, toGoatsCaptured;
+	char toTurn;
+	unhashTier(tier, &toGoatsLeft, &toGoatsCaptured, &toTurn);
+	if (toGoatsLeft == goatsLeft && toGoatsCaptured == goatsCaptured && (oppTurn == TIGER || !goatsLeft)) { // Reverse a slide
+		for (int i = 0; i < boardSize; i++) {
+			if (board[i] == oppTurn) {
+				for (int j = 0; j < numMoves[i]; j++) {
+					int adjIndex = moveMatrix[i][0][j];
+					if (board[adjIndex] == SPACE) {
+						undoMoves = CreateUndoMovelistNode(hashMove(adjIndex, i, i), undoMoves);
+					}
 				}
 			}
 		}
-	}
-	// For both players, generate the list of all possible move locations for Phases 1 and 2
-	// check if this is the correct parent tier
-	if ((animal == TIGER || goatsLeft == 0) &&
-	    tier == hashTier(numGoatsOnBoard(board), goatsLeft, (turn == PLAYER_ONE ? PLAYER_TWO : PLAYER_ONE))) {
-		for(i = 1; i <= row; i++) {
-			for(j = 1; j <= col; j++)    {
-				if(board[translate(i, j)] == animal) {
-					// Move Up
-					if((i-1 > 0) && (board[translate(i-1, j)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+UP)*2 + boardSize, moves);
-					// Move Right
-					if((j+1 <= col) && (board[translate(i, j+1)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+RIGHT)*2 + boardSize, moves);
-					// Move Down
-					if((i+1 <= row) && (board[translate(i+1, j)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+DOWN)*2 + boardSize, moves);
-					// Move Left
-					if((j-1 > 0) && (board[translate(i, j-1)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+LEFT)*2 + boardSize, moves);
-					//DIAGONAL MOVES
-					if(diagonals) { // Move NW
-						if((i-1 > 0) && (j-1 > 0) && (((i + j) % 2) == 0)    &&
-						   (board[translate(i-1, j-1)] == SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+UP_LEFT)*2 + boardSize, moves);
-						// Move NE
-						if((i-1 > 0) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-						   (board[translate(i-1, j+1)] == SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+UP_RIGHT)*2 + boardSize,moves);
-						// Move SE
-						if((i+1 <= row) && (j+1 <= col) && (((i + j) % 2) == 0) &&
-						   (board[translate(i+1, j+1)] == SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2 + boardSize, moves);
-						// Move SW
-						if((i+1 <= row) && (j-1 > 0) && (((i + j) % 2) == 0) &&
-						   (board[translate(i+1, j-1)] == SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+DOWN_LEFT)*2 + boardSize, moves);
+	} else if (toGoatsLeft == goatsLeft + 1 && oppTurn == GOAT) { // Reverse a goat placement
+		for (int i = 0; i < boardSize; i++) {
+			if (board[i] == GOAT) {
+				undoMoves = CreateUndoMovelistNode(hashMove(i, i, i), undoMoves);
+			}
+		}
+	} else if (toGoatsCaptured == goatsCaptured - 1 && oppTurn == TIGER) { // Reverse a tiger capture
+		for (int i = 0; i < boardSize; i++) {
+			if (board[i] == TIGER) {
+				for (int j = 0; j < numMoves[i]; j++) {
+					int adjIndex = moveMatrix[i][0][j];
+					int jumpIndex =  moveMatrix[i][1][j];
+					if (board[adjIndex] == SPACE && jumpIndex != -1 && board[jumpIndex] == SPACE) {
+						undoMoves = CreateUndoMovelistNode(hashMove(jumpIndex, i, adjIndex), undoMoves);
 					}
 				}
 			}
 		}
 	}
-	// tigers can jump
-	// check if this is the correct parent tier
-	if(animal == TIGER && tier == hashTier(numGoatsOnBoard(board)+1, goatsLeft, PLAYER_ONE)) {
-		for(i = 1; i <= row; i++) {
-			for(j = 1; j <= col; j++)    {
-				if(board[translate(i, j)] == animal) {
-					// Jump Up
-					if((i-1 > 1) && (board[translate(i-1, j)] == SPACE) &&
-					   (board[translate(i-2, j)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+UP)*2+1 + boardSize, moves);
-					// Jump Right
-					if((j+1 < width) && (board[translate(i, j+1)] == SPACE)    &&
-					   (board[translate(i, j+2)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+RIGHT)*2+1 + boardSize, moves);
-					// Jump Down
-					if((i+1 < row) && (board[translate(i+1, j)] == SPACE) &&
-					   (board[translate(i+2, j)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+DOWN)*2+1 + boardSize, moves);
-					// Jump Left
-					if((j-1 > 1) && (board[translate(i, j-1)] == SPACE) &&
-					   (j-2 > 0) && (board[translate(i, j-2)] == SPACE))
-						moves = CreateUndoMovelistNode((translate(i, j)*8+LEFT)*2+1 + boardSize, moves);
-					if(diagonals) { // Jump SW
-						if((i+1 < length) && (j-1 > 1)    &&
-						   (board[translate(i+1, j-1)] == SPACE)    &&
-						   (((i + j) % 2) == 0)    &&
-						   (board[translate(i+2, j-2)] == SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+DOWN_LEFT)*2+1 + boardSize, moves);
-						// Jump SE
-						if((i+1 < length) && (j+1 < width) &&
-						   (board[translate(i+1, j+1)] == SPACE)    &&
-						   (((i + j) % 2) == 0)    &&
-						   (board[translate(i+2, j+2)] == SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+DOWN_RIGHT)*2+1 + boardSize, moves);
-						// Jump NE
-						if((i-1 > 1) && (j+1 < width) &&
-						   (board[translate(i-1, j+1)] == SPACE)&& (((i+j) %2) == 0) &&
-						   (board[translate(i-2, j+2)] == SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+UP_RIGHT)*2+1 + boardSize, moves);
-						// Jump NW
-						if((i-1 > 1) && (j-1 > 1) &&
-						   (board[translate(i-1, j-1)] == SPACE) &&
-						   (i-2 >0) && (j-2 >0) && (((i + j) % 2) == 0) && (board[translate(i-2, j-2)] ==  SPACE))
-							moves = CreateUndoMovelistNode((translate(i, j)*8+UP_LEFT)*2+1 + boardSize, moves);
-					}
-				}
-			}
-		}
-	}
-	if (board != NULL)
-		SafeFree(board);
-	return moves;
+
+	return undoMoves;
 }
 
-// Tier = Number of pieces left to place.
 STRING TierToString(TIER tier) {
-	STRING tierStr = (STRING) SafeMalloc(sizeof(char)*45);
-	int goatsOnBoard, goatsLeft, turn;
-	unhashTier(tier, &goatsOnBoard, &goatsLeft, &turn);
-	if (tier < s1GoatOffset)
-		sprintf(tierStr, "Stage 2, %d Goats", goatsOnBoard);
-	else if (tier < s1TigerOffset)
-		sprintf(tierStr, "Stage 1 (GOAT's Turn), %d Goats, %d To Place",
-		        goatsOnBoard, goatsLeft);
+	STRING tierStr = (STRING) SafeMalloc(sizeof(char) * 64);
+	int goatsLeft, goatsCaptured;
+	char turn;
+	unhashTier(tier, &goatsLeft, &goatsCaptured, &turn);
+	int goatsOnBoard = goats - goatsLeft - goatsCaptured;
+
+	if (goatsLeft)
+		sprintf(tierStr, "Stage 1: %d Goats On Board, %d To Place, %d Goats Removed, %s's Turn", goatsOnBoard, goatsLeft, goatsCaptured, (turn == GOAT) ? "Goat" : "Tiger");
 	else
-		sprintf(tierStr, "Stage 1 (TIGER's Turn), %d Goats, %d To Place",
-		        goatsOnBoard, goatsLeft);
+		sprintf(tierStr, "Stage 2: %d Goats On Board, %d Goats Removed", goatsOnBoard, goatsCaptured);
+	
 	return tierStr;
 }
 
+STRING InteractPositionToString(POSITION pos) {
+	char* finalBoard = calloc(51, sizeof(char));
+	memcpy(finalBoard, initialBaghchalInteractString, 50);
+	char turn;
+	int goatsLeft, goatsCaptured;
+	char *board = unhash(pos, &goatsLeft, &goatsCaptured, &turn);
+	for (int i = 0; i < boardSize; i++) {
+		finalBoard[boardToStringIdxMapping[i]] = (board[i] == SPACE) ? '-' : board[i];
+	}
+	finalBoard[2] = (turn == GOAT) ? 'A' : 'B';
+	finalBoard[goatsLeftTensIdx] = (goatsLeft / 10) + '0';
+	finalBoard[goatsLeftOnesIdx] = (goatsLeft % 10) + '0';
+	finalBoard[goatsCapturedTensIdx] = (goatsCaptured / 10) + '0';
+	finalBoard[goatsCapturedOnesIdx] = (goatsCaptured % 10) + '0';
+	SafeFree(board);
+	return finalBoard;
+}
+
+POSITION InteractStringToPosition(STRING string) {
+	int goatsLeft, goatsCaptured;
+	char turn = (string[2] == 'A') ? GOAT : TIGER;
+	char fboard[boardSize];
+	for (int i = 0; i < boardSize; i++) {
+		char piece = string[boardToStringIdxMapping[i]];
+		fboard[i] = (piece == '-') ? SPACE : piece;
+	}
+
+	if (sideLength == 3) {
+		goatsLeft = string[goatsLeftOnesIdx] - '0';
+	} else {
+		goatsLeft = 10 * (string[goatsLeftTensIdx] - '0') + (string[goatsLeftOnesIdx] - '0');
+	}
+
+	if (sideLength == 5) {
+		goatsCaptured = 10 * (string[goatsCapturedTensIdx] - '0') + (string[goatsCapturedOnesIdx] - '0');
+	} else {
+		goatsCaptured = (string[goatsCapturedOnesIdx] - '0');
+	}
+
+	TIER tier;
+	TIERPOSITION tierposition;
+	hashBoard(fboard, goatsLeft, goatsCaptured, turn, &tier, &tierposition);
+	gInitializeHashWindow(tier, FALSE);
+	return tierposition;
+}
+
+STRING InteractPositionToEndData(POSITION pos) {
+	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  int from, to, remove;
+  unhashMove(mv, &from, &to, &remove);
+  if (from == to) {
+	  return UWAPI_Board_Regular2D_MakeAddString('G', boardToGridIdxMapping[to]);
+  } else {
+	  return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping[from], boardToGridIdxMapping[to]);
+  }
+}
+
+/*
+UPDATE HIST: -2004.10.21 = Original (Dom's) Version
+**              -2006.3.2 = Updates + Fixes by Max and Deepa
+**                  (Nearly) functional Standard version of game
+**              -2006.3.20 = Includes hack version of the Retrograde Solver
+**					(FAR from complete, but at least it's a working version)
+**					Also a few changes to the game, particular the board display.
+**				-2006.4.11 = Retrograde Solver now moved to its own file.
+**					Diagonals and Variants now implemented correctly.
+**					Fixed ALL the warnings.
+**					Fixed a few more little bugs, non 5x5 game is fully complete.
+**					Added RetrogradeTierValue function pointer implementation.
+**					Added CheckLegality code, but will implement in next update.
+**				-2006.4.16 = Slight bug fixes, like reading double-digit input.
+**					Variant number calculations fixed.
+**					Changed GOATS_MAX to 24 and upper-limit on goats from
+**					  "boardsize-tigers-1" to "boardsize-tigers".
+**					Now 4x4, No Diagonals, 12 Goats is "Dragons and Swans".
+**					Also lowered TIGERS_MAX to 9 to keep it single-digit.
+**					Got rid of any final debugging artifacts for the solver.
+**				-2006.8.4 = Complete clean-up of the game's code. Now doesn't
+**					have awkward semi-state variables like phase1 and NumGoats.
+**					Hash and unhash is done a lot more cleanly and intuitively.
+**					Tier Gamesman additions are in progress, so they are
+**					disabled for now, but will be working by the next update.
+**				-2006.8.7 = Tier Gamesman API functions coded! Unfortunately,
+**					the UndoMove functions don't seem to work... Hopefully,
+**					they'll be fixed soon!
+**				-2006.8.8 = UndoMove functions work perfectly! Now the Tier
+**					Gamesman API is fully implemented for Bagh Chal. It looks
+**					like symmetries are the only thing left to fix.
+**				-2006.9.10 = Fixed an unhash bug which returned the wrong
+**					person's turn in Stage 2 boards. Now it SHOULD be perfect,
+**					excluding IsLegal and Undomove functions of course.
+**					The Undomove functions will be fixed once the solver's
+**					debugger finally works and can help debug the problem.
+**				-2006.9.27 = It turns out Undomove functions were actually
+**					fully correct! The solver's debugger will confirm for sure
+**					once it's finished. Also, got rid of "Tier0Context" since
+**					hash destruction now works.
+**
 // $Log: not supported by cvs2svn $
 // Revision 1.38  2007/05/11 01:38:18  max817
 // Fixed a bug
@@ -1779,8 +1765,6 @@ STRING TierToString(TIER tier) {
 // 3x3
 //
 // Revision 1.35  2007/05/07 07:04:42  brianzimmer
-//
-//
 // An attempt to fix a bug that was being experienced.
 //
 // Revision 1.34  2007/04/19 04:43:32  max817
@@ -1869,12 +1853,4 @@ STRING TierToString(TIER tier) {
 // to its own set of new files, solveretrograde.c and solveretrograde.h.
 // Exact details on the exact changes I made to the core files can be found
 // in a comment on solveretrograde.c. -Max
-//
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-  return MoveToString(mv);
-}
+*/

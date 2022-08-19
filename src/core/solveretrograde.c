@@ -375,15 +375,7 @@ void AutoSolveAllTiers() {
     ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
     BOOLEAN loop = TRUE;
 
-	 TIERLIST *list;
-	 list = RemoteGetTierSolveOrder();
-	 TIERLIST *ptr;
-	 for (ptr = list; ptr != NULL; ptr = ptr->next) {
-		 printf("tier %d\n", (int)ptr->tier);
-	 }
-
     while (loop) {
-
         PrepareToSolveNextTier();
         SolveTier(0,gCurrentTierSize);
         loop = gotoNextTier();
@@ -1074,7 +1066,7 @@ void SolveWithNonLoopyAlgorithm(POSITION start, POSITION end) {
 		}
 	}
 
-	ifprintf(gTierSolvePrint, "Doing an sweep of the tier, and solving it in one go...\n");
+	ifprintf(gTierSolvePrint, "Doing a sweep of the tier, and solving it in one go...\n");
 	for (pos = start; pos < end; pos++) { // Solve only parents
 		if (usingLevelFiles && !l_isInLevelFile(pos)) continue; //just skip
 		if (checkLegality && !gIsLegalFunPtr(pos)) continue; //skip

@@ -39,6 +39,7 @@
 
 #include <zlib.h>
 #include <netinet/in.h>
+#include <sys/stat.h>
 #include "gamesman.h"
 #include <dirent.h>
 #include "tierdb.h"
@@ -51,6 +52,7 @@
 POSITION offsets[50000];
 unsigned long numOffsets = 0;
 TIER tierForWhichOffsetsLoaded = -1;
+BOOLEAN alreadyReinitialized = FALSE;
 
 typedef short tierdb_cellValue;
 
@@ -94,6 +96,7 @@ void                    load_offsets (TIER tier);
 tierdb_cellValue*       tierdb_array;
 
 char tierdb_outfilename[80];
+char tierdb_lookupfilename[80];
 gzFile         tierdb_filep;
 short tierdb_dbVer[1];
 POSITION tierdb_numPos[1];
@@ -105,14 +108,20 @@ int tierdb_goodCompression, tierdb_goodDecompression, tierdb_goodClose;
 
 void tierdb_init(DB_Table *new_db)
 {
+	if (alreadyReinitialized) {
+		return;
+	}
+
 	POSITION i;
 	tierdb_get_raw = tierdb_get_raw_ptr;
 
 	//setup internal memory table
-	tierdb_array = (tierdb_cellValue *) SafeMalloc (gNumberOfPositions * sizeof(tierdb_cellValue));
+	if (gLoadTierdbArray) {
+		tierdb_array = (tierdb_cellValue *) SafeMalloc (gNumberOfPositions * sizeof(tierdb_cellValue));
 
-	for(i = 0; i< gNumberOfPositions; i++)
-		tierdb_array[i] = undecided;
+		for(i = 0; i< gNumberOfPositions; i++)
+			tierdb_array[i] = undecided;
+	}
 
 	new_db->put_value = tierdb_set_value;
 	new_db->put_remoteness = tierdb_set_remoteness;
@@ -136,6 +145,9 @@ do anything.
 */
 BOOLEAN tierdb_reinit(DB_Table *new_db)
 {
+	if (alreadyReinitialized) {
+		return TRUE;
+	}
 	sprintf(tierdb_outfilename, "./data/m%s_%d_tierdb/lookup", kDBName, getOption());
 	DIR* dir = opendir(tierdb_outfilename);
 	if (dir) {
@@ -145,6 +157,7 @@ BOOLEAN tierdb_reinit(DB_Table *new_db)
 		new_db->get_remoteness = tierdb_get_remoteness_from_lookup_table;
 		new_db->check_visited = tierdb_check_visited_from_lookup_table;
 		new_db->get_mex = tierdb_get_mex_from_lookup_table;
+		alreadyReinitialized = TRUE;
 		return TRUE;
 	} else {
 		return FALSE;
@@ -384,6 +397,9 @@ MEX tierdb_get_mex_from_lookup_table(POSITION pos)
 
 BOOLEAN tierdb_save_database ()
 {
+	struct stat statbuf;
+	statbuf.st_size = 0;
+
 	if(!gHashWindowInitialized)
 		return FALSE;
 
@@ -401,6 +417,9 @@ BOOLEAN tierdb_save_database ()
 	mkdir("data", 0755);
 	sprintf(tierdb_outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
 	mkdir(tierdb_outfilename, 0755);
+	sprintf(tierdb_lookupfilename,"./data/m%s_%d_tierdb/lookup", kDBName, getOption());
+	mkdir(tierdb_lookupfilename, 0755);
+
 	if (gDBTierStart != -1 && gDBTierEnd != -1) { // we're creating a partial tier file!
 		sprintf(tierdb_outfilename, "%s/m%s_%d_%llu__%llu_%llu_minitierdb.dat.gz",
 		        tierdb_outfilename, kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
@@ -412,6 +431,9 @@ BOOLEAN tierdb_save_database ()
 		sprintf(tierdb_outfilename, "%s/m%s_%d_%llu_tierdb.dat.gz",
 		        tierdb_outfilename, kDBName, getOption(), gCurrentTier);
 	}
+	sprintf(tierdb_lookupfilename, "./data/m%s_%d_tierdb/lookup/m%s_%d_%llu_tierdb.dat.gz.idx",
+		        kDBName, getOption(), kDBName, getOption(), gCurrentTier);
+	FILE *indexFP = fopen(tierdb_lookupfilename, "wb");
 
 	if((tierdb_filep = gzopen(tierdb_outfilename, "wb")) == NULL) {
 		if(kDebugDetermineValue) {
@@ -429,9 +451,22 @@ BOOLEAN tierdb_save_database ()
 		tierdb_goodCompression = gzwrite(tierdb_filep, tierdb_array+i, sizeof(tierdb_cellValue));
 		tot += tierdb_goodCompression;
 		tierdb_array[i] = ntohs(tierdb_array[i]);
-		//gzflush(tierdb_filep,Z_FULL_FLUSH);
+		
+		if ((sizeof(short) + sizeof(POSITION) + (i + 1) * sizeof(tierdb_cellValue)) % FILESIZE == 0 || i + 1 == finish) {
+			gzclose(tierdb_filep);
+			off_t prevsize = statbuf.st_size;
+			stat(tierdb_outfilename, &statbuf);
+			fprintf(indexFP, "%ld\n",statbuf.st_size - prevsize);
+			if((tierdb_filep = gzopen(tierdb_outfilename, "ab")) == NULL) {
+				if(kDebugDetermineValue) {
+					printf("Unable to create compressed data file\n");
+				}
+				return FALSE;
+			}
+		}
 	}
 	tierdb_goodClose = gzclose(tierdb_filep);
+	fclose(indexFP);
 
 	if(tierdb_goodCompression && (tierdb_goodClose == 0)) {
 		if(kDebugDetermineValue && !gJustSolving) {
