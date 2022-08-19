@@ -122,7 +122,8 @@ but only guarantees values for stored keys; any key not set is set to a random v
 void solversave(solverdata* data, FILE* fp)
 {
     /* Why is this safe? */
-    unsigned char* result = calloc(1l << (data->size), sizeof(unsigned char));
+    /*In any cases we care about, we'll get significant memory improvements anyway.*/
+    unsigned char* result = calloc(1l << (data->size-2), sizeof(unsigned char));
     if (result == NULL) {
         printf("Memory allocation error\n");
         return;

@@ -2,7 +2,7 @@
 #SBATCH --job-name=connect4
 #SBATCH --account=jyokota
 #SBATCH --partition=savio3
-#SBATCH --ntasks=20
-#SBATCH --time=01:00:00
+#SBATCH --ntasks=960
+#SBATCH --time=24:00:00
 
-./build/connect4mpi.exe workingfolder
+mpirun -n 960 ./build/connect4mpi.exe workingfolder

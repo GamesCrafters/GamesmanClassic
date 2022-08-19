@@ -5,6 +5,7 @@
 
 #define LOSS 1
 #define TIE 128
+#define WIN 255
 #define NOT_PRIMITIVE 127
 #define UNSAVED_PRIMITIVE 125
 #define UNSAVED_NONPRIMITIVE 126
@@ -57,7 +58,7 @@ int generateMoves(char* retval, game position);
 char isPrimitive(game position, char mostrecentmove);
 
 
-int getSize();
+//int getSize();
 
 int getMaxDepth();
 
