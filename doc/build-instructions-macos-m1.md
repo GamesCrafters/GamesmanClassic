@@ -1,6 +1,6 @@
 # Build Instructions (macOS)
 
-**The following building instructions have only been tested on macOS Catalina, but will likely work with older systems.**
+These instructions were tested on May 31, 2022 on macOS Monterey Version 12.3 and tcl-tk version 8.6.12. These instructions may work for other combinations but they have been checked with this combination.
 
 Run the following to clone the GamesmanClassic repo.
 ```bash
@@ -25,18 +25,25 @@ brew install autoconf zlib tcl-tk
 
 If you want to compile games with big integer support, you'll need the GMP library (latest version).
 
+After you're done editing & saving the init script, reopen a terminal session and the new init script should be in effect. (You can also use the `source` command to load the init script.)
+
 ### Caveats of `tcl-tk`
 
 From `brew info tcl-tk`:
 
 > tcl-tk is keg-only, which means it was not symlinked into /usr/local, because tk installs some X11 headers and macOS provides an (older) Tcl/Tk.
 
-We prefer making the `brew`-installed `tcl-tk` default. To so this, we add `tcl-tk` to the `$PATH` in the terminal init script.
+We prefer making the `brew`-installed `tcl-tk` default. To do this, we add `tcl-tk` to the `$PATH` in the terminal init script.
 
-If you're using `bash`, you may add the following line to the `.bash_profile` file in your home directory. If you're using `zsh`, you may add the following line to the `.zshenv` file instead.
+Add the following line to the end of `.zshrc` if it is not already there.
 
 ```bash
-export PATH="/usr/local/opt/tcl-tk/bin:$PATH"
+export PATH="/opt/homebrew/opt/tcl-tk/bin:$PATH"
+```
+
+If you want to check the tcl version being used, run the following command.
+```bash
+echo 'puts [info patchlevel];exit 0' | tclsh
 ```
 
 After you're done editing & saving the init script, reopen a terminal session and the new init script should be in effect. (You can also use the `source` command to load the init script.)
@@ -50,15 +57,16 @@ Make sure you're in the directory of the repository. Then use the following scri
 autoconf
 
 # Configure with the installed tcl-tk
-./configure --with-tcl=/usr/local/opt/tcl-tk/lib/tclConfig.sh --with-tk=/usr/local/opt/tcl-tk/lib/tkConfig.sh
+./configure --with-tcl=/opt/homebrew/opt/tcl-tk/lib/tclConfig.sh --with-tk=/opt/homebrew/opt/tcl-tk/lib/tkConfig.sh
 ```
 
 If you get the following error `configure: error: cannot find required auxiliary files: config.guess config.sub`, then run the following:
 
-```
+```bash
 brew install wget
 wget -O config.guess 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD'
 wget -O config.sub 'https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub;hb=HEAD'
+./configure --with-tcl=/opt/homebrew/opt/tcl-tk/lib/tclConfig.sh --with-tk=/opt/homebrew/opt/tcl-tk/lib/tkConfig.sh
 ```
 
 If you want to change an option such as whether or not to build with graphics, then you may need to change the configuration options.
