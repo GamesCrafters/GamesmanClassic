@@ -2,6 +2,13 @@
 
 **The following building instructions have only been tested on macOS Catalina, but will likely work with older systems.**
 
+Run the following to clone the GamesmanClassic repo.
+```bash
+git clone https://github.com/GamesCrafters/GamesmanClassic.git
+
+cd GamesmanClassic
+```
+
 ## Prerequisites
 
 - `autoconf`
