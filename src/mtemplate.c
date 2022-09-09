@@ -21,6 +21,7 @@ POSITION gMinimalPosition = 0;
 
 STRING kAuthorName = "";
 STRING kGameName = "";
+STRING kDBName = "";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -29,8 +30,6 @@ BOOLEAN kLoopy = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 void* gGameSpecificTclInit = NULL;
-
-STRING kDBName = "";
 
 STRING kHelpGraphicInterface = "";
 
@@ -57,7 +56,6 @@ STRING kHelpExample = "";
 ** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
-
 
 /************************************************************************
 **
@@ -228,7 +226,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 }
 
 /**************************************************/
-/**************** SYMMETRY FUN BEGIN **************/
+/*********** SYMMETRY HANDLING BEGIN **************/
 /**************************************************/
 
 /************************************************************************
@@ -269,7 +267,7 @@ POSITION DoSymmetry(POSITION position, int symmetry) {
 }
 
 /**************************************************/
-/**************** SYMMETRY FUN END ****************/
+/*********** SYMMETRY HANDLING END ****************/
 /**************************************************/
 
 /************************************************************************
@@ -291,7 +289,7 @@ POSITION DoSymmetry(POSITION position, int symmetry) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE theMove, STRING playerName) {
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
   return Continue;
 }
 
@@ -345,7 +343,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 void PrintMove(MOVE theMove) {
 }
 
-
 /************************************************************************
 **
 ** NAME: MoveToString
@@ -374,7 +371,6 @@ void setOption(int option) {
 POSITION ActualNumberOfPositions(int variant) {
   return 0;
 }
-
 
 POSITION InteractStringToPosition(STRING board) {
   return 0;

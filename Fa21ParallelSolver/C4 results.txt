@@ -1,0 +1,4 @@
+Getting size of transfer
+3.4T    connect4-7x6-transfer
+Getting size of solved
+4.3T    connect4-7x6-solved

@@ -5,7 +5,35 @@
 
 #define LOSS 1
 #define TIE 128
-#define NOT_PRIMITIVE 255
+#define WIN 255
+#define NOT_PRIMITIVE 127
+#define UNSAVED_PRIMITIVE 125
+#define UNSAVED_NONPRIMITIVE 126
+
+/*
+The solver stores the win-loss record in the following format:
+0: RESERVED (Currently in use in solver to indicate a position that is not valid)
+1: Loss in 0 moves
+2: Loss in 1 move
+3: Loss in 2 moves
+...
+63: Loss in 62 moves
+64: Draw
+65-124: UNUSED
+125: RESERVED (Currently in use in solver to indicate a valid primitive that doesn't need to be sent to a child shard)
+126: RESERVED (Currently in use in solver to indicate a valid nonprimitive that doesn't need to be sent to a child shard)
+127: RESERVED (Currently in use in solver to indicate a non-primitive position)
+128: Tie in 0 moves
+129: Tie in 1 move
+...
+191: Tie in 63 moves
+192: Win in 63 moves
+...
+254: Win in 1 move
+255: Win in 0 moves
+
+Games with depth greater than 63 are not supported
+*/
 
 typedef uint64_t game;
 typedef uint64_t gamehash;
@@ -30,7 +58,7 @@ int generateMoves(char* retval, game position);
 char isPrimitive(game position, char mostrecentmove);
 
 
-int getSize();
+//int getSize();
 
 int getMaxDepth();
 

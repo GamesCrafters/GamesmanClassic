@@ -41,6 +41,7 @@ POSITIONLIST*   CopyPositionList                (POSITIONLIST* list);
 
 IPOSITIONLIST*  StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePositionList);
 void            FreeIPositionList(IPOSITIONLIST* ptr);
+void            FreeMultipartEdgeList(MULTIPARTEDGELIST* ptr);
 
 void            AddPositionToQueue              (POSITION pos, POSITIONQUEUE** tail);
 POSITION        RemovePositionFromQueue         (POSITIONQUEUE** head);
@@ -55,6 +56,7 @@ BOOLEAN         TierInList                              (TIER theTier, TIERLIST*
 BOOLEAN         RemoveTierFromList              (TIER theTier, TIERLIST** theTierlist);
 
 UNDOMOVELIST*   CreateUndoMovelistNode          (UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove);
+MULTIPARTEDGELIST* CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST* next);
 
 void            FoundBadPosition                (POSITION pos, POSITION parent, MOVE move);
 
