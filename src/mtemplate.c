@@ -1,3 +1,15 @@
+/************************************************************************
+**
+** NAME:        m<your-game-name-here>.c
+**
+** DESCRIPTION: <your-game-description>
+**
+** AUTHOR:      Firstname Lastname
+**
+** DATE:        YYYY-MM-DD
+**
+************************************************************************/
+
 #include <stdio.h>
 #include "gamesman.h"
 
@@ -15,7 +27,10 @@ BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kTieIsPossible = TRUE;
 BOOLEAN kLoopy = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
+BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 void* gGameSpecificTclInit = NULL;
+
+STRING kDBName = "";
 
 STRING kHelpGraphicInterface = "";
 
@@ -43,7 +58,6 @@ STRING kHelpExample = "";
 **
 **************************************************************************/
 
-BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
 /************************************************************************
 **
@@ -53,12 +67,7 @@ BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 **
 ************************************************************************/
 
-void InitializeGame()
-{
-}
-
-void FreeGame()
-{
+void InitializeGame() {
 }
 
 /************************************************************************
@@ -70,8 +79,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
+void DebugMenu() {
 }
 
 /************************************************************************
@@ -96,8 +104,7 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions[])
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 }
 
 /************************************************************************
@@ -116,13 +123,11 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(POSITION position, MOVE move)
-{
+POSITION DoMove(POSITION position, MOVE move) {
   return 0;
 }
 
-void UndoMove(MOVE move)
-{
+void UndoMove(MOVE move) {
 }
 
 /************************************************************************
@@ -136,8 +141,7 @@ void UndoMove(MOVE move)
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
   return 0;
 }
 
@@ -152,10 +156,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 }
 
 /************************************************************************
@@ -181,8 +182,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(POSITION position)
-{
+VALUE Primitive(POSITION position) {
   return undecided;
 }
 
@@ -203,8 +203,7 @@ VALUE Primitive(POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 /************************************************************************
@@ -224,8 +223,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(POSITION position)
-{
+MOVELIST *GenerateMoves(POSITION position) {
   return NULL;
 }
 
@@ -247,8 +245,7 @@ MOVELIST *GenerateMoves(POSITION position)
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(POSITION position)
-{
+POSITION GetCanonicalPosition(POSITION position) {
   return position;
 }
 
@@ -267,8 +264,7 @@ POSITION GetCanonicalPosition(POSITION position)
 **
 ************************************************************************/
 
-POSITION DoSymmetry(POSITION position, int symmetry)
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
   return position;
 }
 
@@ -295,11 +291,7 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE theMove, STRING playerName) {
   return Continue;
 }
 
@@ -320,8 +312,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(STRING input)
-{
+BOOLEAN ValidTextInput(STRING input) {
   return TRUE;
 }
 
@@ -337,8 +328,7 @@ BOOLEAN ValidTextInput(STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(STRING input)
-{
+MOVE ConvertTextInputToMove(STRING input) {
   return 0;
 }
 
@@ -352,8 +342,7 @@ MOVE ConvertTextInputToMove(STRING input)
 **
 ************************************************************************/
 
-void PrintMove(MOVE theMove)
-{
+void PrintMove(MOVE theMove) {
 }
 
 
@@ -367,45 +356,35 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove)
-{
+STRING MoveToString (MOVE theMove) {
   return NULL;
 }
 
-STRING kDBName = "";
-
-int NumberOfOptions()
-{
+int NumberOfOptions() {
   return 1;
 }
 
-int getOption()
-{
+int getOption() {
   return 0;
 }
 
-void setOption(int option)
-{
+void setOption(int option) {
 }
 
-POSITION ActualNumberOfPositions(int variant)
-{
+POSITION ActualNumberOfPositions(int variant) {
   return 0;
 }
 
 
-POSITION InteractStringToPosition(STRING board)
-{
+POSITION InteractStringToPosition(STRING board) {
   return 0;
 }
 
-STRING InteractPositionToString(POSITION pos)
-{
+STRING InteractPositionToString(POSITION pos) {
   return NULL;
 }
 
-STRING InteractPositionToEndData(POSITION pos)
-{
+STRING InteractPositionToEndData(POSITION pos) {
   return NULL;
 }
 
