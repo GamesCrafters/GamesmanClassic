@@ -13,37 +13,32 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions = 0;
+POSITION gNumberOfPositions = 0; // TODO: Calculate a tight upper bound on the number of positions.
 POSITION kBadPosition = -1;
 
-POSITION gInitialPosition = 0;
-POSITION gMinimalPosition = 0;
+POSITION gInitialPosition = 0; // TODO: You may need to change this based on how you hash the initial position. 
 
-STRING kAuthorName = "";
-STRING kGameName = "";
-STRING kDBName = "";
-BOOLEAN kPartizan = TRUE;
-BOOLEAN kDebugMenu = TRUE;
-BOOLEAN kGameSpecificMenu = FALSE;
-BOOLEAN kTieIsPossible = TRUE;
-BOOLEAN kLoopy = FALSE;
+STRING kAuthorName = ""; // TODO: Your name here
+STRING kGameName = "Hare Game";
+STRING kDBName = "haregame";
+BOOLEAN kPartizan = FALSE; // TODO: Set this to true if different sets of moves are available to each player given a position.
+BOOLEAN kDebugMenu = FALSE;
+BOOLEAN kGameSpecificMenu = FALSE; // TODO: Set this to true since we need a game-specific menu to choose the game variant.
+BOOLEAN kTieIsPossible = FALSE; // TODO: Think... is a tie (or draw) possible in this game?
+BOOLEAN kLoopy = FALSE; // TODO: Is this a loopy game? Can I loop back to a position I've seen before?
 BOOLEAN kDebugDetermineValue = FALSE;
-BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
+BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether we support symmetries. You will in this HomeFun.
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
-
-STRING kHelpTextInterface = "";
-
-STRING kHelpOnYourTurn = "";
-
-STRING kHelpStandardObjective = "";
-
-STRING kHelpReverseObjective = "";
-
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-
-STRING kHelpExample = "";
+/* TODO: These are not required for the the game to solve and play 
+properly but it is good to write down these explanations. */
+STRING kHelpGraphicInterface = ""; // Ignore for now.
+STRING kHelpTextInterface = ""; // Answer to "What do I do on MY TURN?"
+STRING kHelpOnYourTurn = ""; // Answer to "How do I tell the computer WHICH MOVE I want?"
+STRING kHelpStandardObjective = ""; // Answer to "What is the %s OBJECTIVE of Hare Game?"
+STRING kHelpReverseObjective = ""; // Ignore for now. 
+STRING kHelpTieOccursWhen = ""; // Should follow "A Tie occurs when..."
+STRING kHelpExample = ""; // A string that shows an example game.
 
 /*************************************************************************
 **
@@ -72,7 +67,7 @@ POSITION ActualNumberOfPositions(int variant);
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
-  gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
 /************************************************************************
@@ -102,18 +97,6 @@ void GameSpecificMenu() {
 
 /************************************************************************
 **
-** NAME: SetTclCGameSpecificOptions
-**
-** DESCRIPTION: Set the C game-specific options (called from Tcl)
-** Ignore if you don't care about Tcl for now.
-**
-************************************************************************/
-
-void SetTclCGameSpecificOptions(int theOptions[]) {
-}
-
-/************************************************************************
-**
 ** NAME: DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
@@ -132,8 +115,6 @@ POSITION DoMove(POSITION position, MOVE move) {
   return 0;
 }
 
-void UndoMove(MOVE move) {
-}
 
 /************************************************************************
 **
@@ -364,16 +345,40 @@ STRING MoveToString(MOVE move) {
   return NULL;
 }
 
+/************************************************************************
+**
+** NAME: NumberOfOptions
+**
+** DESCRIPTION: Return how many different variants are supported.
+**
+************************************************************************/
 int NumberOfOptions() {
   return 1;
 }
 
+/************************************************************************
+**
+** NAME: getOption
+**
+** DESCRIPTION: Return the variant ID of the variant currently being played.
+**
+************************************************************************/
 int getOption() {
   return 0;
 }
 
+/************************************************************************
+**
+** NAME: getOption
+**
+** DESCRIPTION: Change variables according to what variant we want to switch to.
+** 
+** INPUT: The variant ID
+**
+************************************************************************/
 void setOption(int option) {
 }
+
 
 POSITION ActualNumberOfPositions(int variant) {
   return 0;
@@ -392,5 +397,5 @@ STRING InteractPositionToEndData(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  return MoveToString(mv);
+  return MoveToString(move);
 }
