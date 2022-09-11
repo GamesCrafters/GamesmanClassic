@@ -1,50 +1,69 @@
 /************************************************************************
 **
-** NAME:        m<your-game-name-here>.c
+** NAME:        mharegame.c
 **
-** DESCRIPTION: <your-game-description>
+** DESCRIPTION: Hare Game.
 **
 ** AUTHOR:      Firstname Lastname
 **
-** DATE:        YYYY-MM-DD
+** DATE:        2022-09-09
 **
 ************************************************************************/
 
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions = 0; // TODO: Calculate a tight upper bound on the number of positions.
+POSITION gNumberOfPositions; // Initialized in InitializeGame().
 POSITION kBadPosition = -1;
 
-POSITION gInitialPosition = 0; // TODO: You may need to change this based on how you hash the initial position. 
+POSITION gInitialPosition; // Initialized in InitializeGame().
 
-STRING kAuthorName = ""; // TODO: Your name here
+STRING kAuthorName = "Robert Shi";
 STRING kGameName = "Hare Game";
 STRING kDBName = "haregame";
-BOOLEAN kPartizan = FALSE; // TODO: Set this to true if different sets of moves are available to each player given a position.
+BOOLEAN kPartizan = TRUE; // Set this to true if different sets of moves are available to each player given a position.
 BOOLEAN kDebugMenu = FALSE;
-BOOLEAN kGameSpecificMenu = FALSE; // TODO: Set this to true since we need a game-specific menu to choose the game variant.
-BOOLEAN kTieIsPossible = FALSE; // TODO: Think... is a tie (or draw) possible in this game?
-BOOLEAN kLoopy = FALSE; // TODO: Is this a loopy game? Can I loop back to a position I've seen before?
+BOOLEAN kGameSpecificMenu = TRUE; // Game-specific menu to choose the game variant.
+BOOLEAN kTieIsPossible = TRUE; // There should be positions where both sides cannot force a win.
+BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
-BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether we support symmetries. You will in this HomeFun.
+BOOLEAN kSupportsSymmetries = FALSE; // Flipping the board across the x-axis gives a symmetric position.
 void* gGameSpecificTclInit = NULL;
 
-/* TODO: These are not required for the the game to solve and play 
-properly but it is good to write down these explanations. */
 STRING kHelpGraphicInterface = ""; // Ignore for now.
-STRING kHelpTextInterface = ""; // Answer to "What do I do on MY TURN?"
-STRING kHelpOnYourTurn = ""; // Answer to "How do I tell the computer WHICH MOVE I want?"
-STRING kHelpStandardObjective = ""; // Answer to "What is the %s OBJECTIVE of Hare Game?"
+STRING kHelpTextInterface = "kHelpTextInterface goes here"; // Answer to "What do I do on MY TURN?"
+STRING kHelpOnYourTurn = "kHelpOnYourTurn goes here"; // Answer to "How do I tell the computer WHICH MOVE I want?"
+STRING kHelpStandardObjective = "kHelpStandardObjective goes here"; // Answer to "What is the %s OBJECTIVE of Hare Game?"
 STRING kHelpReverseObjective = ""; // Ignore for now. 
-STRING kHelpTieOccursWhen = ""; // Should follow "A Tie occurs when..."
-STRING kHelpExample = ""; // A string that shows an example game.
+STRING kHelpTieOccursWhen = "A tie never occurs."; // Should follow "A Tie occurs when..."
+STRING kHelpExample = "kHelpExample goes here"; // A string that shows an example game.
 
 /*************************************************************************
 **
 ** Everything above here must be in every game file
 **
 **************************************************************************/
+
+#define VARIANT_MAX 3
+#define N_MAX (6 * VARIANT_MAX + 5)
+
+unsigned long long choose[N_MAX + 1][N_MAX + 1]; // Cached Pascal's Triangle.
+void makeTriangle();
+
+int currVariant; // Small = 1, medium = 2, large = 3.
+int numCells(int variant);
+void switchVariant(int variant);
+
+int getRow(int idx);
+int getCol(int idx);
+
+POSITION constructPosition(int *indices, int hare_i, BOOLEAN haresTurn);
+void unpackPosition(POSITION position, int **indices, int *hare_i, BOOLEAN *haresTurn);
+
+MOVE constructMove(int destIdx, int srcIdx);
+void unpackMove(MOVE move, int *destIdx, int *srcIdx);
+
+void printBoard(int *indices, int hare_i);
 
 /*************************************************************************
 **
@@ -65,9 +84,13 @@ POSITION ActualNumberOfPositions(int variant);
 ************************************************************************/
 
 void InitializeGame() {
-  gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
-	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+    gCanonicalPosition = GetCanonicalPosition;
+    gMoveToStringFunPtr = &MoveToString;
+    gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+
+    makeTriangle();
+    currVariant = 1;
+    switchVariant(currVariant);
 }
 
 /************************************************************************
@@ -93,6 +116,34 @@ void DebugMenu() {
 ************************************************************************/
 
 void GameSpecificMenu() {
+	char GetMyChar();
+    do {
+        printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+        for (int i = 1; i < VARIANT_MAX; ++i) {
+            if (currVariant != i) {
+              printf("\t%d)\tSwitch from variant %d to variant %d.\n", i, currVariant, i);
+            }
+        }
+        printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
+		    printf("\n\nSelect an option: ");
+        char c = GetMyChar();
+        switch(c) {
+        case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+            switchVariant(c - '0');
+            break;
+        case 'Q': case 'q':
+            ExitStageRight();
+        case 'H': case 'h':
+            HelpMenus();
+            break;
+        case 'B': case 'b':
+            return;
+        default:
+            printf("\nSorry, I don't know that option. Try another.\n");
+            HitAnyKeyToContinue();
+            break;
+        }
+    } while (TRUE);
 }
 
 /************************************************************************
@@ -106,15 +157,67 @@ void GameSpecificMenu() {
 **
 ** OUTPUTS: (POSITION) : The position that results after the move.
 **
-** CALLS: PositionToBlankOX(POSITION,*BlankOX)
-** BlankOX WhosTurn(*BlankOX)
+** CALLS: 
 **
 ************************************************************************/
 
-POSITION DoMove(POSITION position, MOVE move) {
-  return 0;
+void sortIndices(int *indices, int modifiedIdx) {
+    while (modifiedIdx > 0 && indices[modifiedIdx] > indices[modifiedIdx - 1]) {
+        int tmp = indices[modifiedIdx - 1];
+        indices[modifiedIdx - 1] = indices[modifiedIdx];
+        indices[modifiedIdx] = tmp;
+        --modifiedIdx;
+    }
+    while (modifiedIdx < 3 && indices[modifiedIdx] < indices[modifiedIdx + 1]) {
+        int tmp = indices[modifiedIdx + 1];
+        indices[modifiedIdx + 1] = indices[modifiedIdx];
+        indices[modifiedIdx] = tmp;
+        ++modifiedIdx;
+    }
 }
 
+int findHare(int *indices, int hareIdx) {
+    int i = 0;
+    while (i < 4 && indices[i] != hareIdx) {
+        ++i;
+    }
+    return i;
+}
+
+POSITION DoMove(POSITION position, MOVE move) {
+    printf("doing move %d at position %llu\n", move, position);
+    int *indices;
+    int hare_i;
+    BOOLEAN haresTurn;
+    unpackPosition(position, &indices, &hare_i, &haresTurn);
+    int hareIdx = indices[hare_i];
+    int destIdx, srcIdx;
+    unpackMove(move, &destIdx, &srcIdx);
+    printf("src: %d, dest: %d\n", srcIdx, destIdx);
+
+    int i = 0;
+    while (i < 4 && indices[i] != srcIdx) {
+        ++i;
+    }
+    if (i >= 4) {
+        SafeFree((GENERIC_PTR)indices);
+        return kBadPosition;
+    } else if (i == hare_i) {
+        printf("hare is moving to new idx %d\n", destIdx);
+        hareIdx = destIdx;
+    }
+    indices[i] = destIdx;
+    printf("indices before sorting: %d, %d, %d, %d\n", indices[0], indices[1], indices[2], indices[3]);
+    sortIndices(indices, i);
+    printf("indices after sorting: %d, %d, %d, %d\n", indices[0], indices[1], indices[2], indices[3]);
+    hare_i = findHare(indices, hareIdx);
+    printf("new hare_i: %d\n", hare_i);
+    POSITION ret = constructPosition(indices, hare_i, !haresTurn);
+    printf("new position is %llu\n", ret);
+
+    SafeFree((GENERIC_PTR)indices);
+    return ret;
+}
 
 /************************************************************************
 **
@@ -128,7 +231,8 @@ POSITION DoMove(POSITION position, MOVE move) {
 ************************************************************************/
 
 POSITION GetInitialPosition() {
-  return 0;
+    int pos = GetMyInt();
+    return pos;
 }
 
 /************************************************************************
@@ -143,6 +247,9 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    int destIdx, srcIdx;
+    unpackMove(computersMove, &destIdx, &srcIdx);
+    printf("%8s's move\t\t\t: [%2d -> %2d]\n", computersName, srcIdx, destIdx);
 }
 
 /************************************************************************
@@ -169,7 +276,28 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 ************************************************************************/
 
 VALUE Primitive(POSITION position) {
-  return undecided;
+    /* Depending on the rule, hare wins if it reaches index 0 or is
+       not to the right of any hound. Hounds win if the hare runs out of
+       moves.
+       Note that the hounds will never run out of moves, and there are no
+       primitive winning positions because a player can never do some move
+       and let their opponent win. */
+    int *indices;
+    int hare_i;
+    BOOLEAN haresTurn;
+    VALUE ret = undecided;
+    unpackPosition(position, &indices, &hare_i, &haresTurn);
+    if (indices[hare_i] == 0) {
+        ret = lose;
+    } else {
+        MOVELIST *moves = GenerateMoves(position);
+        if (!moves) {
+            ret = lose;
+        }
+        FreeMoveList(moves);
+    }
+    SafeFree((GENERIC_PTR)indices);
+    return ret;
 }
 
 /************************************************************************
@@ -183,13 +311,18 @@ VALUE Primitive(POSITION position) {
 ** STRING playerName : The name of the player.
 ** BOOLEAN usersTurn : TRUE <==> it's a user's turn.
 **
-** CALLS: PositionToBlankOX()
-** GetValueOfPosition()
+** CALLS: GetValueOfPosition()
 ** GetPrediction()
 **
 ************************************************************************/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+    int *indices;
+    int hare_i;
+    BOOLEAN haresTurn;
+    unpackPosition(position, &indices, &hare_i, &haresTurn);
+    printBoard(indices, hare_i);
+    printf("%s\n", GetPrediction(position, playerName, usersTurn));
 }
 
 /************************************************************************
@@ -209,8 +342,108 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 **
 ************************************************************************/
 
+MOVELIST *validDestIndices(int idx, BOOLEAN haresTurn) {
+    MOVELIST *ret = NULL;
+    int n = numCells(currVariant);
+    /* Special case for cell 0: no backward moves available here for hounds. */
+    if (idx == 0) {
+        for (int i = 1; i < 4; ++i) {
+            ret = CreateMovelistNode(i, ret);
+        }
+        return ret;
+    }
+    /* Special case for cell (numCells - 1): only backward moves are available
+       for hounds. */
+    if (idx == n - 1) {
+        if (haresTurn) {
+            for (int i = n - 4; i < n - 1; ++i) {
+                ret = CreateMovelistNode(i, ret);
+            }
+        } /* Else do nothing and return empty list. */
+        return ret;
+    }
+    int row = getRow(idx);
+    /* Consider each possible move. */
+    /* UP */
+    if (row > 0) {
+        ret = CreateMovelistNode(idx - 1, ret);
+    }
+    /* DOWN */
+    if (row < 2) {
+        ret = CreateMovelistNode(idx + 1, ret);
+    }
+    /* LEFT */
+    if (haresTurn && idx != 1 && idx != 3) {
+        ret = CreateMovelistNode(idx - 3 + (idx == 2), ret);
+    }
+    /* RIGHT */
+    if (idx != n - 2 && idx != n - 4) {
+        ret = CreateMovelistNode(idx + 3 - (idx == n - 3), ret);
+    }
+    /* The following are available only if idx is odd. */
+    if (idx & 0b1) {
+        /* RIGHT-UP */
+        if (row > 0) {
+            ret = CreateMovelistNode(idx + 2 - (idx == n - 2), ret);
+        }
+        /* RIGHT-DOWN */
+        if (row < 2) {
+            ret = CreateMovelistNode(idx + 4 - (idx == n - 4), ret);
+        }
+        /* LEFT-UP */
+        if (haresTurn && row > 0) {
+            ret = CreateMovelistNode(idx - 4 + (idx == 3), ret);
+        }
+        /* LEFT-DOWN */
+        if (haresTurn && row < 2) {
+            ret = CreateMovelistNode(idx - 2 + (idx == 1), ret);
+        }
+    }
+    return ret;
+}
+
+BOOLEAN contains(int *a, int size, int n) {
+    for (int i = 0; i < size; ++i) {
+        if (a[i] == n) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 MOVELIST *GenerateMoves(POSITION position) {
-  return NULL;
+    int *indices;
+    int hare_i;
+    BOOLEAN haresTurn;
+    unpackPosition(position, &indices, &hare_i, &haresTurn);
+    MOVELIST *ret = NULL, *validDests = NULL, *last = NULL;
+    if (haresTurn) {
+        validDests = validDestIndices(indices[hare_i], TRUE);
+        while (validDests != NULL) {
+            last = validDests;
+            validDests = validDests->next;
+            if (!contains(indices, 4, last->move)) {
+                ret = CreateMovelistNode(constructMove(last->move, indices[hare_i]), ret);
+            }
+            SafeFree(last);
+        }
+    } else {
+        for (int i = 0; i < 4; ++i) {
+            if (i == hare_i) {
+                continue;
+            }
+            validDests = validDestIndices(indices[i], FALSE);
+            while (validDests != NULL) {
+                last = validDests;
+                validDests = validDests->next;
+                if (!contains(indices, 4, last->move)) {
+                    ret = CreateMovelistNode(constructMove(last->move, indices[i]), ret);
+                }
+                SafeFree(last);
+            }
+        }
+    }
+    return ret;
 }
 
 /**************************************************/
@@ -232,7 +465,9 @@ MOVELIST *GenerateMoves(POSITION position) {
 ************************************************************************/
 
 POSITION GetCanonicalPosition(POSITION position) {
-  return position;
+    // TODO: Flip the board across the x-axis and get a new position. Return
+    // the smaller of the two.
+    return position;
 }
 
 /************************************************************************
@@ -251,7 +486,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 ************************************************************************/
 
 POSITION DoSymmetry(POSITION position, int symmetry) {
-  return position;
+    // Seems to be an unnecessary helper function.
+    return position;
 }
 
 /**************************************************/
@@ -266,8 +502,8 @@ POSITION DoSymmetry(POSITION position, int symmetry) {
 ** If so, return Undo or Abort and don't change theMove.
 ** Otherwise get the new theMove and fill the pointer up.
 **
-** INPUTS: POSITION *thePosition : The position the user is at.
-** MOVE *theMove : The move to fill with user's move.
+** INPUTS: POSITION *position : The position the user is at.
+** MOVE *move : The move to fill with user's move.
 ** STRING playerName : The name of the player whose turn it is
 **
 ** OUTPUTS: USERINPUT : Oneof( Undo, Abort, Continue )
@@ -278,7 +514,15 @@ POSITION DoSymmetry(POSITION position, int symmetry) {
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-  return Continue;
+	USERINPUT ret;
+	do {
+		printf("%8s's move [(u)ndo]/[srcIdx,destIdx] :  ", playerName);
+		ret = HandleDefaultTextInput(position, move, playerName);
+		if (ret != Continue) {
+			return ret;
+        }
+	} while (TRUE);
+	return Continue;
 }
 
 /************************************************************************
@@ -299,7 +543,31 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 ************************************************************************/
 
 BOOLEAN ValidTextInput(STRING input) {
-  return TRUE;
+    STRING inputCopy = copyString(input);
+    int tokensFound = 0;
+    int destIdx, srcIdx;
+    static STRING delim = " ,.-_";
+    STRING nextToken = strtok(inputCopy, delim);
+    if (nextToken) {
+        srcIdx = atoi(nextToken);
+        ++tokensFound;
+        nextToken = strtok(NULL, delim);
+    }
+    if (nextToken) {
+        destIdx = atoi(nextToken);
+        ++tokensFound;
+        nextToken = strtok(NULL, delim);
+    }
+    SafeFree(inputCopy);
+    if (nextToken) {
+        /* Malformed input. */
+        return FALSE;
+    } else if (tokensFound < 2) {
+        /* Less than two indices entered. */
+        return FALSE;
+    }
+    int n = numCells(currVariant);
+    return srcIdx >= 0 && destIdx >= 0 && srcIdx < n && destIdx < n;
 }
 
 /************************************************************************
@@ -315,7 +583,15 @@ BOOLEAN ValidTextInput(STRING input) {
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(STRING input) {
-  return 0;
+    STRING inputCopy = copyString(input);
+    int destIdx, srcIdx;
+    static STRING delim = " ,.-_";
+    STRING nextToken = strtok(inputCopy, delim);
+    srcIdx = atoi(nextToken);
+    nextToken = strtok(NULL, delim);
+    destIdx = atoi(nextToken);
+    SafeFree(inputCopy);
+    return constructMove(destIdx, srcIdx);
 }
 
 /************************************************************************
@@ -329,6 +605,9 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void PrintMove(MOVE move) {
+    STRING str = MoveToString(move);
+	printf("%s", str);
+	SafeFree(str);
 }
 
 /************************************************************************
@@ -342,7 +621,11 @@ void PrintMove(MOVE move) {
 ************************************************************************/
 
 STRING MoveToString(MOVE move) {
-  return NULL;
+    STRING m = (STRING)SafeMalloc(12);
+    int destIdx, srcIdx;
+    unpackMove(move, &destIdx, &srcIdx);
+    sprintf(m, "[%d->%d]", srcIdx, destIdx);
+    return m;
 }
 
 /************************************************************************
@@ -353,7 +636,8 @@ STRING MoveToString(MOVE move) {
 **
 ************************************************************************/
 int NumberOfOptions() {
-  return 1;
+    // Not sure if symmetry is an option. 
+    return 2 * VARIANT_MAX; // misere/standard, variant[1/2/.../VARIANT_MAX]
 }
 
 /************************************************************************
@@ -364,7 +648,8 @@ int NumberOfOptions() {
 **
 ************************************************************************/
 int getOption() {
-  return 0;
+    // Not sure why +1 (options start from index 1?).
+    return 1 + gStandardGame + (currVariant << 1);
 }
 
 /************************************************************************
@@ -377,25 +662,172 @@ int getOption() {
 **
 ************************************************************************/
 void setOption(int option) {
+    gStandardGame = (--option) & 1;
+    currVariant = option >> 1;
 }
 
-
 POSITION ActualNumberOfPositions(int variant) {
-  return 0;
+    // Ignoring for now.
+    return 0;
 }
 
 POSITION InteractStringToPosition(STRING board) {
-  return 0;
+    // Ignoring for now.
+    return 0;
 }
 
 STRING InteractPositionToString(POSITION position) {
-  return NULL;
+    // Ignoring for now.
+    return NULL;
 }
 
 STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
+    // Ignoring for now.
+    return NULL;
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  return MoveToString(move);
+    // Ignoring for now.
+    return MoveToString(move);
+}
+
+/* Algorithm by Sufian Latif,
+   https://stackoverflow.com/a/11809815. */
+void makeTriangle() {
+    int i, j;
+    choose[0][0] = 1;
+    for (i = 1; i <= N_MAX; ++i) {
+        choose[i][0] = 1;
+        for (j = 1; j <= i; ++j) {
+            choose[i][j] = choose[i - 1][j - 1] + choose[i - 1][j];
+        }
+    }
+}
+
+int numCells(int variant) {
+    return variant * 6 + 5;
+}
+
+void switchVariant(int variant) {
+    if (variant < 1 || variant > 3) {
+        return;
+    }
+    currVariant = variant;
+    /* An upper bound for the number of positions is 4*(num_cells choose 4):
+       choose four cells to place all the characters, and there are four
+       possible positions for the Hare. */
+    int n = numCells(currVariant);
+    gNumberOfPositions = choose[n][4] << 3; // lowest bit for turn and next two bits for hare_i.
+    int indices[4] = {(n - 1), 3, 1, 0};
+    gInitialPosition = constructPosition(indices, 0, FALSE);
+}
+
+int getRow(int idx) {
+    if (idx == 0 || idx == numCells(currVariant) - 1) {
+        return 1;
+    }
+    return (idx - 1) % 3;
+}
+
+int getCol(int idx) {
+    if (idx == 0) {
+        return 0;
+    }
+    return (idx - 1) / 3 + 1;
+}
+
+/* Assumes INDICES is an array of 4 integers in strict descending order,
+   each representing the index of an occupied cell on the board. Also
+   assumes that HARE_I is an integer in range [0, 4), indicating which
+   of the 4 indices is the index of the hare. */
+POSITION constructPosition(int *indices, int hare_i, BOOLEAN haresTurn) {
+    unsigned long long N = 0;
+    int i;
+    for (i = 0; i < 4; ++i) {
+        N += choose[indices[3 - i]][i + 1];
+    }
+    /* N must be no longer than 61 bits. */
+    return (N << 3) + (hare_i << 1) + haresTurn;
+}
+
+/* Returns c_k. */
+int NToComboHelper(unsigned long long N, int k) {
+    int i = k;
+    unsigned long long curr = 0;
+    while (curr <= N) {
+        curr = choose[i++][k];
+    }
+    return i - 2;
+}
+
+/* Allocates an array of 4 strictly descending integers and set INDICES and
+   HARE_I according to POSITION. */
+void unpackPosition(POSITION position, int **indices, int *hare_i, BOOLEAN *haresTurn) {
+    unsigned long long N = position >> 3;
+    *hare_i = (position >> 1) & 0b11;
+    *haresTurn = position & 0b1;
+    int *combo = (int *)SafeMalloc(sizeof(int) << 2); // 4 integers.
+    int i = 0, k = 4;
+    while (k > 0) {
+        combo[i] = NToComboHelper(N, k);
+        N -= choose[combo[i++]][k--];
+    }
+    *indices = combo;
+}
+
+MOVE constructMove(int destIdx, int srcIdx) {
+    return (destIdx << 8) + srcIdx;
+}
+
+void unpackMove(MOVE move, int *destIdx, int *srcIdx) {
+    *destIdx = move >> 8;
+    *srcIdx = move - ((*destIdx) << 8);
+}
+
+char nextVertical(int i) {
+    switch (i) {
+    case 0:
+        return '/';
+    case 2:
+        return '\\';
+    case 1: case 3:
+        return '|';
+    default:
+        return ' ';
+    }
+}
+
+void printBoard(int *indices, int hare_i) {
+    int cols = 4 * currVariant + 5;
+    char board[5][cols + 1];
+    /* Initialize board. */
+    for (int i = 0; i < 5; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            board[i][j] = ' ';
+        }
+        board[i][cols] = '\0';
+    }
+    /* Add grid. */
+    for (int i = 0; i < 5; i += 2) {
+        for (int j = 3; j < cols - 3; j += 2) {
+            board[i][j] = '-';
+        }
+    }
+    board[2][1] = board[2][cols - 2] = '-';
+    int next = 0;
+    for (int j = 1; j < cols - 1; ++j) {
+        board[1][j] = board[3][cols - 1 - j] = nextVertical(next);
+        next = (next + 1) % 4;
+    }
+    /* Add characters based on pos. */
+    for (int i = 0; i < 4; ++i) {
+        int row = getRow(indices[i]);
+        int col = getCol(indices[i]);
+        board[row << 1][col << 1] = i == hare_i ? 'O' : 'X';
+    }
+
+    /* Print board. */
+    for (int i = 0; i < 5; ++i) {
+        printf("%s\n", board[i]);
+    }
 }
