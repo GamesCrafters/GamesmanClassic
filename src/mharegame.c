@@ -185,7 +185,6 @@ int findHare(int *indices, int hareIdx) {
 }
 
 POSITION DoMove(POSITION position, MOVE move) {
-    printf("doing move %d at position %llu\n", move, position);
     int *indices;
     int hare_i;
     BOOLEAN haresTurn;
@@ -203,18 +202,12 @@ POSITION DoMove(POSITION position, MOVE move) {
         SafeFree((GENERIC_PTR)indices);
         return kBadPosition;
     } else if (i == hare_i) {
-        printf("hare is moving to new idx %d\n", destIdx);
         hareIdx = destIdx;
     }
     indices[i] = destIdx;
-    printf("indices before sorting: %d, %d, %d, %d\n", indices[0], indices[1], indices[2], indices[3]);
     sortIndices(indices, i);
-    printf("indices after sorting: %d, %d, %d, %d\n", indices[0], indices[1], indices[2], indices[3]);
     hare_i = findHare(indices, hareIdx);
-    printf("new hare_i: %d\n", hare_i);
     POSITION ret = constructPosition(indices, hare_i, !haresTurn);
-    printf("new position is %llu\n", ret);
-
     SafeFree((GENERIC_PTR)indices);
     return ret;
 }
