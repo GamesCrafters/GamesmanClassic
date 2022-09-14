@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: Hare Game.
 **
-** AUTHOR:      Firstname Lastname
+** AUTHOR:      Robert Shi
 **
 ** DATE:        2022-09-09
 **
@@ -44,13 +44,14 @@ STRING kHelpExample = "kHelpExample goes here"; // A string that shows an exampl
 **
 **************************************************************************/
 
+#define DEFAULT_VARIANT 1
 #define VARIANT_MAX 3
 #define N_MAX (6 * VARIANT_MAX + 5)
 
 unsigned long long choose[N_MAX + 1][N_MAX + 1]; // Cached Pascal's Triangle.
 void makeTriangle();
 
-int currVariant; // Small = 1, medium = 2, large = 3.
+int currVariant = DEFAULT_VARIANT; // Small = 1, medium = 2, large = 3.
 int numCells(int variant);
 void switchVariant(int variant);
 
@@ -89,7 +90,6 @@ void InitializeGame() {
     gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 
     makeTriangle();
-    currVariant = 1;
     switchVariant(currVariant);
 }
 
@@ -119,7 +119,7 @@ void GameSpecificMenu() {
 	char GetMyChar();
     do {
         printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
-        for (int i = 1; i < VARIANT_MAX; ++i) {
+        for (int i = 1; i <= VARIANT_MAX; ++i) {
             if (currVariant != i) {
               printf("\t%d)\tSwitch from variant %d to variant %d.\n", i, currVariant, i);
             }
@@ -192,7 +192,6 @@ POSITION DoMove(POSITION position, MOVE move) {
     int hareIdx = indices[hare_i];
     int destIdx, srcIdx;
     unpackMove(move, &destIdx, &srcIdx);
-    printf("src: %d, dest: %d\n", srcIdx, destIdx);
 
     int i = 0;
     while (i < 4 && indices[i] != srcIdx) {
@@ -656,7 +655,8 @@ int getOption() {
 ************************************************************************/
 void setOption(int option) {
     gStandardGame = (--option) & 1;
-    currVariant = option >> 1;
+    int variant = option >> 1;
+    switchVariant(variant);
 }
 
 POSITION ActualNumberOfPositions(int variant) {
@@ -702,15 +702,15 @@ int numCells(int variant) {
 }
 
 void switchVariant(int variant) {
-    if (variant < 1 || variant > 3) {
+    if (variant < 1 || variant > VARIANT_MAX) {
         return;
     }
     currVariant = variant;
-    /* An upper bound for the number of positions is 4*(num_cells choose 4):
-       choose four cells to place all the characters, and there are four
-       possible positions for the Hare. */
+    /* An upper bound for the number of board configurations is 4*(num_cells choose 4):
+       choose four cells to place all the characters, and there are four possible
+       positions for the Hare. Need one more bit for turn. */
     int n = numCells(currVariant);
-    gNumberOfPositions = choose[n][4] << 3; // lowest bit for turn and next two bits for hare_i.
+    gNumberOfPositions = choose[n][4] << 3;
     int indices[4] = {(n - 1), 3, 1, 0};
     gInitialPosition = constructPosition(indices, 0, FALSE);
 }
