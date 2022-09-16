@@ -102,14 +102,10 @@ void GetMy(char *format, GENERIC_PTR out, int length, BOOLEAN keepSpaces) {
 		/* the buffer is full, possible there is extra input
 		 *  so we need to clear that out
 		 */
-		ungetc(buffer[length - 2],stdin); /* unget the last non null                                                         character, handles case
-		                                     when we have read exactly
-		                                     size - 1;
+		ungetc(buffer[length - 2],stdin); /* unget the last non null character, handles case
+		                                     when we have read exactly size - 1;
 		                                   */
-		fgets(buffer,length, stdin);      /* read stdin again
-		                                     repeat until stdin
-		                                     is empty
-		                                   */
+		fgets(buffer,length, stdin);      /* read stdin again repeat until stdin is empty */
 		blen = strlen(buffer);
 	}
 }
@@ -246,8 +242,6 @@ void printCell(STRING str, int max) {
 	printf("   ");
 }
 
-
-
 void printPlayerConfig(STRING type1, STRING type2) {
 	char tmp[80];
 	int max1 = max(strlen(gPlayerName[kPlayerOneTurn]) + 3, strlen("Player 1"), strlen(type1)+3);
@@ -329,7 +323,7 @@ void ChoosePlayerTypeMenu(int playerNum){
 				}
 				if(gOpponent == AgainstComputer) {
 					// Assume that they didn't choose computer again. If so, no change.
-					if( (playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst) ) {
+					if(!computerIsPlayer) {
 						gOpponent = ComputerComputer;
 						printf("\nPlayer %d is now a computer.\n\n", playerNum);
 						return;
@@ -338,7 +332,7 @@ void ChoosePlayerTypeMenu(int playerNum){
 				}
 				else if(gOpponent == AgainstHuman) {
 					gOpponent = AgainstComputer;
-					gHumanGoesFirst = (playerNum==2) ? TRUE : FALSE;
+					gHumanGoesFirst = (playerNum==2);
 					printf("\nPlayer %d is now a computer.\n\n", playerNum);
 					return;
 				}
@@ -350,7 +344,7 @@ void ChoosePlayerTypeMenu(int playerNum){
 						printf("Can't have computer vs. evaluator yet. Try again.");
 					else{
 						gOpponent = AgainstComputer;
-						gHumanGoesFirst = (playerNum==2) ? TRUE : FALSE;
+						gHumanGoesFirst = (playerNum==2);
 						printf("\nPlayer %d is now a computer.\n\n", playerNum);
 						return;
 					}
@@ -367,14 +361,14 @@ void ChoosePlayerTypeMenu(int playerNum){
 						printf("Can't have computer vs. evaluator yet. Try again.");
 					else{
 						gOpponent = AgainstEvaluator;
-						gHumanGoesFirst = (playerNum==2) ? TRUE : FALSE;
+						gHumanGoesFirst = (playerNum==2);
 						printf("\nPlayer %d is now a static evaluator.\n\n", playerNum);
 						return;
 					}
 				}
 				else if(gOpponent == AgainstHuman) {
 					gOpponent = AgainstEvaluator;
-					gHumanGoesFirst = (playerNum==2) ? TRUE : FALSE;
+					gHumanGoesFirst = (playerNum==2);
 					printf("\nPlayer %d is now a static evaluator.\n\n", playerNum);
 					return;
 				}
@@ -383,7 +377,9 @@ void ChoosePlayerTypeMenu(int playerNum){
 				}
 				else{ // gOpponent == Evaluator
 					// Assume that they didn't choose computer again. If so, no change.
-					if( (playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst) ) {
+					// Robert Shi: This check is redundant for now because if we do not have
+					//  Computer vs. Evaluator and current player cannot be a computer.
+					if(!computerIsPlayer) {
 						printf("\nPlayer %d is now a computer.\n\n", playerNum);
 						return;
 					}
@@ -393,7 +389,7 @@ void ChoosePlayerTypeMenu(int playerNum){
 			case 'h': case 'H':
 				if(gOpponent == AgainstComputer) {
 					// Assume that they didn't choose human again. If so, no change.
-					if( (playerNum==1 && !gHumanGoesFirst) || (playerNum==2 && gHumanGoesFirst) ) {
+					if(!humanIsPlayer) {
 						gOpponent = AgainstHuman;
 						printf("\nPlayer %d is now a computer.\n\n", playerNum);
 						return;
@@ -401,8 +397,8 @@ void ChoosePlayerTypeMenu(int playerNum){
 					else continue; //Do nothing
 				}
 				else if(gOpponent == ComputerComputer) {
-					gOpponent = AgainstHuman;
-					gHumanGoesFirst = (playerNum==1) ? TRUE : FALSE;
+					gOpponent = AgainstComputer;
+					gHumanGoesFirst = (playerNum==1);
 					printf("\nPlayer %d is now a computer.\n\n", playerNum);
 					return;
 				}
@@ -414,7 +410,7 @@ void ChoosePlayerTypeMenu(int playerNum){
 						printf("Can't have computer vs. evaluator yet. Try again.");
 					else{
 						gOpponent = AgainstComputer;
-						gHumanGoesFirst = (playerNum==1) ? TRUE : FALSE;
+						gHumanGoesFirst = (playerNum==1);
 						printf("\nPlayer %d is now a computer.\n\n", playerNum);
 						return;
 					}
@@ -446,8 +442,7 @@ USERINPUT ConfigurationMenu()
 	VALUE gameValue = undecided;
 	STRING type1;
 	STRING type2;
-	int humanIndex, compIndex;
-
+	int compIndex;
 
 	if(!gUnsolved)
 		gameValue = GetValueOfPosition(gInitialPosition);
@@ -491,12 +486,9 @@ USERINPUT ConfigurationMenu()
 		printf("\n");
 		if(gOpponent == AgainstHuman || gOpponent == AgainstEvaluator)
 			printf("\tf)\t(F)lip board to swap players 1 and 2");
-		else if(gOpponent == AgainstComputer)
-		{
-			humanIndex = kPlayerOneTurn;
+		else if(gOpponent == AgainstComputer) {
 			compIndex = kPlayerTwoTurn;
 			if (!gHumanGoesFirst) {
-				humanIndex = kPlayerTwoTurn;
 				compIndex = kPlayerOneTurn;
 			}
 			printf("\tf)\t(F)lip board to swap players 1 and 2\n");
@@ -903,10 +895,6 @@ void ParseBeforeEvaluationMenuChoice(char c)
 		break;
 	}
 }
-
-
-
-
 
 void ParseEvaluatedMenuChoice(char c)
 {
@@ -1620,7 +1608,6 @@ void showStatus(STATICMESSAGE msg)
 	}
 }
 
-
 /* DB Loading Status Meter */
 void showDBLoadingStatus(STATICMESSAGE msg)
 {
@@ -1659,5 +1646,3 @@ void showDBLoadingStatus(STATICMESSAGE msg)
 		updateTime = clock() + timeDelayTicks; /* Get the Next Update Time */
 	}
 }
-
-
