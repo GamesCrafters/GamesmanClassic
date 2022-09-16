@@ -206,8 +206,7 @@ VALUE VSDetermineLoopyValue1(POSITION position)
 	}
 	/* Now, the fun part. Starting from the children, work your way back up. */
 	//@@ separate lose/win frontiers
-	while ((gVSHeadLoseFR != NULL) ||
-	       (gVSHeadWinFR != NULL)) {
+	while ((gVSHeadLoseFR != NULL) || (gVSHeadWinFR != NULL)) {
 
 		if ((child = VSDeQueueLoseFR()) == kBadPosition)
 			child = VSDeQueueWinFR();

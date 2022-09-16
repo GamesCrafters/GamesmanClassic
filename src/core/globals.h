@@ -51,7 +51,8 @@ extern int gTimer;
 ** Analysis globals
 */
 
-extern long gTotalMoves, gTotalPositions;
+// Robert Shi: no reason to use long here now that we used unsigned long long for gNumberOfPositions.
+extern unsigned long long gTotalMoves, gTotalPositions;
 extern BOOLEAN gAnalysisLoaded;
 
 

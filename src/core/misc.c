@@ -396,12 +396,11 @@ IPOSITIONLIST *StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePosi
 
 POSITIONLIST *StorePositionInList(POSITION thePosition, POSITIONLIST* thePositionList)
 {
-	POSITIONLIST *next, *tmp;
+	POSITIONLIST *tmp;
 
-	next = thePositionList;
 	tmp = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
 	tmp->position = thePosition;
-	tmp->next     = next;
+	tmp->next     = thePositionList;
 
 	return(tmp);
 }

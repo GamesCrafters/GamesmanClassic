@@ -42,7 +42,7 @@
 ** Globals
 */
 
-long gTotalMoves = 0;
+unsigned long long gTotalMoves = 0;
 ANALYSIS gAnalysis = {};
 
 /* Variable to allow hooking into slot based databases. This will hold the
