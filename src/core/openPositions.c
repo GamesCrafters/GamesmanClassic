@@ -914,8 +914,18 @@ BOOLEAN DeterminePure(POSITION position)
 
 		DeterminePure1(gInitialPosition); /* Solve all positions we can */
 		/* Must be reset because the gDrawParents variable is manipulated in the DeterminePure1 function */
-		// Robert Shi: I don't think gDrawParents is being modified. May decide to comment this line out.
-		SetDrawParents(kBadPosition, gInitialPosition);
+		// Robert Shi: Why is gDrawParents being modified?
+		// for (POSITION i = 0; i < gNumberOfPositions; ++i) {
+		// 	if (gDrawNumberChildren[i]) {
+		// 		printf("gdnc not zero at index %llu: value == %d\n", i, gDrawNumberChildren[i]);
+		// 	}
+		// 	if (gDrawNumberChildrenOriginal[i]) {
+		// 		printf("gdnco not zero at index %llu: value == %d\n", i, gDrawNumberChildrenOriginal[i]);
+		// 	}
+		// 	// gDrawNumberChildren[i] = gDrawNumberChildrenOriginal[i] = 0;
+		// }
+		// SetDrawParents(kBadPosition, gInitialPosition);
+
 		SetNewLevelFringe(); /* Set all undecided positions with winning children to loses */
 		level++;
 		/* Check if we should stop */
@@ -942,6 +952,7 @@ BOOLEAN DeterminePure(POSITION position)
 	return tmp;
 }
 
+/* Determines all position values that are not draws. */
 void DeterminePure1(POSITION position)
 {
 	POSITION child=kBadPosition, parent;
@@ -1116,30 +1127,30 @@ void DeterminePure1(POSITION position)
 		printf("TIE cleanup\n");
 	}
 
-	for (i = 0; i < gNumberOfPositions; i++)
-		if(Visited(i)) {
-			if(kDebugDetermineValue)
-				printf(POSITION_FORMAT " was visited...",i);
-			if(gPositionValue[i] == undecided) {
-				// gPositionValue[(POSITION)i] = tie;
-				// gPositionLevel[(POSITION)i] = level;
-				// if (gDrawNumberChildren[i] < gDrawNumberChildrenOriginal[i]) {
-				// 	F0DrawEdgeCount += gDrawNumberChildren[i];
-				// 	F0NodeCount+=1;
-				// }
-				//we are done with this position and no longer need to keep around its list of parents
-				/*if (gParents[child])
-				   FreePositionList(gParents[child]); */                                       // is this a memory leak?
-				if(kDebugDetermineValue)
-					printf("and was undecided, setting to draw\n");
-			} else {
-				if(kDebugDetermineValue)
-					printf("but was decided, ignoring\n");
-			}
-			// Robert Shi: this seems to be left-over code from DFS, which is not really
-			//  needed here.
-			UnMarkAsVisited((POSITION)i);
-		}
+	// for (i = 0; i < gNumberOfPositions; i++)
+	// 	if(Visited(i)) {
+	// 		if(kDebugDetermineValue)
+	// 			printf(POSITION_FORMAT " was visited...",i);
+	// 		if(gPositionValue[i] == undecided) {
+	// 			// gPositionValue[(POSITION)i] = tie;
+	// 			// gPositionLevel[(POSITION)i] = level;
+	// 			// if (gDrawNumberChildren[i] < gDrawNumberChildrenOriginal[i]) {
+	// 			// 	F0DrawEdgeCount += gDrawNumberChildren[i];
+	// 			// 	F0NodeCount+=1;
+	// 			// }
+	// 			//we are done with this position and no longer need to keep around its list of parents
+	// 			/*if (gParents[child])
+	// 			   FreePositionList(gParents[child]); */                                       // is this a memory leak?
+	// 			if(kDebugDetermineValue)
+	// 				printf("and was undecided, setting to draw\n");
+	// 		} else {
+	// 			if(kDebugDetermineValue)
+	// 				printf("but was decided, ignoring\n");
+	// 		}
+	// 		// Robert Shi: this seems to be left-over code from DFS, which is not really
+	// 		//  needed here.
+	// 		UnMarkAsVisited((POSITION)i);
+	// 	}
 
 	if (gInterestingness) {
 		DetermineInterestingness(position);
@@ -1151,6 +1162,7 @@ void DeterminePure1(POSITION position)
 ** (We do not check to see if its been visited)
 */
 
+/* BFS from root.  */
 void SetDrawParents (POSITION parent, POSITION root)
 {
 	MOVELIST*       moveptr = NULL;
@@ -1164,27 +1176,28 @@ void SetDrawParents (POSITION parent, POSITION root)
 
 	// Check if the top is primitive.
 	// Robert Shi: I don't think it is safe to comment out this block.
-	MarkAsVisited(root);
-	gDrawParents[root] = StorePositionInList(parent, gDrawParents[root]);
-	if ((value = Primitive(root)) != undecided) {
-		switch (value) {
-		case lose: InsertLoseDR(root); break;
-		case win:  InsertWinDR(root); break;
-		case tie:  InsertTieDR(root); break;
-		default:   BadElse("SetParents found primitive with value other than win/lose/tie");
-		}
+	// MarkAsVisited(root);
+	// gDrawParents[root] = StorePositionInList(parent, gDrawParents[root]);
+	// if ((value = Primitive(root)) != undecided) {
+	// 	switch (value) {
+	// 	case lose: InsertLoseDR(root); break;
+	// 	case win:  InsertWinDR(root); break;
+	// 	case tie:  InsertTieDR(root); break;
+	// 	default:   BadElse("SetParents found primitive with value other than win/lose/tie");
+	// 	}
 
-		// DOUBLE CHECK
-		gPositionValue[root] = value;
-		// Robert Shi: this line looks suspicious. Commented out for now.
-		// gPositionLevel[root] = level;
-		return;
-	}
+	// 	// DOUBLE CHECK
+	// 	gPositionValue[root] = value;
+	// 	gPositionLevel[root] = level;
+	// 	return;
+	// }
 
 	thisLevel = StorePositionInList(root, thisLevel);
 
 	while (thisLevel != NULL) {
-		for (posptr = thisLevel; posptr != NULL; posptr = posptr->next) {
+		POSITIONLIST *next;
+		for (posptr = thisLevel; posptr != NULL; posptr = next) {
+			next = posptr->next;
 			pos = posptr->position;
 			movehead = GenerateMoves(pos);
 
@@ -1254,13 +1267,15 @@ void DrawParentInitialize()
 	gPositionLevel = (REMOTENESS *) SafeMalloc (gNumberOfPositions * sizeof(REMOTENESS));
 	for(i = 0; i < gNumberOfPositions; i++) {
 		gDrawParents[i] = NULL;
-		gPositionValue[i] = GetValueOfPosition(i);
+		gPositionValue[i] = undecided;
+		// gPositionValue[i] = GetValueOfPosition(i);
 		gPositionLevel[i] = 0;
+		UnMarkAsVisited(i);
 		// Robert Shi: This hack is here only because we stored all draw positions as ties. 
 		//  May optimize this out in the future.
-		if (gPositionValue[i] == tie) {
-			gPositionValue[i] = undecided;
-		}
+		// if (gPositionValue[i] == tie) {
+		// 	gPositionValue[i] = undecided;
+		// }
 	}
 }
 

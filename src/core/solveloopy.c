@@ -268,7 +268,7 @@ VALUE DetermineLoopyValue1(POSITION position)
 		printf("TIE cleanup\n");
 	}
 
-	for (i = 0; i < gNumberOfPositions; i++)
+	for (i = 0; i < gNumberOfPositions; i++) {
 		if(Visited(i)) {
 			if(kDebugDetermineValue)
 				printf(POSITION_FORMAT " was visited...",i);
@@ -293,6 +293,7 @@ VALUE DetermineLoopyValue1(POSITION position)
 			//  needed here.
 			UnMarkAsVisited((POSITION)i);
 		}
+	}
 
 	if (gInterestingness) {
 		DetermineInterestingness(position);

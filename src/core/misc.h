@@ -27,8 +27,10 @@ void ifprintf(BOOLEAN, char*, ...);
 /* We only want to define these if not using MEMWATCH */
 #ifndef MEMWATCH
 GENERIC_PTR     SafeMalloc                      (size_t amt);
+GENERIC_PTR     SafeCalloc                      (size_t nmemb, size_t size)
 GENERIC_PTR     SafeRealloc                     (GENERIC_PTR ptr, size_t amount);
 void            SafeFree                        (GENERIC_PTR ptr);
+void            SafeFreeAndSetToNull            (GENERIC_PTR *ptr)
 #endif
 
 void            BadElse                         (STRING function);

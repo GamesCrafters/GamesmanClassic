@@ -272,6 +272,19 @@ GENERIC_PTR SafeMalloc(size_t amount)
 	}
 }
 
+GENERIC_PTR SafeCalloc(size_t nmemb, size_t size)
+{
+	GENERIC_PTR ptr;
+
+	if ((ptr = calloc(nmemb, size)) == NULL) {
+		fprintf(stderr, "Error: SafeCalloc could not allocate the requested %lu bytes\n", amount);
+		ExitStageRight();
+		exit(0);
+	} else {
+		return(ptr);
+	}
+}
+
 GENERIC_PTR SafeRealloc(GENERIC_PTR ptr, size_t amount)
 {
 	if(ptr == NULL) {
@@ -292,7 +305,17 @@ void SafeFree(GENERIC_PTR ptr)
 		ExitStageRightErrorString("Error: SafeFree was handed a NULL ptr!\n");
 	else {
 		free(ptr);
-		ptr = NULL;
+	}
+}
+
+void SafeFreeAndSetToNull(GENERIC_PTR *ptr)
+{
+	if(ptr == NULL || *ptr == NULL) {
+		ExitStageRightErrorString("Error: SafeFreeAndSetToNull was handed a NULL ptr!\n");
+	}
+	else {
+		free(*ptr);
+		*ptr = NULL;
 	}
 }
 #endif
