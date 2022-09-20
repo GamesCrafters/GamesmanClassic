@@ -110,8 +110,8 @@ void PrintRawGameValues(BOOLEAN toFile)
 
 	for(i=0; i<gNumberOfPositions; i++)
 		if((value = GetValueOfPosition((POSITION)i)) != undecided) {
-			fprintf(fp,POSITION_FORMAT ",%c,%d", i,
-			gValueLetter[value], Remoteness((POSITION)i));
+			fprintf(fp,POSITION_FORMAT ",%s,%d", i,
+			gValueString[value], Remoteness((POSITION)i));
 			if(!kPartizan && !gTwoBits)
 				fprintf(fp,",%d\n",MexLoad((POSITION)i));
 			else

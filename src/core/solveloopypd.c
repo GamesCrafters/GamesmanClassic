@@ -1,6 +1,6 @@
 /************************************************************************
 **
-** NAME:	solvevsloopy.c
+** NAME:	solveloopypd.c
 **
 ** DESCRIPTION:	Loopy solver with pure draw analysis.
 **
@@ -41,16 +41,19 @@
 */
 
 /* FRontier Win Queue */
-static FRnode*			winFRHead = NULL;       
-static FRnode*			winFRTail = NULL;
+static FRnode*	winFRHead = NULL;       
+static FRnode*	winFRTail = NULL;
 
 /* FRontier Lose Queue */
-static FRnode*			loseFRHead = NULL;
-static FRnode*			loseFRTail = NULL;
+static FRnode*	loseFRHead = NULL;
+static FRnode*	loseFRTail = NULL;
 
 /* FRontier Tie Queue */
-static FRnode*			tieFRHead = NULL;       
-static FRnode*			tieFRTail = NULL;
+static FRnode*	tieFRHead = NULL;       
+static FRnode*	tieFRTail = NULL;
+
+/* Unanalyzed win positions list. */
+static FRnode*	unanalyzedWinList = NULL;
 
 /* Linked lists of parents of each node. */
 static POSITIONLIST**	parentsOf = NULL;
@@ -72,19 +75,23 @@ static UINT32 SL_VISITED_SLOT = 0;    /* 1 if position is visited,
 ** Local function prototypes
 */
 
-static void     InitializeFR    (void);
-static void     FinalCheckFR    (void);
-static void 	InsertWinFR		(POSITION position);
-static void 	InsertLoseFR	(POSITION position);
-static void 	InsertTieFR		(POSITION position);
-static POSITION DeQueueWinFR	(void);
-static POSITION DeQueueLoseFR	(void);
-static POSITION DeQueueTieFR	(void);
+static void     FinalCheckFR    	(void);
+static void 	InsertWinFR			(POSITION position);
+static void 	InsertLoseFR		(POSITION position);
+static void 	InsertTieFR			(POSITION position);
+static void 	InsertUnanalyzedWin	(POSITION position);
+static POSITION DeQueueWinFR		(void);
+static POSITION DeQueueLoseFR		(void);
+static POSITION DeQueueTieFR		(void);
+static POSITION DeQueueUnanalyzedWin(void);
 
 static void		InitializeParents           (void);
 static void		FreeParents                 (void);
 static void     InitializeNumberChildren    (void);
 static void     FreeNumberChildren          (void);
+
+static VALUE 	GetValueFromBPDB	(POSITION pos);
+static void 	SetValueInBPDB		(POSITION pos, VALUE val);
 
 static void		SetParents                  (POSITION root);
 static VALUE	DetermineValueHelper        (POSITION pos);
@@ -100,7 +107,7 @@ void lpds_PrintParents() {
 
 	printf("PARENTS | #Children | Value\n");
 	for (i = 0; i < gNumberOfPositions; ++i) {
-		if (Visited(i)) {
+		if (GetSlot(i, SL_VISITED_SLOT)) {
 			ptr = parentsOf[i];
 			printf(POSITION_FORMAT ": ", i);
 			while (ptr != NULL) {
@@ -159,12 +166,11 @@ VALUE lpds_DetermineValue(POSITION position) {
     /* Allocate database. */
 	status = Allocate();
 	if(!GMSUCCESS(status)) {
-		BPDB_TRACE("DetermineValueVSSTD()", "Could not allocate database", status);
+		BPDB_TRACE("lpds_DetermineValue()", "Could not allocate database", status);
 		return value;
 	}
 
 	/* Only initialize global arrays if database was successfully allocated. */
-	InitializeFR();
 	InitializeParents();
 	InitializeNumberChildren();
 
@@ -176,21 +182,22 @@ VALUE lpds_DetermineValue(POSITION position) {
 	FreeNumberChildren();
 	FreeParents();
 
+	/* Debug */
+	POSITION i;
+	for (i = 0; i < gNumberOfPositions; ++i) {
+		if (GetSlot(i, SL_VISITED_SLOT)) {
+			printf("[%llu] has value %s with rmt %d at level %d\n",
+			 i, gValueString[GetSlot(i, SL_VALUE_SLOT)],
+			  (int)GetSlot(i, SL_REM_SLOT), (int)GetSlot(i, SL_DRAW_LEVEL_SLOT));
+		}
+	}
+
 	return value;
 }
 
 /*
 ** Helper functions
 */
-
-static void InitializeFR(void) {
-	winFRHead = NULL;
-	winFRTail = NULL;
-	loseFRHead = NULL;
-	loseFRTail = NULL;
-	tieFRHead = NULL;
-	tieFRTail = NULL;
-}
 
 static POSITION DeQueueFR(FRnode **gHeadFR, FRnode **gTailFR) {
 	POSITION position;
@@ -223,6 +230,14 @@ static POSITION DeQueueTieFR(void) {
 	return DeQueueFR(&tieFRHead, &tieFRTail);
 }
 
+static POSITION DeQueueUnanalyzedWin(void) {
+	POSITIONLIST *oldHead = unanalyzedWinList;
+	POSITION pos = oldHead->position;
+	unanalyzedWinList = oldHead->next;
+	free(oldHead);
+	return pos;
+}
+
 static void InsertFR(POSITION position, FRnode **firstnode, FRnode **lastnode) {
 	FRnode *tmp = (FRnode *)SafeMalloc(sizeof(FRnode));
 
@@ -251,6 +266,10 @@ static void InsertTieFR(POSITION position) {
 	InsertFR(position, &tieFRHead, &tieFRTail);
 }
 
+static void InsertUnanalyzedWin(POSITION position) {
+	unanalyzedWinList = StorePositionInList(position, unanalyzedWinList);
+}
+
 /* Checks that all FRontier lists are empty at the end of solving.
    Prints out warning message if they are not empty. */
 static void FinalCheckFR(void) {
@@ -275,7 +294,7 @@ static void FreeParents(void) {
 	for (i = 0; i < gNumberOfPositions; ++i) {
 		FreePositionList(parentsOf[i]);
 	}
-	SafeFreeAndSetToNull(&parentsOf);
+	SafeFreeAndSetToNull((GENERIC_PTR *)&parentsOf);
 }
 
 static void InitializeNumberChildren(void) {
@@ -286,7 +305,15 @@ static void InitializeNumberChildren(void) {
 }
 
 static void FreeNumberChildren(void) {
-    SafeFreeAndSetToNull(&numberChildren);
+    SafeFreeAndSetToNull((GENERIC_PTR *)&numberChildren);
+}
+
+static VALUE GetValueFromBPDB(POSITION pos) {
+	return GetSlot(pos, SL_VALUE_SLOT);
+}
+
+static void SetValueInBPDB(POSITION pos, VALUE val) {
+	SetSlot(pos, SL_VALUE_SLOT, val);
 }
 
 static VALUE SetPrimitiveOrEnqueue(POSITION pos, POSITIONLIST **nextLevel) {
@@ -295,10 +322,21 @@ static VALUE SetPrimitiveOrEnqueue(POSITION pos, POSITIONLIST **nextLevel) {
 	if (value != undecided) {
 		SetRemoteness(pos, 0);
 		switch (value) {
-		case lose: InsertLoseFR(pos); break;
-		case win:  InsertWinFR(pos);  break;
-		case tie:  InsertTieFR(pos);  break;
-		default:   BadElse("SetParents found bad primitive value");
+		case lose: 
+			InsertLoseFR(pos);
+			break;
+
+		case win:  
+			InsertWinFR(pos);
+			InsertUnanalyzedWin(pos);
+			break;
+
+		case tie:
+			InsertTieFR(pos);
+			break;
+
+		default:
+			BadElse("SetParents found bad primitive value");
 		}
 		SetSlot(pos, SL_VALUE_SLOT, value);
 	} else {
@@ -322,7 +360,7 @@ static void SetParents(POSITION root) {
 	POSITION child;
 
 	/* Check if root is primitive. */
-	MarkAsVisited(root);
+	SetSlot(root, SL_VISITED_SLOT, TRUE);
 	/* Set the only parent of root position as bad. Thus, a bad parent
 	   indicates a root position. */
 	parentsOf[root] = StorePositionInList(kBadPosition, parentsOf[root]);
@@ -350,8 +388,8 @@ static void SetParents(POSITION root) {
 				}
 				++numberChildren[pos];
 				parentsOf[child] = StorePositionInList(pos, parentsOf[child]);
-				if (!Visited(child)) {
-					MarkAsVisited(child);
+				if (!GetSlot(child, SL_VISITED_SLOT)) {
+					SetSlot(child, SL_VISITED_SLOT, TRUE);
 					SetPrimitiveOrEnqueue(child, &nextLevel);
 					++gTotalMoves;
 				}
@@ -363,129 +401,105 @@ static void SetParents(POSITION root) {
 	}
 }
 
-static void SetNewLevelFringe(int level) {
-	/* TODO: set up some global list of unprocessed winning/draw-winning positions,
-	   loop through that to determine the next level fringe, while
-	   checking for impurity. If impure, break loop and return false. */
-	POSITIONLIST* ptr = NULL;
-	POSITION 	  parent;
-	POSITION 	  i;
-	for(i = 0; i < gNumberOfPositions; ++i) {
-		if ((VALUE)GetSlot(i, SL_VALUE_SLOT) == win) {
-			for (ptr = gDrawParents[i]; ptr != NULL; ptr = ptr->next) {
-				parent = ptr->position;
-				if (gPositionValue[parent] == undecided) {
-					gPositionValue[parent] = lose;
-					gPositionLevel[parent] = level + 1;
-					InsertLoseFR(parent);
-				}
-			}
+static BOOLEAN HasDrawLoseChild(POSITION pos) {
+	BOOLEAN found = FALSE;
+	POSITION child;
+	MOVELIST *moves = GenerateMoves(pos);
+	MOVELIST *moveptr;
+	for (moveptr = moves; moveptr; moveptr = moveptr->next) {
+		child = DoMove(pos, moveptr->move);
+		if (GetValueFromBPDB(child) == drawlose) {
+			found = TRUE;
+			break;
 		}
 	}
+	FreeMoveList(moves);
+	return found;
 }
 
-/* Returns the value of pos, solving all positions reacheable
-   from it. */
-static VALUE DetermineValueHelper(POSITION pos) {
-	POSITION child = kBadPosition;
-	POSITION parent;
-	POSITIONLIST *ptr;
+static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
+	POSITION child, parent;
 	VALUE childValue, parentValue;
+	POSITIONLIST *ptr;
 	REMOTENESS remotenessChild;
-	POSITION i;
-	int level = 0;
 
-	/* Do BFS to set up parent pointers. */
-	SetParents(pos);
-	if (kDebugDetermineValue) {
-		printf("---------------------------------------------------------------\n");
-		printf("Number of Positions = [" POSITION_FORMAT "]\n", gNumberOfPositions);
-		printf("---------------------------------------------------------------\n");
-	}
-	
-	/* Now, the fun part. Starting from the children, work your way back up. */
+	assert(valForLose == lose && valForWin == win && level == 0 ||
+			 valForLose == drawlose && valForWin == drawwin);
+
 	while (loseFRHead || winFRHead) {
-		/* Grab a position from lose queue and think of it as child
+		/* Grab a position from lose queue and use it as child
 		   to process it parents. */
 		child = DeQueueLoseFR();
 		if (child == kBadPosition) {
-			/* If the lose queue is empty, grab one from the win queue. */
+			/* If the lose queue is empty, grab one from the win queue.
+			   Note that the other queue must not be empty, otherwise
+			   we wouldn't enter this while loop. */
 			child = DeQueueWinFR();
 		}
-		childValue = GetSlot(child, SL_VALUE_SLOT); // GetValueOfPosition(child);
-		remotenessChild = GetSlot(child, SL_REM_SLOT); // Remoteness(child);
+		childValue = GetSlot(child, SL_VALUE_SLOT);
+		remotenessChild = GetSlot(child, SL_REM_SLOT);
 
-		if(kDebugDetermineValue) {
-			/* If debugging, print who's in list */
-			printf("Grabbing " POSITION_FORMAT " (%s) remoteness = %d off of FR\n",
-			       child,gValueString[childValue],remotenessChild);
-		}
-		/* TODO: shrink this part: move childValue if statement inside for loop. */
-		if (childValue == lose) {
-			/* With losing child, every parent is winning, so we just go through
-		   	   all the parents and declare them winning. */
-			for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
-				parent = ptr->position;
-				/* Skip if this is the initial position (parent is kBadPosition). */
-				if (parent == kBadPosition) {
-					continue;
-				}
+		for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
+			parent = ptr->position;
+			if (parent == kBadPosition) {
+				/* Skip if child is the initial position (parent is kBadPosition). */
+				break;
+			} else if (childValue == valForLose) {
+				/* With losing child, every parent is winning, so we just go through
+		   	   	   all the parents and declare them winning. */
 				parentValue = GetSlot(parent, SL_VALUE_SLOT);
 				if (parentValue == undecided) {
 					/* This is the first time we know the parent is a win. */
-					VSInsertWinFR(parent);
-					if(kDebugDetermineValue) {
-						printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d "
-								"into win FR\n", parent, "win", remotenessChild + 1);
-					}
+					InsertWinFR(parent);
+					InsertUnanalyzedWin(parent);
 					SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
-					SetSlot(parent, SL_VALUE_SLOT, win);
+					SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
+					SetSlot(parent, SL_VALUE_SLOT, valForWin);
 				} else {
 					/* We already know the parent is a winning position. */
-					if (parentValue != win) {
-						printf(POSITION_FORMAT " should be win.  Instead ""it is %s.",
-								parent, gValueString[parentValue]);
-						BadElse("DetermineLoopyValue");
+					if (parentValue == lose || parentValue == drawlose) {
+						BadElse("ProcessWinLose: may need to reconsider algorithm.");
 					}
 					/* This should always hold because the frontier is a queue.
 						We always examine losing nodes with less remoteness first. */
 					assert((remotenessChild + 1) >= (int)GetSlot(parent, SL_REM_SLOT));
 				}
-			} /* for each parent. */
-		} else if (childValue == win) {
-			/* With winning child, we can only eliminate one losing move from its parent. */
-			for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
-				parent = ptr->position;
-				/* Skip if this is the initial position (parent is kBadPosition). */
-				if (parent == kBadPosition) {
-					continue;
-				}
-				/* If this is the last unknown child and they were all wins, parent is lose. */
-				if(--numberChildren[parent] == 0) {
+			} else if (childValue == valForWin) {
+				/* With winning child, we can only eliminate one losing move from its parent.
+				   If this is the last unknown child and they were all wins, parent is lose. */
+				parentValue = GetSlot(parent, SL_VALUE_SLOT);
+				if (parentValue == undecided && --numberChildren[parent] == 0) {
 					/* No more kids, it's not been seen before, assign it as losing and enqueue. */
-					assert((VALUE)GetSlot(parent, SL_VALUE_SLOT) == undecided);
-					VSInsertLoseFR(parent);
-					if(kDebugDetermineValue) {
-						printf("Inserting " POSITION_FORMAT " (%s) into lose FR\n",parent,"lose");
-					}
+					// if (parentValue != undecided) {
+					// 	printf("warning: marking parent position %llu of value %s to a %s\n",
+					// 	       parent, gValueString[parentValue], gValueString[valForLose]);
+					// }
+					InsertLoseFR(parent);
 					/* We always need to change the remoteness because we examine winning node with
 					   less remoteness first. */
 					SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
-					SetSlot(parent, SL_VALUE_SLOT, lose);
+					SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
+					SetSlot(parent, SL_VALUE_SLOT, valForLose);
 				}
-			} /* for each parent. */
-		} else {
-			/* We should not see other values DeQueued from win and lose queues. */
-			BadElse("DetermineLoopyValue found FR member with other than win/lose value");
+			} else {
+				/* We should not see other values DeQueued from win and lose queues. */
+				BadElse("DetermineLoopyValue");
+			}
+			
+			// /* We don't need to keep the parents list of losing positions anymore as
+			// 	their parents are definitely winning positions. */
+			// FreePositionList(parentsOf[child]);
+			// parentsOf[child] = NULL;
 		}
-		/* We are done with this position and no longer need to keep around its list of parents.
-		   The tie frontier will not need this, either, because this child's value has already
-		   been determined. It cannot be a tie. */
-		FreePositionList(parentsOf[child]);
-		parentsOf[child] = NULL;
 	} /* while there are still positions in win/lose FR. */
+}
 
-	/* Now process the tie frontier. */
+static void ProcessTie() {
+	POSITION child, parent;
+	VALUE parentValue;
+	POSITIONLIST *ptr;
+	REMOTENESS remotenessChild;
+
 	while (tieFRHead) {
 		child = DeQueueTieFR();
 		remotenessChild = GetSlot(child, SL_REM_SLOT);
@@ -498,57 +512,112 @@ static VALUE DetermineValueHelper(POSITION pos) {
 			parentValue = GetSlot(parent, SL_VALUE_SLOT);
 			/* If parent is undecided and this is the last unknown child, parent is tie. */
 			if (parentValue == undecided && --numberChildren[parent] == 0) {
-				/* No more kids, it's not been seen before, assign it as tying and enqueue. */
+				/* No more kids and parent has not been seen before,
+				   assign it as tying and enqueue. */
 				InsertTieFR(parent);
-				if (kDebugDetermineValue) {
-					printf("Inserting " POSITION_FORMAT " (%s) remoteness = "
-					        "%d into tie FR\n", parent, "tie", remotenessChild + 1);
-				}
 				SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
 				SetSlot(parent, SL_VALUE_SLOT, tie);
 			}
 		}
+		/* We won't need to visit the parents of a tying position again. */
 		FreePositionList(parentsOf[child]);
 		parentsOf[child] = NULL;
 	} /* while there are still positions in tie FR. */
-	
-	if (kDebugDetermineValue) {
-		printf("---------------------------------------------------------------\n");
-		//MyPrintFR();
-		printf("---------------------------------------------------------------\n");
-		VSMyPrintParents();
-		printf("---------------------------------------------------------------\n");
-		printf("TIE cleanup\n");
-	}
+}
 
-	/* Pure draw analysis. */
-	for (i = 0; i < gNumberOfPositions; i++) {
-		if(Visited(i)) {
-			if(kDebugDetermineValue)
-				printf(POSITION_FORMAT " was visited...",i);
-			if(GetSlot((POSITION) i, SL_VALUE_SLOT) == undecided) {
-				SetSlotMax((POSITION) i, SL_REM_SLOT);
-				SetSlot((POSITION) i, SL_VALUE_SLOT, tie);
+/* Draw analysis: find all draw-lose positions of level LEVEL.
+   If a draw-lose position has a child that is also a draw-lose,
+   the game is impure and the analysis is aborted. Returns TRUE
+   if no impurity is detected, FALSE otherwise.
+   The unanalyzedWinList is guaranteed to be empty after this
+   function call.
 
-				if (gVSNumberChildren[i] < gVSNumberChildrenOriginal[i]) {
-					F0DrawEdgeCount += gVSNumberChildren[i];
-					F0NodeCount+=1;
+   TODO: Make a separate function for all BPDB operations. */
+static BOOLEAN ProcessLevelFringe(int level) {
+	POSITION child, parent;
+	while (unanalyzedWinList) {
+		child = DeQueueUnanalyzedWin();
+		while (parentsOf[child]) {
+			parent = RemovePositionFromQueue(&parentsOf[child]);
+			if (GetValueFromBPDB(parent) == undecided) {
+				/* !!This Check here is not rigorous. Depending
+				   on the sequence of win positions in list, 
+				   it may fail to detect impurity. */
+				if (HasDrawLoseChild(parent)) {
+					/* Clean up unanalyzedWinList. */
+					FreePositionList(unanalyzedWinList);
+					unanalyzedWinList = NULL;
+
+					/* Clean up LoseFR. */
+					FreePositionList(loseFRHead);
+					loseFRHead = loseFRTail = NULL;
+
+					return FALSE;
 				}
-				//we are done with this position and no longer need to keep around its list of parents
-				/*if (gVSParents[child])
-				   FreePositionList(gVSParents[child]); */                                         // is this a memory leak?
-				if(kDebugDetermineValue)
-					printf("and was undecided, setting to draw\n");
-			} else {
-				if(kDebugDetermineValue)
-					printf("but was decided, ignoring\n");
+				SetValueInBPDB(parent, drawlose);
+				SetSlot(parent, SL_REM_SLOT, 0);
+				SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
+				InsertLoseFR(parent);
 			}
-			UnMarkAsVisited((POSITION)i);
 		}
 	}
-	if (gInterestingness) {
-		DetermineInterestingness(pos);
+	return TRUE;
+}
+
+static void MarkDrawTies(BOOLEAN isPure) {
+	POSITION i;
+	VALUE val;
+	BOOLEAN mark;
+
+	for (i = 0; i < gNumberOfPositions; ++i) {
+		if (!GetSlot(i, SL_VISITED_SLOT)) {
+			continue;
+		}
+		val = GetValueFromBPDB(i);
+		mark = (isPure && val == undecided) ||
+		       (!isPure && (val == undecided || val == drawlose || val == drawwin));
+		if (mark) {
+			SetValueInBPDB(i, drawtie);
+			SetSlotMax(i, SL_REM_SLOT);
+		}
+		if (!isPure) {
+			SetSlotMax(i, SL_DRAW_LEVEL_SLOT);
+		}
 	}
-	return GetSlot(pos, SL_VALUE_SLOT);
+}
+
+/* Returns the value of pos, solving all positions reacheable
+   from it. */
+static VALUE DetermineValueHelper(POSITION pos) {
+	int level = 0;
+	BOOLEAN isPure;
+
+	/* Do BFS to set up parent pointers. */
+	SetParents(pos);
+	
+	/* Now, the fun part. Starting from the children, work your way back up. */
+	ProcessWinLose(win, lose, 0);
+
+	/* Process the tie frontier. */
+	ProcessTie();
+
+	/* Determine all draw-win and draw-lose positions. */
+	while (unanalyzedWinList) {
+		isPure = ProcessLevelFringe(level);
+		if (!isPure) {
+			/* The game is not pure. Set all draw positions to draw ties,
+			   all draw levels and draw remotenesses to their max values. */
+			MarkDrawTies(isPure);
+			break;
+		}
+		/* In a similar way, work your way back up from draw-lose primitives. */
+		ProcessWinLose(drawwin, drawlose, level);
+		++level;
+	}
+	/* All remaining visited but undecided positions are labeled as draw-tie. */
+	if (isPure) {
+		MarkDrawTies(isPure);
+	}
+	return GetValueFromBPDB(pos);
 }
 

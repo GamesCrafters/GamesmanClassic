@@ -277,7 +277,7 @@ GENERIC_PTR SafeCalloc(size_t nmemb, size_t size)
 	GENERIC_PTR ptr;
 
 	if ((ptr = calloc(nmemb, size)) == NULL) {
-		fprintf(stderr, "Error: SafeCalloc could not allocate the requested %lu bytes\n", amount);
+		fprintf(stderr, "Error: SafeCalloc could not allocate the requested %lu bytes\n", size);
 		ExitStageRight();
 		exit(0);
 	} else {
@@ -417,13 +417,15 @@ IPOSITIONLIST *StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePosi
 	return thePositionList;
 }
 
-POSITIONLIST *StorePositionInList(POSITION thePosition, POSITIONLIST* thePositionList)
+/* Stores pos as the new head of the position list and return the new head.
+   Usage: list = StorePositionInList(pos, list); */
+POSITIONLIST *StorePositionInList(POSITION pos, POSITIONLIST* head)
 {
 	POSITIONLIST *tmp;
 
 	tmp = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
-	tmp->position = thePosition;
-	tmp->next     = thePositionList;
+	tmp->position = pos;
+	tmp->next     = head;
 
 	return(tmp);
 }
