@@ -485,11 +485,6 @@ static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 				/* We should not see other values DeQueued from win and lose queues. */
 				BadElse("DetermineLoopyValue");
 			}
-			
-			// /* We don't need to keep the parents list of losing positions anymore as
-			// 	their parents are definitely winning positions. */
-			// FreePositionList(parentsOf[child]);
-			// parentsOf[child] = NULL;
 		}
 	} /* while there are still positions in win/lose FR. */
 }

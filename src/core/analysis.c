@@ -116,6 +116,7 @@ void PrintRawGameValues(BOOLEAN toFile)
 				fprintf(fp,",%d\n",MexLoad((POSITION)i));
 			else
 				fprintf(fp,"\n");
+			PrintPosition(i, "", generic_hash_turn(i));
 		}
 
 	if(toFile) {
