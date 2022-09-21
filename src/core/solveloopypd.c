@@ -75,7 +75,7 @@ static UINT32 SL_VISITED_SLOT = 0;    /* 1 if position is visited,
 ** Local function prototypes
 */
 
-static void     FinalCheckFR    	(void);
+static void     FreeFRs    	(void);
 static void 	InsertWinFR			(POSITION position);
 static void 	InsertLoseFR		(POSITION position);
 static void 	InsertTieFR			(POSITION position);
@@ -178,7 +178,7 @@ VALUE lpds_DetermineValue(POSITION position) {
 	value = DetermineValueHelper(gInitialPosition);
 
 	/* Free global arrays. */
-    FinalCheckFR();
+    FreeFRs();
 	FreeNumberChildren();
 	FreeParents();
 
@@ -270,17 +270,21 @@ static void InsertUnanalyzedWin(POSITION position) {
 	unanalyzedWinList = StorePositionInList(position, unanalyzedWinList);
 }
 
-/* Checks that all FRontier lists are empty at the end of solving.
-   Prints out warning message if they are not empty. */
-static void FinalCheckFR(void) {
+static void FreeFRs(void) {
     if (winFRHead || winFRTail) {
         printf("Win frontier list not empty after solving.\n");
+		FreePositionList(winFRHead);
+		winFRHead = winFRTail = NULL;
     }
     if (loseFRHead || loseFRTail) {
         printf("Lose frontier list not empty after solving.\n");
+		FreePositionList(loseFRHead);
+		loseFRHead = loseFRTail = NULL;
     }
     if (tieFRHead || tieFRTail) {
         printf("Tie frontier list not empty after solving.\n");
+		FreePositionList(tieFRHead);
+		tieFRHead = tieFRTail = NULL;
     }
 }
 
@@ -417,7 +421,7 @@ static BOOLEAN HasDrawLoseChild(POSITION pos) {
 	return found;
 }
 
-static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
+static BOOLEAN ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 	POSITION child, parent;
 	VALUE childValue, parentValue;
 	POSITIONLIST *ptr;
@@ -428,7 +432,7 @@ static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 
 	while (loseFRHead || winFRHead) {
 		/* Grab a position from lose queue and use it as child
-		   to process it parents. */
+		   to process its parents. */
 		child = DeQueueLoseFR();
 		if (child == kBadPosition) {
 			/* If the lose queue is empty, grab one from the win queue.
@@ -458,7 +462,8 @@ static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 				} else {
 					/* We already know the parent is a winning position. */
 					if (parentValue == lose || parentValue == drawlose) {
-						BadElse("ProcessWinLose: may need to reconsider algorithm.");
+						/* Not pure game. */
+						return FALSE;
 					}
 					/* This should always hold because the frontier is a queue.
 						We always examine losing nodes with less remoteness first. */
@@ -487,6 +492,7 @@ static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 			}
 		}
 	} /* while there are still positions in win/lose FR. */
+	return TRUE;
 }
 
 static void ProcessTie() {
@@ -606,7 +612,11 @@ static VALUE DetermineValueHelper(POSITION pos) {
 			break;
 		}
 		/* In a similar way, work your way back up from draw-lose primitives. */
-		ProcessWinLose(drawwin, drawlose, level);
+		isPure = ProcessWinLose(drawwin, drawlose, level);
+		if (!isPure) {
+			MarkDrawTies(isPure);
+			break;
+		}
 		++level;
 	}
 	/* All remaining visited but undecided positions are labeled as draw-tie. */
