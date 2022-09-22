@@ -179,7 +179,7 @@ void GameSpecificMenu()
 {
 	char inp;
 	while (TRUE) {
-		inp = getchar(); // get rid of the 'g' from previous menu
+		//inp = getchar(); // get rid of the 'g' from previous menu
 		printf("\n\n\n");
 		printf("        ----- Game-specific options for Quick Cross -----\n\n");
 		printf("        Select a game board:\n\n");

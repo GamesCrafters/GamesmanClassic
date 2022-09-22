@@ -1468,9 +1468,9 @@ STRING InteractPositionToEndData(POSITION pos) {
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >> 9) { // Placing player's piece.	
-		return UWAPI_Board_Regular2D_MakeAddString('p', betweenMap[(mv >> 4) & 0xF]);
+		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[((mv & 0xFF) >> 4)-2], betweenMap[(mv >> 4) & 0xF]);
 	} else if ((mv >> 8) & 1) { // Placing neutral piece.
-		return UWAPI_Board_Regular2D_MakeAddString('n', betweenMap[mv & 0xF]);
+		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[(mv & 0x0F) -2], betweenMap[mv & 0xF]);
 	} else {
 		return MoveToString(mv);
 	}

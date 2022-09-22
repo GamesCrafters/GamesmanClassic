@@ -2130,9 +2130,9 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 		if (from != 31 && to != 31) { // Sliding piece partmove
 			return UWAPI_Board_Regular2D_MakeMoveString(indexMapMoveString[from], indexMapMoveString[to]);
 		} else if (to != 31) { // Placing piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'W' : 'B', indexMapMoveString[to]);
+			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? '-' : '-', indexMapMoveString[to]);
 		} else { // Removing opponent piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? 'B' : 'W', indexMapMoveString[remove]);
+			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? '-' : '-', indexMapMoveString[remove]);
 		}
 	}
 }

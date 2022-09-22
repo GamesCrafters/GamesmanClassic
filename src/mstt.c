@@ -1347,6 +1347,47 @@ void setOption(int option)
 // Note on interact: Currently, this only works with the default variant
 ////////////////////////////////////////////////////////////////////////////////
 
+STRING InteractPositionToEndData(POSITION pos) {
+	return NULL;
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	BlankOX oxboard[BOARDSIZE];
+	PositionToBlankOX(pos, oxboard);
+
+	switch (mv) {
+		default: {
+			 // Unknown move
+			fprintf(stderr, "Unknown move: %d\n", mv);
+			return NULL;
+		}
+		case 0:
+			return UWAPI_Board_Regular2D_MakeMoveString(0, 3);
+		case 1:
+			return UWAPI_Board_Regular2D_MakeMoveString(1, 4);
+		case 2:
+			return UWAPI_Board_Regular2D_MakeMoveString(2, 5);
+		
+		case 3: case 4: case 5: // shift to the right
+			switch (oxboard[9 + mv - 3]) {
+				default: return NULL; // Unexpected shift
+				case 0:
+					return UWAPI_Board_Regular2D_MakeMoveString(6 + (mv - 3) * 11, 7 + (mv - 3) * 11);
+				case 1:
+					return UWAPI_Board_Regular2D_MakeMoveString(7 + (mv - 3) * 11, 8 + (mv - 3) * 11);
+			}
+		case 6: case 7: case 8: // shift to the left
+			switch (oxboard[9 + mv - 6]) {
+				default: return NULL; // Unexpected shift
+				case 2: 
+					return UWAPI_Board_Regular2D_MakeMoveString(16 + (mv - 6) * 11, 15 + (mv - 6) * 11);
+				case 1:
+					return UWAPI_Board_Regular2D_MakeMoveString(15 + (mv - 6) * 11, 14 + (mv - 6) * 11);
+			}
+	}
+}
+
+int boardIndicesU[9] = { 10, 11, 12, 21, 22, 23, 32, 33, 34 };
 POSITION InteractStringToPosition(STRING str) {
 	// Parse UWAPI standard position string & get UWAPI standard board string
 	enum UWAPI_Turn turn;
@@ -1357,47 +1398,51 @@ POSITION InteractStringToPosition(STRING str) {
 		return INVALID_POSITION;
 	}
 
-	// Validate parsed board size
-	if (num_rows != 3 || num_columns != 7) {
-		SafeFreeString(board); // Free the string!
-		return INVALID_POSITION;
-	}
-
 	// Convert UWAPI standard board string to internal board representation
 	BlankOX oxboard[BOARDSIZE];
-	int i;
+
 	// Note the row shifts
-	for (i = 0; i < 3; i++) {
-		// This doens't check the right side of the board...
-		// Assume the right side is always correct
-		if (board[7 * i + 0] == '-' && board[7 * i + 1] == '-') {
-			oxboard[9 + i] = 0;
-		} else if (board[7 * i + 0] == '*' && board[7 * i + 1] == '-') {
-			oxboard[9 + i] = 1;
-		} else if (board[7 * i + 0] == '*' && board[7 * i + 1] == '*') {
-			oxboard[9 + i] = 2;
-		} else {
-			SafeFreeString(board); // Free the string!
-			return INVALID_POSITION;
-		}
+	// Top row shifts
+	if (board[41] == 'S') {
+		oxboard[9] = 0;
+	} else if (board[42] == 'S') {
+		oxboard[9] = 1;
+	} else {
+		oxboard[9] = 2;
 	}
+
+	// Middle row shifts
+	if (board[44] == 'S') {
+		oxboard[10] = 0;
+	} else if (board[45] == 'S') {
+		oxboard[10] = 1;
+	} else {
+		oxboard[10] = 2;
+	}
+
+	// Bottom row shifts
+	if (board[47] == 'S') {
+		oxboard[11] = 0;
+	} else if (board[48] == 'S') {
+		oxboard[11] = 1;
+	} else {
+		oxboard[11] = 2;
+	}
+
 	// Add all pieces
-	for (i = 0; i < 9; i++) {
-		int board_index = (i / 3) * 7 + 2 + (i % 3);
+	for (int i = 0; i < 9; i++) {
+		int board_index = boardIndicesU[i];
 		int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
 
 		if (board[board_index] == 'o') {
 			oxboard[oxboard_index] = o;
 		} else if (board[board_index] == 'x') {
 			oxboard[oxboard_index] = x;
-		} else if (board[board_index] == '-') {
-			oxboard[oxboard_index] = Blank;
 		} else {
-			SafeFreeString(board); // Free the string!
-			return INVALID_POSITION;
+			oxboard[oxboard_index] = Blank;
 		}
 	}
-	
+
 	// A hack to get everything to work
 	// @sethlu: I'm not sure why it's made this way in this game
 	oxboard[12] = 0;
@@ -1418,35 +1463,55 @@ STRING InteractPositionToString(POSITION pos) {
 	BlankOX whosTurn = WhoseTurn(pos);
 
 	// Convert internal board representation to UWAPI standard board string
-	char board[21 + 1];
-	int i;
-	// Note the row shifts
-	for (i = 0; i < 3; i++) {
-		switch (oxboard[9 + i]) {
-			default: return NULL; // Unexpected shift
-			case 0:
-				board[7 * i + 0] = '-';
-				board[7 * i + 1] = '-';
-				board[7 * i + 5] = '*';
-				board[7 * i + 6] = '*';
-				break;
-			case 1:
-				board[7 * i + 0] = '*';
-				board[7 * i + 1] = '-';
-				board[7 * i + 5] = '-';
-				board[7 * i + 6] = '*';
-				break;
-			case 2:
-				board[7 * i + 0] = '*';
-				board[7 * i + 1] = '*';
-				board[7 * i + 5] = '-';
-				board[7 * i + 6] = '-';
-				break;
-		}
+	char board[50 + 1];
+	for (int i = 0; i < 50; i++) {
+		board[i] = '-';
 	}
+
+	// Note the row shifts
+	switch (oxboard[9]) {
+		default: return NULL; // Unexpected shift
+		case 0:
+			board[41] = 'S';
+			break;
+		case 1:
+			board[42] = 'S';
+			break;
+		case 2:
+			board[43] = 'S';
+			break;
+	}
+
+	switch (oxboard[10]) {
+		default: return NULL; // Unexpected shift
+		case 0:
+			board[44] = 'S';
+			break;
+		case 1:
+			board[45] = 'S';
+			break;
+		case 2:
+			board[46] = 'S';
+			break;
+	}
+
+	switch (oxboard[11]) {
+		default: return NULL; // Unexpected shift
+		case 0:
+			board[47] = 'S';
+			break;
+		case 1:
+			board[48] = 'S';
+			break;
+		case 2:
+			board[49] = 'S';
+			break;
+	}
+
+	
 	// Add all pieces
-	for (i = 0; i < 9; i++) {
-		int board_index = (i / 3) * 7 + 2 + (i % 3);
+	for (int i = 0; i < 9; i++) {
+		int board_index = boardIndicesU[i];
 		int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
 
 		if (oxboard[oxboard_index] == o) {
@@ -1459,47 +1524,11 @@ STRING InteractPositionToString(POSITION pos) {
 			return NULL; // Unexpected piece
 		}
 	}
-	board[21] = '\0';
+	board[50] = '\0';
+
+	board[0] = board[1] = board[2] = (whosTurn == o) ? 'o' : 'x';
 
 	// Return formatted UWAPI position string
 	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakePositionString(turn, 3, 7, board);
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	switch (mv) {
-		default: {
-			 // Unknown move
-			fprintf(stderr, "Unknown move: %d\n", mv);
-			return NULL;
-		}
-		case 0: case 1: case 2: {
-			// Convert internal position to internal board representation
-			BlankOX oxboard[BOARDSIZE];
-			PositionToBlankOX(pos, oxboard);
-			BlankOX whosTurn = WhoseTurn(pos);
-
-			char piece = (whosTurn == o) ? 'o' : 'x';
-
-			if (oxboard[mv * 3] == Blank)
-				return UWAPI_Board_Regular2D_MakeAddString(piece, 2 * 7 + 2 + mv);
-			else if (oxboard[mv * 3 + 1] == Blank)
-				return UWAPI_Board_Regular2D_MakeAddString(piece, 1 * 7 + 2 + mv);
-			else if (oxboard[mv * 3 + 2] == Blank)
-				return UWAPI_Board_Regular2D_MakeAddString(piece, 0 * 7 + 2 + mv);
-			else {
-				// Unexpected move
-				fprintf(stderr, "Unexpected move: %d\n", mv);
-				return NULL;
-			}
-		}
-		case 3: case 4: case 5:
-			return UWAPI_Board_Regular2D_MakeShiftString(UWAPI_BOARD_REGULAR2D_SHIFT_DIRECTION_RIGHT, mv - 3, 1);
-		case 6: case 7: case 8:
-			return UWAPI_Board_Regular2D_MakeShiftString(UWAPI_BOARD_REGULAR2D_SHIFT_DIRECTION_LEFT, mv - 6, 1);
-	}
+	return UWAPI_Board_Regular2D_MakePositionString(turn, 5, 10, board);
 }
