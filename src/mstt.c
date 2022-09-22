@@ -1525,9 +1525,7 @@ STRING InteractPositionToString(POSITION pos) {
 		}
 	}
 	board[50] = '\0';
-
-	board[0] = board[1] = board[2] = (whosTurn == o) ? 'o' : 'x';
-
+	
 	// Return formatted UWAPI position string
 	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
 	return UWAPI_Board_Regular2D_MakePositionString(turn, 5, 10, board);
