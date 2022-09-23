@@ -2510,11 +2510,11 @@ STRING InteractPositionToString(POSITION pos) {
 
 	if (isIntermediate) {
 		if (turn == Rx) {
-			finalBoard[20] = 'X';
-			finalBoard[21] = 'T';
+			finalBoard[20] = 'Y';
+			finalBoard[21] = 'Z';
 		} else {
-			finalBoard[20] = 'x';
-			finalBoard[21] = 't';
+			finalBoard[20] = 'y';
+			finalBoard[21] = 'z';
 		}
 		if (isSliding) {
 			finalBoard[22] = from + '0';
@@ -2536,21 +2536,21 @@ STRING InteractPositionToEndData(POSITION pos) {
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >= 300000) { // Select where to place; encoded as 300000 + original mv 
-		return UWAPI_Board_Regular2D_MakeAddString((WhoseTurn(pos) == Rx) ? 'R' : 'W', MoveTo(mv % 100000));
+		return UWAPI_Board_Regular2D_MakeAddString((WhoseTurn(pos) == Rx) ? '-' : '-', MoveTo(mv % 100000));
 	} else if (mv >= 200000) { // Select which and where to move; encoded as 200000 + original mv
 		mv %= 100000;
 		int from = MoveFrom(mv);
 		int to = MoveTo(mv);
 		if (from == to) {
 			char *board = unhash(pos);
-			STRING toReturn = UWAPI_Board_Regular2D_MakeAddString(board[from], to);
+			STRING toReturn = UWAPI_Board_Regular2D_MakeAddString('-', to);
 			SafeFree(board);
 			return toReturn;
 		} else {
 			return UWAPI_Board_Regular2D_MakeMoveString(from, to);
 		}
-	} else if (mv >= 100000) { // Select orientationl encoded as 100000 + original mv
-		return UWAPI_Board_Regular2D_MakeAddString('B', (MoveOrientation(mv % 100000)) ? 16 : 15);
+	} else if (mv >= 100000) { // Select orientation encoded as 100000 + original mv
+		return UWAPI_Board_Regular2D_MakeAddString('-', (MoveOrientation(mv % 100000)) ? 16 : 15);
 	} else {
 		return MoveToString(mv);
 	}
