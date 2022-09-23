@@ -41,25 +41,25 @@
 */
 
 /* FRontier Win Queue */
-static FRnode*	winFRHead = NULL;       
-static FRnode*	winFRTail = NULL;
+static FRnode *winFRHead = NULL;       
+static FRnode *winFRTail = NULL;
 
 /* FRontier Lose Queue */
-static FRnode*	loseFRHead = NULL;
-static FRnode*	loseFRTail = NULL;
+static FRnode *loseFRHead = NULL;
+static FRnode *loseFRTail = NULL;
 
 /* FRontier Tie Queue */
-static FRnode*	tieFRHead = NULL;       
-static FRnode*	tieFRTail = NULL;
+static FRnode *tieFRHead = NULL;       
+static FRnode *tieFRTail = NULL;
 
 /* Unanalyzed win positions list. */
-static FRnode*	unanalyzedWinList = NULL;
+static FRnode *unanalyzedWinList = NULL;
 
 /* Linked lists of parents of each node. */
-static POSITIONLIST**	parentsOf = NULL;
+static POSITIONLIST **parentsOf = NULL;
 
 /* Number of children left undecided. */   
-static char*			numberChildren = NULL;  
+static char* numberChildren = NULL;  
 
 /* Data to be stored in each slice of the database. */
 static UINT32 SL_VALUE_SLOT = 0;      /* Value of a position. */
@@ -85,16 +85,18 @@ static POSITION DeQueueLoseFR		(void);
 static POSITION DeQueueTieFR		(void);
 static POSITION DeQueueUnanalyzedWin(void);
 
-static void		InitializeParents           (void);
-static void		FreeParents                 (void);
-static void     InitializeNumberChildren    (void);
-static void     FreeNumberChildren          (void);
+static void		InitializeParents       (void);
+static void		FreeParents             (void);
+static void     InitializeNumberChildren(void);
+static void     FreeNumberChildren      (void);
 
 static VALUE 	GetValueFromBPDB	(POSITION pos);
 static void 	SetValueInBPDB		(POSITION pos, VALUE val);
 
-static void		SetParents                  (POSITION root);
-static VALUE	DetermineValueHelper        (POSITION pos);
+static void		SetParents          (POSITION root);
+static VALUE	DetermineValueHelper(POSITION pos);
+
+static BOOLEAN SanityCheckDatabase(void);
 
 /*
 ** Code
@@ -184,14 +186,24 @@ VALUE lpds_DetermineValue(POSITION position) {
 
 	/* Debug */
 	POSITION i;
+	int stat[7] = {0};
 	for (i = 0; i < gNumberOfPositions; ++i) {
 		if (GetSlot(i, SL_VISITED_SLOT)) {
-			printf("[%llu] has value %s with rmt %d at level %d\n",
-			 i, gValueString[GetSlot(i, SL_VALUE_SLOT)],
-			  (int)GetSlot(i, SL_REM_SLOT), (int)GetSlot(i, SL_DRAW_LEVEL_SLOT));
+			++stat[GetSlot(i, SL_VALUE_SLOT)];
 		}
 	}
-
+	int total = 0;
+	for (i = 0; i < 7; ++i) {
+		total += stat[i];
+	}
+	printf("\n\nLoopy solver with Pure Draw Analysis stats:\n"
+			"\tund\twin\tlose\ttie\tdw\tdl\tdt\ttot\n"
+			"---------------------------------------------------------------------------------\n"
+			"\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n\n",
+			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], total);
+	if (SanityCheckDatabase()) {
+		printf("SanityCheckDatabase passed!.\n");
+	}
 	return value;
 }
 
@@ -540,7 +552,7 @@ static BOOLEAN ProcessLevelFringe(int level) {
 		child = DeQueueUnanalyzedWin();
 		while (parentsOf[child]) {
 			parent = RemovePositionFromQueue(&parentsOf[child]);
-			if (GetValueFromBPDB(parent) == undecided) {
+			if (parent != kBadPosition && GetValueFromBPDB(parent) == undecided) {
 				/* !!This Check here is not rigorous. Depending
 				   on the sequence of win positions in list, 
 				   it may fail to detect impurity. */
@@ -626,3 +638,78 @@ static VALUE DetermineValueHelper(POSITION pos) {
 	return GetValueFromBPDB(pos);
 }
 
+static BOOLEAN OnlyHasChildrenOf(POSITION parent, int allowed[static 7]) {
+	MOVELIST *moves = GenerateMoves(parent);
+	MOVELIST *walker;
+	BOOLEAN valid = TRUE;
+
+	for (walker = moves; walker != NULL; walker = walker->next) {
+		if (!allowed[GetValueFromBPDB(DoMove(parent, walker->move))]) {
+			valid = FALSE;
+			break;
+		}
+	}
+	FreeMoveList(moves);
+	return valid;
+}
+
+static BOOLEAN HasChild(POSITION parent, VALUE childVal) {
+	MOVELIST *moves = GenerateMoves(parent);
+	MOVELIST *walker;
+	BOOLEAN found = FALSE;
+
+	for (walker = moves; walker != NULL; walker = walker->next) {
+		if (GetValueFromBPDB(DoMove(parent, walker->move)) == childVal) {
+			found = TRUE;
+			break;
+		}
+	}
+	FreeMoveList(moves);
+	return found;
+}
+
+static BOOLEAN SanityCheckDatabase(void) {
+	POSITION i;
+	VALUE v;
+	BOOLEAN valid = TRUE;
+
+	for (i = 0; valid && i < gNumberOfPositions; ++i) {
+		v = GetValueFromBPDB(i);
+		switch (v) {
+		case undecided:
+			break;
+			
+		case win:
+			valid = Primitive(i) == win || HasChild(i, lose);
+			break;
+			
+		case lose:
+			valid = Primitive(i) == lose || OnlyHasChildrenOf(i, (int[7]){0,1,0,0,0,0,0});
+			break;
+			
+		case tie:
+			valid = Primitive(i) == tie || OnlyHasChildrenOf(i, (int[7]){0,1,0,1,0,0,0});
+			break;
+			
+		case drawwin:
+			valid = OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,1,1}) && HasChild(i, drawlose);
+			break;
+			
+		case drawlose:
+			valid = OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,0,0}) && HasChild(i, drawwin);
+			break;
+			
+		case drawtie:
+			valid = OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,0,1}) && HasChild(i, drawtie);
+			break;
+		
+		default:
+			valid = FALSE;
+			break;
+		}
+	}
+	if (!valid) {
+		printf("Invalid position value at %llu\n", i - 1);
+	}
+	return valid;
+}
