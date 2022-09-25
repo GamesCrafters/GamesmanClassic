@@ -36,6 +36,8 @@
 #include "solveloopypd.h"
 #include "analysis.h"
 
+#define LPDS_DEBUG TRUE
+
 /*
 ** Globals
 */
@@ -75,7 +77,7 @@ static UINT32 SL_VISITED_SLOT = 0;    /* 1 if position is visited,
 ** Local function prototypes
 */
 
-static void     FreeFRs    	(void);
+static void     FreeFRs    			(void);
 static void 	InsertWinFR			(POSITION position);
 static void 	InsertLoseFR		(POSITION position);
 static void 	InsertTieFR			(POSITION position);
@@ -185,25 +187,28 @@ VALUE lpds_DetermineValue(POSITION position) {
 	FreeParents();
 
 	/* Debug */
-	POSITION i;
-	int stat[7] = {0};
-	for (i = 0; i < gNumberOfPositions; ++i) {
-		if (GetSlot(i, SL_VISITED_SLOT)) {
-			++stat[GetValueFromBPDB(i)];
+	if (LPDS_DEBUG) {
+		POSITION i;
+		int stat[7] = {0};
+		for (i = 0; i < gNumberOfPositions; ++i) {
+			if (GetSlot(i, SL_VISITED_SLOT)) {
+				++stat[GetValueFromBPDB(i)];
+			}
+		}
+		int total = 0;
+		for (i = 0; i < 7; ++i) {
+			total += stat[i];
+		}
+		printf("\n\nLoopy solver with Pure Draw Analysis stats:\n"
+				"\tund\twin\tlose\ttie\tdw\tdl\tdt\ttot\n"
+				"---------------------------------------------------------------------------------\n"
+				"\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n\n",
+				stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], total);
+		if (SanityCheckDatabase()) {
+			printf("SanityCheckDatabase passed!.\n");
 		}
 	}
-	int total = 0;
-	for (i = 0; i < 7; ++i) {
-		total += stat[i];
-	}
-	printf("\n\nLoopy solver with Pure Draw Analysis stats:\n"
-			"\tund\twin\tlose\ttie\tdw\tdl\tdt\ttot\n"
-			"---------------------------------------------------------------------------------\n"
-			"\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\n\n",
-			stat[0], stat[1], stat[2], stat[3], stat[4], stat[5], stat[6], total);
-	if (SanityCheckDatabase()) {
-		printf("SanityCheckDatabase passed!.\n");
-	}
+
 	return value;
 }
 
@@ -283,21 +288,12 @@ static void InsertUnanalyzedWin(POSITION position) {
 }
 
 static void FreeFRs(void) {
-    if (winFRHead || winFRTail) {
-        printf("Win frontier list not empty after solving.\n");
-		FreePositionList(winFRHead);
-		winFRHead = winFRTail = NULL;
-    }
-    if (loseFRHead || loseFRTail) {
-        printf("Lose frontier list not empty after solving.\n");
-		FreePositionList(loseFRHead);
-		loseFRHead = loseFRTail = NULL;
-    }
-    if (tieFRHead || tieFRTail) {
-        printf("Tie frontier list not empty after solving.\n");
-		FreePositionList(tieFRHead);
-		tieFRHead = tieFRTail = NULL;
-    }
+	FreePositionList(winFRHead);
+	FreePositionList(loseFRHead);
+	FreePositionList(tieFRHead);
+	winFRHead = winFRTail = NULL;
+	loseFRHead = loseFRTail = NULL;
+	tieFRHead = tieFRTail = NULL;
 }
 
 static void InitializeParents(void) {
@@ -463,8 +459,8 @@ static BOOLEAN ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 						BadElse("ProcessWinLose");
 					} else if (parentValue == drawlose) {
 						/* There is a contradiction in current draw level:
-						   a draw-lose has another draw-lose as its child.
-						   Therefore this game is not pure. */
+						   a draw-lose has another draw-lose as its parent.
+						   Therefore, this game is not pure. */
 						return FALSE;
 					}
 				}
@@ -521,10 +517,12 @@ static void ProcessTie() {
 	} /* while there are still positions in tie FR. */
 }
 
-/* Draw analysis: find all draw-lose positions of level LEVEL.
-   If a draw-lose position has a child that is also a draw-lose,
-   the game is impure and the analysis is aborted. Returns TRUE
-   if no impurity is detected, FALSE otherwise.
+/* Draw analysis: find all draw-lose positions of level LEVEL
+   by marking all visited but undecided positions as draw-loses.
+   Note that this function does not check for impurity. The
+   check is handled by ProcessWinLose() which terminates and
+   returns FALSE if a draw-losing positions is found to have a
+   parent that is also a draw-lose.
    The unanalyzedWinList is guaranteed to be empty after this
    function call. */
 static void ProcessLevelFringe(int level) {
@@ -535,7 +533,7 @@ static void ProcessLevelFringe(int level) {
 			parent = RemovePositionFromQueue(&parentsOf[child]);
 			if (parent != kBadPosition && GetValueFromBPDB(parent) == undecided) {
 				SetValueInBPDB(parent, drawlose);
-				SetSlot(parent, SL_REM_SLOT, 0);
+				SetSlot(parent, SL_REM_SLOT, GetSlot(child, SL_REM_SLOT) + 1);
 				SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
 				InsertLoseFR(parent);
 			}
@@ -652,7 +650,7 @@ static BOOLEAN SanityCheckDatabase(void) {
 			break;
 			
 		case tie:
-			valid = Primitive(i) == tie || OnlyHasChildrenOf(i, (int[7]){0,1,0,1,0,0,0}) && HasChild(i, tie);
+			valid = Primitive(i) == tie || (OnlyHasChildrenOf(i, (int[7]){0,1,0,1,0,0,0}) && HasChild(i, tie));
 			break;
 			
 		case drawwin:
