@@ -83,6 +83,7 @@ SOLVER_RETROGRADE = solveretrograde$(OBJSUFFIX)
 SOLVER_OPENPOSITIONS = openPositions$(OBJSUFFIX)
 SOLVER_VS_STD = solvevsstd$(OBJSUFFIX)
 SOLVER_VS_LOOPY	= solvevsloopy$(OBJSUFFIX)
+SOLVER_LOOPYPD	= solveloopypd$(OBJSUFFIX)
 
 ##############################################################################
 ### Files
@@ -97,7 +98,7 @@ CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA) \
 	$(SOLVER_RETROGRADE) $(SOLVER_OPENPOSITIONS) $(SOLVER_VS_STD) \
-	$(SOLVER_VS_LOOPY)
+	$(SOLVER_VS_LOOPY) $(SOLVER_LOOPYPD)
 
 MODULES=$(CORE) $(SOLVERS) hash.o memwatch.o
 
@@ -106,7 +107,8 @@ INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 memdb.h bpdb.h bpdb_bitlib.h bpdb_schemes.h bpdb_misc.h twobitdb.h db.h \
 	 solvezero.h solveloopyup.h solveretrograde.h solvevsstd.h solvevsloopy.h \
 	 textui.h setup.h httpclient.h netdb.h openPositions.h visualization.h filedb.h \
-	 filedb/db.h hashwindow.h tierdb.h memwatch.h levelfile_generator.h symdb.h interact.h
+	 filedb/db.h hashwindow.h tierdb.h memwatch.h levelfile_generator.h symdb.h interact.h\
+	 solveloopypd.h
 
 
 
