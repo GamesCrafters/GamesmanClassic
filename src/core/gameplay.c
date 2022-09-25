@@ -1400,12 +1400,11 @@ STRING GetSEvalPrediction(POSITION position, STRING playerName, BOOLEAN usersTur
 MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList)
 {
 	MOVELIST *maxRemotenessMoveList = NULL;
-	REMOTENESS maxRemoteness;
-	int numMoves, random;
+	REMOTENESS maxRemoteness = -1;
+	int numMoves = 0;
+	int random;
 
-	numMoves = 0;
-	maxRemoteness = -1;
-	while(remotenessList != NULL) {
+	while (remotenessList != NULL) {
 		if (remotenessList->remoteness > maxRemoteness) {
 			numMoves = 1;
 			maxRemoteness = remotenessList->remoteness;
@@ -1854,12 +1853,6 @@ MOVE GetComputersMove(POSITION thePosition)
 			if (gWinBy || gWinByClose) {
 				ptr = head;
 				theMove = GetWinByMove(thePosition,ptr);
-			} else if (Remoteness(thePosition) == 0) {
-				/* Edge case in pure draw games: If at a fringe draw-lose position,
-				   the best move should go to a position of the smallest remoteness,
-				   which should always be 1. This is to avoid stepping into the next
-				   level of draw positions. */
-				theMove = RandomSmallestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);
 			} else {
 				// LOSEMOVE: Prolong the game as much as possible (largest remoteness is best).
 				theMove = RandomLargestRemotenessMove(moves->moveList[moveType], moves->remotenessList[moveType]);

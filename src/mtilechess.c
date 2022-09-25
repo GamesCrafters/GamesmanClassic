@@ -277,6 +277,9 @@ void InitializeGame ()
 	int i, counter = 0, boardSize = (int)(pow((int)sqrt(strlen(theBoard))-2,2)), totalPieces = (int)sqrt(boardSize);
 	long long unsigned largestBoard = 0;
 	char *pieces = SafeMalloc(totalPieces+1);
+
+	kUsePureDraw = TRUE; /* This game is known to be a pure draw game. */
+
 	for (i = 0; i < strlen(theBoard); i++) {
 		if (theBoard[i] != ' ') {
 			pieces[counter++] = theBoard[i];

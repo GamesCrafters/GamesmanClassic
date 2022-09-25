@@ -107,8 +107,11 @@ void SetSolver()
 	else if(kLoopy) {
 		if (gGoAgain == DefaultGoAgain) {
 			if(gBitPerfectDBSolver) {
-				// gSolver = &VSDetermineLoopyValue;
-				gSolver = &lpds_DetermineValue;
+				if (kUsePureDraw) {
+					gSolver = &lpds_DetermineValue;
+				} else {
+					gSolver = &VSDetermineLoopyValue;
+				}
 			} else {
 				gSolver = &DetermineLoopyValue;
 			}

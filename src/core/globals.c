@@ -173,6 +173,8 @@ UNDOMOVELIST*   (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING (*gTierToStringFunPtr)(TIER) = NULL;
 MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*) = NULL;
+
+BOOLEAN kUsePureDraw = FALSE;
 // For the experimental GenerateMoves
 int (*gGenerateMovesEfficientFunPtr)(POSITION) = NULL;
 MOVE*           gGenerateMovesArray = NULL;

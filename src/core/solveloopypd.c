@@ -189,7 +189,7 @@ VALUE lpds_DetermineValue(POSITION position) {
 	int stat[7] = {0};
 	for (i = 0; i < gNumberOfPositions; ++i) {
 		if (GetSlot(i, SL_VISITED_SLOT)) {
-			++stat[GetSlot(i, SL_VALUE_SLOT)];
+			++stat[GetValueFromBPDB(i)];
 		}
 	}
 	int total = 0;
@@ -354,7 +354,7 @@ static VALUE SetPrimitiveOrEnqueue(POSITION pos, POSITIONLIST **nextLevel) {
 		default:
 			BadElse("SetParents found bad primitive value");
 		}
-		SetSlot(pos, SL_VALUE_SLOT, value);
+		SetValueInBPDB(pos, value);
 	} else {
 		*nextLevel = StorePositionInList(pos, *nextLevel);
 	}
@@ -417,22 +417,6 @@ static void SetParents(POSITION root) {
 	}
 }
 
-static BOOLEAN HasDrawLoseChild(POSITION pos) {
-	BOOLEAN found = FALSE;
-	POSITION child;
-	MOVELIST *moves = GenerateMoves(pos);
-	MOVELIST *moveptr;
-	for (moveptr = moves; moveptr; moveptr = moveptr->next) {
-		child = DoMove(pos, moveptr->move);
-		if (GetValueFromBPDB(child) == drawlose) {
-			found = TRUE;
-			break;
-		}
-	}
-	FreeMoveList(moves);
-	return found;
-}
-
 static BOOLEAN ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 	POSITION child, parent;
 	VALUE childValue, parentValue;
@@ -452,7 +436,7 @@ static BOOLEAN ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 			   we wouldn't enter this while loop. */
 			child = DeQueueWinFR();
 		}
-		childValue = GetSlot(child, SL_VALUE_SLOT);
+		childValue = GetValueFromBPDB(child);
 		remotenessChild = GetSlot(child, SL_REM_SLOT);
 
 		for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
@@ -463,40 +447,39 @@ static BOOLEAN ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 			} else if (childValue == valForLose) {
 				/* With losing child, every parent is winning, so we just go through
 		   	   	   all the parents and declare them winning. */
-				parentValue = GetSlot(parent, SL_VALUE_SLOT);
+				parentValue = GetValueFromBPDB(parent);
 				if (parentValue == undecided) {
 					/* This is the first time we know the parent is a win. */
 					InsertWinFR(parent);
 					InsertUnanalyzedWin(parent);
 					SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
 					SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
-					SetSlot(parent, SL_VALUE_SLOT, valForWin);
+					SetValueInBPDB(parent, valForWin);
 				} else {
-					/* We already know the parent is a winning position. */
-					if (parentValue == lose || parentValue == drawlose) {
-						/* Not pure game. */
+					/* We already know the value for parent, which can only be winning
+					   or draw-losing. Otherwise there is a bug. */
+					if (parentValue != win && parentValue != drawwin &&
+					  	parentValue != drawlose) {
+						BadElse("ProcessWinLose");
+					} else if (parentValue == drawlose) {
+						/* There is a contradiction in current draw level:
+						   a draw-lose has another draw-lose as its child.
+						   Therefore this game is not pure. */
 						return FALSE;
 					}
-					/* This should always hold because the frontier is a queue.
-						We always examine losing nodes with less remoteness first. */
-					assert((remotenessChild + 1) >= (int)GetSlot(parent, SL_REM_SLOT));
 				}
 			} else if (childValue == valForWin) {
 				/* With winning child, we can only eliminate one losing move from its parent.
 				   If this is the last unknown child and they were all wins, parent is lose. */
-				parentValue = GetSlot(parent, SL_VALUE_SLOT);
+				parentValue = GetValueFromBPDB(parent);
 				if (parentValue == undecided && --numberChildren[parent] == 0) {
 					/* No more kids, it's not been seen before, assign it as losing and enqueue. */
-					// if (parentValue != undecided) {
-					// 	printf("warning: marking parent position %llu of value %s to a %s\n",
-					// 	       parent, gValueString[parentValue], gValueString[valForLose]);
-					// }
 					InsertLoseFR(parent);
 					/* We always need to change the remoteness because we examine winning node with
 					   less remoteness first. */
 					SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
 					SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
-					SetSlot(parent, SL_VALUE_SLOT, valForLose);
+					SetValueInBPDB(parent, valForLose);
 				}
 			} else {
 				/* We should not see other values DeQueued from win and lose queues. */
@@ -522,14 +505,14 @@ static void ProcessTie() {
 			if (parent == kBadPosition) {
 				continue;
 			}
-			parentValue = GetSlot(parent, SL_VALUE_SLOT);
+			parentValue = GetValueFromBPDB(parent);
 			/* If parent is undecided and this is the last unknown child, parent is tie. */
 			if (parentValue == undecided && --numberChildren[parent] == 0) {
 				/* No more kids and parent has not been seen before,
 				   assign it as tying and enqueue. */
 				InsertTieFR(parent);
 				SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
-				SetSlot(parent, SL_VALUE_SLOT, tie);
+				SetValueInBPDB(parent, tie);
 			}
 		}
 		/* We won't need to visit the parents of a tying position again. */
@@ -543,30 +526,14 @@ static void ProcessTie() {
    the game is impure and the analysis is aborted. Returns TRUE
    if no impurity is detected, FALSE otherwise.
    The unanalyzedWinList is guaranteed to be empty after this
-   function call.
-
-   TODO: Make a separate function for all BPDB operations. */
-static BOOLEAN ProcessLevelFringe(int level) {
+   function call. */
+static void ProcessLevelFringe(int level) {
 	POSITION child, parent;
 	while (unanalyzedWinList) {
 		child = DeQueueUnanalyzedWin();
 		while (parentsOf[child]) {
 			parent = RemovePositionFromQueue(&parentsOf[child]);
 			if (parent != kBadPosition && GetValueFromBPDB(parent) == undecided) {
-				/* !!This Check here is not rigorous. Depending
-				   on the sequence of win positions in list, 
-				   it may fail to detect impurity. */
-				if (HasDrawLoseChild(parent)) {
-					/* Clean up unanalyzedWinList. */
-					FreePositionList(unanalyzedWinList);
-					unanalyzedWinList = NULL;
-
-					/* Clean up LoseFR. */
-					FreePositionList(loseFRHead);
-					loseFRHead = loseFRTail = NULL;
-
-					return FALSE;
-				}
 				SetValueInBPDB(parent, drawlose);
 				SetSlot(parent, SL_REM_SLOT, 0);
 				SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
@@ -574,7 +541,6 @@ static BOOLEAN ProcessLevelFringe(int level) {
 			}
 		}
 	}
-	return TRUE;
 }
 
 static void MarkDrawTies(BOOLEAN isPure) {
@@ -616,22 +582,20 @@ static VALUE DetermineValueHelper(POSITION pos) {
 
 	/* Determine all draw-win and draw-lose positions. */
 	while (unanalyzedWinList) {
-		isPure = ProcessLevelFringe(level);
+		ProcessLevelFringe(level);
+		/* In a similar way, work your way back up from draw-lose primitives. */
+		isPure = ProcessWinLose(drawwin, drawlose, level);
 		if (!isPure) {
 			/* The game is not pure. Set all draw positions to draw ties,
 			   all draw levels and draw remotenesses to their max values. */
 			MarkDrawTies(isPure);
 			break;
 		}
-		/* In a similar way, work your way back up from draw-lose primitives. */
-		isPure = ProcessWinLose(drawwin, drawlose, level);
-		if (!isPure) {
-			MarkDrawTies(isPure);
-			break;
-		}
 		++level;
 	}
-	/* All remaining visited but undecided positions are labeled as draw-tie. */
+	/* If the game is pure, there may exist positions that are visited
+	   but not on any draw level. These remaining positions are labeled
+	   as draw-tie. */
 	if (isPure) {
 		MarkDrawTies(isPure);
 	}
@@ -688,7 +652,7 @@ static BOOLEAN SanityCheckDatabase(void) {
 			break;
 			
 		case tie:
-			valid = Primitive(i) == tie || OnlyHasChildrenOf(i, (int[7]){0,1,0,1,0,0,0});
+			valid = Primitive(i) == tie || OnlyHasChildrenOf(i, (int[7]){0,1,0,1,0,0,0}) && HasChild(i, tie);
 			break;
 			
 		case drawwin:
