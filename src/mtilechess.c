@@ -47,7 +47,7 @@ BOOLEAN kTieIsPossible       = TRUE;   /* TRUE if a tie is possible. FALSE if it
 BOOLEAN kLoopy               = TRUE;   /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
 
 BOOLEAN kDebugMenu           = TRUE;   /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN kDebugDetermineValue = TRUE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = FALSE;   /* TRUE only when debugging. FALSE when on release. */
 
 POSITION gNumberOfPositions   =  0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
@@ -277,6 +277,9 @@ void InitializeGame ()
 	int i, counter = 0, boardSize = (int)(pow((int)sqrt(strlen(theBoard))-2,2)), totalPieces = (int)sqrt(boardSize);
 	long long unsigned largestBoard = 0;
 	char *pieces = SafeMalloc(totalPieces+1);
+
+	kUsePureDraw = TRUE; /* This game is known to be a pure draw game. */
+
 	for (i = 0; i < strlen(theBoard); i++) {
 		if (theBoard[i] != ' ') {
 			pieces[counter++] = theBoard[i];

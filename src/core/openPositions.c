@@ -13,7 +13,7 @@
 #include "analysis.h"
 //MATT
 
-OPEN_POS_DATA* openPosData=0;
+OPEN_POS_DATA* openPosData = NULL;
 POSITION openPosArrLen;
 BOOLEAN gOpenDataLoaded = FALSE;
 POSITIONLIST* headNodeDP;
@@ -907,12 +907,25 @@ BOOLEAN DeterminePure(POSITION position)
 	DrawParentInitialize();
 	DrawNumberChildrenInitialize();
 	/* Set each positions parent's list */
-	SetDrawParents(kBadPosition,gInitialPosition);
+	// Robert Shi: in other words, build a backward game tree.
+	SetDrawParents(kBadPosition, gInitialPosition);
 
 	while(keepgoing) {
 
 		DeterminePure1(gInitialPosition); /* Solve all positions we can */
-		SetDrawParents(kBadPosition,gInitialPosition); 	/* Must be reset because the gDrawParents variable is manipulated in the DeterminePure1 function */
+		/* Must be reset because the gDrawParents variable is manipulated in the DeterminePure1 function */
+		// Robert Shi: Why is gDrawParents being modified?
+		// for (POSITION i = 0; i < gNumberOfPositions; ++i) {
+		// 	if (gDrawNumberChildren[i]) {
+		// 		printf("gdnc not zero at index %llu: value == %d\n", i, gDrawNumberChildren[i]);
+		// 	}
+		// 	if (gDrawNumberChildrenOriginal[i]) {
+		// 		printf("gdnco not zero at index %llu: value == %d\n", i, gDrawNumberChildrenOriginal[i]);
+		// 	}
+		// 	// gDrawNumberChildren[i] = gDrawNumberChildrenOriginal[i] = 0;
+		// }
+		// SetDrawParents(kBadPosition, gInitialPosition);
+
 		SetNewLevelFringe(); /* Set all undecided positions with winning children to loses */
 		level++;
 		/* Check if we should stop */
@@ -939,6 +952,7 @@ BOOLEAN DeterminePure(POSITION position)
 	return tmp;
 }
 
+/* Determines all position values that are not draws. */
 void DeterminePure1(POSITION position)
 {
 	POSITION child=kBadPosition, parent;
@@ -963,8 +977,7 @@ void DeterminePure1(POSITION position)
 
 	/* Now, the fun part. Starting from the children, work your way back up. */
 	//@@ separate lose/win frontiers
-	while ((gHeadLoseDR != NULL) ||
-	       (gHeadWinDR != NULL)) {
+	while ((gHeadLoseDR != NULL) || (gHeadWinDR != NULL)) {
 
 		if ((child = DeQueueLoseDR()) == kBadPosition)
 			child = DeQueueWinDR();
@@ -1001,7 +1014,6 @@ void DeterminePure1(POSITION position)
 					}
 					else {
 						/* We already know the parent is a winning position. */
-
 						if (gPositionValue[parent] != win) {
 							// printf(POSITION_FORMAT " should be win.  Instead it is %d.\n", parent, gPositionValue[parent]);
 							// if (gPositionValue[parent] == lose) {
@@ -1011,13 +1023,11 @@ void DeterminePure1(POSITION position)
 							// }
 							// BadElse("DetermineLoopyValue");
 						}
-
-						/* This should always hold because the frontier is a queue.
-						** We always examine losing nodes with less remoteness first */
 					}
 				}
 				ptr = ptr->next;
 			} /* while there are still parents */
+			// Robert Shi: Not sure what this is checking.
 			if (gDrawParents[child] == NULL) {
 				printf("gParents is NULL. The copy didn't work\n");
 			}
@@ -1029,18 +1039,16 @@ void DeterminePure1(POSITION position)
 
 				/* Make code easier to read */
 				parent = ptr->position;
-				//printf("parent: %llu NumberOfChildren: %d\n", parent, gDrawNumberChildren[parent]);
 
 				/* Skip if this is the initial position (parent is kBadPosition) */
 				/* If this is the last unknown child and they were all wins, parent is lose */
 				if(parent != kBadPosition && --gDrawNumberChildren[parent] == 0) {
 					/* no more kids, it's not been seen before, assign it as losing, put at head */
-					// assert(gPositionValue[parent] == undecided);
-					if (gPositionValue[parent] != undecided) {
-						if (gPositionValue[parent] != lose) {
-							printf("Parent's Value: %d. Parent: %llu. Child: %llu\n", gPositionValue[parent], parent, child);
-							assert(FALSE);
-						}
+					// Robert Shi: this is just a sanity check that multiple passes of analysis should
+					//  give consistent conclusions about this parent being losing.
+					if (gPositionValue[parent] != undecided && gPositionValue[parent] != lose) {
+						printf("Parent's Value: %d. Parent: %llu. Child: %llu\n", gPositionValue[parent], parent, child);
+						assert(FALSE);
 					}
 					F0EdgeCount -= (gDrawNumberChildrenOriginal[parent] - 1);
 					InsertLoseDR(parent);
@@ -1065,11 +1073,6 @@ void DeterminePure1(POSITION position)
 		} else {
 			BadElse("DetermineLoopyValue found DR member with other than win/lose value");
 		} /* else */
-
-		/* We are done with this position and no longer need to keep around its list of parents
-		** The tie frontier will not need this, either, because this child's value has already
-		** been determined.  It cannot be a tie. */
-
 	} /* while still positions in FR */
 
 	/* Now process the tie frontier */
@@ -1105,12 +1108,15 @@ void DeterminePure1(POSITION position)
 			}
 			ptr = ptr->next;
 		}
+		// Robert Shi: not sure what this is checking.
 		if (gDrawParents[child] == NULL) {
-				printf("gParents is NULL. The copy didn't work\n");
-			}
+			printf("gParents is NULL. The copy didn't work\n");
+		}
 	}
 
-	/* Now set all remaining positions to tie with remoteness of REMOTENESS_MAX */
+	/* Robert Shi: Loopy solver would now set all remaining positions to tie
+	    with remoteness of REMOTENESS_MAX. We don't do it here because we need
+		to know which positions are draw positions for future analysis. */
 
 	if(kDebugDetermineValue) {
 		printf("---------------------------------------------------------------\n");
@@ -1121,28 +1127,30 @@ void DeterminePure1(POSITION position)
 		printf("TIE cleanup\n");
 	}
 
-	for (i = 0; i < gNumberOfPositions; i++)
-		if(Visited(i)) {
-			if(kDebugDetermineValue)
-				printf(POSITION_FORMAT " was visited...",i);
-			if(gPositionValue[i] == undecided) {
-				// gPositionValue[(POSITION)i] = tie;
-				// gPositionLevel[(POSITION)i] = level;
-				// if (gDrawNumberChildren[i] < gDrawNumberChildrenOriginal[i]) {
-				// 	F0DrawEdgeCount += gDrawNumberChildren[i];
-				// 	F0NodeCount+=1;
-				// }
-				//we are done with this position and no longer need to keep around its list of parents
-				/*if (gParents[child])
-				   FreePositionList(gParents[child]); */                                       // is this a memory leak?
-				if(kDebugDetermineValue)
-					printf("and was undecided, setting to draw\n");
-			} else {
-				if(kDebugDetermineValue)
-					printf("but was decided, ignoring\n");
-			}
-			UnMarkAsVisited((POSITION)i);
-		}
+	// for (i = 0; i < gNumberOfPositions; i++)
+	// 	if(Visited(i)) {
+	// 		if(kDebugDetermineValue)
+	// 			printf(POSITION_FORMAT " was visited...",i);
+	// 		if(gPositionValue[i] == undecided) {
+	// 			// gPositionValue[(POSITION)i] = tie;
+	// 			// gPositionLevel[(POSITION)i] = level;
+	// 			// if (gDrawNumberChildren[i] < gDrawNumberChildrenOriginal[i]) {
+	// 			// 	F0DrawEdgeCount += gDrawNumberChildren[i];
+	// 			// 	F0NodeCount+=1;
+	// 			// }
+	// 			//we are done with this position and no longer need to keep around its list of parents
+	// 			/*if (gParents[child])
+	// 			   FreePositionList(gParents[child]); */                                       // is this a memory leak?
+	// 			if(kDebugDetermineValue)
+	// 				printf("and was undecided, setting to draw\n");
+	// 		} else {
+	// 			if(kDebugDetermineValue)
+	// 				printf("but was decided, ignoring\n");
+	// 		}
+	// 		// Robert Shi: this seems to be left-over code from DFS, which is not really
+	// 		//  needed here.
+	// 		UnMarkAsVisited((POSITION)i);
+	// 	}
 
 	if (gInterestingness) {
 		DetermineInterestingness(position);
@@ -1154,21 +1162,20 @@ void DeterminePure1(POSITION position)
 ** (We do not check to see if its been visited)
 */
 
+/* BFS from root.  */
 void SetDrawParents (POSITION parent, POSITION root)
 {
-	MOVELIST*       moveptr;
-	MOVELIST*       movehead;
-	POSITIONLIST*   posptr;
-	POSITIONLIST*   thisLevel;
-	POSITIONLIST*   nextLevel;
+	MOVELIST*       moveptr = NULL;
+	MOVELIST*       movehead = NULL;
+	POSITIONLIST*   posptr = NULL;
+	POSITIONLIST*   thisLevel = NULL;
+	POSITIONLIST*   nextLevel = NULL;
 	POSITION pos;
 	POSITION child;
 	VALUE value;
 
-	posptr = thisLevel = nextLevel = NULL;
-	moveptr = movehead = NULL;
-
 	// Check if the top is primitive.
+	// Robert Shi: I don't think it is safe to comment out this block.
 	// MarkAsVisited(root);
 	// gDrawParents[root] = StorePositionInList(parent, gDrawParents[root]);
 	// if ((value = Primitive(root)) != undecided) {
@@ -1188,12 +1195,10 @@ void SetDrawParents (POSITION parent, POSITION root)
 	thisLevel = StorePositionInList(root, thisLevel);
 
 	while (thisLevel != NULL) {
-		POSITIONLIST* next;
-
+		POSITIONLIST *next;
 		for (posptr = thisLevel; posptr != NULL; posptr = next) {
 			next = posptr->next;
 			pos = posptr->position;
-
 			movehead = GenerateMoves(pos);
 
 			for (moveptr = movehead; moveptr != NULL; moveptr = moveptr->next) {
@@ -1203,6 +1208,7 @@ void SetDrawParents (POSITION parent, POSITION root)
 
 				if (child >= gNumberOfPositions)
 					FoundBadPosition(child, pos, moveptr->move);
+				// Robert Shi: (int) conversions may not be necessary.
 				++gDrawNumberChildren[(int)pos];
 				++gDrawNumberChildrenOriginal[(int)pos];
 				gDrawParents[(int)child] = StorePositionInList(pos, gDrawParents[(int)child]);
@@ -1210,7 +1216,7 @@ void SetDrawParents (POSITION parent, POSITION root)
 				if (Visited(child)) continue;
 				MarkAsVisited(child);
 
-				if ((value = Primitive(child)) != undecided) {
+				if ((value = Primitive(child)) != undecided) { // If child is primitive.
 					switch (value) {
 					case lose: InsertLoseDR(child); break;
 					case win: InsertWinDR(child);  break;
@@ -1224,6 +1230,7 @@ void SetDrawParents (POSITION parent, POSITION root)
 				} else {
 					nextLevel = StorePositionInList(child, nextLevel);
 				}
+				// Robert Shi: Does this mess up the stat if this analysis is run after loopysolver?
 				gTotalMoves++;
 			}
 			FreeMoveList(movehead);
@@ -1260,11 +1267,15 @@ void DrawParentInitialize()
 	gPositionLevel = (REMOTENESS *) SafeMalloc (gNumberOfPositions * sizeof(REMOTENESS));
 	for(i = 0; i < gNumberOfPositions; i++) {
 		gDrawParents[i] = NULL;
-		gPositionValue[i] = GetValueOfPosition((POSITION) i);
+		gPositionValue[i] = undecided;
+		// gPositionValue[i] = GetValueOfPosition(i);
 		gPositionLevel[i] = 0;
-		if (gPositionValue[i] == tie) {
-			gPositionValue[i] = undecided;
-		}
+		UnMarkAsVisited(i);
+		// Robert Shi: This hack is here only because we stored all draw positions as ties. 
+		//  May optimize this out in the future.
+		// if (gPositionValue[i] == tie) {
+		// 	gPositionValue[i] = undecided;
+		// }
 	}
 }
 
@@ -1287,8 +1298,6 @@ void DrawNumberChildrenInitialize()
 	gDrawNumberChildrenOriginal = (char *) SafeMalloc (gNumberOfPositions * sizeof(signed char));
 	if (gInterestingness) {
 		gAnalysis.Interestingness = (float *) SafeMalloc (gNumberOfPositions * sizeof(float)); /* Interestingness */
-	}
-	if (gInterestingness) {
 		for(i = 0; i < gNumberOfPositions; i++) {
 			gDrawNumberChildren[i] = 0;
 			gDrawNumberChildrenOriginal[i] = 0;
@@ -1396,8 +1405,7 @@ void SetNewLevelFringe()
 	POSITION 	  i;
 	for(i = 0; i < gNumberOfPositions; i++) {
 		if (gPositionValue[i] == win) {
-			ptr = gDrawParents[i];
-			while (ptr != NULL) {
+			for (ptr = gDrawParents[i]; ptr != NULL; ptr = ptr->next) {
 				parent = ptr->position;
 				if (gPositionValue[parent] == undecided) {
 					gPositionValue[parent] = lose;
@@ -1407,7 +1415,6 @@ void SetNewLevelFringe()
 					}
 					InsertLoseDR(parent);
 				}
-				ptr = ptr->next;
 			}
 		}
 	}

@@ -135,8 +135,7 @@ VALUE DetermineLoopyValue1(POSITION position)
 
 	/* Now, the fun part. Starting from the children, work your way back up. */
 	//@@ separate lose/win frontiers
-	while ((gHeadLoseFR != NULL) ||
-	       (gHeadWinFR != NULL)) {
+	while ((gHeadLoseFR != NULL) || (gHeadWinFR != NULL)) {
 
 		if ((child = DeQueueLoseFR()) == kBadPosition)
 			child = DeQueueWinFR();
@@ -150,68 +149,67 @@ VALUE DetermineLoopyValue1(POSITION position)
 			printf("Grabbing " POSITION_FORMAT " (%s) remoteness = %d off of FR\n",
 			       child,gValueString[childValue],remotenessChild);
 
-		/* With losing children, every parent is winning, so we just go through
-		** all the parents and declare them winning */
 		if (childValue == lose) {
-			ptr = gParents[child];
-			while (ptr != NULL) {
+			/* With losing children, every parent is winning, so we just go through
+			** all the parents and declare them winning */
+			for (ptr = gParents[child]; ptr != NULL; ptr = ptr->next) {
 
 				/* Make code easier to read */
 				parent = ptr->position;
 
 				/* Skip if this is the initial position (parent is kBadPosition) */
-				if (parent != kBadPosition) {
-					if (GetValueOfPosition(parent) == undecided) {
-						/* This is the first time we know the parent is a win */
-						InsertWinFR(parent);
-						if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
-						SetRemoteness(parent, remotenessChild + 1);
-						StoreValueOfPosition(parent,win);
-					}
-					else {
-						/* We already know the parent is a winning position. */
-
-						if (GetValueOfPosition(parent) != win) {
-							printf(POSITION_FORMAT " should be win.  Instead it is %d.", parent, GetValueOfPosition(parent));
-							BadElse("DetermineLoopyValue");
-						}
-
-						/* This should always hold because the frontier is a queue.
-						** We always examine losing nodes with less remoteness first */
-						assert((remotenessChild + 1) >= Remoteness(parent));
-					}
+				if (parent == kBadPosition) {
+					continue;
 				}
-				ptr = ptr->next;
-			} /* while there are still parents */
+				if (GetValueOfPosition(parent) == undecided) {
+					/* This is the first time we know the parent is a win */
+					InsertWinFR(parent);
+					if(kDebugDetermineValue) {
+						printf("Inserting " POSITION_FORMAT " (%s) remoteness = %d into win FR\n",parent,"win",remotenessChild+1);
+					}
+					SetRemoteness(parent, remotenessChild + 1);
+					StoreValueOfPosition(parent, win);
+				} else {
+					/* We already know the parent is a winning position. */
+					if (GetValueOfPosition(parent) != win) {
+						printf(POSITION_FORMAT " should be win.  Instead it is %d.", parent, GetValueOfPosition(parent));
+						BadElse("DetermineLoopyValue");
+					}
 
-			/* With winning children */
+					/* This should always hold because the frontier is a queue.
+					** We always examine losing nodes with less remoteness first */
+					assert((remotenessChild + 1) >= Remoteness(parent));
+				}
+			}
 		} else if (childValue == win) {
-			ptr = gParents[child];
-			while (ptr != NULL) {
+			/* With winning children */
+			for (ptr = gParents[child]; ptr != NULL; ptr = ptr->next) {
 
 				/* Make code easier to read */
 				parent = ptr->position;
 
 				/* Skip if this is the initial position (parent is kBadPosition) */
+				if (parent == kBadPosition) {
+					continue;
+				}
 				/* If this is the last unknown child and they were all wins, parent is lose */
-				if(parent != kBadPosition && --gNumberChildren[parent] == 0) {
+				if (--gNumberChildren[parent] == 0) {
 					/* no more kids, it's not been seen before, assign it as losing, put at head */
 					assert(GetValueOfPosition(parent) == undecided);
 					F0EdgeCount -= (gNumberChildrenOriginal[parent] - 1);
 					InsertLoseFR(parent);
-					if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into FR head\n",parent,"lose");
+					if(kDebugDetermineValue) {
+						printf("Inserting " POSITION_FORMAT " (%s) into FR head\n",parent,"lose");
+					}
 					/* We always need to change the remoteness because we examine winning node with
 					** less remoteness first. */
 					SetRemoteness(parent, remotenessChild + 1);
-					StoreValueOfPosition(parent,lose);
-				} else if (parent != kBadPosition) {
-					F0EdgeCount++;
+					StoreValueOfPosition(parent, lose);
 				}
-				ptr = ptr->next;
-			} /* while there are still parents */
-
-			/* With children set to other than win/lose. So stop */
+				F0EdgeCount++;
+			}
 		} else {
+			/* With children set to other than win/lose. So stop */
 			BadElse("DetermineLoopyValue found FR member with other than win/lose value");
 		} /* else */
 
@@ -270,18 +268,19 @@ VALUE DetermineLoopyValue1(POSITION position)
 		printf("TIE cleanup\n");
 	}
 
-	for (i = 0; i < gNumberOfPositions; i++)
+	for (i = 0; i < gNumberOfPositions; i++) {
 		if(Visited(i)) {
 			if(kDebugDetermineValue)
 				printf(POSITION_FORMAT " was visited...",i);
 			if(GetValueOfPosition((POSITION)i) == undecided) {
-				SetRemoteness((POSITION)i,REMOTENESS_MAX);
-				StoreValueOfPosition((POSITION)i,tie);
+				SetRemoteness((POSITION)i, REMOTENESS_MAX); // Robert Shi: the "draw hack" is here!!!
+				StoreValueOfPosition((POSITION)i, tie); // Robert Shi: Draw positions are recorded as tie in REMOTENESS_MAX moves
 				if (gNumberChildren[i] < gNumberChildrenOriginal[i]) {
 					F0DrawEdgeCount += gNumberChildren[i];
 					F0NodeCount+=1;
 				}
 				//we are done with this position and no longer need to keep around its list of parents
+				// Robert Shi: This does look like a memory leak.
 				/*if (gParents[child])
 				   FreePositionList(gParents[child]); */                                       // is this a memory leak?
 				if(kDebugDetermineValue)
@@ -290,8 +289,11 @@ VALUE DetermineLoopyValue1(POSITION position)
 				if(kDebugDetermineValue)
 					printf("but was decided, ignoring\n");
 			}
+			// Robert Shi: this seems to be left-over code from DFS, which is not really
+			//  needed here.
 			UnMarkAsVisited((POSITION)i);
 		}
+	}
 
 	if (gInterestingness) {
 		DetermineInterestingness(position);
@@ -383,17 +385,14 @@ void DFS_SetParents (POSITION parent, POSITION position)
 
 void SetParents (POSITION parent, POSITION root)
 {
-	MOVELIST*       moveptr;
-	MOVELIST*       movehead;
-	POSITIONLIST*   posptr;
-	POSITIONLIST*   thisLevel;
-	POSITIONLIST*   nextLevel;
+	MOVELIST*       moveptr = NULL;
+	MOVELIST*       movehead = NULL;
+	POSITIONLIST*   posptr = NULL;
+	POSITIONLIST*   thisLevel = NULL;
+	POSITIONLIST*   nextLevel = NULL;
 	POSITION pos;
 	POSITION child;
 	VALUE value;
-
-	posptr = thisLevel = nextLevel = NULL;
-	moveptr = movehead = NULL;
 
 	// Check if the top is primitive.
 	MarkAsVisited(root);
@@ -424,11 +423,16 @@ void SetParents (POSITION parent, POSITION root)
 
 			for (moveptr = movehead; moveptr != NULL; moveptr = moveptr->next) {
 				child = DoMove(pos, moveptr->move);
-				if (gSymmetries)
+				// Robert Shi: can we speed this up by removing
+				// branching and use a default gCanonicalPosition
+				// function that returns the position itself when
+				// symm. is turned off?
+				if (gSymmetries) 
 					child = gCanonicalPosition(child);
 
 				if (child >= gNumberOfPositions)
 					FoundBadPosition(child, pos, moveptr->move);
+				// Robert Shi: are these (int) conversions really necessary?
 				++gNumberChildren[(int)pos];
 				++gNumberChildrenOriginal[(int)pos];
 				gParents[(int)child] = StorePositionInList(pos, gParents[(int)child]);

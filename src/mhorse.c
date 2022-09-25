@@ -137,6 +137,8 @@ STRING MoveToString(MOVE);
 void InitializeGame()
 {
 	gMoveToStringFunPtr = &MoveToString;
+	/* This game is the same game as Blocking and is known to be pure draw. */
+	kUsePureDraw = TRUE;
 }
 
 /************************************************************************
@@ -683,10 +685,7 @@ STRING input;
 {
 	MOVE SlotsToMove();
 	SLOT fromSlot, toSlot;
-	int ret;
-	ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-
-
+	sscanf(input,"%d %d", &fromSlot, &toSlot);
 	return(SlotsToMove(fromSlot,toSlot));
 }
 
