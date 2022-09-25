@@ -586,6 +586,7 @@ static VALUE DetermineValueHelper(POSITION pos) {
 		if (!isPure) {
 			/* The game is not pure. Set all draw positions to draw ties,
 			   all draw levels and draw remotenesses to their max values. */
+			printf("Pure Draw Analysis: The game is not pure.\n");
 			MarkDrawTies(isPure);
 			break;
 		}
@@ -595,6 +596,7 @@ static VALUE DetermineValueHelper(POSITION pos) {
 	   but not on any draw level. These remaining positions are labeled
 	   as draw-tie. */
 	if (isPure) {
+		printf("Pure Draw Analysis: The game is not pure.\n");
 		MarkDrawTies(isPure);
 	}
 	return GetValueFromBPDB(pos);
