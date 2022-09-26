@@ -527,15 +527,25 @@ static void ProcessTie() {
    function call. */
 static void ProcessLevelFringe(int level) {
 	POSITION child, parent;
+	REMOTENESS childRem, parentRem;
+
 	while (unanalyzedWinList) {
 		child = DeQueueUnanalyzedWin();
 		while (parentsOf[child]) {
 			parent = RemovePositionFromQueue(&parentsOf[child]);
-			if (parent != kBadPosition && GetValueFromBPDB(parent) == undecided) {
+			childRem = GetSlot(child, SL_REM_SLOT);
+			if (parent == kBadPosition) {
+				continue;
+			} else if (GetValueFromBPDB(parent) == undecided) {
 				SetValueInBPDB(parent, drawlose);
-				SetSlot(parent, SL_REM_SLOT, GetSlot(child, SL_REM_SLOT) + 1);
+				SetSlot(parent, SL_REM_SLOT, childRem + 1);
 				SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
 				InsertLoseFR(parent);
+			} else if (GetValueFromBPDB(parent) == drawlose) {
+				/* Parent already assigned as draw-lose. Update its
+				   remoteness to max(curr_rem, child_rem + 1). */
+				parentRem = GetSlot(parent, SL_REM_SLOT);
+				SetSlot(parent, SL_REM_SLOT, childRem + 1 > parentRem ? childRem + 1 : parentRem);
 			}
 		}
 	}
@@ -596,7 +606,7 @@ static VALUE DetermineValueHelper(POSITION pos) {
 	   but not on any draw level. These remaining positions are labeled
 	   as draw-tie. */
 	if (isPure) {
-		printf("Pure Draw Analysis: The game is not pure.\n");
+		printf("Pure Draw Analysis: The game is pure.\n");
 		MarkDrawTies(isPure);
 	}
 	return GetValueFromBPDB(pos);
