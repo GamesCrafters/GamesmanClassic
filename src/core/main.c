@@ -108,8 +108,7 @@ void SetSolver()
 		if (gGoAgain == DefaultGoAgain) {
 			if(gBitPerfectDBSolver) {
 				if (kUsePureDraw) {
-					// I'm commenting this out because this line is causing compilation to fail
-					//gSolver = &lpds_DetermineValue;
+					gSolver = &lpds_DetermineValue;
 				} else {
 					gSolver = &VSDetermineLoopyValue;
 				}
