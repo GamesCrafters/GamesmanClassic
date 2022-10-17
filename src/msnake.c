@@ -1028,8 +1028,7 @@ STRING input;
 {
 	MOVE SlotsToMove();
 	SLOT fromSlot, toSlot;
-	int text;
-	text = sscanf(input, "%d %d", &fromSlot, &toSlot);
+	int text = sscanf(input, "%d %d", &fromSlot, &toSlot);
 
 	fromSlot--;
 	toSlot--;
@@ -1248,8 +1247,10 @@ void setOption(int option)
 }
 
 POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
 	STRING board;
-	if (!UWAPI_Board_Custom_ParsePositionString(str, &board)) {
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
 		// Failed to parse string
 		return INVALID_POSITION;
 	}
@@ -1275,7 +1276,7 @@ POSITION InteractStringToPosition(STRING str) {
 		}
 	}
 
-	SafeFreeString(board); // Free the string!
+	SafeFreeString(board); // Free the string.
 	return SnakeHash(realBoard);
 }
 
@@ -1303,15 +1304,25 @@ STRING InteractPositionToString(POSITION pos) {
 				break;
 		}
 	}
-	board[BOARDSIZE] = '\0';
+	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
 
-	return UWAPI_Board_Custom_MakePositionString(board);
+	enum UWAPI_Turn turn = (whoseTurn(realBoard) == h) ? UWAPI_TURN_A : UWAPI_TURN_B;
+
+	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
+BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	SLOT fromSlot, toSlot;
+	MoveToSlots(mv, &fromSlot, &toSlot);
+	if (arrowMoves) {
+		return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+	} else {
+		return UWAPI_Board_Regular2D_MakeAddString('-', toSlot);
+	}
 }

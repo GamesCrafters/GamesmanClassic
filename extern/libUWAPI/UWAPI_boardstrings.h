@@ -32,6 +32,12 @@ BOOLEAN UWAPI_Board_Regular2D_ParsePositionString(
     unsigned int *num_columns,
     char **board);
 char *UWAPI_Board_Regular2D_GetAdditionalParam(char const *str, char const *key);
+
+char *UWAPI_Board_Regular2D_MakeBoardString(
+    enum UWAPI_Turn turn,
+    unsigned int size,
+    char const *board
+);
 char *UWAPI_Board_Regular2D_MakePositionString(
     enum UWAPI_Turn turn,
     unsigned int num_rows,
