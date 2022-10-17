@@ -51,7 +51,8 @@ extern int gTimer;
 ** Analysis globals
 */
 
-extern long gTotalMoves, gTotalPositions;
+// Robert Shi: no reason to use long here now that we used unsigned long long for gNumberOfPositions.
+extern unsigned long long gTotalMoves, gTotalPositions;
 extern BOOLEAN gAnalysisLoaded;
 
 
@@ -84,6 +85,7 @@ extern BOOLEAN kPartizan;                      /* TRUE <==> module is a Partizan
 extern BOOLEAN kGameSpecificMenu;              /* TRUE <==> module supports GameSpecificMenu() */
 extern BOOLEAN kTieIsPossible;                 /* TRUE <==> A Tie is possible */
 extern BOOLEAN kLoopy;                         /* TRUE <==> Game graph has cycles */
+extern BOOLEAN kUsePureDraw;                   /* TRUE <==> Should use pure draw loopy solver for game. */
 
 /* solver function pointer */
 extern VALUE (*gSolver)(POSITION);

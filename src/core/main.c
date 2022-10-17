@@ -37,6 +37,7 @@
 #include "solvestd.h"
 #include "solvevsstd.h"
 #include "solvevsloopy.h"
+#include "solveloopypd.h"
 #include "solvebottomup.h"
 #include "solveweakab.h"
 #include "solveretrograde.h"
@@ -106,7 +107,11 @@ void SetSolver()
 	else if(kLoopy) {
 		if (gGoAgain == DefaultGoAgain) {
 			if(gBitPerfectDBSolver) {
-				gSolver = &VSDetermineLoopyValue;
+				if (kUsePureDraw) {
+					gSolver = &lpds_DetermineValue;
+				} else {
+					gSolver = &VSDetermineLoopyValue;
+				}
 			} else {
 				gSolver = &DetermineLoopyValue;
 			}

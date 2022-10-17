@@ -439,13 +439,9 @@ USERINPUT ConfigurationMenu()
 	USERINPUT result = Configure;
 	char c;
 	char tmpName[MAXNAME];
-	VALUE gameValue = undecided;
 	STRING type1;
 	STRING type2;
 	int compIndex;
-
-	if(!gUnsolved)
-		gameValue = GetValueOfPosition(gInitialPosition);
 
 	do {
 		printf("\n\t----- Configuration Menu for %s -----\n\n", kGameName);
@@ -492,18 +488,33 @@ USERINPUT ConfigurationMenu()
 				compIndex = kPlayerOneTurn;
 			}
 			printf("\tf)\t(F)lip board to swap players 1 and 2\n");
-			if(gameValue == tie)
-				printf("\t\tNOTE: FIRST - can tie/lose; SECOND - can tie/lose\n");
-			else if (gameValue == lose)
-				printf("\t\tNOTE: First - can %s; Second - can %s",
-				       gHumanGoesFirst ? "only lose" : "win/lose",
-				       gHumanGoesFirst ? "win/lose" : "only lose");
-			else if (gameValue == win)
-				printf("\t\tNOTE: First - can %s; Second - can %s",
-				       gHumanGoesFirst ? "win/lose" : "only lose",
-				       gHumanGoesFirst ? "only lose" : "win/lose");
-			else
-				BadElse("Menus");
+			/* Robert Shi: the analysis below is not rigorous even for non-pure draw
+			   games. Commenting out for now. */
+			// if (gameValue == tie) {
+			// 	printf("\t\tNOTE: FIRST - can tie/lose; SECOND - can tie/lose\n");
+			// } else if (gameValue == lose) {
+			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
+			// 	       gHumanGoesFirst ? "only lose" : "win/lose",
+			// 	       gHumanGoesFirst ? "win/lose" : "only lose");
+			// } else if (gameValue == win) {
+			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
+			// 	       gHumanGoesFirst ? "win/lose" : "only lose",
+			// 	       gHumanGoesFirst ? "only lose" : "win/lose");
+			// } else if (gameValue == drawwin) {
+			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
+			// 		   gHumanGoesFirst ? "draw and force opponent to a draw-lose" : "draw/lose",
+			// 		   gHumanGoesFirst ? "draw/lose" : "draw and force opponent to a draw-lose");
+			// } else if (gameValue == drawlose) {
+			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
+			// 		   gHumanGoesFirst ? "draw/lose" : "draw and force opponent to a draw-lose",
+			// 		   gHumanGoesFirst ? "draw and force opponent to a draw-lose" : "draw/lose");
+			// } else if (gameValue == drawtie) {
+			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
+			// 		   gHumanGoesFirst ? "draw/lose" : "draw",
+			// 		   gHumanGoesFirst ? "draw" : "draw/lose");
+			// } else {
+			// 	BadElse("Menus");
+			// }
 
 			/*analysis taken out*/
 

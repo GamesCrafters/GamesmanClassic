@@ -64,7 +64,7 @@ BOOLEAN kSupportsGraphics   = FALSE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kTieIsPossible      = FALSE;
-BOOLEAN kLoopy               = TRUE;
+BOOLEAN kLoopy              = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
@@ -341,6 +341,8 @@ void InitializeGame ()
 
 	int hash_array[10];
 	char string_board[MAX_NODES];
+
+	kUsePureDraw = TRUE; /* This game is known to be a pure draw game. */
 
 	if(use_default) {
 		g_file = fopen(default_file, "r");
