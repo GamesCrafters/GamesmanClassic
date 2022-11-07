@@ -159,6 +159,7 @@ extern TIERPOSITION gCurrentTierSize;
 extern BOOLEAN*         gTierDBExists;
 // For the modules
 extern BOOLEAN kSupportsTierGamesman;
+extern BOOLEAN kSupportsShardGamesman;
 extern BOOLEAN kExclusivelyTierGamesman;
 extern BOOLEAN kDebugTierMenu;
 extern TIERPOSITION gInitialTierPosition;

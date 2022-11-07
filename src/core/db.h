@@ -101,6 +101,7 @@ void            CreateDatabases         ();
 void            InitializeDatabases     ();
 void            DestroyDatabases        ();
 BOOLEAN         ReinitializeTierDB      ();
+void            InitializeShardDB       ();
 
 UINT64
 GetSlot(

@@ -151,7 +151,10 @@ VALUE DetermineValue(POSITION position)
 		gLoadDatabase = FALSE;
 	}
 
-	if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
+	if(kSupportsShardGamesman) {
+		InitializeShardDB();
+		printf("Done loading shard database.\n");
+	} else if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
 		BOOLEAN usingLookupTierDB = FALSE;
 		if (gIsInteract) {
 			usingLookupTierDB = ReinitializeTierDB();
@@ -218,7 +221,7 @@ VALUE DetermineValue(POSITION position)
 		}
 	}
 	gUseGPS = FALSE;
-	gValue = GetValueOfPosition(position);
+	if (!gIsInteract) gValue = GetValueOfPosition(position);
 
 	return gValue;
 }
