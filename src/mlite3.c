@@ -93,6 +93,8 @@ STRING kHelpExample =
 #define BOARDSIZE     10           /* 3x3 board, element 0 is whoseTurn */
 #define NUMSYMMETRIES 8           /* 4 rotations, 4 flipped rotations */
 
+typedef int SLOT;     /* A slot is the place where a piece moves from or to */
+
 typedef enum players {
 	x, o
 } PLAYER_TURN;
@@ -497,7 +499,7 @@ MOVE theMove;
 POSITION GetInitialPosition()
 {
 	POSITION BlankOOOXXXToPosition();
-	BlankOOOXXX theBlankOOOXXX[BOARDSIZE], whosTurn;
+	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 	signed char c;
 	int i;
 
@@ -507,7 +509,8 @@ POSITION GetInitialPosition()
 	printf("\tNote that it should be in the following format:\n\n");
 	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
 
-	i = 0;
+	theBlankOOOXXX[0] = x;
+	i = 1;
 	getchar();
 	while(i < BOARDSIZE && (c = getchar()) != EOF) {
 		if(c == 'x' || c == 'X')
@@ -520,7 +523,7 @@ POSITION GetInitialPosition()
 			;
 	}
 
-	return(BlankOOOXXXToPosition(theBlankOOOXXX,whosTurn));
+	return(BlankOOOXXXToPosition(theBlankOOOXXX));
 }
 
 /************************************************************************
@@ -1083,6 +1086,30 @@ BlankOOOXXX theBlankOOOXXX[];
 	return FALSE;
 }
 
+
+/************************************************************************
+**
+** NAME:        MoveToSlots
+**
+** DESCRIPTION: convert an internal move to that of two slots
+**
+** INPUTS:      MOVE theMove    : The move input.
+**              SLOT *fromSlot  : The slot the piece moves from (output)
+**              SLOT *toSlot    : The slot the piece moves to   (output)
+**
+************************************************************************/
+
+SLOT DESIREDPIECE; /* Global variable to determine whose turn it is. */
+
+void MoveToSlots(theMove, fromSlot, toSlot)
+MOVE theMove;
+SLOT *fromSlot, *toSlot;
+{
+	*fromSlot = theMove % (BOARDSIZE+1);
+	*toSlot   = theMove / (BOARDSIZE+1);
+	DESIREDPIECE = *fromSlot; /*added*/
+}
+
 /************************************************************************
 **
 ** NAME:        WhoseTurn
@@ -1131,19 +1158,99 @@ void setOption(int option)
 }
 
 POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+
+	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+	theBlankOOOXXX[0] = turn == UWAPI_TURN_B? o : x;
+	for (int i = 1; i < BOARDSIZE; i++) {
+		switch (board[i-1]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case '-':
+				theBlankOOOXXX[i] = Blank;
+				break;
+			case 'a':
+				theBlankOOOXXX[i] = o1;
+				break;
+			case 'b':
+				theBlankOOOXXX[i] = o2;
+				break;
+			case 'c':
+				theBlankOOOXXX[i] = o3;
+				break;
+			case '1':
+				theBlankOOOXXX[i] = x1;
+				break;
+			case '2':
+				theBlankOOOXXX[i] = x2;
+				break;
+			case '3':
+				theBlankOOOXXX[i] = x3;
+				break;
+		}
+	}
+
+	SafeFreeString(board); // Free the string.
+	return BlankOOOXXXToPosition(theBlankOOOXXX);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+	PositionToBlankOOOXXX(pos, theBlankOOOXXX);
+	enum UWAPI_Turn turn = (!WhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
+
+	char board[BOARDSIZE];
+	for (int i = 0; i < BOARDSIZE-1; i++) {
+		switch (theBlankOOOXXX[i+1]) {
+			default:
+				fprintf(stderr, "Error: Unexpected position\n");
+				break;
+			case Blank:
+				board[i] = '-';
+				break;
+			case o1:
+				board[i] = 'a';
+				break;
+			case o2:
+				board[i] = 'b';
+				break;
+			case o3:
+				board[i] = 'c';
+				break;
+			case x1:
+				board[i] = '1';
+				break;
+			case x2:
+				board[i] = '2';
+				break;
+			case x3:
+				board[i] = '3';
+				break;
+		}
+	}
+	board[BOARDSIZE-1] = '\0'; // Make sure to null-terminate your board.
+
+	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
+BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	SLOT fromSlot, toSlot;
+	MoveToSlots(mv, &fromSlot, &toSlot);
+	if (arrowMoves) {
+		return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+	} else {
+		return UWAPI_Board_Regular2D_MakeAddString('-', toSlot);
+	}
 }
