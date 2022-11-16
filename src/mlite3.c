@@ -6,8 +6,9 @@
 **
 ** AUTHORS:      Alex Perelman
 **              Babak Hamadani
+**              Kehan Chen
 **
-** DATE:        03/12/02
+** DATE:        11/16/22
 **
 ** UPDATE HIST:
 **   3/1/02 - First Changes:
@@ -29,6 +30,13 @@
 **        Changed calls to WhoseTurn() to BlankOOOXXX[0]
 **        Changed ConvertTextInputToMove and PrintMove, Move is now 1-9
 **        WOOHOO!! 17 \/\/3|2|<$!!!
+**
+**   11/16/22 - More Changes
+**        Fixed bug in Surround
+**        InteractStringToPosition()
+**        InteractPositionToString()
+**        InteractMoveToString()
+**        MoveToSlots()
 **
 **************************************************************************/
 
@@ -1051,9 +1059,9 @@ BlankOOOXXX theBlankOOOXXX[];
 	char* opponentPiece;
 	char* middlePiece = gBlankOOOXXXString[theBlankOOOXXX[5]]; //is middle piece Blank, X or O?
 
-	opponentPiece = (middlePiece == "X") ? "O" : "X";
+	opponentPiece = (strcmp(middlePiece, "X") == 0) ? "O" : "X";
 
-	if(middlePiece != "-")
+	if(strcmp(middlePiece, "-") != 0)
 	{
 		if( (gBlankOOOXXXString[theBlankOOOXXX[1]] == opponentPiece &&
 		     gBlankOOOXXXString[theBlankOOOXXX[2]] == middlePiece &&
@@ -1099,15 +1107,11 @@ BlankOOOXXX theBlankOOOXXX[];
 **
 ************************************************************************/
 
-SLOT DESIREDPIECE; /* Global variable to determine whose turn it is. */
-
-void MoveToSlots(theMove, fromSlot, toSlot)
+void MoveToSlots(theMove, toSlot)
 MOVE theMove;
-SLOT *fromSlot, *toSlot;
+SLOT *toSlot;
 {
-	*fromSlot = theMove % (BOARDSIZE+1);
-	*toSlot   = theMove / (BOARDSIZE+1);
-	DESIREDPIECE = *fromSlot; /*added*/
+	*toSlot   = theMove % (BOARDSIZE+1);
 }
 
 /************************************************************************
@@ -1201,7 +1205,7 @@ POSITION InteractStringToPosition(STRING board) {
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+	BlankOOOXXX *theBlankOOOXXX;
 	PositionToBlankOOOXXX(pos, theBlankOOOXXX);
 	enum UWAPI_Turn turn = (!WhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
@@ -1246,11 +1250,8 @@ STRING InteractPositionToEndData(POSITION pos) {
 
 BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	SLOT fromSlot, toSlot;
-	MoveToSlots(mv, &fromSlot, &toSlot);
-	if (arrowMoves) {
-		return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
-	} else {
-		return UWAPI_Board_Regular2D_MakeAddString('-', toSlot);
+	SLOT toSlot;
+	MoveToSlots(mv, &toSlot);
+	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot);
 	}
 }
