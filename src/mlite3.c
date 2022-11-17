@@ -1205,7 +1205,7 @@ POSITION InteractStringToPosition(STRING board) {
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	BlankOOOXXX *theBlankOOOXXX;
+	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 	PositionToBlankOOOXXX(pos, theBlankOOOXXX);
 	enum UWAPI_Turn turn = (!WhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
@@ -1252,6 +1252,5 @@ BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT toSlot;
 	MoveToSlots(mv, &toSlot);
-	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot);
-	}
+	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot - 1);
 }
