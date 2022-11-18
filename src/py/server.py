@@ -41,7 +41,7 @@ game_script_directory = './src/py/games/'
 close_on_timeout = False
 
 # Seconds to wait for a response from the process before sending timeout_msg
-subprocess_reponse_timeout = 5000#0.2  # Seconds
+subprocess_reponse_timeout = 5 #0.2  # Seconds
 
 # Number of seconds to wait without a request before shutting down
 # process
@@ -350,8 +350,8 @@ class GameProcess(object):
                 while next_char != '\n':
                     response += next_char
                     next_char = self.process.stdout.read(1)
-                    #if time.time() - curr_time > 5:
-                    if time.time() - curr_time > 5000:
+                    if time.time() - curr_time > 5:
+                    #if time.time() - curr_time > 5000:
                         self.server.log.debug('timeout')
                         return self.handle_timeout(request, response)
             except IOError:
