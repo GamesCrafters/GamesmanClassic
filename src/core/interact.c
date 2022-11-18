@@ -116,10 +116,6 @@ char * MakeBoardString(char * first, ...) {
 	return out;
 }
 
-static BOOLEAN isalnumdash(char c) {
-	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '-' || c == '*';
-}
-
 /* Reads a position from stdin, returns NULL on error. Otherwise, returns a
  * pointer to the rest of the string.
  */
@@ -214,6 +210,8 @@ STRING InteractValueCharToValueString(char value_char) {
 		return "lose";
 	case 'U':
 		return "undecided";
+	case 'D':
+		return "draw";
 	default:
 		return "error";
 	}

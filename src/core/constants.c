@@ -182,7 +182,7 @@ char *gValueString[] =
 	// "Tie-Visited", "Undecided-Visited"
 };
 
-char gValueLetter[] = { 'U', 'W', 'L', 'T' };
+char gValueLetter[] = { 'U', 'W', 'L', 'T', 'D', 'D', 'D', 'D' };
 
 STRING kSolveVersion = "2006.01.01";
 
