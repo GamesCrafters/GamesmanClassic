@@ -49,7 +49,7 @@
 **************************************************************************/
 
 STRING kGameName            = "Mu Torere";   /* The name of your game */
-STRING kAuthorName          = "Joe Jing and Jeff Chou";   /* Your name(s) */
+STRING kAuthorName          = "Joe Jing, Jeff Chou, Jingfan Xia";   /* Your name(s) */
 STRING kDBName              = "tore";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
@@ -465,7 +465,8 @@ MOVELIST *GenerateMoves (POSITION position)
 POSITION DoMove (POSITION position, MOVE move)
 {
 	int i, from, to;
-	char oldc, turn;
+	//char oldc, turn;
+	char oldc;
 	generic_hash_unhash(position,gBoard);
 	for (i = 0; i < 9; i++) {
 		if (gBoard[i] == '_') {
@@ -474,11 +475,11 @@ POSITION DoMove (POSITION position, MOVE move)
 	}
 	from = move;
 	oldc = gBoard[from];
-	if (generic_hash_turn(position) == 1) {
+	/*if (generic_hash_turn(position) == 1) {
 		turn = 'x';
 	} else {
 		turn = 'o';
-	}
+	}*/
 	gBoard[to] = oldc;
 	gBoard[from] = '_';
 	if (generic_hash_turn(position) == 1)
@@ -970,14 +971,27 @@ POSITION getCanonicalPosition (POSITION position) {
 	return minPosHash;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+	for (int i = 0; i < 9; i++) if (board[i] == '-') board[i] = '_';
+	POSITION toReturn = generic_hash_hash(board, (turn == UWAPI_TURN_A) ? 1 : 2);
+	SafeFreeString(board); // Free the string.
+	return toReturn;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	char board[10];
+	generic_hash_unhash(pos, board);
+	for (int i = 0; i < 9; i++) if (board[i] == '_') board[i] = '-';
+	board[9] = '\0'; // Make sure to null-terminate your board.
+	enum UWAPI_Turn turn = (generic_hash_turn(pos) == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 9, board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -985,5 +999,12 @@ STRING InteractPositionToEndData(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	char board[9];
+	generic_hash_unhash(pos, board);
+	for (int i = 0; i < 9; i++) {
+		if (board[i] == '_') {
+			return UWAPI_Board_Regular2D_MakeMoveString(mv, i);
+		}
+	}
+	return NULL;
 }
