@@ -578,10 +578,13 @@ STRING computersName;
 VALUE Primitive(position)
 POSITION position;
 {
-	BOOLEAN ThreeInARow(), Surround();
+	BOOLEAN ThreeInARow();
+	VALUE Surround();
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+	PLAYER_TURN whoseTurn = position & 1;
 
 	PositionToBlankOOOXXX(position,theBlankOOOXXX);
+	
 
 	if( gGameObjective == THREE_IN_A_ROW &&
 	    (ThreeInARow(theBlankOOOXXX,1,2,3) ||
@@ -591,24 +594,25 @@ POSITION position;
 	     ThreeInARow(theBlankOOOXXX,2,5,8) ||
 	     ThreeInARow(theBlankOOOXXX,3,6,9) ||
 	     ThreeInARow(theBlankOOOXXX,1,5,9) ||
-	     ThreeInARow(theBlankOOOXXX,3,5,7)) )
+	     ThreeInARow(theBlankOOOXXX,3,5,7)) ) {
 		return(gStandardGame ? lose : win);
-	else if( gGameObjective == SURROUND &&
-	         Surround(theBlankOOOXXX) )
-		return(gStandardGame ? lose : win);
-	else if( gGameObjective == BOTH &&
-	         (Surround(theBlankOOOXXX) ||
-	          ThreeInARow(theBlankOOOXXX,1,2,3) ||
+	} else if( gGameObjective == SURROUND ) {
+	         return Surround(theBlankOOOXXX, whoseTurn);
+	} else if( gGameObjective == BOTH ) {
+		if (ThreeInARow(theBlankOOOXXX,1,2,3) ||
 	          ThreeInARow(theBlankOOOXXX,4,5,6) ||
 	          ThreeInARow(theBlankOOOXXX,7,8,9) ||
 	          ThreeInARow(theBlankOOOXXX,1,4,7) ||
 	          ThreeInARow(theBlankOOOXXX,2,5,8) ||
 	          ThreeInARow(theBlankOOOXXX,3,6,9) ||
 	          ThreeInARow(theBlankOOOXXX,1,5,9) ||
-	          ThreeInARow(theBlankOOOXXX,3,5,7)))
-		return(gStandardGame ? lose : win);
-	else
+	          ThreeInARow(theBlankOOOXXX,3,5,7)) {
+			return gStandardGame ? lose : win;
+		}
+	    return Surround(theBlankOOOXXX, whoseTurn);
+	} else {
 		return(undecided);
+	}
 }
 
 /************************************************************************
@@ -1053,15 +1057,16 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN Surround(theBlankOOOXXX)
+VALUE Surround(theBlankOOOXXX, whoseTurn)
 BlankOOOXXX theBlankOOOXXX[];
+PLAYER_TURN whoseTurn;
 {
 	char* opponentPiece;
 	char* middlePiece = gBlankOOOXXXString[theBlankOOOXXX[5]]; //is middle piece Blank, X or O?
 
 	opponentPiece = (strcmp(middlePiece, "X") == 0) ? "O" : "X";
 
-	if(strcmp(middlePiece, "-") != 0)
+	if (strcmp(middlePiece, "-") != 0)
 	{
 		if( (gBlankOOOXXXString[theBlankOOOXXX[1]] == opponentPiece &&
 		     gBlankOOOXXXString[theBlankOOOXXX[2]] == middlePiece &&
@@ -1087,11 +1092,24 @@ BlankOOOXXX theBlankOOOXXX[];
 		    (gBlankOOOXXXString[theBlankOOOXXX[9]] == opponentPiece &&
 		     gBlankOOOXXXString[theBlankOOOXXX[8]] == middlePiece &&
 		     gBlankOOOXXXString[theBlankOOOXXX[6]] == middlePiece)
-		    )
-			return TRUE;
+		    ) {
+				if (strcmp(opponentPiece, "X") == 0) {
+					if (whoseTurn == x) {
+						return gStandardGame ? lose : win;
+					} else {
+						return gStandardGame ? win : lose;
+					}
+				} else if (strcmp(opponentPiece, "O") == 0) {
+					if (whoseTurn == o) {
+						return gStandardGame ? lose : win;
+					} else {
+						return gStandardGame ? win : lose;
+					}
+				}
+			}
 	}
 
-	return FALSE;
+	return undecided;
 }
 
 
