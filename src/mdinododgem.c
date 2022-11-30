@@ -124,9 +124,9 @@ Computer wins. Nice try, dude."                                                 
 POSITION gNumberOfPositions;
 POSITION gInitialPosition;
 POSITION kBadPosition        = -1;     /* This can never be the rep. of a position */
-#define boardsize 25                    /* default boardsize */
-#define side 5                          /* get side length of board */
-#define offtheboard 25                  /* Removing that piece from the board */
+int boardsize = 25;                   /* default boardsize */
+int side = 5;                          /* get side length of board */
+int offtheboard = 25;                  /* Removing that piece from the board */
 #define BADSLOT         -2             /* You've moved off the board in a bad way */
 POSITION* g3Array = NULL;              /* Powers of 3 */
 
@@ -476,19 +476,23 @@ MOVE theMove; {
 	return thePosition;
 }
 
-void MoveToSlots(theMove, fromSlot, toSlot)
+void MoveToSlots(theMove, fromSlot, toSlot, turn)
 MOVE theMove;
 SLOT *fromSlot, *toSlot;
+BlankOX *turn;
 {
-	*fromSlot = theMove % (BOARDSIZE+1);
-	*toSlot   = theMove / (BOARDSIZE+1);
-	DESIREDPIECE = *fromSlot; /*added*/
+	//*fromSlot = theMove % (boardsize+1);
+	//*toSlot   = theMove / (boardsize+1);
+	(*fromSlot) = theMove >> 16;
+	(*toSlot) = (theMove >> 8) & 0xFF;
+	(*turn) = (theMove & 1) ? o : x;
+	//DESIREDPIECE = *fromSlot; /*added*/
 }
 
 MOVE SlotsToMove(fromSlot, toSlot)
 SLOT fromSlot, toSlot;
 {
-	return ((MOVE) toSlot*(BOARDSIZE+1) + fromSlot);
+	return ((MOVE) toSlot*(boardsize+1) + fromSlot);
 }
 
 void UndoMove(MOVE theMove)
@@ -1417,7 +1421,7 @@ POSITION InteractStringToPosition(STRING str) {
 
 
 	BlankOX realBoard[boardsize];
-	// int i = 0;
+	int i = 0;
 	for (i = 0; i < boardsize; i++) {
 		switch (board[i]) {
 			default:
@@ -1436,40 +1440,42 @@ POSITION InteractStringToPosition(STRING str) {
 		// realBoard[i] = board[i];
 
 	}
-	return generic_hash_hash(realBoard,0);
+	return generic_hash_hash(realBoard, (turn == UWAPI_TURN_A) ? 2 : 1);
 }
 
 STRING InteractPositionToString(POSITION pos) {
+	BlankOX whoseTurn;
 	BlankOX board[boardsize];
-	// int i = 0;
-	generic_hash_unhash(pos, &board);
+	PositionToBlankOX(pos,board,&whoseTurn);
+	int i = 0;
+	//generic_hash_unhash(pos, &board);
 	// char* finalBoard = calloc((boardsize+1), sizeof(char));
-	char* finalBoard = [boardsize + 1]
+	char finalBoard[boardsize + 8 + 1];
 
 	for (i = 0; i < boardsize; i++) {
-		switch (realBoard[i]) {
+		switch (board[i]) {
 			default:
 				fprintf(stderr, "Error: Unexpected position\n");
 				break;
 			case Blank:
-				board[i] = '-';
+				finalBoard[i] = '-';
 				break;
 			case x:
-				board[i] = 'x';
+				finalBoard[i] = 'x';
 				break;
 			case o:
-				board[i] = 'o';
+				finalBoard[i] = 'o';
 				break;
 		}
 		// finalBoard[i] = board[i];
 	}
 
 	// return finalBoard;
+	for (int j = boardsize; j < boardsize + 8; j++) finalBoard[j] = '-';
+	finalBoard[boardsize + 8] = '\0'; // Make sure to null-terminate your board.
 
-	finalBoard[boardsize] = '\0'; // Make sure to null-terminate your board.
-
-	enum UWAPI_Turn turn = (whoseTurn(finalBoard) == h) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25, boafinalBoardrd);
+	enum UWAPI_Turn turn = (whoseTurn == x) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25 + 8, finalBoard);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -1478,22 +1484,32 @@ STRING InteractPositionToEndData(POSITION pos) {
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT fromSlot, toSlot;
-	MoveToSlots(mv, &fromSlot, &toSlot);
+	BlankOX turn;
+	MoveToSlots(mv, &fromSlot, &toSlot, &turn);
 
-	fromSlot = fromSlot / 3 + 4 + fromSlot;
+	//fromSlot = fromSlot / 3 + 4 + fromSlot;
 
 	if (toSlot == offtheboard) {
-		if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
+		switch (fromSlot) {
+			case 9: toSlot = 25; break;
+			case 14: toSlot = 26; break;
+			case 19: toSlot = 27; break;
+			case 21: toSlot = 32; break;
+			case 22: toSlot = 31; break;
+			case 23: toSlot = 30; break;
+			default: toSlot = (turn == x) ? 29 : 28;
+		}
+		//if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
 			// If the piece is moving off the board from the top row
-			if (turn == UWAPI_TURN_A) {
+			/*if (turn == UWAPI_TURN_A) {
 				toSlot = fromSlot + 1;
 			} else {
 				toSlot = fromSlot - 4;
-			}
-		}
-	} else {
-		toSlot = toSlot / 3 + 4 + toSlot;
-	}
+			}*/
+		//}
+	} //else {
+		//toSlot = to//toSlot / 3 + 4 + toSlot;
+	//}
 
 	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
 	// return MoveToString(mv);
