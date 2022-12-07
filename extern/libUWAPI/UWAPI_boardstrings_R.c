@@ -29,7 +29,7 @@ BOOLEAN UWAPI_Board_Regular2D_ParsePositionString(char const *str, enum UWAPI_Tu
 
     // Expect A/B for turn
     pch = strtok(NULL, sep);
-    if (strlen(pch) != 1 || (pch[0] != UWAPI_TURN_A && pch[0] != UWAPI_TURN_B))
+    if (strlen(pch) != 1 || (pch[0] != UWAPI_TURN_A && pch[0] != UWAPI_TURN_B && pch[0] != UWAPI_TURN_C))
     {
         free(str_dup);
         return FALSE;

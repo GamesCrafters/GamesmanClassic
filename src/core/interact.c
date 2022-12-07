@@ -217,6 +217,20 @@ STRING InteractValueCharToValueString(char value_char) {
 	}
 }
 
+void InteractPrintJSONMEXValue(POSITION pos) {
+	if (!kPartizan && !gTwoBits) {
+		printf("\"mex\":");
+		int theMex = MexLoad(pos);
+		if(theMex == (MEX) 0)
+			printf("\"0\"");
+		else if(theMex == (MEX)1)
+			printf("\"*\"");
+		else
+			printf("\"*%d\"", (int)theMex);
+		printf(",");
+	}
+}
+
 void InteractPrintJSONPositionValue(POSITION pos) {
 	char value_char = gValueLetter[GetValueOfPosition(pos)];
 	printf("\"value\":\"%s\"", InteractValueCharToValueString(value_char));
@@ -295,6 +309,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(gInitialTier, FALSE);
 			}
 			board = InteractPositionToString(gInitialPosition);
+			if (board[2] == 'C') board[2] = 'A'; // Resolve arbitrary turn.
 			printf(RESULT "{\"status\":\"ok\",\"response\":");
 			if (!strcmp(board, "Implement Me")) {
 				printf("\"not implemented\"");
@@ -457,6 +472,7 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
+			char opp_turn_char = (board[2] == 'A') ? 'B' : 'A';
 			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
 				gInitializeHashWindow(tier, TRUE);
 			}
@@ -473,6 +489,7 @@ void ServerInteractLoop(void) {
 			MOVELIST *reversedMoves = NULL;
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
 			printf("\"board\": \"%s\",", board);
+			InteractPrintJSONMEXValue(pos);
 			printf("\"remoteness\":%d,", Remoteness(pos));
 			InteractPrintJSONPositionValue(pos);
 
@@ -484,8 +501,10 @@ void ServerInteractLoop(void) {
 					nextPositions = StorePositionInList(choice, nextPositions);
 					reversedMoves = CreateMovelistNode(current_move->move, reversedMoves);
 					board = InteractPositionToString(choice);
+					board[2] = (board[2] == 'C') ? opp_turn_char : board[2];
 					printf("{\"board\":\"%s\",", board);
 					InteractFreeBoardSting(board);
+					InteractPrintJSONMEXValue(choice);
 					printf("\"remoteness\":%d,", Remoteness(choice));
 					InteractPrintJSONPositionValue(choice);
 					move_string = InteractMoveToString(pos, current_move->move);

@@ -13,8 +13,9 @@
 
 enum UWAPI_Turn
 {
-    UWAPI_TURN_A = 'A',
-    UWAPI_TURN_B = 'B'
+    UWAPI_TURN_A = 'A', // Player 1
+    UWAPI_TURN_B = 'B', // Player 2
+    UWAPI_TURN_C = 'C'  // Any Player (for games that don't encode turn in position)
 };
 
 // Regular 2D
