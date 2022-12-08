@@ -1316,7 +1316,7 @@ STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
-BOOLEAN arrowMoves = FALSE;
+BOOLEAN arrowMoves = TRUE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(mv, &fromSlot, &toSlot);
