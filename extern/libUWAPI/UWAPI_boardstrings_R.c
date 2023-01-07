@@ -29,7 +29,7 @@ BOOLEAN UWAPI_Board_Regular2D_ParsePositionString(char const *str, enum UWAPI_Tu
 
     // Expect A/B for turn
     pch = strtok(NULL, sep);
-    if (strlen(pch) != 1 || (pch[0] != UWAPI_TURN_A && pch[0] != UWAPI_TURN_B))
+    if (strlen(pch) != 1 || (pch[0] != UWAPI_TURN_A && pch[0] != UWAPI_TURN_B && pch[0] != UWAPI_TURN_C))
     {
         free(str_dup);
         return FALSE;
@@ -63,14 +63,14 @@ BOOLEAN UWAPI_Board_Regular2D_ParsePositionString(char const *str, enum UWAPI_Tu
 
     // Expect board string of correct size
     pch = strtok(NULL, sep);
-    unsigned int num_cells = num_rows_ * num_columns_;
+    //unsigned int num_cells = num_rows_ * num_columns_;
     unsigned int i = 0;
-    while (i < num_cells)
+    while (pch[i] != '\0')
     {
         char b = pch[i];
-        if (b == '\0' || !isalnumdash(b))
+        if (!isalnumdash(b))
         {
-            // Board string too short & only alphanumeric characters are allowed
+            // Only alphanumeric characters are allowed
             free(str_dup);
             return FALSE;
         }
@@ -121,6 +121,35 @@ char *UWAPI_Board_Regular2D_GetAdditionalParam(char const *str, char const *key)
     val[val_len] = '\0';
 
     return val;
+}
+
+char *UWAPI_Board_Regular2D_MakeBoardString(enum UWAPI_Turn turn, unsigned int size, char const *board)
+{
+    unsigned int i = 0;
+    while (board[i] != '\0' && i < size)
+    {
+        char b = board[i];
+        if (!isalnumdash(b))
+        {
+            // Board string too short & only alphanumeric characters are allowed
+            return NULL;
+        }
+        i++;
+    }
+
+    // Unsigned ints don't exceed 10 digits
+    char *str = malloc(
+        1 + 1 +
+        /* turn */ 1 + 1 +
+        /* rows */ 10 + 1 +
+        /* columns */ 10 + 1 +
+        i + /* null terminator */ 1);
+
+    if (str == NULL)
+        return str;
+
+    sprintf(str, "R_%c_%d_%d_%s", turn, 0, 0, board);
+    return str;
 }
 
 char *UWAPI_Board_Regular2D_MakePositionString(enum UWAPI_Turn turn, unsigned int num_rows, unsigned int num_columns, char const *board)

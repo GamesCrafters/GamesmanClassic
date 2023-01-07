@@ -69,6 +69,8 @@ void InitializeGame()
   gNumberOfPositions = generic_hash_init(BOARD_SIZE, hash_data, NULL, 0);
   char start[] = " XOXO";
   gInitialPosition = generic_hash_hash(start, 1);
+  /* This game is the same game as Blocking and is known to be pure draw. */
+  kUsePureDraw = TRUE;
 }
 
 void FreeGame()

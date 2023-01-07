@@ -2144,6 +2144,7 @@ STRING InteractPositionToString(POSITION interpos) {
 		board_string[posMap[S2]] = 'G';
 		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
 		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
+		/*
 		if (whoseTurn == 1) {
 			for (int i = 1; i < 49; i++) {
 				if (L1 != i) {
@@ -2170,7 +2171,7 @@ STRING InteractPositionToString(POSITION interpos) {
 					}
 				}
 			}
-		}
+		}*/
 	}
 	
 	return board_string;
@@ -2196,14 +2197,14 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		S1 = Make8to16(L1, L2, S1);
 		S2 = Make7to16(L1, L2, S1, S2);
 		if (SP == 1) { 
-			return UWAPI_Board_Regular2D_MakeAddString('W', gridMap[S1]);
+			return UWAPI_Board_Regular2D_MakeAddString('-', gridMap[S1]);
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddString('G', gridMap[S2]);
+			return UWAPI_Board_Regular2D_MakeAddString('-', gridMap[S2]);
 		}
 	} else if (mv >= 100000) {
 		int SP = unhashMoveSPiece(mv % 100000);
 		int SV = unhashMoveSValue(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString((SP == 1) ? 'W' : 'G', gridMap[SV]);
+		return UWAPI_Board_Regular2D_MakeAddString((SP == 1) ? '-' : '-', gridMap[SV]);
 	} else {
 		return MoveToString(mv);
 	}

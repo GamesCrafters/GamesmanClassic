@@ -1396,16 +1396,16 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
   int isGridMove, from, to;
   unhashMove(mv % 100000, &isGridMove, &from, &to);
   if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv
-    return UWAPI_Board_Regular2D_MakeAddString('G', selectMoveGridIdx - 8);
+    return UWAPI_Board_Regular2D_MakeAddString('-', selectMoveGridIdx - 8);
   } else if (mv >= 400000) { // Move is "choose where to move grid" 400000 + mv
-    return UWAPI_Board_Regular2D_MakeAddString('G', boardToGridIdxMapping5[to]);
+    return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping5[to]);
   } else if (mv >= 300000) { // Move is "select piece to move" 300000 + mv
-    return UWAPI_Board_Regular2D_MakeAddString('m', boardToGridIdxMapping5[from]);
+    return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping5[from]);
   } else if (mv >= 200000) { // Move is "select where to move piece" 200000 + mv
     return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping5[from], boardToGridIdxMapping5[to]);
   } else {
     if (from == to) {
-      return UWAPI_Board_Regular2D_MakeAddString('a', boardToGridIdxMapping5[to]);
+      return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping5[to]);
     } else {
       return MoveToString(mv);
     }

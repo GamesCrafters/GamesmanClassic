@@ -894,14 +894,44 @@ void setOption(int option)
 		gStandardGame = FALSE;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+
+	BlankO theBlankO[gBoardSize];
+	for (int i = 0; i < gBoardSize; i++) {
+		switch (board[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case '-':
+				theBlankO[i] = Blank;
+				break;
+			case 'O':
+				theBlankO[i] = o;
+				break;
+		}
+	}
+
+	SafeFreeString(board); // Free the string.
+	return BlankOToPosition(theBlankO);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankO posArray[gBoardSize];
+	PositionToBlankO(pos, posArray);
+	char posString[gBoardSize + 1];
+	int i;
+	for (i = 0; i < gBoardSize; i++) {
+		posString[i] = (posArray[i] == Blank) ? '-' : 'O';
+	}
+	posString[i] = '\0';
+	return UWAPI_Board_Regular2D_MakePositionString(UWAPI_TURN_C, 4, 4, posString);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
@@ -909,5 +939,36 @@ STRING InteractPositionToEndData(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	int lsb = -1, msb = -1;
+	for (int i = 0; i < 16; i++) {
+		if (mv & 1) {
+			msb = i;
+			if (lsb == -1) lsb = i;
+		}
+		mv >>= 1;
+	}
+	if (msb == lsb) {
+		return UWAPI_Board_Regular2D_MakeAddString('-', lsb);
+	}
+	BOOLEAN isVert = (msb - lsb > 3);
+	int which = -1, lsbi = -1, msbi = -1;
+	if (isVert) {
+		which = lsb % 4;
+		lsbi = lsb / 4;
+		msbi = msb / 4;
+	} else {
+		which = lsb / 4;
+		lsbi = lsb % 4;
+		msbi = msb % 4;
+	}
+	int idx = -1;
+	switch (msbi - lsbi) {
+		case 1: idx = lsbi; break;
+		case 3: idx = 5; break;
+		default: idx = (lsbi) ? 4 : 3; break;
+	}
+	int from = 16 + ((isVert) ? 48 : 0) + 2 * (6 * which + idx);
+	char *toReturn = UWAPI_Board_Regular2D_MakeMoveString(from, from + 1);
+	toReturn[0] = 'L';
+	return toReturn;
 }

@@ -161,6 +161,7 @@ TIERPOSITION gCurrentTierSize = 0;
 BOOLEAN*        gTierDBExists = NULL;
 // For the modules
 BOOLEAN kSupportsTierGamesman = FALSE;
+BOOLEAN kSupportsShardGamesman = FALSE;
 BOOLEAN kExclusivelyTierGamesman = FALSE;
 BOOLEAN kDebugTierMenu = FALSE;
 TIERPOSITION gInitialTierPosition = -1;
@@ -173,6 +174,8 @@ UNDOMOVELIST*   (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING (*gTierToStringFunPtr)(TIER) = NULL;
 MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*) = NULL;
+
+BOOLEAN kUsePureDraw = FALSE;
 // For the experimental GenerateMoves
 int (*gGenerateMovesEfficientFunPtr)(POSITION) = NULL;
 MOVE*           gGenerateMovesArray = NULL;

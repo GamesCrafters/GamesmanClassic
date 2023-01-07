@@ -41,7 +41,7 @@ game_script_directory = './src/py/games/'
 close_on_timeout = False
 
 # Seconds to wait for a response from the process before sending timeout_msg
-subprocess_reponse_timeout = 0.2  # Seconds
+subprocess_reponse_timeout = 5 #0.2  # Seconds
 
 # Number of seconds to wait without a request before shutting down
 # process
@@ -152,7 +152,7 @@ class GameRequestHandler(asynchat.async_chat,
                 'end_response {}'.format(query['board']),
 
                 'getNextMoveValues':
-                'next_move_values_response {}'.format(query['board']),
+                'detailed_position_response {}'.format(query['board']),
 
                 'getMoveValue':
                 'move_value_response {}'.format(query['board'])
@@ -351,6 +351,7 @@ class GameProcess(object):
                     response += next_char
                     next_char = self.process.stdout.read(1)
                     if time.time() - curr_time > 5:
+                    #if time.time() - curr_time > 5000:
                         self.server.log.debug('timeout')
                         return self.handle_timeout(request, response)
             except IOError:

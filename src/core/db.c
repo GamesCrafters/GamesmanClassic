@@ -43,6 +43,7 @@
 #include "netdb.h"
 #include "filedb.h"
 #include "tierdb.h"
+#include "sharddb.h"
 #include "symdb.h"
 
 /* Provide optional support for randomized-hash based collision database, dependent on GMP */
@@ -265,6 +266,11 @@ BOOLEAN ReinitializeTierDB()
 	// If lookup table exists
 	// Set New Value, Remoteness, Mex functions
 	return tierdb_reinit(db_functions);
+}
+
+void InitializeShardDB()
+{
+	return sharddb_init(db_functions);
 }
 
 void DestroyDatabases()

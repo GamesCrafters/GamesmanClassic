@@ -1703,15 +1703,17 @@ STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
+
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
   int from, to, remove;
   unhashMove(mv, &from, &to, &remove);
   if (from == to) {
-	  return UWAPI_Board_Regular2D_MakeAddString('G', boardToGridIdxMapping[to]);
+	  return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping[to]);
   } else {
 	  return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping[from], boardToGridIdxMapping[to]);
   }
 }
+
 
 /*
 UPDATE HIST: -2004.10.21 = Original (Dom's) Version

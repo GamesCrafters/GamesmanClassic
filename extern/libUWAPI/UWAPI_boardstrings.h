@@ -13,8 +13,9 @@
 
 enum UWAPI_Turn
 {
-    UWAPI_TURN_A = 'A',
-    UWAPI_TURN_B = 'B'
+    UWAPI_TURN_A = 'A', // Player 1
+    UWAPI_TURN_B = 'B', // Player 2
+    UWAPI_TURN_C = 'C'  // Any Player (for games that don't encode turn in position)
 };
 
 // Regular 2D
@@ -32,6 +33,12 @@ BOOLEAN UWAPI_Board_Regular2D_ParsePositionString(
     unsigned int *num_columns,
     char **board);
 char *UWAPI_Board_Regular2D_GetAdditionalParam(char const *str, char const *key);
+
+char *UWAPI_Board_Regular2D_MakeBoardString(
+    enum UWAPI_Turn turn,
+    unsigned int size,
+    char const *board
+);
 char *UWAPI_Board_Regular2D_MakePositionString(
     enum UWAPI_Turn turn,
     unsigned int num_rows,

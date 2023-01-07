@@ -69,7 +69,7 @@ BOOLEAN kGameSpecificMenu    = TRUE;
 BOOLEAN kTieIsPossible       = TRUE;
 BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugMenu           = TRUE;
-BOOLEAN kDebugDetermineValue = TRUE;
+BOOLEAN kDebugDetermineValue = FALSE;
 
 POSITION gNumberOfPositions   =  0;
 POSITION gInitialPosition     =  0;

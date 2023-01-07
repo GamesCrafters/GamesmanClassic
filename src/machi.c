@@ -559,7 +559,7 @@ POSITION GetInitialPosition()
 	   else
 	   whosTurn = o;
 	 */
-
+	whosTurn = o;
 	return(BlankOXToPosition(theBlankOX,whosTurn));
 }
 
@@ -1355,7 +1355,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 
 	if (mv < 9) {
 		// Add piece
-		return UWAPI_Board_Regular2D_MakeAddString((whosTurn == o) ? 'o' : 'x', mv);
+		return UWAPI_Board_Regular2D_MakeAddString('-', mv);
 	} else {
 		// Move piece
 		return UWAPI_Board_Regular2D_MakeMoveString(mv / 10 - 1, mv % 10 - 1);

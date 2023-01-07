@@ -1400,12 +1400,11 @@ STRING GetSEvalPrediction(POSITION position, STRING playerName, BOOLEAN usersTur
 MOVE RandomLargestRemotenessMove(MOVELIST *moveList, REMOTENESSLIST *remotenessList)
 {
 	MOVELIST *maxRemotenessMoveList = NULL;
-	REMOTENESS maxRemoteness;
-	int numMoves, random;
+	REMOTENESS maxRemoteness = -1;
+	int numMoves = 0;
+	int random;
 
-	numMoves = 0;
-	maxRemoteness = -1;
-	while(remotenessList != NULL) {
+	while (remotenessList != NULL) {
 		if (remotenessList->remoteness > maxRemoteness) {
 			numMoves = 1;
 			maxRemoteness = remotenessList->remoteness;
@@ -1678,6 +1677,7 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
 	child = DoMove(thePosition, move);
 	childValue = GetValueOfPosition(child);
 	if (gGoAgain(thePosition, move)) {
+		/* Robert Shi: not sure if this should be changed accordingly. */
 		switch(childValue) {
 		case win:
 			childValue = lose;
@@ -1689,12 +1689,11 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
 			break;
 		}
 	}
-
-	if (childValue == lose) {  //winning moves
+	if (childValue == lose || childValue == drawlose) {  //winning moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
-	} else if (childValue == tie) {  //tie moves
+	} else if (childValue == tie || childValue == drawtie) {  //tie moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
-	} else if (childValue == win) {  //lose moves
+	} else if (childValue == win || childValue == drawwin) {  //lose moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
 	} else {
 		BadElse("SortMoves found a child with an unknown value and");
@@ -1770,7 +1769,7 @@ MOVE GetComputersMove(POSITION thePosition)
 	int i, randomMove, numberMoves = 0;
 	MOVELIST *ptr, *head, *prev;
 	VALUE_MOVES *moves;
-	REMOTENESSLIST *rptr=NULL, *rhead;
+	REMOTENESSLIST *rptr=NULL;
 	BOOLEAN setBackSmartness = FALSE;
 	int moveType = -1;
 	int oldsmartness = smartness;
@@ -1820,7 +1819,7 @@ MOVE GetComputersMove(POSITION thePosition)
 		ptr = NULL;
 		while (ptr == NULL && i <= LOSEMOVE) {
 			head = ptr = moves->moveList[i];
-			rhead = rptr = moves->remotenessList[i];
+			rptr = moves->remotenessList[i];
 			moveType = i;
 			i++;
 		}
@@ -1959,23 +1958,22 @@ VALUE_MOVES* GetValueMoves(POSITION thePosition)
 	VALUE_MOVES *valueMoves;
 	VALUE theValue;
 
-	valueMoves = (VALUE_MOVES *) SafeMalloc (sizeof(VALUE_MOVES));
-	valueMoves->moveList[0]=valueMoves->moveList[1]=valueMoves->moveList[2]=NULL;
-	valueMoves->remotenessList[0]=valueMoves->remotenessList[1]=valueMoves->remotenessList[2]=NULL;
+	valueMoves = (VALUE_MOVES *)SafeCalloc(1, sizeof(VALUE_MOVES));
 
-	if(Primitive(thePosition) != undecided)   /* Primitive positions have no moves */
+	if (Primitive(thePosition) != undecided) {
+		/* Primitive positions have no moves */
 		return(valueMoves);
-
-	else if((theValue = GetValueOfPosition(thePosition)) == undecided)
-		return(valueMoves);                           /* undecided positions are invalid */
-
-	else {                                    /* we are guaranteed it's win | tie now */
+	} else if ((theValue = GetValueOfPosition(thePosition)) == undecided) {
+		/* undecided positions are invalid */
+		return(valueMoves);
+	} else {
+		/* we are guaranteed it's win | tie now */
 		head = ptr = GenerateMoves(thePosition);
 		if (gNetworkDB) {
 			valueMoves = NetworkSortMoves(thePosition, head, valueMoves);
-		}
-		else {
-			while(ptr != NULL) {                    /* otherwise  (theValue = (win|tie) */
+		} else {
+			/* otherwise  (theValue = (win|tie) */
+			while (ptr != NULL) {
 				valueMoves = SortMoves(thePosition, ptr->move, valueMoves);
 				ptr = ptr->next;
 			}

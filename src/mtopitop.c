@@ -1495,7 +1495,7 @@ STRING InteractPositionToEndData(POSITION pos) {
 STRING InteractMoveToString(POSITION pos, MOVE move) {
 	if (move == NULLMOVE) {
 		char* finalMove = calloc(7, sizeof(char));
-		memcpy(finalMove, "A_P_22", 6);
+		memcpy(finalMove, "A_-_22", 6);
 		return finalMove;
 	}
 	BOOLEAN partial = move >> 10;
@@ -1513,9 +1513,9 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 		case 0: // sliding
 			return UWAPI_Board_Regular2D_MakeMoveString(indexMap[from] - 8, indexMap[to] - 8);
 		case 1: // selecting piece to place
-			return UWAPI_Board_Regular2D_MakeAddString(pieceMap[piece], pieceIndexMap[piece] - 8);
+			return UWAPI_Board_Regular2D_MakeAddString('-', pieceIndexMap[piece] - 8);
 		default: // placing selected piece
-			return UWAPI_Board_Regular2D_MakeAddString('x', indexMap[to] - 8);
+			return UWAPI_Board_Regular2D_MakeAddString('-', indexMap[to] - 8);
 	}
 }
 // CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)

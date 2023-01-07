@@ -272,6 +272,19 @@ GENERIC_PTR SafeMalloc(size_t amount)
 	}
 }
 
+GENERIC_PTR SafeCalloc(size_t nmemb, size_t size)
+{
+	GENERIC_PTR ptr;
+
+	if ((ptr = calloc(nmemb, size)) == NULL) {
+		fprintf(stderr, "Error: SafeCalloc could not allocate the requested %lu bytes\n", size);
+		ExitStageRight();
+		exit(0);
+	} else {
+		return(ptr);
+	}
+}
+
 GENERIC_PTR SafeRealloc(GENERIC_PTR ptr, size_t amount)
 {
 	if(ptr == NULL) {
@@ -292,7 +305,17 @@ void SafeFree(GENERIC_PTR ptr)
 		ExitStageRightErrorString("Error: SafeFree was handed a NULL ptr!\n");
 	else {
 		free(ptr);
-		ptr = NULL;
+	}
+}
+
+void SafeFreeAndSetToNull(GENERIC_PTR *ptr)
+{
+	if(ptr == NULL || *ptr == NULL) {
+		ExitStageRightErrorString("Error: SafeFreeAndSetToNull was handed a NULL ptr!\n");
+	}
+	else {
+		free(*ptr);
+		*ptr = NULL;
 	}
 }
 #endif
@@ -394,14 +417,15 @@ IPOSITIONLIST *StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePosi
 	return thePositionList;
 }
 
-POSITIONLIST *StorePositionInList(POSITION thePosition, POSITIONLIST* thePositionList)
+/* Stores pos as the new head of the position list and return the new head.
+   Usage: list = StorePositionInList(pos, list); */
+POSITIONLIST *StorePositionInList(POSITION pos, POSITIONLIST* head)
 {
-	POSITIONLIST *next, *tmp;
+	POSITIONLIST *tmp;
 
-	next = thePositionList;
 	tmp = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
-	tmp->position = thePosition;
-	tmp->next     = next;
+	tmp->position = pos;
+	tmp->next     = head;
 
 	return(tmp);
 }

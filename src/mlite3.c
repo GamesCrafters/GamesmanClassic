@@ -6,8 +6,9 @@
 **
 ** AUTHORS:      Alex Perelman
 **              Babak Hamadani
+**              Kehan Chen
 **
-** DATE:        03/12/02
+** DATE:        11/16/22
 **
 ** UPDATE HIST:
 **   3/1/02 - First Changes:
@@ -29,6 +30,13 @@
 **        Changed calls to WhoseTurn() to BlankOOOXXX[0]
 **        Changed ConvertTextInputToMove and PrintMove, Move is now 1-9
 **        WOOHOO!! 17 \/\/3|2|<$!!!
+**
+**   11/16/22 - More Changes
+**        Fixed bug in Surround
+**        InteractStringToPosition()
+**        InteractPositionToString()
+**        InteractMoveToString()
+**        MoveToSlots()
 **
 **************************************************************************/
 
@@ -92,6 +100,8 @@ STRING kHelpExample =
 
 #define BOARDSIZE     10           /* 3x3 board, element 0 is whoseTurn */
 #define NUMSYMMETRIES 8           /* 4 rotations, 4 flipped rotations */
+
+typedef int SLOT;     /* A slot is the place where a piece moves from or to */
 
 typedef enum players {
 	x, o
@@ -497,7 +507,7 @@ MOVE theMove;
 POSITION GetInitialPosition()
 {
 	POSITION BlankOOOXXXToPosition();
-	BlankOOOXXX theBlankOOOXXX[BOARDSIZE], whosTurn;
+	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 	signed char c;
 	int i;
 
@@ -507,7 +517,8 @@ POSITION GetInitialPosition()
 	printf("\tNote that it should be in the following format:\n\n");
 	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
 
-	i = 0;
+	theBlankOOOXXX[0] = x;
+	i = 1;
 	getchar();
 	while(i < BOARDSIZE && (c = getchar()) != EOF) {
 		if(c == 'x' || c == 'X')
@@ -520,7 +531,7 @@ POSITION GetInitialPosition()
 			;
 	}
 
-	return(BlankOOOXXXToPosition(theBlankOOOXXX,whosTurn));
+	return(BlankOOOXXXToPosition(theBlankOOOXXX));
 }
 
 /************************************************************************
@@ -567,10 +578,13 @@ STRING computersName;
 VALUE Primitive(position)
 POSITION position;
 {
-	BOOLEAN ThreeInARow(), Surround();
+	BOOLEAN ThreeInARow();
+	VALUE Surround();
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+	PLAYER_TURN whoseTurn = position & 1;
 
 	PositionToBlankOOOXXX(position,theBlankOOOXXX);
+	
 
 	if( gGameObjective == THREE_IN_A_ROW &&
 	    (ThreeInARow(theBlankOOOXXX,1,2,3) ||
@@ -580,24 +594,25 @@ POSITION position;
 	     ThreeInARow(theBlankOOOXXX,2,5,8) ||
 	     ThreeInARow(theBlankOOOXXX,3,6,9) ||
 	     ThreeInARow(theBlankOOOXXX,1,5,9) ||
-	     ThreeInARow(theBlankOOOXXX,3,5,7)) )
+	     ThreeInARow(theBlankOOOXXX,3,5,7)) ) {
 		return(gStandardGame ? lose : win);
-	else if( gGameObjective == SURROUND &&
-	         Surround(theBlankOOOXXX) )
-		return(gStandardGame ? lose : win);
-	else if( gGameObjective == BOTH &&
-	         (Surround(theBlankOOOXXX) ||
-	          ThreeInARow(theBlankOOOXXX,1,2,3) ||
+	} else if( gGameObjective == SURROUND ) {
+	         return Surround(theBlankOOOXXX, whoseTurn);
+	} else if( gGameObjective == BOTH ) {
+		if (ThreeInARow(theBlankOOOXXX,1,2,3) ||
 	          ThreeInARow(theBlankOOOXXX,4,5,6) ||
 	          ThreeInARow(theBlankOOOXXX,7,8,9) ||
 	          ThreeInARow(theBlankOOOXXX,1,4,7) ||
 	          ThreeInARow(theBlankOOOXXX,2,5,8) ||
 	          ThreeInARow(theBlankOOOXXX,3,6,9) ||
 	          ThreeInARow(theBlankOOOXXX,1,5,9) ||
-	          ThreeInARow(theBlankOOOXXX,3,5,7)))
-		return(gStandardGame ? lose : win);
-	else
+	          ThreeInARow(theBlankOOOXXX,3,5,7)) {
+			return gStandardGame ? lose : win;
+		}
+	    return Surround(theBlankOOOXXX, whoseTurn);
+	} else {
 		return(undecided);
+	}
 }
 
 /************************************************************************
@@ -1042,15 +1057,16 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN Surround(theBlankOOOXXX)
+VALUE Surround(theBlankOOOXXX, whoseTurn)
 BlankOOOXXX theBlankOOOXXX[];
+PLAYER_TURN whoseTurn;
 {
 	char* opponentPiece;
 	char* middlePiece = gBlankOOOXXXString[theBlankOOOXXX[5]]; //is middle piece Blank, X or O?
 
-	opponentPiece = (middlePiece == "X") ? "O" : "X";
+	opponentPiece = (strcmp(middlePiece, "X") == 0) ? "O" : "X";
 
-	if(middlePiece != "-")
+	if (strcmp(middlePiece, "-") != 0)
 	{
 		if( (gBlankOOOXXXString[theBlankOOOXXX[1]] == opponentPiece &&
 		     gBlankOOOXXXString[theBlankOOOXXX[2]] == middlePiece &&
@@ -1076,11 +1092,44 @@ BlankOOOXXX theBlankOOOXXX[];
 		    (gBlankOOOXXXString[theBlankOOOXXX[9]] == opponentPiece &&
 		     gBlankOOOXXXString[theBlankOOOXXX[8]] == middlePiece &&
 		     gBlankOOOXXXString[theBlankOOOXXX[6]] == middlePiece)
-		    )
-			return TRUE;
+		    ) {
+				if (strcmp(opponentPiece, "X") == 0) {
+					if (whoseTurn == x) {
+						return gStandardGame ? lose : win;
+					} else {
+						return gStandardGame ? win : lose;
+					}
+				} else if (strcmp(opponentPiece, "O") == 0) {
+					if (whoseTurn == o) {
+						return gStandardGame ? lose : win;
+					} else {
+						return gStandardGame ? win : lose;
+					}
+				}
+			}
 	}
 
-	return FALSE;
+	return undecided;
+}
+
+
+/************************************************************************
+**
+** NAME:        MoveToSlots
+**
+** DESCRIPTION: convert an internal move to that of two slots
+**
+** INPUTS:      MOVE theMove    : The move input.
+**              SLOT *fromSlot  : The slot the piece moves from (output)
+**              SLOT *toSlot    : The slot the piece moves to   (output)
+**
+************************************************************************/
+
+void MoveToSlots(theMove, toSlot)
+MOVE theMove;
+SLOT *toSlot;
+{
+	*toSlot   = theMove % (BOARDSIZE+1);
 }
 
 /************************************************************************
@@ -1131,19 +1180,95 @@ void setOption(int option)
 }
 
 POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+
+	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+	theBlankOOOXXX[0] = turn == UWAPI_TURN_B? o : x;
+	for (int i = 1; i < BOARDSIZE; i++) {
+		switch (board[i-1]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case '-':
+				theBlankOOOXXX[i] = Blank;
+				break;
+			case 'a':
+				theBlankOOOXXX[i] = o1;
+				break;
+			case 'b':
+				theBlankOOOXXX[i] = o2;
+				break;
+			case 'c':
+				theBlankOOOXXX[i] = o3;
+				break;
+			case '1':
+				theBlankOOOXXX[i] = x1;
+				break;
+			case '2':
+				theBlankOOOXXX[i] = x2;
+				break;
+			case '3':
+				theBlankOOOXXX[i] = x3;
+				break;
+		}
+	}
+
+	SafeFreeString(board); // Free the string.
+	return BlankOOOXXXToPosition(theBlankOOOXXX);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+	PositionToBlankOOOXXX(pos, theBlankOOOXXX);
+	enum UWAPI_Turn turn = (!WhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
+
+	char board[BOARDSIZE];
+	for (int i = 0; i < BOARDSIZE-1; i++) {
+		switch (theBlankOOOXXX[i+1]) {
+			default:
+				fprintf(stderr, "Error: Unexpected position\n");
+				break;
+			case Blank:
+				board[i] = '-';
+				break;
+			case o1:
+				board[i] = 'a';
+				break;
+			case o2:
+				board[i] = 'b';
+				break;
+			case o3:
+				board[i] = 'c';
+				break;
+			case x1:
+				board[i] = '1';
+				break;
+			case x2:
+				board[i] = '2';
+				break;
+			case x3:
+				board[i] = '3';
+				break;
+		}
+	}
+	board[BOARDSIZE-1] = '\0'; // Make sure to null-terminate your board.
+
+	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
+BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	SLOT toSlot;
+	MoveToSlots(mv, &toSlot);
+	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot - 1);
 }

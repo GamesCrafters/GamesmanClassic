@@ -539,7 +539,11 @@ bpdb_get_value(
         POSITION pos
         )
 {
-	return (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_VALUESLOT );
+	VALUE val = (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_VALUESLOT );
+	if (val == tie && bpdb_get_remoteness(pos) == bpdb_write_slice->maxvalue[BPDB_REMSLOT/2] ) {
+		val = drawtie;
+	}
+	return val;
 }
 
 REMOTENESS
@@ -547,12 +551,7 @@ bpdb_get_remoteness(
         POSITION pos
         )
 {
-	REMOTENESS rem = (REMOTENESS) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_REMSLOT );
-	if(bpdb_write_slice->maxvalue[BPDB_REMSLOT/2]+1 == rem) {
-		return REMOTENESS_MAX;
-	} else {
-		return rem;
-	}
+	return (REMOTENESS) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_REMSLOT );
 }
 
 void
@@ -561,7 +560,7 @@ bpdb_set_remoteness(
         REMOTENESS val
         )
 {
-	bpdb_set_slice_slot( (UINT64)pos, BPDB_REMSLOT, (REMOTENESS) val );
+	bpdb_set_slice_slot( (UINT64)pos, BPDB_REMSLOT, (UINT64)val );
 }
 
 BOOLEAN
@@ -1405,14 +1404,8 @@ _bailout:
 /*++
 
    Routine Description:
-
-    bpdb_add_slot retrieves the value of a specific slot of a
-    given slice.
-
-    Flow:
-    1. Check whether reading from the write array or nowrite
-        array.
-    2. Determine byte and bit offset, and read
+   Robert Shi: original comment deleted as it was copied from another function
+   and was not modified to explain what this function does.
 
    Arguments:
 

@@ -1,5 +1,6 @@
 #include "interact.h"
 #include "hashwindow.h"
+#include "sharddb.h"
 #include <stdarg.h>
 
 /* In case strdup isn't defined. */
@@ -115,10 +116,6 @@ char * MakeBoardString(char * first, ...) {
 	return out;
 }
 
-static BOOLEAN isalnumdash(char c) {
-	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '-' || c == '*';
-}
-
 /* Reads a position from stdin, returns NULL on error. Otherwise, returns a
  * pointer to the rest of the string.
  */
@@ -213,8 +210,24 @@ STRING InteractValueCharToValueString(char value_char) {
 		return "lose";
 	case 'U':
 		return "undecided";
+	case 'D':
+		return "draw";
 	default:
 		return "error";
+	}
+}
+
+void InteractPrintJSONMEXValue(POSITION pos) {
+	if (!kPartizan && !gTwoBits) {
+		printf("\"mex\":");
+		int theMex = MexLoad(pos);
+		if(theMex == (MEX) 0)
+			printf("\"0\"");
+		else if(theMex == (MEX)1)
+			printf("\"*\"");
+		else
+			printf("\"*%d\"", (int)theMex);
+		printf(",");
 	}
 }
 
@@ -296,6 +309,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(gInitialTier, FALSE);
 			}
 			board = InteractPositionToString(gInitialPosition);
+			if (board[2] == 'C') board[2] = 'A'; // Resolve arbitrary turn.
 			printf(RESULT "{\"status\":\"ok\",\"response\":");
 			if (!strcmp(board, "Implement Me")) {
 				printf("\"not implemented\"");
@@ -444,82 +458,6 @@ void ServerInteractLoop(void) {
 			printf("\"board\":\"%s\",", board);
 			printf("\"remoteness\":%d,", Remoteness(pos));
 			InteractPrintJSONPositionValue(pos);
-
-			if (gGenerateMultipartMoveEdgesFunPtr != NULL) {
-				printf(",\"mp_data\":");
-				POSITIONLIST *nextPositions = NULL;
-				MOVELIST *reversedMoves = NULL;
-				printf("{\"response\":[");
-				if (Primitive(pos) == undecided) {
-					current_move = all_next_moves = GenerateMoves(pos);
-					while (current_move) {
-						choice = DoMove(pos, current_move->move);
-						nextPositions = StorePositionInList(choice, nextPositions);
-						reversedMoves = CreateMovelistNode(current_move->move, reversedMoves);
-						board = InteractPositionToString(choice);
-						printf("{\"board\":\"%s\",", board);
-						InteractFreeBoardSting(board);
-						printf("\"remoteness\":%d,", Remoteness(choice));
-						InteractPrintJSONPositionValue(choice);
-						move_string = InteractMoveToString(pos, current_move->move);
-						
-						printf(",\"move\":\"%s\"", move_string);
-						SafeFree(move_string);
-
-						if (gMoveToStringFunPtr != NULL) {
-							move_string = gMoveToStringFunPtr(current_move->move);
-							printf(",\"moveName\":\"%s\"", move_string);
-							SafeFree(move_string);
-						}
-
-						current_move = current_move->next;
-						printf("}");
-						if (current_move) {
-							printf(",");
-						}
-					}
-					move_string = NULL;
-					FreeMoveList(all_next_moves);
-
-					
-					MULTIPARTEDGELIST *curr_edge, *all_edges;
-					curr_edge = all_edges = gGenerateMultipartMoveEdgesFunPtr(pos, reversedMoves, nextPositions);
-					if (curr_edge != NULL) {
-						printf("],\"multipart\":[");
-						while (curr_edge != NULL) {
-							char *fromPos = InteractPositionToString(curr_edge->from);
-							printf("{\"from\":\"%s\",", fromPos);
-							InteractFreeBoardSting(fromPos);
-							
-							char *toPos = InteractPositionToString(curr_edge->to);
-							printf("\"to\":\"%s\",", toPos);
-							InteractFreeBoardSting(toPos);
-							
-							move_string = InteractMoveToString(pos, curr_edge->partMove);
-							printf("\"partMove\":\"%s\"", move_string);
-							SafeFree(move_string);
-							
-							if (curr_edge->isTerminal) {
-								move_string = InteractMoveToString(pos, curr_edge->fullMove);
-								printf(",\"move\":\"%s\"", move_string);
-								SafeFree(move_string);
-							}
-							curr_edge = curr_edge->next;
-							printf("}");
-							
-							if (curr_edge) {
-								printf(",");
-							}
-						}
-						move_string = NULL;
-						FreeMultipartEdgeList(all_edges);
-					}
-					
-					FreePositionList(nextPositions);
-					FreeMoveList(reversedMoves);
-				}
-				printf("]}");
-			}
 			printf("}}");
 		} else if (FirstWordMatches(input, "position")) {
 			if (!InteractReadBoardString(input, &board)) {
@@ -529,11 +467,12 @@ void ServerInteractLoop(void) {
 			pos = InteractStringToPosition(board);
 			printf("board: " POSITION_FORMAT,pos);
 
-		} else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
+		} else if (FirstWordMatches(input, "detailed_position_response")) {
 			if (!InteractReadBoardString(input, &board)) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
+			char opp_turn_char = (board[2] == 'A') ? 'B' : 'A';
 			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
 				gInitializeHashWindow(tier, TRUE);
 			}
@@ -542,9 +481,19 @@ void ServerInteractLoop(void) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
+			if (kSupportsShardGamesman) {
+				shardGamesmanDetailedPositionResponse(board, pos);
+				continue;
+			}
 			POSITIONLIST *nextPositions = NULL;
 			MOVELIST *reversedMoves = NULL;
-			printf(RESULT "{\"status\":\"ok\",\"response\":[");
+			printf(RESULT "{\"status\":\"ok\",\"response\":{");
+			printf("\"board\": \"%s\",", board);
+			InteractPrintJSONMEXValue(pos);
+			printf("\"remoteness\":%d,", Remoteness(pos));
+			InteractPrintJSONPositionValue(pos);
+
+			printf(",\"moves\":[");
 			if (Primitive(pos) == undecided) {
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
@@ -552,8 +501,10 @@ void ServerInteractLoop(void) {
 					nextPositions = StorePositionInList(choice, nextPositions);
 					reversedMoves = CreateMovelistNode(current_move->move, reversedMoves);
 					board = InteractPositionToString(choice);
+					board[2] = (board[2] == 'C') ? opp_turn_char : board[2];
 					printf("{\"board\":\"%s\",", board);
 					InteractFreeBoardSting(board);
+					InteractPrintJSONMEXValue(choice);
 					printf("\"remoteness\":%d,", Remoteness(choice));
 					InteractPrintJSONPositionValue(choice);
 					move_string = InteractMoveToString(pos, current_move->move);
@@ -610,6 +561,56 @@ void ServerInteractLoop(void) {
 						FreeMultipartEdgeList(all_edges);
 					}
 				}
+				FreePositionList(nextPositions);
+				FreeMoveList(reversedMoves);
+			}
+			printf("]}}");
+		} else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
+			if (!InteractReadBoardString(input, &board)) {
+				printf("%s", invalid_board_string);
+				continue;
+			}
+			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
+				gInitializeHashWindow(tier, TRUE);
+			}
+			pos = InteractStringToPosition(board);
+			if (pos == -1) {
+				printf("%s", invalid_board_string);
+				continue;
+			}
+			POSITIONLIST *nextPositions = NULL;
+			MOVELIST *reversedMoves = NULL;
+			printf(RESULT "{\"status\":\"ok\",\"response\":[");
+			if (Primitive(pos) == undecided) {
+				current_move = all_next_moves = GenerateMoves(pos);
+				while (current_move) {
+					choice = DoMove(pos, current_move->move);
+					nextPositions = StorePositionInList(choice, nextPositions);
+					reversedMoves = CreateMovelistNode(current_move->move, reversedMoves);
+					board = InteractPositionToString(choice);
+					printf("{\"board\":\"%s\",", board);
+					InteractFreeBoardSting(board);
+					printf("\"remoteness\":%d,", Remoteness(choice));
+					InteractPrintJSONPositionValue(choice);
+					move_string = InteractMoveToString(pos, current_move->move);
+					
+					printf(",\"move\":\"%s\"", move_string);
+					SafeFree(move_string);
+
+					if (gMoveToStringFunPtr != NULL) {
+						move_string = gMoveToStringFunPtr(current_move->move);
+						printf(",\"moveName\":\"%s\"", move_string);
+						SafeFree(move_string);
+					}
+
+					current_move = current_move->next;
+					printf("}");
+					if (current_move) {
+						printf(",");
+					}
+				}
+				move_string = NULL;
+				FreeMoveList(all_next_moves);
 				FreePositionList(nextPositions);
 				FreeMoveList(reversedMoves);
 			}
