@@ -860,16 +860,13 @@ void setOption(int option) {
 
 
 POSITION InteractStringToPosition(STRING string) {
-
 	enum UWAPI_Turn turn;
 	unsigned int num_rows, num_columns;
 	STRING board;
-
 	if (!UWAPI_Board_Regular2D_ParsePositionString(string, &turn, &num_rows, &num_columns, &board)) {
     	// Failed to parse string
     	return INVALID_POSITION;
   	}
-	
 	POSITION position = 0;
 	for (int i = 0; i < BOARDSIZE; i += 1) {
 		int offset = i / 3 + 4;
@@ -881,12 +878,11 @@ POSITION InteractStringToPosition(STRING string) {
 			position += g3Array[i] * (int) Blank;
 		}
 	}
-	
 	// Player X in Dodgem is same as player B in UWAPI
 	if (turn == UWAPI_TURN_B) {
 		position += POSITION_OFFSET;
 	}
-
+    SafeFree(board);
 	return position;
 }
 

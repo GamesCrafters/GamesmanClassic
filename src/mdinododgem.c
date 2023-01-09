@@ -1413,13 +1413,10 @@ POSITION InteractStringToPosition(STRING str) {
 	enum UWAPI_Turn turn;
 	unsigned int num_rows, num_columns; 
 	STRING board;
-
 	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
     	// Failed to parse string
     	return INVALID_POSITION;
   	}
-
-
 	BlankOX realBoard[boardsize];
 	int i = 0;
 	for (i = 0; i < boardsize; i++) {
@@ -1437,9 +1434,8 @@ POSITION InteractStringToPosition(STRING str) {
 				realBoard[i] = o;
 				break;
 		}
-		// realBoard[i] = board[i];
-
 	}
+    SafeFree(board);
 	return generic_hash_hash(realBoard, (turn == UWAPI_TURN_A) ? 2 : 1);
 }
 
