@@ -104,7 +104,7 @@ void SetSolver()
 	/* if solver set externally, leave alone */
 	if (gSolver != NULL)
 		return;
-	else if(kLoopy) {
+	else if (kLoopy) {
 		if (gGoAgain == DefaultGoAgain) {
 			if(gBitPerfectDBSolver) {
 				if (kUsePureDraw) {
@@ -119,13 +119,13 @@ void SetSolver()
 			gBitPerfectDBSolver = FALSE;
 			gSolver = &lgas_DetermineValue;
 		}
-	} else if(gZeroMemSolver) {
+	} else if (gZeroMemSolver) {
 		gSolver = &DetermineZeroValue;
-	} else if(gBottomUp) {
+	} else if (gBottomUp) {
 		gSolver = &DetermineValueBU;
-	} else if(gAlphaBeta) {
+	} else if (gAlphaBeta) {
 		gSolver = &DetermineValueAlphaBeta;
-	} else if(gBitPerfectDBSolver) {
+	} else if (gBitPerfectDBSolver) {
 		gSolver = &DetermineValueVSSTD;
 	} else {
 		gSolver = &DetermineValueSTD;
@@ -154,7 +154,7 @@ VALUE DetermineValue(POSITION position)
 	if(kSupportsShardGamesman) {
 		InitializeShardDB();
 		printf("Done loading shard database.\n");
-	} else if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
+	} else if (kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
 		BOOLEAN usingLookupTierDB = FALSE;
 		if (gIsInteract) {
 			usingLookupTierDB = ReinitializeTierDB();
@@ -181,7 +181,7 @@ VALUE DetermineValue(POSITION position)
 		//    SaveAnalysis();
 		//}
 
-	} else if(gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
+	} else if (gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
 		if (GetValueOfPosition(position) == undecided) {
 			if (gPrintDatabaseInfo)
 				printf("\nRe-evaluating the value of %s...", kGameName);
@@ -299,20 +299,19 @@ void HandleArguments (int argc, char *argv[])
 		if(!strcasecmp(argv[i], "--nodb")) {
 			gSaveDatabase = FALSE;
 			gLoadDatabase = FALSE;
-		} else if(!strcasecmp(argv[i], "--newdb"))
+		} else if (!strcasecmp(argv[i], "--newdb")) {
 			gLoadDatabase = FALSE;
-		else if(!strcasecmp(argv[i], "--filedb")) {
+		} else if (!strcasecmp(argv[i], "--filedb")) {
 			gFileDB = TRUE;
 			gBitPerfectDB = FALSE;
 			gBitPerfectDBSolver = FALSE;
-		}
-		else if(!strcasecmp(argv[i], "--numoptions")) {
+		} else if (!strcasecmp(argv[i], "--numoptions")) {
 			fprintf(stderr, "\nNumber of Options: %d\n", NumberOfOptions());
 			gMessage = TRUE;
-		} else if(!strcasecmp(argv[i], "--curroption")) {
+		} else if (!strcasecmp(argv[i], "--curroption")) {
 			fprintf(stderr, "\nCurrent Option: %d\n", getOption());
 			gMessage = TRUE;
-		} else if(!strcasecmp(argv[i], "--option")) {
+		} else if (!strcasecmp(argv[i], "--option")) {
 			if(argc < (i + 2)) {
 				fprintf(stderr, "\nUsage: %s --option <n>\n\n", argv[0]);
 				gMessage = TRUE;
@@ -324,58 +323,58 @@ void HandleArguments (int argc, char *argv[])
 				} else
 					setOption(option);
 			}
-		} else if(!strcasecmp(argv[i], "--nobpdb")) {
+		} else if (!strcasecmp(argv[i], "--nobpdb")) {
 			gBitPerfectDB = FALSE;
 			gBitPerfectDBSolver = FALSE;
-		} else if(!strcasecmp(argv[i], "--2bit")) {
+		} else if (!strcasecmp(argv[i], "--2bit")) {
 			gTwoBits = TRUE;
-		} else if(!strcasecmp(argv[i], "--colldb")) {
+		} else if (!strcasecmp(argv[i], "--colldb")) {
 			gCollDB = TRUE;
 		}
 		/* Enable usage of UnivDB - randomized hashing, collision database,
 		   dependent on GMP support
 		 */
-		else if(!strcasecmp(argv[i], "--univdb")) {
+		else if (!strcasecmp(argv[i], "--univdb")) {
 #ifdef HAVE_GMP
 			gUnivDB = TRUE;
 #else
 			fprintf(stderr, "\nGMP support must be compiled in to use --univdb option\n\n");
 #endif
-		} else if(!strcasecmp(argv[i], "--gps")) {
+		} else if (!strcasecmp(argv[i], "--gps")) {
 			gGlobalPositionSolver = TRUE;
-		} else if(!strcasecmp(argv[i], "--bottomup")) {
+		} else if (!strcasecmp(argv[i], "--bottomup")) {
 			gBottomUp = TRUE;
-		} else if(!strcasecmp(argv[i], "--alpha-beta")) {
+		} else if (!strcasecmp(argv[i], "--alpha-beta")) {
 			gAlphaBeta = TRUE;
-		} else if(!strcasecmp(argv[i], "--lowmem")) {
+		} else if (!strcasecmp(argv[i], "--lowmem")) {
 			gZeroMemSolver = TRUE;
-		} else if(!strcasecmp(argv[i], "--slicessolver")) {
+		} else if (!strcasecmp(argv[i], "--slicessolver")) {
 			/*if(kLoopy) {
 			   fprintf(stderr, "\nCannot use slices solver since this game is loopy\n\n");
 			   gMessage = TRUE;
 			   i += argc;
 			   }*/
 			gBitPerfectDBSolver = TRUE;
-		} else if(!strcasecmp(argv[i], "--schemes")) {
+		} else if (!strcasecmp(argv[i], "--schemes")) {
 			gBitPerfectDBSchemes = TRUE;
-		} else if(!strcasecmp(argv[i], "--allschemes")) {
+		} else if (!strcasecmp(argv[i], "--allschemes")) {
 			gBitPerfectDBSchemes = TRUE;
 			gBitPerfectDBAllSchemes = TRUE;
-		} else if(!strcasecmp(argv[i], "--adjust")) {
+		} else if (!strcasecmp(argv[i], "--adjust")) {
 			gBitPerfectDBAdjust = TRUE;
-		} else if(!strcasecmp(argv[i], "--noadjust")) {
+		} else if (!strcasecmp(argv[i], "--noadjust")) {
 			gBitPerfectDBAdjust = FALSE;
-		} else if(!strcasecmp(argv[i], "--bpdbverbose")) {
+		} else if (!strcasecmp(argv[i], "--bpdbverbose")) {
 			gBitPerfectDBVerbose = TRUE;
-		} else if(!strcasecmp(argv[i], "--bpdbzeroplayer")) {
+		} else if (!strcasecmp(argv[i], "--bpdbzeroplayer")) {
 			gBitPerfectDBZeroMemoryPlayer = TRUE;
-		} else if(!strcasecmp(argv[i], "--notiers")) {
+		} else if (!strcasecmp(argv[i], "--notiers")) {
 			gTierGamesman = FALSE;
-		} else if(!strcasecmp(argv[i], "--vt")) {
+		} else if (!strcasecmp(argv[i], "--vt")) {
 			gVisTiers = TRUE; //Generates dotty file for tier tree visualization
-		} else if(!strcasecmp(argv[i], "--vtp")) {
+		} else if (!strcasecmp(argv[i], "--vtp")) {
 			gVisTiersPlain = TRUE; //outputs to stdout a plain tier tree for easy parsing
-		} else if(!strcasecmp(argv[i], "--onlytier")) {
+		} else if (!strcasecmp(argv[i], "--onlytier")) {
 			if ((i + 1) < argc) {
 				gTierToOnlySolve = atoi(argv[++i]);
 				if (gTierToOnlySolve < 0) {
@@ -388,12 +387,12 @@ void HandleArguments (int argc, char *argv[])
 				fprintf(stderr, "No tier given for solve only tier option\n\n");
 				gMessage = TRUE;
 			}
-		} else if(!strcasecmp(argv[i], "--notiermenu")) {
+		} else if (!strcasecmp(argv[i], "--notiermenu")) {
 			gTierSolverMenu = FALSE;
-		} else if(!strcasecmp(argv[i], "--notierprint")) {
+		} else if (!strcasecmp(argv[i], "--notierprint")) {
 			gTierSolvePrint = FALSE;
 			gTierSolverMenu = FALSE;
-		} else if(!strcasecmp(argv[i], "--solve")) {
+		} else if (!strcasecmp(argv[i], "--solve")) {
 			gJustSolving = TRUE;
 			if((i + 1) < argc && !strcasecmp(argv[++i], "all"))
 				gSolvingAll = TRUE;
@@ -401,23 +400,23 @@ void HandleArguments (int argc, char *argv[])
 			if(option > NumberOfOptions()) {
 				fprintf(stderr, "Invalid option configuration!\n\n");
 				gMessage = TRUE;
-			} else if(option)
+			} else if (option)
 				setOption(option);
-		} else if(!strcasecmp(argv[i], "--analyze")) {
+		} else if (!strcasecmp(argv[i], "--analyze")) {
 			gJustSolving = TRUE;
 			gAnalyzing = TRUE;
 			//gSolvingAll = TRUE;
 			createAnalysisGameDir();
 			//writeGameHTML(); DEPRECATED
 			//createVarTable(); DEPRECATED
-		} else if(!strcasecmp(argv[i], "--nointerestingness")) {
+		} else if (!strcasecmp(argv[i], "--nointerestingness")) {
 			gIncludeInterestingnessWithAnalysis = FALSE;
 			gInterestingness = FALSE;
-		} else if(!strcasecmp(argv[i], "--open")) {
+		} else if (!strcasecmp(argv[i], "--open")) {
 			gUseOpen = TRUE;
-		} else if(!strcasecmp(argv[i], "--visualize")) {
+		} else if (!strcasecmp(argv[i], "--visualize")) {
 			gVisualizing = TRUE;
-		} else if(!strcasecmp(argv[i], "--DoMove")) {
+		} else if (!strcasecmp(argv[i], "--DoMove")) {
 			InitializeGame();
 			if(argc != 4)
 				fprintf(stderr, "\nInvalid arguments!\n\n");
@@ -427,7 +426,7 @@ void HandleArguments (int argc, char *argv[])
 			}
 			i += argc;
 			gMessage = TRUE;
-		} else if(!strcasecmp(argv[i], "--Primitive")) {
+		} else if (!strcasecmp(argv[i], "--Primitive")) {
 			InitializeGame();
 			if(argc != 3)
 				fprintf(stderr, "\nInvalid arguments!\n\n");
@@ -437,7 +436,7 @@ void HandleArguments (int argc, char *argv[])
 			}
 			i += argc;
 			gMessage = TRUE;
-		} else if(!strcasecmp(argv[i], "--PrintPosition")) {
+		} else if (!strcasecmp(argv[i], "--PrintPosition")) {
 			InitializeGame();
 			if(argc != 5)
 				fprintf(stderr, "\nInvalid arguments!\n\n");
@@ -447,7 +446,7 @@ void HandleArguments (int argc, char *argv[])
 			}
 			i += argc;
 			gMessage = TRUE;
-		} else if(!strcasecmp(argv[i], "--GenerateMoves")) {
+		} else if (!strcasecmp(argv[i], "--GenerateMoves")) {
 			InitializeGame();
 			if (argc != 3)
 				fprintf(stderr, "\nInvalid arguments!\n\n");
@@ -463,30 +462,30 @@ void HandleArguments (int argc, char *argv[])
 			}
 			i += argc;
 			gMessage = TRUE;
-		} else if(!strcasecmp(argv[i],"--withPen")) {
+		} else if (!strcasecmp(argv[i],"--withPen")) {
 			if ((i+1) < argc) {
 				gPenFile = argv[i++];
 			}
-		} else if(!strcasecmp(argv[i], "--penDebug")) {
+		} else if (!strcasecmp(argv[i], "--penDebug")) {
 			gPenDebug = TRUE;
-		} else if(!strcasecmp(argv[i], "--lightplayer")) {
+		} else if (!strcasecmp(argv[i], "--lightplayer")) {
 			i += argc;
 			gZeroMemPlayer = TRUE;
-		} else if(!strcasecmp(argv[i], "--help")) {
+		} else if (!strcasecmp(argv[i], "--help")) {
 			printf(kCommandSyntaxHelp, argv[0], argv[0], argv[0], argv[0]);
 			gMessage = TRUE;
 			i += argc;
-		} else if(!strcasecmp(argv[i], "--netDb")) {
+		} else if (!strcasecmp(argv[i], "--netDb")) {
 			gNetworkDB = TRUE;
 			gBitPerfectDB = FALSE;
 			gBitPerfectDBSolver = FALSE;
 			if ((i + 1) < argc) {
 				ServerAddress = argv[i++];
 			}
-		} else if(!strcasecmp(argv[i],"--hashCounting")) {
+		} else if (!strcasecmp(argv[i],"--hashCounting")) {
 			hashCounting();
 			return;
-		} else if(!strcasecmp(argv[i],"--hashtable_buckets")) {
+		} else if (!strcasecmp(argv[i],"--hashtable_buckets")) {
 			if(argc < (i + 2)) {
 				fprintf(stderr, "\nUsage: %s --hashtable_buckets <n>\n\n",
 				        argv[0]);
@@ -494,11 +493,11 @@ void HandleArguments (int argc, char *argv[])
 				HASHTABLE_BUCKETS = atoi(argv[2]);
 			}
 			i++;
-		} else if(!strcasecmp(argv[i],"--parallel")) { // for PARALLELIZATION
+		} else if (!strcasecmp(argv[i],"--parallel")) { // for PARALLELIZATION
 			gMessage = TRUE;
 			//initializeODeepaBlue(argc,argv);
 			return;
-		} else if(!strcasecmp(argv[i],"--printdefault")) {
+		} else if (!strcasecmp(argv[i],"--printdefault")) {
 			/* Some games initialize help strings inside InitializeGame() */
 			InitializeGame();
 			/* prints long name, short name, default option,
@@ -514,7 +513,7 @@ void HandleArguments (int argc, char *argv[])
 		}
 		/* Stateless move-value querying for Thrift. */
 		/* ./game --GetMoveValue <boardString> <whoseMove> <option> */
-		else if(!strcasecmp(argv[i], "--GetMoveValue") ||
+		else if (!strcasecmp(argv[i], "--GetMoveValue") ||
 		        !strcasecmp(argv[i], "--GetNextMoveValues")) {
 			if (argc != 5) {
 				fprintf(stderr, "\nInvalid arguments!\n\n");
