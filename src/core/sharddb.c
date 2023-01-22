@@ -62,8 +62,6 @@ typedef struct elem_disk {
 	REMOTENESS r;
 } elem_disk_t;
 
-static void sharddb_cache_init(void);
-static void sharddb_cache_deallocate(void);
 static BOOLEAN sharddb_cache_load_from_disk(void);
 static BOOLEAN sharddb_cache_dump_to_disk(void);
 static BOOLEAN sharddb_cache_table_remove(elem_t *e);
@@ -356,19 +354,48 @@ void shardGamesmanDetailedPositionResponse(STRING board, POSITION pos) {
 }
 
 /* LRU Cache */
-static const unsigned long long SIZE = 1ULL << 27; // 128 MiB
-static const double ALPHA = 0.75;				   // Hash table target load factor
-static const char *CACHE_FILENAME = "Connect4Cache.bin";
+static char CACHE_FILENAME[100];
+static unsigned long long CACHE_SIZE; 	// In bytes.
+static const double ALPHA = 0.75;		// Hash table target load factor
+static unsigned long long NUM_BUCKETS;
+static unsigned long long MAX_ELEMENTS;
 
-static const unsigned long long num_buckets = SIZE/(sizeof(elem_t)*ALPHA + sizeof(elem_t*));
-static const unsigned long long max_elements = num_buckets * ALPHA;
-static elem_t **hash_table;
-static elem_t *head;
-static elem_t *tail;
-static unsigned long long cache_size;
+static elem_t **hash_table = NULL;
+static elem_t *head = NULL;
+static elem_t *tail = NULL;
+static unsigned long long cache_size = 0;
 
-static void sharddb_cache_init(void) {
-	hash_table = SafeCalloc(num_buckets, sizeof(elem_t*));
+static BOOLEAN is_prime(unsigned long long n) {
+	/* https://www.geeksforgeeks.org/program-to-find-the-next-prime-number/ */
+    if (n <= 1) return FALSE;
+    if (n <= 3) return TRUE;
+    if (n%2 == 0 || n%3 == 0) return FALSE;
+	unsigned long long i;
+    for (i = 5; i*i <= n; i += 6) {
+        if (n%i == 0 || n%(i + 2) == 0) {
+           return FALSE;
+		}
+	}
+    return TRUE;
+}
+
+static unsigned long long prev_prime(unsigned long long n) {
+	/* Returns the largest prime number that is smaller than
+	   or equal to N, unless N is less than 2, in which case
+	   2 is returned. */
+	if (n < 2) return 2;
+	while (!is_prime(n)) --n;
+	return n;
+}
+
+void sharddb_cache_init(void) {
+	if (hash_table) return;
+	int opt = getOption();
+	snprintf(CACHE_FILENAME, 100, "./data/mconnect4_%d_sharddb/lru.bin", opt);
+	CACHE_SIZE = (opt == 1) ? (1ULL << 25) : (1ULL << 27);
+	NUM_BUCKETS = prev_prime(CACHE_SIZE/(sizeof(elem_t)*ALPHA + sizeof(elem_t*)));
+	MAX_ELEMENTS = NUM_BUCKETS * ALPHA;
+	hash_table = SafeCalloc(NUM_BUCKETS, sizeof(elem_t*));
 	head = SafeCalloc(1, sizeof(elem_t));
 	tail = SafeCalloc(1, sizeof(elem_t));
 	head->d_prev = NULL;
@@ -381,25 +408,26 @@ static void sharddb_cache_init(void) {
 	}
 }
 
-static void sharddb_cache_deallocate(void) {
+void sharddb_cache_deallocate(void) {
+	if (!hash_table) return;
 	if (!sharddb_cache_dump_to_disk()) {
 		printf("sharddb_cache_deallocate: cache dump failed.");
 	}
 	/* Deallocate all variables on heap. */
 	SafeFree(hash_table);
+	hash_table = NULL;
 	elem_t *walker = head, *tmp;
 	while (walker) {
 		tmp = walker;
 		walker = walker->d_next;
 		SafeFree(tmp);
 	}
+	head = tail = NULL;
 }
 
 static BOOLEAN sharddb_cache_load_from_disk(void) {
 	FILE *f = fopen(CACHE_FILENAME, "rb");
-	if (!f) {
-		return FALSE;
-	}
+	if (!f) return FALSE;
 	elem_disk_t e;
 	while (fread(&e, sizeof(elem_disk_t), 1, f)) {
 		sharddb_cache_put(e.p, e.v, e.r);
@@ -409,9 +437,7 @@ static BOOLEAN sharddb_cache_load_from_disk(void) {
 
 static BOOLEAN sharddb_cache_dump_to_disk(void) {
 	FILE *f = fopen(CACHE_FILENAME, "wb");
-	if (!f) {
-		return FALSE;
-	}
+	if (!f) return FALSE;
 	/* Write in reverse chronological order so that old elements are loaded first. */
 	elem_t *walker = tail->d_prev;
 	while (walker != head) {
@@ -423,7 +449,7 @@ static BOOLEAN sharddb_cache_dump_to_disk(void) {
 
 static BOOLEAN sharddb_cache_table_remove(elem_t *e) {
 	/* Look for existing element in table. */
-	unsigned long long slot = e->p % num_buckets;
+	unsigned long long slot = e->p % NUM_BUCKETS;
 	elem_t **walker = &hash_table[slot];
 	while (*walker) {
 		if ((*walker)->p == e->p) {
@@ -438,19 +464,18 @@ static BOOLEAN sharddb_cache_table_remove(elem_t *e) {
 
 static void sharddb_cache_put(POSITION p, VALUE v, REMOTENESS r) {
 	/* Look for existing element in table. */
-	unsigned long long slot = p % num_buckets;
-	elem_t **walker = &hash_table[slot];
-	while (*walker) {
-		if ((*walker)->p == p) {
+	unsigned long long slot = p % NUM_BUCKETS;
+	elem_t *walker = hash_table[slot];
+	while (walker) {
+		if (walker->p == p) {
 			/* This should never happen. */
 			printf("sharddb_cache_put: inserting existing element.");
 			return;
 		}
-		walker = &((*walker)->s_next);
+		walker = walker->s_next;
 	}
-	/* walker now points to the s_next pointer of tail element in slot. */
 	elem_t *e;
-	if (cache_size == max_elements) {
+	if (cache_size == MAX_ELEMENTS) {
 		/* Evict least recently used element from cache. */
 		e = tail->d_prev;
 		tail->d_prev = e->d_prev;
@@ -463,23 +488,25 @@ static void sharddb_cache_put(POSITION p, VALUE v, REMOTENESS r) {
 	} else {
 		/* Cache is not full, create a new element and add it. */
 		e = SafeCalloc(1, sizeof(elem_t));
+		++cache_size;
 	}
 	/* Put new values inside. */
 	e->p = p;
 	e->v = v;
 	e->r = r;
-	/* Insert as new head. */
+	/* Insert as new head of linked list. */
 	e->d_prev = head;
 	e->d_next = head->d_next;
 	head->d_next = e;
 	e->d_next->d_prev = e;
-	*walker = e;
-	e->s_next = NULL;
+	/* Insert into hash table at SLOT. */
+	e->s_next = hash_table[slot];
+	hash_table[slot] = e;
 }
 
 static void sharddb_cache_get(VALUE *v, REMOTENESS *r, POSITION p) {
 	/* Look inside cache first. */
-	unsigned long long slot = p % num_buckets;
+	unsigned long long slot = p % NUM_BUCKETS;
 	elem_t *walker = hash_table[slot];
 	while (walker) {
 		if (walker->p == p) {

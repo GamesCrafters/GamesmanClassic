@@ -253,10 +253,26 @@ class GameProcess(object):
         self.server.log.info('Closing {}.'.format(self.game.name))
         self.game.remove_process(self)
         try:
+            self.server.log.debug('Sending exit command to {}.'.format(self.game.name))
+            self.process.stdin.write('exit\n')
+            normal_exit_timeout = 30
+            normal_exit_timeout_step = 1
+            while self.process.poll() is None and normal_exit_timeout > 0:
+                time.sleep(normal_exit_timeout_step)
+                normal_exit_timeout -= normal_exit_timeout_step
+            if normal_exit_timeout <= 0:
+                raise RuntimeError
+            return
+        except IOError:
+            self.server.log.error('{} normal exit IOError. The process may'
+                ' have been terminated already.'.format(self.game.name))
+        except RuntimeError:
+            self.server.log.error('{} normal exit timeout!'.format(self.game.name))
+        try:
             self.process.terminate()
             time.sleep(1)
             self.process.kill()
-        except OSError as e:
+        except OSError:
             pass
 
     def parse_response(self, response):
