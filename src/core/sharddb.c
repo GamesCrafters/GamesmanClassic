@@ -365,8 +365,8 @@ static elem_t *head = NULL;
 static elem_t *tail = NULL;
 static unsigned long long cache_size = 0;
 
+/* https://www.geeksforgeeks.org/program-to-find-the-next-prime-number/ */
 static BOOLEAN is_prime(unsigned long long n) {
-	/* https://www.geeksforgeeks.org/program-to-find-the-next-prime-number/ */
     if (n <= 1) return FALSE;
     if (n <= 3) return TRUE;
     if (n%2 == 0 || n%3 == 0) return FALSE;
@@ -392,7 +392,7 @@ void sharddb_cache_init(void) {
 	if (hash_table) return;
 	int opt = getOption();
 	snprintf(CACHE_FILENAME, 100, "./data/mconnect4_%d_sharddb/lru.bin", opt);
-	CACHE_SIZE = (opt == 1) ? (1ULL << 25) : (1ULL << 27);
+	CACHE_SIZE = (opt == 1) ? (1ULL << 25) : (1ULL << 27); // 32 MiB for 6x6, 128 MiB for 6x7.
 	NUM_BUCKETS = prev_prime(CACHE_SIZE/(sizeof(elem_t)*ALPHA + sizeof(elem_t*)));
 	MAX_ELEMENTS = NUM_BUCKETS * ALPHA;
 	hash_table = SafeCalloc(NUM_BUCKETS, sizeof(elem_t*));
@@ -432,6 +432,7 @@ static BOOLEAN sharddb_cache_load_from_disk(void) {
 	while (fread(&e, sizeof(elem_disk_t), 1, f)) {
 		sharddb_cache_put(e.p, e.v, e.r);
 	}
+	fclose(f);
 	return TRUE;
 }
 
@@ -444,6 +445,7 @@ static BOOLEAN sharddb_cache_dump_to_disk(void) {
 		fwrite(walker, sizeof(elem_disk_t), 1, f);
 		walker = walker->d_prev;
 	}
+	fclose(f);
 	return TRUE;
 }
 

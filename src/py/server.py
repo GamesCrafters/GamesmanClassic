@@ -255,8 +255,8 @@ class GameProcess(object):
         try:
             self.server.log.debug('Sending exit command to {}.'.format(self.game.name))
             self.process.stdin.write('exit\n')
-            normal_exit_timeout = 30
-            normal_exit_timeout_step = 1
+            normal_exit_timeout = 60
+            normal_exit_timeout_step = 5
             while self.process.poll() is None and normal_exit_timeout > 0:
                 time.sleep(normal_exit_timeout_step)
                 normal_exit_timeout -= normal_exit_timeout_step
