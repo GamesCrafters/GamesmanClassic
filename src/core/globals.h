@@ -160,6 +160,7 @@ extern BOOLEAN*         gTierDBExists;
 // For the modules
 extern BOOLEAN kSupportsTierGamesman;
 extern BOOLEAN kSupportsShardGamesman;
+extern BOOLEAN kUsesQuartoGamesman;
 extern BOOLEAN kExclusivelyTierGamesman;
 extern BOOLEAN kDebugTierMenu;
 extern TIERPOSITION gInitialTierPosition;

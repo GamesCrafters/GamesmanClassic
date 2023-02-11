@@ -1,6 +1,7 @@
 #include "interact.h"
 #include "hashwindow.h"
 #include "sharddb.h"
+#include "quartodb.h"
 #include <stdarg.h>
 
 /* In case strdup isn't defined. */
@@ -470,6 +471,10 @@ void ServerInteractLoop(void) {
 		} else if (FirstWordMatches(input, "detailed_position_response")) {
 			if (!InteractReadBoardString(input, &board)) {
 				printf("%s", invalid_board_string);
+				continue;
+			}
+			if (kUsesQuartoGamesman) {
+				quartoDetailedPositionResponse(board);
 				continue;
 			}
 			char opp_turn_char = (board[2] == 'A') ? 'B' : 'A';
