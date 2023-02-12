@@ -102,6 +102,7 @@ void            InitializeDatabases     ();
 void            DestroyDatabases        ();
 BOOLEAN         ReinitializeTierDB      ();
 void            InitializeShardDB       ();
+void            InitializeQuartoDB      ();
 
 UINT64
 GetSlot(

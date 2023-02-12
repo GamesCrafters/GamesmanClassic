@@ -162,6 +162,7 @@ BOOLEAN*        gTierDBExists = NULL;
 // For the modules
 BOOLEAN kSupportsTierGamesman = FALSE;
 BOOLEAN kSupportsShardGamesman = FALSE;
+BOOLEAN kUsesQuartoGamesman = FALSE;
 BOOLEAN kExclusivelyTierGamesman = FALSE;
 BOOLEAN kDebugTierMenu = FALSE;
 TIERPOSITION gInitialTierPosition = -1;
