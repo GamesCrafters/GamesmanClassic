@@ -671,7 +671,7 @@ void quartoDetailedPositionResponse(STRING str) {
             bitBoard |= piece << (i << 2);
         }
     }
-    int piecesPlacedCount, occupiedSlotsCount;
+    int piecesPlacedCount = 0, occupiedSlotsCount = 0;
     for (i = 0; i < 16; i++) {
         if (piecesPlaced & (1 << i)) piecesPlacedCount++;
         if (occupiedSlots & (1 << i)) occupiedSlotsCount++;
