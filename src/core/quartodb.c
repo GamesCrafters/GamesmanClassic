@@ -298,7 +298,7 @@ void quartodb_free() {
     SafeFree(unsetBitLists);
 }
 
-int numBitsPerValue[17] = {1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5};
+int numBitsPerValue[17] = {5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 1};
 int8_t quartodb_get_valueremoteness_from_file(QUARTOTIER *tier, TIERPOSITION tierPosition) {
 	int bitsPerValue = numBitsPerValue[tier->level];
     char filename[100];
@@ -601,6 +601,19 @@ STRING vctvs(char value_char) {
 	}
 }
 
+void printTier(QUARTOTIER *tier) {
+    printf("level:         %4d\n", tier->level);
+    printf("pieceToPlace:  %4d\n", tier->pieceToPlace);
+    printf("piecesPlaced:  %04X\n", tier->piecesPlaced);
+    printf("occupiedSlots: %04X\n", tier->occupiedSlots);
+    printf("slotsMask    : %016lX\n", tier->occupiedSlotsMask);
+    printf("X4:           ");
+    for (int i = 0; i < tier->level; i++) {
+        printf(" %d", tier->occupiedSlotsListX4[i]);
+    }
+    printf("\n");
+}
+
 uint64_t canonicalize(QUARTOTIER *tier, QUARTOTIER *symmetricTier, uint64_t bitBoard) {
     CANON_STRUCT cspp = ppCanonForward[(((uint32_t) tier->pieceToPlace) << 16) | tier->piecesPlaced];
     CANON_STRUCT csos = osCanonForward[tier->occupiedSlots];
@@ -611,9 +624,9 @@ uint64_t canonicalize(QUARTOTIER *tier, QUARTOTIER *symmetricTier, uint64_t bitB
     for (int i = 0; i < 16; i++) {
         symmetricBitBoard |= ((uint64_t) ppTransform[((xorBitBoard >> (osTransform[i] << 2)) & 0xF)]) << (i << 2);
     }
-    //if (symmetricTier != NULL) {
+
     buildTier(symmetricTier, 0, cspp.canon, csos.canon);
-    //}
+
     return symmetricBitBoard;
 }
 
@@ -626,6 +639,7 @@ void getValueRemoteness(int level, QUARTOTIER *tier, uint64_t bitBoard, char *va
         uint64_t symmetricBitBoard = canonicalize(tier, &canonicalTier, bitBoard);
         uint64_t tierPosition = quartoHash(&canonicalTier, symmetricBitBoard);
         int8_t vr = quartodb_get_valueremoteness_from_file(&canonicalTier, tierPosition);
+        //printf("\nVALUE-->> %d\n", vr);
         *valueChar = values[level][vr];
         *remoteness = remotenesses[level][vr];
     } else {
@@ -660,14 +674,14 @@ void quartoDetailedPositionResponse(STRING str) {
             return;
         } else if (board[i] == '-') {
             level--;
-            occupiedSlots ^= UINT64_C(1) << i;
+            occupiedSlots ^= UINT16_C(1) << i;
         } else {
             piece = board[i] - 'A';
             if (piece < 0 || piece > 15) {
                 printf("}}"); // Invalid board string: contains invalid characters
                 return;
             }
-            piecesPlaced |= UINT64_C(1) << piece;
+            piecesPlaced |= UINT16_C(1) << piece;
             bitBoard |= piece << (i << 2);
         }
     }
@@ -714,6 +728,7 @@ void quartoDetailedPositionResponse(STRING str) {
     turn = (turn == UWAPI_TURN_A) ? UWAPI_TURN_B : UWAPI_TURN_A;
     uint8_t *emptySlots = unsetBitLists + (tier.occupiedSlots << 4);
     QUARTOTIER childTier;
+    childTier.level = tier.level + 1;
     int8_t nextSlot;
     uint64_t childBitBoard;
     if (level == -1) {
@@ -726,11 +741,11 @@ void quartoDetailedPositionResponse(STRING str) {
             }
         }
     } else if (level < 15) {
-        childTier.piecesPlaced = piecesPlaced | (1 << tier.pieceToPlace);
+        childTier.piecesPlaced = tier.piecesPlaced | (1 << tier.pieceToPlace);
         uint8_t *remainingPieces = unsetBitLists + ((childTier.piecesPlaced) << 4);
         for (i = 0; i < 16 - level; i++) { // Iterate through all possible empty slots
             nextSlot = emptySlots[i];
-            childTier.occupiedSlots = occupiedSlots | (1 << nextSlot);
+            childTier.occupiedSlots = tier.occupiedSlots | (1 << nextSlot);
             childTier.occupiedSlotsMask = tier.occupiedSlotsMask | (UINT64_C(0xF) << (nextSlot << 2));
             childBitBoard = bitBoard | (((uint64_t) tier.pieceToPlace) << (nextSlot << 2));
             board[nextSlot] = pieceToPlace + 'A';
@@ -743,12 +758,12 @@ void quartoDetailedPositionResponse(STRING str) {
                     printf("\"remoteness\":%d,", remoteness);
                     printf("\"value\":\"%s\",", vctvs(valueChar));
                     printf("\"move\":\"A_%c_%d\",", childTier.pieceToPlace + 'a', 16 + nextSlot * 16 + childTier.pieceToPlace);
-                    printf("\"moveName\":\"%d-%d%d%d%d\"}", nextSlot+1, (j>>3)&1, (j>>2)&1, (j>>1)&1, j&1);  // slot is 1-indexed in moveName
+                    printf("\"moveName\":\"%d-%d%d%d%d\"}", nextSlot+1, (childTier.pieceToPlace>>3)&1, (childTier.pieceToPlace>>2)&1, (childTier.pieceToPlace>>1)&1, childTier.pieceToPlace&1);  // slot is 1-indexed in moveName
                     if (i < 15 - level || j < 14 - level) {
                         printf(",");
                     }
                 } else {
-                    board[16] = childTier.pieceToPlace + '-';
+                    board[16] = '-';
                     printf("{\"board\":\"%s\",", UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board));
                     printf("\"remoteness\":%d,", remoteness);
                     printf("\"value\":\"%s\",", vctvs(valueChar));
@@ -768,7 +783,8 @@ void quartoDetailedPositionResponse(STRING str) {
         childTier.occupiedSlotsMask = UINT64_C(-1);
         childBitBoard = bitBoard | (((uint64_t) tier.pieceToPlace) << (nextSlot << 2));
         getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
-        board[16] = childTier.pieceToPlace + '-';
+        board[nextSlot] = pieceToPlace + 'A';
+        board[16] = '-';
         printf("{\"board\":\"%s\",", UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board));
         printf("\"remoteness\":%d,", remoteness);
         printf("\"value\":\"%s\",", vctvs(valueChar));
