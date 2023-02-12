@@ -35,7 +35,9 @@
 
 #include "db.h"
 
-void    sharddb_init     (DB_Table*);
-void    shardGamesmanDetailedPositionResponse(STRING board, POSITION position);
+void sharddb_init                            (DB_Table*);
+void sharddb_cache_init                      (void);
+void sharddb_cache_deallocate                (void);
+void shardGamesmanDetailedPositionResponse   (STRING board, POSITION position);
 
 #endif /* GMCORE_BPDB_H */

@@ -260,6 +260,9 @@ void ServerInteractLoop(void) {
         char * data = NULL;
 	MEX mex = 0;
 	TIER tier = 0;
+	if (kSupportsShardGamesman) {
+		sharddb_cache_init();
+	}
 	/* Set stdout to do by line buffering so that sever interaction works right.
 	 * Otherwise the "ready =>>" message will sit in the buffer forever while
 	 * the server waits for it.
@@ -293,6 +296,9 @@ void ServerInteractLoop(void) {
 		if (FirstWordMatches(input, "shutdown") || FirstWordMatches(input, "quit") || FirstWordMatches(input, "exit")) {
 			InteractCheckErrantExtra(input, 1);
 			printf("\n");
+			if (kSupportsShardGamesman) {
+				sharddb_cache_deallocate();
+			}
 			break;
 		} else if (FirstWordMatches(input, "start")) {
 			InteractCheckErrantExtra(input, 1);

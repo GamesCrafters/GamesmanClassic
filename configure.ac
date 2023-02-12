@@ -9,7 +9,7 @@ dnl
 ### Initialize
 ###
 
-AC_INIT(gamesman, 3.0)
+AC_INIT([gamesman],[3.0])
 AC_CONFIG_SRCDIR(src/core/gamesman.h)
 
 
@@ -35,20 +35,20 @@ OUTPYTHONCFLAGS="-fno-strict-aliasing -DNDEBUG -fPIC -c -g"	# The flags for comp
 ### Set up arguments to configure
 ###
 
-AC_ARG_ENABLE(graphics, AC_HELP_STRING([--enable-graphics], [enable Tcl/Tk graphical frontends to games (default: yes)]),
+AC_ARG_ENABLE(graphics, AS_HELP_STRING([--enable-graphics],[enable Tcl/Tk graphical frontends to games (default: yes)]),
 		graphics="$enable_graphics",
 		graphics="yes")
-AC_ARG_WITH(tcl, AC_HELP_STRING([--with-tcl=path], [use the specified tclConfig.sh file to configure Tcl (default: look in common locations)]),
+AC_ARG_WITH(tcl, AS_HELP_STRING([--with-tcl=path],[use the specified tclConfig.sh file to configure Tcl (default: look in common locations)]),
 		tcl="$with_tcl",
 		tcl="")
-AC_ARG_WITH(tk, AC_HELP_STRING([--with-tk=path], [use the specified tkConfig.sh file to configure Tk (default: look in common locations)]),
+AC_ARG_WITH(tk, AS_HELP_STRING([--with-tk=path],[use the specified tkConfig.sh file to configure Tk (default: look in common locations)]),
 		tk="$with_tk",
 		tk="")
 #wish will have to be in the path from now on. deprecated.
-#AC_ARG_WITH(wish, AC_HELP_STRING([--with-wish=path], [use the specified wish shell to run Gamesman (default: look in common locations)]),
+#AC_ARG_WITH(wish, AS_HELP_STRING([--with-wish=path],[use the specified wish shell to run Gamesman (default: look in common locations)]),
 #		wish="$with_wish",
 #		wish="")
-AC_ARG_WITH(aqua, AC_HELP_STRING([--with-aqua], [use Aqua Tcl/Tk instead of X for graphics (Mac OS X only) (default: yes)]),
+AC_ARG_WITH(aqua, AS_HELP_STRING([--with-aqua],[use Aqua Tcl/Tk instead of X for graphics (Mac OS X only) (default: yes)]),
 		aqua="yes",
 		aqua="no")
 AC_PREFIX_DEFAULT(.)
@@ -150,7 +150,7 @@ AC_PROG_CXX
 AC_PROG_CC_C_O
 AC_PROG_RANLIB
 AC_CHECK_TOOL(AR, ar, :)
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 
 ###
 ### Check for integer types
@@ -181,7 +181,6 @@ OUTLDFLAGS="$OUTLDFLAGS $LIBS"
 ### Check for header files
 ###
 
-AC_HEADER_STDC
 AC_CHECK_HEADERS([errno.h fcntl.h limits.h netdb.h netinet/in.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h])
 
 # Make sure GNU MP is installed as bignums are needed for univt
@@ -246,7 +245,10 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
+
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+
+
 AC_C_PROTOTYPES
 
 
@@ -538,7 +540,7 @@ then  #added because cygwin gcc does not know about -pthread
 fi
 
 #Macros:
-AC_C_BIGENDIAN
+#AC_C_BIGENDIAN
 
 ###
 ### Export some stuff
