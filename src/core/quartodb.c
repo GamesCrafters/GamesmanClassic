@@ -719,7 +719,7 @@ void quartoDetailedPositionResponse(STRING str) {
     uint64_t childBitBoard;
     if (level == -1) {
         for (i = 0; i < 16; i++) {
-            printf("{\"board\":\"R_A_17_1_----------------%c\",\"remoteness\":16,\"value\":\"tie\",", i + 'A');
+            printf("{\"board\":\"R_B_17_1_----------------%c\",\"remoteness\":16,\"value\":\"tie\",", i + 'A');
             printf("\"move\":\"A_%c_%d\",", i + 'A', 272 + i); /// TODO
             printf("\"moveName\":\"%d%d%d%d\"}", (i>>3)&1, (i>>2)&1, (i>>1)&1, i&1);
             if (i < 15) {

@@ -350,7 +350,7 @@ class GameProcess(object):
                 while next_char != '\n':
                     response += next_char
                     next_char = self.process.stdout.read(1)
-                    if time.time() - curr_time > 5:
+                    if time.time() - curr_time > 20:
                     #if time.time() - curr_time > 5000:
                         self.server.log.debug('timeout')
                         return self.handle_timeout(request, response)
