@@ -302,7 +302,7 @@ int numBitsPerValue[17] = {5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 1};
 int8_t quartodb_get_valueremoteness_from_file(QUARTOTIER *tier, TIERPOSITION tierPosition) {
 	int bitsPerValue = numBitsPerValue[tier->level];
     char filename[100];
-    snprintf(filename, 100, "/data/solved/quarto/database/%02d/%04X%04X", tier->level, tier->piecesPlaced, tier->occupiedSlots);
+    snprintf(filename, 100, "./data/quarto/database/%02d/%04X%04X", tier->level, tier->piecesPlaced, tier->occupiedSlots);
     FILE *fptr = fopen(filename, "r");
     if (fptr == NULL) {
         return 0;
@@ -601,19 +601,6 @@ STRING vctvs(char value_char) {
 	}
 }
 
-void printTier(QUARTOTIER *tier) {
-    printf("level:         %4d\n", tier->level);
-    printf("pieceToPlace:  %4d\n", tier->pieceToPlace);
-    printf("piecesPlaced:  %04X\n", tier->piecesPlaced);
-    printf("occupiedSlots: %04X\n", tier->occupiedSlots);
-    printf("slotsMask    : %016lX\n", tier->occupiedSlotsMask);
-    printf("X4:           ");
-    for (int i = 0; i < tier->level; i++) {
-        printf(" %d", tier->occupiedSlotsListX4[i]);
-    }
-    printf("\n");
-}
-
 uint64_t canonicalize(QUARTOTIER *tier, QUARTOTIER *symmetricTier, uint64_t bitBoard) {
     CANON_STRUCT cspp = ppCanonForward[(((uint32_t) tier->pieceToPlace) << 16) | tier->piecesPlaced];
     CANON_STRUCT csos = osCanonForward[tier->occupiedSlots];
@@ -639,7 +626,6 @@ void getValueRemoteness(int level, QUARTOTIER *tier, uint64_t bitBoard, char *va
         uint64_t symmetricBitBoard = canonicalize(tier, &canonicalTier, bitBoard);
         uint64_t tierPosition = quartoHash(&canonicalTier, symmetricBitBoard);
         int8_t vr = quartodb_get_valueremoteness_from_file(&canonicalTier, tierPosition);
-        //printf("\nVALUE-->> %d\n", vr);
         *valueChar = values[level][vr];
         *remoteness = remotenesses[level][vr];
     } else {
