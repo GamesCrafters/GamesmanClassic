@@ -11,15 +11,29 @@
 ************************************************************************/
 
 #include <stdio.h>
+#include <math.h>
 #include "gamesman.h"
+
+/* Factorial Helper Function */
+int fact(n) {
+  res = 1;
+  for (int i = 0; i < n; i++) res = i * res;
+  return res;
+}
+
+struct DataItem {
+  char position_M[14]; // 13 characters + 1 null byte
+  char position_N[13]; // 12 characters + 1 null byte
+  char win_lose_tie; // win = w, lose = l, tie = t
+}
 
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Andrew Lee";
-POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
+POSITION gNumberOfPositions = 1189188000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
+BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
+BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
 BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Do not change these. */
@@ -69,6 +83,7 @@ void InitializeGame() {
   gMoveToStringFunPtr = &MoveToString;
 
   /* YOUR CODE HERE */
+  
 }
 
 /* Return the hash value of the initial position. */
