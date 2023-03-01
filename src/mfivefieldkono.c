@@ -21,11 +21,34 @@ int fact(n) {
   return res;
 }
 
+
 typedef struct {
   char odd_component[14]; // 13 characters + 1 null byte
   char even_component[13]; // 12 characters + 1 null byte
   char outcome; // win = w, lose = l, tie = t
 } FFK_Board;
+
+/* - = 0, o = 1, x = 2*/
+int hash(FFK_Board *board) {
+  /* Base 3 Hash */
+  int total = 0;
+  int len_1 = 12;
+  for (int i = 0; i < len_1; i++) {
+    total += board.even_component[(len_1 - 1) - i] * pow(3, i);
+  }
+  int len_2 = 13;
+  for (int j = 0; j < len_2, j++) {
+    total += board.odd_component[(len_2 - 1) - j] * pow(3, 12 + j)
+  }
+  return total;
+}
+
+FFK_Board unhash(int hash) {
+  FFK_Board newBoard = malloc(sizeof(struct Board));
+  for (int i = 24; i >= 0; i--) {
+    
+  }
+}
 
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Andrew Lee";
@@ -88,11 +111,9 @@ void InitializeGame() {
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
-  char* even_component = "ooo-o--x-xxx";
-  char* odd_component = "ooo-------xxx";
   struct FFK_Board* initial_board = malloc(sizeof(struct FFK_Board));
-  initial_board->even_component = even_component;
-  initial_board->odd_component = odd_component;
+  initial_board->even_component = "ooo-o--x-xxx";
+  initial_board->odd_component = "ooo-------xxx";
   initial_board->outcome = 'I';
   return hash(initial_board);
 }
