@@ -21,7 +21,7 @@ int fact(n) {
   return res;
 }
 
-/* 28 bytes packed board*/
+
 typedef struct {
   char even_component[13]; // 12 characters + 1 null byte
   char odd_component[14]; // 13 characters + 1 null byte
@@ -145,8 +145,11 @@ void InitializeGame() {
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
-  /* YOUR CODE HERE */
-  return 0;
+  struct FFK_Board* initial_board = malloc(sizeof(struct FFK_Board));
+  initial_board->even_component = "ooo-o--x-xxx";
+  initial_board->odd_component = "ooo-------xxx";
+  initial_board->outcome = 'I';
+  return hash(initial_board);
 }
 
 /* Return a linked list of moves. */
@@ -173,7 +176,9 @@ POSITION DoMove(POSITION position, MOVE move) {
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  /* YOUR CODE HERE */
+  bool x_wins;
+  FFK_Board* board = unhash(position);
+  // TODO
   return undecided;
 }
 
