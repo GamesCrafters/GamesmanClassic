@@ -21,7 +21,7 @@ int fact(n) {
   return res;
 }
 
-struct DataItem {
+struct Board {
   char position_M[14]; // 13 characters + 1 null byte
   char position_N[13]; // 12 characters + 1 null byte
   char win_lose_tie; // win = w, lose = l, tie = t
