@@ -23,30 +23,64 @@ int fact(n) {
 
 /* 28 bytes packed board*/
 typedef struct {
-  char odd_component[14]; // 13 characters + 1 null byte
   char even_component[13]; // 12 characters + 1 null byte
+  char odd_component[14]; // 13 characters + 1 null byte
   char outcome; // win = w, lose = l, tie = t
 } FFK_Board;
+
+int convertChar(char char_component) {
+  if (char_component == '-') {
+    return 0;
+  } else if (char_component == 'o') {
+    return 1;
+  } else if (char_component == 'x') {
+    return 2;
+  }
+  return -1;
+}
+
+char convertInt(char int_component) {
+  if (int_component == 0) {
+    return '-';
+  } else if (int_component == 1) {
+    return 'o';
+  } else if (int_component == 2) {
+    return 'x';
+  }
+  return '\0';
+}
 
 /* - = 0, o = 1, x = 2*/
 int hash(FFK_Board *board) {
   /* Base 3 Hash */
   int total = 0;
-  int len_1 = 12;
-  for (int i = 0; i < len_1; i++) {
-    total += board.even_component[(len_1 - 1) - i] * pow(3, i);
+  int even_len = 12;
+  for (int i = 0; i < even_len; i++) {
+    total += convertChar(board->even_component[(even_len - 1) - i]) * pow(3, i);
   }
-  int len_2 = 13;
-  for (int j = 0; j < len_2, j++) {
-    total += board.odd_component[(len_2 - 1) - j] * pow(3, 12 + j)
+  int odd_len = 13;
+  for (int j = 0; j < odd_len, j++) {
+    total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j)
   }
   return total;
 }
 
 FFK_Board unhash(int hash) {
-  FFK_Board newBoard = malloc(sizeof(struct Board));
-  for (int i = 24; i >= 0; i--) {
-    
+  FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
+  newBoard.even_component[12] = unhash_char;
+  newBoard.odd_component[13] = unhash_char;
+  int remain = -1;
+  int even_len = 12;
+  for (int i = 0; i < even_len; i++) {
+    remain = hash % 3;
+    hash = floor(hash/3);
+    board->even_component[(even_len - 1) - i] = convertInt(remain);
+  }
+  int odd_len = 13;
+  for (int j = 0; j < odd_len; j++) {
+    remain = hash % 3;
+    hash = floor(hash/3);
+    board->even_component[(odd_len - 1) - j] = convertInt(remain);
   }
 }
 
@@ -57,7 +91,7 @@ POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial positi
 BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
 BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
