@@ -21,13 +21,14 @@ int fact(n) {
   return res;
 }
 
-
+/* Board Struct */
 typedef struct {
   char even_component[13]; // 12 characters + 1 null byte
   char odd_component[14]; // 13 characters + 1 null byte
   char outcome; // win = w, lose = l, tie = t
 } FFK_Board;
 
+/* Char to Ternary Converter */
 int convertChar(char char_component) {
   if (char_component == '-') {
     return 0;
@@ -39,6 +40,7 @@ int convertChar(char char_component) {
   return -1;
 }
 
+/* Int to Char Converter */
 char convertInt(char int_component) {
   if (int_component == 0) {
     return '-';
@@ -50,7 +52,7 @@ char convertInt(char int_component) {
   return '\0';
 }
 
-/* - = 0, o = 1, x = 2*/
+/* Hash Function for the Board*/
 int hash(FFK_Board *board) {
   /* Base 3 Hash */
   int total = 0;
@@ -65,6 +67,7 @@ int hash(FFK_Board *board) {
   return total;
 }
 
+/* Unhash function for the Board */
 FFK_Board unhash(int hash) {
   FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
   newBoard.even_component[12] = unhash_char;
