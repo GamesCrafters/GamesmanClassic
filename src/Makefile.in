@@ -161,9 +161,9 @@ COMBS_EXE		= $(BINDIR)/mcombs$(EXESUFFIX)	# The explosive game of critical mass
 COMBS_OBJ		= mcombs$(OBJSUFFIX)
 COMBS_SO		= $(LIBDIR)/libmcombs$(LIBSUFFIX)
 
-CON_EXE			= $(BINDIR)/mcon$(EXESUFFIX)	# The cool game of Connections!
-CON_OBJ			= mcon$(OBJSUFFIX)
-CON_SO			= $(LIBDIR)/libmcon$(LIBSUFFIX)
+CONNECTIONS_EXE			= $(BINDIR)/mconnections$(EXESUFFIX)	# Connections
+CONNECTIONS_OBJ			= mconnections$(OBJSUFFIX)
+CONNECTIONS_SO			= $(LIBDIR)/libmconnections$(LIBSUFFIX)
 
 CONNECT4_EXE			= $(BINDIR)/mconnect4$(EXESUFFIX)	# Connect4
 CONNECT4_OBJ			= mconnect4$(OBJSUFFIX)
@@ -428,7 +428,8 @@ CGAMEOBJS = $(1210_OBJ) $(TIGERS_OBJ) $(TTTIER_OBJ) $(BAGHCHAL_OBJ) $(ATAXX_OBJ)
 	    $(FOXES_NEW_OBJ) $(XIGUA_OBJ) $(PONGHAUKI_OBJ) $(SHOGI_OBJ) $(LEWTH_OBJ) \
 	    $(DAO_OBJ) $(TILECHESS_OBJ) $(RCHECKERS_OBJ) $(TOOTNOTTO_OBJ) $(QUICKCHESS_OBJ) \
 	    $(CAMBIO_OBJ) $(GO_OBJ) $(AGO_OBJ) $(LOA_OBJ) $(HEX_OBJ) $(369MM_OBJ) \
-		$(TTTWO_OBJ) $(TOPITOP_OBJ) $(HAREGAME_OBJ) $(CONNECT4_OBJ) $(FIVEFIELDKONO_OBJ)
+		$(TTTWO_OBJ) $(TOPITOP_OBJ) $(HAREGAME_OBJ) $(CONNECT4_OBJ) $(FIVEFIELDKONO_OBJ) \
+		$(CONNECTIONS_OBJ)
 
 # Binary files
 CGAMES =  $(1210_EXE) $(TIGERS_EXE) $(TTTIER_EXE) $(BAGHCHAL_EXE) $(ATAXX_EXE) \
@@ -444,7 +445,8 @@ CGAMES =  $(1210_EXE) $(TIGERS_EXE) $(TTTIER_EXE) $(BAGHCHAL_EXE) $(ATAXX_EXE) \
 	  $(XIGUA_EXE) $(SHOGI_EXE) $(LEWTH_EXE) $(DAO_EXE) $(TILECHESS_EXE) $(RCHECKERS_EXE) \
 	  $(TOOTNOTTO_EXE) $(QUICKCHESS_EXE) $(CAMBIO_EXE) $(GO_EXE) \
 	  $(AGO_EXE) $(LOA_EXE) $(HEX_EXE) $(369MM_EXE) $(PONGHAUKI_EXE) \
-	  $(TTTWO_EXE) $(TOPITOP_EXE) $(HAREGAME_EXE) $(CONNECT4_EXE) $(FIVEFIELDKONO_EXE)
+	  $(TTTWO_EXE) $(TOPITOP_EXE) $(HAREGAME_EXE) $(CONNECT4_EXE) $(FIVEFIELDKONO_EXE) \
+	  $(CONNECTIONS_EXE)
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
@@ -456,17 +458,11 @@ CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_S
 	$(FOXES_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
 	$(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO) $(TOOTNOTTO_SO) $(CAMBIO_SO) $(BAGHCHAL_SO) \
 	$(TTTIER_SO) $(369MM_SO) $(TOPITOP_SO)\
-	$(TTTWO_SO) $(CONNECT4_SO)
+	$(TTTWO_SO) $(CONNECT4_SO) $(CONNECTIONS_SO)
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
-CCGAMEOBJS = $(CON_OBJ) $(DNB_OBJ)
-
-# Binary files
-CCGAMES = $(CON_EXE)
-
-# Tcl/Tk libraries
-CCTCL = $(CON_SO)
+CCGAMEOBJS = $(DNB_OBJ)
 
 ### Games that need special attention
 SPECIALGAMES = $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE) $(DNB_EXE) $(TACTIX_EXE)
@@ -494,17 +490,17 @@ dist-clean:		clean
 clean:		clean-bins
 		@$(MAKE) -w -C core clean
 		@$(MAKE) -w -C ../extern/libUWAPI clean
-		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
+		rm -rf $(CTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
 		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
 		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A) $(GAMESDB_A) \
 		$(ANOTO_PEN_OBJ) $(TTT_PEN_OBJ) $(TACTIX_EXE) $(DNB_PEN_OBJ) $(TACTIX_PEN_OBJ) \
 		$(LIBUWAPI_A)
 
 clean-bins:
-		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
+		rm -rf $(CGAMES) $(SPECIALGAMES)
 
-text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
-so_all:		text_all $(CTCL) $(CCTCL) $(SPECIALTCL)
+text_all:	$(CGAMES) $(SPECIALGAMES)
+so_all:		text_all $(CTCL) $(SPECIALTCL)
 gameline:	$(GAMELINE_EXE)
 
 
@@ -569,13 +565,6 @@ $(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(
 
 $(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE) $(LIBUWAPI_INCLUDE)
 	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
-
-$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
-
-$(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) 
-	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
-
 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
