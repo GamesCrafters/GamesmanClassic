@@ -17,10 +17,10 @@
 STRING kAuthorName = "Andrew Esteban";
 POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+BOOLEAN kPartizan = TRUE; // Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kTieIsPossible = TRUE; // Is a tie or draw possible?
+BOOLEAN kLoopy = FALSE; // Is this game loopy?
+BOOLEAN kSupportsSymmetries = TRUE; // Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
