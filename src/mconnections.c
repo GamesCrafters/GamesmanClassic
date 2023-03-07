@@ -1,6 +1,6 @@
 /************************************************************************
 **
-** NAME:        mconnections.c
+** NAME:        mgameofy.c
 **
 ** DESCRIPTION: Game Of Y
 **
@@ -26,8 +26,8 @@ BOOLEAN kSupportsSymmetries = TRUE; // Whether symmetries are supported (i.e. wh
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
-STRING kGameName = "Connections";
-STRING kDBName = "connections";
+STRING kGameName = "Game Of Y";
+STRING kDBName = "gameofy";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
