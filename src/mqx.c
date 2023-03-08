@@ -303,7 +303,7 @@ MOVE theMove;
 
 POSITION GetInitialPosition()
 {
-	POSITION BlankHVToPosition();
+	POSITION BlankHVToPosition(); //hash function
 	BlankHV theBlankHV[BOARDSIZE], whosTurn;
 	signed char c;
 	int i;
@@ -519,14 +519,14 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
+void PrintPosition(position, playerName, usersTurn)
 POSITION position;
 STRING playerName;
 BOOLEAN usersTurn;
 {
 	BlankHV theBlankHV[BOARDSIZE], whosTurn;
 
-	PositionToBlankHV(position,theBlankHV, &whosTurn);
+	PositionToBlankHV(position, theBlankHV, &whosTurn); //unhash function
 
 	if (BOARD == b3x4) {
 		printf("\n         (  1  2  3  4 )           : %s %s %s %s\n",
@@ -1011,20 +1011,138 @@ POSITION ActualNumberOfPositions(int variant) {
 	}
 }
 
+// POSITION InteractStringToPosition(STRING board) {
+// 	// FIXME: this is just a stub
+// 	return atoi(board); //converts string to integer, if the characters are valid integers.
+// }
+
+// STRING InteractPositionToString(POSITION pos) {
+// 	// FIXME: this is just a stub
+// 	return "Implement Me";
+// }
+
+//sample input (this is a UWAPI position string): R_A_4_4_----hh-v--v-vv---h
+//R: indicates that you are using an AutoGui
+//A: Who's turn (A or B)
+//4: Old/ Not necessary. Could be 0, 0. Used to represent number of slots on a rectangular board.
+
 POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+	enum UWAPI_Turn turn;
+	//enum: a way to initialize a constant, where only specific sequences are 'H', 'V', or Blank.
+	
+	unsigned int num_rows, num_columns; // Unused
+	STRING charBoard;
+	// STRING board;
+	//The ParsePositionString does is: 
+	//take pointers for the board and 
+	//goes through the positon string to initialize the turn value.
+	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &charBoard)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+
+	BlankHV enumBoard[BOARDSIZE];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (charBoard[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case '-':
+				enumBoard[i] = Blank;
+				break;
+			case 'h':
+				enumBoard[i] = H;
+				break;
+			case 'v':
+				enumBoard[i] = V;
+				break;
+
+		}
+	}
+
+	SafeFreeString(charBoard); // Free the string: (Removing Garbage Memory)
+
+	return BlankHVToPosition(enumBoard, turn);
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+
+STRING InteractPositionToString(POSITION pos) { 
+	//takes in a position hash 'pos'. pos is an integer
+	BlankHV enumBoard[BOARDSIZE]; //creating a board array of enums (Blank, H, V)
+	BlankHV whosTurn; 
+
+	PositionToBlankHV(pos, enumBoard, &whosTurn); //Unhash function from position hash to board array. 
+	//passing board into this function measn that our unhashing results will be stored in board now.
+	//passing &whosTurn: & gives the address to the whosTurn variable, which is essentially a pointer to the whosTurn Variable.
+	char charBoard[BOARDSIZE +1]; 
+	//new Board is a new character array for the board, which will store charcaters and not enums.
+	// It is of length Boardsize +1 as it has a space for a null termninator.
+	// A null terminator is helpful to indicate that the string has ended. 
+	// It is a consideration made for C that doesn't have a way to procure the length of the string.
+	// for example, in C  (because it is not an OOP language) we do not have a way to find out the length of the array. We have to know the length beforehand.
+
+	for (int i = 0; i < BOARDSIZE; i++) {
+	//We currently have an array of enums, but we would like to have an array of characters instead.
+			switch (enumBoard[i]) {
+				default:
+					fprintf(stderr, "Error: Unexpected position\n");
+					break;
+				case Blank:
+					charBoard[i] = '-';
+					break;
+				case H:
+					charBoard[i] = 'h';
+					break;
+				case V:
+					charBoard[i] = 'v';
+					break;
+
+			}
+	}
+		charBoard[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
+
+		enum UWAPI_Turn turn = (whosTurn == V) ? UWAPI_TURN_A : UWAPI_TURN_B;
+
+		/* The boardstring length (everything that follows "R_A_0_0_") is 16. */ 
+		return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, charBoard); //this function puts the R_A_0_0 in front of our string
 }
+
 
 STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
+//UWAPI format: A_(some character)_(some positon)
+//A (Add): Move token. There are 2 types. Default and Custom
+// A Default Move (Just a circle) and 
+// A (Custom Move) is an SVG specifying the shape of the token (L-game).
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+//M (Moving): Arrow
+
+//L (Line): Line type move. Like Tac Tix.
+
+// pos: a number you have to unhash"
+STRING InteractMoveToString(POSITION pos, MOVE theMove) 
+{
+	int squareNum;
+	if(0 <= theMove && theMove < BOARDSIZE){
+		squareNum = theMove % BOARDSIZE;
+		int left = squareNum + 16;
+		int right = squareNum + 32;
+		return UWAPI_Board_Regular2D_MakeLineString(left, right);
+	}
+		
+	else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE){
+		squareNum = theMove % BOARDSIZE;
+		int top = squareNum + 32 + 16;
+		int bottom = squareNum + 32 + 32;
+		return UWAPI_Board_Regular2D_MakeLineString(top, bottom);
+	}
+		
+	else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE){
+		squareNum = theMove % BOARDSIZE;
+		return UWAPI_Board_Regular2D_MakeAddString('r', squareNum);
+
+	}
+	return MoveToString(theMove);
+
 }
