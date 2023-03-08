@@ -52,6 +52,7 @@ char *UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(
     ...);
 char *UWAPI_Board_Regular2D_MakeAddString(char piece, unsigned int to);
 char *UWAPI_Board_Regular2D_MakeMoveString(unsigned int from, unsigned int to);
+char *UWAPI_Board_Regular2D_MakeLineString(unsigned int p1, unsigned int p2);
 char *UWAPI_Board_Regular2D_MakeShiftString(
     enum UWAPI_Board_Regular2DShiftDirection dir,
     unsigned int row,
