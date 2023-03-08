@@ -1,108 +1,33 @@
 /************************************************************************
 **
-** NAME:        mfivefieldkono.c
+** NAME:        msantorini.c
 **
-** DESCRIPTION: Five-Field Kono
+** DESCRIPTION: Santorini
 **
-** AUTHOR:      Andrew Lee
+** AUTHOR:      Zachary Leete
 **
-** DATE:        2023-02-24
+** DATE:        2023-03-07
 **
 ************************************************************************/
 
 #include <stdio.h>
-#include <math.h>
 #include "gamesman.h"
 
-// SORRY
-// /* Factorial Helper Function */
-// int fact(n) {
-//   res = 1;
-//   for (int i = 0; i < n; i++) res = i * res;
-//   return res;
-// }
-
-// /* Board Struct */
-// typedef struct {
-//   char even_component[13]; // 12 characters + 1 null byte
-//   char odd_component[14]; // 13 characters + 1 null byte
-//   char outcome; // win = w, lose = l, tie = t
-// } FFK_Board;
-
-// /* Char to Ternary Converter */
-// int convertChar(char char_component) {
-//   if (char_component == '-') {
-//     return 0;
-//   } else if (char_component == 'o') {
-//     return 1;
-//   } else if (char_component == 'x') {
-//     return 2;
-//   }
-//   return -1;
-// }
-
-// /* Int to Char Converter */
-// char convertInt(char int_component) {
-//   if (int_component == 0) {
-//     return '-';
-//   } else if (int_component == 1) {
-//     return 'o';
-//   } else if (int_component == 2) {
-//     return 'x';
-//   }
-//   return '\0';
-// }
-
-// /* Hash Function for the Board*/
-// int hash(FFK_Board *board) {
-//   /* Base 3 Hash */
-//   int total = 0;
-//   int even_len = 12;
-//   for (int i = 0; i < even_len; i++) {
-//     total += convertChar(board->even_component[(even_len - 1) - i]) * pow(3, i);
-//   }
-//   int odd_len = 13;
-//   for (int j = 0; j < odd_len, j++) {
-//     total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j)
-//   }
-//   return total;
-// }
-
-// /* Unhash function for the Board */
-// FFK_Board unhash(int hash) {
-//   FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
-//   newBoard.even_component[12] = unhash_char;
-//   newBoard.odd_component[13] = unhash_char;
-//   int remain = -1;
-//   int even_len = 12;
-//   for (int i = 0; i < even_len; i++) {
-//     remain = hash % 3;
-//     hash = floor(hash/3);
-//     board->even_component[(even_len - 1) - i] = convertInt(remain);
-//   }
-//   int odd_len = 13;
-//   for (int j = 0; j < odd_len; j++) {
-//     remain = hash % 3;
-//     hash = floor(hash/3);
-//     board->even_component[(odd_len - 1) - j] = convertInt(remain);
-//   }
-// }
-
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Andrew Lee";
-POSITION gNumberOfPositions = 1189188000; // TODO: Put your number of positions upper bound here.
+STRING kAuthorName = "Zachary Leete";
+POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
+BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
+BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
-STRING kGameName = "Five-Field Kono";
-STRING kDBName = "fivefieldkono";
+STRING kGameName = "Santorini";
+STRING kDBName = "santorini";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
@@ -149,12 +74,7 @@ void InitializeGame() {
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
-  // SORRY
-  // struct FFK_Board* initial_board = malloc(sizeof(struct FFK_Board));
-  // initial_board->even_component = "ooo-o--x-xxx";
-  // initial_board->odd_component = "ooo-------xxx";
-  // initial_board->outcome = 'I';
-  // return hash(initial_board);
+  /* YOUR CODE HERE */
   return 0;
 }
 
@@ -165,9 +85,7 @@ MOVELIST *GenerateMoves(POSITION position) {
      
      To add to the linked list, do 
      moves = CreateMovelistNode(<the move you're adding>, moves);
-
      See the function CreateMovelistNode in src/core/misc.c
-
   */
   return moves;
 }
@@ -182,10 +100,7 @@ POSITION DoMove(POSITION position, MOVE move) {
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  // SORRY
-  // bool x_wins;
-  // FFK_Board* board = unhash(position);
-  // TODO
+  /* YOUR CODE HERE */
   return undecided;
 }
 
