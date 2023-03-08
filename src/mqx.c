@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include "gamesman.h"
 
-POSITION gNumberOfPositions  = 43046721;  // changed later if board size changes
+POSITION gNumberOfPositions  = 2 * 43046721;  // changed later if board size changes
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
@@ -194,27 +194,27 @@ void GameSpecificMenu()
 		if (inp == '1') {
 			BOARD = b3x3;
 			BOARDSIZE = 9;
-			gNumberOfPositions = 19683; /*  3^9  */
+			gNumberOfPositions = 2 * 19683; /*  3^9  */
 		}
 		else if (inp == '2') {
 			BOARD = b3x4;
 			BOARDSIZE = 12;
-			gNumberOfPositions = 531441; /*  3^12  */
+			gNumberOfPositions = 2 * 531441; /*  3^12  */
 		}
 		else if (inp == '3') {
 			BOARD = b15_3; // basically a 4 X 4 with a corner square removed
 			BOARDSIZE = 15;
-			gNumberOfPositions = 14348907; /*  3^15  */
+			gNumberOfPositions = 2 * 14348907; /*  3^15  */
 		}
 		else if (inp == '4') {
 			BOARD = b15_4;
 			BOARDSIZE = 15;
-			gNumberOfPositions = 14348907; /*  3^15  */
+			gNumberOfPositions = 2 * 14348907; /*  3^15  */
 		}
 		else if (inp == '5') {
 			BOARD = b4x4;
 			BOARDSIZE = 16;
-			gNumberOfPositions = 43046721; /*  3^16  */
+			gNumberOfPositions = 2 * 43046721; /*  3^16 * turn */
 		}
 		else if (inp == 'b' || inp == 'B')
 			;
@@ -283,10 +283,9 @@ MOVE theMove;
 		return(thePosition);
 	}
 
-	if(whosTurn == H)
-		turnModifier = POSITION_OFFSET;
+	turnModifier = (whosTurn == V) ? POSITION_OFFSET : -POSITION_OFFSET;
 
-	return(thePosition + moveModifier + turnModifier);
+	return thePosition + moveModifier + turnModifier;
 }
 
 
@@ -304,7 +303,7 @@ MOVE theMove;
 POSITION GetInitialPosition()
 {
 	POSITION BlankHVToPosition(); //hash function
-	BlankHV theBlankHV[BOARDSIZE], whosTurn;
+	BlankHV theBlankHV[BOARDSIZE]; //, whosTurn;
 	signed char c;
 	int i;
 
@@ -344,7 +343,7 @@ POSITION GetInitialPosition()
 	   whosTurn = o;
 	 */
 
-	return(BlankHVToPosition(theBlankHV,whosTurn));
+	return(BlankHVToPosition(theBlankHV,V));
 }
 
 
@@ -1060,9 +1059,16 @@ POSITION InteractStringToPosition(STRING board) {
 		}
 	}
 
+	BlankHV whosTurn;
+	if (turn == UWAPI_TURN_A) {
+		whosTurn = V;
+	} else {
+		whosTurn = H;
+	}
+
 	SafeFreeString(charBoard); // Free the string: (Removing Garbage Memory)
 
-	return BlankHVToPosition(enumBoard, turn);
+	return BlankHVToPosition(enumBoard, whosTurn);
 }
 
 
