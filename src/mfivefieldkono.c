@@ -53,9 +53,9 @@ char convertInt(char int_component) {
 }
 
 /* Hash Function for the Board*/
-int hash(FFK_Board *board) {
+POSITION hash(FFK_Board *board) {
   /* Base 3 Hash */
-  int total = 0;
+  POSITION total = 0;
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
     total += convertChar(board->even_component[(even_len - 1) - i]) * pow(3, i);
@@ -109,6 +109,14 @@ bool o_wins(FFK_Board* board) {
   && board->odd_component[13] == 'o'
   && board->odd_component[12] == 'o'
   && board->odd_component[11] == 'o';
+}
+
+/* If there are no moves left to be made, then the game is a tie.
+Don't know if this is actually possible. Works because GenerateMoves
+should return a null pointer (0x000... = FALSE) iff there are no moves 
+to be made, and everything else will be bool'd into TRUE. */
+bool no_moves(FFK_Board* board) {
+  return GenerateMoves(hash(board));
 }
 
 /* IMPORTANT GLOBAL VARIABLES */
@@ -206,11 +214,16 @@ VALUE Primitive(POSITION position) {
   FFK_Board* board = unhash(position);
   bool x_wins = x_wins(board);
   bool o_wins = o_wins(board);
+  bool no_moves = no_moves(board);
   free(board);
   if (x_wins) {
     return win
-  } else if (o_wins) {
+  }
+  if (o_wins) {
     return lose
+  }
+  if (no_moves) {
+    return tie
   }
   return undecided;
 }
