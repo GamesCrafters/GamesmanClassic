@@ -203,9 +203,15 @@ POSITION DoMove(POSITION position, MOVE move) {
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  bool x_wins;
   FFK_Board* board = unhash(position);
-
+  bool x_wins = x_wins(board);
+  bool o_wins = o_wins(board);
+  free(board);
+  if (x_wins) {
+    return win
+  } else if (o_wins) {
+    return lose
+  }
   return undecided;
 }
 
