@@ -32,7 +32,7 @@ STRING kDBName = "fivefieldkono";
 POSITION gNumberOfPositions = 1189188000;
 
 /* The hash value of the initial position of the board */
-POSITION gInitialPosition = 0; // TODO: Calculate this
+POSITION gInitialPosition = 0;
 
 /* The hash value of any invalid position */
 POSITION kBadPosition = -1;
@@ -49,8 +49,8 @@ BOOLEAN kLoopy = TRUE;
 /* GetCanonicalPosition will be implemented */
 BOOLEAN kSupportsSymmetries = TRUE;
 
-/* No clue what this does */
-BOOLEAN kDebugDetermineValue = FALSE; // TODO: Fix 'docstring'
+/* TODO: No clue what this does */
+BOOLEAN kDebugDetermineValue = FALSE;
 
 /* For initializing the game in Tcl non-generically */
 void* gGameSpecificTclInit = NULL;
@@ -110,7 +110,7 @@ int odd_flip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
-  // TODO
+  gInitialPosition = GetInitialPosition();
 }
 
 /* Return the hash value of the initial position. */
