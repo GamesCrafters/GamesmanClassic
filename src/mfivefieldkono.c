@@ -23,8 +23,8 @@ int fact(n) {
 
 /* Board Struct */
 typedef struct {
-  char even_component[13]; // 12 characters + 1 null byte
-  char odd_component[14]; // 13 characters + 1 null byte
+  char *even_component; // 12 characters + 1 null byte
+  char *odd_component; // 13 characters + 1 null byte
   char outcome; // win = w, lose = l, tie = t
 } FFK_Board;
 
@@ -68,8 +68,10 @@ POSITION hash(FFK_Board *board) {
 }
 
 /* Unhash function for the Board */
-FFK_Board unhash(int hash) {
+FFK_Board* unhash(POSITION hash) {
   FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
+  newBoard->even_component = (char *) malloc(13 * sizeof(char));
+  newBoard->odd_component = (char *) malloc(14 * sizeof(char));
   newBoard.even_component[12] = unhash_char;
   newBoard.odd_component[13] = unhash_char;
   int remain = -1;
@@ -85,6 +87,7 @@ FFK_Board unhash(int hash) {
     hash = floor(hash/3);
     board->even_component[(odd_len - 1) - j] = convertInt(remain);
   }
+  return newBoard;
 }
 
 /* X wins when all of the spots originally populated by O's are 
@@ -110,6 +113,34 @@ bool o_wins(FFK_Board* board) {
   && board->odd_component[12] == 'o'
   && board->odd_component[11] == 'o';
 }
+
+/* Clockwise 90 degree turn for odd and parallel */
+int even_turn_pos[12] = {4, 9, 1, 6, 11, 3, 8, 0, 5, 10, 2, 7};
+int odd_turn_pos[13] = {2, 7, 12, 4, 9, 1, 6, 11, 3, 8, 0, 5, 10};
+
+void board_clockwise(FFK_Board* board) {
+  /* odd clockwise */
+  char *new_even_arr = (char *) malloc(sizeof(board->even_component));
+  int even_len = 12;
+  for (int i = 0; i < even_len; i++) {
+    new_even_arr[i] = board->even_component[even_turn_pos[i]];
+  }
+  new_even_arr[even_len] = '\0';
+
+  /* even clockwise */
+  char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
+  int odd_len = 13;
+  for (int j = 0; j < odd_len; j++) {
+    new_odd_arr[j] = board->odd_component[odd_turn_pos[j]];
+  }
+  new_odd_arr[odd_len] = '\0';
+
+  /* free and assign the clockwise new and even array */
+  free(board->even_component);
+  free(board->odd_component);
+  board->even_component = new_even_arr;
+  board->odd_component = new_odd_arr;
+} 
 
 /* If there are no moves left to be made, then the game is a tie.
 Don't know if this is actually possible. Works because GenerateMoves
