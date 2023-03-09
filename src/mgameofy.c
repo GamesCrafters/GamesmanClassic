@@ -550,9 +550,8 @@ STRING MoveToString(MOVE move) {
     current++;
   }
 
-  char *res;
-
-  asprintf(&res, "[%c%d]", (char) (row + 97), col);
+  STRING res = (STRING) SafeMalloc( 3 );
+  sprintf(res, "[%c%d]", (char) (row + 97), col);
 
   return res;
   
