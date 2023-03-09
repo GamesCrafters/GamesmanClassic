@@ -25,7 +25,6 @@ int fact(n) {
 typedef struct {
   char *even_component; // 12 characters + 1 null byte
   char *odd_component; // 13 characters + 1 null byte
-  char outcome; // win = w, lose = l, tie = t
 } FFK_Board;
 
 /* Char to Ternary Converter */
@@ -111,6 +110,61 @@ bool o_wins(FFK_Board* board) {
   && board->odd_component[11] == 'o';
 }
 
+/* Clockwise 90 degree turn for odd and parallel */
+int even_turn_pos[12] = {4, 9, 1, 6, 11, 3, 8, 0, 5, 10, 2, 7};
+int odd_turn_pos[13] = {2, 7, 12, 4, 9, 1, 6, 11, 3, 8, 0, 5, 10};
+
+void board_clockwise(FFK_Board* board) {
+  /* odd clockwise */
+  char *new_even_arr = (char *) malloc(sizeof(board->even_component));
+  int even_len = 12;
+  for (int i = 0; i < even_len; i++) {
+    new_even_arr[i] = board->even_component[even_turn_pos[i]];
+  }
+  new_even_arr[even_len] = '\0';
+
+  /* even clockwise */
+  char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
+  int odd_len = 13;
+  for (int j = 0; j < odd_len; j++) {
+    new_odd_arr[j] = board->odd_component[odd_turn_pos[j]];
+  }
+  new_odd_arr[odd_len] = '\0';
+
+  /* free and assign the clockwise new and even array */
+  free(board->even_component);
+  free(board->odd_component);
+  board->even_component = new_even_arr;
+  board->odd_component = new_odd_arr;
+}
+
+int even_flip_pos[12] = {1, 0, 4, 3, 2, 6, 5, 9, 8, 7, 11, 10};
+int odd_flip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
+
+void board_clockwise(FFK_Board* board) {
+  /* odd clockwise */
+  char *new_even_arr = (char *) malloc(sizeof(board->even_component));
+  int even_len = 12;
+  for (int i = 0; i < even_len; i++) {
+    new_even_arr[i] = board->even_component[even_flip_pos[i]];
+  }
+  new_even_arr[even_len] = '\0';
+
+  /* even clockwise */
+  char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
+  int odd_len = 13;
+  for (int j = 0; j < odd_len; j++) {
+    new_odd_arr[j] = board->odd_component[odd_flip_pos[j]];
+  }
+  new_odd_arr[odd_len] = '\0';
+
+  /* free and assign the clockwise new and even array */
+  free(board->even_component);
+  free(board->odd_component);
+  board->even_component = new_even_arr;
+  board->odd_component = new_odd_arr;
+}
+
 /* If there are no moves left to be made, then the game is a tie.
 Don't know if this is actually possible. */
 bool no_moves(FFK_Board* board) {
@@ -193,6 +247,16 @@ POSITION GetInitialPosition() {
 
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
+  FFK_Board *newboard =  unhash(position);
+  if o_wins(newboard) {
+    newboard->outcome = '';
+  } else if x_wins(newboard) {
+    newboard->outcome = '';
+  } else if no_moves(newboard) {
+
+  } else {
+
+  }
   MOVELIST *moves = NULL;
   /* YOUR CODE HERE 
      
@@ -202,6 +266,7 @@ MOVELIST *GenerateMoves(POSITION position) {
      See the function CreateMovelistNode in src/core/misc.c
 
   */
+  
   return moves;
 }
 
