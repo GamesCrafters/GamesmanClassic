@@ -165,34 +165,15 @@ VALUE Primitive(POSITION position) {
 
 
 
-/* SOLVER HELPER FUNCTIONS */
+/* TRANSFORMATION FUNCTIONS */
 
-/* Char to Ternary Converter */
-int convertChar(char char_component) {
-  if (char_component == '-') {
-    return 0;
-  } else if (char_component == 'o') {
-    return 1;
-  } else if (char_component == 'x') {
-    return 2;
-  }
-  return -1;
-}
-
-/* Int to Char Converter */
-char convertInt(char int_component) {
-  if (int_component == 0) {
-    return '-';
-  } else if (int_component == 1) {
-    return 'o';
-  } else if (int_component == 2) {
-    return 'x';
-  }
-  return '\0';
-}
-
+/* Transforms the board by rotating it 90 degrees clockwise. */
+/* POSSIBLE OPTIMIZATION: Do this in-place (without allocating another board)
+by moving each value to its new place, and moving the new place's old value
+next. Note that this would de-parallelize the operation (the compiler should
+perform the for loop cycles asynchronously). */
 void rotateBoardClockwise(FFK_Board* board) {
-  /* odd clockwise */
+  /* Rotate odd component clockwise. */
   char *new_even_arr = (char *) malloc(sizeof(board->even_component));
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
@@ -200,7 +181,7 @@ void rotateBoardClockwise(FFK_Board* board) {
   }
   new_even_arr[even_len] = '\0';
 
-  /* even clockwise */
+  /* Rotate even component clockwise. */
   char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
   int odd_len = 13;
   for (int j = 0; j < odd_len; j++) {
@@ -208,7 +189,7 @@ void rotateBoardClockwise(FFK_Board* board) {
   }
   new_odd_arr[odd_len] = '\0';
 
-  /* free and assign the clockwise new and even array */
+  /* Free old board and assign transformed one. */
   free(board->even_component);
   free(board->odd_component);
   board->even_component = new_even_arr;
@@ -221,7 +202,7 @@ void rotateBoardClockwise(FFK_Board* board) {
 /* BOARD VALUE FUNCTIONS */
 
 /* X wins when all of the spots originally populated by O's are 
-filled with X's */
+filled with X's. */
 bool isWin(FFK_Board* board) {
   return board->even_component[0] == 'x'
   && board->even_component[1] == 'x'
@@ -233,7 +214,7 @@ bool isWin(FFK_Board* board) {
 }
 
 /* O wins when all of the spots originally populated by X's are 
-filled with O's */
+filled with O's. */
 bool isLose(FFK_Board* board) {
   return board->even_component[12] == 'o'
   && board->even_component[11] == 'o'
@@ -244,7 +225,7 @@ bool isLose(FFK_Board* board) {
   && board->odd_component[11] == 'o';
 }
 
-/* If there are no moves left to be made, then the game is a tie */
+/* If there are no moves left to be made, then the game is a tie. */
 bool isTie(FFK_Board* board) {
   MOVELIST possible_moves = GenerateMoves(hash(board));
   if (possible_moves == NULL) {
@@ -258,7 +239,7 @@ bool isTie(FFK_Board* board) {
 
 /* BOARD HASHING FUNCTIONS */
 
-/* Calculates the unique base-3 integer that corresponds to the board */
+/* Calculates the unique base-3 integer that corresponds to the boar. */
 POSITION hash(FFK_Board *board) {
   POSITION total = 0;
   int even_len = 12;
@@ -272,7 +253,7 @@ POSITION hash(FFK_Board *board) {
   return total;
 }
 
-/* Unhash function for the Board */
+/* Unhash function for the Board. */
 FFK_Board unhash(POSITION hash) {
   FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
   newBoard.even_component[12] = unhash_char;
@@ -290,6 +271,32 @@ FFK_Board unhash(POSITION hash) {
     hash = floor(hash/3);
     board->even_component[(odd_len - 1) - j] = convertInt(remain);
   }
+}
+
+/* Converts a character to its ternary integer equivalent
+for hash calculations. */
+int convertChar(char char_component) {
+  if (char_component == '-') {
+    return 0;
+  } else if (char_component == 'o') {
+    return 1;
+  } else if (char_component == 'x') {
+    return 2;
+  }
+  return -1;
+}
+
+/* Converts a ternary integer to its character equivalent 
+for hash calculations. */
+char convertInt(char int_component) {
+  if (int_component == 0) {
+    return '-';
+  } else if (int_component == 1) {
+    return 'o';
+  } else if (int_component == 2) {
+    return 'x';
+  }
+  return '\0';
 }
 
 
@@ -341,12 +348,10 @@ void PrintMove(MOVE move) {
 
 /* VARIANT FUNCTIONS */
 
-/* How many variants are you supporting? For now, just 1.
-Maybe in the future you want to support more variants. */
+/* Amount of variants supported. */
 int NumberOfOptions() { return 1; }
 
-/* Return the current variant id (which is 0 in this case since
-for now you're only thinking about one variant). */
+/* Return the current variant ID (0 in this case). */
 int getOption() { return 0; }
 
 /* The input is a variant id. This function sets any global variables
