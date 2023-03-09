@@ -241,22 +241,12 @@ POSITION GetInitialPosition() {
   nitial_board->odd_componen = malloc(sizeof(char)*14);
   strcpy(initial_board->even_component, "ooo-o--x-xxx");
   strcpy(initial_board->odd_component, "ooo-------xxx");
-  initial_board->outcome = 'I';
   return hash(initial_board);
 }
 
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
   FFK_Board *newboard =  unhash(position);
-  if o_wins(newboard) {
-    newboard->outcome = '';
-  } else if x_wins(newboard) {
-    newboard->outcome = '';
-  } else if no_moves(newboard) {
-
-  } else {
-
-  }
   MOVELIST *moves = NULL;
   /* YOUR CODE HERE 
      
