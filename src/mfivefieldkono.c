@@ -68,10 +68,8 @@ POSITION hash(FFK_Board *board) {
 }
 
 /* Unhash function for the Board */
-FFK_Board* unhash(POSITION hash) {
+FFK_Board unhash(int hash) {
   FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
-  newBoard->even_component = (char *) malloc(13 * sizeof(char));
-  newBoard->odd_component = (char *) malloc(14 * sizeof(char));
   newBoard.even_component[12] = unhash_char;
   newBoard.odd_component[13] = unhash_char;
   int remain = -1;
@@ -87,7 +85,6 @@ FFK_Board* unhash(POSITION hash) {
     hash = floor(hash/3);
     board->even_component[(odd_len - 1) - j] = convertInt(remain);
   }
-  return newBoard;
 }
 
 /* X wins when all of the spots originally populated by O's are 
@@ -114,40 +111,14 @@ bool o_wins(FFK_Board* board) {
   && board->odd_component[11] == 'o';
 }
 
-/* Clockwise 90 degree turn for odd and parallel */
-int even_turn_pos[12] = {4, 9, 1, 6, 11, 3, 8, 0, 5, 10, 2, 7};
-int odd_turn_pos[13] = {2, 7, 12, 4, 9, 1, 6, 11, 3, 8, 0, 5, 10};
-
-void board_clockwise(FFK_Board* board) {
-  /* odd clockwise */
-  char *new_even_arr = (char *) malloc(sizeof(board->even_component));
-  int even_len = 12;
-  for (int i = 0; i < even_len; i++) {
-    new_even_arr[i] = board->even_component[even_turn_pos[i]];
-  }
-  new_even_arr[even_len] = '\0';
-
-  /* even clockwise */
-  char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
-  int odd_len = 13;
-  for (int j = 0; j < odd_len; j++) {
-    new_odd_arr[j] = board->odd_component[odd_turn_pos[j]];
-  }
-  new_odd_arr[odd_len] = '\0';
-
-  /* free and assign the clockwise new and even array */
-  free(board->even_component);
-  free(board->odd_component);
-  board->even_component = new_even_arr;
-  board->odd_component = new_odd_arr;
-} 
-
 /* If there are no moves left to be made, then the game is a tie.
-Don't know if this is actually possible. Works because GenerateMoves
-should return a null pointer (0x000... = FALSE) iff there are no moves 
-to be made, and everything else will be bool'd into TRUE. */
+Don't know if this is actually possible. */
 bool no_moves(FFK_Board* board) {
-  return GenerateMoves(hash(board));
+  MOVELIST possible_moves = GenerateMoves(hash(board));
+  if (possible_moves == NULL) {
+    return true;
+  }
+  return false;
 }
 
 /* IMPORTANT GLOBAL VARIABLES */
@@ -211,9 +182,11 @@ void InitializeGame() {
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
-  struct FFK_Board* initial_board = malloc(sizeof(struct FFK_Board));
-  initial_board->even_component = "ooo-o--x-xxx";
-  initial_board->odd_component = "ooo-------xxx";
+  FFK_Board* initial_board = malloc(sizeof(FFK_Board));
+  initial_board->even_component = malloc(sizeof(char)*13);
+  nitial_board->odd_componen = malloc(sizeof(char)*14);
+  strcpy(initial_board->even_component, "ooo-o--x-xxx");
+  strcpy(initial_board->odd_component, "ooo-------xxx");
   initial_board->outcome = 'I';
   return hash(initial_board);
 }
@@ -261,7 +234,7 @@ VALUE Primitive(POSITION position) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  /* YOUR CODE HERE */
+  
   return position;
 }
 
