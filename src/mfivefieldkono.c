@@ -87,6 +87,30 @@ FFK_Board unhash(int hash) {
   }
 }
 
+/* X wins when all of the spots originally populated by O's are 
+filled with X's. */
+bool x_wins(FFK_Board* board) {
+  return board->even_component[0] == 'x'
+  && board->even_component[1] == 'x'
+  && board->even_component[2] == 'x'
+  && board->even_component[4] == 'x'
+  && board->odd_component[0] == 'x'
+  && board->odd_component[1] == 'x'
+  && board->odd_component[2] == 'x';
+}
+
+/* O wins when all of the spots originally populated by X's are 
+filled with O's. */
+bool o_wins(FFK_Board* board) {
+  return board->even_component[12] == 'o'
+  && board->even_component[11] == 'o'
+  && board->even_component[10] == 'o'
+  && board->even_component[8] == 'o'
+  && board->odd_component[13] == 'o'
+  && board->odd_component[12] == 'o'
+  && board->odd_component[11] == 'o';
+}
+
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Andrew Lee";
 POSITION gNumberOfPositions = 1189188000; // TODO: Put your number of positions upper bound here.
@@ -181,7 +205,7 @@ for the value enum definition. */
 VALUE Primitive(POSITION position) {
   bool x_wins;
   FFK_Board* board = unhash(position);
-  // TODO
+
   return undecided;
 }
 
