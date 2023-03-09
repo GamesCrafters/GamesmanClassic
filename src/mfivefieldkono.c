@@ -165,14 +165,24 @@ VALUE Primitive(POSITION position) {
 
 
 
+
 /* TRANSFORMATION FUNCTIONS */
 
+/* Transforms the board by flipping and rotating it a specified
+amount of times, helping to get all of its 8 symmetries. */
+void transform(FFK_Board* board, int flips, int rotations) {
+  for (int i = 0; i < flips; i++) flip(board);
+  for (int j = 0; j < rotations; j++) rotate(board);
+}
+
 /* Transforms the board by rotating it 90 degrees clockwise. */
-/* POSSIBLE OPTIMIZATION: Do this in-place (without allocating another board)
-by moving each value to its new place, and moving the new place's old value
-next. Note that this would de-parallelize the operation (the compiler should
-perform the for loop cycles asynchronously). */
-void rotateBoardClockwise(FFK_Board* board) {
+void rotate(FFK_Board* board) {
+
+  /* POSSIBLE OPTIMIZATION: Do this in-place (without allocating another board)
+  by moving each value to its new place, and moving the new place's old value
+  next. Note that this would de-parallelize the operation (the compiler should
+  perform the for loop cycles asynchronously). */
+
   /* Rotate odd component clockwise. */
   char *new_even_arr = (char *) malloc(sizeof(board->even_component));
   int even_len = 12;
@@ -194,6 +204,12 @@ void rotateBoardClockwise(FFK_Board* board) {
   free(board->odd_component);
   board->even_component = new_even_arr;
   board->odd_component = new_odd_arr;
+}
+
+/* Transforms the board by flipping it horizontally (a reflection 
+about the y-axis). */
+void flip(FFK_Board* board) {
+  // TODO: Should be very similar to rotate().
 }
 
 
