@@ -209,7 +209,30 @@ void rotate(FFK_Board* board) {
 /* Transforms the board by flipping it horizontally (a reflection 
 about the y-axis). */
 void flip(FFK_Board* board) {
-  // TODO: Should be very similar to rotate().
+
+  /* POSSIBLE OPTIMIZATION: Same as rotate(). */
+
+  /* Flip odd component about y-axis. */
+  char *new_even_arr = (char *) malloc(sizeof(board->even_component));
+  int even_len = 12;
+  for (int i = 0; i < even_len; i++) {
+    new_even_arr[i] = board->even_component[even_flip_pos[i]];
+  }
+  new_even_arr[even_len] = '\0';
+
+  /* Flip even component about y-axis. */
+  char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
+  int odd_len = 13;
+  for (int j = 0; j < odd_len; j++) {
+    new_odd_arr[j] = board->odd_component[odd_flip_pos[j]];
+  }
+  new_odd_arr[odd_len] = '\0';
+
+  /* Free old board and assign transformed one. */
+  free(board->even_component);
+  free(board->odd_component);
+  board->even_component = new_even_arr;
+  board->odd_component = new_odd_arr;
 }
 
 
