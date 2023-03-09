@@ -26,13 +26,13 @@ BOOLEAN kSupportsSymmetries = TRUE; // Whether symmetries are supported (i.e. wh
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
-STRING kGameName = "Game Of Y";
+STRING kGameName = "Game of Y";
 STRING kDBName = "gameofy";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
 /* You don't have to change these for now. */
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 
 /* These variables are not needed for solving but if you have time 
@@ -57,27 +57,55 @@ STRING kHelpExample = "";
 void DebugMenu() {}
 /* Ignore this function. */
 void SetTclCGameSpecificOptions(int theOptions[]) {}
-/* Do not worry about this yet because you will only be supporting 1 variant for now. */
-void GameSpecificMenu() {}
 
 
+#define MIN_DIMENSION 4
+#define MAX_DIMENSION 7
+#define DEFULT_DIMENSION 4
 
+// Declare helper functions
+int calculateboardSize(int dimensions);
+int countUsed(char* board);
+int vcfg(int* pieces);
+char** convertBoardToMatrix(char* board);
+void convertMatrixToBoard(char** matrix, char* target);
+void freeMatrix(char** matrix);
+int convertLocToIndex(int row, int col);
+void recurY(char** matrix, int row, int col, BOOLEAN* touches, BOOLEAN* visited, char startPiece);
+BOOLEAN hasYStartLoc(char** matrix, int row, int col);
+BOOLEAN hasY(char** matrix);
+POSITION min(POSITION a, POSITION b);
 
-#define DEFAULT_DIMENSION 4
-#define MAX_BOARD_SIZE 128
+void rotateBoard(char* board, char* target);
+void flipBoard(char* board, char* target);
 
-int calculateBoardSize(int dimensions);
-int BOARD_SIZE; // Declare now but calculate in InitializeGame()
-int BOARD_DIMENSION;
+int boardSize; // Declare now but calculate in InitializeGame()
+int boardDimension = DEFULT_DIMENSION;
 
+void GameSpecificMenu() {
+  char inp;
+	while (TRUE) {
+		printf("\n\n\n");
+		printf("        ----- Game-specific options for Game of Y -----\n\n");
+		printf("        Enter a board dimension (4-7): ");
+		inp = getchar();
+    int dim = ((int) inp) - 48;
+
+    if (inp == 'b' || inp == 'B') {
+      ;
+    } else if (dim >= MIN_DIMENSION && dim <= MAX_DIMENSION) {
+      boardDimension = dim;
+    } else {
+			printf("Invalid input.\n");
+			continue;
+    }
+		break;
+	}
+
+  fflush(stdin);
+}
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
-
-/* Add a hashing function and unhashing function, if needed. */
-
-int vcfg(int pieces[]) {
-  return pieces[0] == pieces[1] || pieces[0] - 1 == pieces[1];
-}
 
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
@@ -85,20 +113,21 @@ void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
 
-  BOARD_DIMENSION = DEFAULT_DIMENSION;
-  BOARD_SIZE = calculateBoardSize(BOARD_DIMENSION);
+  boardSize = calculateboardSize(boardDimension);
 
   // {char, min, max, char, min, max, ..., -1}
-  int piecesArray[] = {'w', 0, BOARD_SIZE / 2, 'b', 0, BOARD_SIZE / 2, '-', 0, BOARD_SIZE, -1};
-  gNumberOfPositions = generic_hash_init(BOARD_SIZE, piecesArray, &vcfg, 0);
+  int piecesArray[] = {'w', 0, boardSize / 2, 'b', 0, boardSize / 2, '-', 0, boardSize, -1};
+  gNumberOfPositions = generic_hash_init(boardSize, piecesArray, &vcfg, 1);
 
-  char* initialBoard = (char*) SafeMalloc(BOARD_SIZE * sizeof(char));
+  char* initialBoard = (char*) SafeMalloc(boardSize * sizeof(char));
 
-  for (int i = 0; i < BOARD_SIZE; i++) {
+  for (int i = 0; i < boardSize; i++) {
     initialBoard[i] = '-';
   }
 
   gInitialPosition = generic_hash_hash(initialBoard, 1);
+
+  SafeFree(initialBoard);
 }
 
 /* Return the hash value of the initial position. */
@@ -110,11 +139,11 @@ POSITION GetInitialPosition() {
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
 
-  char newBoard[BOARD_SIZE];
+  char newBoard[boardSize];
 
   generic_hash_unhash(position, newBoard);
 
-  for (int i = BOARD_SIZE - 1; i >= 0; i--) {
+  for (int i = boardSize - 1; i >= 0; i--) {
     if (newBoard[i] == '-') {
       moves = CreateMovelistNode(i, moves);
     }
@@ -126,16 +155,10 @@ MOVELIST *GenerateMoves(POSITION position) {
 /* Return the position that results from making the 
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
-  char newBoard[BOARD_SIZE];
+  char newBoard[boardSize];
   generic_hash_unhash(position, newBoard);
 
-  int nonBlankCount = 0;
-
-  for (int i = 0; i < BOARD_SIZE; i++) {
-    if (newBoard[i] != '-') {
-      nonBlankCount++;
-    }
-  }
+  int nonBlankCount = countUsed(newBoard);
 
   if (nonBlankCount % 2 == 0) {
     newBoard[move] = 'w';
@@ -146,16 +169,105 @@ POSITION DoMove(POSITION position, MOVE move) {
   }
 }
 
-char** convertBoardToMatrix(char* board) {
-  char** matrix = (char**) SafeMalloc(BOARD_DIMENSION * sizeof(char*));
+/* Return lose, win, tie, or undecided. See src/core/types.h
+for the value enum definition. */
+VALUE Primitive(POSITION position) {
+  char newBoard[boardSize];
+  generic_hash_unhash(position, newBoard);
 
-  for (int i = 0 ; i < BOARD_DIMENSION; i++) {
+  char** matrix = convertBoardToMatrix(newBoard);
+
+  BOOLEAN gameOver = hasY(matrix);
+
+  freeMatrix(matrix);
+
+  if (gameOver == TRUE) {
+    return lose;
+  }
+
+  for (int i = 0; i < boardSize; i++) {
+    if (newBoard[i] == '-') {
+      return undecided;
+    }
+  }
+
+  return tie;
+}
+
+/* Symmetry Handling: Return the canonical position. */
+POSITION GetCanonicalPosition(POSITION position) {
+  char cousinBoards[6][boardSize];
+
+  generic_hash_unhash(position, cousinBoards[0]);
+
+  for (int i = 0; i < 2; i++) {
+    rotateBoard(cousinBoards[i], cousinBoards[i + 1]);
+  }
+
+  for (int i = 0; i < 3; i++) {
+    flipBoard(cousinBoards[i], cousinBoards[i + 3]);
+  }
+
+  // Figure out player
+  int player = countUsed(cousinBoards[0]) % 2 == 0 ? 0 : 1;
+
+  POSITION best = position;
+
+  for (int i = 1; i < 6; i++) {
+    POSITION option = generic_hash_hash(cousinBoards[i], player);
+    best = min(best, option);
+  }
+
+  return best;
+}
+
+/*********** END SOLVING FUNCTIONS ***********/
+
+/*********** HELPER FUNCTIONS      ***********/
+
+int vcfg(int pieces[]) {
+  return pieces[0] == pieces[1] || pieces[0] - 1 == pieces[1];
+}
+
+int countUsed(char* board) {
+  int nonBlankCount = 0;
+
+  for (int i = 0; i < boardSize; i++) {
+    if (board[i] != '-') {
+      nonBlankCount++;
+    }
+  }
+
+  return nonBlankCount;
+}
+
+void flipBoard(char* board, char* target) {
+  char** matrix = convertBoardToMatrix(board);
+
+  for (int i = 0; i < boardDimension; i++) {
+    for (int j = 0; j <= i / 2; j++) {
+      char temp = matrix[i][j];
+      int reflectIndex = i - j;
+      matrix[i][j] = matrix[i][reflectIndex];
+      matrix[i][reflectIndex] = temp;
+    }
+  }
+
+  convertMatrixToBoard(matrix, target);
+
+  freeMatrix(matrix);
+}
+
+char** convertBoardToMatrix(char* board) {
+  char** matrix = (char**) SafeMalloc(boardDimension * sizeof(char*));
+
+  for (int i = 0 ; i < boardDimension; i++) {
     matrix[i] = (char*) SafeMalloc((i + 1) * sizeof(char));
   }
 
   int boardIndex = 0;
 
-  for (int i = 0; i < BOARD_DIMENSION; i++) {
+  for (int i = 0; i < boardDimension; i++) {
     for (int j = 0; j < i + 1; j++) {
       matrix[i][j] = board[boardIndex++];
     }
@@ -167,7 +279,7 @@ char** convertBoardToMatrix(char* board) {
 void convertMatrixToBoard(char** matrix, char* target) {
   int boardIndex = 0;
 
-  for (int i = 0; i < BOARD_DIMENSION; i++) {
+  for (int i = 0; i < boardDimension; i++) {
     for (int j = 0; j < i + 1; j++) {
       target[boardIndex++] = matrix[i][j];
     }
@@ -175,7 +287,7 @@ void convertMatrixToBoard(char** matrix, char* target) {
 }
 
 void freeMatrix(char** matrix) {
-  for (int i = 0; i < BOARD_DIMENSION; i++) {
+  for (int i = 0; i < boardDimension; i++) {
     SafeFree(matrix[i]);
   }
 
@@ -215,7 +327,7 @@ void recurY(char** matrix, int row, int col, BOOLEAN* touches, BOOLEAN* visited,
   if (col == row) {
     touches[1] = TRUE;
   }
-  if (row == BOARD_DIMENSION - 1) {
+  if (row == boardDimension - 1) {
     touches[2] = TRUE;
   }
 
@@ -236,11 +348,11 @@ void recurY(char** matrix, int row, int col, BOOLEAN* touches, BOOLEAN* visited,
     recurY(matrix, row, col + 1, touches, visited, startPiece);
   }
 
-  if (col > 0 && row < BOARD_DIMENSION - 1) {
+  if (col > 0 && row < boardDimension - 1) {
     recurY(matrix, row + 1, col, touches, visited, startPiece);
   }
 
-  if (row < BOARD_DIMENSION - 1) {
+  if (row < boardDimension - 1) {
     recurY(matrix, row + 1, col + 1, touches, visited, startPiece);
   }
 }
@@ -251,9 +363,9 @@ BOOLEAN hasYStartLoc(char** matrix, int row, int col) {
     return FALSE;
   }
 
-  BOOLEAN visited[BOARD_SIZE];
+  BOOLEAN visited[boardSize];
 
-  for (int i = 0; i < BOARD_SIZE; i++) {
+  for (int i = 0; i < boardSize; i++) {
     visited[i] = FALSE;
   }
 
@@ -265,8 +377,8 @@ BOOLEAN hasYStartLoc(char** matrix, int row, int col) {
 }
 
 BOOLEAN hasY(char** matrix) {
-  for (int i = 0; i < BOARD_DIMENSION; i++) {
-    if (hasYStartLoc(matrix, i, 0)) {
+  for (int i = 0; i < boardDimension; i++) {
+    if (matrix[i][0] != '-' && hasYStartLoc(matrix, i, 0)) {
       return TRUE;
     }
   }
@@ -274,37 +386,8 @@ BOOLEAN hasY(char** matrix) {
   return FALSE;
 }
 
-/* Return lose, win, tie, or undecided. See src/core/types.h
-for the value enum definition. */
-VALUE Primitive(POSITION position) {
-  char newBoard[BOARD_SIZE];
-  generic_hash_unhash(position, newBoard);
-
-  char** matrix = convertBoardToMatrix(newBoard);
-
-  BOOLEAN gameOver = hasY(matrix);
-
-  freeMatrix(matrix);
-
-  if (gameOver == TRUE) {
-    return lose;
-  }
-
-  for (int i = 0; i < BOARD_SIZE; i++) {
-    if (newBoard[i] == '-') {
-      return undecided;
-    }
-  }
-
-  return tie;
-}
-
 POSITION min(POSITION a, POSITION b) {
-  if (a < b) {
-    return a;
-  } else {
-    return b;
-  }
+  return a < b ? a : b;
 }
 
 void rotateBoard(char* board, char* target) {
@@ -312,9 +395,9 @@ void rotateBoard(char* board, char* target) {
   char** rotated = convertBoardToMatrix(board);
 
   // First element of each row forms the new bottom row
-  for (int i = 0; i < BOARD_DIMENSION; i++) {
-    for (int j = i; j < BOARD_DIMENSION; j++) {
-      rotated[BOARD_DIMENSION - 1 - i][j - i] = matrix[j][i];
+  for (int i = 0; i < boardDimension; i++) {
+    for (int j = i; j < boardDimension; j++) {
+      rotated[boardDimension - 1 - i][j - i] = matrix[j][i];
     }
   }
 
@@ -324,61 +407,16 @@ void rotateBoard(char* board, char* target) {
   freeMatrix(rotated);
 }
 
-void flipBoard(char* board, char* target) {
-  char** matrix = convertBoardToMatrix(board);
+int calculateboardSize(int dimensions) {
+  int size = 0;
 
-  for (int i = 0; i < BOARD_DIMENSION; i++) {
-    for (int j = 0; j <= i / 2; j++) {
-      char temp = matrix[i][j];
-      int reflectIndex = i - j;
-      matrix[i][j] = matrix[i][reflectIndex];
-      matrix[i][reflectIndex] = temp;
-    }
+  for (int i = 0; i < dimensions + 1; i++) {
+    size += i;
   }
 
-  convertMatrixToBoard(matrix, target);
-
-  freeMatrix(matrix);
+  return size;
 }
-
-/* Symmetry Handling: Return the canonical position. */
-POSITION GetCanonicalPosition(POSITION position) {
-  char cousinBoards[6][BOARD_SIZE];
-
-  generic_hash_unhash(position, cousinBoards[0]);
-
-  for (int i = 0; i < 2; i++) {
-    rotateBoard(cousinBoards[i], cousinBoards[i + 1]);
-  }
-
-  for (int i = 0; i < 3; i++) {
-    flipBoard(cousinBoards[i], cousinBoards[i + 3]);
-  }
-
-  // Figure out player
-  int count = 0;
-
-  for (int i = 0; i < BOARD_SIZE; i++) {
-    if (cousinBoards[0][i] != '-') {
-      count++;
-    }
-  }
-
-  int player = count % 2 == 0 ? 0 : 1;
-
-  POSITION best = position;
-
-  for (int i = 1; i < 6; i++) {
-    POSITION option = generic_hash_hash(cousinBoards[i], player);
-    best = min(best, option);
-  }
-
-  return best;
-}
-
-/*********** END SOLVING FUNCTIONS ***********/
-
-
+/*********************************************/
 
 
 
@@ -403,26 +441,29 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
      V V V V 
   */
 
-  char board[BOARD_SIZE];
+  char board[boardSize];
   generic_hash_unhash(position, board);
 
   char** matrix = convertBoardToMatrix(board);
 
-  for (int row = 0; row < BOARD_DIMENSION; row++) {
+  for (int row = 0; row < boardDimension; row++) {
     printf("%c\t", (char) (row + 97));
     
-    for (int i = 0; i < BOARD_DIMENSION - 1 - row; i++) {
+    for (int i = 0; i < boardDimension - 1 - row; i++) {
       printf(" ");
     }
 
     for (int col = 0; col <= row; col++) {
       printf("%c ", matrix[row][col]);
     }
-    printf("\n");
+
+    if (row < boardDimension - 1) {
+      printf("\n");
+    }
   }
 
   
-  printf("%s\n\n", GetPrediction(position,playerName,usersTurn));
+  printf("\t%s\n\n", GetPrediction(position,playerName,usersTurn));
 
   freeMatrix(matrix);
 }
@@ -537,25 +578,21 @@ void PrintMove(MOVE move) {
 
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
-/* How many variants are you supporting? For now, just 1.
-Maybe in the future you want to support more variants. */
+/* How many variants are you supporting? */
 int NumberOfOptions() {
-  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
-  return 1;
+  return MAX_DIMENSION + 1 - MIN_DIMENSION;
 }
 
 /* Return the current variant id (which is 0 in this case since
 for now you're only thinking about one variant). */
 int getOption() {
-  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
-  return 0;
+  return boardDimension - MIN_DIMENSION;
 }
 
 /* The input is a variant id. This function sets any global variables
-or data structures according to the variant specified by the variant id. 
-But for now you have one variant so don't worry about this. */
+or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
-  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
+  boardDimension = option + MIN_DIMENSION;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -587,30 +624,4 @@ STRING InteractPositionToEndData(POSITION position) {
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE LATER BUT NOT NOW */
   return MoveToString(move);
-}
-
-/*
-Added functions
-*/
-int fact(int n) {
-  if (n <= 1) {
-    return 1;
-  } else {
-    return n * fact(n - 1);
-  }
-}
-
-int choose(int n, int r) {
-  return fact(n) / (fact(n - r) * fact(r));
-}
-
-
-int calculateBoardSize(int dimensions) {
-  int size = 0;
-
-  for (int i = 0; i < dimensions + 1; i++) {
-    size += i;
-  }
-
-  return size;
 }
