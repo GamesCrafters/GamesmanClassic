@@ -66,21 +66,26 @@ void SetTclCGameSpecificOptions(int theOptions[]) {}
 // Declare helper functions
 int calculateboardSize(int dimensions);
 int countUsed(char* board);
+
 int vcfg(int* pieces);
+
 char** convertBoardToMatrix(char* board);
 void convertMatrixToBoard(char** matrix, char* target);
 void freeMatrix(char** matrix);
 int convertLocToIndex(int row, int col);
+
+POSITION min(POSITION a, POSITION b);
+
 void recurY(char** matrix, int row, int col, BOOLEAN* touches, BOOLEAN* visited, char startPiece);
 BOOLEAN hasYStartLoc(char** matrix, int row, int col);
 BOOLEAN hasY(char** matrix);
-POSITION min(POSITION a, POSITION b);
 
 void rotateBoard(char* board, char* target);
 void flipBoard(char* board, char* target);
 
 int boardSize; // Declare now but calculate in InitializeGame()
 int boardDimension = DEFULT_DIMENSION;
+BOOLEAN misere = FALSE;
 
 void GameSpecificMenu() {
   char inp;
@@ -95,6 +100,23 @@ void GameSpecificMenu() {
       ;
     } else if (dim >= MIN_DIMENSION && dim <= MAX_DIMENSION) {
       boardDimension = dim;
+    } else {
+			printf("Invalid input.\n");
+			continue;
+    }
+		break;
+	}
+
+	while (TRUE) {
+		printf("        Play misere? (y/n): ");
+		inp = getchar();
+
+    if (inp == 'b' || inp == 'B') {
+      ;
+    } else if (inp == 'y' || inp == 'Y') {
+      misere = TRUE;
+    } else if (inp == 'n' || inp == 'N') {
+      misere = FALSE;
     } else {
 			printf("Invalid input.\n");
 			continue;
@@ -182,7 +204,7 @@ VALUE Primitive(POSITION position) {
   freeMatrix(matrix);
 
   if (gameOver == TRUE) {
-    return lose;
+    return misere ? win : lose;
   }
 
   for (int i = 0; i < boardSize; i++) {
@@ -209,7 +231,7 @@ POSITION GetCanonicalPosition(POSITION position) {
   }
 
   // Figure out player
-  int player = countUsed(cousinBoards[0]) % 2 == 0 ? 0 : 1;
+  int player = countUsed(cousinBoards[0]) % 2 == 0 ? 1 : 2;
 
   POSITION best = position;
 
@@ -579,19 +601,30 @@ void PrintMove(MOVE move) {
 
 /* How many variants are you supporting? */
 int NumberOfOptions() {
-  return MAX_DIMENSION + 1 - MIN_DIMENSION;
+  return 2 * (MAX_DIMENSION + 1 - MIN_DIMENSION);
 }
 
 /* Return the current variant id (which is 0 in this case since
 for now you're only thinking about one variant). */
 int getOption() {
-  return boardDimension - MIN_DIMENSION;
+  // 4, 5, 6, 7, 4m, 5m, 6m, 7m
+  if (!misere) {
+    return boardDimension - MIN_DIMENSION;
+  } else {
+    return boardDimension - MIN_DIMENSION + (MAX_DIMENSION + 1 - MIN_DIMENSION);
+  }
 }
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
-  boardDimension = option + MIN_DIMENSION;
+  if (option < MAX_DIMENSION + 1 - MIN_DIMENSION) {
+    boardDimension = option + MIN_DIMENSION;
+    misere = FALSE;
+  } else {
+    boardDimension = option + MIN_DIMENSION - (MAX_DIMENSION + 1 - MIN_DIMENSION);
+    misere = TRUE;
+  }
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -601,18 +634,55 @@ void setOption(int option) {
 
 
 
-
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
+/********* AUTOGUI FUNCTIONS **********/
 POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE LATER BUT NOT NOW */
-  return 0;
+  // Ignore the first 8 characters
+  char realBoard[boardSize];
+
+  for (int i = 0; i < boardSize; i++) {
+    if (board[i + 8] == 'W') {
+      realBoard[i] = 'w';
+    } else if (board[i + 8] == 'B') {
+      realBoard[i] = 'b';
+    } else {
+      realBoard[i] = '-';
+    }
+  }
+
+  int player = countUsed(realBoard) % 2 == 0 ? 1 : 2;
+
+  return generic_hash_hash(realBoard, player);
 }
 
 STRING InteractPositionToString(POSITION position) {
   /* YOUR CODE HERE LATER BUT NOT NOW */
-  return NULL;
+  char board[boardSize];
+  generic_hash_unhash(position, board);
+
+  // R_A_0_0_TG-T-S--H
+  STRING result = (STRING) SafeMalloc(9 + boardSize);
+  result[0] = 'R';
+  result[1] = '_';
+  result[2] = countUsed(board) % 2 == 0 ? 'A' : 'B';
+  result[3] = '_';
+  result[4] = '0';
+  result[5] = '_';
+  result[6] = '0';
+  result[7] = '_';
+
+  for (int i = 0; i < boardSize; i++) {
+    if (board[i] == 'w') {
+      result[8 + i] = 'W';
+    } else if (board[i] == 'b') {
+      result[8 + i] = 'B';
+    } else {
+      result[8 + i] = '-';
+    }
+  }
+
+  result[8 + boardSize] = '\0';
+
+  return result;
 }
 
 /* Ignore this function. */
@@ -621,6 +691,9 @@ STRING InteractPositionToEndData(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE LATER BUT NOT NOW */
-  return MoveToString(move);
+  STRING result = (STRING) SafeMalloc(8);
+
+  sprintf(result, "A_-_%d", move);
+
+  return result;
 }
