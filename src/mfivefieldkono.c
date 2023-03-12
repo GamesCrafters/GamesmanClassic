@@ -273,7 +273,7 @@ void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char 
   int newElem = convertChar(even_component[newPos]);
   int match = turn ? 2 : 1;
   if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos, turn), *moves);
+    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
   }
 }
 
@@ -286,7 +286,7 @@ void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *
   int newElem = convertChar(odd_component[newPos]);
   int match = turn ? 2 : 1;
   if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos, turn), *moves);
+    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
   }
 }
 
