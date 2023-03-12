@@ -155,18 +155,26 @@ MOVELIST *GenerateMoves(POSITION hash) {
   /* - = 0; o = 1; x = 2; total = 0b<turn_bit, base_3_odd_component, base_3_even_component))> */
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
-    evaluateEven(hash, i, i - 2, &moves, newboard->even_component);
-    evaluateEven(hash, i, i - 3, &moves, newboard->even_component);
-    evaluateEven(hash, i, i + 2, &moves, newboard->even_component);
-    evaluateEven(hash, i, i + 3, &moves, newboard->even_component);
+    if (i != 4 || i != 9) {
+      evaluateEven(hash, i, i - 2, &moves, newboard->even_component);
+      evaluateEven(hash, i, i + 3, &moves, newboard->even_component);
+    }
+    if (i != 2 || i != 7) {
+      evaluateEven(hash, i, i + 2, &moves, newboard->even_component);
+      evaluateEven(hash, i, i - 3, &moves, newboard->even_component);
+    }
   }
 
   int odd_len = 13;
   for (int j = 0; j < odd_len; j++) {
-    evaluateOdd(hash, j, j - 2, &moves, newboard->odd_component);
-    evaluateOdd(hash, j, j - 3, &moves, newboard->odd_component);
-    evaluateOdd(hash, j, j + 2, &moves, newboard->odd_component);
-    evaluateOdd(hash, j, j + 3, &moves, newboard->odd_component);
+    if (i != 0 || i != 5 || i != 10) {
+      evaluateOdd(hash, j, j + 2, &moves, newboard->odd_component);
+      evaluateOdd(hash, j, j - 3, &moves, newboard->odd_component);
+    }
+    if (i != 2 || i != 7 || i != 12) {
+      evaluateOdd(hash, j, j - 2, &moves, newboard->odd_component);
+      evaluateOdd(hash, j, j + 3, &moves, newboard->odd_component);
+    }
   }
 
   // TODO: Use CreateMovelistNode() to add nodes to MOVELIST
