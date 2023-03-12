@@ -130,12 +130,14 @@ void evaluateEven(POSITION hash, int currPos, int newPos, MOVELIST **moves, char
   char currElem = convertChar(even_component[currPos]);
   int newElem = convertChar(even_component[newPos]);
   if (currElem > 0 && newElem == 0) {
-    POSITION original = currElem * pow(3, (12 - 1) - currPos);
-    POSITION new = newElem * pow(3, (12 - 1) - newPos);
-    POSITION new_hash = hash - original + new;
-    (*moves == NULL) ? ...: ...;
+    
   }
 }
+
+// POSITION original = currElem * pow(3, (12 - 1) - currPos);
+    // POSITION new = newElem * pow(3, (12 - 1) - newPos);
+    // POSITION new_hash = hash - original + new;
+    // (*moves == NULL) ? ...: ...;
 
 void evaluateOdd(POSITION hash, int currPos, int newPos, MOVELIST **moves, char *odd_component) {
   if (newPos < 0 || newPos >= 13) {
@@ -144,12 +146,14 @@ void evaluateOdd(POSITION hash, int currPos, int newPos, MOVELIST **moves, char 
   int currElem = convertChar(odd_component[currPos]);
   int newElem = convertChar(odd_component[newPos]);
   if (currElem > 0 && newElem == 0) {
-    POSITION original = currElem * pow(3, (25 - 1) - currPos);
-    POSITION new = newElem * pow(3, (25 - 1) - newPos);
-    POSITION new_hash = hash - original + new;
-    (*moves == NULL) ? ...: ...;
+    
   }
 }
+
+// POSITION original = currElem * pow(3, (25 - 1) - currPos);
+    // POSITION new = newElem * pow(3, (25 - 1) - newPos);
+    // POSITION new_hash = hash - original + new;
+    // (*moves == NULL) ? ...: ...;
 
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
