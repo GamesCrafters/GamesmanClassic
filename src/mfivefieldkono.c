@@ -73,6 +73,21 @@ STRING kHelpExample = "";
 
 
 
+/* BOARD DEFINITION */
+
+/* A Five-Field Kono board consists of 25 spots, but has two connected 
+components (such that pieces that start out in one cannot possibly move
+into the other). Since clever solving might be possible due to this, we
+store them separately. */
+typedef struct {
+  char *even_component; // 12 characters + 1 null byte
+  char *odd_component; // 13 characters + 1 null byte
+  BOOLEAN turn; // TRUE = your turn (piece x), FALSE = opponent turn (piece o)
+} FFK_Board;
+
+
+
+
 /* FUNCTIONAL DECLARATION */
 
 /* Solving functions. */
@@ -107,23 +122,8 @@ BOOLEAN isLose(FFK_Board* board);
 BOOLEAN isTie(FFK_Board* board);
 
 /* Move hashing functions. */
-MOVE hashMove(int oldPos, int newPos, BOOLEAN turn);
-void unhashMove(MOVE mv, int *oldPos, int *newPos, BOOLEAN *turn);
-
-
-
-
-/* BOARD DEFINITION */
-
-/* A Five-Field Kono board consists of 25 spots, but has two connected 
-components (such that pieces that start out in one cannot possibly move
-into the other). Since clever solving might be possible due to this, we
-store them separately. */
-typedef struct {
-  char *even_component; // 12 characters + 1 null byte
-  char *odd_component; // 13 characters + 1 null byte
-  BOOLEAN turn; // TRUE = your turn (piece x), FALSE = opponent turn (piece o)
-} FFK_Board;
+MOVE hashMove(int oldPos, int newPos);
+void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
 
 
@@ -168,30 +168,31 @@ POSITION GetInitialPosition() {
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = unhash(hash);
+  BOOLEAN turn = newboard->turn;
   MOVELIST *moves = NULL;
 
   /* - = 0; o = 1; x = 2; total = 0b<turn_bit, base_3_odd_component, base_3_even_component))> */
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
     if (i != 4 || i != 9) {
-      evaluateEven(hash, i, i - 2, &moves, newboard->even_component);
-      evaluateEven(hash, i, i + 3, &moves, newboard->even_component);
+      evaluateEven(i, i - 2, turn, &moves, newboard->even_component);
+      evaluateEven(i, i + 3, turn, &moves, newboard->even_component);
     }
     if (i != 2 || i != 7) {
-      evaluateEven(hash, i, i + 2, &moves, newboard->even_component);
-      evaluateEven(hash, i, i - 3, &moves, newboard->even_component);
+      evaluateEven(i, i + 2, turn, &moves, newboard->even_component);
+      evaluateEven(i, i - 3, turn, &moves, newboard->even_component);
     }
   }
 
   int odd_len = 13;
   for (int j = 0; j < odd_len; j++) {
-    if (i != 0 || i != 5 || i != 10) {
-      evaluateOdd(hash, j, j + 2, &moves, newboard->odd_component);
-      evaluateOdd(hash, j, j - 3, &moves, newboard->odd_component);
+    if (j != 0 || j != 5 || j != 10) {
+      evaluateOdd(j, j + 2, turn, &moves, newboard->odd_component);
+      evaluateOdd(j, j - 3, turn, &moves, newboard->odd_component);
     }
-    if (i != 2 || i != 7 || i != 12) {
-      evaluateOdd(hash, j, j - 2, &moves, newboard->odd_component);
-      evaluateOdd(hash, j, j + 3, &moves, newboard->odd_component);
+    if (j != 2 || j != 7 || j != 12) {
+      evaluateOdd(j, j - 2, turn, &moves, newboard->odd_component);
+      evaluateOdd(j, j + 3, turn, &moves, newboard->odd_component);
     }
   }
 
@@ -201,11 +202,11 @@ MOVELIST *GenerateMoves(POSITION hash) {
 /* Return the resulting position from making 'move' on 'position'. */
 POSITION DoMove(POSITION hash, MOVE move) {
   int oldPos, newPos;
+  BOOLEAN turn = getTurn(hash);
   unhashMove(move, &oldPos, &newPos);
   int piece_type = turn ? 2: 1; // o == 1 and x == 2 in base 3
   POSITION original = piece_type * pow(3, oldPos);
   POSITION new = piece_type * pow(3, newPos);
-  BOOLEAN turn = getTurn(hash);
   return withTurn(hash - original + new, (turn + 1) % 2);
 }
 
@@ -406,8 +407,8 @@ POSITION hash(FFK_Board *board) {
     total += convertChar(board->even_component[(even_len - 1) - i]) * pow(3, i);
   }
   int odd_len = 13;
-  for (int j = 0; j < odd_len, j++) {
-    total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j)
+  for (int j = 0; j < odd_len; j++) {
+    total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j);
   }
   // Returns base_3(concatenate(odd_component, even_component))
   // with the MSB flipped to board->turn
@@ -416,7 +417,7 @@ POSITION hash(FFK_Board *board) {
 
 /* Unhash function for the Board. */
 FFK_Board* unhash(POSITION hash) {
-  FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(struct FFK_Board));
+  FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
   newBoard->even_component = (char *) malloc(13 * sizeof(char));
   newBoard->odd_component = (char *) malloc(14 * sizeof(char));
   newBoard->turn = getTurn(hash);
@@ -427,7 +428,7 @@ FFK_Board* unhash(POSITION hash) {
   for (int i = 0; i < even_len; i++) {
     remain = hash % 3;
     hash = floor(hash/3);
-    board->even_component[(even_len - 1) - i] = convertInt(remain);
+    newBoard->even_component[(even_len - 1) - i] = convertInt(remain);
   }
   
   int odd_len = 13;
@@ -435,7 +436,7 @@ FFK_Board* unhash(POSITION hash) {
   for (int j = 0; j < odd_len; j++) {
     remain = hash % 3;
     hash = floor(hash/3);
-    board->odd_component[(odd_len - 1) - j] = convertInt(remain);
+    newBoard->odd_component[(odd_len - 1) - j] = convertInt(remain);
   }
   return newBoard;
 }
@@ -486,7 +487,7 @@ BOOLEAN isLose(FFK_Board* board) {
 
 /* If there are no moves left to be made, then the game is a tie. */
 BOOLEAN isTie(FFK_Board* board) {
-  MOVELIST possible_moves = GenerateMoves(hash(board));
+  MOVELIST *possible_moves = GenerateMoves(hash(board));
   if (possible_moves == NULL) {
     return TRUE;
   }
