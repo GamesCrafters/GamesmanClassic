@@ -126,6 +126,14 @@ POSITION GetInitialPosition() {
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION position) {
   FFK_Board *newboard =  unhash(position);
+  int even_len = 12;
+  for (int i = 0; i < even_len; i++) {
+    newboard->
+  }
+  int odd_len = 13;
+  for (int j = 0; j < odd_len; j++) {
+    
+  }
   MOVELIST *moves = NULL;
   // TODO: Use CreateMovelistNode() to add nodes to MOVELIST
   return moves;
@@ -294,21 +302,25 @@ POSITION hash(FFK_Board *board) {
 
 /* Unhash function for the Board. */
 FFK_Board unhash(POSITION hash) {
-  FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
-  newBoard.even_component[12] = unhash_char;
-  newBoard.odd_component[13] = unhash_char;
+  FFK_Board *newBoard = (FFK_Board *) malloc(sizeof(struct FFK_Board));
+  newBoard->even_component = (char *) malloc(13 * sizeof(char));
+  newBoard->odd_component = (char *) malloc(14 * sizeof(char));
   int remain = -1;
+
   int even_len = 12;
+  newBoard->even_component[even_len] = '\0';
   for (int i = 0; i < even_len; i++) {
     remain = hash % 3;
     hash = floor(hash/3);
     board->even_component[(even_len - 1) - i] = convertInt(remain);
   }
+  
   int odd_len = 13;
+  newBoard->odd_component[odd_len] = '\0';
   for (int j = 0; j < odd_len; j++) {
     remain = hash % 3;
     hash = floor(hash/3);
-    board->even_component[(odd_len - 1) - j] = convertInt(remain);
+    board->odd_component[(odd_len - 1) - j] = convertInt(remain);
   }
 }
 
