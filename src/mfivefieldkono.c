@@ -433,7 +433,7 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos, BOOLEAN *turn) {
   mv = floor(mv/25);
   *newPos = mv % 25;
   mv = floor(mv/25);
-  *turn_bit = (mv == 1) ? TRUE : FALSE;
+  *turn = (mv == 1) ? TRUE : FALSE;
 }
 
 
