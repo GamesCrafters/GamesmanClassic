@@ -94,6 +94,7 @@ typedef struct {
 void InitializeGame();
 POSITION GetInitialPosition();
 MOVELIST *GenerateMoves(POSITION hash);
+POSITION GetCanonicalPosition(POSITION position);
 POSITION DoMove(POSITION hash, MOVE move);
 VALUE Primitive(POSITION position);
 
@@ -125,6 +126,9 @@ BOOLEAN isTie(FFK_Board* board);
 MOVE hashMove(int oldPos, int newPos);
 void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
+/* Other stuff we don't care about for now. */
+STRING MoveToString(MOVE move);
+
 
 
 
@@ -149,9 +153,9 @@ int odd_flip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 
 /* Initialize any global variables or data structures needed. */
 void InitializeGame() {
-  gCanonicalPosition = GetCanonicalPosition();
-  gMoveToStringFunPtr = &MoveToString();
+  gMoveToStringFunPtr = &MoveToString;
   gInitialPosition = GetInitialPosition();
+  gCanonicalPosition = GetCanonicalPosition;
 }
 
 /* Return the hash value of the initial position. */
@@ -212,7 +216,7 @@ POSITION DoMove(POSITION hash, MOVE move) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  POSITION* symmetries = malloc(sizeof(POSITION)*8)
+  POSITION* symmetries = malloc(sizeof(POSITION)*8);
   FFK_Board* board = unhash(position);
   POSITION canonical = 0;
 
