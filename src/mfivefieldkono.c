@@ -165,30 +165,6 @@ POSITION GetInitialPosition() {
   return hash(initial_board);
 }
 
-void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
-  if (newPos < 0 || newPos >= 12) {
-    return;
-  }
-  int currElem = convertChar(even_component[currPos]);
-  int newElem = convertChar(even_component[newPos]);
-  int match = turn ? 2 : 1;
-  if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
-  }
-}
-
-void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component) {
-  if (newPos < 0 || newPos >= 13) {
-    return;
-  }
-  int currElem = convertChar(odd_component[currPos]);
-  int newElem = convertChar(odd_component[newPos]);
-  int match = turn ? 2 : 1;
-  if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
-  }
-}
-
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = unhash(hash);
@@ -235,8 +211,37 @@ POSITION DoMove(POSITION hash, MOVE move) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  // TODO
-  return position;
+  POSITION* symmetries = malloc(sizeof(POSITION)*8)
+  FFK_Board* board = unhash(position);
+  POSITION canonical = 0;
+
+  symmetries[0] = position; // identity
+  rotate(board);
+  symmetries[1] = hash(board); // r
+  rotate(board);
+  symmetries[2] = hash(board); // r^2
+  rotate(board);
+  symmetries[3] = hash(board); // r^3
+  rotate(board);
+  flip(board);
+  symmetries[4] = hash(board); // f
+  rotate(board);
+  symmetries[5] = hash(board); // fr (frfr ong deadass)
+  rotate(board);
+  symmetries[6] = hash(board); // fr^2
+  rotate(board);
+  symmetries[7] = hash(board); // fr^3
+  
+  for (int i = 0; i < 8; i++) {
+    if (symmetries[i] > canonical) {
+      canonical = symmetries[i];
+    }
+  }
+
+  free(symmetries);
+  free(board);
+
+  return canonical;
 }
 
 /* Return lose, win, tie, or undecided. See src/core/types.h
