@@ -82,9 +82,8 @@ store them separately. */
 typedef struct {
   char *even_component; // 12 characters + 1 null byte
   char *odd_component; // 13 characters + 1 null byte
+  bool opponent_turn;
 } FFK_Board;
-
-
 
 
 /* BOARD TRANSFORMATION ARRAYS */
