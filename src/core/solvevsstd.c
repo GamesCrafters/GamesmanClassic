@@ -45,17 +45,12 @@ UINT32 WINBYSLOT = 0;
 UINT32 REMSLOT = 0;
 UINT32 VISITEDSLOT = 0;
 
-VALUE DetermineValueVSSTD(POSITION position)
-{
+VALUE DetermineValueVSSTD(POSITION position) {
 	GMSTATUS status = STATUS_SUCCESS;
 	VALUE gameval = undecided;
-
-	if(!gBitPerfectDB) {
+	if (!gBitPerfectDB) {
 		status = STATUS_MISSING_DEPENDENT_MODULE;
 		BPDB_TRACE("DetermineValueVSSTD()", "Bit-Perfect DB must be the selected DB to use the slices solver", status);
-		// i wouldn't use this exit call if the status code
-		// was allowed to propogate up
-		exit(0);
 		goto _bailout;
 	}
 
@@ -63,36 +58,36 @@ VALUE DetermineValueVSSTD(POSITION position)
 	// add slots to database slices
 	//
 
-	status = AddSlot( 2, "VALUE", TRUE, FALSE, FALSE, &VALUESLOT );         // slot 0
-	if(!GMSUCCESS(status)) {
+	status = AddSlot(2, "VALUE", TRUE, FALSE, FALSE, &VALUESLOT);         // slot 0
+	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("DetermineValueVSSTD()", "Could not add value slot", status);
 		goto _bailout;
 	}
 
-	if(gPutWinBy) {
-		status = AddSlot( 3, "WINBY", TRUE, TRUE, FALSE, &WINBYSLOT );          // slot 2
-		if(!GMSUCCESS(status)) {
+	if (gPutWinBy) {
+		status = AddSlot(4, "WINBY", TRUE, TRUE, FALSE, &WINBYSLOT);          // slot 2
+		if (!GMSUCCESS(status)) {
 			BPDB_TRACE("DetermineValueVSSTD()", "Could not add winby slot", status);
 			goto _bailout;
 		}
 	}
 
-	if(!kPartizan) {
-		status = AddSlot( 3, "MEX", TRUE, TRUE, FALSE, &MEXSLOT );          // slot 2
-		if(!GMSUCCESS(status)) {
+	if (!kPartizan) {
+		status = AddSlot(3, "MEX", TRUE, TRUE, FALSE, &MEXSLOT);          // slot 2
+		if (!GMSUCCESS(status)) {
 			BPDB_TRACE("DetermineValueVSSTD()", "Could not add mex slot", status);
 			goto _bailout;
 		}
 	}
 
-	status = AddSlot( 5, "REMOTENESS", TRUE, TRUE, TRUE, &REMSLOT );        // slot 4
-	if(!GMSUCCESS(status)) {
+	status = AddSlot(5, "REMOTENESS", TRUE, TRUE, TRUE, &REMSLOT);        // slot 4
+	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("DetermineValueVSSTD()", "Could not add remoteness slot", status);
 		goto _bailout;
 	}
 
-	status = AddSlot( 1, "VISITED", FALSE, FALSE, FALSE, &VISITEDSLOT );    // slot 1
-	if(!GMSUCCESS(status)) {
+	status = AddSlot(1, "VISITED", FALSE, FALSE, FALSE, &VISITEDSLOT);    // slot 1
+	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("DetermineValueVSSTD()", "Could not add visited slot", status);
 		goto _bailout;
 	}
@@ -102,7 +97,7 @@ VALUE DetermineValueVSSTD(POSITION position)
 	//
 
 	status = Allocate();
-	if(!GMSUCCESS(status)) {
+	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("DetermineValueVSSTD()", "Could not allocate database", status);
 		goto _bailout;
 	}
@@ -111,18 +106,17 @@ VALUE DetermineValueVSSTD(POSITION position)
 	// use standard dfs solver
 	//
 
-	gameval = DetermineValueVSSTDHelper( position );
+	gameval = DetermineValueVSSTDHelper(position);
 
 _bailout:
-	if(!GMSUCCESS(status)) {
+	if (!GMSUCCESS(status)) {
 		return undecided;
 	} else {
 		return gameval;
 	}
 }
 
-VALUE DetermineValueVSSTDHelper( POSITION position )
-{
+VALUE DetermineValueVSSTDHelper(POSITION position) {
 	BOOLEAN foundTie = FALSE, foundLose = FALSE, foundWin = FALSE;
 	MOVELIST *ptr, *head;
 	VALUE value;
@@ -132,112 +126,96 @@ VALUE DetermineValueVSSTDHelper( POSITION position )
 	MEXCALC theMexCalc = 0; /* default to satisfy compiler */
 	int winByValue = 0, minWinByValue = ((1 << (MEX_BITS-1))-1), maxWinByValue = -(1 << (MEX_BITS-1));
 
-	if(GetSlot(position, VISITEDSLOT)) { /* Cycle! */
+	if (GetSlot(position, VISITEDSLOT)) {
+		/* Cycle! */
 		printf("Sorry, but I think this is a loopy game. I give up.");
 		ExitStageRight();
 		exit(0);
-	}
-	/* It's been seen before and value has been determined */
-	else if((value = GetSlot(position, VALUESLOT)) != undecided) {
+	} else if ((value = GetSlot(position, VALUESLOT)) != undecided) {
+		/* It's been seen before and value has been determined. */
 		return(value);
-	} else if((value = Primitive(position)) != undecided) {
-		/* first time, end */
-		SetSlot(position, REMSLOT, 0); /* terminal positions have 0 remoteness */
-		if(!kPartizan && !gTwoBits)
+	} else if ((value = Primitive(position)) != undecided) {
+		/* First time visiting a primitive position. */
+		SetSlot(position, REMSLOT, 0);
+		if (!kPartizan && !gTwoBits) {
 			SetSlot(position, MEXSLOT, MexPrimitive(value)); /* lose=0, win=* */
-		else if (kPartizan && gPutWinBy && !gTwoBits)
+		} else if (kPartizan && gPutWinBy && !gTwoBits) {
 			SetSlot(position, WINBYSLOT, (gPutWinBy(position) & (MEX_MASK >> MEX_SHIFT)));
+		}
 		return(SetSlot(position, VALUESLOT, value));
-		/* first time, need to recursively determine value */
 	} else {
-		SetSlot(position, VISITEDSLOT, 1);
-
-		if(!kPartizan && !gTwoBits)
-			theMexCalc = MexCalcInit();
+		/* First time visiting a non-primitive position. */
+		SetSlot(position, VISITEDSLOT, 1); /* loop detection. */
+		if (!kPartizan && !gTwoBits) theMexCalc = MexCalcInit();
 		head = ptr = GenerateMoves(position);
-		while (ptr != NULL) {
+		while (ptr) {
 			MOVE move = ptr->move;
 			gAnalysis.TotalMoves++;
-			child = DoMove(position,ptr->move); /* Create the child */
-
-			if(gSymmetries)
-				child = gCanonicalPosition(child);
-
-			if (child >= gNumberOfPositions)
-				FoundBadPosition(child, position, move);
-
-			value = DetermineValueVSSTDHelper(child); /* DFS call */
-
+			child = DoMove(position, ptr->move); /* Create the child. */
+			if (gSymmetries) child = gCanonicalPosition(child);
+			if (child >= gNumberOfPositions) FoundBadPosition(child, position, move);
+			value = DetermineValueVSSTDHelper(child); /* DFS call. */
 			if (kPartizan && gPutWinBy && !gTwoBits) {
 				int childWinByValue = WinByLoad(child);
-				if (childWinByValue < minWinByValue)
-					minWinByValue = childWinByValue;
-				if (childWinByValue > maxWinByValue)
-					maxWinByValue = childWinByValue;
+				if (childWinByValue < minWinByValue) minWinByValue = childWinByValue;
+				if (childWinByValue > maxWinByValue) maxWinByValue = childWinByValue;
 			}
-
-			if (gGoAgain(position,move))
-				switch(value)
-				{
+			if (gGoAgain(position,move)) {
+				switch(value) {
 				case lose: value=win; break;
 				case win: value=lose; break;
 				default: break; /* value stays the same */
 				}
-
-			//remoteness = Remoteness(child);
+			}
 			remoteness = GetSlot(child, REMSLOT);
-			if(!kPartizan && !gTwoBits)
+			if (!kPartizan && !gTwoBits) {
 				theMexCalc = MexAdd(theMexCalc,MexLoad(child));
-			if(value == lose) { /* found a way to give you a lose */
-				foundLose = TRUE; /* thus, it's a winning move      */
+			}
+			if (value == lose) { /* found a way to give you a lose */
+				foundLose = TRUE; /* thus, it's a winning move. */
 				if (remoteness < minRemoteness) minRemoteness = remoteness;
-			}
-			else if(value == tie) { /* found a way to give you a tie  */
-				foundTie = TRUE; /* thus, it's a tieing move       */
+			} else if (value == tie) { /* found a way to give you a tie  */
+				foundTie = TRUE; /* thus, it's a tieing move. */
 				if (remoteness < minTieRemoteness) minTieRemoteness = remoteness;
-			}
-			else if(value == win) { /* found a way to give you a win  */
-				foundWin = TRUE; /* thus, it's a losing move       */
+			} else if (value == win) { /* found a way to give you a win  */
+				foundWin = TRUE; /* thus, it's a losing move. */
 				if (remoteness > maxRemoteness) maxRemoteness = remoteness;
-			}
-			else
+			} else {
 				BadElse("DetermineValue[1]");
-
-			if (gUseGPS)
-				gUndoMove(move);
-
+			}
+			if (gUseGPS) gUndoMove(move);
 			ptr = ptr->next;
 		}
 		FreeMoveList(head);
 		SetSlot(position, VISITEDSLOT, 0);
 
-		if(!kPartizan && !gTwoBits)
+		if (!kPartizan && !gTwoBits) {
 			SetSlot(position, MEXSLOT, MexCompute(theMexCalc));
-		else if (kPartizan && gPutWinBy && !gTwoBits) {
+		} else if (kPartizan && gPutWinBy && !gTwoBits) {
+			/* TODO: make winby independent of turn. */
 			int turn = generic_hash_turn(position);
-			if (turn == 1)
+			if (turn == 1) {
 				winByValue = maxWinByValue;
-			else if (turn == 2)
+			} else if (turn == 2) {
 				winByValue = minWinByValue;
-			else BadElse("Bad generic_hash_turn(position)");
+			} else {
+				BadElse("Bad generic_hash_turn(position)");
+			}
 			SetSlot(position, WINBYSLOT, (winByValue & (MEX_MASK >> MEX_SHIFT)));
 		}
-		if(foundLose) {
+		if (foundLose) {
 			SetSlot(position, REMSLOT, minRemoteness+1);
 			return (SetSlot(position, VALUESLOT, win));
-		}
-		else if(foundTie) {
+		} else if (foundTie) {
 			SetSlot(position, REMSLOT, minTieRemoteness+1);
 			return (SetSlot(position, VALUESLOT, tie));
-		}
-		else if (foundWin) {
+		} else if (foundWin) {
 			SetSlot(position, REMSLOT, maxRemoteness+1);
 			return (SetSlot(position, VALUESLOT, lose));
-		}
-		else
+		} else {
 			BadElse("DetermineValue[2]. GenereateMoves most likely didnt return anything.");
+		}
 	}
 	BadElse("DetermineValue[3]"); /* This should NEVER be reached */
-	return(undecided);      /* But has been added to satisty lint */
+	return(undecided);      /* But has been added to satisfy lint */
 }
-

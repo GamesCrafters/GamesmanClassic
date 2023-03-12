@@ -413,7 +413,6 @@ void UnMarkAllAsVisited()
 
 void MexStore(POSITION position, MEX theMex)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -422,7 +421,6 @@ void MexStore(POSITION position, MEX theMex)
 
 MEX MexLoad(POSITION position)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -431,7 +429,6 @@ MEX MexLoad(POSITION position)
 
 void WinByStore(POSITION position, WINBY winBy)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -441,7 +438,6 @@ void WinByStore(POSITION position, WINBY winBy)
 WINBY WinByLoad(POSITION position)
 {
 	WINBY result;
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
