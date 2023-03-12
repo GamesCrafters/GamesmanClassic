@@ -82,7 +82,7 @@ store them separately. */
 typedef struct {
   char *even_component; // 12 characters + 1 null byte
   char *odd_component; // 13 characters + 1 null byte
-  bool opponent_turn;
+  bool turn;
 } FFK_Board;
 
 
@@ -119,6 +119,7 @@ POSITION GetInitialPosition() {
   nitial_board->odd_componen = malloc(sizeof(char)*14);
   strcpy(initial_board->even_component, "ooo-o--x-xxx");
   strcpy(initial_board->odd_component, "ooo-------xxx");
+  initial_board->turn = true;
   return hash(initial_board);
 }
 
@@ -152,7 +153,7 @@ void evaluateOdd(POSITION hash, int currPos, int newPos, MOVELIST **moves, char 
 
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
-  FFK_Board *newboard =  unhash(hash);
+  FFK_Board *newboard = unhash(hash);
   MOVELIST *moves = NULL;
 
   /* - = 0; o = 1; x = 2; total = base_3(concatenate(odd_component, even_component)) */
@@ -178,8 +179,10 @@ MOVELIST *GenerateMoves(POSITION hash) {
 
 /* Return the resulting position from making 'move' on 'position'. */
 POSITION DoMove(POSITION position, MOVE move) {
-  // TODO
-  return 0;
+  FFK_Board *board = unhash(hash);
+  ...; // TODO
+  board->turn = !(board->turn);
+  return hash(board);
 }
 
 /* Symmetry Handling: Return the canonical position. */
@@ -334,17 +337,19 @@ POSITION hash(FFK_Board *board) {
   for (int j = 0; j < odd_len, j++) {
     total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j)
   }
-  /* total = base_3(concatenate(odd_component, even_component)) */
-  return total;
+  // Returns base_3(concatenate(odd_component, even_component))
+  // with the MSB flipped to board->turn
+  return withTurn(total, board->turn);
 }
 
 /* Unhash function for the Board. */
-FFK_Board unhash(POSITION hash) {
-  FFK_Board *newBoard = (FFK_Board *) malloc(sizeof(struct FFK_Board));
+FFK_Board* unhash(POSITION hash) {
+  FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(struct FFK_Board));
   newBoard->even_component = (char *) malloc(13 * sizeof(char));
   newBoard->odd_component = (char *) malloc(14 * sizeof(char));
-  int remain = -1;
+  newBoard->turn = !((hash&0x8000000000000000) == 0);
 
+  int remain = -1;
   int even_len = 12;
   newBoard->even_component[even_len] = '\0';
   for (int i = 0; i < even_len; i++) {
@@ -360,7 +365,15 @@ FFK_Board unhash(POSITION hash) {
     hash = floor(hash/3);
     board->odd_component[(odd_len - 1) - j] = convertInt(remain);
   }
+  return newBoard;
 }
+
+/* Returns a position with the MSB of POS set to TURN. */
+POSITION withTurn(POSITION pos, bool turn) {
+  if (!turn) return pos;
+  return (pos|0x8000000000000000);
+}
+
 
 /* Converts a character to its ternary integer equivalent
 for hash calculations. */
@@ -386,6 +399,27 @@ char convertInt(char int_component) {
     return 'x';
   }
   return '\0';
+}
+
+
+
+
+/* MOVE HASHING FUNCTIONS */
+
+/* Uses the start and destination index of a piece in the connected
+component of the board it belongs to and whose turn it is to generate
+a unique hash for a game state graph edge. */
+MOVE hashMove(int oldPos, int newPos, bool turn) {
+  // TODO: RETURN - 0b<base 25 oldPos,base 25 newPos,turn bit>
+  return 0;
+}
+
+/* Obtains the start and destination index of a piece in the connected
+component of the board it belongs to and whose turn it is based on
+a unique hash for a game state graph edge. */
+(int, int, bool) unhashMove(MOVE mv) {
+  // TODO: Idk, this will depend on how you choose to implement hashMove
+  return (0, 0, true);
 }
 
 
