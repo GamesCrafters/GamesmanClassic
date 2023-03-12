@@ -165,6 +165,30 @@ POSITION GetInitialPosition() {
   return hash(initial_board);
 }
 
+void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
+  if (newPos < 0 || newPos >= 12) {
+    return;
+  }
+  int currElem = convertChar(even_component[currPos]);
+  int newElem = convertChar(even_component[newPos]);
+  int match = turn ? 2 : 1;
+  if (currElem > 0 && newElem == 0 && currElem == match) {
+    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
+  }
+}
+
+void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component) {
+  if (newPos < 0 || newPos >= 13) {
+    return;
+  }
+  int currElem = convertChar(odd_component[currPos]);
+  int newElem = convertChar(odd_component[newPos]);
+  int match = turn ? 2 : 1;
+  if (currElem > 0 && newElem == 0 && currElem == match) {
+    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
+  }
+}
+
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = unhash(hash);
@@ -201,11 +225,11 @@ MOVELIST *GenerateMoves(POSITION hash) {
 /* Return the resulting position from making 'move' on 'position'. */
 POSITION DoMove(POSITION hash, MOVE move) {
   int oldPos, newPos;
-  BOOLEAN turn;
-  unhashMove(move, &oldPos, &newPos, &turn);
+  unhashMove(move, &oldPos, &newPos);
   int piece_type = turn ? 2: 1; // o == 1 and x == 2 in base 3
   POSITION original = piece_type * pow(3, oldPos);
   POSITION new = piece_type * pow(3, newPos);
+  BOOLEAN turn = getTurn(hash);
   return withTurn(hash - original + new, (turn + 1) % 2);
 }
 
@@ -472,23 +496,20 @@ BOOLEAN isTie(FFK_Board* board) {
 /* Uses the start and destination index of a piece in the connected
 component of the board it belongs to and whose turn it is to generate
 a unique hash for a game state graph edge. */
-MOVE hashMove(int oldPos, int newPos, BOOLEAN turn) {
-  // TODO: RETURN - 0b<base 25 turn bit, base 25 newPos, base 25 oldPos>
-  int turn_bit = turn ? 1 : 0;
-  return pow(25, 2)*turn_bit + 25*newPos + oldPos;
+MOVE hashMove(int oldPos, int newPos) {
+  // TODO: RETURN - 0b<base 25 newPos, base 25 oldPos>
+  return 25*newPos + oldPos;
 }
 
 /* Obtains the start and destination index of a piece in the connected
 component of the board it belongs to and whose turn it is based on
 a unique hash for a game state graph edge. */
-void unhashMove(MOVE mv, int *oldPos, int *newPos, BOOLEAN *turn) {
+void unhashMove(MOVE mv, int *oldPos, int *newPos) {
   // TODO: unhashMove 
-  // 0b<base 25 turn bit, base 25 newPos, base 25 oldPos>
+  // 0b<base 25 newPos, base 25 oldPos>
   *oldPos = mv % 25;
   mv = floor(mv/25);
   *newPos = mv % 25;
-  mv = floor(mv/25);
-  *turn = (mv == 1) ? TRUE : FALSE;
 }
 
 
