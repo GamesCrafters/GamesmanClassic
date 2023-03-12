@@ -185,13 +185,14 @@ MOVELIST *GenerateMoves(POSITION hash) {
 
 /* Return the resulting position from making 'move' on 'position'. */
 POSITION DoMove(POSITION hash, MOVE move) {
-  FFK_Board *board = unhash(hash);
   int oldPos, newPos;
   BOOLEAN turn;
   unhashMove(move, &oldPos, &newPos, &turn);
-  
-  board->turn = !(board->turn);
-  return hash(board);
+  int piece_type = turn ? 2: 1; // o == 1 and x == 2 in base 3
+  board->turn = (turn + 1) % 2;
+  POSITION original = piece_type * pow(3, oldPos);
+  POSITION new = piece_type * pow(3, newPos);
+  return hash - original + new;
 }
 
 /* Symmetry Handling: Return the canonical position. */
