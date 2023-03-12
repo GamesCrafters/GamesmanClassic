@@ -178,11 +178,11 @@ MOVELIST *GenerateMoves(POSITION hash) {
   /* - = 0; o = 1; x = 2; total = 0b<turn_bit, base_3_odd_component, base_3_even_component))> */
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
-    if (i != 4 || i != 9) {
+    if (i != 4 && i != 9) {
       evaluateEven(i, i - 2, turn, &moves, newboard->even_component);
       evaluateEven(i, i + 3, turn, &moves, newboard->even_component);
     }
-    if (i != 2 || i != 7) {
+    if (i != 2 && i != 7) {
       evaluateEven(i, i + 2, turn, &moves, newboard->even_component);
       evaluateEven(i, i - 3, turn, &moves, newboard->even_component);
     }
@@ -190,11 +190,11 @@ MOVELIST *GenerateMoves(POSITION hash) {
 
   int odd_len = 13;
   for (int j = 0; j < odd_len; j++) {
-    if (j != 0 || j != 5 || j != 10) {
+    if (j != 0 && j != 5 && j != 10) {
       evaluateOdd(j, j + 2, turn, &moves, newboard->odd_component);
       evaluateOdd(j, j - 3, turn, &moves, newboard->odd_component);
     }
-    if (j != 2 || j != 7 || j != 12) {
+    if (j != 2 && j != 7 && j != 12) {
       evaluateOdd(j, j - 2, turn, &moves, newboard->odd_component);
       evaluateOdd(j, j + 3, turn, &moves, newboard->odd_component);
     }
