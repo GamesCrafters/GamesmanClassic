@@ -82,7 +82,7 @@ store them separately. */
 typedef struct {
   char *even_component; // 12 characters + 1 null byte
   char *odd_component; // 13 characters + 1 null byte
-  BOOLEAN turn; // TRUE = your turn, FALSE = opponent turn
+  BOOLEAN turn; // TRUE = your turn (piece x), FALSE = opponent turn (piece o)
 } FFK_Board;
 
 
@@ -189,10 +189,9 @@ POSITION DoMove(POSITION hash, MOVE move) {
   BOOLEAN turn;
   unhashMove(move, &oldPos, &newPos, &turn);
   int piece_type = turn ? 2: 1; // o == 1 and x == 2 in base 3
-  board->turn = (turn + 1) % 2;
   POSITION original = piece_type * pow(3, oldPos);
   POSITION new = piece_type * pow(3, newPos);
-  return hash - original + new;
+  return withTurn(hash - original + new, (turn + 1) % 2);
 }
 
 /* Symmetry Handling: Return the canonical position. */
