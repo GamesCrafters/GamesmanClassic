@@ -82,7 +82,7 @@ store them separately. */
 typedef struct {
   char *even_component; // 12 characters + 1 null byte
   char *odd_component; // 13 characters + 1 null byte
-  bool turn;
+  BOOLEAN turn; // TRUE = your turn, FALSE = opponent turn
 } FFK_Board;
 
 
@@ -119,48 +119,50 @@ POSITION GetInitialPosition() {
   nitial_board->odd_componen = malloc(sizeof(char)*14);
   strcpy(initial_board->even_component, "ooo-o--x-xxx");
   strcpy(initial_board->odd_component, "ooo-------xxx");
-  initial_board->turn = true;
+  initial_board->turn = TRUE;
   return hash(initial_board);
 }
 
-void evaluateEven(POSITION hash, int currPos, int newPos, MOVELIST **moves, char *even_component) {
+void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
   if (newPos < 0 || newPos >= 12) {
     return;
   }
-  char currElem = convertChar(even_component[currPos]);
+  int currElem = convertChar(even_component[currPos]);
   int newElem = convertChar(even_component[newPos]);
-  if (currElem > 0 && newElem == 0) {
-    
+  int match = turn ? 2 : 1;
+  if (currElem > 0 && newElem == 0 && currElem == match) {
+    *moves = CreateMovelistNode(hashMove(currPos, newPos, turn));
   }
 }
 
 // POSITION original = currElem * pow(3, (12 - 1) - currPos);
-    // POSITION new = newElem * pow(3, (12 - 1) - newPos);
-    // POSITION new_hash = hash - original + new;
-    // (*moves == NULL) ? ...: ...;
+// POSITION new = newElem * pow(3, (12 - 1) - newPos);
+// POSITION new_hash = hash - original + new;
+// (*moves == NULL) ? ...: ...;
 
-void evaluateOdd(POSITION hash, int currPos, int newPos, MOVELIST **moves, char *odd_component) {
+void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component) {
   if (newPos < 0 || newPos >= 13) {
     return;
   }
   int currElem = convertChar(odd_component[currPos]);
   int newElem = convertChar(odd_component[newPos]);
+  int match = turn ? 2 : 1;
   if (currElem > 0 && newElem == 0) {
-    
+    *move = CreateMovelistNode(hashMove(currPos, newPos, turn));
   }
 }
 
 // POSITION original = currElem * pow(3, (25 - 1) - currPos);
-    // POSITION new = newElem * pow(3, (25 - 1) - newPos);
-    // POSITION new_hash = hash - original + new;
-    // (*moves == NULL) ? ...: ...;
+// POSITION new = newElem * pow(3, (25 - 1) - newPos);
+// POSITION new_hash = hash - original + new;
+// (*moves == NULL) ? ...: ...;
 
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = unhash(hash);
   MOVELIST *moves = NULL;
 
-  /* - = 0; o = 1; x = 2; total = base_3(concatenate(odd_component, even_component)) */
+  /* - = 0; o = 1; x = 2; total = 0b<turn_bit, base_3_odd_component, base_3_even_component))> */
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
     evaluateEven(hash, i, i - 2, &moves, newboard->even_component);
@@ -199,9 +201,9 @@ POSITION GetCanonicalPosition(POSITION position) {
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
   FFK_Board* board = unhash(position);
-  bool is_win = isWin(board);
-  bool is_lose = isLose(board);
-  bool is_tie = isTie(board);
+  BOOLEAN is_win = isWin(board);
+  BOOLEAN is_lose = isLose(board);
+  BOOLEAN is_tie = isTie(board);
   free(board);
   if (is_win) {
     return win
@@ -294,7 +296,7 @@ void flip(FFK_Board* board) {
 
 /* X wins when all of the spots originally populated by O's are 
 filled with X's. */
-bool isWin(FFK_Board* board) {
+BOOLEAN isWin(FFK_Board* board) {
   return board->even_component[0] == 'x'
   && board->even_component[1] == 'x'
   && board->even_component[2] == 'x'
@@ -306,7 +308,7 @@ bool isWin(FFK_Board* board) {
 
 /* O wins when all of the spots originally populated by X's are 
 filled with O's. */
-bool isLose(FFK_Board* board) {
+BOOLEAN isLose(FFK_Board* board) {
   return board->even_component[12] == 'o'
   && board->even_component[11] == 'o'
   && board->even_component[10] == 'o'
@@ -320,9 +322,9 @@ bool isLose(FFK_Board* board) {
 bool isTie(FFK_Board* board) {
   MOVELIST possible_moves = GenerateMoves(hash(board));
   if (possible_moves == NULL) {
-    return true;
+    return TRUE;
   }
-  return false;
+  return FALSE;
 }
 
 
@@ -373,7 +375,7 @@ FFK_Board* unhash(POSITION hash) {
 }
 
 /* Returns a position with the MSB of POS set to TURN. */
-POSITION withTurn(POSITION pos, bool turn) {
+POSITION withTurn(POSITION pos, BOOLEAN turn) {
   return turn ? (pos|0x8000000000000000) : pos;
 }
 
@@ -412,17 +414,23 @@ char convertInt(char int_component) {
 /* Uses the start and destination index of a piece in the connected
 component of the board it belongs to and whose turn it is to generate
 a unique hash for a game state graph edge. */
-MOVE hashMove(int oldPos, int newPos, bool turn) {
-  // TODO: RETURN - 0b<base 25 oldPos,base 25 newPos,turn bit>
-  return 0;
+MOVE hashMove(int oldPos, int newPos, BOOLEAN turn) {
+  // TODO: RETURN - 0b<base 25 turn bit, base 25 newPos, base 25 oldPos>
+  int turn_bit = turn ? 1 : 0;
+  return pow(25, 2)*turn_bit + 25*newPos + oldPos;
 }
 
 /* Obtains the start and destination index of a piece in the connected
 component of the board it belongs to and whose turn it is based on
 a unique hash for a game state graph edge. */
-(int, int, bool) unhashMove(MOVE mv) {
-  // TODO: Idk, this will depend on how you choose to implement hashMove
-  return (0, 0, true);
+(int, int, BOOLEAN) unhashMove(MOVE mv) {
+  // TODO: unhashMove
+  int oldPos = mv % 25;
+  mv = floor(mv/25);
+  int newPos = mv % 25;
+  mv = floor(mv/25);
+  BOOLEAN turn_bit = (mv == 1) ? TRUE : FALSE;
+  return oldPos, newPos, turn_bit;
 }
 
 
