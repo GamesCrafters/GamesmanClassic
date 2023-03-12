@@ -73,6 +73,46 @@ STRING kHelpExample = "";
 
 
 
+/* FUNCTIONAL DECLARATION */
+
+/* Solving functions. */
+void InitializeGame();
+POSITION GetInitialPosition();
+MOVELIST *GenerateMoves(POSITION hash);
+POSITION DoMove(POSITION hash, MOVE move);
+VALUE Primitive(POSITION position);
+
+/* Solving helper functions. */
+void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component);
+void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component);
+int convertChar(char char_component);
+char convertInt(char int_component);
+
+/* Transformation functions. */
+void transform(FFK_Board* board, int flips, int rotations);
+void rotate(FFK_Board* board);
+void flip(FFK_Board* board);
+
+/* Board hashing functions. */
+POSITION hash(FFK_Board *board);
+FFK_Board* unhash(POSITION hash);
+
+/* Board hashing helper functions. */
+POSITION withTurn(POSITION pos, BOOLEAN turn);
+BOOLEAN getTurn(POSITION hash);
+
+/* Board value functions. */
+BOOLEAN isWin(FFK_Board* board);
+BOOLEAN isLose(FFK_Board* board);
+BOOLEAN isTie(FFK_Board* board);
+
+/* Move hashing functions. */
+MOVE hashMove(int oldPos, int newPos, BOOLEAN turn);
+void unhashMove(MOVE mv, int *oldPos, int *newPos, BOOLEAN *turn);
+
+
+
+
 /* BOARD DEFINITION */
 
 /* A Five-Field Kono board consists of 25 spots, but has two connected 
@@ -84,6 +124,8 @@ typedef struct {
   char *odd_component; // 13 characters + 1 null byte
   BOOLEAN turn; // TRUE = your turn (piece x), FALSE = opponent turn (piece o)
 } FFK_Board;
+
+
 
 
 /* BOARD TRANSFORMATION ARRAYS */
@@ -123,30 +165,6 @@ POSITION GetInitialPosition() {
   return hash(initial_board);
 }
 
-void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
-  if (newPos < 0 || newPos >= 12) {
-    return;
-  }
-  int currElem = convertChar(even_component[currPos]);
-  int newElem = convertChar(even_component[newPos]);
-  int match = turn ? 2 : 1;
-  if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos, turn), *moves);
-  }
-}
-
-void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component) {
-  if (newPos < 0 || newPos >= 13) {
-    return;
-  }
-  int currElem = convertChar(odd_component[currPos]);
-  int newElem = convertChar(odd_component[newPos]);
-  int match = turn ? 2 : 1;
-  if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos, turn), *moves);
-  }
-}
-
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = unhash(hash);
@@ -177,7 +195,6 @@ MOVELIST *GenerateMoves(POSITION hash) {
     }
   }
 
-  // TODO: Use CreateMovelistNode() to add nodes to MOVELIST
   return moves;
 }
 
@@ -216,6 +233,63 @@ VALUE Primitive(POSITION position) {
     return tie;
   }
   return undecided;
+}
+
+
+
+
+/* SOLVING HELPER FUNCTIONS */
+
+/* TODO */
+void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
+  if (newPos < 0 || newPos >= 12) {
+    return;
+  }
+  int currElem = convertChar(even_component[currPos]);
+  int newElem = convertChar(even_component[newPos]);
+  int match = turn ? 2 : 1;
+  if (currElem > 0 && newElem == 0 && currElem == match) {
+    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos, turn), *moves);
+  }
+}
+
+/* TODO */
+void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component) {
+  if (newPos < 0 || newPos >= 13) {
+    return;
+  }
+  int currElem = convertChar(odd_component[currPos]);
+  int newElem = convertChar(odd_component[newPos]);
+  int match = turn ? 2 : 1;
+  if (currElem > 0 && newElem == 0 && currElem == match) {
+    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos, turn), *moves);
+  }
+}
+
+/* Converts a character to its ternary integer equivalent
+for hash calculations. */
+int convertChar(char char_component) {
+  if (char_component == '-') {
+    return 0;
+  } else if (char_component == 'o') {
+    return 1;
+  } else if (char_component == 'x') {
+    return 2;
+  }
+  return -1;
+}
+
+/* Converts a ternary integer to its character equivalent 
+for hash calculations. */
+char convertInt(char int_component) {
+  if (int_component == 0) {
+    return '-';
+  } else if (int_component == 1) {
+    return 'o';
+  } else if (int_component == 2) {
+    return 'x';
+  }
+  return '\0';
 }
 
 
@@ -316,7 +390,7 @@ FFK_Board* unhash(POSITION hash) {
   FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(struct FFK_Board));
   newBoard->even_component = (char *) malloc(13 * sizeof(char));
   newBoard->odd_component = (char *) malloc(14 * sizeof(char));
-  newBoard->turn = !((hash&0x8000000000000000) == 0);
+  newBoard->turn = getTurn(hash);
 
   int remain = -1;
   int even_len = 12;
@@ -335,6 +409,21 @@ FFK_Board* unhash(POSITION hash) {
     board->odd_component[(odd_len - 1) - j] = convertInt(remain);
   }
   return newBoard;
+}
+
+
+
+
+/* BOARD HASHING HELPER FUNCTIONS */
+
+/* Returns a position with the MSB of POS set to TURN. */
+POSITION withTurn(POSITION pos, BOOLEAN turn) {
+  return turn ? (pos|0x8000000000000000) : pos;
+}
+
+/* Returns whose turn it is according to a position HASH. */
+BOOLEAN getTurn(POSITION hash) {
+  return !((hash&0x8000000000000000) == 0);
 }
 
 
@@ -367,44 +456,12 @@ BOOLEAN isLose(FFK_Board* board) {
 }
 
 /* If there are no moves left to be made, then the game is a tie. */
-bool isTie(FFK_Board* board) {
+BOOLEAN isTie(FFK_Board* board) {
   MOVELIST possible_moves = GenerateMoves(hash(board));
   if (possible_moves == NULL) {
     return TRUE;
   }
   return FALSE;
-}
-
-/* Returns a position with the MSB of POS set to TURN. */
-POSITION withTurn(POSITION pos, BOOLEAN turn) {
-  return turn ? (pos|0x8000000000000000) : pos;
-}
-
-
-/* Converts a character to its ternary integer equivalent
-for hash calculations. */
-int convertChar(char char_component) {
-  if (char_component == '-') {
-    return 0;
-  } else if (char_component == 'o') {
-    return 1;
-  } else if (char_component == 'x') {
-    return 2;
-  }
-  return -1;
-}
-
-/* Converts a ternary integer to its character equivalent 
-for hash calculations. */
-char convertInt(char int_component) {
-  if (int_component == 0) {
-    return '-';
-  } else if (int_component == 1) {
-    return 'o';
-  } else if (int_component == 2) {
-    return 'x';
-  }
-  return '\0';
 }
 
 
