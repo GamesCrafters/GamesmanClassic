@@ -370,8 +370,7 @@ FFK_Board* unhash(POSITION hash) {
 
 /* Returns a position with the MSB of POS set to TURN. */
 POSITION withTurn(POSITION pos, bool turn) {
-  if (!turn) return pos;
-  return (pos|0x8000000000000000);
+  return turn ? (pos|0x8000000000000000) : pos;
 }
 
 
