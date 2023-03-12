@@ -107,20 +107,20 @@ int odd_flip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 
 /* Initialize any global variables or data structures needed. */
 void InitializeGame() {
-  gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
+  gCanonicalPosition = GetCanonicalPosition();
+  gMoveToStringFunPtr = &MoveToString();
   gInitialPosition = GetInitialPosition();
 }
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
-  FFK_Board* initial_board = malloc(sizeof(FFK_Board));
+  FFK_Board *initial_board = (FFK_Board *) malloc(sizeof(FFK_Board));
   initial_board->even_component = malloc(sizeof(char)*13);
-  nitial_board->odd_componen = malloc(sizeof(char)*14);
+  initial_board->odd_component = malloc(sizeof(char)*14);
   strcpy(initial_board->even_component, "ooo-o--x-xxx");
   strcpy(initial_board->odd_component, "ooo-------xxx");
   initial_board->turn = TRUE;
-  return hash(initial_board);
+  return (POSITION) hash(initial_board);
 }
 
 void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
@@ -131,7 +131,7 @@ void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char 
   int newElem = convertChar(even_component[newPos]);
   int match = turn ? 2 : 1;
   if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove(currPos, newPos, turn));
+    *moves = CreateMovelistNode(hashMove(currPos, newPos, turn), *moves);
   }
 }
 
@@ -147,8 +147,8 @@ void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *
   int currElem = convertChar(odd_component[currPos]);
   int newElem = convertChar(odd_component[newPos]);
   int match = turn ? 2 : 1;
-  if (currElem > 0 && newElem == 0) {
-    *move = CreateMovelistNode(hashMove(currPos, newPos, turn));
+  if (currElem > 0 && newElem == 0 && currElem == match) {
+    *moves = CreateMovelistNode(hashMove(currPos, newPos, turn), *moves);
   }
 }
 
@@ -184,9 +184,12 @@ MOVELIST *GenerateMoves(POSITION hash) {
 }
 
 /* Return the resulting position from making 'move' on 'position'. */
-POSITION DoMove(POSITION position, MOVE move) {
-  FFK_Board *board = unhash(hash);
-  ...; // TODO
+POSITION DoMove(POSITION hash, MOVE move) {
+  FFK_Board *board = (FFK_Board *) unhash(hash);
+  int oldPos, newPos;
+  BOOLEAN turn;
+  unhashMove(move, &oldPos, &newPos, &turn);
+  
   board->turn = !(board->turn);
   return hash(board);
 }
@@ -200,19 +203,19 @@ POSITION GetCanonicalPosition(POSITION position) {
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  FFK_Board* board = unhash(position);
+  FFK_Board *board = (FFK_Board *) unhash(position);
   BOOLEAN is_win = isWin(board);
   BOOLEAN is_lose = isLose(board);
   BOOLEAN is_tie = isTie(board);
   free(board);
   if (is_win) {
-    return win
+    return win;
   }
   if (is_lose) {
-    return lose
+    return lose;
   }
   if (is_tie) {
-    return tie
+    return tie;
   }
   return undecided;
 }
@@ -221,13 +224,6 @@ VALUE Primitive(POSITION position) {
 
 
 /* TRANSFORMATION FUNCTIONS */
-
-/* Transforms the board by flipping and rotating it a specified
-amount of times, helping to get all of its 8 symmetries. */
-void transform(FFK_Board* board, int flips, int rotations) {
-  for (int i = 0; i < flips; i++) flip(board);
-  for (int j = 0; j < rotations; j++) rotate(board);
-}
 
 /* Transforms the board by rotating it 90 degrees clockwise. */
 void rotate(FFK_Board* board) {
@@ -289,42 +285,11 @@ void flip(FFK_Board* board) {
   board->odd_component = new_odd_arr;
 }
 
-
-
-
-/* BOARD VALUE FUNCTIONS */
-
-/* X wins when all of the spots originally populated by O's are 
-filled with X's. */
-BOOLEAN isWin(FFK_Board* board) {
-  return board->even_component[0] == 'x'
-  && board->even_component[1] == 'x'
-  && board->even_component[2] == 'x'
-  && board->even_component[4] == 'x'
-  && board->odd_component[0] == 'x'
-  && board->odd_component[1] == 'x'
-  && board->odd_component[2] == 'x';
-}
-
-/* O wins when all of the spots originally populated by X's are 
-filled with O's. */
-BOOLEAN isLose(FFK_Board* board) {
-  return board->even_component[12] == 'o'
-  && board->even_component[11] == 'o'
-  && board->even_component[10] == 'o'
-  && board->even_component[8] == 'o'
-  && board->odd_component[13] == 'o'
-  && board->odd_component[12] == 'o'
-  && board->odd_component[11] == 'o';
-}
-
-/* If there are no moves left to be made, then the game is a tie. */
-bool isTie(FFK_Board* board) {
-  MOVELIST possible_moves = GenerateMoves(hash(board));
-  if (possible_moves == NULL) {
-    return TRUE;
-  }
-  return FALSE;
+/* Transforms the board by flipping and rotating it a specified
+amount of times, helping to get all of its 8 symmetries. */
+void transform(FFK_Board* board, int flips, int rotations) {
+  for (int i = 0; i < flips; i++) flip(board);
+  for (int j = 0; j < rotations; j++) rotate(board);
 }
 
 
@@ -372,6 +337,44 @@ FFK_Board* unhash(POSITION hash) {
     board->odd_component[(odd_len - 1) - j] = convertInt(remain);
   }
   return newBoard;
+}
+
+
+
+
+/* BOARD VALUE FUNCTIONS */
+
+/* X wins when all of the spots originally populated by O's are 
+filled with X's. */
+BOOLEAN isWin(FFK_Board* board) {
+  return board->even_component[0] == 'x'
+  && board->even_component[1] == 'x'
+  && board->even_component[2] == 'x'
+  && board->even_component[4] == 'x'
+  && board->odd_component[0] == 'x'
+  && board->odd_component[1] == 'x'
+  && board->odd_component[2] == 'x';
+}
+
+/* O wins when all of the spots originally populated by X's are 
+filled with O's. */
+BOOLEAN isLose(FFK_Board* board) {
+  return board->even_component[12] == 'o'
+  && board->even_component[11] == 'o'
+  && board->even_component[10] == 'o'
+  && board->even_component[8] == 'o'
+  && board->odd_component[13] == 'o'
+  && board->odd_component[12] == 'o'
+  && board->odd_component[11] == 'o';
+}
+
+/* If there are no moves left to be made, then the game is a tie. */
+bool isTie(FFK_Board* board) {
+  MOVELIST possible_moves = GenerateMoves(hash(board));
+  if (possible_moves == NULL) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /* Returns a position with the MSB of POS set to TURN. */
@@ -423,14 +426,14 @@ MOVE hashMove(int oldPos, int newPos, BOOLEAN turn) {
 /* Obtains the start and destination index of a piece in the connected
 component of the board it belongs to and whose turn it is based on
 a unique hash for a game state graph edge. */
-(int, int, BOOLEAN) unhashMove(MOVE mv) {
-  // TODO: unhashMove
-  int oldPos = mv % 25;
+void unhashMove(MOVE mv, int *oldPos, int *newPos, BOOLEAN *turn) {
+  // TODO: unhashMove 
+  // 0b<base 25 turn bit, base 25 newPos, base 25 oldPos>
+  *oldPos = mv % 25;
   mv = floor(mv/25);
-  int newPos = mv % 25;
+  *newPos = mv % 25;
   mv = floor(mv/25);
-  BOOLEAN turn_bit = (mv == 1) ? TRUE : FALSE;
-  return oldPos, newPos, turn_bit;
+  *turn_bit = (mv == 1) ? TRUE : FALSE;
 }
 
 
