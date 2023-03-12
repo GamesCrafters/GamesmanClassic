@@ -120,7 +120,7 @@ POSITION GetInitialPosition() {
   strcpy(initial_board->even_component, "ooo-o--x-xxx");
   strcpy(initial_board->odd_component, "ooo-------xxx");
   initial_board->turn = TRUE;
-  return (POSITION) hash(initial_board);
+  return hash(initial_board);
 }
 
 void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
@@ -185,7 +185,7 @@ MOVELIST *GenerateMoves(POSITION hash) {
 
 /* Return the resulting position from making 'move' on 'position'. */
 POSITION DoMove(POSITION hash, MOVE move) {
-  FFK_Board *board = (FFK_Board *) unhash(hash);
+  FFK_Board *board = unhash(hash);
   int oldPos, newPos;
   BOOLEAN turn;
   unhashMove(move, &oldPos, &newPos, &turn);
@@ -203,7 +203,7 @@ POSITION GetCanonicalPosition(POSITION position) {
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  FFK_Board *board = (FFK_Board *) unhash(position);
+  FFK_Board *board = unhash(position);
   BOOLEAN is_win = isWin(board);
   BOOLEAN is_lose = isLose(board);
   BOOLEAN is_tie = isTie(board);
