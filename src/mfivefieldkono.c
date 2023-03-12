@@ -123,18 +123,56 @@ POSITION GetInitialPosition() {
   return hash(initial_board);
 }
 
+void evaluateEven(POSITION hash, int currPos, int newPos, MOVELIST **moves, char *even_component) {
+  if (newPos < 0 || newPos >= 12) {
+    return;
+  }
+  char currElem = convertChar(even_component[currPos]);
+  int newElem = convertChar(even_component[newPos]);
+  if (currElem > 0 && newElem == 0) {
+    POSITION original = currElem * pow(3, (12 - 1) - currPos);
+    POSITION new = newElem * pow(3, (12 - 1) - newPos);
+    POSITION new_hash = hash - original + new;
+    (*moves == NULL) ? ...: ...;
+  }
+}
+
+void evaluateOdd(POSITION hash, int currPos, int newPos, MOVELIST **moves, char *odd_component) {
+  if (newPos < 0 || newPos >= 13) {
+    return;
+  }
+  int currElem = convertChar(odd_component[currPos]);
+  int newElem = convertChar(odd_component[newPos]);
+  if (currElem > 0 && newElem == 0) {
+    POSITION original = currElem * pow(3, (25 - 1) - currPos);
+    POSITION new = newElem * pow(3, (25 - 1) - newPos);
+    POSITION new_hash = hash - original + new;
+    (*moves == NULL) ? ...: ...;
+  }
+}
+
 /* Return a linked list of possible moves. */
-MOVELIST *GenerateMoves(POSITION position) {
-  FFK_Board *newboard =  unhash(position);
+MOVELIST *GenerateMoves(POSITION hash) {
+  FFK_Board *newboard =  unhash(hash);
+  MOVELIST *moves = NULL;
+
+  /* - = 0; o = 1; x = 2; total = base_3(concatenate(odd_component, even_component)) */
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
-    newboard->
+    evaluateEven(hash, i, i - 2, &moves, newboard->even_component);
+    evaluateEven(hash, i, i - 3, &moves, newboard->even_component);
+    evaluateEven(hash, i, i + 2, &moves, newboard->even_component);
+    evaluateEven(hash, i, i + 3, &moves, newboard->even_component);
   }
+
   int odd_len = 13;
   for (int j = 0; j < odd_len; j++) {
-    
+    evaluateOdd(hash, j, j - 2, &moves, newboard->odd_component);
+    evaluateOdd(hash, j, j - 3, &moves, newboard->odd_component);
+    evaluateOdd(hash, j, j + 2, &moves, newboard->odd_component);
+    evaluateOdd(hash, j, j + 3, &moves, newboard->odd_component);
   }
-  MOVELIST *moves = NULL;
+
   // TODO: Use CreateMovelistNode() to add nodes to MOVELIST
   return moves;
 }
@@ -297,6 +335,7 @@ POSITION hash(FFK_Board *board) {
   for (int j = 0; j < odd_len, j++) {
     total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j)
   }
+  /* total = base_3(concatenate(odd_component, even_component)) */
   return total;
 }
 
