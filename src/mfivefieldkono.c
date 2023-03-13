@@ -527,8 +527,41 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos) {
 
 /* TEXTUI FUNCTIONS */
 
+/* This will print the board in the following format:
+
+(o) (o) (o) (o) (o)
+  \ / \ / \ / \ /  
+  / \ / \ / \ / \  
+(o) ( ) ( ) ( ) (o)
+  \ / \ / \ / \ /  
+  / \ / \ / \ / \  
+( ) ( ) ( ) ( ) ( )
+  \ / \ / \ / \ /  
+  / \ / \ / \ / \  
+(x) ( ) ( ) ( ) (x)
+  \ / \ / \ / \ /  
+  / \ / \ / \ / \  
+(x) (x) (x) (x) (x)
+
+*/
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  /* YOUR CODE HERE */
+  FFK_Board* board = unhash(position);
+  char* fb = malloc(sizeof(char)*25);
+  for (int i = 0; i < 25; i++) {
+    if (i % 2 == 0) {
+      char curr = board->even_component[(i/2)-1];
+      fb[i] = (curr == '-') ? ' ' : curr;
+    } else {
+      char curr = board->odd_component[(i/2)-1];
+      fb[i] = (curr == '-') ? ' ' : curr;
+    }
+  }
+  if (usersTurn) printf("%s's move.\n", playerName);
+  // *shamelessly puts on sunglasses
+  for (int j = 0; j < 4; j++) printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
+  printf("(%c) (%c) (%c) (%c) (%c) \n", fb[20], fb[21], fb[22], fb[23], fb[24]);
+  free(fb);
+  free(board);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
