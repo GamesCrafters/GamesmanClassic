@@ -480,13 +480,13 @@ BOOLEAN isWin(FFK_Board* board) {
 /* O wins when all of the spots originally populated by X's are 
 filled with O's. */
 BOOLEAN isLose(FFK_Board* board) {
-  return board->even_component[12] == 'o'
-  && board->even_component[11] == 'o'
+  return board->even_component[11] == 'o'
   && board->even_component[10] == 'o'
-  && board->even_component[8] == 'o'
-  && board->odd_component[13] == 'o'
+  && board->even_component[9] == 'o'
+  && board->even_component[7] == 'o'
   && board->odd_component[12] == 'o'
-  && board->odd_component[11] == 'o';
+  && board->odd_component[11] == 'o'
+  && board->odd_component[10] == 'o';
 }
 
 /* If there are no moves left to be made, then the game is a tie. */
