@@ -547,13 +547,13 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   FFK_Board* board = unhash(position);
   char* fb = malloc(sizeof(char)*25);
-  for (int i = 0; i < 25; i++) {
+  for (int i = 1; i < 26; i++) {
     if (i % 2 == 0) {
       char curr = board->even_component[(i/2)-1];
-      fb[i] = (curr == '-') ? ' ' : curr;
+      fb[i-1] = (curr == '-') ? ' ' : curr;
     } else {
-      char curr = board->odd_component[(i/2)-1];
-      fb[i] = (curr == '-') ? ' ' : curr;
+      char curr = board->odd_component[(i-1)/2];
+      fb[i-1] = (curr == '-') ? ' ' : curr;
     }
   }
   if (usersTurn) printf("%s's move.\n", playerName);
