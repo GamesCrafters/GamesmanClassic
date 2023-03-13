@@ -452,7 +452,7 @@ FFK_Board* unhash(POSITION hash) {
 
 /* Returns a position with the MSB of POS set to TURN. */
 POSITION withTurn(POSITION pos, BOOLEAN turn) {
-  return turn ? (pos|0x8000000000000000) : pos;
+  return turn ? (pos|0x8000000000000000) : (pos&0x7FFFFFFFFFFFFFFF);
 }
 
 /* Returns whose turn it is according to a position HASH. */
