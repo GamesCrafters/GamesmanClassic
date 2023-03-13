@@ -450,7 +450,7 @@ FFK_Board* unhash(POSITION hash) {
 
 /* BOARD HASHING HELPER FUNCTIONS */
 
-/* Encodes TURN into the first ternary digit not used by the board 
+/* Minimally encodes TURN into the first ternary digit not used by the board 
 encoding in POS, which should be the 3^25 spot (so the 26th one). */
 POSITION withTurn(POSITION pos, BOOLEAN turn) {
   if (getTurn(pos) == turn) return pos;
@@ -458,9 +458,10 @@ POSITION withTurn(POSITION pos, BOOLEAN turn) {
   return (pos + pow(3, 25));
 }
 
-/* Returns whose turn it is according to a position HASH. */
+/* Returns whose turn it is according to a position HASH, which is the 25th 
+ternary digit in POS, and should be 0 or 1. */
 BOOLEAN getTurn(POSITION pos) {
-  return floor(pos/pow(3, 24));
+  return floor(pos/pow(3, 24)); // TODO: find division alternative :[
 }
 
 
