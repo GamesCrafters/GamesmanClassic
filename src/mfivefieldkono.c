@@ -28,8 +28,10 @@ STRING kGameName = "Five-Field Kono";
 /* Name of the game for databases */
 STRING kDBName = "fivefieldkono";
 
-/* Tightest upper bound for number of positions */
-POSITION gNumberOfPositions = 1189188000;
+/* How big our POSITION hash can get -- note that this isn't the same
+as the upper bound on the number of positions of the game for unefficient 
+(< 100% efficient) hashing methods */
+POSITION gNumberOfPositions = 1189188000; 
 
 /* The hash value of the initial position of the board */
 POSITION gInitialPosition = 0;
