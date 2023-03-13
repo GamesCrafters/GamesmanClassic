@@ -340,7 +340,7 @@ void rotate(FFK_Board* board) {
   perform the for loop cycles asynchronously). */
 
   /* Rotate odd component clockwise. */
-  char *new_even_arr = (char *) malloc(sizeof(board->even_component));
+  char *new_even_arr = (char *) malloc(sizeof(char)*13);
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
     new_even_arr[i] = board->even_component[even_turn_pos[i]];
@@ -348,7 +348,7 @@ void rotate(FFK_Board* board) {
   new_even_arr[even_len] = '\0';
 
   /* Rotate even component clockwise. */
-  char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
+  char *new_odd_arr = (char *) malloc(sizeof(char)*14);
   int odd_len = 13;
   for (int j = 0; j < odd_len; j++) {
     new_odd_arr[j] = board->odd_component[odd_turn_pos[j]];
@@ -369,7 +369,7 @@ void flip(FFK_Board* board) {
   /* POSSIBLE OPTIMIZATION: Same as rotate(). */
 
   /* Flip odd component about y-axis. */
-  char *new_even_arr = (char *) malloc(sizeof(board->even_component));
+  char *new_even_arr = (char *) malloc(sizeof(char)*13);
   int even_len = 12;
   for (int i = 0; i < even_len; i++) {
     new_even_arr[i] = board->even_component[even_flip_pos[i]];
@@ -377,7 +377,7 @@ void flip(FFK_Board* board) {
   new_even_arr[even_len] = '\0';
 
   /* Flip even component about y-axis. */
-  char *new_odd_arr = (char *) malloc(sizeof(board->odd_component));
+  char *new_odd_arr = (char *) malloc(sizeof(char)*14);
   int odd_len = 13;
   for (int j = 0; j < odd_len; j++) {
     new_odd_arr[j] = board->odd_component[odd_flip_pos[j]];
@@ -422,8 +422,8 @@ POSITION hash(FFK_Board *board) {
 /* Unhash function for the Board. */
 FFK_Board* unhash(POSITION hash) {
   FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
-  newBoard->even_component = (char *) malloc(13 * sizeof(char));
-  newBoard->odd_component = (char *) malloc(14 * sizeof(char));
+  newBoard->even_component = (char *) malloc(sizeof(char)*13);
+  newBoard->odd_component = (char *) malloc(sizeof(char)*14);
   newBoard->turn = getTurn(hash);
 
   int remain = -1;
