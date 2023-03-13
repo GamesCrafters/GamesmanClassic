@@ -450,14 +450,17 @@ FFK_Board* unhash(POSITION hash) {
 
 /* BOARD HASHING HELPER FUNCTIONS */
 
-/* Returns a position with the MSB of POS set to TURN. */
+/* Encodes TURN into the first ternary digit not used by the board 
+encoding in POS, which should be the 3^25 spot (so the 26th one). */
 POSITION withTurn(POSITION pos, BOOLEAN turn) {
-  return turn ? (pos|0x8000000000000000) : (pos&0x7FFFFFFFFFFFFFFF);
+  if (getTurn(pos) == turn) return pos;
+  if (getTurn(pos)) return (pos - pow(3, 25));
+  return (pos + pow(3, 25));
 }
 
 /* Returns whose turn it is according to a position HASH. */
-BOOLEAN getTurn(POSITION hash) {
-  return !((hash&0x8000000000000000) == 0);
+BOOLEAN getTurn(POSITION pos) {
+  return floor(pos/pow(3, 24));
 }
 
 
