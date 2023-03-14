@@ -786,15 +786,56 @@ void setOption(int option) {
 }
 
 POSITION ActualNumberOfPositions(int variant) {
-  return 0;
+  return gNumberOfPositions;
 }
 
 POSITION InteractStringToPosition(STRING board) {
-  return 0;
+  // Ignore the first 8 characters
+  char realBoard[boardSize];
+
+  for (int i = 0; i < boardSize; i++) {
+    if (board[i + 8] == 'W') {
+      realBoard[i] = 'w';
+    } else if (board[i + 8] == 'B') {
+      realBoard[i] = 'b';
+    } else {
+      realBoard[i] = ' ';
+    }
+  }
+
+  int player = board[2] == 'A' ? 1 : 2;
+
+  return generic_hash_hash(realBoard, player);
 }
 
 STRING InteractPositionToString(POSITION position) {
-  return NULL;
+  char board[boardSize];
+  generic_hash_unhash(position, board);
+
+  // R_A_0_0_TG-T-S--H
+  STRING result = (STRING) SafeMalloc(9 + boardSize);
+  result[0] = 'R';
+  result[1] = '_';
+  result[2] = generic_hash_turn(position) == 1 ? 'A' : 'B';
+  result[3] = '_';
+  result[4] = '0';
+  result[5] = '_';
+  result[6] = '0';
+  result[7] = '_';
+
+  for (int i = 0; i < boardSize; i++) {
+    if (board[i] == 'w') {
+      result[8 + i] = 'W';
+    } else if (board[i] == 'b') {
+      result[8 + i] = 'B';
+    } else {
+      result[8 + i] = '-';
+    }
+  }
+
+  result[8 + boardSize] = '\0';
+
+  return result;
 }
 
 STRING InteractPositionToEndData(POSITION position) {
@@ -802,5 +843,34 @@ STRING InteractPositionToEndData(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  return MoveToString(move);
+  STRING result = (STRING) SafeMalloc(8);
+
+  int origin = move / 100;
+  int target = move % 100;
+
+  int originRow = origin / boardDimension;
+  int originCol = origin % boardDimension;
+
+  int targetRow = target / boardDimension;
+  int targetCol = target % boardDimension;
+
+  int newTarget = 11;
+
+  if (targetRow == originRow && targetCol < originCol) {
+    newTarget = origin - 1;
+  } else if (targetRow == originRow && targetCol > originCol) {
+    newTarget = origin + 1;
+  } else if (targetCol == originCol && targetRow < originRow) {
+    newTarget = origin - boardDimension;
+  } else if (targetCol == originCol && targetRow > originRow) {
+    newTarget = origin + boardDimension;
+  } else if (targetRow > originRow && targetCol < originCol) {
+    newTarget = origin + boardDimension - 1;
+  } else {
+    newTarget = origin - boardDimension + 1;
+  }
+
+  sprintf(result, "M_%d_%d", origin, newTarget);
+
+  return result;
 }
