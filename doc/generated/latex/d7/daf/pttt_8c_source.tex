@@ -1,0 +1,235 @@
+\hypertarget{pttt_8c_source}{}\doxysection{pttt.\+c}
+\label{pttt_8c_source}\index{src/core/pen/pttt.c@{src/core/pen/pttt.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00001}00001\ \textcolor{comment}{//\ Tic\ Tac\ Toe\ stroke\ parser}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}loader.h"{}}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}stroke.h"{}}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}tcl.h"{}}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00010}00010\ \textcolor{preprocessor}{\#define\ TCL\_TIMER\_MS\ 100}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00011}00011\ Tcl\_Interp\ *tclInterpreter\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00014}00014\ \textcolor{comment}{//\ bit\ masks\ for\ determining\ which\ board\ lines\ were\ crossed}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00015}00015\ \textcolor{preprocessor}{\#define\ CROSS\_NONE\ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00016}00016\ \textcolor{preprocessor}{\#define\ CROSS\_LEFT\ \ \ \ \ \ 1}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00017}00017\ \textcolor{preprocessor}{\#define\ CROSS\_RIGHT\ \ \ \ \ 2}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00018}00018\ \textcolor{preprocessor}{\#define\ CROSS\_TOP\ \ \ \ \ \ \ 4}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00019}00019\ \textcolor{preprocessor}{\#define\ CROSS\_BOTTOM\ \ \ \ 8}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00021}00021\ \textcolor{comment}{//\ numeric\ values:\ \ \ \ \ 0\ \ 1\ \ 2\ \ 3\ \ \ 4\ \ 5\ \ 6\ \ 7\ \ \ 8\ \ 9\ \ 10\ 11\ \ 12\ \ 13\ \ 14\ \ 15}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00022}00022\ \textcolor{comment}{//\ crossed\ edges:\ \ \ \ \ \ N\ \ L\ \ R\ \ RL\ \ T\ \ TL\ TR\ TRL\ B\ \ BL\ BR\ BRL\ BT\ \ BTL\ BTR\ BTRL}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00023}00023\ \textcolor{keywordtype}{int}\ CrossToMove[16]\ =\ \{4,\ 3,\ 5,\ -\/1,\ 1,\ 0,\ 2,\ -\/1,\ 7,\ 6,\ 8,\ -\/1,\ -\/1,\ -\/1,\ -\/1,\ -\/1\};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00026}00026\ BOOL\ gameFinished\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00027}00027\ \textcolor{keywordtype}{int}\ numBoardLines\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00028}00028\ \mbox{\hyperlink{struct_line}{Line}}\ boardLines[4],\ *boardLeft,\ *boardRight,\ *boardTop,\ *boardBottom;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00029}00029\ \textcolor{keywordtype}{double}\ boardCenterX,\ boardCenterY;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00030}00030\ \textcolor{keywordtype}{int}\ movesDone[9];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00031}00031\ \textcolor{keywordtype}{int}\ currentPlayer;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00034}00034\ \textcolor{keywordtype}{void}\ resetGameState()}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00035}00035\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00036}00036\ \ \ \ \ \textcolor{keywordtype}{int}\ idx;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00037}00037\ \ \ \ \ \textcolor{keywordflow}{for}\ (idx\ =\ 0;\ idx\ <\ 9;\ idx++)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00038}00038\ \ \ \ \ \ \ \ \ movesDone[idx]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00039}00039\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00040}00040\ \ \ \ \ gameFinished\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00041}00041\ \ \ \ \ numBoardLines\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00042}00042\ \ \ \ \ currentPlayer\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00043}00043\ \ \ \ \ printLog(\textcolor{stringliteral}{"{}Reset\ game\ state\ for\ Tic\ Tac\ Toe\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00044}00044\ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00047}00047\ BOOL\ checkThreeMoves(\textcolor{keywordtype}{int}\ a,\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{int}\ c)}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00048}00048\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{return}\ ((movesDone[a]\ !=\ 0)\ \&\&\ (movesDone[a]\ ==\ movesDone[b])\ \&\&\ (movesDone[a]\ ==\ movesDone[c]));}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00050}00050\ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00052}00052\ BOOL\ checkForFinishCondition()}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00053}00053\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00054}00054\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ 9;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (movesDone[i]\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00059}00059\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ ==\ 9)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;\ \textcolor{comment}{//\ board\ is\ full}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00062}00062\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{return}\ (checkThreeMoves(0,\ 1,\ 2)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ checkThreeMoves(3,\ 4,\ 5)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ checkThreeMoves(6,\ 7,\ 8)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ checkThreeMoves(0,\ 3,\ 6)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ checkThreeMoves(1,\ 4,\ 7)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ checkThreeMoves(2,\ 5,\ 8)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ checkThreeMoves(0,\ 4,\ 8)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ checkThreeMoves(6,\ 4,\ 2));}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00071}00071\ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00074}00074\ \textcolor{comment}{//\ called\ by\ Tcl\ Event\ loop\ to\ check\ for\ new\ data}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00075}00075\ \textcolor{keywordtype}{void}\ TclTimerProc(ClientData\ clientData)}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00076}00076\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{if}\ (!isPenLoaderStarted())\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}Timer\ stopped\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00080}00080\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00082}00082\ \ \ \ \ \textcolor{comment}{//\ get\ the\ next\ stroke\ to\ analyze}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00083}00083\ \ \ \ \ \mbox{\hyperlink{struct_stroke}{Stroke}}\ stroke\ =\ getNextAvailableStroke();}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00084}00084\ \ \ \ \ Tcl\_CreateTimerHandler(TCL\_TIMER\_MS,\ \&TclTimerProc,\ NULL);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.nSamples\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00087}00087\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00088}00088\ \ \ \ \ \textcolor{keywordflow}{if}\ (gameFinished)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ This\ game\ is\ already\ finished,\ skipping\ stroke\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00091}00091\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00094}00094\ \ \ \ \ \textcolor{comment}{//\ if\ already\ have\ the\ board,\ determine\ and\ make\ the\ move}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{if}\ (numBoardLines\ ==\ 4)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_line}{Line}}\ testLine\ =\ newLine(boardCenterX,\ boardCenterY,\ stroke.bounds.centerX,\ stroke.bounds.centerY);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ crossing\ =\ (doLinesIntersect(\&testLine,\ boardLeft))\ ?\ CROSS\_LEFT\ :\ CROSS\_NONE;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ crossing\ |=\ (doLinesIntersect(\&testLine,\ boardRight))\ ?\ CROSS\_RIGHT\ :\ CROSS\_NONE;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ crossing\ |=\ (doLinesIntersect(\&testLine,\ boardTop))\ ?\ CROSS\_TOP\ :\ CROSS\_NONE;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ crossing\ |=\ (doLinesIntersect(\&testLine,\ boardBottom))\ ?\ CROSS\_BOTTOM\ :\ CROSS\_NONE;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ move\ =\ CrossToMove[crossing];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (move\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Invalid\ crossing\ value\ detected:\ \%d,\ skipping\(\backslash\)n"{}},\ crossing);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (movesDone[move]\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Skipping\ duplicate\ move:\ \%d\(\backslash\)n"{}},\ move);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ movesDone[move]\ =\ currentPlayer;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ currentPlayer\ =\ (currentPlayer\ \%\ 2)\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Making\ move\ \%d\(\backslash\)n"{}},\ move);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ moveCommand[30];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ sprintf(moveCommand,\ \textcolor{stringliteral}{"{}ReturnFromHumanMove\ \%d"{}},\ move);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ Tcl\_Eval(tclInterpreter,\ moveCommand);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (checkForFinishCondition())\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ gameFinished\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Game\ finished\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00122}00122\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00125}00125\ \ \ \ \ \textcolor{comment}{//\ otherwise,\ add\ the\ stroke\ to\ the\ board}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.type\ !=\ STROKE\_LINE)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Board\ isn't\ finished,\ skipping\ non-\/LINE\ stroke\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00129}00129\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00130}00130\ \ \ \ \ boardLines[numBoardLines]\ =\ stroke.line;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00131}00131\ \ \ \ \ numBoardLines++;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00132}00132\ \ \ \ \ \textcolor{keywordflow}{if}\ (numBoardLines\ <\ 4)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00133}00133\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00134}00134\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00137}00137\ \ \ \ \ \textcolor{comment}{//\ determine\ board\ lines\ (two\ pairs\ of\ non-\/intersecting\ lines)}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00138}00138\ \ \ \ \ \textcolor{keywordtype}{int}\ idx,\ match1b,\ match2a,\ match2b;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00139}00139\ \ \ \ \ match1b\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00140}00140\ \ \ \ \ \textcolor{keywordflow}{for}\ (idx\ =\ 1;\ idx\ <\ 4;\ idx++)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!doLinesIntersect(\&boardLines[0],\ \&boardLines[idx]))\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (match1b\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ matched\ twice,\ so\ something\ is\ wrong}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ match1b\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ match1b\ =\ idx;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ match2a\ =\ (idx\ ==\ 1)\ ?\ 2\ :\ 1;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ match2b\ =\ (idx\ ==\ 3)\ ?\ 2\ :\ 3;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00151}00151\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00153}00153\ \ \ \ \ \textcolor{comment}{//\ verify\ that\ matched\ lines\ intersect\ properly}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00154}00154\ \ \ \ \ \textcolor{keywordflow}{if}\ ((match1b\ ==\ 0)\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ (!doLinesIntersect(\&boardLines[match1b],\ \&boardLines[match2a]))\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ (!doLinesIntersect(\&boardLines[match1b],\ \&boardLines[match2b]))\ ||}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ (doLinesIntersect(\&boardLines[match2a],\ \&boardLines[match2b])))\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Could\ not\ match\ board\ lines,\ trying\ again\ without\ first\ line\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ boardLines[0]\ =\ boardLines[1];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00160}00160\ \ \ \ \ \ \ \ \ boardLines[1]\ =\ boardLines[2];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ boardLines[2]\ =\ boardLines[3];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00162}00162\ \ \ \ \ \ \ \ \ numBoardLines\ =\ 3;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00163}00163\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00164}00164\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00166}00166\ \ \ \ \ \textcolor{comment}{//\ assign\ proper\ sides\ (within\ 90\ degree\ range\ away\ from\ pure\ vertical\ or\ horizontal)}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00167}00167\ \ \ \ \ \textcolor{keywordtype}{double}\ angle\ =\ fabs(boardLines[0].angleDegrees);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00168}00168\ \ \ \ \ BOOL\ isLeft,\ isTop;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00169}00169\ \ \ \ \ \textcolor{keywordtype}{int}\ leftIdx,\ rightIdx,\ topIdx,\ bottomIdx;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{if}\ (angle\ >=\ 45\ \&\&\ angle\ <\ 135)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ match\ 1\ is\ vertical,\ match\ 2\ is\ horizontal}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ isLeft\ =\ (boardLines[0].centerX\ <\ boardLines[match1b].centerX);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ isTop\ =\ (boardLines[match2a].centerY\ <\ boardLines[match2b].centerY);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ leftIdx\ =\ isLeft\ ?\ 0\ :\ match1b;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ rightIdx\ =\ isLeft\ ?\ match1b\ :\ 0;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ topIdx\ =\ isTop\ ?\ match2a\ :\ match2b;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ bottomIdx\ =\ isTop\ ?\ match2b\ :\ match2a;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00178}00178\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ match\ 2\ is\ vertical,\ match\ 1\ is\ horizontal}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ isLeft\ =\ (boardLines[match2a].centerX\ <\ boardLines[match2b].centerX);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ isTop\ =\ (boardLines[0].centerY\ <\ boardLines[match1b].centerY);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ leftIdx\ =\ isLeft\ ?\ match2a\ :\ match2b;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ rightIdx\ =\ isLeft\ ?\ match2b\ :\ match2a;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ topIdx\ =\ isTop\ ?\ 0\ :\ match1b;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00185}00185\ \ \ \ \ \ \ \ \ bottomIdx\ =\ isTop\ ?\ match1b\ :\ 0;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00186}00186\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00187}00187\ \ \ \ \ boardLeft\ =\ \&boardLines[leftIdx];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00188}00188\ \ \ \ \ boardRight\ =\ \&boardLines[rightIdx];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00189}00189\ \ \ \ \ boardTop\ =\ \&boardLines[topIdx];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00190}00190\ \ \ \ \ boardBottom\ =\ \&boardLines[bottomIdx];}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00192}00192\ \ \ \ \ \textcolor{comment}{//\ calculate\ center\ of\ the\ board\ (average\ of\ the\ 4\ intersection\ points)}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00193}00193\ \ \ \ \ \textcolor{keywordtype}{double}\ iLeftTop\ =\ intersectionPoint(boardLeft,\ boardTop);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00194}00194\ \ \ \ \ \textcolor{keywordtype}{double}\ iLeftBottom\ =\ intersectionPoint(boardLeft,\ boardBottom);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00195}00195\ \ \ \ \ \textcolor{keywordtype}{double}\ iRightTop\ =\ intersectionPoint(boardRight,\ boardTop);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00196}00196\ \ \ \ \ \textcolor{keywordtype}{double}\ iRightBottom\ =\ intersectionPoint(boardRight,\ boardBottom);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00197}00197\ \ \ \ \ boardCenterX\ =\ projectedX(boardLeft,\ iLeftTop,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00198}00198\ \ \ \ \ boardCenterX\ +=\ projectedX(boardLeft,\ iLeftBottom,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00199}00199\ \ \ \ \ boardCenterX\ +=\ projectedX(boardRight,\ iRightTop,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00200}00200\ \ \ \ \ boardCenterX\ +=\ projectedX(boardRight,\ iRightBottom,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00201}00201\ \ \ \ \ boardCenterY\ =\ projectedY(boardLeft,\ iLeftTop,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00202}00202\ \ \ \ \ boardCenterY\ +=\ projectedY(boardLeft,\ iLeftBottom,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00203}00203\ \ \ \ \ boardCenterY\ +=\ projectedY(boardRight,\ iRightTop,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00204}00204\ \ \ \ \ boardCenterY\ +=\ projectedY(boardRight,\ iRightBottom,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00205}00205\ \ \ \ \ boardCenterX\ /=\ 4;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00206}00206\ \ \ \ \ boardCenterY\ /=\ 4;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00207}00207\ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Detected\ board\ strokes:\ Left\ \%d,\ Right\ \%d,\ Top\ \%d,\ Bottom\ \%d,\ with\ center\ (\%.3f,\ \%.3f)\(\backslash\)n"{}},\ \(\backslash\)}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ leftIdx,\ rightIdx,\ topIdx,\ bottomIdx,\ boardCenterX,\ boardCenterY);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00209}00209\ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00211}00211\ }
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00212}00212\ \textcolor{comment}{//\ called\ by\ Gamesman\ when\ new\ game\ is\ started}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00213}00213\ \textcolor{keywordtype}{void}\ gPenHandleTclMessage(\textcolor{keywordtype}{int}\ options[],\ \textcolor{keywordtype}{char}\ *filename,\ Tcl\_Interp\ *tclInterp,\ \textcolor{keywordtype}{int}\ debug)}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00214}00214\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00215}00215\ \ \ \ \ \textcolor{keywordflow}{if}\ (hasPenLoaderFinished())\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ already\ read\ through\ entire\ file,\ no\ need\ to\ do\ it\ again}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00218}00218\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{if}\ (isPenLoaderStarted())\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ loader\ already\ started\ -\/\ reset\ state,\ change\ output\ to\ new\ file}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ resetGameState();}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00222}00222\ \ \ \ \ \ \ \ \ startNewPenOutputFile();}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00223}00223\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (startPenLoader(filename,\ debug)\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ started\ loader\ for\ the\ first\ time\ -\/\ set\ initial\ state,\ start\ timer}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ resetGameState();}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ tclInterpreter\ =\ tclInterp;}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ Tcl\_CreateTimerHandler(TCL\_TIMER\_MS,\ \&TclTimerProc,\ NULL);}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00228}00228\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pttt_8c_source_l00229}00229\ \}}
+
+\end{DoxyCode}

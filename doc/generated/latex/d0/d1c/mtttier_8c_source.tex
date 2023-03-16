@@ -1,0 +1,960 @@
+\hypertarget{mtttier_8c_source}{}\doxysection{mtttier.\+c}
+\label{mtttier_8c_source}\index{src/mtttier.c@{src/mtttier.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ mtttier.c}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Tic-\/Tac-\/Tier!}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00006}00006\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Basically,\ this\ is\ a\ copy-\/pasted\ version\ of\ mttt.c,}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00007}00007\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ only\ changed\ to\ use\ generic\ hash\ and\ Tier\ Gamesman,}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ removing\ unnecessary\ things\ like\ GPS\ stuff.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00010}00010\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ \ \ Dan\ Garcia\ \ -\/\ \ University\ of\ California\ at\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00011}00011\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Copyright\ (C)\ Dan\ Garcia,\ 1995.\ All\ rights\ reserved.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00012}00012\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Copy-\/Pasted\ and\ Revised\ 2006\ by\ Max\ Delgadillo}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00013}00013\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00014}00014\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ 09/27/06}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00016}00016\ \textcolor{comment}{**\ UPDATE\ HIST:}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00017}00017\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00018}00018\ \textcolor{comment}{**\ \ 7/24/06\ :\ \ \ First\ version\ of\ the\ file.\ SHOULD\ be\ bug-\/free...}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00019}00019\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Four\ of\ the\ six\ API\ functions\ are\ implemented.\ Only}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00020}00020\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitHashWindow\ and\ gPositionToTierPosition\ are\ left}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00021}00021\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ write\ (since\ the\ current\ version\ of\ the\ solver}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00022}00022\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ doesn't\ use\ either\ of\ the\ two\ functions\ yet).\ They}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00023}00023\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ should\ be\ added\ by\ the\ next\ update.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00024}00024\ \textcolor{comment}{**\ \ 7/29/06\ :\ \ \ Fixed\ a\ BIG\ gNumberOfPositions\ glitch,\ as\ well\ as\ a}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00025}00025\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ WhoseMove\ glitch\ that\ was\ causing\ double\ boards\ in\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00026}00026\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ hash.\ Also,\ gInitHashWindow\ and\ gPositionToTierPosition}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00027}00027\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ are\ now\ correctly\ implemented,\ finally\ completing\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00028}00028\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ entire\ Tier\ Gamesman\ API\ example.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00029}00029\ \textcolor{comment}{**\ \ 8/01/06\ :\ \ \ Quite\ a\ big\ change.\ This\ now\ uses\ the\ NEW\ API,\ which}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00030}00030\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ includes\ the\ use\ of\ the\ generic\ Hash\ Window\ functions.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00031}00031\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ It\ now\ works\ with\ the\ newest\ version\ of\ the\ solver\ and}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00032}00032\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ generates\ 100\%\ correct\ memdb\ tier\ databases.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00033}00033\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ The\ last\ things\ left\ for\ this\ file\ is\ prettying\ up\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00034}00034\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ code\ (particularly\ WhoseTurn)\ and\ settling\ on\ how\ to}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00035}00035\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ handle\ gInitialPosition.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00036}00036\ \textcolor{comment}{**\ \ 8/03/06:\ \ \ \ Added\ support\ for\ game\ playing\ by\ adding\ gInitialTier}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00037}00037\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ and\ gInitialTierPosition.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00038}00038\ \textcolor{comment}{**\ \ 8/05/06:\ \ \ \ Made\ the\ hashes\ 100\%\ efficient.\ IsLegal\ is\ no\ longer}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00039}00039\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ required!}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00040}00040\ \textcolor{comment}{**\ \ 8/07/06:\ \ \ \ The\ global\ hash\ now\ uses\ singleplayer\ mode\ like\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00041}00041\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ tier\ hashes.\ Also\ I\ realize\ the\ hashes\ aren't\ ACTUALLY}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00042}00042\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 100\%\ efficient\ (and\ IsLegal\ is\ still\ needed)\ since\ there's}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00043}00043\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ some\ positions\ where\ a\ player\ has\ already\ won\ but\ more}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00044}00044\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ pieces\ are\ still\ placed.\ But...\ aside\ from\ that\ (if\ I\ ever}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00045}00045\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ choose\ to\ make\ that\ fix\ anyway),\ this\ is\ as\ close\ to\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00046}00046\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ final\ version\ of\ the\ file\ as\ it\ gets.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00047}00047\ \textcolor{comment}{**\ \ 8/08/06:\ \ \ \ Added\ TierToString.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00048}00048\ \textcolor{comment}{**\ \ 9/27/06:\ \ \ \ Removed\ instances\ of\ "{}Tier0Context"{},\ and\ instead\ use\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00049}00049\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ generic\ hash\ destructor\ (which\ works\ now!).}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00050}00050\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00051}00051\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00052}00052\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00054}00054\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00055}00055\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00056}00056\ \textcolor{comment}{**\ Everything\ below\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00057}00057\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00058}00058\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00060}00060\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00061}00061\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00063}00063\ POSITION\ gNumberOfPositions\ \ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00064}00064\ POSITION\ kBadPosition\ \ \ \ \ \ \ \ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00066}00066\ POSITION\ gInitialPosition\ \ \ \ =\ \ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00067}00067\ POSITION\ gMinimalPosition\ \ \ \ =\ \ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00069}00069\ STRING\ kAuthorName\ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Dan\ Garcia\ (and\ Max\ Delgadillo)"{}};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00070}00070\ STRING\ kGameName\ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Tic-\/Tac-\/Tier"{}};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00071}00071\ STRING\ kDBName\ \ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}tttier"{}};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00072}00072\ BOOLEAN\ kPartizan\ \ \ \ \ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00073}00073\ BOOLEAN\ kDebugMenu\ \ \ \ \ \ \ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00074}00074\ BOOLEAN\ kGameSpecificMenu\ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00075}00075\ BOOLEAN\ kTieIsPossible\ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00076}00076\ BOOLEAN\ kLoopy\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00077}00077\ BOOLEAN\ kDebugDetermineValue\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00078}00078\ \textcolor{keywordtype}{void}*\ \ \ \ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00080}00080\ STRING\ kHelpGraphicInterface\ =}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ LEFT\ button\ puts\ an\ X\ or\ O\ (depending\ on\ whether\ you\ went\ first\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00082}00082\ \textcolor{stringliteral}{or\ second)\ on\ the\ spot\ the\ cursor\ was\ on\ when\ you\ clicked.\ The\ MIDDLE\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00083}00083\ \textcolor{stringliteral}{button\ does\ nothing,\ and\ the\ RIGHT\ button\ is\ the\ same\ as\ UNDO,\ in\ that\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00084}00084\ \textcolor{stringliteral}{it\ reverts\ back\ to\ your\ your\ most\ recent\ position."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00086}00086\ STRING\ kHelpTextInterface\ \ \ \ =}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}On\ your\ turn,\ use\ the\ LEGEND\ to\ determine\ which\ number\ to\ choose\ (between\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00088}00088\ \textcolor{stringliteral}{1\ and\ 9,\ with\ 1\ at\ the\ upper\ left\ and\ 9\ at\ the\ lower\ right)\ to\ correspond\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00089}00089\ \textcolor{stringliteral}{to\ the\ empty\ board\ position\ you\ desire\ and\ hit\ return.\ If\ at\ any\ point\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00090}00090\ \textcolor{stringliteral}{you\ have\ made\ a\ mistake,\ you\ can\ type\ u\ and\ hit\ return\ and\ the\ system\ will\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00091}00091\ \textcolor{stringliteral}{revert\ back\ to\ your\ most\ recent\ position."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00093}00093\ STRING\ kHelpOnYourTurn\ =}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}You\ place\ one\ of\ your\ pieces\ on\ one\ of\ the\ empty\ board\ positions."{}};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00096}00096\ STRING\ kHelpStandardObjective\ =}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}To\ get\ three\ of\ your\ markers\ (either\ X\ or\ O)\ in\ a\ row,\ either\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00098}00098\ \textcolor{stringliteral}{horizontally,\ vertically,\ or\ diagonally.\ 3-\/in-\/a-\/row\ WINS."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00100}00100\ STRING\ kHelpReverseObjective\ =}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}To\ force\ your\ opponent\ into\ getting\ three\ of\ his\ markers\ (either\ X\ or\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00102}00102\ \textcolor{stringliteral}{O)\ in\ a\ row,\ either\ horizontally,\ vertically,\ or\ diagonally.\ 3-\/in-\/a-\/row\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00103}00103\ \textcolor{stringliteral}{LOSES."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00105}00105\ STRING\ kHelpTieOccursWhen\ =\ \ \ \textcolor{comment}{/*\ Should\ follow\ 'A\ Tie\ occurs\ when...\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}the\ board\ fills\ up\ without\ either\ player\ getting\ three-\/in-\/a-\/row."{}};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00108}00108\ STRING\ kHelpExample\ =}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00110}00110\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ -\/\ -\/\ -\/\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00111}00111\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00112}00112\ \textcolor{stringliteral}{Computer's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \ 3\ \ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00113}00113\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00114}00114\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ -\/\ -\/\ -\/\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00115}00115\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00116}00116\ \textcolor{stringliteral}{\ \ \ \ \ Dan's\ move\ [(u)ndo/1-\/9]\ :\ \{\ 2\ \}\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00117}00117\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ O\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00118}00118\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ -\/\ -\/\ -\/\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00119}00119\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00120}00120\ \textcolor{stringliteral}{Computer's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \ 6\ \ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00121}00121\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ O\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00122}00122\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ -\/\ -\/\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00123}00123\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00124}00124\ \textcolor{stringliteral}{\ \ \ \ \ Dan's\ move\ [(u)ndo/1-\/9]\ :\ \{\ 9\ \}\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00125}00125\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ O\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00126}00126\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ -\/\ -\/\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00127}00127\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ O\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00128}00128\ \textcolor{stringliteral}{Computer's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \ 5\ \ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00129}00129\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ O\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00130}00130\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ -\/\ X\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00131}00131\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ O\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00132}00132\ \textcolor{stringliteral}{\ \ \ \ \ Dan's\ move\ [(u)ndo/1-\/9]\ :\ \{\ 7\ \}\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00133}00133\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ O\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00134}00134\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ -\/\ X\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00135}00135\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ O\ -\/\ O\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00136}00136\ \textcolor{stringliteral}{Computer's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \ 4\ \ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00137}00137\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ -\/\ O\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00138}00138\ \textcolor{stringliteral}{LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ X\ X\ X\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00139}00139\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ O\ -\/\ O\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00140}00140\ \textcolor{stringliteral}{Computer\ wins.\ Nice\ try,\ Dan."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00142}00142\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00143}00143\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00144}00144\ \textcolor{comment}{**\ Everything\ above\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00145}00145\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00146}00146\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00148}00148\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00149}00149\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00150}00150\ \textcolor{comment}{**\ Every\ variable\ declared\ here\ is\ only\ used\ in\ this\ file\ (game-\/specific)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00151}00151\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00152}00152\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00154}00154\ \textcolor{preprocessor}{\#define\ BOARDSIZE\ \ \ \ \ 9\ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ 3x3\ board\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00155}00155\ \textcolor{comment}{//\ I\ decided\ on\ chars\ instead\ of\ the\ "{}BlankOX"{}\ struct\ because\ it's}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00156}00156\ \textcolor{comment}{//\ easier\ for\ the\ generic\ hash\ to\ handle.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00157}00157\ \textcolor{preprocessor}{\#define\ Blank\ \ \ '-\/'}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00158}00158\ \textcolor{preprocessor}{\#define\ o\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 'O'}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00159}00159\ \textcolor{preprocessor}{\#define\ x\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 'X'}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00160}00160\ \textcolor{comment}{//\ This\ is\ so\ I\ don't\ have\ to\ change\ "{}BlankOX"{}\ occurences\ everywhere.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00161}00161\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{char}\ BlankOX;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00164}00164\ BOOLEAN\ AllFilledIn(BlankOX*);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00165}00165\ BOOLEAN\ ThreeInARow(BlankOX*,\ \textcolor{keywordtype}{int},\ \textcolor{keywordtype}{int},\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00166}00166\ POSITION\ GetCanonicalPosition(POSITION);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00167}00167\ STRING\ MoveToString(MOVE);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00169}00169\ \textcolor{comment}{//\ HASH/UNHASH}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00170}00170\ \textcolor{keywordtype}{char}*\ customUnhash(POSITION);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00171}00171\ POSITION\ BlankOXToPosition(BlankOX*);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00172}00172\ BlankOX*\ PositionToBlankOX(POSITION);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00173}00173\ BlankOX\ WhoseTurn(BlankOX*);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00174}00174\ TIER\ BoardToTier(BlankOX*);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00176}00176\ \textcolor{comment}{//TIER\ GAMESMAN}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00177}00177\ \textcolor{keywordtype}{void}\ SetupTierStuff();}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00178}00178\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ TierChildren(TIER);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00179}00179\ TIERPOSITION\ NumberOfTierPositions(TIER);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00180}00180\ \textcolor{keywordtype}{void}\ GetInitialTierPosition(TIER*,\ TIERPOSITION*);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00181}00181\ BOOLEAN\ IsLegal(POSITION);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00182}00182\ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ GenerateUndoMovesToTier(POSITION,\ TIER);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00183}00183\ STRING\ TierToString(TIER);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00184}00184\ POSITION\ UnDoMove(POSITION,\ UNDOMOVE);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00185}00185\ \textcolor{comment}{//\ Actual\ functions\ are\ at\ the\ end\ of\ this\ file}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00187}00187\ \textcolor{comment}{//SYMMETRIES}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00188}00188\ BOOLEAN\ kSupportsSymmetries\ =\ TRUE;\ \textcolor{comment}{/*\ Whether\ we\ support\ symmetries\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00190}00190\ \textcolor{preprocessor}{\#define\ NUMSYMMETRIES\ 8\ \ \ }\textcolor{comment}{/*\ \ 4\ rotations,\ 4\ flipped\ rotations\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00192}00192\ \textcolor{keywordtype}{int}\ gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00194}00194\ \textcolor{comment}{/*\ Proofs\ of\ correctness\ for\ the\ below\ arrays:}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00195}00195\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00196}00196\ \textcolor{comment}{**\ FLIP\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ROTATE}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00197}00197\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00198}00198\ \textcolor{comment}{**\ 0\ 1\ 2\ \ \ \ 2\ 1\ 0\ \ \ \ \ \ \ 0\ 1\ 2\ \ \ \ \ \ \ 6\ 3\ 0\ \ \ \ \ \ \ 8\ 7\ 6\ \ \ \ \ \ \ 2\ 5\ 8}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00199}00199\ \textcolor{comment}{**\ 3\ 4\ 5\ -\/>\ 5\ 4\ 3\ \ \ \ \ \ \ 3\ 4\ 5\ \ \ -\/>\ \ 7\ 4\ 1\ \ -\/>\ \ \ 5\ 4\ 3\ \ \ -\/>\ \ 1\ 4\ 7}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00200}00200\ \textcolor{comment}{**\ 6\ 7\ 8\ \ \ \ 8\ 7\ 6\ \ \ \ \ \ \ 6\ 7\ 8\ \ \ \ \ \ \ 8\ 5\ 2\ \ \ \ \ \ \ 2\ 1\ 0\ \ \ \ \ \ \ 2\ 1\ 0}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00201}00201\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00203}00203\ \textcolor{comment}{/*\ This\ is\ the\ array\ used\ for\ flipping\ along\ the\ N-\/S\ axis\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00204}00204\ \textcolor{keywordtype}{int}\ gFlipNewPosition[]\ =\ \{\ 2,\ 1,\ 0,\ 5,\ 4,\ 3,\ 8,\ 7,\ 6\ \};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00206}00206\ \textcolor{comment}{/*\ This\ is\ the\ array\ used\ for\ rotating\ 90\ degrees\ clockwise\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00207}00207\ \textcolor{keywordtype}{int}\ gRotate90CWNewPosition[]\ =\ \{\ 6,\ 3,\ 0,\ 7,\ 4,\ 1,\ 8,\ 5,\ 2\ \};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00210}00210\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00211}00211\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00212}00212\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ InitializeGame}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00213}00213\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00214}00214\ \textcolor{comment}{**\ DESCRIPTION:\ Prepares\ the\ game\ for\ execution.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00215}00215\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Initializes\ required\ variables.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00216}00216\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Sets\ up\ gDatabase\ (if\ necessary).}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00217}00217\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00218}00218\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00220}00220\ \textcolor{comment}{//\ for\ the\ hash\ init}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00221}00221\ \textcolor{keywordtype}{int}\ vcfg(\textcolor{keywordtype}{int}*\ this\_cfg)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00222}00222\ \ \ \ \ \textcolor{keywordflow}{return}\ (this\_cfg[0]\ ==\ this\_cfg[1]\ ||\ this\_cfg[0]\ +\ 1\ ==\ this\_cfg[1]);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00223}00223\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00225}00225\ \textcolor{keywordtype}{void}\ InitializeGame()}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00226}00226\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00227}00227\ \ \ \ \ \textcolor{comment}{//\ SYMMETRY}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00228}00228\ \ \ \ \ gCanonicalPosition\ =\ GetCanonicalPosition;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00229}00229\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ temp;\ \textcolor{comment}{/*\ temp\ is\ used\ for\ debugging\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00230}00230\ \ \ \ \ \textcolor{keywordflow}{if}(kSupportsSymmetries)\ \{\ \textcolor{comment}{/*\ Initialize\ gSymmetryMatrix[][]\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ temp\ =\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(j\ =\ 0;\ j\ <\ NUMSYMMETRIES;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(j\ ==\ NUMSYMMETRIES/2)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp\ =\ gFlipNewPosition[i];}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(j\ <\ NUMSYMMETRIES/2)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp\ =\ gSymmetryMatrix[j][i]\ =\ gRotate90CWNewPosition[temp];}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp\ =\ gSymmetryMatrix[j][i]\ =\ gRotate90CWNewPosition[temp];}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00242}00242\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00243}00243\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00244}00244\ \ \ \ \ gMoveToStringFunPtr\ =\ \&MoveToString;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00245}00245\ \ \ \ \ gCustomUnhash\ =\ \&customUnhash;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00246}00246\ \ \ \ \ \textcolor{comment}{//\ gCustomUnhash\ is\ a\ (STRING)\ char\ *}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00247}00247\ \ \ \ \ \textcolor{comment}{//\ linearUnhash\ expects\ void\ *}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00248}00248\ \ \ \ \ \textcolor{comment}{//\ dchan\ 10-\/16-\/07}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00249}00249\ \ \ \ \ linearUnhash\ =\ (\textcolor{keywordtype}{void}\ *)\ gCustomUnhash;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00251}00251\ \ \ \ \ \textcolor{comment}{//discard\ current\ hash}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00252}00252\ \ \ \ \ generic\_hash\_destroy();}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00253}00253\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00254}00254\ \ \ \ \ \textcolor{comment}{//Setup\ Tier\ Stuff\ (at\ bottom)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00255}00255\ \ \ \ \ SetupTierStuff();}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00257}00257\ \ \ \ \ \textcolor{comment}{//have\ a\ GLOBAL\ HASH\ set\ up\ at\ outset:}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00258}00258\ \ \ \ \ \textcolor{keywordtype}{int}\ game[10]\ =\ \{\ o,\ 0,\ 4,\ x,\ 0,\ 5,\ Blank,\ 0,\ 9,\ -\/1\ \};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00259}00259\ \ \ \ \ gNumberOfPositions\ =\ generic\_hash\_init(BOARDSIZE,\ game,\ vcfg,\ 1);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00261}00261\ \ \ \ \ \textcolor{comment}{//\ gInitialPosition}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00262}00262\ \ \ \ \ BlankOX*\ board\ =\ (BlankOX\ *)\ SafeMalloc(BOARDSIZE\ *\ \textcolor{keyword}{sizeof}(BlankOX));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00263}00263\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00264}00264\ \ \ \ \ \ \ \ \ board[i]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00265}00265\ \ \ \ \ gInitialPosition\ =\ BlankOXToPosition(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00266}00266\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00268}00268\ \textcolor{keywordtype}{void}\ FreeGame()}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00269}00269\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00270}00270\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00272}00272\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00273}00273\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00274}00274\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DebugMenu}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00275}00275\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00276}00276\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ debub\ internal\ problems.\ Does\ nothing\ if}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00277}00277\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ kDebugMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00278}00278\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00279}00279\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00281}00281\ \textcolor{keywordtype}{void}\ DebugMenu()\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00282}00282\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00284}00284\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00285}00285\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00286}00286\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00287}00287\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00288}00288\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ change\ game-\/specific\ parmeters,\ such\ as}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00289}00289\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ side\ of\ the\ board\ in\ an\ nxn\ Nim\ board,\ etc.\ Does}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00290}00290\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ nothing\ if\ kGameSpecificMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00291}00291\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00292}00292\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00294}00294\ \textcolor{keywordtype}{void}\ GameSpecificMenu()\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00295}00295\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00297}00297\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00298}00298\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00299}00299\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ SetTclCGameSpecificOptions}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00300}00300\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00301}00301\ \textcolor{comment}{**\ DESCRIPTION:\ Set\ the\ C\ game-\/specific\ options\ (called\ from\ Tcl)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00302}00302\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Ignore\ if\ you\ don't\ care\ about\ Tcl\ for\ now.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00303}00303\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00304}00304\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00305}00305\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00306}00306\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions(theOptions)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00307}00307\ \textcolor{keywordtype}{int}\ theOptions[];}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00308}00308\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00309}00309\ \ \ \ \ \textcolor{comment}{/*\ No\ need\ to\ have\ anything\ here,\ we\ have\ no\ extra\ options\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00310}00310\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00312}00312\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00313}00313\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00314}00314\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DoMove}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00315}00315\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00316}00316\ \textcolor{comment}{**\ DESCRIPTION:\ Apply\ the\ move\ to\ the\ position.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00317}00317\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00318}00318\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ old\ position}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00319}00319\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ \ \ \ \ move\ \ \ \ \ :\ The\ move\ to\ apply.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00320}00320\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00321}00321\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (POSITION)\ :\ The\ position\ that\ results\ after\ the\ move.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00322}00322\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00323}00323\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00325}00325\ POSITION\ DoMove(POSITION\ position,\ MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00326}00326\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00327}00327\ \ \ \ \ BlankOX*\ board\ =\ PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00328}00328\ \ \ \ \ board[move]\ =\ WhoseTurn(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00329}00329\ \ \ \ \ \textcolor{keywordflow}{return}\ BlankOXToPosition(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00330}00330\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00332}00332\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00333}00333\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00334}00334\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetInitialPosition}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00335}00335\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00336}00336\ \textcolor{comment}{**\ DESCRIPTION:\ Ask\ the\ user\ for\ an\ initial\ position\ for\ testing.\ Store}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00337}00337\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ it\ in\ the\ space\ pointed\ to\ by\ initialPosition;}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00338}00338\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00339}00339\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION\ initialPosition\ :\ The\ position\ to\ fill.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00340}00340\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00341}00341\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00343}00343\ POSITION\ GetInitialPosition()}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00344}00344\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00345}00345\ \ \ \ \ BlankOX*\ board\ =\ (BlankOX\ *)\ SafeMalloc(BOARDSIZE\ *\ \textcolor{keyword}{sizeof}(BlankOX));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00346}00346\ \ \ \ \ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ c;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00347}00347\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0,\ xcount\ =\ 0,\ ycount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00349}00349\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Get\ Initial\ Position\ -\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00350}00350\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ input\ the\ position\ to\ begin\ with.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00351}00351\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tNote\ that\ it\ should\ be\ in\ the\ following\ format:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00352}00352\ \ \ \ \ printf(\textcolor{stringliteral}{"{}O\ -\/\ -\/\(\backslash\)nO\ -\/\ -\/\ \ \ \ \ \ \ \ \ \ \ \ <-\/-\/-\/-\/-\/\ EXAMPLE\ \(\backslash\)n-\/\ X\ X\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00353}00353\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00354}00354\ \ \ \ \ getchar();}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00355}00355\ \ \ \ \ \textcolor{keywordflow}{while}(i\ <\ BOARDSIZE\ \&\&\ (c\ =\ getchar())\ !=\ EOF)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00356}00356\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'x'}\ ||\ c\ ==\ \textcolor{charliteral}{'X'})\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00357}00357\ \ \ \ \ \ \ \ \ \ \ \ \ board[i++]\ =\ x;\ xcount++;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00358}00358\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'o'}\ ||\ c\ ==\ \textcolor{charliteral}{'O'}\ ||\ c\ ==\ \textcolor{charliteral}{'0'})\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ board[i++]\ =\ o;\ ycount++;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00360}00360\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'-\/'})}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ board[i++]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00362}00362\ \ \ \ \ \ \ \ \ else}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00363}00363\ \ \ \ \ \ \ \ \ \ \ \ \ ;\ \textcolor{comment}{/*\ do\ nothing\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00364}00364\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00366}00366\ \ \ \ \ \textcolor{keywordflow}{return}(BlankOXToPosition(board));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00367}00367\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00368}00368\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00369}00369\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00370}00370\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00371}00371\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintComputersMove}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00372}00372\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00373}00373\ \textcolor{comment}{**\ DESCRIPTION:\ Nicely\ format\ the\ computers\ move.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00374}00374\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00375}00375\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ \ \ *computersMove\ :\ The\ computer's\ move.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00376}00376\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ computersName\ :\ The\ computer's\ name.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00377}00377\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00378}00378\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00380}00380\ \textcolor{keywordtype}{void}\ PrintComputersMove(computersMove,computersName)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00381}00381\ MOVE\ computersMove;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00382}00382\ STRING\ computersName;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00383}00383\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00384}00384\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \%2d\(\backslash\)n"{}},\ computersName,\ computersMove+1);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00385}00385\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00386}00386\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00387}00387\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00388}00388\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00389}00389\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ Primitive}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00390}00390\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00391}00391\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ the\ value\ of\ a\ position\ if\ it\ fulfills\ certain}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00392}00392\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 'primitive'\ constraints.\ Some\ examples\ of\ this\ is\ having}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00393}00393\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ three-\/in-\/a-\/row\ with\ TicTacToe.\ TicTacToe\ has\ two}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00394}00394\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ primitives\ it\ can\ immediately\ check\ for,\ when\ the\ board}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00395}00395\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ filled\ but\ nobody\ has\ one\ =\ primitive\ tie.\ Three\ in}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00396}00396\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ a\ row\ is\ a\ primitive\ lose,\ because\ the\ player\ who\ faces}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00397}00397\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ this\ board\ has\ just\ lost.\ I.e.\ the\ player\ before\ him}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00398}00398\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ created\ the\ board\ and\ won.\ Otherwise\ undecided.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00399}00399\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00400}00400\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ inspect.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00401}00401\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00402}00402\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (VALUE)\ an\ enum\ which\ is\ oneof:\ (win,lose,tie,undecided)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00403}00403\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00404}00404\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ BOOLEAN\ ThreeInARow()}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00405}00405\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ AllFilledIn()}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00406}00406\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00407}00407\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00408}00408\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00409}00409\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00410}00410\ VALUE\ Primitive(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00411}00411\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00412}00412\ \ \ \ \ BlankOX*\ board\ =\ PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00413}00413\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00414}00414\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00415}00415\ \ \ \ \ \textcolor{keywordflow}{if}\ (ThreeInARow(board,\ 0,\ 1,\ 2)\ ||}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00416}00416\ \ \ \ \ \ \ \ \ ThreeInARow(board,\ 3,\ 4,\ 5)\ ||}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00417}00417\ \ \ \ \ \ \ \ \ ThreeInARow(board,\ 6,\ 7,\ 8)\ ||}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00418}00418\ \ \ \ \ \ \ \ \ ThreeInARow(board,\ 0,\ 3,\ 6)\ ||}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00419}00419\ \ \ \ \ \ \ \ \ ThreeInARow(board,\ 1,\ 4,\ 7)\ ||}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00420}00420\ \ \ \ \ \ \ \ \ ThreeInARow(board,\ 2,\ 5,\ 8)\ ||}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00421}00421\ \ \ \ \ \ \ \ \ ThreeInARow(board,\ 0,\ 4,\ 8)\ ||}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00422}00422\ \ \ \ \ \ \ \ \ ThreeInARow(board,\ 2,\ 4,\ 6))}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00423}00423\ \ \ \ \ \ \ \ \ value\ =\ gStandardGame\ ?\ lose\ :\ win;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00424}00424\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (AllFilledIn(board))}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00425}00425\ \ \ \ \ \ \ \ \ value\ =\ tie;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00426}00426\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00427}00427\ \ \ \ \ \ \ \ \ value\ =\ undecided;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00428}00428\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00429}00429\ \ \ \ \ \textcolor{keywordflow}{if}\ (board\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00430}00430\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00431}00431\ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00432}00432\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00433}00433\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00434}00434\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00435}00435\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00436}00436\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintPosition}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00437}00437\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00438}00438\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ position\ in\ a\ pretty\ format,\ including\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00439}00439\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ prediction\ of\ the\ game's\ outcome.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00440}00440\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00441}00441\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ \ \ :\ The\ position\ to\ pretty\ print.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00442}00442\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ \ playerName\ :\ The\ name\ of\ the\ player.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00443}00443\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ \ usersTurn\ \ :\ TRUE\ <==>\ it's\ a\ user's\ turn.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00444}00444\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00445}00445\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00446}00446\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetValueOfPosition()}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00447}00447\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetPrediction()}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00448}00448\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00449}00449\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00450}00450\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00451}00451\ \textcolor{keywordtype}{void}\ PrintPosition(POSITION\ position,\ STRING\ playerName,\ BOOLEAN\ usersTurn)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00452}00452\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00453}00453\ \ \ \ \ BlankOX*\ board\ =\ PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00454}00454\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00455}00455\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\ \ \ \ \ \ \ \ \ (\ 1\ 2\ 3\ )\ \ \ \ \ \ \ \ \ \ \ :\ \%c\ \%c\ \%c\ (\%c's\ Turn)\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00456}00456\ \ \ \ \ \ \ \ \ \ \ \ board[0],\ board[1],\ board[2],\ WhoseTurn(board));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00457}00457\ \ \ \ \ printf(\textcolor{stringliteral}{"{}LEGEND:\ \ (\ 4\ 5\ 6\ )\ \ TOTAL:\ \ \ :\ \%c\ \%c\ \%c\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ \ \ \ board[3],\ board[4],\ board[5]);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00459}00459\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ (\ 7\ 8\ 9\ )\ \ \ \ \ \ \ \ \ \ \ :\ \%c\ \%c\ \%c\ \%s\(\backslash\)n\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00460}00460\ \ \ \ \ \ \ \ \ \ \ \ board[6],\ board[7],\ board[8],\ GetSEvalPrediction(position,playerName,usersTurn));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00461}00461\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00462}00462\ \ \ \ \ \textcolor{keywordflow}{if}\ (board\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00463}00463\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00464}00464\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00465}00465\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00466}00466\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00467}00467\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00468}00468\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GenerateMoves}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00469}00469\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00470}00470\ \textcolor{comment}{**\ DESCRIPTION:\ Create\ a\ linked\ list\ of\ every\ move\ that\ can\ be\ reached}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00471}00471\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ this\ position.\ Return\ a\ pointer\ to\ the\ head\ of\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00472}00472\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ linked\ list.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00473}00473\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00474}00474\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ branch\ off\ of.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00475}00475\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00476}00476\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (MOVELIST\ *),\ a\ pointer\ that\ points\ to\ the\ first\ item}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00477}00477\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ in\ the\ linked\ list\ of\ moves\ that\ can\ be\ generated.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00478}00478\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00479}00479\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ MOVELIST\ *CreateMovelistNode(MOVE,MOVELIST\ *)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00480}00480\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00481}00481\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00482}00482\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00483}00483\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ GenerateMoves(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00484}00484\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00485}00485\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00486}00486\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ moves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00487}00487\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00488}00488\ \ \ \ \ BlankOX*\ board\ =\ PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00489}00489\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00490}00490\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ BOARDSIZE-\/1;\ i\ >=\ 0;\ i-\/-\/)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00491}00491\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[i]\ ==\ Blank)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00492}00492\ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(i,\ moves);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00493}00493\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00494}00494\ \ \ \ \ \textcolor{keywordflow}{if}\ (board\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00495}00495\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00496}00496\ \ \ \ \ \textcolor{keywordflow}{return}\ moves;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00497}00497\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00498}00498\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00499}00499\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00500}00500\ \textcolor{comment}{/****************\ SYMMETRY\ FUN\ BEGIN\ **************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00501}00501\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00502}00502\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00503}00503\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00504}00504\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00505}00505\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetCanonicalPosition}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00506}00506\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00507}00507\ \textcolor{comment}{**\ DESCRIPTION:\ Go\ through\ all\ of\ the\ positions\ that\ are\ symmetrically}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00508}00508\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ equivalent\ and\ return\ the\ SMALLEST,\ which\ will\ be\ used}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00509}00509\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ as\ the\ canonical\ element\ for\ the\ equivalence\ set.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00510}00510\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00511}00511\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ return\ the\ canonical\ elt.\ of.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00512}00512\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00513}00513\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION\ \ \ \ \ \ \ \ \ \ :\ The\ canonical\ element\ of\ the\ set.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00514}00514\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00515}00515\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00516}00516\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00517}00517\ POSITION\ GetCanonicalPosition(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00518}00518\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00519}00519\ \ \ \ \ POSITION\ newPosition,\ theCanonicalPosition,\ DoSymmetry();}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00520}00520\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00521}00521\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00522}00522\ \ \ \ \ theCanonicalPosition\ =\ position;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00523}00523\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00524}00524\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ NUMSYMMETRIES;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00525}00525\ \ \ \ \ \ \ \ \ newPosition\ =\ DoSymmetry(position,\ i);\ \textcolor{comment}{/*\ get\ new\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00526}00526\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(newPosition\ <\ theCanonicalPosition)\ \textcolor{comment}{/*\ THIS\ is\ the\ one\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00527}00527\ \ \ \ \ \ \ \ \ \ \ \ \ theCanonicalPosition\ =\ newPosition;\ \textcolor{comment}{/*\ set\ it\ to\ the\ ans\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00528}00528\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00529}00529\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00530}00530\ \ \ \ \ \textcolor{keywordflow}{return}(theCanonicalPosition);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00531}00531\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00532}00532\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00533}00533\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00534}00534\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00535}00535\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DoSymmetry}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00536}00536\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00537}00537\ \textcolor{comment}{**\ DESCRIPTION:\ Perform\ the\ symmetry\ operation\ specified\ by\ the\ input}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00538}00538\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ on\ the\ position\ specified\ by\ the\ input\ and\ return\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00539}00539\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ new\ position,\ even\ if\ it's\ the\ same\ as\ the\ input.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00540}00540\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00541}00541\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ branch\ the\ symmetry\ from.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00542}00542\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ int\ \ \ \ \ \ symmetry\ :\ The\ number\ of\ the\ symmetry\ operation.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00543}00543\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00544}00544\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION,\ The\ position\ after\ the\ symmetry\ operation.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00545}00545\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00546}00546\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00547}00547\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00548}00548\ POSITION\ DoSymmetry(POSITION\ position,\ \textcolor{keywordtype}{int}\ symmetry)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00549}00549\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00550}00550\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00551}00551\ \ \ \ \ BlankOX\ *board,\ *symmBoard;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00552}00552\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00553}00553\ \ \ \ \ board\ =\ PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00554}00554\ \ \ \ \ symmBoard\ =\ (BlankOX\ *)\ SafeMalloc(BOARDSIZE\ *\ \textcolor{keyword}{sizeof}(BlankOX));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00555}00555\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00556}00556\ \ \ \ \ \textcolor{comment}{/*\ Copy\ from\ the\ symmetry\ matrix\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00557}00557\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00558}00558\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00559}00559\ \ \ \ \ \ \ \ \ symmBoard[i]\ =\ board[gSymmetryMatrix[symmetry][i]];}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00560}00560\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00561}00561\ \ \ \ \ \textcolor{keywordflow}{if}\ (board\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00562}00562\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00563}00563\ \ \ \ \ \textcolor{keywordflow}{return}(BlankOXToPosition(symmBoard));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00564}00564\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00565}00565\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00566}00566\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00567}00567\ \textcolor{comment}{/****************\ SYMMETRY\ FUN\ END\ ****************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00568}00568\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00569}00569\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00570}00570\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00571}00571\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00572}00572\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetAndPrintPlayersMove}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00573}00573\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00574}00574\ \textcolor{comment}{**\ DESCRIPTION:\ This\ finds\ out\ if\ the\ player\ wanted\ an\ undo\ or\ abort\ or\ not.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00575}00575\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ If\ so,\ return\ Undo\ or\ Abort\ and\ don't\ change\ theMove.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00576}00576\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Otherwise\ get\ the\ new\ theMove\ and\ fill\ the\ pointer\ up.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00577}00577\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00578}00578\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ *thePosition\ :\ The\ position\ the\ user\ is\ at.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00579}00579\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ fill\ with\ user's\ move.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00580}00580\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ playerName\ \ \ \ \ :\ The\ name\ of\ the\ player\ whose\ turn\ it\ is}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00581}00581\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00582}00582\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ USERINPUT\ \ \ \ \ \ \ \ \ \ \ \ \ :\ Oneof(\ Undo,\ Abort,\ Continue\ )}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00583}00583\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00584}00584\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ ValidMove(MOVE,\ POSITION)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00585}00585\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ PrintPossibleMoves(POSITION)\ ...Always\ True!}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00586}00586\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00587}00587\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00588}00588\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00589}00589\ USERINPUT\ GetAndPrintPlayersMove(POSITION\ thePosition,\ MOVE\ *theMove,\ STRING\ playerName)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00590}00590\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00591}00591\ \ \ \ \ USERINPUT\ ret;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00592}00592\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00593}00593\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00594}00594\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ [(u)ndo/1-\/9]\ :\ \ "{}},\ playerName);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00595}00595\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00596}00596\ \ \ \ \ \ \ \ \ ret\ =\ HandleDefaultTextInput(thePosition,\ theMove,\ playerName);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00597}00597\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(ret\ !=\ Continue)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00598}00598\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(ret);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00599}00599\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00600}00600\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00601}00601\ \ \ \ \ \textcolor{keywordflow}{while}\ (TRUE);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00602}00602\ \ \ \ \ \textcolor{keywordflow}{return}(Continue);\ \textcolor{comment}{/*\ this\ is\ never\ reached,\ but\ lint\ is\ now\ happy\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00603}00603\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00604}00604\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00605}00605\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00606}00606\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00607}00607\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00608}00608\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00609}00609\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ TRUE\ iff\ the\ string\ input\ is\ of\ the\ right\ 'form'.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00610}00610\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ For\ example,\ if\ the\ user\ is\ allowed\ to\ select\ one\ slot}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00611}00611\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ the\ numbers\ 1-\/9,\ and\ the\ user\ chooses\ 0,\ it's\ not}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00612}00612\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ valid,\ but\ anything\ from\ 1-\/9\ IS,\ regardless\ if\ the\ slot}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00613}00613\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ filled\ or\ not.\ Whether\ the\ slot\ is\ filled\ is\ left\ up}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00614}00614\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ another\ routine.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00615}00615\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00616}00616\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00617}00617\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00618}00618\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ BOOLEAN\ :\ TRUE\ iff\ the\ input\ is\ a\ valid\ text\ input.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00619}00619\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00620}00620\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00621}00621\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00622}00622\ BOOLEAN\ ValidTextInput(STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00623}00623\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00624}00624\ \ \ \ \ \textcolor{keywordflow}{return}(input[0]\ <=\ \textcolor{charliteral}{'9'}\ \&\&\ input[0]\ >=\ \textcolor{charliteral}{'1'});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00625}00625\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00626}00626\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00627}00627\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00628}00628\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00629}00629\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ConvertTextInputToMove}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00630}00630\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00631}00631\ \textcolor{comment}{**\ DESCRIPTION:\ Convert\ the\ string\ input\ to\ the\ internal\ move\ representation.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00632}00632\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00633}00633\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00634}00634\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00635}00635\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ MOVE\ :\ The\ move\ corresponding\ to\ the\ user's\ input.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00636}00636\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00637}00637\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00638}00638\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00639}00639\ MOVE\ ConvertTextInputToMove(STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00640}00640\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00641}00641\ \ \ \ \ \textcolor{keywordflow}{return}((MOVE)\ input[0]\ -\/\ \textcolor{charliteral}{'1'});\ \textcolor{comment}{/*\ user\ input\ is\ 1-\/9,\ our\ rep.\ is\ 0-\/8\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00642}00642\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00643}00643\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00644}00644\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00645}00645\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00646}00646\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintMove}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00647}00647\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00648}00648\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ move\ in\ a\ nice\ format.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00649}00649\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00650}00650\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ print.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00651}00651\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00652}00652\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00653}00653\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00654}00654\ \textcolor{keywordtype}{void}\ PrintMove(MOVE\ theMove)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00655}00655\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00656}00656\ \ \ \ \ STRING\ str\ =\ MoveToString(\ theMove\ );}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00657}00657\ \ \ \ \ printf(\ \textcolor{stringliteral}{"{}\%s"{}},\ str\ );}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00658}00658\ \ \ \ \ SafeFree(\ str\ );}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00659}00659\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00660}00660\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00661}00661\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00662}00662\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00663}00663\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00664}00664\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ MoveToString}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00665}00665\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00666}00666\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ move\ as\ a\ STRING}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00667}00667\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00668}00668\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *move\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ put\ into\ a\ string.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00669}00669\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00670}00670\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00671}00671\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00672}00672\ STRING\ MoveToString\ (MOVE\ theMove)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00673}00673\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00674}00674\ \ \ \ \ STRING\ m\ =\ (STRING)\ SafeMalloc(\ 3\ );}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00675}00675\ \ \ \ \ \textcolor{comment}{/*\ The\ plus\ 1\ is\ because\ the\ user\ thinks\ it's\ 1-\/9,\ but\ MOVE\ is\ 0-\/8\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00676}00676\ \ \ \ \ sprintf(\ m,\ \textcolor{stringliteral}{"{}\%d"{}},\ theMove\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00677}00677\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00678}00678\ \ \ \ \ \textcolor{keywordflow}{return}\ m;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00679}00679\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00680}00680\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00681}00681\ BOOLEAN\ ThreeInARow(BlankOX*\ board,\ \textcolor{keywordtype}{int}\ a,\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{int}\ c)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00682}00682\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00683}00683\ \ \ \ \ \textcolor{keywordflow}{return}(board[a]\ ==\ board[b]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00684}00684\ \ \ \ \ \ \ \ \ \ \ \ board[b]\ ==\ board[c]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00685}00685\ \ \ \ \ \ \ \ \ \ \ \ board[c]\ !=\ Blank\ );}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00686}00686\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00687}00687\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00688}00688\ BOOLEAN\ AllFilledIn(BlankOX*\ board)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00689}00689\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00690}00690\ \ \ \ \ BOOLEAN\ answer\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00691}00691\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00692}00692\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00693}00693\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00694}00694\ \ \ \ \ \ \ \ \ answer\ \&=\ (board[i]\ ==\ o\ ||\ board[i]\ ==\ x);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00695}00695\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00696}00696\ \ \ \ \ \textcolor{keywordflow}{return}(answer);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00697}00697\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00698}00698\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00699}00699\ \textcolor{keywordtype}{int}\ NumberOfOptions()}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00700}00700\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00701}00701\ \ \ \ \ \textcolor{keywordflow}{return}\ 4;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00702}00702\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00703}00703\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00704}00704\ \textcolor{keywordtype}{int}\ getOption()}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00705}00705\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00706}00706\ \ \ \ \ \textcolor{keywordtype}{int}\ option\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00707}00707\ \ \ \ \ option\ +=\ (gStandardGame\ ?\ 1\ :\ 0);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00708}00708\ \ \ \ \ option\ +=\ (gSymmetries\ ?\ 2\ :\ 0);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00709}00709\ \ \ \ \ \textcolor{keywordflow}{return}\ option+1;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00710}00710\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00711}00711\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00712}00712\ \textcolor{keywordtype}{void}\ setOption(\textcolor{keywordtype}{int}\ option)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00713}00713\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00714}00714\ \ \ \ \ option\ -\/=\ 1;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00715}00715\ \ \ \ \ gStandardGame\ =\ option\ \%\ 2;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00716}00716\ \ \ \ \ option\ -\/=\ 2;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00717}00717\ \ \ \ \ gSymmetries\ =\ option\ \%\ 2;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00718}00718\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00719}00719\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00720}00720\ \textcolor{comment}{//\ HASH/UNHASH}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00721}00721\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00722}00722\ \textcolor{keywordtype}{char}*\ customUnhash(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00723}00723\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{char}*)PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00724}00724\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00725}00725\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00726}00726\ \textcolor{comment}{//\ "{}Unhash"{}}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00727}00727\ BlankOX*\ PositionToBlankOX(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00728}00728\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00729}00729\ \ \ \ \ \textcolor{keywordtype}{char}*\ board\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc(BOARDSIZE\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char}));\ \textcolor{comment}{//\ make\ board\ space}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00730}00730\ \ \ \ \ \textcolor{keywordflow}{if}\ (gHashWindowInitialized)\ \{\ \textcolor{comment}{//\ using\ hash\ windows}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00731}00731\ \ \ \ \ \ \ \ \ TIERPOSITION\ tierpos;\ TIER\ tier;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00732}00732\ \ \ \ \ \ \ \ \ gUnhashToTierPosition(position,\ \&tierpos,\ \&tier);\ \textcolor{comment}{//\ get\ tierpos}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00733}00733\ \ \ \ \ \ \ \ \ generic\_hash\_context\_switch(tier);\ \textcolor{comment}{//\ switch\ to\ that\ tier's\ context}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00734}00734\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (BlankOX\ *)\ generic\_hash\_unhash(tierpos,\ board);\ \textcolor{comment}{//\ unhash\ in\ that\ tier}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00735}00735\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{return}\ (BlankOX\ *)\ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00736}00736\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00737}00737\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00738}00738\ \textcolor{comment}{//\ "{}Hash"{}}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00739}00739\ POSITION\ BlankOXToPosition(BlankOX*\ board)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00740}00740\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00741}00741\ \ \ \ \ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00742}00742\ \ \ \ \ \textcolor{keywordflow}{if}\ (gHashWindowInitialized)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00743}00743\ \ \ \ \ \ \ \ \ TIER\ tier\ =\ BoardToTier(board);\ \textcolor{comment}{//\ find\ this\ board's\ tier}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00744}00744\ \ \ \ \ \ \ \ \ generic\_hash\_context\_switch(tier);\ \textcolor{comment}{//\ switch\ to\ that\ context}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00745}00745\ \ \ \ \ \ \ \ \ TIERPOSITION\ tierpos\ =\ generic\_hash\_hash((\textcolor{keywordtype}{char}*)board,\ 1);\ \textcolor{comment}{//unhash}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00746}00746\ \ \ \ \ \ \ \ \ position\ =\ gHashToWindowPosition(tierpos,\ tier);\ \textcolor{comment}{//gets\ TIERPOS,\ find\ POS}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00747}00747\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ position\ =\ generic\_hash\_hash((\textcolor{keywordtype}{char}*)board,\ 1);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00748}00748\ \ \ \ \ \textcolor{keywordflow}{if}(board\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00749}00749\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00750}00750\ \ \ \ \ \textcolor{keywordflow}{return}\ position;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00751}00751\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00752}00752\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00753}00753\ BlankOX\ WhoseTurn(BlankOX*\ board)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00754}00754\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00755}00755\ \ \ \ \ \textcolor{comment}{//\ This\ turns\ out\ to\ be\ equivalent\ to\ calling\ WhoseMove}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00756}00756\ \ \ \ \ \textcolor{comment}{//\ for\ the\ Tier-\/specific\ generic\ hashes.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00757}00757\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ xcount\ =\ 0,\ ocount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00758}00758\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00759}00759\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00760}00760\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(board[i]\ ==\ x)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00761}00761\ \ \ \ \ \ \ \ \ \ \ \ \ xcount++;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00762}00762\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(board[i]\ ==\ o)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00763}00763\ \ \ \ \ \ \ \ \ \ \ \ \ ocount++;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00764}00764\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00765}00765\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00766}00766\ \ \ \ \ \textcolor{keywordflow}{if}(xcount\ ==\ ocount)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00767}00767\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ x;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00768}00768\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{return}\ o;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00769}00769\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00770}00770\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00771}00771\ \textcolor{comment}{//\ Tier\ =\ Pieces\ left\ to\ place.\ So\ count\ the\ pieces\ on\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00772}00772\ \textcolor{comment}{//\ board\ and\ minus\ it\ from\ BOARDSIZE(a.k.a.\ 9).}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00773}00773\ TIER\ BoardToTier(BlankOX*\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00774}00774\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ piecesOnBoard\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00775}00775\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00776}00776\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[i]\ !=\ Blank)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00777}00777\ \ \ \ \ \ \ \ \ \ \ \ \ piecesOnBoard++;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00778}00778\ \ \ \ \ \textcolor{keywordflow}{return}\ BOARDSIZE\ -\/\ piecesOnBoard;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00779}00779\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00780}00780\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00781}00781\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00782}00782\ \textcolor{comment}{//TIER\ GAMESMAN}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00783}00783\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00784}00784\ \textcolor{keywordtype}{void}\ SetupTierStuff()\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00785}00785\ \ \ \ \ \textcolor{comment}{//\ kSupportsTierGamesman}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00786}00786\ \ \ \ \ kSupportsTierGamesman\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00787}00787\ \ \ \ \ \textcolor{comment}{//\ All\ function\ pointers}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00788}00788\ \ \ \ \ gTierChildrenFunPtr\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \&TierChildren;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00789}00789\ \ \ \ \ gNumberOfTierPositionsFunPtr\ \ \ \ =\ \&NumberOfTierPositions;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00790}00790\ \ \ \ \ gGetInitialTierPositionFunPtr\ \ \ =\ \&GetInitialTierPosition;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00791}00791\ \ \ \ \ \textcolor{comment}{//gIsLegalFunPtr\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \&IsLegal;}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00792}00792\ \ \ \ \ gGenerateUndoMovesToTierFunPtr\ \ =\ \&GenerateUndoMovesToTier;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00793}00793\ \ \ \ \ gUnDoMoveFunPtr\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \&UnDoMove;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00794}00794\ \ \ \ \ gTierToStringFunPtr\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \&TierToString;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00795}00795\ \ \ \ \ \textcolor{comment}{//\ Tier-\/Specific\ Hashes}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00796}00796\ \ \ \ \ \textcolor{keywordtype}{int}\ piecesArray[10]\ =\ \{\ o,\ 0,\ 0,\ x,\ 0,\ 0,\ Blank,\ 0,\ 0,\ -\/1\ \};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00797}00797\ \ \ \ \ \textcolor{keywordtype}{int}\ piecesOnBoard,\ tier;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00798}00798\ \ \ \ \ \textcolor{keywordflow}{for}\ (tier\ =\ 0;\ tier\ <=\ BOARDSIZE;\ tier++)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00799}00799\ \ \ \ \ \ \ \ \ piecesOnBoard\ =\ BOARDSIZE\ -\/\ tier;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00800}00800\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Os\ =\ piecesOnBoard\ /\ 2}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00801}00801\ \ \ \ \ \ \ \ \ piecesArray[1]\ =\ piecesArray[2]\ =\ piecesOnBoard/2;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00802}00802\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Xs\ =\ piecesOnBoard\ /\ 2\ (+1\ if\ tier\ \%\ 2\ ==\ 0,\ else\ +0)}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00803}00803\ \ \ \ \ \ \ \ \ piecesArray[4]\ =\ piecesArray[5]\ =\ piecesOnBoard/2\ +\ (tier\%2\ ==\ 0\ ?\ 1\ :\ 0);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00804}00804\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Blanks\ =\ tier}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00805}00805\ \ \ \ \ \ \ \ \ piecesArray[7]\ =\ piecesArray[8]\ =\ tier;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00806}00806\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ make\ the\ hashes}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00807}00807\ \ \ \ \ \ \ \ \ generic\_hash\_init(BOARDSIZE,\ piecesArray,\ NULL,\ (tier\%2==0\ ?\ 2\ :\ 1));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00808}00808\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00809}00809\ \ \ \ \ \textcolor{comment}{//\ initial\ tier}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00810}00810\ \ \ \ \ gInitialTier\ =\ BOARDSIZE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00811}00811\ \ \ \ \ \textcolor{comment}{//\ it's\ already\ in\ the\ final\ hash\ context,\ so\ set\ the\ position:}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00812}00812\ \ \ \ \ BlankOX*\ board\ =\ (BlankOX\ *)\ SafeMalloc(BOARDSIZE\ *\ \textcolor{keyword}{sizeof}(BlankOX));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00813}00813\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00814}00814\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00815}00815\ \ \ \ \ \ \ \ \ board[i]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00816}00816\ \ \ \ \ gInitialTierPosition\ =\ BlankOXToPosition(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00817}00817\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00818}00818\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00819}00819\ \textcolor{comment}{//\ Tier\ =\ Pieces\ left\ to\ place.\ So\ a\ tier's\ child\ is\ always}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00820}00820\ \textcolor{comment}{//\ itself\ -\/\ 1.\ Except\ for\ Tier\ 0,\ of\ course.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00821}00821\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ TierChildren(TIER\ tier)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00822}00822\ \ \ \ \ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ tierlist\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00823}00823\ \ \ \ \ \textcolor{keywordflow}{if}\ (tier\ !=\ 0)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00824}00824\ \ \ \ \ \ \ \ \ tierlist\ =\ CreateTierlistNode(tier-\/1,\ tierlist);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00825}00825\ \ \ \ \ \textcolor{keywordflow}{return}\ tierlist;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00826}00826\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00827}00827\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00828}00828\ \textcolor{comment}{//\ Switch\ to\ the\ correct\ hash\ and\ call\ generic\_hash\_max\_pos.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00829}00829\ TIERPOSITION\ NumberOfTierPositions(TIER\ tier)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00830}00830\ \ \ \ \ generic\_hash\_context\_switch(tier);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00831}00831\ \ \ \ \ \textcolor{keywordflow}{return}\ generic\_hash\_max\_pos();}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00832}00832\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00833}00833\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00834}00834\ \textcolor{keywordtype}{void}\ GetInitialTierPosition(TIER*\ tier,\ TIERPOSITION*\ tierposition)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00835}00835\ \ \ \ \ BlankOX*\ board\ =\ (BlankOX\ *)\ SafeMalloc(BOARDSIZE\ *\ \textcolor{keyword}{sizeof}(BlankOX));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00836}00836\ \ \ \ \ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ c;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00837}00837\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0,\ xcount\ =\ 0,\ ycount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00838}00838\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00839}00839\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Get\ Initial\ Position\ -\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00840}00840\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ input\ the\ position\ to\ begin\ with.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00841}00841\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tNote\ that\ it\ should\ be\ in\ the\ following\ format:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00842}00842\ \ \ \ \ printf(\textcolor{stringliteral}{"{}O\ -\/\ -\/\(\backslash\)nO\ -\/\ -\/\ \ \ \ \ \ \ \ \ \ \ \ <-\/-\/-\/-\/-\/\ EXAMPLE\ \(\backslash\)n-\/\ X\ X\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00843}00843\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00844}00844\ \ \ \ \ \textcolor{keywordflow}{while}(i\ <\ BOARDSIZE\ \&\&\ (c\ =\ GetMyChar())\ !=\ EOF)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00845}00845\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'x'}\ ||\ c\ ==\ \textcolor{charliteral}{'X'})\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00846}00846\ \ \ \ \ \ \ \ \ \ \ \ \ board[i++]\ =\ x;\ xcount++;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00847}00847\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'o'}\ ||\ c\ ==\ \textcolor{charliteral}{'O'}\ ||\ c\ ==\ \textcolor{charliteral}{'0'})\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00848}00848\ \ \ \ \ \ \ \ \ \ \ \ \ board[i++]\ =\ o;\ ycount++;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00849}00849\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'-\/'})}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00850}00850\ \ \ \ \ \ \ \ \ \ \ \ \ board[i++]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00851}00851\ \ \ \ \ \ \ \ \ else}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00852}00852\ \ \ \ \ \ \ \ \ \ \ \ \ ;\ \textcolor{comment}{/*\ do\ nothing\ */}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00853}00853\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00854}00854\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00855}00855\ \ \ \ \ (*tier)\ =\ BoardToTier(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00856}00856\ \ \ \ \ generic\_hash\_context\_switch(*tier);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00857}00857\ \ \ \ \ (*tierposition)\ =\ generic\_hash\_hash(board,1);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00858}00858\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00859}00859\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00860}00860\ \textcolor{comment}{//\ Not\ used,\ since\ we\ deal\ with\ the\ double-\/hash\ problem\ already.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00861}00861\ BOOLEAN\ IsLegal(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00862}00862\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00863}00863\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00864}00864\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00865}00865\ \textcolor{comment}{//\ Basically\ the\ OPPOSITE\ of\ GenerateMoves:\ look\ for\ the}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00866}00866\ \textcolor{comment}{//\ pieces\ that\ opponent\ has\ on\ the\ board,\ and\ those\ are\ the\ undomoves.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00867}00867\ \textcolor{comment}{//\ Also,\ ALWAYS\ generate\ to\ tier\ one\ above\ it.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00868}00868\ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ GenerateUndoMovesToTier(POSITION\ position,\ TIER\ tier)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00869}00869\ \ \ \ \ BlankOX*\ board\ =\ PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00870}00870\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00871}00871\ \ \ \ \ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ undomoves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00872}00872\ \ \ \ \ BlankOX\ turn\ =\ (WhoseTurn(board)\ ==\ x\ ?\ o\ :\ x);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00873}00873\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ BOARDSIZE-\/1;\ i\ >=\ 0;\ i-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00874}00874\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[i]\ ==\ turn)\ \textcolor{comment}{//It's\ opposing\ player's\ turn}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00875}00875\ \ \ \ \ \ \ \ \ \ \ \ \ undomoves\ =\ CreateUndoMovelistNode(i,\ undomoves);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00876}00876\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00877}00877\ \ \ \ \ TIER\ myTier\ =\ BoardToTier(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00878}00878\ \ \ \ \ \textcolor{keywordflow}{if}\ (board\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00879}00879\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00880}00880\ \ \ \ \ \textcolor{comment}{//\ Check\ TIER,\ should\ be\ one\ above\ current\ tier}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00881}00881\ \ \ \ \ \textcolor{keywordflow}{if}\ (myTier\ +\ 1\ !=\ tier)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00882}00882\ \ \ \ \ \ \ \ \ FreeUndoMoveList(undomoves);\ \textcolor{comment}{//\ since\ it\ won't\ be\ used}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00883}00883\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00884}00884\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00885}00885\ \ \ \ \ \textcolor{keywordflow}{return}\ undomoves;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00886}00886\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00887}00887\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00888}00888\ \textcolor{comment}{//\ UNDOMOVE\ =\ Just\ like\ a\ MOVE\ (0-\/8)\ but\ it\ tells}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00889}00889\ \textcolor{comment}{//\ where\ to\ TAKE\ a\ piece\ rather\ than\ PLACE\ it.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00890}00890\ POSITION\ UnDoMove(POSITION\ position,\ UNDOMOVE\ undomove)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00891}00891\ \ \ \ \ BlankOX*\ board\ =\ PositionToBlankOX(position);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00892}00892\ \ \ \ \ board[undomove]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00893}00893\ \ \ \ \ \textcolor{keywordflow}{return}\ BlankOXToPosition(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00894}00894\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00895}00895\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00896}00896\ \textcolor{comment}{//\ Tier\ =\ Number\ of\ pieces\ left\ to\ place.}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00897}00897\ STRING\ TierToString(TIER\ tier)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00898}00898\ \ \ \ \ STRING\ tierStr\ =\ (STRING)\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*15);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00899}00899\ \ \ \ \ sprintf(tierStr,\ \textcolor{stringliteral}{"{}\%d\ Pieces\ Placed"{}},\ BOARDSIZE-\/((\textcolor{keywordtype}{int})tier));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00900}00900\ \ \ \ \ \textcolor{keywordflow}{return}\ tierStr;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00901}00901\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00902}00902\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00903}00903\ POSITION\ InteractStringToPosition(STRING\ boardStr)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00904}00904\ \ \ \ \ \textcolor{comment}{//\ change\ boardStr\ to\ BlankOX}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00905}00905\ \ \ \ \ BlankOX\ *board\ =\ malloc(\textcolor{keyword}{sizeof}(BlankOX)*\ BOARDSIZE);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00906}00906\ \ \ \ \ \textcolor{keywordflow}{if}\ (strlen(boardStr)\ <\ BOARDSIZE)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00907}00907\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}String\ to\ Position\ for\ ACHI\ failed\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00908}00908\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00909}00909\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00910}00910\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00911}00911\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00912}00912\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (boardStr[i]\ ==\ \textcolor{charliteral}{'o'})\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00913}00913\ \ \ \ \ \ \ \ \ \ \ \ \ board[i]\ =\ o;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00914}00914\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00915}00915\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (boardStr[i]\ ==\ \textcolor{charliteral}{'x'})\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00916}00916\ \ \ \ \ \ \ \ \ \ \ \ \ board[i]\ =\ x;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00917}00917\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00918}00918\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (boardStr[i]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00919}00919\ \ \ \ \ \ \ \ \ \ \ \ \ board[i]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00920}00920\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00921}00921\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00922}00922\ \ \ \ \ \textcolor{keywordflow}{return}\ BlankOXToPosition(board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00923}00923\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00924}00924\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00925}00925\ STRING\ InteractPositionToString(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00926}00926\ \ \ \ \ BlankOX\ *board\ =\ PositionToBlankOX(pos);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00927}00927\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00928}00928\ \ \ \ \ \textcolor{keywordtype}{char}*\ safe\_board\ =\ (\textcolor{keywordtype}{char}*)SafeMalloc((BOARDSIZE\ +\ 1)\ *\ \textcolor{keyword}{sizeof}(char));}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00929}00929\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ whole\_board\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00930}00930\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00931}00931\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[i]\ ==\ o)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00932}00932\ \ \ \ \ \ \ \ \ \ \ \ \ safe\_board[i]\ =\ \textcolor{charliteral}{'o'};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00933}00933\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00934}00934\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (board[i]\ ==\ x)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00935}00935\ \ \ \ \ \ \ \ \ \ \ \ \ safe\_board[i]\ =\ \textcolor{charliteral}{'x'};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00936}00936\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00937}00937\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (board[i]\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00938}00938\ \ \ \ \ \ \ \ \ \ \ \ \ safe\_board[i]\ =\ \textcolor{charliteral}{'\ '};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00939}00939\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00940}00940\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00941}00941\ \ \ \ \ *(safe\_board+BOARDSIZE)\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00942}00942\ \ \ \ \ \ \ \ \ whole\_board\ =\ MakeBoardString(safe\_board,}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00943}00943\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}tier"{}},\ TierstringFromPosition(pos),}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00944}00944\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00945}00945\ \ \ \ \ \ \ \ \ SafeFree(safe\_board);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00946}00946\ \ \ \ \ \textcolor{keywordflow}{return}\ whole\_board;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00947}00947\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00948}00948\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00949}00949\ STRING\ InteractPositionToEndData(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00950}00950\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00951}00951\ \}}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00952}00952\ }
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00953}00953\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)\ \{}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00954}00954\ \ \ \ \ \textcolor{keywordflow}{return}\ MoveToString(mv);}
+\DoxyCodeLine{\Hypertarget{mtttier_8c_source_l00955}00955\ \}}
+
+\end{DoxyCode}

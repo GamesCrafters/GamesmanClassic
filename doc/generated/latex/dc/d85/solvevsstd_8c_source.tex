@@ -1,0 +1,249 @@
+\hypertarget{solvevsstd_8c_source}{}\doxysection{solvevsstd.\+c}
+\label{solvevsstd_8c_source}\index{src/core/solvevsstd.c@{src/core/solvevsstd.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ solvevsstd.c}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Vanilla\ non-\/loopy\ solver.}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}bpdb\_misc.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}solvevsstd.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00037}00037\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00038}00038\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00039}00039\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00041}00041\ \textcolor{comment}{//\ Data\ to\ be\ stored\ in\ each\ slice\ of\ the\ database}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00042}00042\ UINT32\ VALUESLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00043}00043\ UINT32\ MEXSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00044}00044\ UINT32\ WINBYSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00045}00045\ UINT32\ REMSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00046}00046\ UINT32\ VISITEDSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00048}00048\ VALUE\ DetermineValueVSSTD(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00049}00049\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00050}00050\ \ \ \ \ GMSTATUS\ status\ =\ STATUS\_SUCCESS;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00051}00051\ \ \ \ \ VALUE\ gameval\ =\ undecided;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{if}(!gBitPerfectDB)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00054}00054\ \ \ \ \ \ \ \ \ status\ =\ STATUS\_MISSING\_DEPENDENT\_MODULE;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Bit-\/Perfect\ DB\ must\ be\ the\ selected\ DB\ to\ use\ the\ slices\ solver"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ i\ wouldn't\ use\ this\ exit\ call\ if\ the\ status\ code}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ was\ allowed\ to\ propogate\ up}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00060}00060\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00062}00062\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00063}00063\ \ \ \ \ \textcolor{comment}{//\ add\ slots\ to\ database\ slices}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00064}00064\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00066}00066\ \ \ \ \ status\ =\ AddSlot(\ 2,\ \textcolor{stringliteral}{"{}VALUE"{}},\ TRUE,\ FALSE,\ FALSE,\ \&VALUESLOT\ );\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 0}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00067}00067\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ value\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00070}00070\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00072}00072\ \ \ \ \ \textcolor{keywordflow}{if}(gPutWinBy)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00073}00073\ \ \ \ \ \ \ \ \ status\ =\ AddSlot(\ 3,\ \textcolor{stringliteral}{"{}WINBY"{}},\ TRUE,\ TRUE,\ FALSE,\ \&WINBYSLOT\ );\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 2}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ winby\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00078}00078\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ status\ =\ AddSlot(\ 3,\ \textcolor{stringliteral}{"{}MEX"{}},\ TRUE,\ TRUE,\ FALSE,\ \&MEXSLOT\ );\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 2}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ mex\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00086}00086\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00088}00088\ \ \ \ \ status\ =\ AddSlot(\ 5,\ \textcolor{stringliteral}{"{}REMOTENESS"{}},\ TRUE,\ TRUE,\ TRUE,\ \&REMSLOT\ );\ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 4}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ remoteness\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00092}00092\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00094}00094\ \ \ \ \ status\ =\ AddSlot(\ 1,\ \textcolor{stringliteral}{"{}VISITED"{}},\ FALSE,\ FALSE,\ FALSE,\ \&VISITEDSLOT\ );\ \ \ \ \textcolor{comment}{//\ slot\ 1}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ visited\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00098}00098\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00100}00100\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00101}00101\ \ \ \ \ \textcolor{comment}{//\ allocate}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00102}00102\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00104}00104\ \ \ \ \ status\ =\ Allocate();}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ allocate\ database"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00108}00108\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00110}00110\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00111}00111\ \ \ \ \ \textcolor{comment}{//\ use\ standard\ dfs\ solver}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00112}00112\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00114}00114\ \ \ \ \ gameval\ =\ DetermineValueVSSTDHelper(\ position\ );}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00116}00116\ \_bailout:}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00117}00117\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ undecided;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00119}00119\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ gameval;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00121}00121\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00122}00122\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00124}00124\ VALUE\ DetermineValueVSSTDHelper(\ POSITION\ position\ )}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00125}00125\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00126}00126\ \ \ \ \ BOOLEAN\ foundTie\ =\ FALSE,\ foundLose\ =\ FALSE,\ foundWin\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00127}00127\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *ptr,\ *head;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00128}00128\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00129}00129\ \ \ \ \ POSITION\ child;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00130}00130\ \ \ \ \ REMOTENESS\ maxRemoteness\ =\ 0,\ minRemoteness\ =\ MAXINT2;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00131}00131\ \ \ \ \ REMOTENESS\ minTieRemoteness\ =\ MAXINT2,\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00132}00132\ \ \ \ \ MEXCALC\ theMexCalc\ =\ 0;\ \textcolor{comment}{/*\ default\ to\ satisfy\ compiler\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00133}00133\ \ \ \ \ \textcolor{keywordtype}{int}\ winByValue\ =\ 0,\ minWinByValue\ =\ ((1\ <<\ (MEX\_BITS-\/1))-\/1),\ maxWinByValue\ =\ -\/(1\ <<\ (MEX\_BITS-\/1));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{if}(GetSlot(position,\ VISITEDSLOT))\ \{\ \textcolor{comment}{/*\ Cycle!\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Sorry,\ but\ I\ think\ this\ is\ a\ loopy\ game.\ I\ give\ up."{}});}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00139}00139\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00140}00140\ \ \ \ \ \textcolor{comment}{/*\ It's\ been\ seen\ before\ and\ value\ has\ been\ determined\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}((value\ =\ GetSlot(position,\ VALUESLOT))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(value);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00143}00143\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}((value\ =\ Primitive(position))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ first\ time,\ end\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ SetSlot(position,\ REMSLOT,\ 0);\ \textcolor{comment}{/*\ terminal\ positions\ have\ 0\ remoteness\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(position,\ MEXSLOT,\ MexPrimitive(value));\ \textcolor{comment}{/*\ lose=0,\ win=*\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (kPartizan\ \&\&\ gPutWinBy\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(position,\ WINBYSLOT,\ (gPutWinBy(position)\ \&\ (MEX\_MASK\ >>\ MEX\_SHIFT)));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(SetSlot(position,\ VALUESLOT,\ value));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ first\ time,\ need\ to\ recursively\ determine\ value\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00152}00152\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ SetSlot(position,\ VISITEDSLOT,\ 1);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ theMexCalc\ =\ MexCalcInit();}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ head\ =\ ptr\ =\ GenerateMoves(position);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ move\ =\ ptr-\/>move;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ gAnalysis.TotalMoves++;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ DoMove(position,ptr-\/>move);\ \textcolor{comment}{/*\ Create\ the\ child\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(gSymmetries)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ gCanonicalPosition(child);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (child\ >=\ gNumberOfPositions)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FoundBadPosition(child,\ position,\ move);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ value\ =\ DetermineValueVSSTDHelper(child);\ \textcolor{comment}{/*\ DFS\ call\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (kPartizan\ \&\&\ gPutWinBy\ \&\&\ !gTwoBits)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ childWinByValue\ =\ WinByLoad(child);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (childWinByValue\ <\ minWinByValue)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ minWinByValue\ =\ childWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (childWinByValue\ >\ maxWinByValue)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ maxWinByValue\ =\ childWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gGoAgain(position,move))}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(value)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:\ value=win;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:\ value=lose;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \textcolor{keywordflow}{break};\ \textcolor{comment}{/*\ value\ stays\ the\ same\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//remoteness\ =\ Remoteness(child);}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ remoteness\ =\ GetSlot(child,\ REMSLOT);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theMexCalc\ =\ MexAdd(theMexCalc,MexLoad(child));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(value\ ==\ lose)\ \{\ \textcolor{comment}{/*\ found\ a\ way\ to\ give\ you\ a\ lose\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ foundLose\ =\ TRUE;\ \textcolor{comment}{/*\ thus,\ it's\ a\ winning\ move\ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remoteness\ <\ minRemoteness)\ minRemoteness\ =\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(value\ ==\ tie)\ \{\ \textcolor{comment}{/*\ found\ a\ way\ to\ give\ you\ a\ tie\ \ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ foundTie\ =\ TRUE;\ \textcolor{comment}{/*\ thus,\ it's\ a\ tieing\ move\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remoteness\ <\ minTieRemoteness)\ minTieRemoteness\ =\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(value\ ==\ win)\ \{\ \textcolor{comment}{/*\ found\ a\ way\ to\ give\ you\ a\ win\ \ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ foundWin\ =\ TRUE;\ \textcolor{comment}{/*\ thus,\ it's\ a\ losing\ move\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remoteness\ >\ maxRemoteness)\ maxRemoteness\ =\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineValue[1]"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gUseGPS)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gUndoMove(move);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ FreeMoveList(head);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ SetSlot(position,\ VISITEDSLOT,\ 0);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(position,\ MEXSLOT,\ MexCompute(theMexCalc));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (kPartizan\ \&\&\ gPutWinBy\ \&\&\ !gTwoBits)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ turn\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (turn\ ==\ 1)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ winByValue\ =\ maxWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (turn\ ==\ 2)}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ winByValue\ =\ minWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ BadElse(\textcolor{stringliteral}{"{}Bad\ generic\_hash\_turn(position)"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(position,\ WINBYSLOT,\ (winByValue\ \&\ (MEX\_MASK\ >>\ MEX\_SHIFT)));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(foundLose)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(position,\ REMSLOT,\ minRemoteness+1);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (SetSlot(position,\ VALUESLOT,\ win));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(foundTie)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(position,\ REMSLOT,\ minTieRemoteness+1);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (SetSlot(position,\ VALUESLOT,\ tie));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (foundWin)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(position,\ REMSLOT,\ maxRemoteness+1);}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (SetSlot(position,\ VALUESLOT,\ lose));}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineValue[2].\ GenereateMoves\ most\ likely\ didnt\ return\ anything."{}});}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00239}00239\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00240}00240\ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineValue[3]"{}});\ \textcolor{comment}{/*\ This\ should\ NEVER\ be\ reached\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00241}00241\ \ \ \ \ \textcolor{keywordflow}{return}(undecided);\ \ \ \ \ \ \textcolor{comment}{/*\ But\ has\ been\ added\ to\ satisty\ lint\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00242}00242\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsstd_8c_source_l00243}00243\ }
+
+\end{DoxyCode}

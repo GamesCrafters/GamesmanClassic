@@ -1,0 +1,1039 @@
+\hypertarget{msim_8c_source}{}\doxysection{msim.\+c}
+\label{msim_8c_source}\index{src/msim.c@{src/msim.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ msim.c}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ SIM}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ \ \ Dan\ Garcia\ \&\ Sunil\ Ramesh\ et.\ al\ -\/\ \ University\ of\ California\ at\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Copyright\ (C)\ Dan\ Garcia,\ 1995.\ All\ rights\ reserved.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ 2002-\/10-\/29}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00012}00012\ \textcolor{comment}{**\ UPDATE\ HIST:}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00013}00013\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00014}00014\ \textcolor{comment}{**\ Decided\ to\ check\ out\ how\ much\ space\ was\ wasted\ with\ the\ array:}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00016}00016\ \textcolor{comment}{**\ Symmetries\ implemented,\ Ilya\ Landa}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00017}00017\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00019}00019\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00021}00021\ \textcolor{comment}{**\ Everything\ below\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00022}00022\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00023}00023\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00025}00025\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00026}00026\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00027}00027\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00028}00028\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00030}00030\ \textcolor{keyword}{extern}\ STRING\ gValueString[];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00032}00032\ POSITION\ gNumberOfPositions\ \ =\ 14348907;\ \ \textcolor{comment}{/*\ 3\string^15\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00034}00034\ POSITION\ gInitialPosition\ \ \ \ =\ \ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00035}00035\ POSITION\ gMinimalPosition\ \ \ \ =\ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00037}00037\ STRING\ kAuthorName\ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Dan\ Garcia\ and\ Sunil\ Ramesh\ et.\ al"{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00038}00038\ STRING\ kGameName\ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}SIM"{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00039}00039\ BOOLEAN\ kPartizan\ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00040}00040\ BOOLEAN\ kDebugMenu\ \ \ \ \ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00041}00041\ BOOLEAN\ kGameSpecificMenu\ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00042}00042\ BOOLEAN\ kTieIsPossible\ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00043}00043\ BOOLEAN\ kLoopy\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00044}00044\ BOOLEAN\ kDebugDetermineValue\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00045}00045\ POSITION\ kBadPosition\ \ \ \ \ \ \ \ \ \ \ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00046}00046\ \textcolor{keywordtype}{void}*\ \ \ \ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00047}00047\ STRING\ kHelpGraphicInterface\ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00050}00050\ STRING\ kHelpTextInterface\ \ \ \ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Place\ one\ of\ your\ pieces\ by\ selecting\ two\ endpoints\ of\ a\ line\ segment\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00052}00052\ \textcolor{stringliteral}{that\ does\ not\ yet\ have\ a\ piece\ on\ it."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00054}00054\ STRING\ kHelpOnYourTurn\ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}You\ place\ one\ of\ your\ pieces\ on\ one\ of\ the\ empty\ board\ positions."{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00057}00057\ STRING\ kHelpStandardObjective\ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Force\ your\ opponent\ to\ form\ a\ triangle\ of\ three\ of\ your\ opponent's\ pieces."{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00060}00060\ STRING\ kHelpReverseObjective\ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Form\ a\ triangle\ of\ three\ of\ your\ pieces."{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00063}00063\ STRING\ kHelpTieOccursWhen\ =\ \ \ \textcolor{comment}{/*\ Should\ follow\ 'A\ Tie\ occurs\ when...\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Neither\ player\ forms\ a\ triangle\ of\ three\ pieces\ of\ the\ same\ type."{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00066}00066\ STRING\ kHelpExample\ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00068}00068\ \textcolor{stringliteral}{\ \ (Computer\ should\ Lose\ in\ 15)\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00069}00069\ \textcolor{stringliteral}{Computer's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ 36\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00070}00070\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00071}00071\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00072}00072\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00073}00073\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ X6\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00074}00074\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00075}00075\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00076}00076\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00077}00077\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00078}00078\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00079}00079\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ X\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00080}00080\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00081}00081\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00082}00082\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00083}00083\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00084}00084\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00085}00085\ \textcolor{stringliteral}{\ \ \ 4\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00086}00086\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00087}00087\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00088}00088\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00089}00089\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00090}00090\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00091}00091\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00092}00092\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ X\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00093}00093\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00094}00094\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00095}00095\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00096}00096\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 3X\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00097}00097\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00098}00098\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00099}00099\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00100}00100\ \textcolor{stringliteral}{\ \ (Player\ should\ Win\ in\ 14)\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00101}00101\ \textcolor{stringliteral}{\ \ Player's\ move\ [(u)ndo/[1-\/6][1-\/6]]\ :\ \ \{12\}\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00102}00102\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00103}00103\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00104}00104\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00105}00105\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ X6\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00106}00106\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00107}00107\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00108}00108\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00109}00109\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00110}00110\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00111}00111\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ X\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00112}00112\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00113}00113\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00114}00114\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00115}00115\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00116}00116\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00117}00117\ \textcolor{stringliteral}{\ \ \ 4\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO1\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00118}00118\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00119}00119\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00120}00120\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00121}00121\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00122}00122\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00123}00123\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00124}00124\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ X\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00125}00125\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00126}00126\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00127}00127\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ XX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OO\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00128}00128\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 3X\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2O\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00129}00129\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00130}00130\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00131}00131\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00132}00132\ \textcolor{stringliteral}{\ \ (Computer\ should\ Lose\ in\ 13)\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00133}00133\ \textcolor{stringliteral}{Computer's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ 46\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00134}00134\ \textcolor{stringliteral}{..."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00136}00136\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00137}00137\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00138}00138\ \textcolor{comment}{**\ Everything\ above\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00139}00139\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00140}00140\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00142}00142\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00143}00143\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00144}00144\ \textcolor{comment}{**\ Every\ variable\ declared\ here\ is\ only\ used\ in\ this\ file\ (game-\/specific)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00145}00145\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00146}00146\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00148}00148\ \textcolor{preprocessor}{\#define\ BOARDSIZE\ \ \ \ \ 15\ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ \#\ Edges\ =\ 15\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00149}00149\ \textcolor{preprocessor}{\#define\ VERTICES\ \ \ \ \ \ 6}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00151}00151\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ possibleBoardPieces\ \{\ Blank,\ o,\ x\ \}\ BlankOX;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00153}00153\ \textcolor{keywordtype}{char}\ *gBlankOXString[]\ =\ \{\ \textcolor{stringliteral}{"{}-\/"{}},\ \textcolor{stringliteral}{"{}O"{}},\ \textcolor{stringliteral}{"{}X"{}}\ \};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00155}00155\ \textcolor{comment}{/*\ Powers\ of\ 3\ -\/\ this\ is\ the\ way\ I\ encode\ the\ position,\ as\ an\ integer\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00156}00156\ \textcolor{keywordtype}{int}\ g3Array[]\ =\ \ \ \ \ \ \ \ \ \ \{\ 1,\ 3,\ 9,\ 27,\ 81,\ 243,\ 729,\ 2187,\ 6561,\ 19683,\ 59049,\ 177147,\ 531441,\ 1594323,\ 4782969\ \};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00158}00158\ \textcolor{keywordtype}{void}\ PositionToBlankOX(POSITION\ thePos,BlankOX\ *theBlankOX);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00160}00160\ STRING\ MoveToString(\ MOVE\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00161}00161\ POSITION\ GetCanonical\ (POSITION\ p);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00162}00162\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00163}00163\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00164}00164\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ InitializeDatabases}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00165}00165\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00166}00166\ \textcolor{comment}{**\ DESCRIPTION:\ Initialize\ the\ gDatabase,\ a\ global\ variable.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00167}00167\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00168}00168\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00170}00170\ \textcolor{keywordtype}{void}\ InitializeGame()}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00171}00171\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00172}00172\ \ \ \ \ gMoveToStringFunPtr\ =\ \&MoveToString;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00173}00173\ \ \ \ \ gCanonicalPosition\ =\ GetCanonical;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00174}00174\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00176}00176\ \textcolor{keywordtype}{void}\ FreeGame()}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00177}00177\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00178}00178\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00180}00180\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00181}00181\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00182}00182\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DebugMenu}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00183}00183\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00184}00184\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ debub\ internal\ problems.\ Does\ nothing\ if}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00185}00185\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ kDebugMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00186}00186\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00187}00187\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00189}00189\ \textcolor{keywordtype}{void}\ DebugMenu()}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00190}00190\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00191}00191\ \ \ \ \ \textcolor{keywordtype}{char}\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00193}00193\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Module\ DEBUGGER\ for\ \%s\ -\/-\/-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}},\ kGameName);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)tb)\(\backslash\)t(B)ack\ =\ Return\ to\ previous\ activity.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(GetMyChar())}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'Q'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'q'}:}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'H'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'h'}:}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ HelpMenus();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00213}00213\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(TRUE);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00214}00214\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00215}00215\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00217}00217\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00218}00218\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00219}00219\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00220}00220\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00221}00221\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ change\ game-\/specific\ parmeters,\ such\ as}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00222}00222\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ side\ of\ the\ board\ in\ an\ nxn\ Nim\ board,\ etc.\ Does}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00223}00223\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ nothing\ if\ kGameSpecificMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00224}00224\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00225}00225\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00227}00227\ \textcolor{keywordtype}{void}\ GameSpecificMenu()\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00228}00228\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00230}00230\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00231}00231\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00232}00232\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ SetTclCGameSpecificOptions}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00233}00233\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00234}00234\ \textcolor{comment}{**\ DESCRIPTION:\ Set\ the\ C\ game-\/specific\ options\ (called\ from\ Tcl)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00235}00235\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Ignore\ if\ you\ don't\ care\ about\ Tcl\ for\ now.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00236}00236\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00237}00237\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00239}00239\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions(theOptions)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00240}00240\ \textcolor{keywordtype}{int}\ theOptions[];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00241}00241\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00242}00242\ \ \ \ \ \textcolor{comment}{/*\ No\ need\ to\ have\ anything\ here,\ we\ have\ no\ extra\ options\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00243}00243\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00245}00245\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00246}00246\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00247}00247\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DoMove}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00248}00248\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00249}00249\ \textcolor{comment}{**\ DESCRIPTION:\ Apply\ the\ move\ to\ the\ position.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00250}00250\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00251}00251\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ thePosition\ :\ The\ old\ position}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00252}00252\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ \ \ \ \ theMove\ \ \ \ \ :\ The\ move\ to\ apply.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00253}00253\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00254}00254\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (POSITION)\ :\ The\ position\ that\ results\ after\ the\ move.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00255}00255\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00256}00256\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ PositionToBlankOX(POSITION,*BlankOX)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00257}00257\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BlankOX\ WhosTurn(*BlankOX)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00258}00258\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00259}00259\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00261}00261\ POSITION\ DoMove(thePosition,\ theMove)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00262}00262\ POSITION\ thePosition;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00263}00263\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00264}00264\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00265}00265\ \ \ \ \ BlankOX\ theBlankOX[BOARDSIZE],\ WhoseTurn();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00266}00266\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00267}00267\ \ \ \ \ PositionToBlankOX(thePosition,theBlankOX);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00268}00268\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00269}00269\ \ \ \ \ \textcolor{keywordflow}{return}(thePosition\ +\ (g3Array[theMove]\ *\ (\textcolor{keywordtype}{int})WhoseTurn(theBlankOX)));}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00270}00270\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00272}00272\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00273}00273\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00274}00274\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetInitialPosition}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00275}00275\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00276}00276\ \textcolor{comment}{**\ DESCRIPTION:\ Ask\ the\ user\ for\ an\ initial\ position\ for\ testing.\ Store}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00277}00277\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ it\ in\ the\ space\ pointed\ to\ by\ initialPosition;}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00278}00278\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00279}00279\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION\ initialPosition\ :\ The\ position\ to\ fill.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00280}00280\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00281}00281\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00283}00283\ POSITION\ GetInitialPosition()}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00284}00284\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00285}00285\ \ \ \ \ POSITION\ BlankOXToPosition();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00286}00286\ \ \ \ \ BlankOX\ theBlankOX[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00287}00287\ \ \ \ \ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ c;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00288}00288\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00290}00290\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Get\ Initial\ Position\ -\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00291}00291\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ input\ the\ position\ to\ begin\ with.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00292}00292\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tNote\ that\ it\ should\ be\ in\ the\ following\ format:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00293}00293\ \ \ \ \ printf(\textcolor{stringliteral}{"{}O\ -\/\ -\/\(\backslash\)nO\ -\/\ -\/\ \ \ \ \ \ \ \ \ \ \ \ <-\/-\/-\/-\/-\/\ EXAMPLE\ \(\backslash\)n-\/\ X\ X\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00295}00295\ \ \ \ \ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00296}00296\ \ \ \ \ getchar();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00297}00297\ \ \ \ \ \textcolor{keywordflow}{while}(i\ <\ BOARDSIZE\ \&\&\ (c\ =\ getchar())\ !=\ EOF)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'x'}\ ||\ c\ ==\ \textcolor{charliteral}{'X'})}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i++]\ =\ x;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'o'}\ ||\ c\ ==\ \textcolor{charliteral}{'O'}\ ||\ c\ ==\ \textcolor{charliteral}{'0'})}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i++]\ =\ o;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'-\/'})}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i++]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00304}00304\ \ \ \ \ \ \ \ \ else}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ ;\ \textcolor{comment}{/*\ do\ nothing\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00306}00306\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00308}00308\ \ \ \ \ \textcolor{keywordflow}{return}(BlankOXToPosition(theBlankOX));}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00309}00309\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00310}00310\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00311}00311\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00312}00312\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00313}00313\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintComputersMove}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00314}00314\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00315}00315\ \textcolor{comment}{**\ DESCRIPTION:\ Nicely\ format\ the\ computers\ move.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00316}00316\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00317}00317\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ \ \ *computersMove\ :\ The\ computer's\ move.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00318}00318\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ computersName\ :\ The\ computer's\ name.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00319}00319\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00320}00320\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00322}00322\ \textcolor{keywordtype}{int}\ gInternalToUserMove[]\ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00323}00323\ \{\ 12,\ 13,\ 14,\ 15,\ 16,\ 23,\ 24,\ 25,\ 26,\ 34,\ 35,\ 36,\ 45,\ 46,\ 56\ \};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00325}00325\ \textcolor{keywordtype}{int}\ gUserToInternalMove[]\ =}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00326}00326\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00327}00327\ \ \ \ \ -\/1,\ -\/1,\ -\/1,\ -\/1,\ -\/1,\ -\/1,\ -\/1,\ -\/1,\ -\/1,\ -\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00328}00328\ \ \ \ \ -\/1,\ -\/1,\ \ 0,\ \ 1,\ \ 2,\ \ 3,\ \ 4,\ -\/1,\ -\/1,\ -\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00329}00329\ \ \ \ \ -\/1,\ \ 0,\ -\/1,\ \ 5,\ \ 6,\ \ 7,\ \ 8,\ -\/1,\ -\/1,\ -\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00330}00330\ \ \ \ \ -\/1,\ \ 1,\ \ 5,\ -\/1,\ \ 9,\ 10,\ 11,\ -\/1,\ -\/1,\ -\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00331}00331\ \ \ \ \ -\/1,\ \ 2,\ \ 6,\ \ 9,\ -\/1,\ 12,\ 13,\ -\/1,\ -\/1,\ -\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00332}00332\ \ \ \ \ -\/1,\ \ 3,\ \ 7,\ 10,\ 12,\ -\/1,\ 14,\ -\/1,\ -\/1,\ -\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00333}00333\ \ \ \ \ -\/1,\ \ 4,\ \ 8,\ 11,\ 13,\ 14}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00334}00334\ \};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00335}00335\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00336}00336\ \textcolor{keywordtype}{void}\ PrintComputersMove(computersMove,computersName)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00337}00337\ MOVE\ computersMove;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00338}00338\ STRING\ computersName;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00339}00339\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00340}00340\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \%2d\(\backslash\)n"{}},\ computersName,\ gInternalToUserMove[computersMove]);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00341}00341\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00343}00343\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00344}00344\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00345}00345\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ Primitive}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00346}00346\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00347}00347\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ the\ value\ of\ a\ position\ if\ it\ fulfills\ certain}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00348}00348\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 'primitive'\ constraints.\ Some\ examples\ of\ this\ is\ having}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00349}00349\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ three-\/in-\/a-\/row\ with\ TicTacToe.\ TicTacToe\ has\ two}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00350}00350\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ primitives\ it\ can\ immediately\ check\ for,\ when\ the\ board}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00351}00351\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ filled\ but\ nobody\ has\ one\ =\ primitive\ tie.\ Three\ in}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00352}00352\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ a\ row\ is\ a\ primitive\ lose,\ because\ the\ player\ who\ faces}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00353}00353\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ this\ board\ has\ just\ lost.\ I.e.\ the\ player\ before\ him}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00354}00354\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ created\ the\ board\ and\ won.\ Otherwise\ undecided.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00355}00355\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00356}00356\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ inspect.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00357}00357\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00358}00358\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (VALUE)\ an\ enum\ which\ is\ oneof:\ (win,lose,tie,undecided)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00359}00359\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00360}00360\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ BOOLEAN\ ThreeInARow()}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00361}00361\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ AllFilledIn()}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00362}00362\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00363}00363\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00364}00364\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00366}00366\ VALUE\ Primitive(position)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00367}00367\ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00368}00368\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00369}00369\ \ \ \ \ BOOLEAN\ ThreeInARow(),\ AllFilledIn(),\ Triangle();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00370}00370\ \ \ \ \ BlankOX\ theBlankOX[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00371}00371\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00372}00372\ \ \ \ \ PositionToBlankOX(position,theBlankOX);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00373}00373\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00374}00374\ \ \ \ \ \textcolor{keywordflow}{if}(\ Triangle(theBlankOX,0,5,1)\ \ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00375}00375\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,0,6,2)\ \ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00376}00376\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,0,7,3)\ \ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00377}00377\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,0,8,4)\ \ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00378}00378\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,1,9,2)\ \ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00379}00379\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,1,10,3)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00380}00380\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,1,11,4)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00381}00381\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,2,12,3)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00382}00382\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,2,13,4)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00383}00383\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,3,14,4)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00384}00384\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,5,9,6)\ \ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00385}00385\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,5,10,7)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00386}00386\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,5,11,8)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00387}00387\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,6,12,7)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00388}00388\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,6,13,8)\ ||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00389}00389\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,7,14,8)||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00390}00390\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,9,12,10)||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00391}00391\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,9,13,11)||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00392}00392\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,10,14,11)||}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00393}00393\ \ \ \ \ \ \ \ \ Triangle(theBlankOX,12,14,13)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00394}00394\ \ \ \ \ \ \ \ \ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00395}00395\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(gStandardGame\ ?\ win\ :\ lose);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00396}00396\ \textcolor{comment}{//\ \ else\ if(AllFilledIn(theBlankOX))}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00397}00397\ \ \ \ \ \textcolor{comment}{//\ WILL\ I\ EVER\ COME\ HERE\ ??\ ...\ NO}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00398}00398\ \textcolor{comment}{//\ \ \ \ return(tie);}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00399}00399\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00400}00400\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(undecided);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00401}00401\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00402}00402\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00403}00403\ \textcolor{comment}{/******************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00404}00404\ \textcolor{comment}{/*Crazy\ helper\ functions\ for\ printposition*/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00405}00405\ \textcolor{comment}{/******************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00406}00406\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00407}00407\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00408}00408\ \textcolor{keywordtype}{void}\ cleararray(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00409}00409\ \textcolor{keywordtype}{void}\ printarray(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00410}00410\ \textcolor{keywordtype}{void}\ line(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{float}\ x1,\ \textcolor{keywordtype}{float}\ y1,\ \textcolor{keywordtype}{float}\ x2,\ \textcolor{keywordtype}{float}\ y2,\ \textcolor{keywordtype}{char}\ c\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00411}00411\ \textcolor{keywordtype}{void}\ DrawSimBoard(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00412}00412\ \textcolor{keywordtype}{void}\ DrawMove(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ from,\ \textcolor{keywordtype}{int}\ to,\ \textcolor{keywordtype}{char}\ c\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00413}00413\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00414}00414\ \textcolor{preprocessor}{\#define\ PI\ (3.14159265)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00415}00415\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00416}00416\ \textcolor{preprocessor}{\#define\ caWidth\ 60}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00417}00417\ \textcolor{preprocessor}{\#define\ caHeight\ 30}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00418}00418\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00419}00419\ \textcolor{preprocessor}{\#define\ LOOPY\ for(\ y=0;\ y<height;\ y++\ )}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00420}00420\ \textcolor{preprocessor}{\#define\ LOOPX\ for(\ x=0;\ x<width;\ x++\ )}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00421}00421\ \textcolor{preprocessor}{\#define\ LOOP\ \ LOOPY\ LOOPX}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00422}00422\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00423}00423\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00424}00424\ \textcolor{keywordtype}{void}\ cleararray(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height\ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00425}00425\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00426}00426\ \ \ \ \ \textcolor{keywordtype}{int}\ x,\ y;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00427}00427\ \ \ \ \ LOOP\ disp[x][y]\ =\ \textcolor{charliteral}{'\ '};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00428}00428\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00429}00429\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00430}00430\ \textcolor{keywordtype}{void}\ printarray(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height\ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00431}00431\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00432}00432\ \ \ \ \ \textcolor{keywordtype}{int}\ x,y;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00433}00433\ \ \ \ \ LOOPY\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00434}00434\ \ \ \ \ \ \ \ \ LOOPX\ putchar(\ disp[x][y]\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00435}00435\ \ \ \ \ \ \ \ \ putchar(\ \textcolor{charliteral}{'\(\backslash\)n'}\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00436}00436\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00437}00437\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00438}00438\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00439}00439\ \textcolor{keywordtype}{void}\ line(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{float}\ x1,\ \textcolor{keywordtype}{float}\ y1,\ \textcolor{keywordtype}{float}\ x2,\ \textcolor{keywordtype}{float}\ y2,\ \textcolor{keywordtype}{char}\ c\ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00440}00440\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00441}00441\ \ \ \ \ \textcolor{keywordtype}{float}\ t=0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00442}00442\ \ \ \ \ \textcolor{keywordflow}{for}(\ t=0;\ t<=1;\ t+=(float)1/((\textcolor{keywordtype}{float})width+(\textcolor{keywordtype}{float})height)\ )\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00443}00443\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ x,y;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00444}00444\ \ \ \ \ \ \ \ \ x\ =\ x1*(1-\/t)+x2*t;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00445}00445\ \ \ \ \ \ \ \ \ y\ =\ y1*(1-\/t)+y2*t;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00446}00446\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ x>=0\ \&\&\ x<width\ \&\&\ y>=0\ \&\&\ y<height\ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00447}00447\ \ \ \ \ \ \ \ \ \ \ \ \ disp[(int)(x+.05)][(int)(y+.05)]\ =\ c;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00448}00448\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00449}00449\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00450}00450\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00451}00451\ \textcolor{keywordtype}{void}\ DrawMove(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ from,\ \textcolor{keywordtype}{int}\ to,\ \textcolor{keywordtype}{char}\ c\ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00452}00452\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00453}00453\ \ \ \ \ \textcolor{keywordtype}{float}\ x1\ =\ (.9)*(width/2)*cos(2*PI*(\textcolor{keywordtype}{float})from/6)\ +\ width/2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00454}00454\ \ \ \ \ \textcolor{keywordtype}{float}\ y1\ =\ (.9)*(height/2)*sin(2*PI*(\textcolor{keywordtype}{float})from/6)\ +\ height/2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00455}00455\ \ \ \ \ \textcolor{keywordtype}{float}\ x2\ =\ (.9)*(width/2)*cos(2*PI*(\textcolor{keywordtype}{float})to/6)\ +\ width/2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00456}00456\ \ \ \ \ \textcolor{keywordtype}{float}\ y2\ =\ (.9)*(height/2)*sin(2*PI*(\textcolor{keywordtype}{float})to/6)\ +\ height/2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00457}00457\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00458}00458\ \ \ \ \ from-\/-\/;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00459}00459\ \ \ \ \ to-\/-\/;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00460}00460\ \ \ \ \ line(\ disp,\ width,\ height,\ x1,\ y1,\ x2,\ y2,\ c\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00461}00461\ \ \ \ \ DrawSimBoard(\ disp,\ width,\ height\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00462}00462\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00463}00463\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00464}00464\ \textcolor{keywordtype}{void}\ DrawSimBoard(\ \textcolor{keywordtype}{char}**\ disp,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height\ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00465}00465\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00466}00466\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00467}00467\ \ \ \ \ \textcolor{keywordtype}{float}\ min\ =\ height;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00468}00468\ \ \ \ \ \textcolor{keywordflow}{if}(\ width<height\ )\ min\ =\ width;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00469}00469\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00470}00470\ \ \ \ \ \textcolor{keywordflow}{for}(\ i=0;\ i<6;\ i++\ )}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00471}00471\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00472}00472\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ x\ =\ (.9)*(width/2)*cos(2*PI*(\textcolor{keywordtype}{float})i/6)\ +\ width/2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00473}00473\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ y\ =\ (.9)*(height/2)*sin(2*PI*(\textcolor{keywordtype}{float})i/6)\ +\ height/2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00474}00474\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00475}00475\ \ \ \ \ \ \ \ \ line(\ disp,\ width,\ height,\ x,\ y,\ x,\ y,\ \textcolor{charliteral}{'1'}+i\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00476}00476\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00477}00477\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00478}00478\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00479}00479\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00480}00480\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00481}00481\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00482}00482\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintPosition}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00483}00483\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00484}00484\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ position\ in\ a\ pretty\ format,\ including\ the}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00485}00485\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ prediction\ of\ the\ game's\ outcome.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00486}00486\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00487}00487\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ \ \ :\ The\ position\ to\ pretty\ print.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00488}00488\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ \ playerName\ :\ The\ name\ of\ the\ player.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00489}00489\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ \ usersTurn\ \ :\ TRUE\ <==>\ it's\ a\ user's\ turn.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00490}00490\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00491}00491\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00492}00492\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetValueOfPosition()}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00493}00493\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetPrediction()}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00494}00494\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00495}00495\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00496}00496\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00497}00497\ \textcolor{keywordtype}{void}\ PrintPosition(position,playerName,usersTurn)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00498}00498\ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00499}00499\ STRING\ playerName;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00500}00500\ BOOLEAN\ usersTurn;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00501}00501\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00502}00502\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00503}00503\ \ \ \ \ \textcolor{comment}{//\ \ VALUE\ GetValueOfPosition();}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00504}00504\ \ \ \ \ BlankOX\ theBlankOx[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00505}00505\ \ \ \ \ \textcolor{keywordtype}{char}**\ disp;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00506}00506\ \ \ \ \ POSITION\ originalPosition\ =\ position;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00507}00507\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00508}00508\ \ \ \ \ disp\ =\ (\textcolor{keywordtype}{char}**)\ malloc(\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char}*)*caWidth\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00509}00509\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<caWidth;\ i++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00510}00510\ \ \ \ \ \ \ \ \ disp[i]\ =\ (\textcolor{keywordtype}{char}*)\ malloc(\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*caHeight\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00511}00511\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00512}00512\ \ \ \ \ PositionToBlankOX(position,theBlankOx);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00513}00513\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00514}00514\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00515}00515\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00516}00516\ \ \ \ \ cleararray(\ disp,\ caWidth,\ caHeight\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00517}00517\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00518}00518\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00519}00519\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00520}00520\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ position\%3\ )\ DrawMove(\ disp,\ caWidth,\ caHeight,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00521}00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInternalToUserMove[i]\%10-\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00522}00522\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInternalToUserMove[i]/10-\/1,}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00523}00523\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gBlankOXString[position\%3][0]\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00524}00524\ \ \ \ \ \ \ \ \ position/=3;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00525}00525\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00526}00526\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00527}00527\ \ \ \ \ printarray(\ disp,\ caWidth,\ caHeight\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00528}00528\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00529}00529\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<caWidth;\ i++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00530}00530\ \ \ \ \ \ \ \ \ free(\ disp[i]\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00531}00531\ \ \ \ \ free(disp);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00532}00532\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00533}00533\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \%s\(\backslash\)n"{}},\ GetPrediction(originalPosition,\ playerName,\ usersTurn)\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00534}00534\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00535}00535\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00536}00536\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00537}00537\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00538}00538\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GenerateMoves}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00539}00539\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00540}00540\ \textcolor{comment}{**\ DESCRIPTION:\ Create\ a\ linked\ list\ of\ every\ move\ that\ can\ be\ reached}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00541}00541\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ this\ position.\ Return\ a\ pointer\ to\ the\ head\ of\ the}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00542}00542\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ linked\ list.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00543}00543\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00544}00544\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ branch\ off\ of.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00545}00545\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00546}00546\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (MOVELIST\ *),\ a\ pointer\ that\ points\ to\ the\ first\ item}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00547}00547\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ in\ the\ linked\ list\ of\ moves\ that\ can\ be\ generated.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00548}00548\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00549}00549\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ MOVELIST\ *CreateMovelistNode(MOVE,MOVELIST\ *)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00550}00550\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00551}00551\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00552}00552\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00553}00553\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(position)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00554}00554\ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00555}00555\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00556}00556\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *CreateMovelistNode(),\ *head\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00557}00557\ \ \ \ \ VALUE\ Primitive();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00558}00558\ \ \ \ \ BlankOX\ theBlankOX[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00559}00559\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00560}00560\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00561}00561\ \ \ \ \ \textcolor{keywordflow}{if}\ (Primitive(position)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00562}00562\ \ \ \ \ \ \ \ \ PositionToBlankOX(position,theBlankOX);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00563}00563\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00564}00564\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(theBlankOX[i]\ ==\ Blank)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00565}00565\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ head\ =\ CreateMovelistNode(i,head);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00566}00566\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00567}00567\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(head);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00568}00568\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00569}00569\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(NULL);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00570}00570\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00571}00571\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00572}00572\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00573}00573\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00574}00574\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00575}00575\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00576}00576\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetAndPrintPlayersMove}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00577}00577\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00578}00578\ \textcolor{comment}{**\ DESCRIPTION:\ This\ finds\ out\ if\ the\ player\ wanted\ an\ undo\ or\ abort\ or\ not.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00579}00579\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ If\ so,\ return\ Undo\ or\ Abort\ and\ don't\ change\ theMove.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00580}00580\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Otherwise\ get\ the\ new\ theMove\ and\ fill\ the\ pointer\ up.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00581}00581\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00582}00582\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ *thePosition\ :\ The\ position\ the\ user\ is\ at.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00583}00583\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ fill\ with\ user's\ move.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00584}00584\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ playerName\ \ \ \ \ :\ The\ name\ of\ the\ player\ whose\ turn\ it\ is}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00585}00585\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00586}00586\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ USERINPUT\ \ \ \ \ \ \ \ \ \ \ \ \ :\ Oneof(\ Undo,\ Abort,\ Continue\ )}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00587}00587\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00588}00588\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ ValidMove(MOVE,\ POSITION)}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00589}00589\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ PrintPossibleMoves(POSITION)\ ...Always\ True!}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00590}00590\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00591}00591\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00592}00592\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00593}00593\ USERINPUT\ GetAndPrintPlayersMove(thePosition,\ theMove,\ playerName)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00594}00594\ POSITION\ thePosition;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00595}00595\ MOVE\ *theMove;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00596}00596\ STRING\ playerName;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00597}00597\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00598}00598\ \ \ \ \ USERINPUT\ ret,\ HandleDefaultTextInput();}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00599}00599\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00600}00600\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00601}00601\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ [(u)ndo/[1-\/6][1-\/6]]\ :\ \ "{}},\ playerName);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00602}00602\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00603}00603\ \ \ \ \ \ \ \ \ ret\ =\ HandleDefaultTextInput(thePosition,\ theMove,\ playerName);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00604}00604\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(ret\ !=\ Continue)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00605}00605\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(ret);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00606}00606\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00607}00607\ \ \ \ \ \textcolor{keywordflow}{while}\ (TRUE);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00608}00608\ \ \ \ \ \textcolor{keywordflow}{return}(Continue);\ \textcolor{comment}{/*\ this\ is\ never\ reached,\ but\ lint\ is\ now\ happy\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00609}00609\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00610}00610\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00611}00611\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00612}00612\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00613}00613\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00614}00614\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00615}00615\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ TRUE\ iff\ the\ string\ input\ is\ of\ the\ right\ 'form'.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00616}00616\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ For\ example,\ if\ the\ user\ is\ allowed\ to\ select\ one\ slot}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00617}00617\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ the\ numbers\ 1-\/9,\ and\ the\ user\ chooses\ 0,\ it's\ not}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00618}00618\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ valid,\ but\ anything\ from\ 1-\/9\ IS,\ regardless\ if\ the\ slot}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00619}00619\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ filled\ or\ not.\ Whether\ the\ slot\ is\ filled\ is\ left\ up}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00620}00620\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ another\ routine.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00621}00621\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00622}00622\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00623}00623\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00624}00624\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ BOOLEAN\ :\ TRUE\ iff\ the\ input\ is\ a\ valid\ text\ input.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00625}00625\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00626}00626\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00627}00627\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00628}00628\ BOOLEAN\ ValidTextInput(input)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00629}00629\ STRING\ input;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00630}00630\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00631}00631\ \ \ \ \ \textcolor{keywordflow}{return}\ ((input[0]\ <=\ \textcolor{charliteral}{'6'}\ \&\&\ input[0]\ >=\ \textcolor{charliteral}{'1'})\ \&\&\ (input[1]\ <=\ \textcolor{charliteral}{'6'}\ \&\&\ input[1]\ >=\ \textcolor{charliteral}{'1'})\ \&\&\ (input[0]\ !=\ input[1]));}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00632}00632\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00633}00633\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00634}00634\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00635}00635\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00636}00636\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ConvertTextInputToMove}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00637}00637\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00638}00638\ \textcolor{comment}{**\ DESCRIPTION:\ Convert\ the\ string\ input\ to\ the\ internal\ move\ representation.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00639}00639\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00640}00640\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00641}00641\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00642}00642\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ MOVE\ :\ The\ move\ corresponding\ to\ the\ user's\ input.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00643}00643\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00644}00644\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00645}00645\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00646}00646\ MOVE\ ConvertTextInputToMove(input)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00647}00647\ STRING\ input;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00648}00648\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00649}00649\ \ \ \ \ \textcolor{comment}{/*\ We\ get\ in\ "{}25"{},\ and\ return\ 7\ ...\ etc..\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00650}00650\ \ \ \ \ \textcolor{keywordflow}{return}\ gUserToInternalMove[(input[0]-\/\textcolor{charliteral}{'0'})*10\ +\ (input[1]-\/\textcolor{charliteral}{'0'})];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00651}00651\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00652}00652\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00653}00653\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00654}00654\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00655}00655\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintMove}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00656}00656\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00657}00657\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ move\ in\ a\ nice\ format.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00658}00658\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00659}00659\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ print.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00660}00660\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00661}00661\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00662}00662\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00663}00663\ \textcolor{keywordtype}{void}\ PrintMove(theMove)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00664}00664\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00665}00665\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00666}00666\ \ \ \ \ STRING\ m\ =\ MoveToString(\ theMove\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00667}00667\ \ \ \ \ printf(\ \textcolor{stringliteral}{"{}\%s"{}},\ m\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00668}00668\ \ \ \ \ SafeFree(\ m\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00669}00669\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00670}00670\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00671}00671\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00672}00672\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00673}00673\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ MoveToString}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00674}00674\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00675}00675\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ move\ as\ a\ STRING}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00676}00676\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00677}00677\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ put\ into\ a\ string.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00678}00678\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00679}00679\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00680}00680\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00681}00681\ STRING\ MoveToString\ (theMove)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00682}00682\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00683}00683\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00684}00684\ \ \ \ \ STRING\ m\ =\ (STRING)\ SafeMalloc(\ 3\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00685}00685\ \ \ \ \ \textcolor{comment}{/*\ The\ plus\ 1\ is\ because\ the\ user\ thinks\ it's\ 1-\/9,\ but\ MOVE\ is\ 0-\/8\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00686}00686\ \ \ \ \ sprintf(m,\ \textcolor{stringliteral}{"{}\%d"{}},\ gInternalToUserMove[theMove]);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00687}00687\ \ \ \ \ \textcolor{keywordflow}{return}\ m;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00688}00688\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00689}00689\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00690}00690\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00691}00691\ \textcolor{comment}{*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00692}00692\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ EVERYTHING\ BELOW\ THESE\ LINES\ IS\ LOCAL\ TO\ THIS\ FILE}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00693}00693\ \textcolor{comment}{*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00694}00694\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00695}00695\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00696}00696\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00697}00697\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00698}00698\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PositionToBlankOX}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00699}00699\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00700}00700\ \textcolor{comment}{**\ DESCRIPTION:\ convert\ an\ internal\ position\ to\ that\ of\ a\ BlankOX.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00701}00701\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00702}00702\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ thePos\ \ \ \ \ :\ The\ position\ input.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00703}00703\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BlankOX\ *theBlankOx\ :\ The\ converted\ BlankOX\ output\ array.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00704}00704\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00705}00705\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ BadElse()}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00706}00706\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00707}00707\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00708}00708\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00709}00709\ \textcolor{keywordtype}{void}\ PositionToBlankOX(thePos,theBlankOX)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00710}00710\ POSITION\ thePos;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00711}00711\ BlankOX\ *theBlankOX;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00712}00712\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00713}00713\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00714}00714\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ BOARDSIZE-\/1;\ i\ >=\ 0;\ i-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00715}00715\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(thePos\ >=\ ((\textcolor{keywordtype}{int})x\ *\ g3Array[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00716}00716\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ x;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00717}00717\ \ \ \ \ \ \ \ \ \ \ \ \ thePos\ -\/=\ (int)x\ *\ g3Array[i];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00718}00718\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00719}00719\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(thePos\ >=\ ((\textcolor{keywordtype}{int})o\ *\ g3Array[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00720}00720\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ o;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00721}00721\ \ \ \ \ \ \ \ \ \ \ \ \ thePos\ -\/=\ (int)o\ *\ g3Array[i];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00722}00722\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00723}00723\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(thePos\ >=\ ((\textcolor{keywordtype}{int})Blank\ *\ g3Array[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00724}00724\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00725}00725\ \ \ \ \ \ \ \ \ \ \ \ \ thePos\ -\/=\ (int)Blank\ *\ g3Array[i];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00726}00726\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00727}00727\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00728}00728\ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}PositionToBlankOX"{}});}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00729}00729\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00730}00730\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00731}00731\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00732}00732\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00733}00733\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00734}00734\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ BlankOXToPosition}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00735}00735\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00736}00736\ \textcolor{comment}{**\ DESCRIPTION:\ convert\ a\ BlankOX\ to\ that\ of\ an\ internal\ position.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00737}00737\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00738}00738\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ BlankOX\ *theBlankOx\ :\ The\ converted\ BlankOX\ output\ array.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00739}00739\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00740}00740\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION:\ The\ equivalent\ position\ given\ the\ BlankOX.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00741}00741\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00742}00742\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00743}00743\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00744}00744\ POSITION\ BlankOXToPosition(theBlankOX)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00745}00745\ BlankOX\ *theBlankOX;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00746}00746\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00747}00747\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00748}00748\ \ \ \ \ POSITION\ position\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00749}00749\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00750}00750\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00751}00751\ \ \ \ \ \ \ \ \ position\ +=\ g3Array[i]\ *\ (\textcolor{keywordtype}{int})theBlankOX[i];\ \textcolor{comment}{/*\ was\ (int)position...\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00752}00752\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00753}00753\ \ \ \ \ \textcolor{keywordflow}{return}(position);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00754}00754\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00755}00755\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00756}00756\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00757}00757\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00758}00758\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ Triangle}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00759}00759\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00760}00760\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ TRUE\ iff\ there\ is\ a\ triangle.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00761}00761\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00762}00762\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ BlankOX\ theBlankOX[BOARDSIZE]\ :\ The\ BlankOX\ array.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00763}00763\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ int\ a,b,c\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ The\ 3\ positions\ to\ check.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00764}00764\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00765}00765\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (BOOLEAN)\ TRUE\ iff\ there\ are\ three-\/in-\/a-\/row.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00766}00766\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00767}00767\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00768}00768\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00769}00769\ BOOLEAN\ Triangle(theBlankOX,a,b,c)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00770}00770\ BlankOX\ theBlankOX[];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00771}00771\ \textcolor{keywordtype}{int}\ a,b,c;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00772}00772\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00773}00773\ \ \ \ \ \textcolor{keywordflow}{return}(\ \ \ \ \ \ \ theBlankOX[a]\ ==\ theBlankOX[b]\ \&\&}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00774}00774\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[b]\ ==\ theBlankOX[c]\ \&\&}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00775}00775\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[c]\ !=\ Blank\ );}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00776}00776\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00777}00777\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00778}00778\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00779}00779\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00780}00780\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ AllFilledIn}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00781}00781\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00782}00782\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ TRUE\ iff\ all\ the\ blanks\ are\ filled\ in.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00783}00783\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00784}00784\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ BlankOX\ theBlankOX[BOARDSIZE]\ :\ The\ BlankOX\ array.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00785}00785\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00786}00786\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (BOOLEAN)\ TRUE\ iff\ all\ the\ blanks\ are\ filled\ in.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00787}00787\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00788}00788\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00789}00789\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00790}00790\ BOOLEAN\ AllFilledIn(theBlankOX)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00791}00791\ BlankOX\ theBlankOX[];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00792}00792\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00793}00793\ \ \ \ \ BOOLEAN\ answer\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00794}00794\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00795}00795\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00796}00796\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00797}00797\ \ \ \ \ \ \ \ \ answer\ \&=\ (theBlankOX[i]\ ==\ o\ ||\ theBlankOX[i]\ ==\ x);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00798}00798\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00799}00799\ \ \ \ \ \textcolor{keywordflow}{return}(answer);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00800}00800\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00801}00801\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00802}00802\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00803}00803\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00804}00804\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ WhoseTurn}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00805}00805\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00806}00806\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ whose\ turn\ it\ is\ -\/\ either\ x\ or\ o.\ Since\ x\ always}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00807}00807\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ goes\ first,\ we\ know\ that\ if\ the\ board\ has\ an\ equal\ number}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00808}00808\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ of\ x's\ and\ o's,\ that\ it's\ x's\ turn.\ Otherwise\ it's\ o's.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00809}00809\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00810}00810\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ BlankOX\ theBlankOX\ :\ The\ input\ board}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00811}00811\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00812}00812\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (BlankOX)\ :\ Either\ x\ or\ o,\ depending\ on\ whose\ turn\ it\ is}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00813}00813\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00814}00814\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00815}00815\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00816}00816\ BlankOX\ WhoseTurn(theBlankOX)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00817}00817\ BlankOX\ *theBlankOX;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00818}00818\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00819}00819\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ xcount\ =\ 0,\ ocount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00820}00820\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00821}00821\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00822}00822\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(theBlankOX[i]\ ==\ x)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00823}00823\ \ \ \ \ \ \ \ \ \ \ \ \ xcount++;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00824}00824\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(theBlankOX[i]\ ==\ o)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00825}00825\ \ \ \ \ \ \ \ \ \ \ \ \ ocount++;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00826}00826\ \ \ \ \ \ \ \ \ else\ ;\ \ \ \ \textcolor{comment}{/*\ don't\ count\ blanks\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00827}00827\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00828}00828\ \ \ \ \ \textcolor{keywordflow}{if}(xcount\ ==\ ocount)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00829}00829\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(x);\ \ \textcolor{comment}{/*\ in\ our\ TicTacToe,\ x\ always\ goes\ first\ */}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00830}00830\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00831}00831\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(o);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00832}00832\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00833}00833\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00834}00834\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00835}00835\ STRING\ kDBName\ =\ \textcolor{stringliteral}{"{}sim"{}};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00836}00836\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00837}00837\ \textcolor{keywordtype}{int}\ NumberOfOptions()}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00838}00838\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00839}00839\ \ \ \ \ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00840}00840\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00841}00841\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00842}00842\ \textcolor{keywordtype}{int}\ getOption()}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00843}00843\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00844}00844\ \ \ \ \ \textcolor{keywordflow}{if}(gStandardGame)\ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00845}00845\ \ \ \ \ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00846}00846\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00847}00847\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00848}00848\ \textcolor{keywordtype}{void}\ setOption(\textcolor{keywordtype}{int}\ option)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00849}00849\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00850}00850\ \ \ \ \ \textcolor{keywordflow}{if}(option\ ==\ 1)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00851}00851\ \ \ \ \ \ \ \ \ gStandardGame\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00852}00852\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00853}00853\ \ \ \ \ \ \ \ \ gStandardGame\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00854}00854\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00855}00855\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00856}00856\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00857}00857\ \textcolor{comment}{/**********************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00858}00858\ \textcolor{comment}{*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SYMMERTY\ FUNCTIONS}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00859}00859\ \textcolor{comment}{*\ The\ following\ are\ the\ functions\ needed\ for\ the\ implementation}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00860}00860\ \textcolor{comment}{*\ \ \ of\ symmetries.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00861}00861\ \textcolor{comment}{*}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00862}00862\ \textcolor{comment}{*\ GetCanonical\ function\ is\ at\ the\ very\ bottom}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00863}00863\ \textcolor{comment}{**********************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00864}00864\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00865}00865\ \textcolor{comment}{//\ This\ function\ returns\ an\ index\ of\ connection\ a-\/b\ in\ the}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00866}00866\ \textcolor{comment}{//\ \ \ BlankOX\ board[]\ array}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00867}00867\ \textcolor{keywordtype}{short}\ connection\_lookup(\textcolor{keywordtype}{short}\ a,\ \textcolor{keywordtype}{short}\ b)\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00868}00868\ \ \ \ \ \textcolor{keywordtype}{short}\ temp,\ result\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00869}00869\ \ \ \ \ \textcolor{keywordflow}{if}\ ((a\ ==\ b)\ ||\ (a\ <\ 1)\ ||\ (a\ >\ 6)\ ||\ (b\ <\ 1)\ ||\ (b\ >\ 6))\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00870}00870\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Invalid\ arguments\ to\ connection\_lookup:\ \%d,\ \%d\(\backslash\)n"{}},\ a,\ b);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00871}00871\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 99;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00872}00872\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00873}00873\ \ \ \ \ \textcolor{keywordflow}{if}\ (a\ >\ b)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00874}00874\ \ \ \ \ \ \ \ \ temp\ =\ a;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00875}00875\ \ \ \ \ \ \ \ \ a\ =\ b;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00876}00876\ \ \ \ \ \ \ \ \ b\ =\ temp;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00877}00877\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00878}00878\ \ \ \ \ \textcolor{keywordflow}{for}\ (temp\ =\ a;\ temp\ >\ 1;\ temp-\/-\/)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00879}00879\ \ \ \ \ \ \ \ \ result\ +=\ 7\ -\/\ temp;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00880}00880\ \ \ \ \ result\ +=\ b\ -\/\ a\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00881}00881\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00882}00882\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00883}00883\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00884}00884\ \textcolor{comment}{//\ This\ function\ determines\ whether\ <x>\ is\ present\ in}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00885}00885\ \textcolor{comment}{//\ \ \ <array[]>\ prior\ to\ index\ <endInd>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00886}00886\ \textcolor{keywordtype}{char}\ presBefore(\textcolor{keywordtype}{short}\ array[],\ \textcolor{keywordtype}{short}\ x,\ \textcolor{keywordtype}{short}\ endInd)\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00887}00887\ \ \ \ \ \textcolor{keywordtype}{short}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00888}00888\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ endInd;\ i++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00889}00889\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (array[i]\ ==\ x)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00890}00890\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00891}00891\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00892}00892\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00893}00893\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00894}00894\ \textcolor{comment}{//\ This\ function\ fills\ all\ positions\ in\ <array[]>\ starting}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00895}00895\ \textcolor{comment}{//\ \ \ at\ a\ position\ <sInd>\ with\ elements\ [1\ ...\ VERTICES]}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00896}00896\ \textcolor{comment}{//\ \ \ in\ an\ incrementing\ order\ without\ using\ elements\ already}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00897}00897\ \textcolor{comment}{//\ \ \ present\ in\ <array[]>\ prior\ to\ position\ <sInd>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00898}00898\ \textcolor{keywordtype}{void}\ fillEnd(\textcolor{keywordtype}{short}\ array[],\ \textcolor{keywordtype}{short}\ sInd)\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00899}00899\ \ \ \ \ \textcolor{keywordflow}{while}\ (sInd\ <\ VERTICES)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00900}00900\ \ \ \ \ \ \ \ \ array[sInd]\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00901}00901\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (presBefore(array,\ array[sInd],\ sInd))}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00902}00902\ \ \ \ \ \ \ \ \ \ \ \ \ array[sInd]++;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00903}00903\ \ \ \ \ \ \ \ \ sInd++;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00904}00904\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00905}00905\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00906}00906\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00907}00907\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00908}00908\ \textcolor{comment}{//\ This\ function\ determines\ whether\ elements\ in\ <array[]>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00909}00909\ \textcolor{comment}{//\ \ \ are\ present\ in\ a\ decrementing\ order}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00910}00910\ \textcolor{comment}{//\ Returns\ 1\ -\/\ Yes,\ 0\ -\/\ No}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00911}00911\ \textcolor{keywordtype}{char}\ isDecr(\textcolor{keywordtype}{short}\ array[],\ \textcolor{keywordtype}{short}\ sInd)\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00912}00912\ \ \ \ \ \textcolor{keywordtype}{short}\ cur\ =\ array[sInd],\ ind\ =\ sInd\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00913}00913\ \ \ \ \ \textcolor{keywordflow}{while}\ (ind\ <\ VERTICES)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00914}00914\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (cur\ <\ array[ind])}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00915}00915\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00916}00916\ \ \ \ \ \ \ \ \ cur\ =\ array[ind];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00917}00917\ \ \ \ \ \ \ \ \ ind++;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00918}00918\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00919}00919\ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00920}00920\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00921}00921\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00922}00922\ \textcolor{comment}{//\ This\ function\ takes\ <array[]>\ and\ changes\ it\ into\ its\ next}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00923}00923\ \textcolor{comment}{//\ \ \ permutation.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00924}00924\ \textcolor{comment}{//\ An\ array\ \{1,2,3,4,5,6\},\ after\ 720\ calls\ to\ this\ function}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00925}00925\ \textcolor{comment}{//\ \ \ will\ be\ changed\ to\ \{6,5,4,3,2,1\}}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00926}00926\ \textcolor{keywordtype}{void}\ permute(\textcolor{keywordtype}{short}\ array[])\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00927}00927\ \ \ \ \ \textcolor{keywordtype}{short}\ end\ =\ VERTICES\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00928}00928\ \ \ \ \ \textcolor{keywordflow}{while}\ (end\ >=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00929}00929\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (array[end]\ ==\ VERTICES)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00930}00930\ \ \ \ \ \ \ \ \ \ \ \ \ end-\/-\/;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00931}00931\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!isDecr(array,\ end))\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00932}00932\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00933}00933\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ array[end]++;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00934}00934\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{while}\ (presBefore(array,\ array[end],\ end));}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00935}00935\ \ \ \ \ \ \ \ \ \ \ \ \ fillEnd(array,\ end+1);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00936}00936\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00937}00937\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00938}00938\ \ \ \ \ \ \ \ \ end-\/-\/;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00939}00939\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00940}00940\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00941}00941\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00942}00942\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00943}00943\ \textcolor{comment}{//\ This\ function\ takes\ <old\_board>\ and\ copies\ it\ into\ <new\_boards>,}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00944}00944\ \textcolor{comment}{//\ \ \ changing\ the\ order\ of\ vertices\ as\ indicated\ in\ <new\_order>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00945}00945\ \textcolor{keywordtype}{void}\ change\_board(BlankOX*\ old\_board,\ BlankOX*\ new\_board,\ \textcolor{keywordtype}{short}\ new\_order[])\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00946}00946\ \ \ \ \ \textcolor{keywordtype}{short}\ i\ =\ 0,\ a,\ b,\ x,\ y;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00947}00947\ \ \ \ \ \textcolor{keywordflow}{for}\ (x\ =\ 0;\ x\ <\ VERTICES\ -\/\ 1;\ x++)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00948}00948\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (y\ =\ x+1;\ y\ <\ VERTICES;\ y++)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00949}00949\ \ \ \ \ \ \ \ \ \ \ \ \ a\ =\ new\_order[x];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00950}00950\ \ \ \ \ \ \ \ \ \ \ \ \ b\ =\ new\_order[y];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00951}00951\ \ \ \ \ \ \ \ \ \ \ \ \ new\_board[i++]\ =\ old\_board[connection\_lookup(a,\ b)];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00952}00952\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00953}00953\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00954}00954\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00955}00955\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00956}00956\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00957}00957\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetCanonical}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00958}00958\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00959}00959\ \textcolor{comment}{**\ DESCRIPTION:\ This\ function\ tests\ all\ possible\ permutation\ of}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00960}00960\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vertices\ in\ a\ board\ derived\ from\ <p>.}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00961}00961\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ The\ permutation\ with\ the\ smallest\ hash\ value\ is}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00962}00962\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ returned\ as\ a\ canonical\ form\ of\ <p>}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00963}00963\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00964}00964\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ p\ -\/\ the\ original\ position}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00965}00965\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00966}00966\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION\ -\/\ the\ game\ position\ with\ the\ smallest\ num\ value}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00967}00967\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00968}00968\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00969}00969\ POSITION\ GetCanonical\ (POSITION\ p)\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00970}00970\ \ \ \ \ POSITION\ testP,\ canonP\ =\ p;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00971}00971\ \ \ \ \ BlankOX\ posDecoded[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00972}00972\ \ \ \ \ BlankOX\ testDecoded[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00973}00973\ \ \ \ \ \textcolor{keywordtype}{short}\ vert\_order[VERTICES]\ =\ \{1,2,3,4,5,6\};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00974}00974\ \ \ \ \ \textcolor{keywordtype}{short}\ perm\ =\ 6\ *\ 5\ *\ 4\ *\ 3\ *\ 2\ -\/\ 1,\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00975}00975\ \ \ \ \ PositionToBlankOX(p,posDecoded);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00976}00976\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ perm;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00977}00977\ \ \ \ \ \ \ \ \ permute(vert\_order);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00978}00978\ \ \ \ \ \ \ \ \ change\_board(posDecoded,\ testDecoded,\ vert\_order);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00979}00979\ \ \ \ \ \ \ \ \ testP\ =\ BlankOXToPosition(testDecoded);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00980}00980\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (testP\ <\ canonP)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00981}00981\ \ \ \ \ \ \ \ \ \ \ \ \ canonP\ =\ testP;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00982}00982\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00983}00983\ \ \ \ \ \textcolor{keywordflow}{return}\ canonP;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00984}00984\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00985}00985\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00986}00986\ POSITION\ InteractStringToPosition(STRING\ str)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00987}00987\ \ \ STRING\ board;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00988}00988\ \ \ \textcolor{keywordflow}{if}\ (!UWAPI\_Board\_Custom\_ParsePositionString(str,\ \&board))\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00989}00989\ \ \ \ \ \textcolor{comment}{//\ Failed\ to\ parse\ string}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00990}00990\ \ \ \ \ \textcolor{keywordflow}{return}\ INVALID\_POSITION;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00991}00991\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00992}00992\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00993}00993\ \ \ BlankOX\ theBlankOx[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00994}00994\ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00995}00995\ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00996}00996\ \ \ \ \ \textcolor{keywordflow}{if}(board[i]\ ==\ \textcolor{charliteral}{'o'})}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00997}00997\ \ \ \ \ \ \ theBlankOx[i]\ =\ o;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00998}00998\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(board[i]\ ==\ \textcolor{charliteral}{'x'})}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l00999}00999\ \ \ \ \ \ \ theBlankOx[i]\ =\ x;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01000}01000\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(board[i]\ ==\ \textcolor{charliteral}{'-\/'})}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01001}01001\ \ \ \ \ \ \ theBlankOx[i]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01002}01002\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01003}01003\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01004}01004\ \ \ SafeFreeString(board);\ \textcolor{comment}{//\ Free\ the\ string!}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01005}01005\ \ \ \textcolor{keywordflow}{return}\ BlankOXToPosition(theBlankOx);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01006}01006\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01007}01007\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01008}01008\ STRING\ InteractPositionToString(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01009}01009\ \ \ BlankOX\ theBlankOx[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01010}01010\ \ \ PositionToBlankOX(position,\ theBlankOx);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01011}01011\ \ \ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01012}01012\ \ \ \textcolor{keywordtype}{char}\ board[BOARDSIZE\ +\ 1];}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01013}01013\ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01014}01014\ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01015}01015\ \ \ \ \ \textcolor{keywordflow}{if}(theBlankOx[i]\ ==\ o)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01016}01016\ \ \ \ \ \ \ board[i]\ =\ \textcolor{charliteral}{'o'};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01017}01017\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(theBlankOx[i]\ ==\ x)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01018}01018\ \ \ \ \ \ \ board[i]\ =\ \textcolor{charliteral}{'x'};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01019}01019\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(theBlankOx[i]\ ==\ Blank)}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01020}01020\ \ \ \ \ \ \ board[i]\ =\ \textcolor{charliteral}{'-\/'};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01021}01021\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01022}01022\ \ \ board[BOARDSIZE]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01023}01023\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01024}01024\ \ \ \textcolor{keywordflow}{return}\ UWAPI\_Board\_Custom\_MakePositionString(board);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01025}01025\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01026}01026\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01027}01027\ STRING\ InteractPositionToEndData(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01028}01028\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01029}01029\ \}}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01030}01030\ }
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01031}01031\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)\ \{}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01032}01032\ \ \ \ \ \textcolor{keywordflow}{return}\ MoveToString(mv);}
+\DoxyCodeLine{\Hypertarget{msim_8c_source_l01033}01033\ \}}
+
+\end{DoxyCode}

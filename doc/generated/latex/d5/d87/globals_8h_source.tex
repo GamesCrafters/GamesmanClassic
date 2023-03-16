@@ -1,0 +1,202 @@
+\hypertarget{globals_8h_source}{}\doxysection{globals.\+h}
+\label{globals_8h_source}\index{src/core/globals.h@{src/core/globals.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00001}00001\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00002}00002\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_GLOBALS\_H}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00003}00003\ \textcolor{preprocessor}{\#define\ GMCORE\_GLOBALS\_H}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00005}00005\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00006}00006\ \textcolor{comment}{**\ Solver\ globals}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00007}00007\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00009}00009\ \textcolor{keyword}{extern}\ VALUE\ gValue;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00010}00010\ \textcolor{keyword}{extern}\ BOOLEAN\ gHumanGoesFirst,\ gPrintPredictions,\ gPrintSEvalPredictions,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00011}00011\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gSEvalLoaded,\ gSEvalPerfect,\ gHints,\ gUnsolved;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00013}00013\ \textcolor{keyword}{extern}\ BOOLEAN\ gStandardGame,\ gSaveDatabase,\ gLoadDatabase,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00014}00014\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gPrintDatabaseInfo,\ gJustSolving,\ gMessage,\ gSolvingAll,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00015}00015\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gBitPerfectDB,\ gBitPerfectDBSolver,\ gBitPerfectDBSchemes,\ gBitPerfectDBAllSchemes,\ gBitPerfectDBAdjust,\ gBitPerfectDBVerbose,\ gBitPerfectDBZeroMemoryPlayer,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00016}00016\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gTwoBits,\ gCollDB,\ gUnivDB,\ gFileDB,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00017}00017\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gGlobalPositionSolver,\ gZeroMemSolver,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00018}00018\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gAnalyzing,\ gSymmetries,\ gUseGPS,\ gBottomUp,\ gAlphaBeta,\ gUseOpen,\ gWinBy,\ gInterestingness,\ gWinByClose,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00019}00019\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gIncludeInterestingnessWithAnalysis,}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00020}00020\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gVisTiers,\ gVisTiersPlain,\ gSolveOnlyTier,\ gIsInteract,\ gLoadTierdbArray;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00022}00022\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ gPlayerName[2][MAXNAME];}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00024}00024\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ smartness,\ scalelvl,\ remainingGivebacks,\ initialGivebacks,\ gTierToOnlySolve;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00025}00025\ \textcolor{keyword}{extern}\ VALUE\ oldValueOfPosition;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00027}00027\ \textcolor{keyword}{extern}\ MENU\ gMenuMode;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00029}00029\ \textcolor{keyword}{extern}\ REMOTENESS\ gMaxRemoteness,\ gMinRemoteness;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00031}00031\ \textcolor{keyword}{extern}\ WINBY\ (*gPutWinBy)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00033}00033\ \textcolor{comment}{//\ Array\ of\ custom\ static\ evaluator\ function\ names}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00034}00034\ \textcolor{keyword}{extern}\ STRING\ *gCustomTraits;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00036}00036\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00037}00037\ \textcolor{comment}{**\ Visualization\ globals}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00038}00038\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00039}00039\ \textcolor{keyword}{extern}\ BOOLEAN\ gDrawEdges,\ gRemotenessOrder,\ gGenerateNodeViz,\ gVisualizing;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00042}00042\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00043}00043\ \textcolor{comment}{**\ Miscellaneous\ globals}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00044}00044\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00046}00046\ \textcolor{keyword}{extern}\ BOOLEAN\ gPlaying,\ gSkipInputOnSingleMove,\ gZeroMemPlayer;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00047}00047\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ gTimer;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00050}00050\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00051}00051\ \textcolor{comment}{**\ Analysis\ globals}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00052}00052\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00054}00054\ \textcolor{comment}{//\ Robert\ Shi:\ no\ reason\ to\ use\ long\ here\ now\ that\ we\ used\ unsigned\ long\ long\ for\ gNumberOfPositions.}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00055}00055\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ gTotalMoves,\ gTotalPositions;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00056}00056\ \textcolor{keyword}{extern}\ BOOLEAN\ gAnalysisLoaded;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00059}00059\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00060}00060\ \textcolor{comment}{**\ Game\ module\ externs}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00061}00061\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00063}00063\ \textcolor{comment}{/*\ constant\ string\ literals\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00064}00064\ \textcolor{keyword}{extern}\ STRING\ kHelpGraphicInterface;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Graphical\ Interface\ Help\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00065}00065\ \textcolor{keyword}{extern}\ STRING\ kHelpTextInterface;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Help\ for\ Text\ Interface\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00066}00066\ \textcolor{keyword}{extern}\ STRING\ kHelpOnYourTurn;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Help\ for\ Your\ turn\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00067}00067\ \textcolor{keyword}{extern}\ STRING\ kHelpStandardObjective;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Help\ for\ Objective\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00068}00068\ \textcolor{keyword}{extern}\ STRING\ kHelpReverseObjective;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Help\ for\ reverse\ Objective\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00069}00069\ \textcolor{keyword}{extern}\ STRING\ kHelpTieOccursWhen;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Help\ for\ Tie\ occuring\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00070}00070\ \textcolor{keyword}{extern}\ STRING\ kHelpExample;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Help\ for\ Exmaples\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00071}00071\ \textcolor{keyword}{extern}\ STRING\ kAuthorName;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Name\ of\ the\ Author\ ...\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00072}00072\ \textcolor{keyword}{extern}\ STRING\ kGameName;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00073}00073\ \textcolor{keyword}{extern}\ STRING\ kDBName;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ supposed\ to\ be\ the\ name\ of\ the\ DB?*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00075}00075\ \textcolor{comment}{/*\ constant\ numeric\ and\ boolean\ values*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00076}00076\ \textcolor{keyword}{extern}\ POSITION\ gInitialPosition;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ initial\ position\ of\ the\ game\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00077}00077\ \textcolor{keyword}{extern}\ POSITION\ gMinimalPosition;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00078}00078\ \textcolor{keyword}{extern}\ POSITION\ gNumberOfPositions;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ number\ of\ positions\ in\ the\ game\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00079}00079\ \textcolor{keyword}{extern}\ POSITION\ (*gActualNumberOfPositionsOptFunPtr)(\textcolor{keywordtype}{int}\ variant);\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ function\ pointer\ to\ function\ that\ returns\ the\ actual\ number\ of\ positions\ in\ the\ game,\ based\ on\ the\ variant\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00080}00080\ \textcolor{keyword}{extern}\ BOOLEAN\ gPrintHints;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00081}00081\ \textcolor{keyword}{extern}\ BOOLEAN\ kDebugDetermineValue;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00082}00082\ \textcolor{keyword}{extern}\ BOOLEAN\ kDebugMenu;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ whether\ to\ display\ the\ debug\ menu\ or\ not*/}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00083}00083\ \textcolor{keyword}{extern}\ POSITION\ kBadPosition;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00084}00084\ \textcolor{keyword}{extern}\ BOOLEAN\ kPartizan;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ <==>\ module\ is\ a\ Partizan\ game\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00085}00085\ \textcolor{keyword}{extern}\ BOOLEAN\ kGameSpecificMenu;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ <==>\ module\ supports\ GameSpecificMenu()\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00086}00086\ \textcolor{keyword}{extern}\ BOOLEAN\ kTieIsPossible;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ <==>\ A\ Tie\ is\ possible\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00087}00087\ \textcolor{keyword}{extern}\ BOOLEAN\ kLoopy;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ <==>\ Game\ graph\ has\ cycles\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00088}00088\ \textcolor{keyword}{extern}\ BOOLEAN\ kUsePureDraw;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ <==>\ Should\ use\ pure\ draw\ loopy\ solver\ for\ game.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00090}00090\ \textcolor{comment}{/*\ solver\ function\ pointer\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00091}00091\ \textcolor{keyword}{extern}\ VALUE\ (*gSolver)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00093}00093\ \textcolor{comment}{/*\ go\ again\ function\ pointer\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00094}00094\ \textcolor{keyword}{extern}\ BOOLEAN\ (*gGoAgain)(POSITION,MOVE);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00096}00096\ \textcolor{comment}{/*\ symmetries\ function\ pointer\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00097}00097\ \textcolor{keyword}{extern}\ POSITION\ (*gCanonicalPosition)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00099}00099\ \textcolor{comment}{/*\ Custom\ unhash\ into\ string\ function\ pointer\ (useful\ for\ TCL\ interoperability)\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00100}00100\ \textcolor{keyword}{extern}\ STRING\ (*gCustomUnhash)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00101}00101\ \textcolor{keyword}{extern}\ char\ (*gReturnTurn)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00103}00103\ \textcolor{comment}{/*\ Custom\ unhash\ into\ void*\ function\ pointer\ (used\ in\ Static\ Evaluator)\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00104}00104\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ \ (*linearUnhash)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00105}00105\ \textcolor{keyword}{extern}\ featureEvaluatorCustom\ (*gGetSEvalCustomFnPtr)(STRING);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00107}00107\ \textcolor{comment}{/*\ enumerate\ all\ positions\ that\ result\ from\ the\ same\ stage\ in\ a\ game\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00108}00108\ \textcolor{comment}{/*\ argument\ and\ return\ value\ will\ have\ their\ typedefs\ later\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00109}00109\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ \ \ \ *(*gEnumerateWithinStage)(int);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00111}00111\ \textcolor{comment}{/*\ Global\ position\ solver\ function\ pointer.\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00112}00112\ \textcolor{keyword}{extern}\ void\ (*gUndoMove)(MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00114}00114\ \textcolor{comment}{/*\ tcl\ initialization\ function\ pointer\ (needs\ to\ be\ void*\ so\ games\ don't\ need\ tcl)\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00115}00115\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ \ gGameSpecificTclInit;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00117}00117\ \textcolor{comment}{/*\ Help\ string\ function\ pointers\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00118}00118\ \textcolor{keyword}{extern}\ STRING\ (*GetHelpTextInterface)();}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00119}00119\ \textcolor{keyword}{extern}\ STRING\ (*GetHelpOnYourTurn)();}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00120}00120\ \textcolor{keyword}{extern}\ STRING\ (*GetHelpObjective)();}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00121}00121\ \textcolor{keyword}{extern}\ STRING\ (*GetHelpTieOccursWhen)();}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00123}00123\ \textcolor{keyword}{extern}\ STRING\ (*gMoveToStringFunPtr)(MOVE);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00125}00125\ \textcolor{comment}{/*\ Variant\ string\ function\ pointer\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00126}00126\ \textcolor{keyword}{extern}\ STRING\ (*gGetVarStringPtr)();}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00127}00127\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00128}00128\ \textcolor{keyword}{extern}\ OPPONENT\ gOpponent;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00130}00130\ \textcolor{comment}{/*\ NetworkDB\ Globals\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00131}00131\ \textcolor{keyword}{extern}\ BOOLEAN\ gNetworkDB;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00132}00132\ \textcolor{keyword}{extern}\ STRING\ ServerAddress;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00134}00134\ \textcolor{comment}{/*\ MP\ over\ network\ Globals\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00135}00135\ \textcolor{keyword}{extern}\ STRING\ gMPServerAddress;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00136}00136\ \textcolor{keyword}{extern}\ STRING\ gRemoteGameURL;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00137}00137\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ gTurnNumber;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00138}00138\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00139}00139\ \textcolor{comment}{/*\ Tier\ Gamesman\ globals\ and\ function\ pointers\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00140}00140\ \textcolor{comment}{//\ For\ the\ core}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00141}00141\ \textcolor{keyword}{extern}\ BOOLEAN\ gTierGamesman;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00142}00142\ \textcolor{keyword}{extern}\ BOOLEAN\ gDBLoadMainTier;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00143}00143\ \textcolor{keyword}{extern}\ TIERPOSITION\ gDBTierStart;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00144}00144\ \textcolor{keyword}{extern}\ TIERPOSITION\ gDBTierEnd;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00145}00145\ \textcolor{keyword}{extern}\ TIER\ kBadTier;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00146}00146\ \textcolor{keyword}{extern}\ BOOLEAN\ gTierSolverMenu;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00147}00147\ \textcolor{keyword}{extern}\ BOOLEAN\ gDontLoadTierDB;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00148}00148\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ HASHTABLE\_BUCKETS;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00149}00149\ \textcolor{keyword}{extern}\ BOOLEAN\ gTierSolvePrint;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00150}00150\ \textcolor{keyword}{extern}\ BOOLEAN\ gTotalTiers;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00151}00151\ \textcolor{comment}{//\ For\ the\ hash\ window}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00152}00152\ \textcolor{keyword}{extern}\ BOOLEAN\ gHashWindowInitialized;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00153}00153\ \textcolor{keyword}{extern}\ BOOLEAN\ gCurrentTierIsLoopy;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00154}00154\ \textcolor{keyword}{extern}\ TIER*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gTierInHashWindow;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00155}00155\ \textcolor{keyword}{extern}\ TIERPOSITION*\ \ \ \ gMaxPosOffset;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00156}00156\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ gNumTiersInHashWindow;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00157}00157\ \textcolor{keyword}{extern}\ TIER\ gCurrentTier;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00158}00158\ \textcolor{keyword}{extern}\ TIERPOSITION\ gCurrentTierSize;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00159}00159\ \textcolor{keyword}{extern}\ BOOLEAN*\ \ \ \ \ \ \ \ \ gTierDBExists;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00160}00160\ \textcolor{comment}{//\ For\ the\ modules}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00161}00161\ \textcolor{keyword}{extern}\ BOOLEAN\ kSupportsTierGamesman;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00162}00162\ \textcolor{keyword}{extern}\ BOOLEAN\ kSupportsShardGamesman;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00163}00163\ \textcolor{keyword}{extern}\ BOOLEAN\ kUsesQuartoGamesman;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00164}00164\ \textcolor{keyword}{extern}\ BOOLEAN\ kExclusivelyTierGamesman;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00165}00165\ \textcolor{keyword}{extern}\ BOOLEAN\ kDebugTierMenu;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00166}00166\ \textcolor{keyword}{extern}\ TIERPOSITION\ gInitialTierPosition;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00167}00167\ \textcolor{keyword}{extern}\ TIER\ gInitialTier;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00168}00168\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (*gTierChildrenFunPtr)(TIER);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00169}00169\ \textcolor{keyword}{extern}\ TIERPOSITION\ (*gNumberOfTierPositionsFunPtr)(TIER);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00170}00170\ \textcolor{keyword}{extern}\ void\ (*gGetInitialTierPositionFunPtr)(TIER*,TIERPOSITION*);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00171}00171\ \textcolor{keyword}{extern}\ BOOLEAN\ (*gIsLegalFunPtr)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00172}00172\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ \ \ \ (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00173}00173\ \textcolor{keyword}{extern}\ POSITION\ (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00174}00174\ \textcolor{keyword}{extern}\ STRING\ (*gTierToStringFunPtr)(TIER);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00175}00175\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*\ (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,\mbox{\hyperlink{structmovelist__item}{MOVELIST}}*,\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00176}00176\ \textcolor{comment}{//\ For\ the\ experimental\ GenerateMoves}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00177}00177\ \textcolor{keyword}{extern}\ int\ (*gGenerateMovesEfficientFunPtr)(POSITION);}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00178}00178\ \textcolor{keyword}{extern}\ MOVE*\ \ \ \ \ \ \ \ \ \ \ \ gGenerateMovesArray;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00179}00179\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ MAXFANOUT;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00181}00181\ \textcolor{comment}{/*\ Variables\ for\ the\ parallelized\ solver\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00182}00182\ \textcolor{keyword}{extern}\ BOOLEAN\ gParallelizing;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00184}00184\ \textcolor{comment}{/*\ Tcl\ interp\ for\ making\ calls\ to\ Tcl\_Eval\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00185}00185\ \textcolor{keyword}{extern}\ Tcl\_Interp*\ \ \ \ \ \ \ \ \ \ \ \ \ \ gTclInterp;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00187}00187\ \textcolor{comment}{/*\ Anoto\ Pen\ support\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00188}00188\ \textcolor{keyword}{extern}\ STRING\ gPenFile;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00189}00189\ \textcolor{keyword}{extern}\ BOOLEAN\ gPenDebug;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00191}00191\ \textcolor{comment}{/*\ Loopy\ Analysis\ */}}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00192}00192\ \textcolor{keyword}{extern}\ BOOLEAN\ gPure;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00193}00193\ \textcolor{keyword}{extern}\ BOOLEAN\ gCheckPure;}
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{globals_8h_source_l00196}00196\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_GLOBALS\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

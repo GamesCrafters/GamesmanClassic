@@ -1,0 +1,190 @@
+\hypertarget{levelfile__test_8c_source}{}\doxysection{levelfile\+\_\+test.\+c}
+\label{levelfile__test_8c_source}\index{src/core/levelfile\_test.c@{src/core/levelfile\_test.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ levelfile\_test.c}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ \ \ \ Level\ File\ Generation\ and\ Access\ Functions\ test}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ Deepa\ Mahajan}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ \ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ 2006-\/07-\/20}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00013}00013\ \textcolor{comment}{**\ LICENSE:\ \ \ \ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00016}00016\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00017}00017\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00018}00018\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00019}00019\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00020}00020\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00021}00021\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00022}00022\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00023}00023\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00024}00024\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00025}00025\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00026}00026\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00027}00027\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00028}00028\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00029}00029\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00030}00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00031}00031\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}levelfile\_generator.h"{}}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00034}00034\ \textcolor{keywordtype}{int}\ main(\textcolor{keywordtype}{int}\ argc,\ \textcolor{keywordtype}{char}\ **argv)}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00035}00035\ \{}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00036}00036\ \ \ \ \ \textcolor{comment}{//File\ stuff}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00037}00037\ \ \ \ \ \textcolor{keywordtype}{char}\ compressedFileName[80]\ =\ \textcolor{stringliteral}{"{}./test/game\_opt\_tier.dat.gz"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00038}00038\ \ \ \ \ \textcolor{keywordtype}{char}\ compressedFileName0[80]\ =\ \textcolor{stringliteral}{"{}./test/game\_opt\_tier\_0.dat.gz"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00039}00039\ \ \ \ \ \textcolor{keywordtype}{char}\ compressedFileName1[80]\ =\ \textcolor{stringliteral}{"{}./test/game\_opt\_tier\_1.dat.gz"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00040}00040\ \ \ \ \ \textcolor{keywordtype}{char}\ compressedFileName2[80]\ =\ \textcolor{stringliteral}{"{}./test/game\_opt\_tier\_2.dat.gz"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00041}00041\ \ \ \ \ \textcolor{keywordtype}{char}\ compressedFileName3[80]\ =\ \textcolor{stringliteral}{"{}./test/game\_opt\_tier\_3.dat.gz"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00043}00043\ \ \ \ \ \textcolor{keywordtype}{char}\ textFileName0[80]=\textcolor{stringliteral}{"{}./test/game\_opt\_tier\_0.txt"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00044}00044\ \ \ \ \ \textcolor{keywordtype}{char}\ textFileName1[80]=\textcolor{stringliteral}{"{}./test/game\_opt\_tier\_1.txt"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00045}00045\ \ \ \ \ \textcolor{keywordtype}{char}\ textFileName2[80]=\textcolor{stringliteral}{"{}./test/game\_opt\_tier\_2.txt"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00046}00046\ \ \ \ \ \textcolor{keywordtype}{char}\ textFileName3[80]=\textcolor{stringliteral}{"{}./test/game\_opt\_tier\_3.txt"{}};}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00047}00047\ \ \ \ \ gzFile*\ compressed\_fp;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00048}00048\ \ \ \ \ FILE*\ text\_fp;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00050}00050\ \textcolor{comment}{//\ \ \ \ \ char\ game[10]\ =\ sprintf("{}\%s"{},gameName);}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00051}00051\ \textcolor{comment}{//\ \ char\ opt[4]\ =\ sprintf("{}\%d"{},optName);}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00052}00052\ \textcolor{comment}{//\ \ char\ tier[6]\ =\ sprintf("{}\%d"{},tierName);}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00053}00053\ \textcolor{comment}{//\ \ \ \ \ fileName\ =\ game\ +\ "{}\_"{}\ +\ opt\ +\ "{}\_"{}\ +\ tier\ +\ "{}.dat.gz"{};}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00055}00055\ \textcolor{comment}{}\textcolor{comment}{//File\ input}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00056}00056\ \ \ \ \ BITARRAY*\ compressedValues\ =\ (BITARRAY*)\ malloc(\textcolor{keyword}{sizeof}(BITARRAY)*2);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00057}00057\ \ \ \ \ BITARRAY*\ buffer\ =\ (BITARRAY*)malloc(\textcolor{keyword}{sizeof}(BITARRAY)*1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00058}00058\ \ \ \ \ POSITION\ startIndex,\ endIndex;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00059}00059\ \ \ \ \ GMSTATUS\ status\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00061}00061\ \ \ \ \ \textcolor{comment}{//file\ read}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00062}00062\ \ \ \ \ \textcolor{keywordtype}{int}\ numRead\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00064}00064\ \ \ \ \ \textcolor{comment}{//array\ values}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00065}00065\ \ \ \ \ *compressedValues\ =\ 0x4F;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//0100\ 1111\ \ \ -\/>11\ ,\ 14,\ 15,\ 16,\ 17}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00066}00066\ \ \ \ \ *(compressedValues+1)\ \ =\ 0x00;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//0000\ 0000\ -\/>\ 21\ 22\ 24\ 25}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00067}00067\ \ \ \ \ startIndex\ =\ 10;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00068}00068\ \ \ \ \ endIndex\ =\ 30;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00069}00069\ \textcolor{comment}{//\ Write\ all\ Types}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00070}00070\ \ \ \ \ status\ =\ WriteLevelFile(compressedFileName,\ compressedValues,\ startIndex,\ endIndex);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00071}00071\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Compressed\ All\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00072}00072\ \textcolor{comment}{//\ Type\ 0\ Text}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00073}00073\ \ \ \ \ compressed\_fp\ =\ gzopen(compressedFileName0,\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00074}00074\ \ \ \ \ text\_fp\ =\ fopen(textFileName0,\ \textcolor{stringliteral}{"{}wb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00076}00076\ \ \ \ \ \textcolor{comment}{//read\ from\ compressed\ file\ and\ write\ to\ text\ file}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{while}\ ((numRead\ =\ gzread(compressed\_fp,\ buffer,\ \textcolor{keyword}{sizeof}(buffer)))\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00078}00078\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00079}00079\ \textcolor{comment}{//\ \ \ \ \ \ \ \ printf("{}write"{});}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ fwrite(buffer,\ 1,\ numRead,\ text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00081}00081\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00082}00082\ \ \ \ \ gzclose(compressed\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00083}00083\ \ \ \ \ fclose(text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00084}00084\ \ \ \ \ printf(\textcolor{stringliteral}{"{}0:\ Decompressed\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00086}00086\ \textcolor{comment}{//\ Type\ 0\ Read}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00087}00087\ \ \ \ \ \textcolor{keywordtype}{int}\ type\ =\ getLevelFileType(compressedFileName0);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00088}00088\ \ \ \ \ \textcolor{keywordtype}{int}\ minHashValue\ =\ getLevelFileMinHashValue(compressedFileName0);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00089}00089\ \ \ \ \ \textcolor{keywordtype}{int}\ maxHashValue\ =\ getLevelFileMaxHashValue(compressedFileName0);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00090}00090\ \ \ \ \ \textcolor{keywordtype}{int}\ bitsPerPosition\ =\ getLevelFileBitsPerPosition(compressedFileName0);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00091}00091\ \ \ \ \ printf(\textcolor{stringliteral}{"{}0:\ This\ is\ type\ \%d\ and\ min\ value\ \%d\ max\ value\ \%d\ \ bpp\ \%d\(\backslash\)n"{}},\ type,\ minHashValue,\ maxHashValue,\ bitsPerPosition);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00092}00092\ \ \ \ \ BITARRAY*\ answer\ =\ (BYTE\ *)\ malloc(\textcolor{keyword}{sizeof}(BYTE)\ *\ (ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1));}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00093}00093\ \ \ \ \ printf(\textcolor{stringliteral}{"{}0:\ Beginning\ Read\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00094}00094\ \ \ \ \ ReadLevelFile(compressedFileName0,\ answer,\ maxHashValue-\/minHashValue);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00095}00095\ \ \ \ \ printf(\textcolor{stringliteral}{"{}0:\ Read\(\backslash\)n0:\ The\ bit\ string\ is\ :\ \(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00096}00096\ \ \ \ \ bitlib\_print\_bytes\_in\_bits(answer,\ ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00097}00097\ \ \ \ \ printf(\textcolor{stringliteral}{"{}0:\ Printed\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00099}00099\ \textcolor{comment}{//\ Type\ 1\ Text}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00100}00100\ \ \ \ \ compressed\_fp\ =\ gzopen(compressedFileName1,\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00101}00101\ \ \ \ \ text\_fp\ =\ fopen(textFileName1,\ \textcolor{stringliteral}{"{}wb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00103}00103\ \ \ \ \ \textcolor{comment}{//read\ from\ compressed\ file\ and\ write\ to\ text\ file}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{while}\ ((numRead\ =\ gzread(compressed\_fp,\ buffer,\ \textcolor{keyword}{sizeof}(buffer)))\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00105}00105\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00106}00106\ \textcolor{comment}{//\ \ \ \ \ \ \ \ printf("{}write"{});}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ fwrite(buffer,\ 1,\ numRead,\ text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00108}00108\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00109}00109\ \ \ \ \ gzclose(compressed\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00110}00110\ \ \ \ \ fclose(text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00111}00111\ \ \ \ \ printf(\textcolor{stringliteral}{"{}1:\ Decompressed\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00113}00113\ \textcolor{comment}{//\ Type\ 1\ Read}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00114}00114\ \ \ \ \ type\ =\ getLevelFileType(compressedFileName1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00115}00115\ \ \ \ \ minHashValue\ =\ getLevelFileMinHashValue(compressedFileName1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00116}00116\ \ \ \ \ maxHashValue\ =\ getLevelFileMaxHashValue(compressedFileName1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00117}00117\ \ \ \ \ bitsPerPosition\ =\ getLevelFileBitsPerPosition(compressedFileName1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00118}00118\ \ \ \ \ printf(\textcolor{stringliteral}{"{}1:\ This\ is\ type\ \%d\ and\ min\ value\ \%d\ max\ value\ \%d\ \ bpp\ \%d\(\backslash\)n"{}},\ type,\ minHashValue,\ maxHashValue,\ bitsPerPosition);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00119}00119\ \ \ \ \ answer\ =\ (BYTE\ *)\ malloc(\textcolor{keyword}{sizeof}(BYTE)\ *\ (ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1));}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00121}00121\ \ \ \ \ ReadLevelFile(compressedFileName1,\ answer,\ maxHashValue-\/minHashValue);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00122}00122\ \ \ \ \ printf(\textcolor{stringliteral}{"{}1:\ Read\(\backslash\)n1:\ The\ bit\ string\ is\ :\ \(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00123}00123\ \ \ \ \ bitlib\_print\_bytes\_in\_bits(answer,\ ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00124}00124\ \ \ \ \ printf(\textcolor{stringliteral}{"{}1:\ Printed\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00126}00126\ \textcolor{comment}{//\ Type\ 2\ Text}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00127}00127\ \ \ \ \ compressed\_fp\ =\ gzopen(compressedFileName2,\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00128}00128\ \ \ \ \ text\_fp\ =\ fopen(textFileName2,\ \textcolor{stringliteral}{"{}wb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00130}00130\ \ \ \ \ \textcolor{comment}{//read\ from\ compressed\ file\ and\ write\ to\ text\ file}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{while}\ ((numRead\ =\ gzread(compressed\_fp,\ buffer,\ \textcolor{keyword}{sizeof}(buffer)))\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00132}00132\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00133}00133\ \textcolor{comment}{//\ \ \ \ \ \ \ \ printf("{}write"{});}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ fwrite(buffer,\ 1,\ numRead,\ text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00135}00135\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00136}00136\ \ \ \ \ gzclose(compressed\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00137}00137\ \ \ \ \ fclose(text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00138}00138\ \ \ \ \ printf(\textcolor{stringliteral}{"{}2:\ Decompressed\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00140}00140\ \textcolor{comment}{//\ Type\ 2\ Read}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00141}00141\ \ \ \ \ type\ =\ getLevelFileType(compressedFileName2);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00142}00142\ \ \ \ \ minHashValue\ =\ getLevelFileMinHashValue(compressedFileName2);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00143}00143\ \ \ \ \ maxHashValue\ =\ getLevelFileMaxHashValue(compressedFileName2);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00144}00144\ \ \ \ \ bitsPerPosition\ =\ getLevelFileBitsPerPosition(compressedFileName2);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00145}00145\ \ \ \ \ printf(\textcolor{stringliteral}{"{}2:\ This\ is\ type\ \%d\ and\ min\ value\ \%d\ max\ value\ \%d\ \ bpp\ \%d\(\backslash\)n"{}},\ type,\ minHashValue,\ maxHashValue,\ bitsPerPosition);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00146}00146\ \ \ \ \ answer\ =\ (BYTE\ *)\ malloc(\textcolor{keyword}{sizeof}(BYTE)\ *\ (ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1));}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00148}00148\ \ \ \ \ ReadLevelFile(compressedFileName2,\ answer,\ maxHashValue-\/minHashValue);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00149}00149\ \ \ \ \ printf(\textcolor{stringliteral}{"{}2:\ Read\(\backslash\)n2:\ The\ bit\ string\ is\ :\ \(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00150}00150\ \ \ \ \ bitlib\_print\_bytes\_in\_bits(answer,\ ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00151}00151\ \ \ \ \ printf(\textcolor{stringliteral}{"{}2:\ Printed\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00153}00153\ \textcolor{comment}{//\ Type\ 3\ Text}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00154}00154\ \ \ \ \ compressed\_fp\ =\ gzopen(compressedFileName3,\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00155}00155\ \ \ \ \ text\_fp\ =\ fopen(textFileName3,\ \textcolor{stringliteral}{"{}wb"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00157}00157\ \ \ \ \ \textcolor{comment}{//read\ from\ compressed\ file\ and\ write\ to\ text\ file}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00158}00158\ \ \ \ \ \textcolor{keywordflow}{while}\ ((numRead\ =\ gzread(compressed\_fp,\ buffer,\ \textcolor{keyword}{sizeof}(buffer)))\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00159}00159\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00160}00160\ \textcolor{comment}{//\ \ \ \ \ \ \ \ printf("{}write"{});}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ fwrite(buffer,\ 1,\ numRead,\ text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00162}00162\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00163}00163\ \ \ \ \ gzclose(compressed\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00164}00164\ \ \ \ \ fclose(text\_fp);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00165}00165\ \ \ \ \ printf(\textcolor{stringliteral}{"{}3:\ Decompressed\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00167}00167\ \textcolor{comment}{//\ Type\ 3\ Read}}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00168}00168\ \ \ \ \ type\ =\ getLevelFileType(compressedFileName3);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00169}00169\ \ \ \ \ minHashValue\ =\ getLevelFileMinHashValue(compressedFileName3);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00170}00170\ \ \ \ \ maxHashValue\ =\ getLevelFileMaxHashValue(compressedFileName3);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00171}00171\ \ \ \ \ bitsPerPosition\ =\ getLevelFileBitsPerPosition(compressedFileName3);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00172}00172\ \ \ \ \ printf(\textcolor{stringliteral}{"{}3:\ This\ is\ type\ \%d\ and\ min\ value\ \%d\ max\ value\ \%d\ \ bpp\ \%d\(\backslash\)n"{}},\ type,\ minHashValue,\ maxHashValue,\ bitsPerPosition);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00173}00173\ \ \ \ \ answer\ =\ (BYTE\ *)\ malloc(\textcolor{keyword}{sizeof}(BYTE)\ *\ (ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1));}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00175}00175\ \ \ \ \ ReadLevelFile(compressedFileName3,\ answer,\ maxHashValue-\/minHashValue);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00176}00176\ \ \ \ \ printf(\textcolor{stringliteral}{"{}3:\ Read\(\backslash\)n3:\ The\ bit\ string\ is\ :\ \(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00177}00177\ \ \ \ \ bitlib\_print\_bytes\_in\_bits(answer,\ ceil((maxHashValue\ -\/\ minHashValue)\ /\ 8)+1);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00178}00178\ \ \ \ \ printf(\textcolor{stringliteral}{"{}3:\ Printed\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00180}00180\ \ \ \ \ printf(\textcolor{stringliteral}{"{}These\ are\ valid\ \%d,\ \%d,\ \%d,\ \%d"{}},\ isValidLevelFile(compressedFileName0),\ isValidLevelFile(compressedFileName1),\ isValidLevelFile(compressedFileName2),\ isValidLevelFile(compressedFileName3));}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00183}00183\ \ \ \ \ \textcolor{keywordflow}{if}(answer)}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ free(answer);}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00185}00185\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{levelfile__test_8c_source_l00186}00186\ \}}
+
+\end{DoxyCode}

@@ -1,0 +1,51 @@
+\hypertarget{gamesman_8py_source}{}\doxysection{gamesman.\+py}
+\label{gamesman_8py_source}\index{src/gamesman.py@{src/gamesman.py}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00001}00001\ \textcolor{keyword}{import}\ sys}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00002}00002\ \textcolor{keyword}{import}\ pygamesman}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00003}00003\ \textcolor{keyword}{from}\ pygamesman\ \textcolor{keyword}{import}\ export}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00005}00005\ win\ =\ 0}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00006}00006\ lose\ =\ 1}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00007}00007\ tie\ =\ 2}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00008}00008\ undecided\ =\ 3}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00010}\mbox{\hyperlink{classgamesman_1_1_game}{00010}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classgamesman_1_1_game}{Game}}:}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00011}00011\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00012}00012\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self):}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00013}00013\ \ \ \ \ \ \ \ \ pygamesman.export(}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00014}00014\ \ \ \ \ \ \ \ \ \ \ \ \ gInitialPosition\ =\ long(self.gInitialPosition),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00015}00015\ \ \ \ \ \ \ \ \ \ \ \ \ gNumberOfPositions\ =\ long(self.gNumberOfPositions),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00016}00016\ \ \ \ \ \ \ \ \ \ \ \ \ kBadPosition\ =\ long(self.kBadPosition),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00017}00017\ \ \ \ \ \ \ \ \ \ \ \ \ kGameSpecificMenu\ =\ bool(self.kGameSpecificMenu),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00018}00018\ \ \ \ \ \ \ \ \ \ \ \ \ kPartizan\ =\ bool(self.kPartizan),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00019}00019\ \ \ \ \ \ \ \ \ \ \ \ \ kDebugMenu\ =\ bool(self.kDebugMenu),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00020}00020\ \ \ \ \ \ \ \ \ \ \ \ \ kTieIsPossible\ =\ bool(self.kTieIsPossible),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00021}00021\ \ \ \ \ \ \ \ \ \ \ \ \ kLoopy\ =\ bool(self.kLoopy),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00022}00022\ \ \ \ \ \ \ \ \ \ \ \ \ kDebugDetermineValue\ =\ bool(self.kDebugDetermineValue),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00023}00023\ \ \ \ \ \ \ \ \ \ \ \ \ kAuthorName\ =\ str(self.kAuthorName),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00024}00024\ \ \ \ \ \ \ \ \ \ \ \ \ kGameName\ =\ str(self.kGameName),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00025}00025\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpGraphicInterface\ =\ str(self.kHelpGraphicInterface),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpTextInterface\ =\ str(self.kHelpTextInterface),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpOnYourTurn\ =\ str(self.kHelpOnYourTurn),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpStandardObjective\ =\ str(self.kHelpStandardObjective),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpReverseObjective\ =\ str(self.kHelpReverseObjective),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpTieOccursWhen\ =\ str(self.kHelpTieOccursWhen),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpExample\ =\ str(self.kHelpExample),}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ \ \ \ \ kDBName\ =\ str(self.kDBName))}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Import\ psyco\ for\ JIT\ compilation,\ if\ available}}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ psyco}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ \ \ \ \ psyco.full()}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ pygamesman.initialize(sys.argv,\ self.\mbox{\hyperlink{classgamesman_1_1_game_a85e9ed0c7b7bfb82bb9b6e3ecf7abb7a}{call}})}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00041}00041\ \ \ \ \ \textcolor{keyword}{def\ }call(self,\ name,\ *args):}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ apply(getattr(self,\ name),\ args)}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00043}00043\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00044}00044\ \ \ \ \ \textcolor{keyword}{def\ }InitializeGame(self):}
+\DoxyCodeLine{\Hypertarget{gamesman_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+
+\end{DoxyCode}

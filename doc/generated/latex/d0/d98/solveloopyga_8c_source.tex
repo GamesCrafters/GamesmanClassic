@@ -1,0 +1,394 @@
+\hypertarget{solveloopyga_8c_source}{}\doxysection{solveloopyga.\+c}
+\label{solveloopyga_8c_source}\index{src/core/solveloopyga.c@{src/core/solveloopyga.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ solveloopyga.c}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Go-\/again\ loopy\ solver}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ Bryon\ Ross}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00013}00013\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00016}00016\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00017}00017\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00018}00018\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00019}00019\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00020}00020\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00021}00021\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00022}00022\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00023}00023\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00024}00024\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00025}00025\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00026}00026\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00027}00027\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00028}00028\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00029}00029\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00030}00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00031}00031\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}solveloopyga.h"{}}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00035}00035\ \textcolor{preprocessor}{\#include\ "{}solveloopy.h"{}}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00038}00038\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00039}00039\ \textcolor{comment}{**\ Local\ types}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00040}00040\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00042}\mbox{\hyperlink{structlgas__position__move__list}{00042}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlgas__position__move__list}{lgas\_position\_move\_list}}\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00043}00043\ \ \ \ \ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00044}00044\ \ \ \ \ MOVE\ move;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00045}00045\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlgas__position__move__list}{lgas\_position\_move\_list}}*\ next;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00046}00046\ \}\ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00049}00049\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00050}00050\ \textcolor{comment}{**\ Local\ variables}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00051}00051\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00053}00053\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}**\ lgas\_gParents\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00056}00056\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00057}00057\ \textcolor{comment}{**\ Local\ function\ prototypes}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00058}00058\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00060}00060\ VALUE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lgas\_DetermineValue(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00061}00061\ \textcolor{keyword}{static}\ VALUE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lgas\_DetermineLoopyValue1(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00062}00062\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ \ \ \ \ \ \ \ CreatePositionMoveNode(POSITION\ position,\ MOVE\ move,\ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ next);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00063}00063\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lgas\_SetParents\ (POSITION\ parent,\ POSITION\ root);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00064}00064\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreePositionMoveList(\mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ posmovelist);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00065}00065\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lgas\_ParentInitialize();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00066}00066\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lgas\_ParentFree();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00069}00069\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00070}00070\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00071}00071\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00073}00073\ VALUE\ lgas\_DetermineValue(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00074}00074\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00075}00075\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00077}00077\ \ \ \ \ \textcolor{comment}{/*\ initialize\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00078}00078\ \ \ \ \ InitializeFR();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00079}00079\ \ \ \ \ lgas\_ParentInitialize();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00080}00080\ \ \ \ \ NumberChildrenInitialize();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00082}00082\ \ \ \ \ value\ =\ lgas\_DetermineLoopyValue1(position);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00084}00084\ \ \ \ \ \textcolor{comment}{/*\ free\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00085}00085\ \ \ \ \ NumberChildrenFree();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00086}00086\ \ \ \ \ lgas\_ParentFree();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00087}00087\ \ \ \ \ SaveDatabase();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00090}00090\ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00093}00093\ VALUE\ lgas\_DetermineLoopyValue1(position)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00094}00094\ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00095}00095\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00096}00096\ \ \ \ \ POSITION\ child=kBadPosition,\ parent;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00097}00097\ \ \ \ \ MOVE\ move;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00098}00098\ \ \ \ \ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}\ *ptr;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00099}00099\ \ \ \ \ VALUE\ childValue,\ adjustedChildValue;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00100}00100\ \ \ \ \ REMOTENESS\ remotenessChild;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00101}00101\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00103}00103\ \ \ \ \ \textcolor{comment}{/*\ Do\ DFS\ to\ set\ up\ Parent\ pointers\ and\ initialize\ KnownList\ w/Primitives\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00107}00107\ \ \ \ \ lgas\_SetParents(kBadPosition,position);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Number\ of\ Positions\ =\ ["{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}]\(\backslash\)n"{}},gNumberOfPositions);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ MyPrintParents();}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{comment}{//MyPrintFR();}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00116}00116\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00118}00118\ \ \ \ \ \textcolor{comment}{/*\ Now,\ the\ fun\ part.\ Starting\ from\ the\ children,\ work\ your\ way\ back\ up.\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00119}00119\ \ \ \ \ \textcolor{comment}{//@@\ separate\ lose/win\ frontiers}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00120}00120\ \ \ \ \ \textcolor{keywordflow}{while}\ ((gHeadLoseFR\ !=\ NULL)\ ||}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ (gHeadWinFR\ !=\ NULL))\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((child\ =\ DeQueueLoseFR())\ ==\ kBadPosition)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ DeQueueWinFR();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Might\ as\ well\ grab\ these\ now,\ they'll\ be\ used\ later\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ childValue\ =\ GetValueOfPosition(child);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ remotenessChild\ =\ Remoteness(child);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ debugging,\ print\ who's\ in\ list\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Grabbing\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ remoteness\ =\ \%d\ off\ of\ FR\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child,gValueString[childValue],remotenessChild);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ ptr\ =\ lgas\_gParents[child];}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ With\ losing\ children,\ every\ parent\ is\ winning,\ so\ we\ just\ go\ through}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00137}00137\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ all\ the\ parents\ and\ declare\ them\ winning\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ parent\ =\ ptr-\/>position;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ move\ =\ ptr-\/>move;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (parent\ !=\ kBadPosition\ \&\&\ gGoAgain(parent,move))\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(childValue)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:\ \ adjustedChildValue\ =\ lose;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:\ adjustedChildValue\ =\ win;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ adjustedChildValue\ =\ childValue;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ adjustedChildValue\ =\ childValue;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (adjustedChildValue\ ==\ lose)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Skip\ if\ this\ is\ the\ initial\ position\ (parent\ is\ kBadPosition)\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (parent\ !=\ kBadPosition)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (GetValueOfPosition(parent)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ is\ the\ first\ time\ we\ know\ the\ parent\ is\ a\ win\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InsertWinFR(parent);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ printf(\textcolor{stringliteral}{"{}Inserting\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ remoteness\ =\ \%d\ into\ win\ FR\(\backslash\)n"{}},parent,\textcolor{stringliteral}{"{}win"{}},remotenessChild+1);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(parent,\ remotenessChild\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(parent,win);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ We\ already\ know\ the\ parent\ is\ a\ winning\ position.\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (GetValueOfPosition(parent)\ !=\ win)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ should\ be\ win.\ \ Instead\ it\ is\ \%d."{}},\ parent,\ GetValueOfPosition(parent));}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}lgas\_DetermineValue"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00173}00173\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{comment}{/*\ while\ there\ are\ still\ parents\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ With\ winning\ children\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (adjustedChildValue\ ==\ win)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Skip\ if\ this\ is\ the\ initial\ position\ (parent\ is\ kBadPosition)\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ this\ is\ the\ last\ unknown\ child\ and\ they\ were\ all\ wins,\ parent\ is\ lose\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(parent\ !=\ kBadPosition\ \&\&\ -\/-\/gNumberChildren[parent]\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ no\ more\ kids,\ it's\ not\ been\ seen\ before,\ assign\ it\ as\ losing,\ put\ at\ head\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assert(GetValueOfPosition(parent)\ ==\ undecided);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InsertLoseFR(parent);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ printf(\textcolor{stringliteral}{"{}Inserting\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ into\ FR\ head\(\backslash\)n"{}},parent,\textcolor{stringliteral}{"{}lose"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ We\ always\ need\ to\ change\ the\ remoteness\ because\ we\ examine\ winning\ node\ with}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00189}00189\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **\ less\ remoteness\ first.\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(parent,\ remotenessChild\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(parent,lose);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}lgas\_DetermineValue\ found\ FR\ member\ with\ other\ than\ win/lose\ value"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00196}00196\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \}\ \textcolor{comment}{/*\ With\ children\ set\ to\ other\ than\ win/lose.\ So\ stop\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ We\ are\ done\ with\ this\ position\ and\ no\ longer\ need\ to\ keep\ around\ its\ list\ of\ parents}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00201}00201\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ The\ tie\ frontier\ will\ not\ need\ this,\ either,\ because\ this\ child's\ value\ has\ already}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00202}00202\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ been\ determined.\ \ It\ cannot\ be\ a\ tie.\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ FreePositionMoveList(lgas\_gParents[child]);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ lgas\_gParents[child]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00206}00206\ \ \ \ \ \}\ \textcolor{comment}{/*\ while\ still\ positions\ in\ FR\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00207}00207\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00208}00208\ \ \ \ \ \textcolor{comment}{/*\ Now\ process\ the\ tie\ frontier\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00210}00210\ \ \ \ \ \textcolor{keywordflow}{while}(gHeadTieFR\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ child\ =\ DeQueueTieFR();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ remotenessChild\ =\ Remoteness(child);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ ptr\ =\ lgas\_gParents[child];}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ parent\ =\ ptr-\/>position;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(GetValueOfPosition(parent)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ this\ position\ has\ no\ losing\ children\ but\ has\ a\ tieing\ position\ so\ it\ must\ be\ a}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00221}00221\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ tie.\ Assign\ its\ value\ and\ set\ its\ remoteness.\ \ Note\ that}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00222}00222\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ we\ give\ ties\ with\ lowest\ remoteness\ priority\ (i.e.\ if\ a}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00223}00223\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ position\ has\ no\ losing\ children,\ a\ tieing\ child\ of}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00224}00224\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ remoteness\ 2,\ and\ a\ tieing\ child\ of\ remoteness\ 10,\ the}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00225}00225\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ position\ will\ be\ a\ tie\ of\ remoteness\ 3,\ not\ 11.\ \ This}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00226}00226\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ decision\ is\ pretty\ arbitrary.\ \ We\ did\ it\ this\ way\ to\ be}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00227}00227\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ consistent\ with\ DetermineValue\ for\ non-\/loopy\ games.\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InsertTieFR(parent);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ printf(\textcolor{stringliteral}{"{}Inserting\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ remoteness\ =\ \%d\ into\ win\ FR\(\backslash\)n"{}},parent,\textcolor{stringliteral}{"{}tie"{}},remotenessChild+1);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(parent,\ remotenessChild\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(parent,tie);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ FreePositionMoveList(lgas\_gParents[child]);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ lgas\_gParents[child]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00238}00238\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00240}00240\ \ \ \ \ \textcolor{comment}{/*\ Now\ set\ all\ remaining\ positions\ to\ tie\ with\ remoteness\ of\ REMOTENESS\_MAX\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00241}00241\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00242}00242\ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{comment}{//MyPrintFR();}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00245}00245\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ MyPrintParents();}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00247}00247\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00248}00248\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}TIE\ cleanup\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00249}00249\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00251}00251\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00252}00252\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Visited(i))\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ was\ visited..."{}},i);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(GetValueOfPosition((POSITION)i)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness((POSITION)i,REMOTENESS\_MAX);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition((POSITION)i,tie);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00258}00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ are\ done\ with\ this\ position\ and\ no\ longer\ need\ to\ keep\ around\ its\ list\ of\ parents}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (lgas\_gParents[child])\ FreePositionMoveList(lgas\_gParents[child]);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}and\ was\ undecided,\ setting\ to\ tie\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}but\ was\ decided,\ ignoring\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ UnMarkAsVisited((POSITION)i);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00268}00268\ \ \ \ \ \textcolor{keywordflow}{return}(GetValueOfPosition(position));}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00269}00269\ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00272}00272\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00273}00273\ \textcolor{comment}{**\ Requires:\ the\ root\ has\ not\ been\ visited\ yet}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00274}00274\ \textcolor{comment}{**\ (We\ do\ not\ check\ to\ see\ if\ its\ been\ visited)}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00275}00275\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00277}00277\ \textcolor{keywordtype}{void}\ lgas\_SetParents\ (POSITION\ parent,\ POSITION\ root)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00278}00278\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00279}00279\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ moveptr,\ *\ movehead;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00280}00280\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ posptr,\ *\ thisLevel,\ *\ nextLevel;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00281}00281\ \ \ \ \ POSITION\ pos,\ child;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00282}00282\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00283}00283\ \ \ \ \ MOVE\ move\ =\ -\/1;\ \textcolor{comment}{/*\ initialized\ to\ dummy\ value\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00285}00285\ \ \ \ \ posptr\ =\ thisLevel\ =\ nextLevel\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00286}00286\ \ \ \ \ moveptr\ =\ movehead\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00287}00287\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00288}00288\ \ \ \ \ \textcolor{comment}{//\ Check\ if\ the\ top\ is\ primitive.}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00289}00289\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00290}00290\ \ \ \ \ MarkAsVisited(root);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00291}00291\ \ \ \ \ lgas\_gParents[root]\ =\ CreatePositionMoveNode(parent,\ move,\ lgas\_gParents[root]);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00292}00292\ \ \ \ \ \textcolor{keywordflow}{if}\ ((value\ =\ Primitive(root))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ SetRemoteness(root,\ 0);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (value)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:\ InsertLoseFR(root);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:\ \ InsertWinFR(root);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ tie:\ \ InsertTieFR(root);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ BadElse(\textcolor{stringliteral}{"{}lgas\_SetParents\ found\ primitive\ with\ value\ other\ than\ win/lose/tie"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00299}00299\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ StoreValueOfPosition(root,\ value);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00303}00303\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00304}00304\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00305}00305\ \ \ \ \ thisLevel\ =\ StorePositionInList(root,\ thisLevel);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00306}00306\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00307}00307\ \ \ \ \ \textcolor{keywordflow}{while}\ (thisLevel\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00308}00308\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (posptr\ =\ thisLevel;\ posptr\ !=\ NULL;\ posptr\ =\ posptr-\/>next)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00309}00309\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ posptr-\/>position;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00310}00310\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ movehead\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00312}00312\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (moveptr\ =\ movehead;\ moveptr\ !=\ NULL;\ moveptr\ =\ moveptr-\/>next)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\ =\ moveptr-\/>move;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00315}00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ DoMove(pos,\ move);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00316}00316\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ++gNumberChildren[(int)pos];}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lgas\_gParents[(int)child]\ =\ CreatePositionMoveNode(pos,\ move,\ lgas\_gParents[(\textcolor{keywordtype}{int})child]);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00318}00318\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Visited(child))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MarkAsVisited(child);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((value\ =\ Primitive(child))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00323}00323\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(child,\ 0);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00324}00324\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (value)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00325}00325\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:\ InsertLoseFR(child);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00326}00326\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:\ InsertWinFR(child);\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00327}00327\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ tie:\ InsertTieFR(child);\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00328}00328\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ BadElse(\textcolor{stringliteral}{"{}lgas\_SetParents\ found\ bad\ primitive\ value"{}});}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00329}00329\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00330}00330\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(child,\ value);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00331}00331\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00332}00332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ nextLevel\ =\ StorePositionInList(child,\ nextLevel);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00333}00333\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00334}00334\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00335}00335\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00336}00336\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(movehead);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00337}00337\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00339}00339\ \ \ \ \ \ \ \ \ FreePositionList(thisLevel);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00340}00340\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00341}00341\ \ \ \ \ \ \ \ \ thisLevel\ =\ nextLevel;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00342}00342\ \ \ \ \ \ \ \ \ nextLevel\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00343}00343\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00344}00344\ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00345}00345\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00346}00346\ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ CreatePositionMoveNode(POSITION\ position,\ MOVE\ move,\ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ next)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00347}00347\ \ \ \ \ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ result;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00349}00349\ \ \ \ \ result\ =\ (\mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*)\ SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}));}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00350}00350\ \ \ \ \ result-\/>position\ =\ position;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00351}00351\ \ \ \ \ result-\/>move\ =\ move;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00352}00352\ \ \ \ \ result-\/>next\ =\ next;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00353}00353\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00354}00354\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00355}00355\ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00356}00356\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00358}00358\ \textcolor{keywordtype}{void}\ FreePositionMoveList(\mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ posmovelist)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00359}00359\ \ \ \ \ \mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}*\ tmp;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00360}00360\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00361}00361\ \ \ \ \ \textcolor{keywordflow}{while}(posmovelist\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00362}00362\ \ \ \ \ \ \ \ \ tmp\ =\ posmovelist;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00363}00363\ \ \ \ \ \ \ \ \ posmovelist\ =\ posmovelist-\/>next;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00364}00364\ \ \ \ \ \ \ \ \ SafeFree(tmp);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00365}00365\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00366}00366\ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00367}00367\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00368}00368\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00369}00369\ \textcolor{keywordtype}{void}\ lgas\_ParentInitialize()}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00370}00370\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00371}00371\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00372}00372\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00373}00373\ \ \ \ \ lgas\_gParents\ =\ (\mbox{\hyperlink{structlgas__position__move__list}{POSITIONMOVELIST}}\ **)\ SafeMalloc\ (gNumberOfPositions\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *));}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00374}00374\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00375}00375\ \ \ \ \ \ \ \ \ lgas\_gParents[i]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00376}00376\ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00377}00377\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00378}00378\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00379}00379\ \textcolor{keywordtype}{void}\ lgas\_ParentFree()}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00380}00380\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00381}00381\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00382}00382\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00383}00383\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00384}00384\ \ \ \ \ \ \ \ \ FreePositionMoveList(lgas\_gParents[i]);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00385}00385\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00386}00386\ }
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00387}00387\ \ \ \ \ SafeFree(lgas\_gParents);}
+\DoxyCodeLine{\Hypertarget{solveloopyga_8c_source_l00388}00388\ \}}
+
+\end{DoxyCode}

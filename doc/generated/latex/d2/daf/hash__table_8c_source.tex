@@ -1,0 +1,776 @@
+\hypertarget{hash__table_8c_source}{}\doxysection{hash\+\_\+table.\+c}
+\label{hash__table_8c_source}\index{src/core/text\_resource/hash\_table.c@{src/core/text\_resource/hash\_table.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00001}00001\ \textcolor{comment}{/*********************************************************************}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00002}00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00003}00003\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2001-\/2005,\ \ Simon\ Kagstrom}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00004}00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00005}00005\ \textcolor{comment}{\ *\ Filename:\ \ \ \ \ \ hash\_table.c}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00006}00006\ \textcolor{comment}{\ *\ Description:\ \ \ The\ implementation\ of\ the\ hash\ table\ (MK2).}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00007}00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00008}00008\ \textcolor{comment}{\ *\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00009}00009\ \textcolor{comment}{\ *\ modify\ it\ under\ the\ terms\ of\ the\ GNU\ Library\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00010}00010\ \textcolor{comment}{\ *\ as\ published\ by\ the\ Free\ Software\ Foundation;\ either\ version\ 2}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00011}00011\ \textcolor{comment}{\ *\ of\ the\ License,\ or\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00012}00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00013}00013\ \textcolor{comment}{\ *\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00014}00014\ \textcolor{comment}{\ *\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00015}00015\ \textcolor{comment}{\ *\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00016}00016\ \textcolor{comment}{\ *\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00017}00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00018}00018\ \textcolor{comment}{\ *\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ Library\ General\ Public}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00019}00019\ \textcolor{comment}{\ *\ License\ along\ with\ this\ program;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00020}00020\ \textcolor{comment}{\ *\ Foundation,\ Inc.,\ 59\ Temple\ Place\ -\/\ Suite\ 330,\ Boston,\ MA}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00021}00021\ \textcolor{comment}{\ *\ 02111-\/1307,\ USA.}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00022}00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00023}00023\ \textcolor{comment}{\ *\ \$Id:\ hash\_table.c,v\ 1.1\ 2008-\/05-\/22\ 02:37:58\ yjia2\ Exp\ \$}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00024}00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00025}00025\ \textcolor{comment}{\ ********************************************************************/}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00027}00027\ \textcolor{preprocessor}{\#include\ <stdlib.h>}\ \textcolor{comment}{/*\ malloc\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00028}00028\ \textcolor{preprocessor}{\#include\ <stdio.h>}\ \ \textcolor{comment}{/*\ perror\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00029}00029\ \textcolor{preprocessor}{\#include\ <errno.h>}\ \ \textcolor{comment}{/*\ errno\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00030}00030\ \textcolor{preprocessor}{\#include\ <string.h>}\ \textcolor{comment}{/*\ memcmp\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00031}00031\ \textcolor{preprocessor}{\#include\ <assert.h>}\ \textcolor{comment}{/*\ assert\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{ght__hash__table_8h}{ght\_hash\_table.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00035}00035\ \textcolor{preprocessor}{\#ifdef\ HAVE\_CONFIG\_H}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00036}00036\ \textcolor{preprocessor}{\#include\ "{}config.h"{}}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00037}00037\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00039}00039\ \textcolor{comment}{/*\ Flags\ for\ the\ elements.\ This\ is\ currently\ unused.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00040}00040\ \textcolor{preprocessor}{\#define\ FLAGS\_NONE\ \ \ \ \ 0\ }\textcolor{comment}{/*\ No\ flags\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00041}00041\ \textcolor{preprocessor}{\#define\ FLAGS\_NORMAL\ \ \ 0\ }\textcolor{comment}{/*\ Normal\ item.\ All\ user-\/inserted\ stuff\ is\ normal\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00042}00042\ \textcolor{preprocessor}{\#define\ FLAGS\_INTERNAL\ 1\ }\textcolor{comment}{/*\ The\ item\ is\ internal\ to\ the\ hash\ table\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00044}00044\ \textcolor{comment}{/*\ Prototypes\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00045}00045\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ transpose(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_bucket,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00046}00046\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_to\_front(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_bucket,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00047}00047\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ free\_entry\_chain(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00048}00048\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *search\_in\_bucket(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_bucket,\ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ *p\_key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ i\_heuristics);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00050}00050\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ hk\_fill(\mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ *p\_hk,\ \textcolor{keywordtype}{int}\ i\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00051}00051\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *he\_create(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \textcolor{keywordtype}{void}\ *p\_data,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_key\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key\_data);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00052}00052\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ he\_finalize(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_he);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00054}00054\ \textcolor{comment}{/*\ -\/-\/-\/\ private\ methods\ -\/-\/-\/\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00056}00056\ \textcolor{comment}{/*\ Move\ p\_entry\ one\ up\ in\ its\ list.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00057}00057\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ transpose(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_bucket,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00058}00058\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00059}00059\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00060}00060\ \textcolor{comment}{\ \ \ \ \ *\ \ \_\_\ \ \ \ \_\_\ \ \ \ \_\_\ \ \ \ \_\_}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00061}00061\ \textcolor{comment}{\ \ \ \ \ *\ |A\_|-\/>|X\_|-\/>|Y\_|-\/>|B\_|}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00062}00062\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ /}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00063}00063\ \textcolor{comment}{\ \ \ \ \ *\ =>\ \ \ \ \ \ \ \ p\_entry}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00064}00064\ \textcolor{comment}{\ \ \ \ \ *\ \ \_\_\ \ \ \ \_\_/\ \ \ \_\_\ \ \ \ \_\_}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00065}00065\ \textcolor{comment}{\ \ \ \ \ *\ |A\_|-\/>|Y\_|-\/>|X\_|-\/>|B\_|}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00066}00066\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00067}00067\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_entry-\/>p\_prev)\ \textcolor{comment}{/*\ Otherwise\ p\_entry\ is\ already\ first.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00068}00068\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_x\ =\ p\_entry-\/>p\_prev;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_a\ =\ p\_x\ ?\ p\_x-\/>p\_prev\ :\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00071}00071\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_b\ =\ p\_entry-\/>p\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_a)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ p\_a-\/>p\_next\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{/*\ This\ element\ is\ now\ placed\ first\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[l\_bucket]\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_b)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ p\_b-\/>p\_prev\ =\ p\_x;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_x)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ p\_x-\/>p\_next\ =\ p\_entry-\/>p\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ p\_x-\/>p\_prev\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ p\_entry-\/>p\_next\ =\ p\_x;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ p\_entry-\/>p\_prev\ =\ p\_a;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00093}00093\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00094}00094\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00096}00096\ \textcolor{comment}{/*\ Move\ p\_entry\ first\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00097}00097\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ move\_to\_front(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_bucket,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00098}00098\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00099}00099\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00100}00100\ \textcolor{comment}{\ \ \ \ \ *\ \ \_\_\ \ \ \ \_\_\ \ \ \ \_\_}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00101}00101\ \textcolor{comment}{\ \ \ \ \ *\ |A\_|-\/>|B\_|-\/>|X\_|}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00102}00102\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ /}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00103}00103\ \textcolor{comment}{\ \ \ \ \ *\ =>\ \ p\_entry}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00104}00104\ \textcolor{comment}{\ \ \ \ \ *\ \ \_\_/\ \ \ \_\_\ \ \ \ \_\_}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00105}00105\ \textcolor{comment}{\ \ \ \ \ *\ |X\_|-\/>|A\_|-\/>|B\_|}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00106}00106\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_entry\ ==\ p\_ht-\/>pp\_entries[l\_bucket])}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00108}00108\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00110}00110\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00112}00112\ \ \ \ \ \textcolor{comment}{/*\ Link\ p\_entry\ out\ of\ the\ list.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00113}00113\ \ \ \ \ p\_entry-\/>p\_prev-\/>p\_next\ =\ p\_entry-\/>p\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00114}00114\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_entry-\/>p\_next)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00115}00115\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ p\_entry-\/>p\_next-\/>p\_prev\ =\ p\_entry-\/>p\_prev;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00117}00117\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00119}00119\ \ \ \ \ \textcolor{comment}{/*\ Place\ p\_entry\ first\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00120}00120\ \ \ \ \ p\_entry-\/>p\_next\ =\ p\_ht-\/>pp\_entries[l\_bucket];}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00121}00121\ \ \ \ \ p\_entry-\/>p\_prev\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00122}00122\ \ \ \ \ p\_ht-\/>pp\_entries[l\_bucket]-\/>p\_prev\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00123}00123\ \ \ \ \ p\_ht-\/>pp\_entries[l\_bucket]\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00124}00124\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00126}00126\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ remove\_from\_chain(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_bucket,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00127}00127\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00128}00128\ \ \ \ \ \textcolor{keywordflow}{if}\ (p-\/>p\_prev)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00129}00129\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ p-\/>p\_prev-\/>p\_next\ =\ p-\/>p\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00131}00131\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00132}00132\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{/*\ first\ in\ list\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00133}00133\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[l\_bucket]\ =\ p-\/>p\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00135}00135\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00136}00136\ \ \ \ \ \textcolor{keywordflow}{if}\ (p-\/>p\_next)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00137}00137\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ p-\/>p\_next-\/>p\_prev\ =\ p-\/>p\_prev;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00139}00139\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{if}\ (p-\/>p\_older)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00142}00142\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ p-\/>p\_older-\/>p\_newer\ =\ p-\/>p\_newer;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00144}00144\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{/*\ oldest\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00146}00146\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_oldest\ =\ p-\/>p\_newer;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00148}00148\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00149}00149\ \ \ \ \ \textcolor{keywordflow}{if}\ (p-\/>p\_newer)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00150}00150\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ p-\/>p\_newer-\/>p\_older\ =\ p-\/>p\_older;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00152}00152\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00153}00153\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{/*\ newest\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00154}00154\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_newest\ =\ p-\/>p\_older;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00156}00156\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00157}00157\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00159}00159\ \textcolor{comment}{/*\ Search\ for\ an\ element\ in\ a\ bucket\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00160}00160\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *search\_in\_bucket(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_bucket,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ *p\_key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ i\_heuristics)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00162}00162\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00163}00163\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_e;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00165}00165\ \ \ \ \ \textcolor{keywordflow}{for}\ (p\_e\ =\ p\_ht-\/>pp\_entries[l\_bucket];}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ \ p\_e;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ \ p\_e\ =\ p\_e-\/>p\_next)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00168}00168\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((p\_e-\/>key.\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}}\ ==\ p\_key-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}})\ \&\&}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ (memcmp(p\_e-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}},\ p\_key-\/>\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}},\ p\_e-\/>key.\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}})\ ==\ 0))}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Matching\ entry\ found\ -\/\ Apply\ heuristics,\ if\ any\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (i\_heuristics)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ GHT\_HEURISTICS\_MOVE\_TO\_FRONT:}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_to\_front(p\_ht,\ l\_bucket,\ p\_e);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ GHT\_HEURISTICS\_TRANSPOSE:}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ transpose(p\_ht,\ l\_bucket,\ p\_e);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ p\_e;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00185}00185\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00186}00186\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00187}00187\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00188}00188\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00190}00190\ \textcolor{comment}{/*\ Free\ a\ chain\ of\ entries\ (in\ a\ bucket)\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00191}00191\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ free\_entry\_chain(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00192}00192\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00193}00193\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_e\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00195}00195\ \ \ \ \ \textcolor{keywordflow}{while}(p\_e)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00196}00196\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_e\_next\ =\ p\_e-\/>p\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ he\_finalize(p\_ht,\ p\_e);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ p\_e\ =\ p\_e\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00200}00200\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00201}00201\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00204}00204\ \textcolor{comment}{/*\ Fill\ in\ the\ data\ to\ a\ existing\ hash\ key\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00205}00205\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ hk\_fill(\mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ *p\_hk,\ \textcolor{keywordtype}{int}\ i\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00206}00206\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00207}00207\ \ \ \ \ assert(p\_hk);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00209}00209\ \ \ \ \ p\_hk-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}}\ =\ i\_size;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00210}00210\ \ \ \ \ p\_hk-\/>\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}}\ =\ p\_key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00211}00211\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00213}00213\ \textcolor{comment}{/*\ Create\ an\ hash\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00214}00214\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *he\_create(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \textcolor{keywordtype}{void}\ *p\_data,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_key\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key\_data)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00216}00216\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00217}00217\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_he;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00219}00219\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00220}00220\ \textcolor{comment}{\ \ \ \ \ *\ An\ element\ like\ the\ following\ is\ allocated:}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00221}00221\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ \ \ \ elem-\/>p\_key}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00222}00222\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ \ \ /\ \ \ elem-\/>p\_key-\/>p\_key\_data}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00223}00223\ \textcolor{comment}{\ \ \ \ \ *\ \ \_\_\_\_|\_\_\_/\_\_\_\_\_\_\_\_}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00224}00224\ \textcolor{comment}{\ \ \ \ \ *\ |elem|key|key\ data|}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00225}00225\ \textcolor{comment}{\ \ \ \ \ *\ |\_\_\_\_|\_\_\_|\_\_\_\_\_\_\_\_|}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00226}00226\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00227}00227\ \textcolor{comment}{\ \ \ \ \ *\ That\ is,\ the\ key\ and\ the\ key\ data\ is\ stored\ "{}inline"{}\ within\ the}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00228}00228\ \textcolor{comment}{\ \ \ \ \ *\ hash\ entry.}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00229}00229\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00230}00230\ \textcolor{comment}{\ \ \ \ \ *\ This\ saves\ space\ since\ malloc\ only\ is\ called\ once\ and\ thus\ avoids}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00231}00231\ \textcolor{comment}{\ \ \ \ \ *\ some\ fragmentation.\ Thanks\ to\ Dru\ Lemley\ for\ this\ idea.}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00232}00232\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !(p\_he\ =\ (\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}*)p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\_alloc}}\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}})+i\_key\_size))\ )}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00234}00234\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}fn\_alloc\ failed!\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00237}00237\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00239}00239\ \ \ \ \ p\_he-\/>p\_data\ =\ p\_data;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00240}00240\ \ \ \ \ p\_he-\/>p\_next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00241}00241\ \ \ \ \ p\_he-\/>p\_prev\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00242}00242\ \ \ \ \ p\_he-\/>p\_older\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00243}00243\ \ \ \ \ p\_he-\/>p\_newer\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00245}00245\ \ \ \ \ \textcolor{comment}{/*\ Create\ the\ key\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00246}00246\ \ \ \ \ p\_he-\/>key.\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}}\ =\ i\_key\_size;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00247}00247\ \ \ \ \ memcpy(p\_he+1,\ p\_key\_data,\ i\_key\_size);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00248}00248\ \ \ \ \ p\_he-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}}\ =\ (\textcolor{keywordtype}{void}*)(p\_he+1);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00250}00250\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_he;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00251}00251\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00252}00252\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00253}00253\ \textcolor{comment}{/*\ Finalize\ (free)\ a\ hash\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00254}00254\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ he\_finalize(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_he)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00255}00255\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00256}00256\ \ \ \ \ assert(p\_he);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00258}00258\ \textcolor{preprocessor}{\#if\ !defined(NDEBUG)}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00259}00259\ \ \ \ \ p\_he-\/>p\_next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00260}00260\ \ \ \ \ p\_he-\/>p\_prev\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00261}00261\ \ \ \ \ p\_he-\/>p\_older\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00262}00262\ \ \ \ \ p\_he-\/>p\_newer\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00263}00263\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ NDEBUG\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00265}00265\ \ \ \ \ \textcolor{comment}{/*\ Free\ the\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00266}00266\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\_free}}(p\_he);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00267}00267\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00268}00268\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00269}00269\ \textcolor{preprocessor}{\#if\ 0}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00270}00270\ \textcolor{comment}{/*\ Tried\ this\ to\ avoid\ recalculating\ hash\ values\ by\ caching}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00271}00271\ \textcolor{comment}{\ *\ them.\ Overhead\ larger\ than\ benefits.}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00272}00272\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00273}00273\ \textcolor{keyword}{static}\ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ get\_hash\_value(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ *p\_key)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00274}00274\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00275}00275\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00277}00277\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_key-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}}\ >\ \textcolor{keyword}{sizeof}(uint64\_t))}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}}(p\_key);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00280}00280\ \ \ \ \ \textcolor{comment}{/*\ Lookup\ in\ the\ hash\ value\ cache\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00281}00281\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ GHT\_N\_CACHED\_HASH\_KEYS;\ i++)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00282}00282\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00283}00283\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ p\_key-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}}\ ==\ p\_ht-\/>cached\_keys[i].key.\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ \&\&}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ memcmp(p\_key-\/>\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}},\ p\_ht-\/>cached\_keys[i].key.p\_key,\ p\_key-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}})\ ==\ 0)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht-\/>cached\_keys[i].hash\_val;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00286}00286\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00287}00287\ \ \ \ \ p\_ht-\/>cur\_cache\_evict\ =\ (p\_ht-\/>cur\_cache\_evict\ +\ 1)\ \%\ GHT\_N\_CACHED\_HASH\_KEYS;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00288}00288\ \ \ \ \ p\_ht-\/>cached\_keys[\ p\_ht-\/>cur\_cache\_evict\ ].key\ =\ *p\_key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00289}00289\ \ \ \ \ p\_ht-\/>cached\_keys[\ p\_ht-\/>cur\_cache\_evict\ ].hash\_val\ =\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}}(p\_key);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00291}00291\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht-\/>cached\_keys[\ p\_ht-\/>cur\_cache\_evict\ ].hash\_val;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00292}00292\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00293}00293\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00294}00294\ \textcolor{preprocessor}{\#\ define\ get\_hash\_value(p\_ht,\ p\_key)\ (\ (p\_ht)-\/>fn\_hash(p\_key)\ )}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00295}00295\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00297}00297\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00298}00298\ \textcolor{comment}{/*\ -\/-\/-\/\ Exported\ methods\ -\/-\/-\/\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00299}00299\ \textcolor{comment}{/*\ Create\ a\ new\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00300}\mbox{\hyperlink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{00300}}\ \mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *\mbox{\hyperlink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\_create}}(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_size)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00301}00301\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00302}00302\ \ \ \ \ \mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00303}00303\ \ \ \ \ \textcolor{keywordtype}{int}\ i=1;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00304}00304\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00305}00305\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !(p\_ht\ =\ (\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}*)malloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}})))\ )}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00306}00306\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00307}00307\ \ \ \ \ \ \ \ \ perror(\textcolor{stringliteral}{"{}malloc"{}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00308}00308\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00309}00309\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00310}00310\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00311}00311\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ size\ of\ the\ hash\ table\ to\ the\ nearest\ 2\string^i\ higher\ then\ i\_size\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00312}00312\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{while}(p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ <\ i\_size)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00314}00314\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00315}00315\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ =\ 1<<i++;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00316}00316\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00317}00317\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00318}00318\ \ \ \ \ p\_ht-\/>i\_size\_mask\ =\ (1<<(i-\/1))-\/1;\ \textcolor{comment}{/*\ Mask\ to\ \&\ with\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00319}00319\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00320}00320\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00321}00321\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}}\ =\ \mbox{\hyperlink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\_one\_at\_a\_time\_hash}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00323}00323\ \ \ \ \ \textcolor{comment}{/*\ Standard\ values\ for\ allocations\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00324}00324\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\_alloc}}\ =\ malloc;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00325}00325\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\_free}}\ =\ free;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00327}00327\ \ \ \ \ \textcolor{comment}{/*\ Set\ flags\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00328}00328\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}}\ =\ GHT\_HEURISTICS\_NONE;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00329}00329\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}{i\_automatic\_rehash}}\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00331}00331\ \ \ \ \ p\_ht-\/>bucket\_limit\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00332}00332\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}{fn\_bucket\_free}}\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00333}00333\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00334}00334\ \ \ \ \ \textcolor{comment}{/*\ Create\ an\ empty\ bucket\ list.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00335}00335\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !(p\_ht-\/>pp\_entries\ =\ (\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}**)malloc(p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}*)))\ )}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00336}00336\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00337}00337\ \ \ \ \ \ \ \ \ perror(\textcolor{stringliteral}{"{}malloc"{}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00338}00338\ \ \ \ \ \ \ \ \ free(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00339}00339\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00340}00340\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00341}00341\ \ \ \ \ memset(p\_ht-\/>pp\_entries,\ 0,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}*));}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00343}00343\ \ \ \ \ \textcolor{comment}{/*\ Initialise\ the\ number\ of\ entries\ in\ each\ bucket\ to\ zero\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00344}00344\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !(p\_ht-\/>p\_nr\ =\ (\textcolor{keywordtype}{int}*)malloc(p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{int}))))}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00345}00345\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00346}00346\ \ \ \ \ \ \ \ \ perror(\textcolor{stringliteral}{"{}malloc"{}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00347}00347\ \ \ \ \ \ \ \ \ free(p\_ht-\/>pp\_entries);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00348}00348\ \ \ \ \ \ \ \ \ free(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00349}00349\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00350}00350\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00351}00351\ \ \ \ \ memset(p\_ht-\/>p\_nr,\ 0,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{int}));}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00352}00352\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00353}00353\ \ \ \ \ p\_ht-\/>p\_oldest\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00354}00354\ \ \ \ \ p\_ht-\/>p\_newest\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00355}00355\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00356}00356\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00357}00357\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00358}00358\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00359}00359\ \textcolor{comment}{/*\ Set\ the\ allocation/deallocation\ function\ to\ use\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00360}\mbox{\hyperlink{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0}{00360}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0}{ght\_set\_alloc}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_a5f5f683e9959254798651a8557388585}{ght\_fn\_alloc\_t}}\ fn\_alloc,\ \mbox{\hyperlink{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d}{ght\_fn\_free\_t}}\ fn\_free)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00361}00361\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00362}00362\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\_alloc}}\ =\ fn\_alloc;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00363}00363\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\_free}}\ =\ fn\_free;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00364}00364\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00366}00366\ \textcolor{comment}{/*\ Set\ the\ hash\ function\ to\ use\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00367}\mbox{\hyperlink{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6}{00367}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6}{ght\_set\_hash}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\_fn\_hash\_t}}\ fn\_hash)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00368}00368\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00369}00369\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}}\ =\ fn\_hash;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00370}00370\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00371}00371\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00372}00372\ \textcolor{comment}{/*\ Set\ the\ heuristics\ to\ use.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00373}\mbox{\hyperlink{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71}{00373}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71}{ght\_set\_heuristics}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \textcolor{keywordtype}{int}\ i\_heuristics)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00374}00374\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00375}00375\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}}\ =\ i\_heuristics;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00376}00376\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00377}00377\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00378}00378\ \textcolor{comment}{/*\ Set\ the\ rehashing\ status\ of\ the\ table.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00379}\mbox{\hyperlink{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093}{00379}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093}{ght\_set\_rehash}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \textcolor{keywordtype}{int}\ b\_rehash)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00380}00380\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00381}00381\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}{i\_automatic\_rehash}}\ =\ b\_rehash;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00382}00382\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00383}00383\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00384}\mbox{\hyperlink{ght__hash__table_8h_abfbd875e7c1e199330b179fa0e24e512}{00384}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ght__hash__table_8h_abfbd875e7c1e199330b179fa0e24e512}{ght\_set\_bounded\_buckets}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ limit,\ \mbox{\hyperlink{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640}{ght\_fn\_bucket\_free\_callback\_t}}\ fn)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00385}00385\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00386}00386\ \ \ \ \ p\_ht-\/>bucket\_limit\ =\ limit;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00387}00387\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}{fn\_bucket\_free}}\ =\ fn;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00388}00388\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00389}00389\ \ \ \ \ \textcolor{keywordflow}{if}\ (limit\ >\ 0\ \&\&\ fn\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00390}00390\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00391}00391\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}ght\_set\_bounded\_buckets:\ The\ bucket\ callback\ function\ is\ NULL\ but\ the\ limit\ is\ \%d\(\backslash\)n"{}},\ limit);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00392}00392\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00393}00393\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00394}00394\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00395}00395\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00396}00396\ \textcolor{comment}{/*\ Get\ the\ number\ of\ items\ in\ the\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00397}\mbox{\hyperlink{ght__hash__table_8h_a0ed99f688ae152d12d4e8128d281439d}{00397}}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{ght__hash__table_8h_a0ed99f688ae152d12d4e8128d281439d}{ght\_size}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00398}00398\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00399}00399\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00400}00400\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00401}00401\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00402}00402\ \textcolor{comment}{/*\ Get\ the\ size\ of\ the\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00403}\mbox{\hyperlink{ght__hash__table_8h_ad544ccaa9d5f60136200bc797d1d7108}{00403}}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{ght__hash__table_8h_ad544ccaa9d5f60136200bc797d1d7108}{ght\_table\_size}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00404}00404\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00405}00405\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00406}00406\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00407}00407\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00408}00408\ \textcolor{comment}{/*\ Insert\ an\ entry\ into\ the\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00409}\mbox{\hyperlink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{00409}}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{ght\_insert}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *p\_entry\_data,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00411}00411\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_key\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key\_data)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00412}00412\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00413}00413\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00414}00414\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00415}00415\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00416}00416\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00417}00417\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00418}00418\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00419}00419\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00420}00420\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00421}00421\ \ \ \ \ \textcolor{keywordflow}{if}\ (search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ 0))}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00422}00422\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00423}00423\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Don't\ insert\ if\ the\ key\ is\ already\ present.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00424}00424\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00425}00425\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00426}00426\ \ \ \ \ \textcolor{keywordflow}{if}\ (!(p\_entry\ =\ he\_create(p\_ht,\ p\_entry\_data,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00427}00427\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ i\_key\_size,\ p\_key\_data)))}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00428}00428\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00429}00429\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/2;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00430}00430\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00431}00431\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00432}00432\ \ \ \ \ \textcolor{comment}{/*\ Rehash\ if\ the\ number\ of\ items\ inserted\ is\ too\ high.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00433}00433\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}{i\_automatic\_rehash}}\ \&\&\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}\ >\ 2*p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}})}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00434}00434\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00435}00435\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a56b5a79427c6f61546a187904eb83d20}{ght\_rehash}}(p\_ht,\ 2*p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00436}00436\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Recalculate\ l\_key\ after\ ght\_rehash\ has\ updated\ i\_size\_mask\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00437}00437\ \ \ \ \ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00438}00438\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00439}00439\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00440}00440\ \ \ \ \ \textcolor{comment}{/*\ Place\ the\ entry\ first\ in\ the\ list.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00441}00441\ \ \ \ \ p\_entry-\/>p\_next\ =\ p\_ht-\/>pp\_entries[l\_key];}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00442}00442\ \ \ \ \ p\_entry-\/>p\_prev\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00443}00443\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>pp\_entries[l\_key])}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00444}00444\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00445}00445\ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00446}00446\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00447}00447\ \ \ \ \ p\_ht-\/>pp\_entries[l\_key]\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00448}00448\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00449}00449\ \ \ \ \ \textcolor{comment}{/*\ If\ this\ is\ a\ limited\ bucket\ hash\ table,\ potentially\ remove\ the\ last\ item\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00450}00450\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>bucket\_limit\ !=\ 0\ \&\&}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00451}00451\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr[l\_key]\ >=\ p\_ht-\/>bucket\_limit)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00452}00452\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00453}00453\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00454}00454\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00455}00455\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Loop\ through\ entries\ until\ the\ last}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00456}00456\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00457}00457\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ FIXME:\ Better\ with\ a\ pointer\ to\ the\ last\ entry}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00458}00458\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00459}00459\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (p\ =\ p\_ht-\/>pp\_entries[l\_key];}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00460}00460\ \ \ \ \ \ \ \ \ \ \ \ \ \ p-\/>p\_next\ !=\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00461}00461\ \ \ \ \ \ \ \ \ \ \ \ \ \ p\ =\ p-\/>p\_next)\ ;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00462}00462\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00463}00463\ \ \ \ \ \ \ \ \ assert(p\ \&\&\ p-\/>p\_next\ ==\ NULL);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00464}00464\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00465}00465\ \ \ \ \ \ \ \ \ remove\_from\_chain(p\_ht,\ l\_key,\ p);\ \textcolor{comment}{/*\ To\ allow\ it\ to\ be\ reinserted\ in\ fn\_bucket\_free\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00466}00466\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}{fn\_bucket\_free}}(p-\/>p\_data,\ p-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00467}00467\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00468}00468\ \ \ \ \ \ \ \ \ he\_finalize(p\_ht,\ p);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00469}00469\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00470}00470\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00471}00471\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00472}00472\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr[l\_key]++;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00473}00473\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00474}00474\ \ \ \ \ \ \ \ \ assert(\ p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1\ );}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00475}00475\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00476}00476\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}++;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00477}00477\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00478}00478\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00479}00479\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>p\_oldest\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00480}00480\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00481}00481\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_oldest\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00482}00482\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00483}00483\ \ \ \ \ p\_entry-\/>p\_older\ =\ p\_ht-\/>p\_newest;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00484}00484\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00485}00485\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>p\_newest\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00486}00486\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00487}00487\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_newest-\/>p\_newer\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00488}00488\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00489}00489\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00490}00490\ \ \ \ \ p\_ht-\/>p\_newest\ =\ p\_entry;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00491}00491\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00492}00492\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00493}00493\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00494}00494\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00495}00495\ \textcolor{comment}{/*\ Get\ an\ entry\ from\ the\ hash\ table.\ The\ entry\ is\ returned,\ or\ NULL\ if\ it\ wasn't\ found\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00496}\mbox{\hyperlink{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}{00496}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}{ght\_get}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00497}00497\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_key\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key\_data)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00498}00498\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00499}00499\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_e;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00500}00500\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00501}00501\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00502}00502\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00503}00503\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00505}00505\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00506}00506\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00507}00507\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00509}00509\ \ \ \ \ \textcolor{comment}{/*\ Check\ that\ the\ first\ element\ in\ the\ list\ really\ is\ the\ first.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00510}00510\ \ \ \ \ assert(\ p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1\ );}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00511}00511\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00512}00512\ \ \ \ \ \textcolor{comment}{/*\ LOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00513}00513\ \ \ \ \ p\_e\ =\ search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00514}00514\ \ \ \ \ \textcolor{comment}{/*\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00515}00515\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00516}00516\ \ \ \ \ \textcolor{keywordflow}{return}\ (p\_e\ ?\ p\_e-\/>p\_data\ :\ NULL);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00517}00517\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00518}00518\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00519}00519\ \textcolor{comment}{/*\ Replace\ an\ entry\ from\ the\ hash\ table.\ The\ entry\ is\ returned,\ or\ NULL\ if\ it\ wasn't\ found\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00520}\mbox{\hyperlink{ght__hash__table_8h_a21e1055809b34a05ada1225f3ac82578}{00520}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{ght__hash__table_8h_a21e1055809b34a05ada1225f3ac82578}{ght\_replace}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00521}00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *p\_entry\_data,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00522}00522\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_key\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key\_data)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00523}00523\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00524}00524\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_e;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00525}00525\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00526}00526\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00527}00527\ \ \ \ \ \textcolor{keywordtype}{void}\ *p\_old;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00528}00528\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00529}00529\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00530}00530\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00531}00531\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00532}00532\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00533}00533\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00534}00534\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00535}00535\ \ \ \ \ \textcolor{comment}{/*\ Check\ that\ the\ first\ element\ in\ the\ list\ really\ is\ the\ first.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00536}00536\ \ \ \ \ assert(\ p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1\ );}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00537}00537\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00538}00538\ \ \ \ \ \textcolor{comment}{/*\ LOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00539}00539\ \ \ \ \ p\_e\ =\ search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00540}00540\ \ \ \ \ \textcolor{comment}{/*\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00541}00541\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00542}00542\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !p\_e\ )}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00543}00543\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00544}00544\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00545}00545\ \ \ \ \ p\_old\ =\ p\_e-\/>p\_data;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00546}00546\ \ \ \ \ p\_e-\/>p\_data\ =\ p\_entry\_data;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00547}00547\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00548}00548\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_old;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00549}00549\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00550}00550\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00551}00551\ \textcolor{comment}{/*\ Remove\ an\ entry\ from\ the\ hash\ table.\ The\ removed\ entry,\ or\ NULL,\ is}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00552}00552\ \textcolor{comment}{\ \ \ returned\ (and\ NOT\ free'd).\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00553}\mbox{\hyperlink{ght__hash__table_8h_aa8582d55526ef0c606422dc083180dc0}{00553}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{ght__hash__table_8h_aa8582d55526ef0c606422dc083180dc0}{ght\_remove}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00554}00554\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_key\_size,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key\_data)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00555}00555\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00556}00556\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_out;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00557}00557\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00558}00558\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00559}00559\ \ \ \ \ \textcolor{keywordtype}{void}\ *p\_ret=NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00560}00560\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00561}00561\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00562}00562\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00563}00563\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00564}00564\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00565}00565\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00566}00566\ \ \ \ \ \textcolor{comment}{/*\ Check\ that\ the\ first\ element\ really\ is\ the\ first\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00567}00567\ \ \ \ \ assert(\ (p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1)\ );}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00568}00568\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00569}00569\ \ \ \ \ \textcolor{comment}{/*\ LOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00570}00570\ \ \ \ \ p\_out\ =\ search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ 0);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00571}00571\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00572}00572\ \ \ \ \ \textcolor{comment}{/*\ Link\ p\_out\ out\ of\ the\ list.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00573}00573\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_out)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00574}00574\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00575}00575\ \ \ \ \ \ \ \ \ remove\_from\_chain(p\_ht,\ l\_key,\ p\_out);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00576}00576\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00577}00577\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ should\ ONLY\ be\ done\ for\ normal\ items\ (for\ now\ all\ items)\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00578}00578\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}-\/-\/;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00579}00579\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00580}00580\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr[l\_key]-\/-\/;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00581}00581\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00582}00582\ \textcolor{preprocessor}{\#if\ !defined(NDEBUG)}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00583}00583\ \ \ \ \ \ \ \ \ p\_out-\/>p\_next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00584}00584\ \ \ \ \ \ \ \ \ p\_out-\/>p\_prev\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00585}00585\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ NDEBUG\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00586}00586\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00587}00587\ \ \ \ \ \ \ \ \ p\_ret\ =\ p\_out-\/>p\_data;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00588}00588\ \ \ \ \ \ \ \ \ he\_finalize(p\_ht,\ p\_out);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00589}00589\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00590}00590\ \ \ \ \ \textcolor{comment}{/*\ else:\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00591}00591\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00592}00592\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ret;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00593}00593\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00594}00594\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00595}00595\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ *first\_keysize(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ *p\_iterator,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **pp\_key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *size)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00596}00596\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00597}00597\ \ \ \ \ assert(p\_ht\ \&\&\ p\_iterator);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00598}00598\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00599}00599\ \ \ \ \ \textcolor{comment}{/*\ Fill\ the\ iterator\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00600}00600\ \ \ \ \ p\_iterator-\/>p\_entry\ =\ p\_ht-\/>p\_oldest;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00601}00601\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00602}00602\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_iterator-\/>p\_entry)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00603}00603\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00604}00604\ \ \ \ \ \ \ \ \ p\_iterator-\/>p\_next\ =\ p\_iterator-\/>p\_entry-\/>p\_newer;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00605}00605\ \ \ \ \ \ \ \ \ *pp\_key\ =\ p\_iterator-\/>p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00606}00606\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00607}00607\ \ \ \ \ \ \ \ \ \ \ \ \ *size\ =\ p\_iterator-\/>p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00608}00608\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00609}00609\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ p\_iterator-\/>p\_entry-\/>p\_data;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00610}00610\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00611}00611\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00612}00612\ \ \ \ \ p\_iterator-\/>p\_next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00613}00613\ \ \ \ \ *pp\_key\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00614}00614\ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00615}00615\ \ \ \ \ \ \ \ \ *size\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00616}00616\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00617}00617\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00618}00618\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00619}00619\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00620}00620\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00621}00621\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00622}00622\ \textcolor{comment}{/*\ Get\ the\ first\ entry\ in\ an\ iteration\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00623}\mbox{\hyperlink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{00623}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\_first}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ *p\_iterator,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **pp\_key)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00624}00624\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00625}00625\ \ \ \ \ \textcolor{keywordflow}{return}\ first\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ NULL);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00626}00626\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00627}00627\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00628}\mbox{\hyperlink{ght__hash__table_8h_a0227f419e840ede521e0f5daa911290d}{00628}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{ght__hash__table_8h_a0227f419e840ede521e0f5daa911290d}{ght\_first\_keysize}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ *p\_iterator,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **pp\_key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *size)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00629}00629\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00630}00630\ \ \ \ \ \textcolor{keywordflow}{return}\ first\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ size);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00631}00631\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00632}00632\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00633}00633\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00634}00634\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ *next\_keysize(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ *p\_iterator,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **pp\_key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *size)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00635}00635\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00636}00636\ \ \ \ \ assert(p\_ht\ \&\&\ p\_iterator);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00637}00637\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00638}00638\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_iterator-\/>p\_next)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00639}00639\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00640}00640\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ More\ entries\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00641}00641\ \ \ \ \ \ \ \ \ p\_iterator-\/>p\_entry\ =\ p\_iterator-\/>p\_next;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00642}00642\ \ \ \ \ \ \ \ \ p\_iterator-\/>p\_next\ =\ p\_iterator-\/>p\_next-\/>p\_newer;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00643}00643\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00644}00644\ \ \ \ \ \ \ \ \ *pp\_key\ =\ p\_iterator-\/>p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00645}00645\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00646}00646\ \ \ \ \ \ \ \ \ \ \ \ \ *size\ =\ p\_iterator-\/>p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00647}00647\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00648}00648\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ p\_iterator-\/>p\_entry-\/>p\_data;\ \textcolor{comment}{/*\ We\ know\ that\ this\ is\ non-\/NULL\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00649}00649\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00650}00650\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00651}00651\ \ \ \ \ \textcolor{comment}{/*\ Last\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00652}00652\ \ \ \ \ p\_iterator-\/>p\_entry\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00653}00653\ \ \ \ \ p\_iterator-\/>p\_next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00654}00654\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00655}00655\ \ \ \ \ *pp\_key\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00656}00656\ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00657}00657\ \ \ \ \ \ \ \ \ *size\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00658}00658\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00659}00659\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00660}00660\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00661}00661\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00662}00662\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00663}00663\ \textcolor{comment}{/*\ Get\ the\ next\ entry\ in\ an\ iteration.\ You\ have\ to\ call\ ght\_first}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00664}00664\ \textcolor{comment}{\ \ \ once\ initially\ before\ you\ use\ this\ function\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00665}\mbox{\hyperlink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{00665}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\_next}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ *p\_iterator,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **pp\_key)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00666}00666\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00667}00667\ \ \ \ \ \textcolor{keywordflow}{return}\ next\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ NULL);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00668}00668\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00669}00669\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00670}\mbox{\hyperlink{ght__hash__table_8h_a3251962a7ccdcf2d13086fd0b32ed358}{00670}}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{ght__hash__table_8h_a3251962a7ccdcf2d13086fd0b32ed358}{ght\_next\_keysize}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ *p\_iterator,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **pp\_key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *size)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00671}00671\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00672}00672\ \ \ \ \ \textcolor{keywordflow}{return}\ next\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ size);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00673}00673\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00674}00674\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00675}00675\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00676}00676\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00677}00677\ \textcolor{comment}{/*\ Finalize\ (free)\ a\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00678}\mbox{\hyperlink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{00678}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{ght\_finalize}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00679}00679\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00680}00680\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00681}00681\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00682}00682\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00683}00683\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00684}00684\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>pp\_entries)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00685}00685\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00686}00686\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ For\ each\ bucket,\ free\ all\ entries\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00687}00687\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};\ i++)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00688}00688\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00689}00689\ \ \ \ \ \ \ \ \ \ \ \ \ free\_entry\_chain(p\_ht,\ p\_ht-\/>pp\_entries[i]);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00690}00690\ \ \ \ \ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[i]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00691}00691\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00692}00692\ \ \ \ \ \ \ \ \ free\ (p\_ht-\/>pp\_entries);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00693}00693\ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00694}00694\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00695}00695\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>p\_nr)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00696}00696\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00697}00697\ \ \ \ \ \ \ \ \ free\ (p\_ht-\/>p\_nr);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00698}00698\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00699}00699\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00700}00700\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00701}00701\ \ \ \ \ free\ (p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00702}00702\ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00703}00703\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00704}00704\ \textcolor{comment}{/*\ Rehash\ the\ hash\ table\ (i.e.\ change\ its\ size\ and\ reinsert\ all}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00705}00705\ \textcolor{comment}{\ *\ items).\ This\ operation\ is\ slow\ and\ should\ not\ be\ used\ frequently.}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00706}00706\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00707}\mbox{\hyperlink{ght__hash__table_8h_a56b5a79427c6f61546a187904eb83d20}{00707}}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{ght__hash__table_8h_a56b5a79427c6f61546a187904eb83d20}{ght\_rehash}}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\_size)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00708}00708\ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00709}00709\ \ \ \ \ \mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_tmp;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00710}00710\ \ \ \ \ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ iterator;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00711}00711\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00712}00712\ \ \ \ \ \textcolor{keywordtype}{void}\ *p;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00713}00713\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00714}00714\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00715}00715\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00716}00716\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00717}00717\ \ \ \ \ \textcolor{comment}{/*\ Recreate\ the\ hash\ table\ with\ the\ new\ size\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00718}00718\ \ \ \ \ p\_tmp\ =\ \mbox{\hyperlink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\_create}}(i\_size);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00719}00719\ \ \ \ \ assert(p\_tmp);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00720}00720\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00721}00721\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ flags\ for\ the\ new\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00722}00722\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6}{ght\_set\_hash}}(p\_tmp,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00723}00723\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0}{ght\_set\_alloc}}(p\_tmp,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\_alloc}},\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\_free}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00724}00724\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71}{ght\_set\_heuristics}}(p\_tmp,\ GHT\_HEURISTICS\_NONE);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00725}00725\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093}{ght\_set\_rehash}}(p\_tmp,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00726}00726\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00727}00727\ \ \ \ \ \textcolor{comment}{/*\ Walk\ through\ all\ elements\ in\ the\ table\ and\ insert\ them\ into\ the\ temporary\ one.\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00728}00728\ \ \ \ \ \textcolor{keywordflow}{for}\ (p\ =\ \mbox{\hyperlink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\_first}}(p\_ht,\ \&iterator,\ \&p\_key);\ p;\ p\ =\ \mbox{\hyperlink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\_next}}(p\_ht,\ \&iterator,\ \&p\_key))}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00729}00729\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00730}00730\ \ \ \ \ \ \ \ \ assert(iterator.p\_entry);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00731}00731\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00732}00732\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Insert\ the\ entry\ into\ the\ new\ table\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00733}00733\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{ght\_insert}}(p\_tmp,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00734}00734\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ iterator.p\_entry-\/>p\_data,}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00735}00735\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ iterator.p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}},\ iterator.p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}})\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00736}00736\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00737}00737\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}hash\_table.c\ ERROR:\ Out\ of\ memory\ error\ or\ entry\ already\ in\ hash\ table\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00738}00738\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}when\ rehashing\ (internal\ error)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00739}00739\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00740}00740\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00741}00741\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00742}00742\ \ \ \ \ \textcolor{comment}{/*\ Remove\ the\ old\ table...\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00743}00743\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};\ i++)}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00744}00744\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00745}00745\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>pp\_entries[i])}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00746}00746\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00747}00747\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Delete\ the\ entries\ in\ the\ bucket\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00748}00748\ \ \ \ \ \ \ \ \ \ \ \ \ free\_entry\_chain\ (p\_ht,\ p\_ht-\/>pp\_entries[i]);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00749}00749\ \ \ \ \ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[i]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00750}00750\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00751}00751\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00752}00752\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00753}00753\ \ \ \ \ free\ (p\_ht-\/>pp\_entries);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00754}00754\ \ \ \ \ free\ (p\_ht-\/>p\_nr);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00755}00755\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00756}00756\ \ \ \ \ \textcolor{comment}{/*\ ...\ and\ replace\ it\ with\ the\ new\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00757}00757\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ =\ p\_tmp-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00758}00758\ \ \ \ \ p\_ht-\/>i\_size\_mask\ =\ p\_tmp-\/>i\_size\_mask;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00759}00759\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}\ =\ p\_tmp-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}};}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00760}00760\ \ \ \ \ p\_ht-\/>pp\_entries\ =\ p\_tmp-\/>pp\_entries;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00761}00761\ \ \ \ \ p\_ht-\/>p\_nr\ =\ p\_tmp-\/>p\_nr;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00762}00762\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00763}00763\ \ \ \ \ p\_ht-\/>p\_oldest\ =\ p\_tmp-\/>p\_oldest;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00764}00764\ \ \ \ \ p\_ht-\/>p\_newest\ =\ p\_tmp-\/>p\_newest;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00765}00765\ }
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00766}00766\ \ \ \ \ \textcolor{comment}{/*\ Clean\ up\ */}}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00767}00767\ \ \ \ \ p\_tmp-\/>pp\_entries\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00768}00768\ \ \ \ \ p\_tmp-\/>p\_nr\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00769}00769\ \ \ \ \ free\ (p\_tmp);}
+\DoxyCodeLine{\Hypertarget{hash__table_8c_source_l00770}00770\ \}}
+
+\end{DoxyCode}

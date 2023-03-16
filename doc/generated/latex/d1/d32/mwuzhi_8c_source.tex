@@ -1,0 +1,1435 @@
+\hypertarget{mwuzhi_8c_source}{}\doxysection{mwuzhi.\+c}
+\label{mwuzhi_8c_source}\index{src/mwuzhi.c@{src/mwuzhi.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00001}00001\ \textcolor{comment}{//\ \$id\$}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00002}00002\ \textcolor{comment}{//\ \$log\$}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00004}00004\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00005}00005\ \textcolor{comment}{\ *\ The\ above\ lines\ will\ include\ the\ name\ and\ log\ of\ the\ last\ person}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00006}00006\ \textcolor{comment}{\ *\ to\ commit\ this\ file\ to\ CVS}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00007}00007\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00009}00009\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00011}00011\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ mwuzhi.c}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00013}00013\ \textcolor{comment}{**\ DESCRIPTION:\ Wu\ Zhi\ (5\ piece\ game)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00014}00014\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00015}00015\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ \ \ Diana\ Fang,\ Dan\ Yan}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00016}00016\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00017}00017\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ 2004-\/09-\/13}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00018}00018\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00019}00019\ \textcolor{comment}{**\ UPDATE\ HIST:}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00020}00020\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/10-\/5\ \ Added\ GenerateMoves\ with\ all\ its\ helpers}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00021}00021\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/10-\/12\ Added\ Help\ Strings,\ Defines,\ Global\ Variables}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00022}00022\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Started\ Initialize\ Game}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00023}00023\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/10-\/18\ Added\ Print\ Position,\ Print\ Move,\ Print\ Computer's\ Move,\ Primitive,}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00024}00024\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Added\ another\ helper\ to\ Moves:\ GetArrayNum\ given\ xycoords.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00025}00025\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/10-\/19\ Added\ DoMove\ to\ this\ template}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00026}00026\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/11-\/2\ \ Set\ kPartizan\ to\ TRUE,\ modified\ help\ strings\ so\ they\ are\ not\ all\ on\ one\ line.\ Moves\ are\ now\ formatted\ as\ [1\ d]}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00027}00027\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rather\ than\ [1\ down]\ Added\ a\ sample\ game\ to\ the\ help\ string.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00028}00028\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/11-\/26\ Added\ diagonal\ variation\ in\ generatemoves}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00029}00029\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/12-\/5\ \ Finished\ implementation\ of\ diagonals\ and\ game\ specific\ menu}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00030}00030\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2004-\/12-\/19\ Added\ in\ primitive\ that\ you\ lose\ if\ no\ moves\ left.\ Also\ tells\ the\ player\ what\ color\ they}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00031}00031\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ when\ printing\ the\ board.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00032}00032\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2005-\/3-\/3\ \ \ Added\ missing\ prototypes}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00033}00033\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2005-\/3-\/25\ \ Added\ SetOptions\ and\ GetOptions\ to\ work\ with\ Diagonals}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00034}00034\ \textcolor{comment}{**\ \ \ \ \ \ 2006-\/8-\/21\ \ changed\ to\ GetMyInt()\ dmchan}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00035}00035\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00037}00037\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00038}00038\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00039}00039\ \textcolor{comment}{**\ Everything\ below\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00040}00040\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00041}00041\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00043}00043\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00044}00044\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00045}00045\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00046}00046\ \textcolor{preprocessor}{\#include\ <unistd.h>}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00047}00047\ \textcolor{preprocessor}{\#include\ <limits.h>}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00048}00048\ \textcolor{preprocessor}{\#include\ <ctype.h>}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00051}00051\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00052}00052\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00053}00053\ \textcolor{comment}{**\ Game-\/specific\ constants}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00054}00054\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00055}00055\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00057}00057\ STRING\ kGameName\ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Wu\ Zhi"{}};\ \ \ \textcolor{comment}{/*\ The\ name\ of\ your\ game\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00058}00058\ STRING\ kAuthorName\ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Dan\ Yan\ and\ Diana\ Fang"{}};\ \ \ \textcolor{comment}{/*\ Your\ name(s)\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00059}00059\ STRING\ kDBName\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}wuzhi"{}};\ \ \ \textcolor{comment}{/*\ The\ name\ to\ store\ the\ database\ under\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00061}00061\ BOOLEAN\ kPartizan\ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;\ \ \ \textcolor{comment}{/*\ A\ partizan\ game\ is\ a\ game\ where\ each\ player\ has\ different\ moves\ from\ the\ same\ board\ (chess\ -\/\ different\ pieces)\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00062}00062\ BOOLEAN\ kGameSpecificMenu\ \ \ \ =\ TRUE;\ \ \ \textcolor{comment}{/*\ TRUE\ if\ there\ is\ a\ game\ specific\ menu.\ FALSE\ if\ there\ is\ not\ one.\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00063}00063\ BOOLEAN\ kTieIsPossible\ \ \ \ \ \ \ =\ FALSE;\ \ \ \textcolor{comment}{/*\ TRUE\ if\ a\ tie\ is\ possible.\ FALSE\ if\ it\ is\ impossible.*/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00064}00064\ BOOLEAN\ kLoopy\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;\ \ \ \textcolor{comment}{/*\ TRUE\ if\ the\ game\ tree\ will\ have\ cycles\ (a\ rearranger\ style\ game).\ FALSE\ if\ it\ does\ not.*/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00066}00066\ BOOLEAN\ kDebugMenu\ \ \ \ \ \ \ \ \ \ \ =\ FALSE;\ \ \ \textcolor{comment}{/*\ TRUE\ only\ when\ debugging.\ FALSE\ when\ on\ release.\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00067}00067\ BOOLEAN\ kDebugDetermineValue\ =\ FALSE;\ \ \ \textcolor{comment}{/*\ TRUE\ only\ when\ debugging.\ FALSE\ when\ on\ release.\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00069}00069\ POSITION\ gNumberOfPositions\ \ \ =\ \ 0;\ \textcolor{comment}{/*\ The\ number\ of\ total\ possible\ positions\ |\ If\ you\ are\ using\ our\ hash,\ this\ is\ given\ by\ the\ hash\_init()\ function*/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00070}00070\ POSITION\ gInitialPosition\ \ \ \ \ =\ \ 0;\ \textcolor{comment}{/*\ The\ initial\ hashed\ position\ for\ your\ starting\ board\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00071}00071\ POSITION\ kBadPosition\ \ \ \ \ \ \ \ \ =\ -\/1;\ \textcolor{comment}{/*\ A\ position\ that\ will\ never\ be\ used\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00072}00072\ \textcolor{keywordtype}{void}*\ \ \ \ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00074}00074\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00075}00075\ \textcolor{comment}{\ *\ Help\ strings\ that\ are\ pretty\ self-\/explanatory}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00076}00076\ \textcolor{comment}{\ *\ Strings\ than\ span\ more\ than\ one\ line\ should\ have\ backslashes\ (\(\backslash\))\ at\ the\ end\ of\ the\ line.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00077}00077\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00079}00079\ STRING\ kHelpGraphicInterface\ =}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Not\ written\ yet"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00082}00082\ STRING\ kHelpTextInterface\ \ \ \ =}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}On\ your\ turn,\ pick\ a\ piece\ that\ you\ want\ to\ move\ and\ then\ move\ it.\ \ You\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00084}00084\ \textcolor{stringliteral}{can\ only\ move\ up,\ down,\ left,\ or\ right.\ \ Diagonals\ are\ only\ allowed\ if\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00085}00085\ \textcolor{stringliteral}{you\ set\ up\ that\ option."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00087}00087\ STRING\ kHelpOnYourTurn\ =}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}On\ your\ turn,\ pick\ a\ piece\ that\ you\ want\ to\ move.\ Look\ at\ the\ key\ to\ the\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00089}00089\ \textcolor{stringliteral}{right\ of\ the\ board\ to\ determine\ the\ number\ of\ the\ position\ of\ the\ piece\ you\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00090}00090\ \textcolor{stringliteral}{want\ to\ move.\ \ Then\ choose\ the\ direction\ you\ want\ to\ move\ your\ piece\ (up,\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00091}00091\ \textcolor{stringliteral}{down,\ left,\ right...you\ can\ also\ refer\ to\ the\ compass,\ shown\ above\ the\ board).\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00092}00092\ \textcolor{stringliteral}{A\ sample\ move\ would\ be\ '1\ u'(which\ means\ 1\ up).\ "{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00094}00094\ STRING\ kHelpStandardObjective\ =}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Capture\ all\ but\ one\ of\ your\ opponent's\ pieces\ to\ win.\ You\ can\ also\ win\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00096}00096\ \textcolor{stringliteral}{if\ your\ opponent\ does\ not\ have\ any\ more\ moves\ possible.\ Capturing\ takes\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00097}00097\ \textcolor{stringliteral}{place\ when\ you\ move\ your\ piece\ into\ a\ specific\ configuration.\ \ The\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00098}00098\ \textcolor{stringliteral}{configuration\ is\ as\ follows:\ If\ two\ of\ your\ pieces\ are\ next\ to\ each\ other\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00099}00099\ \textcolor{stringliteral}{and\ if\ on\ that\ same\ line\ that\ your\ pieces\ are\ one,\ one\ of\ those\ pieces\ is\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00100}00100\ \textcolor{stringliteral}{adjacent\ to\ an\ opponent's\ piece,\ then\ that\ results\ in\ a\ capture.\ \ However,\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00101}00101\ \textcolor{stringliteral}{no\ other\ pieces\ must\ be\ along\ that\ same\ line\ where\ your\ capture\ is\ taking\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00102}00102\ \textcolor{stringliteral}{place\ in\ order\ for\ it\ to\ be\ a\ legal\ capture.\ \ Also,\ a\ capture\ only\ occurs\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00103}00103\ \textcolor{stringliteral}{if\ you\ move\ into\ a\ capture\ position.\ \ A\ capture\ does\ not\ occur\ if\ your\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00104}00104\ \textcolor{stringliteral}{opponent\ moves\ into\ your\ capture\ position.\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00105}00105\ \textcolor{stringliteral}{Here\ are\ some\ examples\ of\ capture\ positions:\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00106}00106\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00107}00107\ \textcolor{stringliteral}{Here\ white\ captures\ a\ black\ piece:\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00108}00108\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00109}00109\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00110}00110\ \textcolor{stringliteral}{(\ )-\/-\/(b)-\/-\/(w)-\/-\/(w)-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00111}00111\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00112}00112\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00113}00113\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00114}00114\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00115}00115\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00116}00116\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00117}00117\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00118}00118\ \textcolor{stringliteral}{Here\ black\ captures\ a\ white\ piece:\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00119}00119\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00120}00120\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00121}00121\ \textcolor{stringliteral}{(\ )-\/-\/(b)-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00122}00122\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00123}00123\ \textcolor{stringliteral}{(\ )-\/-\/(b)-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00124}00124\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00125}00125\ \textcolor{stringliteral}{(\ )-\/-\/(w)-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00126}00126\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00127}00127\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00128}00128\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00129}00129\ \textcolor{stringliteral}{Here\ white\ fails\ to\ capture\ a\ black\ piece\ because\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00130}00130\ \textcolor{stringliteral}{of\ the\ other\ black\ piece\ which\ interferes\ with\ the\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00131}00131\ \textcolor{stringliteral}{capturing\ position:\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00132}00132\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00133}00133\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00134}00134\ \textcolor{stringliteral}{(\ )-\/-\/(b)-\/-\/(w)-\/-\/(w)-\/-\/(b)\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00135}00135\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00136}00136\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00137}00137\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00138}00138\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00139}00139\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00140}00140\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00141}00141\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00142}00142\ \textcolor{stringliteral}{Here\ white\ fails\ to\ capture\ a\ black\ piece\ because\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00143}00143\ \textcolor{stringliteral}{the\ white\ piece\ is\ not\ adjacent\ to\ the\ black\ piece:\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00144}00144\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00145}00145\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00146}00146\ \textcolor{stringliteral}{(b)-\/-\/(\ )-\/-\/(w)-\/-\/(w)-\/-\/(\ )\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00147}00147\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00148}00148\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00149}00149\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00150}00150\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00151}00151\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00152}00152\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )-\/-\/(\ )\(\backslash\)n"{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00154}00154\ STRING\ kHelpReverseObjective\ =}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Try\ to\ lose\ all\ but\ one\ of\ your\ pieces."{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00157}00157\ STRING\ kHelpTieOccursWhen\ =}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}A\ tie\ occurs\ when\ ..."{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00160}00160\ STRING\ kHelpExample\ =}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Player\ Player\ 1's\ turn\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00162}00162\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ (u)p\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00163}00163\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00164}00164\ \textcolor{stringliteral}{(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00165}00165\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00166}00166\ \textcolor{stringliteral}{\ \ \ \ \ \ \ (d)own\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00167}00167\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00168}00168\ \textcolor{stringliteral}{Board:\ \ \ \ \ \ \ \ \ \ Key:\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00169}00169\ \textcolor{stringliteral}{(b)-\/-\/(b)-\/-\/(b)\ \ \ \ \ \ \ \ \ \ \ (\ 1)-\/-\/(\ 2)-\/-\/(\ 3)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00170}00170\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00171}00171\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \ (\ 4)-\/-\/(\ 5)-\/-\/(\ 6)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00172}00172\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00173}00173\ \textcolor{stringliteral}{(w)-\/-\/(w)-\/-\/(w)\ \ \ \ \ \ \ \ \ \ \ (\ 7)-\/-\/(\ 8)-\/-\/(\ 9)\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00174}00174\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00175}00175\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00176}00176\ \textcolor{stringliteral}{Player\ 1's\ move\ [(undo)/(key\ dir\ [1\ d])]\ :\ 8\ u\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00177}00177\ \textcolor{stringliteral}{Player\ Player\ 2's\ turn\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00178}00178\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ (u)p\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00179}00179\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00180}00180\ \textcolor{stringliteral}{(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00181}00181\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00182}00182\ \textcolor{stringliteral}{\ \ \ \ \ \ \ (d)own\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00183}00183\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00184}00184\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00185}00185\ \textcolor{stringliteral}{Board:\ \ \ \ \ \ \ \ \ \ Key:\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00186}00186\ \textcolor{stringliteral}{(b)-\/-\/(b)-\/-\/(b)\ \ \ \ \ \ \ \ \ \ \ (\ 1)-\/-\/(\ 2)-\/-\/(\ 3)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00187}00187\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00188}00188\ \textcolor{stringliteral}{(\ )-\/-\/(w)-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \ (\ 4)-\/-\/(\ 5)-\/-\/(\ 6)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00189}00189\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00190}00190\ \textcolor{stringliteral}{(w)-\/-\/(\ )-\/-\/(w)\ \ \ \ \ \ \ \ \ \ \ (\ 7)-\/-\/(\ 8)-\/-\/(\ 9)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00191}00191\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00192}00192\ \textcolor{stringliteral}{\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00193}00193\ \textcolor{stringliteral}{Player\ 2's\ move\ [(undo)/(key\ dir\ [1\ d])]\ :\ 1\ d\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00194}00194\ \textcolor{stringliteral}{Player\ Player\ 1's\ turn\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00195}00195\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ (u)p\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00196}00196\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00197}00197\ \textcolor{stringliteral}{(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00198}00198\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00199}00199\ \textcolor{stringliteral}{\ \ \ \ \ \ \ (d)own\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00200}00200\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00201}00201\ \textcolor{stringliteral}{Board:\ \ \ \ \ \ \ \ \ \ Key:\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00202}00202\ \textcolor{stringliteral}{(\ )-\/-\/(b)-\/-\/(b)\ \ \ \ \ \ \ \ \ \ \ (\ 1)-\/-\/(\ 2)-\/-\/(\ 3)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00203}00203\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00204}00204\ \textcolor{stringliteral}{(b)-\/-\/(w)-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \ (\ 4)-\/-\/(\ 5)-\/-\/(\ 6)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00205}00205\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00206}00206\ \textcolor{stringliteral}{(w)-\/-\/(\ )-\/-\/(w)\ \ \ \ \ \ \ \ \ \ \ (\ 7)-\/-\/(\ 8)-\/-\/(\ 9)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00207}00207\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00208}00208\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00209}00209\ \textcolor{stringliteral}{Player\ 1's\ move\ [(undo)/(key\ dir\ [1\ d])]\ :\ 9\ u\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00210}00210\ \textcolor{stringliteral}{Player\ Player\ 2's\ turn\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00211}00211\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ (u)p\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00212}00212\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00213}00213\ \textcolor{stringliteral}{(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00214}00214\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00215}00215\ \textcolor{stringliteral}{\ \ \ \ \ \ \ (d)own\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00216}00216\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00217}00217\ \textcolor{stringliteral}{Board:\ \ \ \ \ \ \ \ \ \ Key:\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00218}00218\ \textcolor{stringliteral}{(\ )-\/-\/(b)-\/-\/(b)\ \ \ \ \ \ \ \ \ \ \ (\ 1)-\/-\/(\ 2)-\/-\/(\ 3)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00219}00219\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00220}00220\ \textcolor{stringliteral}{(\ )-\/-\/(w)-\/-\/(w)\ \ \ \ \ \ \ \ \ \ \ (\ 4)-\/-\/(\ 5)-\/-\/(\ 6)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00221}00221\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00222}00222\ \textcolor{stringliteral}{(w)-\/-\/(\ )-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \ (\ 7)-\/-\/(\ 8)-\/-\/(\ 9)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00223}00223\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00224}00224\ \textcolor{stringliteral}{\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00225}00225\ \textcolor{stringliteral}{Player\ 2's\ move\ [(undo)/(key\ dir\ [1\ d])]\ :\ 2\ l\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00226}00226\ \textcolor{stringliteral}{Player\ Player\ 1's\ turn\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00227}00227\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ (u)p\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00228}00228\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00229}00229\ \textcolor{stringliteral}{(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00230}00230\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00231}00231\ \textcolor{stringliteral}{\ \ \ \ \ \ \ (d)own\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00232}00232\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00233}00233\ \textcolor{stringliteral}{Board:\ \ \ \ \ \ \ \ \ \ Key:\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00234}00234\ \textcolor{stringliteral}{(b)-\/-\/(\ )-\/-\/(b)\ \ \ \ \ \ \ \ \ \ \ (\ 1)-\/-\/(\ 2)-\/-\/(\ 3)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00235}00235\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00236}00236\ \textcolor{stringliteral}{(\ )-\/-\/(w)-\/-\/(w)\ \ \ \ \ \ \ \ \ \ \ (\ 4)-\/-\/(\ 5)-\/-\/(\ 6)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00237}00237\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00238}00238\ \textcolor{stringliteral}{(w)-\/-\/(\ )-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \ (\ 7)-\/-\/(\ 8)-\/-\/(\ 9)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00239}00239\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00240}00240\ \textcolor{stringliteral}{\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00241}00241\ \textcolor{stringliteral}{Player\ 1's\ move\ [(undo)/(key\ dir\ [1\ d])]\ :\ 5\ l\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00242}00242\ \textcolor{stringliteral}{Player\ Player\ 2's\ turn\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00243}00243\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ (u)p\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00244}00244\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00245}00245\ \textcolor{stringliteral}{(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00246}00246\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00247}00247\ \textcolor{stringliteral}{\ \ \ \ \ \ \ (d)own\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00248}00248\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00249}00249\ \textcolor{stringliteral}{Board:\ \ \ \ \ \ \ \ \ \ Key:\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00250}00250\ \textcolor{stringliteral}{(\ )-\/-\/(\ )-\/-\/(b)\ \ \ \ \ \ \ \ \ \ \ (\ 1)-\/-\/(\ 2)-\/-\/(\ 3)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00251}00251\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00252}00252\ \textcolor{stringliteral}{(w)-\/-\/(\ )-\/-\/(w)\ \ \ \ \ \ \ \ \ \ \ (\ 4)-\/-\/(\ 5)-\/-\/(\ 6)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00253}00253\ \textcolor{stringliteral}{\ |\ \ \ \ |\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ |\ \ \ \ \ |\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00254}00254\ \textcolor{stringliteral}{(w)-\/-\/(\ )-\/-\/(\ )\ \ \ \ \ \ \ \ \ \ \ (\ 7)-\/-\/(\ 8)-\/-\/(\ 9)\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00255}00255\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00256}00256\ \textcolor{stringliteral}{Player\ 1\ (player\ one)\ Wins!"{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00258}00258\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00259}00259\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00260}00260\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00261}00261\ \textcolor{comment}{**\ \#defines\ and\ structs}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00262}00262\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00263}00263\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00264}00264\ \textcolor{preprocessor}{\#define\ BLANK\ '\ '}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00265}00265\ \textcolor{preprocessor}{\#define\ WHITE\ 'w'\ }\textcolor{comment}{/*\ player\ 1\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00266}00266\ \textcolor{preprocessor}{\#define\ BLACK\ 'b'\ }\textcolor{comment}{/*\ player\ 2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00268}00268\ \textcolor{preprocessor}{\#define\ UP\ 0}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00269}00269\ \textcolor{preprocessor}{\#define\ RIGHT\ 1}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00270}00270\ \textcolor{preprocessor}{\#define\ DOWN\ 2}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00271}00271\ \textcolor{preprocessor}{\#define\ LEFT\ 3}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00272}00272\ \textcolor{preprocessor}{\#define\ UPLEFT\ 4}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00273}00273\ \textcolor{preprocessor}{\#define\ UPRIGHT\ 5}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00274}00274\ \textcolor{preprocessor}{\#define\ DOWNRIGHT\ 6}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00275}00275\ \textcolor{preprocessor}{\#define\ DOWNLEFT\ 7}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00279}00279\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00280}00280\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00281}00281\ \textcolor{comment}{**\ Global\ Variables}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00282}00282\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00283}00283\ \textcolor{comment}{*************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00285}00285\ \textcolor{comment}{/*\ default\ values\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00286}00286\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00287}00287\ \textcolor{keywordtype}{int}\ gBoardwidth\ =\ 3;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00288}00288\ \textcolor{keywordtype}{int}\ gBoardlength;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00289}00289\ \textcolor{keywordtype}{char}*\ gBoard;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00290}00290\ BOOLEAN\ diagonals\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00292}00292\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00293}00293\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00294}00294\ \textcolor{comment}{**\ Function\ Prototypes}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00295}00295\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00296}00296\ \textcolor{comment}{*************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00297}00297\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00298}00298\ \textcolor{comment}{/*\ External\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00299}00299\ \textcolor{preprocessor}{\#ifndef\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00300}00300\ \textcolor{keyword}{extern}\ GENERIC\_PTR\ \ \ \ \ \ SafeMalloc\ ();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00301}00301\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree\ ();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00302}00302\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00303}00303\ \textcolor{keyword}{extern}\ POSITION\ \ \ \ \ \ \ \ \ generic\_hash\_init(\textcolor{keywordtype}{int}\ boardsize,\ \textcolor{keywordtype}{int}\ pieces\_array[],\ \textcolor{keywordtype}{int}\ (*vcfg\_function\_ptr)(\textcolor{keywordtype}{int}*\ cfg),\ \textcolor{keywordtype}{int}\ player);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00304}00304\ \textcolor{keyword}{extern}\ POSITION\ \ \ \ \ \ \ \ \ generic\_hash\_hash(\textcolor{keywordtype}{char}\ *board,\ \textcolor{keywordtype}{int}\ player);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00305}00305\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ *generic\_hash\_unhash(POSITION\ hash\_number,\ \textcolor{keywordtype}{char}\ *empty\_board);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00306}00306\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ generic\_hash\_turn\ (POSITION\ hashed);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00308}00308\ \textcolor{comment}{/*\ not\ external\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00309}00309\ MOVE\ EncodeMove(\textcolor{keywordtype}{int}\ dir,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00310}00310\ \textcolor{keywordtype}{int}\ GetDirection\ (MOVE\ theMove);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00311}00311\ \textcolor{keywordtype}{int}\ GetXCoord\ (MOVE\ theMove);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00312}00312\ \textcolor{keywordtype}{int}\ GetYCoord\ (MOVE\ theMove);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00313}00313\ \textcolor{keywordtype}{int}\ getArraynum(\textcolor{keywordtype}{int}\ xcoord,\ \textcolor{keywordtype}{int}\ ycoord);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00314}00314\ \textcolor{keywordtype}{int}\ getColumn(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00315}00315\ \textcolor{keywordtype}{int}\ getRow(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00316}00316\ BOOLEAN\ canmoveup(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00317}00317\ BOOLEAN\ canmovedown(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00318}00318\ BOOLEAN\ canmoveleft(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00319}00319\ BOOLEAN\ canmoveright(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00320}00320\ BOOLEAN\ canmoveupleft(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00321}00321\ BOOLEAN\ canmovedownright(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00322}00322\ BOOLEAN\ canmovedownleft(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00323}00323\ BOOLEAN\ canmoveupright(\textcolor{keywordtype}{int}\ arraynum);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00325}00325\ STRING\ MoveToString(\ MOVE\ );}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00327}00327\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00328}00328\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00329}00329\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ InitializeGame}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00330}00330\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00331}00331\ \textcolor{comment}{**\ DESCRIPTION:\ Prepares\ the\ game\ for\ execution.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00332}00332\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Initializes\ required\ variables.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00333}00333\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Sets\ up\ gDatabase\ (if\ necessary).}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00334}00334\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00335}00335\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00336}00336\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00337}00337\ \textcolor{keywordtype}{void}\ InitializeGame\ ()}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00338}00338\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00339}00339\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ k;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00340}00340\ \ \ \ \ gBoardlength\ =\ gBoardwidth\ *\ gBoardwidth;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00341}00341\ \ \ \ \ \textcolor{keywordtype}{int}\ pieces\_array[]\ =\ \{WHITE,\ 1,\ gBoardwidth,\ BLACK,\ 1,\ gBoardwidth,\ BLANK,\ gBoardlength\ -\/\ (gBoardwidth\ *\ 2),\ gBoardlength\ -\/\ 2,\ -\/1\ \};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00342}00342\ \ \ \ \ gNumberOfPositions\ =\ generic\_hash\_init(gBoardlength,\ pieces\_array,\ NULL,\ 0);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00343}00343\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00344}00344\ \ \ \ \ \textcolor{keywordtype}{int}\ reflections[]\ =\ \{0,\ 45,\ 90,\ 135\};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00345}00345\ \ \ \ \ \textcolor{keywordtype}{int}\ rotations[]\ =\ \{90,\ 180,\ 270\};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00346}00346\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00347}00347\ \ \ \ \ generic\_hash\_init\_sym(0,\ gBoardwidth,\ gBoardwidth,\ reflections,\ 4,\ rotations,\ 3,\ 1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00349}00349\ \ \ \ \ gBoard\ =\ (\textcolor{keywordtype}{char}*)SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})\ *\ (gBoardlength\ +\ 1));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00350}00350\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ gBoardwidth;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00351}00351\ \ \ \ \ \ \ \ \ gBoard[i]\ =\ BLACK;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00352}00352\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00353}00353\ \ \ \ \ \textcolor{keywordflow}{for}\ (j\ =\ gBoardlength\ -\/\ 1;\ j\ >\ gBoardlength\ -\/\ gBoardwidth\ -\/\ 1;\ j-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00354}00354\ \ \ \ \ \ \ \ \ gBoard[j]\ =\ WHITE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00355}00355\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00356}00356\ \ \ \ \ \textcolor{keywordflow}{for}\ (k\ =\ gBoardwidth;\ k\ <\ gBoardlength\ -\/\ gBoardwidth;\ k++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00357}00357\ \ \ \ \ \ \ \ \ gBoard[k]\ =\ BLANK;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00358}00358\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00359}00359\ \ \ \ \ gBoard[gBoardlength]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00360}00360\ \ \ \ \ gInitialPosition\ =\ generic\_hash\_hash(gBoard,\ 1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00361}00361\ \ \ \ \ \textcolor{comment}{/*\ printf("{}This\ is\ the\ initialPosition:\%d"{},\ gInitialPosition);\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00362}00362\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00363}00363\ \ \ \ \ gMoveToStringFunPtr\ =\ \&MoveToString;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00364}00364\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00366}00366\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00367}00367\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00368}00368\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00369}00369\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GenerateMoves}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00370}00370\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00371}00371\ \textcolor{comment}{**\ DESCRIPTION:\ Creates\ a\ linked\ list\ of\ every\ move\ that\ can\ be\ reached}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00372}00372\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ this\ position.\ Returns\ a\ pointer\ to\ the\ head\ of\ the}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00373}00373\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ linked\ list.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00374}00374\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00375}00375\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ Current\ position\ for\ move}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00376}00376\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ generation.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00377}00377\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00378}00378\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (MOVELIST\ *)\ \ \ \ \ \ :\ A\ pointer\ to\ the\ first\ item\ of}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00379}00379\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ linked\ list\ of\ generated\ moves}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00380}00380\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00381}00381\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ MOVELIST\ *CreateMovelistNode();}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00382}00382\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00383}00383\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00385}00385\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves\ (POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00386}00386\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00387}00387\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00388}00388\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00389}00389\ \ \ \ \ \textcolor{comment}{/*\ Use\ CreateMovelistNode(move,\ next)\ to\ 'cons'\ together\ a\ linked\ list\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00390}00390\ \ \ \ \ \textcolor{keywordtype}{int}\ player\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00391}00391\ \ \ \ \ \textcolor{keywordtype}{char}*\ board\ =\ (\textcolor{keywordtype}{char}*)generic\_hash\_unhash\ (position,\ gBoard);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00392}00392\ \ \ \ \ \textcolor{keywordtype}{char}\ playerpiece\ =\ (player\ ==\ 1\ ?\ WHITE\ :\ BLACK);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00393}00393\ \ \ \ \ \textcolor{keywordtype}{int}\ i,c,r;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00394}00394\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gBoardlength;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00395}00395\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[i]\ ==\ playerpiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00396}00396\ \ \ \ \ \ \ \ \ \ \ \ \ c\ =\ getColumn\ (i);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00397}00397\ \ \ \ \ \ \ \ \ \ \ \ \ r\ =\ getRow\ (i);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00398}00398\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmoveup(i))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00399}00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(UP,c,r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00400}00400\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00401}00401\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmovedown(i))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00402}00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(DOWN,c,r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00403}00403\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00404}00404\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmoveleft(i))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00405}00405\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(LEFT,c,r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00406}00406\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00407}00407\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmoveright(i))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00408}00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(RIGHT,c,r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00409}00409\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ Diagonal\ moves\ are\ allowed\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00411}00411\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (diagonals)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00412}00412\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmoveupleft(i))}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00413}00413\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(UPLEFT,\ c,\ r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00414}00414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmoveupright(i))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00415}00415\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(UPRIGHT,\ c,\ r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00416}00416\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00417}00417\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmovedownleft(i))}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00418}00418\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(DOWNLEFT,\ c,\ r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00419}00419\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (canmovedownright(i))}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00420}00420\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(EncodeMove(DOWNRIGHT,\ c,\ r),\ moves);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00421}00421\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00422}00422\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00423}00423\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00424}00424\ \ \ \ \ \textcolor{keywordflow}{return}\ moves;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00425}00425\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00426}00426\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00427}00427\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00428}00428\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00429}00429\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00430}00430\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DoMove}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00431}00431\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00432}00432\ \textcolor{comment}{**\ DESCRIPTION:\ Applies\ the\ move\ to\ the\ position.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00433}00433\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00434}00434\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ old\ position}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00435}00435\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ \ \ \ \ move\ \ \ \ \ :\ The\ move\ to\ apply\ to\ the\ position}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00436}00436\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00437}00437\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (POSITION)\ \ \ \ \ \ \ \ :\ The\ position\ that\ results\ from\ move}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00438}00438\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00439}00439\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ Some\ Board\ Hash\ Function}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00440}00440\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Some\ Board\ Unhash\ Function}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00441}00441\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00442}00442\ \textcolor{comment}{*************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00443}00443\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00444}00444\ POSITION\ DoMove\ (POSITION\ position,\ MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00445}00445\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00446}00446\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00447}00447\ \ \ \ \ \textcolor{keywordtype}{int}\ dir\ =\ GetDirection(move);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00448}00448\ \ \ \ \ \textcolor{keywordtype}{int}\ x0\ =\ GetXCoord(move);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00449}00449\ \ \ \ \ \textcolor{keywordtype}{int}\ y0\ =\ GetYCoord(move);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00450}00450\ \ \ \ \ \textcolor{keywordtype}{int}\ x1,\ y1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00451}00451\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00452}00452\ \ \ \ \ \textcolor{keywordtype}{char}*\ board\ =\ (\textcolor{keywordtype}{char}*)generic\_hash\_unhash(position,\ gBoard);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00453}00453\ \ \ \ \ \textcolor{keywordtype}{int}\ player\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00454}00454\ \ \ \ \ \textcolor{keywordtype}{int}\ nextPlayer;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00455}00455\ \ \ \ \ \textcolor{keywordflow}{if}\ (player\ ==\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00456}00456\ \ \ \ \ \ \ \ \ nextPlayer\ =\ 2;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00457}00457\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ nextPlayer\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00459}00459\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00460}00460\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00461}00461\ \ \ \ \ \textcolor{comment}{/*\ add\ new\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00462}00462\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00463}00463\ \ \ \ \ \textcolor{comment}{/*\ store\ new\ piece\ coords\ in\ x1\ y1\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00464}00464\ \ \ \ \ \textcolor{keywordflow}{switch}(dir)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00465}00465\ \ \ \ \ \textcolor{keywordflow}{case}\ UP:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00466}00466\ \ \ \ \ \ \ \ \ x1\ =\ x0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00467}00467\ \ \ \ \ \ \ \ \ y1\ =\ y0\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00468}00468\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00469}00469\ \ \ \ \ \textcolor{keywordflow}{case}\ RIGHT:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00470}00470\ \ \ \ \ \ \ \ \ x1\ =\ x0\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00471}00471\ \ \ \ \ \ \ \ \ y1\ =\ y0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00472}00472\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00473}00473\ \ \ \ \ \textcolor{keywordflow}{case}\ DOWN:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00474}00474\ \ \ \ \ \ \ \ \ x1\ =\ x0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00475}00475\ \ \ \ \ \ \ \ \ y1\ =\ y0\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00476}00476\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00477}00477\ \ \ \ \ \textcolor{keywordflow}{case}\ LEFT:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00478}00478\ \ \ \ \ \ \ \ \ x1\ =\ x0\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00479}00479\ \ \ \ \ \ \ \ \ y1\ =\ y0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00480}00480\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00481}00481\ \ \ \ \ \textcolor{keywordflow}{case}\ UPLEFT:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00482}00482\ \ \ \ \ \ \ \ \ x1\ =\ x0\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00483}00483\ \ \ \ \ \ \ \ \ y1\ =\ y0\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00484}00484\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00485}00485\ \ \ \ \ \textcolor{keywordflow}{case}\ UPRIGHT:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00486}00486\ \ \ \ \ \ \ \ \ x1\ =\ x0\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00487}00487\ \ \ \ \ \ \ \ \ y1\ =\ y0\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00488}00488\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00489}00489\ \ \ \ \ \textcolor{keywordflow}{case}\ DOWNRIGHT:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00490}00490\ \ \ \ \ \ \ \ \ x1\ =\ x0\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00491}00491\ \ \ \ \ \ \ \ \ y1\ =\ y0\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00492}00492\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00493}00493\ \ \ \ \ \textcolor{keywordflow}{case}\ DOWNLEFT:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00494}00494\ \ \ \ \ \ \ \ \ x1\ =\ x0\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00495}00495\ \ \ \ \ \ \ \ \ y1\ =\ y0\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00496}00496\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00497}00497\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00498}00498\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Error:\ bad\ switch\ in\ DoMove"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00499}00499\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00500}00500\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00501}00501\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00502}00502\ \ \ \ \ \textcolor{comment}{/*\ convert\ x1\ y1\ to\ position\ index\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00503}00503\ \ \ \ \ \textcolor{keywordtype}{int}\ pIndex1\ =\ getArraynum(x1,\ y1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00505}00505\ \ \ \ \ \textcolor{comment}{/*\ get\ type\ of\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00506}00506\ \ \ \ \ \textcolor{keywordtype}{int}\ pIndex0\ =\ getArraynum(x0,\ y0);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00507}00507\ \ \ \ \ \textcolor{keywordtype}{char}\ pType\ =\ board[pIndex0];}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00509}00509\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00510}00510\ \ \ \ \ \textcolor{comment}{/*\ doing\ basic\ movement\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00511}00511\ \ \ \ \ board[pIndex0]\ =\ BLANK;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00512}00512\ \ \ \ \ board[pIndex1]\ =\ pType;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00513}00513\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00514}00514\ \ \ \ \ \textcolor{comment}{/*\ capturing\ stuff\ code\ goes\ here:}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00515}00515\ \textcolor{comment}{\ \ \ \ \ \ \ break\ into\ check\ row\ and\ column}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00516}00516\ \textcolor{comment}{\ \ \ \ \ \ \ check\ 3\ piece\ row/column}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00517}00517\ \textcolor{comment}{\ \ \ \ \ \ \ check\ for\ adjacent\ friend\ piece}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00518}00518\ \textcolor{comment}{\ \ \ \ \ \ \ check\ for\ adjacent\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00519}00519\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00520}00520\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00521}00521\ \ \ \ \ \textcolor{comment}{/*\ checking\ row\ and\ column\ for\ 3\ pieces\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00522}00522\ \ \ \ \ \textcolor{keywordtype}{int}\ tmpRow;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00523}00523\ \ \ \ \ \textcolor{keywordtype}{int}\ tmpCol;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00524}00524\ \ \ \ \ \textcolor{keywordtype}{int}\ numRowPieces\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00525}00525\ \ \ \ \ \textcolor{keywordtype}{int}\ numColPieces\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00526}00526\ \ \ \ \ \textcolor{keywordtype}{int}\ pIndex;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00527}00527\ \ \ \ \ \textcolor{comment}{/*\ check\ row\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00528}00528\ \ \ \ \ \textcolor{keywordflow}{for}\ (tmpRow\ =\ 0;\ tmpRow\ <\ gBoardwidth;\ tmpRow++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00529}00529\ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(tmpRow,\ y1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00530}00530\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ !=\ BLANK)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00531}00531\ \ \ \ \ \ \ \ \ \ \ \ \ numRowPieces++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00532}00532\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00533}00533\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00534}00534\ \ \ \ \ \textcolor{comment}{/*\ check\ column\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00535}00535\ \ \ \ \ \textcolor{keywordflow}{for}\ (tmpCol\ =\ 0;\ tmpCol\ <\ gBoardwidth;\ tmpCol++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00536}00536\ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(x1,\ tmpCol);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00537}00537\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ !=\ BLANK)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00538}00538\ \ \ \ \ \ \ \ \ \ \ \ \ numColPieces++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00539}00539\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00540}00540\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00541}00541\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00542}00542\ \ \ \ \ \textcolor{comment}{/*\ check\ for\ adjacent\ friend\ piece\ for\ row\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00543}00543\ \ \ \ \ \textcolor{keywordtype}{char}\ playerpiece\ =\ (player\ ==\ 1\ ?\ WHITE\ :\ BLACK);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00544}00544\ \ \ \ \ \textcolor{keywordtype}{int}\ ax1,\ ay1,\ ax2,\ ay2;\ \textcolor{comment}{/*\ adjacent\ coords\ 1,\ adjacent\ coords\ 2\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00545}00545\ \ \ \ \ \textcolor{keywordtype}{int}\ a1exist\ =\ 0,\ a2exist\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00546}00546\ \ \ \ \ \textcolor{keywordflow}{if}\ (numRowPieces\ ==\ 3)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00547}00547\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00548}00548\ \ \ \ \ \ \ \ \ \ \ \ \ ax1\ =\ x1\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00549}00549\ \ \ \ \ \ \ \ \ \ \ \ \ ay1\ =\ y1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00550}00550\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ax1,\ ay1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00551}00551\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ playerpiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00552}00552\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ a1exist\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00553}00553\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00554}00554\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00555}00555\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ <\ gBoardwidth-\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00556}00556\ \ \ \ \ \ \ \ \ \ \ \ \ ax2\ =\ x1\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00557}00557\ \ \ \ \ \ \ \ \ \ \ \ \ ay2\ =\ y1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00558}00558\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ax2,\ ay2);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00559}00559\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ playerpiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00560}00560\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ a2exist\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00561}00561\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00562}00562\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00563}00563\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00564}00564\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00565}00565\ \ \ \ \ \textcolor{comment}{/*\ check\ for\ adjacent\ enemy\ piece\ for\ row,\ and\ remove\ from\ board\ if\ found\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00566}00566\ \ \ \ \ \textcolor{keywordtype}{char}\ enemypiece\ \ =\ (player\ ==\ 1\ ?\ BLACK\ :\ WHITE);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00567}00567\ \ \ \ \ \textcolor{keywordtype}{int}\ ex,\ ey;\ \textcolor{comment}{/*\ enemy\ coords\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00568}00568\ \ \ \ \ \textcolor{keywordflow}{if}\ (a1exist)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00569}00569\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ax1\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00570}00570\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ ax1\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00571}00571\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ ay1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00572}00572\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00573}00573\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00574}00574\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00575}00575\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00576}00576\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00577}00577\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ <\ gBoardwidth-\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00578}00578\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ x1\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00579}00579\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ y1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00580}00580\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00581}00581\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00582}00582\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00583}00583\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00584}00584\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00585}00585\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00586}00586\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00587}00587\ \ \ \ \ \textcolor{keywordflow}{if}\ (a2exist)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00588}00588\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00589}00589\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ x1\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00590}00590\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ y1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00591}00591\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00592}00592\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00593}00593\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00594}00594\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00595}00595\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00596}00596\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ax2\ <\ gBoardwidth-\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00597}00597\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ ax2\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00598}00598\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ ay2;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00599}00599\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00600}00600\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00601}00601\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00602}00602\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00603}00603\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00604}00604\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00605}00605\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00606}00606\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00607}00607\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00608}00608\ \ \ \ \ \textcolor{comment}{/*\ check\ for\ adjacent\ friend\ piece\ for\ column\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00609}00609\ \ \ \ \ a1exist\ =\ 0;\ \textcolor{comment}{/*\ reset\ for\ column\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00610}00610\ \ \ \ \ a2exist\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00611}00611\ \ \ \ \ \textcolor{keywordflow}{if}\ (numColPieces\ ==\ 3)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00612}00612\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00613}00613\ \ \ \ \ \ \ \ \ \ \ \ \ ax1\ =\ x1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00614}00614\ \ \ \ \ \ \ \ \ \ \ \ \ ay1\ =\ y1\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00615}00615\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ax1,\ ay1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00616}00616\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ playerpiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00617}00617\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ a1exist\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00618}00618\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00619}00619\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00620}00620\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ <\ gBoardwidth-\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00621}00621\ \ \ \ \ \ \ \ \ \ \ \ \ ax2\ =\ x1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00622}00622\ \ \ \ \ \ \ \ \ \ \ \ \ ay2\ =\ y1\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00623}00623\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ax2,\ ay2);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00624}00624\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ playerpiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00625}00625\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ a2exist\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00626}00626\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00627}00627\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00628}00628\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00629}00629\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00630}00630\ \ \ \ \ \textcolor{comment}{/*\ check\ for\ adjacent\ enemy\ piece\ for\ column,\ and\ remove\ from\ board\ if\ found\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00631}00631\ \ \ \ \ \textcolor{keywordflow}{if}\ (a1exist)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00632}00632\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ay1\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00633}00633\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ ax1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00634}00634\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ ay1\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00635}00635\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00636}00636\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00637}00637\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00638}00638\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00639}00639\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00640}00640\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ <\ gBoardwidth-\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00641}00641\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ x1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00642}00642\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ y1\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00643}00643\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00644}00644\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00645}00645\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00646}00646\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00647}00647\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00648}00648\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00649}00649\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00650}00650\ \ \ \ \ \textcolor{keywordflow}{if}\ (a2exist)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00651}00651\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00652}00652\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ x1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00653}00653\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ y1\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00654}00654\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00655}00655\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00656}00656\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00657}00657\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00658}00658\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00659}00659\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ay2\ <\ gBoardwidth-\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00660}00660\ \ \ \ \ \ \ \ \ \ \ \ \ ex\ =\ ax2;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00661}00661\ \ \ \ \ \ \ \ \ \ \ \ \ ey\ =\ ay2\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00662}00662\ \ \ \ \ \ \ \ \ \ \ \ \ pIndex\ =\ getArraynum(ex,\ ey);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00663}00663\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[pIndex]\ ==\ enemypiece)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00664}00664\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[pIndex]\ =\ BLANK;\ \textcolor{comment}{/*\ removes\ enemy\ piece\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00665}00665\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00666}00666\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00667}00667\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00668}00668\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00669}00669\ \ \ \ \ \textcolor{keywordflow}{return}\ generic\_hash\_hash(board,\ nextPlayer);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00670}00670\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00671}00671\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00672}00672\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00673}00673\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00674}00674\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00675}00675\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00676}00676\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ Primitive}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00677}00677\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00678}00678\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ value\ of\ a\ position\ if\ it\ fulfills\ certain}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00679}00679\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 'primitive'\ constraints.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00680}00680\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00681}00681\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Example:\ Tic-\/tac-\/toe\ -\/\ Last\ piece\ already\ placed}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00682}00682\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00683}00683\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Case\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Return\ Value}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00684}00684\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ *********************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00685}00685\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Current\ player\ sees\ three\ in\ a\ row\ \ \ \ lose}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00686}00686\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Entire\ board\ filled\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tie}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00687}00687\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ All\ other\ cases\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ undecided}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00688}00688\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00689}00689\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ inspect.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00690}00690\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00691}00691\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (VALUE)\ \ \ \ \ \ \ \ \ \ \ :\ one\ of}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00692}00692\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (win,\ lose,\ tie,\ undecided)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00693}00693\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00694}00694\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ None}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00695}00695\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00696}00696\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00697}00697\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00698}00698\ VALUE\ Primitive\ (POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00699}00699\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00700}00700\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00701}00701\ \ \ \ \ \textcolor{keywordtype}{int}\ player\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00702}00702\ \ \ \ \ \textcolor{keywordtype}{char}*\ board\ =\ (\textcolor{keywordtype}{char}*)generic\_hash\_unhash\ (position,\ gBoard);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00703}00703\ \ \ \ \ \textcolor{keywordtype}{char}\ playerpiece\ =\ (player\ ==\ 1\ ?\ WHITE\ :\ BLACK);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00704}00704\ \ \ \ \ \textcolor{keywordtype}{int}\ numplayerpiece\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00705}00705\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00706}00706\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gBoardlength;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00707}00707\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[i]\ ==\ playerpiece)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00708}00708\ \ \ \ \ \ \ \ \ \ \ \ \ numplayerpiece++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00709}00709\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00710}00710\ \ \ \ \ \textcolor{keywordflow}{if}\ (numplayerpiece\ <=\ 1)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00711}00711\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ gStandardGame\ ?\ lose\ :\ win;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00712}00712\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (GenerateMoves(position)\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00713}00713\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ gStandardGame\ ?\ lose\ :\ win;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00714}00714\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00715}00715\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00716}00716\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ undecided;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00717}00717\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00718}00718\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00719}00719\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00720}00720\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00721}00721\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00722}00722\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintPosition}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00723}00723\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00724}00724\ \textcolor{comment}{**\ DESCRIPTION:\ Prints\ the\ position\ in\ a\ pretty\ format,\ including\ the}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00725}00725\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ prediction\ of\ the\ game's\ outcome.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00726}00726\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00727}00727\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ \ \ \ :\ The\ position\ to\ pretty\ print.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00728}00728\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ \ playersName\ :\ The\ name\ of\ the\ player.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00729}00729\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ \ usersTurn\ \ \ :\ TRUE\ <==>\ it's\ a\ user's\ turn.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00730}00730\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00731}00731\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ Unhash()}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00732}00732\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetPrediction()\ \ \ \ \ \ :\ Returns\ the\ prediction\ of\ the\ game}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00733}00733\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00734}00734\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00735}00735\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00736}00736\ \textcolor{keywordtype}{void}\ PrintPosition\ (POSITION\ position,\ STRING\ playersName,\ BOOLEAN\ usersTurn)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00737}00737\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00738}00738\ \ \ \ \ \textcolor{keywordtype}{char}*\ board;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00739}00739\ \ \ \ \ board\ =\ (\textcolor{keywordtype}{char}*)generic\_hash\_unhash(position,\ gBoard);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00740}00740\ \ \ \ \ \textcolor{keywordtype}{int}\ player\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00741}00741\ \ \ \ \ STRING\ playercolor;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00742}00742\ \ \ \ \ \textcolor{keywordflow}{if}\ (player\ ==\ 1)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00743}00743\ \ \ \ \ \ \ \ \ playercolor\ =\ \textcolor{stringliteral}{"{}WHITE"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00744}00744\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00745}00745\ \ \ \ \ \ \ \ \ playercolor\ =\ \textcolor{stringliteral}{"{}BLACK"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00746}00746\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Player\ \%s's\ turn\ (\%s)\(\backslash\)n"{}},\ playersName,playercolor\ );}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00747}00747\ \ \ \ \ \textcolor{comment}{/*\ counters\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00748}00748\ \ \ \ \ \textcolor{keywordtype}{int}\ h,\ i,\ j,\ k,\ c,\ c1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00749}00749\ \ \ \ \ \textcolor{comment}{/*\ for\ diagonals\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00750}00750\ \ \ \ \ \textcolor{keywordflow}{if}\ (diagonals)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00751}00751\ \ \ \ \ \ \ \ \ c\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00752}00752\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ (ul)\ \ \ \ \ \ (ur)\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00753}00753\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \(\backslash\)\(\backslash\)\ (u)p/\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00754}00754\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \(\backslash\)\(\backslash\)\ |\ /\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00755}00755\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00756}00756\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ /\ |\ \(\backslash\)\(\backslash\)\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00757}00757\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ /(d)own\(\backslash\)\(\backslash\)\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00758}00758\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ (dl)\ \ \ \ \ \ \ (dr)\ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00759}00759\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00760}00760\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Board:\ "{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00761}00761\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (h\ =\ 0;\ h\ <\ gBoardwidth-\/1;\ h++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00762}00762\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00763}00763\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00764}00764\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Key:\ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00765}00765\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gBoardlength;\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00766}00766\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j\ =\ 0;\ j\ <\ gBoardwidth;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00767}00767\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}(\%c)"{}},\ board\ [i]);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00768}00768\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00769}00769\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (j\ <\ gBoardwidth\ -\/\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00770}00770\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00771}00771\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00772}00772\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00773}00773\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00774}00774\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (c1\ =\ 0;\ c1\ <\ gBoardwidth;\ c1++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00775}00775\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ <\ 10)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00776}00776\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}(\ \%d)"{}},\ c);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00777}00777\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ c++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00778}00778\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c1\ <\ gBoardwidth\ -\/\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00779}00779\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00780}00780\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00781}00781\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00782}00782\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00783}00783\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}(\%d)"{}},\ c);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00784}00784\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ c++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00785}00785\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c1\ <\ gBoardwidth\ -\/\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00786}00786\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00787}00787\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00788}00788\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00789}00789\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00790}00790\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ gBoardlength\ -\/\ gBoardwidth\ +\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00791}00791\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00792}00792\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k\ =\ 0;\ k\ <\ gBoardwidth\ -\/\ 1;\ k++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00793}00793\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |\ X"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00794}00794\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00795}00795\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00796}00796\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00797}00797\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k\ =\ 0;\ k\ <\ gBoardwidth\ -\/\ 1;\ k++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00798}00798\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |\ \ \ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00799}00799\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00800}00800\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00801}00801\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00802}00802\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00803}00803\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00804}00804\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00805}00805\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00806}00806\ \ \ \ \ \textcolor{comment}{/*\ for\ regular\ game\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00807}00807\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00808}00808\ \ \ \ \ \ \ \ \ c\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00809}00809\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ (u)p\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00810}00810\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00811}00811\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}(l)eft\ -\/-\/(\ )-\/-\/\ (r)ight\ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00812}00812\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00813}00813\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ (d)own\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00814}00814\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00815}00815\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Board:\ "{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00816}00816\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (h\ =\ 0;\ h\ <\ gBoardwidth-\/1;\ h++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00817}00817\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00818}00818\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00819}00819\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Key:\ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00820}00820\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gBoardlength;\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00821}00821\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j\ =\ 0;\ j\ <\ gBoardwidth;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00822}00822\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}(\%c)"{}},\ board\ [i]);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00823}00823\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00824}00824\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (j\ <\ gBoardwidth\ -\/\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00825}00825\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00826}00826\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00827}00827\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00828}00828\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00829}00829\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (c1\ =\ 0;\ c1\ <\ gBoardwidth;\ c1++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00830}00830\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ <\ 10)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00831}00831\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}(\ \%d)"{}},\ c);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00832}00832\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ c++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00833}00833\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c1\ <\ gBoardwidth\ -\/\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00834}00834\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00835}00835\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00836}00836\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00837}00837\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00838}00838\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}(\%d)"{}},\ c);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00839}00839\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ c++;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00840}00840\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c1\ <\ gBoardwidth\ -\/\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00841}00841\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00842}00842\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00843}00843\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00844}00844\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00845}00845\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ gBoardlength\ -\/\ gBoardwidth\ +\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00846}00846\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00847}00847\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k\ =\ 0;\ k\ <\ gBoardwidth\ -\/\ 1;\ k++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00848}00848\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |\ \ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00849}00849\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00850}00850\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00851}00851\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00852}00852\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k\ =\ 0;\ k\ <\ gBoardwidth\ -\/\ 1;\ k++)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00853}00853\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |\ \ \ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00854}00854\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00855}00855\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ |"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00856}00856\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00857}00857\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00858}00858\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00859}00859\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00860}00860\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00861}00861\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\%s\(\backslash\)n"{}},\ GetPrediction(position,\ playersName,\ usersTurn));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00862}00862\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00863}00863\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00864}00864\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00865}00865\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00866}00866\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00867}00867\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00868}00868\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintComputersMove}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00869}00869\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00870}00870\ \textcolor{comment}{**\ DESCRIPTION:\ Nicely\ formats\ the\ computers\ move.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00871}00871\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00872}00872\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ \ \ \ computersMove\ :\ The\ computer's\ move.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00873}00873\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ computersName\ :\ The\ computer's\ name.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00874}00874\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00875}00875\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00876}00876\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00877}00877\ \textcolor{keywordtype}{void}\ PrintComputersMove\ (MOVE\ computersMove,\ STRING\ computersName)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00878}00878\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00879}00879\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ \ \ :\ "{}},\ computersName);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00880}00880\ \ \ \ \ PrintMove(computersMove);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00881}00881\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00882}00882\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00883}00883\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00884}00884\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00885}00885\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00886}00886\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00887}00887\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintMove}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00888}00888\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00889}00889\ \textcolor{comment}{**\ DESCRIPTION:\ Prints\ the\ move\ in\ a\ nice\ format.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00890}00890\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00891}00891\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ move\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ print.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00892}00892\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00893}00893\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00894}00894\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00895}00895\ \textcolor{keywordtype}{void}\ PrintMove\ (MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00896}00896\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00897}00897\ \ \ \ \ STRING\ m\ =\ MoveToString(\ move\ );}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00898}00898\ \ \ \ \ printf(\ \textcolor{stringliteral}{"{}\%s"{}},\ m\ );}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00899}00899\ \ \ \ \ SafeFree(\ m\ );}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00900}00900\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00901}00901\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00902}00902\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00903}00903\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00904}00904\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ MoveToString}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00905}00905\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00906}00906\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ move\ as\ a\ STRING}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00907}00907\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00908}00908\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ put\ into\ a\ string.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00909}00909\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00910}00910\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00911}00911\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00912}00912\ STRING\ MoveToString\ (theMove)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00913}00913\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00914}00914\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00915}00915\ \ \ \ \ STRING\ m\ =\ (STRING)\ SafeMalloc(\ 8\ );}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00916}00916\ \ \ \ \ \textcolor{keywordtype}{int}\ xcoord,\ ycoord,\ dir,\ Arraynum;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00917}00917\ \ \ \ \ STRING\ direction;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00918}00918\ \ \ \ \ xcoord\ =\ GetXCoord(theMove);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00919}00919\ \ \ \ \ ycoord\ =\ GetYCoord(theMove);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00920}00920\ \ \ \ \ dir\ =\ GetDirection(theMove);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00921}00921\ \ \ \ \ Arraynum\ =\ getArraynum(xcoord,\ ycoord);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00922}00922\ \ \ \ \ \textcolor{keywordflow}{if}\ (dir\ ==\ UP)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00923}00923\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}u"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00924}00924\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (dir\ ==\ RIGHT)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00925}00925\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}r"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00926}00926\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (dir\ ==\ DOWN)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00927}00927\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}d"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00928}00928\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (dir\ ==\ LEFT)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00929}00929\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}l"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00930}00930\ \ \ \ \ \textcolor{comment}{//for\ diagonals\ only}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00931}00931\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (dir\ ==\ UPLEFT)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00932}00932\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}ul"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00933}00933\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (dir\ ==\ UPRIGHT)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00934}00934\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}ur"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00935}00935\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (dir\ ==\ DOWNRIGHT)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00936}00936\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}dr"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00937}00937\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (dir\ ==\ DOWNLEFT)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00938}00938\ \ \ \ \ \ \ \ \ direction\ =\ \textcolor{stringliteral}{"{}dl"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00939}00939\ \ \ \ \ sprintf(\ m,\ \textcolor{stringliteral}{"{}[\%d\ \%s]"{}},\ Arraynum\ +\ 1,\ direction);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00940}00940\ \ \ \ \ \textcolor{keywordflow}{return}\ m;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00941}00941\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00942}00942\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00943}00943\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00944}00944\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00945}00945\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00946}00946\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetAndPrintPlayersMove}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00947}00947\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00948}00948\ \textcolor{comment}{**\ DESCRIPTION:\ Finds\ out\ if\ the\ player\ wishes\ to\ undo,\ abort,\ or\ use}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00949}00949\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ some\ other\ gamesman\ option.\ The\ gamesman\ core\ does}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00950}00950\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ most\ of\ the\ work\ here.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00951}00951\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00952}00952\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ \ \ \ :\ Current\ position}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00953}00953\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ \ \ \ \ *move\ \ \ \ \ \ \ :\ The\ move\ to\ fill\ with\ user's\ move.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00954}00954\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ \ playersName\ :\ Current\ Player's\ Name}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00955}00955\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00956}00956\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ USERINPUT\ \ \ \ \ \ \ \ \ \ :\ One\ of}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00957}00957\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (Undo,\ Abort,\ Continue)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00958}00958\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00959}00959\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ USERINPUT\ HandleDefaultTextInput(POSITION,\ MOVE*,\ STRING)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00960}00960\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ Gamesman\ Core\ Input\ Handling}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00961}00961\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00962}00962\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00963}00963\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00964}00964\ USERINPUT\ GetAndPrintPlayersMove\ (POSITION\ position,\ MOVE\ *move,\ STRING\ playersName)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00965}00965\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00966}00966\ \ \ \ \ USERINPUT\ input;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00967}00967\ \ \ \ \ USERINPUT\ HandleDefaultTextInput();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00968}00968\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00969}00969\ \ \ \ \ \textcolor{keywordflow}{for}\ (;;\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00970}00970\ \textcolor{comment}{\ \ \ \ \ \ \ \ /***********************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00971}00971\ \textcolor{comment}{\ \ \ \ \ \ \ \ *\ CHANGE\ THE\ LINE\ BELOW\ TO\ MATCH\ YOUR\ MOVE\ FORMAT}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00972}00972\ \textcolor{comment}{\ \ \ \ \ \ \ \ ***********************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00973}00973\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ [(undo)/(key\ dir\ [1\ d])]\ :\ "{}},\ playersName);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00974}00974\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00975}00975\ \ \ \ \ \ \ \ \ input\ =\ HandleDefaultTextInput(position,\ move,\ playersName);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00976}00976\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00977}00977\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (input\ !=\ Continue)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00978}00978\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ input;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00979}00979\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00980}00980\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00981}00981\ \ \ \ \ \textcolor{comment}{/*\ NOTREACHED\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00982}00982\ \ \ \ \ \textcolor{keywordflow}{return}\ Continue;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00983}00983\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00984}00984\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00985}00985\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00986}00986\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00987}00987\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00988}00988\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00989}00989\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00990}00990\ \textcolor{comment}{**\ DESCRIPTION:\ Rudimentary\ check\ to\ check\ if\ input\ is\ in\ the\ move\ form}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00991}00991\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ you\ are\ expecting.\ Does\ not\ check\ if\ it\ is\ a\ valid\ move.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00992}00992\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Only\ checks\ if\ it\ fits\ the\ move\ form.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00993}00993\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00994}00994\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Reserved\ Input\ Characters\ -\/\ DO\ NOT\ USE\ THESE\ ONE\ CHARACTER}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00995}00995\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ COMMANDS\ IN\ YOUR\ GAME}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00996}00996\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ ?,\ s,\ u,\ r,\ h,\ a,\ c,\ q}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00997}00997\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ However,\ something\ like\ a3}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00998}00998\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ okay.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l00999}00999\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01000}01000\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Example:\ Tic-\/tac-\/toe\ Move\ Format\ :\ Integer\ from\ 1\ to\ 9}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01001}01001\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Only\ integers\ between\ 1\ to\ 9\ are\ accepted}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01002}01002\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ regardless\ of\ board\ position.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01003}01003\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Moves\ will\ be\ checked\ by\ the\ core.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01004}01004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01005}01005\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01006}01006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01007}01007\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ BOOLEAN\ \ \ \ \ \ :\ TRUE\ if\ the\ input\ is\ a\ valid\ text\ input.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01008}01008\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01009}01009\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01010}01010\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01011}01011\ BOOLEAN\ ValidTextInput\ (STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01012}01012\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01013}01013\ \ \ \ \ \textcolor{keywordflow}{if}\ (input[0]\ <\ \textcolor{charliteral}{'0'}\ ||\ input[0]\ >\ \textcolor{charliteral}{'9'})\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01014}01014\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}badinput[0]"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01015}01015\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01016}01016\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01017}01017\ \ \ \ \ \textcolor{keywordtype}{char}\ *spcptr\ =\ strchr(input,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01018}01018\ \ \ \ \ \textcolor{keywordflow}{if}\ (spcptr\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01019}01019\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}badspcptr"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01020}01020\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01021}01021\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01022}01022\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01023}01023\ \ \ \ \ *spcptr\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01024}01024\ \ \ \ \ \textcolor{keywordtype}{char}\ *direction\ =\ ++spcptr;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01025}01025\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01026}01026\ \ \ \ \ \textcolor{keywordflow}{if}\ (strcmp(direction,\textcolor{stringliteral}{"{}u"{}})\ \&\&\ strcmp(direction,\textcolor{stringliteral}{"{}r"{}})\ \&\&}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01027}01027\ \ \ \ \ \ \ \ \ strcmp(direction,\textcolor{stringliteral}{"{}d"{}})\ \&\&\ strcmp(direction,\textcolor{stringliteral}{"{}l"{}})\&\&}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01028}01028\ \ \ \ \ \ \ \ \ strcmp(direction,\textcolor{stringliteral}{"{}ur"{}})\ \&\&\ strcmp(direction,\textcolor{stringliteral}{"{}ul"{}})\ \&\&}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01029}01029\ \ \ \ \ \ \ \ \ strcmp(direction,\textcolor{stringliteral}{"{}dr"{}})\ \&\&\ strcmp(direction,\textcolor{stringliteral}{"{}dl"{}}))\ \ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01030}01030\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}badelse"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01031}01031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01032}01032\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01033}01033\ \ \ \ \ *(spcptr-\/1)\ =\ \textcolor{charliteral}{'\ '};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01034}01034\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01035}01035\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01036}01036\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01037}01037\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01038}01038\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01039}01039\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01040}01040\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01041}01041\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ConvertTextInputToMove}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01042}01042\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01043}01043\ \textcolor{comment}{**\ DESCRIPTION:\ Converts\ the\ string\ input\ your\ internal\ move\ representation.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01044}01044\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ already\ checked\ the\ move\ with\ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01045}01045\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ and\ ValidMove.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01046}01046\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01047}01047\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ VALID\ string\ input\ from\ the\ user.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01048}01048\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01049}01049\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ MOVE\ \ \ \ \ \ \ \ \ :\ Move\ converted\ from\ user\ input.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01050}01050\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01051}01051\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01052}01052\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01053}01053\ MOVE\ ConvertTextInputToMove\ (STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01054}01054\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01055}01055\ \ \ \ \ \textcolor{keywordtype}{char}\ *spcptr\ =\ strchr(input,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01056}01056\ \ \ \ \ *spcptr\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01057}01057\ \ \ \ \ \textcolor{keywordtype}{char}\ *direction\ =\ ++spcptr;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01058}01058\ \ \ \ \ \textcolor{keywordtype}{int}\ location\ =\ atoi(input);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01059}01059\ \ \ \ \ location-\/-\/;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01060}01060\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01061}01061\ \ \ \ \ \textcolor{keywordtype}{int}\ dir;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01062}01062\ \ \ \ \ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\textcolor{stringliteral}{"{}u"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01063}01063\ \ \ \ \ \ \ \ \ dir\ =\ UP;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01064}01064\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\textcolor{stringliteral}{"{}r"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01065}01065\ \ \ \ \ \ \ \ \ dir\ =\ RIGHT;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01066}01066\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\textcolor{stringliteral}{"{}d"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01067}01067\ \ \ \ \ \ \ \ \ dir\ =\ DOWN;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01068}01068\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\textcolor{stringliteral}{"{}l"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01069}01069\ \ \ \ \ \ \ \ \ dir\ =\ LEFT;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01070}01070\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01071}01071\ \ \ \ \ \textcolor{comment}{//for\ diagonals}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01072}01072\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\ \textcolor{stringliteral}{"{}ul"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01073}01073\ \ \ \ \ \ \ \ \ dir\ =\ UPLEFT;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01074}01074\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01075}01075\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\ \textcolor{stringliteral}{"{}ur"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01076}01076\ \ \ \ \ \ \ \ \ dir\ =\ UPRIGHT;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01077}01077\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01078}01078\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\ \textcolor{stringliteral}{"{}dl"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01079}01079\ \ \ \ \ \ \ \ \ dir\ =\ DOWNLEFT;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01080}01080\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01081}01081\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ strcmp(direction,\ \textcolor{stringliteral}{"{}dr"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01082}01082\ \ \ \ \ \ \ \ \ dir\ =\ DOWNRIGHT;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01083}01083\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01084}01084\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}bad\ else\ in\ ConvertTextInputToMove"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01085}01085\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01086}01086\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01087}01087\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01088}01088\ \ \ \ \ \textcolor{keywordtype}{int}\ x,\ y;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01089}01089\ \ \ \ \ x\ =\ getColumn(location);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01090}01090\ \ \ \ \ y\ =\ getRow(location);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01091}01091\ \ \ \ \ \textcolor{keywordflow}{return}\ EncodeMove(dir,\ x,\ y);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01092}01092\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01093}01093\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01094}01094\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01095}01095\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01096}01096\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01097}01097\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01098}01098\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01099}01099\ \textcolor{comment}{**\ DESCRIPTION:\ Prints,\ receives,\ and\ sets\ game-\/specific\ parameters.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01100}01100\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01101}01101\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Examples}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01102}01102\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Board\ Size,\ Board\ Type}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01103}01103\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01104}01104\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ If\ kGameSpecificMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01105}01105\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ enable\ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01106}01106\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ call\ this\ function}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01107}01107\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01108}01108\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Resets\ gNumberOfPositions\ if\ necessary}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01109}01109\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01110}01110\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01111}01111\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01112}01112\ \textcolor{keywordtype}{void}\ GameSpecificMenu\ ()}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01113}01113\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01114}01114\ \ \ \ \ STRING\ D;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01115}01115\ \ \ \ \ \textcolor{keywordtype}{char}\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01116}01116\ \ \ \ \ \textcolor{keywordtype}{int}\ intWidth;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01117}01117\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01118}01118\ \ \ \ \ \textcolor{keywordflow}{if}\ (diagonals)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01119}01119\ \ \ \ \ \ \ \ \ D\ =\ \textcolor{stringliteral}{"{}ON"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01120}01120\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01121}01121\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01122}01122\ \ \ \ \ \ \ \ \ D\ =\ \textcolor{stringliteral}{"{}OFF"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01123}01123\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01124}01124\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01125}01125\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Wuzhi\ Game\ Specific\ Menu:\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01126}01126\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tw)\ \(\backslash\)tChange\ the\ Board\ (W)idth.\ Current\ Board\ Width:\ \%d\(\backslash\)n"{}},\ gBoardwidth);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01127}01127\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)td)\ \(\backslash\)tToggle\ (D)IAGONAL\ movement.\ Currently\ Diagonals\ is:\ \%s\(\backslash\)n"{}},\ D);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01128}01128\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tb)\ \(\backslash\)t(B)ack\ to\ previous\ menu\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01129}01129\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)tq)\ \(\backslash\)t(Q)uit\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01130}01130\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Select\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01131}01131\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01132}01132\ \ \ \ \ \textcolor{keywordflow}{switch}(GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01133}01133\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'q'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01134}01134\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'Q'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01135}01135\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01136}01136\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01137}01137\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01138}01138\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'w'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01139}01139\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'W'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01140}01140\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Please\ input\ desired\ board\ width[3-\/5]:\ "{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01141}01141\ \ \ \ \ \ \ \ \ intWidth\ =\ GetMyUInt();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01142}01142\ \ \ \ \ \ \ \ \ gBoardwidth\ =\ intWidth;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01143}01143\ \ \ \ \ \ \ \ \ gBoardlength\ =\ gBoardwidth*gBoardwidth;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01144}01144\ \ \ \ \ \ \ \ \ InitializeGame();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01145}01145\ \ \ \ \ \ \ \ \ GameSpecificMenu();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01146}01146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01147}01147\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'d'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01148}01148\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'D'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01149}01149\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (diagonals)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01150}01150\ \ \ \ \ \ \ \ \ \ \ \ \ diagonals\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01151}01151\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01152}01152\ \ \ \ \ \ \ \ \ \ \ \ \ diagonals\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01153}01153\ \ \ \ \ \ \ \ \ GameSpecificMenu();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01154}01154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01155}01155\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01156}01156\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01157}01157\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01158}01158\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01159}01159\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Not\ a\ valid\ option.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01160}01160\ \ \ \ \ \ \ \ \ GameSpecificMenu();}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01161}01161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01162}01162\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01163}01163\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01164}01164\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01165}01165\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01166}01166\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01167}01167\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01168}01168\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01169}01169\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ SetTclCGameSpecificOptions}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01170}01170\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01171}01171\ \textcolor{comment}{**\ DESCRIPTION:\ Set\ the\ C\ game-\/specific\ options\ (called\ from\ Tcl)}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01172}01172\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Ignore\ if\ you\ don't\ care\ about\ Tcl\ for\ now.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01173}01173\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01174}01174\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01175}01175\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01176}01176\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions\ (\textcolor{keywordtype}{int}\ options[])}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01177}01177\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01178}01178\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01179}01179\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01180}01180\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01181}01181\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01182}01182\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01183}01183\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01184}01184\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetInitialPosition}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01185}01185\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01186}01186\ \textcolor{comment}{**\ DESCRIPTION:\ Called\ when\ the\ user\ wishes\ to\ change\ the\ initial}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01187}01187\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ position.\ Asks\ the\ user\ for\ an\ initial\ position.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01188}01188\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Sets\ new\ user\ defined\ gInitialPosition\ and\ resets}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01189}01189\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ gNumberOfPositions\ if\ necessary}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01190}01190\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01191}01191\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION\ :\ New\ Initial\ Position}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01192}01192\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01193}01193\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01194}01194\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01195}01195\ POSITION\ GetInitialPosition\ ()}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01196}01196\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01197}01197\ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}Calling\ getInitialPosition\ in\ C"{}});}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01198}01198\ \ \ \ \ \textcolor{comment}{/*\ int\ i,\ j,\ k;}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01199}01199\ \textcolor{comment}{\ \ \ \ \ \ \ gBoardlength\ =\ gBoardwidth\ *\ gBoardwidth;}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01200}01200\ \textcolor{comment}{\ \ \ \ \ \ \ int\ pieces\_array[]\ =\ \{WHITE,\ 1,\ gBoardwidth,\ BLACK,\ 1,\ gBoardwidth,\ BLANK,\ gBoardlength\ -\/\ (gBoardwidth\ *\ 2),\ gBoardlength\ -\/\ 2,\ -\/1\ \};}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01201}01201\ \textcolor{comment}{\ \ \ \ \ \ \ gNumberOfPositions\ =\ generic\_hash\_init(gBoardlength,\ pieces\_array,\ NULL,\ 0);}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01202}01202\ \textcolor{comment}{\ \ \ \ \ \ \ gBoard\ =\ (char*)malloc(sizeof(char)\ *\ (gBoardlength\ +\ 1));}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01203}01203\ \textcolor{comment}{\ \ \ \ \ \ \ for(i\ =\ 0;\ i\ <\ gBoardwidth;\ i++)\ \{}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01204}01204\ \textcolor{comment}{\ \ \ \ \ \ \ gBoard[i]\ =\ BLACK;}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01205}01205\ \textcolor{comment}{\ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01206}01206\ \textcolor{comment}{\ \ \ \ \ \ \ for\ (j\ =\ gBoardlength\ -\/\ 1;\ j\ >\ gBoardlength\ -\/\ gBoardwidth\ -\/\ 1;\ j-\/-\/)\ \{}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01207}01207\ \textcolor{comment}{\ \ \ \ \ \ \ gBoard[j]\ =\ WHITE;}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01208}01208\ \textcolor{comment}{\ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01209}01209\ \textcolor{comment}{\ \ \ \ \ \ \ for\ (k\ =\ gBoardwidth;\ k\ <\ gBoardlength\ -\/\ gBoardwidth;\ k++)\ \{}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01210}01210\ \textcolor{comment}{\ \ \ \ \ \ \ gBoard[k]\ =\ BLANK;}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01211}01211\ \textcolor{comment}{\ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01212}01212\ \textcolor{comment}{\ \ \ \ \ \ \ gBoard[gBoardlength]\ =\ '\(\backslash\)0';}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01213}01213\ \textcolor{comment}{\ \ \ \ \ \ \ gInitialPosition\ =\ generic\_hash\_hash(gBoard,1);}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01214}01214\ \textcolor{comment}{\ \ \ \ \ \ \ //free(gBoard);\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01215}01215\ \ \ \ \ \textcolor{keywordflow}{return}\ gInitialPosition;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01216}01216\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01217}01217\ \ \ \ \ \textcolor{comment}{//\ return\ gInitialPosition;}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01218}01218\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01219}01219\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01220}01220\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01221}01221\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01222}01222\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01223}01223\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ NumberOfOptions}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01224}01224\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01225}01225\ \textcolor{comment}{**\ DESCRIPTION:\ Calculates\ and\ returns\ the\ number\ of\ variants}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01226}01226\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ your\ game\ supports.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01227}01227\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01228}01228\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ int\ :\ Number\ of\ Game\ Variants}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01229}01229\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01230}01230\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01231}01231\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01232}01232\ \textcolor{keywordtype}{int}\ NumberOfOptions\ ()}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01233}01233\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01234}01234\ \ \ \ \ \textcolor{keywordflow}{return}\ 2*2*3;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01235}01235\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01236}01236\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01237}01237\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01238}01238\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01239}01239\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01240}01240\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ getOption}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01241}01241\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01242}01242\ \textcolor{comment}{**\ DESCRIPTION:\ A\ hash\ function\ that\ returns\ a\ number\ corresponding}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01243}01243\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ the\ current\ variant\ of\ the\ game.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01244}01244\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Each\ set\ of\ variants\ needs\ to\ have\ a\ different\ number.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01245}01245\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01246}01246\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ int\ :\ the\ number\ representation\ of\ the\ options.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01247}01247\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01248}01248\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01249}01249\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01250}01250\ \textcolor{keywordtype}{int}\ getOption\ ()}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01251}01251\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01252}01252\ \ \ \ \ \textcolor{keywordtype}{int}\ option\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01253}01253\ \ \ \ \ \textcolor{keywordflow}{if}\ (gStandardGame)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01254}01254\ \ \ \ \ \ \ \ \ option\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01255}01255\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01256}01256\ \ \ \ \ \ \ \ \ option\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01257}01257\ \ \ \ \ option\ +=\ (diagonals\ <<\ 1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01258}01258\ \ \ \ \ option\ +=\ (gBoardwidth\ -\/\ 3)\ <<\ 2;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01259}01259\ \ \ \ \ \textcolor{keywordflow}{return}\ option;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01260}01260\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01261}01261\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01262}01262\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01263}01263\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01264}01264\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01265}01265\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01266}01266\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ setOption}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01267}01267\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01268}01268\ \textcolor{comment}{**\ DESCRIPTION:\ The\ corresponding\ unhash\ function\ for\ game\ variants.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01269}01269\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Unhashes\ option\ and\ sets\ the\ necessary\ variants.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01270}01270\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01271}01271\ \textcolor{comment}{**\ INPUT:\ \ \ \ \ \ \ int\ option\ :\ the\ number\ representation\ of\ the\ options.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01272}01272\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01273}01273\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01274}01274\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01275}01275\ \textcolor{keywordtype}{void}\ setOption\ (\textcolor{keywordtype}{int}\ option)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01276}01276\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01277}01277\ \ \ \ \ gStandardGame\ =\ ((option\ \&\ 1)\ ==\ 1);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01278}01278\ \ \ \ \ diagonals\ =\ (option\ >>\ 1)\ \&\ 1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01279}01279\ \ \ \ \ gBoardwidth\ =\ (option\ >>\ 2)\ +\ 3;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01280}01280\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01281}01281\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01282}01282\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01283}01283\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01284}01284\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01285}01285\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DebugMenu}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01286}01286\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01287}01287\ \textcolor{comment}{**\ DESCRIPTION:\ Game\ Specific\ Debug\ Menu\ (Gamesman\ comes\ with\ a\ default}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01288}01288\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ debug\ menu).\ Menu\ used\ to\ debug\ internal\ problems.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01289}01289\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01290}01290\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ If\ kDebugMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01291}01291\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ display\ a\ debug\ menu\ option}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01292}01292\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ call\ this\ function}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01293}01293\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01294}01294\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01295}01295\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01296}01296\ \textcolor{keywordtype}{void}\ DebugMenu\ ()}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01297}01297\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01298}01298\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01299}01299\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01300}01300\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01301}01301\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01302}01302\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01303}01303\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01304}01304\ \textcolor{comment}{**\ Everything\ specific\ to\ this\ module\ goes\ below\ these\ lines.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01305}01305\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01306}01306\ \textcolor{comment}{**\ Things\ you\ want\ down\ here:}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01307}01307\ \textcolor{comment}{**\ Move\ Hasher}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01308}01308\ \textcolor{comment}{**\ Move\ Unhasher}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01309}01309\ \textcolor{comment}{**\ Any\ other\ function\ you\ deem\ necessary\ to\ help\ the\ ones\ above.}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01310}01310\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01311}01311\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01312}01312\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01313}01313\ \textcolor{comment}{/*\ MOVE\ stuff}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01314}01314\ \textcolor{comment}{\ \ \ MOVES\ are\ hashed\ where\ first\ three\ bits\ is\ the\ dir,\ second\ three\ is\ x,\ last\ three\ is\ y\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01315}01315\ MOVE\ EncodeMove(\textcolor{keywordtype}{int}\ dir,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01316}01316\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01317}01317\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01318}01318\ \ \ \ \ dir\ =\ dir\ <<\ 6;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01319}01319\ \ \ \ \ x\ =\ x\ <<\ 3;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01320}01320\ \ \ \ \ \textcolor{keywordflow}{return}\ (dir\ |\ x\ |\ y);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01321}01321\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01322}01322\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01323}01323\ \textcolor{keywordtype}{int}\ GetDirection\ (MOVE\ theMove)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01324}01324\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01325}01325\ \ \ \ \ \textcolor{keywordflow}{return}\ (theMove\ >>\ 6);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01326}01326\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01327}01327\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01328}01328\ \textcolor{keywordtype}{int}\ GetXCoord\ (MOVE\ theMove)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01329}01329\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01330}01330\ \ \ \ \ \textcolor{keywordflow}{return}\ (theMove\ >>\ 3)\ \&\ 0x7;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01331}01331\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01332}01332\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01333}01333\ \textcolor{keywordtype}{int}\ GetYCoord\ (MOVE\ theMove)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01334}01334\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01335}01335\ \ \ \ \ \textcolor{keywordflow}{return}\ (theMove\ \&\ 0x7);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01336}01336\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01337}01337\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01338}01338\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01339}01339\ \textcolor{comment}{/*\ Helper\ Functions\ for\ Generate\ Moves}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01340}01340\ \textcolor{comment}{\ \ \ All\ columns\ and\ rows\ start\ with\ zero\ and\ start\ from\ the\ lower\ left\ */}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01341}01341\ \textcolor{keywordtype}{int}\ getArraynum(\textcolor{keywordtype}{int}\ xcoord,\ \textcolor{keywordtype}{int}\ ycoord)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01342}01342\ \ \ \ \ \textcolor{keywordflow}{return}\ ((gBoardwidth\ *(gBoardwidth\ -\/\ ycoord))\ -\/\ (gBoardwidth\ -\/\ xcoord));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01343}01343\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01344}01344\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01345}01345\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01346}01346\ \textcolor{keywordtype}{int}\ getColumn(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01347}01347\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01348}01348\ \ \ \ \ \textcolor{keywordflow}{return}\ (arraynum\%gBoardwidth);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01349}01349\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01350}01350\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01351}01351\ \textcolor{keywordtype}{int}\ getRow(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01352}01352\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01353}01353\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01354}01354\ \ \ \ \ \textcolor{keywordflow}{return}\ gBoardwidth\ -\/\ 1\ -\/\ (arraynum/gBoardwidth);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01355}01355\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01356}01356\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01357}01357\ BOOLEAN\ canmoveup(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01358}01358\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01359}01359\ \ \ \ \ \textcolor{keywordflow}{if}\ (arraynum\ >=\ gBoardlength\ ||\ arraynum\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01360}01360\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01361}01361\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01362}01362\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((arraynum\ -\/\ gBoardwidth\ >=\ 0)\ \&\&\ (gBoard[arraynum\ -\/\ gBoardwidth]\ ==\ BLANK));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01363}01363\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01364}01364\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01365}01365\ BOOLEAN\ canmovedown(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01366}01366\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01367}01367\ \ \ \ \ \textcolor{keywordflow}{if}\ (arraynum\ >=\ gBoardlength\ ||\ arraynum\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01368}01368\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01369}01369\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01370}01370\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((arraynum\ +\ gBoardwidth\ <\ gBoardlength)\ \&\&\ (gBoard[arraynum\ +\ gBoardwidth]\ ==\ BLANK));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01371}01371\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01372}01372\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01373}01373\ BOOLEAN\ canmoveleft(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01374}01374\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01375}01375\ \ \ \ \ \textcolor{keywordflow}{if}\ (arraynum\ >=\ gBoardlength\ ||\ arraynum\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01376}01376\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01377}01377\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01378}01378\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((!(arraynum\ <=\ 0))\ \&\&\ arraynum\%gBoardwidth\ !=\ 0)\ \&\&}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01379}01379\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (gBoard[arraynum\ \ -\/\ 1]\ ==\ BLANK);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01380}01380\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01381}01381\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01382}01382\ BOOLEAN\ canmoveright(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01383}01383\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01384}01384\ \ \ \ \ \textcolor{keywordflow}{if}\ (arraynum\ >=\ gBoardlength\ ||\ arraynum\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01385}01385\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01386}01386\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01387}01387\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((arraynum\ +\ 1)\%\ gBoardwidth\ !=\ 0\ \&\&\ (gBoard[arraynum\ +\ 1]\ ==\ BLANK));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01388}01388\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01389}01389\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01390}01390\ \textcolor{comment}{//for\ diagonals}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01391}01391\ BOOLEAN\ canmoveupleft(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01392}01392\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01393}01393\ \ \ \ \ \textcolor{keywordflow}{return}\ (canmoveup(arraynum-\/1)\ \&\&\ canmoveleft(arraynum-\/gBoardwidth));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01394}01394\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01395}01395\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01396}01396\ BOOLEAN\ canmoveupright(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01397}01397\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01398}01398\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01399}01399\ \ \ \ \ \textcolor{keywordflow}{return}\ (canmoveup(arraynum\ +\ 1)\ \&\&\ canmoveright(arraynum-\/gBoardwidth));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01400}01400\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01401}01401\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01402}01402\ BOOLEAN\ canmovedownleft(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01403}01403\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01404}01404\ \ \ \ \ \textcolor{keywordflow}{return}\ (canmovedown(arraynum\ -\/1)\ \&\&\ canmoveleft(arraynum+gBoardwidth));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01405}01405\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01406}01406\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01407}01407\ BOOLEAN\ canmovedownright(\textcolor{keywordtype}{int}\ arraynum)}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01408}01408\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01409}01409\ \ \ \ \ \textcolor{keywordflow}{return}\ (canmovedown(arraynum+1)\ \&\&\ canmoveright(arraynum+gBoardwidth));}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01410}01410\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01411}01411\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01412}01412\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01413}01413\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01414}01414\ POSITION\ InteractStringToPosition(STRING\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01415}01415\ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01416}01416\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01417}01417\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01418}01418\ STRING\ InteractPositionToString(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01419}01419\ \ \ \ \ \textcolor{comment}{//\ FIXME:\ this\ is\ just\ a\ stub}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01420}01420\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Implement\ Me"{}};}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01421}01421\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01422}01422\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01423}01423\ STRING\ InteractPositionToEndData(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01424}01424\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01425}01425\ \}}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01426}01426\ }
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01427}01427\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)\ \{}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01428}01428\ \ \ \ \ \textcolor{keywordflow}{return}\ MoveToString(mv);}
+\DoxyCodeLine{\Hypertarget{mwuzhi_8c_source_l01429}01429\ \}}
+
+\end{DoxyCode}

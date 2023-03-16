@@ -1,0 +1,189 @@
+\hypertarget{db__basichash_8c_source}{}\doxysection{db\+\_\+basichash.\+c}
+\label{db__basichash_8c_source}\index{src/core/filedb/db\_basichash.c@{src/core/filedb/db\_basichash.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ db\_basichash.c}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Basic\ hashtable\ implementations}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}db\_types.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}db\_basichash.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}db\_malloc.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00035}00035\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00036}00036\ \textcolor{comment}{//\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00038}00038\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*\ gamesdb\_basichash\_getrow(\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ hash,\ gamesdb\_pageid\ \textcolor{keywordtype}{id})\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00039}00039\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structrow}{row}}\ =\ \textcolor{keywordtype}{id}\ \&\ (hash-\/>index\_size\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{return}\ ((hash-\/>rows)\ +\ \mbox{\hyperlink{structrow}{row}});}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00041}00041\ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00043}00043\ \textcolor{comment}{//returns\ the\ pointer\ to\ the\ chunk\ for\ easy\ modification.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00044}00044\ \textcolor{comment}{//when\ id\ is\ found,\ returns\ the\ pointer\ to\ the\ chunk\ that\ contains\ the\ loc}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00045}00045\ \textcolor{comment}{//when\ id\ is\ not\ found,\ returns\ the\ pointer\ to\ the\ chunk\ with\ the\ first\ free\ spot,\ growing\ the\ row\ as\ necessary}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00046}00046\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*\ gamesdb\_basichash\_lookupchunk(\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ hash,\ gamesdb\_pageid\ \textcolor{keywordtype}{id})\{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00047}00047\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*\ place\ =\ gamesdb\_basichash\_getrow(hash,\ \textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00049}00049\ \ \ \ \ \textcolor{keywordtype}{int}\ myid\ =\ \textcolor{keywordtype}{id}\ >>\ hash-\/>index\_bits;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00051}00051\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00052}00052\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}\ *prev\ =\ NULL,\ *firstempty\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{while}(place\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<hash-\/>chunk\_size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(place-\/>id[i]\ ==\ myid)}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ place;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(place-\/>id[i]\ ==\ -\/1\ \&\&\ firstempty\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ firstempty\ =\ place;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00060}00060\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ prev\ =\ place;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ place\ =\ place-\/>next;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00063}00063\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{if}(firstempty\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ firstempty;\ \textcolor{comment}{//\ this\ fixes\ the\ fragmentation\ problem.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00066}00066\ \ \ \ \ \textcolor{comment}{//new\ elements\ are\ added\ to\ the\ first\ empty\ slot\ instead\ of\ at\ the\ last\ place.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00068}00068\ \ \ \ \ \textcolor{comment}{//every\ row\ has\ one\ initial\ chunk,\ so\ we\ don't\ have\ to\ worry\ about\ modifying\ the\ root\ pointer\ here.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00069}00069\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}\ *new\_chunk\ =\ (\mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}\ *)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}));}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00070}00070\ \ \ \ \ new\_chunk-\/>loc\ =\ (gamesdb\_frameid*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(gamesdb\_frameid)\ *\ hash-\/>chunk\_size);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00071}00071\ \ \ \ \ new\_chunk-\/>id\ =\ (gamesdb\_pageid*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(gamesdb\_pageid)\ *\ hash-\/>chunk\_size);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00072}00072\ \ \ \ \ new\_chunk-\/>next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<hash-\/>chunk\_size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ new\_chunk-\/>id[i]\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00075}00075\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00076}00076\ \ \ \ \ prev-\/>next\ =\ new\_chunk;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00078}00078\ \ \ \ \ \textcolor{keywordflow}{return}\ new\_chunk;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00079}00079\ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00081}00081\ \textcolor{comment}{/*generates\ and\ returns\ a\ db\_bhash\ pointer\ to\ newly\ malloced\ memory.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00082}00082\ \textcolor{comment}{\ *\ the\ destructor\ frees\ all\ of\ the\ memory.\ Whatever\ calls\ this}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00083}00083\ \textcolor{comment}{\ *\ must\ also\ call\ the\ destructor\ eventually.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00084}00084\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00085}00085\ \mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ gamesdb\_basichash\_create(\textcolor{keywordtype}{int}\ ind\_bits,\ \textcolor{keywordtype}{int}\ chk\_size)\{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00086}00086\ \ \ \ \ \textcolor{keywordtype}{int}\ i,j;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00088}00088\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ \textcolor{keyword}{new}\ =\ (\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}));}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00090}00090\ \ \ \ \ \textcolor{keyword}{new}-\/>index\_bits\ =\ ind\_bits;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00091}00091\ \ \ \ \ \textcolor{keyword}{new}-\/>index\_size\ =\ 1\ <<\ ind\_bits;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00092}00092\ \ \ \ \ \textcolor{keyword}{new}-\/>chunk\_size\ =\ chk\_size;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00093}00093\ \ \ \ \ \textcolor{keyword}{new}-\/>rows\ =\ (\mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}})\ *\ \textcolor{keyword}{new}-\/>index\_size);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<\textcolor{keyword}{new}-\/>index\_size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ (\textcolor{keyword}{new}-\/>rows)[i].loc\ =\ (gamesdb\_frameid*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(gamesdb\_frameid)\ *\ chk\_size);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ (\textcolor{keyword}{new}-\/>rows)[i].\textcolor{keywordtype}{id}\ =\ (gamesdb\_pageid*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(gamesdb\_pageid)\ *\ chk\_size);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ (\textcolor{keyword}{new}-\/>rows)[i].next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(j=0;\ j<chk\_size;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keyword}{new}-\/>rows)[i].\textcolor{keywordtype}{id}[j]\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00102}00102\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new};}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00105}00105\ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00107}00107\ \textcolor{comment}{//returns\ the\ frame\_id\ assosiated\ with\ page\_id.\ -\/1\ if\ it\ does\ not\ exist}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00108}00108\ gamesdb\_frameid\ gamesdb\_basichash\_get(\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ hash,\ gamesdb\_pageid\ \textcolor{keywordtype}{id})\{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00109}00109\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*\ mychunk\ =\ gamesdb\_basichash\_lookupchunk(hash,\ \textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00110}00110\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00111}00111\ \ \ \ \ \textcolor{keywordtype}{int}\ myid\ =\ \textcolor{keywordtype}{id}\ >>\ hash-\/>index\_bits;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<hash-\/>chunk\_size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(mychunk-\/>id[i]\ ==\ myid)}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ mychunk-\/>loc[i];}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00115}00115\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00117}00117\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00118}00118\ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00120}00120\ \textcolor{comment}{//Assosciates\ an\ id\ with\ a\ loc.\ Only\ one\ id\ per\ table.\ returns\ 0\ on\ success.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00121}00121\ \textcolor{keywordtype}{int}\ gamesdb\_basichash\_put(\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ hash,\ gamesdb\_pageid\ \textcolor{keywordtype}{id},\ gamesdb\_frameid\ loc)\{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00122}00122\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*\ place;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00123}00123\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00125}00125\ \ \ \ \ place\ =\ gamesdb\_basichash\_lookupchunk(hash,\textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00127}00127\ \ \ \ \ \textcolor{keywordtype}{int}\ firstempty\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00129}00129\ \ \ \ \ \textcolor{keywordtype}{int}\ myid\ =\ \textcolor{keywordtype}{id}\ >>\ hash-\/>index\_bits;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00130}00130\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i\ <\ hash-\/>chunk\_size\ \&\&\ place-\/>id[i]\ !=\ myid;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (place-\/>id[i]\ ==\ -\/1\ \&\&\ firstempty\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ firstempty\ =\ i;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00133}00133\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00134}00134\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00136}00136\ \ \ \ \ \textcolor{keywordflow}{if}(i\ ==\ hash-\/>chunk\_size)\ \{\ \textcolor{comment}{//firstempty\ must\ have\ something}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ assert(firstempty\ !=\ -\/1);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ place-\/>id[firstempty]\ =\ myid;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ place-\/>loc[firstempty]\ =\ loc;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00141}00141\ \ \ \ \ \}\textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{comment}{//updating\ existing\ entry}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ place-\/>loc[i]\ =\ loc;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00145}00145\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00146}00146\ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00148}00148\ \textcolor{comment}{/*\ removes\ id\ from\ the\ hash\ table.\ returns\ frame\_id\ or\ NULL\ if\ id\ does\ not\ exist}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00149}00149\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00150}00150\ gamesdb\_frameid\ gamesdb\_basichash\_remove(\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ hash,\ gamesdb\_pageid\ \textcolor{keywordtype}{id})\{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00151}00151\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00152}00152\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*\ place;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00154}00154\ \ \ \ \ place\ =\ gamesdb\_basichash\_lookupchunk(hash,\textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00155}00155\ \ \ \ \ \textcolor{keywordtype}{int}\ myid\ =\ \textcolor{keywordtype}{id}\ >>\ hash-\/>index\_bits;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00156}00156\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i\ <\ hash-\/>chunk\_size\ \&\&\ place-\/>id[i]\ !=\ myid;\ i++)\ ;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00157}00157\ \ \ \ \ \textcolor{keywordflow}{if}(i\ <\ hash-\/>chunk\_size)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ place-\/>id[i]\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ place-\/>loc[i];}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00160}00160\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00161}00161\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00162}00162\ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00164}00164\ \textcolor{keywordtype}{void}\ gamesdb\_basichash\_destroy(\mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}*\ hash)\{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00165}00165\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00166}00166\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}\ *place,*next,*start;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00168}00168\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i\ <\ hash-\/>index\_size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ \textcolor{comment}{//once\ per\ row.}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ place\ =\ hash-\/>rows\ +\ i;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ start\ =\ place;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(place\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_SafeFree(place-\/>loc);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_SafeFree(place-\/>id);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ next\ =\ place-\/>next;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(place\ !=\ start)}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_SafeFree(place);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ place\ =\ next;}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00180}00180\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00181}00181\ \ \ \ \ gamesdb\_SafeFree(hash-\/>rows);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00182}00182\ \ \ \ \ gamesdb\_SafeFree(hash);}
+\DoxyCodeLine{\Hypertarget{db__basichash_8c_source_l00183}00183\ \}}
+
+\end{DoxyCode}

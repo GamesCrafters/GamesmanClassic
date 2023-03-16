@@ -1,0 +1,338 @@
+\hypertarget{stroke_8c_source}{}\doxysection{stroke.\+c}
+\label{stroke_8c_source}\index{src/core/pen/stroke.c@{src/core/pen/stroke.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00001}00001\ \textcolor{comment}{//\ Stroke\ structures\ and\ supporting\ functions}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}stroke.h"{}}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00008}00008\ \textcolor{comment}{//\ thresholds\ for\ dot\ detection\ (each\ Anoto\ unit\ =\ 0.3\ mm)}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00009}00009\ \textcolor{preprocessor}{\#define\ DOT\_MAX\_RADIUS\ \ \ \ \ \ \ \ \ \ \ \ \ \ 7.0}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00010}00010\ \textcolor{preprocessor}{\#define\ DOT\_MAX\_AVERAGE\_DISTANCE\ \ \ \ 4.0}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00011}00011\ \textcolor{comment}{//\ threshold\ for\ max\ line\ deviation,\ as\ percentage\ of\ length}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00012}00012\ \textcolor{preprocessor}{\#define\ LINE\_MAX\_DEVIATION\ \ \ \ \ \ \ \ \ \ 0.1}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00015}00015\ \textcolor{comment}{//\ Stroke\ functions}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00017}00017\ \mbox{\hyperlink{struct_rect}{Rect}}\ newRect(\textcolor{keywordtype}{double}\ minX,\ \textcolor{keywordtype}{double}\ minY,\ \textcolor{keywordtype}{double}\ maxX,\ \textcolor{keywordtype}{double}\ maxY)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00018}00018\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00019}00019\ \ \ \ \ \mbox{\hyperlink{struct_rect}{Rect}}\ r;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00020}00020\ \ \ \ \ r.minX\ =\ minX;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00021}00021\ \ \ \ \ r.minY\ =\ minY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00022}00022\ \ \ \ \ r.maxX\ =\ maxX;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00023}00023\ \ \ \ \ r.maxY\ =\ maxY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00024}00024\ \ \ \ \ r.width\ =\ maxX\ -\/\ minX;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00025}00025\ \ \ \ \ r.height\ =\ maxY\ -\/\ minY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00026}00026\ \ \ \ \ r.centerX\ =\ (minX\ +\ maxX)\ /\ 2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00027}00027\ \ \ \ \ r.centerY\ =\ (minY\ +\ maxY)\ /\ 2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00028}00028\ \ \ \ \ r.area\ =\ r.width\ *\ r.height;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00029}00029\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00030}00030\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00033}00033\ \mbox{\hyperlink{struct_stroke}{Stroke}}\ newStroke()}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00034}00034\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00035}00035\ \ \ \ \ \mbox{\hyperlink{struct_stroke}{Stroke}}\ s;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00036}00036\ \ \ \ \ s.nSamples\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00037}00037\ \ \ \ \ s.radius\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00038}00038\ \ \ \ \ s.averageSampleDistance\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00039}00039\ \ \ \ \ s.type\ =\ STROKE\_UNKNOWN;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00041}00041\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00043}00043\ \textcolor{keywordtype}{void}\ addStrokeSample(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *s,\ \textcolor{keywordtype}{double}\ x,\ \textcolor{keywordtype}{double}\ y)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00044}00044\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00045}00045\ \ \ \ \ \textcolor{keywordflow}{if}\ (s-\/>nSamples\ <\ MAX\_SAMPLES)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00046}00046\ \ \ \ \ \ \ \ \ s-\/>samples[s-\/>nSamples]\ =\ (\mbox{\hyperlink{struct_sample}{Sample}})\{x,\ y\};}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00047}00047\ \ \ \ \ \ \ \ \ s-\/>nSamples++;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00048}00048\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00049}00049\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00051}00051\ \textcolor{keywordtype}{void}\ calculateStrokeProperties(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *s)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00052}00052\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{if}\ (s-\/>nSamples\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00055}00055\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00057}00057\ \ \ \ \ \textcolor{comment}{//\ calculate\ bounds}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00058}00058\ \ \ \ \ \textcolor{keywordtype}{int}\ idx;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00059}00059\ \ \ \ \ \textcolor{keywordtype}{double}\ minX\ =\ s-\/>samples[0].x;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00060}00060\ \ \ \ \ \textcolor{keywordtype}{double}\ minY\ =\ s-\/>samples[0].y;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00061}00061\ \ \ \ \ \textcolor{keywordtype}{double}\ maxX\ =\ minX,\ maxY\ =\ minY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{for}\ (idx\ =\ 1;\ idx\ <\ s-\/>nSamples;\ idx++)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ minX\ =\ fmin(minX,\ s-\/>samples[idx].x);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ minY\ =\ fmin(minY,\ s-\/>samples[idx].y);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ maxX\ =\ fmax(maxX,\ s-\/>samples[idx].x);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00066}00066\ \ \ \ \ \ \ \ \ maxY\ =\ fmax(maxY,\ s-\/>samples[idx].y);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00067}00067\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00068}00068\ \ \ \ \ s-\/>bounds\ =\ newRect(minX,\ minY,\ maxX,\ maxY);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00070}00070\ \ \ \ \ \textcolor{comment}{//\ calculate\ radius,\ average\ sample\ distance}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00071}00071\ \ \ \ \ \textcolor{keywordtype}{double}\ dist,\ totalDist\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00072}00072\ \ \ \ \ s-\/>radius\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{for}\ (idx\ =\ 0;\ idx\ <\ s-\/>nSamples;\ idx++)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ dist\ =\ distance(s-\/>bounds.centerX,\ s-\/>bounds.centerY,\ s-\/>samples[idx].x,\ s-\/>samples[idx].y);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ s-\/>radius\ =\ fmax(s-\/>radius,\ dist);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ totalDist\ +=\ dist;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00077}00077\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00078}00078\ \ \ \ \ s-\/>averageSampleDistance\ =\ totalDist\ /\ s-\/>nSamples;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00080}00080\ \ \ \ \ \textcolor{comment}{//\ determine\ stroke\ type}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{if}\ ((s-\/>radius\ <=\ DOT\_MAX\_RADIUS)\ \&\&\ (s-\/>averageSampleDistance\ <=\ DOT\_MAX\_AVERAGE\_DISTANCE))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ s-\/>type\ =\ STROKE\_DOT;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00083}00083\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_line}{Line}}\ tempLine;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ fitDeviation\ =\ fitLeastSquares(s,\ \&tempLine);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (fitDeviation\ <=\ LINE\_MAX\_DEVIATION)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ s-\/>type\ =\ STROKE\_LINE;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ s-\/>line\ =\ tempLine;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ s-\/>type\ =\ STROKE\_SHAPE;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00092}00092\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00093}00093\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00096}00096\ \mbox{\hyperlink{struct_line}{Line}}\ newLine(\textcolor{keywordtype}{double}\ x1,\ \textcolor{keywordtype}{double}\ y1,\ \textcolor{keywordtype}{double}\ x2,\ \textcolor{keywordtype}{double}\ y2)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00097}00097\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00098}00098\ \ \ \ \ \mbox{\hyperlink{struct_line}{Line}}\ l;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00099}00099\ \ \ \ \ l.x1\ =\ x1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00100}00100\ \ \ \ \ l.y1\ =\ y1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00101}00101\ \ \ \ \ l.x2\ =\ x2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00102}00102\ \ \ \ \ l.y2\ =\ y2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00103}00103\ \ \ \ \ l.centerX\ =\ (x1\ +\ x2)\ /\ 2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00104}00104\ \ \ \ \ l.centerY\ =\ (y1\ +\ y2)\ /\ 2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00105}00105\ \ \ \ \ l.length\ =\ distance(x1,\ y1,\ x2,\ y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00106}00106\ \ \ \ \ l.angleRadians\ =\ atan2((y2\ -\/\ y1),\ (x2\ -\/\ x1));}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00107}00107\ \ \ \ \ l.angleDegrees\ =\ l.angleRadians\ *\ 180\ /\ M\_PI;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{return}\ l;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00109}00109\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00112}00112\ \textcolor{comment}{//\ Calculate\ the\ orthogonal\ projection\ of\ a\ point\ onto\ this\ line}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00113}00113\ \textcolor{comment}{//\ returns\ fraction\ of\ this\ line\ that\ the\ projection\ covers,\ negative\ if\ opposite\ direction}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00114}00114\ \textcolor{keywordtype}{double}\ projectPoint(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \textcolor{keywordtype}{double}\ x,\ \textcolor{keywordtype}{double}\ y)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00115}00115\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00116}00116\ \ \ \ \ \textcolor{keywordtype}{double}\ ux\ =\ x\ -\/\ l-\/>x1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00117}00117\ \ \ \ \ \textcolor{keywordtype}{double}\ uy\ =\ y\ -\/\ l-\/>y1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00118}00118\ \ \ \ \ \textcolor{keywordtype}{double}\ vx\ =\ l-\/>x2\ -\/\ l-\/>x1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00119}00119\ \ \ \ \ \textcolor{keywordtype}{double}\ vy\ =\ l-\/>y2\ -\/\ l-\/>y1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00120}00120\ \ \ \ \ \textcolor{keywordflow}{return}\ (vx*ux\ +\ vy*uy)\ /\ (vx*vx\ +\ vy*vy);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00121}00121\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00123}00123\ \textcolor{comment}{//\ Calculate\ projected\ X\ coordinate\ from\ given\ fraction\ value}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00124}00124\ \textcolor{keywordtype}{double}\ projectedX(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \textcolor{keywordtype}{double}\ t,\ BOOL\ limitToLine)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00125}00125\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{if}\ ((limitToLine\ ==\ TRUE)\ \&\&\ (t\ <=\ 0))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ l-\/>x1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00128}00128\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((limitToLine\ ==\ TRUE)\ \&\&\ (t\ >=\ 1))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ l-\/>x2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00130}00130\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00131}00131\ \ \ \ \ \textcolor{keywordflow}{return}\ l-\/>x1\ +\ (l-\/>x2\ -\/\ l-\/>x1)\ *\ t;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00132}00132\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00134}00134\ \textcolor{comment}{//\ Calculate\ projected\ Y\ coordinate\ from\ given\ fraction\ value}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00135}00135\ \textcolor{keywordtype}{double}\ projectedY(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \textcolor{keywordtype}{double}\ t,\ BOOL\ limitToLine)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00136}00136\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00137}00137\ \ \ \ \ \textcolor{keywordflow}{if}\ ((limitToLine\ ==\ TRUE)\ \&\&\ (t\ <=\ 0))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ l-\/>y1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00139}00139\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((limitToLine\ ==\ TRUE)\ \&\&\ (t\ >=\ 1))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ l-\/>y2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00141}00141\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00142}00142\ \ \ \ \ \textcolor{keywordflow}{return}\ l-\/>y1\ +\ (l-\/>y2\ -\/\ l-\/>y1)\ *\ t;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00143}00143\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00146}00146\ \textcolor{comment}{//\ General\ helper\ functions}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00148}00148\ \textcolor{keywordtype}{double}\ distance(\textcolor{keywordtype}{double}\ x1,\ \textcolor{keywordtype}{double}\ y1,\ \textcolor{keywordtype}{double}\ x2,\ \textcolor{keywordtype}{double}\ y2)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00149}00149\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00150}00150\ \ \ \ \ \textcolor{keywordtype}{double}\ dx\ =\ x2\ -\/\ x1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00151}00151\ \ \ \ \ \textcolor{keywordtype}{double}\ dy\ =\ y2\ -\/\ y1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00152}00152\ \ \ \ \ \textcolor{keywordflow}{return}\ sqrt(dx*dx\ +\ dy*dy);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00153}00153\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00155}00155\ \textcolor{comment}{//\ Fit\ samples\ to\ a\ line\ using\ least\ squares\ approximation,\ return\ deviation\ percentage}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00156}00156\ \textcolor{keywordtype}{double}\ fitLeastSquares(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *stroke,\ \mbox{\hyperlink{struct_line}{Line}}\ *lineResult)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00157}00157\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00158}00158\ \ \ \ \ \textcolor{keywordtype}{int}\ n\ =\ stroke-\/>nSamples;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00159}00159\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00160}00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00161}00161\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00163}00163\ \ \ \ \ \textcolor{comment}{//\ apply\ Least\ Squares}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00164}00164\ \ \ \ \ \textcolor{keywordtype}{double}\ st\ =\ 0,\ st2\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00165}00165\ \ \ \ \ \textcolor{keywordtype}{double}\ sx\ =\ 0,\ sx2\ =\ 0,\ stx\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00166}00166\ \ \ \ \ \textcolor{keywordtype}{double}\ sy\ =\ 0,\ sy2\ =\ 0,\ sty\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00167}00167\ \ \ \ \ \textcolor{comment}{//\ note:\ no\ timestamps\ at\ the\ moment}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00168}00168\ \ \ \ \ \mbox{\hyperlink{struct_sample}{Sample}}\ s;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00169}00169\ \ \ \ \ \textcolor{keywordtype}{double}\ t,\ x,\ y;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00170}00170\ \ \ \ \ \textcolor{keywordtype}{double}\ boundX\ =\ stroke-\/>bounds.minX,\ boundY\ =\ stroke-\/>bounds.minY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00171}00171\ \ \ \ \ \textcolor{keywordtype}{int}\ idx;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00172}00172\ \ \ \ \ \textcolor{keywordflow}{for}\ (idx\ =\ 0;\ idx\ <\ n;\ idx++)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ s\ =\ stroke-\/>samples[idx];}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ treat\ each\ timestamp\ ass\ 1ms\ apart}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ t\ =\ idx\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ st\ +=\ t;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ st2\ +=\ t*t;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ x\ =\ s.x\ -\/\ boundX;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ y\ =\ s.y\ -\/\ boundY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ sx\ +=\ x;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ sx2\ +=\ x*x;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ stx\ +=\ t*x;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ sy\ +=\ y;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ sy2\ +=\ y*y;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00185}00185\ \ \ \ \ \ \ \ \ sty\ +=\ t*y;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00186}00186\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00187}00187\ \ \ \ \ \textcolor{keywordtype}{double}\ sst\ =\ n*st2\ -\/\ st*st;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00188}00188\ \ \ \ \ \textcolor{keywordtype}{double}\ sstx\ =\ n*stx\ -\/\ st*sx;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00189}00189\ \ \ \ \ \textcolor{keywordtype}{double}\ ssty\ =\ n*sty\ -\/\ st*sy;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00191}00191\ \ \ \ \ \textcolor{comment}{//\ Lines\ are\ of\ the\ form\ a\ +\ b*t,\ with\ a,b\ distinct\ in\ X\ and\ Y}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00192}00192\ \ \ \ \ \textcolor{comment}{//\ Note:\ b\ values\ are\ premultiplied\ by\ 100\ to\ add\ precision}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00193}00193\ \ \ \ \ \textcolor{comment}{//\ The\ factor\ won't\ matter,\ since\ actual\ endpoints\ will\ be\ used}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00194}00194\ \ \ \ \ \textcolor{keywordtype}{double}\ bx\ =\ 100*sstx\ /\ sst;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00195}00195\ \ \ \ \ \textcolor{keywordtype}{double}\ ax\ =\ (sx\ -\/\ bx*st)/n;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00196}00196\ \ \ \ \ \textcolor{keywordtype}{double}\ by\ =\ 100*ssty\ /\ sst;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00197}00197\ \ \ \ \ \textcolor{keywordtype}{double}\ ay\ =\ (sy\ -\/\ by*st)/n;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00199}00199\ \ \ \ \ \textcolor{comment}{//\ get\ bounds\ for\ the\ closest\ projected\ sample\ coordinates,\ calculate\ fit\ deviation}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00200}00200\ \ \ \ \ \textcolor{keywordtype}{double}\ fitDeviation\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00201}00201\ \ \ \ \ \mbox{\hyperlink{struct_line}{Line}}\ tempLine\ =\ newLine(ax,\ ay,\ ax+bx,\ ay+by);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00202}00202\ \ \ \ \ \textcolor{keywordtype}{double}\ minT,\ maxT;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00203}00203\ \ \ \ \ \textcolor{keywordflow}{for}\ (idx\ =\ 0;\ idx\ <\ n;\ idx++)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ s\ =\ stroke-\/>samples[idx];}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ x\ =\ s.x\ -\/\ boundX;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ y\ =\ s.y\ -\/\ boundY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ newT\ =\ projectPoint(\&tempLine,\ x,\ y);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ fitDeviation\ +=\ distance(projectedX(\&tempLine,\ newT,\ FALSE),\ projectedY(\&tempLine,\ newT,\ FALSE),\ x,\ y);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (idx\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ minT\ =\ maxT\ =\ newT;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ minT\ =\ fmin(minT,\ newT);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ maxT\ =\ fmax(maxT,\ newT);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00215}00215\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00216}00216\ \ \ \ \ \textcolor{keywordtype}{double}\ x1\ =\ projectedX(\&tempLine,\ minT,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00217}00217\ \ \ \ \ \textcolor{keywordtype}{double}\ y1\ =\ projectedY(\&tempLine,\ minT,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00218}00218\ \ \ \ \ \textcolor{keywordtype}{double}\ x2\ =\ projectedX(\&tempLine,\ maxT,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00219}00219\ \ \ \ \ \textcolor{keywordtype}{double}\ y2\ =\ projectedY(\&tempLine,\ maxT,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00220}00220\ \ \ \ \ fitDeviation\ =\ fitDeviation\ /\ (n\ *\ distance(x1,\ y1,\ x2,\ y2));\ \textcolor{comment}{//\ scale\ based\ on\ line\ length,\ sample\ count}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00221}00221\ \ \ \ \ *lineResult\ =\ newLine(boundX\ +\ x1,\ boundY\ +\ y1,\ boundX\ +\ x2,\ boundY\ +\ y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00222}00222\ \ \ \ \ \textcolor{keywordflow}{return}\ fitDeviation;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00223}00223\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00225}00225\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00226}00226\ \textcolor{comment}{//\ Compute\ distance\ between\ two\ strokes.\ Dots\ and\ Shapes\ use\ radius,\ Lines\ use\ perpendicular\ projection}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00227}00227\ \textcolor{keywordtype}{double}\ strokeDistance(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *s1,\ \mbox{\hyperlink{struct_stroke}{Stroke}}\ *s2)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00228}00228\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00229}00229\ \ \ \ \ \textcolor{keywordtype}{double}\ c1x\ =\ s1-\/>bounds.centerX;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00230}00230\ \ \ \ \ \textcolor{keywordtype}{double}\ c1y\ =\ s1-\/>bounds.centerY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00231}00231\ \ \ \ \ \textcolor{keywordtype}{double}\ c2x\ =\ s2-\/>bounds.centerX;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00232}00232\ \ \ \ \ \textcolor{keywordtype}{double}\ c2y\ =\ s2-\/>bounds.centerY;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00233}00233\ \ \ \ \ \textcolor{keywordtype}{double}\ dist;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00234}00234\ \ \ \ \ \textcolor{keywordflow}{if}\ ((s1-\/>type\ !=\ STROKE\_LINE)\ \&\&\ (s2-\/>type\ !=\ STROKE\_LINE))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ dist\ =\ distance(c1x,\ c1y,\ c2x,\ c2y)\ -\/\ (s1-\/>radius\ +\ s2-\/>radius);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00236}00236\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (!((s1-\/>type\ ==\ STROKE\_LINE)\ \&\&\ (s2-\/>type\ ==\ STROKE\_LINE)))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (s2-\/>type\ ==\ STROKE\_LINE)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ swap\ to\ use\ s1\ as\ the\ line,\ s2\ as\ shape}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_stroke}{Stroke}}\ *temp\ =\ s2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ s2\ =\ s1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ s1\ =\ temp;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ c2x\ =\ c1x;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ c2y\ =\ c1y;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00245}00245\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ t\ =\ projectPoint(\&(s1-\/>line),\ c2x,\ c2y);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ dist\ =\ distance(projectedX(\&(s1-\/>line),\ t,\ TRUE),\ projectedY(\&(s1-\/>line),\ t,\ TRUE),\ c2x,\ c2y)\ -\/\ s2-\/>radius;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00247}00247\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (doLinesIntersect(\&(s1-\/>line),\ \&(s2-\/>line)))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00248}00248\ \ \ \ \ \ \ \ \ dist\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00249}00249\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00250}00250\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ non-\/intersecting\ lines,\ get\ shortest\ distance\ between\ endpoints\ and\ lines}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00251}00251\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ distances[4];}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00252}00252\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_line}{Line}}\ l1\ =\ s1-\/>line,\ l2\ =\ s2-\/>line;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00253}00253\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ t11\ =\ projectPoint(\&l1,\ l2.x1,\ l2.y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00254}00254\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ t12\ =\ projectPoint(\&l1,\ l2.x2,\ l2.y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00255}00255\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ t21\ =\ projectPoint(\&l2,\ l1.x1,\ l1.y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00256}00256\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ t22\ =\ projectPoint(\&l2,\ l1.x2,\ l1.y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00257}00257\ \ \ \ \ \ \ \ \ distances[0]\ =\ distance(projectedX(\&l1,\ t11,\ TRUE),\ projectedY(\&l1,\ t11,\ TRUE),\ l2.x1,\ l2.y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00258}00258\ \ \ \ \ \ \ \ \ distances[1]\ =\ distance(projectedX(\&l1,\ t12,\ TRUE),\ projectedY(\&l1,\ t12,\ TRUE),\ l2.x2,\ l2.y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ distances[2]\ =\ distance(projectedX(\&l2,\ t21,\ TRUE),\ projectedY(\&l2,\ t21,\ TRUE),\ l1.x1,\ l1.y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ distances[3]\ =\ distance(projectedX(\&l2,\ t22,\ TRUE),\ projectedY(\&l2,\ t22,\ TRUE),\ l1.x2,\ l1.y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00262}00262\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ dist\ =\ distances[0];}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00263}00263\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ idx;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00264}00264\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (idx\ =\ 1;\ idx\ <\ 4;\ idx++)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ dist\ =\ fmin(dist,\ distances[idx]);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00267}00267\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00268}00268\ \ \ \ \ \textcolor{keywordflow}{return}\ fmax(0,\ dist);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00269}00269\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00271}00271\ \textcolor{comment}{//\ calculates\ intersection\ (in\ terms\ of\ l1),\ or\ -\/1\ when\ no\ intersection\ found}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00272}00272\ \textcolor{keywordtype}{double}\ intersectionPoint(\mbox{\hyperlink{struct_line}{Line}}\ *l1,\ \mbox{\hyperlink{struct_line}{Line}}\ *l2)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00273}00273\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00274}00274\ \ \ \ \ \textcolor{keywordtype}{double}\ dx1\ =\ (l1-\/>x2\ -\/\ l1-\/>x1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00275}00275\ \ \ \ \ \textcolor{keywordtype}{double}\ dx2\ =\ (l2-\/>x2\ -\/\ l2-\/>x1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00276}00276\ \ \ \ \ \textcolor{keywordtype}{double}\ dy1\ =\ (l1-\/>y2\ -\/\ l1-\/>y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00277}00277\ \ \ \ \ \textcolor{keywordtype}{double}\ dy2\ =\ (l2-\/>y2\ -\/\ l2-\/>y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00278}00278\ \ \ \ \ \textcolor{keywordtype}{double}\ px\ =\ (l1-\/>x1\ -\/\ l2-\/>x1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00279}00279\ \ \ \ \ \textcolor{keywordtype}{double}\ py\ =\ (l1-\/>y1\ -\/\ l2-\/>y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00281}00281\ \ \ \ \ \textcolor{keywordtype}{double}\ d\ =\ dy2*dx1\ -\/\ dx2*dy1;\ \textcolor{comment}{//\ 0\ when\ lines\ are\ parallel\ or\ collinear}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00282}00282\ \ \ \ \ \textcolor{keywordtype}{double}\ t\ =\ dx2*py\ -\/\ dy2*px;\ \textcolor{comment}{//\ t/d\ is\ the\ distance\ along\ l1}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00283}00283\ \ \ \ \ \textcolor{keywordtype}{double}\ s\ =\ dx1*py\ -\/\ dy1*px;\ \textcolor{comment}{//\ s/d\ is\ the\ distance\ along\ l2}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00284}00284\ \ \ \ \ \textcolor{keywordflow}{if}\ (d\ ==\ 0\ \&\&\ (t\ ==\ 0\ ||\ s\ ==\ 0))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ collinear\ segments,\ check\ overlap}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ p1\ =\ projectPoint(l1,\ l2-\/>x1,\ l2-\/>y1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ p2\ =\ projectPoint(l1,\ l2-\/>x2,\ l2-\/>y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((p1\ <=\ 0\ \&\&\ p2\ >=\ 1)\ ||\ (p2\ <=\ 0\ \&\&\ p1\ >=\ 1))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ l2\ encloses\ l1}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00291}00291\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.5;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((p1\ >=\ 0\ \&\&\ p1\ <=\ 1)\ \&\&\ (p2\ >=\ 0\ \&\&\ p2\ <=\ 1))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ l1\ encloses\ l2}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (p1\ +\ p2)\ /\ 2;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (p1\ >=\ 0\ \&\&\ p1\ <=\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ p1\ inside,\ p2\ outside}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (p2\ <\ 0)\ ?\ (p2\ /\ 2)\ :\ ((p2\ +\ 1)\ /\ 2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (p2\ >=\ 0\ \&\&\ p2\ <=\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ p2\ inside,\ p1\ outside}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (p1\ <\ 0)\ ?\ (p1\ /\ 2)\ :\ ((p1\ +\ 1)\ /\ 2);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00304}00304\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00305}00305\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00306}00306\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (d\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00307}00307\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ parralel\ segments}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00308}00308\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00309}00309\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00310}00310\ \ \ \ \ t\ /=\ d;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00311}00311\ \ \ \ \ s\ /=\ d;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00312}00312\ \ \ \ \ \textcolor{keywordflow}{if}\ ((t\ >=\ 0\ \&\&\ t\ <=\ 1)\ \&\&\ (s\ >=\ 0\ \&\&\ s\ <=\ 1))\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00313}00313\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ intersection\ exists,\ use\ l1's\ coordinate}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ t;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00315}00315\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00316}00316\ \ \ \ \ \textcolor{comment}{//\ no\ intersection}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00317}00317\ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00318}00318\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00319}00319\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00320}00320\ BOOL\ doLinesIntersect(\mbox{\hyperlink{struct_line}{Line}}\ *l1,\ \mbox{\hyperlink{struct_line}{Line}}\ *l2)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00321}00321\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00322}00322\ \ \ \ \ \textcolor{keywordflow}{return}\ (intersectionPoint(l1,\ l2)\ !=\ -\/1);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00323}00323\ \}}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00325}00325\ BOOL\ doesLineIntersectBoundingCircle(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \mbox{\hyperlink{struct_stroke}{Stroke}}\ *s)}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00326}00326\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00327}00327\ \ \ \ \ \textcolor{keywordtype}{double}\ t\ =\ projectPoint(l,\ s-\/>bounds.centerX,\ s-\/>bounds.centerY);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00328}00328\ \ \ \ \ \textcolor{keywordtype}{double}\ x\ =\ projectedX(l,\ t,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00329}00329\ \ \ \ \ \textcolor{keywordtype}{double}\ y\ =\ projectedY(l,\ t,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00330}00330\ \ \ \ \ \textcolor{keywordtype}{double}\ d\ =\ distance(x,\ y,\ s-\/>bounds.centerX,\ s-\/>bounds.centerY);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00331}00331\ \ \ \ \ \textcolor{keywordflow}{return}\ (d\ <=\ s-\/>radius);}
+\DoxyCodeLine{\Hypertarget{stroke_8c_source_l00332}00332\ \}}
+
+\end{DoxyCode}

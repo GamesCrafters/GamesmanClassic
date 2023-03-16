@@ -1,0 +1,251 @@
+\hypertarget{constants_8c_source}{}\doxysection{constants.\+c}
+\label{constants_8c_source}\index{src/core/constants.c@{src/core/constants.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ constants.c}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Allocates\ memory\ for\ long\ string\ literals\ and\ other}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00006}00006\ \textcolor{comment}{**\ \ \ \ \ \ constant\ declarations.}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00007}00007\ \textcolor{comment}{**\ \ \ \ \ \ Mostly\ help/documentation.}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00008}00008\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00009}00009\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00010}00010\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00012}00012\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00013}00013\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00014}00014\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00016}00016\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00017}00017\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00018}00018\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00019}00019\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00020}00020\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00021}00021\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00022}00022\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00023}00023\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00024}00024\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00025}00025\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00026}00026\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00027}00027\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00028}00028\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00029}00029\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00030}00030\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00031}00031\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00032}00032\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}types.h"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00036}00036\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00037}00037\ \textcolor{comment}{**\ Globals}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00038}00038\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00040}00040\ STRING\ kOpeningCredits\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00042}00042\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \_\_\_\_\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ http://gamescrafters.berkeley.edu\ \ :\ A\ finite,\ \ two-\/person\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00043}00043\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ /\ \_\_\_|\ \_\_\ \_\ \_\ \_\_\ \_\_\_\ \ \ \_\_\_\ \ \_\_\_\ \_\ \_\_\ \_\_\_\ \ \ \_\_\ \_\ \_\ \_\_\ \ \ :\ complete\ \ information\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00044}00044\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}|\ |\ \ \_\ /\ \_`\ |\ '\_\ `\ \_\ \(\backslash\)\(\backslash\)\ /\ \_\ \(\backslash\)\(\backslash\)/\ \_\_|\ '\_\ `\ \_\ \(\backslash\)\(\backslash\)\ /\ \_`\ |\ '\_\ \(\backslash\)\(\backslash\)\ \ :\ game\ generator.\ \ More\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}|\ |\_|\ |\ (\_|\ |\ |\ |\ |\ |\ |\ \ \_\_/\(\backslash\)\(\backslash\)\_\_\ \(\backslash\)\(\backslash\)\ |\ |\ |\ |\ |\ (\_|\ |\ |\ |\ |\ :\ information?\ \ Contact\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00046}00046\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \(\backslash\)\(\backslash\)\_\_\_\_|\(\backslash\)\(\backslash\)\_\_,\_|\_|\ |\_|\ |\_|\(\backslash\)\(\backslash\)\_\_\_||\_\_\_/\_|\ |\_|\ |\_|\(\backslash\)\(\backslash\)\_\_,\_|\_|\ |\_|\ :\ ddgarcia@berkeley.edu\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}...............................................................................\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Welcome\ to\ GAMESMAN,\ version\ \%s.\ Originally\ \ \ \ \ \ \ (G)ame-\/independent\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00050}00050\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}written\ by\ Dan\ Garcia,\ it\ has\ undergone\ a\ series\ of\ \ \ \ \ \ \ (A)utomatic\ \ \ \ \ \ \ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}exhancements\ from\ 2001-\/present\ by\ GamesCrafters,\ the\ \ \ \ \ \ (M)ove-\/tree\ \ \ \ \ \ \ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}UC\ Berkeley\ Undergraduate\ Game\ Theory\ Research\ Group.\ \ \ \ \ (E)xhaustive\ \ \ \ \ \ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (S)earch,\ \ \ \ \ \ \ \ \ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00054}00054\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}This\ program\ will\ determine\ the\ value\ of\ your\ game,\ \ \ \ \ \ \ (M)anipulation\ \ \ \ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}perform\ analysis,\ \&\ provide\ an\ interface\ to\ play\ it.\ \ \ \ \ \ (A)nd\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Usage:\ \%37s\ -\/-\/help\ \ \ \ \ \ \ (N)avigation\ \ \ \ \ \ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}You\ are\ playing\ \%s,\(\backslash\)nwritten\ by\ \%s.\ Enjoy!\(\backslash\)n"{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00060}00060\ STRING\ kHelpValueBeforeEvaluation\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}At\ this\ point,\ the\ computer\ does\ not\ know\ the\ value\ of\ the\ game\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}because\ you\ have\ not\ chosen\ to\ EVALUATE\ it.\ Once\ you\ choose\ to\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}do\ that,\ the\ value\ will\ be\ determined\ and\ shown\ to\ you.\ Then\ you\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}can\ bring\ this\ help\ menu\ back\ up\ to\ find\ out\ what\ it\ means."{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00066}00066\ STRING\ kHelpWhatIsGameValue\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}A\ game\ VALUE\ is\ one\ of\ either\ WIN,\ LOSE,\ or\ TIE.\ \ That\ is,\ if\ a\ game\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}is\ played\ by\ two\ perfect\ opponents,\ the\ following\ ALWAYS\ happens:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}(A\ perfect\ opponent\ never\ makes\ a\ bad\ move,\ and\ only\ loses\ if\ there\ is\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}NOTHING\ he/she\ can\ do\ about\ it.)\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}WIN:\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ player\ who\ goes\ first\ always\ wins.\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}LOSE:\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ player\ who\ goes\ first\ always\ loses.\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}TIE:\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ player\ who\ goes\ first\ cannot\ force\ a\ win,\ but\ also\ cannot\ be\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}forced\ into\ losing.\ The\ game\ always\ ends\ in\ a\ draw.\ It\ was\ a\ TIE\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}game\ that\ caused\ a\ character\ from\ the\ movie\ 'War\ Games'\ to\ comment:\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ only\ way\ to\ win\ is\ not\ to\ play\ at\ all.\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ reason\ it\ is\ important\ to\ know\ the\ value\ of\ the\ game\ is\ that\ it\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}determines\ whether\ going\ first\ or\ second\ is\ better.\ If\ the\ game\ is\ a\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}WIN\ game,\ it\ is\ better\ to\ go\ first.\ Why?\ Well,\ theoretically,\ it\ is\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}possible\ to\ win,\ regardless\ of\ what\ your\ opponent\ does.\ This\ applies\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}equally\ to\ going\ second\ while\ playing\ a\ LOSE\ game.\ It\ doesn't\ mean\ that\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}the\ person\ going\ first\ with\ a\ WIN\ game\ will\ ALWAYS\ win,\ it\ just\ says\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}the\ potential\ exists.\ In\ GAMESMAN,\ the\ computer\ plays\ the\ part\ of\ the\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}perfect\ opponent,\ but\ gives\ you,\ the\ human\ opponent\ the\ advantage.\ If\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}you\ make\ a\ mistake,\ the\ computer\ pounces\ on\ you."{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00090}00090\ STRING\ kHelpWhatIsEvaluation\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Evaluation\ is\ the\ process\ the\ computer\ undergoes\ to\ determine\ the\ value\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}of\ the\ game.\ (See\ 'What\ is\ a\ game\ VALUE?',\ the\ previous\ topic,\ for\ more)\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ computer\ searches\ the\ MOVE-\/TREE\ (the\ connected\ tree\ of\ all\ the\ moves\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}that\ are\ possible\ from\ a\ certain\ position\ that\ lead\ to\ other\ positions)\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}recursively\ (Depth-\/First\ Search,\ for\ the\ computer\ literate)\ until\ it\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}reaches\ a\ position\ which\ it\ considers\ a\ PRIMITIVE\ win,\ lose\ or\ draw.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}A\ PRIMITIVE\ position\ is\ defined\ by\ the\ game\ itself.\ For\ example,\ with\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Tic-\/tac-\/toe,\ if\ the\ board\ is\ full,\ that\ is\ considered\ a\ primitive\ TIE.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}If\ a\ position\ has\ 3-\/in-\/a-\/row\ of\ X,\ then\ that\ position\ is\ considered\ a\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}primitive\ LOSE\ position,\ because\ that\ means\ player\ O,\ who\ is\ staring\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}blankly\ at\ the\ board,\ has\ just\ LOST.\ Once\ a\ primitive\ position\ has\ been\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}reached,\ the\ algorithm\ backtracks\ in\ an\ attempt\ to\ determine\ the\ value\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00104}00104\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}of\ THAT\ position.\ It\ uses\ the\ following\ scheme\ to\ figure\ out\ the\ value\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}of\ a\ non-\/primitive\ position:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}A\ non-\/primitive\ WIN\ position\ is\ one\ in\ which\ THERE\ EXISTS\ AT\ LEAST\ ONE\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}move\ that\ will\ give\ my\ opponent\ a\ LOSE\ position.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}A\ non-\/primitive\ LOSE\ position\ is\ one\ in\ which\ ALL\ MOVES\ that\ are\ possible\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}will\ give\ my\ opponent\ a\ WIN\ position.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}A\ non-\/primitive\ TIE\ position\ is\ one\ in\ which\ there\ are\ NO\ MOVES\ which\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}will\ give\ my\ opponent\ a\ LOSE\ position,\ but\ there\ are\ SOME\ MOVES\ which\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}will\ give\ my\ opponent\ another\ TIE\ position.\ This\ translates\ to:\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}'Well,\ I\ can't\ win,\ but\ at\ least\ my\ opponent\ can\ win\ either'.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}The\ algorithm\ continues\ until\ all\ positions\ that\ can\ be\ reached\ from\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}the\ starting\ position\ (the\ blank\ board\ in\ Tic-\/Tac-\/Toe,\ for\ instance)\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}have\ had\ their\ value\ determined,\ and\ in\ the\ meantime\ the\ computer\ has\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}figured\ out\ PERFECT\ paths\ for\ itself\ that\ always\ force\ you\ to\ LOSE."{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00123}00123\ STRING\ kHelpWhatArePredictions\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Predictions\ are\ the\ words\ in\ parenthesis\ you\ see\ when\ you\ are\ playing\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}the\ game\ that\ 'predict'\ who\ will\ win\ and\ who\ will\ lose.\ Since\ the\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}computer\ is\ a\ perfect\ opponent,\ if,\ while\ playing,\ it\ discovers\ it\ has\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}a\ WIN\ position,\ there's\ nothing\ you\ can\ do,\ so\ the\ prediction\ is:\ 'Player\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}will\ Lose'\ and\ 'Computer\ will\ Win'.\ However,\ if\ you\ have\ the\ WIN\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}position,\ it's\ always\ possible\ for\ you\ to\ make\ a\ really\ silly\ move\ and\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}give\ the\ COMPUTER\ the\ WIN\ position,\ so\ the\ prediction\ says:\ 'Player\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}should\ Win'\ and\ 'Computer\ should\ Lose'."{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00133}00133\ STRING\ kHelpWhatAreHints\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Hints\ are\ a\ list\ of\ moves\ that\ are\ VALUE-\/wise\ equivalent.\ For\ example,\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00135}00135\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}if\ you\ have\ a\ WIN\ position,\ then\ all\ the\ moves\ that\ will\ give\ your\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}opponent\ a\ LOSE\ position\ are\ listed\ in\ the\ hints.\ If\ you\ have\ a\ LOSE\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}position,\ ALL\ the\ possible\ moves\ are\ listed\ in\ the\ hints.\ The\ reason\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}for\ this\ is\ explained\ in\ the\ help\ topic:\ 'What\ is\ EVALUATION?'.\ If\ you\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}have\ a\ TIE\ position,\ the\ moves\ that\ give\ your\ opponent\ a\ TIE\ position\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}are\ listed\ in\ the\ hints."{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00144}00144\ STRING\ kHandleDefaultTextInputHelp\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Text\ Input\ Commands:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}?\ \ \ \ \ \ \ \ \ \ \ :\ Brings\ up\ this\ list\ of\ Text\ Input\ Commands\ available\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}p\ (or\ P)\ \ \ \ :\ Brings\ up\ the\ (P)rint\ Menu\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}c\ (or\ C)\ \ \ \ :\ Brings\ up\ the\ (C)onfiguration\ Menu\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}e\ (or\ E)\ \ \ \ :\ Print\ Static\ (E)valuator\ value\ for\ this\ position\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}u\ (or\ U)\ \ \ \ :\ (U)ndo\ last\ move\ (not\ possible\ at\ beginning\ position)\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}a\ (or\ A)\ \ \ \ :\ (A)bort\ the\ game\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00154}00154\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}h\ (or\ H)\ \ \ \ :\ (H)elp\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}q\ (or\ Q)\ \ \ \ :\ (Q)uit"{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00157}00157\ STRING\ kPrintMenu\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)tr)\(\backslash\)t(R)eprint\ the\ position\(\backslash\)n"{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00162}00162\ STRING\ kPrintMenuWithSolving\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00163}00163\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)ts)\(\backslash\)t(S)how\ the\ values\ of\ all\ possible\ moves\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)tv)\(\backslash\)tPrint\ (V)isual\ Value\ History\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)tw)\(\backslash\)tPrint\ Visual\ Value\ History\ (W)ith\ All\ Possible\ Moves\(\backslash\)n"{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00167}00167\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00169}00169\ STRING\ kPrintMenuEnd\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)tm)\(\backslash\)tScript\ of\ (M)ove\ History\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)th)\(\backslash\)t(H)elp\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)tb)\(\backslash\)t(B)ack\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)tq)\(\backslash\)t(Q)uit\(\backslash\)n\(\backslash\)n"{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00176}00176\ \textcolor{keywordtype}{char}\ *gValueString[]\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00177}00177\ \{}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00178}00178\ \ \ \ \ \textcolor{stringliteral}{"{}Undecided"{}},\ \textcolor{stringliteral}{"{}Win"{}},\ \textcolor{stringliteral}{"{}Lose"{}},\ \textcolor{stringliteral}{"{}Tie"{}},}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Draw-\/win"{}},\ \textcolor{stringliteral}{"{}Draw-\/lose"{}},\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Draw-\/tie"{}},\ \textcolor{stringliteral}{"{}Draw-\/undecided"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00181}00181\ \ \ \ \ \textcolor{comment}{//\ "{}Win-\/Visited"{},\ "{}Lose-\/Visited"{},}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00182}00182\ \ \ \ \ \textcolor{comment}{//\ "{}Tie-\/Visited"{},\ "{}Undecided-\/Visited"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00183}00183\ \};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00185}00185\ \textcolor{keywordtype}{char}\ gValueLetter[]\ =\ \{\ \textcolor{charliteral}{'U'},\ \textcolor{charliteral}{'W'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'T'},\ \textcolor{charliteral}{'D'},\ \textcolor{charliteral}{'D'},\ \textcolor{charliteral}{'D'},\ \textcolor{charliteral}{'D'}\ \};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00187}00187\ STRING\ kSolveVersion\ =\ \textcolor{stringliteral}{"{}2006.01.01"{}};}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00189}00189\ STRING\ kCommandSyntaxHelp\ =}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)nSyntax:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\%s\ \ \{-\/-\/nodb\ |\ -\/-\/newdb\ |\ -\/-\/filedb\ |\ -\/-\/numoptions\ |\ -\/-\/curroption\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t-\/-\/option\ <n>\ |\ -\/-\/nobpdb\ |\ -\/-\/2bit\ |\ -\/-\/colldb\ |\ -\/-\/univdb\ |\ -\/-\/gps\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t-\/-\/bottomup\ |\ -\/-\/alpha-\/beta\ |\ -\/-\/lowmem\ |\ -\/-\/slicessolver\ |\ -\/-\/schemes\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t-\/-\/allschemes\ |\ -\/-\/adjust\ |\ -\/-\/noadjust\ |\ -\/-\/solve\ [<n>\ |\ <all>]\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t-\/-\/analyze\ [\ <linkname>\ ]\ |\ -\/-\/open\ |\ -\/-\/visualize\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t-\/-\/DoMove\ <args>\ <move>\ |\ -\/-\/Primitive\ <args>\ |\ -\/-\/PrintPosition\ <args>\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t-\/-\/GenerateMoves\ <args>\}\ |\ -\/-\/lightplayer\ |\ -\/-\/netDb\ |\ -\/-\/hashCounting\ |\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t-\/-\/help\}\(\backslash\)n\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/export\ <filename>\(\backslash\)t\(\backslash\)t\(\backslash\)tSolves\ the\ game\ (if\ needed)\ then\ exports\ to\ filename.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/interact\(\backslash\)t\(\backslash\)t\(\backslash\)tSolves\ the\ game\ (if\ needed)\ then\ enters\ server\ interaction\ mode.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/nodb\(\backslash\)t\(\backslash\)t\(\backslash\)tStarts\ game\ without\ loading\ or\ saving\ to\ the\ database.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/newdb\(\backslash\)t\(\backslash\)t\(\backslash\)tStarts\ game\ and\ clobbers\ the\ old\ database.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/filedb\(\backslash\)t\(\backslash\)tStarts\ game\ with\ file-\/based\ database.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/numoptions\(\backslash\)t\(\backslash\)tPrints\ the\ number\ of\ options.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/curroption\(\backslash\)t\(\backslash\)tPrints\ the\ current\ option.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/option\ <n>\(\backslash\)t\(\backslash\)tStarts\ game\ with\ the\ n\ option\ configuration.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/nobpdb\(\backslash\)t\(\backslash\)tStarts\ game\ without\ using\ Bit\ Perfect\ Database.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/2bit\(\backslash\)t\(\backslash\)t\(\backslash\)tStarts\ game\ with\ two-\/bit\ solving\ enabled.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/colldb\(\backslash\)t\(\backslash\)tStarts\ game\ with\ Collision\ based\ Database.\ Currently\ Experimental.\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00210}00210\ \textcolor{preprocessor}{\#ifdef\ HAVE\_GMP}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/univdb\(\backslash\)t\(\backslash\)tStarts\ game\ with\ 2-\/Universal\ hash-\/based\ resizable\ database.\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00212}00212\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/gps\(\backslash\)t\(\backslash\)t\(\backslash\)tStarts\ game\ with\ global\ position\ solver\ enabled.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/bottomup\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/alpha-\/beta\(\backslash\)t\(\backslash\)tStarts\ game\ with\ weak\ alpha-\/beta\ solver.\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/lowmem\(\backslash\)t\(\backslash\)tStarts\ game\ with\ low\ memory\ overhead\ solver\ enabled.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/slicessolver\(\backslash\)t\(\backslash\)tWith\ bpdb\ turned\ on,\ the\ variable\ slice\ aware\ solver\ will\ be\ used\ (faster).\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00218}00218\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/schemes\(\backslash\)t\(\backslash\)tWith\ bpdb\ turned\ on\ variable\ gaps\ compression\ will\ be\ used\ for\ saved\ dbs.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/allschemes\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/adjust\(\backslash\)t\(\backslash\)tWith\ bpdb\ turned\ on,\ slice\ sizes\ will\ be\ grow\ and\ shrink\ to\ best-\/fit\ data.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/noadjust\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00222}00222\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/notiers\(\backslash\)t\(\backslash\)tStarts\ game\ with\ Tier-\/Gamesman\ Mode\ OFF\ by\ default.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/notiermenu\(\backslash\)t\(\backslash\)tThis\ option\ disables\ the\ Tier-\/Gamesman\ solver\ menu,\ and\ auto-\/solves\ all\ tiers.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/notierprint\(\backslash\)t\(\backslash\)tThis\ option\ disables\ the\ printing\ from\ the\ Tier-\/Gamesman\ solver\ menu.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/solve\ [<n>\ |\ <all>]\(\backslash\)tSolves\ game\ with\ the\ n\ option\ configuration.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t\(\backslash\)tTo\ solve\ all\ option\ configurations\ of\ game,\ use\ <all>.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t\(\backslash\)tIf\ <n>\ and\ <all>\ are\ ommited,\ it\ will\ solve\ the\ default\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t\(\backslash\)tconfiguration.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t\(\backslash\)tExamples:\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t\(\backslash\)t\%s\ -\/-\/solve\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t\(\backslash\)t\%s\ -\/-\/solve\ 2\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t\(\backslash\)t\%s\ -\/-\/solve\ all\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/analyze\(\backslash\)t\(\backslash\)tCreates\ the\ analysis\ directory\ with\ info\ on\ all\ variants\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/open\(\backslash\)t\(\backslash\)t\(\backslash\)tStarts\ game\ with\ Open\ Positions\ solving\ enabled.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/visualize\(\backslash\)t\(\backslash\)tTurns\ on\ automatic\ visualization.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/DoMove\ <pos>\ <move>\(\backslash\)tDoes\ the\ move\ on\ the\ position.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/Primitive\ <pos>\(\backslash\)tChecks\ whether\ position\ is\ a\ primitive.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/PrintPosition\ <pos>\(\backslash\)tPrints\ the\ ASCII\ representation\ of\ the\ position.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/GenerateMoves\ <pos>\(\backslash\)tGenerates\ all\ possible\ moves\ from\ position.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00240}00240\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/lightplayer\(\backslash\)t\(\backslash\)tHints\ the\ database\ to\ minimize\ memory\ usage.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/netDb\(\backslash\)t\(\backslash\)t\(\backslash\)tStarts\ game\ with\ the\ network\ database.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00242}00242\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/hashCounting\(\backslash\)t\(\backslash\)tStarts\ the\ generic-\/hash\ counting\ tool\ instead\ of\ the\ game.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/hashtable\_buckets\(\backslash\)t(advanced)\ Sets\ the\ total\ number\ of\ buckets\ in\ any\ hashtables\ used.\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/withPen\ <file>\(\backslash\)tStarts\ game\ with\ Anoto\ Pen\ support,\ reading\ data\ from\ <file>\ (with\ GUI\ only)\(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8c_source_l00245}00245\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}-\/-\/penDebug\(\backslash\)t\(\backslash\)tEnables\ Anoto\ Pen\ log\ messages\ /\ data\ saving\ to\ 'bin/pen/'\ (with\ GUI\ only)\(\backslash\)n\(\backslash\)n"{}};}
+
+\end{DoxyCode}

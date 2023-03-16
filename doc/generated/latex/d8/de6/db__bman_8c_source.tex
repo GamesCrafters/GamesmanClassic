@@ -1,0 +1,153 @@
+\hypertarget{db__bman_8c_source}{}\doxysection{db\+\_\+bman.\+c}
+\label{db__bman_8c_source}\index{src/core/filedb/db\_bman.c@{src/core/filedb/db\_bman.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ db\_bman.c}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Buffer\ manager.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}db\_types.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00035}00035\ \textcolor{preprocessor}{\#include\ "{}db\_bman.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00036}00036\ \textcolor{preprocessor}{\#include\ "{}db\_basichash.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00037}00037\ \textcolor{preprocessor}{\#include\ "{}db\_buf.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00038}00038\ \textcolor{preprocessor}{\#include\ "{}db\_malloc.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00040}00040\ \textcolor{preprocessor}{\#define\ INDEX\_BITLENGTH\ 10}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00041}00041\ \textcolor{preprocessor}{\#define\ INDEX\_CHUNKSIZE\ 10}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00043}00043\ \textcolor{comment}{/*\ buffer\ replacement\ stratagy\ and\ replacement\ tools.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00044}00044\ \textcolor{comment}{\ *\ ask\ the\ buffer\ manager\ for\ a\ specific\ buffer\ to\ be\ brought\ into\ memory.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00045}00045\ \textcolor{comment}{\ *\ the\ buffer\ manager\ finds\ it,\ and\ returns\ the\ pageid\ of\ the\ corresponding}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00046}00046\ \textcolor{comment}{\ *\ page.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00047}00047\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00049}00049\ \mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}}*\ gamesdb\_bman\_init()\{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00050}00050\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}}\ *\textcolor{keyword}{new}\ =\ (\mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}}*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}}));}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00051}00051\ \ \ \ \ \textcolor{keyword}{new}-\/>hash\ =\ gamesdb\_basichash\_create(INDEX\_BITLENGTH,\ INDEX\_CHUNKSIZE);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00052}00052\ \ \ \ \ \textcolor{keyword}{new}-\/>clock\_hand\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00053}00053\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new};}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00054}00054\ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00057}00057\ \textcolor{comment}{/*Find's\ page\_id\ and\ returns\ the\ location.\ -\/1\ if\ not\ found.}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00058}00058\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00059}00059\ gamesdb\_frameid\ gamesdb\_bman\_find(\mbox{\hyperlink{structgamesdb}{gamesdb}}*\ db,\ gamesdb\_pageid\ \textcolor{keywordtype}{id})\{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{return}\ gamesdb\_basichash\_get(db-\/>buf\_man-\/>hash,\textcolor{keywordtype}{id});}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00061}00061\ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00063}00063\ \textcolor{comment}{/*\ this\ will\ be\ called\ to\ find\ space\ on\ physical\ memory\ for\ a\ page}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00064}00064\ \textcolor{comment}{\ *\ either\ a\ new\ unused\ one,\ or\ one\ to\ be\ brought\ in\ from\ disk}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00065}00065\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00066}00066\ gamesdb\_frameid\ gamesdb\_bman\_replace(\mbox{\hyperlink{structgamesdb}{gamesdb}}*\ db,\ gamesdb\_pageid\ vpn)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00067}00067\ \ \ \ \ \mbox{\hyperlink{structgamesdb__buffer}{gamesdb\_buffer}}*\ bufp\ =\ db-\/>buffer;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00069}00069\ \ \ \ \ \textcolor{comment}{//find\ free\ space,\ if\ found\ make\ hash\ changes,\ return}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00070}00070\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage}}*\ page\ =\ bufp-\/>pages;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00072}00072\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}\ *bhash\ =\ db-\/>buf\_man-\/>hash;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ page!=\ NULL;\ page\ =\ page-\/>next)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (page-\/>valid\ ==\ GAMESDB\_FALSE)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_basichash\_put(bhash,\ vpn,\ page);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ page;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00079}00079\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00081}00081\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage}}\ *newpage;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00083}00083\ \ \ \ \ \textcolor{comment}{//see\ if\ we\ have\ space\ for\ more\ physical\ pages,\ if\ so\ grow\ the\ memory\ pool}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00084}00084\ \ \ \ \ \textcolor{keywordflow}{if}\ (bufp-\/>num\_pages\ <\ bufp-\/>max\_pages\ ||\ bufp-\/>max\_pages\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (GAMESDB\_DEBUG)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}db\_bufman:\ Growing\ the\ page\ pool.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((newpage\ =\ gamesdb\_buf\_addpage(db))\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_basichash\_put(bhash,\ vpn,\ newpage);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ newpage;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{\ \textcolor{comment}{//shrink}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_pageid\ initial\ =\ bufp-\/>num\_pages\ >>\ 1;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (initial\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ initial\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (bufp-\/>num\_pages\ >\ initial)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_buf\_removepage(db);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00102}00102\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00104}00104\ \ \ \ \ \textcolor{comment}{//otherwise,\ pick\ one\ from\ n-\/chance,\ make\ page\ table\ changes,\ and\ return}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{if}\ (GAMESDB\_DEBUG)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}db\_bufman:\ No\ more\ free\ pages\ in\ page\ table.\ Evicting\ one\ page\ using\ n-\/chance.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00107}00107\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00109}00109\ \ \ \ \ \textcolor{keywordflow}{if}\ (bufp-\/>max\_pages\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}db\_bufman:\ max\ page\ limit\ reached\ zero."{}});}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00111}00111\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00113}00113\ \ \ \ \ page\ =\ bufp-\/>pages;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00114}00114\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage}}\ *ret\ =\ db-\/>buf\_man-\/>clock\_hand;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00116}00116\ \ \ \ \ \textcolor{keywordflow}{while}(GAMESDB\_TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ret-\/>valid\ ==\ GAMESDB\_TRUE\ \&\&\ ret-\/>chances\ <\ GAMESDB\_MAX\_CHANCES)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ ret-\/>chances++;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ ret\ =\ ret-\/>next;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ret\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ ret\ =\ page;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00126}00126\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00127}00127\ \ \ \ \ \textcolor{comment}{//kick\ off\ the\ record\ for\ the\ old\ page\ from\ page\ table}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00128}00128\ \ \ \ \ gamesdb\_basichash\_remove(bhash,\ ret-\/>tag);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00129}00129\ \ \ \ \ gamesdb\_basichash\_put(bhash,\ vpn,\ ret);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00131}00131\ \ \ \ \ db-\/>buf\_man-\/>clock\_hand\ =\ ret-\/>next;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00133}00133\ \ \ \ \ \textcolor{keywordflow}{if}\ (db-\/>buf\_man-\/>clock\_hand\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ db-\/>buf\_man-\/>clock\_hand\ =\ page;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00135}00135\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00137}00137\ \ \ \ \ \textcolor{keywordflow}{if}\ (GAMESDB\_DEBUG)\ \{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}db\_bufman:\ evicted\ page\ at\ address\ \%u\(\backslash\)n"{}},\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})ret);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00139}00139\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00140}00140\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00142}00142\ \}}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00144}00144\ \textcolor{keywordtype}{void}\ gamesdb\_bman\_destroy(\mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}}*\ bman)\{}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00145}00145\ \ \ \ \ gamesdb\_basichash\_destroy(bman-\/>hash);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00146}00146\ \ \ \ \ gamesdb\_SafeFree(bman);}
+\DoxyCodeLine{\Hypertarget{db__bman_8c_source_l00147}00147\ \}}
+
+\end{DoxyCode}

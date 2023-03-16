@@ -1,0 +1,90 @@
+\hypertarget{db__types_8h_source}{}\doxysection{db\+\_\+types.\+h}
+\label{db__types_8h_source}\index{src/core/filedb/db\_types.h@{src/core/filedb/db\_types.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ DB\_TYPES\_H\_}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ DB\_TYPES\_H\_}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <zlib.h>}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}db\_globals.h"{}}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00007}00007\ \textcolor{comment}{//basic\ types}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00008}00008\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ gamesdb\_position;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00010}00010\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ gamesdb\_offset;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00012}00012\ \textcolor{comment}{//virtual}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00013}00013\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ gamesdb\_pageid;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00015}00015\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{char}\ gamesdb\_boolean;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00016}00016\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{char}\ gamesdb\_counter;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00018}00018\ \textcolor{comment}{//buffer\ page}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00019}\mbox{\hyperlink{structgamesdb__bufferpage__struct}{00019}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage\_struct}}\ \{}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00020}00020\ \ \ \ \ \textcolor{keywordtype}{char}\ *mem;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00021}00021\ \ \ \ \ gamesdb\_pageid\ tag;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00022}00022\ \ \ \ \ gamesdb\_boolean\ valid;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00023}00023\ \ \ \ \ gamesdb\_boolean\ dirty;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00024}00024\ \ \ \ \ gamesdb\_counter\ chances;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00025}00025\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage\_struct}}\ *next;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00026}00026\ \}\ \mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage}};}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00028}00028\ \textcolor{comment}{//physical}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00029}00029\ \textcolor{comment}{//very\ hacky,\ will\ change\ soon}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00030}00030\ \textcolor{comment}{//typedef\ struct\ gamesdb\_bufferpage\_struct\ *\ gamesdb\_frameid;}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00031}00031\ \textcolor{preprocessor}{\#define\ gamesdb\_frameid\ struct\ gamesdb\_bufferpage\_struct*}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00033}00033\ \textcolor{comment}{//backing\ store}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00034}\mbox{\hyperlink{structdbfile__struct}{00034}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdbfile__struct}{dbfile\_struct}}\ \{}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00035}00035\ \ \ \ \ \textcolor{keywordtype}{char}*\ filename;\ \textcolor{comment}{//disk\ file\ name}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00036}00036\ \ \ \ \ \textcolor{comment}{//\ page\_id*\ pagemap;}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00037}00037\ \ \ \ \ gzFile*\ filep;\ \ \textcolor{comment}{//the\ disk\ file\ descriptor}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00038}00038\ \ \ \ \ gamesdb\_pageid\ current\_page;\ \textcolor{comment}{//the\ current\ page}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00039}00039\ \ \ \ \ gamesdb\_pageid\ last\_page;\ \textcolor{comment}{//offset\ of\ the\ next\ page\ after\ the\ end}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00040}00040\ \ \ \ \ \textcolor{keywordtype}{int}\ dir\_size;\ \textcolor{comment}{//the\ number\ of\ bits\ grouped\ inside\ one\ directory\ of\ disk\ pages}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00041}00041\ \}\mbox{\hyperlink{structdbfile__struct}{gamesdb\_store}};}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00043}00043\ \textcolor{comment}{//hash}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00044}\mbox{\hyperlink{structdb__bhashin__struct}{00044}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdb__bhashin__struct}{db\_bhashin\_struct}}\ \{}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00045}00045\ \ \ \ \ gamesdb\_frameid*\ loc;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00046}00046\ \ \ \ \ gamesdb\_pageid*\ id;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00047}00047\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdb__bhashin__struct}{db\_bhashin\_struct}}*\ next;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00048}00048\ \}\ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}};}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00051}\mbox{\hyperlink{structgamesdb__bhash}{00051}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00052}00052\ \ \ \ \ \textcolor{keywordtype}{int}\ index\_size;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00053}00053\ \ \ \ \ \textcolor{keywordtype}{int}\ index\_bits;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00054}00054\ \ \ \ \ \textcolor{keywordtype}{int}\ chunk\_size;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00055}00055\ \ \ \ \ \mbox{\hyperlink{structdb__bhashin__struct}{gamesdb\_bhashin}}*\ rows;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00057}00057\ \}\ \mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}};}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00059}\mbox{\hyperlink{structgamesdb__buffer}{00059}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00060}00060\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage}}*\ pages;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00061}00061\ \ \ \ \ \textcolor{keywordtype}{int}\ rec\_size;\ \textcolor{comment}{//number\ of\ bytes\ in\ a\ record}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00062}00062\ \ \ \ \ \textcolor{keywordtype}{int}\ buf\_size;\ \textcolor{comment}{//number\ of\ records\ in\ a\ buffer}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00063}00063\ \ \ \ \ \textcolor{keywordtype}{int}\ num\_pages;\ \textcolor{comment}{//number\ of\ pages\ in\ memory}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00064}00064\ \ \ \ \ \textcolor{keywordtype}{int}\ max\_pages;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00065}00065\ \}\mbox{\hyperlink{structgamesdb__buffer}{gamesdb\_buffer}};}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00067}00067\ \textcolor{comment}{//buffer\ manager}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00068}\mbox{\hyperlink{structgamesdb__bman}{00068}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00069}00069\ \ \ \ \ \textcolor{comment}{//gamesdb\_buffer*\ bufp;}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00070}00070\ \ \ \ \ \textcolor{comment}{//frame\_id\ (*replace\_fun)\ (db\_bman*);}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00071}00071\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bhash}{gamesdb\_bhash}}\ *hash;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00072}00072\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bufferpage__struct}{gamesdb\_bufferpage}}\ *clock\_hand;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00073}00073\ \}\ \mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}};}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00075}00075\ \textcolor{comment}{//the\ db\ object,\ so\ to\ speak}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00076}\mbox{\hyperlink{structgamesdb}{00076}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00077}00077\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}}*\ buf\_man;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00078}00078\ \ \ \ \ \mbox{\hyperlink{structgamesdb__buffer}{gamesdb\_buffer}}*\ buffer;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00079}00079\ \ \ \ \ \mbox{\hyperlink{structdbfile__struct}{gamesdb\_store}}*\ store;}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00080}00080\ \ \ \ \ \textcolor{comment}{//gamesdb\_pageid\ num\_page;}}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00081}00081\ \}\ \mbox{\hyperlink{structgamesdb}{gamesdb}};}
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{db__types_8h_source_l00084}00084\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*DB\_TYPES\_H\_*/}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

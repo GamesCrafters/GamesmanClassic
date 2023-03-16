@@ -1,0 +1,515 @@
+\hypertarget{univht_8c_source}{}\doxysection{univht.\+c}
+\label{univht_8c_source}\index{src/core/univht.c@{src/core/univht.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ univht.c}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ 2-\/Universal\ randomized,\ resizable\ hash-\/table\ implementation}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/11-\/12}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00032}00032\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00033}00033\ \textcolor{comment}{\ \ \ Author:\ Mario\ Tanev\ @\ GamesCrafters}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00034}00034\ \textcolor{comment}{\ \ \ Credits:}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00035}00035\ \textcolor{comment}{\ \ \ Professor\ Marty\ Weissman\ (Math\ 115,\ Fall\ 2005)\ for\ primaility\ testing\ lecture}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00036}00036\ \textcolor{comment}{\ \ \ Professor\ Mike\ Jordan\ (CS170,\ Fall\ 2005)\ for\ 2-\/universal\ hashing\ lecture}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00037}00037\ \textcolor{comment}{\ \ \ Professor\ Jonathan\ Shewchuck\ (CS61B,\ Spring\ 2005)\ for\ hashing\ concepts}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00038}00038\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00040}00040\ \textcolor{comment}{/*\ Include\ support\ for\ bignums\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00041}00041\ \textcolor{preprocessor}{\#include\ <gmp.h>}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00043}00043\ \textcolor{comment}{/*\ Include\ support\ for\ gamesman\ constants\ and\ types\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00044}00044\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00046}00046\ \textcolor{comment}{/*\ Include\ support\ for\ random\ generator,\ malloc\ and\ free\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00047}00047\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00049}00049\ \textcolor{comment}{/*\ Include\ assert\ support\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00050}00050\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00052}00052\ \textcolor{comment}{/*\ Include\ prototypes\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00053}00053\ \textcolor{preprocessor}{\#include\ "{}univht.h"{}}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00055}00055\ \textcolor{preprocessor}{\#define\ chain(ht,\ entry)\ *(void\ **)((char\ *)entry\ +\ ht-\/>entry\_chain\_offset)}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00057}00057\ FILE\ *strdbg\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00059}00059\ \mbox{\hyperlink{structunivht}{univht}}\ *univht\_create(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ slots,}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ load\_factor,}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ univht\_equal\ equal,}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ univht\_hashcode\ hashcode,}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ univht\_destructor\ destructor,}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ entry\_size,}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ entry\_chain\_offset}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00068}00068\ \ \ \ \ \textcolor{keywordtype}{void}\ univht\_generate\_function(\mbox{\hyperlink{structunivht}{univht}}\ *ht);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00070}00070\ \ \ \ \ \mbox{\hyperlink{structunivht}{univht}}\ *ht\ =\ (\mbox{\hyperlink{structunivht}{univht}}\ *)\ malloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structunivht}{univht}}));}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00072}00072\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ initial\ number\ of\ entries\ to\ 0\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00073}00073\ \ \ \ \ ht-\/>entries\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00075}00075\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ initial\ number\ of\ slots\ in\ the\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00076}00076\ \ \ \ \ ht-\/>slots\ =\ slots;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00078}00078\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ load\ factor\ of\ the\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00079}00079\ \ \ \ \ ht-\/>load\_factor\ =\ load\_factor;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00081}00081\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ equality\ test\ callback\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00082}00082\ \ \ \ \ ht-\/>equal\ =\ equal;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00084}00084\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ hashcode\ producer\ callback\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00085}00085\ \ \ \ \ ht-\/>hashcode\ =\ hashcode;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00087}00087\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ object\ destructor\ callback\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00088}00088\ \ \ \ \ ht-\/>destructor\ =\ destructor;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00090}00090\ \ \ \ \ \textcolor{comment}{/*\ Create\ NULL\ slots\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00091}00091\ \ \ \ \ ht-\/>table\ =\ (\textcolor{keywordtype}{void}\ **)\ calloc(ht-\/>slots,\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{void}\ *));}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00093}00093\ \ \ \ \ \textcolor{comment}{/*\ Generate\ the\ random\ function\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00094}00094\ \ \ \ \ univht\_generate\_function(ht);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00096}00096\ \ \ \ \ \textcolor{comment}{/*\ Maximum\ chain\ length\ defaults\ to\ 0\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00097}00097\ \ \ \ \ ht-\/>stat\_max\_chain\_length\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00099}00099\ \ \ \ \ \textcolor{comment}{/*\ Average\ chain\ length\ defaults\ to\ 0\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00100}00100\ \ \ \ \ ht-\/>stat\_avg\_chain\_length\ =\ 0.0;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00102}00102\ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ chains\ (unoccupied\ slots)\ defaults\ to\ 0\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00103}00103\ \ \ \ \ ht-\/>stat\_chains\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00105}00105\ \ \ \ \ \textcolor{comment}{/*\ Record\ entry\ size\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00106}00106\ \ \ \ \ ht-\/>stat\_entry\_size\ =\ entry\_size;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00107}00107\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00108}00108\ \ \ \ \ \textcolor{comment}{/*\ Record\ entry\ chain\ offset\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00109}00109\ \ \ \ \ ht-\/>entry\_chain\_offset\ =\ entry\_chain\_offset;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00111}00111\ \ \ \ \ \textcolor{comment}{/*\ Return\ newly\ created\ hash-\/table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00112}00112\ \ \ \ \ \textcolor{keywordflow}{return}\ ht;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00114}00114\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00116}00116\ \textcolor{keywordtype}{void}\ univht\_generate\_function(\mbox{\hyperlink{structunivht}{univht}}\ *ht)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00118}00118\ \ \ \ \ \textcolor{comment}{/*\ Generate\ the\ prime\ modulus\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00119}00119\ \ \ \ \ ht-\/>modulus\ =\ find\_next\_random\_prime(ht-\/>slots);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00121}00121\ \ \ \ \ \textcolor{comment}{/*\ Generate\ the\ linear\ coefficient\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00122}00122\ \ \ \ \ ht-\/>a\ =\ rand()\ \%\ ht-\/>modulus;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00124}00124\ \ \ \ \ \textcolor{comment}{/*\ Generate\ the\ constant\ coefficient\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00125}00125\ \ \ \ \ ht-\/>b\ =\ rand()\ \%\ ht-\/>modulus;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00127}00127\ \ \ \ \ \textcolor{comment}{/*\ Diagnostic\ message\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00128}00128\ \ \ \ \ fprintf(strdbg,\ \textcolor{stringliteral}{"{}univht:\ generated\ randomized\ function\ h(x)\ =\ \%lux\ +\ \%lu\ (mod\ \%lu)\(\backslash\)n"{}},\ ht-\/>a,\ ht-\/>b,\ ht-\/>modulus);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00130}00130\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00132}00132\ \textcolor{keywordtype}{void}\ univht\_resize(\mbox{\hyperlink{structunivht}{univht}}\ *ht);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00133}00133\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ univht\_key(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ \textcolor{keywordtype}{void}\ *\textcolor{keywordtype}{object});}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00135}00135\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ univht\_insert(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ \textcolor{keywordtype}{void}\ *entry)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00137}00137\ \ \ \ \ \textcolor{comment}{//\ void\ univht\_resize(univht\ *ht);}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00138}00138\ \ \ \ \ \textcolor{comment}{//\ unsigned\ long\ int\ univht\_key(univht\ *ht,\ void\ *object);}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00140}00140\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ key;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00141}00141\ \ \ \ \ \textcolor{keywordtype}{int}\ num\_entries;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00143}00143\ \ \ \ \ \textcolor{comment}{/*\ Resize\ the\ hash\ table\ if\ needed\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00144}00144\ \ \ \ \ univht\_resize(ht);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00146}00146\ \ \ \ \ \textcolor{comment}{/*\ Obtain\ the\ key\ for\ the\ object\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00147}00147\ \ \ \ \ key\ =\ univht\_key(ht,\ entry);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00148}00148\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00149}00149\ \ \ \ \ \textcolor{comment}{/*\ If\ previously\ unoccupied\ slot\ is\ selected\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{if}\ (ht-\/>table[key]\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00152}00152\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Recompute\ the\ average\ chain\ length\ and\ increment\ number\ of\ chains\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ ht-\/>stat\_avg\_chain\_length\ =\ (ht-\/>stat\_avg\_chain\_length\ *\ ht-\/>stat\_chains\ +\ 1)\ /\ ++ht-\/>stat\_chains;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00155}00155\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00156}00156\ \ \ \ \ \textcolor{comment}{/*\ Otherwise\ simply\ recompute\ average\ chain\ length\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00157}00157\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00158}00158\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ ht-\/>stat\_avg\_chain\_length\ +=\ 1\ /\ ht-\/>stat\_chains;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00161}00161\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00163}00163\ \ \ \ \ \textcolor{comment}{/*\ Attach\ chain\ to\ entry,\ overwriting\ any\ previous\ chains\ this\ entry\ might\ have\ headed\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00164}00164\ \ \ \ \ chain(ht,\ entry)\ =\ ht-\/>table[key];}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00166}00166\ \ \ \ \ \textcolor{comment}{/*\ Push\ entry\ onto\ chain\ (stack)\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00167}00167\ \ \ \ \ ht-\/>table[key]\ =\ entry;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00169}00169\ \ \ \ \ \textcolor{comment}{/*\ Increment\ number\ of\ entries\ in\ hash-\/table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00170}00170\ \ \ \ \ ht-\/>entries++;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00172}00172\ \ \ \ \ \textcolor{comment}{/*\ Determine\ number\ of\ entries\ in\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00173}00173\ \ \ \ \ \textcolor{keywordflow}{for}\ (entry\ =\ ht-\/>table[key],\ num\_entries\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ \ entry\ !=\ NULL;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ entry\ =\ chain(ht,\ entry),\ num\_entries++)\ ;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00177}00177\ \ \ \ \ \textcolor{comment}{/*\ Update\ the\ longest\ chain\ statistic\ if\ necessary\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00178}00178\ \ \ \ \ \textcolor{keywordflow}{if}\ (num\_entries\ >\ ht-\/>stat\_max\_chain\_length)}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ ht-\/>stat\_max\_chain\_length\ =\ num\_entries;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00181}00181\ \ \ \ \ \textcolor{comment}{/*\ Return\ key\ at\ which\ entry\ was\ inserted\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00182}00182\ \ \ \ \ \textcolor{keywordflow}{return}\ key;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00184}00184\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00186}00186\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ univht\_key(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ \textcolor{keywordtype}{void}\ *\textcolor{keywordtype}{object});}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00188}00188\ \textcolor{keywordtype}{void}\ *univht\_lookup(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ \textcolor{keywordtype}{void}\ *entry)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00190}00190\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ key;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00191}00191\ \ \ \ \ \textcolor{keywordtype}{void}\ **slot;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00193}00193\ \ \ \ \ \textcolor{comment}{/*\ Obtain\ the\ key\ for\ the\ object\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00194}00194\ \ \ \ \ key\ =\ univht\_key(ht,\ entry);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00196}00196\ \ \ \ \ \textcolor{comment}{/*\ Locate\ the\ slot\ in\ the\ chain\ for\ this\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{for}\ (slot\ =\ \&ht-\/>table[key];}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \ *slot\ \&\&\ !(ht-\/>equal(*slot,\ entry));}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \ slot\ =\ \&(chain(ht,\ *slot)))\ ;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00201}00201\ \ \ \ \ \textcolor{comment}{/*\ Set\ entry\ to\ entry\ at\ slot\ or\ NULL\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00202}00202\ \ \ \ \ entry\ =\ *slot;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00204}00204\ \ \ \ \ \textcolor{comment}{/*\ If\ entry\ found,\ move\ it\ to\ the\ head\ of\ the\ chain\ for\ faster\ future\ lookups\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00205}00205\ \ \ \ \ \textcolor{keywordflow}{if}\ (entry\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00206}00206\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Set\ slot\ to\ next\ entry\ in\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ *slot\ =\ chain(ht,\ entry);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00209}00209\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Make\ entry's\ chain\ point\ to\ the\ head\ of\ the\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ chain(ht,\ entry)\ =\ ht-\/>table[key];}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Make\ entry\ the\ head\ of\ the\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ ht-\/>table[key]\ =\ entry;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00215}00215\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00217}00217\ \ \ \ \ \textcolor{comment}{/*\ Return\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{return}\ entry;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00220}00220\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00222}00222\ \textcolor{keywordtype}{void}\ univht\_resize(\mbox{\hyperlink{structunivht}{univht}}\ *ht)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00223}00223\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00224}00224\ \ \ \ \ \textcolor{keywordtype}{float}\ load\ =\ (float)\ ht-\/>entries\ /\ (\textcolor{keywordtype}{float})\ ht-\/>slots;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00225}00225\ \ \ \ \ \textcolor{keywordflow}{if}\ (load\ >=\ ht-\/>load\_factor)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ slot;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structunivht}{univht}}\ *new\_ht;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Diagnostic\ message\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ fprintf(strdbg,\ \textcolor{stringliteral}{"{}univht:\ load\ factor\ of\ \%f\ reached,\ resizing\ database\ from\ \%lu\ to\ \%lu\ slots\(\backslash\)n"{}},\ load,\ ht-\/>slots,\ ht-\/>slots\ *\ 2);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00232}00232\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Allocate\ new\ hash\ table\ to\ accomodate\ the\ moved\ entries\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ new\_ht\ =\ univht\_create(ht-\/>slots\ *\ 2,\ ht-\/>load\_factor,\ ht-\/>equal,\ ht-\/>hashcode,\ ht-\/>destructor,\ ht-\/>stat\_entry\_size,\ ht-\/>entry\_chain\_offset);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (slot\ =\ 0;\ ht-\/>entries;\ slot++)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00237}00237\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Traverse\ the\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ht-\/>table[slot])\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *chain;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Store\ the\ previous\ chain\ to\ this\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chain\ =\ chain(ht,\ ht-\/>table[slot]);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Move\ entry\ into\ new\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ univht\_insert(new\_ht,\ ht-\/>table[slot]);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00249}00249\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Link\ the\ slot\ to\ previous\ chain\ of\ entry\ moved\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ht-\/>table[slot]\ =\ chain;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Decrement\ number\ of\ entries\ in\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ht-\/>entries-\/-\/;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00254}00254\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00257}00257\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00258}00258\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Free\ slots\ of\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ free(ht-\/>table);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00262}00262\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Transfer\ all\ fields\ of\ new\ hash\ table\ into\ original\ hash\ table}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00263}00263\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ Fields\ equal(),\ hashcode(),\ load\_factor\ must\ be\ invariant\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00265}00265\ \ \ \ \ \ \ \ \ assert(ht-\/>load\_factor\ ==\ new\_ht-\/>load\_factor);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ assert(ht-\/>equal\ ==\ new\_ht-\/>equal);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00267}00267\ \ \ \ \ \ \ \ \ assert(ht-\/>hashcode\ ==\ new\_ht-\/>hashcode);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ assert(ht-\/>destructor\ ==\ new\_ht-\/>destructor);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00270}00270\ \ \ \ \ \ \ \ \ ht-\/>slots\ =\ new\_ht-\/>slots;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00271}00271\ \ \ \ \ \ \ \ \ ht-\/>entries\ =\ new\_ht-\/>entries;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ ht-\/>modulus\ =\ new\_ht-\/>modulus;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00273}00273\ \ \ \ \ \ \ \ \ ht-\/>a\ =\ new\_ht-\/>a;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00274}00274\ \ \ \ \ \ \ \ \ ht-\/>b\ =\ new\_ht-\/>b;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00275}00275\ \ \ \ \ \ \ \ \ ht-\/>table\ =\ new\_ht-\/>table;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00277}00277\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Dispose\ of\ the\ new\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ free(new\_ht);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00279}00279\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00280}00280\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00281}00281\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00282}00282\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ univht\_key(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ \textcolor{keywordtype}{void}\ *\textcolor{keywordtype}{object})\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00284}00284\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ hashcode,\ key;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00285}00285\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00286}00286\ \ \ \ \ \textcolor{comment}{/*\ Obtain\ the\ hashcode\ for\ the\ object\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00287}00287\ \ \ \ \ hashcode\ =\ ht-\/>hashcode(\textcolor{keywordtype}{object});}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00289}00289\ \ \ \ \ \textcolor{comment}{/*\ Produce\ the\ key\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00290}00290\ \ \ \ \ key\ =\ add(mul(hashcode,\ ht-\/>a,\ ht-\/>modulus),\ ht-\/>b,\ ht-\/>modulus)\ \%\ ht-\/>slots;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00291}00291\ \ \ \ \ \textcolor{comment}{//key\ =\ (((hashcode\ \%\ ht-\/>modulus)\ *\ ht-\/>a\ +\ ht-\/>b)\ \%\ ht-\/>modulus)\ \%\ ht-\/>slots;}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00293}00293\ \ \ \ \ \textcolor{comment}{/*\ Diagnostic\ message\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00294}00294\ \ \ \ \ \textcolor{comment}{//fprintf(strdbg,\ "{}univht:\ created\ key\ \%u\ for\ hashcode\ \%u\(\backslash\)n"{},\ key,\ hashcode);}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00295}00295\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00296}00296\ \ \ \ \ \textcolor{keywordflow}{return}\ key;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00297}00297\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00298}00298\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00299}00299\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00300}00300\ \textcolor{keywordtype}{void}\ univht\_destroy(\mbox{\hyperlink{structunivht}{univht}}\ *ht)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00301}00301\ \ \ \ \ \textcolor{keywordtype}{int}\ slot;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00302}00302\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00303}00303\ \ \ \ \ \textcolor{comment}{/*\ Print\ statistical\ information\ about\ database\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00304}00304\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Statistics:\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00305}00305\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tNumber\ of\ entries:\ \%lu\(\backslash\)n"{}},\ ht-\/>entries);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00306}00306\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tNumber\ of\ occupied\ slots:\ \%lu\(\backslash\)n"{}},\ ht-\/>stat\_chains);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00307}00307\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tLength\ of\ longest\ chain:\ \%lu\(\backslash\)n"{}},\ ht-\/>stat\_max\_chain\_length);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00308}00308\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tAverage\ chain\ length:\ \%f\(\backslash\)n"{}},\ ht-\/>stat\_avg\_chain\_length);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00309}00309\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tTotal\ memory\ occupied:\ \%lu\ bytes\(\backslash\)n"{}},\ ht-\/>slots\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{void}\ *)\ +\ ht-\/>entries\ *\ ht-\/>stat\_entry\_size);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00310}00310\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tMemory\ occupied\ by\ entries:\ \%lu\ bytes\(\backslash\)n"{}},\ ht-\/>entries\ *\ ht-\/>stat\_entry\_size);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00312}00312\ \ \ \ \ \textcolor{keywordflow}{for}\ (slot\ =\ 0;\ ht-\/>entries;\ slot++)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Traverse\ the\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00315}00315\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ht-\/>table[slot])\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00316}00316\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *entry\ =\ ht-\/>table[slot];}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00318}00318\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Link\ the\ slot\ to\ chain\ of\ object\ moved\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ ht-\/>table[slot]\ =\ chain(ht,\ entry);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Invoke\ entry\ object\ destructor\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00323}00323\ \ \ \ \ \ \ \ \ \ \ \ \ ht-\/>destructor(entry);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00325}00325\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Decrement\ number\ of\ entries\ in\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00326}00326\ \ \ \ \ \ \ \ \ \ \ \ \ ht-\/>entries-\/-\/;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00328}00328\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00329}00329\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00330}00330\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00332}00332\ \ \ \ \ \textcolor{comment}{/*\ Free\ slots\ of\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00333}00333\ \ \ \ \ free(ht-\/>table);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00335}00335\ \ \ \ \ \textcolor{comment}{/*\ Free\ actual\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00336}00336\ \ \ \ \ free(ht);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00337}00337\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00338}00338\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00339}00339\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00340}00340\ \textcolor{keywordtype}{void}\ univht\_traverse(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ univht\_visitor\ visitor,\ \textcolor{keywordtype}{void}\ *state)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00341}00341\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00342}00342\ \ \ \ \ \textcolor{keywordtype}{int}\ slot;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00343}00343\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00344}00344\ \ \ \ \ \textcolor{comment}{/*\ Traverse\ every\ key\ in\ the\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00345}00345\ \ \ \ \ \textcolor{keywordflow}{for}\ (slot\ =\ 0;\ ht-\/>entries;\ slot++)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00346}00346\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00347}00347\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *entry;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00348}00348\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00349}00349\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Traverse\ the\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00350}00350\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (entry\ =\ ht-\/>table[slot];\ entry\ !=\ NULL;\ entry\ =\ chain(ht,\ entry))\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00351}00351\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00352}00352\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Invoke\ visitor\ on\ entry,\ propagating\ state\ changes\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00353}00353\ \ \ \ \ \ \ \ \ \ \ \ \ state\ =\ visitor(entry,\ state);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00354}00354\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00355}00355\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00356}00356\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00357}00357\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00358}00358\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00359}00359\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00360}00360\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00361}00361\ \textcolor{comment}{/*\ Raise\ b\ to\ the\ e-\/th\ power,\ mod\ m}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00362}00362\ \textcolor{comment}{\ \ \ Return:\ b\string^e\ (mod\ m)}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00363}00363\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00364}00364\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ expt(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ e,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ m)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00365}00365\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00366}00366\ \ \ \ \ mpz\_t\ base,\ exponent,\ modulus,\ result;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00367}00367\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ r;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00368}00368\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00369}00369\ \ \ \ \ mpz\_init(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00370}00370\ \ \ \ \ mpz\_init\_set\_ui(base,\ b);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00371}00371\ \ \ \ \ mpz\_init\_set\_ui(exponent,\ e);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00372}00372\ \ \ \ \ mpz\_init\_set\_ui(modulus,\ m);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00373}00373\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00374}00374\ \ \ \ \ mpz\_powm(result,\ base,\ exponent,\ modulus);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00375}00375\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00376}00376\ \ \ \ \ r\ =\ mpz\_get\_ui(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00377}00377\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00378}00378\ \ \ \ \ mpz\_clear(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00379}00379\ \ \ \ \ mpz\_clear(base);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00380}00380\ \ \ \ \ mpz\_clear(exponent);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00381}00381\ \ \ \ \ mpz\_clear(modulus);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00382}00382\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00383}00383\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00385}00385\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00386}00386\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00387}00387\ \textcolor{comment}{/*\ Add\ a\ and\ b,\ mod\ m}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00388}00388\ \textcolor{comment}{\ \ \ Return:\ a+b\ (mod\ m)}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00389}00389\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00390}00390\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ add(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ a,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ m)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00391}00391\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00392}00392\ \ \ \ \ mpz\_t\ left,\ right,\ modulus,\ result;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00393}00393\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ r;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00394}00394\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00395}00395\ \ \ \ \ mpz\_init(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00396}00396\ \ \ \ \ mpz\_init\_set\_ui(left,\ a);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00397}00397\ \ \ \ \ mpz\_init\_set\_ui(right,\ b);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00398}00398\ \ \ \ \ mpz\_init\_set\_ui(modulus,\ m);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00399}00399\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00400}00400\ \ \ \ \ mpz\_add(result,\ left,\ right);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00401}00401\ \ \ \ \ mpz\_mod(result,\ result,\ modulus);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00402}00402\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00403}00403\ \ \ \ \ r\ =\ mpz\_get\_ui(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00405}00405\ \ \ \ \ mpz\_clear(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00406}00406\ \ \ \ \ mpz\_clear(left);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00407}00407\ \ \ \ \ mpz\_clear(right);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00408}00408\ \ \ \ \ mpz\_clear(modulus);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00409}00409\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00410}00410\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00411}00411\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00412}00412\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00413}00413\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00414}00414\ \textcolor{comment}{/*\ Add\ a\ and\ b,\ mod\ m}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00415}00415\ \textcolor{comment}{\ \ \ Return:\ a+b\ (mod\ m)}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00416}00416\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00417}00417\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ mul(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ a,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ m)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00418}00418\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00419}00419\ \ \ \ \ mpz\_t\ left,\ right,\ modulus,\ result;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00420}00420\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ r;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00421}00421\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00422}00422\ \ \ \ \ mpz\_init(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00423}00423\ \ \ \ \ mpz\_init\_set\_ui(left,\ a);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00424}00424\ \ \ \ \ mpz\_init\_set\_ui(right,\ b);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00425}00425\ \ \ \ \ mpz\_init\_set\_ui(modulus,\ m);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00426}00426\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00427}00427\ \ \ \ \ mpz\_mul(result,\ left,\ right);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00428}00428\ \ \ \ \ mpz\_mod(result,\ result,\ modulus);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00429}00429\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00430}00430\ \ \ \ \ r\ =\ mpz\_get\_ui(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00431}00431\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00432}00432\ \ \ \ \ mpz\_clear(result);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00433}00433\ \ \ \ \ mpz\_clear(left);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00434}00434\ \ \ \ \ mpz\_clear(right);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00435}00435\ \ \ \ \ mpz\_clear(modulus);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00436}00436\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00437}00437\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00438}00438\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00439}00439\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00440}00440\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00441}00441\ BOOLEAN\ rabin\_miller(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ number,\ \textcolor{keywordtype}{short}\ witness)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00442}00442\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00443}00443\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ k;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00444}00444\ \ \ \ \ \textcolor{keywordtype}{int}\ q\ =\ number\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00445}00445\ \ \ \ \ \textcolor{keywordtype}{int}\ result;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00446}00446\ \ \ \ \ BOOLEAN\ prime\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00447}00447\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00448}00448\ \ \ \ \ \textcolor{comment}{/*\ Shift\ q\ right\ and\ increment\ k\ while\ q\ is\ even}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00449}00449\ \textcolor{comment}{\ \ \ \ \ \ \ At\ the\ end\ k\ and\ q\ will\ be\ such\ that\ number\ -\/\ 1\ =\ q*(2\string^k)}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00450}00450\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00451}00451\ \ \ \ \ \textcolor{keywordflow}{for}\ (k\ =\ 0;\ !(q\ \&\ 1);\ k++,\ q\ >>=\ 1)\ ;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00453}00453\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0,\ result\ =\ expt(witness,\ q,\ number);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00454}00454\ \ \ \ \ \ \ \ \ \ i\ <\ k\ \&\&\ !prime;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00455}00455\ \ \ \ \ \ \ \ \ \ i++,\ result\ =\ expt(result,\ 2,\ number))\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00456}00456\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00457}00457\ \ \ \ \ \ \ \ \ prime\ =\ (result\ ==\ number\ -\/\ 1)\ ||\ (result\ ==\ 1\ \&\&\ i\ ==\ 0);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00458}00458\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00459}00459\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00460}00460\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00461}00461\ \ \ \ \ \textcolor{comment}{/*\ Return\ true\ if\ witness\ considers\ the\ number\ prime\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00462}00462\ \ \ \ \ \textcolor{keywordflow}{return}\ prime;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00463}00463\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00464}00464\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00465}00465\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00466}00466\ BOOLEAN\ prime\_p(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ number)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00467}00467\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00468}00468\ \ \ \ \ \textcolor{keywordtype}{int}\ witnesses[]\ =\ \{\ 2,\ 3,\ 5,\ 7,\ 11,\ 13,\ 17,\ 19\ \};}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00469}00469\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00470}00470\ \ \ \ \ \textcolor{comment}{/*\ If\ number\ is\ odd\ and\ not\ equal\ to\ 1,\ perform\ Rabin-\/Miller\ test\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00471}00471\ \ \ \ \ \textcolor{keywordflow}{if}\ ((number\ \&\ 1)\ \&\&\ (number\ \string^\ 1))\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00472}00472\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00473}00473\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ witness;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00474}00474\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00475}00475\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Try\ with\ witnesses\ 2\ through\ min(9,\ number)\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00476}00476\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (witness\ =\ 0;\ witness\ <\ 8\ \&\&\ witnesses[witness]\ <\ number;\ witness++)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00477}00477\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00478}00478\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ Rabin-\/Miller\ fails\ on\ this\ witness,\ the\ number\ is\ not\ prime\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00479}00479\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!rabin\_miller(number,\ witnesses[witness]))\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00480}00480\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00481}00481\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00482}00482\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00483}00483\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00484}00484\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ Rabin-\/Miller\ didn't\ fail\ on\ any\ of\ the\ witnesses,\ assume\ it\ is\ prime\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00485}00485\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00486}00486\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00487}00487\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00488}00488\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00489}00489\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ number\ is\ not\ odd\ or\ is\ 1,\ it\ is\ only\ prime\ if\ it\ is\ 2\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00490}00490\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (number\ ==\ 2);}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00491}00491\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00492}00492\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00493}00493\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00494}00494\ \}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00495}00495\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00496}00496\ \textcolor{comment}{/*\ Finds\ random\ prime\ between\ number\ and\ 2*number\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00497}00497\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ find\_next\_random\_prime(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ number)\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00498}00498\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00499}00499\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ candidate;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00500}00500\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00501}00501\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00502}00502\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00503}00503\ \ \ \ \ \ \ \ \ candidate\ =\ number\ +\ rand()\ \%\ number;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00505}00505\ \ \ \ \ \}\ \textcolor{keywordflow}{while}\ (!prime\_p(candidate));}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00506}00506\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00507}00507\ \ \ \ \ \textcolor{keywordflow}{return}\ candidate;}
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{univht_8c_source_l00509}00509\ \}}
+
+\end{DoxyCode}

@@ -1,0 +1,208 @@
+\hypertarget{open_positions_8h_source}{}\doxysection{open\+Positions.\+h}
+\label{open_positions_8h_source}\index{src/core/openPositions.h@{src/core/openPositions.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00001}00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00002}00002\ \textcolor{comment}{\ *\ Experimental\ Open\ Positions\ code\ by\ David\ Eitan\ Poll}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00003}00003\ \textcolor{comment}{\ *\ Exploring\ re-\/evaluation\ of\ Draw\ Positions}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00004}00004\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00005}00005\ \textcolor{preprocessor}{\#ifndef\ OPEN\_POSITIONS}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00007}00007\ \textcolor{preprocessor}{\#define\ OPEN\_POSITIONS}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <inttypes.h>}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00011}00011\ \textcolor{preprocessor}{\#include\ "{}types.h"{}}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00012}00012\ \textcolor{preprocessor}{\#include\ "{}db.h"{}}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00013}00013\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00014}00014\ \textcolor{preprocessor}{\#include\ "{}misc.h"{}}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00016}00016\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00017}00017\ \textcolor{comment}{\ *\ use\ 32\ bits\ for\ storage\ of\ openPos\ info\ as\ follows:}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00018}00018\ \textcolor{comment}{\ *\ Starting\ from\ LSB=bit\ 0}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00019}00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00020}00020\ \textcolor{comment}{\ *\ bit\ 0..1\ \ \ :\ openPositions\ value\ (win,\ loss,\ undecided)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00021}00021\ \textcolor{comment}{\ *\ bit\ 2\ \ \ \ \ \ :\ fringe\ bit}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00022}00022\ \textcolor{comment}{\ *\ bit\ 3..11\ \ :\ corruption\ level}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00023}00023\ \textcolor{comment}{\ *\ bit\ 12..21\ :\ level\ number}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00024}00024\ \textcolor{comment}{\ *\ bit\ 22..31\ :\ fringe\ remoteness\ (fremoteness)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00025}00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00026}00026\ \textcolor{preprocessor}{\#define\ OPEN\_POS\_DATA\ unsigned\ int}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00029}00029\ \textcolor{comment}{/*\ constants\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00030}00030\ \textcolor{comment}{/*\#define\ DRAW\_UNDEC\ \ 0}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00031}00031\ \textcolor{comment}{\ \ \#define\ DRAW\_WIN\ \ \ \ 1}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00032}00032\ \textcolor{comment}{\ \ \#define\ DRAW\_LOSE\ \ \ 2}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00033}00033\ \textcolor{comment}{\ \ \#define\ PARITY\_EVEN\ 0}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00034}00034\ \textcolor{comment}{\#define\ PARITY\_ODD\ \ 1*/}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00036}00036\ \textcolor{comment}{/*enum\ open\_pos\_value\_enum\ \{\ draw\_undecided,\ draw\_win,\ draw\_lose\ \};*/}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00038}00038\ \textcolor{comment}{/*\ masks\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00039}00039\ \textcolor{comment}{/*\#define\ DV\_MASK\ 0x3}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00040}00040\ \textcolor{comment}{\ \ \ \#define\ IV\_MASK\ 0xC}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00041}00041\ \textcolor{comment}{\ \ \ \#define\ C\_MASK\ \ 0x10}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00042}00042\ \textcolor{comment}{\ \ \ \#define\ CP\_MASK\ 0x20}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00043}00043\ \textcolor{comment}{\ \ \ \#define\ DR\_MASK\ 0x00007FC0}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00044}00044\ \textcolor{comment}{\ \ \ \#define\ IR\_MASK\ 0x00FF8000}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00045}00045\ \textcolor{comment}{\ \#define\ OL\_MASK\ 0xFF000000*/}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00047}00047\ \textcolor{preprocessor}{\#define\ DV\_MASK\ 0x3}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00048}00048\ \textcolor{preprocessor}{\#define\ FB\_MASK\ 0x4}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00049}00049\ \textcolor{preprocessor}{\#define\ CL\_MASK\ 0x00000FF8}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00050}00050\ \textcolor{preprocessor}{\#define\ LN\_MASK\ 0x003FF000}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00051}00051\ \textcolor{preprocessor}{\#define\ FR\_MASK\ 0xFFC00000}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00053}00053\ \textcolor{comment}{/*\ bit\ shift\ amounts\ (based\ on\ first\ bit\ position\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00054}00054\ \textcolor{comment}{/*\#define\ DV\_SHIFT\ 0}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00055}00055\ \textcolor{comment}{\ \ \ \#define\ IV\_SHIFT\ 2}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00056}00056\ \textcolor{comment}{\ \ \ \#define\ C\_SHIFT\ \ 4}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00057}00057\ \textcolor{comment}{\ \ \ \#define\ CP\_SHIFT\ 5}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00058}00058\ \textcolor{comment}{\ \ \ \#define\ DR\_SHIFT\ 6}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00059}00059\ \textcolor{comment}{\ \ \ \#define\ IR\_SHIFT\ 15}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00060}00060\ \textcolor{comment}{\ \#define\ OL\_SHIFT\ 24*/}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00062}00062\ \textcolor{preprocessor}{\#define\ DV\_SHIFT\ 0}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00063}00063\ \textcolor{preprocessor}{\#define\ FB\_SHIFT\ 2}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00064}00064\ \textcolor{preprocessor}{\#define\ CL\_SHIFT\ 3}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00065}00065\ \textcolor{preprocessor}{\#define\ LN\_SHIFT\ 12}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00066}00066\ \textcolor{preprocessor}{\#define\ FR\_SHIFT\ 22}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00068}00068\ \textcolor{preprocessor}{\#define\ CORRUPTION\_MAX\ ((0x1<<9)-\/1)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00069}00069\ \textcolor{preprocessor}{\#define\ FREMOTENESS\_MAX\ ((0x1<<10)-\/1)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00071}00071\ \textcolor{comment}{/*\ macros\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00072}00072\ \textcolor{comment}{/*\#define\ drawValue(entry)\ \ \ \ \ \ \ \ \ \ (((entry)\&DV\_MASK)>>DV\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00073}00073\ \textcolor{comment}{\ \ \ \#define\ infiniteValue(entry)\ \ \ \ \ \ (((entry)\&IV\_MASK)>>IV\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00074}00074\ \textcolor{comment}{\ \ \ \#define\ isCorrupted(entry)\ \ \ \ \ \ \ \ (((entry)\&C\_MASK)>>C\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00075}00075\ \textcolor{comment}{\ \ \ \#define\ corruptedParity(entry)\ \ \ \ (((entry)\&CP\_MASK)>>CP\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00076}00076\ \textcolor{comment}{\ \ \ \#define\ drawRemoteness(entry)\ \ \ \ \ (((entry)\&DR\_MASK)>>DR\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00077}00077\ \textcolor{comment}{\ \ \ \#define\ infiniteRemoteness(entry)\ (((entry)\&IR\_MASK)>>IR\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00078}00078\ \textcolor{comment}{\ \ \ \#define\ openPosLevel(entry)\ \ \ \ \ \ \ (((entry)\&OL\_MASK)>>OL\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00079}00079\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00080}00080\ \textcolor{comment}{\ \ \ \#define\ setDrawValue(entry,\ newval)\ \ \ \ \ \ \ \ \ \ (((entry)|DV\_MASK)\&(((newval)<<DV\_SHIFT)|(\string~DV\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00081}00081\ \textcolor{comment}{\ \ \ \#define\ setInfiniteValue(entry,\ newval)\ \ \ \ \ \ (((entry)|IV\_MASK)\&(((newval)<<IV\_SHIFT)|(\string~IV\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00082}00082\ \textcolor{comment}{\ \ \ \#define\ setCorrupted(entry,\ newval)\ \ \ \ \ \ \ \ \ \ (((entry)|C\_MASK)\&(((newval)<<C\_SHIFT)|(\string~C\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00083}00083\ \textcolor{comment}{\ \ \ \#define\ setCorruptedParity(entry,\ newval)\ \ \ \ (((entry)|CP\_MASK)\&(((newval)<<CP\_SHIFT)|(\string~CP\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00084}00084\ \textcolor{comment}{\ \ \ \#define\ setDrawRemoteness(entry,\ newval)\ \ \ \ \ (((entry)|DR\_MASK)\&(((newval)<<DR\_SHIFT)|(\string~DR\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00085}00085\ \textcolor{comment}{\ \ \ \#define\ setInfiniteRemoteness(entry,\ newval)\ (((entry)|IR\_MASK)\&(((newval)<<IR\_SHIFT)|(\string~IR\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00086}00086\ \textcolor{comment}{\ \#define\ setOpenPosLevel(entry,\ newval)\ \ \ \ \ \ \ (((entry)|OL\_MASK)\&(((newval)<<OL\_SHIFT)|(\string~OL\_MASK)))*/}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00088}00088\ \textcolor{preprocessor}{\#define\ GetDrawValue(entry)\ \ \ \ \ \ \ \ \ \ (((entry)\&DV\_MASK)>>DV\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00089}00089\ \textcolor{preprocessor}{\#define\ GetCorruptionLevel(entry)\ \ \ \ (((entry)\&CL\_MASK)>>CL\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00090}00090\ \textcolor{preprocessor}{\#define\ GetLevelNumber(entry)\ \ \ \ \ \ \ \ (((entry)\&LN\_MASK)>>LN\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00091}00091\ \textcolor{preprocessor}{\#define\ GetFremoteness(entry)\ \ \ \ \ \ \ \ (((entry)\&FR\_MASK)>>FR\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00092}00092\ \textcolor{preprocessor}{\#define\ GetFringe(entry)\ \ \ \ \ \ \ \ \ \ \ \ \ (((entry)\&FB\_MASK)>>FB\_SHIFT)}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00094}00094\ \textcolor{preprocessor}{\#define\ SetDrawValue(entry,\ newval)\ \ \ \ \ \ \ \ \ \ (((entry)|DV\_MASK)\&(((newval)<<DV\_SHIFT)|(\string~DV\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00095}00095\ \textcolor{preprocessor}{\#define\ SetCorruptionLevel(entry,\ newval)\ \ \ \ (((entry)|CL\_MASK)\&(((newval)<<CL\_SHIFT)|(\string~CL\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00096}00096\ \textcolor{preprocessor}{\#define\ SetLevelNumber(entry,\ newval)\ \ \ \ \ \ \ \ (((entry)|LN\_MASK)\&(((newval)<<LN\_SHIFT)|(\string~LN\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00097}00097\ \textcolor{preprocessor}{\#define\ SetFremoteness(entry,\ newval)\ \ \ \ \ \ \ \ (((entry)|FR\_MASK)\&(((newval)<<FR\_SHIFT)|(\string~FR\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00098}00098\ \textcolor{preprocessor}{\#define\ SetFringe(entry,\ newval)\ \ \ \ \ \ \ \ \ \ \ \ \ (((entry)|FB\_MASK)\&(((newval)<<FB\_SHIFT)|(\string~FB\_MASK)))}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00100}00100\ \textcolor{preprocessor}{\#define\ OPEN\_FILE\_VER\ 1\ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ Open\ positions\ DB\ file\ version\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00101}00101\ \textcolor{comment}{/*\ headers\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00103}00103\ \textcolor{comment}{/*\ These\ are\ the\ core\ library\ functions\ for\ use\ elsewhere\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00105}00105\ \textcolor{comment}{/*\ call\ before\ doing\ any\ other\ operations.\ \ This\ is\ safe\ to\ call\ more\ than\ once,\ although}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00106}00106\ \textcolor{comment}{\ \ \ it\ will\ wipe\ out\ any\ progress\ made\ if\ you\ do\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00107}00107\ \textcolor{keywordtype}{void}\ InitializeOpenPositions(\textcolor{keywordtype}{int}\ numPossiblePositions);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00109}00109\ \textcolor{comment}{/*\ call\ when\ you\ want\ to\ free\ up\ the\ massive\ amounts\ of\ memory\ this\ analysis\ will\ do.}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00110}00110\ \textcolor{comment}{\ \ \ make\ sure\ you're\ done\ with\ all\ openPositions\ data\ first!\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00111}00111\ \textcolor{keywordtype}{void}\ CleanupOpenPositions(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00112}00112\ \textcolor{keywordtype}{void}\ FreeOpenPositions(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00114}00114\ \textcolor{comment}{/*\ do\ the\ actual\ work!\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00115}00115\ \textcolor{keywordtype}{void}\ ComputeOpenPositions();}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00117}00117\ \textcolor{comment}{/*\ call\ this\ with\ each\ draw\ position\ before\ calling\ computeOpenPositions.\ \ This\ keeps\ us\ from\ having}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00118}00118\ \textcolor{comment}{\ \ \ search\ for\ draw\ positions\ before\ we\ can\ do\ work\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00119}00119\ \textcolor{keywordtype}{void}\ RegisterDrawPosition(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00121}00121\ \textcolor{comment}{/*\ call\ to\ set\ the\ open\ positions\ value\ of\ a\ position.\ \ Right\ now,\ this\ just\ makes\ an\ assignment\ to\ an\ array,}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00122}00122\ \textcolor{comment}{\ \ \ but\ in\ the\ future\ this\ might\ access\ the\ value\ in\ the\ values\ database\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00123}00123\ \textcolor{keywordtype}{void}\ SetOpenData(POSITION\ pos,\ OPEN\_POS\_DATA\ value);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00125}00125\ \textcolor{comment}{/*\ call\ to\ get\ the\ open\ positions\ value\ of\ a\ position.\ \ Right\ now,\ this\ just\ accesses\ an\ array,}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00126}00126\ \textcolor{comment}{\ \ \ but\ in\ the\ future\ this\ might\ access\ the\ value\ in\ the\ values\ database\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00127}00127\ OPEN\_POS\_DATA\ GetOpenData(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00129}00129\ \textcolor{comment}{/*\ call\ to\ print\ the\ drawvalues\ of\ positions.\ \ This\ won't\ be\ useful\ for\ long,\ but\ it's\ great\ for\ debugging}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00130}00130\ \textcolor{comment}{\ \ \ and\ getting\ a\ point\ across\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00131}00131\ \textcolor{keywordtype}{void}\ PrintOpenDataFormatted(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00132}00132\ \textcolor{keywordtype}{void}\ PrintOpenAnalysis(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00133}00133\ \textcolor{keywordtype}{void}\ PrintSingleOpenData(POSITION\ p);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00135}00135\ \textcolor{comment}{/*\ this\ is\ to\ allow\ the\ computer\ to\ choose\ where\ to\ go\ using\ openPositions\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00136}00136\ MOVE\ ChooseSmartComputerMove(POSITION\ from,\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *\ moves,\ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}\ *\ remotenesses);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00138}00138\ \textcolor{comment}{/*\ Open\ positions\ DB\ save/load\ functions\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00139}00139\ BOOLEAN\ SaveOpenPositionsData();}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00140}00140\ BOOLEAN\ LoadOpenPositionsData();}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00142}00142\ \textcolor{comment}{/*\ These\ are\ the\ "{}private"{}\ functions\ for\ openPositions'\ consumption\ only\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00143}00143\ \textcolor{keywordtype}{void}\ EnqueueDP(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00144}00144\ POSITION\ DequeueDP(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00145}00145\ \textcolor{keywordtype}{void}\ CleanUpBeneathCL(\textcolor{keywordtype}{int}\ cl);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00146}00146\ \textcolor{keywordtype}{void}\ PropogateFreAndCorUp(POSITION\ p);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00147}00147\ \textcolor{keywordtype}{void}\ PropogateFreAndCorUpFringe(POSITION\ p,\ \textcolor{keywordtype}{char}\ fringe);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00148}00148\ \textcolor{keywordtype}{int}\ OpenIsInitialized(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00149}00149\ OPEN\_POS\_DATA\ DetermineFreAndCorDown1LevelForWin(POSITION\ p);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00152}00152\ \textcolor{comment}{/*\ globals\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00153}00153\ \textcolor{keyword}{extern}\ OPEN\_POS\_DATA*\ openPosData;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00154}00154\ \textcolor{keyword}{extern}\ POSITION\ openPosArrLen;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00155}00155\ \textcolor{keyword}{extern}\ BOOLEAN\ gOpenDataLoaded;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00157}00157\ \textcolor{comment}{/*\ Globals\ relative\ to\ purity\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00158}00158\ \textcolor{keyword}{extern}\ VALUE*\ \ \ \ \ \ \ \ \ \ \ \ \ \ gPositionValue;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00159}00159\ \textcolor{keyword}{extern}\ REMOTENESS*\ \ \ \ \ \ \ \ \ gPositionLevel;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00160}00160\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}**\ \ \ \ \ \ gDrawParents;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00162}00162\ \textcolor{comment}{/*\ Functions\ relative\ to\ purity\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00163}00163\ BOOLEAN\ RunPurityCheck();}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00164}00164\ \textcolor{comment}{//void\ SetDrawParents(POSITION\ parent,\ POSITION\ root);}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00165}00165\ \textcolor{comment}{//void\ DrawParentInitialize();}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00168}00168\ BOOLEAN\ \ \ \ \ \ \ \ \ \ \ DeterminePure\ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00170}00170\ \textcolor{comment}{//void\ \ \ \ \ \ InitializeVisitedArray\ \ \ \ \ (void);}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00171}00171\ \textcolor{comment}{//void\ \ \ \ \ \ FreeVisitedArray\ \ \ \ \ (void);}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00173}00173\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ DrawNumberChildrenInitialize\ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00174}00174\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ DrawNumberChildrenFree\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00175}00175\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InitializeDR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00177}00177\ POSITION\ \ \ \ \ \ \ \ DeQueueWinDR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00178}00178\ POSITION\ \ \ \ \ \ \ \ DeQueueLoseDR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00179}00179\ POSITION\ \ \ \ \ \ \ \ DeQueueTieDR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00180}00180\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InsertWinDR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00181}00181\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InsertLoseDR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00182}00182\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InsertTieDR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00183}00183\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetNewLevelFringe\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00184}00184\ BOOLEAN\ \ \ \ \ \ \ \ \ ExistsUnsolvedPosition\ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00185}00185\ BOOLEAN\ \ \ \ \ \ \ \ \ isPure\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00186}00186\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SetAnalysisOfDrawPositions\ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00187}00187\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ PrintDrawAnalysis\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00189}00189\ \textcolor{comment}{/*\ Loopy\ globals\ */}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00191}00191\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gHeadWinDR;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00192}00192\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gTailWinDR;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00193}00193\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gHeadLoseDR;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00194}00194\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gTailLoseDR;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00195}00195\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gHeadTieDR;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00196}00196\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gTailTieDR;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00198}00198\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}**\ \ \ gDrawParents;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00199}00199\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}*\ \ \ \ \ \ \ \ \ \ \ \ gDrawNumberChildren;}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00200}00200\ \textcolor{keyword}{extern}\ POSITION\ \ \ \ \ \ \ \ \ gNumLoses[101];\ \textcolor{comment}{//\ Notes\ explaining\ the\ 101\ are\ in\ openPositions.c}}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00201}00201\ \textcolor{keyword}{extern}\ POSITION\ \ \ \ \ \ \ \ \ gNumWins[101];}
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{open_positions_8h_source_l00203}00203\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

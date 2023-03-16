@@ -1,0 +1,58 @@
+\hypertarget{visualization_8h_source}{}\doxysection{visualization.\+h}
+\label{visualization_8h_source}\index{src/core/visualization.h@{src/core/visualization.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_VISUALIZATION\_H}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ GMCORE\_VISUALIZATION\_H}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00004}00004\ \textcolor{preprocessor}{\#define\ INI\_EDGES\_PER\_LEVEL\ 1000}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00006}00006\ \textcolor{preprocessor}{\#define\ LOSE\_COLOR\ "{}\#8B0000"{}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00007}00007\ \textcolor{preprocessor}{\#define\ WIN\_COLOR\ \ "{}\#00FF00"{}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00008}00008\ \textcolor{preprocessor}{\#define\ TIE\_COLOR\ \ "{}\#FFFF00"{}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00009}00009\ \textcolor{preprocessor}{\#define\ DRAW\_COLOR\ "{}\#FFCC00"{}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00010}00010\ \textcolor{preprocessor}{\#define\ DEFAULT\_SHAPE\ "{}circle"{}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00011}00011\ \textcolor{preprocessor}{\#define\ DRAW\_SHAPE\ "{}diamond"{}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00012}00012\ \textcolor{preprocessor}{\#define\ FRINGE\_SHAPE\ "{}hexagon"{}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00014}\mbox{\hyperlink{structtree__edge}{00014}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtree__edge}{tree\_edge}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00015}00015\ \{}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00016}00016\ \ \ \ \ POSITION\ Parent;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00017}00017\ \ \ \ \ POSITION\ Child;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00018}00018\ \}\ \mbox{\hyperlink{structtree__edge}{EDGE}};}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00020}\mbox{\hyperlink{structedge__list}{00020}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structedge__list}{edge\_list}}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00021}00021\ \{}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00022}00022\ \ \ \ \ \mbox{\hyperlink{structtree__edge}{EDGE}}\ **edges;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00023}00023\ \ \ \ \ POSITION\ *edgesPerLevel;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00024}00024\ \ \ \ \ POSITION\ *nextEdgeInLevel;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00025}00025\ \ \ \ \ \textcolor{keywordtype}{int}\ NumberOfLevels;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00026}00026\ \ \ \ \ POSITION\ **nodeRanks;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00027}00027\ \ \ \ \ POSITION\ *nextNodeInRank;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00028}00028\ \ \ \ \ POSITION\ *nodesPerRank;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00029}00029\ \ \ \ \ REMOTENESS\ maxRank;}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00030}00030\ \}\ \mbox{\hyperlink{structedge__list}{EDGELIST}};}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00032}00032\ \textcolor{comment}{/*\ Public\ functions\ */}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00033}00033\ BOOLEAN\ PrepareTree(\mbox{\hyperlink{structedge__list}{EDGELIST}}\ *);\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Prepare\ the\ in-\/memory\ write\ buffer}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00034}00034\ \textcolor{keywordtype}{void}\ CleanupTree(\mbox{\hyperlink{structedge__list}{EDGELIST}}\ *);\ \ \ \textcolor{comment}{//\ Cleanup\ the\ in-\/memory\ write\ buffer}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00035}00035\ \textcolor{keywordtype}{void}\ Visualize();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Visualize\ game\ tree}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00036}00036\ \textcolor{keywordtype}{void}\ Write(FILE\ *,\ \mbox{\hyperlink{structedge__list}{EDGELIST}}\ *);\ \textcolor{comment}{//\ Write\ a\ string\ to\ a\ file}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00038}00038\ \textcolor{comment}{/*\ Private\ functions\ */}}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00039}00039\ FILE\ *PrepareDOTFile();}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00040}00040\ BOOLEAN\ PrepareRankList(\mbox{\hyperlink{structedge__list}{EDGELIST}}\ *);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00041}00041\ \textcolor{keywordtype}{void}\ CloseDOTFile(FILE\ *);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00042}00042\ STRING\ PositionColor(POSITION);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00043}00043\ STRING\ PositionShape(POSITION);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00044}00044\ STRING\ PositionValue(POSITION);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00045}00045\ STRING\ MoveColor(\mbox{\hyperlink{structtree__edge}{EDGE}});}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00046}00046\ \textcolor{keywordtype}{void}\ PopulateEdgelist(\mbox{\hyperlink{structedge__list}{EDGELIST}}\ *);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00047}00047\ \textcolor{keywordtype}{void}\ WriteLevel(\mbox{\hyperlink{structedge__list}{EDGELIST}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00048}00048\ \textcolor{keywordtype}{void}\ WriteNode(FILE\ *,\ POSITION,\ \textcolor{keywordtype}{int},\ \mbox{\hyperlink{structedge__list}{EDGELIST}}\ *);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00049}00049\ \textcolor{keywordtype}{void}\ WriteRanks(FILE\ *,\ \mbox{\hyperlink{structedge__list}{EDGELIST}}\ *);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00050}00050\ \textcolor{keywordtype}{void}\ WriteBoards();}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00051}00051\ \textcolor{keywordtype}{void}\ UpdateRankList(\mbox{\hyperlink{structedge__list}{EDGELIST}}\ *,\ POSITION,\ REMOTENESS);}
+\DoxyCodeLine{\Hypertarget{visualization_8h_source_l00052}00052\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,84 @@
+\hypertarget{misc_8h_source}{}\doxysection{misc.\+h}
+\label{misc_8h_source}\index{src/core/misc.h@{src/core/misc.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00001}00001\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00002}00002\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_MISC\_H}}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00003}00003\ \textcolor{preprocessor}{\#define\ GMCORE\_MISC\_H}}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00005}00005\ \textcolor{keywordtype}{size\_t}\ \ \ \ \ \ \ \ \ \ MoveListLength\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00006}00006\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00007}00007\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreeRemotenessList\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00008}00008\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreePositionList\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00009}00009\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreeValueMoves\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structvaluemoves__item}{VALUE\_MOVES}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00010}00010\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreeTierList\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00011}00011\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreeUndoMoveList\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00013}00013\ BOOLEAN\ \ \ \ \ \ \ \ \ FirstWordMatches\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (STRING\ to\_compare,\ STRING\ word);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00015}00015\ BOOLEAN\ \ \ \ \ \ \ \ \ ValidMove\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00017}00017\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ GetRandomNumber\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{int}\ max);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00018}00018\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ GetSmallRandomNumber\ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{int}\ n);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00019}00019\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ randSafe\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00021}00021\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ Stopwatch\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00022}00022\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00023}00023\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ ExitStageRightErrorString\ \ \ \ \ \ \ (STRING\ msg);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00025}00025\ \textcolor{keywordtype}{void}\ ifprintf(BOOLEAN,\ \textcolor{keywordtype}{char}*,\ ...);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00027}00027\ \textcolor{comment}{/*\ We\ only\ want\ to\ define\ these\ if\ not\ using\ MEMWATCH\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00028}00028\ \textcolor{preprocessor}{\#ifndef\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00029}00029\ GENERIC\_PTR\ \ \ \ \ SafeMalloc\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{size\_t}\ amt);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00030}00030\ GENERIC\_PTR\ \ \ \ \ SafeCalloc\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{size\_t}\ nmemb,\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00031}00031\ GENERIC\_PTR\ \ \ \ \ SafeRealloc\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (GENERIC\_PTR\ ptr,\ \textcolor{keywordtype}{size\_t}\ amount);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00032}00032\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SafeFree\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (GENERIC\_PTR\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00033}00033\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ SafeFreeAndSetToNull\ \ \ \ \ \ \ \ \ \ \ \ (GENERIC\_PTR\ *ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00034}00034\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00036}00036\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ BadElse\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (STRING\ function);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00038}00038\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ \ \ \ \ \ \ CreateMovelistNode\ \ \ \ \ \ \ \ \ \ \ \ \ \ (MOVE\ move,\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ tail);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00039}00039\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ \ \ \ \ \ \ CopyMovelist\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ list);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00041}00041\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ \ \ StorePositionInList\ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ head);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00042}00042\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ \ \ CopyPositionList\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ list);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00044}00044\ \mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}*\ \ StorePositionInIList(POSITION\ thePosition,\ \mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}*\ thePositionList);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00045}00045\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreeIPositionList(\mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00046}00046\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FreeMultipartEdgeList(\mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*\ ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00048}00048\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ AddPositionToQueue\ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ \mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}**\ tail);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00049}00049\ POSITION\ \ \ \ \ \ \ \ RemovePositionFromQueue\ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}**\ head);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00051}00051\ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ CreateRemotenesslistNode\ \ \ \ \ \ \ \ (REMOTENESS\ theRemoteness,\ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ theNextRemoteness);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00052}00052\ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ CopyRemotenesslist\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ theRemotenesslist);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00054}00054\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ \ \ \ \ \ \ CreateTierlistNode\ \ \ \ \ \ \ \ \ \ \ \ \ \ (TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theNextTier);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00055}00055\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ \ \ \ \ \ \ CopyTierlist\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theTierlist);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00056}00056\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ \ \ \ \ \ \ MoveToFrontOfTierlist\ \ \ (TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theTierlist);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00057}00057\ BOOLEAN\ \ \ \ \ \ \ \ \ TierInList\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theTierlist);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00058}00058\ BOOLEAN\ \ \ \ \ \ \ \ \ RemoveTierFromList\ \ \ \ \ \ \ \ \ \ \ \ \ \ (TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}**\ theTierlist);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00060}00060\ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ \ \ CreateUndoMovelistNode\ \ \ \ \ \ \ \ \ \ (UNDOMOVE\ theUndoMove,\ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ theNextUndoMove);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00061}00061\ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*\ CreateMultipartEdgeListNode(POSITION\ from,\ POSITION\ to,\ MOVE\ partMove,\ MOVE\ fullMove,\ BOOLEAN\ isTerminal,\ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*\ next);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00063}00063\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ FoundBadPosition\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ POSITION\ parent,\ MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00065}00065\ BOOLEAN\ \ \ \ \ \ \ \ \ DefaultGoAgain\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00066}00066\ POSITION\ \ \ \ \ \ \ \ GetNextPosition\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ TODO:\ Move\ to\ solve}}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00068}00068\ MEXCALC\ \ \ \ \ \ \ \ \ MexAdd\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (MEXCALC\ calc,\ MEX\ mex);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00069}00069\ MEX\ \ \ \ \ \ \ \ \ \ \ \ \ MexCompute\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (MEXCALC\ calc);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00070}00070\ MEXCALC\ \ \ \ \ \ \ \ \ MexCalcInit\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00072}00072\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ MexFormat\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ STRING\ str);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00073}00073\ MEX\ \ \ \ \ \ \ \ \ \ \ \ \ MexPrimitive\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (VALUE\ value);}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00075}00075\ STRING\ get\_var\_string();}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00076}00076\ STRING\ kHelpStarWritten();}
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{misc_8h_source_l00078}00078\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_MISC\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

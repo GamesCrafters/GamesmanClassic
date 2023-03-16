@@ -1,0 +1,41 @@
+\hypertarget{tt2_8py_source}{}\doxysection{tt2.\+py}
+\label{tt2_8py_source}\index{src/py/games/tt2.py@{src/py/games/tt2.py}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00001}00001\ \textcolor{keyword}{import}\ game}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00002}00002\ \textcolor{keyword}{import}\ server}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00005}\mbox{\hyperlink{classtt2_1_1tt2}{00005}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtt2_1_1tt2}{tt2}}(\mbox{\hyperlink{classgame_1_1_game}{game.Game}}):}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00007}\mbox{\hyperlink{classtt2_1_1tt2_1_1_t_t2_process}{00007}}\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtt2_1_1tt2_1_1_t_t2_process}{TT2Process}}(\mbox{\hyperlink{classserver_1_1_game_process}{server.GameProcess}}):}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00009}00009\ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }memory\_percent\_usage(self):}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00010}00010\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00012}00012\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ server,\ name):}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00013}00013\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classgame_1_1_game_a3676a5fc79ac6c88c6b41b38f2d0ebef}{game.Game.\_\_init\_\_}}(self,\ server,\ name)}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00014}00014\ \ \ \ \ \ \ \ \ self.process\_class\ =\ self.TT2Process}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00016}00016\ \ \ \ \ \textcolor{keyword}{def\ }get\_option(self,\ query):}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00017}00017\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ query[\textcolor{stringliteral}{'misere'}]\ ==\ \textcolor{stringliteral}{'yes'}:}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00018}00018\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00020}00020\ \ \ \ \ \textcolor{keyword}{def\ }respond\_to\_unknown\_request(self,\ req):}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00021}00021\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ req.command\ ==\ \textcolor{stringliteral}{'getOptions'}:}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00022}00022\ \ \ \ \ \ \ \ \ \ \ \ \ options\ =\ [\{\textcolor{stringliteral}{'misere'}:\ \textcolor{stringliteral}{'yes'},}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00023}00023\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'number'}:\ 1,}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00024}00024\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'width'}:\ 6,}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00025}00025\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'height'}:\ 3\},}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{'misere'}:\ \textcolor{stringliteral}{'no'},}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'number'}:\ 2,}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'width'}:\ 6,}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'height'}:\ 3\},}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\}]}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \ \ \ \ req.respond(self.format\_parsed(}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{'status'}:\ \textcolor{stringliteral}{'ok'},}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'response'}:\ options\}))}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00034}00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{tt2_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ NotImplemented()}
+
+\end{DoxyCode}

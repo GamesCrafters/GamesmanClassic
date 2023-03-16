@@ -1,0 +1,272 @@
+\hypertarget{struct_d_b}{}\doxysection{DB Struct Reference}
+\label{struct_d_b}\index{DB@{DB}}
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+void($\ast$ \mbox{\hyperlink{struct_d_b_ae547312e898d440a52d0e4fccb21123a}{free\+\_\+db}} )()
+\item 
+VALUE($\ast$ \mbox{\hyperlink{struct_d_b_a63af31f669a8e8db3ab4a7185a6514ef}{get\+\_\+value}} )(POSITION pos)
+\item 
+VALUE($\ast$ \mbox{\hyperlink{struct_d_b_a84ed3296d71660016c72b4f0bce6b20d}{put\+\_\+value}} )(POSITION pos, VALUE val)
+\item 
+VALUE($\ast$ \mbox{\hyperlink{struct_d_b_aee0ebd0b1322e310abcf008e4e862c2b}{original\+\_\+put\+\_\+value}} )(POSITION pos, VALUE val)
+\item 
+REMOTENESS($\ast$ \mbox{\hyperlink{struct_d_b_ae83879f9f20e5e707b72d552df241603}{get\+\_\+remoteness}} )(POSITION pos)
+\item 
+void($\ast$ \mbox{\hyperlink{struct_d_b_a2e7a5ba5d5aab5a13e7cadc6ee8083cc}{put\+\_\+remoteness}} )(POSITION pos, REMOTENESS val)
+\item 
+BOOLEAN($\ast$ \mbox{\hyperlink{struct_d_b_a3d80c7d59ab1a4bba3ab9d1dab3402cf}{check\+\_\+visited}} )(POSITION pos)
+\item 
+void($\ast$ \mbox{\hyperlink{struct_d_b_a96e5f1f2d02fc7850547c7e025f744a0}{mark\+\_\+visited}} )(POSITION pos)
+\item 
+void($\ast$ \mbox{\hyperlink{struct_d_b_a9192617ef69a3f058fca92081f46d7b5}{unmark\+\_\+visited}} )(POSITION pos)
+\item 
+MEX($\ast$ \mbox{\hyperlink{struct_d_b_a273276b33c8206413aa021e97f7d1bf4}{get\+\_\+mex}} )(POSITION pos)
+\item 
+void($\ast$ \mbox{\hyperlink{struct_d_b_af487fbf7c282d732408199a1498de04d}{put\+\_\+mex}} )(POSITION pos, MEX mex)
+\item 
+WINBY($\ast$ \mbox{\hyperlink{struct_d_b_a120975d5d45c2dc125f338f435fe1723}{get\+\_\+winby}} )(POSITION pos)
+\item 
+void($\ast$ \mbox{\hyperlink{struct_d_b_ad64853ec86407c60c51c45e7297afd5b}{put\+\_\+winby}} )(POSITION pos, WINBY win\+By)
+\item 
+BOOLEAN($\ast$ \mbox{\hyperlink{struct_d_b_aee7ca2900f25e332c1ac54d27c3a234b}{save\+\_\+database}} )()
+\item 
+BOOLEAN($\ast$ \mbox{\hyperlink{struct_d_b_abff9f29573a0ea547a4bcfd795cdb0ec}{load\+\_\+database}} )()
+\item 
+UINT64($\ast$ \mbox{\hyperlink{struct_d_b_a514d98cbc72d7f4f9f7f88f4060d1c26}{get\+\_\+slice\+\_\+slot}} )(UINT64 position, UINT8 index)
+\item 
+UINT64($\ast$ \mbox{\hyperlink{struct_d_b_a90c038c4cb7e48ee5cf06d8ef59e9845}{set\+\_\+slice\+\_\+slot}} )(UINT64 position, UINT8 index, UINT64 value)
+\item 
+UINT64($\ast$ \mbox{\hyperlink{struct_d_b_a510698570fa381d26dcf43af30969d3a}{set\+\_\+slice\+\_\+slot\+\_\+max}} )(UINT64 position, UINT8 index)
+\item 
+GMSTATUS($\ast$ \mbox{\hyperlink{struct_d_b_a4a41b25626b3da94174ca5202595c066}{add\+\_\+slot}} )(UINT8 size, char $\ast$name, BOOLEAN write, BOOLEAN adjust, BOOLEAN reservemax, UINT32 $\ast$slotindex)
+\item 
+GMSTATUS($\ast$ \mbox{\hyperlink{struct_d_b_a9b1b58612ba8b37890f183cd00baf750}{allocate}} )()
+\item 
+void($\ast$ \mbox{\hyperlink{struct_d_b_ac46c7e76a712694be2e18093abe06e1e}{get\+\_\+bulk}} )(POSITION $\ast$positions, VALUE $\ast$Value\+Array, REMOTENESS $\ast$remoteness\+Array, int length)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00027}{27}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+
+
+\doxysubsection{Field Documentation}
+\Hypertarget{struct_d_b_a4a41b25626b3da94174ca5202595c066}\label{struct_d_b_a4a41b25626b3da94174ca5202595c066} 
+\index{DB@{DB}!add\_slot@{add\_slot}}
+\index{add\_slot@{add\_slot}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{add\_slot}{add\_slot}}
+{\footnotesize\ttfamily GMSTATUS($\ast$ DB\+::add\+\_\+slot) (UINT8 size, char $\ast$name, BOOLEAN write, BOOLEAN adjust, BOOLEAN reservemax, UINT32 $\ast$slotindex)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00082}{82}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a9b1b58612ba8b37890f183cd00baf750}\label{struct_d_b_a9b1b58612ba8b37890f183cd00baf750} 
+\index{DB@{DB}!allocate@{allocate}}
+\index{allocate@{allocate}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{allocate}{allocate}}
+{\footnotesize\ttfamily GMSTATUS($\ast$ DB\+::allocate) ()}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00083}{83}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a3d80c7d59ab1a4bba3ab9d1dab3402cf}\label{struct_d_b_a3d80c7d59ab1a4bba3ab9d1dab3402cf} 
+\index{DB@{DB}!check\_visited@{check\_visited}}
+\index{check\_visited@{check\_visited}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{check\_visited}{check\_visited}}
+{\footnotesize\ttfamily BOOLEAN($\ast$ DB\+::check\+\_\+visited) (POSITION pos)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00065}{65}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_ae547312e898d440a52d0e4fccb21123a}\label{struct_d_b_ae547312e898d440a52d0e4fccb21123a} 
+\index{DB@{DB}!free\_db@{free\_db}}
+\index{free\_db@{free\_db}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{free\_db}{free\_db}}
+{\footnotesize\ttfamily void($\ast$ DB\+::free\+\_\+db) ()}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00056}{56}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_ac46c7e76a712694be2e18093abe06e1e}\label{struct_d_b_ac46c7e76a712694be2e18093abe06e1e} 
+\index{DB@{DB}!get\_bulk@{get\_bulk}}
+\index{get\_bulk@{get\_bulk}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{get\_bulk}{get\_bulk}}
+{\footnotesize\ttfamily void($\ast$ DB\+::get\+\_\+bulk) (POSITION $\ast$positions, VALUE $\ast$Value\+Array, REMOTENESS $\ast$remoteness\+Array, int length)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00085}{85}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a273276b33c8206413aa021e97f7d1bf4}\label{struct_d_b_a273276b33c8206413aa021e97f7d1bf4} 
+\index{DB@{DB}!get\_mex@{get\_mex}}
+\index{get\_mex@{get\_mex}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{get\_mex}{get\_mex}}
+{\footnotesize\ttfamily MEX($\ast$ DB\+::get\+\_\+mex) (POSITION pos)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00069}{69}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_ae83879f9f20e5e707b72d552df241603}\label{struct_d_b_ae83879f9f20e5e707b72d552df241603} 
+\index{DB@{DB}!get\_remoteness@{get\_remoteness}}
+\index{get\_remoteness@{get\_remoteness}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{get\_remoteness}{get\_remoteness}}
+{\footnotesize\ttfamily REMOTENESS($\ast$ DB\+::get\+\_\+remoteness) (POSITION pos)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00062}{62}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a514d98cbc72d7f4f9f7f88f4060d1c26}\label{struct_d_b_a514d98cbc72d7f4f9f7f88f4060d1c26} 
+\index{DB@{DB}!get\_slice\_slot@{get\_slice\_slot}}
+\index{get\_slice\_slot@{get\_slice\_slot}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{get\_slice\_slot}{get\_slice\_slot}}
+{\footnotesize\ttfamily UINT64($\ast$ DB\+::get\+\_\+slice\+\_\+slot) (UINT64 position, UINT8 index)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00079}{79}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a63af31f669a8e8db3ab4a7185a6514ef}\label{struct_d_b_a63af31f669a8e8db3ab4a7185a6514ef} 
+\index{DB@{DB}!get\_value@{get\_value}}
+\index{get\_value@{get\_value}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{get\_value}{get\_value}}
+{\footnotesize\ttfamily VALUE($\ast$ DB\+::get\+\_\+value) (POSITION pos)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00058}{58}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a120975d5d45c2dc125f338f435fe1723}\label{struct_d_b_a120975d5d45c2dc125f338f435fe1723} 
+\index{DB@{DB}!get\_winby@{get\_winby}}
+\index{get\_winby@{get\_winby}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{get\_winby}{get\_winby}}
+{\footnotesize\ttfamily WINBY($\ast$ DB\+::get\+\_\+winby) (POSITION pos)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00072}{72}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_abff9f29573a0ea547a4bcfd795cdb0ec}\label{struct_d_b_abff9f29573a0ea547a4bcfd795cdb0ec} 
+\index{DB@{DB}!load\_database@{load\_database}}
+\index{load\_database@{load\_database}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{load\_database}{load\_database}}
+{\footnotesize\ttfamily BOOLEAN($\ast$ DB\+::load\+\_\+database) ()}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00076}{76}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a96e5f1f2d02fc7850547c7e025f744a0}\label{struct_d_b_a96e5f1f2d02fc7850547c7e025f744a0} 
+\index{DB@{DB}!mark\_visited@{mark\_visited}}
+\index{mark\_visited@{mark\_visited}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{mark\_visited}{mark\_visited}}
+{\footnotesize\ttfamily void($\ast$ DB\+::mark\+\_\+visited) (POSITION pos)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00066}{66}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_aee0ebd0b1322e310abcf008e4e862c2b}\label{struct_d_b_aee0ebd0b1322e310abcf008e4e862c2b} 
+\index{DB@{DB}!original\_put\_value@{original\_put\_value}}
+\index{original\_put\_value@{original\_put\_value}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{original\_put\_value}{original\_put\_value}}
+{\footnotesize\ttfamily VALUE($\ast$ DB\+::original\+\_\+put\+\_\+value) (POSITION pos, VALUE val)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00060}{60}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_af487fbf7c282d732408199a1498de04d}\label{struct_d_b_af487fbf7c282d732408199a1498de04d} 
+\index{DB@{DB}!put\_mex@{put\_mex}}
+\index{put\_mex@{put\_mex}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{put\_mex}{put\_mex}}
+{\footnotesize\ttfamily void($\ast$ DB\+::put\+\_\+mex) (POSITION pos, MEX mex)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00070}{70}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a2e7a5ba5d5aab5a13e7cadc6ee8083cc}\label{struct_d_b_a2e7a5ba5d5aab5a13e7cadc6ee8083cc} 
+\index{DB@{DB}!put\_remoteness@{put\_remoteness}}
+\index{put\_remoteness@{put\_remoteness}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{put\_remoteness}{put\_remoteness}}
+{\footnotesize\ttfamily void($\ast$ DB\+::put\+\_\+remoteness) (POSITION pos, REMOTENESS val)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00063}{63}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a84ed3296d71660016c72b4f0bce6b20d}\label{struct_d_b_a84ed3296d71660016c72b4f0bce6b20d} 
+\index{DB@{DB}!put\_value@{put\_value}}
+\index{put\_value@{put\_value}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{put\_value}{put\_value}}
+{\footnotesize\ttfamily VALUE($\ast$ DB\+::put\+\_\+value) (POSITION pos, VALUE val)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00059}{59}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_ad64853ec86407c60c51c45e7297afd5b}\label{struct_d_b_ad64853ec86407c60c51c45e7297afd5b} 
+\index{DB@{DB}!put\_winby@{put\_winby}}
+\index{put\_winby@{put\_winby}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{put\_winby}{put\_winby}}
+{\footnotesize\ttfamily void($\ast$ DB\+::put\+\_\+winby) (POSITION pos, WINBY win\+By)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00073}{73}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_aee7ca2900f25e332c1ac54d27c3a234b}\label{struct_d_b_aee7ca2900f25e332c1ac54d27c3a234b} 
+\index{DB@{DB}!save\_database@{save\_database}}
+\index{save\_database@{save\_database}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{save\_database}{save\_database}}
+{\footnotesize\ttfamily BOOLEAN($\ast$ DB\+::save\+\_\+database) ()}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00075}{75}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a90c038c4cb7e48ee5cf06d8ef59e9845}\label{struct_d_b_a90c038c4cb7e48ee5cf06d8ef59e9845} 
+\index{DB@{DB}!set\_slice\_slot@{set\_slice\_slot}}
+\index{set\_slice\_slot@{set\_slice\_slot}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{set\_slice\_slot}{set\_slice\_slot}}
+{\footnotesize\ttfamily UINT64($\ast$ DB\+::set\+\_\+slice\+\_\+slot) (UINT64 position, UINT8 index, UINT64 value)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00080}{80}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a510698570fa381d26dcf43af30969d3a}\label{struct_d_b_a510698570fa381d26dcf43af30969d3a} 
+\index{DB@{DB}!set\_slice\_slot\_max@{set\_slice\_slot\_max}}
+\index{set\_slice\_slot\_max@{set\_slice\_slot\_max}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{set\_slice\_slot\_max}{set\_slice\_slot\_max}}
+{\footnotesize\ttfamily UINT64($\ast$ DB\+::set\+\_\+slice\+\_\+slot\+\_\+max) (UINT64 position, UINT8 index)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00081}{81}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+\Hypertarget{struct_d_b_a9192617ef69a3f058fca92081f46d7b5}\label{struct_d_b_a9192617ef69a3f058fca92081f46d7b5} 
+\index{DB@{DB}!unmark\_visited@{unmark\_visited}}
+\index{unmark\_visited@{unmark\_visited}!DB@{DB}}
+\doxysubsubsection{\texorpdfstring{unmark\_visited}{unmark\_visited}}
+{\footnotesize\ttfamily void($\ast$ DB\+::unmark\+\_\+visited) (POSITION pos)}
+
+
+
+Definition at line \mbox{\hyperlink{db_8h_source_l00067}{67}} of file \mbox{\hyperlink{db_8h_source}{db.\+h}}.
+
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/core/db.\+h\end{DoxyCompactItemize}

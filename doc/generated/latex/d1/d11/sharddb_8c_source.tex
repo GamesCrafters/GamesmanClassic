@@ -1,0 +1,556 @@
+\hypertarget{sharddb_8c_source}{}\doxysection{sharddb.\+c}
+\label{sharddb_8c_source}\index{src/core/sharddb.c@{src/core/sharddb.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ sharddb.c}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Accessor\ functions\ for\ shard-\/solved\ Connect\ 4.}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00006}00006\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ WORKS\ FOR\ 6x6\ and\ 6x7\ CONNECT\ 4\ ONLY\ AS\ OF\ 11/07/2022.}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00007}00007\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00008}00008\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ 2022-\/10-\/30}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00013}00013\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00015}00015\ \textcolor{preprocessor}{\#include\ <zlib.h>}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00016}00016\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00017}00017\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00018}00018\ \textcolor{preprocessor}{\#include\ <dirent.h>}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00019}00019\ \textcolor{preprocessor}{\#include\ "{}interact.h"{}}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00020}00020\ \textcolor{preprocessor}{\#include\ "{}sharddb.h"{}}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00021}00021\ \textcolor{preprocessor}{\#define\ RESULT\ "{}result\ =>>\ "{}}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00022}00022\ \textcolor{preprocessor}{\#define\ MAX\_C4\_SHARD\_SIZE\ 52428800\ }\textcolor{comment}{//\ All\ un-\/gzipped\ shards\ are\ less\ than\ 50\ MiB.}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00024}00024\ \textcolor{comment}{/*internal\ declarations\ and\ definitions*/}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00026}00026\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ sharddb\_free\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00028}00028\ \textcolor{comment}{/*\ Value\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00029}00029\ VALUE\ \ \ \ \ \ \ \ \ \ \ sharddb\_get\_value\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00030}00030\ VALUE\ \ \ \ \ \ \ \ \ \ \ sharddb\_set\_value\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ VALUE\ val);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00032}00032\ \textcolor{comment}{/*\ Remoteness\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00033}00033\ REMOTENESS\ \ \ \ \ \ sharddb\_get\_remoteness\ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00034}00034\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ sharddb\_set\_remoteness\ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ REMOTENESS\ val);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00036}00036\ \textcolor{comment}{/*\ Visited\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00037}00037\ BOOLEAN\ \ \ \ \ \ \ \ \ sharddb\_check\_visited\ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00038}00038\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ sharddb\_mark\_visited\ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00039}00039\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ sharddb\_unmark\_visited\ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00041}00041\ \textcolor{comment}{/*\ Mex\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00042}00042\ MEX\ \ \ \ \ \ \ \ \ \ \ \ \ sharddb\_get\_mex\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00043}00043\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ sharddb\_set\_mex\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ MEX\ mex);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00045}00045\ \textcolor{comment}{/*\ saving\ to/reading\ from\ a\ file\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00046}00046\ BOOLEAN\ \ \ \ \ \ \ \ \ sharddb\_save\_database\ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00047}00047\ BOOLEAN\ \ \ \ \ \ \ \ \ sharddb\_load\_database\ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00049}00049\ \textcolor{comment}{/*\ LUR\ Cache\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00050}\mbox{\hyperlink{structelem}{00050}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structelem}{elem}}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00051}00051\ \ \ \ \ POSITION\ p;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00052}00052\ \ \ \ \ VALUE\ v;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00053}00053\ \ \ \ \ REMOTENESS\ r;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00054}00054\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structelem}{elem}}\ *d\_prev;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00055}00055\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structelem}{elem}}\ *d\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00056}00056\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structelem}{elem}}\ *s\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00057}00057\ \}\ \mbox{\hyperlink{structelem}{elem\_t}};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00059}\mbox{\hyperlink{structelem__disk}{00059}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structelem__disk}{elem\_disk}}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00060}00060\ \ \ \ \ POSITION\ p;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00061}00061\ \ \ \ \ VALUE\ v;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00062}00062\ \ \ \ \ REMOTENESS\ r;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00063}00063\ \}\ \mbox{\hyperlink{structelem__disk}{elem\_disk\_t}};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00065}00065\ \textcolor{keyword}{static}\ BOOLEAN\ sharddb\_cache\_load\_from\_disk(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00066}00066\ \textcolor{keyword}{static}\ BOOLEAN\ sharddb\_cache\_dump\_to\_disk(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00067}00067\ \textcolor{keyword}{static}\ BOOLEAN\ sharddb\_cache\_table\_remove(\mbox{\hyperlink{structelem}{elem\_t}}\ *e);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00068}00068\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ sharddb\_cache\_put(POSITION\ p,\ VALUE\ v,\ REMOTENESS\ r);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00069}00069\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ sharddb\_cache\_get(VALUE\ *v,\ REMOTENESS\ *r,\ POSITION\ p);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00071}00071\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00072}00072\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00073}00073\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00075}00075\ \textcolor{keywordtype}{void}\ sharddb\_init(\mbox{\hyperlink{struct_d_b}{DB\_Table}}\ *new\_db)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00076}00076\ \ \ \ \ new\_db-\/>put\_value\ =\ sharddb\_set\_value;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00077}00077\ \ \ \ \ new\_db-\/>put\_remoteness\ =\ sharddb\_set\_remoteness;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00078}00078\ \ \ \ \ new\_db-\/>mark\_visited\ =\ sharddb\_mark\_visited;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00079}00079\ \ \ \ \ new\_db-\/>unmark\_visited\ =\ sharddb\_unmark\_visited;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00080}00080\ \ \ \ \ new\_db-\/>put\_mex\ =\ sharddb\_set\_mex;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00081}00081\ \ \ \ \ new\_db-\/>free\_db\ =\ sharddb\_free;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00083}00083\ \ \ \ \ new\_db-\/>get\_value\ =\ sharddb\_get\_value;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00084}00084\ \ \ \ \ new\_db-\/>get\_remoteness\ =\ sharddb\_get\_remoteness;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00085}00085\ \ \ \ \ new\_db-\/>check\_visited\ =\ sharddb\_check\_visited;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00086}00086\ \ \ \ \ new\_db-\/>get\_mex\ =\ sharddb\_get\_mex;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00087}00087\ \ \ \ \ new\_db-\/>save\_database\ =\ sharddb\_save\_database;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00088}00088\ \ \ \ \ new\_db-\/>load\_database\ =\ sharddb\_load\_database;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00089}00089\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00091}00091\ \textcolor{keywordtype}{void}\ sharddb\_free()\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00092}00092\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00093}00093\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00096}00096\ VALUE\ sharddb\_set\_value(POSITION\ pos,\ VALUE\ val)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00098}00098\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00100}00100\ \textcolor{comment}{//char\ initializesegment(POSITION\ offset,\ FILE\ *file,\ int\ size,\ POSITION\ key)\ \{}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00101}00101\ \textcolor{keywordtype}{char}\ initializesegment(POSITION\ offset,\ \textcolor{keywordtype}{char}\ *gzbuffer,\ \textcolor{keywordtype}{int}\ size,\ POSITION\ key,\ POSITION\ *gzOffset)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00102}00102\ \ \ \ \ int64\_t\ ptr\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00103}00103\ \ \ \ \ ptr\ =\ gzbuffer[(*gzOffset)++];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ c;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ c\ =\ gzbuffer[(*gzOffset)++];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (key\ >=\ offset\ \&\&\ key\ <\ offset\ +\ (1l<<size))\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ c;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00112}00112\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (ptr\ ==\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ POSITION\ savedOffset\ =\ (*gzOffset);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ res\ =\ initializesegment(offset,\ gzbuffer,\ size-\/1,\ key,\ gzOffset);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (res)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ res;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ (*gzOffset)\ =\ savedOffset;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ initializesegment(offset+(1l<<(size-\/1)),\ gzbuffer,\ size-\/1,\ key,\ gzOffset);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00121}00121\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ res\ =\ initializesegment(offset,\ gzbuffer,\ size-\/1,\ key,\ gzOffset);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (res)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ res;\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ initializesegment(offset+(1l<<(size-\/1)),\ gzbuffer,\ size-\/1,\ key,\ gzOffset);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00128}00128\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00129}00129\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00131}00131\ \textcolor{keywordtype}{void}\ getValueRemotenessFromByte(VALUE\ *value,\ REMOTENESS\ *remoteness,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ res)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00132}00132\ \ \ \ \ \textcolor{keywordflow}{if}\ (res\ >\ 0\ \&\&\ res\ <\ 64)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00133}00133\ \ \ \ \ \ \ \ \ (*value)\ =\ lose;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ (*remoteness)\ =\ res\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00135}00135\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (res\ >\ 127\ \&\&\ res\ <\ 192)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ (*value)\ =\ tie;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ (*remoteness)\ =\ res\ -\/\ 128;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00138}00138\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (res\ >\ 191)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ (*value)\ =\ win;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ (*remoteness)\ =\ 255\ -\/\ res;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00141}00141\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ (*value)\ =\ tie;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ (*remoteness)\ =\ 255;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00144}00144\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00145}00145\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00147}00147\ \textcolor{keywordtype}{void}\ getShardIDAndLeading3Digits(\textcolor{keywordtype}{int}\ *shardId,\ \textcolor{keywordtype}{int}\ *leading3digits,\ POSITION\ key)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00148}00148\ \ \ \ \ \textcolor{keywordtype}{int}\ d\ =\ key\ >>\ 28;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00149}00149\ \ \ \ \ (*shardId)\ =\ d;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{while}\ (d\ >=\ 1000)\ d\ /=\ 10;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00151}00151\ \ \ \ \ *leading3digits\ =\ d;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00152}00152\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00154}00154\ VALUE\ sharddb\_get\_value(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00155}00155\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00156}00156\ \ \ \ \ REMOTENESS\ remoteness;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00157}00157\ \ \ \ \ sharddb\_cache\_get(\&value,\ \&remoteness,\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00158}00158\ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00159}00159\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00161}00161\ REMOTENESS\ sharddb\_get\_remoteness(POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00162}00162\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00163}00163\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00164}00164\ \ \ \ \ REMOTENESS\ remoteness;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00165}00165\ \ \ \ \ sharddb\_cache\_get(\&value,\ \&remoteness,\ pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{return}\ remoteness;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00167}00167\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00168}00168\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00169}00169\ \textcolor{keywordtype}{void}\ sharddb\_set\_remoteness\ (POSITION\ pos,\ REMOTENESS\ val)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00171}00171\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00173}00173\ BOOLEAN\ sharddb\_check\_visited(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00174}00174\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00175}00175\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00177}00177\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00178}00178\ \textcolor{keywordtype}{void}\ sharddb\_mark\_visited\ (POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00179}00179\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00180}00180\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00182}00182\ \textcolor{keywordtype}{void}\ sharddb\_unmark\_visited\ (POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00183}00183\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00184}00184\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00186}00186\ \textcolor{keywordtype}{void}\ sharddb\_set\_mex(POSITION\ pos,\ MEX\ mex)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00187}00187\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00188}00188\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00190}00190\ MEX\ sharddb\_get\_mex(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00191}00191\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00192}00192\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00194}00194\ BOOLEAN\ sharddb\_save\_database\ ()\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00195}00195\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00196}00196\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00198}00198\ BOOLEAN\ sharddb\_load\_database()\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00199}00199\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00200}00200\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00202}00202\ \textcolor{keywordtype}{int}\ IROWCOUNT\ =\ 6;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00203}00203\ \textcolor{keywordtype}{int}\ ICOLUMNCOUNT\ =\ 6;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00205}00205\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *IGenerateMoves(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00206}00206\ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00207}00207\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ ICOLUMNCOUNT;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00208}00208\ \ \ \ \ MOVE\ start\ =\ (IROWCOUNT\ +\ 1)\ *\ (i\ +\ 1)\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00209}00209\ \ \ \ \ \textcolor{keywordflow}{while}\ ((position\ \&\ (1ULL<<start))\ ==\ 0)\ start-\/-\/;\ \textcolor{comment}{//\ This\ is\ what\ sigbit\ does}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00210}00210\ \ \ \ \ \textcolor{keywordflow}{if}\ (start\ !=\ (IROWCOUNT\ +\ 1)\ *\ (i\ +\ 1)\ -\/\ 1)\ \{\ \textcolor{comment}{//\ If\ there\ is\ space\ in\ this\ column}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00211}00211\ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(start,\ moves);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00212}00212\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00213}00213\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00214}00214\ \ \ \textcolor{keywordflow}{return}\ moves;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00215}00215\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00217}00217\ POSITION\ IInteractStringToPosition(STRING\ str)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00218}00218\ \ \ \textcolor{keyword}{enum}\ UWAPI\_Turn\ turn;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00219}00219\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_rows,\ num\_columns;\ \textcolor{comment}{//\ Unused}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00220}00220\ \ \ STRING\ board;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00221}00221\ \ \ \textcolor{keywordflow}{if}\ (!UWAPI\_Board\_Regular2D\_ParsePositionString(str,\ \&turn,\ \&num\_rows,\ \&num\_columns,\ \&board))\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00222}00222\ \ \ \ \ \textcolor{comment}{//\ Failed\ to\ parse\ string}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00223}00223\ \ \ \ \ \textcolor{keywordflow}{return}\ INVALID\_POSITION;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00224}00224\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00225}00225\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00226}00226\ \ \ POSITION\ pos\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00227}00227\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c\ =\ 0;\ c\ <\ ICOLUMNCOUNT;\ c++)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00228}00228\ \ \ \ \ POSITION\ colbits\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00229}00229\ \ \ \ \ BOOLEAN\ endFound\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00230}00230\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ r\ =\ 0;\ !endFound\ \&\&\ r\ <\ IROWCOUNT;\ r++)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00231}00231\ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ piece\ =\ board[IROWCOUNT\ *\ (c\ +\ 1)\ -\/\ 1\ -\/\ r];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00232}00232\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (piece\ ==\ \textcolor{charliteral}{'O'})\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ colbits\ |=\ (1\ <<\ r);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00234}00234\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (piece\ ==\ \textcolor{charliteral}{'-\/'})\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ endFound\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ colbits\ |=\ (1\ <<\ r);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00237}00237\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00238}00238\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00239}00239\ \ \ \ \ \textcolor{keywordflow}{if}\ (!endFound)\ colbits\ |=\ (1\ <<\ IROWCOUNT);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00240}00240\ \ \ \ \ pos\ |=\ (colbits\ <<\ ((IROWCOUNT\ +\ 1)\ *\ (ICOLUMNCOUNT\ -\/\ 1\ -\/\ c)));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00241}00241\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00242}00242\ \ \ \textcolor{keywordflow}{if}\ (turn\ ==\ UWAPI\_TURN\_B)\ pos\ |=\ (1ULL\ <<\ 63);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00243}00243\ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00244}00244\ \ \ \textcolor{keywordflow}{return}\ pos;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00245}00245\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00247}00247\ STRING\ IInteractPositionToString(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00248}00248\ \ \ \textcolor{keywordtype}{char}\ pieces[(IROWCOUNT\ +\ 1)\ *\ ICOLUMNCOUNT\ +\ 1];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00249}00249\ \ \ \textcolor{keywordtype}{int}\ piecesPlaced\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00250}00250\ \ \ \textcolor{keywordtype}{int}\ k\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00251}00251\ \ \ BOOLEAN\ pastSigBit\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00252}00252\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00253}00253\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ (IROWCOUNT\ +\ 1)\ *\ ICOLUMNCOUNT\ -\/\ 1;\ i\ >=\ 0;\ i-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00254}00254\ \ \ \ \ BOOLEAN\ bit\ =\ (position\ >>\ i)\ \&\ 1;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00255}00255\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ \%\ (IROWCOUNT\ +\ 1)\ ==\ IROWCOUNT)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00256}00256\ \ \ \ \ \ \ pastSigBit\ =\ bit;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00257}00257\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (bit)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00258}00258\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pastSigBit)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ pieces[k]\ =\ \textcolor{charliteral}{'O'};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ piecesPlaced++;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00261}00261\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00262}00262\ \ \ \ \ \ \ \ \ pieces[k]\ =\ \textcolor{charliteral}{'-\/'};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00263}00263\ \ \ \ \ \ \ \ \ pastSigBit\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00264}00264\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00265}00265\ \ \ \ \ \ \ k++;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00266}00266\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00267}00267\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pastSigBit)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ pieces[k]\ =\ \textcolor{charliteral}{'X'};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ piecesPlaced++;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00270}00270\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00271}00271\ \ \ \ \ \ \ \ \ pieces[k]\ =\ \textcolor{charliteral}{'-\/'};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00272}00272\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00273}00273\ \ \ \ \ \ \ k++;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00274}00274\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00275}00275\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00276}00276\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ (IROWCOUNT\ *\ ICOLUMNCOUNT);\ i\ <\ (IROWCOUNT\ +\ 1)\ *\ ICOLUMNCOUNT;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00277}00277\ \ \ \ \ pieces[i]\ =\ \textcolor{charliteral}{'-\/'};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00278}00278\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00280}00280\ \ \ pieces[(IROWCOUNT\ +\ 1)\ *\ ICOLUMNCOUNT]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00281}00281\ \ \ \textcolor{keyword}{enum}\ UWAPI\_Turn\ turn\ =\ (piecesPlaced\ \&\ 1)\ ?\ UWAPI\_TURN\_B\ :\ UWAPI\_TURN\_A;\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00282}00282\ \ \ \textcolor{keywordflow}{return}\ UWAPI\_Board\_Regular2D\_MakePositionString(turn,\ IROWCOUNT\ +\ 1,\ ICOLUMNCOUNT,\ pieces);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00283}00283\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00285}00285\ STRING\ IInteractMoveToString(POSITION\ position,\ MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00286}00286\ \ \ \textcolor{keywordflow}{return}\ UWAPI\_Board\_Regular2D\_MakeAddString(\textcolor{charliteral}{'a'},\ (IROWCOUNT\ +\ 1)\ *\ ICOLUMNCOUNT\ -\/\ 1\ -\/\ (move\ /\ (IROWCOUNT\ +\ 1)));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00287}00287\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00289}00289\ STRING\ ValueCharToValueString(\textcolor{keywordtype}{char}\ value\_char)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00290}00290\ \ \ \ \ \textcolor{keywordflow}{switch}(value\_char)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00291}00291\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'T'}:}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}tie"{}};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00293}00293\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'W'}:}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}win"{}};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00295}00295\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'L'}:}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}lose"{}};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00297}00297\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'U'}:}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}undecided"{}};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00299}00299\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}error"{}};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00301}00301\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00302}00302\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00304}00304\ \textcolor{keywordtype}{void}\ shardGamesmanDetailedPositionResponse(STRING\ board,\ POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00305}00305\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00306}00306\ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}ok\(\backslash\)"{},\(\backslash\)"{}response\(\backslash\)"{}:\{"{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00307}00307\ \ \ \ \ \textcolor{keywordflow}{if}\ (getOption()\ ==\ 2)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00308}00308\ \ \ \ \ \ \ \ \ ICOLUMNCOUNT\ =\ 7;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00309}00309\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00310}00310\ \ \ \ \ \ \ \ \ ICOLUMNCOUNT\ =\ 6;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00311}00311\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00312}00312\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00313}00313\ \ \ \ \ REMOTENESS\ remoteness;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00314}00314\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}board\(\backslash\)"{}:\ \(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00315}00315\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}remoteness\(\backslash\)"{}:\%d,"{}},\ Remoteness(pos));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00316}00316\ \ \ \ \ InteractPrintJSONPositionValue(pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00317}00317\ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}moves\(\backslash\)"{}:["{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00318}00318\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00319}00319\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *all\_next\_moves\ =\ IGenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00320}00320\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *current\_move\ =\ all\_next\_moves;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00321}00321\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *nextPositions\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00322}00322\ \ \ \ \ STRING\ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00323}00323\ \ \ \ \ \textcolor{keywordflow}{while}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00324}00324\ \ \ \ \ \ \ \ \ POSITION\ choice\ =\ DoMove(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00325}00325\ \ \ \ \ \ \ \ \ nextPositions\ =\ StorePositionInList(choice,\ nextPositions);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00326}00326\ \ \ \ \ \ \ \ \ STRING\ nextBoard\ =\ IInteractPositionToString(choice);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00327}00327\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\{\(\backslash\)"{}board\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ nextBoard);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00328}00328\ \ \ \ \ \ \ \ \ SafeFree(nextBoard);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00329}00329\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00330}00330\ \ \ \ \ \ \ \ \ sharddb\_cache\_get(\&value,\ \&remoteness,\ choice);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00331}00331\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}remoteness\(\backslash\)"{}:\%d,"{}},\ remoteness);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00332}00332\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ value\_char\ =\ gValueLetter[value];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00333}00333\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}value\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ ValueCharToValueString(value\_char));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00334}00334\ \ \ \ \ \ \ \ \ move\_string\ =\ IInteractMoveToString(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00335}00335\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00336}00336\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}move\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00337}00337\ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00339}00339\ \ \ \ \ \ \ \ \ move\_string\ =\ gMoveToStringFunPtr(current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00340}00340\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}moveName\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00341}00341\ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00343}00343\ \ \ \ \ \ \ \ \ current\_move\ =\ current\_move-\/>next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00344}00344\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}"{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00345}00345\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00346}00346\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},"{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00347}00347\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00348}00348\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00349}00349\ \ \ \ \ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00350}00350\ \ \ \ \ FreeMoveList(all\_next\_moves);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00351}00351\ \ \ \ \ FreePositionList(nextPositions);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00352}00352\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00353}00353\ \ \ \ \ printf(\textcolor{stringliteral}{"{}]\}\}"{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00354}00354\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00355}00355\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00356}00356\ \textcolor{comment}{/*\ LRU\ Cache\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00357}00357\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{char}\ CACHE\_FILENAME[100];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00358}00358\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ CACHE\_SIZE;\ \ \ \textcolor{comment}{//\ In\ bytes.}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00359}00359\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ ALPHA\ =\ 0.75;\ \ \ \ \ \ \ \textcolor{comment}{//\ Hash\ table\ target\ load\ factor}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00360}00360\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ NUM\_BUCKETS;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00361}00361\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ MAX\_ELEMENTS;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00362}00362\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00363}00363\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structelem}{elem\_t}}\ **hash\_table\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00364}00364\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structelem}{elem\_t}}\ *head\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00365}00365\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structelem}{elem\_t}}\ *tail\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00366}00366\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ cache\_size\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00367}00367\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00368}00368\ \textcolor{comment}{/*\ https://www.geeksforgeeks.org/program-\/to-\/find-\/the-\/next-\/prime-\/number/\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00369}00369\ \textcolor{keyword}{static}\ BOOLEAN\ is\_prime(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ n)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00370}00370\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <=\ 1)\ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00371}00371\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <=\ 3)\ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00372}00372\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\%2\ ==\ 0\ ||\ n\%3\ ==\ 0)\ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00373}00373\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ i;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00374}00374\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 5;\ i*i\ <=\ n;\ i\ +=\ 6)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00375}00375\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (n\%i\ ==\ 0\ ||\ n\%(i\ +\ 2)\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00376}00376\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00377}00377\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00378}00378\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00379}00379\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00380}00380\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00381}00381\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00382}00382\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ prev\_prime(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ n)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00383}00383\ \ \ \ \ \textcolor{comment}{/*\ Returns\ the\ largest\ prime\ number\ that\ is\ smaller\ than}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00384}00384\ \textcolor{comment}{\ \ \ \ \ \ \ or\ equal\ to\ N,\ unless\ N\ is\ less\ than\ 2,\ in\ which\ case}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00385}00385\ \textcolor{comment}{\ \ \ \ \ \ \ 2\ is\ returned.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00386}00386\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <\ 2)\ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00387}00387\ \ \ \ \ \textcolor{keywordflow}{while}\ (!is\_prime(n))\ -\/-\/n;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00388}00388\ \ \ \ \ \textcolor{keywordflow}{return}\ n;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00389}00389\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00390}00390\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00391}00391\ \textcolor{keywordtype}{void}\ sharddb\_cache\_init(\textcolor{keywordtype}{void})\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00392}00392\ \ \ \ \ \textcolor{keywordflow}{if}\ (hash\_table)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00393}00393\ \ \ \ \ \textcolor{keywordtype}{int}\ opt\ =\ getOption();}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00394}00394\ \ \ \ \ snprintf(CACHE\_FILENAME,\ 100,\ \textcolor{stringliteral}{"{}./data/mconnect4\_\%d\_sharddb/lru.bin"{}},\ opt);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00395}00395\ \ \ \ \ CACHE\_SIZE\ =\ (opt\ ==\ 1)\ ?\ (1ULL\ <<\ 25)\ :\ (1ULL\ <<\ 27);\ \textcolor{comment}{//\ 32\ MiB\ for\ 6x6,\ 128\ MiB\ for\ 6x7.}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00396}00396\ \ \ \ \ NUM\_BUCKETS\ =\ prev\_prime(CACHE\_SIZE/(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem}{elem\_t}})*ALPHA\ +\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem}{elem\_t}}*)));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00397}00397\ \ \ \ \ MAX\_ELEMENTS\ =\ NUM\_BUCKETS\ *\ ALPHA;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00398}00398\ \ \ \ \ hash\_table\ =\ SafeCalloc(NUM\_BUCKETS,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem}{elem\_t}}*));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00399}00399\ \ \ \ \ head\ =\ SafeCalloc(1,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem}{elem\_t}}));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00400}00400\ \ \ \ \ tail\ =\ SafeCalloc(1,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem}{elem\_t}}));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00401}00401\ \ \ \ \ head-\/>d\_prev\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00402}00402\ \ \ \ \ head-\/>d\_next\ =\ tail;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00403}00403\ \ \ \ \ tail-\/>d\_prev\ =\ head;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00404}00404\ \ \ \ \ tail-\/>d\_next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00405}00405\ \ \ \ \ cache\_size\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00406}00406\ \ \ \ \ \textcolor{keywordflow}{if}\ (!sharddb\_cache\_load\_from\_disk())\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00407}00407\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}sharddb\_cache\_init:\ load\ cache\ from\ disk\ failed."{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00408}00408\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00409}00409\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00410}00410\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00411}00411\ \textcolor{keywordtype}{void}\ sharddb\_cache\_deallocate(\textcolor{keywordtype}{void})\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00412}00412\ \ \ \ \ \textcolor{keywordflow}{if}\ (!hash\_table)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00413}00413\ \ \ \ \ \textcolor{keywordflow}{if}\ (!sharddb\_cache\_dump\_to\_disk())\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00414}00414\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}sharddb\_cache\_deallocate:\ cache\ dump\ failed."{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00415}00415\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00416}00416\ \ \ \ \ \textcolor{comment}{/*\ Deallocate\ all\ variables\ on\ heap.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00417}00417\ \ \ \ \ SafeFree(hash\_table);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00418}00418\ \ \ \ \ hash\_table\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00419}00419\ \ \ \ \ \mbox{\hyperlink{structelem}{elem\_t}}\ *walker\ =\ head,\ *tmp;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00420}00420\ \ \ \ \ \textcolor{keywordflow}{while}\ (walker)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00421}00421\ \ \ \ \ \ \ \ \ tmp\ =\ walker;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00422}00422\ \ \ \ \ \ \ \ \ walker\ =\ walker-\/>d\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00423}00423\ \ \ \ \ \ \ \ \ SafeFree(tmp);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00424}00424\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00425}00425\ \ \ \ \ head\ =\ tail\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00426}00426\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00427}00427\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00428}00428\ \textcolor{keyword}{static}\ BOOLEAN\ sharddb\_cache\_load\_from\_disk(\textcolor{keywordtype}{void})\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00429}00429\ \ \ \ \ FILE\ *f\ =\ fopen(CACHE\_FILENAME,\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00430}00430\ \ \ \ \ \textcolor{keywordflow}{if}\ (!f)\ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00431}00431\ \ \ \ \ \mbox{\hyperlink{structelem__disk}{elem\_disk\_t}}\ e;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00432}00432\ \ \ \ \ \textcolor{keywordflow}{while}\ (fread(\&e,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem__disk}{elem\_disk\_t}}),\ 1,\ f))\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00433}00433\ \ \ \ \ \ \ \ \ sharddb\_cache\_put(e.p,\ e.v,\ e.r);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00434}00434\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00435}00435\ \ \ \ \ fclose(f);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00436}00436\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00437}00437\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00438}00438\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00439}00439\ \textcolor{keyword}{static}\ BOOLEAN\ sharddb\_cache\_dump\_to\_disk(\textcolor{keywordtype}{void})\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00440}00440\ \ \ \ \ FILE\ *f\ =\ fopen(CACHE\_FILENAME,\ \textcolor{stringliteral}{"{}wb"{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00441}00441\ \ \ \ \ \textcolor{keywordflow}{if}\ (!f)\ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00442}00442\ \ \ \ \ \textcolor{comment}{/*\ Write\ in\ reverse\ chronological\ order\ so\ that\ old\ elements\ are\ loaded\ first.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00443}00443\ \ \ \ \ \mbox{\hyperlink{structelem}{elem\_t}}\ *walker\ =\ tail-\/>d\_prev;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00444}00444\ \ \ \ \ \textcolor{keywordflow}{while}\ (walker\ !=\ head)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00445}00445\ \ \ \ \ \ \ \ \ fwrite(walker,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem__disk}{elem\_disk\_t}}),\ 1,\ f);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00446}00446\ \ \ \ \ \ \ \ \ walker\ =\ walker-\/>d\_prev;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00447}00447\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00448}00448\ \ \ \ \ fclose(f);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00449}00449\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00450}00450\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00451}00451\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00452}00452\ \textcolor{keyword}{static}\ BOOLEAN\ sharddb\_cache\_table\_remove(\mbox{\hyperlink{structelem}{elem\_t}}\ *e)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00453}00453\ \ \ \ \ \textcolor{comment}{/*\ Look\ for\ existing\ element\ in\ table.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00454}00454\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ slot\ =\ e-\/>p\ \%\ NUM\_BUCKETS;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00455}00455\ \ \ \ \ \mbox{\hyperlink{structelem}{elem\_t}}\ **walker\ =\ \&hash\_table[slot];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00456}00456\ \ \ \ \ \textcolor{keywordflow}{while}\ (*walker)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00457}00457\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((*walker)-\/>p\ ==\ e-\/>p)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Found,\ remove\ it\ from\ table.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00459}00459\ \ \ \ \ \ \ \ \ \ \ \ \ *walker\ =\ (*walker)-\/>s\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00460}00460\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00461}00461\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00462}00462\ \ \ \ \ \ \ \ \ walker\ =\ \&((*walker)-\/>s\_next);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00463}00463\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00464}00464\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00465}00465\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00466}00466\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00467}00467\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ sharddb\_cache\_put(POSITION\ p,\ VALUE\ v,\ REMOTENESS\ r)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00468}00468\ \ \ \ \ \textcolor{comment}{/*\ Look\ for\ existing\ element\ in\ table.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00469}00469\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ slot\ =\ p\ \%\ NUM\_BUCKETS;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00470}00470\ \ \ \ \ \mbox{\hyperlink{structelem}{elem\_t}}\ *walker\ =\ hash\_table[slot];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00471}00471\ \ \ \ \ \textcolor{keywordflow}{while}\ (walker)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00472}00472\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (walker-\/>p\ ==\ p)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00473}00473\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ should\ never\ happen.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00474}00474\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}sharddb\_cache\_put:\ inserting\ existing\ element."{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00475}00475\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00476}00476\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00477}00477\ \ \ \ \ \ \ \ \ walker\ =\ walker-\/>s\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00478}00478\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00479}00479\ \ \ \ \ \mbox{\hyperlink{structelem}{elem\_t}}\ *e;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00480}00480\ \ \ \ \ \textcolor{keywordflow}{if}\ (cache\_size\ ==\ MAX\_ELEMENTS)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00481}00481\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Evict\ least\ recently\ used\ element\ from\ cache.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00482}00482\ \ \ \ \ \ \ \ \ e\ =\ tail-\/>d\_prev;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00483}00483\ \ \ \ \ \ \ \ \ tail-\/>d\_prev\ =\ e-\/>d\_prev;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00484}00484\ \ \ \ \ \ \ \ \ e-\/>d\_prev-\/>d\_next\ =\ tail;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00485}00485\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!sharddb\_cache\_table\_remove(e))\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00486}00486\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ should\ never\ happen.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00487}00487\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}sharddb\_cache\_put:\ failed\ to\ find\ existing\ element\ in\ hash\ table."{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00488}00488\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00489}00489\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00490}00490\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00491}00491\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Cache\ is\ not\ full,\ create\ a\ new\ element\ and\ add\ it.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00492}00492\ \ \ \ \ \ \ \ \ e\ =\ SafeCalloc(1,\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structelem}{elem\_t}}));}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00493}00493\ \ \ \ \ \ \ \ \ ++cache\_size;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00494}00494\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00495}00495\ \ \ \ \ \textcolor{comment}{/*\ Put\ new\ values\ inside.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00496}00496\ \ \ \ \ e-\/>p\ =\ p;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00497}00497\ \ \ \ \ e-\/>v\ =\ v;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00498}00498\ \ \ \ \ e-\/>r\ =\ r;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00499}00499\ \ \ \ \ \textcolor{comment}{/*\ Insert\ as\ new\ head\ of\ linked\ list.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00500}00500\ \ \ \ \ e-\/>d\_prev\ =\ head;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00501}00501\ \ \ \ \ e-\/>d\_next\ =\ head-\/>d\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00502}00502\ \ \ \ \ head-\/>d\_next\ =\ e;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00503}00503\ \ \ \ \ e-\/>d\_next-\/>d\_prev\ =\ e;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00504}00504\ \ \ \ \ \textcolor{comment}{/*\ Insert\ into\ hash\ table\ at\ SLOT.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00505}00505\ \ \ \ \ e-\/>s\_next\ =\ hash\_table[slot];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00506}00506\ \ \ \ \ hash\_table[slot]\ =\ e;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00507}00507\ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00509}00509\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ sharddb\_cache\_get(VALUE\ *v,\ REMOTENESS\ *r,\ POSITION\ p)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00510}00510\ \ \ \ \ \textcolor{comment}{/*\ Look\ inside\ cache\ first.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00511}00511\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ slot\ =\ p\ \%\ NUM\_BUCKETS;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00512}00512\ \ \ \ \ \mbox{\hyperlink{structelem}{elem\_t}}\ *walker\ =\ hash\_table[slot];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00513}00513\ \ \ \ \ \textcolor{keywordflow}{while}\ (walker)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00514}00514\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (walker-\/>p\ ==\ p)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00515}00515\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Cache\ hit,\ read\ from\ cache\ and\ bring\ element\ to\ head.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00516}00516\ \ \ \ \ \ \ \ \ \ \ \ \ *v\ =\ walker-\/>v;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00517}00517\ \ \ \ \ \ \ \ \ \ \ \ \ *r\ =\ walker-\/>r;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00518}00518\ \ \ \ \ \ \ \ \ \ \ \ \ walker-\/>d\_next-\/>d\_prev\ =\ walker-\/>d\_prev;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00519}00519\ \ \ \ \ \ \ \ \ \ \ \ \ walker-\/>d\_prev-\/>d\_next\ =\ walker-\/>d\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00520}00520\ \ \ \ \ \ \ \ \ \ \ \ \ walker-\/>d\_prev\ =\ head;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00521}00521\ \ \ \ \ \ \ \ \ \ \ \ \ walker-\/>d\_next\ =\ head-\/>d\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00522}00522\ \ \ \ \ \ \ \ \ \ \ \ \ head-\/>d\_next\ =\ walker;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00523}00523\ \ \ \ \ \ \ \ \ \ \ \ \ walker-\/>d\_next-\/>d\_prev\ =\ walker;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00524}00524\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00525}00525\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00526}00526\ \ \ \ \ \ \ \ \ walker\ =\ walker-\/>s\_next;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00527}00527\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00528}00528\ \ \ \ \ \textcolor{comment}{/*\ Cache\ miss,\ read\ from\ disk\ and\ put\ in\ cache.\ */}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00529}00529\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ key\ =\ p\ \&\ 0xFFFFFFFFFFFFF;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00530}00530\ \ \ \ \ gzFile\ file\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00531}00531\ \ \ \ \ \textcolor{keywordtype}{int}\ shardId,\ leading3digits;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00532}00532\ \ \ \ \ getShardIDAndLeading3Digits(\&shardId,\ \&leading3digits,\ key);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00533}00533\ \ \ \ \ key\ \&=\ ((1ULL\ <<\ 28)\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00534}00534\ \ \ \ \ \textcolor{keywordtype}{char}\ filename[100];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00535}00535\ \ \ \ \ snprintf(filename,\ 100,\ \textcolor{stringliteral}{"{}./data/mconnect4\_\%d\_sharddb/\%d/solved-\/\%d.gz"{}},\ getOption(),\ leading3digits,\ shardId);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00536}00536\ \ \ \ \ file\ =\ gzopen(filename,\ \textcolor{stringliteral}{"{}rb"{}});}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00537}00537\ \ \ \ \ \textcolor{keywordflow}{if}\ (!file)\ \{}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00538}00538\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00539}00539\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00540}00540\ \ \ \ \ \textcolor{keywordtype}{char}\ *gzbuffer\ =\ (\textcolor{keywordtype}{char}\ *)\ calloc(MAX\_C4\_SHARD\_SIZE,\ 1);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00541}00541\ \ \ \ \ gzread(file,\ gzbuffer,\ MAX\_C4\_SHARD\_SIZE);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00542}00542\ \ \ \ \ gzclose(file);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00543}00543\ \ \ \ \ \textcolor{keywordtype}{char}\ size\ =\ 28;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00544}00544\ \ \ \ \ POSITION\ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00545}00545\ \ \ \ \ size\ =\ gzbuffer[i++];}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00546}00546\ \ \ \ \ \textcolor{keywordtype}{char}\ res\ =\ initializesegment(0,\ gzbuffer,\ size,\ key,\ \&i);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00547}00547\ \ \ \ \ SafeFree(gzbuffer);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00548}00548\ \ \ \ \ getValueRemotenessFromByte(v,\ r,\ res);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00549}00549\ \ \ \ \ sharddb\_cache\_put(p,\ *v,\ *r);}
+\DoxyCodeLine{\Hypertarget{sharddb_8c_source_l00550}00550\ \}}
+
+\end{DoxyCode}

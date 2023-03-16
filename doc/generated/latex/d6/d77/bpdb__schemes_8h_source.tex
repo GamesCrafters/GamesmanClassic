@@ -1,0 +1,128 @@
+\hypertarget{bpdb__schemes_8h_source}{}\doxysection{bpdb\+\_\+schemes.\+h}
+\label{bpdb__schemes_8h_source}\index{src/core/bpdb\_schemes.h@{src/core/bpdb\_schemes.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ bpdb\_schemes.h}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ \ \ \ Accessor\ functions\ for\ encoding\ and\ decoding\ schemes}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00006}00006\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ used\ in\ the\ Bit-\/Perfect\ Database}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00007}00007\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00008}00008\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ Ken\ Elkabany}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ \ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00010}00010\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00012}00012\ \textcolor{comment}{**\ DATE:\ \ \ \ 2006-\/05-\/01}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00013}00013\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00014}00014\ \textcolor{comment}{**\ LICENSE:\ \ \ \ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00016}00016\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00017}00017\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00018}00018\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00019}00019\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00020}00020\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00021}00021\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00022}00022\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00023}00023\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00024}00024\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00025}00025\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00026}00026\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00027}00027\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00028}00028\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00029}00029\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00030}00030\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00031}00031\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00032}00032\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00034}00034\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_BPDB\_SCHEMES\_H}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00035}00035\ \textcolor{preprocessor}{\#define\ GMCORE\_BPDB\_SCHEMES\_H}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00037}00037\ \textcolor{comment}{//\#include\ "{}bpdb.h"{}}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00038}00038\ \textcolor{preprocessor}{\#include\ "{}bpdb\_misc.h"{}}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00040}\mbox{\hyperlink{structdbscheme}{00040}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{structdbscheme}{dbscheme}}\ \{}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00041}00041\ \ \ \ \ \textcolor{comment}{//\ numeric\ identifier}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00042}00042\ \ \ \ \ UINT32\ id;}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00044}00044\ \ \ \ \ \textcolor{comment}{//\ functional\ pointer\ to\ calculate\ the\ number\ of\ consecutive\ 1s}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00045}00045\ \ \ \ \ \textcolor{comment}{//\ needed\ to\ encode\ the\ number\ of\ skipped\ slices}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00046}00046\ \ \ \ \ UINT8\ (*varnum\_gap\_bits)(\ UINT64\ consecutiveSkips\ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00048}00048\ \ \ \ \ \textcolor{comment}{//\ functional\ pointer\ to\ calculate\ the\ number\ of\ bits\ that\ are\ used}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00049}00049\ \ \ \ \ \textcolor{comment}{//\ to\ encode\ the\ size\ of\ the\ gap}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00050}00050\ \ \ \ \ UINT8\ (*varnum\_size\_bits)(\ UINT8\ leftBits\ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00052}00052\ \ \ \ \ \textcolor{comment}{//\ functional\ pointer\ to\ calculate\ the\ number\ of\ skipped\ slices}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00053}00053\ \ \ \ \ \textcolor{comment}{//\ implicit\ in\ the\ number\ of\ bits\ used\ to\ encode\ the\ size\ of\ the\ gap}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00054}00054\ \ \ \ \ UINT64\ (*varnum\_implicit\_amt)(\ UINT8\ leftBits\ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00056}00056\ \ \ \ \ void\ (*varnum\_free)(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00058}00058\ \ \ \ \ \textcolor{comment}{//\ whether\ or\ not\ this\ scheme\ performs\ variable-\/skips\ encoding}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00059}00059\ \ \ \ \ BOOLEAN\ indicator;}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00061}00061\ \ \ \ \ \textcolor{comment}{//\ whether\ or\ not\ this\ scheme\ should\ be\ used\ for\ encoding\ dbs}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00062}00062\ \ \ \ \ BOOLEAN\ save;}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00064}00064\ \}\ *\mbox{\hyperlink{structdbscheme}{SCHEME}};}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00066}00066\ \mbox{\hyperlink{structdbscheme}{SCHEME}}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00067}00067\ scheme\_new(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00068}00068\ \ \ \ \ \ \ \ \ UINT32\ \textcolor{keywordtype}{id},}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00069}00069\ \ \ \ \ \ \ \ \ UINT8\ (*varnum\_gap\_bits)(\ UINT64\ consecutiveSkips\ ),}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00070}00070\ \ \ \ \ \ \ \ \ UINT8\ (*varnum\_size\_bits)(\ UINT8\ leftBits\ ),}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00071}00071\ \ \ \ \ \ \ \ \ UINT64\ (*varnum\_implicit\_amt)(\ UINT8\ leftBits\ ),}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ (*varnum\_init)(\ ),}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00073}00073\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ (*varnum\_free)(\ ),}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00074}00074\ \ \ \ \ \ \ \ \ BOOLEAN\ indicator,}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00075}00075\ \ \ \ \ \ \ \ \ BOOLEAN\ save}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00076}00076\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00078}00078\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00079}00079\ scheme\_free(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00080}00080\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdbscheme}{SCHEME}}\ s}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00081}00081\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00083}00083\ \textcolor{keyword}{extern}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00084}00084\ UINT64\ *bpdb\_generic\_varnum\_precomputed\_gap\_bits;}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00086}00086\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00087}00087\ bpdb\_generic\_varnum\_init(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00089}00089\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00090}00090\ bpdb\_generic\_varnum\_free(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00092}00092\ UINT8}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00093}00093\ bpdb\_generic\_varnum\_gap\_bits(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00094}00094\ \ \ \ \ \ \ \ \ UINT64\ consecutiveSkips}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00095}00095\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00097}00097\ UINT64}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00098}00098\ bpdb\_generic\_varnum\_implicit\_amt(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00099}00099\ \ \ \ \ \ \ \ \ UINT8\ leftBits}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00100}00100\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00102}00102\ UINT8}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00103}00103\ bpdb\_generic\_varnum\_size\_bits(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00104}00104\ \ \ \ \ \ \ \ \ UINT8\ leftBits}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00105}00105\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00107}00107\ UINT8}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00108}00108\ bpdb\_ken\_varnum\_gap\_bits(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00109}00109\ \ \ \ \ \ \ \ \ UINT64\ consecutiveSkips}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00110}00110\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00112}00112\ UINT64}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00113}00113\ bpdb\_ken\_varnum\_implicit\_amt(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00114}00114\ \ \ \ \ \ \ \ \ UINT8\ leftBits}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00115}00115\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00117}00117\ UINT8}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00118}00118\ bpdb\_ken\_varnum\_size\_bits(}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00119}00119\ \ \ \ \ \ \ \ \ UINT8\ leftBits}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00120}00120\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{bpdb__schemes_8h_source_l00122}00122\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_BPDB\_SCHEME\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

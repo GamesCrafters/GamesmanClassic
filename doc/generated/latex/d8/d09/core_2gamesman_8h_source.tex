@@ -1,0 +1,71 @@
+\hypertarget{core_2gamesman_8h_source}{}\doxysection{gamesman.\+h}
+\label{core_2gamesman_8h_source}\index{src/core/gamesman.h@{src/core/gamesman.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_GAMESMAN\_H}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ GMCORE\_GAMESMAN\_H}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <ctype.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <sys/types.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <sys/socket.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00013}00013\ \textcolor{preprocessor}{\#include\ <sys/un.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00014}00014\ \textcolor{preprocessor}{\#include\ <sys/utsname.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00015}00015\ \textcolor{preprocessor}{\#include\ <strings.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00016}00016\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00017}00017\ \textcolor{preprocessor}{\#include\ <unistd.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00018}00018\ \textcolor{preprocessor}{\#include\ <fcntl.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00019}00019\ \textcolor{preprocessor}{\#include\ <stdarg.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00020}00020\ \textcolor{preprocessor}{\#include\ <errno.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00022}00022\ \textcolor{preprocessor}{\#include\ <sys/time.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00023}00023\ \textcolor{preprocessor}{\#include\ <limits.h>}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00024}00024\ \textcolor{preprocessor}{\#include\ "{}types.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00025}00025\ \textcolor{preprocessor}{\#include\ "{}hash.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00026}00026\ \textcolor{preprocessor}{\#include\ "{}hashwindow.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00027}00027\ \textcolor{preprocessor}{\#include\ "{}db.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00028}00028\ \textcolor{preprocessor}{\#include\ "{}analysis.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00029}00029\ \textcolor{preprocessor}{\#include\ "{}visualization.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00030}00030\ \textcolor{preprocessor}{\#include\ "{}openPositions.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00031}00031\ \textcolor{preprocessor}{\#include\ "{}constants.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}globals.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}debug.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}gameplay.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00035}00035\ \textcolor{preprocessor}{\#include\ "{}misc.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00036}00036\ \textcolor{preprocessor}{\#include\ "{}textui.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00037}00037\ \textcolor{preprocessor}{\#include\ "{}mlib.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00038}00038\ \textcolor{preprocessor}{\#include\ "{}interact.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00039}00039\ \textcolor{preprocessor}{\#include\ "{}main.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00040}00040\ \textcolor{preprocessor}{\#include\ "{}seval.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00042}00042\ \textcolor{comment}{/*\ For\ memory\ debugging\ */}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00043}00043\ \textcolor{preprocessor}{\#include\ "{}memwatch.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00045}00045\ \textcolor{comment}{/*\ function\ prototypes\ implemented\ in\ the\ module\ code\ */}}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00047}00047\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InitializeGame\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00048}00048\ POSITION\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DoMove\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ thePosition,\ MOVE\ theMove);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00049}00049\ POSITION\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GetInitialPosition\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00050}00050\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintComputersMove\ \ \ \ \ \ \ \ \ \ \ \ \ \ (MOVE\ computersMove,\ STRING\ computersName);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00051}00051\ VALUE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Primitive\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00052}00052\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintPosition\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ position,\ STRING\ playerName,\ BOOLEAN\ usersTurn);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00053}00053\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GenerateMoves\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00054}00054\ USERINPUT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GetAndPrintPlayersMove\ \ \ \ \ \ \ \ \ \ (POSITION\ thePosition,\ MOVE*\ theMove,\ STRING\ playerName);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00055}00055\ BOOLEAN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ValidTextInput\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (STRING\ input);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00056}00056\ MOVE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ConvertTextInputToMove\ \ \ \ \ \ \ \ \ \ (STRING\ input);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00057}00057\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintMove\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (MOVE\ theMove);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00058}00058\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NumberOfOptions\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00059}00059\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ getOption\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00060}00060\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ setOption\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{int}\ option);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00061}00061\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions\ \ \ \ \ \ (\textcolor{keywordtype}{int}\ theOptions[]);}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00062}00062\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GameSpecificMenu\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00063}00063\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DebugMenu\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{core_2gamesman_8h_source_l00065}00065\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_GAMESMAN\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

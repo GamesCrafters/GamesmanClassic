@@ -1,0 +1,94 @@
+\hypertarget{mpyckle_8py_source}{}\doxysection{mpyckle.\+py}
+\label{mpyckle_8py_source}\index{src/mpyckle.py@{src/mpyckle.py}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00001}00001\ \textcolor{comment}{\#!/usr/bin/python}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00003}00003\ \textcolor{keyword}{from}\ gamesman\ \textcolor{keyword}{import}\ *}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00004}00004\ \textcolor{keyword}{from}\ output\ \textcolor{keyword}{import}\ *}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00006}\mbox{\hyperlink{classmpyckle_1_1_pyckle}{00006}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classmpyckle_1_1_pyckle}{Pyckle}}(\mbox{\hyperlink{classgamesman_1_1_game}{Game}}):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00008}00008\ \ \ \ \ kGameName\ =\ \textcolor{stringliteral}{"{}Pyckle"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00009}00009\ \ \ \ \ kAuthorName\ =\ \textcolor{stringliteral}{"{}Hal9000"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00010}00010\ \ \ \ \ kPartizan\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00011}00011\ \ \ \ \ kLoopy\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00012}00012\ \ \ \ \ kGameSpecificMenu\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00013}00013\ \ \ \ \ kTieIsPossible\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00014}00014\ \ \ \ \ kDebugDetermineValue\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00015}00015\ \ \ \ \ kDebugMenu\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00016}00016\ \ \ \ \ kHelpGraphicInterface\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00017}00017\ \ \ \ \ kHelpTextInterface\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00018}00018\ \ \ \ \ kHelpOnYourTurn\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00019}00019\ \ \ \ \ kHelpStandardObjective\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00020}00020\ \ \ \ \ kHelpReverseObjective\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00021}00021\ \ \ \ \ kHelpTieOccursWhen\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00022}00022\ \ \ \ \ kHelpExample\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00023}00023\ \ \ \ \ kDBName\ =\ \textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00024}00024\ \ \ \ \ kBadPosition\ =\ 65536\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Sloppy\ syntax,\ should\ be\ 256L\ but\ is\ converted\ in\ superclass\ when\ exported}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00025}00025\ \ \ \ \ gInitialPosition\ =\ 0\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00026}00026\ \ \ \ \ gNumberOfPositions\ =\ 65536L\ \ \ \ \ \textcolor{comment}{\#\ Correct\ syntax\ since\ POSITION\ is\ long\ in\ python}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{def\ }PrintPosition(self,\ position,\ playerName,\ usersTurn):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00029}00029\ \ \ \ \ \ \ \ \ output=\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00030}00030\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ cell\ \textcolor{keywordflow}{in}\ range(0,\ 16,\ 2):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \ \ \ \ output\ +=\ yellow(\textcolor{stringliteral}{"{}["{}})\ +\ \{0:\textcolor{stringliteral}{"{}\ "{}},\ 1:blue(\textcolor{stringliteral}{"{}x"{}}),\ 2:red(\textcolor{stringliteral}{"{}*"{}})\}[(position\ >>\ cell)\ \&\ 3]\ +\ yellow(\textcolor{stringliteral}{"{}]"{}})}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00032}00032\ \ \ \ \ \ \ \ \ output\ +=\ \textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t("{}}\ +\ playerName\ +\ \textcolor{stringliteral}{"{}'s\ unit\ is\ "{}}\ +\ \{\textcolor{keyword}{True}:blue(\textcolor{stringliteral}{"{}x"{}}),\ \textcolor{keyword}{False}:red(\textcolor{stringliteral}{"{}*"{}})\}[usersTurn]\ +\ \textcolor{stringliteral}{"{})"{}}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{print}\ output}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00034}00034\ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00035}00035\ \ \ \ \ \textcolor{keyword}{def\ }GenerateMoves(self,\ position):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00036}00036\ \ \ \ \ \ \ \ \ movelist\ =\ []}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ cell\ \textcolor{keywordflow}{in}\ range(0,\ 16,\ 2):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((position\ >>\ cell)\ \&\ 3)\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ movelist.append(cell/2)}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ movelist}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00042}00042\ \ \ \ \ \textcolor{keyword}{def\ }PrintPrompt(self,\ position,\ playerName):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00043}00043\ \ \ \ \ \ \ \ \ sys.stdout.write(\textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ +\ playerName\ +\ \textcolor{stringliteral}{"{}'s\ move\ [(undo)/[0-\/7]]\ "{}})}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ sys.stdout.flush()}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00046}00046\ \ \ \ \ \textcolor{keyword}{def\ }PrintMove(self,\ move):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ sys.stdout.write(str(move));}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00048}00048\ \ \ \ \ \ \ \ \ sys.stdout.flush();}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00050}00050\ \ \ \ \ \textcolor{keyword}{def\ }PrintComputersMove(self,\ move,\ computerName):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{print}\ computerName\ +\ \textcolor{stringliteral}{"{}'s\ move\ was:\ "{}}\ +\ str(move)}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00053}00053\ \ \ \ \ \textcolor{keyword}{def\ }ValidTextInput(self,\ input):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00054}00054\ \ \ \ \ \ \ \ \ valid\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ move\ =\ int(input)}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ move\ <\ 16\ \textcolor{keywordflow}{and}\ move\ >\ -\/1:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ valid\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ valid}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00062}00062\ \ \ \ \ \textcolor{keyword}{def\ }ConvertTextInputToMove(self,\ input):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ int(input)}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00065}00065\ \ \ \ \ \textcolor{keyword}{def\ }DoMove(self,\ position,\ move):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ players\ =\ \{0:0,\ 1:0,\ 2:0\}}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ cell\ \textcolor{keywordflow}{in}\ range(0,\ 16,\ 2):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ players[(position\ >>\ cell)\ \&\ 3]\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ position\ |=\ (\ \{\textcolor{keyword}{True}:2,\ \textcolor{keyword}{False}:1\}[players[1]\ >\ players[2]]\ )\ <<\ 2*move}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ position}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00072}00072\ \ \ \ \ \textcolor{keyword}{def\ }Primitive(self,\ position):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ previous\ =\ 0}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ blanks\ =\ 0}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ cell\ \textcolor{keywordflow}{in}\ range(0,\ 16,\ 2):}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ current\ =\ (position\ >>\ cell)\ \&\ 3}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ current\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ blanks\ +=\ 1}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{elif}\ previous\ ==\ current:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ lose}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ previous\ =\ current}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ blanks\ ==\ 0:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tie}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ undecided}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00087}00087\ \textcolor{keywordflow}{if}\ \_\_name\_\_\ ==\ \textcolor{stringliteral}{"{}\_\_main\_\_"{}}:}
+\DoxyCodeLine{\Hypertarget{mpyckle_8py_source_l00088}00088\ \ \ \ \ \mbox{\hyperlink{classmpyckle_1_1_pyckle}{Pyckle}}()}
+
+\end{DoxyCode}

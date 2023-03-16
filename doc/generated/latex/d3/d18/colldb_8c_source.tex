@@ -1,0 +1,364 @@
+\hypertarget{colldb_8c_source}{}\doxysection{colldb.\+c}
+\label{colldb_8c_source}\index{src/core/colldb.c@{src/core/colldb.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ coldb.c}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Accessor\ functions\ for\ the\ in-\/memory\ database.}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}colldb.h"{}}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00035}00035\ \textcolor{comment}{/*\ this\ defines\ the\ maximum\ number\ of\ bits\ that\ can\ be\ in\ the\ hash\ field}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00036}00036\ \textcolor{comment}{\ *\ of\ a\ position.}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00037}00037\ \textcolor{comment}{\ *\ (thus\ limiting\ the\ maximum\ length\ of\ the\ hash\ array\ to\ be\ (2\string^HASH\_FIELD\_MAX)*40\ bits)}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00038}00038\ \textcolor{comment}{\ *\ the\ maximum\ size\ of\ the\ db\ should\ be}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00039}00039\ \textcolor{comment}{\ *\ (2\string^HASH\_FIELD\_MAX)*32\ +\ (2\string^HASH\_FIELD\_MAX\ +\ 8)*40}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00040}00040\ \textcolor{comment}{\ *\ the\ first\ term\ needs\ to\ be\ continuous\ space,\ the\ second\ one\ consists\ of\ sparse\ 40-\/bit\ spaces}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00041}00041\ \textcolor{comment}{\ *\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ hand\ tuning\ with\ big\ games\ possible\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00042}00042\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00043}00043\ \textcolor{preprocessor}{\#define\ HASH\_FIELD\_MAX\ 16}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00045}00045\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ colldb\_free\ ();}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00047}00047\ \textcolor{comment}{/*\ Value\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00048}00048\ VALUE\ \ \ \ \ \ \ \ \ \ \ colldb\_get\_value\ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00049}00049\ VALUE\ \ \ \ \ \ \ \ \ \ \ colldb\_set\_value\ \ \ \ \ \ \ \ (POSITION\ pos,\ VALUE\ val);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00051}00051\ \textcolor{comment}{/*\ Remoteness\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00052}00052\ REMOTENESS\ \ \ \ \ \ colldb\_get\_remoteness\ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00053}00053\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ colldb\_set\_remoteness\ \ \ (POSITION\ pos,\ REMOTENESS\ val);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00055}00055\ \textcolor{comment}{/*\ Visited\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00056}00056\ BOOLEAN\ \ \ \ \ \ \ \ \ colldb\_check\_visited\ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00057}00057\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ colldb\_mark\_visited\ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00058}00058\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ colldb\_unmark\_visited\ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00060}00060\ \textcolor{comment}{/*\ Mex\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00061}00061\ MEX\ \ \ \ \ \ \ \ \ \ \ \ \ colldb\_get\_mex\ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00062}00062\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ colldb\_set\_mex\ \ \ \ \ \ \ \ \ \ (POSITION\ pos,\ MEX\ mex);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00065}00065\ \textcolor{comment}{/*\ the\ concept\ here\ is\ to\ divide\ the\ POSITION\ into\ two\ fields\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00067}00067\ \textcolor{comment}{/*\ 00000000000000000000000000000000}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00068}00068\ \textcolor{comment}{\ *\ |\ key\ \ |\ \ \ \ \ \ hash\ index\ \ \ \ \ \ \ |}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00069}00069\ \textcolor{comment}{\ *\ The\ key\ is\ stored\ in\ the\ chain\ hanging\ off\ the\ bucket}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00070}00070\ \textcolor{comment}{\ *\ the\ hash\ index\ determines\ which\ bucket\ the\ POSITION\ goes\ in.}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00071}00071\ \textcolor{comment}{\ *\ the\ database\ always\ try\ to\ minimize\ the\ hash\ index\ for\ maximum\ capacity}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00072}00072\ \textcolor{comment}{\ *\ due\ to\ memory\ restrictions\ the\ hash\ index\ may\ reach\ its\ theoretical}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00073}00073\ \textcolor{comment}{\ *\ maximum\ around\ 2\string^20\ (because\ the\ array\ needs\ continuous\ space)}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00074}00074\ \textcolor{comment}{\ *\ so\ this\ db\ may\ not\ make\ do\ with\ all\ 64\ bits\ of\ the\ POSITION}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00075}00075\ \textcolor{comment}{\ *\ but\ it\ is\ better\ than\ the\ array\ db,\ since\ it\ has\ more\ tolerance}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00076}00076\ \textcolor{comment}{\ *\ for\ fragmentation}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00077}00077\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00079}00079\ \textcolor{comment}{/*\ Collision\ Specific\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00080}\mbox{\hyperlink{structcolldb__node}{00080}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcolldb__node}{colldb\_node}}\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00082}00082\ \ \ \ \ VALUE\ myValue;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00083}00083\ \ \ \ \ \textcolor{keywordtype}{char}\ myPos;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00084}00084\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcolldb__node}{colldb\_node}}\ *next;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00086}00086\ \}\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}};}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00088}00088\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *colldb\_find\_pos(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00089}00089\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *colldb\_make\_node(POSITION\ pos,\ VALUE\ val,\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *next);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00090}00090\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *colldb\_add\_node(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00092}00092\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}**\ colldb\_hash\_table;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00094}00094\ POSITION\ colldb\_num\_allocated;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00095}00095\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ hash\_field\_len;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00096}00096\ POSITION\ hash\_mask;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00098}00098\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ hitcount;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00099}00099\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ accesscount;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00100}00100\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ remotecount;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00101}00101\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ visitcount;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00102}00102\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00103}00103\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00104}00104\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00106}00106\ \textcolor{comment}{/*\ this\ guarantees\ that\ in\ the\ case\ of\ a\ tight\ hash,}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00107}00107\ \textcolor{comment}{\ *\ and\ all\ POSITIONs\ are\ valid,}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00108}00108\ \textcolor{comment}{\ *\ each\ bucket\ contains\ as\ many\ POSITIONs\ as\ possible}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00109}00109\ \textcolor{comment}{\ *\ (all\ 2\string^8\ keys\ allowed\ are\ utilized)}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00110}00110\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00111}00111\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ calc\_field\_len(POSITION\ total)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00112}00112\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00113}00113\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ shamt\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{while}\ (total\ >\ ((1<<8)-\/1))\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ total\ =\ total\ >>\ 1;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ shamt++;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00118}00118\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00120}00120\ \ \ \ \ \textcolor{keywordflow}{if}\ (shamt\ >\ HASH\_FIELD\_MAX)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ hash\ index\ field\ exceeds\ a\ predefined\ value\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}this\ is\ probably\ too\ big\ to\ be\ handled\ by\ the\ collision\ database.\ I\ give\ up.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00125}00125\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00127}00127\ \ \ \ \ \textcolor{keywordflow}{return}\ shamt;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00128}00128\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00131}00131\ \textcolor{keywordtype}{void}\ colldb\_init(\mbox{\hyperlink{struct_d_b}{DB\_Table}}\ *new\_db)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00132}00132\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00133}00133\ \ \ \ \ hitcount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00134}00134\ \ \ \ \ hash\_field\_len\ =\ calc\_field\_len(gNumberOfPositions);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00135}00135\ \ \ \ \ hash\_mask\ =\ (1\ <<\ hash\_field\_len)\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00136}00136\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00137}00137\ \textcolor{comment}{\ *\ \ \ POSITION\ temp\ =\ hash\_mask;}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00138}00138\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00139}00139\ \textcolor{comment}{\ *\ \ \ \ printf("{}hash\_mask\ =\ "{});}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00140}00140\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00141}00141\ \textcolor{comment}{\ *\ \ \ \ while(temp\ >\ 1)\ \{}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00142}00142\ \textcolor{comment}{\ *\ \ \ \ \ \ printf("{}\%d"{},\ (int)(temp\ \&\ 1));}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00143}00143\ \textcolor{comment}{\ *\ \ \ \ \ \ temp\ =\ temp\ >>\ 1;}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00144}00144\ \textcolor{comment}{\ *\ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00145}00145\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00146}00146\ \textcolor{comment}{\ *\ \ \ \ printf("{}\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00147}00147\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00148}00148\ \ \ \ \ \textcolor{comment}{//setup\ internal\ memory\ table}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00149}00149\ \ \ \ \ colldb\_hash\_table\ =\ (\mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ **)\ SafeMalloc\ ((1\ <<\ hash\_field\_len)\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}*));}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00150}00150\ \ \ \ \ \textcolor{comment}{//printf("{}initalizing\ collision\ database.\ \%d\ rows\ allocated.\(\backslash\)n"{},colldb\_HASHSIZE);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00152}00152\ \ \ \ \ memset(colldb\_hash\_table,\ 0x0000,\ (1\ <<\ hash\_field\_len)\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}*));}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00154}00154\ \ \ \ \ \textcolor{comment}{//set\ function\ pointers}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00155}00155\ \ \ \ \ new\_db-\/>get\_value\ =\ colldb\_get\_value;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00156}00156\ \ \ \ \ new\_db-\/>put\_value\ =\ colldb\_set\_value;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00157}00157\ \ \ \ \ new\_db-\/>get\_remoteness\ =\ colldb\_get\_remoteness;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00158}00158\ \ \ \ \ new\_db-\/>put\_remoteness\ =\ colldb\_set\_remoteness;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00159}00159\ \ \ \ \ new\_db-\/>check\_visited\ =\ colldb\_check\_visited;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00160}00160\ \ \ \ \ new\_db-\/>mark\_visited\ =\ colldb\_mark\_visited;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00161}00161\ \ \ \ \ new\_db-\/>unmark\_visited\ =\ colldb\_unmark\_visited;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00162}00162\ \ \ \ \ new\_db-\/>get\_mex\ =\ colldb\_get\_mex;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00163}00163\ \ \ \ \ new\_db-\/>put\_mex\ =\ colldb\_set\_mex;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00165}00165\ \ \ \ \ new\_db-\/>free\_db\ =\ colldb\_free;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00167}00167\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00168}00168\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00170}00170\ \textcolor{keywordtype}{void}\ colldb\_free()\{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00172}00172\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00173}00173\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *next,\ *cur;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{if}(colldb\_hash\_table)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<(1\ <<\ hash\_field\_len);\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ cur\ =\ colldb\_hash\_table[i];}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(cur\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ next\ =\ cur-\/>next;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(cur);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cur\ =\ next;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ SafeFree(colldb\_hash\_table);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00185}00185\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00186}00186\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00188}00188\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *colldb\_find\_pos(POSITION\ position)\{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00190}00190\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00191}00191\ \ \ \ \ \textcolor{keywordtype}{char}\ key;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00192}00192\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *cur;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00194}00194\ \ \ \ \ key\ =\ (char)\ (position\ >>\ hash\_field\_len);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00195}00195\ \ \ \ \ i\ =\ position\ \&\ hash\_mask;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00196}00196\ \ \ \ \ cur\ =\ colldb\_hash\_table[i];}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{while}(cur\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(cur-\/>myPos\ ==\ key)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00201}00201\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ hitcount++;}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00202}00202\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ if(hitcount\%1000\ ==\ 0)\{}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00203}00203\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ \ printf("{}hit:\ \%d,\ access:\ \%d,\ visit:\ \%d,\ remote:\ \%d\(\backslash\)n"{},hitcount,accesscount,visitcount,remotecount);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00204}00204\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\}}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00205}00205\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ cur;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ cur\ =\ cur-\/>next;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00209}00209\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00212}00212\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00214}00214\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}*\ colldb\_make\_node(POSITION\ pos,\ VALUE\ val,\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *next)\{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00216}00216\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ (\mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}));}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00218}00218\ \ \ \ \ ptr-\/>myPos\ =\ (char)\ (pos\ >>\ hash\_field\_len);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00219}00219\ \ \ \ \ ptr-\/>myValue\ =\ val;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00220}00220\ \ \ \ \ ptr-\/>next\ =\ next;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00221}00221\ \ \ \ \ colldb\_num\_allocated++;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00222}00222\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00223}00223\ \textcolor{comment}{\ \ \ \ \ *\ if(colldb\_num\_allocated\ \%\ 100\ ==\ 0)\{}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00224}00224\ \textcolor{comment}{\ \ \ \ \ *\ \ printf("{}number\ allocated:\ "{}POSITION\_FORMAT"{}\(\backslash\)n"{},colldb\_num\_allocated);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00225}00225\ \textcolor{comment}{\ \ \ \ \ *\ \ fflush(NULL);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00226}00226\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00227}00227\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00228}00228\ \ \ \ \ \textcolor{keywordflow}{return}\ ptr;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00229}00229\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00230}00230\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00231}00231\ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *colldb\_add\_node(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00232}00232\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00233}00233\ \ \ \ \ POSITION\ i\ =\ position\ \&\ hash\_mask;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00235}00235\ \ \ \ \ colldb\_hash\_table[i]\ =\ colldb\_make\_node(position,\ undecided,\ colldb\_hash\_table[i]);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00237}00237\ \ \ \ \ \textcolor{keywordflow}{return}\ colldb\_hash\_table[i];}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00238}00238\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00240}00240\ VALUE\ colldb\_set\_value(POSITION\ pos,\ VALUE\ val)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00241}00241\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00242}00242\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00243}00243\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00244}00244\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00245}00245\ \ \ \ \ \ \ \ \ ptr\ =\ colldb\_add\_node(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00247}00247\ \ \ \ \ ptr-\/>myValue\ =\ (ptr-\/>myValue\ \&\ \string~VALUE\_MASK)\ |\ (val\ \&\ VALUE\_MASK);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00249}00249\ \ \ \ \ \textcolor{keywordflow}{return}\ (ptr-\/>myValue\ \&\ VALUE\_MASK);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00250}00250\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00252}00252\ VALUE\ colldb\_get\_value(POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00253}00253\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00254}00254\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00256}00256\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00257}00257\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ undecided;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00258}00258\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00259}00259\ \ \ \ \ \textcolor{keywordflow}{return}\ (ptr-\/>myValue\ \&\ VALUE\_MASK);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00260}00260\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00261}00261\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00263}00263\ REMOTENESS\ colldb\_get\_remoteness(POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00264}00264\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00265}00265\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00266}00266\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00267}00267\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}HAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAHAH!!!!!\(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00270}00270\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00272}00272\ \ \ \ \ \textcolor{keywordflow}{return}\ (ptr-\/>myValue\ \&\ REMOTENESS\_MASK)\ >>\ REMOTENESS\_SHIFT;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00273}00273\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00274}00274\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00276}00276\ \textcolor{keywordtype}{void}\ colldb\_set\_remoteness\ (POSITION\ pos,\ REMOTENESS\ val)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00277}00277\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00278}00278\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00279}00279\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00280}00280\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00281}00281\ \textcolor{comment}{\ \ \ if(remoteness\ >\ REMOTENESS\_MAX)\ \{}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00282}00282\ \textcolor{comment}{\ \ \ \ printf("{}Remoteness\ request\ (\%d)\ for\ "{}\ POSITION\_FORMAT\ \ "{}\ larger\ than\ Max\ Remoteness\ (\%d)\(\backslash\)n"{},remoteness,position,REMOTENESS\_MAX);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00283}00283\ \textcolor{comment}{\ \ \ \ ExitStageRight();}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00284}00284\ \textcolor{comment}{\ \ \ \ exit(0);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00285}00285\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00286}00286\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00287}00287\ \ \ \ \ \textcolor{comment}{//printf("{}pos:\ \%llu,\ remoteness:\ \%d\(\backslash\)n"{},\ pos,\ val);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00289}00289\ \ \ \ \ ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00291}00291\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ ptr\ =\ colldb\_add\_node(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00294}00294\ \ \ \ \ ptr-\/>myValue\ =\ (ptr-\/>myValue\ \&\ \string~REMOTENESS\_MASK)\ |\ (val\ <<\ REMOTENESS\_SHIFT);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00295}00295\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00297}00297\ BOOLEAN\ colldb\_check\_visited(POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00298}00298\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00299}00299\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00300}00300\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00301}00301\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00304}00304\ \ \ \ \ \textcolor{comment}{//printf("{}check\ pos:\ \%llu,\ \%d\(\backslash\)n"{},\ pos,\ ptr-\/>myValue\ \&\ VISITED\_MASK);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00305}00305\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00306}00306\ \ \ \ \ \textcolor{keywordflow}{return}\ ((ptr-\/>myValue\ \&\ VISITED\_MASK)\ ==\ VISITED\_MASK);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00307}00307\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00308}00308\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00309}00309\ \textcolor{keywordtype}{void}\ colldb\_mark\_visited\ (POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00310}00310\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00311}00311\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00312}00312\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ ptr\ =\ colldb\_add\_node(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00315}00315\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00316}00316\ \ \ \ \ \textcolor{comment}{//printf("{}mark\ pos:\ \%llu\(\backslash\)n"{},\ pos);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00317}00317\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00318}00318\ \ \ \ \ ptr-\/>myValue\ =\ ptr-\/>myValue\ |\ VISITED\_MASK;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00319}00319\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00320}00320\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00321}00321\ \textcolor{keywordtype}{void}\ colldb\_unmark\_visited\ (POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00322}00322\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00323}00323\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00325}00325\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00326}00326\ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}this\ should\ never\ happen!!!\ unmark\_visited\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00327}00327\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00328}00328\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00329}00329\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00330}00330\ \ \ \ \ \textcolor{comment}{//printf("{}unmark\ pos:\ \%llu\(\backslash\)n"{},\ pos);}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00332}00332\ \ \ \ \ ptr-\/>myValue\ =\ ptr-\/>myValue\ \&\ \string~VISITED\_MASK;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00333}00333\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00335}00335\ \textcolor{keywordtype}{void}\ colldb\_set\_mex(POSITION\ pos,\ MEX\ mex)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00336}00336\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00337}00337\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00339}00339\ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00340}00340\ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}this\ should\ never\ happen,\ but\ I\ will\ do\ it\ anyway.\ set\_mex\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00341}00341\ \ \ \ \ \ \ \ \ ptr\ =\ colldb\_add\_node(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00342}00342\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00343}00343\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00344}00344\ \ \ \ \ ptr-\/>myValue\ =\ (ptr-\/>myValue\ \&\ (\string~MEX\_MASK))\ |\ (mex\ <<\ MEX\_SHIFT);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00345}00345\ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00346}00346\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00347}00347\ MEX\ colldb\_get\_mex(POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00348}00348\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00349}00349\ \ \ \ \ \mbox{\hyperlink{structcolldb__node}{colldb\_value\_node}}\ *ptr\ =\ colldb\_find\_pos(pos);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00350}00350\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00351}00351\ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00352}00352\ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}you\ are\ trying\ to\ access\ a\ cell\ that\ is\ not\ in\ the\ db\ already.\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00353}00353\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00354}00354\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00355}00355\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00356}00356\ \ \ \ \ \textcolor{keywordflow}{return}\ (MEX)((ptr-\/>myValue\ \&\ MEX\_MASK)\ >>\ MEX\_SHIFT);}
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{colldb_8c_source_l00358}00358\ \}}
+
+\end{DoxyCode}

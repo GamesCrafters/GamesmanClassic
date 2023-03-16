@@ -1,0 +1,780 @@
+\hypertarget{interact_8c_source}{}\doxysection{interact.\+c}
+\label{interact_8c_source}\index{src/core/interact.c@{src/core/interact.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}interact.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}hashwindow.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}sharddb.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}quartodb.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <stdarg.h>}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00007}00007\ \textcolor{comment}{/*\ In\ case\ strdup\ isn't\ defined.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00008}00008\ \textcolor{keywordtype}{char}\ *\ StringDup(\ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}\ *\ s\ )\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00009}00009\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ a\ =\ (\textcolor{keywordtype}{char}\ *)SafeMalloc(strlen(s)\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00010}00010\ \ \ \ \ \textcolor{comment}{/*\ 1\ is\ for\ null\ character.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00011}00011\ \ \ \ \ \textcolor{keywordflow}{if}\ (a)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00012}00012\ \ \ \ \ \ \ \ \ strcpy(a,\ s);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00013}00013\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00014}00014\ \ \ \ \ \textcolor{keywordflow}{return}\ a;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00015}00015\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00017}00017\ \textcolor{keywordtype}{void}\ SafeFreeString(\textcolor{keywordtype}{char}\ *\ \textcolor{keywordtype}{string})\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00018}00018\ \ \ \ \ SafeFree((\textcolor{keywordtype}{void}\ *)\ \textcolor{keywordtype}{string});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00019}00019\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00021}00021\ \textcolor{keywordtype}{char}\ *\ StrFromI(\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ i\ )\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00022}00022\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ str\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc(\ 22\ );\ \textcolor{comment}{/*\ 20\ for\ 64\ bit\ number\ +\ sign\ +\ null\ character.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00023}00023\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ str\ )\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00024}00024\ \ \ \ \ \ \ \ \ sprintf(\ str,\ \textcolor{stringliteral}{"{}\%lld"{}},\ i);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00025}00025\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00026}00026\ \ \ \ \ \textcolor{keywordflow}{return}\ str;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00027}00027\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00029}00029\ \textcolor{keywordtype}{char}\ *\ TierstringFromPosition(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00030}00030\ \ \ \ \ TIER\ tier;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00031}00031\ \ \ \ \ TIERPOSITION\ tierpos;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00032}00032\ \ \ \ \ gUnhashToTierPosition(pos,\ \&tierpos,\ \&tier);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00033}00033\ \ \ \ \ \textcolor{keywordflow}{return}\ StrFromI(tier);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00034}00034\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00036}00036\ \textcolor{keywordtype}{char}\ *\ StringFormat(\textcolor{keywordtype}{size\_t}\ max\_size,\ \textcolor{keywordtype}{char}\ *\ format\_str,\ ...)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00037}00037\ \ \ \ \ va\_list\ args;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00038}00038\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ str\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc(\ max\_size\ +\ 1\ );}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00039}00039\ \ \ \ \ \textcolor{keywordflow}{if}\ (str)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00040}00040\ \ \ \ \ \ \ \ \ va\_start(args,\ format\_str);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00041}00041\ \ \ \ \ \ \ \ \ vsnprintf(str,\ max\_size\ +\ 1,\ format\_str,\ args);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00042}00042\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00043}00043\ \ \ \ \ va\_end(args);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{return}\ str;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00045}00045\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00047}00047\ STRING\ InteractPositionToString(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00048}00048\ POSITION\ InteractStringToPosition(STRING\ str);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00049}00049\ STRING\ InteractPositionToEndData(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00050}00050\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00052}00052\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{char}\ *\ AllocVa(va\_list\ lst,\ \textcolor{keywordtype}{size\_t}\ accum,\ \textcolor{keywordtype}{size\_t}\ *\ total)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00053}00053\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ key\ =\ va\_arg(lst,\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00054}00054\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ val;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00055}00055\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ out;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00056}00056\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ self\_size;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00057}00057\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ key\_size;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00058}00058\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ val\_size;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00059}00059\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ n;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00060}00060\ \ \ \ \ \textcolor{keywordflow}{if}\ (!key)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00062}00062\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ *key\ )\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ key\ is\ not\ the\ empty\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ val\ =\ va\_arg(lst,\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!val)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ key\_size\ =\ strlen(key);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ val\_size\ =\ strlen(val);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00071}00071\ \ \ \ \ \ \ \ \ self\_size\ =\ key\_size\ +\ val\_size\ +\ 2;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Request\ enough\ memory\ for\ ;key=val\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00073}00073\ \ \ \ \ \ \ \ \ out\ =\ AllocVa(\ lst,\ accum\ +\ self\_size,\ total\ );}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ out\ )\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ i\ =\ accum;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ out[i++]\ =\ \textcolor{charliteral}{';'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (n\ =\ 0;\ n\ <\ key\_size;\ n++)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ out[i\ +\ n]\ =\ key[n];}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ i\ +=\ key\_size;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ out[i++]\ =\ \textcolor{charliteral}{'='};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (n\ =\ 0;\ n\ <\ val\_size;\ n++)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ out[i\ +\ n]\ =\ val[n];}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ SafeFree(val);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00088}00088\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Base\ case,\ alloc\ the\ array.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ out\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc(accum\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (out)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ out[accum]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ *total\ =\ accum;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00096}00096\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00097}00097\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00099}00099\ \textcolor{keywordtype}{char}\ *\ MakeBoardString(\textcolor{keywordtype}{char}\ *\ first,\ ...)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00100}00100\ \ \ \ \ va\_list\ lst;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00101}00101\ \ \ \ \ va\_start(lst,\ first);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00102}00102\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ first\_len\ =\ strlen(first);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00103}00103\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ total;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00104}00104\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ out\ =\ AllocVa(lst,\ first\_len,\ \&total);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00105}00105\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ i;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{if}\ (out)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ first\_len;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (first[i]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ out[i]\ =\ \textcolor{charliteral}{'+'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ out[i]\ =\ first[i];}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00115}00115\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00116}00116\ \ \ \ \ va\_end(lst);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00117}00117\ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00118}00118\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00120}00120\ \textcolor{comment}{/*\ Reads\ a\ position\ from\ stdin,\ returns\ NULL\ on\ error.\ Otherwise,\ returns\ a}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00121}00121\ \textcolor{comment}{\ *\ pointer\ to\ the\ rest\ of\ the\ string.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00122}00122\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00123}00123\ STRING\ InteractReadPosition(STRING\ input,\ POSITION\ *\ result)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00124}00124\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ next\_word\ =\ strchr(input,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00125}00125\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ end\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{if}\ (!next\_word)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ missing\ position\ in\ \%s\ request"{}},\ input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00129}00129\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00130}00130\ \ \ \ \ *result\ =\ strtoul(next\_word,\ \&end,\ 10);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00131}00131\ \ \ \ \ \textcolor{comment}{/*\ POSITION\ might\ be\ larger\ than\ unsigned\ long,}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00132}00132\ \textcolor{comment}{\ \ \ \ \ *\ in\ which\ case\ the\ above\ line\ needs\ to\ be\ changed.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00133}00133\ \textcolor{comment}{\ \ \ \ \ *\ Unfortunately,\ the\ C\ standard\ provides\ no\ stroull.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00134}00134\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{return}\ end;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00136}00136\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00138}00138\ \textcolor{comment}{/*\ Reads\ a\ long\ from\ stdin,\ returns\ NULL\ on\ error.\ Otherwise,\ returns\ a}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00139}00139\ \textcolor{comment}{\ *\ pointer\ to\ the\ rest\ of\ the\ string.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00140}00140\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00141}00141\ STRING\ InteractReadLong(STRING\ input,\ \textcolor{keywordtype}{long}\ *\ result)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00142}00142\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ next\_word\ =\ strchr(input,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00143}00143\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ end\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00144}00144\ \ \ \ \ \textcolor{keywordflow}{if}\ (!next\_word)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ missing\ expected\ integer\ in\ \%s\ request"{}},\ input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00147}00147\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00148}00148\ \ \ \ \ \textcolor{comment}{//\ Skip\ the\ space.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00149}00149\ \ \ \ \ next\_word\ =\ next\_word\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00150}00150\ \ \ \ \ printf(\textcolor{stringliteral}{"{}reading\ from\ \%s\(\backslash\)n"{}},\ next\_word);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00151}00151\ \ \ \ \ *result\ =\ strtol(next\_word,\ \&end,\ 10);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00152}00152\ \ \ \ \ \textcolor{keywordflow}{return}\ end;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00153}00153\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00155}00155\ STRING\ InteractReadBoardString(STRING\ input,\ \textcolor{keywordtype}{char}\ **\ result)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00156}00156\ \ \ \ \ \textcolor{comment}{/*\ Extract\ a\ valid\ board\ string\ surrounded\ in\ "{}}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00157}00157\ \textcolor{comment}{\ \ \ \ \ *\ result\ will\ be\ *inside*\ input\ and\ null-\/terminated.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00158}00158\ \textcolor{comment}{\ \ \ \ \ *\ Note\ that\ input\ will\ be\ modified\ in\ the\ process.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00159}00159\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00160}00160\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ start\_of\_board\_string\ =\ strchr(input,\ \textcolor{charliteral}{'"{}'});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00161}00161\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ end\_of\_board\_string;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00162}00162\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ scan;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00163}00163\ \ \ \ \ \textcolor{keywordflow}{if}\ (!start\_of\_board\_string)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ missing\ board\ string\ in\ \%s\ request"{}},\ input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00166}00166\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00167}00167\ \ \ \ \ ++start\_of\_board\_string;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00168}00168\ \ \ \ \ end\_of\_board\_string\ =\ strchr(start\_of\_board\_string,\ \textcolor{charliteral}{'"{}'});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00169}00169\ \ \ \ \ \textcolor{keywordflow}{if}\ (!end\_of\_board\_string)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ missing\ end\ quotes\ on\ board\ string\ in\ \%s\ request"{}},\ input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00172}00172\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00173}00173\ \ \ \ \ scan\ =\ start\_of\_board\_string;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00174}00174\ \ \ \ \ *end\_of\_board\_string\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{while}\ (*scan)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (iscntrl(*scan))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Might\ want\ to\ do\ additional\ error\ checking\ here.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ incorrect\ char\ \%c\ in\ board\ string\ in\ \%s\ request"{}},\ *scan,\ input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (*scan\ ==\ \textcolor{charliteral}{'+'})\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ *scan\ =\ \textcolor{charliteral}{'\ '};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ ++scan;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00184}00184\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00185}00185\ \ \ \ \ \textcolor{comment}{/*\ Re-\/use\ the\ input\ string.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00186}00186\ \ \ \ \ *result\ =\ start\_of\_board\_string;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00187}00187\ \ \ \ \ \textcolor{comment}{/*\ Skip\ the\ null\ character.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00188}00188\ \ \ \ \ ++end\_of\_board\_string;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00189}00189\ \ \ \ \ \textcolor{keywordflow}{return}\ end\_of\_board\_string;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00190}00190\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00192}00192\ \textcolor{keywordtype}{void}\ InteractCheckErrantExtra(STRING\ input,\ \textcolor{keywordtype}{int}\ max\_words)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00193}00193\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00194}00194\ \ \ \ \ input\ =\ strchr(input,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00195}00195\ \ \ \ \ \textcolor{keywordflow}{while}\ (input\ \&\&\ ++i\ <=\ max\_words)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ ++input;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ input\ =\ strchr(input,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00198}00198\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00199}00199\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ >\ max\_words)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ errant\ extra\ input:\ \%s\(\backslash\)n"{}},\ input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00201}00201\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00202}00202\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00204}00204\ STRING\ InteractValueCharToValueString(\textcolor{keywordtype}{char}\ value\_char)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00205}00205\ \ \ \ \ \textcolor{keywordflow}{switch}(value\_char)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00206}00206\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'T'}:}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}tie"{}};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00208}00208\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'W'}:}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}win"{}};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00210}00210\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'L'}:}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}lose"{}};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'U'}:}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00213}00213\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}undecided"{}};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00214}00214\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'D'}:}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}draw"{}};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00216}00216\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}error"{}};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00218}00218\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00219}00219\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00220}00220\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00221}00221\ \textcolor{keywordtype}{void}\ InteractPrintJSONMEXValue(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00222}00222\ \ \ \ \ \textcolor{keywordflow}{if}\ (!kPartizan\ \&\&\ !gTwoBits)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}mex\(\backslash\)"{}:"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ theMex\ =\ MexLoad(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(theMex\ ==\ (MEX)\ 0)}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}0\(\backslash\)"{}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(theMex\ ==\ (MEX)1)}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}*\(\backslash\)"{}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}*\%d\(\backslash\)"{}"{}},\ (\textcolor{keywordtype}{int})theMex);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00232}00232\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00233}00233\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00235}00235\ \textcolor{keywordtype}{void}\ InteractPrintJSONPositionValue(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00236}00236\ \ \ \ \ \textcolor{keywordtype}{char}\ value\_char\ =\ gValueLetter[GetValueOfPosition(pos)];}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00237}00237\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}value\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ InteractValueCharToValueString(value\_char));}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00238}00238\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00240}00240\ \textcolor{keywordtype}{void}\ InteractFreeBoardSting(STRING\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00241}00241\ \ \ \ \ \textcolor{keywordflow}{if}\ (!strcmp(board,\ \textcolor{stringliteral}{"{}Implement\ Me"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00242}00242\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00244}00244\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00245}00245\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00247}00247\ \textcolor{keywordtype}{void}\ ServerInteractLoop(\textcolor{keywordtype}{void})\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00248}00248\ \ \ \ \ \textcolor{keywordtype}{int}\ input\_size\ =\ 512;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00249}00249\ \ \ \ \ \textcolor{keywordtype}{char}*\ input\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc(input\_size);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00250}00250\ \textcolor{preprocessor}{\ \ \ \ \#define\ RESULT\ "{}result\ =>>\ "{}}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00251}00251\ \ \ \ \ POSITION\ pos;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00252}00252\ \ \ \ \ POSITION\ choice;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00253}00253\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *all\_next\_moves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00254}00254\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *current\_move\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00255}00255\ \ \ \ \ STRING\ invalid\_board\_string\ =\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00256}00256\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)n"{}}\ RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}error\(\backslash\)"{},\(\backslash\)"{}reason\(\backslash\)"{}:\(\backslash\)"{}Invalid\ board\ string.\(\backslash\)"{}\}"{}};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00257}00257\ \ \ \ \ MOVE\ move;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00258}00258\ \ \ \ \ STRING\ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00259}00259\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ board\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *\ data\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00261}00261\ \ \ \ \ MEX\ mex\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00262}00262\ \ \ \ \ TIER\ tier\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00263}00263\ \ \ \ \ \textcolor{keywordflow}{if}\ (kSupportsShardGamesman)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00264}00264\ \ \ \ \ \ \ \ \ sharddb\_cache\_init();}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00265}00265\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00266}00266\ \ \ \ \ \textcolor{comment}{/*\ Set\ stdout\ to\ do\ by\ line\ buffering\ so\ that\ sever\ interaction\ works\ right.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00267}00267\ \textcolor{comment}{\ \ \ \ \ *\ Otherwise\ the\ "{}ready\ =>>"{}\ message\ will\ sit\ in\ the\ buffer\ forever\ while}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00268}00268\ \textcolor{comment}{\ \ \ \ \ *\ the\ server\ waits\ for\ it.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00269}00269\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00270}00270\ \ \ \ \ setvbuf(stdout,\ NULL,\ \_IOLBF,\ 1024);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00271}00271\ \ \ \ \ \textcolor{keywordflow}{while}\ (TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ memset(input,\ 0,\ input\_size);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00273}00273\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\ ready\ =>>\ "{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00274}00274\ \ \ \ \ \ \ \ \ fflush(stdout);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00275}00275\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Flush\ stdout\ so\ that\ the\ server\ knows\ the\ process\ is\ ready.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00276}00276\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ In\ other\ words,\ this\ flush\ really\ matters.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00277}00277\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!fgets(input,\ input\_size\ -\/\ 1,\ stdin))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ -\/1\ is\ to\ ensure\ input\ is\ always\ null-\/terminated.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00280}00280\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ the\ pipe\ to\ the\ server\ gets\ broken\ (probably\ though\ the\ server}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00282}00282\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ receiving\ SIGKILL)\ then\ this\ process\ needs\ to\ exit.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00283}00283\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!strchr(input,\ \textcolor{charliteral}{'\(\backslash\)n'}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ input\ too\ long"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Clear\ out\ any\ excess\ so\ that\ it\ won't\ be\ read\ in\ after\ displaying}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00289}00289\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ the\ ready\ prompt.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00290}00290\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00291}00291\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(getchar()\ !=\ \textcolor{charliteral}{'\(\backslash\)n'})\ \{\};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Clear\ the\ '\(\backslash\)n'\ so\ that\ string\ comparison\ is\ clearer.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ *strchr(input,\ \textcolor{charliteral}{'\(\backslash\)n'})\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}shutdown"{}})\ ||\ FirstWordMatches(input,\ \textcolor{stringliteral}{"{}quit"{}})\ ||\ FirstWordMatches(input,\ \textcolor{stringliteral}{"{}exit"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 1);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (kSupportsShardGamesman)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sharddb\_cache\_deallocate();}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00303}00303\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}start"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 1);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ POSITION\_FORMAT,\ gInitialPosition);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00306}00306\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}start\_board"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00307}00307\ \ \ \ \ \ \ \ \ \ \ \ \ board\ =\ InteractPositionToString(gInitialPosition);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!strcmp(board,\ \textcolor{stringliteral}{"{}Implement\ Me"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00309}00309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}not\ implemented"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00310}00310\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00312}00312\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ InteractFreeBoardSting(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}start\_response"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00315}00315\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (kExclusivelyTierGamesman)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00316}00316\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitializeHashWindow(gInitialTier,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ board\ =\ InteractPositionToString(gInitialPosition);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[2]\ ==\ \textcolor{charliteral}{'C'})\ board[2]\ =\ \textcolor{charliteral}{'A'};\ \textcolor{comment}{//\ Resolve\ arbitrary\ turn.}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}ok\(\backslash\)"{},\(\backslash\)"{}response\(\backslash\)"{}:"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00321}00321\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!strcmp(board,\ \textcolor{stringliteral}{"{}Implement\ Me"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}not\ implemented\(\backslash\)"{}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00323}00323\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00324}00324\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00325}00325\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00326}00326\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00327}00327\ \ \ \ \ \ \ \ \ \ \ \ \ InteractFreeBoardSting(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00328}00328\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}end\_response"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00329}00329\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadBoardString(input,\ \&board))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00330}00330\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00331}00331\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00332}00332\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00333}00333\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ InteractStringToPosition(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00334}00334\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pos\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00335}00335\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00336}00336\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00337}00337\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00338}00338\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}ok\(\backslash\)"{},\(\backslash\)"{}response\(\backslash\)"{}:\{"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00339}00339\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ For\ debuggin\ purposes.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00340}00340\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*printf("{}\(\backslash\)"{}board\(\backslash\)"{}:\ \(\backslash\)"{}\%s\(\backslash\)"{},"{},\ \ board);*/}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00341}00341\ \ \ \ \ \ \ \ \ \ \ \ \ InteractPrintJSONPositionValue(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00342}00342\ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ InteractPositionToEndData(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00343}00343\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (data)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00344}00344\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\%s"{}},\ data);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00345}00345\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(data);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00346}00346\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00347}00347\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00348}00348\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}value"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00349}00349\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00350}00350\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00351}00351\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00352}00352\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 2);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00353}00353\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\%c"{}},\ gValueLetter[GetValueOfPosition(pos)]);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00354}00354\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}choices"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00355}00355\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00356}00356\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00357}00357\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00358}00358\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 2);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}["{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00360}00360\ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ all\_next\_moves\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ choice\ =\ DoMove(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00363}00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ current\_move-\/>next;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00364}00364\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(POSITION\_FORMAT,\ choice);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00365}00365\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00366}00366\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\ "{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00367}00367\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00368}00368\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00369}00369\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}]"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00370}00370\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(all\_next\_moves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00371}00371\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}moves"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00372}00372\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00373}00373\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00374}00374\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00375}00375\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 2);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00376}00376\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}["{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00377}00377\ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ all\_next\_moves\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00378}00378\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00379}00379\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d"{}},\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00380}00380\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ current\_move-\/>next;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00381}00381\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00382}00382\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\ "{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00383}00383\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00384}00384\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00385}00385\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}]"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00386}00386\ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00387}00387\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(all\_next\_moves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00388}00388\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}named\_moves"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00389}00389\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00390}00390\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00391}00391\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00392}00392\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 2);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00393}00393\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}["{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00394}00394\ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ all\_next\_moves\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00395}00395\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00396}00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ InteractMoveToString(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00397}00397\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00398}00398\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00399}00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ current\_move-\/>next;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00400}00400\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00401}00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\ "{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00402}00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00403}00403\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00404}00404\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}]"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00405}00405\ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00406}00406\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(all\_next\_moves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00407}00407\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}board"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00408}00408\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00409}00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00411}00411\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 2);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00412}00412\ \ \ \ \ \ \ \ \ \ \ \ \ board\ =\ InteractPositionToString(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00413}00413\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!strcmp(board,\ \textcolor{stringliteral}{"{}Implement\ Me"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00414}00414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}not\ implemented"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00415}00415\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00416}00416\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00417}00417\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00418}00418\ \ \ \ \ \ \ \ \ \ \ \ \ InteractFreeBoardSting(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00419}00419\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}remoteness"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00420}00420\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00421}00421\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00422}00422\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00423}00423\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 2);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00424}00424\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\%d"{}},\ Remoteness(pos));}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00425}00425\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}mex"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00426}00426\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00427}00427\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00428}00428\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00429}00429\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 2);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00430}00430\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00431}00431\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\%c"{}},\ mex);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00432}00432\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00433}00433\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}not\ implemented"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00434}00434\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00435}00435\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}result"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00436}00436\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadPosition(input,\ \&pos))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00437}00437\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00438}00438\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00439}00439\ \ \ \ \ \ \ \ \ \ \ \ \ InteractCheckErrantExtra(input,\ 3);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00440}00440\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *\ unparsed\_move\ =\ strchr(input,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00441}00441\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unparsed\_move\ \&\&\ *unparsed\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00442}00442\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unparsed\_move\ =\ strchr(unparsed\_move\ +\ 1,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00443}00443\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00444}00444\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unparsed\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\ =\ atoi(unparsed\_move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00446}00446\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ DoMove(pos,\ move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00447}00447\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ POSITION\_FORMAT,\ pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00448}00448\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00449}00449\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ missing\ move\ number\ in\ result\ request\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00450}00450\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00451}00451\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}move\_value\_response"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00452}00452\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadBoardString(input,\ \&board))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00453}00453\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00454}00454\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00455}00455\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00456}00456\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kSupportsTierGamesman\ \&\&\ gTierGamesman\ \&\&\ GetValue(board,\ \textcolor{stringliteral}{"{}tier"{}},\ GetUnsignedLongLong,\ \&tier))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00457}00457\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitializeHashWindow(tier,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00459}00459\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ InteractStringToPosition(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00460}00460\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pos\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00461}00461\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00462}00462\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00463}00463\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00464}00464\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}ok\(\backslash\)"{},\(\backslash\)"{}response\(\backslash\)"{}:\{"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00465}00465\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}board\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00466}00466\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}remoteness\(\backslash\)"{}:\%d,"{}},\ Remoteness(pos));}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00467}00467\ \ \ \ \ \ \ \ \ \ \ \ \ InteractPrintJSONPositionValue(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00468}00468\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00469}00469\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}position"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00470}00470\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadBoardString(input,\ \&board))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00471}00471\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00472}00472\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00473}00473\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00474}00474\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ InteractStringToPosition(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00475}00475\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}board:\ "{}}\ POSITION\_FORMAT,pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00476}00476\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00477}00477\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}detailed\_position\_response"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00478}00478\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadBoardString(input,\ \&board))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00479}00479\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00480}00480\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00481}00481\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00482}00482\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (kUsesQuartoGamesman)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00483}00483\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ quartoDetailedPositionResponse(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00484}00484\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00485}00485\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00486}00486\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ opp\_turn\_char\ =\ (board[2]\ ==\ \textcolor{charliteral}{'A'})\ ?\ \textcolor{charliteral}{'B'}\ :\ \textcolor{stringliteral}{'A'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00487}00487\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kSupportsTierGamesman\ \&\&\ gTierGamesman\ \&\&\ GetValue(board,\ \textcolor{stringliteral}{"{}tier"{}},\ GetUnsignedLongLong,\ \&tier))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00488}00488\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitializeHashWindow(tier,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00489}00489\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00490}00490\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ InteractStringToPosition(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00491}00491\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pos\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00492}00492\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00493}00493\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00494}00494\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00495}00495\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (kSupportsShardGamesman)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00496}00496\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ shardGamesmanDetailedPositionResponse(board,\ pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00497}00497\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00498}00498\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00499}00499\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *nextPositions\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00500}00500\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *reversedMoves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00501}00501\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}ok\(\backslash\)"{},\(\backslash\)"{}response\(\backslash\)"{}:\{"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00502}00502\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}board\(\backslash\)"{}:\ \(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00503}00503\ \ \ \ \ \ \ \ \ \ \ \ \ InteractPrintJSONMEXValue(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00504}00504\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}remoteness\(\backslash\)"{}:\%d,"{}},\ Remoteness(pos));}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00505}00505\ \ \ \ \ \ \ \ \ \ \ \ \ InteractPrintJSONPositionValue(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00506}00506\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00507}00507\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}moves\(\backslash\)"{}:["{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00508}00508\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Primitive(pos)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00509}00509\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ all\_next\_moves\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00510}00510\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00511}00511\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ choice\ =\ DoMove(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00512}00512\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ nextPositions\ =\ StorePositionInList(choice,\ nextPositions);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00513}00513\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reversedMoves\ =\ CreateMovelistNode(current\_move-\/>move,\ reversedMoves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00514}00514\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board\ =\ InteractPositionToString(choice);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00515}00515\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board[2]\ =\ (board[2]\ ==\ \textcolor{charliteral}{'C'})\ ?\ opp\_turn\_char\ :\ board[2];}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00516}00516\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\{\(\backslash\)"{}board\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00517}00517\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InteractFreeBoardSting(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00518}00518\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InteractPrintJSONMEXValue(choice);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00519}00519\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}remoteness\(\backslash\)"{}:\%d,"{}},\ Remoteness(choice));}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00520}00520\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InteractPrintJSONPositionValue(choice);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00521}00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ InteractMoveToString(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00522}00522\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00523}00523\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}move\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00524}00524\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00525}00525\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00526}00526\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gMoveToStringFunPtr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00527}00527\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ gMoveToStringFunPtr(current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00528}00528\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}moveName\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00529}00529\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00530}00530\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00531}00531\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00532}00532\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ current\_move-\/>next;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00533}00533\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00534}00534\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00535}00535\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00536}00536\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00537}00537\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00538}00538\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00539}00539\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(all\_next\_moves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00540}00540\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00541}00541\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gGenerateMultipartMoveEdgesFunPtr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00542}00542\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}\ *curr\_edge,\ *all\_edges;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00543}00543\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ curr\_edge\ =\ all\_edges\ =\ gGenerateMultipartMoveEdgesFunPtr(pos,\ reversedMoves,\ nextPositions);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00544}00544\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (curr\_edge\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00545}00545\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}],\(\backslash\)"{}multipart\(\backslash\)"{}:["{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00546}00546\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (curr\_edge\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00547}00547\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *fromPos\ =\ InteractPositionToString(curr\_edge-\/>from);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00548}00548\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\{\(\backslash\)"{}from\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ fromPos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00549}00549\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InteractFreeBoardSting(fromPos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00550}00550\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00551}00551\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *toPos\ =\ InteractPositionToString(curr\_edge-\/>to);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00552}00552\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}to\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ toPos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00553}00553\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InteractFreeBoardSting(toPos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00554}00554\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00555}00555\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ InteractMoveToString(pos,\ curr\_edge-\/>partMove);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00556}00556\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}partMove\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00557}00557\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00558}00558\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00559}00559\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (curr\_edge-\/>isTerminal)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00560}00560\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ InteractMoveToString(pos,\ curr\_edge-\/>fullMove);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00561}00561\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}move\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00562}00562\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00563}00563\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00564}00564\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ curr\_edge\ =\ curr\_edge-\/>next;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00565}00565\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00566}00566\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00567}00567\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (curr\_edge)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00568}00568\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00569}00569\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00570}00570\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00571}00571\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00572}00572\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreeMultipartEdgeList(all\_edges);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00573}00573\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00574}00574\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00575}00575\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreePositionList(nextPositions);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00576}00576\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(reversedMoves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00577}00577\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00578}00578\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}]\}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00579}00579\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}r"{}})\ ||\ FirstWordMatches(input,\ \textcolor{stringliteral}{"{}next\_move\_values\_response"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00580}00580\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!InteractReadBoardString(input,\ \&board))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00581}00581\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00582}00582\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00583}00583\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00584}00584\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kSupportsTierGamesman\ \&\&\ gTierGamesman\ \&\&\ GetValue(board,\ \textcolor{stringliteral}{"{}tier"{}},\ GetUnsignedLongLong,\ \&tier))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00585}00585\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitializeHashWindow(tier,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00586}00586\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00587}00587\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ InteractStringToPosition(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00588}00588\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pos\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00589}00589\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00590}00590\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00591}00591\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00592}00592\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *nextPositions\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00593}00593\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *reversedMoves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00594}00594\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}ok\(\backslash\)"{},\(\backslash\)"{}response\(\backslash\)"{}:["{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00595}00595\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Primitive(pos)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00596}00596\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ all\_next\_moves\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00597}00597\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00598}00598\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ choice\ =\ DoMove(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00599}00599\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ nextPositions\ =\ StorePositionInList(choice,\ nextPositions);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00600}00600\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reversedMoves\ =\ CreateMovelistNode(current\_move-\/>move,\ reversedMoves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00601}00601\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ board\ =\ InteractPositionToString(choice);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00602}00602\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\{\(\backslash\)"{}board\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00603}00603\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InteractFreeBoardSting(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00604}00604\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}remoteness\(\backslash\)"{}:\%d,"{}},\ Remoteness(choice));}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00605}00605\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InteractPrintJSONPositionValue(choice);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00606}00606\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ InteractMoveToString(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00607}00607\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00608}00608\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}move\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00609}00609\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00610}00610\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00611}00611\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gMoveToStringFunPtr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00612}00612\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ gMoveToStringFunPtr(current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00613}00613\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},\(\backslash\)"{}moveName\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{}"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00614}00614\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00615}00615\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00616}00616\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00617}00617\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ current\_move-\/>next;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00618}00618\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00619}00619\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00620}00620\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00621}00621\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00622}00622\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00623}00623\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_string\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00624}00624\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(all\_next\_moves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00625}00625\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreePositionList(nextPositions);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00626}00626\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(reversedMoves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00627}00627\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00628}00628\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}]\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00629}00629\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (FirstWordMatches(input,\ \textcolor{stringliteral}{"{}tree\_response"{}}))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00630}00630\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *\ next\_word\ =\ InteractReadBoardString(input,\ \&board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00631}00631\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!next\_word)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00632}00632\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00633}00633\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00634}00634\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00635}00635\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ depth\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00636}00636\ \ \ \ \ \ \ \ \ \ \ \ \ next\_word\ =\ InteractReadLong(next\_word,\ \&depth);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00637}00637\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!next\_word)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00638}00638\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00639}00639\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00640}00640\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kSupportsTierGamesman\ \&\&\ gTierGamesman\ \&\&\ GetValue(board,\ \textcolor{stringliteral}{"{}tier"{}},\ GetUnsignedLongLong,\ \&tier))\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00641}00641\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitializeHashWindow(tier,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00642}00642\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00643}00643\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ InteractStringToPosition(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00644}00644\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pos\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00645}00645\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},\ invalid\_board\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00646}00646\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00647}00647\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00648}00648\ \ \ \ \ \ \ \ \ \ \ \ \ printf(RESULT\ \textcolor{stringliteral}{"{}\{\(\backslash\)"{}status\(\backslash\)"{}:\(\backslash\)"{}ok\(\backslash\)"{},\(\backslash\)"{}response\(\backslash\)"{}:"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00649}00649\ \ \ \ \ \ \ \ \ \ \ \ \ PrintLevel(pos,\ depth,\ NULL);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00650}00650\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00651}00651\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00652}00652\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ error\ =>>\ unknown\ command:\ '\%s'"{}},\ input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00653}00653\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ valid\ moves\ are:\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00654}00654\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ start\_response\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00655}00655\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ tree\_response\ <board\ string>\ <depth>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00656}00656\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ next\_move\_values\_response\ <board\ string>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00657}00657\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ move\_value\_response\ <board\ string>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00658}00658\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ position\ <board\ string>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00659}00659\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ result\ <hashed\ position>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00660}00660\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ mex\ <hashed\ position>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00661}00661\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ remoteness\ <hashed\ position>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00662}00662\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ board\ <hashed\ position>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00663}00663\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ named\_moves\ <hashed\ position>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00664}00664\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ choices\ <hashed\ position>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00665}00665\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ value\ <hashed\ position>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00666}00666\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ end\_response\ <board\ string>\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00667}00667\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ start\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00668}00668\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ quit\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00669}00669\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ shutdown\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00670}00670\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ exit\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00671}00671\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00672}00672\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00673}00673\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00674}00674\ \ \ \ \ SafeFree(input);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00675}00675\ \textcolor{preprocessor}{\ \ \ \ \#undef\ RESULT}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00676}00676\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00677}00677\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00678}00678\ BOOLEAN\ GetValueInner(\textcolor{keywordtype}{char}\ *\ board\_string,\ \textcolor{keywordtype}{char}\ *\ key,\ get\_value\_func\_t\ func,\ \textcolor{keywordtype}{void}\ *\ target)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00679}00679\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ outer\ =\ board\_string;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00680}00680\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ semicolon;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00681}00681\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00682}00682\ \ \ \ \ BOOLEAN\ result\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00683}00683\ \ \ \ \ \textcolor{keywordflow}{for}\ (outer\ =\ board\_string;\ *outer;\ outer++)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00684}00684\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (*outer\ ==\ \textcolor{charliteral}{';'})\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00685}00685\ \ \ \ \ \ \ \ \ \ \ \ \ outer\ +=\ 1;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00686}00686\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ key[i]\ \&\&\ outer[i]\ ==\ key[i];\ i++)\ \{\}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00687}00687\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ (\ !outer[i]\ ||\ outer[i]\ ==\ \textcolor{charliteral}{'='}\ )\ \&\&\ (!key[i])\ )\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00688}00688\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Match.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00689}00689\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ i\ +=\ 1;\ \textcolor{comment}{/*\ Skip\ '='.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00690}00690\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ semicolon\ =\ strchr(outer\ +\ i,\ \textcolor{charliteral}{';'});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00691}00691\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (semicolon)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00692}00692\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *semicolon\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00693}00693\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00694}00694\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ func(outer\ +\ i,\ target);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00695}00695\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (semicolon)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00696}00696\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *semicolon\ =\ \textcolor{charliteral}{';'};}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00697}00697\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00698}00698\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (result\ \&\&\ semicolon)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00699}00699\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Check\ for\ duplicates.\ */}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00700}00700\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ !\ GetValueInner(semicolon\ +\ 1,\ key,\ func,\ target);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00701}00701\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00702}00702\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00703}00703\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00704}00704\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00705}00705\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00706}00706\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00707}00707\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00708}00708\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00709}00709\ BOOLEAN\ GetInt(\textcolor{keywordtype}{char}*\ value,\ \textcolor{keywordtype}{int}*\ placeholder)\{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00710}00710\ \ \ \ \ \textcolor{keywordflow}{if}\ (value\ ==\ NULL\ ||\ placeholder\ ==\ NULL)\{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00711}00711\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00712}00712\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00713}00713\ \ \ \ \ *placeholder\ =\ atoi(value);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00714}00714\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00715}00715\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00716}00716\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00717}00717\ BOOLEAN\ GetUnsignedLongLong(\textcolor{keywordtype}{char}*\ value,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}*\ placeholder)\{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00718}00718\ \ \ \ \ \textcolor{keywordflow}{if}\ (value\ ==\ NULL\ ||\ placeholder\ ==\ NULL)\{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00719}00719\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00720}00720\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00721}00721\ \ \ \ \ \ \ \ \ errno\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00722}00722\ \ \ \ \ *placeholder\ =\ strtoull(value,\ NULL,\ 10);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00723}00723\ \ \ \ \ \textcolor{keywordflow}{return}\ errno\ ==\ 0;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00724}00724\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00725}00725\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00726}00726\ BOOLEAN\ GetChar(\textcolor{keywordtype}{char}*\ value,\ \textcolor{keywordtype}{char}*\ placeholder)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00727}00727\ \ \ \ \ \textcolor{keywordflow}{if}\ (value\ ==\ NULL\ ||\ placeholder\ ==\ NULL)\{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00728}00728\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00729}00729\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00730}00730\ \ \ \ \ *placeholder\ =\ *value;\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00731}00731\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00732}00732\ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00733}00733\ }
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00734}00734\ \textcolor{keywordtype}{void}\ PrintLevel(POSITION\ pos,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ depth,\ \textcolor{keywordtype}{char}\ *\ move\_string)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00735}00735\ \ \ \ \ TIER\ tier\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00736}00736\ \ \ \ \ \textcolor{keywordflow}{if}\ (kSupportsTierGamesman\ \&\&\ gTierGamesman)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00737}00737\ \ \ \ \ \ \ \ \ TIERPOSITION\ tierpos\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00738}00738\ \ \ \ \ \ \ \ \ gUnhashToTierPosition(pos,\ \&tierpos,\ \&tier);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00739}00739\ \ \ \ \ \ \ \ \ gInitializeHashWindow(tier,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00740}00740\ \ \ \ \ \ \ \ \ pos\ =\ gHashToWindowPosition(tierpos,\ tier);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00741}00741\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00742}00742\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ board\ =\ InteractPositionToString(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00743}00743\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\{\(\backslash\)"{}board\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00744}00744\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}remoteness\(\backslash\)"{}:\%d,"{}},\ Remoteness(pos));}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00745}00745\ \ \ \ \ \textcolor{keywordflow}{if}\ (move\_string)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00746}00746\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}move\(\backslash\)"{}:\(\backslash\)"{}\%s\(\backslash\)"{},"{}},\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00747}00747\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00748}00748\ \ \ \ \ \textcolor{keywordflow}{if}\ (depth\ ==\ 0\ ||\ Primitive(pos)\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00749}00749\ \ \ \ \ \ \ \ \ InteractPrintJSONPositionValue(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00750}00750\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00751}00751\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)"{}children\(\backslash\)"{}:["{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00752}00752\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Primitive(pos)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00753}00753\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *all\_next\_moves\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00754}00754\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *current\_move\ =\ all\_next\_moves;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00755}00755\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00756}00756\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ POSITION\ choice\ =\ DoMove(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00757}00757\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *\ move\_string\ =\ InteractMoveToString(pos,\ current\_move-\/>move);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00758}00758\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintLevel(choice,\ depth\ -\/\ 1,\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00759}00759\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (tier)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00760}00760\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitializeHashWindow(tier,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00761}00761\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00762}00762\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00763}00763\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ current\_move\ =\ current\_move-\/>next;}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00764}00764\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (current\_move)\ \{}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00765}00765\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{},"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00766}00766\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00767}00767\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00768}00768\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(all\_next\_moves);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00769}00769\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00770}00770\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}]"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00771}00771\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00772}00772\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\}"{}});}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00773}00773\ \ \ \ \ InteractFreeBoardSting(board);}
+\DoxyCodeLine{\Hypertarget{interact_8c_source_l00774}00774\ \}}
+
+\end{DoxyCode}

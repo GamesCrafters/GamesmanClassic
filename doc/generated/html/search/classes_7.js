@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['game_0',['Game',['../d5/dea/classgame_1_1_game.html',1,'game.Game'],['../dc/d8d/classgamesman_1_1_game.html',1,'gamesman.Game']]],
+  ['gameprocess_1',['GameProcess',['../d7/d46/classserver_1_1_game_process.html',1,'server']]],
+  ['gamerequest_2',['GameRequest',['../d5/d63/classserver_1_1_game_request.html',1,'server']]],
+  ['gamerequesthandler_3',['GameRequestHandler',['../d7/d66/classserver_1_1_game_request_handler.html',1,'server']]],
+  ['gamerequestserver_4',['GameRequestServer',['../d5/daf/classserver_1_1_game_request_server.html',1,'server']]],
+  ['gamesdb_5',['gamesdb',['../d2/dcb/structgamesdb.html',1,'']]],
+  ['gamesdb_5fbhash_6',['gamesdb_bhash',['../dd/dab/structgamesdb__bhash.html',1,'']]],
+  ['gamesdb_5fbman_7',['gamesdb_bman',['../d5/dd2/structgamesdb__bman.html',1,'']]],
+  ['gamesdb_5fbuffer_8',['gamesdb_buffer',['../da/d56/structgamesdb__buffer.html',1,'']]],
+  ['gamesdb_5fbufferpage_5fstruct_9',['gamesdb_bufferpage_struct',['../d4/d7b/structgamesdb__bufferpage__struct.html',1,'']]],
+  ['gamestatusserver_10',['GameStatusServer',['../de/d63/classserver_1_1_game_status_server.html',1,'server']]],
+  ['genbstrlist_11',['genBstrList',['../d3/d39/structgen_bstr_list.html',1,'']]],
+  ['ght_5fhash_5ftable_5ft_12',['ght_hash_table_t',['../d0/d75/structght__hash__table__t.html',1,'']]],
+  ['ght_5fiterator_5ft_13',['ght_iterator_t',['../da/db8/structght__iterator__t.html',1,'']]],
+  ['goboard_14',['GoBoard',['../d2/d77/struct_go_board.html',1,'']]],
+  ['gogame_15',['GoGame',['../dc/d2a/struct_go_game.html',1,'']]],
+  ['gointersection_16',['GoIntersection',['../d5/d29/struct_go_intersection.html',1,'']]],
+  ['gointersectionlist_17',['GoIntersectionList',['../db/dd6/struct_go_intersection_list.html',1,'']]],
+  ['gointersectionnode_18',['GoIntersectionNode',['../d2/dd9/struct_go_intersection_node.html',1,'']]],
+  ['gomove_19',['GoMove',['../d8/d71/struct_go_move.html',1,'']]],
+  ['goposition_20',['GoPosition',['../d9/dcc/struct_go_position.html',1,'']]],
+  ['gostone_21',['GoStone',['../df/d02/struct_go_stone.html',1,'']]],
+  ['gposition_22',['GPosition',['../dc/dfe/struct_g_position.html',1,'']]],
+  ['graphclass_23',['GraphClass',['../d8/d59/struct_graph_class.html',1,'']]],
+  ['graphnode_24',['GraphNode',['../de/dce/struct_graph_node.html',1,'']]]
+];

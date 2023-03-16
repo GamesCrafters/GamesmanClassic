@@ -1,0 +1,41 @@
+\hypertarget{solveloopy_8h_source}{}\doxysection{solveloopy.\+h}
+\label{solveloopy_8h_source}\index{src/core/solveloopy.h@{src/core/solveloopy.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00001}00001\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00002}00002\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_SOLVELOOPY\_H}}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00003}00003\ \textcolor{preprocessor}{\#define\ GMCORE\_SOLVELOOPY\_H}}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00005}00005\ VALUE\ \ \ \ \ \ \ \ \ \ \ DetermineLoopyValue\ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00007}00007\ \textcolor{comment}{//void\ \ \ \ \ \ InitializeVisitedArray\ \ \ \ \ \ (void);}}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00008}00008\ \textcolor{comment}{//void\ \ \ \ \ \ FreeVisitedArray\ \ \ \ \ \ \ \ (void);}}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00010}00010\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ MyPrintParents\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00012}00012\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ NumberChildrenInitialize\ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00013}00013\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ NumberChildrenFree\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00014}00014\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InitializeFR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00016}00016\ POSITION\ \ \ \ \ \ \ \ DeQueueWinFR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00017}00017\ POSITION\ \ \ \ \ \ \ \ DeQueueLoseFR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00018}00018\ POSITION\ \ \ \ \ \ \ \ DeQueueTieFR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00019}00019\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InsertWinFR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00020}00020\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InsertLoseFR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00021}00021\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ InsertTieFR\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00023}00023\ \textcolor{comment}{/*\ Loopy\ globals\ */}}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00025}00025\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gHeadWinFR;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00026}00026\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gTailWinFR;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00027}00027\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gHeadLoseFR;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00028}00028\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gTailLoseFR;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00029}00029\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gHeadTieFR;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00030}00030\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ \ gTailTieFR;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00032}00032\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}**\ \ \ gParents;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00033}00033\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}*\ \ \ \ \ \ \ \ \ \ \ \ gNumberChildren;}
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{solveloopy_8h_source_l00035}00035\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_SOLVELOOPY\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

@@ -1,0 +1,111 @@
+\hypertarget{classgamesman_1_1_game}{}\doxysection{gamesman.\+Game Class Reference}
+\label{classgamesman_1_1_game}\index{gamesman.Game@{gamesman.Game}}
+Inheritance diagram for gamesman.\+Game\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{dc/d8d/classgamesman_1_1_game}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classgamesman_1_1_game_ae8d21d7b4f10fd532ba5b51174d09c63}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self)
+\item 
+\mbox{\hyperlink{classgamesman_1_1_game_a85e9ed0c7b7bfb82bb9b6e3ecf7abb7a}{call}} (self, name, $\ast$args)
+\item 
+\mbox{\hyperlink{classgamesman_1_1_game_aa9312b6c49647866f2eb0b2d374fe7cb}{Initialize\+Game}} (self)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \mbox{\hyperlink{gamesman_8py_source_l00010}{10}} of file \mbox{\hyperlink{gamesman_8py_source}{gamesman.\+py}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classgamesman_1_1_game_ae8d21d7b4f10fd532ba5b51174d09c63}\label{classgamesman_1_1_game_ae8d21d7b4f10fd532ba5b51174d09c63} 
+\index{gamesman.Game@{gamesman.Game}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!gamesman.Game@{gamesman.Game}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily gamesman.\+Game.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{gamesman_8py_source_l00012}{12}} of file \mbox{\hyperlink{gamesman_8py_source}{gamesman.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00012\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self):}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ pygamesman.export(}
+\DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ \ \ \ \ gInitialPosition\ =\ long(self.gInitialPosition),}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \ \ \ \ gNumberOfPositions\ =\ long(self.gNumberOfPositions),}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \ \ \ \ kBadPosition\ =\ long(self.kBadPosition),}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \ \ \ \ kGameSpecificMenu\ =\ bool(self.kGameSpecificMenu),}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \ \ \ \ kPartizan\ =\ bool(self.kPartizan),}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \ \ \ \ kDebugMenu\ =\ bool(self.kDebugMenu),}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \ \ \ \ kTieIsPossible\ =\ bool(self.kTieIsPossible),}
+\DoxyCodeLine{00021\ \ \ \ \ \ \ \ \ \ \ \ \ kLoopy\ =\ bool(self.kLoopy),}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ \ \ \ \ kDebugDetermineValue\ =\ bool(self.kDebugDetermineValue),}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \ \ \ \ kAuthorName\ =\ str(self.kAuthorName),}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \ \ \ \ kGameName\ =\ str(self.kGameName),}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpGraphicInterface\ =\ str(self.kHelpGraphicInterface),}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpTextInterface\ =\ str(self.kHelpTextInterface),}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpOnYourTurn\ =\ str(self.kHelpOnYourTurn),}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpStandardObjective\ =\ str(self.kHelpStandardObjective),}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpReverseObjective\ =\ str(self.kHelpReverseObjective),}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpTieOccursWhen\ =\ str(self.kHelpTieOccursWhen),}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \ \ \ \ kHelpExample\ =\ str(self.kHelpExample),}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ \ \ \ kDBName\ =\ str(self.kDBName))}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Import\ psyco\ for\ JIT\ compilation,\ if\ available}}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{import}\ psyco}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ psyco.full()}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ ImportError:}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ pygamesman.initialize(sys.argv,\ self.call)}
+\DoxyCodeLine{00040\ }
+
+\end{DoxyCode}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classgamesman_1_1_game_a85e9ed0c7b7bfb82bb9b6e3ecf7abb7a}\label{classgamesman_1_1_game_a85e9ed0c7b7bfb82bb9b6e3ecf7abb7a} 
+\index{gamesman.Game@{gamesman.Game}!call@{call}}
+\index{call@{call}!gamesman.Game@{gamesman.Game}}
+\doxysubsubsection{\texorpdfstring{call()}{call()}}
+{\footnotesize\ttfamily gamesman.\+Game.\+call (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{name,  }\item[{$\ast$}]{args }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{gamesman_8py_source_l00041}{41}} of file \mbox{\hyperlink{gamesman_8py_source}{gamesman.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{def\ }call(self,\ name,\ *args):}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ apply(getattr(self,\ name),\ args)}
+\DoxyCodeLine{00043\ \ \ \ \ }
+
+\end{DoxyCode}
+\Hypertarget{classgamesman_1_1_game_aa9312b6c49647866f2eb0b2d374fe7cb}\label{classgamesman_1_1_game_aa9312b6c49647866f2eb0b2d374fe7cb} 
+\index{gamesman.Game@{gamesman.Game}!InitializeGame@{InitializeGame}}
+\index{InitializeGame@{InitializeGame}!gamesman.Game@{gamesman.Game}}
+\doxysubsubsection{\texorpdfstring{InitializeGame()}{InitializeGame()}}
+{\footnotesize\ttfamily gamesman.\+Game.\+Initialize\+Game (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{gamesman_8py_source_l00044}{44}} of file \mbox{\hyperlink{gamesman_8py_source}{gamesman.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{def\ }InitializeGame(self):}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+
+\end{DoxyCode}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/gamesman.\+py\end{DoxyCompactItemize}

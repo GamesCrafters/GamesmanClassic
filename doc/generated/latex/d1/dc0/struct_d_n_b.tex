@@ -1,0 +1,487 @@
+\hypertarget{struct_d_n_b}{}\doxysection{DNB Struct Reference}
+\label{struct_d_n_b}\index{DNB@{DNB}}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{struct_d_n_b_a71d125c957ce4559fa67e59dda7d8981}{DNB}} (POSITION pos)
+\item 
+\mbox{\hyperlink{struct_d_n_b_a118555bf572e3701784b634a75b5356a}{operator POSITION}} () const
+\item 
+int \mbox{\hyperlink{struct_d_n_b_ab2cc0be14e3df6a138eaa2bbc3fde5c2}{Turn}} () const
+\item 
+void \mbox{\hyperlink{struct_d_n_b_a2cb7f63f1e1b4cd1e61a93d39216c8ca}{Do\+Move}} (MOVE move)
+\item 
+void \mbox{\hyperlink{struct_d_n_b_a44bb46918583b87e2053c4576cb8511b}{Add\+Score}} (int i, int j)
+\item 
+bool \mbox{\hyperlink{struct_d_n_b_af2b77205cf54268c9fc0a7d974f7ba11}{Scored}} (int i, int j)
+\item 
+int \mbox{\hyperlink{struct_d_n_b_a9388c255387a5670f2308beadd5a0a3e}{Box\+Completed}} (int x, int y)
+\item 
+void \mbox{\hyperlink{struct_d_n_b_a5d1f8acd754e3028cf14e82ef35b0abe}{Get\+Scores}} (int \&first, int \&second)
+\item 
+int \mbox{\hyperlink{struct_d_n_b_aa41baccf6ef093bf39344d742aa6d82f}{Boxes\+Completed}} ()
+\item 
+int \mbox{\hyperlink{struct_d_n_b_a7a01af754ef73e38110c3623b30344d8}{Moves\+Completed}} ()
+\item 
+bool \mbox{\hyperlink{struct_d_n_b_a3a1f614c9b025c37de3bd7468b78249d}{EdgeH}} (unsigned x, unsigned y)
+\item 
+bool \mbox{\hyperlink{struct_d_n_b_a4796a0977528e4396a18fde8f8e01c34}{EdgeV}} (unsigned x, unsigned y)
+\item 
+char \mbox{\hyperlink{struct_d_n_b_ae593fcf4ee5234204f4e20210664591b}{ChoiceH}} (int i, int j)
+\item 
+char \mbox{\hyperlink{struct_d_n_b_a0d85edd9b93c3a682c6aba6a7acba302}{ChoiceV}} (int i, int j)
+\item 
+void \mbox{\hyperlink{struct_d_n_b_a1f17482a60e2d6714c8e64cd29c715c3}{Print}} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static int \mbox{\hyperlink{struct_d_n_b_ac39b830303f71ef094501039554b8a89}{Number\+Of\+Positions}} ()
+\item 
+static int \mbox{\hyperlink{struct_d_n_b_a36ea3a64f74bd64e7794e8cee1ca5d54}{Moves}} ()
+\item 
+static int \mbox{\hyperlink{struct_d_n_b_af755bf85f61ba1970a857720a82cabcf}{Boxes}} ()
+\item 
+static void \mbox{\hyperlink{struct_d_n_b_a7597a08dd1f5e7fdf7b74279988683d7}{Pre\+Calc}} ()
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00108}{108}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{struct_d_n_b_a71d125c957ce4559fa67e59dda7d8981}\label{struct_d_n_b_a71d125c957ce4559fa67e59dda7d8981} 
+\index{DNB@{DNB}!DNB@{DNB}}
+\index{DNB@{DNB}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{DNB()}{DNB()}}
+{\footnotesize\ttfamily DNB\+::\+DNB (\begin{DoxyParamCaption}\item[{POSITION}]{pos }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00110}{110}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00110\ :\ pos(pos)\{\}}
+
+\end{DoxyCode}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{struct_d_n_b_a44bb46918583b87e2053c4576cb8511b}\label{struct_d_n_b_a44bb46918583b87e2053c4576cb8511b} 
+\index{DNB@{DNB}!AddScore@{AddScore}}
+\index{AddScore@{AddScore}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{AddScore()}{AddScore()}}
+{\footnotesize\ttfamily void DNB\+::\+Add\+Score (\begin{DoxyParamCaption}\item[{int}]{i,  }\item[{int}]{j }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00157}{157}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{comment}{//\ someone\ just\ scored,\ record\ it}}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keywordflow}{if}\ (!TrackBoxOwners)\ \{}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!Turn())\ \{}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordtype}{int}\ first,second;}
+\DoxyCodeLine{00162\ \ \ \ \ GetScores(first,second);}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{keywordtype}{int}\ mask\ =\ ((1<<BoxBits)-\/1)<<MoveBits;}
+\DoxyCodeLine{00164\ \ \ \ \ pos\ \&=\ \string~mask;}
+\DoxyCodeLine{00165\ \ \ \ \ pos\ |=\ ((first+1)<<MoveBits)\&mask;}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00168\ \ \ \ \ \}}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordflow}{if}\ (Turn())}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ pos\ |=\ 1<<(ScoreBit(i,j));}
+\DoxyCodeLine{00171\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a9388c255387a5670f2308beadd5a0a3e}\label{struct_d_n_b_a9388c255387a5670f2308beadd5a0a3e} 
+\index{DNB@{DNB}!BoxCompleted@{BoxCompleted}}
+\index{BoxCompleted@{BoxCompleted}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{BoxCompleted()}{BoxCompleted()}}
+{\footnotesize\ttfamily int DNB\+::\+Box\+Completed (\begin{DoxyParamCaption}\item[{int}]{x,  }\item[{int}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00180}{180}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordflow}{return}\ EdgeH(x,y)\&\&EdgeV(x,y)\&\&EdgeH(x,y+1)\&\&EdgeV(x+1,y);}
+\DoxyCodeLine{00182\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_af755bf85f61ba1970a857720a82cabcf}\label{struct_d_n_b_af755bf85f61ba1970a857720a82cabcf} 
+\index{DNB@{DNB}!Boxes@{Boxes}}
+\index{Boxes@{Boxes}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{Boxes()}{Boxes()}}
+{\footnotesize\ttfamily static int DNB\+::\+Boxes (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00175}{175}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00175\ \{\textcolor{keywordflow}{return}\ BoxCount;\}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_aa41baccf6ef093bf39344d742aa6d82f}\label{struct_d_n_b_aa41baccf6ef093bf39344d742aa6d82f} 
+\index{DNB@{DNB}!BoxesCompleted@{BoxesCompleted}}
+\index{BoxesCompleted@{BoxesCompleted}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{BoxesCompleted()}{BoxesCompleted()}}
+{\footnotesize\ttfamily int DNB\+::\+Boxes\+Completed (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00202}{202}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keywordtype}{int}\ count=0;}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ j=0;\ j\ <\ BoardSizeY;\ j++)}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i=0;\ i\ <\ BoardSizeX;\ i++)}
+\DoxyCodeLine{00206\ \ \ \ \ \textcolor{keywordflow}{if}\ (BoxCompleted(i,j))}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keywordflow}{return}\ count;}
+\DoxyCodeLine{00209\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_ae593fcf4ee5234204f4e20210664591b}\label{struct_d_n_b_ae593fcf4ee5234204f4e20210664591b} 
+\index{DNB@{DNB}!ChoiceH@{ChoiceH}}
+\index{ChoiceH@{ChoiceH}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{ChoiceH()}{ChoiceH()}}
+{\footnotesize\ttfamily char DNB\+::\+ChoiceH (\begin{DoxyParamCaption}\item[{int}]{i,  }\item[{int}]{j }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00230}{230}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00230\ \{\textcolor{keywordflow}{return}\ \textcolor{charliteral}{'a'}+i+j*BoardSizeX;\}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a0d85edd9b93c3a682c6aba6a7acba302}\label{struct_d_n_b_a0d85edd9b93c3a682c6aba6a7acba302} 
+\index{DNB@{DNB}!ChoiceV@{ChoiceV}}
+\index{ChoiceV@{ChoiceV}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{ChoiceV()}{ChoiceV()}}
+{\footnotesize\ttfamily char DNB\+::\+ChoiceV (\begin{DoxyParamCaption}\item[{int}]{i,  }\item[{int}]{j }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00231}{231}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00231\ \{\textcolor{keywordflow}{return}\ \textcolor{charliteral}{'a'}+VertMoveOffset+i*BoardSizeY+j;\}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a2cb7f63f1e1b4cd1e61a93d39216c8ca}\label{struct_d_n_b_a2cb7f63f1e1b4cd1e61a93d39216c8ca} 
+\index{DNB@{DNB}!DoMove@{DoMove}}
+\index{DoMove@{DoMove}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{DoMove()}{DoMove()}}
+{\footnotesize\ttfamily void DNB\+::\+Do\+Move (\begin{DoxyParamCaption}\item[{MOVE}]{move }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00115}{115}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00116\ \ \ \ \ \mbox{\hyperlink{struct_d_n_b}{DNB}}\ oldboard=*\textcolor{keyword}{this};}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{bool}\ scored=\textcolor{keyword}{false};}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordflow}{if}\ (ParallelMoves)}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ pos\ |=\ move;}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ pos\ |=\ 1<<move;}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordflow}{if}\ (ParallelMoves)\ \{}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ j\ =\ 0;\ j\ <\ BoardSizeY;\ j++)}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ BoardSizeX;\ i++)}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!oldboard.BoxCompleted(i,j)\ \&\&\ BoxCompleted(i,j))\ \{}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ scored=\textcolor{keyword}{true};}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ AddScore(i,j);}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00131\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (move\ <\ VertMoveOffset)\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{comment}{//\ horizontal\ move}}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ move\%BoardSizeX;}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordtype}{int}\ j\ =\ move/BoardSizeX;}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c\ =\ 0;\ c\ <\ 2;\ c++,\ j-\/-\/)}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!oldboard.BoxCompleted(i,j)\ \&\&\ BoxCompleted(i,j))\ \{}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ scored=\textcolor{keyword}{true};}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ AddScore(i,j);}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \}\ }
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{comment}{//\ vertical\ move}}
+\DoxyCodeLine{00143\ \ \ \ \ move\ -\/=\ VertMoveOffset;}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keywordtype}{int}\ j\ =\ move\%BoardSizeY;}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ move/BoardSizeY;}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c\ =\ 0;\ c\ <\ 2;\ c++,\ i-\/-\/)}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!oldboard.BoxCompleted(i,j)\ \&\&\ BoxCompleted(i,j))\ \{}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ scored=\textcolor{keyword}{true};}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ AddScore(i,j);}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \}\ }
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00152\ \ \ \ \ \}}
+\DoxyCodeLine{00153\ \ \ \ \ \textcolor{keywordflow}{if}\ (ParallelMoves\ ||\ !scored)}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ ToggleTurn();}
+\DoxyCodeLine{00155\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a3a1f614c9b025c37de3bd7468b78249d}\label{struct_d_n_b_a3a1f614c9b025c37de3bd7468b78249d} 
+\index{DNB@{DNB}!EdgeH@{EdgeH}}
+\index{EdgeH@{EdgeH}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{EdgeH()}{EdgeH()}}
+{\footnotesize\ttfamily bool DNB\+::\+EdgeH (\begin{DoxyParamCaption}\item[{unsigned}]{x,  }\item[{unsigned}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00218}{218}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keywordflow}{if}\ (x\ >=\ BoardSizeX)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordflow}{if}\ (y\ >\ BoardSizeY)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keywordflow}{return}\ Bit(BoardSizeX*y+x);}
+\DoxyCodeLine{00222\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a4796a0977528e4396a18fde8f8e01c34}\label{struct_d_n_b_a4796a0977528e4396a18fde8f8e01c34} 
+\index{DNB@{DNB}!EdgeV@{EdgeV}}
+\index{EdgeV@{EdgeV}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{EdgeV()}{EdgeV()}}
+{\footnotesize\ttfamily bool DNB\+::\+EdgeV (\begin{DoxyParamCaption}\item[{unsigned}]{x,  }\item[{unsigned}]{y }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00224}{224}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00225\ \ \ \ \ \textcolor{keywordflow}{if}\ (x\ >\ BoardSizeX)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordflow}{if}\ (y\ >=\ BoardSizeY)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keywordflow}{return}\ Bit(VertMoveOffset+BoardSizeY*x+y);}
+\DoxyCodeLine{00228\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a5d1f8acd754e3028cf14e82ef35b0abe}\label{struct_d_n_b_a5d1f8acd754e3028cf14e82ef35b0abe} 
+\index{DNB@{DNB}!GetScores@{GetScores}}
+\index{GetScores@{GetScores}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{GetScores()}{GetScores()}}
+{\footnotesize\ttfamily void DNB\+::\+Get\+Scores (\begin{DoxyParamCaption}\item[{int \&}]{first,  }\item[{int \&}]{second }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00184}{184}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{if}\ (!TrackBoxOwners)\ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ first=(pos\&\string~(1<<TurnBit))>>MoveBits;}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ second\ =\ BoxesCompleted()-\/first;}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00189\ \ \ \ \ \}}
+\DoxyCodeLine{00190\ \ \ \ \ first=0,second=0;}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ j=0;\ j\ <\ BoardSizeY;\ j++)}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i=0;\ i\ <\ BoardSizeX;\ i++)\ \{}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keywordflow}{if}\ (BoxCompleted(i,j))\ \{}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Scored(i,j))}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ second++;}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ }
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ first++;}
+\DoxyCodeLine{00198\ \ \ \ \ \}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00200\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a36ea3a64f74bd64e7794e8cee1ca5d54}\label{struct_d_n_b_a36ea3a64f74bd64e7794e8cee1ca5d54} 
+\index{DNB@{DNB}!Moves@{Moves}}
+\index{Moves@{Moves}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{Moves()}{Moves()}}
+{\footnotesize\ttfamily static int DNB\+::\+Moves (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00174}{174}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00174\ \{\textcolor{keywordflow}{return}\ MoveBits;\}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a7a01af754ef73e38110c3623b30344d8}\label{struct_d_n_b_a7a01af754ef73e38110c3623b30344d8} 
+\index{DNB@{DNB}!MovesCompleted@{MovesCompleted}}
+\index{MovesCompleted@{MovesCompleted}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{MovesCompleted()}{MovesCompleted()}}
+{\footnotesize\ttfamily int DNB\+::\+Moves\+Completed (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00211}{211}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{keywordtype}{int}\ count=0;}
+\DoxyCodeLine{00213\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ MoveBits;\ i++)}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ISSET(pos,i))\ count++;}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{keywordflow}{return}\ count;}
+\DoxyCodeLine{00216\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_ac39b830303f71ef094501039554b8a89}\label{struct_d_n_b_ac39b830303f71ef094501039554b8a89} 
+\index{DNB@{DNB}!NumberOfPositions@{NumberOfPositions}}
+\index{NumberOfPositions@{NumberOfPositions}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{NumberOfPositions()}{NumberOfPositions()}}
+{\footnotesize\ttfamily static int DNB\+::\+Number\+Of\+Positions (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00173}{173}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00173\ \{\textcolor{keywordflow}{return}\ 1<<(TurnBit+1);\}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a118555bf572e3701784b634a75b5356a}\label{struct_d_n_b_a118555bf572e3701784b634a75b5356a} 
+\index{DNB@{DNB}!operator POSITION@{operator POSITION}}
+\index{operator POSITION@{operator POSITION}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{operator POSITION()}{operator POSITION()}}
+{\footnotesize\ttfamily DNB\+::operator POSITION (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00111}{111}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00111\ \{\textcolor{keywordflow}{return}\ pos;\}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a7597a08dd1f5e7fdf7b74279988683d7}\label{struct_d_n_b_a7597a08dd1f5e7fdf7b74279988683d7} 
+\index{DNB@{DNB}!PreCalc@{PreCalc}}
+\index{PreCalc@{PreCalc}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{PreCalc()}{PreCalc()}}
+{\footnotesize\ttfamily static void DNB\+::\+Pre\+Calc (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00273}{273}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00274\ \ \ \ \ VertMoveOffset\ =\ BoardSizeX*(BoardSizeY+1);}
+\DoxyCodeLine{00275\ \ \ \ \ MoveBits\ =\ BoardSizeX*(BoardSizeY+1)+(BoardSizeX+1)*BoardSizeY;}
+\DoxyCodeLine{00276\ \ \ \ \ BoxCount\ =\ BoardSizeX*BoardSizeY;}
+\DoxyCodeLine{00277\ \ \ \ \ BoxBits\ =\ TrackBoxOwners?BoxCount:3;}
+\DoxyCodeLine{00278\ \ \ \ \ TurnBit\ =\ MoveBits+BoxBits;}
+\DoxyCodeLine{00279\ \ \ \ \ \textcolor{comment}{//printf("{}Using\ \%i+\%i+1\ bits=\(\backslash\)n"{},MoveBits,BoxBits,TurnBit);}}
+\DoxyCodeLine{00280\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_a1f17482a60e2d6714c8e64cd29c715c3}\label{struct_d_n_b_a1f17482a60e2d6714c8e64cd29c715c3} 
+\index{DNB@{DNB}!Print@{Print}}
+\index{Print@{Print}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{Print()}{Print()}}
+{\footnotesize\ttfamily void DNB\+::\+Print (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00233}{233}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ j\ =\ 0;\ j\ <=\ BoardSizeY;\ j++)}
+\DoxyCodeLine{00235\ \ \ \ \ \{}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ BoardSizeX;\ i++)}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}+"{}});}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (EdgeH(i,\ j))}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/"{}});}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%c\ "{}},\ ChoiceH(i,\ j));}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (j\ ==\ BoardSizeY)}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}+\(\backslash\)n"{}});}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <=\ BoardSizeX;\ i++)}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%c\ \ \ "{}},\ EdgeV(i,\ j)\ ?\ \textcolor{charliteral}{'|'}\ :\ \textcolor{stringliteral}{'\ '});}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <=\ BoardSizeX;\ i++)}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%c"{}},\ EdgeV(i,\ j)\ ?\ \textcolor{charliteral}{'|'}\ :\ ChoiceV(i,\ j));}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ ==\ BoardSizeX)}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%c\ "{}},\ BoxCompleted(i,\ j)\ ?\ (!TrackBoxOwners\ ?\ \textcolor{charliteral}{'?'}\ :\ Scored(i,\ j))\ ?\ \textcolor{stringliteral}{'O'}\ :\ \textcolor{stringliteral}{'X'}\ :\ \textcolor{stringliteral}{'\ '});}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <=\ BoardSizeX;\ i++)}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%c\ \ \ "{}},\ EdgeV(i,\ j)\ ?\ \textcolor{charliteral}{'|'}\ :\ \textcolor{stringliteral}{'\ '});}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00265\ \ \ \ \ \}}
+\DoxyCodeLine{00266\ \ \ \ \ }
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordtype}{int}\ first,second;}
+\DoxyCodeLine{00268\ \ \ \ \ GetScores(first,second);}
+\DoxyCodeLine{00269\ \ \ \ \ printf(\textcolor{stringliteral}{"{}+\ \ \ \ \ X\ has\ \%i,\ O\ has\ \%i\ \ (\%c's\ turn)\(\backslash\)n\ "{}},first,second,Turn()?\textcolor{charliteral}{'O'}:\textcolor{stringliteral}{'X'});}
+\DoxyCodeLine{00270\ \ \ \ \ }
+\DoxyCodeLine{00271\ \ \ \}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_af2b77205cf54268c9fc0a7d974f7ba11}\label{struct_d_n_b_af2b77205cf54268c9fc0a7d974f7ba11} 
+\index{DNB@{DNB}!Scored@{Scored}}
+\index{Scored@{Scored}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{Scored()}{Scored()}}
+{\footnotesize\ttfamily bool DNB\+::\+Scored (\begin{DoxyParamCaption}\item[{int}]{i,  }\item[{int}]{j }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00177}{177}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \textcolor{comment}{//\ was\ this\ scored\ by\ 'O'\ (true)\ or\ 'X'\ (false)}}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keywordflow}{return}\ Bit(ScoreBit(i,j));\}}
+
+\end{DoxyCode}
+\Hypertarget{struct_d_n_b_ab2cc0be14e3df6a138eaa2bbc3fde5c2}\label{struct_d_n_b_ab2cc0be14e3df6a138eaa2bbc3fde5c2} 
+\index{DNB@{DNB}!Turn@{Turn}}
+\index{Turn@{Turn}!DNB@{DNB}}
+\doxysubsubsection{\texorpdfstring{Turn()}{Turn()}}
+{\footnotesize\ttfamily int DNB\+::\+Turn (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Definition at line \mbox{\hyperlink{mdnb_8cc_source_l00113}{113}} of file \mbox{\hyperlink{mdnb_8cc_source}{mdnb.\+cc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00113\ \{\textcolor{keywordflow}{return}\ ISSET(pos,TurnBit);\}}
+
+\end{DoxyCode}
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/mdnb.\+cc\end{DoxyCompactItemize}

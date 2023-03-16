@@ -1,0 +1,281 @@
+\hypertarget{solveweakab_8c_source}{}\doxysection{solveweakab.\+c}
+\label{solveweakab_8c_source}\index{src/core/solveweakab.c@{src/core/solveweakab.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}solveweakab.h"{}}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00003}00003\ \textcolor{comment}{/*\ INFINITY\ can\ sometimes\ already\ be\ defined\ in\ math.h.\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00004}00004\ \textcolor{preprocessor}{\#ifdef\ INFINITY}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00005}00005\ \textcolor{preprocessor}{\#undef\ INFINITY}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00006}00006\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00008}00008\ \textcolor{preprocessor}{\#define\ INFINITY\ (gMaxRemoteness\ +\ 1)}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00010}00010\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00011}00011\ \textcolor{comment}{\ \ \ Function:\ invert\_score}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00012}00012\ \textcolor{comment}{\ \ \ \ Create\ inverse\ of\ given\ score\ (depending\ on\ maximum\ remoteness)}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00013}00013\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00014}00014\ \textcolor{comment}{\ \ \ Arguments:}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00015}00015\ \textcolor{comment}{\ \ \ \ score\ -\/\ score\ to\ invert}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00016}00016\ \textcolor{comment}{\ \ \ \ max\_remoteness\ -\/\ maximum\ remoteness\ (determines\ range\ scores\ for\ win/lose/tie)}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00017}00017\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00018}00018\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00019}00019\ \textcolor{keywordtype}{int}\ ctra\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00021}00021\ SCORE\ invert\_score(SCORE\ score,\ REMOTENESS\ max\_remoteness)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00023}00023\ \ \ \ \ \textcolor{keywordflow}{return}\ -\/score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00025}00025\ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00028}00028\ \textcolor{comment}{/*\ PROBLEM:}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00029}00029\ \textcolor{comment}{\ \ \ ALL\ DRAWS\ MUST\ BE\ 0\ as\ there\ are\ no\ score\ symmetries}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00030}00030\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00032}00032\ SCORE\ generate\_score(VALUE\ value,\ REMOTENESS\ remoteness,\ REMOTENESS\ min\_remoteness,\ REMOTENESS\ max\_remoteness)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00034}00034\ \ \ \ \ SCORE\ score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00036}00036\ \ \ \ \ \textcolor{comment}{/*\ Normalize\ minimum\ remoteness\ in\ case\ it\ goes\ below\ 0\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00037}00037\ \ \ \ \ \textcolor{keywordflow}{if}\ (min\_remoteness\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00038}00038\ \ \ \ \ \ \ \ \ min\_remoteness\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00040}00040\ \ \ \ \ \textcolor{keywordflow}{switch}(value)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00042}00042\ \ \ \ \ \textcolor{keywordflow}{case}\ win:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00043}00043\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ value\ is\ win,\ subtract\ remoteness\ from\ maximum\ score\ and\ add\ min\_remoteness\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00044}00044\ \ \ \ \ \ \ \ \ score\ =\ max\_remoteness\ +\ min\_remoteness\ -\/\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00045}00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00046}00046\ \ \ \ \ \textcolor{keywordflow}{case}\ lose:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ value\ is\ lose,\ add\ remoteness\ to\ minimum\ score\ and\ subtract\ min\_remoteness\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00048}00048\ \ \ \ \ \ \ \ \ score\ =\ -\/max\_remoteness\ -\/\ min\_remoteness\ +\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00049}00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{case}\ tie:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ value\ is\ tie,\ score\ is\ 0\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00052}00052\ \ \ \ \ \ \ \ \ score\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{case}\ undecided:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}ERROR:\ generate\_score\ invoked\ with\ undecided\ game\ value\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ score\ =\ INT\_MAX;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00058}00058\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Invalid\ game\ value:\ \%d\(\backslash\)n"{}},\ value);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00060}00060\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{if}\ (abs(score)\ >=\ INFINITY)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}SCORE\ \%d\ out\ of\ bounds,\ value\ =\ \%d,\ remoteness\ =\ \%d\(\backslash\)n"{}},\ score,\ value,\ remoteness);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00064}00064\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00065}00065\ \ \ \ \ \textcolor{keywordflow}{return}\ score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00067}00067\ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00071}00071\ SCORE\ alpha\_beta(POSITION\ position,\ SCORE\ alpha,\ SCORE\ beta,\ REMOTENESS\ min\_remoteness,\ REMOTENESS\ max\_remoteness)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00073}00073\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00074}00074\ \ \ \ \ REMOTENESS\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00075}00075\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moves\_list,\ *move\_node;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00076}00076\ \ \ \ \ POSITION\ child,\ best\_child;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00077}00077\ \ \ \ \ SCORE\ score,\ best\_score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00078}00078\ \ \ \ \ BOOLEAN\ set\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00079}00079\ \ \ \ \ BOOLEAN\ run\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{if}\ (alpha>=beta)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}alpha\_beta\ invoked\ with\ alpha=\%d,\ beta=\%d\(\backslash\)n"{}},\ alpha,\ beta);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00085}00085\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00087}00087\ \ \ \ \ best\_score\ =\ -\/INFINITY;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00088}00088\ \ \ \ \ ctra++;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00089}00089\ \ \ \ \ \textcolor{keywordflow}{if}\ (!(ctra\ \&\ 0xFFFF))\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}evaluated\ \%d\ positions\(\backslash\)n"{}},\ ctra);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00091}00091\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00093}00093\ \ \ \ \ \textcolor{comment}{/*\ First\ examine\ if\ the\ game\ value\ of\ position\ is\ known\ already\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00094}00094\ \ \ \ \ value\ =\ GetValueOfPosition(position);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00096}00096\ \ \ \ \ \textcolor{comment}{/*\ If\ game\ value\ of\ position\ is\ known\ already\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{if}\ (value\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Extract\ remoteness\ of\ position\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ remoteness\ =\ Remoteness(position);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00102}00102\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00103}00103\ \ \ \ \ \textcolor{comment}{/*\ If\ game\ value\ of\ position\ is\ not\ known\ yet\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Check\ if\ the\ position\ is\ terminal\ and\ extract\ value\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ value\ =\ Primitive(position);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ position\ is\ terminal\ (i.e.\ value\ can\ be\ determined\ directly)\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (value\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Set\ remoteness\ as\ 0\ (terminal\ position)\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ remoteness\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ this\ position\ is\ non-\/terminal\ and\ has\ never\ been\ visited\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Generate\ possible\ moves\ from\ this\ position\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ moves\_list\ =\ GenerateMoves(position);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (moves\_list\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stderr,\textcolor{stringliteral}{"{}ERROR:\ empty\ move\ list\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ For\ every\ possible\ move\ until\ alpha\ >=\ beta\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (move\_node\ =\ moves\_list;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_node\ !=\ NULL\ \&\&\ alpha\ <\ beta;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ move\_node\ =\ move\_node-\/>next)}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*SCORE\ tempa,\ tempb;*/}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ run\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Obtain\ position\ resulting\ from\ application\ of\ move\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ DoMove(position,\ move\_node-\/>move);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Normalize\ child\ position\ if\ symmetry\ handling\ is\ enabled\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gSymmetries)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Normalize\ child\ position\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ gCanonicalPosition(child);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ position\ hash\ value\ is\ illegal,\ report\ error\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (child\ >=\ gNumberOfPositions)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Report\ bad\ position\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FoundBadPosition(child,\ position,\ move\_node-\/>move);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Run\ the\ alpha\_beta\ algorithm\ on\ the\ child\ board\ with\ inverted\ alpha\ and\ beta\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ score\ =\ invert\_score(alpha\_beta(child,}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ invert\_score(beta,\ max\_remoteness),}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ invert\_score(alpha,\ max\_remoteness),}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ min\_remoteness\ -\/\ 1,}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max\_remoteness),}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ max\_remoteness);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (score\ >\ best\_score)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ best\_score\ =\ score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ best\_child\ =\ child;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ set\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ inverse\ of\ min\ score\ exceeds\ alpha\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (best\_score\ >\ alpha)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Replace\ alpha\ with\ inverse\ of\ min\ score\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alpha\ =\ best\_score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Undo\ move\ for\ efficiency\ if\ GPS\ is\ enabled\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gUseGPS)}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gUndoMove(move\_node-\/>move);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00180}00180\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Deallocate\ list\ of\ moves\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(moves\_list);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Set\ value\ of\ position\ to\ depending\ on\ value\ of\ best\ child\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (GetValueOfPosition(best\_child))\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00188}00188\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ child's\ can\ force\ win,\ this\ board's\ value\ is\ lose\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ value\ =\ lose;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ child\ can't\ do\ better\ than\ lose,\ this\ board's\ value\ is\ win\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ value\ =\ win;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ tie:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ child's\ value\ is\ tie,\ this\ board's\ value\ is\ tie\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ value\ =\ tie;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ undecided:}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Set\ remoteness\ of\ position\ value\ to\ one\ more\ than\ that\ of\ chosen\ child\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ remoteness\ =\ Remoteness(best\_child)\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Store\ remoteness\ of\ value\ in\ database\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ SetRemoteness(position,\ remoteness);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Store\ value\ of\ position\ in\ database\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ StoreValueOfPosition(position,\ value);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00217}00217\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00219}00219\ \ \ \ \ \textcolor{comment}{/*\ Generate\ score\ for\ this\ board\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00220}00220\ \ \ \ \ \textcolor{keywordflow}{return}\ generate\_score(value,\ remoteness,\ min\_remoteness,\ max\_remoteness);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00222}00222\ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00223}00223\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00224}00224\ SCORE\ MTD(POSITION\ position,\ SCORE\ score)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00225}00225\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00226}00226\ \ \ \ \ SCORE\ upperbound,\ lowerbound,\ beta;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00227}00227\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00228}00228\ \ \ \ \ upperbound\ =\ +INFINITY;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00229}00229\ \ \ \ \ lowerbound\ =\ -\/INFINITY;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00230}00230\ \ \ \ \ \textcolor{keywordtype}{int}\ counter\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00232}00232\ \ \ \ \ \textcolor{comment}{/*\ Repeat\ until\ zeroed\ in\ on\ score\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00233}00233\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ beta\ is\ a\ *valid*\ version\ of\ the\ approximate\ score}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00235}00235\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ i.e.\ it\ is\ either\ the\ approximate\ score,}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00236}00236\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ or\ in\ case\ the\ approximate\ score\ is\ the\ lowerbound,\ it\ is\ the\ minimal\ valid\ score,}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00237}00237\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ since\ the\ lowerbound\ score\ is\ invalid\ and\ we\ need\ a\ valid\ alpha}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00238}00238\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ beta\ =\ (lowerbound\ ==\ score)\ ?\ score\ +\ 1\ :\ score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Alpha-\/beta\ run\ \#\%d\ alpha=\%d,\ beta=\%d\(\backslash\)n"{}},\ counter,\ beta\ -\/\ 1,\ beta);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00242}00242\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Run\ the\ alpha-\/beta\ pruning\ minimax\ search\ with\ alpha\ =\ beta\ -\/\ 1\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ score\ =\ alpha\_beta(position,\ beta\ -\/\ 1,\ beta,\ gMinRemoteness,\ gMaxRemoteness);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Score\ obtained\ in\ alpha-\/beta\ run\ \#\%d\ is\ \%d\(\backslash\)n"{}},\ counter++,\ score);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00248}00248\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ score\ is\ less\ than\ beta,\ change\ upperbound\ to\ equal\ score\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00249}00249\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (score\ <\ beta)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ upperbound\ =\ score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00251}00251\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00252}00252\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Otherwise\ change\ lowerbound\ to\ equal\ score\ */}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00253}00253\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ lowerbound\ =\ score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00255}00255\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00256}00256\ \ \ \ \ \}\ \textcolor{keywordflow}{while}\ (lowerbound\ <\ upperbound);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00258}00258\ \ \ \ \ \textcolor{keywordflow}{return}\ score;}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00259}00259\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00260}00260\ \}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00263}00263\ VALUE\ DetermineValueAlphaBeta(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00265}00265\ \ \ \ \ printf(\textcolor{stringliteral}{"{}starting\ alpha\_beta\ with\ alpha\ =\ \%d,\ beta\ =\ \%d,\ min\_remoteness\ =\ \%d,\ max\_remoteness\ =\ \%d\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ \ \ \ -\/INFINITY,}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ +INFINITY,}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ gMinRemoteness,}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ gMaxRemoteness);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00270}00270\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00271}00271\ \ \ \ \ MTD(position,\ -\/INFINITY);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00272}00272\ \ \ \ \ \textcolor{comment}{//alpha\_beta(position,\ -\/INFINITY,\ +INFINITY,\ gMinRemoteness,\ gMaxRemoteness);}}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00273}00273\ \ \ \ \ \textcolor{keywordflow}{return}\ GetValueOfPosition(position);}
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{solveweakab_8c_source_l00275}00275\ \}}
+
+\end{DoxyCode}

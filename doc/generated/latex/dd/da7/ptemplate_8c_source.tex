@@ -1,0 +1,70 @@
+\hypertarget{ptemplate_8c_source}{}\doxysection{ptemplate.\+c}
+\label{ptemplate_8c_source}\index{src/core/pen/ptemplate.c@{src/core/pen/ptemplate.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00001}00001\ \textcolor{comment}{//\ Template\ stroke\ parser}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}loader.h"{}}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}stroke.h"{}}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}tcl.h"{}}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00009}00009\ \textcolor{preprocessor}{\#define\ TCL\_TIMER\_MS\ 100}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00010}00010\ Tcl\_Interp\ *tclInterpreter\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00012}00012\ BOOL\ gameFinished\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00015}00015\ \textcolor{keywordtype}{void}\ resetGameState()}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00016}00016\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00017}00017\ \ \ \ \ gameFinished\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00018}00018\ \}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00021}00021\ \textcolor{comment}{//\ called\ by\ Tcl\ Event\ loop\ to\ check\ for\ new\ data}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00022}00022\ \textcolor{keywordtype}{void}\ TclTimerProc(ClientData\ clientData)}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00023}00023\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00024}00024\ \ \ \ \ \textcolor{keywordflow}{if}\ (!isPenLoaderStarted())\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00025}00025\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}Timer\ stopped\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00026}00026\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00027}00027\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00029}00029\ \ \ \ \ \mbox{\hyperlink{struct_stroke}{Stroke}}\ stroke\ =\ getNextAvailableStroke();}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00030}00030\ \ \ \ \ Tcl\_CreateTimerHandler(TCL\_TIMER\_MS,\ \&TclTimerProc,\ NULL);}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00031}00031\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.nSamples\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00032}00032\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00033}00033\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00035}00035\ \ \ \ \ \textcolor{keywordflow}{if}\ (gameFinished)\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00036}00036\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ This\ game\ is\ already\ finished,\ skipping\ stroke\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00037}00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00038}00038\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00040}00040\ \ \ \ \ \textcolor{comment}{//\ sample\ game\ (one\ move,\ no\ board\ detection)}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00041}00041\ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ \ \ Making\ move\ 1\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00042}00042\ \ \ \ \ Tcl\_Eval(tclInterpreter,\ \textcolor{stringliteral}{"{}ReturnFromHumanMove\ 1"{}});}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00043}00043\ \ \ \ \ gameFinished\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00044}00044\ \}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00047}00047\ \textcolor{comment}{//\ called\ by\ Gamesman\ when\ new\ game\ is\ started}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00048}00048\ \textcolor{keywordtype}{void}\ gPenHandleTclMessage(\textcolor{keywordtype}{int}\ options[],\ \textcolor{keywordtype}{char}\ *filename,\ Tcl\_Interp\ *tclInterp,\ \textcolor{keywordtype}{int}\ debug)}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00049}00049\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{if}\ (hasPenLoaderFinished())\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ already\ read\ through\ entire\ file,\ no\ need\ to\ do\ it\ again}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00053}00053\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{if}\ (isPenLoaderStarted())\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ loader\ already\ started\ -\/\ reset\ state,\ change\ output\ to\ new\ file}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ resetGameState();}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ startNewPenOutputFile();}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00058}00058\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (startPenLoader(filename,\ debug)\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ started\ loader\ for\ the\ first\ time\ -\/\ set\ initial\ state,\ start\ timer}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00060}00060\ \ \ \ \ \ \ \ \ resetGameState();}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ tclInterpreter\ =\ tclInterp;}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ Tcl\_CreateTimerHandler(TCL\_TIMER\_MS,\ \&TclTimerProc,\ NULL);}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00063}00063\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{ptemplate_8c_source_l00064}00064\ \}}
+
+\end{DoxyCode}

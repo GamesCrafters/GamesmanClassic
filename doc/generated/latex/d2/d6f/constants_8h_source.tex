@@ -1,0 +1,57 @@
+\hypertarget{constants_8h_source}{}\doxysection{constants.\+h}
+\label{constants_8h_source}\index{src/core/constants.h@{src/core/constants.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_CONSTANTS\_H}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ GMCORE\_CONSTANTS\_H}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00004}00004\ \textcolor{comment}{/*\ constant\ definitions\ and\ declarations\ */}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00006}00006\ \textcolor{preprocessor}{\#ifndef\ \ FALSE}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00007}00007\ \textcolor{preprocessor}{\#define\ \ FALSE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00008}00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00010}00010\ \textcolor{preprocessor}{\#ifndef\ \ TRUE}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00011}00011\ \textcolor{preprocessor}{\#define\ \ TRUE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00012}00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00014}00014\ \textcolor{preprocessor}{\#define\ POSITION\_FORMAT\ \ \ \ \ \ \ \ \ "{}\%llu"{}}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00016}00016\ \textcolor{comment}{/*\ smarter\ computer\ */}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00017}00017\ \textcolor{preprocessor}{\#define\ WINMOVE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00018}00018\ \textcolor{preprocessor}{\#define\ TIEMOVE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00019}00019\ \textcolor{preprocessor}{\#define\ LOSEMOVE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00020}00020\ \textcolor{preprocessor}{\#define\ SMART\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00021}00021\ \textcolor{preprocessor}{\#define\ RANDOM\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00022}00022\ \textcolor{preprocessor}{\#define\ DUMB\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00023}00023\ \textcolor{preprocessor}{\#define\ MAXSCALE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 100}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00024}00024\ \textcolor{preprocessor}{\#define\ MAXGIVEBACKS\ \ \ \ \ \ \ \ \ \ \ \ 9}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00026}00026\ \textcolor{preprocessor}{\#define\ MAXINT2\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1073741823\ }\textcolor{comment}{/*\ 2\string^30\ -\/\ 1\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00027}00027\ \textcolor{preprocessor}{\#define\ MAXNAME\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 15\ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ arbitrary\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00028}00028\ \textcolor{preprocessor}{\#define\ MAXINPUTLENGTH\ \ \ \ \ \ \ \ \ \ 80\ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ arbitrary\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00030}00030\ \textcolor{preprocessor}{\#define\ kPlayerOneTurn\ \ \ \ \ \ \ \ \ \ 1\ }\textcolor{comment}{/*\ used\ for\ human/human\ games\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00031}00031\ \textcolor{preprocessor}{\#define\ kPlayerTwoTurn\ \ \ \ \ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00032}00032\ \textcolor{preprocessor}{\#define\ kHumansTurn\ \ \ \ \ \ \ \ \ \ \ \ \ 1\ }\textcolor{comment}{/*\ used\ for\ computer/human\ games\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00033}00033\ \textcolor{preprocessor}{\#define\ kComputersTurn\ \ \ \ \ \ \ \ \ \ 0}}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00035}00035\ \textcolor{keyword}{extern}\ STRING\ kOpeningCredits,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00036}00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kHelpValueBeforeEvaluation,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00037}00037\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kHelpWhatIsGameValue,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00038}00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kHelpWhatIsEvaluation,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00039}00039\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kHelpWhatArePredictions,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kHelpWhatAreHints,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00041}00041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kHandleDefaultTextInputHelp,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00042}00042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kCommandSyntaxHelp,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00043}00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kSolveVersion,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00044}00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kPrintMenu,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00045}00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kPrintMenuWithSolving,}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00046}00046\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kPrintMenuEnd;}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00048}00048\ \textcolor{keyword}{extern}\ STRING\ gValueString[];}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00049}00049\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ gValueLetter[];}
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{constants_8h_source_l00051}00051\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_CONSTANTS\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

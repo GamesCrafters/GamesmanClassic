@@ -1,0 +1,314 @@
+\hypertarget{loader_8c_source}{}\doxysection{loader.\+c}
+\label{loader_8c_source}\index{src/core/pen/loader.c@{src/core/pen/loader.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00001}00001\ \textcolor{comment}{//\ Loader\ for\ pen\ strokes}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}stroke.h"{}}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <pthread.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <sys/types.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <sys/uio.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <errno.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <time.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <unistd.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <fcntl.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00013}00013\ \textcolor{preprocessor}{\#include\ <stdarg.h>}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00016}00016\ \textcolor{comment}{//\ time\ to\ wait\ for\ samples}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00017}00017\ \textcolor{preprocessor}{\#define\ SAMPLE\_WAIT\_MICROS\ 30000}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00019}00019\ \textcolor{comment}{//\ Pen\ data\ headers}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00020}00020\ \textcolor{preprocessor}{\#define\ TYPE\_SIMPLE\_COORD\ \ \ 0x00}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00021}00021\ \textcolor{preprocessor}{\#define\ TYPE\_PEN\_UP\ \ \ \ \ \ \ \ \ 0x01}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00022}00022\ \textcolor{preprocessor}{\#define\ LENGTH\_SIMPLE\_COORD\ 0x0B}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00023}00023\ \textcolor{preprocessor}{\#define\ LENGTH\_PEN\_UP\ \ \ \ \ \ \ 0x00}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00025}00025\ \textcolor{comment}{//\ expected\ byte\ type\ for\ reading\ in\ samples}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00026}00026\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00027}00027\ \ \ \ \ E\_TYPE,}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00028}00028\ \ \ \ \ E\_LENGTH,}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00029}00029\ \ \ \ \ E\_X,}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00030}00030\ \ \ \ \ E\_Y,}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00031}00031\ \ \ \ \ E\_XFRACTION,}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00032}00032\ \ \ \ \ E\_YFRACTION,}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00033}00033\ \ \ \ \ E\_FORCE}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00034}00034\ \}\ ExpectedByte;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00037}00037\ \textcolor{keywordtype}{int}\ inFileDesc\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00038}00038\ \textcolor{keywordtype}{char}\ outFilename[50];}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00039}00039\ FILE\ *outFile\ =\ NULL,\ *logF\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00040}00040\ BOOL\ alreadyFinished\ =\ FALSE,\ didWriteToOutFile;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00041}00041\ \textcolor{keywordtype}{int}\ showDebug\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00044}00044\ \textcolor{comment}{//\ file\ used\ for\ logging\ output\ messages\ (Cygwin's\ wish\ shell\ doesn't\ show\ stdout/stderr)}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00045}00045\ FILE*\ logFile()}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00046}00046\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00047}00047\ \ \ \ \ \textcolor{keywordflow}{if}\ (!showDebug)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ stdout;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00049}00049\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{if}\ (logF\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ logF;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00052}00052\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00053}00053\ \ \ \ \ logF\ =\ fopen(\textcolor{stringliteral}{"{}pen/log.txt"{}},\ \textcolor{stringliteral}{"{}a"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00054}00054\ \ \ \ \ \textcolor{keywordflow}{if}\ (logF\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ stdout;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00056}00056\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00057}00057\ \ \ \ \ time\_t\ tt\ =\ time(NULL);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00058}00058\ \ \ \ \ fprintf(logF,\ \textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nStarting\ log\ messages\ for:\ \%s"{}},\ ctime(\&tt));}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00059}00059\ \ \ \ \ \textcolor{keywordflow}{return}\ logF;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00060}00060\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00062}00062\ \textcolor{keywordtype}{void}\ printLog(\textcolor{keywordtype}{char}*\ formatString,\ ...)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00063}00063\ \ \ \ \ \textcolor{keywordflow}{if}\ (!showDebug)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00064}00064\ \ \ \ \ va\_list\ argp;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00065}00065\ \ \ \ \ va\_start(argp,\ formatString);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00066}00066\ \ \ \ \ vfprintf(logFile(),\ formatString,\ argp);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00067}00067\ \ \ \ \ fflush(logFile());}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00068}00068\ \ \ \ \ va\_end(argp);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00069}00069\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00073}00073\ BOOL\ isPenLoaderStarted()}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00074}00074\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00075}00075\ \ \ \ \ \textcolor{keywordflow}{return}\ (inFileDesc\ ==\ -\/1)\ ?\ FALSE\ :\ TRUE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00076}00076\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00078}00078\ BOOL\ hasPenLoaderFinished()}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00079}00079\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{return}\ alreadyFinished;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00081}00081\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00083}00083\ \textcolor{keywordtype}{void}\ closePenOutputFile()}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00084}00084\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{if}\ (outFile\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00087}00087\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00088}00088\ \ \ \ \ fclose(outFile);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00089}00089\ \ \ \ \ \textcolor{comment}{//\ clean\ up\ empty\ file}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00090}00090\ \ \ \ \ \textcolor{keywordflow}{if}\ (!didWriteToOutFile)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}Removing\ unused\ game\ file\ '\%s'\(\backslash\)n"{}},\ outFilename);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ unlink(outFilename);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00093}00093\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00094}00094\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00096}00096\ \textcolor{comment}{//\ opens\ a\ new\ file\ for\ saving\ strokes\ (only\ when\ debug\ is\ on)}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00097}00097\ \textcolor{keywordtype}{void}\ startNewPenOutputFile()}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00098}00098\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00099}00099\ \ \ \ \ \textcolor{keywordflow}{if}\ (!isPenLoaderStarted()\ ||\ !showDebug)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00101}00101\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00102}00102\ \ \ \ \ closePenOutputFile();}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00103}00103\ \ \ \ \ didWriteToOutFile\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00104}00104\ \ \ \ \ time\_t\ tt\ =\ time(NULL);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00105}00105\ \ \ \ \ \textcolor{keyword}{struct\ }tm\ *t\ =\ localtime(\&tt);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00106}00106\ \ \ \ \ sprintf(outFilename,\ \textcolor{stringliteral}{"{}pen/\%02d\%02d\%02d\_\%02d\%02d\%02d.dat"{}},\ (t-\/>tm\_year-\/100),\ (t-\/>tm\_mon+1),\ t-\/>tm\_mday,\ t-\/>tm\_hour,\ t-\/>tm\_min,\ t-\/>tm\_sec);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00107}00107\ \ \ \ \ outFile\ =\ fopen(outFilename,\ \textcolor{stringliteral}{"{}wb"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00108}00108\ \ \ \ \ \textcolor{keywordflow}{if}\ (outFile\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Warning:\ could\ not\ open\ '\%s'\ for\ writing,\ will\ not\ be\ saving\ strokes\(\backslash\)n"{}},\ outFilename);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00110}00110\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}Started\ new\ game\ file\ '\%s'\(\backslash\)n"{}},\ outFilename);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00112}00112\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00113}00113\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00116}00116\ \textcolor{comment}{//\ writes\ byte\ to\ output\ file}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00117}00117\ \textcolor{keywordtype}{void}\ writePenOutputByte(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \textcolor{keywordtype}{byte},\ BOOL\ shouldFlush)}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00118}00118\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00119}00119\ \ \ \ \ \textcolor{keywordflow}{if}\ (outFile\ ==\ NULL\ ||\ !showDebug)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00121}00121\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00122}00122\ \ \ \ \ didWriteToOutFile\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00123}00123\ \ \ \ \ fputc(\textcolor{keywordtype}{byte},\ outFile);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00124}00124\ \ \ \ \ \textcolor{keywordflow}{if}\ (shouldFlush)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ fflush(outFile);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00126}00126\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00127}00127\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00129}00129\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00130}00130\ \textcolor{comment}{//\ start\ the\ loader\ by\ opening\ input\ file}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00131}00131\ \textcolor{keywordtype}{int}\ startPenLoader(\textcolor{keywordtype}{char}\ *filename,\ \textcolor{keywordtype}{int}\ debug)}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00132}00132\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00133}00133\ \ \ \ \ showDebug\ =\ debug;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00134}00134\ \ \ \ \ \textcolor{comment}{//\ directory\ used\ for\ per-\/game\ pen\ data\ and\ log\ files}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{if}\ (showDebug)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ mkdir(\textcolor{stringliteral}{"{}pen"{}},\ 0755);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00137}00137\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00138}00138\ \ \ \ \ \textcolor{keywordflow}{if}\ (isPenLoaderStarted())\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ don't\ start\ again\ if\ already\ running}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Warning:\ Pen\ Loader\ is\ already\ running\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00142}00142\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00143}00143\ \ \ \ \ printLog(\textcolor{stringliteral}{"{}Starting\ Pen\ Loader\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00144}00144\ \ \ \ \ inFileDesc\ =\ open(filename,\ O\_RDONLY\ |\ O\_NONBLOCK,\ 0400);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{if}\ (inFileDesc\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Warning:\ unable\ to\ open\ '\%s'\ to\ read\ pen\ data,\ proceeding\ without\ pen\ support\(\backslash\)n"{}},\ filename);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00148}00148\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00149}00149\ \ \ \ \ printLog(\textcolor{stringliteral}{"{}Opened\ input\ file\ '\%s'\(\backslash\)n"{}},\ filename);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00150}00150\ \ \ \ \ startNewPenOutputFile();}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00151}00151\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00152}00152\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00156}00156\ \textcolor{comment}{//\ returns\ immediately\ if\ no\ data\ available\ (with\ nSamples\ =\ 0),\ otherwise\ reads\ the\ complete\ next\ stroke}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00157}00157\ \mbox{\hyperlink{struct_stroke}{Stroke}}\ getNextAvailableStroke()}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00158}00158\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00159}00159\ \ \ \ \ \textcolor{comment}{//\ temporary\ state}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00160}00160\ \ \ \ \ BOOL\ haveStroke\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00161}00161\ \ \ \ \ ExpectedByte\ expect\ =\ E\_TYPE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00162}00162\ \ \ \ \ \textcolor{keywordtype}{int}\ readResult,\ tempValue,\ valueCount,\ xInteger,\ yInteger;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00163}00163\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ curByte,\ curType,\ xFraction,\ yFraction;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00164}00164\ \ \ \ \ \mbox{\hyperlink{struct_stroke}{Stroke}}\ stroke\ =\ newStroke();}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{if}\ (inFileDesc\ ==\ -\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Warning:\ input\ file\ is\ not\ open\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00168}00168\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ stroke;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00169}00169\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{while}\ (!haveStroke)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ readResult\ =\ read(inFileDesc,\ \&curByte,\ 1);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((readResult\ ==\ -\/1)\ \&\&\ (errno\ ==\ EAGAIN))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ no\ data\ available\ -\/\ either\ exit\ or\ wait}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((expect\ ==\ E\_TYPE)\ \&\&\ (stroke.nSamples\ ==\ 0))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ stroke;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ usleep(SAMPLE\_WAIT\_MICROS);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (readResult\ !=\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Warning:\ reached\ EOF\ or\ got\ an\ error,\ stopping\ loader\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ closePenOutputFile();}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ close(inFileDesc);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ inFileDesc\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.nSamples\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ alreadyFinished\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ stroke;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00188}00188\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00190}00190\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(expect)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ E\_TYPE:}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((curByte\ !=\ TYPE\_SIMPLE\_COORD)\ \&\&\ (curByte\ !=\ TYPE\_PEN\_UP))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Invalid\ TYPE\ \%d\(\backslash\)n"{}},\ curByte);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};\ \textcolor{comment}{//\ invalid,\ just\ skip\ byte\ and\ continue}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ curType\ =\ curByte;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_LENGTH;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ valueCount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ E\_LENGTH:}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((valueCount\ ==\ 0)\ \&\&\ (curByte\ !=\ 0))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ first\ byte\ of\ 2-\/byte\ length\ should\ always\ be\ 0\ -\/\ restart}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Invalid\ first\ LENGTH\ byte\ \%d,\ restarting\ with\ TYPE\(\backslash\)n"{}},\ curByte);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_TYPE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((curByte\ ==\ TYPE\_SIMPLE\_COORD)\ ||\ (curByte\ ==\ TYPE\_PEN\_UP))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_LENGTH;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ curType\ =\ curByte;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (valueCount\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ first\ byte\ of\ length\ is\ 0\ -\/\ continue\ to\ next\ one}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ valueCount\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((curType\ ==\ TYPE\_SIMPLE\_COORD)\ \&\&\ (curByte\ ==\ LENGTH\_SIMPLE\_COORD))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ header\ finished\ -\/\ write\ 3-\/byte\ header,\ prepare\ for\ sample\ data}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(TYPE\_SIMPLE\_COORD,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(0,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(LENGTH\_SIMPLE\_COORD,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_X;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ valueCount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tempValue\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((curType\ ==\ TYPE\_PEN\_UP)\ \&\&\ (curByte\ ==\ LENGTH\_PEN\_UP))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ stroke\ finished\ -\/\ write\ 3-\/byte\ header\ to\ output\ file\ with\ flush,\ and\ exit}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(TYPE\_PEN\_UP,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(0,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(LENGTH\_PEN\_UP,\ TRUE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.nSamples\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ haveStroke\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ unsupported\ length\ -\/\ restart}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Invalid\ second\ LENGTH\ byte\ \%d,\ restarting\ with\ TYPE\(\backslash\)n"{}},\ curByte);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_TYPE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (curByte\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ treat\ previous\ byte\ as\ TYPE\_SIMPLE\_COORD,\ and\ current\ byte\ as\ first\ byte\ of\ length}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ valueCount\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ curType\ =\ TYPE\_SIMPLE\_COORD;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_LENGTH;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00241}00241\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00242}00242\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ E\_X:}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(curByte,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ tempValue\ =\ (tempValue\ <<\ 8)\ |\ (curByte\ \&\ 0xFF);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ valueCount++;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (valueCount\ ==\ 4)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ done\ with\ X}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xInteger\ =\ tempValue;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00249}00249\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_Y;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ valueCount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00251}00251\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tempValue\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00254}00254\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00255}00255\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ E\_Y:}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(curByte,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ tempValue\ =\ (tempValue\ <<\ 8)\ |\ (curByte\ \&\ 0xFF);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00258}00258\ \ \ \ \ \ \ \ \ \ \ \ \ valueCount++;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (valueCount\ ==\ 4)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ done\ with\ Y}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ yInteger\ =\ tempValue;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_XFRACTION;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ E\_XFRACTION:}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(curByte,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ xFraction\ =\ curByte;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_YFRACTION;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00271}00271\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ E\_YFRACTION:}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00273}00273\ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(curByte,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ yFraction\ =\ curByte;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00275}00275\ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_FORCE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ E\_FORCE:}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Finished\ with\ sample\ -\/\ calculate\ actual\ coordinates\ (curent\ force\ byte\ isn't\ used)}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ writePenOutputByte(curByte,\ FALSE);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ expect\ =\ E\_TYPE;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00282}00282\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ sampleX\ =\ xInteger\ +\ (0.125\ *\ ((xFraction\ >>\ 5)\ \&\ 7));}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ sampleY\ =\ yInteger\ +\ (0.125\ *\ ((yFraction\ >>\ 5)\ \&\ 7));}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((sampleX\ >\ 41940000)\ \&\&\ (sampleX\ <\ 41950000))\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}***\ Ignoring\ sample\ in\ 'Streaming\ On/Off'\ area\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ addStrokeSample(\&stroke,\ sampleX,\ sampleY);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00291}00291\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00292}00292\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00293}00293\ \ \ \ \ calculateStrokeProperties(\&stroke);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00294}00294\ \ \ \ \ printLog(\textcolor{stringliteral}{"{}\ *\ New\ Stroke:\ \%d\ samples,\ center:\ (\%.1f,\ \%.1f),\ radius:\ \%.1f,\ avg\ dist:\ \%.1f,\ type:\ "{}},\ \(\backslash\)}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke.nSamples,\ stroke.bounds.centerX,\ stroke.bounds.centerY,\ stroke.radius,\ stroke.averageSampleDistance);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00296}00296\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.type\ ==\ STROKE\_DOT)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}DOT\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00298}00298\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.type\ ==\ STROKE\_SHAPE)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00299}00299\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}SHAPE\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00300}00300\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.type\ ==\ STROKE\_LINE)\ \{}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ printLog(\textcolor{stringliteral}{"{}LINE\ (\%.1f,\ \%.1f)\ -\/\ (\%.1f,\ \%.1f)\(\backslash\)n"{}},\ stroke.line.x1,\ stroke.line.y1,\ stroke.line.x2,\ stroke.line.y2);}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00302}00302\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00304}00304\ \ \ \ \ \textcolor{keywordflow}{return}\ stroke;}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00305}00305\ \}}
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00306}00306\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{loader_8c_source_l00308}00308\ }
+
+\end{DoxyCode}

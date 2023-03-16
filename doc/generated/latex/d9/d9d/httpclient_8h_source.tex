@@ -1,0 +1,109 @@
+\hypertarget{httpclient_8h_source}{}\doxysection{httpclient.\+h}
+\label{httpclient_8h_source}\index{src/core/httpclient.h@{src/core/httpclient.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00001}00001\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <sys/types.h>}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ <sys/socket.h>}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <netinet/in.h>}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <netdb.h>}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00008}00008\ \textcolor{comment}{/*\ STRUCTS\ */}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00009}\mbox{\hyperlink{unionsock}{00009}}\ \textcolor{keyword}{union\ }\mbox{\hyperlink{unionsock}{sock}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00010}00010\ \{}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00011}00011\ \ \ \ \ \textcolor{keyword}{struct\ }sockaddr\ res;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00012}00012\ \ \ \ \ \textcolor{keyword}{struct\ }sockaddr\_in\ req;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00013}00013\ \};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00015}\mbox{\hyperlink{structheader__struct}{00015}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structheader__struct}{header\_struct}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00016}00016\ \{}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{char}\ *name;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00018}00018\ \ \ \ \ \textcolor{keywordtype}{char}\ *value;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00019}00019\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structheader__struct}{header\_struct}}\ *next;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00020}00020\ \};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00021}00021\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structheader__struct}{header\_struct}}\ \mbox{\hyperlink{structheader__struct}{header}};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00023}\mbox{\hyperlink{structhttpreq__struct}{00023}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhttpreq__struct}{httpreq\_struct}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00024}00024\ \{}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00025}00025\ \ \ \ \ \textcolor{keyword}{union\ }\mbox{\hyperlink{unionsock}{sock}}\ \mbox{\hyperlink{unionsock}{sock}};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00026}00026\ \ \ \ \ \textcolor{keyword}{struct\ }hostent\ *serverAddr;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00027}00027\ \ \ \ \ \textcolor{keywordtype}{char}\ *hostName;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00028}00028\ \ \ \ \ \textcolor{keywordtype}{char}\ *path;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00029}00029\ \ \ \ \ \textcolor{keywordtype}{int}\ portNum;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00030}00030\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structheader__struct}{header\_struct}}\ *headers;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00031}00031\ \};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00032}00032\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhttpreq__struct}{httpreq\_struct}}\ \mbox{\hyperlink{structhttpreq__struct}{httpreq}};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00034}\mbox{\hyperlink{structhttpres__struct}{00034}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhttpres__struct}{httpres\_struct}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00035}00035\ \{}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00036}00036\ \ \ \ \ \textcolor{keywordtype}{char}\ *status;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00037}00037\ \ \ \ \ \textcolor{keywordtype}{char}\ *body;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00038}00038\ \ \ \ \ \textcolor{keywordtype}{int}\ statusCode;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00039}00039\ \ \ \ \ \textcolor{keywordtype}{int}\ bodyLength;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00040}00040\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structheader__struct}{header\_struct}}\ *headers;}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00041}00041\ \};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00042}00042\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhttpres__struct}{httpres\_struct}}\ \mbox{\hyperlink{structhttpres__struct}{httpres}};}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00045}00045\ \textcolor{comment}{/*\ FUNCTION\ DECLARATIONS\ */}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00046}00046\ \textcolor{preprocessor}{\#ifndef\ htonll}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00047}00047\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ htonll(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ n);\ \textcolor{comment}{//\ convert\ from\ host\ to\ network\ byte\ order\ for\ long\ longs\ */}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00048}00048\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00049}00049\ \textcolor{keywordtype}{void}\ net\_itoa(\textcolor{keywordtype}{int}\ n,\ \textcolor{keywordtype}{char}\ s[]);\ \textcolor{comment}{//convert\ int\ to\ char}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00050}00050\ \textcolor{keywordtype}{int}\ parse(\textcolor{keywordtype}{char}\ url[],\ \mbox{\hyperlink{structhttpreq__struct}{httpreq}}\ *req,\ \textcolor{keywordtype}{char}**\ errMsg);\ \textcolor{comment}{//parse\ (private)}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00051}00051\ \textcolor{keywordtype}{int}\ newrequest(\textcolor{keywordtype}{char}\ url[],\ \mbox{\hyperlink{structhttpreq__struct}{httpreq}}**req,\ \textcolor{keywordtype}{char}**\ errMsg);\ \ \textcolor{comment}{//insantiate\ a\ request\ with\ a\ url}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00052}00052\ \textcolor{keywordtype}{void}\ addheader(\mbox{\hyperlink{structhttpreq__struct}{httpreq}}\ *req,\ \textcolor{keywordtype}{char}\ name[],\ \textcolor{keywordtype}{char}\ value[]);\ \textcolor{comment}{//add\ header}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00053}00053\ \textcolor{keywordtype}{void}\ settype(\mbox{\hyperlink{structhttpreq__struct}{httpreq}}\ *req,\ \textcolor{keywordtype}{char}\ value[]);\ \textcolor{comment}{//set\ request\ type}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00054}00054\ \textcolor{keywordtype}{int}\ post(\mbox{\hyperlink{structhttpreq__struct}{httpreq}}\ *req,\ \textcolor{keywordtype}{char}\ body[],\ \textcolor{keywordtype}{int}\ bodyLength,\ \mbox{\hyperlink{structhttpres__struct}{httpres}}**res,\ \textcolor{keywordtype}{char}**\ errMsg);\ \ \textcolor{comment}{//post\ request:\ response}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00055}00055\ \textcolor{keywordtype}{void}\ getheader(\mbox{\hyperlink{structhttpres__struct}{httpres}}\ *res,\ \textcolor{keywordtype}{char}\ name[],\ \textcolor{keywordtype}{char}**\ hdrVal);\ \textcolor{comment}{//get\ header}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00056}00056\ \textcolor{keywordtype}{void}\ getstatus(\mbox{\hyperlink{structhttpres__struct}{httpres}}\ *res,\ \textcolor{keywordtype}{char}**\ status);\ \textcolor{comment}{//\ get\ a\ copy\ of\ the\ status}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00057}00057\ \textcolor{keywordtype}{void}\ freeresponse(\mbox{\hyperlink{structhttpres__struct}{httpres}}\ *res);\ \textcolor{comment}{//free\ response\ when\ done}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00058}00058\ \textcolor{keywordtype}{void}\ readresponse(\textcolor{keywordtype}{int}\ sockFd,\ \mbox{\hyperlink{structhttpres__struct}{httpres}}\ *res);\ \textcolor{comment}{//read\ response\ (private)}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00059}00059\ \textcolor{keywordtype}{void}\ lcstrcpy(\textcolor{keywordtype}{char}\ to[],\ \textcolor{keywordtype}{char}\ from[]);\ \ \textcolor{comment}{//lower\ case\ copy}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00060}00060\ \textcolor{keywordtype}{int}\ responseerrorcheck(\mbox{\hyperlink{structhttpres__struct}{httpres}}\ *res,\ \textcolor{keywordtype}{char}**\ errMsg);\ \textcolor{comment}{//\ checks\ for\ bad\ server\ response\ and\ returns\ an\ error\ code\ and\ message}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00061}00061\ \textcolor{keywordtype}{void}\ connecterror(\textcolor{keywordtype}{char}\ errMsg[]);\ \textcolor{comment}{//\ copies\ the\ error\ message\ corresponding\ to\ the\ errno\ into\ the\ specified\ buffer}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00062}00062\ \textcolor{keywordtype}{int}\ mallocstrcpy(\textcolor{keywordtype}{char}**\ errMsg,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ msg[]);\ \textcolor{comment}{//\ copies\ a\ string\ into\ a\ malloc'd\ area\ of\ memory}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00063}00063\ \textcolor{keywordtype}{int}\ mallocstrcpyext(\textcolor{keywordtype}{char}**\ errMsg,\ \textcolor{keywordtype}{char}\ msg1[],\ \textcolor{keywordtype}{char}\ msg2[]);\ \textcolor{comment}{//\ copies\ and\ concatenates\ 2\ strings\ into\ a\ malloc'\ area\ of\ memory}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00065}00065\ \textcolor{comment}{/*\ HEADERS\ AND\ VALUES\ */}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00066}00066\ \textcolor{preprocessor}{\#define\ HD\_GET\_VALUE\_OF\_POSITIONS\ "{}GetValueOfPositions"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00067}00067\ \textcolor{preprocessor}{\#define\ HD\_INIT\_DATABASE\ "{}InitDatabase"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00068}00068\ \textcolor{preprocessor}{\#define\ HD\_LOGON\_USER\ "{}LogonUser"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00069}00069\ \textcolor{preprocessor}{\#define\ HD\_LOGOFF\_USER\ "{}LogoffUser"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00070}00070\ \textcolor{preprocessor}{\#define\ HD\_CREATE\_USER\ "{}CreateUser"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00071}00071\ \textcolor{preprocessor}{\#define\ HD\_GET\_USERS\ "{}GetUsers"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00072}00072\ \textcolor{preprocessor}{\#define\ HD\_REGISTER\_GAME\ "{}RegisterGame"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00073}00073\ \textcolor{preprocessor}{\#define\ HD\_UNREGISTER\_GAME\ "{}UnregisterGame"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00074}00074\ \textcolor{preprocessor}{\#define\ HD\_JOIN\_GAME\ "{}JoinGame"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00075}00075\ \textcolor{preprocessor}{\#define\ HD\_RECEIVED\_CHALLENGE\ "{}ReceivedChallenge"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00076}00076\ \textcolor{preprocessor}{\#define\ HD\_ACCEPT\_CHALLENGE\ "{}AcceptChallenge"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00077}00077\ \textcolor{preprocessor}{\#define\ HD\_GET\_GAME\_STATUS\ "{}GetGameStatus"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00078}00078\ \textcolor{preprocessor}{\#define\ HD\_ACCEPTED\_CHALLENGE\ "{}AcceptedChallenge"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00079}00079\ \textcolor{preprocessor}{\#define\ HD\_DESELECT\_CHALLENGER\ "{}DeselectChallenger"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00080}00080\ \textcolor{preprocessor}{\#define\ HD\_SELECT\_CHALLENGER\ "{}SelectChallenger"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00081}00081\ \textcolor{preprocessor}{\#define\ HD\_GET\_LAST\_MOVE\ "{}GetLastMove"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00082}00082\ \textcolor{preprocessor}{\#define\ HD\_SEND\_MOVE\ "{}SendMove"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00083}00083\ \textcolor{preprocessor}{\#define\ HD\_GAME\_OVER\ "{}GameOver"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00084}00084\ \textcolor{preprocessor}{\#define\ HD\_RESIGN\ "{}Resign"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00086}00086\ \textcolor{preprocessor}{\#define\ HD\_USERNAME\ \ "{}Username"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00087}00087\ \textcolor{preprocessor}{\#define\ HD\_PASSWORD\ "{}Password"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00088}00088\ \textcolor{preprocessor}{\#define\ HD\_SECRET\_KEY\ "{}SecretKey"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00089}00089\ \textcolor{preprocessor}{\#define\ HD\_LENGTH\ "{}Length"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00090}00090\ \textcolor{preprocessor}{\#define\ HD\_GAME\_ID\ "{}GameId"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00091}00091\ \textcolor{preprocessor}{\#define\ HD\_GAME\_NAME\ "{}GameName"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00092}00092\ \textcolor{preprocessor}{\#define\ HD\_GAME\_VARIANT\ "{}GameVariant"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00093}00093\ \textcolor{preprocessor}{\#define\ HD\_GAME\_DESCRIPTION\ "{}GameDescription"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00094}00094\ \textcolor{preprocessor}{\#define\ HD\_GAME\_HOST\_MOVES\_FIRST\ "{}GameHostMovesFirst"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00095}00095\ \textcolor{preprocessor}{\#define\ HD\_STATUS\ "{}Status"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00096}00096\ \textcolor{preprocessor}{\#define\ HD\_ACCEPT\ "{}Accept"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00097}00097\ \textcolor{preprocessor}{\#define\ HD\_MOVE\_FIRST\ "{}MoveFirst"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00098}00098\ \textcolor{preprocessor}{\#define\ HD\_CHALLENGER\_USERNAME\ "{}ChallengerUsername"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00099}00099\ \textcolor{preprocessor}{\#define\ HD\_LAST\_MOVE\ "{}LastMove"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00100}00100\ \textcolor{preprocessor}{\#define\ HD\_MOVE\ "{}Move"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00102}00102\ \textcolor{preprocessor}{\#define\ HD\_RETURN\_CODE\ "{}ReturnCode"{}}}
+\DoxyCodeLine{\Hypertarget{httpclient_8h_source_l00103}00103\ \textcolor{preprocessor}{\#define\ HD\_RETURN\_MESSAGE\ "{}ReturnMessage"{}}}
+
+\end{DoxyCode}

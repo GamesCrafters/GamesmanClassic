@@ -1,0 +1,80 @@
+\hypertarget{levelfile__generator_8h_source}{}\doxysection{levelfile\+\_\+generator.\+h}
+\label{levelfile__generator_8h_source}\index{src/core/levelfile\_generator.h@{src/core/levelfile\_generator.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ levelfile\_generator.h}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ \ \ \ level\ file\ generation\ utility}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ Deepa\ Mahajan}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ \ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ 2006-\/08-\/07}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00013}00013\ \textcolor{comment}{**\ LICENSE:\ \ \ \ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00016}00016\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00017}00017\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00018}00018\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00019}00019\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00020}00020\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00021}00021\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00022}00022\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00023}00023\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00024}00024\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00025}00025\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00026}00026\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00027}00027\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00028}00028\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00029}00029\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00030}00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00031}00031\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00033}00033\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_LEVELFILE\_GENERATOR\_H}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00034}00034\ \textcolor{preprocessor}{\#define\ GMCORE\_LEVELFILE\_GENERATOR\_H}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00036}00036\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00037}00037\ \textcolor{preprocessor}{\#include\ "{}levelfile\_generator.h"{}}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00038}00038\ \textcolor{preprocessor}{\#include\ "{}bpdb\_bitlib.h"{}}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00039}00039\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00040}00040\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00042}00042\ \textcolor{preprocessor}{\#define\ BITSINBYTE\ 8}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00043}00043\ \textcolor{preprocessor}{\#define\ BITSINPOS\ 64}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00044}00044\ \textcolor{preprocessor}{\#define\ NUMOFTYPES\ 4}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00045}00045\ \textcolor{preprocessor}{\#define\ LENGTHOFEXT\ 7\ }\textcolor{comment}{//.dat.gz}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00046}00046\ \textcolor{comment}{//\ gcc\ levelfile\_generator.c\ levelfile\_generator.h\ bpdb\_bitlib.h\ bpdb\_bitlib.c\ levelfile\_test.c\ -\/lZ}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00047}00047\ \textcolor{comment}{//\ hexedit\ to\ view\ binary\ characters}}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00048}00048\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ BITARRAY;}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00051}00051\ \textcolor{keywordtype}{int}\ WriteLevelFile(\textcolor{keywordtype}{char}*\ compressed\_filename,\ BITARRAY\ *array,\ POSITION\ minHashValue,\ POSITION\ maxHashValue);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00052}00052\ \textcolor{keywordtype}{int}\ writeHeader(gzFile\ file,\ UINT64\ minHashValue,\ UINT64\ maxHashValue,\ UINT64\ lastZero,\ \textcolor{keywordtype}{int}\ type);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00053}00053\ \textcolor{keywordtype}{int}\ ArrayToType0Write(BITARRAY\ *array,\ UINT64\ minHashValue,\ UINT64\ maxHashValue);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00054}00054\ \textcolor{keywordtype}{int}\ ArrayToType1Write(BITARRAY\ *array,\ UINT64\ startIndex,\ UINT64\ maxHashValue,\ UINT64\ bitsPerPosition,\ UINT64\ offset);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00055}00055\ \textcolor{keywordtype}{int}\ ArrayToType2Write(BITARRAY\ *array,\ UINT64\ startIndex,\ UINT64\ maxHashValue,\ UINT64\ bitsPerPosition,\ UINT64\ offset);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00056}00056\ \textcolor{keywordtype}{int}\ ArrayToType3Write(BITARRAY\ *array,\ UINT64\ startIndex,\ UINT64\ minHashValue,\ UINT64\ maxHashValue);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00058}00058\ \textcolor{keywordtype}{int}\ ReadLevelFile(\textcolor{keywordtype}{char}*\ compressed\_filename,\ BITARRAY\ *array,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00059}00059\ \textcolor{keywordtype}{int}\ getLevelFileType(\textcolor{keywordtype}{char}*\ compressed\_filename);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00060}00060\ UINT64\ getLevelFileMinHashValue(\textcolor{keywordtype}{char}*\ compressed\_filename);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00061}00061\ UINT64\ getLevelFileMaxHashValue(\textcolor{keywordtype}{char}*\ compressed\_filename);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00062}00062\ UINT64\ getLevelFileBitsPerPosition(\textcolor{keywordtype}{char}*\ compressed\_filename);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00063}00063\ \textcolor{keywordtype}{int}\ isValidLevelFile(\textcolor{keywordtype}{char}*\ compressed\_filename);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00064}00064\ \textcolor{keywordtype}{int}\ readLevelFileType0(\textcolor{keywordtype}{char}*\ compressed\_filename,\ BITARRAY\ *array,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00065}00065\ \textcolor{keywordtype}{int}\ readLevelFileType1(\textcolor{keywordtype}{char}*\ compressed\_filename,\ BITARRAY\ *bitArray,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00066}00066\ \textcolor{keywordtype}{int}\ readLevelFileType2(\textcolor{keywordtype}{char}*\ compressed\_filename,\ BITARRAY\ *bitArray,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00067}00067\ \textcolor{keywordtype}{int}\ readLevelFileType3(\textcolor{keywordtype}{char}*\ compressed\_filename,\ BITARRAY\ *array,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00068}00068\ UINT8\ getBitValue(BYTE\ currentByte,\ UINT8\ bitnum);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00069}00069\ UINT64\ findMinValueFromArray(BITARRAY*\ array,\ UINT64\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00070}00070\ UINT64\ findMaxValueFromArray(BITARRAY*\ array,\ UINT64\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00071}00071\ UINT64\ findLastZero(BITARRAY*\ array,\ UINT64\ length);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00072}00072\ \textcolor{keywordtype}{int}\ positionToByteArray(BITARRAY*\ buffer,\ UINT64\ value,\ BYTE\ bufferPrev);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00073}00073\ \textcolor{keywordtype}{int}\ getLastZero(\textcolor{keywordtype}{char}*\ compressed\_filename);}
+\DoxyCodeLine{\Hypertarget{levelfile__generator_8h_source_l00074}00074\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_LEVELFILEGENERATOR\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

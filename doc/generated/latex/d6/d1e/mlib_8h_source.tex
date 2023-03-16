@@ -1,0 +1,102 @@
+\hypertarget{mlib_8h_source}{}\doxysection{mlib.\+h}
+\label{mlib_8h_source}\index{src/core/mlib.h@{src/core/mlib.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ \_MLIB\_H\_}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ \_MLIB\_H\_}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00004}00004\ \textcolor{comment}{//\ Include\ vendored\ libUWAPI\ for\ board\ string\ formatting}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}../../extern/libUWAPI/UWAPI\_boardstrings.h"{}}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00007}00007\ \textcolor{comment}{/*function\ prototypes*/}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00009}00009\ \textcolor{keywordtype}{void}\ LibInitialize(\textcolor{keywordtype}{int},\textcolor{keywordtype}{int},\textcolor{keywordtype}{int},BOOLEAN);}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00010}00010\ BOOLEAN\ NinaRow(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int},\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00011}00011\ BOOLEAN\ statelessNinaRow(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00012}00012\ BOOLEAN\ amountOfWhat(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int},BOOLEAN);}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00013}00013\ BOOLEAN\ OneDMatch(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,BOOLEAN*,BOOLEAN,\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00014}00014\ BOOLEAN\ TwoDMatch(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*);}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00015}00015\ \textcolor{keywordtype}{void}\ Test();}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00017}00017\ BOOLEAN\ mymemcmp(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00019}00019\ \textcolor{comment}{//watch\ out\ for\ collisions\ of\ these\ constant\ names.\ Always\ prepend\ the\ module\ name\ before\ them.}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00020}00020\ \textcolor{preprocessor}{\#define\ MLIB\_MAXBOARDSIZE\ 64}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00021}00021\ \textcolor{preprocessor}{\#define\ MLIB\_MAXPATTERN\ 16}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00023}\mbox{\hyperlink{structlb}{00023}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlb}{lb}}\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordtype}{int}\ eltSize;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00025}00025\ \ \ \ \ \textcolor{keywordtype}{int}\ rows;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00026}00026\ \ \ \ \ \textcolor{keywordtype}{int}\ cols;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00027}00027\ \ \ \ \ \textcolor{keywordtype}{int}\ size;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00028}00028\ \ \ \ \ BOOLEAN\ diagonals;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00029}00029\ \ \ \ \ \textcolor{keywordtype}{void}*\ blankPiece;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00030}00030\ \ \ \ \ \textcolor{keywordtype}{void}*\ opponentPlayerPiece;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00031}00031\ \ \ \ \ \textcolor{keywordtype}{void}*\ initialPlayerPiece;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00032}00032\ \ \ \ \ \textcolor{keywordtype}{int}\ directionMap[8];}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00033}00033\ \ \ \ \ \textcolor{keywordtype}{int}\ scratchBoard[MLIB\_MAXBOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00034}00034\ \ \ \ \ \textcolor{keywordtype}{int}\ overflowBoards[MLIB\_MAXPATTERN][MLIB\_MAXBOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00035}00035\ \}\ \mbox{\hyperlink{structlb}{LocalBoard}};}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00037}00037\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structlb}{LocalBoard}}\ lBoard;}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00039}00039\ \textcolor{preprocessor}{\#define\ GM\_DEFINE\_BLANKOX\_ENUM\_BOARDSTRINGS()\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00040}00040\ \textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00041}00041\ \textcolor{preprocessor}{\ \ \ \ static\ char\ gBlankOXUWAPIChar[]\ =\ \{\ '-\/',\ 'o',\ 'x'\ \};\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00042}00042\ \textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00043}00043\ \textcolor{preprocessor}{\ \ \ \ POSITION\ InteractStringToPosition(STRING\ str)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00044}00044\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ unsigned\ int\ num\_rows,\ num\_columns;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00045}00045\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ STRING\ board;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00046}00046\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00047}00047\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (!UWAPI\_Board\_Regular2D\_ParsePositionString(str,\ NULL,\ \&num\_rows,\ \&num\_columns,\ \&board))\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00048}00048\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ return\ INVALID\_POSITION;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00049}00049\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00050}00050\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00051}00051\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (num\_rows\ !=\ BOARDROWS\ ||\ num\_columns\ !=\ BOARDCOLS)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00052}00052\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ SafeFreeString(board);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00053}00053\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ return\ INVALID\_POSITION;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00054}00054\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00055}00055\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00056}00056\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ BlankOX\ oxboard[BOARDSIZE];\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00057}00057\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ int\ i;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00058}00058\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ for\ (i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00059}00059\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (board[i]\ ==\ 'o')\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00060}00060\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ oxboard[i]\ =\ o;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00061}00061\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ else\ if\ (board[i]\ ==\ 'x')\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00062}00062\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ oxboard[i]\ =\ x;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00063}00063\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ else\ if\ (board[i]\ ==\ '-\/')\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00064}00064\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ oxboard[i]\ =\ Blank;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00065}00065\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ else\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00066}00066\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFreeString(board);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00067}00067\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ INVALID\_POSITION;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00068}00068\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00069}00069\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00070}00070\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ SafeFreeString(board);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00071}00071\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ return\ BlankOXToPosition(oxboard);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00072}00072\ \textcolor{preprocessor}{\ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00073}00073\ \textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00074}00074\ \textcolor{preprocessor}{\ \ \ \ STRING\ InteractPositionToString(POSITION\ pos)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00075}00075\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ BlankOX\ oxboard[BOARDSIZE];\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00076}00076\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ PositionToBlankOX(pos,\ oxboard);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00077}00077\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00078}00078\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ char\ board[BOARDSIZE\ +\ 1];\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00079}00079\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ int\ i;\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00080}00080\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ for\ (i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00081}00081\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ board[i]\ =\ gBlankOXUWAPIChar[oxboard[i]];\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00082}00082\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00083}00083\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ board[BOARDSIZE]\ =\ '\(\backslash\)0';\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00084}00084\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00085}00085\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ return\ UWAPI\_Board\_Regular2D\_MakePositionString(\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00086}00086\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ WhoseTurn(oxboard)\ ==\ x\ ?\ UWAPI\_TURN\_A\ :\ UWAPI\_TURN\_B,\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00087}00087\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ BOARDROWS,\ BOARDCOLS,\ board);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00088}00088\ \textcolor{preprocessor}{\ \ \ \ \}\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00089}00089\ \textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00090}00090\ \textcolor{preprocessor}{\ \ \ \ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00091}00091\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ BlankOX\ oxboard[BOARDSIZE];\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00092}00092\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ PositionToBlankOX(pos,\ oxboard);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00093}00093\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ return\ UWAPI\_Board\_Regular2D\_MakeAddString(gBlankOXUWAPIChar[WhoseTurn(oxboard)],\ mv);\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00094}00094\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{mlib_8h_source_l00096}00096\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

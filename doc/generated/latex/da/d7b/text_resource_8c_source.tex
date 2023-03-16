@@ -1,0 +1,185 @@
+\hypertarget{text_resource_8c_source}{}\doxysection{text\+Resource.\+c}
+\label{text_resource_8c_source}\index{src/core/text\_resource/textResource.c@{src/core/text\_resource/textResource.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00001}00001\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}textResource.h"{}}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}trnode.h"{}}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00004}00004\ \textcolor{preprocessor}{\#include\ <expat.h>}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00005}00005\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00007}00007\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00009}00009\ \textcolor{keywordtype}{int}\ \_TextResource\_loadResource(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00011}00011\ \mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ TextResource\_create(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00012}00012\ \ \ \ \ \mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr\ =\ calloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_text_resource__struct}{TextResource\_struct}}),\ 1);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00013}00013\ \ \ \ \ tr-\/>parameters\ =\ \mbox{\hyperlink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\_create}}(32);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00014}00014\ \ \ \ \ tr-\/>strings\ =\ \mbox{\hyperlink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\_create}}(64);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00016}00016\ \ \ \ \ \textcolor{keywordtype}{int}\ result\ =\ \_TextResource\_loadResource(tr,filename);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00018}00018\ \ \ \ \ \textcolor{keywordflow}{if}\ (!result)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00019}00019\ \ \ \ \ \ \ \ \ TextResource\_free(tr);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00020}00020\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00021}00021\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00022}00022\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tr;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00023}00023\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00024}00024\ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00026}00026\ \textcolor{keywordtype}{void}\ TextResource\_free(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00027}00027\ \ \ \ \ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ iterator;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00029}00029\ \ \ \ \ \textcolor{keywordtype}{void}\ *p\_e;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00031}00031\ \ \ \ \ \textcolor{keywordflow}{for}\ (p\_e\ =\ \mbox{\hyperlink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\_first}}(tr-\/>parameters,\ \&iterator,\ \&p\_key);\ p\_e;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00032}00032\ \ \ \ \ \ \ \ \ \ p\_e\ =\ \mbox{\hyperlink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\_next}}(tr-\/>parameters,\ \&iterator,\ \&p\_key))\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00033}00033\ \ \ \ \ \ \ \ \ free(p\_e);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00034}00034\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00037}00037\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{ght\_finalize}}(tr-\/>parameters);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00039}00039\ \ \ \ \ \textcolor{keywordflow}{for}\ (p\_e\ =\ \mbox{\hyperlink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\_first}}(tr-\/>strings,\ \&iterator,\ \&p\_key);\ p\_e;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00040}00040\ \ \ \ \ \ \ \ \ \ p\_e\ =\ \mbox{\hyperlink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\_next}}(tr-\/>strings,\ \&iterator,\ \&p\_key))\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00042}00042\ \ \ \ \ \ \ \ \ free(p\_e);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00043}00043\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00045}00045\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{ght\_finalize}}(tr-\/>strings);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00047}00047\ \ \ \ \ free(tr);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00048}00048\ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00050}00050\ \textcolor{keywordtype}{void}\ TextResource\_setParameter(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ key,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ value)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00051}00051\ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ val\ =\ \mbox{\hyperlink{ght__hash__table_8h_aa8582d55526ef0c606422dc083180dc0}{ght\_remove}}(tr-\/>parameters,strlen(key),key);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00052}00052\ \ \ \ \ \textcolor{keywordflow}{if}\ (val)\ bdestroy(val);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00054}00054\ \ \ \ \ val\ =\ bfromcstr(value);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00055}00055\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{ght\_insert}}(tr-\/>parameters,val,strlen(key),key);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00056}00056\ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00058}00058\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structtagbstring}{bstring}}\ tr\_eval(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ \mbox{\hyperlink{structnode}{node}});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00060}00060\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structtagbstring}{bstring}}\ tr\_evalKey(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ key)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00061}00061\ \ \ \ \ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ \mbox{\hyperlink{structnode}{node}}\ =\ \mbox{\hyperlink{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}{ght\_get}}(tr-\/>strings,strlen(key),key);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00062}00062\ \ \ \ \ \textcolor{keywordflow}{if}\ (!\mbox{\hyperlink{structnode}{node}})}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ bformat(\textcolor{stringliteral}{"{}<'\%s'\ not\ found>"{}},key);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{return}\ tr\_eval(tr,\mbox{\hyperlink{structnode}{node}});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00065}00065\ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00067}00067\ \textcolor{keyword}{static}\ \mbox{\hyperlink{structtagbstring}{bstring}}\ tr\_eval(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ \mbox{\hyperlink{structnode}{node}})\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00068}00068\ \ \ \ \ \textcolor{comment}{//internally\ we\ work\ with\ bstrings}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00072}00072\ \ \ \ \ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ tmpNode;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{switch}(\mbox{\hyperlink{structnode}{node}}-\/>type)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00075}00075\ \ \ \ \ \textcolor{keywordflow}{case}\ TRNODE\_TEXT:}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ bstrcpy(\mbox{\hyperlink{structnode}{node}}-\/>textData);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{case}\ TRNODE\_REPR:}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ ;\ \textcolor{keywordtype}{int}\ match=0;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structnode}{node}}-\/>condKey)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ assert(\mbox{\hyperlink{structnode}{node}}-\/>condValue);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//conditional}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ condkey\ =\ bstr2cstr(\mbox{\hyperlink{structnode}{node}}-\/>condKey,\textcolor{charliteral}{'\(\backslash\)0'});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ val\ =\ \mbox{\hyperlink{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}{ght\_get}}(tr-\/>parameters,strlen(condkey),condkey);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ bcstrfree(condkey);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00085}00085\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (val\ \&\&\ !bstrcmp(\mbox{\hyperlink{structnode}{node}}-\/>condValue,\ val))\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//matches}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ match\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//unconditional,\ so\ go\ too}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ match=1;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (match)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tr\_evalKey(tr,\mbox{\hyperlink{structnode}{node}}-\/>reprKey-\/>data);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ bfromcstr(\textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00099}00099\ \ \ \ \ \textcolor{keywordflow}{case}\ TRNODE\_STRING:}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \textcolor{comment}{//these\ guys\ have\ a\ blob\ of\ nodes\ that\ needs\ to\ be\ catted\ together\ smartly}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ tmpNode\ =\ \mbox{\hyperlink{structnode}{node}}-\/>children\_list;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00102}00102\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ tmpStr\ =\ bfromcstralloc(32,\textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00103}00103\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(tmpNode)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ childStr\ =\ tr\_eval(tr,tmpNode);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ bconchar(tmpStr,\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ bconcat(tmpStr,childStr);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ bdestroy(childStr);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ tmpNode\ =\ tmpNode-\/>next;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tmpStr;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00111}00111\ \ \ \ \ \textcolor{keywordflow}{case}\ TRNODE\_SWITCH:}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{comment}{//look\ through\ the\ children\ for\ matching\ choice}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ ;\ \textcolor{keywordtype}{char}*\ switchVar\ =\ bstr2cstr(\mbox{\hyperlink{structnode}{node}}-\/>switchVar,\textcolor{charliteral}{'\(\backslash\)0'});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ val\ =\ \mbox{\hyperlink{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}{ght\_get}}(tr-\/>parameters,strlen(switchVar),switchVar);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ bcstrfree(switchVar);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ tmpNode\ =\ \mbox{\hyperlink{structnode}{node}}-\/>children\_list;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(tmpNode)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ assert(tmpNode-\/>type\ ==\ TRNODE\_STRING);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ assert(tmpNode-\/>caseValue);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!bstrcmp(tmpNode-\/>caseValue,val))\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ match,\ return\ this}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tr\_eval(tr,tmpNode);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//try\ next}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ tmpNode\ =\ tmpNode-\/>next;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ bfromcstr(\textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00130}00130\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ assert(0);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00132}00132\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00134}00134\ \ \ \ \ assert(0);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00135}00135\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00136}00136\ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00138}00138\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00139}00139\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ normalize\_space(\mbox{\hyperlink{structtagbstring}{bstring}}\ str)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00140}00140\ \ \ \ \ \textcolor{keywordtype}{int}\ i=0;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00141}00141\ \ \ \ \ \textcolor{keywordflow}{while}(i<blength(str))\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ spaceStart\ =\ bstrchrp(str,\textcolor{charliteral}{'\ '},i);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (spaceStart\ ==\ BSTR\_ERR)}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ found\ it,\ now\ look\ for\ the\ end\ of\ this\ space\ sequence}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ spaceLen\ =\ 1;\ \textcolor{comment}{//exclusive}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(str-\/>data[spaceStart+spaceLen]\ ==\ \textcolor{charliteral}{'\ '})}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ spaceLen++;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (spaceLen\ >\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//multiple\ spaces}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ bdelete(str,spaceStart+1,spaceLen-\/1);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00152}00152\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00154}00154\ \ \ \ \ \ \ \ \ i\ =\ spaceStart+1;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00155}00155\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00156}00156\ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00158}00158\ \textcolor{keywordtype}{int}\ TextResource\_getString(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ maxSize,\ \textcolor{keywordtype}{char}*\ buffer)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00160}00160\ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ str\ =\ tr\_evalKey(tr,\ key);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00161}00161\ \ \ \ \ normalize\_space(str);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00162}00162\ \ \ \ \ \textcolor{keywordtype}{char}*\ cstr\ =\ bstr2cstr(str,\textcolor{charliteral}{'0'});}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00164}00164\ \ \ \ \ \textcolor{comment}{//copy\ no\ more\ than\ maxSize\ bytes}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00165}00165\ \ \ \ \ \textcolor{keywordtype}{int}\ copysize\ =\ strlen(cstr)\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00166}00166\ \ \ \ \ \textcolor{keywordtype}{int}\ rv\ =\ copysize;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00167}00167\ \ \ \ \ \textcolor{keywordflow}{if}\ (copysize\ >\ maxSize)\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00168}00168\ \ \ \ \ \ \ \ \ copysize\ =\ maxSize-\/1;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ buffer[maxSize-\/1]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};\ \textcolor{comment}{//null\ terminate\ the\ buffer}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ rv\ =\ -\/maxSize;\ \textcolor{comment}{//negative\ signals\ we\ got\ truncated}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00171}00171\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00173}00173\ \ \ \ \ strncpy(buffer,cstr,copysize);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00174}00174\ \ \ \ \ bcstrfree(cstr);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00175}00175\ \ \ \ \ bdestroy(str);}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00177}00177\ \ \ \ \ \textcolor{keywordflow}{return}\ rv;}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00178}00178\ \}}
+\DoxyCodeLine{\Hypertarget{text_resource_8c_source_l00179}00179\ }
+
+\end{DoxyCode}

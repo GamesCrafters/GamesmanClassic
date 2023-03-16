@@ -1,0 +1,331 @@
+\hypertarget{server_8c_source}{}\doxysection{server.\+c}
+\label{server_8c_source}\index{src/server.c@{src/server.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00001}00001\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00002}00002\ \textcolor{preprocessor}{\#include\ <errno.h>}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00004}00004\ \textcolor{preprocessor}{\#define\ SA\ struct\ sockaddr}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00006}00006\ \textcolor{preprocessor}{\#define\ MAXNUMCLIENTS\ 256}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00008}00008\ \textcolor{preprocessor}{\#define\ MAXNAMELENGTH\ 100}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00010}00010\ \textcolor{preprocessor}{\#define\ MAXLINE\ 4096}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00011}00011\ \textcolor{preprocessor}{\#define\ LISTENQ\ 1024}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00012}00012\ \textcolor{preprocessor}{\#define\ max(a,b)\ (((a)>(b))\ ?\ (a)\ :\ (b))}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00014}00014\ \textcolor{keywordtype}{void}\ execute(\textcolor{keywordtype}{char}\ *\ command,\ \textcolor{keywordtype}{char}\ *\ output)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00015}00015\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00016}00016\ \ \ \ \ FILE\ *\ filep;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00017}00017\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00018}00018\ \ \ \ \ \textcolor{keywordtype}{char}\ thechar;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00019}00019\ \ \ \ \ strcpy(output,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00020}00020\ \ \ \ \ strcat(command,\ \textcolor{stringliteral}{"{}\ >\ .tempOut"{}});}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00021}00021\ \ \ \ \ system(command);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00022}00022\ \ \ \ \ \textcolor{keywordflow}{if}(!(filep\ =\ fopen(\textcolor{stringliteral}{"{}.tempOut"{}},\ \textcolor{stringliteral}{"{}r"{}})))}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00023}00023\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Cannot\ open\ temp\ file\ for\ reading,\ quitting.\(\backslash\)n"{}}),\ exit(1);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00025}00025\ \ \ \ \ \textcolor{keywordflow}{while}((thechar\ =\ fgetc(filep))\ !=\ EOF)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00026}00026\ \ \ \ \ \ \ \ \ output[i++]\ =\ thechar;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00027}00027\ \ \ \ \ output[i]\ =\ (char)NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00028}00028\ \ \ \ \ fclose(filep);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00029}00029\ \ \ \ \ remove(\textcolor{stringliteral}{"{}.tempOut"{}});}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00030}00030\ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00032}00032\ \textcolor{keywordtype}{short}\ getLength(\textcolor{keywordtype}{void}\ *\ line)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00033}00033\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00034}00034\ \ \ \ \ \textcolor{keywordtype}{short}\ ret;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00035}00035\ \ \ \ \ memcpy(\&ret,\ line,\ 2);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00036}00036\ \ \ \ \ ret\ =\ ntohs(ret);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00037}00037\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00038}00038\ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00040}00040\ \textcolor{keywordtype}{void}\ setLength(\textcolor{keywordtype}{void}\ *\ line,\ \textcolor{keywordtype}{short}\ length)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00041}00041\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00042}00042\ \ \ \ \ length\ =\ htons(length);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00043}00043\ \ \ \ \ memcpy(line,\ \&length,\ 2);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00044}00044\ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00046}00046\ \textcolor{keywordtype}{int}\ stuff(\textcolor{keywordtype}{char}\ *\ source,\ \textcolor{keywordtype}{char}\ *\ dest)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00047}00047\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00048}00048\ \ \ \ \ \textcolor{keywordtype}{int}\ a\ =\ strlen(source);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00049}00049\ \ \ \ \ memcpy(dest+2,\ source,\ a);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00050}00050\ \ \ \ \ setLength(dest,\ a+2);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00051}00051\ \ \ \ \ \textcolor{keywordflow}{return}\ a+2;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00052}00052\ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00054}00054\ \textcolor{keywordtype}{void}\ unstuff(\textcolor{keywordtype}{char}\ *\ source,\ \textcolor{keywordtype}{char}\ *\ dest)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00055}00055\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00056}00056\ \ \ \ \ \textcolor{keywordtype}{int}\ a\ =\ getLength(source);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00057}00057\ \ \ \ \ memcpy(dest,\ source+2,\ a-\/2);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00058}00058\ \ \ \ \ dest[a-\/2]\ =\ (char)NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00059}00059\ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00061}00061\ \textcolor{keywordtype}{char}\ fromsocket[MAXNUMCLIENTS][MAXLINE];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00062}00062\ \textcolor{keywordtype}{char}\ tosockbuf[MAXNUMCLIENTS][MAXLINE];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00064}00064\ \textcolor{keywordtype}{char}\ *\ tosockbegptr[MAXNUMCLIENTS];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00065}00065\ \textcolor{keywordtype}{char}\ *\ tosockendptr[MAXNUMCLIENTS];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00067}00067\ \textcolor{keywordtype}{char}\ *\ stdoutendptr;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00068}00068\ \textcolor{keywordtype}{char}\ *\ stdoutbegptr;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00069}00069\ \textcolor{keywordtype}{char}\ stdoutbuf[MAXLINE];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00071}00071\ \textcolor{keywordtype}{int}\ clients[MAXNUMCLIENTS];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00072}00072\ \textcolor{keywordtype}{int}\ j[MAXNUMCLIENTS];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00073}00073\ \textcolor{keywordtype}{short}\ lengths[MAXNUMCLIENTS];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00074}00074\ \textcolor{keywordtype}{int}\ joins[MAXNUMCLIENTS];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00076}00076\ \textcolor{keywordtype}{void}\ ActUponClientInput(\textcolor{keywordtype}{char}\ *\ buffer,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structrow}{row}},\ \textcolor{keywordtype}{int}\ sockfd);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00078}00078\ \textcolor{keywordtype}{int}\ paslength;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00079}00079\ \textcolor{keywordtype}{char}\ username[50][256];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00080}00080\ \textcolor{keywordtype}{char}\ password[50][256];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00082}00082\ FILE\ *\ fileps[MAXNUMCLIENTS];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00084}00084\ \textcolor{keywordtype}{int}\ main\ (\textcolor{keywordtype}{int}\ argc,\ \textcolor{keywordtype}{char}\ **\ argv)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00085}00085\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00086}00086\ \ \ \ \ \textcolor{keywordtype}{int}\ listenfd,\ serv\_port,\ i,\ maxfd,\ clilen,\ connfd,\ val;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00087}00087\ \ \ \ \ \textcolor{keyword}{struct\ }sockaddr\_in\ cliaddr,\ servaddr;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00088}00088\ \ \ \ \ fd\_set\ rset,\ wset;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00089}00089\ \ \ \ \ \textcolor{keyword}{struct\ }timeval\ tval;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00090}00090\ \ \ \ \ FILE\ *\ pass;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00092}00092\ \ \ \ \ stdoutbegptr\ =\ stdoutendptr\ =\ stdoutbuf;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00093}00093\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ MAXNUMCLIENTS;\ i++)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00094}00094\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ tosockbegptr[i]\ =\ tosockendptr[i]\ =\ tosockbuf[i];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ clients[i]\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ j[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ lengths[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ joins[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ fileps[i]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00101}00101\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00103}00103\ \ \ \ \ \textcolor{keywordflow}{if}\ (argc\ !=\ 2)\ printf(\textcolor{stringliteral}{"{}Usage:\ \%s\ <server\ port>\(\backslash\)n"{}},\ argv[0]),\ exit(1);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00104}00104\ \ \ \ \ sscanf(argv[1],\ \textcolor{stringliteral}{"{}\%d"{}},\ \&serv\_port);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00105}00105\ \ \ \ \ \textcolor{keywordflow}{if}(serv\_port\ <=\ 0)\ printf(\textcolor{stringliteral}{"{}Usage:\ port\ number\ must\ be\ a\ positive\ integer\(\backslash\)n"{}}),\ exit(1);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00107}00107\ \ \ \ \ listenfd\ =\ socket(AF\_INET,\ SOCK\_STREAM,\ 0);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00109}00109\ \ \ \ \ bzero(\&servaddr,\ \textcolor{keyword}{sizeof}(servaddr));}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00110}00110\ \ \ \ \ servaddr.sin\_family\ =\ AF\_INET;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00111}00111\ \ \ \ \ servaddr.sin\_port\ =\ htons(serv\_port);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00112}00112\ \ \ \ \ servaddr.sin\_addr.s\_addr\ =\ htonl(INADDR\_ANY);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00113}00113\ \ \ \ \ memset(\&(servaddr.sin\_zero),\ \textcolor{charliteral}{'\(\backslash\)0'},\ 8);\ \textcolor{comment}{//zero\ rest\ of\ struct}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00115}00115\ \ \ \ \ bind(listenfd,\ (\textcolor{keyword}{struct}\ sockaddr\ *)\&servaddr,\ \textcolor{keyword}{sizeof}(servaddr));}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00116}00116\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00117}00117\ \ \ \ \ listen(listenfd,\ LISTENQ);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00119}00119\ \ \ \ \ val\ =\ fcntl(listenfd,\ F\_GETFL,\ 0);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00120}00120\ \ \ \ \ fcntl(listenfd,\ F\_SETFL,\ val\ |\ O\_NONBLOCK);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00122}00122\ \ \ \ \ val\ =\ fcntl(STDOUT\_FILENO,\ F\_GETFL,\ 0);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00123}00123\ \ \ \ \ fcntl(STDOUT\_FILENO,\ F\_SETFL,\ val\ |\ O\_NONBLOCK);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00125}00125\ \ \ \ \ maxfd\ =\ max(listenfd,\ STDOUT\_FILENO);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00127}00127\ \ \ \ \ \textcolor{keywordflow}{while}(1)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00128}00128\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ tval.tv\_sec\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ tval.tv\_usec\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ FD\_ZERO(\&rset);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00133}00133\ \ \ \ \ \ \ \ \ FD\_ZERO(\&wset);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00135}00135\ \ \ \ \ \ \ \ \ FD\_SET(listenfd,\ \&rset);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(stdoutendptr\ >\ stdoutbegptr)\ FD\_SET(STDOUT\_FILENO,\ \&wset);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ MAXNUMCLIENTS;\ i++)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(clients[i]\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(tosockendptr[i]\ >\ tosockbegptr[i])}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FD\_SET(clients[i],\ \&wset);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FD\_SET(clients[i],\ \&rset);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ select(maxfd\ +\ 1,\ \&rset,\ \&wset,\ NULL,\ \&tval);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(FD\_ISSET(listenfd,\ \&rset))}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ clilen\ =\ \textcolor{keyword}{sizeof}(cliaddr);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ connfd\ =\ accept(listenfd,\ (SA\ *)\&cliaddr,\ \&clilen);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(connfd\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(errno\ !=\ EWOULDBLOCK)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}internal\ socket\ failure.\ Exitting\(\backslash\)n"{}}),\ exit(1);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ MAXNUMCLIENTS;\ i++)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00163}00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(clients[i]\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ clients[i]\ =\ connfd;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ fcntl(connfd,\ F\_GETFL,\ 0);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fcntl(connfd,\ F\_SETFL,\ val\ |\ O\_NONBLOCK);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ joins[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(i\ ==\ MAXNUMCLIENTS)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00173}00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00174}00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Eventually\ handle\ some\ error\ here}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00175}00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00176}00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(connfd\ >\ maxfd)\ maxfd\ =\ connfd;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Just\ accepted\ a\ connection\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(FD\_ISSET(STDOUT\_FILENO,\ \&wset))}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ nwritten\ =\ write(STDOUT\_FILENO,\ stdoutbegptr,\ stdoutendptr\ -\/\ stdoutbegptr);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(nwritten\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00185}00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(errno\ !=\ EWOULDBLOCK)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Non-\/Blocking\ IO\ Error\(\backslash\)n"{}}),\ exit(1);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00187}00187\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stdoutbegptr\ +=\ nwritten;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(stdoutendptr\ ==\ stdoutbegptr)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stdoutbegptr\ =\ stdoutendptr\ =\ stdoutbuf;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ MAXNUMCLIENTS;\ i++)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(clients[i]\ <\ 0)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00198}00198\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(FD\_ISSET(clients[i],\ \&wset))}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ n\ =\ write(clients[i],\ tosockbegptr[i],\ tosockendptr[i]\ -\/\ tosockbegptr[i]);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tosockbegptr[i]\ +=\ n;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(tosockbegptr[i]\ ==\ tosockendptr[i])}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tosockbegptr[i]\ =\ tosockendptr[i]\ =\ tosockbuf[i];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(FD\_ISSET(clients[i],\ \&rset))}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ schar;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ n;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}((n=read(clients[i],\ \&schar,\ 1))\ <\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(errno\ !=\ EWOULDBLOCK)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Non-\/Blocking\ IO\ Error\(\backslash\)n"{}}),\ exit(1);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(n\ ==\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ close(clients[i]);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stdoutendptr\ +=\ sprintf(stdoutendptr,\ \textcolor{stringliteral}{"{}disconnected:\ client\ \%d\ closed\ connection\(\backslash\)n"{}},\ i+1);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ clients[i]\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lengths[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ j[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fclose(fileps[i]);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(n\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fromsocket[i][j[i]]\ =\ schar;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ j[i]\ =\ j[i]\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(j[i]\ ==\ 2)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ memcpy(lengths+i,\ fromsocket[i],\ 2);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lengths[i]\ =\ ntohs(lengths[i]);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(j[i]\ ==\ lengths[i])}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fromsocket[i][j[i]]\ =\ (char)NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ActUponClientInput(fromsocket[i],\ i,\ clients[i]);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ j[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00240}00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lengths[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fromsocket[i][j[i]]\ =\ (char)NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00247}00247\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00249}00249\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00250}00250\ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00251}00251\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00252}00252\ \textcolor{keywordtype}{void}\ ActUponClientInput(\textcolor{keywordtype}{char}\ *\ inputstart,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structrow}{row}},\ \textcolor{keywordtype}{int}\ sockfd)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00253}00253\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00254}00254\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ a;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00255}00255\ \ \ \ \ \textcolor{keywordtype}{char}\ commandName[256];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00256}00256\ \ \ \ \ \textcolor{keywordtype}{char}\ gameName[256];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00257}00257\ \ \ \ \ \textcolor{keywordtype}{char}\ optionstring[64];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00258}00258\ \ \ \ \ \textcolor{keywordtype}{int}\ option;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00259}00259\ \ \ \ \ \textcolor{keywordtype}{char}\ response[1024];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00260}00260\ \ \ \ \ \textcolor{keywordtype}{char}\ buffer[1024];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00261}00261\ \ \ \ \ \textcolor{keywordtype}{char}\ *\ input\ =\ inputstart;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00263}00263\ \ \ \ \ input\ +=\ 2;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00265}00265\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ *input\ !=\ \textcolor{charliteral}{'\ '}\ \&\&\ *input;\ i++,\ input++)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ commandName[i]\ =\ *input;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00267}00267\ \ \ \ \ commandName[i]\ =\ (char)NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00268}00268\ \ \ \ \ \textcolor{keywordflow}{while}(*input\ ==\ \textcolor{charliteral}{'\ '})\ input++;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00270}00270\ \ \ \ \ \textcolor{keywordflow}{if}(!strcmp(commandName,\ \textcolor{stringliteral}{"{}GameList"{}}))}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00271}00271\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ FILE\ *\ filep;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00273}00273\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}((filep\ =\ fopen(\textcolor{stringliteral}{"{}gamelist.txt"{}},\ \textcolor{stringliteral}{"{}r"{}}))\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00274}00274\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00275}00275\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Unable\ to\ open\ gamelist.txt\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ close(sockfd);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00279}00279\ \ \ \ \ \ \ \ \ fgets(response,\ 1020,\ filep);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00280}00280\ \ \ \ \ \ \ \ \ response[strlen(response)-\/1]\ =\ (char)NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00281}00281\ \ \ \ \ \ \ \ \ fclose(filep);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00282}00282\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00283}00283\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(!strcmp(commandName,\ \textcolor{stringliteral}{"{}NumberOfOptions"{}}))}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00284}00284\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ syscommand[256];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ input[i]\ !=\ \textcolor{charliteral}{'\ '}\ \&\&\ input[i];\ i++)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ gameName[i]\ =\ input[i];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00288}00288\ \ \ \ \ \ \ \ \ gameName[i]\ =\ (char)NULL;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ sprintf(syscommand,\ \textcolor{stringliteral}{"{}./\%s\ -\/\%s"{}},\ gameName,\ \textcolor{stringliteral}{"{}numberOfOptions"{}});}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ execute(syscommand,\ response);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00291}00291\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00292}00292\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00293}00293\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ syscommand[256];}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ strcpy(syscommand,\ \textcolor{stringliteral}{"{}./"{}});}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ strcat(syscommand,\ inputstart+2);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ execute(syscommand,\ response);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00298}00298\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00299}00299\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00300}00300\ \ \ \ \ a\ =\ stuff(response,\ buffer);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00301}00301\ \ \ \ \ writen(sockfd,\ buffer,\ a);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00302}00302\ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00304}00304\ ssize\_t\ writen(\textcolor{keywordtype}{int}\ fd,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *vptr,\ \textcolor{keywordtype}{size\_t}\ n)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00305}00305\ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00306}00306\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ nleft;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00307}00307\ \ \ \ \ ssize\_t\ nwritten;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00308}00308\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ *ptr;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00309}00309\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00310}00310\ \ \ \ \ ptr\ =\ vptr;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00311}00311\ \ \ \ \ nleft\ =\ n;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00312}00312\ \ \ \ \ \textcolor{keywordflow}{while}\ (nleft\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00313}00313\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ (nwritten\ =\ write(fd,\ ptr,\ nleft))\ <=\ 0)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00315}00315\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00316}00316\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (errno\ ==\ EINTR)}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ nwritten\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ and\ call\ write()\ again\ */}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(-\/1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ error\ */}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00320}00320\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00321}00321\ }
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00322}00322\ \ \ \ \ \ \ \ \ nleft\ -\/=\ nwritten;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00323}00323\ \ \ \ \ \ \ \ \ ptr\ \ \ +=\ nwritten;}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00324}00324\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00325}00325\ \ \ \ \ \textcolor{keywordflow}{return}(n);}
+\DoxyCodeLine{\Hypertarget{server_8c_source_l00326}00326\ \}}
+
+\end{DoxyCode}

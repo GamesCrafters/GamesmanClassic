@@ -1,0 +1,126 @@
+\hypertarget{_string_builder_8c_source}{}\doxysection{String\+Builder.\+c}
+\label{_string_builder_8c_source}\index{src/core/StringBuilder.c@{src/core/StringBuilder.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00001}00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00002}00002\ \textcolor{comment}{\ *\ StringBuilder.c}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00003}00003\ \textcolor{comment}{\ *\ A\ C\ StringBuilder\ Analogous\ to\ Java's\ StringBuilder}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00004}00004\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00006}00006\ \textcolor{preprocessor}{\#include\ "{}StringBuilder.h"{}}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00008}00008\ \textcolor{comment}{/*\ Creates\ a\ STRINGBUILDER\ structure\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00009}00009\ \mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}*\ sbMake()}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00010}00010\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00011}00011\ \ \ \ \ \mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}*\ sb\ =\ (\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *)malloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}));}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00012}00012\ \ \ \ \ sb-\/>capacity\ =\ INITIALCAPACITY;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00013}00013\ \ \ \ \ sb-\/>length\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00014}00014\ \ \ \ \ sb-\/>string\ =\ (\textcolor{keywordtype}{char}\ *)malloc(INITIALCAPACITY\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char}));}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00015}00015\ \ \ \ \ \textcolor{keywordflow}{return}\ sb;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00016}00016\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00018}00018\ \textcolor{comment}{/*\ Takes\ a\ STRINGBUILDER\ structure\ and\ frees\ the\ memory\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00019}00019\ \textcolor{keywordtype}{void}\ sbFree(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00020}00020\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00021}00021\ \ \ \ \ free(sb-\/>string);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00022}00022\ \ \ \ \ free(sb);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00023}00023\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00025}00025\ \textcolor{comment}{/*\ Flushes\ the\ contents\ of\ a\ STRINGBUILDER\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00026}00026\ \textcolor{keywordtype}{void}\ sbFlush(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00027}00027\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00028}00028\ \ \ \ \ \textcolor{keywordtype}{char}\ *oldString\ =\ sb-\/>string;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00029}00029\ \ \ \ \ sb-\/>capacity\ =\ INITIALCAPACITY;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00030}00030\ \ \ \ \ sb-\/>length\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00031}00031\ \ \ \ \ sb-\/>string\ =\ (\textcolor{keywordtype}{char}\ *)malloc(INITIALCAPACITY\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char}));}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00032}00032\ \ \ \ \ free(oldString);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00033}00033\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00035}00035\ \textcolor{comment}{/*\ Returns\ the\ length\ of\ the\ string\ in\ STRINGBUILDER\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00036}00036\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ sbLength(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00037}00037\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00038}00038\ \ \ \ \ \textcolor{keywordflow}{return}\ sb-\/>length;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00039}00039\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00041}00041\ \textcolor{comment}{/*\ Returns\ the\ current\ capacity\ of\ STRINGBUILDER\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00042}00042\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ sbCurrentCapacity(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00043}00043\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00044}00044\ \ \ \ \ \textcolor{keywordflow}{return}\ sb-\/>capacity;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00045}00045\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00047}00047\ \textcolor{comment}{/*\ Returns\ the\ character\ at\ a\ specified\ location\ of\ a\ STRINGBUILDER}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00048}00048\ \textcolor{comment}{\ \ \ If\ out\ of\ bounds,\ it\ returns\ '\(\backslash\)0'\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00049}00049\ \textcolor{keywordtype}{char}\ sbGetChar(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ loc)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00050}00050\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00051}00051\ \ \ \ \ \textcolor{keywordflow}{if}(loc\ <\ sbLength(sb))}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00052}00052\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00053}00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ sb-\/>string[loc];}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00054}00054\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00056}00056\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00058}00058\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00059}00059\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00061}00061\ \textcolor{comment}{/*\ Returns\ the\ char\ *\ representation\ of\ the\ STRINGBUILDER\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00062}00062\ \textcolor{keywordtype}{char}\ *sbToString(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00063}00063\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00064}00064\ \ \ \ \ \textcolor{keywordtype}{char}\ *returnString\ =\ (\textcolor{keywordtype}{char}\ *)malloc((sbLength(sb)\ +\ 1)\ *\ \textcolor{keyword}{sizeof}(char));}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00065}00065\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00067}00067\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ sbLength(sb);\ i++)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00068}00068\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ returnString[i]\ =\ sbGetChar(sb,\ i);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00070}00070\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00071}00071\ \ \ \ \ returnString[i]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00073}00073\ \ \ \ \ \textcolor{keywordflow}{return}\ returnString;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00074}00074\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00076}00076\ \textcolor{comment}{/*\ Utiltiy\ function\ to\ ensure\ that\ the\ STRINGBUILDER\ is\ large\ enough.}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00077}00077\ \textcolor{comment}{\ \ \ Used\ by\ AppendChar\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00078}00078\ \textcolor{keywordtype}{void}\ sbEnsureCapacity(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ additions)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00079}00079\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00080}00080\ \ \ \ \ \textcolor{keywordtype}{char}\ *newString;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00081}00081\ \ \ \ \ \textcolor{keywordtype}{char}\ *oldString;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00082}00082\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00083}00083\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ newCapacity\ =\ sbCurrentCapacity(sb);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{if}(sbLength(sb)\ +\ additions\ >=\ newCapacity)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00086}00086\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(sbLength(sb)\ +\ additions\ >=\ newCapacity)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ newCapacity\ *=\ 2;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ newString\ =\ (\textcolor{keywordtype}{char}\ *)\ malloc(newCapacity\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char}));}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ sbCurrentCapacity(sb);\ i++)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ newString[i]\ =\ sbGetChar(sb,\ i);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ sb-\/>capacity\ =\ newCapacity;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ oldString\ =\ sb-\/>string;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ sb-\/>string\ =\ newString;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ free(oldString);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00101}00101\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00102}00102\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00104}00104\ \textcolor{comment}{/*\ Appends\ NEWCHAR\ to\ the\ end\ of\ a\ string\ in\ STRINGBUILDER\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00105}00105\ \textcolor{keywordtype}{void}\ sbAppendChar(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb,\ \textcolor{keywordtype}{char}\ newchar)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00106}00106\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00107}00107\ \ \ \ \ sbEnsureCapacity(sb,\ 1);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00108}00108\ \ \ \ \ sb-\/>string[sbLength(sb)]\ =\ newchar;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00109}00109\ \ \ \ \ sb-\/>length++;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00110}00110\ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00112}00112\ \textcolor{comment}{/*\ Takes\ a\ NEWSTRING\ and\ appends\ it\ to\ the\ end\ of\ a\ string\ in\ STIRNGBUILDER\ */}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00113}00113\ \textcolor{keywordtype}{void}\ sbAppend(\mbox{\hyperlink{struct_string_builder_struct}{STRINGBUILDER}}\ *sb,\ \textcolor{keywordtype}{char}\ *newString)}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00114}00114\ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{while}(*newString\ !=\ \textcolor{charliteral}{'\(\backslash\)0'})}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00116}00116\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ sbAppendChar(sb,\ *newString);}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ newString++;}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00119}00119\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{_string_builder_8c_source_l00120}00120\ \}}
+
+\end{DoxyCode}

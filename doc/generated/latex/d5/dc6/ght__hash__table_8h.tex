@@ -1,0 +1,1318 @@
+\hypertarget{ght__hash__table_8h}{}\doxysection{src/core/text\+\_\+resource/ght\+\_\+hash\+\_\+table.h File Reference}
+\label{ght__hash__table_8h}\index{src/core/text\_resource/ght\_hash\_table.h@{src/core/text\_resource/ght\_hash\_table.h}}
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+\doxysubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structs__hash__key}{s\+\_\+hash\+\_\+key}}
+\item 
+struct \mbox{\hyperlink{structs__hash__entry}{s\+\_\+hash\+\_\+entry}}
+\item 
+struct \mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}}
+\item 
+struct \mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{ght__hash__table_8h_a36c9b58f543f01d2891efe50f8f8971f}{GHT\+\_\+\+HEURISTICS\+\_\+\+NONE}}~0
+\item 
+\#define \mbox{\hyperlink{ght__hash__table_8h_a5618d62c0493513d3c8ccf9aef2dc3d5}{GHT\+\_\+\+HEURISTICS\+\_\+\+TRANSPOSE}}~1
+\item 
+\#define \mbox{\hyperlink{ght__hash__table_8h_a35d63817e0a10b5106b00b2dff4fb297}{GHT\+\_\+\+HEURISTICS\+\_\+\+MOVE\+\_\+\+TO\+\_\+\+FRONT}}~2
+\item 
+\#define \mbox{\hyperlink{ght__hash__table_8h_afd8c3b9b8978d47b073c9b354d32d38b}{GHT\+\_\+\+AUTOMATIC\+\_\+\+REHASH}}~4
+\item 
+\#define \mbox{\hyperlink{ght__hash__table_8h_aa8cecfc5c5c054d2875c03e77b7be15d}{TRUE}}~1
+\item 
+\#define \mbox{\hyperlink{ght__hash__table_8h_aa93f0eb578d23995850d61f7d61c55c1}{FALSE}}~0
+\end{DoxyCompactItemize}
+\doxysubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef unsigned int \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}}
+\item 
+typedef struct \mbox{\hyperlink{structs__hash__key}{s\+\_\+hash\+\_\+key}} \mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}}
+\item 
+\Hypertarget{ght__hash__table_8h_a6fe53ea29a40c2eb38bc54bdf03787da}\label{ght__hash__table_8h_a6fe53ea29a40c2eb38bc54bdf03787da} 
+typedef struct \mbox{\hyperlink{structs__hash__entry}{s\+\_\+hash\+\_\+entry}} {\bfseries ght\+\_\+hash\+\_\+entry\+\_\+t}
+\item 
+typedef \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}}($\ast$ \mbox{\hyperlink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t}}) (\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$p\+\_\+key)
+\item 
+typedef void $\ast$($\ast$ \mbox{\hyperlink{ght__hash__table_8h_a5f5f683e9959254798651a8557388585}{ght\+\_\+fn\+\_\+alloc\+\_\+t}}) (size\+\_\+t size)
+\item 
+typedef void($\ast$ \mbox{\hyperlink{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d}{ght\+\_\+fn\+\_\+free\+\_\+t}}) (void $\ast$ptr)
+\item 
+typedef void($\ast$ \mbox{\hyperlink{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640}{ght\+\_\+fn\+\_\+bucket\+\_\+free\+\_\+callback\+\_\+t}}) (void $\ast$data, const void $\ast$key)
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$ \mbox{\hyperlink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\+\_\+create}} (unsigned int i\+\_\+size)
+\item 
+void \mbox{\hyperlink{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0}{ght\+\_\+set\+\_\+alloc}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, \mbox{\hyperlink{ght__hash__table_8h_a5f5f683e9959254798651a8557388585}{ght\+\_\+fn\+\_\+alloc\+\_\+t}} fn\+\_\+alloc, \mbox{\hyperlink{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d}{ght\+\_\+fn\+\_\+free\+\_\+t}} fn\+\_\+free)
+\item 
+void \mbox{\hyperlink{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6}{ght\+\_\+set\+\_\+hash}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, \mbox{\hyperlink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t}} fn\+\_\+hash)
+\item 
+void \mbox{\hyperlink{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71}{ght\+\_\+set\+\_\+heuristics}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, int i\+\_\+heuristics)
+\item 
+void \mbox{\hyperlink{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093}{ght\+\_\+set\+\_\+rehash}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, int b\+\_\+rehash)
+\item 
+void \mbox{\hyperlink{ght__hash__table_8h_abfbd875e7c1e199330b179fa0e24e512}{ght\+\_\+set\+\_\+bounded\+\_\+buckets}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, unsigned int limit, \mbox{\hyperlink{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640}{ght\+\_\+fn\+\_\+bucket\+\_\+free\+\_\+callback\+\_\+t}} fn)
+\item 
+unsigned int \mbox{\hyperlink{ght__hash__table_8h_a0ed99f688ae152d12d4e8128d281439d}{ght\+\_\+size}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht)
+\item 
+unsigned int \mbox{\hyperlink{ght__hash__table_8h_ad544ccaa9d5f60136200bc797d1d7108}{ght\+\_\+table\+\_\+size}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht)
+\item 
+int \mbox{\hyperlink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{ght\+\_\+insert}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, void $\ast$p\+\_\+entry\+\_\+data, unsigned int i\+\_\+key\+\_\+size, const void $\ast$p\+\_\+key\+\_\+data)
+\item 
+void $\ast$ \mbox{\hyperlink{ght__hash__table_8h_a21e1055809b34a05ada1225f3ac82578}{ght\+\_\+replace}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, void $\ast$p\+\_\+entry\+\_\+data, unsigned int i\+\_\+key\+\_\+size, const void $\ast$p\+\_\+key\+\_\+data)
+\item 
+void $\ast$ \mbox{\hyperlink{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}{ght\+\_\+get}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, unsigned int i\+\_\+key\+\_\+size, const void $\ast$p\+\_\+key\+\_\+data)
+\item 
+void $\ast$ \mbox{\hyperlink{ght__hash__table_8h_aa8582d55526ef0c606422dc083180dc0}{ght\+\_\+remove}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, unsigned int i\+\_\+key\+\_\+size, const void $\ast$p\+\_\+key\+\_\+data)
+\item 
+void $\ast$ \mbox{\hyperlink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\+\_\+first}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, \mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$p\+\_\+iterator, const void $\ast$$\ast$pp\+\_\+key)
+\item 
+void $\ast$ \mbox{\hyperlink{ght__hash__table_8h_a0227f419e840ede521e0f5daa911290d}{ght\+\_\+first\+\_\+keysize}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, \mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$p\+\_\+iterator, const void $\ast$$\ast$pp\+\_\+key, unsigned int $\ast$size)
+\item 
+void $\ast$ \mbox{\hyperlink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\+\_\+next}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, \mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$p\+\_\+iterator, const void $\ast$$\ast$pp\+\_\+key)
+\item 
+void $\ast$ \mbox{\hyperlink{ght__hash__table_8h_a3251962a7ccdcf2d13086fd0b32ed358}{ght\+\_\+next\+\_\+keysize}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, \mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$p\+\_\+iterator, const void $\ast$$\ast$pp\+\_\+key, unsigned int $\ast$size)
+\item 
+void \mbox{\hyperlink{ght__hash__table_8h_a56b5a79427c6f61546a187904eb83d20}{ght\+\_\+rehash}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht, unsigned int i\+\_\+size)
+\item 
+void \mbox{\hyperlink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{ght\+\_\+finalize}} (\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$p\+\_\+ht)
+\item 
+\mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}} \mbox{\hyperlink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\+\_\+one\+\_\+at\+\_\+a\+\_\+time\+\_\+hash}} (\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$p\+\_\+key)
+\item 
+\mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}} \mbox{\hyperlink{ght__hash__table_8h_a3b82225a954364929c62ac241f417420}{ght\+\_\+rotating\+\_\+hash}} (\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$p\+\_\+key)
+\item 
+\mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}} \mbox{\hyperlink{ght__hash__table_8h_a9450c892d6480f6bf6ed558945a5da37}{ght\+\_\+crc\+\_\+hash}} (\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$p\+\_\+key)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+libghthash is a generic hash table used for storing arbitrary data.
+
+Libghthash really stores pointers to data -\/ the hash table knows nothing about the actual type of the data.
+
+A simple example to get started can be found in the {\ttfamily example/simple.\+c} file found in the distribution. {\ttfamily hash\+\_\+test.\+c} provides a more comlpete example.
+
+Some basic properties of the hash table are\+:
+
+
+\begin{DoxyItemize}
+\item Both the data stored and the keys are of void type, which means that you can store any kind of data.
+\item The only functions you probably will need to start is\+:
+\begin{DoxyItemize}
+\item \doxylink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\+\_\+create()}, which creates a new hash table.
+\item \doxylink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{ght\+\_\+insert()}, which inserts a new entry into a table.
+\item \doxylink{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}{ght\+\_\+get()}, which searches for an entry.
+\item \doxylink{ght__hash__table_8h_aa8582d55526ef0c606422dc083180dc0}{ght\+\_\+remove()}, which removes and entry.
+\item \doxylink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{ght\+\_\+finalize()}, which destroys a hash table.
+\end{DoxyItemize}
+\item Inserting entries is done without first creating a key, i.\+e. you insert with the data, the datasize, the key and the key size directly.
+\item The hash table copies the key data when inserting new entries. This means that you should {\itshape not} malloc() the key before inserting a new entry. 
+\end{DoxyItemize}
+
+Definition in file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+
+
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{ght__hash__table_8h_aa93f0eb578d23995850d61f7d61c55c1}\label{ght__hash__table_8h_aa93f0eb578d23995850d61f7d61c55c1} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!FALSE@{FALSE}}
+\index{FALSE@{FALSE}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{FALSE}{FALSE}}
+{\footnotesize\ttfamily \#define FALSE~0}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00078}{78}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_afd8c3b9b8978d47b073c9b354d32d38b}\label{ght__hash__table_8h_afd8c3b9b8978d47b073c9b354d32d38b} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!GHT\_AUTOMATIC\_REHASH@{GHT\_AUTOMATIC\_REHASH}}
+\index{GHT\_AUTOMATIC\_REHASH@{GHT\_AUTOMATIC\_REHASH}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{GHT\_AUTOMATIC\_REHASH}{GHT\_AUTOMATIC\_REHASH}}
+{\footnotesize\ttfamily \#define GHT\+\_\+\+AUTOMATIC\+\_\+\+REHASH~4}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00071}{71}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_a35d63817e0a10b5106b00b2dff4fb297}\label{ght__hash__table_8h_a35d63817e0a10b5106b00b2dff4fb297} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!GHT\_HEURISTICS\_MOVE\_TO\_FRONT@{GHT\_HEURISTICS\_MOVE\_TO\_FRONT}}
+\index{GHT\_HEURISTICS\_MOVE\_TO\_FRONT@{GHT\_HEURISTICS\_MOVE\_TO\_FRONT}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{GHT\_HEURISTICS\_MOVE\_TO\_FRONT}{GHT\_HEURISTICS\_MOVE\_TO\_FRONT}}
+{\footnotesize\ttfamily \#define GHT\+\_\+\+HEURISTICS\+\_\+\+MOVE\+\_\+\+TO\+\_\+\+FRONT~2}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00070}{70}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_a36c9b58f543f01d2891efe50f8f8971f}\label{ght__hash__table_8h_a36c9b58f543f01d2891efe50f8f8971f} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!GHT\_HEURISTICS\_NONE@{GHT\_HEURISTICS\_NONE}}
+\index{GHT\_HEURISTICS\_NONE@{GHT\_HEURISTICS\_NONE}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{GHT\_HEURISTICS\_NONE}{GHT\_HEURISTICS\_NONE}}
+{\footnotesize\ttfamily \#define GHT\+\_\+\+HEURISTICS\+\_\+\+NONE~0}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00068}{68}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_a5618d62c0493513d3c8ccf9aef2dc3d5}\label{ght__hash__table_8h_a5618d62c0493513d3c8ccf9aef2dc3d5} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!GHT\_HEURISTICS\_TRANSPOSE@{GHT\_HEURISTICS\_TRANSPOSE}}
+\index{GHT\_HEURISTICS\_TRANSPOSE@{GHT\_HEURISTICS\_TRANSPOSE}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{GHT\_HEURISTICS\_TRANSPOSE}{GHT\_HEURISTICS\_TRANSPOSE}}
+{\footnotesize\ttfamily \#define GHT\+\_\+\+HEURISTICS\+\_\+\+TRANSPOSE~1}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00069}{69}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_aa8cecfc5c5c054d2875c03e77b7be15d}\label{ght__hash__table_8h_aa8cecfc5c5c054d2875c03e77b7be15d} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!TRUE@{TRUE}}
+\index{TRUE@{TRUE}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{TRUE}{TRUE}}
+{\footnotesize\ttfamily \#define TRUE~1}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00074}{74}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+
+
+\doxysubsection{Typedef Documentation}
+\Hypertarget{ght__hash__table_8h_a5f5f683e9959254798651a8557388585}\label{ght__hash__table_8h_a5f5f683e9959254798651a8557388585} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_fn\_alloc\_t@{ght\_fn\_alloc\_t}}
+\index{ght\_fn\_alloc\_t@{ght\_fn\_alloc\_t}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_fn\_alloc\_t}{ght\_fn\_alloc\_t}}
+{\footnotesize\ttfamily typedef void $\ast$($\ast$ ght\+\_\+fn\+\_\+alloc\+\_\+t) (size\+\_\+t size)}
+
+Definition of the allocation function pointers. This is simply the same definition as {\ttfamily malloc()}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em size} & the size to allocate. This will always be {\ttfamily sizeof(ght\+\_\+hash\+\_\+entry\+\_\+t) + key\+\_\+size}.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the allocated region, or NULL if the allocation failed. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00147}{147}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640}\label{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_fn\_bucket\_free\_callback\_t@{ght\_fn\_bucket\_free\_callback\_t}}
+\index{ght\_fn\_bucket\_free\_callback\_t@{ght\_fn\_bucket\_free\_callback\_t}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_fn\_bucket\_free\_callback\_t}{ght\_fn\_bucket\_free\_callback\_t}}
+{\footnotesize\ttfamily typedef void($\ast$ ght\+\_\+fn\+\_\+bucket\+\_\+free\+\_\+callback\+\_\+t) (void $\ast$data, const void $\ast$key)}
+
+Definition of bounded bucket free callback function pointers.
+
+The keys is passed back as const, since it was accepted by \doxylink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{ght\+\_\+insert()} as const, but if the callback function knows that a non-\/const pointer was passed in, it can cast it back to non-\/const. 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00164}{164}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d}\label{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_fn\_free\_t@{ght\_fn\_free\_t}}
+\index{ght\_fn\_free\_t@{ght\_fn\_free\_t}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_fn\_free\_t}{ght\_fn\_free\_t}}
+{\footnotesize\ttfamily typedef void($\ast$ ght\+\_\+fn\+\_\+free\+\_\+t) (void $\ast$ptr)}
+
+Definition of the deallocation function pointers. This is simply the same definition as {\ttfamily free()}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em ptr} & a pointer to the region to free. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00155}{155}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}\label{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_fn\_hash\_t@{ght\_fn\_hash\_t}}
+\index{ght\_fn\_hash\_t@{ght\_fn\_hash\_t}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_fn\_hash\_t}{ght\_fn\_hash\_t}}
+{\footnotesize\ttfamily typedef \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}}($\ast$ ght\+\_\+fn\+\_\+hash\+\_\+t) (\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$p\+\_\+key)}
+
+Definition of the hash function pointers. {\ttfamily ght\+\_\+fn\+\_\+hash\+\_\+t} should be used when implementing new hash functions. Look at the supplied hash functions, like {\ttfamily \doxylink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\+\_\+one\+\_\+at\+\_\+a\+\_\+time\+\_\+hash()}}, for examples of hash functions.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+key} & the key to calculate the hash value for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a 32 bit hash value.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+{\ttfamily \doxylink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\+\_\+one\+\_\+at\+\_\+a\+\_\+time\+\_\+hash()}}, {\ttfamily \doxylink{ght__hash__table_8h_a3b82225a954364929c62ac241f417420}{ght\+\_\+rotating\+\_\+hash()}}, {\ttfamily \doxylink{ght__hash__table_8h_a9450c892d6480f6bf6ed558945a5da37}{ght\+\_\+crc\+\_\+hash()}} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00135}{135}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}\label{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_hash\_key\_t@{ght\_hash\_key\_t}}
+\index{ght\_hash\_key\_t@{ght\_hash\_key\_t}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_hash\_key\_t}{ght\_hash\_key\_t}}
+{\footnotesize\ttfamily typedef struct \mbox{\hyperlink{structs__hash__key}{s\+\_\+hash\+\_\+key}} \mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}}}
+
+The structure for hash keys. You should not care about this structure unless you plan to write your own hash functions. \Hypertarget{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}\label{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_uint32\_t@{ght\_uint32\_t}}
+\index{ght\_uint32\_t@{ght\_uint32\_t}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_uint32\_t}{ght\_uint32\_t}}
+{\footnotesize\ttfamily typedef unsigned int \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}}}
+
+unsigned 32 bit integer. 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00082}{82}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+
+
+\doxysubsection{Function Documentation}
+\Hypertarget{ght__hash__table_8h_a9450c892d6480f6bf6ed558945a5da37}\label{ght__hash__table_8h_a9450c892d6480f6bf6ed558945a5da37} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_crc\_hash@{ght\_crc\_hash}}
+\index{ght\_crc\_hash@{ght\_crc\_hash}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_crc\_hash()}{ght\_crc\_hash()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}} ght\+\_\+crc\+\_\+hash (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$}]{p\+\_\+key }\end{DoxyParamCaption})}
+
+CRC32 hash. CRC32 hash is a good hash function. This came from Dru Lemley \href{mailto:spambait@lemley.net}{\texttt{ spambait@lemley.\+net}}.
+
+\begin{DoxyWarning}{Warning}
+Don\textquotesingle{}t call this function directly, it is only meant to be used as a callback for the hash table.
+\end{DoxyWarning}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t} 
+
+\doxylink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\+\_\+one\+\_\+at\+\_\+a\+\_\+time\+\_\+hash()}, \doxylink{ght__hash__table_8h_a3b82225a954364929c62ac241f417420}{ght\+\_\+rotating\+\_\+hash()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__functions_8c_source_l00096}{96}} of file \mbox{\hyperlink{hash__functions_8c_source}{hash\+\_\+functions.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00097\ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *p,\ *p\_end;}
+\DoxyCodeLine{00099\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ crc;}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ assert(p\_key);}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ crc\ =\ 0xffffffff;\ \textcolor{comment}{/*\ preload\ shift\ register,\ per\ CRC-\/32\ spec\ */}}
+\DoxyCodeLine{00104\ \ \ \ \ p\ =\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *)p\_key-\/>\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}};}
+\DoxyCodeLine{00105\ \ \ \ \ p\_end\ =\ p\ +\ p\_key-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}};}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordflow}{while}\ (p\ <\ p\_end)}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ crc\ =\ (crc\ <<\ 8)\ \string^\ crc32\_table[(crc\ >>\ 24)\ \string^\ *(p++)];}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordflow}{return}\ \string~crc;\ \ \ \ \ \ \textcolor{comment}{/*\ transmit\ complement,\ per\ CRC-\/32\ spec\ */}}
+\DoxyCodeLine{00109\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}\label{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_create@{ght\_create}}
+\index{ght\_create@{ght\_create}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_create()}{ght\_create()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$ ght\+\_\+create (\begin{DoxyParamCaption}\item[{unsigned int}]{i\+\_\+size }\end{DoxyParamCaption})}
+
+Create a new hash table. The number of buckets should be about as big as the number of elements you wish to store in the table for good performance. The number of buckets is rounded to the next higher power of two.
+
+The hash table is created with {\ttfamily \doxylink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\+\_\+one\+\_\+at\+\_\+a\+\_\+time\+\_\+hash()}} as hash function, automatic rehashing disabled, {\ttfamily malloc()} as the memory allocator and no heuristics.
+
+
+\begin{DoxyParams}{Parameters}
+{\em i\+\_\+size} & the number of buckets in the hash table. Giving a non-\/power of two here will round the size up to the next power of two.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6}{ght\+\_\+set\+\_\+hash()}, \doxylink{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71}{ght\+\_\+set\+\_\+heuristics()}, \doxylink{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093}{ght\+\_\+set\+\_\+rehash()}, 
+
+\doxylink{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0}{ght\+\_\+set\+\_\+alloc()}
+\end{DoxySeeAlso}
+\begin{DoxyReturn}{Returns}
+a pointer to the hash table or NULL upon error. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00300}{300}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00301\ \{}
+\DoxyCodeLine{00302\ \ \ \ \ \mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_ht;}
+\DoxyCodeLine{00303\ \ \ \ \ \textcolor{keywordtype}{int}\ i=1;}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !(p\_ht\ =\ (\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}*)malloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}})))\ )}
+\DoxyCodeLine{00306\ \ \ \ \ \{}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ perror(\textcolor{stringliteral}{"{}malloc"{}});}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{00309\ \ \ \ \ \}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ size\ of\ the\ hash\ table\ to\ the\ nearest\ 2\string^i\ higher\ then\ i\_size\ */}}
+\DoxyCodeLine{00312\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ =\ 1;}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordflow}{while}(p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ <\ i\_size)}
+\DoxyCodeLine{00314\ \ \ \ \ \{}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ =\ 1<<i++;}
+\DoxyCodeLine{00316\ \ \ \ \ \}}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ \ \ p\_ht-\/>i\_size\_mask\ =\ (1<<(i-\/1))-\/1;\ \textcolor{comment}{/*\ Mask\ to\ \&\ with\ */}}
+\DoxyCodeLine{00319\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}\ =\ 0;}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}}\ =\ \mbox{\hyperlink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\_one\_at\_a\_time\_hash}};}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{comment}{/*\ Standard\ values\ for\ allocations\ */}}
+\DoxyCodeLine{00324\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\_alloc}}\ =\ malloc;}
+\DoxyCodeLine{00325\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\_free}}\ =\ free;}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \ \ \ \ \textcolor{comment}{/*\ Set\ flags\ */}}
+\DoxyCodeLine{00328\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}}\ =\ GHT\_HEURISTICS\_NONE;}
+\DoxyCodeLine{00329\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}{i\_automatic\_rehash}}\ =\ FALSE;}
+\DoxyCodeLine{00330\ }
+\DoxyCodeLine{00331\ \ \ \ \ p\_ht-\/>bucket\_limit\ =\ 0;}
+\DoxyCodeLine{00332\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}{fn\_bucket\_free}}\ =\ NULL;}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \ \ \ \ \textcolor{comment}{/*\ Create\ an\ empty\ bucket\ list.\ */}}
+\DoxyCodeLine{00335\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !(p\_ht-\/>pp\_entries\ =\ (\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}**)malloc(p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}*)))\ )}
+\DoxyCodeLine{00336\ \ \ \ \ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ perror(\textcolor{stringliteral}{"{}malloc"{}});}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ free(p\_ht);}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{00340\ \ \ \ \ \}}
+\DoxyCodeLine{00341\ \ \ \ \ memset(p\_ht-\/>pp\_entries,\ 0,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}*));}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{comment}{/*\ Initialise\ the\ number\ of\ entries\ in\ each\ bucket\ to\ zero\ */}}
+\DoxyCodeLine{00344\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !(p\_ht-\/>p\_nr\ =\ (\textcolor{keywordtype}{int}*)malloc(p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{int}))))}
+\DoxyCodeLine{00345\ \ \ \ \ \{}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ perror(\textcolor{stringliteral}{"{}malloc"{}});}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ free(p\_ht-\/>pp\_entries);}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ free(p\_ht);}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{00350\ \ \ \ \ \}}
+\DoxyCodeLine{00351\ \ \ \ \ memset(p\_ht-\/>p\_nr,\ 0,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}*\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{int}));}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ \ \ p\_ht-\/>p\_oldest\ =\ NULL;}
+\DoxyCodeLine{00354\ \ \ \ \ p\_ht-\/>p\_newest\ =\ NULL;}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht;}
+\DoxyCodeLine{00357\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}\label{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_finalize@{ght\_finalize}}
+\index{ght\_finalize@{ght\_finalize}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_finalize()}{ght\_finalize()}}
+{\footnotesize\ttfamily void ght\+\_\+finalize (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht }\end{DoxyParamCaption})}
+
+Free the hash table. \doxylink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{ght\+\_\+finalize()} should typically be called at the end of the program. Note that only the metadata and the keys of the table is freed, not the entries. If you want to free the entries when removing the table, the entries will have to be manually freed before \doxylink{ght__hash__table_8h_a2ed7c1800f34c9db08c25b1aea52d157}{ght\+\_\+finalize()} is called like\+:
+
+
+\begin{DoxyPre}
+\doxylink{structght__iterator__t}{ght\_iterator\_t} iterator;
+void *p\_key;
+void *p\_e;
+
+for(p\_e = ght\_first(p\_table, \&iterator, \&p\_key); p\_e; p\_e = ght\_next(p\_table, \&iterator, \&p\_key))
+  \{
+    free(p\_e);
+  \}
+
+ght\_finalize(p\_table);
+\end{DoxyPre}
+
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the table to remove. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00678}{678}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00679\ \{}
+\DoxyCodeLine{00680\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{00681\ }
+\DoxyCodeLine{00682\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{00683\ }
+\DoxyCodeLine{00684\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>pp\_entries)}
+\DoxyCodeLine{00685\ \ \ \ \ \{}
+\DoxyCodeLine{00686\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ For\ each\ bucket,\ free\ all\ entries\ */}}
+\DoxyCodeLine{00687\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};\ i++)}
+\DoxyCodeLine{00688\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00689\ \ \ \ \ \ \ \ \ \ \ \ \ free\_entry\_chain(p\_ht,\ p\_ht-\/>pp\_entries[i]);}
+\DoxyCodeLine{00690\ \ \ \ \ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[i]\ =\ NULL;}
+\DoxyCodeLine{00691\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00692\ \ \ \ \ \ \ \ \ free\ (p\_ht-\/>pp\_entries);}
+\DoxyCodeLine{00693\ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries\ =\ NULL;}
+\DoxyCodeLine{00694\ \ \ \ \ \}}
+\DoxyCodeLine{00695\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>p\_nr)}
+\DoxyCodeLine{00696\ \ \ \ \ \{}
+\DoxyCodeLine{00697\ \ \ \ \ \ \ \ \ free\ (p\_ht-\/>p\_nr);}
+\DoxyCodeLine{00698\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr\ =\ NULL;}
+\DoxyCodeLine{00699\ \ \ \ \ \}}
+\DoxyCodeLine{00700\ }
+\DoxyCodeLine{00701\ \ \ \ \ free\ (p\_ht);}
+\DoxyCodeLine{00702\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}\label{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_first@{ght\_first}}
+\index{ght\_first@{ght\_first}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_first()}{ght\_first()}}
+{\footnotesize\ttfamily void $\ast$ ght\+\_\+first (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{\mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$}]{p\+\_\+iterator,  }\item[{const void $\ast$$\ast$}]{pp\+\_\+key }\end{DoxyParamCaption})}
+
+Return the first entry in the hash table. This function should be used for iteration and is used together with \doxylink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\+\_\+next()}. The order of the entries will be from the oldest inserted entry to the newest inserted entry. If an entry is inserted during an iteration, the entry might or might not occur in the iteration. Note that removal during an iteration is only safe for the {\itshape current} entry or an entry which has {\itshape already been iterated over}.
+
+The use of the \doxylink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t} allows for several concurrent iterations, where you would use one \doxylink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t} for each iteration. In threaded environments, you should still lock access to the hash table for insertion and removal.
+
+A typical example might look as follows\+: 
+\begin{DoxyPre}
+\doxylink{structght__hash__table__t}{ght\_hash\_table\_t} *p\_table;
+\doxylink{structght__iterator__t}{ght\_iterator\_t} iterator;
+void *p\_key;
+void *p\_e;
+
+[Create table etc...]
+for(p\_e = ght\_first(p\_table, \&iterator, \&p\_key); p\_e; p\_e = ght\_next(p\_table, \&iterator, \&p\_key))
+  \{
+     [Do something with the current entry p\_e and it's key p\_key]
+  \}
+\end{DoxyPre}
+
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to iterate through.\\
+\hline
+{\em p\+\_\+iterator} & the iterator to use. The value of the structure is filled in by this function and may be stack allocated.\\
+\hline
+{\em pp\+\_\+key} & a pointer to the pointer of the key (NULL if none).\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the first entry in the table or NULL if there are no entries.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\+\_\+next()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00623}{623}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00624\ \{}
+\DoxyCodeLine{00625\ \ \ \ \ \textcolor{keywordflow}{return}\ first\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ NULL);}
+\DoxyCodeLine{00626\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a0227f419e840ede521e0f5daa911290d}\label{ght__hash__table_8h_a0227f419e840ede521e0f5daa911290d} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_first\_keysize@{ght\_first\_keysize}}
+\index{ght\_first\_keysize@{ght\_first\_keysize}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_first\_keysize()}{ght\_first\_keysize()}}
+{\footnotesize\ttfamily void $\ast$ ght\+\_\+first\+\_\+keysize (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{\mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$}]{p\+\_\+iterator,  }\item[{const void $\ast$$\ast$}]{pp\+\_\+key,  }\item[{unsigned int $\ast$}]{size }\end{DoxyParamCaption})}
+
+See \doxylink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\+\_\+first()} detailed description. This function augments \doxylink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\+\_\+first()} by providing a facility to get the size of the keys also. This interface is beneficial for hashtables which use variable length keys.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to iterate through.\\
+\hline
+{\em p\+\_\+iterator} & the iterator to use. The value of the structure is filled in by this function and may be stack allocated.\\
+\hline
+{\em pp\+\_\+key} & a pointer to the pointer of the key (NULL if none).\\
+\hline
+{\em size} & a pointer to the size of the key pointer to by pp\+\_\+key.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the first entry in the table or NULL if there are no entries.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\+\_\+next()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00628}{628}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00629\ \{}
+\DoxyCodeLine{00630\ \ \ \ \ \textcolor{keywordflow}{return}\ first\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ size);}
+\DoxyCodeLine{00631\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270}\label{ght__hash__table_8h_ae7bf67689f4b681b9370b3d806273270} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_get@{ght\_get}}
+\index{ght\_get@{ght\_get}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_get()}{ght\_get()}}
+{\footnotesize\ttfamily void $\ast$ ght\+\_\+get (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{unsigned int}]{i\+\_\+key\+\_\+size,  }\item[{const void $\ast$}]{p\+\_\+key\+\_\+data }\end{DoxyParamCaption})}
+
+Lookup an entry in the hash table. The entry is {\itshape not} removed from the table.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to search in. \\
+\hline
+{\em i\+\_\+key\+\_\+size} & the size of the key to search with (in bytes). \\
+\hline
+{\em p\+\_\+key\+\_\+data} & the key to search for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the found entry or NULL if no entry could be found. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00496}{496}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00498\ \{}
+\DoxyCodeLine{00499\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_e;}
+\DoxyCodeLine{00500\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{00501\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{00502\ }
+\DoxyCodeLine{00503\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{00504\ }
+\DoxyCodeLine{00505\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{00506\ }
+\DoxyCodeLine{00507\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{00508\ }
+\DoxyCodeLine{00509\ \ \ \ \ \textcolor{comment}{/*\ Check\ that\ the\ first\ element\ in\ the\ list\ really\ is\ the\ first.\ */}}
+\DoxyCodeLine{00510\ \ \ \ \ assert(\ p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1\ );}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ \ \ \ \ \textcolor{comment}{/*\ LOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{00513\ \ \ \ \ p\_e\ =\ search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}});}
+\DoxyCodeLine{00514\ \ \ \ \ \textcolor{comment}{/*\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \ \ \ \ \textcolor{keywordflow}{return}\ (p\_e\ ?\ p\_e-\/>p\_data\ :\ NULL);}
+\DoxyCodeLine{00517\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}\label{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_insert@{ght\_insert}}
+\index{ght\_insert@{ght\_insert}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_insert()}{ght\_insert()}}
+{\footnotesize\ttfamily int ght\+\_\+insert (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{void $\ast$}]{p\+\_\+entry\+\_\+data,  }\item[{unsigned int}]{i\+\_\+key\+\_\+size,  }\item[{const void $\ast$}]{p\+\_\+key\+\_\+data }\end{DoxyParamCaption})}
+
+Insert an entry into the hash table. Prior to inserting anything, make sure that the table is created with \doxylink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\+\_\+create()}. If an element with the same key as this one already exists in the table, the insertion will fail and -\/1 is returned.
+
+A typical example is shown below, where the string \char`\"{}blabla\char`\"{} (including the \textquotesingle{}\textbackslash{}0\textquotesingle{}-\/terminator) is used as a key for the integer 15.
+
+
+\begin{DoxyPre}
+\doxylink{structght__hash__table__t}{ght\_hash\_table\_t} *p\_table;
+char *p\_key\_data;
+int *p\_data;
+int ret;
+
+[Create p\_table etc...]
+p\_data = malloc(sizeof(int));
+p\_key\_data = "{}blabla"{};
+*p\_data = 15;
+
+ret = ght\_insert(p\_table,
+                 p\_data,
+                 sizeof(char)*(strlen(p\_key\_data)+1), p\_key\_data);
+\end{DoxyPre}
+
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to insert into. \\
+\hline
+{\em p\+\_\+entry\+\_\+data} & the data to insert. \\
+\hline
+{\em i\+\_\+key\+\_\+size} & the size of the key to associate the data with (in bytes). \\
+\hline
+{\em p\+\_\+key\+\_\+data} & the key to use. The value will be copied, and it is therefore OK to use a stack-\/allocated entry here.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+0 if the element could be inserted, -\/1 otherwise. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00409}{409}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00412\ \{}
+\DoxyCodeLine{00413\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_entry;}
+\DoxyCodeLine{00414\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{00415\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{00420\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{00421\ \ \ \ \ \textcolor{keywordflow}{if}\ (search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ 0))}
+\DoxyCodeLine{00422\ \ \ \ \ \{}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Don't\ insert\ if\ the\ key\ is\ already\ present.\ */}}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{00425\ \ \ \ \ \}}
+\DoxyCodeLine{00426\ \ \ \ \ \textcolor{keywordflow}{if}\ (!(p\_entry\ =\ he\_create(p\_ht,\ p\_entry\_data,}
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ i\_key\_size,\ p\_key\_data)))}
+\DoxyCodeLine{00428\ \ \ \ \ \{}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/2;}
+\DoxyCodeLine{00430\ \ \ \ \ \}}
+\DoxyCodeLine{00431\ }
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{comment}{/*\ Rehash\ if\ the\ number\ of\ items\ inserted\ is\ too\ high.\ */}}
+\DoxyCodeLine{00433\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}{i\_automatic\_rehash}}\ \&\&\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}\ >\ 2*p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}})}
+\DoxyCodeLine{00434\ \ \ \ \ \{}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a56b5a79427c6f61546a187904eb83d20}{ght\_rehash}}(p\_ht,\ 2*p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}});}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Recalculate\ l\_key\ after\ ght\_rehash\ has\ updated\ i\_size\_mask\ */}}
+\DoxyCodeLine{00437\ \ \ \ \ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{00438\ \ \ \ \ \}}
+\DoxyCodeLine{00439\ }
+\DoxyCodeLine{00440\ \ \ \ \ \textcolor{comment}{/*\ Place\ the\ entry\ first\ in\ the\ list.\ */}}
+\DoxyCodeLine{00441\ \ \ \ \ p\_entry-\/>p\_next\ =\ p\_ht-\/>pp\_entries[l\_key];}
+\DoxyCodeLine{00442\ \ \ \ \ p\_entry-\/>p\_prev\ =\ NULL;}
+\DoxyCodeLine{00443\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>pp\_entries[l\_key])}
+\DoxyCodeLine{00444\ \ \ \ \ \{}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ =\ p\_entry;}
+\DoxyCodeLine{00446\ \ \ \ \ \}}
+\DoxyCodeLine{00447\ \ \ \ \ p\_ht-\/>pp\_entries[l\_key]\ =\ p\_entry;}
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ \ \ \ \ \textcolor{comment}{/*\ If\ this\ is\ a\ limited\ bucket\ hash\ table,\ potentially\ remove\ the\ last\ item\ */}}
+\DoxyCodeLine{00450\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>bucket\_limit\ !=\ 0\ \&\&}
+\DoxyCodeLine{00451\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr[l\_key]\ >=\ p\_ht-\/>bucket\_limit)}
+\DoxyCodeLine{00452\ \ \ \ \ \{}
+\DoxyCodeLine{00453\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p;}
+\DoxyCodeLine{00454\ }
+\DoxyCodeLine{00455\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Loop\ through\ entries\ until\ the\ last}}
+\DoxyCodeLine{00456\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00457\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ FIXME:\ Better\ with\ a\ pointer\ to\ the\ last\ entry}}
+\DoxyCodeLine{00458\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00459\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (p\ =\ p\_ht-\/>pp\_entries[l\_key];}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \ \ \ \ \ \ \ p-\/>p\_next\ !=\ NULL;}
+\DoxyCodeLine{00461\ \ \ \ \ \ \ \ \ \ \ \ \ \ p\ =\ p-\/>p\_next)\ ;}
+\DoxyCodeLine{00462\ }
+\DoxyCodeLine{00463\ \ \ \ \ \ \ \ \ assert(p\ \&\&\ p-\/>p\_next\ ==\ NULL);}
+\DoxyCodeLine{00464\ }
+\DoxyCodeLine{00465\ \ \ \ \ \ \ \ \ remove\_from\_chain(p\_ht,\ l\_key,\ p);\ \textcolor{comment}{/*\ To\ allow\ it\ to\ be\ reinserted\ in\ fn\_bucket\_free\ */}}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}{fn\_bucket\_free}}(p-\/>p\_data,\ p-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}});}
+\DoxyCodeLine{00467\ }
+\DoxyCodeLine{00468\ \ \ \ \ \ \ \ \ he\_finalize(p\_ht,\ p);}
+\DoxyCodeLine{00469\ \ \ \ \ \}}
+\DoxyCodeLine{00470\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00471\ \ \ \ \ \{}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr[l\_key]++;}
+\DoxyCodeLine{00473\ }
+\DoxyCodeLine{00474\ \ \ \ \ \ \ \ \ assert(\ p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1\ );}
+\DoxyCodeLine{00475\ }
+\DoxyCodeLine{00476\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}++;}
+\DoxyCodeLine{00477\ \ \ \ \ \}}
+\DoxyCodeLine{00478\ }
+\DoxyCodeLine{00479\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>p\_oldest\ ==\ NULL)}
+\DoxyCodeLine{00480\ \ \ \ \ \{}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_oldest\ =\ p\_entry;}
+\DoxyCodeLine{00482\ \ \ \ \ \}}
+\DoxyCodeLine{00483\ \ \ \ \ p\_entry-\/>p\_older\ =\ p\_ht-\/>p\_newest;}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>p\_newest\ !=\ NULL)}
+\DoxyCodeLine{00486\ \ \ \ \ \{}
+\DoxyCodeLine{00487\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_newest-\/>p\_newer\ =\ p\_entry;}
+\DoxyCodeLine{00488\ \ \ \ \ \}}
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ \ \ \ \ p\_ht-\/>p\_newest\ =\ p\_entry;}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00493\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}\label{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_next@{ght\_next}}
+\index{ght\_next@{ght\_next}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_next()}{ght\_next()}}
+{\footnotesize\ttfamily void $\ast$ ght\+\_\+next (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{\mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$}]{p\+\_\+iterator,  }\item[{const void $\ast$$\ast$}]{pp\+\_\+key }\end{DoxyParamCaption})}
+
+Return the next entry in the hash table. This function should be used for iteration, and must be called after \doxylink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\+\_\+first()}.
+
+\begin{DoxyWarning}{Warning}
+calling this without first having called ght\+\_\+first will give undefined results (probably a crash), since p\+\_\+iterator isn\textquotesingle{}t filled correctly.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to iterate through.\\
+\hline
+{\em p\+\_\+iterator} & the iterator to use.\\
+\hline
+{\em pp\+\_\+key} & a pointer to the pointer of the key (NULL if none).\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the next entry in the table or NULL if there are no more entries in the table.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\+\_\+first()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00665}{665}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00666\ \{}
+\DoxyCodeLine{00667\ \ \ \ \ \textcolor{keywordflow}{return}\ next\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ NULL);}
+\DoxyCodeLine{00668\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a3251962a7ccdcf2d13086fd0b32ed358}\label{ght__hash__table_8h_a3251962a7ccdcf2d13086fd0b32ed358} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_next\_keysize@{ght\_next\_keysize}}
+\index{ght\_next\_keysize@{ght\_next\_keysize}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_next\_keysize()}{ght\_next\_keysize()}}
+{\footnotesize\ttfamily void $\ast$ ght\+\_\+next\+\_\+keysize (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{\mbox{\hyperlink{structght__iterator__t}{ght\+\_\+iterator\+\_\+t}} $\ast$}]{p\+\_\+iterator,  }\item[{const void $\ast$$\ast$}]{pp\+\_\+key,  }\item[{unsigned int $\ast$}]{size }\end{DoxyParamCaption})}
+
+This functions works just like \doxylink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\+\_\+next()} but also returns the keysize. This is beneficial for users of the hash table which use variable length keys.
+
+\begin{DoxyWarning}{Warning}
+calling this without first having called ght\+\_\+first will give undefined results (probably a crash), since p\+\_\+iterator isn\textquotesingle{}t filled correctly.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to iterate through.\\
+\hline
+{\em p\+\_\+iterator} & the iterator to use.\\
+\hline
+{\em pp\+\_\+key} & a pointer to the pointer of the key (NULL if none).\\
+\hline
+{\em size} & a pointer to the size of the key pointer to by pp\+\_\+key.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the next entry in the table or NULL if there are no more entries in the table.
+\end{DoxyReturn}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_a0227f419e840ede521e0f5daa911290d}{ght\+\_\+first\+\_\+keysize()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00670}{670}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00671\ \{}
+\DoxyCodeLine{00672\ \ \ \ \ \textcolor{keywordflow}{return}\ next\_keysize(p\_ht,\ p\_iterator,\ pp\_key,\ size);}
+\DoxyCodeLine{00673\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}\label{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_one\_at\_a\_time\_hash@{ght\_one\_at\_a\_time\_hash}}
+\index{ght\_one\_at\_a\_time\_hash@{ght\_one\_at\_a\_time\_hash}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_one\_at\_a\_time\_hash()}{ght\_one\_at\_a\_time\_hash()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}} ght\+\_\+one\+\_\+at\+\_\+a\+\_\+time\+\_\+hash (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$}]{p\+\_\+key }\end{DoxyParamCaption})}
+
+One-\/at-\/a-\/time-\/hash. One-\/at-\/a-\/time-\/hash is a good hash function, and is the default when \doxylink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\+\_\+create()} is called with NULL as the fn\+\_\+hash parameter. This was found in a Dr\+Dobbs article, see \href{http://burtleburtle.net/bob/hash/doobs.html}{\texttt{ http\+://burtleburtle.\+net/bob/hash/doobs.\+html}}
+
+\begin{DoxyWarning}{Warning}
+Don\textquotesingle{}t call this function directly, it is only meant to be used as a callback for the hash table.
+\end{DoxyWarning}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t} 
+
+\doxylink{ght__hash__table_8h_a3b82225a954364929c62ac241f417420}{ght\+\_\+rotating\+\_\+hash()}, \doxylink{ght__hash__table_8h_a9450c892d6480f6bf6ed558945a5da37}{ght\+\_\+crc\+\_\+hash()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__functions_8c_source_l00072}{72}} of file \mbox{\hyperlink{hash__functions_8c_source}{hash\+\_\+functions.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00073\ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ i\_hash=0;}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \ \ assert(p\_key);}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<p\_key-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}};\ ++i)}
+\DoxyCodeLine{00080\ \ \ \ \ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ i\_hash\ +=\ ((\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}*)p\_key-\/>\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}})[i];}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ i\_hash\ +=\ (i\_hash\ <<\ 10);}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ i\_hash\ \string^=\ (i\_hash\ >>\ 6);}
+\DoxyCodeLine{00084\ \ \ \ \ \}}
+\DoxyCodeLine{00085\ \ \ \ \ i\_hash\ +=\ (i\_hash\ <<\ 3);}
+\DoxyCodeLine{00086\ \ \ \ \ i\_hash\ \string^=\ (i\_hash\ >>\ 11);}
+\DoxyCodeLine{00087\ \ \ \ \ i\_hash\ +=\ (i\_hash\ <<\ 15);}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordflow}{return}\ i\_hash;}
+\DoxyCodeLine{00090\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a56b5a79427c6f61546a187904eb83d20}\label{ght__hash__table_8h_a56b5a79427c6f61546a187904eb83d20} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_rehash@{ght\_rehash}}
+\index{ght\_rehash@{ght\_rehash}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_rehash()}{ght\_rehash()}}
+{\footnotesize\ttfamily void ght\+\_\+rehash (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{unsigned int}]{i\+\_\+size }\end{DoxyParamCaption})}
+
+Rehash the hash table.
+
+Rehashing will change the size of the hash table, retaining all elements. This is very costly and should be avoided unless really needed. If {\ttfamily GHT\+\_\+\+AUTOMATIC\+\_\+\+REHASH} is specified in the flag parameter when \doxylink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\+\_\+create()} is called, the hash table is automatically rehashed when the number of stored elements exceeds two times the number of buckets in the table (making calls to this function unessessary).
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to rehash. \\
+\hline
+{\em i\+\_\+size} & the new size of the table.\\
+\hline
+\end{DoxyParams}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\+\_\+create()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00707}{707}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00708\ \{}
+\DoxyCodeLine{00709\ \ \ \ \ \mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *p\_tmp;}
+\DoxyCodeLine{00710\ \ \ \ \ \mbox{\hyperlink{structght__iterator__t}{ght\_iterator\_t}}\ iterator;}
+\DoxyCodeLine{00711\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p\_key;}
+\DoxyCodeLine{00712\ \ \ \ \ \textcolor{keywordtype}{void}\ *p;}
+\DoxyCodeLine{00713\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{00714\ }
+\DoxyCodeLine{00715\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{00716\ }
+\DoxyCodeLine{00717\ \ \ \ \ \textcolor{comment}{/*\ Recreate\ the\ hash\ table\ with\ the\ new\ size\ */}}
+\DoxyCodeLine{00718\ \ \ \ \ p\_tmp\ =\ \mbox{\hyperlink{ght__hash__table_8h_ae6b71ee9b731e74455c940d0a685efbb}{ght\_create}}(i\_size);}
+\DoxyCodeLine{00719\ \ \ \ \ assert(p\_tmp);}
+\DoxyCodeLine{00720\ }
+\DoxyCodeLine{00721\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ flags\ for\ the\ new\ hash\ table\ */}}
+\DoxyCodeLine{00722\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6}{ght\_set\_hash}}(p\_tmp,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}});}
+\DoxyCodeLine{00723\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0}{ght\_set\_alloc}}(p\_tmp,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\_alloc}},\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\_free}});}
+\DoxyCodeLine{00724\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71}{ght\_set\_heuristics}}(p\_tmp,\ GHT\_HEURISTICS\_NONE);}
+\DoxyCodeLine{00725\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093}{ght\_set\_rehash}}(p\_tmp,\ FALSE);}
+\DoxyCodeLine{00726\ }
+\DoxyCodeLine{00727\ \ \ \ \ \textcolor{comment}{/*\ Walk\ through\ all\ elements\ in\ the\ table\ and\ insert\ them\ into\ the\ temporary\ one.\ */}}
+\DoxyCodeLine{00728\ \ \ \ \ \textcolor{keywordflow}{for}\ (p\ =\ \mbox{\hyperlink{ght__hash__table_8h_a255de024ec41108fe2c147fe4e585c4f}{ght\_first}}(p\_ht,\ \&iterator,\ \&p\_key);\ p;\ p\ =\ \mbox{\hyperlink{ght__hash__table_8h_a02aa2f564e414fb09d2adf8ea55f5a73}{ght\_next}}(p\_ht,\ \&iterator,\ \&p\_key))}
+\DoxyCodeLine{00729\ \ \ \ \ \{}
+\DoxyCodeLine{00730\ \ \ \ \ \ \ \ \ assert(iterator.p\_entry);}
+\DoxyCodeLine{00731\ }
+\DoxyCodeLine{00732\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Insert\ the\ entry\ into\ the\ new\ table\ */}}
+\DoxyCodeLine{00733\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{ght__hash__table_8h_a9ca06ee650eda5748deafb68ea856ac8}{ght\_insert}}(p\_tmp,}
+\DoxyCodeLine{00734\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ iterator.p\_entry-\/>p\_data,}
+\DoxyCodeLine{00735\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ iterator.p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}},\ iterator.p\_entry-\/>key.\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}})\ <\ 0)}
+\DoxyCodeLine{00736\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00737\ \ \ \ \ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}hash\_table.c\ ERROR:\ Out\ of\ memory\ error\ or\ entry\ already\ in\ hash\ table\(\backslash\)n"{}}}
+\DoxyCodeLine{00738\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}when\ rehashing\ (internal\ error)\(\backslash\)n"{}});}
+\DoxyCodeLine{00739\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00740\ \ \ \ \ \}}
+\DoxyCodeLine{00741\ }
+\DoxyCodeLine{00742\ \ \ \ \ \textcolor{comment}{/*\ Remove\ the\ old\ table...\ */}}
+\DoxyCodeLine{00743\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};\ i++)}
+\DoxyCodeLine{00744\ \ \ \ \ \{}
+\DoxyCodeLine{00745\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_ht-\/>pp\_entries[i])}
+\DoxyCodeLine{00746\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00747\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Delete\ the\ entries\ in\ the\ bucket\ */}}
+\DoxyCodeLine{00748\ \ \ \ \ \ \ \ \ \ \ \ \ free\_entry\_chain\ (p\_ht,\ p\_ht-\/>pp\_entries[i]);}
+\DoxyCodeLine{00749\ \ \ \ \ \ \ \ \ \ \ \ \ p\_ht-\/>pp\_entries[i]\ =\ NULL;}
+\DoxyCodeLine{00750\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00751\ \ \ \ \ \}}
+\DoxyCodeLine{00752\ }
+\DoxyCodeLine{00753\ \ \ \ \ free\ (p\_ht-\/>pp\_entries);}
+\DoxyCodeLine{00754\ \ \ \ \ free\ (p\_ht-\/>p\_nr);}
+\DoxyCodeLine{00755\ }
+\DoxyCodeLine{00756\ \ \ \ \ \textcolor{comment}{/*\ ...\ and\ replace\ it\ with\ the\ new\ */}}
+\DoxyCodeLine{00757\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}}\ =\ p\_tmp-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};}
+\DoxyCodeLine{00758\ \ \ \ \ p\_ht-\/>i\_size\_mask\ =\ p\_tmp-\/>i\_size\_mask;}
+\DoxyCodeLine{00759\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}\ =\ p\_tmp-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}};}
+\DoxyCodeLine{00760\ \ \ \ \ p\_ht-\/>pp\_entries\ =\ p\_tmp-\/>pp\_entries;}
+\DoxyCodeLine{00761\ \ \ \ \ p\_ht-\/>p\_nr\ =\ p\_tmp-\/>p\_nr;}
+\DoxyCodeLine{00762\ }
+\DoxyCodeLine{00763\ \ \ \ \ p\_ht-\/>p\_oldest\ =\ p\_tmp-\/>p\_oldest;}
+\DoxyCodeLine{00764\ \ \ \ \ p\_ht-\/>p\_newest\ =\ p\_tmp-\/>p\_newest;}
+\DoxyCodeLine{00765\ }
+\DoxyCodeLine{00766\ \ \ \ \ \textcolor{comment}{/*\ Clean\ up\ */}}
+\DoxyCodeLine{00767\ \ \ \ \ p\_tmp-\/>pp\_entries\ =\ NULL;}
+\DoxyCodeLine{00768\ \ \ \ \ p\_tmp-\/>p\_nr\ =\ NULL;}
+\DoxyCodeLine{00769\ \ \ \ \ free\ (p\_tmp);}
+\DoxyCodeLine{00770\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_aa8582d55526ef0c606422dc083180dc0}\label{ght__hash__table_8h_aa8582d55526ef0c606422dc083180dc0} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_remove@{ght\_remove}}
+\index{ght\_remove@{ght\_remove}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_remove()}{ght\_remove()}}
+{\footnotesize\ttfamily void $\ast$ ght\+\_\+remove (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{unsigned int}]{i\+\_\+key\+\_\+size,  }\item[{const void $\ast$}]{p\+\_\+key\+\_\+data }\end{DoxyParamCaption})}
+
+Remove an entry from the hash table. The entry is removed from the table, but not freed (that is, the data stored is not freed).
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to use. \\
+\hline
+{\em i\+\_\+key\+\_\+size} & the size of the key to search with (in bytes). \\
+\hline
+{\em p\+\_\+key\+\_\+data} & the key to search for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the removed entry or NULL if the entry could be found. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00553}{553}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00555\ \{}
+\DoxyCodeLine{00556\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_out;}
+\DoxyCodeLine{00557\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{00558\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{00559\ \ \ \ \ \textcolor{keywordtype}{void}\ *p\_ret=NULL;}
+\DoxyCodeLine{00560\ }
+\DoxyCodeLine{00561\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{00564\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{00565\ }
+\DoxyCodeLine{00566\ \ \ \ \ \textcolor{comment}{/*\ Check\ that\ the\ first\ element\ really\ is\ the\ first\ */}}
+\DoxyCodeLine{00567\ \ \ \ \ assert(\ (p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1)\ );}
+\DoxyCodeLine{00568\ }
+\DoxyCodeLine{00569\ \ \ \ \ \textcolor{comment}{/*\ LOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{00570\ \ \ \ \ p\_out\ =\ search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ 0);}
+\DoxyCodeLine{00571\ }
+\DoxyCodeLine{00572\ \ \ \ \ \textcolor{comment}{/*\ Link\ p\_out\ out\ of\ the\ list.\ */}}
+\DoxyCodeLine{00573\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\_out)}
+\DoxyCodeLine{00574\ \ \ \ \ \{}
+\DoxyCodeLine{00575\ \ \ \ \ \ \ \ \ remove\_from\_chain(p\_ht,\ l\_key,\ p\_out);}
+\DoxyCodeLine{00576\ }
+\DoxyCodeLine{00577\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ should\ ONLY\ be\ done\ for\ normal\ items\ (for\ now\ all\ items)\ */}}
+\DoxyCodeLine{00578\ \ \ \ \ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}}-\/-\/;}
+\DoxyCodeLine{00579\ }
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \ \ p\_ht-\/>p\_nr[l\_key]-\/-\/;}
+\DoxyCodeLine{00581\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{00582\ \textcolor{preprocessor}{\#if\ !defined(NDEBUG)}}
+\DoxyCodeLine{00583\ \ \ \ \ \ \ \ \ p\_out-\/>p\_next\ =\ NULL;}
+\DoxyCodeLine{00584\ \ \ \ \ \ \ \ \ p\_out-\/>p\_prev\ =\ NULL;}
+\DoxyCodeLine{00585\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ NDEBUG\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00586\ }
+\DoxyCodeLine{00587\ \ \ \ \ \ \ \ \ p\_ret\ =\ p\_out-\/>p\_data;}
+\DoxyCodeLine{00588\ \ \ \ \ \ \ \ \ he\_finalize(p\_ht,\ p\_out);}
+\DoxyCodeLine{00589\ \ \ \ \ \}}
+\DoxyCodeLine{00590\ \ \ \ \ \textcolor{comment}{/*\ else:\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{00591\ }
+\DoxyCodeLine{00592\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ret;}
+\DoxyCodeLine{00593\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a21e1055809b34a05ada1225f3ac82578}\label{ght__hash__table_8h_a21e1055809b34a05ada1225f3ac82578} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_replace@{ght\_replace}}
+\index{ght\_replace@{ght\_replace}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_replace()}{ght\_replace()}}
+{\footnotesize\ttfamily void $\ast$ ght\+\_\+replace (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{void $\ast$}]{p\+\_\+entry\+\_\+data,  }\item[{unsigned int}]{i\+\_\+key\+\_\+size,  }\item[{const void $\ast$}]{p\+\_\+key\+\_\+data }\end{DoxyParamCaption})}
+
+Replace an entry in the hash table. This function will return an error if the entry to be replaced does not exist, i.\+e. it cannot be used to insert new entries. Replacing an entry does not affect its iteration order.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to search in. \\
+\hline
+{\em p\+\_\+entry\+\_\+data} & the new data for the key. \\
+\hline
+{\em i\+\_\+key\+\_\+size} & the size of the key to search with (in bytes). \\
+\hline
+{\em p\+\_\+key\+\_\+data} & the key to search for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+a pointer to the {\itshape old} value or NULL if the operation failed. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00520}{520}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00523\ \{}
+\DoxyCodeLine{00524\ \ \ \ \ \mbox{\hyperlink{structs__hash__entry}{ght\_hash\_entry\_t}}\ *p\_e;}
+\DoxyCodeLine{00525\ \ \ \ \ \mbox{\hyperlink{structs__hash__key}{ght\_hash\_key\_t}}\ key;}
+\DoxyCodeLine{00526\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ l\_key;}
+\DoxyCodeLine{00527\ \ \ \ \ \textcolor{keywordtype}{void}\ *p\_old;}
+\DoxyCodeLine{00528\ }
+\DoxyCodeLine{00529\ \ \ \ \ assert(p\_ht);}
+\DoxyCodeLine{00530\ }
+\DoxyCodeLine{00531\ \ \ \ \ hk\_fill(\&key,\ i\_key\_size,\ p\_key\_data);}
+\DoxyCodeLine{00532\ }
+\DoxyCodeLine{00533\ \ \ \ \ l\_key\ =\ get\_hash\_value(p\_ht,\ \&key)\ \&\ p\_ht-\/>i\_size\_mask;}
+\DoxyCodeLine{00534\ }
+\DoxyCodeLine{00535\ \ \ \ \ \textcolor{comment}{/*\ Check\ that\ the\ first\ element\ in\ the\ list\ really\ is\ the\ first.\ */}}
+\DoxyCodeLine{00536\ \ \ \ \ assert(\ p\_ht-\/>pp\_entries[l\_key]\ ?\ p\_ht-\/>pp\_entries[l\_key]-\/>p\_prev\ ==\ NULL\ :\ 1\ );}
+\DoxyCodeLine{00537\ }
+\DoxyCodeLine{00538\ \ \ \ \ \textcolor{comment}{/*\ LOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{00539\ \ \ \ \ p\_e\ =\ search\_in\_bucket(p\_ht,\ l\_key,\ \&key,\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}});}
+\DoxyCodeLine{00540\ \ \ \ \ \textcolor{comment}{/*\ UNLOCK:\ p\_ht-\/>pp\_entries[l\_key]\ */}}
+\DoxyCodeLine{00541\ }
+\DoxyCodeLine{00542\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ !p\_e\ )}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{00544\ }
+\DoxyCodeLine{00545\ \ \ \ \ p\_old\ =\ p\_e-\/>p\_data;}
+\DoxyCodeLine{00546\ \ \ \ \ p\_e-\/>p\_data\ =\ p\_entry\_data;}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_old;}
+\DoxyCodeLine{00549\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a3b82225a954364929c62ac241f417420}\label{ght__hash__table_8h_a3b82225a954364929c62ac241f417420} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_rotating\_hash@{ght\_rotating\_hash}}
+\index{ght\_rotating\_hash@{ght\_rotating\_hash}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_rotating\_hash()}{ght\_rotating\_hash()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\+\_\+uint32\+\_\+t}} ght\+\_\+rotating\+\_\+hash (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ght__hash__table_8h_a0b44bb1ec6f3dae5a06a6067217d1fb8}{ght\+\_\+hash\+\_\+key\+\_\+t}} $\ast$}]{p\+\_\+key }\end{DoxyParamCaption})}
+
+Rotating hash. Not so good hash function. This was found in a Dr\+Dobbs article, see \href{http://burtleburtle.net/bob/hash/doobs.html}{\texttt{ http\+://burtleburtle.\+net/bob/hash/doobs.\+html}}
+
+\begin{DoxyWarning}{Warning}
+Don\textquotesingle{}t call this function directly, it is only meant to be used as a callback for the hash table.
+\end{DoxyWarning}
+\begin{DoxySeeAlso}{See also}
+\doxylink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t} 
+
+\doxylink{ght__hash__table_8h_a9779b2a98b420e153eb53a12c1702751}{ght\+\_\+one\+\_\+at\+\_\+a\+\_\+time\+\_\+hash()}, \doxylink{ght__hash__table_8h_a9450c892d6480f6bf6ed558945a5da37}{ght\+\_\+crc\+\_\+hash()} 
+\end{DoxySeeAlso}
+
+
+Definition at line \mbox{\hyperlink{hash__functions_8c_source_l00112}{112}} of file \mbox{\hyperlink{hash__functions_8c_source}{hash\+\_\+functions.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00113\ \{}
+\DoxyCodeLine{00114\ \ \ \ \ \mbox{\hyperlink{ght__hash__table_8h_a8255dcd8ac683bedac3f1623b406c4cc}{ght\_uint32\_t}}\ i\_hash=0;}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ assert(p\_key);}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<p\_key-\/>\mbox{\hyperlink{structs__hash__key_a6a4cfa507831f48fd8cfbb441b7a92db}{i\_size}};\ ++i)}
+\DoxyCodeLine{00120\ \ \ \ \ \{}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ i\_hash\ =\ (i\_hash<<4)\string^(i\_hash>>28)\string^((\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}*)p\_key-\/>\mbox{\hyperlink{structs__hash__key_a04ee67a2f59478553590966ba9413139}{p\_key}})[i];}
+\DoxyCodeLine{00122\ \ \ \ \ \}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordflow}{return}\ i\_hash;}
+\DoxyCodeLine{00125\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0}\label{ght__hash__table_8h_a60d20c2d5d0b0a4e01b35253d98625a0} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_set\_alloc@{ght\_set\_alloc}}
+\index{ght\_set\_alloc@{ght\_set\_alloc}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_set\_alloc()}{ght\_set\_alloc()}}
+{\footnotesize\ttfamily void ght\+\_\+set\+\_\+alloc (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{\mbox{\hyperlink{ght__hash__table_8h_a5f5f683e9959254798651a8557388585}{ght\+\_\+fn\+\_\+alloc\+\_\+t}}}]{fn\+\_\+alloc,  }\item[{\mbox{\hyperlink{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d}{ght\+\_\+fn\+\_\+free\+\_\+t}}}]{fn\+\_\+free }\end{DoxyParamCaption})}
+
+Set the allocation/freeing functions to use for a hash table. The allocation function will only be called when a new entry is inserted.
+
+The allocation size will always be {\ttfamily sizeof(ght\+\_\+hash\+\_\+entry\+\_\+t) + sizeof(ght\+\_\+hash\+\_\+key\+\_\+t) + key\+\_\+size}. The actual size varies with the key size.
+
+If this function is {\itshape not} called, {\ttfamily malloc()} and {\ttfamily free()} will be used for allocation and freeing.
+
+\begin{DoxyWarning}{Warning}
+Always call this function {\itshape before} any entries are inserted into the table. Otherwise, the new free() might be called on something that were allocated with another allocation function.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to set the memory management functions for. \\
+\hline
+{\em fn\+\_\+alloc} & the allocation function to use. \\
+\hline
+{\em fn\+\_\+free} & the deallocation function to use. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00360}{360}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00361\ \{}
+\DoxyCodeLine{00362\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\_alloc}}\ =\ fn\_alloc;}
+\DoxyCodeLine{00363\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\_free}}\ =\ fn\_free;}
+\DoxyCodeLine{00364\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_abfbd875e7c1e199330b179fa0e24e512}\label{ght__hash__table_8h_abfbd875e7c1e199330b179fa0e24e512} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_set\_bounded\_buckets@{ght\_set\_bounded\_buckets}}
+\index{ght\_set\_bounded\_buckets@{ght\_set\_bounded\_buckets}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_set\_bounded\_buckets()}{ght\_set\_bounded\_buckets()}}
+{\footnotesize\ttfamily void ght\+\_\+set\+\_\+bounded\+\_\+buckets (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{unsigned int}]{limit,  }\item[{\mbox{\hyperlink{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640}{ght\+\_\+fn\+\_\+bucket\+\_\+free\+\_\+callback\+\_\+t}}}]{fn }\end{DoxyParamCaption})}
+
+Enable or disable bounded buckets.
+
+With bounded buckets, the hash table will act as a cache, only holding a fixed number of elements per bucket. {\itshape limit} specifies the limit of elements per bucket. When inserting elements with {\itshape ght\+\_\+insert} into a bounded table, the last entry in the bucket chain will be free\+:d. libghthash will then call the callback function {\itshape fn}, which allow the user of the library to dispose of the key and data.
+
+Bounded buckets are disabled by default.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to set the bounded buckets for. \\
+\hline
+{\em limit} & the maximum number of items in each bucket. If {\itshape limit} is set to 0, bounded buckets are disabled. \\
+\hline
+{\em fn} & a pointer to a callback function that is called when an entry is free\+:d. The function should return 0 if the entry can be freed, or -\/1 otherwise. If -\/1 is returned, libghthash will select the second last entry and call the callback with that instead. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00384}{384}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00385\ \{}
+\DoxyCodeLine{00386\ \ \ \ \ p\_ht-\/>bucket\_limit\ =\ limit;}
+\DoxyCodeLine{00387\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}{fn\_bucket\_free}}\ =\ fn;}
+\DoxyCodeLine{00388\ }
+\DoxyCodeLine{00389\ \ \ \ \ \textcolor{keywordflow}{if}\ (limit\ >\ 0\ \&\&\ fn\ ==\ NULL)}
+\DoxyCodeLine{00390\ \ \ \ \ \{}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}ght\_set\_bounded\_buckets:\ The\ bucket\ callback\ function\ is\ NULL\ but\ the\ limit\ is\ \%d\(\backslash\)n"{}},\ limit);}
+\DoxyCodeLine{00392\ \ \ \ \ \}}
+\DoxyCodeLine{00393\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6}\label{ght__hash__table_8h_a04e365a457d368c9ff6a2dc2a4fc25b6} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_set\_hash@{ght\_set\_hash}}
+\index{ght\_set\_hash@{ght\_set\_hash}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_set\_hash()}{ght\_set\_hash()}}
+{\footnotesize\ttfamily void ght\+\_\+set\+\_\+hash (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{\mbox{\hyperlink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t}}}]{fn\+\_\+hash }\end{DoxyParamCaption})}
+
+Set the hash function to use for a hash table.
+
+\begin{DoxyWarning}{Warning}
+Always call this function before any entries are inserted into the table. Otherwise, it will not be possible to find entries that were inserted before this function was called.
+\end{DoxyWarning}
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table set the hash function for. \\
+\hline
+{\em fn\+\_\+hash} & the hash function. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00367}{367}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00368\ \{}
+\DoxyCodeLine{00369\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\_hash}}\ =\ fn\_hash;}
+\DoxyCodeLine{00370\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71}\label{ght__hash__table_8h_a468a80c31e88ce15044afb19cd2dbb71} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_set\_heuristics@{ght\_set\_heuristics}}
+\index{ght\_set\_heuristics@{ght\_set\_heuristics}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_set\_heuristics()}{ght\_set\_heuristics()}}
+{\footnotesize\ttfamily void ght\+\_\+set\+\_\+heuristics (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{int}]{i\+\_\+heuristics }\end{DoxyParamCaption})}
+
+Set the heuristics to use for the hash table. The possible values are\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily GHT\+\_\+\+HEURISTICS\+\_\+\+NONE}\+: Don\textquotesingle{}t use any heuristics.
+\item {\ttfamily 0}\+: Same as above.
+\item {\ttfamily GHT\+\_\+\+HEURISTICS\+\_\+\+TRANSPOSE}\+: Use transposing heuristics. An accessed element will move one step up in the bucket-\/list with this method.
+\item {\ttfamily GHT\+\_\+\+HEURISTICS\+\_\+\+MOVE\+\_\+\+TO\+\_\+\+FRONT}\+: Use move-\/to-\/front heuristics. An accessed element will be moved the front of the bucket list with this method.
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table set the heuristics for. \\
+\hline
+{\em i\+\_\+heuristics} & the heuristics to use. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00373}{373}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00374\ \{}
+\DoxyCodeLine{00375\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\_heuristics}}\ =\ i\_heuristics;}
+\DoxyCodeLine{00376\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093}\label{ght__hash__table_8h_a9d5d836a64d93889ce630d947c28b093} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_set\_rehash@{ght\_set\_rehash}}
+\index{ght\_set\_rehash@{ght\_set\_rehash}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_set\_rehash()}{ght\_set\_rehash()}}
+{\footnotesize\ttfamily void ght\+\_\+set\+\_\+rehash (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht,  }\item[{int}]{b\+\_\+rehash }\end{DoxyParamCaption})}
+
+Enable or disable automatic rehashing.
+
+With automatic rehashing, the table will rehash itself when the number of elements in the table are twice as many as the number of buckets. You should note that automatic rehashing will cause your application to be really slow when the table is rehashing (which might happen at times when you need speed), you should therefore be careful with this in time-\/constrainted applications.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to set rehashing for. \\
+\hline
+{\em b\+\_\+rehash} & TRUE if rehashing should be used or FALSE if it should not be used. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00379}{379}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00380\ \{}
+\DoxyCodeLine{00381\ \ \ \ \ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}{i\_automatic\_rehash}}\ =\ b\_rehash;}
+\DoxyCodeLine{00382\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_a0ed99f688ae152d12d4e8128d281439d}\label{ght__hash__table_8h_a0ed99f688ae152d12d4e8128d281439d} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_size@{ght\_size}}
+\index{ght\_size@{ght\_size}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_size()}{ght\_size()}}
+{\footnotesize\ttfamily unsigned int ght\+\_\+size (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht }\end{DoxyParamCaption})}
+
+Get the size (the number of items) of the hash table.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to get the size for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the number of items in the hash table. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00397}{397}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00398\ \{}
+\DoxyCodeLine{00399\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\_items}};}
+\DoxyCodeLine{00400\ \}}
+
+\end{DoxyCode}
+\Hypertarget{ght__hash__table_8h_ad544ccaa9d5f60136200bc797d1d7108}\label{ght__hash__table_8h_ad544ccaa9d5f60136200bc797d1d7108} 
+\index{ght\_hash\_table.h@{ght\_hash\_table.h}!ght\_table\_size@{ght\_table\_size}}
+\index{ght\_table\_size@{ght\_table\_size}!ght\_hash\_table.h@{ght\_hash\_table.h}}
+\doxysubsubsection{\texorpdfstring{ght\_table\_size()}{ght\_table\_size()}}
+{\footnotesize\ttfamily unsigned int ght\+\_\+table\+\_\+size (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structght__hash__table__t}{ght\+\_\+hash\+\_\+table\+\_\+t}} $\ast$}]{p\+\_\+ht }\end{DoxyParamCaption})}
+
+Get the table size (the number of buckets) of the hash table.
+
+
+\begin{DoxyParams}{Parameters}
+{\em p\+\_\+ht} & the hash table to get the table size for.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the number of buckets in the hash table. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{hash__table_8c_source_l00403}{403}} of file \mbox{\hyperlink{hash__table_8c_source}{hash\+\_\+table.\+c}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00404\ \{}
+\DoxyCodeLine{00405\ \ \ \ \ \textcolor{keywordflow}{return}\ p\_ht-\/>\mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\_size}};}
+\DoxyCodeLine{00406\ \}}
+
+\end{DoxyCode}

@@ -1,0 +1,58 @@
+\hypertarget{diagnostic_8h_source}{}\doxysection{diagnostic.\+h}
+\label{diagnostic_8h_source}\index{src/core/diagnostic.h@{src/core/diagnostic.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_DIAGNOSTIC\_H}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ GMCORE\_DIAGNOSTIC\_H}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00004}00004\ \textcolor{comment}{/***}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00005}00005\ \textcolor{comment}{\ *\ Define\ constants}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00006}00006\ \textcolor{comment}{\ ***/}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00008}00008\ \textcolor{comment}{/*\ File\ name\ for\ console\ output\ */}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00009}00009\ \textcolor{preprocessor}{\#define\ CONSOLE\_FILENAME\ "{}/var/log/gamesman.log"{}}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00011}00011\ \textcolor{comment}{/*\ Number\ of\ possible\ flags\ (a-\/z)\ */}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00012}00012\ \textcolor{preprocessor}{\#define\ CONSOLE\_FLAGS\ \ \ \ 26}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00014}00014\ \textcolor{comment}{/*\ Number\ of\ possible\ levels\ per\ flag\ */}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00015}00015\ \textcolor{preprocessor}{\#define\ CONSOLE\_LEVELS\ \ \ 10}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00017}00017\ \textcolor{comment}{/***}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00018}00018\ \textcolor{comment}{\ *\ Function\ prototypes}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00019}00019\ \textcolor{comment}{\ ***/}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00020}00020\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00021}00021\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00022}00022\ \textcolor{comment}{\ \ \ Function:\ diagnostic\_set\_flag}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00023}00023\ \textcolor{comment}{\ \ \ \ Toggles\ all\ levels\ of\ debugging\ flag\ on}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00024}00024\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00025}00025\ \textcolor{comment}{\ \ \ Arguments:}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00026}00026\ \textcolor{comment}{\ \ \ \ flag\ -\/\ flag\ to\ toggle\ on}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00027}00027\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00028}00028\ \textcolor{keywordtype}{void}\ diagnostic\_set\_flag(\textcolor{keywordtype}{char}\ flag);}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00030}00030\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00031}00031\ \textcolor{comment}{\ \ \ Function:\ diagnostic\_set\_flag\_level}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00032}00032\ \textcolor{comment}{\ \ \ \ \ Toggles\ given\ level\ of\ debugging\ flag\ on}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00033}00033\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00034}00034\ \textcolor{comment}{\ \ \ Arguments:}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00035}00035\ \textcolor{comment}{\ \ \ \ \ flag\ \ -\/\ flag\ to\ operate\ on}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00036}00036\ \textcolor{comment}{\ \ \ \ \ level\ -\/\ level\ of\ flag\ to\ enable}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00037}00037\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00038}00038\ \textcolor{keywordtype}{void}\ diagnostic\_set\_flag\_level(\textcolor{keywordtype}{char}\ flag,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ level);}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00040}00040\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00041}00041\ \textcolor{comment}{\ \ \ Function:\ diagnostic}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00042}00042\ \textcolor{comment}{\ \ \ \ \ Prints\ diagnostic\ message\ to\ debugging\ console\ if\ flag\ level\ is\ set}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00043}00043\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00044}00044\ \textcolor{comment}{\ \ \ Arguments:}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00045}00045\ \textcolor{comment}{\ \ \ \ \ flag\ \ \ -\/\ debug\ flag\ of\ message}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00046}00046\ \textcolor{comment}{\ \ \ \ \ level\ \ -\/\ debug\ level\ of\ message}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00047}00047\ \textcolor{comment}{\ \ \ \ \ format\ -\/\ format\ string}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00048}00048\ \textcolor{comment}{\ \ \ \ \ ...\ \ \ \ -\/\ variable\ number\ of\ arguments\ corresponding\ to\ format\ string}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00049}00049\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00050}00050\ \textcolor{keywordtype}{void}\ diagnostic(\textcolor{keywordtype}{char}\ flag,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ level,\ \textcolor{keywordtype}{char}\ *format,\ ...);}
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{diagnostic_8h_source_l00052}00052\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_DIAGNOSTIC\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

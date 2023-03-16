@@ -1,0 +1,111 @@
+\hypertarget{univht_8h_source}{}\doxysection{univht.\+h}
+\label{univht_8h_source}\index{src/core/univht.h@{src/core/univht.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_UNIVHT\_H}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ GMCORE\_UNIVHT\_H}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00006}00006\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00007}00007\ \textcolor{comment}{\ \ \ Type\ declarations}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00008}00008\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00010}00010\ \textcolor{keyword}{typedef}\ BOOLEAN\ (*univht\_equal)(\textcolor{keywordtype}{void}\ *,\ \textcolor{keywordtype}{void}*);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00011}00011\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ long\ (*univht\_hashcode)(\textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00012}00012\ \textcolor{keyword}{typedef}\ void\ (*univht\_destructor)(\textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00013}00013\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{void}\ *(*univht\_visitor)(\textcolor{keywordtype}{void}\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00015}\mbox{\hyperlink{structunivht}{00015}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00017}00017\ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ slots\ in\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00018}00018\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ slots;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00020}00020\ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ entries\ in\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00021}00021\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ entries;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00023}00023\ \ \ \ \ \textcolor{comment}{/*\ The\ prime\ modulus\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ modulus;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00026}00026\ \ \ \ \ \textcolor{comment}{/*\ The\ linear\ coefficient\ to\ ax\ +\ b\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00027}00027\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ a;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00029}00029\ \ \ \ \ \textcolor{comment}{/*\ The\ constant\ coefficient\ to\ ax\ +\ b\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00030}00030\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ b;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00032}00032\ \ \ \ \ \textcolor{comment}{/*\ Load\ factor\ allowed\ until\ insert\ causes\ resizing\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00033}00033\ \ \ \ \ \textcolor{keywordtype}{float}\ load\_factor;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00035}00035\ \ \ \ \ \textcolor{comment}{/*\ Function\ to\ compare\ two\ table\ entries\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00036}00036\ \ \ \ \ univht\_equal\ equal;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00038}00038\ \ \ \ \ \textcolor{comment}{/*\ Function\ to\ calculate\ hash\ code\ for\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00039}00039\ \ \ \ \ univht\_hashcode\ hashcode;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00041}00041\ \ \ \ \ \textcolor{comment}{/*\ Function\ to\ destroy\ entry\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00042}00042\ \ \ \ \ univht\_destructor\ destructor;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00044}00044\ \ \ \ \ \textcolor{comment}{/*\ Array\ storage\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00045}00045\ \ \ \ \ \textcolor{keywordtype}{void}\ **table;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00047}00047\ \ \ \ \ \textcolor{comment}{/*\ Offset\ of\ chain\ within\ entry\ object\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00048}00048\ \ \ \ \ \textcolor{keywordtype}{int}\ entry\_chain\_offset;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00050}00050\ \textcolor{comment}{\ \ \ \ /***}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00051}00051\ \textcolor{comment}{\ \ \ \ \ \ \ \ Statistical\ entries}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00052}00052\ \textcolor{comment}{\ \ \ \ \ ***/}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00054}00054\ \ \ \ \ \textcolor{comment}{/*\ Length\ of\ longest\ chain\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00055}00055\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stat\_max\_chain\_length;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00057}00057\ \ \ \ \ \textcolor{comment}{/*\ Chain\ length\ on\ average\ (excludes\ 0\ length\ chains)\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00058}00058\ \ \ \ \ \textcolor{keywordtype}{double}\ stat\_avg\_chain\_length;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00060}00060\ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ lookups\ for\ most\ looked\ up\ entry\ in\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00061}00061\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stat\_max\_entry\_lookup;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00063}00063\ \ \ \ \ \textcolor{comment}{/*\ Average\ number\ of\ lookups\ for\ entry\ in\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00064}00064\ \ \ \ \ \textcolor{keywordtype}{double}\ stat\_avg\_entry\_lookup;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00066}00066\ \ \ \ \ \textcolor{comment}{/*\ Entry\ size\ in\ bytes\ (constant\ across\ all\ entries,\ but\ is\ only\ used\ for\ statistical\ purposes)\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00067}00067\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stat\_entry\_size;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00069}00069\ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ chains\ (occupied\ slots)\ in\ hash\ table\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00070}00070\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ stat\_chains;}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00072}00072\ \}\ \mbox{\hyperlink{structunivht}{univht}};}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00074}00074\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00075}00075\ \textcolor{comment}{\ \ \ Function\ prototypes}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00076}00076\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00078}00078\ \textcolor{comment}{/*\ Generation\ of\ random\ prime\ between\ number\ and\ 2\ *\ number\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00079}00079\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ find\_next\_random\_prime(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ number);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00081}00081\ \textcolor{comment}{/*\ Raise\ b\ to\ the\ e-\/th\ power,\ mod\ m\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00082}00082\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ expt(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ e,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ m);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00084}00084\ \textcolor{comment}{/*\ Multiply\ a\ and\ b,\ mod\ m\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00085}00085\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ mul(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ a,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ m);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00087}00087\ \textcolor{comment}{/*\ Add\ a\ and\ b,\ mod\ m\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00088}00088\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ add(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ a,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ m);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00090}00090\ \textcolor{comment}{/*\ Hash-\/table\ creation\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00091}00091\ \mbox{\hyperlink{structunivht}{univht}}\ *univht\_create(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ slots,\ \textcolor{keywordtype}{float}\ load\_factor,\ univht\_equal\ equal,\ univht\_hashcode\ hashcode,\ univht\_destructor\ destructor,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ entry\_size,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ entry\_chain\_offset);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00093}00093\ \textcolor{comment}{/*\ Hash-\/table\ destruction\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00094}00094\ \textcolor{keywordtype}{void}\ univht\_destroy(\mbox{\hyperlink{structunivht}{univht}}\ *ht);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00096}00096\ \textcolor{comment}{/*\ Hash-\/table\ insertion\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00097}00097\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}\ univht\_insert(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ \textcolor{keywordtype}{void}\ *entry);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00099}00099\ \textcolor{comment}{/*\ Hash-\/table\ lookup\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00100}00100\ \textcolor{keywordtype}{void}\ *univht\_lookup(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ \textcolor{keywordtype}{void}\ *\textcolor{keywordtype}{object});}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00102}00102\ \textcolor{comment}{/*\ Hash-\/table\ traversal\ */}}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00103}00103\ \textcolor{keywordtype}{void}\ univht\_traverse(\mbox{\hyperlink{structunivht}{univht}}\ *ht,\ univht\_visitor\ visitor,\ \textcolor{keywordtype}{void}\ *state);}
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{univht_8h_source_l00105}00105\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

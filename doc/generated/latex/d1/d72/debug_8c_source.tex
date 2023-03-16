@@ -1,0 +1,122 @@
+\hypertarget{debug_8c_source}{}\doxysection{debug.\+c}
+\label{debug_8c_source}\index{src/core/debug.c@{src/core/debug.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ debug.c}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Module\ debugger}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00035}00035\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00036}00036\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00037}00037\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00039}00039\ \textcolor{keywordtype}{void}\ DebugModule()}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00040}00040\ \{}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00041}00041\ \ \ \ \ \textcolor{keywordtype}{int}\ numberMoves\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00042}00042\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *head\ =\ NULL,\ *ptr;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00043}00043\ \ \ \ \ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00044}00044\ \ \ \ \ BOOLEAN\ haveMove\ =\ FALSE,\ tempPredictions\ =\ gPrintPredictions;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00046}00046\ \ \ \ \ gPrintPredictions\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00048}00048\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00049}00049\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Module\ DEBUGGER\ for\ \%s\ -\/-\/-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}},\ kGameName);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tCurrent\ Position:\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00052}00052\ \ \ \ \ \ \ \ \ PrintPosition(gInitialPosition,\ gPlayerName[kPlayerOneTurn],\ kHumansTurn);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00054}00054\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t1)\(\backslash\)tGet\ the\ debugger\ initial\ position\ (GetInitialPosition)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t2)\(\backslash\)tPrint\ what\ PRIMITIVE()\ would\ return\ for\ this\ position\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t3)\(\backslash\)tPrint\ the\ list\ of\ moves\ available\ for\ this\ position\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t4)\(\backslash\)tChoose\ a\ move\ (GetAndPrintPlayersMove)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (haveMove)}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t5)\(\backslash\)tDo\ that\ Move\ (DoMove)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)tb)\(\backslash\)t(B)ack\ =\ Return\ to\ previous\ activity.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'Q'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'q'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00067}00067\ \ \ \ \ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'H'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'h'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ HelpMenus();}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'1'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00072}00072\ \ \ \ \ \ \ \ \ \ \ \ \ gInitialPosition\ =\ GetInitialPosition();}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'2'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nPrimitive\ Returns:\ \%s\(\backslash\)n"{}},gValueString[Primitive(gInitialPosition)]);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00076}00076\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'3'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nThe\ list\ of\ available\ moves\ is:\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ head\ =\ ptr\ =\ GenerateMoves(gInitialPosition);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ numberMoves\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numberMoves++;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%2d\ :\ "{}},numberMoves);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintMove(ptr-\/>move);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(head);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'4'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ (void)\ GetAndPrintPlayersMove(gInitialPosition,\ \&theMove,\ gPlayerName[kPlayerOneTurn]);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}You\ Chose:\ "{}});}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ PrintMove(theMove);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ haveMove\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'5'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(haveMove)\ \{}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gInitialPosition\ =\ DoMove(gInitialPosition,\ theMove);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ haveMove\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00105}00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ gPrintPredictions\ =\ tempPredictions;}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00113}00113\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(TRUE);}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00115}00115\ \}}
+\DoxyCodeLine{\Hypertarget{debug_8c_source_l00116}00116\ }
+
+\end{DoxyCode}

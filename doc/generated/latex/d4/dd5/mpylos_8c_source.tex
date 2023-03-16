@@ -1,0 +1,943 @@
+\hypertarget{mpylos_8c_source}{}\doxysection{mpylos.\+c}
+\label{mpylos_8c_source}\index{src/mpylos.c@{src/mpylos.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00001}00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00002}00002\ \textcolor{comment}{\ *\ Pylos}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00003}00003\ \textcolor{comment}{\ *\ Eric\ Siroker}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00004}00004\ \textcolor{comment}{\ *\ February\ 11,\ 2004}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00005}00005\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00007}00007\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00008}00008\ \textcolor{preprocessor}{\#include\ "{}hash.h"{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00010}00010\ \textcolor{preprocessor}{\#define\ BOARD\_SPACE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}\ )\ \ \ \ \ \ \ \ \ \ :\ "{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00011}00011\ \textcolor{preprocessor}{\#define\ BOARD\_TITLE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}\ )\ \ BOARD:\ \ :\ "{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00012}00012\ \textcolor{preprocessor}{\#define\ DEFAULT\_ALLOW\_SQUARING\ \ \ \ \ TRUE}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00013}00013\ \textcolor{preprocessor}{\#define\ DEFAULT\_ALLOW\_STACKING\ \ \ \ \ TRUE}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00014}00014\ \textcolor{preprocessor}{\#define\ DEFAULT\_BLANK\_PIECE\_LABEL\ \ '-\/'}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00015}00015\ \textcolor{preprocessor}{\#define\ DEFAULT\_BOARD\_DIMENSION\ \ \ \ 3}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00016}00016\ \textcolor{preprocessor}{\#define\ DEFAULT\_DARK\_PIECE\_LABEL\ \ \ 'O'}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00017}00017\ \textcolor{preprocessor}{\#define\ DEFAULT\_LIGHT\_PIECE\_LABEL\ \ 'X'}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00018}00018\ \textcolor{preprocessor}{\#define\ LEGEND\_SPACE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}\ \ \ \ \ \ \ \ \ (\ "{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00019}00019\ \textcolor{preprocessor}{\#define\ LEGEND\_TITLE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}LEGEND:\ \ (\ "{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00020}00020\ \textcolor{preprocessor}{\#define\ MOVE\_PROMPT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}\%s's\ move\ :\ "{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00021}00021\ \textcolor{preprocessor}{\#define\ MOVES\_IN\_GROUP\ \ \ \ \ \ \ \ \ \ \ \ \ sizeof(int)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00022}00022\ \textcolor{preprocessor}{\#define\ NUMBER\_OF\_OPTIONS\ \ \ \ \ \ \ \ \ \ CalculatePower(2,\ 3)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00023}00023\ \textcolor{preprocessor}{\#define\ OPPONENT\_PIECES\_LEFT\_TITLE\ "{}OPPONENT\ PIECES\ LEFT:\ "{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00024}00024\ \textcolor{preprocessor}{\#define\ PIECES\_LEFT\_TITLE\ \ \ \ \ \ \ \ \ \ "{}\ \ \ \ \ \ \ \ \ PIECES\ LEFT:\ "{}}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00026}00026\ \textcolor{preprocessor}{\#ifndef\ WORD\_BIT}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00027}00027\ \textcolor{preprocessor}{\#define\ WORD\_BIT\ \ \ \ \ \ \ \ \ \ CHAR\_BIT\ *\ sizeof(int)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00028}00028\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00030}00030\ \textcolor{comment}{/*********************************************\ Global\ variables\ for\ Gamesman\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00031}00031\ POSITION\ gInitialPosition\ \ \ \ \ \ \ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00032}00032\ POSITION\ gNumberOfPositions\ \ \ \ \ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00033}00033\ STRING\ kAuthorName\ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Eric\ Siroker"{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00034}00034\ POSITION\ kBadPosition\ \ \ \ \ \ \ \ \ \ \ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00035}00035\ STRING\ kDBName\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}pylos"{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00036}00036\ BOOLEAN\ kDebugDetermineValue\ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00037}00037\ BOOLEAN\ kDebugMenu\ \ \ \ \ \ \ \ \ \ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00038}00038\ STRING\ kGameName\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Pylos"{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00039}00039\ BOOLEAN\ kGameSpecificMenu\ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00041}00041\ \textcolor{comment}{/*\ Out\ of\ date.\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00042}00042\ STRING\ kHelpExample\ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00043}00043\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00044}00044\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00045}00045\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00046}00046\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00047}00047\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ (Player\ should\ Win\ in\ 17)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00048}00048\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXXXXXX\ (7)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00049}00049\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 7\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00050}00050\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00051}00051\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00052}00052\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ -\/\ X\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00053}00053\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00054}00054\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ (Computer\ should\ Lose\ in\ 16)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00055}00055\ \textcolor{stringliteral}{PIECES\ LEFT:\ OOOOOOO\ (7)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00056}00056\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 8\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00057}00057\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00058}00058\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00059}00059\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ -\/\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00060}00060\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00061}00061\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ (Player\ should\ Win\ in\ 15)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00062}00062\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXXXXX\ (6)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00063}00063\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 6\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00064}00064\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00065}00065\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00066}00066\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00067}00067\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00068}00068\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\ (Computer\ should\ Lose\ in\ 14)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00069}00069\ \textcolor{stringliteral}{PIECES\ LEFT:\ OOOOOO\ (6)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00070}00070\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 13\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00071}00071\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00072}00072\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00073}00073\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00074}00074\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00075}00075\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ O\ (Player\ should\ Win\ in\ 13)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00076}00076\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXXXX\ (5)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00077}00077\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 11\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00078}00078\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ -\/\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00079}00079\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00080}00080\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00081}00081\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00082}00082\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ -\/\ O\ (Computer\ should\ Lose\ in\ 12)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00083}00083\ \textcolor{stringliteral}{PIECES\ LEFT:\ OOOOO\ (5)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00084}00084\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 1\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00085}00085\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00086}00086\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00087}00087\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00088}00088\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00089}00089\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ -\/\ O\ (Player\ should\ Win\ in\ 11)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00090}00090\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXXX\ (4)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00091}00091\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 12\ 12\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00092}00092\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00093}00093\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00094}00094\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00095}00095\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00096}00096\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ -\/\ O\ (Computer\ should\ Lose\ in\ 10)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00097}00097\ \textcolor{stringliteral}{PIECES\ LEFT:\ OOOO\ (4)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00098}00098\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 2\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00099}00099\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00100}00100\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00101}00101\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00102}00102\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00103}00103\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ -\/\ O\ (Player\ should\ Win\ in\ 9)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00104}00104\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXXX\ (4)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00105}00105\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 12\ 12\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00106}00106\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00107}00107\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00108}00108\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00109}00109\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00110}00110\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ -\/\ O\ (Computer\ should\ Lose\ in\ 10)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00111}00111\ \textcolor{stringliteral}{PIECES\ LEFT:\ OOO\ (3)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00112}00112\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 4\ 8\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00113}00113\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00114}00114\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00115}00115\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00116}00116\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00117}00117\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ -\/\ O\ (Player\ should\ Win\ in\ 9)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00118}00118\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXXX\ (4)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00119}00119\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 12\ 12\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00120}00120\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00121}00121\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00122}00122\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00123}00123\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00124}00124\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ -\/\ O\ (Computer\ should\ Lose\ in\ 8)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00125}00125\ \textcolor{stringliteral}{PIECES\ LEFT:\ OOO\ (3)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00126}00126\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 12\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00127}00127\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00128}00128\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00129}00129\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00130}00130\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00131}00131\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ O\ (Player\ should\ Win\ in\ 7)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00132}00132\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXXX\ (4)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00133}00133\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 3\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00134}00134\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00135}00135\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00136}00136\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00137}00137\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ -\/\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00138}00138\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ O\ (Computer\ should\ Lose\ in\ 6)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00139}00139\ \textcolor{stringliteral}{PIECES\ LEFT:\ OO\ (2)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00140}00140\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 9\ 13\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00141}00141\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00142}00142\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00143}00143\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00144}00144\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00145}00145\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ -\/\ (Player\ should\ Win\ in\ 5)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00146}00146\ \textcolor{stringliteral}{PIECES\ LEFT:\ XXX\ (3)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00147}00147\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 13\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00148}00148\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00149}00149\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00150}00150\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00151}00151\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00152}00152\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ X\ (Computer\ should\ Lose\ in\ 4)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00153}00153\ \textcolor{stringliteral}{PIECES\ LEFT:\ OO\ (2)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00154}00154\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 8\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00155}00155\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00156}00156\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00157}00157\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00158}00158\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00159}00159\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ X\ (Player\ should\ Win\ in\ 3)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00160}00160\ \textcolor{stringliteral}{PIECES\ LEFT:\ XX\ (2)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00161}00161\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 5\ 13\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00162}00162\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00163}00163\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00164}00164\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00165}00165\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00166}00166\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ -\/\ (Computer\ should\ Lose\ in\ 2)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00167}00167\ \textcolor{stringliteral}{PIECES\ LEFT:\ O\ (1)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00168}00168\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Computer's\ move\ :\ 13\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00169}00169\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00170}00170\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00171}00171\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ X\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00172}00172\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ -\/\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00173}00173\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ O\ (Player\ should\ Win\ in\ 1)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00174}00174\ \textcolor{stringliteral}{PIECES\ LEFT:\ XX\ (2)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00175}00175\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Player's\ move\ :\ \{\ 10\ \}\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00176}00176\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ 1\ \ \ 2\ \ \ 3\ )\ \ \ \ \ \ \ \ \ \ :\ O\ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00177}00177\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 4\ \ \ 5\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00178}00178\ \textcolor{stringliteral}{LEGEND:\ \ (\ \ 6\ \ \ 7\ \ \ 8\ )\ \ BOARD:\ \ :\ X\ -\/\ O\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00179}00179\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ \ \ \ 9\ \ 10\ \ \ )\ \ \ \ \ \ \ \ \ \ :\ \ O\ X\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00180}00180\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ (\ 11\ \ 12\ \ 13\ )\ \ \ \ \ \ \ \ \ \ :\ X\ O\ O\ (Computer\ should\ Lose\ in\ 0)\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00181}00181\ \textcolor{stringliteral}{PIECES\ LEFT:\ (0)\(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00182}00182\ \textcolor{stringliteral}{Excellent!\ You\ won!"{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00183}00183\ STRING\ kHelpGraphicInterface\ \ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00184}00184\ STRING\ kHelpOnYourTurn\ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00185}00185\ \textcolor{stringliteral}{Place\ a\ piece\ on\ a\ blank\ spot.\ If\ a\ two-\/by-\/two\ square\ is\ formed,\ you\ must\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00186}00186\ \textcolor{stringliteral}{take\ back\ one\ of\ your\ pieces.\ You\ may\ not\ take\ back\ a\ piece\ that\ is\ being\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00187}00187\ \textcolor{stringliteral}{used\ to\ support\ another\ piece.\ If\ a\ two-\/by-\/two\ square\ already\ exists\ and\ you\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00188}00188\ \textcolor{stringliteral}{have\ any\ pieces\ of\ equal\ or\ lower\ height\ to\ the\ square,\ you\ must\ take\ one\ of\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00189}00189\ \textcolor{stringliteral}{those\ pieces\ and\ stack\ it\ on\ top\ of\ the\ square\ if\ you\ intend\ to\ put\ any\ piece\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00190}00190\ \textcolor{stringliteral}{on\ top\ of\ the\ square."{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00191}00191\ STRING\ kHelpReverseObjective\ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00192}00192\ \textcolor{stringliteral}{To\ either\ use\ all\ of\ your\ pieces\ before\ your\ opponent\ does\ or\ to\ complete\ the\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00193}00193\ \textcolor{stringliteral}{pyramid."{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00194}00194\ STRING\ kHelpStandardObjective\ =\ \textcolor{stringliteral}{"{}\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00195}00195\ \textcolor{stringliteral}{To\ make\ your\ opponent\ either\ use\ all\ of\ his\ or\ her\ pieces\ before\ you\ do\ or\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00196}00196\ \textcolor{stringliteral}{make\ your\ opponent\ complete\ the\ pyramid."{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00197}00197\ STRING\ kHelpTextInterface\ \ \ \ \ =\ \textcolor{stringliteral}{"{}\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00198}00198\ \textcolor{stringliteral}{The\ board\ represents\ a\ bird's\ eye\ view\ of\ a\ pyramid.\ Pieces\ are\ placed\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00199}00199\ \textcolor{stringliteral}{building\ this\ pyramid.\ A\ piece\ can\ only\ be\ placed\ on\ a\ higher\ level\ of\ the\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00200}00200\ \textcolor{stringliteral}{pyramid\ if\ all\ four\ of\ its\ bases\ have\ a\ piece\ on\ them.\ The\ legend\ indicates\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00201}00201\ \textcolor{stringliteral}{which\ vertical\ column\ action\ will\ be\ taken\ on.\ Typically\ the\ action\ will\ be\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00202}00202\ \textcolor{stringliteral}{adding\ a\ piece,\ but,\ if\ a\ two-\/by-\/two\ square\ is\ formed,\ a\ move\ can\ consist\ of\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00203}00203\ \textcolor{stringliteral}{two\ actions:\ an\ addition\ and\ a\ removal.\ An\ addition\ and\ removal\ can\ also\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00204}00204\ \textcolor{stringliteral}{occur\ when\ a\ two-\/by-\/two\ square\ already\ exists\ and\ a\ piece\ already\ on\ the\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00205}00205\ \textcolor{stringliteral}{board\ is\ moved\ on\ top\ of\ the\ square."{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00206}00206\ STRING\ kHelpTieOccursWhen\ \ \ \ \ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00207}00207\ BOOLEAN\ kLoopy\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00208}00208\ BOOLEAN\ kPartizan\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00209}00209\ BOOLEAN\ kTieIsPossible\ \ \ \ \ \ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00211}00211\ \textcolor{comment}{/************************************************\ Global\ variables\ for\ Pylos\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00212}00212\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ Direction\ Direction;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00213}00213\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_move_group}{MoveGroup}}\ \mbox{\hyperlink{struct_move_group}{MoveGroup}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00214}00214\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_options}{Options}}\ \mbox{\hyperlink{struct_options}{Options}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00215}00215\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \mbox{\hyperlink{struct_piece}{Piece}}\ \mbox{\hyperlink{struct_piece}{Piece}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00216}00216\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ \mbox{\hyperlink{struct_pyramid}{Pyramid}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00218}00218\ \textcolor{keyword}{enum}\ Direction\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00219}00219\ \ \ \ \ INVALID\_DIRECTION\ =\ -\/1,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00220}00220\ \ \ \ \ LOWER\_LEFT\_DIRECTION,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00221}00221\ \ \ \ \ LOWER\_RIGHT\_DIRECTION,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00222}00222\ \ \ \ \ UPPER\_LEFT\_DIRECTION,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00223}00223\ \ \ \ \ UPPER\_RIGHT\_DIRECTION,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00224}00224\ \ \ \ \ NUMBER\_OF\_DIRECTIONS}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00225}00225\ \};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00227}\mbox{\hyperlink{struct_move_group}{00227}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_move_group}{MoveGroup}}\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00228}00228\ \ \ \ \ \textcolor{keywordtype}{char}\ moves[MOVES\_IN\_GROUP];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00229}00229\ \};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00230}00230\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00231}\mbox{\hyperlink{struct_options}{00231}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_options}{Options}}\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00232}00232\ \ \ \ \ BOOLEAN\ doNotAllowSquaring\ :\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00233}00233\ \ \ \ \ BOOLEAN\ doNotAllowStacking\ :\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00234}00234\ \ \ \ \ BOOLEAN\ isNotStandardGame\ :\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00235}00235\ \ \ \ \ \textcolor{keywordtype}{int}\ boardDimension\ :\ WORD\_BIT\ -\/\ 3;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00236}00236\ \};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00237}00237\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00238}00238\ \textcolor{keyword}{enum}\ \mbox{\hyperlink{struct_piece}{Piece}}\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00239}00239\ \ \ \ \ BLANK\_PIECE,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00240}00240\ \ \ \ \ LIGHT\_PIECE,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00241}00241\ \ \ \ \ DARK\_PIECE}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00242}00242\ \};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00243}00243\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00244}\mbox{\hyperlink{struct_pyramid}{00244}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00245}00245\ \ \ \ \ \textcolor{keywordtype}{char}\ pieceLabel;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00246}00246\ \ \ \ \ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *bases[NUMBER\_OF\_DIRECTIONS],\ *parents[NUMBER\_OF\_DIRECTIONS];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00247}00247\ \};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00249}00249\ BOOLEAN\ gAllowSquaring\ =\ DEFAULT\_ALLOW\_SQUARING;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00250}00250\ BOOLEAN\ gAllowStacking\ =\ DEFAULT\_ALLOW\_STACKING;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00251}00251\ \textcolor{keywordtype}{int}\ gBoardAddresses;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00252}00252\ \textcolor{keywordtype}{int}\ gBoardDimension\ =\ DEFAULT\_BOARD\_DIMENSION;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00253}00253\ \textcolor{keywordtype}{int}\ gBoardPieces;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00254}00254\ \textcolor{keywordtype}{int}\ gBoardSize;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00256}00256\ \textcolor{keywordtype}{char}\ gPieceLabels[]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00257}00257\ \ \ \ \ DEFAULT\_BLANK\_PIECE\_LABEL,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00258}00258\ \ \ \ \ DEFAULT\_LIGHT\_PIECE\_LABEL,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00259}00259\ \ \ \ \ DEFAULT\_DARK\_PIECE\_LABEL}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00260}00260\ \};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00262}00262\ \textcolor{comment}{/*********************************************\ Function\ prototypes\ for\ Pylos\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00263}00263\ \textcolor{keywordtype}{int}\ CalculateDigits(\textcolor{keywordtype}{int}\ integer);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00264}00264\ \textcolor{keywordtype}{int}\ CalculatePower(\textcolor{keywordtype}{int}\ base,\ \textcolor{keywordtype}{int}\ exponent);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00265}00265\ \textcolor{keywordtype}{int}\ CalculatePyramidHeight(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00266}00266\ \textcolor{keywordtype}{int}\ ConvertAddressToIndex(\textcolor{keywordtype}{int}\ address);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00267}00267\ \textcolor{keywordtype}{int}\ ConvertPyramidIndex(\textcolor{keywordtype}{int}\ index,\ Direction\ direction);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00268}00268\ \textcolor{keywordtype}{int}\ CountPieces(\textcolor{keywordtype}{char}\ board[],\ \mbox{\hyperlink{struct_piece}{Piece}}\ piece);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00269}00269\ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *CreatePyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ pyramids[],\ \textcolor{keywordtype}{int}\ dimension,\ \textcolor{keywordtype}{int}\ baseIndex,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Direction\ parentDirection,\ \textcolor{keywordtype}{int}\ parentIndex);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00271}00271\ \textcolor{keywordtype}{void}\ CreatePyramidHashTable(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ pyramids[],\ \textcolor{keywordtype}{char}\ board[]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00272}00272\ Direction\ FlipDirection(Direction\ direction);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00273}00273\ BOOLEAN\ FormsSquare(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid,\ \mbox{\hyperlink{struct_piece}{Piece}}\ piece);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00274}00274\ BOOLEAN\ IsBasePyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid,\ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *parentPyramid);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00275}00275\ BOOLEAN\ IsBlankPyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00276}00276\ BOOLEAN\ IsSupportedPyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00277}00277\ BOOLEAN\ IsSupportingPyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00278}00278\ \textcolor{keywordtype}{void}\ MakeAddressable(\textcolor{keywordtype}{char}\ board[]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00279}00279\ \textcolor{keywordtype}{void}\ PrintBinary(\textcolor{keywordtype}{int}\ integer);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00280}00280\ \textcolor{keywordtype}{void}\ PrintMoveGroup(MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00281}00281\ \textcolor{keywordtype}{void}\ PrintMovePrompt(\textcolor{keywordtype}{char}\ *name);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00283}00283\ STRING\ MoveGroupToString(MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00284}00284\ STRING\ MoveToString(MOVE);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00285}00285\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00286}00286\ \textcolor{comment}{/****************************************************\ ConvertTextInputToMove\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00287}00287\ MOVE\ ConvertTextInputToMove(STRING\ input)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00288}00288\ \ \ \ \ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00289}00289\ \ \ \ \ \textcolor{keywordtype}{char}\ *move;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00290}00290\ \ \ \ \ \mbox{\hyperlink{struct_move_group}{MoveGroup}}\ moveGroup;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00292}00292\ \ \ \ \ move\ =\ strtok(input,\ \textcolor{stringliteral}{"{}\ "{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00294}00294\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ MOVES\_IN\_GROUP;\ index++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ moveGroup.moves[index]\ =\ move\ ==\ NULL\ ?\ 0\ :\ atoi(move);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ move\ =\ strtok(NULL,\ \textcolor{stringliteral}{"{}\ "{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00297}00297\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00298}00298\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00299}00299\ \ \ \ \ \textcolor{keywordflow}{return}\ *(MOVE*)\&moveGroup;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00300}00300\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00302}00302\ \textcolor{comment}{/*****************************************************************\ DebugMenu\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00303}00303\ \textcolor{keywordtype}{void}\ DebugMenu()\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00304}00304\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00305}00305\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00306}00306\ \textcolor{comment}{/********************************************************************\ DoMove\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00307}00307\ POSITION\ DoMove(POSITION\ position,\ MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00308}00308\ \ \ \ \ \textcolor{keywordtype}{char}\ board[gBoardSize];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00309}00309\ \ \ \ \ \mbox{\hyperlink{struct_move_group}{MoveGroup}}\ moveGroup\ =\ *(\mbox{\hyperlink{struct_move_group}{MoveGroup}}*)\&move;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00310}00310\ \ \ \ \ \textcolor{keywordtype}{int}\ index\ =\ ConvertAddressToIndex(moveGroup.moves[0]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00311}00311\ \ \ \ \ \mbox{\hyperlink{struct_piece}{Piece}}\ piece\ =\ generic\_hash\_turn(position)\ ==\ LIGHT\_PIECE\ ?\ DARK\_PIECE\ :\ LIGHT\_PIECE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00312}00312\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00313}00313\ \ \ \ \ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00314}00314\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00315}00315\ \ \ \ \ \textcolor{comment}{/*\ Hardcoded\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00316}00316\ \ \ \ \ \textcolor{keywordflow}{if}\ (gBoardDimension\ ==\ 3\ \&\&\ index\ ==\ 4\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00317}00317\ \ \ \ \ \ \ \ \ board[9]\ !=\ gPieceLabels[BLANK\_PIECE]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00318}00318\ \ \ \ \ \ \ \ \ board[10]\ !=\ gPieceLabels[BLANK\_PIECE]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00319}00319\ \ \ \ \ \ \ \ \ board[11]\ !=\ gPieceLabels[BLANK\_PIECE]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00320}00320\ \ \ \ \ \ \ \ \ board[12]\ !=\ gPieceLabels[BLANK\_PIECE])}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00321}00321\ \ \ \ \ \ \ \ \ index\ =\ 13;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00323}00323\ \ \ \ \ board[index]\ =\ gPieceLabels[generic\_hash\_turn(position)];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00325}00325\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 1;\ index\ <\ MOVES\_IN\_GROUP;\ index++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00326}00326\ \ \ \ \ \ \ \ \ move\ =\ moveGroup.moves[index];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00328}00328\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (move\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00329}00329\ \ \ \ \ \ \ \ \ \ \ \ \ board[ConvertAddressToIndex(move)]\ =\ gPieceLabels[BLANK\_PIECE];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00330}00330\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00332}00332\ \ \ \ \ \textcolor{keywordflow}{return}\ generic\_hash\_hash(board,\ piece);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00333}00333\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00335}00335\ \textcolor{comment}{/**********************************************************\ GameSpecificMenu\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00336}00336\ \textcolor{keywordtype}{void}\ GameSpecificMenu()\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00337}00337\ \ \ \ \ \textcolor{keywordtype}{int}\ boardDimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00339}00339\ \ \ \ \ \textcolor{keywordflow}{while}\ (TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00340}00340\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Game-\/specific\ options\ for\ \%s\ -\/-\/-\/-\/-\/\(\backslash\)n"{}},\ kGameName);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00341}00341\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tBoard\ Options:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00342}00342\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)td)\(\backslash\)tChange\ board\ (D)imension\ (\%d)\(\backslash\)n"{}},\ gBoardDimension);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00343}00343\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)te)\(\backslash\)tChange\ (E)mpty\ piece\ (\%c)\(\backslash\)n"{}},\ gPieceLabels[BLANK\_PIECE]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00344}00344\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t1)\(\backslash\)tChange\ player\ (1)'s\ piece\ (\%c)\(\backslash\)n"{}},\ gPieceLabels[LIGHT\_PIECE]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00345}00345\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t2)\(\backslash\)tChange\ player\ (2)'s\ piece\ (\%c)\(\backslash\)n"{}},\ gPieceLabels[DARK\_PIECE]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00346}00346\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tRule\ Options:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00347}00347\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)ts)\(\backslash\)t\%sable\ (S)quaring\ (currently\ \%sabled)\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00348}00348\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gAllowSquaring\ ?\ \textcolor{stringliteral}{"{}Dis"{}}\ :\ \textcolor{stringliteral}{"{}En"{}},\ gAllowSquaring\ ?\ \textcolor{stringliteral}{"{}en"{}}\ :\ \textcolor{stringliteral}{"{}dis"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00349}00349\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tt)\(\backslash\)t\%sable\ s(T)acking\ (currently\ \%sabled)\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00350}00350\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gAllowStacking\ ?\ \textcolor{stringliteral}{"{}Dis"{}}\ :\ \textcolor{stringliteral}{"{}En"{}},\ gAllowStacking\ ?\ \textcolor{stringliteral}{"{}en"{}}\ :\ \textcolor{stringliteral}{"{}dis"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00351}00351\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)tb)\(\backslash\)t(B)ack\ =\ Return\ to\ previous\ activity.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00352}00352\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00353}00353\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00354}00354\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00355}00355\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'Q'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'q'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00356}00356\ \ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00357}00357\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'H'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'h'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00358}00358\ \ \ \ \ \ \ \ \ \ \ \ \ HelpMenus();}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00359}00359\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00360}00360\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'D'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'d'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nBoard\ dimension\ (\%d):\ "{}},\ gBoardDimension);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%d"{}},\ \&boardDimension);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00363}00363\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00364}00364\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (boardDimension\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00365}00365\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gBoardDimension\ =\ boardDimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00366}00366\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00367}00367\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00368}00368\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'E'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'e'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00369}00369\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nEmpty\ piece\ (\%c):\ "{}},\ gPieceLabels[BLANK\_PIECE]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00370}00370\ \ \ \ \ \ \ \ \ \ \ \ \ gPieceLabels[BLANK\_PIECE]\ =\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00371}00371\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00372}00372\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'1'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00373}00373\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nPlayer\ 1's\ piece\ (\%c):\ "{}},\ gPieceLabels[LIGHT\_PIECE]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00374}00374\ \ \ \ \ \ \ \ \ \ \ \ \ gPieceLabels[LIGHT\_PIECE]\ =\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00375}00375\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00376}00376\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'2'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00377}00377\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nPlayer\ 2's\ piece\ (\%c):\ "{}},\ gPieceLabels[DARK\_PIECE]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00378}00378\ \ \ \ \ \ \ \ \ \ \ \ \ gPieceLabels[DARK\_PIECE]\ =\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00379}00379\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00380}00380\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'S'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'s'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00381}00381\ \ \ \ \ \ \ \ \ \ \ \ \ gAllowSquaring\ =\ !gAllowSquaring;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00382}00382\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00383}00383\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'T'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'t'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00384}00384\ \ \ \ \ \ \ \ \ \ \ \ \ gAllowStacking\ =\ !gAllowStacking;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00385}00385\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00386}00386\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00387}00387\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00388}00388\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00389}00389\ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00390}00390\ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00391}00391\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00392}00392\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00393}00393\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00394}00394\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00395}00395\ \textcolor{comment}{/*************************************************************\ GenerateMoves\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00396}00396\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00397}00397\ \ \ \ \ \textcolor{keywordtype}{char}\ board[gBoardSize];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00398}00398\ \ \ \ \ \textcolor{keywordtype}{char}\ center;\ \textcolor{comment}{/*\ Used\ for\ hardcoding\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00399}00399\ \ \ \ \ \textcolor{keywordtype}{int}\ height,\ index;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00400}00400\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ \mbox{\hyperlink{structmove_list}{moveList}}\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00401}00401\ \ \ \ \ \mbox{\hyperlink{struct_move_group}{MoveGroup}}\ moveGroup;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00402}00402\ \ \ \ \ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid,\ pyramids[gBoardAddresses];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00403}00403\ \ \ \ \ BOOLEAN\ stacked\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00405}00405\ \ \ \ \ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00406}00406\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00407}00407\ \ \ \ \ \textcolor{keywordflow}{if}\ (gBoardDimension\ ==\ 3)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00408}00408\ \ \ \ \ \ \ \ \ center\ =\ board[4];\ \textcolor{comment}{/*\ Used\ for\ hardcoding\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00409}00409\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00410}00410\ \ \ \ \ MakeAddressable(board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00411}00411\ \ \ \ \ CreatePyramidHashTable(pyramids,\ board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00412}00412\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00413}00413\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ MOVES\_IN\_GROUP;\ index++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00414}00414\ \ \ \ \ \ \ \ \ moveGroup.moves[index]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00415}00415\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00416}00416\ \ \ \ \ \textcolor{keywordflow}{for}\ (moveGroup.moves[0]\ =\ gBoardAddresses;\ moveGroup.moves[0]\ >\ 0;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00417}00417\ \ \ \ \ \ \ \ \ \ moveGroup.moves[0]-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00418}00418\ \ \ \ \ \ \ \ \ pyramid\ =\ \&pyramids[moveGroup.moves[0]\ -\/\ 1];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00419}00419\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00420}00420\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((IsBlankPyramid(pyramid)\ \&\&\ IsSupportedPyramid(pyramid))\ ||}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00421}00421\ \ \ \ \ \ \ \ \ \ \ \ \ (gBoardDimension\ ==\ 3\ \&\&\ moveGroup.moves[0]\ ==\ 7\ \&\&\ \textcolor{comment}{/*\ Hardcoded\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00422}00422\ \ \ \ \ \ \ \ \ \ \ \ \ \ board[4]\ ==\ gPieceLabels[BLANK\_PIECE]))\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00423}00423\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gAllowSquaring\ \&\&\ !(gBoardDimension\ ==\ 3\ \&\&\ \textcolor{comment}{/*\ Hardcoded\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00424}00424\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moveGroup.moves[0]\ ==\ 7\ \&\&\ center\ !=\ gPieceLabels[BLANK\_PIECE])\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00425}00425\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FormsSquare(pyramid,\ generic\_hash\_turn(position)))\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00426}00426\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (moveGroup.moves[1]\ =\ gBoardAddresses;\ moveGroup.moves[1]\ >\ 0;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00427}00427\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moveGroup.moves[1]-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00428}00428\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pyramid\ =\ \&pyramids[moveGroup.moves[1]\ -\/\ 1];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00429}00429\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00430}00430\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (moveGroup.moves[1]\ ==\ moveGroup.moves[0]\ ||}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00431}00431\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (pyramid-\/>pieceLabel\ ==\ gPieceLabels[generic\_hash\_turn(position)]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00432}00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !IsSupportingPyramid(pyramid)))}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00433}00433\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmove_list}{moveList}}\ =\ CreateMovelistNode(*(MOVE*)\&moveGroup,\ \mbox{\hyperlink{structmove_list}{moveList}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00434}00434\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00435}00435\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00436}00436\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (gAllowStacking\ \&\&\ !(gBoardDimension\ ==\ 3\ \&\&\ \textcolor{comment}{/*\ Hardcoded\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00437}00437\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moveGroup.moves[0]\ ==\ 7\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00438}00438\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ center\ ==\ gPieceLabels[BLANK\_PIECE])\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00439}00439\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (height\ =\ CalculatePyramidHeight(pyramid))\ >\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00440}00440\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (moveGroup.moves[1]\ =\ gBoardAddresses;\ moveGroup.moves[1]\ >\ 0;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00441}00441\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moveGroup.moves[1]-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00442}00442\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pyramid\ =\ \&pyramids[moveGroup.moves[1]\ -\/\ 1];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00443}00443\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00444}00444\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pyramid-\/>pieceLabel\ ==\ gPieceLabels[generic\_hash\_turn(position)]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CalculatePyramidHeight(pyramid)\ <\ height\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00446}00446\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !IsBasePyramid(pyramid,\ \&pyramids[moveGroup.moves[0]\ -\/\ 1])\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00447}00447\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !IsSupportingPyramid(pyramid))\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00448}00448\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmove_list}{moveList}}\ =\ CreateMovelistNode(*(MOVE*)\&moveGroup,\ \mbox{\hyperlink{structmove_list}{moveList}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00449}00449\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stacked\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00450}00450\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00451}00451\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00453}00453\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!stacked)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00454}00454\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmove_list}{moveList}}\ =\ CreateMovelistNode(*(MOVE*)\&moveGroup,\ \mbox{\hyperlink{structmove_list}{moveList}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00455}00455\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00456}00456\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00457}00457\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmove_list}{moveList}}\ =\ CreateMovelistNode(*(MOVE*)\&moveGroup,\ \mbox{\hyperlink{structmove_list}{moveList}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00459}00459\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00460}00460\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00461}00461\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structmove_list}{moveList}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00462}00462\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00463}00463\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00464}00464\ \textcolor{comment}{/****************************************************\ GetAndPrintPlayersMove\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00465}00465\ USERINPUT\ GetAndPrintPlayersMove(POSITION\ position,\ MOVE\ *move,\ STRING\ name)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00466}00466\ \ \ \ \ USERINPUT\ userInput\ =\ Continue;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00467}00467\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00468}00468\ \ \ \ \ \textcolor{keywordflow}{while}\ (userInput\ ==\ Continue)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00469}00469\ \ \ \ \ \ \ \ \ PrintMovePrompt(name);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00470}00470\ \ \ \ \ \ \ \ \ userInput\ =\ HandleDefaultTextInput(position,\ move,\ name);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00471}00471\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00472}00472\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00473}00473\ \ \ \ \ \textcolor{keywordflow}{return}\ userInput;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00474}00474\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00475}00475\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00476}00476\ \textcolor{comment}{/********************************************************\ GetInitialPosition\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00477}00477\ POSITION\ GetInitialPosition()\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00478}00478\ \ \ \ \ \textcolor{keywordflow}{return}\ gInitialPosition;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00479}00479\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00480}00480\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00481}00481\ \textcolor{comment}{/*****************************************************************\ getOption\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00482}00482\ \textcolor{keywordtype}{int}\ getOption()\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00483}00483\ \ \ \ \ \mbox{\hyperlink{struct_options}{Options}}\ options;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00484}00484\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00485}00485\ \ \ \ \ options.doNotAllowSquaring\ =\ !gAllowSquaring;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00486}00486\ \ \ \ \ options.doNotAllowStacking\ =\ !gAllowStacking;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00487}00487\ \ \ \ \ options.isNotStandardGame\ =\ !gStandardGame;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00488}00488\ \ \ \ \ options.boardDimension\ =\ DEFAULT\_BOARD\_DIMENSION\ -\/\ gBoardDimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00489}00489\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00490}00490\ \ \ \ \ \textcolor{keywordflow}{return}\ *(\textcolor{keywordtype}{int}*)\&options\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00491}00491\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00492}00492\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00493}00493\ \textcolor{comment}{/************************************************************\ InitializeGame\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00494}00494\ \textcolor{keywordtype}{void}\ InitializeGame()\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00495}00495\ \ \ \ \ \textcolor{keywordtype}{int}\ dimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00496}00496\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00497}00497\ \ \ \ \ gBoardAddresses\ =\ gBoardDimension\ *\ gBoardDimension\ +\ (gBoardDimension\ -\/\ 1)\ *}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00498}00498\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (gBoardDimension\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00499}00499\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00500}00500\ \ \ \ \ \textcolor{keywordflow}{for}\ (dimension\ =\ gBoardDimension,\ gBoardSize\ =\ 0;\ dimension\ >\ 0;\ dimension-\/-\/)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00501}00501\ \ \ \ \ \ \ \ \ gBoardSize\ +=\ dimension\ *\ dimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00502}00502\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00503}00503\ \ \ \ \ gBoardPieces\ =\ gBoardSize\ /\ 2\ +\ (gBoardSize\ \%\ 2\ ==\ 1);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00505}00505\ \ \ \ \ \textcolor{keywordtype}{int}\ piecesArray[]\ =\ \{gPieceLabels[BLANK\_PIECE],\ 0,\ gBoardSize,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00506}00506\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gPieceLabels[LIGHT\_PIECE],\ 0,\ gBoardPieces,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00507}00507\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gPieceLabels[DARK\_PIECE],\ 0,\ gBoardPieces,\ -\/1\};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00509}00509\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00510}00510\ \ \ \ \ gNumberOfPositions\ =\ generic\_hash\_init(gBoardSize,\ piecesArray,\ NULL,\ 0);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00511}00511\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00512}00512\ \ \ \ \ gMoveToStringFunPtr\ =\ \&MoveToString;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00513}00513\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00514}00514\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00515}00515\ \textcolor{comment}{/***********************************************************\ NumberOfOptions\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00516}00516\ \textcolor{keywordtype}{int}\ NumberOfOptions()\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00517}00517\ \ \ \ \ \textcolor{keywordflow}{return}\ NUMBER\_OF\_OPTIONS;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00518}00518\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00519}00519\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00520}00520\ \textcolor{comment}{/*****************************************************************\ Primitive\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00521}00521\ VALUE\ Primitive(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00522}00522\ \ \ \ \ \textcolor{keywordtype}{char}\ board[gBoardSize];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00523}00523\ \ \ \ \ \mbox{\hyperlink{struct_piece}{Piece}}\ piece\ =\ generic\_hash\_turn(position)\ ==\ LIGHT\_PIECE\ ?\ DARK\_PIECE\ :\ LIGHT\_PIECE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00524}00524\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00525}00525\ \ \ \ \ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00526}00526\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00527}00527\ \ \ \ \ \textcolor{keywordflow}{if}\ (board[gBoardSize\ -\/\ 1]\ ==\ gPieceLabels[piece]\ ||}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00528}00528\ \ \ \ \ \ \ \ \ CountPieces(board,\ generic\_hash\_turn(position))\ ==\ gBoardPieces)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00529}00529\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ gStandardGame\ ?\ lose\ :\ win;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00530}00530\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00531}00531\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ undecided;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00532}00532\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00533}00533\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00534}00534\ \textcolor{comment}{/********************************************************\ PrintComputersMove\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00535}00535\ \textcolor{keywordtype}{void}\ PrintComputersMove(MOVE\ move,\ STRING\ name)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00536}00536\ \ \ \ \ PrintMovePrompt(name);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00537}00537\ \ \ \ \ PrintMoveGroup(move);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00538}00538\ \ \ \ \ putchar(\textcolor{charliteral}{'\(\backslash\)n'});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00539}00539\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00540}00540\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00541}00541\ \textcolor{comment}{/*****************************************************************\ PrintMove\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00542}00542\ \textcolor{keywordtype}{void}\ PrintMove(MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00543}00543\ \ \ \ \ STRING\ s\ =\ MoveToString(\ move\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00544}00544\ \ \ \ \ printf(\ \textcolor{stringliteral}{"{}\%s"{}},\ s\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00545}00545\ \ \ \ \ SafeFree(s);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00546}00546\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00547}00547\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00548}00548\ \textcolor{comment}{/*****************************************************************\ MoveToString\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00549}00549\ STRING\ MoveToString(\ MOVE\ move\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00550}00550\ \ \ \ \ STRING\ s\ =\ (STRING)\ SafeMalloc(\ 10\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00551}00551\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00552}00552\ \ \ \ \ STRING\ temp\ =\ MoveGroupToString(move);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00553}00553\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00554}00554\ \ \ \ \ \textcolor{keywordflow}{if}(\ move\ >\ UCHAR\_MAX\ )}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00555}00555\ \ \ \ \ \ \ \ \ sprintf(\ s,\ \textcolor{stringliteral}{"{}[\%s]"{}},\ temp\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00556}00556\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00557}00557\ \ \ \ \ \ \ \ \ sprintf(\ s,\ \textcolor{stringliteral}{"{}\%s"{}},\ temp\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00558}00558\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00559}00559\ \ \ \ \ SafeFree(\ temp\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00560}00560\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00561}00561\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00562}00562\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00563}00563\ \textcolor{comment}{/*************************************************************\ PrintPosition\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00564}00564\ \textcolor{keywordtype}{void}\ PrintPosition(POSITION\ position,\ STRING\ name,\ BOOLEAN\ isUsersTurn)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00565}00565\ \ \ \ \ \textcolor{keywordtype}{int}\ address,\ column,\ count,\ digits\ =\ CalculateDigits(gBoardSize),\ offset;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00566}00566\ \ \ \ \ \textcolor{keywordtype}{int}\ opponentPieces,\ pieces,\ \mbox{\hyperlink{structrow}{row}},\ rows\ =\ gBoardDimension\ *\ 2\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00567}00567\ \ \ \ \ \textcolor{keywordtype}{int}\ columns\ =\ strlen(LEGEND\_SPACE)\ +\ rows\ *\ digits\ +}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00568}00568\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ strlen(BOARD\_SPACE)\ +\ rows\ +\ 1;\ \textcolor{comment}{/*\ +\ 1\ for\ '\(\backslash\)n'\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00569}00569\ \ \ \ \ \textcolor{keywordtype}{char}\ board[gBoardSize],\ buffer[rows][columns],\ number[digits];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00570}00570\ \ \ \ \ \textcolor{keywordtype}{char}\ format[CalculateDigits(digits)\ +\ 2],\ *string;\ \textcolor{comment}{/*\ +\ 2\ for\ \%d\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00571}00571\ \ \ \ \ \mbox{\hyperlink{struct_piece}{Piece}}\ opponent\ =\ generic\_hash\_turn(position)\ ==\ LIGHT\_PIECE\ ?\ DARK\_PIECE\ :}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00572}00572\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ LIGHT\_PIECE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00573}00573\ \ \ \ \ \textcolor{keywordtype}{char}\ opponentPieceLabel\ =\ gPieceLabels[opponent];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00574}00574\ \ \ \ \ \textcolor{keywordtype}{char}\ pieceLabel\ =\ gPieceLabels[generic\_hash\_turn(position)];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00575}00575\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00576}00576\ \ \ \ \ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00577}00577\ \ \ \ \ opponentPieces\ =\ gBoardPieces\ -\/\ CountPieces(board,\ opponent);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00578}00578\ \ \ \ \ pieces\ =\ gBoardPieces\ -\/\ CountPieces(board,\ generic\_hash\_turn(position));}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00579}00579\ \ \ \ \ MakeAddressable(board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00580}00580\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00581}00581\ \ \ \ \ \textcolor{keywordflow}{for}\ (address\ =\ 1,\ count\ =\ 1,\ \mbox{\hyperlink{structrow}{row}}\ =\ 0;\ \mbox{\hyperlink{structrow}{row}}\ <\ rows;\ \mbox{\hyperlink{structrow}{row}}++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00582}00582\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (column\ =\ 0;\ column\ <\ columns;\ column++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00583}00583\ \ \ \ \ \ \ \ \ \ \ \ \ buffer[\mbox{\hyperlink{structrow}{row}}][column]\ =\ \textcolor{charliteral}{'\ '};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00584}00584\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00585}00585\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{string}\ =\ \mbox{\hyperlink{structrow}{row}}\ !=\ rows\ /\ 2\ ?\ LEGEND\_SPACE\ :\ LEGEND\_TITLE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00586}00586\ \ \ \ \ \ \ \ \ strncpy(buffer[\mbox{\hyperlink{structrow}{row}}],\ \textcolor{keywordtype}{string},\ strlen(\textcolor{keywordtype}{string}));}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00587}00587\ \ \ \ \ \ \ \ \ offset\ =\ strlen(LEGEND\_SPACE);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00588}00588\ \ \ \ \ \ \ \ \ sprintf(format,\ \textcolor{stringliteral}{"{}\%\%\%dd"{}},\ digits);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00589}00589\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00590}00590\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (column\ =\ 0;\ column\ <\ rows;\ column++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00591}00591\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (column\ \%\ 2\ ==\ \mbox{\hyperlink{structrow}{row}}\ \%\ 2)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00592}00592\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sprintf(number,\ format,\ count++);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00593}00593\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ strncpy(buffer[\mbox{\hyperlink{structrow}{row}}]\ +\ offset\ +\ column\ *\ digits,\ number,\ strlen(number));}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00594}00594\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00595}00595\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00596}00596\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00597}00597\ \ \ \ \ \ \ \ \ offset\ +=\ rows\ *\ digits;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00598}00598\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{string}\ =\ \mbox{\hyperlink{structrow}{row}}\ !=\ rows\ /\ 2\ ?\ BOARD\_SPACE\ :\ BOARD\_TITLE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00599}00599\ \ \ \ \ \ \ \ \ strncpy(buffer[\mbox{\hyperlink{structrow}{row}}]\ +\ offset,\ \textcolor{keywordtype}{string},\ strlen(\textcolor{keywordtype}{string}));}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00600}00600\ \ \ \ \ \ \ \ \ offset\ +=\ strlen(BOARD\_SPACE);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00601}00601\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00602}00602\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (column\ =\ 0;\ column\ <\ rows;\ column++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00603}00603\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (column\ \%\ 2\ ==\ \mbox{\hyperlink{structrow}{row}}\ \%\ 2)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00604}00604\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ buffer[\mbox{\hyperlink{structrow}{row}}][offset\ +\ column]\ =\ board[ConvertAddressToIndex(address++)];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00605}00605\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00606}00606\ \ \ \ \ \ \ \ \ buffer[\mbox{\hyperlink{structrow}{row}}][columns\ -\/\ 1]\ =\ \textcolor{charliteral}{'\(\backslash\)n'};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00607}00607\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00608}00608\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00609}00609\ \ \ \ \ buffer[rows\ -\/\ 1][columns\ -\/\ 1]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00610}00610\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00611}00611\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\%s\ \%s\(\backslash\)n\(\backslash\)n\%s"{}},\ (\textcolor{keywordtype}{char}\ *)buffer,\ GetPrediction(position,\ name,\ isUsersTurn),\ PIECES\_LEFT\_TITLE);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00612}00612\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00613}00613\ \ \ \ \ \textcolor{keywordflow}{if}\ (pieces\ ==\ 0)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00614}00614\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}None"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00615}00615\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00616}00616\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (count\ =\ 0;\ count\ <\ pieces;\ count++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00617}00617\ \ \ \ \ \ \ \ \ \ \ \ \ putchar(pieceLabel);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00618}00618\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00619}00619\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ (\%d)"{}},\ pieces);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00620}00620\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00621}00621\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00622}00622\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\%s"{}},\ OPPONENT\_PIECES\_LEFT\_TITLE);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00623}00623\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00624}00624\ \ \ \ \ \textcolor{keywordflow}{if}\ (opponentPieces\ ==\ 0)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00625}00625\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}None"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00626}00626\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00627}00627\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (count\ =\ 0;\ count\ <\ opponentPieces;\ count++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00628}00628\ \ \ \ \ \ \ \ \ \ \ \ \ putchar(opponentPieceLabel);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00629}00629\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00630}00630\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ (\%d)"{}},\ opponentPieces);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00631}00631\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00632}00632\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00633}00633\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00634}00634\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00635}00635\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00636}00636\ \textcolor{comment}{/*****************************************************************\ setOption\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00637}00637\ \textcolor{keywordtype}{void}\ setOption(\textcolor{keywordtype}{int}\ option)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00638}00638\ \ \ \ \ option-\/-\/;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00639}00639\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00640}00640\ \ \ \ \ \mbox{\hyperlink{struct_options}{Options}}\ options\ =\ *(\mbox{\hyperlink{struct_options}{Options}}*)\&option;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00641}00641\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00642}00642\ \ \ \ \ gAllowSquaring\ =\ !options.doNotAllowSquaring;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00643}00643\ \ \ \ \ gAllowStacking\ =\ !options.doNotAllowStacking;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00644}00644\ \ \ \ \ gStandardGame\ =\ !options.isNotStandardGame;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00645}00645\ \ \ \ \ gBoardDimension\ =\ DEFAULT\_BOARD\_DIMENSION\ -\/\ options.boardDimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00646}00646\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00647}00647\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00648}00648\ \textcolor{comment}{/************************************************************\ ValidTextInput\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00649}00649\ BOOLEAN\ ValidTextInput(STRING\ input)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00650}00650\ \ \ \ \ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00651}00651\ \ \ \ \ \textcolor{keywordtype}{char}\ *move,\ inputBackup[strlen(input)];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00652}00652\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00653}00653\ \ \ \ \ strcpy(inputBackup,\ input);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00654}00654\ \ \ \ \ move\ =\ strtok(inputBackup,\ \textcolor{stringliteral}{"{}\ "{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00655}00655\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00656}00656\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ MOVES\_IN\_GROUP\ \&\&\ move\ !=\ NULL;\ index++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00657}00657\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (atoi(move)\ <\ 1)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00658}00658\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00659}00659\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00660}00660\ \ \ \ \ \ \ \ \ move\ =\ strtok(NULL,\ \textcolor{stringliteral}{"{}\ "{}});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00661}00661\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00662}00662\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00663}00663\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00664}00664\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00665}00665\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00666}00666\ \textcolor{comment}{/***********************************************************\ CalculateDigits\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00667}00667\ \textcolor{keywordtype}{int}\ CalculateDigits(\textcolor{keywordtype}{int}\ integer)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00668}00668\ \ \ \ \ \textcolor{keywordtype}{int}\ digits;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00669}00669\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00670}00670\ \ \ \ \ \textcolor{keywordflow}{for}\ (digits\ =\ 1;\ (integer\ /=\ 10)\ >\ 0;\ digits++)\ ;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00671}00671\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00672}00672\ \ \ \ \ \textcolor{keywordflow}{return}\ digits;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00673}00673\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00674}00674\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00675}00675\ \textcolor{comment}{/************************************************************\ CalculatePower\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00676}00676\ \textcolor{keywordtype}{int}\ CalculatePower(\textcolor{keywordtype}{int}\ base,\ \textcolor{keywordtype}{int}\ exponent)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00677}00677\ \ \ \ \ \textcolor{keywordtype}{int}\ power;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00678}00678\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00679}00679\ \ \ \ \ \textcolor{keywordflow}{for}\ (power\ =\ 1;\ exponent\ >\ 0;\ exponent-\/-\/)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00680}00680\ \ \ \ \ \ \ \ \ power\ *=\ base;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00681}00681\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00682}00682\ \ \ \ \ \textcolor{keywordflow}{return}\ power;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00683}00683\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00684}00684\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00685}00685\ \textcolor{comment}{/****************************************************\ CalculatePyramidHeight\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00686}00686\ \textcolor{keywordtype}{int}\ CalculatePyramidHeight(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00687}00687\ \ \ \ \ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *basePyramid\ =\ pyramid-\/>bases[UPPER\_LEFT\_DIRECTION];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00688}00688\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00689}00689\ \ \ \ \ \textcolor{keywordflow}{return}\ basePyramid\ ==\ NULL\ ?\ 0\ :\ CalculatePyramidHeight(basePyramid)\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00690}00690\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00691}00691\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00692}00692\ \textcolor{comment}{/*****************************************************\ ConvertAddressToIndex\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00693}00693\ \textcolor{keywordtype}{int}\ ConvertAddressToIndex(\textcolor{keywordtype}{int}\ address)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00694}00694\ \ \ \ \ \textcolor{keywordtype}{int}\ column,\ dimension,\ \mbox{\hyperlink{structrow}{row}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00695}00695\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00696}00696\ \ \ \ \ address-\/-\/;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00697}00697\ \ \ \ \ dimension\ =\ gBoardDimension\ *\ 2\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00698}00698\ \ \ \ \ column\ =\ address\ \%\ dimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00699}00699\ \ \ \ \ \mbox{\hyperlink{structrow}{row}}\ =\ address\ /\ dimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00700}00700\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00701}00701\ \ \ \ \ \textcolor{keywordflow}{return}\ column\ <\ gBoardDimension\ ?\ \mbox{\hyperlink{structrow}{row}}\ *\ gBoardDimension\ +\ column\ :}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00702}00702\ \ \ \ \ \ \ \ \ \ \ \ gBoardDimension\ *\ gBoardDimension\ +\ \mbox{\hyperlink{structrow}{row}}\ *\ (gBoardDimension\ -\/\ 1)\ +}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00703}00703\ \ \ \ \ \ \ \ \ \ \ \ column\ -\/\ gBoardDimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00704}00704\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00705}00705\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00706}00706\ \textcolor{comment}{/*******************************************************\ ConvertPyramidIndex\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00707}00707\ \textcolor{keywordtype}{int}\ ConvertPyramidIndex(\textcolor{keywordtype}{int}\ index,\ Direction\ direction)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00708}00708\ \ \ \ \ \textcolor{keywordflow}{switch}\ (direction)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00709}00709\ \ \ \ \ \textcolor{keywordflow}{case}\ LOWER\_LEFT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00710}00710\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ index\ +\ gBoardDimension\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00711}00711\ \ \ \ \ \textcolor{keywordflow}{case}\ LOWER\_RIGHT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00712}00712\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ index\ +\ gBoardDimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00713}00713\ \ \ \ \ \textcolor{keywordflow}{case}\ UPPER\_LEFT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00714}00714\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ index\ -\/\ gBoardDimension;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00715}00715\ \ \ \ \ \textcolor{keywordflow}{case}\ UPPER\_RIGHT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00716}00716\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ index\ -\/\ gBoardDimension\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00717}00717\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00718}00718\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ index;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00719}00719\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00720}00720\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00721}00721\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00722}00722\ \textcolor{comment}{/***************************************************************\ CountPieces\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00723}00723\ \textcolor{keywordtype}{int}\ CountPieces(\textcolor{keywordtype}{char}\ board[],\ \mbox{\hyperlink{struct_piece}{Piece}}\ piece)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00724}00724\ \ \ \ \ \textcolor{keywordtype}{char}\ pieceLabel\ =\ gPieceLabels[piece];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00725}00725\ \ \ \ \ \textcolor{keywordtype}{int}\ index,\ pieces;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00726}00726\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00727}00727\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0,\ pieces\ =\ 0;\ index\ <\ gBoardSize;\ index++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00728}00728\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[index]\ ==\ pieceLabel)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00729}00729\ \ \ \ \ \ \ \ \ \ \ \ \ pieces++;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00730}00730\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00731}00731\ \ \ \ \ \textcolor{keywordflow}{return}\ pieces;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00732}00732\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00733}00733\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00734}00734\ \textcolor{comment}{/*************************************************************\ CreatePyramid\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00735}00735\ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *CreatePyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ pyramids[],\ \textcolor{keywordtype}{int}\ dimension,\ \textcolor{keywordtype}{int}\ baseIndex,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00736}00736\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Direction\ parentDirection,\ \textcolor{keywordtype}{int}\ parentIndex)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00737}00737\ \ \ \ \ Direction\ direction;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00738}00738\ \ \ \ \ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00739}00739\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00740}00740\ \ \ \ \ \textcolor{keywordflow}{if}\ (dimension\ >\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00741}00741\ \ \ \ \ \ \ \ \ pyramid\ =\ \&pyramids[baseIndex];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00742}00742\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00743}00743\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (direction\ =\ 0;\ direction\ <\ NUMBER\_OF\_DIRECTIONS;\ direction++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00744}00744\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pyramid-\/>bases[direction]\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00745}00745\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pyramid-\/>bases[direction]\ =}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00746}00746\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CreatePyramid(pyramids,\ dimension\ -\/\ 1,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00747}00747\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ConvertPyramidIndex(baseIndex,\ direction),}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00748}00748\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FlipDirection(direction),\ baseIndex);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00749}00749\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00750}00750\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (parentDirection\ !=\ INVALID\_DIRECTION)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00751}00751\ \ \ \ \ \ \ \ \ \ \ \ \ pyramid-\/>parents[parentDirection]\ =\ \&pyramids[parentIndex];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00752}00752\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00753}00753\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00754}00754\ \ \ \ \ \textcolor{keywordflow}{return}\ pyramid;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00755}00755\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00756}00756\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00757}00757\ \textcolor{comment}{/****************************************************\ CreatePyramidHashTable\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00758}00758\ \textcolor{keywordtype}{void}\ CreatePyramidHashTable(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ pyramids[],\ \textcolor{keywordtype}{char}\ board[])\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00759}00759\ \ \ \ \ Direction\ direction;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00760}00760\ \ \ \ \ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00761}00761\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00762}00762\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ gBoardAddresses;\ index++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00763}00763\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (direction\ =\ 0;\ direction\ <\ NUMBER\_OF\_DIRECTIONS;\ direction++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00764}00764\ \ \ \ \ \ \ \ \ \ \ \ \ pyramids[index].bases[direction]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00765}00765\ \ \ \ \ \ \ \ \ \ \ \ \ pyramids[index].parents[direction]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00766}00766\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00767}00767\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00768}00768\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00769}00769\ \ \ \ \ CreatePyramid(pyramids,\ gBoardDimension,\ gBoardAddresses\ /\ 2,}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00770}00770\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ INVALID\_DIRECTION,\ gBoardAddresses\ /\ 2);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00771}00771\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00772}00772\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ gBoardAddresses;\ index++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00773}00773\ \ \ \ \ \ \ \ \ pyramids[index].pieceLabel\ =\ board[ConvertAddressToIndex(index\ +\ 1)];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00774}00774\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00775}00775\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00776}00776\ \textcolor{comment}{/*************************************************************\ FlipDirection\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00777}00777\ Direction\ FlipDirection(Direction\ direction)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00778}00778\ \ \ \ \ \textcolor{keywordflow}{switch}\ (direction)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00779}00779\ \ \ \ \ \textcolor{keywordflow}{case}\ LOWER\_LEFT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00780}00780\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ UPPER\_RIGHT\_DIRECTION;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00781}00781\ \ \ \ \ \textcolor{keywordflow}{case}\ LOWER\_RIGHT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00782}00782\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ UPPER\_LEFT\_DIRECTION;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00783}00783\ \ \ \ \ \textcolor{keywordflow}{case}\ UPPER\_LEFT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00784}00784\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ LOWER\_RIGHT\_DIRECTION;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00785}00785\ \ \ \ \ \textcolor{keywordflow}{case}\ UPPER\_RIGHT\_DIRECTION:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00786}00786\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ LOWER\_LEFT\_DIRECTION;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00787}00787\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00788}00788\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ direction;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00789}00789\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00790}00790\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00791}00791\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00792}00792\ \textcolor{comment}{/***************************************************************\ FormsSquare\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00793}00793\ BOOLEAN\ FormsSquare(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid,\ \mbox{\hyperlink{struct_piece}{Piece}}\ piece)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00794}00794\ \ \ \ \ Direction\ baseDirection,\ parentDirection;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00795}00795\ \ \ \ \ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *basePyramid,\ *parentPyramid;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00796}00796\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00797}00797\ \ \ \ \ \textcolor{keywordflow}{for}\ (parentDirection\ =\ 0;\ parentDirection\ <\ NUMBER\_OF\_DIRECTIONS;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00798}00798\ \ \ \ \ \ \ \ \ \ parentDirection++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00799}00799\ \ \ \ \ \ \ \ \ parentPyramid\ =\ pyramid-\/>parents[parentDirection];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00800}00800\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00801}00801\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (parentPyramid\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00802}00802\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (baseDirection\ =\ 0;\ baseDirection\ <\ NUMBER\_OF\_DIRECTIONS;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00803}00803\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ baseDirection++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00804}00804\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ basePyramid\ =\ parentPyramid-\/>bases[baseDirection];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00805}00805\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00806}00806\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (basePyramid\ !=\ pyramid\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00807}00807\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ basePyramid-\/>pieceLabel\ !=\ gPieceLabels[piece])}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00808}00808\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00809}00809\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00810}00810\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (baseDirection\ ==\ NUMBER\_OF\_DIRECTIONS\ -\/\ 1)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00811}00811\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00812}00812\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00813}00813\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00814}00814\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00815}00815\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00816}00816\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00817}00817\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00818}00818\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00819}00819\ \textcolor{comment}{/*************************************************************\ IsBasePyramid\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00820}00820\ BOOLEAN\ IsBasePyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid,\ \mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *parentPyramid)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00821}00821\ \ \ \ \ Direction\ direction;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00822}00822\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00823}00823\ \ \ \ \ \textcolor{keywordflow}{for}\ (direction\ =\ 0;\ direction\ <\ NUMBER\_OF\_DIRECTIONS;\ direction++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00824}00824\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pyramid\ ==\ parentPyramid-\/>bases[direction])}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00825}00825\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00826}00826\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00827}00827\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00828}00828\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00829}00829\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00830}00830\ \textcolor{comment}{/************************************************************\ IsBlankPyramid\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00831}00831\ BOOLEAN\ IsBlankPyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00832}00832\ \ \ \ \ \textcolor{keywordflow}{return}\ pyramid\ !=\ NULL\ \&\&\ pyramid-\/>pieceLabel\ ==\ gPieceLabels[BLANK\_PIECE];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00833}00833\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00834}00834\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00835}00835\ \textcolor{comment}{/********************************************************\ IsSupportedPyramid\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00836}00836\ BOOLEAN\ IsSupportedPyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00837}00837\ \ \ \ \ Direction\ direction;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00838}00838\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00839}00839\ \ \ \ \ \textcolor{keywordflow}{for}\ (direction\ =\ 0;\ direction\ <\ NUMBER\_OF\_DIRECTIONS;\ direction++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00840}00840\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (IsBlankPyramid(pyramid-\/>bases[direction]))}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00841}00841\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00842}00842\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00843}00843\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00844}00844\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00845}00845\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00846}00846\ \textcolor{comment}{/********************************************************\ IsSupportingPyramid\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00847}00847\ BOOLEAN\ IsSupportingPyramid(\mbox{\hyperlink{struct_pyramid}{Pyramid}}\ *pyramid)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00848}00848\ \ \ \ \ Direction\ direction;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00849}00849\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00850}00850\ \ \ \ \ \textcolor{keywordflow}{for}\ (direction\ =\ 0;\ direction\ <\ NUMBER\_OF\_DIRECTIONS;\ direction++)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00851}00851\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pyramid-\/>parents[direction]\ !=\ NULL\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00852}00852\ \ \ \ \ \ \ \ \ \ \ \ \ pyramid-\/>parents[direction]-\/>pieceLabel\ !=\ gPieceLabels[BLANK\_PIECE])}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00853}00853\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00854}00854\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00855}00855\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00856}00856\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00857}00857\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00858}00858\ \textcolor{comment}{/***********************************************************\ MakeAddressable\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00859}00859\ \textcolor{keywordtype}{void}\ MakeAddressable(\textcolor{keywordtype}{char}\ board[])\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00860}00860\ \ \ \ \ \textcolor{comment}{/*\ Hardcoded\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00861}00861\ \ \ \ \ \textcolor{keywordflow}{if}\ (gBoardDimension\ ==\ 3\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00862}00862\ \ \ \ \ \ \ \ \ board[9]\ !=\ gPieceLabels[BLANK\_PIECE]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00863}00863\ \ \ \ \ \ \ \ \ board[10]\ !=\ gPieceLabels[BLANK\_PIECE]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00864}00864\ \ \ \ \ \ \ \ \ board[11]\ !=\ gPieceLabels[BLANK\_PIECE]\ \&\&}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00865}00865\ \ \ \ \ \ \ \ \ board[12]\ !=\ gPieceLabels[BLANK\_PIECE])}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00866}00866\ \ \ \ \ \ \ \ \ board[4]\ =\ board[13];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00867}00867\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00868}00868\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00869}00869\ \textcolor{comment}{/***************************************************************\ PrintBinary\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00870}00870\ \textcolor{keywordtype}{void}\ PrintBinary(\textcolor{keywordtype}{int}\ integer)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00871}00871\ \ \ \ \ \textcolor{keywordtype}{int}\ power;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00872}00872\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00873}00873\ \ \ \ \ \textcolor{keywordflow}{for}\ (power\ =\ WORD\_BIT\ -\/\ 1;\ power\ >=\ 0;\ power-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00874}00874\ \ \ \ \ \ \ \ \ putchar(integer\ \&\ CalculatePower(2,\ power)\ ?\ \textcolor{charliteral}{'1'}\ :\ \textcolor{stringliteral}{'0'});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00875}00875\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00876}00876\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (power\ \%\ CHAR\_BIT\ ==\ 0)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00877}00877\ \ \ \ \ \ \ \ \ \ \ \ \ putchar(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00878}00878\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00879}00879\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00880}00880\ \ \ \ \ putchar(\textcolor{charliteral}{'\(\backslash\)n'});}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00881}00881\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00882}00882\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00883}00883\ \textcolor{comment}{/************************************************************\ PrintMoveGroup\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00884}00884\ \textcolor{keywordtype}{void}\ PrintMoveGroup(MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00885}00885\ \ \ \ \ STRING\ s\ =\ MoveGroupToString(\ move\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00886}00886\ \ \ \ \ printf(\ \textcolor{stringliteral}{"{}\%s"{}},\ s\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00887}00887\ \ \ \ \ SafeFree(\ s\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00888}00888\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00889}00889\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00890}00890\ STRING\ MoveGroupToString(MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00891}00891\ \ \ \ \ STRING\ s\ =\ (STRING)\ SafeMalloc(\ 10\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00892}00892\ \ \ \ \ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00893}00893\ \ \ \ \ \mbox{\hyperlink{struct_move_group}{MoveGroup}}\ moveGroup\ =\ *(\mbox{\hyperlink{struct_move_group}{MoveGroup}}*)\&move;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00894}00894\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00895}00895\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ MOVES\_IN\_GROUP;\ index++)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00896}00896\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (moveGroup.moves[index]\ !=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00897}00897\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index\ >\ 0)}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00898}00898\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sprintf(\ s,\ \textcolor{stringliteral}{"{}\ "{}}\ );}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00899}00899\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00900}00900\ \ \ \ \ \ \ \ \ \ \ \ \ sprintf(s,\ \textcolor{stringliteral}{"{}\%d"{}},\ moveGroup.moves[index]);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00901}00901\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00902}00902\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00903}00903\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00904}00904\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00905}00905\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00906}00906\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00907}00907\ \textcolor{comment}{/***********************************************************\ PrintMovePrompt\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00908}00908\ \textcolor{keywordtype}{void}\ PrintMovePrompt(\textcolor{keywordtype}{char}\ *name)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00909}00909\ \ \ \ \ \textcolor{keywordtype}{int}\ promptLength\ =\ strlen(LEGEND\_SPACE)\ +\ (gBoardDimension\ *\ 2\ -\/\ 1)\ *}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00910}00910\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CalculateDigits(gBoardSize)\ +\ strlen(BOARD\_SPACE);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00911}00911\ \ \ \ \ \textcolor{keywordtype}{char}\ format[CalculateDigits(promptLength)\ +\ 2];\ \textcolor{comment}{/*\ +\ 2\ for\ \%d\ */}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00912}00912\ \ \ \ \ \textcolor{keywordtype}{char}\ prompt[promptLength];}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00913}00913\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00914}00914\ \ \ \ \ sprintf(format,\ \textcolor{stringliteral}{"{}\%\%\%ds"{}},\ promptLength);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00915}00915\ \ \ \ \ sprintf(prompt,\ MOVE\_PROMPT,\ name);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00916}00916\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00917}00917\ \ \ \ \ printf(format,\ prompt);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00918}00918\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00919}00919\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00920}00920\ \textcolor{keywordtype}{void}\ *gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00921}00921\ POSITION\ InteractStringToPosition(STRING\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00922}00922\ \ \ \ \ \textcolor{comment}{//\ FIXME:\ this\ is\ just\ a\ stub}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00923}00923\ \ \ \ \ \textcolor{keywordflow}{return}\ atoi(board);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00924}00924\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00925}00925\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00926}00926\ STRING\ InteractPositionToString(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00927}00927\ \ \ \ \ \textcolor{comment}{//\ FIXME:\ this\ is\ just\ a\ stub}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00928}00928\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Implement\ Me"{}};}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00929}00929\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00930}00930\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00931}00931\ STRING\ InteractPositionToEndData(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00932}00932\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00933}00933\ \}}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00934}00934\ }
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00935}00935\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)\ \{}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00936}00936\ \ \ \textcolor{keywordflow}{return}\ MoveToString(mv);}
+\DoxyCodeLine{\Hypertarget{mpylos_8c_source_l00937}00937\ \}}
+
+\end{DoxyCode}

@@ -1,0 +1,131 @@
+\hypertarget{analysis_8h_source}{}\doxysection{analysis.\+h}
+\label{analysis_8h_source}\index{src/core/analysis.h@{src/core/analysis.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_DB\_H}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}db.h"{}}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00003}00003\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00005}00005\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_ANALYSIS\_H}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00006}00006\ \textcolor{preprocessor}{\#define\ GMCORE\_ANALYSIS\_H}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00007}00007\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00008}00008\ \textcolor{comment}{\ \ \ \#ifndef\ ORIGINAL\_PUT\_VALUE\_PTR}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00009}00009\ \textcolor{comment}{\ \ \ VALUE\ \ \ (*original\_put\_value)\ (POSITION\ pos,\ VALUE\ val);}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00010}00010\ \textcolor{comment}{\ \ \ \#define\ ORIGINAL\_PUT\_VALUE\_PTR}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00011}00011\ \textcolor{comment}{\ \ \ \#endif}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00012}00012\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00014}00014\ \textcolor{preprocessor}{\#define\ ANALYSIS\_FILE\_VER\ 4}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00015}00015\ \textcolor{preprocessor}{\#define\ PRIMITIVE\_INTERESTINGNESS\ 0.01}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00017}00017\ \textcolor{comment}{/*\ Functions\ to\ output\ sets\ of\ data\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00019}00019\ \textcolor{keywordtype}{void}\ \ \ \ PrintRawGameValues\ \ \ \ \ \ \ \ \ \ \ \ \ \ (BOOLEAN\ toFile);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00020}00020\ \textcolor{keywordtype}{void}\ \ \ \ PrintBinaryGameValuesToFile\ \ \ \ \ (\textcolor{keywordtype}{char}\ *\ filename);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00021}00021\ \textcolor{keywordtype}{void}\ \ \ \ PrintBadPositions\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{char}\ value,\ \textcolor{keywordtype}{int}\ maxPos,\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ badWinPos,}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00022}00022\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ badTiePos,\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ badLosePos);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00023}00023\ \textcolor{keywordtype}{void}\ \ \ \ PrintMexValues\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (MEX\ value,\ \textcolor{keywordtype}{int}\ maxpos);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00024}00024\ \textcolor{keywordtype}{void}\ \ \ \ PrintValuePositions\ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{char}\ value,\ \textcolor{keywordtype}{int}\ maxPos);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00025}00025\ \textcolor{keywordtype}{void}\ \ \ \ PrintGameValueSummary\ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00026}00026\ \textcolor{keywordtype}{void}\ \ \ \ PrintDetailedGameValueSummary();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00027}00027\ \textcolor{keywordtype}{void}\ \ \ \ PrintDetailedOpenSummary();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00029}00029\ \textcolor{comment}{/*\ Analysis\ output\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00031}00031\ \textcolor{keywordtype}{void}\ \ \ \ analyze\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00032}00032\ VALUE\ \ \ AnalyzePosition(POSITION\ thePosition,\ VALUE\ value);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00033}00033\ \textcolor{keywordtype}{void}\ \ \ \ AnalysisCollation();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00034}00034\ \textcolor{keywordtype}{float}\ \ \ DetermineProbability\ \ \ \ (POSITION\ position,\ VALUE\ value);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00035}00035\ \textcolor{keywordtype}{void}\ \ \ \ writeVarStat\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (STRING\ statName,\ STRING\ text,\ FILE*\ out);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00036}00036\ \textcolor{keywordtype}{void}\ \ \ \ DatabaseCombVisualization\ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00038}00038\ \textcolor{comment}{/*\ Analysis\ save/load\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00039}00039\ BOOLEAN\ LoadAnalysis();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00040}00040\ \textcolor{keywordtype}{void}\ \ \ \ SaveAnalysis();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00042}00042\ \textcolor{comment}{/*\ Analysis\ misc\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00044}00044\ \textcolor{keywordtype}{void}\ \ \ \ createAnalysisGameDir\ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00045}00045\ \textcolor{keywordtype}{void}\ \ \ \ createAnalysisVarDir\ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00046}00046\ \textcolor{keywordtype}{void}\ \ \ \ writeGameHTML\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00047}00047\ \textcolor{keywordtype}{void}\ \ \ \ createVarTable\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00048}00048\ \textcolor{keywordtype}{void}\ \ \ \ writeVarHTML\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00049}00049\ BOOLEAN\ CorruptedValuesP\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00051}00051\ \textcolor{keywordtype}{float}\ \ \ PercentDone\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (STATICMESSAGE\ msg);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00052}00052\ \textcolor{keywordtype}{float}\ \ \ PercentLoaded\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (STATICMESSAGE\ msg);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00053}00053\ \textcolor{keywordtype}{void}\ \ \ \ InitializeAnalysis();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00055}00055\ \textcolor{comment}{/*\ Analysis\ XML\ Support\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00057}00057\ \textcolor{keywordtype}{void}\ \ \ \ writeXML\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (STATICMESSAGE\ msg);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00058}00058\ \textcolor{keywordtype}{void}\ \ \ \ prepareXMLFile\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00059}00059\ \textcolor{keywordtype}{void}\ \ \ \ prepareXMLVarFile\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00060}00060\ \textcolor{keywordtype}{void}\ \ \ \ closeXMLFile\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00061}00061\ \textcolor{keywordtype}{void}\ \ \ \ closeXMLVarFile\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00062}00062\ \textcolor{keywordtype}{void}\ \ \ \ writeXMLData\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00063}00063\ \textcolor{keywordtype}{void}\ \ \ \ writeXMLVarData\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ();}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00064}00064\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00065}00065\ \textcolor{comment}{/*\ Interestingness\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00066}00066\ \textcolor{keywordtype}{void}\ DetermineInterestingness(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00067}00067\ \textcolor{keywordtype}{void}\ DetermineInterestingnessDFS(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00069}00069\ \textcolor{comment}{/*\ Analysis\ Data\ Structure\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00071}\mbox{\hyperlink{structanalysis__info}{00071}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structanalysis__info}{analysis\_info}}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00072}00072\ \{}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00073}00073\ \ \ \ \ POSITION\ NumberOfPositions;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00074}00074\ \ \ \ \ POSITION\ TotalPositions;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00075}00075\ \ \ \ \ POSITION\ TotalMoves;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00076}00076\ \ \ \ \ POSITION\ TotalPrimitives;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00078}00078\ \ \ \ \ POSITION\ WinCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00079}00079\ \ \ \ \ POSITION\ LoseCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00080}00080\ \ \ \ \ POSITION\ TieCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00081}00081\ \ \ \ \ POSITION\ Draws;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00083}00083\ \ \ \ \ POSITION\ UnknownCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00084}00084\ \ \ \ \ POSITION\ PrimitiveWins;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00085}00085\ \ \ \ \ POSITION\ PrimitiveLoses;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00086}00086\ \ \ \ \ POSITION\ PrimitiveTies;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00088}00088\ \ \ \ \ POSITION\ F0EdgeCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00089}00089\ \ \ \ \ POSITION\ F0NodeCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00090}00090\ \ \ \ \ POSITION\ F0DrawEdgeCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00092}00092\ \ \ \ \ VALUE\ InitialPositionValue;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00093}00093\ \ \ \ \ REMOTENESS\ LargestFoundRemoteness;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00094}00094\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ TimeToSolve;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00095}00095\ \ \ \ \ \textcolor{keywordtype}{int}\ HashEfficiency;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00096}00096\ \ \ \ \ \textcolor{keywordtype}{float}\ AverageFanout;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00097}00097\ \ \ \ \ \textcolor{keywordtype}{float}\ InitialPositionProbability;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00099}00099\ \ \ \ \ POSITION\ DetailedPositionSummary[REMOTENESS\_MAX+1][3];\ \textcolor{comment}{//\ Table\ for\ counting\ wins(1)\ and\ losses(2)\ and\ ties(3)}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00100}00100\ \ \ \ \ \textcolor{comment}{//\ at\ each\ remoteness\ between\ 0\ and\ REMOTENESS\_MAX-\/1.}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00101}00101\ \ \ \ \ POSITION\ DetailedOpenSummary[11][11][REMOTENESS\_MAX+1][4];\ \textcolor{comment}{/*\ [Level][Corruption][FRemoteness][drawvalue]\ */}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00102}00102\ \ \ \ \ POSITION\ OpenSummary[4];}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00104}00104\ \ \ \ \ POSITION\ DrawWinCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00105}00105\ \ \ \ \ POSITION\ DrawLoseCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00106}00106\ \ \ \ \ POSITION\ DrawTieCount;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00107}00107\ \ \ \ \ POSITION\ DrawDraws;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00108}00108\ \ \ \ \ POSITION\ TotalOpenPositions;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00109}00109\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00110}00110\ \ \ \ \ REMOTENESS\ LargestFoundLevel;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00111}00111\ \ \ \ \ REMOTENESS\ LargestFoundFRemoteness;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00112}00112\ \ \ \ \ REMOTENESS\ LargestFoundCorruption;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00114}00114\ \ \ \ \ \textcolor{keywordtype}{float}*\ Interestingness;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00115}00115\ \ \ \ \ \textcolor{keywordtype}{float}\ MaxInterestingness;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00116}00116\ \ \ \ \ POSITION\ MostInteresting;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00118}00118\ \}\ \mbox{\hyperlink{structanalysis__info}{ANALYSIS}};}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00120}00120\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structanalysis__info}{ANALYSIS}}\ gAnalysis;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00122}00122\ \textcolor{keyword}{extern}\ UINT32\ gValueSlot;}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00124}00124\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_ANALYSIS\_H\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{analysis_8h_source_l00125}00125\ }
+
+\end{DoxyCode}

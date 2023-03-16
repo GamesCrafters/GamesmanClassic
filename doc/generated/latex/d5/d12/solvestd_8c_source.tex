@@ -1,0 +1,161 @@
+\hypertarget{solvestd_8c_source}{}\doxysection{solvestd.\+c}
+\label{solvestd_8c_source}\index{src/core/solvestd.c@{src/core/solvestd.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ solvestd.c}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Vanilla\ non-\/loopy\ solver.}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00035}00035\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00036}00036\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00037}00037\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00039}00039\ VALUE\ DetermineValueSTD(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00040}00040\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00041}00041\ \ \ \ \ BOOLEAN\ foundTie\ =\ FALSE,\ foundLose\ =\ FALSE,\ foundWin\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00042}00042\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *ptr,\ *head;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00043}00043\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00044}00044\ \ \ \ \ POSITION\ child;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00045}00045\ \ \ \ \ REMOTENESS\ maxRemoteness\ =\ 0,\ minRemoteness\ =\ MAXINT2;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00046}00046\ \ \ \ \ REMOTENESS\ minTieRemoteness\ =\ MAXINT2,\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00047}00047\ \ \ \ \ MEXCALC\ theMexCalc\ =\ 0;\ \textcolor{comment}{/*\ default\ to\ satisfy\ compiler\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00048}00048\ \ \ \ \ \textcolor{keywordtype}{int}\ winByValue\ =\ 0,\ minWinByValue\ =\ ((1\ <<\ (MEX\_BITS-\/1))-\/1),\ maxWinByValue\ =\ -\/(1\ <<\ (MEX\_BITS-\/1));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00050}00050\ \ \ \ \ \textcolor{keywordflow}{if}(Visited(position))\ \{\ \textcolor{comment}{/*\ Cycle!\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Sorry,\ but\ I\ think\ this\ is\ a\ loopy\ game.\ I\ give\ up."{}});}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00052}00052\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00053}00053\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00054}00054\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00055}00055\ \ \ \ \ \textcolor{comment}{/*\ It's\ been\ seen\ before\ and\ value\ has\ been\ determined\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00056}00056\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}((value\ =\ GetValueOfPosition(position))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(value);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00058}00058\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}((value\ =\ Primitive(position))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ first\ time,\ end\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00060}00060\ \ \ \ \ \ \ \ \ SetRemoteness(position,0);\ \textcolor{comment}{/*\ terminal\ positions\ have\ 0\ remoteness\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ MexStore(position,MexPrimitive(value));\ \textcolor{comment}{/*\ lose=0,\ win=*\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (kPartizan\ \&\&\ gPutWinBy\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ WinByStore(position,gPutWinBy(position));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(StoreValueOfPosition(position,value));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00066}00066\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ first\ time,\ need\ to\ recursively\ determine\ value\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00067}00067\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ MarkAsVisited(position);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ theMexCalc\ =\ MexCalcInit();}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00071}00071\ \ \ \ \ \ \ \ \ head\ =\ ptr\ =\ GenerateMoves(position);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ move\ =\ ptr-\/>move;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ \ \ \ \ gAnalysis.TotalMoves++;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ DoMove(position,ptr-\/>move);\ \textcolor{comment}{/*\ Create\ the\ child\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(gSymmetries)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ gCanonicalPosition(child);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (child\ >=\ gNumberOfPositions)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FoundBadPosition(child,\ position,\ move);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ value\ =\ DetermineValueSTD(child);\ \textcolor{comment}{/*\ DFS\ call\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (kPartizan\ \&\&\ gPutWinBy\ \&\&\ !gTwoBits)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ childWinByValue\ =\ WinByLoad(child);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (childWinByValue\ <\ minWinByValue)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ minWinByValue\ =\ childWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (childWinByValue\ >\ maxWinByValue)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ maxWinByValue\ =\ childWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gGoAgain(position,move))}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(value)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:\ value=win;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:\ value=lose;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \textcolor{keywordflow}{break};\ \textcolor{comment}{/*\ value\ stays\ the\ same\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ remoteness\ =\ Remoteness(child);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theMexCalc\ =\ MexAdd(theMexCalc,MexLoad(child));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(value\ ==\ lose)\ \{\ \textcolor{comment}{/*\ found\ a\ way\ to\ give\ you\ a\ lose\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ foundLose\ =\ TRUE;\ \textcolor{comment}{/*\ thus,\ it's\ a\ winning\ move\ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remoteness\ <\ minRemoteness)\ minRemoteness\ =\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(value\ ==\ tie)\ \{\ \textcolor{comment}{/*\ found\ a\ way\ to\ give\ you\ a\ tie\ \ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ foundTie\ =\ TRUE;\ \textcolor{comment}{/*\ thus,\ it's\ a\ tieing\ move\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remoteness\ <\ minTieRemoteness)\ minTieRemoteness\ =\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(value\ ==\ win)\ \{\ \textcolor{comment}{/*\ found\ a\ way\ to\ give\ you\ a\ win\ \ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ foundWin\ =\ TRUE;\ \textcolor{comment}{/*\ thus,\ it's\ a\ losing\ move\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remoteness\ >\ maxRemoteness)\ maxRemoteness\ =\ remoteness;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineValue[1]"{}});}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gUseGPS)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gUndoMove(move);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \}\ \textcolor{comment}{//while}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ FreeMoveList(head);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ UnMarkAsVisited(position);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan\ \&\&\ !gTwoBits)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ MexStore(position,MexCompute(theMexCalc));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (kPartizan\ \&\&\ gPutWinBy\ \&\&\ !gTwoBits)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ turn\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (turn\ ==\ 1)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ winByValue\ =\ maxWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (turn\ ==\ 2)}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ winByValue\ =\ minWinByValue;}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ BadElse(\textcolor{stringliteral}{"{}Bad\ generic\_hash\_turn(position)"{}});}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ WinByStore(position,winByValue);}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(foundLose)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(position,minRemoteness+1);\ \textcolor{comment}{/*\ Winners\ want\ to\ mate\ soon!\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(StoreValueOfPosition(position,win));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(foundTie)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(position,minTieRemoteness+1);\ \textcolor{comment}{/*\ Tiers\ want\ to\ mate\ now!\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(StoreValueOfPosition(position,tie));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (foundWin)\ \{}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(position,maxRemoteness+1);\ \textcolor{comment}{/*\ Losers\ want\ to\ extend!\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(StoreValueOfPosition(position,lose));}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineValue[2].\ GenereateMoves\ most\ likely\ didnt\ return\ anything."{}});}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00151}00151\ \ \ \ \ \}\ \textcolor{comment}{//\ else}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00152}00152\ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineValue[3]"{}});\ \textcolor{comment}{/*\ This\ should\ NEVER\ be\ reached\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00153}00153\ \ \ \ \ \textcolor{keywordflow}{return}(undecided);\ \ \ \ \ \ \textcolor{comment}{/*\ But\ has\ been\ added\ to\ satisty\ lint\ */}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00154}00154\ \}}
+\DoxyCodeLine{\Hypertarget{solvestd_8c_source_l00155}00155\ }
+
+\end{DoxyCode}

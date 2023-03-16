@@ -1,0 +1,343 @@
+\hypertarget{classserver_1_1_game_request_handler}{}\doxysection{server.\+Game\+Request\+Handler Class Reference}
+\label{classserver_1_1_game_request_handler}\index{server.GameRequestHandler@{server.GameRequestHandler}}
+Inheritance diagram for server.\+Game\+Request\+Handler\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{d7/d66/classserver_1_1_game_request_handler}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a218784be9962b233e600e518de951e0e}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, \mbox{\hyperlink{unionsock}{sock}}, address, server)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_ab1c5a8e5cf18be8142a9778670a800f0}{collect\+\_\+incoming\+\_\+data}} (self, data)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a4da9431b7d2f53727003d22af7e2f445}{found\+\_\+terminator}} (self)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_ac6a9991fcfe7f3fe1600a2a449e7d9fd}{do\+\_\+\+GET}} (self)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a9a8ac4d50c68836b3f6174bda3367f09}{respond}} (self, response)
+\end{DoxyCompactItemize}
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a724749c7c5d09652f320c7d65e9a3cc6}{client\+\_\+address}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a911b1db204fecd9b0c4a984f94564cb7}{connection}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a0185fd976669d4dd85fbdcaa6733e2aa}{server}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a9592ec71a0c0c2cc7bfda33af4a4cc84}{in\+\_\+buffer}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a764db8984947d5374820f3e59a1ffa63}{wfile}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a054439644e8ef0db342ad8d3d974681c}{protocol\+\_\+version}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a51e60ea201585d7d76feee54edaeb49a}{rfile}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a3e4d8523f69f0c950925b7f7d4e4e2f9}{raw\+\_\+requestline}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a14fc60f0db3d0a23fd625d4f00a21a43}{command}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_request_handler_a182b910607a5675052aab5ded0bd59da}{parsed\+\_\+path}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00079}{79}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classserver_1_1_game_request_handler_a218784be9962b233e600e518de951e0e}\label{classserver_1_1_game_request_handler_a218784be9962b233e600e518de951e0e} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{sock,  }\item[{}]{address,  }\item[{}]{server }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00082}{82}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ sock,\ address,\ server):}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ self.client\_address\ =\ address}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ self.connection\ =\ sock}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ asynchat.async\_chat.\_\_init\_\_(self,\ sock=sock)}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ self.server\ =\ server}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ self.set\_terminator(\textcolor{stringliteral}{'\(\backslash\)r\(\backslash\)n\(\backslash\)r\(\backslash\)n'})}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ self.in\_buffer\ =\ []}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ self.wfile\ =\ cStringIO.StringIO()}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ self.protocol\_version\ =\ \textcolor{stringliteral}{'HTTP/1.1'}}
+\DoxyCodeLine{00093\ }
+
+\end{DoxyCode}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classserver_1_1_game_request_handler_ab1c5a8e5cf18be8142a9778670a800f0}\label{classserver_1_1_game_request_handler_ab1c5a8e5cf18be8142a9778670a800f0} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!collect\_incoming\_data@{collect\_incoming\_data}}
+\index{collect\_incoming\_data@{collect\_incoming\_data}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{collect\_incoming\_data()}{collect\_incoming\_data()}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+collect\+\_\+incoming\+\_\+data (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{data }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00094}{94}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keyword}{def\ }collect\_incoming\_data(self,\ data):}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ self.in\_buffer.append(data)}
+\DoxyCodeLine{00096\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_request_handler_ac6a9991fcfe7f3fe1600a2a449e7d9fd}\label{classserver_1_1_game_request_handler_ac6a9991fcfe7f3fe1600a2a449e7d9fd} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!do\_GET@{do\_GET}}
+\index{do\_GET@{do\_GET}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{do\_GET()}{do\_GET()}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+do\+\_\+\+GET (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00105}{105}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keyword}{def\ }do\_GET(self):}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ unquoted\ =\ urllib.unquote(self.path)}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ parsed\ =\ urlparse.urlparse(unquoted)}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ self.parsed\_path\ =\ parsed}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ path\ =\ parsed.path.split(\textcolor{stringliteral}{'/'})}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ command\ =\ path[-\/1]}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ command\ ==\ \textcolor{stringliteral}{'favicon.ico'}:}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ command\ ==\ \textcolor{stringliteral}{'getGames'}:}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.server.status\_server\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.respond(json.dumps(\{}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'status'}:\ \textcolor{stringliteral}{'error'},}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'reason'}:\ \textcolor{stringliteral}{'Could\ not\ get\ game\ list.'}\},}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ indent=Game.indent\_response))}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.respond(json.dumps(\{}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'status'}:\ \textcolor{stringliteral}{'ok'},}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'response'}:\ self.server.status\_server.get\_table()\},}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ indent=Game.indent\_response))}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ game\_name\ =\ path[-\/2]}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Can't\ use\ urlparse.parse\_qs\ because\ of\ equal\ signs\ in\ board\ string}}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ query\ =\ collections.defaultdict(str)}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ query\_lst\ =\ parsed.query.split(\textcolor{stringliteral}{'\&'})}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ t\ \textcolor{keywordflow}{in}\ query\_lst:}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ t\ !=\ \textcolor{stringliteral}{''}:}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ p\ =\ t.split(\textcolor{stringliteral}{'='},\ 1)}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ len(p)\ ==\ 2:}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ query[p[0]]\ =\ p[1]}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ query[p[0]]\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ self.server.log.info(\textcolor{stringliteral}{'GET:\ \{\}'}.format(unquoted))}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ game\ =\ self.server.get\_game(game\_name)}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Fix\ missing\ quotes\ on\ the\ board\ string}}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ query[\textcolor{stringliteral}{'board'}]\ !=\ \textcolor{stringliteral}{''}\ \textcolor{keywordflow}{and}\ query[\textcolor{stringliteral}{'board'}][0]\ !=\ \textcolor{stringliteral}{'"{}'}:}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ query[\textcolor{stringliteral}{'board'}]\ =\ \textcolor{stringliteral}{'"{}\{\}"{}'}.format(query[\textcolor{stringliteral}{'board'}])}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ c\_command\ =\ \{}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'getStart'}:}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'start\_response'},}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'getEnd'}:}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'end\_response\ \{\}'}.format(query[\textcolor{stringliteral}{'board'}]),}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'getNextMoveValues'}:}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'detailed\_position\_response\ \{\}'}.format(query[\textcolor{stringliteral}{'board'}]),}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'getMoveValue'}:}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'move\_value\_response\ \{\}'}.format(query[\textcolor{stringliteral}{'board'}])}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \}[command]}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ KeyError:}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ game.respond\_to\_unknown\_request(GameRequest(self,}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ query,}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ command))}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.respond(could\_not\_parse\_msg)}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ game.push\_request(GameRequest(self,\ query,\ c\_command))}
+\DoxyCodeLine{00169\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_request_handler_a4da9431b7d2f53727003d22af7e2f445}\label{classserver_1_1_game_request_handler_a4da9431b7d2f53727003d22af7e2f445} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!found\_terminator@{found\_terminator}}
+\index{found\_terminator@{found\_terminator}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{found\_terminator()}{found\_terminator()}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+found\+\_\+terminator (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00097}{97}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keyword}{def\ }found\_terminator(self):}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ self.rfile\ =\ cStringIO.StringIO(\textcolor{stringliteral}{''}.join(self.in\_buffer))}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ self.rfile.seek(0)}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ self.raw\_requestline\ =\ self.rfile.readline()}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ self.parse\_request()}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.command\ ==\ \textcolor{stringliteral}{'GET'}:}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \ \ \ \ self.do\_GET()}
+\DoxyCodeLine{00104\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_request_handler_a9a8ac4d50c68836b3f6174bda3367f09}\label{classserver_1_1_game_request_handler_a9a8ac4d50c68836b3f6174bda3367f09} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!respond@{respond}}
+\index{respond@{respond}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{respond()}{respond()}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+respond (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{response }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00170}{170}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keyword}{def\ }respond(self,\ response):}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.lock.acquire()}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_response(200)}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_header(\textcolor{stringliteral}{'Content-\/Length'},\ len(response))}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_header(\textcolor{stringliteral}{'Content-\/Type'},\ \textcolor{stringliteral}{'text/plain'})}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ self.send\_header(\textcolor{stringliteral}{'Access-\/Control-\/Allow-\/Origin'},\ \textcolor{stringliteral}{'*'})}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ self.end\_headers()}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \ self.wfile.seek(0)}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ headers\ =\ self.wfile.read()}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Sent\ headers\ \{\}.'}.format(headers))}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ \ \ self.push(headers\ +\ response)}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ self.close\_when\_done()}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.lock.release()}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ self.server.log.info(\textcolor{stringliteral}{'Sent\ response\ \{\}.'}.format(response))}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ }
+
+\end{DoxyCode}
+
+
+\doxysubsection{Field Documentation}
+\Hypertarget{classserver_1_1_game_request_handler_a724749c7c5d09652f320c7d65e9a3cc6}\label{classserver_1_1_game_request_handler_a724749c7c5d09652f320c7d65e9a3cc6} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!client\_address@{client\_address}}
+\index{client\_address@{client\_address}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{client\_address}{client\_address}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+client\+\_\+address}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00083}{83}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a14fc60f0db3d0a23fd625d4f00a21a43}\label{classserver_1_1_game_request_handler_a14fc60f0db3d0a23fd625d4f00a21a43} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!command@{command}}
+\index{command@{command}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{command}{command}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+command}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00102}{102}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a911b1db204fecd9b0c4a984f94564cb7}\label{classserver_1_1_game_request_handler_a911b1db204fecd9b0c4a984f94564cb7} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!connection@{connection}}
+\index{connection@{connection}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{connection}{connection}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+connection}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00084}{84}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a9592ec71a0c0c2cc7bfda33af4a4cc84}\label{classserver_1_1_game_request_handler_a9592ec71a0c0c2cc7bfda33af4a4cc84} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!in\_buffer@{in\_buffer}}
+\index{in\_buffer@{in\_buffer}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{in\_buffer}{in\_buffer}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+in\+\_\+buffer}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00090}{90}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a182b910607a5675052aab5ded0bd59da}\label{classserver_1_1_game_request_handler_a182b910607a5675052aab5ded0bd59da} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!parsed\_path@{parsed\_path}}
+\index{parsed\_path@{parsed\_path}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{parsed\_path}{parsed\_path}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+parsed\+\_\+path}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00108}{108}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a054439644e8ef0db342ad8d3d974681c}\label{classserver_1_1_game_request_handler_a054439644e8ef0db342ad8d3d974681c} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!protocol\_version@{protocol\_version}}
+\index{protocol\_version@{protocol\_version}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{protocol\_version}{protocol\_version}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+protocol\+\_\+version}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00092}{92}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a3e4d8523f69f0c950925b7f7d4e4e2f9}\label{classserver_1_1_game_request_handler_a3e4d8523f69f0c950925b7f7d4e4e2f9} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!raw\_requestline@{raw\_requestline}}
+\index{raw\_requestline@{raw\_requestline}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{raw\_requestline}{raw\_requestline}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+raw\+\_\+requestline}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00100}{100}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a51e60ea201585d7d76feee54edaeb49a}\label{classserver_1_1_game_request_handler_a51e60ea201585d7d76feee54edaeb49a} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!rfile@{rfile}}
+\index{rfile@{rfile}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{rfile}{rfile}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+rfile}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00098}{98}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a0185fd976669d4dd85fbdcaa6733e2aa}\label{classserver_1_1_game_request_handler_a0185fd976669d4dd85fbdcaa6733e2aa} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!server@{server}}
+\index{server@{server}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{server}{server}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+server}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00086}{86}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_request_handler_a764db8984947d5374820f3e59a1ffa63}\label{classserver_1_1_game_request_handler_a764db8984947d5374820f3e59a1ffa63} 
+\index{server.GameRequestHandler@{server.GameRequestHandler}!wfile@{wfile}}
+\index{wfile@{wfile}!server.GameRequestHandler@{server.GameRequestHandler}}
+\doxysubsubsection{\texorpdfstring{wfile}{wfile}}
+{\footnotesize\ttfamily server.\+Game\+Request\+Handler.\+wfile}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00091}{91}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/py/server.\+py\end{DoxyCompactItemize}

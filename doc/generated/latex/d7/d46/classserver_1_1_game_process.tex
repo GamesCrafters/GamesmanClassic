@@ -1,0 +1,572 @@
+\hypertarget{classserver_1_1_game_process}{}\doxysection{server.\+Game\+Process Class Reference}
+\label{classserver_1_1_game_process}\index{server.GameProcess@{server.GameProcess}}
+Inheritance diagram for server.\+Game\+Process\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{d7/d46/classserver_1_1_game_process}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_ae3ae37784f545bf948928e2f971dc223}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, server, game, bin\+\_\+path, option\+\_\+num=None)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a48b2e73f1a20b05eb3c804869fcb4bb9}{setup\+\_\+subprocess\+\_\+pipe}} (self, pipe)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_ad926a191c1d73528bb1b2fcc6e6acc6a}{push\+\_\+request}} (self, request)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a332cf6825e689485d8b4546fa7e7a093}{alive}} (self)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_aeb609c62adaf0571a491acf3a6cac596}{close}} (self)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a9ddcef136092285e5d9b0a3091adde0e}{parse\+\_\+response}} (self, response)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_ac0b52288f736bd4bd75b110639c03698}{handle\+\_\+timeout}} (self, request, response)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a5f9a9b2c8a5c0e5a8ad8702921104093}{wait\+\_\+for\+\_\+ready}} (self, timeout)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_abfde15cc9b9a8b3e0ed7a3ac4a029e6f}{handle}} (self, request)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_ad3f892dccc7d9a47dbf8302f46cf3c20}{request\+\_\+loop}} (self)
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a057c4e7bfb15251df8dfc3711e738310}{memory\+\_\+percent\+\_\+usage}} (self)
+\end{DoxyCompactItemize}
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_af65d1cc86fca9d0ce97705eee4bc335d}{server}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a3ddbaf293243032c5ba90025ae4e2892}{game}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_abfccc7015a44d58fdd101e70ad33e76c}{queue}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_adde20ee83ffa7b79d882b81acabf681f}{option\+\_\+num}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a3fa40e36b2c3b18ea5a82830434a7b6f}{req\+\_\+timeout}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a9545b06544d1d5c778f61f4bd1d3ef67}{req\+\_\+timeout\+\_\+step}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_af224e304c10fca241f95c9c04d0dd49c}{read\+\_\+timeout}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a61488d0963c440f7f57a909dcb90c7d8}{process}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a1196942d2ab63bcd49057b4f96641f44}{timeout\+\_\+msg}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_aefd1e754a97fa04d48d51fa6953a2346}{crash\+\_\+msg}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a5bc76e2d1d106ca1892339dd1fe57445}{closed\+\_\+msg}}
+\item 
+\mbox{\hyperlink{classserver_1_1_game_process_a442609c7bb12ad755208c5a43a015725}{thread}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00201}{201}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classserver_1_1_game_process_ae3ae37784f545bf948928e2f971dc223}\label{classserver_1_1_game_process_ae3ae37784f545bf948928e2f971dc223} 
+\index{server.GameProcess@{server.GameProcess}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{server,  }\item[{}]{game,  }\item[{}]{bin\+\_\+path,  }\item[{}]{option\+\_\+num = {\ttfamily None} }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00203}{203}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ server,\ game,\ bin\_path,\ option\_num=None):}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ self.server\ =\ server}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ self.game\ =\ game}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ self.queue\ =\ Queue.Queue()}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ self.option\_num\ =\ option\_num}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ self.req\_timeout\ =\ subprocess\_idle\_timeout}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ self.req\_timeout\_step\ =\ 0.1}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ self.read\_timeout\ =\ subprocess\_reponse\_timeout}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Note\ that\ arguments\ to\ GamesmanClassic\ must\ be\ given\ in\ the\ right}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ order\ (this\ one,\ to\ be\ precise).}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ arg\_list\ =\ [bin\_path]}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ option\_num\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ arg\_list.append(\textcolor{stringliteral}{'-\/-\/option'})}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ arg\_list.append(str(option\_num))}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ arg\_list.append(\textcolor{stringliteral}{'-\/-\/interact'})}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Open\ a\ subprocess,\ connecting\ all\ of\ its\ file\ descriptors\ to\ pipes,}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ and\ set\ it\ to\ line\ buffer\ mode.}}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ self.process\ =\ subprocess.Popen(arg\_list,\ stdin=subprocess.PIPE,}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stdout=subprocess.PIPE,}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stderr=subprocess.STDOUT,}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cwd=root\_game\_directory,}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bufsize=1,}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ close\_fds=\textcolor{keyword}{True})}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ self.setup\_subprocess\_pipe(self.process.stdout)}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ self.timeout\_msg\ =\ timeout\_msg}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ self.crash\_msg\ =\ crash\_msg}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ self.closed\_msg\ =\ closed\_msg}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ self.thread\ =\ threading.Thread(target=self.request\_loop)}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ self.thread.daemon\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ self.thread.start()}
+\DoxyCodeLine{00237\ }
+
+\end{DoxyCode}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classserver_1_1_game_process_a332cf6825e689485d8b4546fa7e7a093}\label{classserver_1_1_game_process_a332cf6825e689485d8b4546fa7e7a093} 
+\index{server.GameProcess@{server.GameProcess}!alive@{alive}}
+\index{alive@{alive}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{alive()}{alive()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+alive (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00247}{247}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keyword}{def\ }alive(self):}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.thread.is\_alive()}
+\DoxyCodeLine{00249\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_aeb609c62adaf0571a491acf3a6cac596}\label{classserver_1_1_game_process_aeb609c62adaf0571a491acf3a6cac596} 
+\index{server.GameProcess@{server.GameProcess}!close@{close}}
+\index{close@{close}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{close()}{close()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+close (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00250}{250}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00250\ \ \ \ \ \textcolor{keyword}{def\ }close(self):}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keywordflow}{not}\ self.queue.empty():}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ self.queue.get().respond(self.closed\_msg)}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ self.server.log.info(\textcolor{stringliteral}{'Closing\ \{\}.'}.format(self.game.name))}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ self.game.remove\_process(self)}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Sending\ exit\ command\ to\ \{\}.'}.format(self.game.name))}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ self.process.stdin.write(\textcolor{stringliteral}{'exit\(\backslash\)n'})}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ normal\_exit\_timeout\ =\ 60}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \ \ normal\_exit\_timeout\_step\ =\ 5}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ self.process.poll()\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}\ \textcolor{keywordflow}{and}\ normal\_exit\_timeout\ >\ 0:}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(normal\_exit\_timeout\_step)}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ normal\_exit\_timeout\ -\/=\ normal\_exit\_timeout\_step}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ normal\_exit\_timeout\ <=\ 0:}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ RuntimeError}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ IOError:}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'\{\}\ normal\ exit\ IOError.\ The\ process\ may'}}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\ have\ been\ terminated\ already.'}.format(self.game.name))}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ RuntimeError:}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'\{\}\ normal\ exit\ timeout!'}.format(self.game.name))}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ self.process.terminate()}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(1)}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ self.process.kill()}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ OSError:}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{00277\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_abfde15cc9b9a8b3e0ed7a3ac4a029e6f}\label{classserver_1_1_game_process_abfde15cc9b9a8b3e0ed7a3ac4a029e6f} 
+\index{server.GameProcess@{server.GameProcess}!handle@{handle}}
+\index{handle@{handle}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{handle()}{handle()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+handle (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{request }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00340}{340}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00340\ \ \ \ \ \textcolor{keyword}{def\ }handle(self,\ request):}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ time\_remaining\ =\ self.wait\_for\_ready(self.read\_timeout)}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ time\_remaining\ <=\ 0:}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.handle\_timeout(request,\ \textcolor{stringliteral}{''})}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Sent\ command\ \{\}.'}.format(request.command))}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ \ \ \ \ self.process.stdin.write(request.command\ +\ \textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ IOError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ This\ case\ can\ be\ hit\ if\ the\ subprocess\ crashes\ between\ requests}}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ (known\ to\ occasionally\ happen).}}
+\DoxyCodeLine{00350\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'\{\}\ crashed\ on\ write!'}}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(self.game.name))}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \ \ \ \ request.respond(self.crash\_msg)}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ response\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \ \ timeout\ =\ 0.01}
+\DoxyCodeLine{00356\ \ \ \ \ \ \ \ \ parsed\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{00357\ \ \ \ \ \ \ \ \ curr\_time\ =\ time.time()}
+\DoxyCodeLine{00358\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ \textcolor{keywordflow}{not}\ parsed:}
+\DoxyCodeLine{00359\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ time\_remaining\ <=\ 0:}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'timeout'})}
+\DoxyCodeLine{00361\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.handle\_timeout(request,\ response)}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ time\_remaining\ -\/=\ timeout}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(timeout)}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ next\_char\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ next\_char\ !=\ \textcolor{stringliteral}{'\(\backslash\)n'}:}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ response\ +=\ next\_char}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ next\_char\ =\ self.process.stdout.read(1)}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ time.time()\ -\/\ curr\_time\ >\ 20:}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#if\ time.time()\ -\/\ curr\_time\ >\ 5000:}}
+\DoxyCodeLine{00371\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'timeout'})}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.handle\_timeout(request,\ response)}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ IOError:}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{00375\ \ \ \ \ \ \ \ \ \ \ \ \ parsed\ =\ self.parse\_response(response)}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ \ \ request.respond(parsed)}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{True}}
+\DoxyCodeLine{00378\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_ac0b52288f736bd4bd75b110639c03698}\label{classserver_1_1_game_process_ac0b52288f736bd4bd75b110639c03698} 
+\index{server.GameProcess@{server.GameProcess}!handle\_timeout@{handle\_timeout}}
+\index{handle\_timeout@{handle\_timeout}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{handle\_timeout()}{handle\_timeout()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+handle\+\_\+timeout (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{request,  }\item[{}]{response }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00299}{299}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00299\ \ \ \ \ \textcolor{keyword}{def\ }handle\_timeout(self,\ request,\ response):}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Did\ not\ receive\ a\ response\ from\ the\ subprocess,\ so}}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ exit\ and\ kill\ it.}}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'Did\ not\ receive\ result\ '}}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'from\ \{\}!'}.format(self.game.name))}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'Process\ sent\ output:\(\backslash\)n'}}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\{\}'}.format(response))}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.process.poll()\ \textcolor{keywordflow}{is}\ \textcolor{keywordflow}{not}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ If\ the\ process\ is\ no\ longer\ running}}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'\{\}\ crashed!'}.format(self.game.name))}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \ \ \ \ request.respond(self.crash\_msg)}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'\{\}\ timed\ out!'}.format(self.game.name))}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ \ \ request.respond(self.timeout\_msg)}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordflow}{not}\ close\_on\_timeout}
+\DoxyCodeLine{00315\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_a057c4e7bfb15251df8dfc3711e738310}\label{classserver_1_1_game_process_a057c4e7bfb15251df8dfc3711e738310} 
+\index{server.GameProcess@{server.GameProcess}!memory\_percent\_usage@{memory\_percent\_usage}}
+\index{memory\_percent\_usage@{memory\_percent\_usage}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{memory\_percent\_usage()}{memory\_percent\_usage()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+memory\+\_\+percent\+\_\+usage (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00406}{406}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00406\ \ \ \ \ \textcolor{keyword}{def\ }memory\_percent\_usage(self):}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ ps\_output\ =\ subprocess.check\_output(\textcolor{stringliteral}{'ps\ -\/o\ pmem'}.split()\ +}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [str(self.process.pid)])}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ percent\ =\ float(ps\_output.split(\textcolor{stringliteral}{'\(\backslash\)n'})[1].strip())}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'\{\}\ is\ using\ \{\}\%\ of\ memory.'}}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(self.game.name,\ percent))}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ percent}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'Could\ not\ get\ memory\ use\ of\ \{\},\ '}}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'because\ of\ error:\ \{\}.'}}
+\DoxyCodeLine{00417\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(self.game.name,\ e))}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_a9ddcef136092285e5d9b0a3091adde0e}\label{classserver_1_1_game_process_a9ddcef136092285e5d9b0a3091adde0e} 
+\index{server.GameProcess@{server.GameProcess}!parse\_response@{parse\_response}}
+\index{parse\_response@{parse\_response}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{parse\_response()}{parse\_response()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+parse\+\_\+response (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{response }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00278}{278}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00278\ \ \ \ \ \textcolor{keyword}{def\ }parse\_response(self,\ response):}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'result'}\ \textcolor{keywordflow}{not}\ \textcolor{keywordflow}{in}\ response:}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'"{}result"{}\ not\ in\ string\ to\ parse:\ \{!r\}'}}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(response))}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ lines\ =\ response.split(\textcolor{stringliteral}{'\(\backslash\)n'})}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ line\ \textcolor{keywordflow}{in}\ lines:}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ line.startswith(\textcolor{stringliteral}{'result'}):}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Parsing\ line\ starting\ with\ result.'})}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ line.split(\textcolor{stringliteral}{'=>>'})[1].strip()}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Split\ off\ "{}result\ =>>"{}'})}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parsed\ =\ json.loads(result)}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Parsed\ json\ from\ \{!r\}'}.format(result))}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Could\ not\ parse:\ \{!r\}'}.format(result))}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Catches\ problems\ with\ split,\ indexing,\ and\ non\ json}}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ together}}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.game.format\_parsed(parsed)}
+\DoxyCodeLine{00298\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_ad926a191c1d73528bb1b2fcc6e6acc6a}\label{classserver_1_1_game_process_ad926a191c1d73528bb1b2fcc6e6acc6a} 
+\index{server.GameProcess@{server.GameProcess}!push\_request@{push\_request}}
+\index{push\_request@{push\_request}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{push\_request()}{push\_request()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+push\+\_\+request (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{request }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00243}{243}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{keyword}{def\ }push\_request(self,\ request):}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ self.queue.put(request)}
+\DoxyCodeLine{00245\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_ad3f892dccc7d9a47dbf8302f46cf3c20}\label{classserver_1_1_game_process_ad3f892dccc7d9a47dbf8302f46cf3c20} 
+\index{server.GameProcess@{server.GameProcess}!request\_loop@{request\_loop}}
+\index{request\_loop@{request\_loop}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{request\_loop()}{request\_loop()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+request\+\_\+loop (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00379}{379}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00379\ \ \ \ \ \textcolor{keyword}{def\ }request\_loop(self):}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \ \ live\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ \ \ total\_idle\_time\ =\ 0.0}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ live:}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'In\ request\ loop\ for\ \{\}.'}.format(self.game.name))}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ request\ =\ self.queue.get(block=\textcolor{keyword}{True},}
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ timeout=self.req\_timeout\_step)}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Queue.Empty\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total\_idle\_time\ +=\ self.req\_timeout\_step}
+\DoxyCodeLine{00390\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ total\_idle\_time\ >\ self.req\_timeout:}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\{\}\ closed\ from\ lack\ of\ use.'}.format(self.game.name))}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ live\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total\_idle\_time\ =\ 0.0}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ live\ =\ self.handle(request)}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'\{\}\ is\ using\ \{\}\%\ of\ memory.'}}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(self.game.name,}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.memory\_percent\_usage()))}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.memory\_percent\_usage()\ >\ max\_memory\_percent\_per\_process:}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'\{\}\ used\ too\ much\ memory!'}}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(self.game.name))}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ live\ =\ \textcolor{keyword}{False}}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ self.close()}
+\DoxyCodeLine{00405\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_a48b2e73f1a20b05eb3c804869fcb4bb9}\label{classserver_1_1_game_process_a48b2e73f1a20b05eb3c804869fcb4bb9} 
+\index{server.GameProcess@{server.GameProcess}!setup\_subprocess\_pipe@{setup\_subprocess\_pipe}}
+\index{setup\_subprocess\_pipe@{setup\_subprocess\_pipe}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{setup\_subprocess\_pipe()}{setup\_subprocess\_pipe()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+setup\+\_\+subprocess\+\_\+pipe (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{pipe }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00238}{238}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{keyword}{def\ }setup\_subprocess\_pipe(self,\ pipe):}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ descriptor\ =\ pipe.fileno()}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ flags\ =\ fcntl.fcntl(descriptor,\ fcntl.F\_GETFL)}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ fcntl.fcntl(descriptor,\ fcntl.F\_SETFL,\ flags\ |\ os.O\_NONBLOCK)}
+\DoxyCodeLine{00242\ }
+
+\end{DoxyCode}
+\Hypertarget{classserver_1_1_game_process_a5f9a9b2c8a5c0e5a8ad8702921104093}\label{classserver_1_1_game_process_a5f9a9b2c8a5c0e5a8ad8702921104093} 
+\index{server.GameProcess@{server.GameProcess}!wait\_for\_ready@{wait\_for\_ready}}
+\index{wait\_for\_ready@{wait\_for\_ready}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{wait\_for\_ready()}{wait\_for\_ready()}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+wait\+\_\+for\+\_\+ready (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{timeout }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00316}{316}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00316\ \ \ \ \ \textcolor{keyword}{def\ }wait\_for\_ready(self,\ timeout):}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ last\_output\ =\ \textcolor{stringliteral}{''}}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ read\_timeout\ =\ 0.001}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ total\_time\ =\ read\_timeout}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ total\_time\ <\ timeout:}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ \ \ \ \ total\_time\ +=\ read\_timeout}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(read\_timeout)}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_output\ =\ self.process.stdout.read()}
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ IOError:}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Probably\ no\ data\ to\ read.}}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Subprocess\ could\ have\ could\ have\ crashed,\ but\ we'll\ timeout}}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ anyways.}}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue}}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'\{\}\ read:\(\backslash\)n'}}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{'\{\}'}.format(self.game.name,\ last\_output))}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{stringliteral}{'\ ready\ =>>'}\ \textcolor{keywordflow}{in}\ last\_output:}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.debug(\textcolor{stringliteral}{'Found\ ready\ prompt\ in\ \{\}\ seconds.'}}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(total\_time))}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ timeout\ -\/\ total\_time}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'Could\ not\ find\ ready\ prompt\ for\ \{\}.'}}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .format(self.game.name))}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ timeout\ -\/\ total\_time}
+\DoxyCodeLine{00339\ }
+
+\end{DoxyCode}
+
+
+\doxysubsection{Field Documentation}
+\Hypertarget{classserver_1_1_game_process_a5bc76e2d1d106ca1892339dd1fe57445}\label{classserver_1_1_game_process_a5bc76e2d1d106ca1892339dd1fe57445} 
+\index{server.GameProcess@{server.GameProcess}!closed\_msg@{closed\_msg}}
+\index{closed\_msg@{closed\_msg}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{closed\_msg}{closed\_msg}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+closed\+\_\+msg}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00232}{232}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_aefd1e754a97fa04d48d51fa6953a2346}\label{classserver_1_1_game_process_aefd1e754a97fa04d48d51fa6953a2346} 
+\index{server.GameProcess@{server.GameProcess}!crash\_msg@{crash\_msg}}
+\index{crash\_msg@{crash\_msg}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{crash\_msg}{crash\_msg}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+crash\+\_\+msg}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00231}{231}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_a3ddbaf293243032c5ba90025ae4e2892}\label{classserver_1_1_game_process_a3ddbaf293243032c5ba90025ae4e2892} 
+\index{server.GameProcess@{server.GameProcess}!game@{game}}
+\index{game@{game}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{game}{game}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+game}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00205}{205}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_adde20ee83ffa7b79d882b81acabf681f}\label{classserver_1_1_game_process_adde20ee83ffa7b79d882b81acabf681f} 
+\index{server.GameProcess@{server.GameProcess}!option\_num@{option\_num}}
+\index{option\_num@{option\_num}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{option\_num}{option\_num}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+option\+\_\+num}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00207}{207}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_a61488d0963c440f7f57a909dcb90c7d8}\label{classserver_1_1_game_process_a61488d0963c440f7f57a909dcb90c7d8} 
+\index{server.GameProcess@{server.GameProcess}!process@{process}}
+\index{process@{process}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{process}{process}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+process}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00222}{222}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_abfccc7015a44d58fdd101e70ad33e76c}\label{classserver_1_1_game_process_abfccc7015a44d58fdd101e70ad33e76c} 
+\index{server.GameProcess@{server.GameProcess}!queue@{queue}}
+\index{queue@{queue}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{queue}{queue}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+queue}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00206}{206}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_af224e304c10fca241f95c9c04d0dd49c}\label{classserver_1_1_game_process_af224e304c10fca241f95c9c04d0dd49c} 
+\index{server.GameProcess@{server.GameProcess}!read\_timeout@{read\_timeout}}
+\index{read\_timeout@{read\_timeout}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{read\_timeout}{read\_timeout}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+read\+\_\+timeout}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00210}{210}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_a3fa40e36b2c3b18ea5a82830434a7b6f}\label{classserver_1_1_game_process_a3fa40e36b2c3b18ea5a82830434a7b6f} 
+\index{server.GameProcess@{server.GameProcess}!req\_timeout@{req\_timeout}}
+\index{req\_timeout@{req\_timeout}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{req\_timeout}{req\_timeout}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+req\+\_\+timeout}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00208}{208}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_a9545b06544d1d5c778f61f4bd1d3ef67}\label{classserver_1_1_game_process_a9545b06544d1d5c778f61f4bd1d3ef67} 
+\index{server.GameProcess@{server.GameProcess}!req\_timeout\_step@{req\_timeout\_step}}
+\index{req\_timeout\_step@{req\_timeout\_step}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{req\_timeout\_step}{req\_timeout\_step}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+req\+\_\+timeout\+\_\+step}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00209}{209}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_af65d1cc86fca9d0ce97705eee4bc335d}\label{classserver_1_1_game_process_af65d1cc86fca9d0ce97705eee4bc335d} 
+\index{server.GameProcess@{server.GameProcess}!server@{server}}
+\index{server@{server}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{server}{server}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+server}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00204}{204}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_a442609c7bb12ad755208c5a43a015725}\label{classserver_1_1_game_process_a442609c7bb12ad755208c5a43a015725} 
+\index{server.GameProcess@{server.GameProcess}!thread@{thread}}
+\index{thread@{thread}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{thread}{thread}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+thread}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00234}{234}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+\Hypertarget{classserver_1_1_game_process_a1196942d2ab63bcd49057b4f96641f44}\label{classserver_1_1_game_process_a1196942d2ab63bcd49057b4f96641f44} 
+\index{server.GameProcess@{server.GameProcess}!timeout\_msg@{timeout\_msg}}
+\index{timeout\_msg@{timeout\_msg}!server.GameProcess@{server.GameProcess}}
+\doxysubsubsection{\texorpdfstring{timeout\_msg}{timeout\_msg}}
+{\footnotesize\ttfamily server.\+Game\+Process.\+timeout\+\_\+msg}
+
+
+
+Definition at line \mbox{\hyperlink{server_8py_source_l00230}{230}} of file \mbox{\hyperlink{server_8py_source}{server.\+py}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/py/server.\+py\end{DoxyCompactItemize}

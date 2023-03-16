@@ -1,0 +1,56 @@
+\hypertarget{trnode_8h_source}{}\doxysection{trnode.\+h}
+\label{trnode_8h_source}\index{src/core/text\_resource/trnode.h@{src/core/text\_resource/trnode.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ TRNODE\_H\_}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ TRNODE\_H\_}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}bstrlib.h"{}}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00006}00006\ \textcolor{comment}{//the\ different\ nodes\ from\ xml}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00008}00008\ \textcolor{keyword}{enum}\ TRNODETYPE\ \{TRNODE\_STRING,\ TRNODE\_SWITCH,\ TRNODE\_REPR,\ TRNODE\_TEXT\};}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00010}\mbox{\hyperlink{structtrnode}{00010}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtrnode}{trnode}}\ \{}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00011}00011\ \ \ \ \ \textcolor{keyword}{enum}\ TRNODETYPE\ type;}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00012}00012\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtrnode}{trnode}}*\ children\_list;}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00014}00014\ \ \ \ \ \textcolor{comment}{//structural\ linked-\/list\ (old\ c\ development\ style\ =P,\ since\ we\ DON'T\ HAVE\ STL)}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00015}00015\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtrnode}{trnode}}*\ next;}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00017}00017\ \ \ \ \ \textcolor{comment}{//node\ specific\ data}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00018}00018\ \ \ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00019}00019\ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ are\ string\ or\ case\ node}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00020}00020\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ caseValue;\ \textcolor{comment}{//not\ null\ if\ we\ are\ actually\ a\ case}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00022}00022\ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ are\ switch\ node}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00023}00023\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ switchVar;}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00025}00025\ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ are\ repr\ or\ cond\ node}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00026}00026\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00027}00027\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ reprKey;}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00029}00029\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ condKey;\ \textcolor{comment}{//not\ null\ if\ we\ are\ actually\ a\ cond}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00030}00030\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ condValue;}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00031}00031\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00033}00033\ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ are\ text\ node}}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00034}00034\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtagbstring}{bstring}}\ textData;}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00035}00035\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00036}00036\ \}\ \mbox{\hyperlink{structtrnode}{trnode\_t}};}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00038}00038\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ trnode\_create(\textcolor{keyword}{enum}\ TRNODETYPE\ type);}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00039}00039\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ trnode\_createStringNode(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ caseValue);}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00040}00040\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ trnode\_createSwitchNode(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ var);}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00041}00041\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ trnode\_createReprNode(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ reprKey,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ condKey,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ condValue);}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00042}00042\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ trnode\_createTextNode(\mbox{\hyperlink{structtagbstring}{bstring}}\ data);}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00044}00044\ \textcolor{keywordtype}{void}\ trnode\_addLast(\mbox{\hyperlink{structtrnode}{trnode\_t}}*\ thisNode,\ \mbox{\hyperlink{structtrnode}{trnode\_t}}*\ toAdd);}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00045}00045\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00046}00046\ \textcolor{keywordtype}{void}\ trnode\_free(\mbox{\hyperlink{structtrnode}{trnode\_t}}*);}
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{trnode_8h_source_l00050}00050\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*TRNODE\_H\_*/}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

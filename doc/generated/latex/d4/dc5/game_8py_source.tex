@@ -1,0 +1,130 @@
+\hypertarget{game_8py_source}{}\doxysection{game.\+py}
+\label{game_8py_source}\index{src/py/game.py@{src/py/game.py}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00001}00001\ \textcolor{keyword}{import}\ collections}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00002}00002\ \textcolor{keyword}{import}\ os}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00003}00003\ \textcolor{keyword}{import}\ os.path}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00004}00004\ \textcolor{keyword}{import}\ json}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00005}00005\ \textcolor{keyword}{import}\ time}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00007}\mbox{\hyperlink{classgame_1_1_game}{00007}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classgame_1_1_game}{Game}}(object):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00008}00008\ \ \ \ \ indent\_response\ =\ \textcolor{keyword}{True}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00010}00010\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ server,\ name):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00011}00011\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}}\ =\ server}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00012}00012\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974}{name}}\ =\ name}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00013}00013\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a1893d1b3057c24c1d6290ee2a77c56cc}{root\_dir}}\ =\ server.root\_game\_directory}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00014}00014\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}\ =\ collections.defaultdict(list)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00015}00015\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a58bc8cd79c0d31f884ebb69321837481}{process\_class}}\ =\ \mbox{\hyperlink{classserver_1_1_game_process}{server.GameProcess}}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00016}00016\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}\ =\ \textcolor{stringliteral}{'maybe'}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00018}00018\ \ \ \ \ \textcolor{keyword}{def\ }get\_process(self,\ query):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00019}00019\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a3c65013336d81ea27bfafc6525dd8b53}{delete\_closed\_processes}}()}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00020}00020\ \ \ \ \ \ \ \ \ opt\ =\ query.get(\textcolor{stringliteral}{'number'},\ \textcolor{keywordtype}{None})}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00021}00021\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ opt\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00022}00022\ \ \ \ \ \ \ \ \ \ \ \ \ opt\ =\ self.\mbox{\hyperlink{classgame_1_1_game_ace2e199c452ad1a4593385a0136a8090}{get\_option}}(query)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00024}00024\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ that\ there\ is\ a\ non-\/empty\ list\ of\ processes\ for\ this\ option}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00025}00025\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}[opt]:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00026}00026\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}[opt][0]}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00027}00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00028}00028\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\mbox{\hyperlink{classgame_1_1_game_aa10d85ad3cf6adb0430f23e4d9553b99}{start\_process}}(query,\ opt)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00030}00030\ \ \ \ \ \textcolor{keyword}{def\ }format\_parsed(self,\ parsed):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00031}00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ json.dumps(parsed,\ indent=self.\mbox{\hyperlink{classgame_1_1_game_a12aea4e7aaf3331b5772b3e606eecc6c}{indent\_response}})}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00033}00033\ \ \ \ \ \textcolor{preprocessor}{@property}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00034}00034\ \ \ \ \ \textcolor{keyword}{def\ }has\_script(self):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00035}00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ type(self)\ !=\ Game}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00037}00037\ \ \ \ \ \textcolor{preprocessor}{@property}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00038}00038\ \ \ \ \ \textcolor{keyword}{def\ }working(self):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00039}00039\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}\ ==\ \textcolor{stringliteral}{'maybe'}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00040}00040\ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}\ =\ self.\mbox{\hyperlink{classgame_1_1_game_a84df0ab87c6d36f1f29f23f96409ad55}{check\_if\_working}}()}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00041}00041\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00043}00043\ \ \ \ \ \textcolor{keyword}{def\ }check\_if\_working(self):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00044}00044\ \ \ \ \ \ \ \ \ proc\ =\ self.\mbox{\hyperlink{classgame_1_1_game_a09f8fce408b10d63a3e0ffee5be4c96a}{get\_process}}(collections.defaultdict(str))}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00045}00045\ \ \ \ \ \ \ \ \ time\_remaining\ =\ 600}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00046}00046\ \ \ \ \ \ \ \ \ time\_step\ =\ 0.01}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00047}00047\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }TestRequest(object):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ game,\ proc):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a2e37501e238f99e171f2f2e157a0beae}{query}}\ =\ collections.defaultdict(str)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a719c5bb4ba8b152940a078c1fd8c6108}{command}}\ =\ \textcolor{stringliteral}{'start\_response'}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a6eff5f2c264dec265e8380d0914b1a45}{game}}\ =\ game}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_ac553ca9b5bffbce030b16d288ce7c224}{proc}}\ =\ proc}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }respond(self,\ response):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parsed\ =\ json.loads(response)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a6eff5f2c264dec265e8380d0914b1a45}{game}}.\_working\ =\ parsed[\textcolor{stringliteral}{u'response'}]\ !=\ \textcolor{stringliteral}{u'not\ implemented'}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00059}00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_ac553ca9b5bffbce030b16d288ce7c224}{proc}}.close()}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00063}00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ proc.push\_request(TestRequest(self,\ proc))}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ AttributeError:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00066}00066\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ proc.alive\ \textcolor{keywordflow}{and}\ time\_remaining\ >\ 0:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00068}00068\ \ \ \ \ \ \ \ \ \ \ \ \ time\_remaining\ -\/=\ time\_step}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00069}00069\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(time\_step)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00070}00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}\ !=\ \textcolor{stringliteral}{'maybe'}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00071}00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}\ ==\ \textcolor{stringliteral}{'maybe'}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00073}00073\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00075}00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\_working}}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00076}00076\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00078}00078\ \ \ \ \ \textcolor{keyword}{def\ }delete\_closed\_processes(self):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ ps\ \textcolor{keywordflow}{in}\ self.\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}.items():}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ proc\ \textcolor{keywordflow}{in}\ ps:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00081}00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ proc.alive:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc.process.kill()}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}[k]\ =\ filter(\textcolor{keyword}{lambda}\ p:\ p.alive,\ ps)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00087}00087\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00088}00088\ \ \ \ \ \textcolor{keyword}{def\ }start\_process(self,\ query,\ opt):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00089}00089\ \ \ \ \ \ \ \ \ bin\_name\ =\ \textcolor{stringliteral}{'m'}\ +\ self.\mbox{\hyperlink{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974}{name}}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ os.listdir(self.\mbox{\hyperlink{classgame_1_1_game_a1893d1b3057c24c1d6290ee2a77c56cc}{root\_dir}}):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00091}00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ f\ ==\ bin\_name:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}}.log.info(\textcolor{stringliteral}{'Starting\ \{\}.'}.format(self.\mbox{\hyperlink{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974}{name}}))}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bin\_path\ =\ os.path.join(os.path.curdir,\ bin\_name)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00094}00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gp\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gp\ =\ self.\mbox{\hyperlink{classgame_1_1_game_a58bc8cd79c0d31f884ebb69321837481}{process\_class}}(self.\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}},\ self,\ bin\_path,\ opt)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ OSError\ \textcolor{keyword}{as}\ err:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}}.log.error(\textcolor{stringliteral}{'Ran\ out\ of\ file\ descriptors!'})}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc\_list\ =\ self.\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}.setdefault(opt,\ [])}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc\_list.append(gp)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ gp}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00104}00104\ \ \ \ \ \textcolor{keyword}{def\ }push\_request(self,\ request):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00105}00105\ \ \ \ \ \ \ \ \ proc\ =\ self.\mbox{\hyperlink{classgame_1_1_game_a09f8fce408b10d63a3e0ffee5be4c96a}{get\_process}}(request.query)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00106}00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ proc:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ proc.push\_request(request)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00108}00108\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Handles\ game\ not\ being\ present}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ request.respond(self.\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}}.could\_not\_start\_msg)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00112}00112\ \ \ \ \ \textcolor{keyword}{def\ }get\_option(self,\ query):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00115}00115\ \ \ \ \ \textcolor{keyword}{def\ }respond\_to\_unknown\_request(self,\ req):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00116}00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ Exception(\textcolor{stringliteral}{"{}Cannot\ handle\ query."{}})}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00118}00118\ \ \ \ \ \textcolor{keyword}{def\ }remove\_process(self,\ process):}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00119}00119\ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}}.log.info(\textcolor{stringliteral}{'Removing\ \{\}.'}.format(self.\mbox{\hyperlink{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974}{name}}))}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00120}00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}[process.option\_num].remove(process)}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00122}00122\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ ValueError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}}.log.error(\textcolor{stringliteral}{'Trying\ to\ remove\ subprocess\ of\ \{\}\ failed\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{game_8py_source_l00124}00124\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ because\ it\ could\ not\ be\ found.'}.format(self.\mbox{\hyperlink{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974}{name}}))}
+
+\end{DoxyCode}

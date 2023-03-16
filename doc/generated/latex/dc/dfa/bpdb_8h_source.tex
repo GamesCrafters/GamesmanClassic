@@ -1,0 +1,252 @@
+\hypertarget{bpdb_8h_source}{}\doxysection{bpdb.\+h}
+\label{bpdb_8h_source}\index{src/core/bpdb.h@{src/core/bpdb.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ bpdb.h}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ \ \ \ Accessor\ functions\ for\ the\ Bit-\/Perfect\ Database.}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ Ken\ Elkabany}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ \ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ 2006-\/05-\/01}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00013}00013\ \textcolor{comment}{**\ LICENSE:\ \ \ \ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00016}00016\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00017}00017\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00018}00018\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00019}00019\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00020}00020\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00021}00021\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00022}00022\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00023}00023\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00024}00024\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00025}00025\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00026}00026\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00027}00027\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00028}00028\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00029}00029\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00030}00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00031}00031\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00033}00033\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_BPDB\_H}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00034}00034\ \textcolor{preprocessor}{\#define\ GMCORE\_BPDB\_H}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00036}00036\ \textcolor{preprocessor}{\#include\ "{}bpdb\_schemes.h"{}}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00037}00037\ \textcolor{preprocessor}{\#include\ "{}db.h"{}}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00039}00039\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00040}00040\ \textcolor{comment}{//\ slice\ format}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00041}00041\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00043}\mbox{\hyperlink{structsliceformat}{00043}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsliceformat}{sliceformat}}\ \{}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00044}00044\ \ \ \ \ UINT8\ *size;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00045}00045\ \ \ \ \ UINT32\ *offset;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00046}00046\ \ \ \ \ UINT64\ *maxvalue;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00047}00047\ \ \ \ \ UINT64\ *maxseen;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00048}00048\ \ \ \ \ \textcolor{keywordtype}{char}\ **name;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00049}00049\ \ \ \ \ UINT8\ slots;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00050}00050\ \ \ \ \ UINT32\ bits;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00051}00051\ \ \ \ \ BOOLEAN\ *overflowed;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00052}00052\ \ \ \ \ BOOLEAN\ *adjust;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00053}00053\ \ \ \ \ BOOLEAN\ *reservemax;}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00054}00054\ \}\ *\mbox{\hyperlink{structsliceformat}{SLICE}};}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00057}00057\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00058}00058\ \textcolor{comment}{//\ functions\ for\ global\ use}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00059}00059\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00061}00061\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00062}00062\ bpdb\_init(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00063}00063\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_d_b}{DB\_Table}}\ *new\_db}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00064}00064\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00066}00066\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00067}00067\ bpdb\_free(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00069}00069\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00070}00070\ bpdb\_free\_slice(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00072}00072\ \textcolor{comment}{//\ get/set\ value}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00073}00073\ VALUE}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00074}00074\ bpdb\_get\_value(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00075}00075\ \ \ \ \ \ \ \ \ POSITION\ pos}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00076}00076\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00078}00078\ VALUE}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00079}00079\ bpdb\_set\_value(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00080}00080\ \ \ \ \ \ \ \ \ POSITION\ pos,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00081}00081\ \ \ \ \ \ \ \ \ VALUE\ val}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00082}00082\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00084}00084\ \textcolor{comment}{//\ get/set\ remoteness}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00085}00085\ REMOTENESS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00086}00086\ bpdb\_get\_remoteness(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00087}00087\ \ \ \ \ \ \ \ \ POSITION\ pos}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00088}00088\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00090}00090\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00091}00091\ bpdb\_set\_remoteness(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00092}00092\ \ \ \ \ \ \ \ \ POSITION\ pos,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00093}00093\ \ \ \ \ \ \ \ \ REMOTENESS\ val}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00094}00094\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00095}00095\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00096}00096\ \textcolor{comment}{//\ get/set\ visited}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00097}00097\ BOOLEAN}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00098}00098\ bpdb\_check\_visited(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00099}00099\ \ \ \ \ \ \ \ \ POSITION\ pos}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00100}00100\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00102}00102\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00103}00103\ bpdb\_mark\_visited(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00104}00104\ \ \ \ \ \ \ \ \ POSITION\ pos}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00105}00105\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00107}00107\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00108}00108\ bpdb\_unmark\_visited(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00109}00109\ \ \ \ \ \ \ \ \ POSITION\ pos}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00110}00110\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00112}00112\ \textcolor{comment}{//\ get/set\ mex}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00113}00113\ MEX}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00114}00114\ bpdb\_get\_mex(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00115}00115\ \ \ \ \ \ \ \ \ POSITION\ pos}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00116}00116\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00118}00118\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00119}00119\ bpdb\_set\_mex(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00120}00120\ \ \ \ \ \ \ \ \ POSITION\ pos,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00121}00121\ \ \ \ \ \ \ \ \ MEX\ mex);}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00122}00122\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00123}00123\ \textcolor{comment}{//\ get/set\ winby}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00124}00124\ WINBY}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00125}00125\ bpdb\_get\_winby(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00126}00126\ \ \ \ \ \ \ \ \ POSITION\ pos}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00127}00127\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00129}00129\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00130}00130\ bpdb\_set\_winby(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00131}00131\ \ \ \ \ \ \ \ \ POSITION\ pos,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00132}00132\ \ \ \ \ \ \ \ \ WINBY\ winBy);}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00134}00134\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00135}00135\ \textcolor{comment}{//\ functions\ for\ internal\ use}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00136}00136\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00138}00138\ UINT64}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00139}00139\ bpdb\_get\_slice\_slot(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00140}00140\ \ \ \ \ \ \ \ \ UINT64\ position,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00141}00141\ \ \ \ \ \ \ \ \ UINT8\ index}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00142}00142\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00144}00144\ UINT64}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00145}00145\ bpdb\_set\_slice\_slot(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00146}00146\ \ \ \ \ \ \ \ \ UINT64\ position,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00147}00147\ \ \ \ \ \ \ \ \ UINT8\ index,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00148}00148\ \ \ \ \ \ \ \ \ UINT64\ value}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00149}00149\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00151}00151\ UINT64}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00152}00152\ bpdb\_set\_slice\_slot\_max(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00153}00153\ \ \ \ \ \ \ \ \ UINT64\ position,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00154}00154\ \ \ \ \ \ \ \ \ UINT8\ index}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00155}00155\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00157}00157\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00158}00158\ bpdb\_add\_slot(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00159}00159\ \ \ \ \ \ \ \ \ UINT8\ size,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00160}00160\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *name,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00161}00161\ \ \ \ \ \ \ \ \ BOOLEAN\ write,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00162}00162\ \ \ \ \ \ \ \ \ BOOLEAN\ adjust,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00163}00163\ \ \ \ \ \ \ \ \ BOOLEAN\ reservemax,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00164}00164\ \ \ \ \ \ \ \ \ UINT32\ *slotindex}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00165}00165\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00167}00167\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00168}00168\ bpdb\_grow\_slice(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00169}00169\ \ \ \ \ \ \ \ \ BYTE\ *bpdb\_array,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00170}00170\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structsliceformat}{SLICE}}\ bpdb\_slice,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00171}00171\ \ \ \ \ \ \ \ \ UINT8\ index,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00172}00172\ \ \ \ \ \ \ \ \ UINT64\ value}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00173}00173\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00175}00175\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00176}00176\ bpdb\_shrink\_slice(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00177}00177\ \ \ \ \ \ \ \ \ BYTE\ *bpdb\_array,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00178}00178\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structsliceformat}{SLICE}}\ bpdb\_slice,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00179}00179\ \ \ \ \ \ \ \ \ UINT8\ index}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00180}00180\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00182}00182\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00183}00183\ bpdb\_allocate(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00184}00184\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00187}00187\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00188}00188\ \textcolor{comment}{//\ diagnostic\ functions}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00189}00189\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00191}00191\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00192}00192\ bpdb\_print\_database(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00194}00194\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00195}00195\ bpdb\_dump\_database(\ \textcolor{keywordtype}{int}\ num\ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00196}00196\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00197}00197\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00198}00198\ bpdb\_analyze\_database(\ \textcolor{keywordtype}{int}\ num\ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00199}00199\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00200}00200\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00201}00201\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00202}00202\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00204}00204\ BOOLEAN}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00205}00205\ bpdb\_save\_database(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00206}00206\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00207}00207\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00208}00208\ bpdb\_generic\_save\_database(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00209}00209\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdbscheme}{SCHEME}}\ scheme,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00210}00210\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *outfilename}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00211}00211\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00213}00213\ BOOLEAN}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00214}00214\ bpdb\_load\_database(\ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00216}00216\ GMSTATUS}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00217}00217\ bpdb\_generic\_load\_database(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00218}00218\ \ \ \ \ \ \ \ \ dbFILE\ inFile,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00219}00219\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdbscheme}{SCHEME}}\ scheme}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00220}00220\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00221}00221\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00223}00223\ BOOLEAN}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00224}00224\ bpdb\_generic\_write\_varnum(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00225}00225\ \ \ \ \ \ \ \ \ dbFILE\ outFile,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00226}00226\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdbscheme}{SCHEME}}\ scheme,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00227}00227\ \ \ \ \ \ \ \ \ BYTE\ **curBuffer,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00228}00228\ \ \ \ \ \ \ \ \ BYTE\ *outputBuffer,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00229}00229\ \ \ \ \ \ \ \ \ UINT32\ bufferLength,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00230}00230\ \ \ \ \ \ \ \ \ UINT8\ *offset,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00231}00231\ \ \ \ \ \ \ \ \ UINT64\ consecutiveSkips}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00232}00232\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00235}00235\ UINT64}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00236}00236\ bpdb\_generic\_read\_varnum(}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00237}00237\ \ \ \ \ \ \ \ \ dbFILE\ inFile,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00238}00238\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdbscheme}{SCHEME}}\ scheme,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00239}00239\ \ \ \ \ \ \ \ \ BYTE\ **curBuffer,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00240}00240\ \ \ \ \ \ \ \ \ BYTE\ *inputBuffer,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00241}00241\ \ \ \ \ \ \ \ \ UINT32\ length,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00242}00242\ \ \ \ \ \ \ \ \ UINT8\ *offset,}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00243}00243\ \ \ \ \ \ \ \ \ BOOLEAN\ alreadyReadFirstBit}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00244}00244\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{bpdb_8h_source_l00246}00246\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_BPDB\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

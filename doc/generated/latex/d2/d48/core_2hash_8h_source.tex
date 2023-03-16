@@ -1,0 +1,93 @@
+\hypertarget{core_2hash_8h_source}{}\doxysection{hash.\+h}
+\label{core_2hash_8h_source}\index{src/core/hash.h@{src/core/hash.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_HASH\_H}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ GMCORE\_HASH\_H}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00006}00006\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00007}00007\ \textcolor{comment}{\ ***********************************************************************/}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00008}00008\ \textcolor{comment}{/*\ DDG\ Tried\ to\ fix\ build\ by\ externing\ in\ hash.h,\ declaring\ in\ hash.c\ */}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00009}00009\ \textcolor{comment}{/*\ 2004-\/10-\/20\ */}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00010}00010\ \textcolor{comment}{//extern\ POSITION\ *hash\_hashOffset;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00011}00011\ \textcolor{comment}{//extern\ POSITION\ *hash\_NCR;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00012}00012\ \textcolor{comment}{//extern\ POSITION\ *hash\_miniOffset;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00013}00013\ \textcolor{comment}{//extern\ char\ *hash\_pieces;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00014}00014\ \textcolor{comment}{//extern\ int\ *hash\_localMins;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00015}00015\ \textcolor{comment}{//extern\ int\ *hash\_thisCount;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00016}00016\ \textcolor{comment}{//extern\ int\ *hash\_miniIndices;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00017}00017\ \textcolor{comment}{//extern\ int\ hash\_numPieces;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00018}00018\ \textcolor{comment}{//extern\ int\ hash\_boardSize;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00019}00019\ \textcolor{comment}{//extern\ int\ hash\_usefulSpace;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00020}00020\ \textcolor{comment}{//extern\ int\ hash\_maxPos;}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00022}\mbox{\hyperlink{structsym_entry}{00022}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00023}00023\ \{}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00024}00024\ \ \ \ \ \textcolor{keywordtype}{int}\ type;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00025}00025\ \ \ \ \ \textcolor{keywordtype}{int}\ angle;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00026}00026\ \ \ \ \ \textcolor{keywordtype}{int}\ *sym;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00027}00027\ \ \ \ \ \textcolor{keywordtype}{int}\ flip;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00028}00028\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}\ *next;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00029}00029\ \};}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00032}\mbox{\hyperlink{structhash_context}{00032}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhash_context}{hashContext}}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00033}00033\ \{}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00035}00035\ \ \ \ \ POSITION\ *hashOffset;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00036}00036\ \ \ \ \ POSITION\ maxPos;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00037}00037\ \ \ \ \ POSITION\ *combiArray;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00038}00038\ \ \ \ \ POSITION\ *NCR;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00039}00039\ \ \ \ \ \textcolor{keywordtype}{int}\ *gpdStore;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00040}00040\ \ \ \ \ \textcolor{keywordtype}{int}\ *offsetIndices;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00041}00041\ \ \ \ \ \textcolor{keywordtype}{int}\ *pieceIndices;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00042}00042\ \ \ \ \ \textcolor{keywordtype}{int}\ boardSize;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00044}00044\ \ \ \ \ \textcolor{keywordtype}{int}\ numCfgs;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00045}00045\ \ \ \ \ \textcolor{keywordtype}{int}\ usefulSpace;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00047}00047\ \ \ \ \ \textcolor{keywordtype}{int}\ numPieces;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00048}00048\ \ \ \ \ \textcolor{keywordtype}{char}\ *pieces;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00049}00049\ \ \ \ \ \textcolor{keywordtype}{int}\ *nums;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00050}00050\ \ \ \ \ \textcolor{keywordtype}{int}\ *mins;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00051}00051\ \ \ \ \ \textcolor{keywordtype}{int}\ *maxs;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00053}00053\ \ \ \ \ \textcolor{keywordtype}{int}\ *thisCount;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00054}00054\ \ \ \ \ \textcolor{keywordtype}{int}\ *localMins;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00056}00056\ \ \ \ \ POSITION\ *miniOffset;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00057}00057\ \ \ \ \ \textcolor{keywordtype}{int}\ *miniIndices;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00059}00059\ \ \ \ \ int\ (*gfn)(\textcolor{keywordtype}{int}\ *);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00061}00061\ \ \ \ \ \textcolor{keywordtype}{int}\ player;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0=Both\ Player\ boards\ (default),\ 1=1st\ Player\ only,\ 2=2nd\ only}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00063}00063\ \ \ \ \ \textcolor{keywordtype}{int}\ contextNumber;}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00064}00064\ \};}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00066}00066\ \textcolor{keywordtype}{int}\ generic\_hash\_context\_init();}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00067}00067\ \textcolor{keywordtype}{void}\ generic\_hash\_context\_switch(\textcolor{keywordtype}{int}\ context);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00068}00068\ \textcolor{keywordtype}{void}\ generic\_hash\_destroy();}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00069}00069\ \textcolor{keywordtype}{int}\ generic\_hash\_cur\_context();}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00070}00070\ POSITION\ generic\_hash\_max\_pos();}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00071}00071\ \textcolor{keywordtype}{void}\ generic\_hash\_custom\_context\_mode(BOOLEAN\ on);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00072}00072\ \textcolor{keywordtype}{void}\ generic\_hash\_set\_context(\textcolor{keywordtype}{int}\ context);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00074}00074\ POSITION\ generic\_hash\_init(\textcolor{keywordtype}{int}\ boardsize,\ \textcolor{keywordtype}{int}*,\ \textcolor{keywordtype}{int}\ (*fn)(\textcolor{keywordtype}{int}\ *),\ \textcolor{keywordtype}{int}\ player);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00075}00075\ POSITION\ generic\_hash\_hash(\textcolor{keywordtype}{char}*\ board,\ \textcolor{keywordtype}{int}\ player);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00076}00076\ POSITION\ generic\_hash\_hash\_sym(\textcolor{keywordtype}{char}*\ board,\ \textcolor{keywordtype}{int}\ player,\ POSITION\ offset,\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structsym_entry}{symEntry}}*\ symIndex);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00077}00077\ \textcolor{keywordtype}{char}*\ generic\_hash\_unhash\_tcl(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00078}00078\ \textcolor{keywordtype}{char}*\ generic\_hash\_unhash(POSITION\ hashed,\ \textcolor{keywordtype}{char}*\ dest);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00079}00079\ \textcolor{keywordtype}{int}\ generic\_hash\_turn\ (POSITION\ hashed);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00080}00080\ \textcolor{keywordtype}{void}\ hashCounting(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00082}00082\ \textcolor{keywordtype}{void}\ generic\_hash\_init\_sym(\textcolor{keywordtype}{int}\ boardType,\ \textcolor{keywordtype}{int}\ numRows,\ \textcolor{keywordtype}{int}\ numCols,\ \textcolor{keywordtype}{int}*\ reflections,\ \textcolor{keywordtype}{int}\ numReflects,\ \textcolor{keywordtype}{int}*\ rotations,\ \textcolor{keywordtype}{int}\ numRots,\ \textcolor{keywordtype}{int}\ flippable);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00083}00083\ POSITION\ generic\_hash\_canonicalPosition(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00084}00084\ \textcolor{keywordtype}{void}\ flipboard(\textcolor{keywordtype}{char}*\ board);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00085}00085\ \textcolor{keywordtype}{void}\ generic\_hash\_add\_sym(\textcolor{keywordtype}{int}*\ symToAdd);}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00086}00086\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_HASH\_H\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{core_2hash_8h_source_l00087}00087\ }
+
+\end{DoxyCode}

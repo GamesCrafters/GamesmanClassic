@@ -1,0 +1,718 @@
+\hypertarget{memwatch_8h_source}{}\doxysection{memwatch.\+h}
+\label{memwatch_8h_source}\index{src/core/memwatch.h@{src/core/memwatch.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00001}00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00002}00002\ \textcolor{comment}{**\ MEMWATCH.H}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00003}00003\ \textcolor{comment}{**\ Nonintrusive\ ANSI\ C\ memory\ leak\ /\ overwrite\ detection}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00004}00004\ \textcolor{comment}{**\ Copyright\ (C)\ 1992-\/2002\ Johan\ Lindh}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00005}00005\ \textcolor{comment}{**\ All\ rights\ reserved.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00006}00006\ \textcolor{comment}{**\ Version\ 2.71}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00007}00007\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00008}00008\ \textcolor{comment}{************************************************************************}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00010}00010\ \textcolor{comment}{**\ PURPOSE:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00012}00012\ \textcolor{comment}{**\ \ MEMWATCH\ has\ been\ written\ to\ allow\ guys\ and\ gals\ that\ like\ to}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00013}00013\ \textcolor{comment}{**\ \ program\ in\ C\ a\ public-\/domain\ memory\ error\ control\ product.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00014}00014\ \textcolor{comment}{**\ \ I\ hope\ you'll\ find\ it's\ as\ advanced\ as\ most\ commercial\ packages.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00015}00015\ \textcolor{comment}{**\ \ The\ idea\ is\ that\ you\ use\ it\ during\ the\ development\ phase\ and}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00016}00016\ \textcolor{comment}{**\ \ then\ remove\ the\ MEMWATCH\ define\ to\ produce\ your\ final\ product.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00017}00017\ \textcolor{comment}{**\ \ MEMWATCH\ is\ distributed\ in\ source\ code\ form\ in\ order\ to\ allow}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00018}00018\ \textcolor{comment}{**\ \ you\ to\ compile\ it\ for\ your\ platform\ with\ your\ own\ compiler.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00019}00019\ \textcolor{comment}{**\ \ It's\ aim\ is\ to\ be\ 100\%\ ANSI\ C,\ but\ some\ compilers\ are\ more\ stingy}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00020}00020\ \textcolor{comment}{**\ \ than\ others.\ If\ it\ doesn't\ compile\ without\ warnings,\ please\ mail}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00021}00021\ \textcolor{comment}{**\ \ me\ the\ configuration\ of\ operating\ system\ and\ compiler\ you\ are\ using}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00022}00022\ \textcolor{comment}{**\ \ along\ with\ a\ description\ of\ how\ to\ modify\ the\ source,\ and\ the\ version}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00023}00023\ \textcolor{comment}{**\ \ number\ of\ MEMWATCH\ that\ you\ are\ using.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00024}00024\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00025}00025\ \textcolor{comment}{************************************************************************}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00026}00026\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00027}00027\ \textcolor{comment}{\ \ \ \ \ \ \ \ This\ file\ is\ part\ of\ MEMWATCH.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00028}00028\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00029}00029\ \textcolor{comment}{\ \ \ \ MEMWATCH\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00030}00030\ \textcolor{comment}{\ \ \ \ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00031}00031\ \textcolor{comment}{\ \ \ \ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00032}00032\ \textcolor{comment}{\ \ \ \ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00033}00033\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00034}00034\ \textcolor{comment}{\ \ \ \ MEMWATCH\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00035}00035\ \textcolor{comment}{\ \ \ \ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00036}00036\ \textcolor{comment}{\ \ \ \ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00037}00037\ \textcolor{comment}{\ \ \ \ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00038}00038\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00039}00039\ \textcolor{comment}{\ \ \ \ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00040}00040\ \textcolor{comment}{\ \ \ \ along\ with\ MEMWATCH;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00041}00041\ \textcolor{comment}{\ \ \ \ Foundation,\ Inc.,\ 59\ Temple\ Place,\ Suite\ 330,\ Boston,\ MA\ \ 02111-\/1307\ \ USA}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00042}00042\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00043}00043\ \textcolor{comment}{************************************************************************}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00044}00044\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00045}00045\ \textcolor{comment}{**\ REVISION\ HISTORY:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00046}00046\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00047}00047\ \textcolor{comment}{**\ 920810\ JLI\ \ \ [1.00]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00048}00048\ \textcolor{comment}{**\ 920830\ JLI\ \ \ [1.10\ double-\/free\ detection]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00049}00049\ \textcolor{comment}{**\ 920912\ JLI\ \ \ [1.15\ mwPuts,\ mwGrab/Drop,\ mwLimit]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00050}00050\ \textcolor{comment}{**\ 921022\ JLI\ \ \ [1.20\ ASSERT\ and\ VERIFY]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00051}00051\ \textcolor{comment}{**\ 921105\ JLI\ \ \ [1.30\ C++\ support\ and\ TRACE]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00052}00052\ \textcolor{comment}{**\ 921116\ JLI\ \ \ [1.40\ mwSetOutFunc]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00053}00053\ \textcolor{comment}{**\ 930215\ JLI\ \ \ [1.50\ modified\ ASSERT/VERIFY]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00054}00054\ \textcolor{comment}{**\ 930327\ JLI\ \ \ [1.51\ better\ auto-\/init\ \&\ PC-\/lint\ support]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00055}00055\ \textcolor{comment}{**\ 930506\ JLI\ \ \ [1.55\ MemWatch\ class,\ improved\ C++\ support]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00056}00056\ \textcolor{comment}{**\ 930507\ JLI\ \ \ [1.60\ mwTest\ \&\ CHECK()]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00057}00057\ \textcolor{comment}{**\ 930809\ JLI\ \ \ [1.65\ Abort/Retry/Ignore]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00058}00058\ \textcolor{comment}{**\ 930820\ JLI\ \ \ [1.70\ data\ dump\ when\ unfreed]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00059}00059\ \textcolor{comment}{**\ 931016\ JLI\ \ \ [1.72\ modified\ C++\ new/delete\ handling]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00060}00060\ \textcolor{comment}{**\ 931108\ JLI\ \ \ [1.77\ mwSetAssertAction()\ \&\ some\ small\ changes]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00061}00061\ \textcolor{comment}{**\ 940110\ JLI\ \ \ [1.80\ no-\/mans-\/land\ alloc/checking]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00062}00062\ \textcolor{comment}{**\ 940328\ JLI\ \ \ [2.00\ version\ 2.0\ rewrite]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00063}00063\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Improved\ NML\ (no-\/mans-\/land)\ support.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00064}00064\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Improved\ performance\ (especially\ for\ free()ing!).}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00065}00065\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Support\ for\ 'read-\/only'\ buffers\ (checksums)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00066}00066\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \string^\string^\ NOTE:\ I\ never\ did\ this...\ maybe\ I\ should?}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00067}00067\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ FBI\ (free'd\ block\ info)\ tagged\ before\ freed\ blocks}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00068}00068\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Exporting\ of\ the\ mwCounter\ variable}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00069}00069\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ mwBreakOut()\ localizes\ debugger\ support}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00070}00070\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Allocation\ statistics\ (global,\ per-\/module,\ per-\/line)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00071}00071\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Self-\/repair\ ability\ with\ relinking}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00072}00072\ \textcolor{comment}{**\ 950913\ JLI\ \ \ [2.10\ improved\ garbage\ handling]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00073}00073\ \textcolor{comment}{**\ 951201\ JLI\ \ \ [2.11\ improved\ auto-\/free\ in\ emergencies]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00074}00074\ \textcolor{comment}{**\ 960125\ JLI\ \ \ [X.01\ implemented\ auto-\/checking\ using\ mwAutoCheck()]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00075}00075\ \textcolor{comment}{**\ 960514\ JLI\ \ \ [2.12\ undefining\ of\ existing\ macros]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00076}00076\ \textcolor{comment}{**\ 960515\ JLI\ \ \ [2.13\ possibility\ to\ use\ default\ new()\ \&\ delete()]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00077}00077\ \textcolor{comment}{**\ 960516\ JLI\ \ \ [2.20\ suppression\ of\ file\ flushing\ on\ unfreed\ msgs]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00078}00078\ \textcolor{comment}{**\ 960516\ JLI\ \ \ [2.21\ better\ support\ for\ using\ MEMWATCH\ with\ DLL's]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00079}00079\ \textcolor{comment}{**\ 960710\ JLI\ \ \ [X.02\ multiple\ logs\ and\ mwFlushNow()]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00080}00080\ \textcolor{comment}{**\ 960801\ JLI\ \ \ [2.22\ merged\ X.01\ version\ with\ current]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00081}00081\ \textcolor{comment}{**\ 960805\ JLI\ \ \ [2.30\ mwIsXXXXAddr()\ to\ avoid\ unneeded\ GP's]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00082}00082\ \textcolor{comment}{**\ 960805\ JLI\ \ \ [2.31\ merged\ X.02\ version\ with\ current]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00083}00083\ \textcolor{comment}{**\ 961002\ JLI\ \ \ [2.32\ support\ for\ realloc()\ +\ fixed\ STDERR\ bug]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00084}00084\ \textcolor{comment}{**\ 961222\ JLI\ \ \ [2.40\ added\ mwMark()\ \&\ mwUnmark()]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00085}00085\ \textcolor{comment}{**\ 970101\ JLI\ \ \ [2.41\ added\ over/underflow\ checking\ after\ failed\ ASSERT/VERIFY]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00086}00086\ \textcolor{comment}{**\ 970113\ JLI\ \ \ [2.42\ added\ support\ for\ PC-\/Lint\ 7.00g]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00087}00087\ \textcolor{comment}{**\ 970207\ JLI\ \ \ [2.43\ added\ support\ for\ strdup()]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00088}00088\ \textcolor{comment}{**\ 970209\ JLI\ \ \ [2.44\ changed\ default\ filename\ to\ lowercase]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00089}00089\ \textcolor{comment}{**\ 970405\ JLI\ \ \ [2.45\ fixed\ bug\ related\ with\ atexit()\ and\ some\ C++\ compilers]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00090}00090\ \textcolor{comment}{**\ 970723\ JLI\ \ \ [2.46\ added\ MW\_ARI\_NULLREAD\ flag]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00091}00091\ \textcolor{comment}{**\ 970813\ JLI\ \ \ [2.47\ stabilized\ marker\ handling]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00092}00092\ \textcolor{comment}{**\ 980317\ JLI\ \ \ [2.48\ ripped\ out\ C++\ support;\ wasn't\ working\ good\ anyway]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00093}00093\ \textcolor{comment}{**\ 980318\ JLI\ \ \ [2.50\ improved\ self-\/repair\ facilities\ \&\ SIGSEGV\ support]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00094}00094\ \textcolor{comment}{**\ 980417\ JLI\ \ \ [2.51\ more\ checks\ for\ invalid\ addresses]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00095}00095\ \textcolor{comment}{**\ 980512\ JLI\ \ \ [2.52\ moved\ MW\_ARI\_NULLREAD\ to\ occur\ before\ aborting]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00096}00096\ \textcolor{comment}{**\ 990112\ JLI\ \ \ [2.53\ added\ check\ for\ empty\ heap\ to\ mwIsOwned]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00097}00097\ \textcolor{comment}{**\ 990217\ JLI\ \ \ [2.55\ improved\ the\ emergency\ repairs\ diagnostics\ and\ NML]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00098}00098\ \textcolor{comment}{**\ 990224\ JLI\ \ \ [2.56\ changed\ ordering\ of\ members\ in\ structures]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00099}00099\ \textcolor{comment}{**\ 990303\ JLI\ \ \ [2.57\ first\ maybe-\/fixit-\/for-\/hpux\ test]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00100}00100\ \textcolor{comment}{**\ 990516\ JLI\ \ \ [2.58\ added\ 'static'\ to\ the\ definition\ of\ mwAutoInit]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00101}00101\ \textcolor{comment}{**\ 990517\ JLI\ \ \ [2.59\ fixed\ some\ high-\/sensitivity\ warnings]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00102}00102\ \textcolor{comment}{**\ 990610\ JLI\ \ \ [2.60\ fixed\ some\ more\ high-\/sensitivity\ warnings]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00103}00103\ \textcolor{comment}{**\ 990715\ JLI\ \ \ [2.61\ changed\ TRACE/ASSERT/VERIFY\ macro\ names]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00104}00104\ \textcolor{comment}{**\ 991001\ JLI\ \ \ [2.62\ added\ CHECK\_BUFFER()\ and\ mwTestBuffer()]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00105}00105\ \textcolor{comment}{**\ 991007\ JLI\ \ \ [2.63\ first\ shot\ at\ a\ 64-\/bit\ compatible\ version]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00106}00106\ \textcolor{comment}{**\ 991009\ JLI\ \ \ [2.64\ undef's\ strdup()\ if\ defined,\ mwStrdup\ made\ const]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00107}00107\ \textcolor{comment}{**\ 000704\ JLI\ \ \ [2.65\ added\ some\ more\ detection\ for\ 64-\/bits]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00108}00108\ \textcolor{comment}{**\ 010502\ JLI\ \ \ [2.66\ incorporated\ some\ user\ fixes]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00109}00109\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ [mwRelink()\ could\ print\ out\ garbage\ pointer\ (thanks\ mac@phobos.ca)]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00110}00110\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ [added\ array\ destructor\ for\ C++\ (thanks\ rdasilva@connecttel.com)]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00111}00111\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ [added\ mutex\ support\ (thanks\ rdasilva@connecttel.com)]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00112}00112\ \textcolor{comment}{**\ 010531\ JLI\ \ \ [2.67\ fix:\ mwMutexXXX()\ was\ declared\ even\ if\ MW\_HAVE\_MUTEX\ was\ not\ defined]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00113}00113\ \textcolor{comment}{**\ 010619\ JLI\ \ \ [2.68\ fix:\ mwRealloc()\ could\ leave\ the\ mutex\ locked]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00114}00114\ \textcolor{comment}{**\ 020918\ JLI\ \ \ [2.69\ changed\ to\ GPL,\ added\ C++\ array\ allocation\ by\ Howard\ Cohen]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00115}00115\ \textcolor{comment}{**\ 030212\ JLI\ \ \ [2.70\ mwMalloc()\ bug\ for\ very\ large\ allocations\ (4GB\ on\ 32bits)]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00116}00116\ \textcolor{comment}{**\ 030520\ JLI\ \ \ [2.71\ added\ ULONG\_LONG\_MAX\ as\ a\ 64-\/bit\ detector\ (thanks\ Sami\ Salonen)]}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00117}00117\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00118}00118\ \textcolor{comment}{**\ To\ use,\ simply\ include\ 'MEMWATCH.H'\ as\ a\ header\ file,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00119}00119\ \textcolor{comment}{**\ and\ add\ MEMWATCH.C\ to\ your\ list\ of\ files,\ and\ define\ the\ macro}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00120}00120\ \textcolor{comment}{**\ 'MEMWATCH'.\ If\ this\ is\ not\ defined,\ MEMWATCH\ will\ disable\ itself.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00121}00121\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00122}00122\ \textcolor{comment}{**\ To\ call\ the\ standard\ C\ malloc\ /\ realloc\ /\ calloc\ /\ free;\ use\ mwMalloc\_(),}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00123}00123\ \textcolor{comment}{**\ mwCalloc\_()\ and\ mwFree\_().\ Note\ that\ mwFree\_()\ will\ correctly}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00124}00124\ \textcolor{comment}{**\ free\ both\ malloc()'d\ memory\ as\ well\ as\ mwMalloc()'d.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00125}00125\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00126}00126\ \textcolor{comment}{**\ 980317:\ C++\ support\ has\ been\ disabled.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00127}00127\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ The\ code\ remains,\ but\ is\ not\ compiled.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00128}00128\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00129}00129\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ For\ use\ with\ C++,\ which\ allows\ use\ of\ inlining\ in\ header\ files}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00130}00130\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ and\ class\ specific\ new/delete,\ you\ must\ also\ define\ 'new'\ as}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00131}00131\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ 'mwNew'\ and\ 'delete'\ as\ 'mwDelete'.\ Do\ this\ *after*\ you\ include}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00132}00132\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ C++\ header\ files\ from\ libraries,\ otherwise\ you\ can\ mess\ up\ their}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00133}00133\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ class\ definitions.\ If\ you\ don't\ define\ these,\ the\ C++\ allocations}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00134}00134\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ will\ not\ have\ source\ file\ and\ line\ number\ information.\ Also\ note,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00135}00135\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ most\ C++\ class\ libraries\ implement\ their\ own\ C++\ memory\ management,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00136}00136\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ and\ don't\ allow\ anyone\ to\ override\ them.\ MFC\ belongs\ to\ this\ crew.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00137}00137\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ In\ these\ cases,\ the\ only\ thing\ to\ do\ is\ to\ use\ MEMWATCH\_NOCPP.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00138}00138\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00139}00139\ \textcolor{comment}{**\ You\ can\ capture\ output\ from\ MEMWATCH\ using\ mwSetOutFunc().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00140}00140\ \textcolor{comment}{**\ Just\ give\ it\ the\ adress\ of\ a\ "{}void\ myOutFunc(int\ c)"{}\ function,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00141}00141\ \textcolor{comment}{**\ and\ all\ characters\ to\ be\ output\ will\ be\ redirected\ there.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00142}00142\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00143}00143\ \textcolor{comment}{**\ A\ failing\ ASSERT()\ or\ VERIFY()\ will\ normally\ always\ abort\ your}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00144}00144\ \textcolor{comment}{**\ program.\ This\ can\ be\ changed\ using\ mwSetAriFunc().\ Give\ it\ a}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00145}00145\ \textcolor{comment}{**\ pointer\ to\ a\ "{}int\ myAriFunc(const\ char\ *)"{}\ function.\ Your\ function}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00146}00146\ \textcolor{comment}{**\ must\ ask\ the\ user\ whether\ to\ Abort,\ Retry\ or\ Ignore\ the\ trap.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00147}00147\ \textcolor{comment}{**\ Return\ 2\ to\ Abort,\ 1\ to\ Retry\ or\ 0\ to\ Ignore.\ Beware\ retry;\ it}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00148}00148\ \textcolor{comment}{**\ causes\ the\ expression\ to\ be\ evaluated\ again!\ MEMWATCH\ has\ a}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00149}00149\ \textcolor{comment}{**\ default\ ARI\ handler.\ It's\ disabled\ by\ default,\ but\ you\ can\ enable}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00150}00150\ \textcolor{comment}{**\ it\ by\ calling\ 'mwDefaultAri()'.\ Note\ that\ this\ will\ STILL\ abort}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00151}00151\ \textcolor{comment}{**\ your\ program\ unless\ you\ define\ MEMWATCH\_STDIO\ to\ allow\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00152}00152\ \textcolor{comment}{**\ to\ use\ the\ standard\ C\ I/O\ streams.\ Also,\ setting\ the\ ARI\ function}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00153}00153\ \textcolor{comment}{**\ will\ cause\ MEMWATCH\ *NOT*\ to\ write\ the\ ARI\ error\ to\ stderr.\ The}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00154}00154\ \textcolor{comment}{**\ error\ string\ is\ passed\ to\ the\ ARI\ function\ instead,\ as\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00155}00155\ \textcolor{comment}{**\ 'const\ char\ *'\ parameter.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00156}00156\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00157}00157\ \textcolor{comment}{**\ You\ can\ disable\ MEMWATCH's\ ASSERT/VERIFY\ and/or\ TRACE\ implementations.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00158}00158\ \textcolor{comment}{**\ This\ can\ be\ useful\ if\ you're\ using\ a\ debug\ terminal\ or\ smart\ debugger.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00159}00159\ \textcolor{comment}{**\ Disable\ them\ by\ defining\ MW\_NOASSERT,\ MW\_NOVERIFY\ or\ MW\_NOTRACE.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00160}00160\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00161}00161\ \textcolor{comment}{**\ MEMWATCH\ fills\ all\ allocated\ memory\ with\ the\ byte\ 0xFE,\ so\ if}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00162}00162\ \textcolor{comment}{**\ you're\ looking\ at\ erroneous\ data\ which\ are\ all\ 0xFE:s,\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00163}00163\ \textcolor{comment}{**\ data\ probably\ was\ not\ initialized\ by\ you.\ The\ exception\ is}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00164}00164\ \textcolor{comment}{**\ calloc(),\ which\ will\ fill\ with\ zero's.\ All\ freed\ buffers\ are}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00165}00165\ \textcolor{comment}{**\ zapped\ with\ 0xFD.\ If\ this\ is\ what\ you\ look\ at,\ you're\ using}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00166}00166\ \textcolor{comment}{**\ data\ that\ has\ been\ freed.\ If\ this\ is\ the\ case,\ be\ aware\ that}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00167}00167\ \textcolor{comment}{**\ MEMWATCH\ places\ a\ 'free'd\ block\ info'\ structure\ immediately}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00168}00168\ \textcolor{comment}{**\ before\ the\ freed\ data.\ This\ block\ contains\ info\ about\ where}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00169}00169\ \textcolor{comment}{**\ the\ block\ was\ freed.\ The\ information\ is\ in\ readable\ text,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00170}00170\ \textcolor{comment}{**\ in\ the\ format\ "{}FBI<counter>filename(line)"{},\ for\ example:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00171}00171\ \textcolor{comment}{**\ "{}FBI<267>test.c(12)"{}.\ Using\ FBI's\ slows\ down\ free(),\ so\ it's}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00172}00172\ \textcolor{comment}{**\ disabled\ by\ default.\ Use\ mwFreeBufferInfo(1)\ to\ enable\ it.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00173}00173\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00174}00174\ \textcolor{comment}{**\ To\ aid\ in\ tracking\ down\ wild\ pointer\ writes,\ MEMWATCH\ can\ perform}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00175}00175\ \textcolor{comment}{**\ no-\/mans-\/land\ allocations.\ No-\/mans-\/land\ will\ contain\ the\ byte\ 0xFC.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00176}00176\ \textcolor{comment}{**\ MEMWATCH\ will,\ when\ this\ is\ enabled,\ convert\ recently\ free'd\ memory}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00177}00177\ \textcolor{comment}{**\ into\ NML\ allocations.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00178}00178\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00179}00179\ \textcolor{comment}{**\ MEMWATCH\ protects\ it's\ own\ data\ buffers\ with\ checksums.\ If\ you}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00180}00180\ \textcolor{comment}{**\ get\ an\ internal\ error,\ it\ means\ you're\ overwriting\ wildly,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00181}00181\ \textcolor{comment}{**\ or\ using\ an\ uninitialized\ pointer.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00182}00182\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00183}00183\ \textcolor{comment}{************************************************************************}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00184}00184\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00185}00185\ \textcolor{comment}{**\ Note\ when\ compiling\ with\ Microsoft\ C:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00186}00186\ \textcolor{comment}{**\ \ -\/\ \ \ MSC\ ignores\ fflush()\ by\ default.\ This\ is\ overridden,\ so\ that}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00187}00187\ \textcolor{comment}{**\ \ \ \ \ \ the\ disk\ log\ will\ always\ be\ current.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00188}00188\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00189}00189\ \textcolor{comment}{**\ This\ utility\ has\ been\ tested\ with:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00190}00190\ \textcolor{comment}{**\ \ PC-\/lint\ 7.0k,\ passed\ as\ 100\%\ ANSI\ C\ compatible}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00191}00191\ \textcolor{comment}{**\ \ Microsoft\ Visual\ C++\ on\ Win16\ and\ Win32}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00192}00192\ \textcolor{comment}{**\ \ Microsoft\ C\ on\ DOS}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00193}00193\ \textcolor{comment}{**\ \ SAS\ C\ on\ an\ Amiga\ 500}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00194}00194\ \textcolor{comment}{**\ \ Gnu\ C\ on\ a\ PC\ running\ Red\ Hat\ Linux}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00195}00195\ \textcolor{comment}{**\ \ ...and\ using\ an\ (to\ me)\ unknown\ compiler\ on\ an\ Atari\ machine.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00196}00196\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00197}00197\ \textcolor{comment}{************************************************************************}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00198}00198\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00199}00199\ \textcolor{comment}{**\ Format\ of\ error\ messages\ in\ MEMWATCH.LOG:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00200}00200\ \textcolor{comment}{**\ \ message:\ <sequence-\/number>\ filename(linenumber),\ information}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00201}00201\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00202}00202\ \textcolor{comment}{**\ Errors\ caught\ by\ MemWatch,\ when\ they\ are\ detected,\ and\ any}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00203}00203\ \textcolor{comment}{**\ actions\ taken\ besides\ writing\ to\ the\ log\ file\ MEMWATCH.LOG:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00204}00204\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00205}00205\ \textcolor{comment}{**\ \ Double-\/freeing:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00206}00206\ \textcolor{comment}{**\ \ \ \ \ \ A\ pointer\ that\ was\ recently\ freed\ and\ has\ not\ since\ been}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00207}00207\ \textcolor{comment}{**\ \ \ \ \ \ reused\ was\ freed\ again.\ The\ place\ where\ the\ previous\ free()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00208}00208\ \textcolor{comment}{**\ \ \ \ \ \ was\ executed\ is\ displayed.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00209}00209\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ delete\ or\ free()\ using\ the\ offending\ pointer.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00210}00210\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ The\ delete\ or\ free()\ is\ cancelled,\ execution\ continues.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00211}00211\ \textcolor{comment}{**\ \ Underflow:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00212}00212\ \textcolor{comment}{**\ \ \ \ \ \ You\ have\ written\ just\ ahead\ of\ the\ allocated\ memory.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00213}00213\ \textcolor{comment}{**\ \ \ \ \ \ The\ size\ and\ place\ of\ the\ allocation\ is\ displayed.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00214}00214\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ delete\ or\ free()\ of\ the\ damaged\ buffer.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00215}00215\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ The\ buffer\ is\ freed,\ but\ there\ may\ be\ secondary\ damage.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00216}00216\ \textcolor{comment}{**\ \ Overflow:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00217}00217\ \textcolor{comment}{**\ \ \ \ \ \ Like\ underflow,\ but\ you've\ written\ after\ the\ end\ of\ the\ buffer.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00218}00218\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ see\ Underflow.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00219}00219\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ see\ Underflow.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00220}00220\ \textcolor{comment}{**\ \ WILD\ free:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00221}00221\ \textcolor{comment}{**\ \ \ \ \ \ An\ unrecognized\ pointer\ was\ passed\ to\ delete\ or\ free().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00222}00222\ \textcolor{comment}{**\ \ \ \ \ \ The\ pointer\ may\ have\ been\ returned\ from\ a\ library\ function;}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00223}00223\ \textcolor{comment}{**\ \ \ \ \ \ in\ that\ case,\ use\ mwFree\_()\ to\ force\ free()\ of\ it.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00224}00224\ \textcolor{comment}{**\ \ \ \ \ \ Also,\ this\ may\ be\ a\ double-\/free,\ but\ the\ previous\ free\ was}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00225}00225\ \textcolor{comment}{**\ \ \ \ \ \ too\ long\ ago,\ causing\ MEMWATCH\ to\ 'forget'\ it.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00226}00226\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ delete\ or\ free()\ of\ the\ offending\ pointer.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00227}00227\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ The\ delete\ or\ free()\ is\ cancelled,\ execution\ continues.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00228}00228\ \textcolor{comment}{**\ \ NULL\ free:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00229}00229\ \textcolor{comment}{**\ \ \ \ \ \ It's\ unclear\ to\ me\ whether\ or\ not\ freeing\ of\ NULL\ pointers}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00230}00230\ \textcolor{comment}{**\ \ \ \ \ \ is\ legal\ in\ ANSI\ C,\ therefore\ a\ warning\ is\ written\ to\ the\ log\ file,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00231}00231\ \textcolor{comment}{**\ \ \ \ \ \ but\ the\ error\ counter\ remains\ the\ same.\ This\ is\ legal\ using\ C++,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00232}00232\ \textcolor{comment}{**\ \ \ \ \ \ so\ the\ warning\ does\ not\ appear\ with\ delete.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00233}00233\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ When\ you\ free(NULL).}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00234}00234\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ The\ free()\ is\ cancelled.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00235}00235\ \textcolor{comment}{**\ \ Failed:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00236}00236\ \textcolor{comment}{**\ \ \ \ \ \ A\ request\ to\ allocate\ memory\ failed.\ If\ the\ allocation\ is}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00237}00237\ \textcolor{comment}{**\ \ \ \ \ \ small,\ this\ may\ be\ due\ to\ memory\ depletion,\ but\ is\ more\ likely}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00238}00238\ \textcolor{comment}{**\ \ \ \ \ \ to\ be\ memory\ fragmentation\ problems.\ The\ amount\ of\ memory}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00239}00239\ \textcolor{comment}{**\ \ \ \ \ \ allocated\ so\ far\ is\ displayed\ also.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00240}00240\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ When\ you\ new,\ malloc(),\ realloc()\ or\ calloc()\ memory.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00241}00241\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ NULL\ is\ returned.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00242}00242\ \textcolor{comment}{**\ \ Realloc:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00243}00243\ \textcolor{comment}{**\ \ \ \ \ \ A\ request\ to\ re-\/allocate\ a\ memory\ buffer\ failed\ for\ reasons}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00244}00244\ \textcolor{comment}{**\ \ \ \ \ \ other\ than\ out-\/of-\/memory.\ The\ specific\ reason\ is\ shown.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00245}00245\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ When\ you\ realloc()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00246}00246\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ realloc()\ is\ cancelled,\ NULL\ is\ returned}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00247}00247\ \textcolor{comment}{**\ \ Limit\ fail:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00248}00248\ \textcolor{comment}{**\ \ \ \ \ \ A\ request\ to\ allocate\ memory\ failed\ since\ it\ would\ violate}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00249}00249\ \textcolor{comment}{**\ \ \ \ \ \ the\ limit\ set\ using\ mwLimit().\ mwLimit()\ is\ used\ to\ stress-\/test}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00250}00250\ \textcolor{comment}{**\ \ \ \ \ \ your\ code\ under\ simulated\ low\ memory\ conditions.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00251}00251\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ At\ new,\ malloc(),\ realloc()\ or\ calloc().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00252}00252\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ NULL\ is\ returned.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00253}00253\ \textcolor{comment}{**\ \ Assert\ trap:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00254}00254\ \textcolor{comment}{**\ \ \ \ \ \ An\ ASSERT()\ failed.\ The\ ASSERT()\ macro\ works\ like\ C's\ assert()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00255}00255\ \textcolor{comment}{**\ \ \ \ \ \ macro/function,\ except\ that\ it's\ interactive.\ See\ your\ C\ manual.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00256}00256\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ On\ the\ ASSERT().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00257}00257\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ Program\ ends\ with\ an\ advisory\ message\ to\ stderr,\ OR}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00258}00258\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Program\ writes\ the\ ASSERT\ to\ the\ log\ and\ continues,\ OR}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00259}00259\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Program\ asks\ Abort/Retry/Ignore?\ and\ takes\ that\ action.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00260}00260\ \textcolor{comment}{**\ \ Verify\ trap:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00261}00261\ \textcolor{comment}{**\ \ \ \ \ \ A\ VERIFY()\ failed.\ The\ VERIFY()\ macro\ works\ like\ ASSERT(),}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00262}00262\ \textcolor{comment}{**\ \ \ \ \ \ but\ if\ MEMWATCH\ is\ not\ defined,\ it\ still\ evaluates\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00263}00263\ \textcolor{comment}{**\ \ \ \ \ \ expression,\ but\ it\ does\ not\ act\ upon\ the\ result.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00264}00264\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ On\ the\ VERIFY().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00265}00265\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ Program\ ends\ with\ an\ advisory\ message\ to\ stderr,\ OR}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00266}00266\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Program\ writes\ the\ VERIFY\ to\ the\ log\ and\ continues,\ OR}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00267}00267\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Program\ asks\ Abort/Retry/Ignore?\ and\ takes\ that\ action.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00268}00268\ \textcolor{comment}{**\ \ Wild\ pointer:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00269}00269\ \textcolor{comment}{**\ \ \ \ \ \ A\ no-\/mans-\/land\ buffer\ has\ been\ written\ into.\ MEMWATCH\ can}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00270}00270\ \textcolor{comment}{**\ \ \ \ \ \ allocate\ and\ distribute\ chunks\ of\ memory\ solely\ for\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00271}00271\ \textcolor{comment}{**\ \ \ \ \ \ purpose\ of\ trying\ to\ catch\ random\ writes\ into\ memory.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00272}00272\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ Always\ on\ CHECK(),\ but\ can\ be\ detected\ in\ several\ places.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00273}00273\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ The\ error\ is\ logged,\ and\ if\ an\ ARI\ handler\ is\ installed,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00274}00274\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ it\ is\ executed,\ otherwise,\ execution\ continues.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00275}00275\ \textcolor{comment}{**\ \ Unfreed:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00276}00276\ \textcolor{comment}{**\ \ \ \ \ \ A\ memory\ buffer\ you\ allocated\ has\ not\ been\ freed.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00277}00277\ \textcolor{comment}{**\ \ \ \ \ \ You\ are\ informed\ where\ it\ was\ allocated,\ and\ whether\ any}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00278}00278\ \textcolor{comment}{**\ \ \ \ \ \ over\ or\ underflow\ has\ occured.\ MemWatch\ also\ displays\ up\ to}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00279}00279\ \textcolor{comment}{**\ \ \ \ \ \ 16\ bytes\ of\ the\ data,\ as\ much\ as\ it\ can,\ in\ hex\ and\ text.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00280}00280\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ When\ MemWatch\ terminates.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00281}00281\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ The\ buffer\ is\ freed.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00282}00282\ \textcolor{comment}{**\ \ Check:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00283}00283\ \textcolor{comment}{**\ \ \ \ \ \ An\ error\ was\ detected\ during\ a\ CHECK()\ operation.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00284}00284\ \textcolor{comment}{**\ \ \ \ \ \ The\ associated\ pointer\ is\ displayed\ along\ with}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00285}00285\ \textcolor{comment}{**\ \ \ \ \ \ the\ file\ and\ line\ where\ the\ CHECK()\ was\ executed.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00286}00286\ \textcolor{comment}{**\ \ \ \ \ \ Followed\ immediately\ by\ a\ normal\ error\ message.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00287}00287\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ When\ you\ CHECK()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00288}00288\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ Depends\ on\ the\ error}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00289}00289\ \textcolor{comment}{**\ \ Relink:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00290}00290\ \textcolor{comment}{**\ \ \ \ \ \ After\ a\ MEMWATCH\ internal\ control\ block\ has\ been\ trashed,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00291}00291\ \textcolor{comment}{**\ \ \ \ \ \ MEMWATCH\ tries\ to\ repair\ the\ damage.\ If\ successful,\ program}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00292}00292\ \textcolor{comment}{**\ \ \ \ \ \ execution\ will\ continue\ instead\ of\ aborting.\ Some\ information}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00293}00293\ \textcolor{comment}{**\ \ \ \ \ \ about\ the\ block\ may\ be\ gone\ permanently,\ though.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00294}00294\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ N/A}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00295}00295\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ Relink\ successful:\ program\ continues.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00296}00296\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Relink\ fails:\ program\ aborts.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00297}00297\ \textcolor{comment}{**\ \ Internal:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00298}00298\ \textcolor{comment}{**\ \ \ \ \ \ An\ internal\ error\ is\ flagged\ by\ MEMWATCH\ when\ it's\ control}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00299}00299\ \textcolor{comment}{**\ \ \ \ \ \ structures\ have\ been\ damaged.\ You\ are\ likely\ using\ an\ uninitialized}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00300}00300\ \textcolor{comment}{**\ \ \ \ \ \ pointer\ somewhere\ in\ your\ program,\ or\ are\ zapping\ memory\ all\ over.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00301}00301\ \textcolor{comment}{**\ \ \ \ \ \ The\ message\ may\ give\ you\ additional\ diagnostic\ information.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00302}00302\ \textcolor{comment}{**\ \ \ \ \ \ If\ possible,\ MEMWATCH\ will\ recover\ and\ continue\ execution.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00303}00303\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ Various\ actions.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00304}00304\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ Whatever\ is\ needed}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00305}00305\ \textcolor{comment}{**\ \ Mark:}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00306}00306\ \textcolor{comment}{**\ \ \ \ \ \ The\ program\ terminated\ without\ umarking\ all\ marked\ pointers.\ Marking}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00307}00307\ \textcolor{comment}{**\ \ \ \ \ \ can\ be\ used\ to\ track\ resources\ other\ than\ memory.\ mwMark(pointer,text,...)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00308}00308\ \textcolor{comment}{**\ \ \ \ \ \ when\ the\ resource\ is\ allocated,\ and\ mwUnmark(pointer)\ when\ it's\ freed.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00309}00309\ \textcolor{comment}{**\ \ \ \ \ \ The\ 'text'\ is\ displayed\ for\ still\ marked\ pointers\ when\ the\ program}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00310}00310\ \textcolor{comment}{**\ \ \ \ \ \ ends.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00311}00311\ \textcolor{comment}{**\ \ \ \ \ \ Detect:\ When\ MemWatch\ terminates.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00312}00312\ \textcolor{comment}{**\ \ \ \ \ \ Action:\ The\ error\ is\ logged.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00313}00313\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00314}00314\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00315}00315\ \textcolor{comment}{************************************************************************}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00316}00316\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00317}00317\ \textcolor{comment}{**\ \ The\ author\ may\ be\ reached\ by\ e-\/mail\ at\ the\ address\ below.\ If\ you}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00318}00318\ \textcolor{comment}{**\ \ mail\ me\ about\ source\ code\ changes\ in\ MEMWATCH,\ remember\ to\ include}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00319}00319\ \textcolor{comment}{**\ \ MW's\ version\ number.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00320}00320\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00321}00321\ \textcolor{comment}{**\ \ \ \ \ \ Johan\ Lindh}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00322}00322\ \textcolor{comment}{**\ \ \ \ \ \ johan@linkdata.se}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00323}00323\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00324}00324\ \textcolor{comment}{**\ The\ latest\ version\ of\ MEMWATCH\ may\ be\ downloaded\ from}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00325}00325\ \textcolor{comment}{**\ http://www.linkdata.se/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00326}00326\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00328}00328\ \textcolor{preprocessor}{\#ifndef\ \_\_MEMWATCH\_H}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00329}00329\ \textcolor{preprocessor}{\#define\ \_\_MEMWATCH\_H}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00331}00331\ \textcolor{comment}{/*\ Make\ sure\ that\ malloc(),\ realloc(),\ calloc()\ and\ free()\ are\ declared.\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00332}00332\ \textcolor{comment}{/*lint\ -\/save\ -\/e537\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00333}00333\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00334}00334\ \textcolor{comment}{/*lint\ -\/restore\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00335}00335\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00336}00336\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00337}00337\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00338}00338\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00339}00339\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00340}00340\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00341}00341\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00342}00342\ \textcolor{comment}{**\ Constants\ used}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00343}00343\ \textcolor{comment}{**\ \ All\ MEMWATCH\ constants\ start\ with\ the\ prefix\ MW\_,\ followed\ by}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00344}00344\ \textcolor{comment}{**\ \ a\ short\ mnemonic\ which\ indicates\ where\ the\ constant\ is\ used,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00345}00345\ \textcolor{comment}{**\ \ followed\ by\ a\ descriptive\ text\ about\ it.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00346}00346\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00347}00347\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00348}00348\ \textcolor{preprocessor}{\#define\ MW\_ARI\_NULLREAD\ 0x10\ \ \ \ }\textcolor{comment}{/*\ Null\ read\ (to\ start\ debugger)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00349}00349\ \textcolor{preprocessor}{\#define\ MW\_ARI\_ABORT\ \ \ \ 0x04\ \ \ \ }\textcolor{comment}{/*\ ARI\ handler\ says:\ abort\ program!\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00350}00350\ \textcolor{preprocessor}{\#define\ MW\_ARI\_RETRY\ \ \ \ 0x02\ \ \ \ }\textcolor{comment}{/*\ ARI\ handler\ says:\ retry\ action!\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00351}00351\ \textcolor{preprocessor}{\#define\ MW\_ARI\_IGNORE\ \ \ 0x01\ \ \ \ }\textcolor{comment}{/*\ ARI\ handler\ says:\ ignore\ error!\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00352}00352\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00353}00353\ \textcolor{preprocessor}{\#define\ MW\_VAL\_NEW\ \ \ \ \ \ 0xFE\ \ \ \ }\textcolor{comment}{/*\ value\ in\ newly\ allocated\ memory\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00354}00354\ \textcolor{preprocessor}{\#define\ MW\_VAL\_DEL\ \ \ \ \ \ 0xFD\ \ \ \ }\textcolor{comment}{/*\ value\ in\ newly\ deleted\ memory\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00355}00355\ \textcolor{preprocessor}{\#define\ MW\_VAL\_NML\ \ \ \ \ \ 0xFC\ \ \ \ }\textcolor{comment}{/*\ value\ in\ no-\/mans-\/land\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00356}00356\ \textcolor{preprocessor}{\#define\ MW\_VAL\_GRB\ \ \ \ \ \ 0xFB\ \ \ \ }\textcolor{comment}{/*\ value\ in\ grabbed\ memory\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00358}00358\ \textcolor{preprocessor}{\#define\ MW\_TEST\_ALL\ \ \ \ \ 0xFFFF\ \ }\textcolor{comment}{/*\ perform\ all\ tests\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00359}00359\ \textcolor{preprocessor}{\#define\ MW\_TEST\_CHAIN\ \ \ 0x0001\ \ }\textcolor{comment}{/*\ walk\ the\ heap\ chain\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00360}00360\ \textcolor{preprocessor}{\#define\ MW\_TEST\_ALLOC\ \ \ 0x0002\ \ }\textcolor{comment}{/*\ test\ allocations\ \&\ NML\ guards\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00361}00361\ \textcolor{preprocessor}{\#define\ MW\_TEST\_NML\ \ \ \ \ 0x0004\ \ }\textcolor{comment}{/*\ test\ all-\/NML\ areas\ for\ modifications\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00362}00362\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00363}00363\ \textcolor{preprocessor}{\#define\ MW\_NML\_NONE\ \ \ \ \ 0\ \ \ \ \ \ \ }\textcolor{comment}{/*\ no\ NML\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00364}00364\ \textcolor{preprocessor}{\#define\ MW\_NML\_FREE\ \ \ \ \ 1\ \ \ \ \ \ \ }\textcolor{comment}{/*\ turn\ FREE'd\ memory\ into\ NML\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00365}00365\ \textcolor{preprocessor}{\#define\ MW\_NML\_ALL\ \ \ \ \ \ 2\ \ \ \ \ \ \ }\textcolor{comment}{/*\ all\ unused\ memory\ is\ NML\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00366}00366\ \textcolor{preprocessor}{\#define\ MW\_NML\_DEFAULT\ \ 0\ \ \ \ \ \ \ }\textcolor{comment}{/*\ the\ default\ NML\ setting\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00367}00367\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00368}00368\ \textcolor{preprocessor}{\#define\ MW\_STAT\_GLOBAL\ \ 0\ \ \ \ \ \ \ }\textcolor{comment}{/*\ only\ global\ statistics\ collected\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00369}00369\ \textcolor{preprocessor}{\#define\ MW\_STAT\_MODULE\ \ 1\ \ \ \ \ \ \ }\textcolor{comment}{/*\ collect\ statistics\ on\ a\ module\ basis\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00370}00370\ \textcolor{preprocessor}{\#define\ MW\_STAT\_LINE\ \ \ \ 2\ \ \ \ \ \ \ }\textcolor{comment}{/*\ collect\ statistics\ on\ a\ line\ basis\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00371}00371\ \textcolor{preprocessor}{\#define\ MW\_STAT\_DEFAULT\ 0\ \ \ \ \ \ \ }\textcolor{comment}{/*\ the\ default\ statistics\ setting\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00372}00372\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00373}00373\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00374}00374\ \textcolor{comment}{**\ MemWatch\ internal\ constants}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00375}00375\ \textcolor{comment}{**\ \ You\ may\ change\ these\ and\ recompile\ MemWatch\ to\ change\ the\ limits}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00376}00376\ \textcolor{comment}{**\ \ of\ some\ parameters.\ Respect\ the\ recommended\ minimums!}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00377}00377\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00378}00378\ \textcolor{preprocessor}{\#define\ MW\_TRACE\_BUFFER\ 2048\ \ \ \ }\textcolor{comment}{/*\ (min\ 160)\ size\ of\ TRACE()'s\ output\ buffer\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00379}00379\ \textcolor{preprocessor}{\#define\ MW\_FREE\_LIST\ \ \ \ 64\ \ \ \ \ \ }\textcolor{comment}{/*\ (min\ 4)\ number\ of\ free()'s\ to\ track\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00380}00380\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00381}00381\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00382}00382\ \textcolor{comment}{**\ Exported\ variables}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00383}00383\ \textcolor{comment}{**\ \ In\ case\ you\ have\ to\ remove\ the\ 'const'\ keyword\ because\ your\ compiler}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00384}00384\ \textcolor{comment}{**\ \ doesn't\ support\ it,\ be\ aware\ that\ changing\ the\ values\ may\ cause}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00385}00385\ \textcolor{comment}{**\ \ unpredictable\ behaviour.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00386}00386\ \textcolor{comment}{**\ \ -\/\ mwCounter\ contains\ the\ current\ action\ count.\ You\ can\ use\ this\ to}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00387}00387\ \textcolor{comment}{**\ \ \ \ \ \ place\ breakpoints\ using\ a\ debugger,\ if\ you\ want.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00388}00388\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00389}00389\ \textcolor{preprocessor}{\#ifndef\ \_\_MEMWATCH\_C}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00390}00390\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ mwCounter;}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00391}00391\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00392}00392\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00393}00393\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00394}00394\ \textcolor{comment}{**\ System\ functions}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00395}00395\ \textcolor{comment}{**\ \ Normally,\ it\ is\ not\ nessecary\ to\ call\ any\ of\ these.\ MEMWATCH\ will}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00396}00396\ \textcolor{comment}{**\ \ automatically\ initialize\ itself\ on\ the\ first\ MEMWATCH\ function\ call,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00397}00397\ \textcolor{comment}{**\ \ and\ set\ up\ a\ call\ to\ mwAbort()\ using\ atexit().\ Some\ C++\ implementations}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00398}00398\ \textcolor{comment}{**\ \ run\ the\ atexit()\ chain\ before\ the\ program\ has\ terminated,\ so\ you}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00399}00399\ \textcolor{comment}{**\ \ may\ have\ to\ use\ mwInit()\ or\ the\ MemWatch\ C++\ class\ to\ get\ good}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00400}00400\ \textcolor{comment}{**\ \ behaviour.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00401}00401\ \textcolor{comment}{**\ \ -\/\ mwInit()\ can\ be\ called\ to\ disable\ the\ atexit()\ usage.\ If\ mwInit()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00402}00402\ \textcolor{comment}{**\ \ \ \ \ \ is\ called\ directly,\ you\ must\ call\ mwTerm()\ to\ end\ MemWatch,\ or}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00403}00403\ \textcolor{comment}{**\ \ \ \ \ \ mwAbort().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00404}00404\ \textcolor{comment}{**\ \ -\/\ mwTerm()\ is\ usually\ not\ nessecary\ to\ call;\ but\ if\ called,\ it\ will}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00405}00405\ \textcolor{comment}{**\ \ \ \ \ \ call\ mwAbort()\ if\ it\ finds\ that\ it\ is\ cancelling\ the\ 'topmost'}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00406}00406\ \textcolor{comment}{**\ \ \ \ \ \ mwInit()\ call.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00407}00407\ \textcolor{comment}{**\ \ -\/\ mwAbort()\ cleans\ up\ after\ MEMWATCH,\ reports\ unfreed\ buffers,\ etc.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00408}00408\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00409}00409\ \textcolor{keywordtype}{void}\ \ mwInit(\ \textcolor{keywordtype}{void}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00410}00410\ \textcolor{keywordtype}{void}\ \ mwTerm(\ \textcolor{keywordtype}{void}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00411}00411\ \textcolor{keywordtype}{void}\ \ mwAbort(\ \textcolor{keywordtype}{void}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00412}00412\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00413}00413\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00414}00414\ \textcolor{comment}{**\ Setup\ functions}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00415}00415\ \textcolor{comment}{**\ \ These\ functions\ control\ the\ operation\ of\ MEMWATCH's\ protective\ features.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00416}00416\ \textcolor{comment}{**\ \ -\/\ mwFlushNow()\ causes\ MEMWATCH\ to\ flush\ it's\ buffers.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00417}00417\ \textcolor{comment}{**\ \ -\/\ mwDoFlush()\ controls\ whether\ MEMWATCH\ flushes\ the\ disk\ buffers\ after}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00418}00418\ \textcolor{comment}{**\ \ \ \ \ \ writes.\ The\ default\ is\ smart\ flushing:\ MEMWATCH\ will\ not\ flush\ buffers}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00419}00419\ \textcolor{comment}{**\ \ \ \ \ \ explicitly\ until\ memory\ errors\ are\ detected.\ Then,\ all\ writes\ are}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00420}00420\ \textcolor{comment}{**\ \ \ \ \ \ flushed\ until\ program\ end\ or\ mwDoFlush(0)\ is\ called.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00421}00421\ \textcolor{comment}{**\ \ -\/\ mwLimit()\ sets\ the\ allocation\ limit,\ an\ arbitrary\ limit\ on\ how\ much}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00422}00422\ \textcolor{comment}{**\ \ \ \ \ \ memory\ your\ program\ may\ allocate\ in\ bytes.\ Used\ to\ stress-\/test\ app.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00423}00423\ \textcolor{comment}{**\ \ \ \ \ \ Also,\ in\ virtual-\/memory\ or\ multitasking\ environs,\ puts\ a\ limit\ on}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00424}00424\ \textcolor{comment}{**\ \ \ \ \ \ how\ much\ MW\_NML\_ALL\ can\ eat\ up.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00425}00425\ \textcolor{comment}{**\ \ -\/\ mwGrab()\ grabs\ up\ X\ kilobytes\ of\ memory.\ Allocates\ actual\ memory,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00426}00426\ \textcolor{comment}{**\ \ \ \ \ \ can\ be\ used\ to\ stress\ test\ app\ \&\ OS\ both.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00427}00427\ \textcolor{comment}{**\ \ -\/\ mwDrop()\ drops\ X\ kilobytes\ of\ grabbed\ memory.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00428}00428\ \textcolor{comment}{**\ \ -\/\ mwNoMansLand()\ sets\ the\ behaviour\ of\ the\ NML\ logic.\ See\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00429}00429\ \textcolor{comment}{**\ \ \ \ \ \ MW\_NML\_xxx\ for\ more\ information.\ The\ default\ is\ MW\_NML\_DEFAULT.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00430}00430\ \textcolor{comment}{**\ \ -\/\ mwStatistics()\ sets\ the\ behaviour\ of\ the\ statistics\ collector.\ See}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00431}00431\ \textcolor{comment}{**\ \ \ \ \ \ the\ MW\_STAT\_xxx\ defines\ for\ more\ information.\ Default\ MW\_STAT\_DEFAULT.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00432}00432\ \textcolor{comment}{**\ \ -\/\ mwFreeBufferInfo()\ enables\ or\ disables\ the\ tagging\ of\ free'd\ buffers}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00433}00433\ \textcolor{comment}{**\ \ \ \ \ \ with\ freeing\ information.\ This\ information\ is\ written\ in\ text\ form,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00434}00434\ \textcolor{comment}{**\ \ \ \ \ \ using\ sprintf(),\ so\ it's\ pretty\ slow.\ Disabled\ by\ default.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00435}00435\ \textcolor{comment}{**\ \ -\/\ mwAutoCheck()\ performs\ a\ CHECK()\ operation\ whenever\ a\ MemWatch\ function}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00436}00436\ \textcolor{comment}{**\ \ \ \ \ \ is\ used.\ Slows\ down\ performance,\ of\ course.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00437}00437\ \textcolor{comment}{**\ \ -\/\ mwCalcCheck()\ calculates\ checksums\ for\ all\ data\ buffers.\ Slow!}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00438}00438\ \textcolor{comment}{**\ \ -\/\ mwDumpCheck()\ logs\ buffers\ where\ stored\ \&\ calc'd\ checksums\ differ.\ Slow!!}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00439}00439\ \textcolor{comment}{**\ \ -\/\ mwMark()\ sets\ a\ generic\ marker.\ Returns\ the\ pointer\ given.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00440}00440\ \textcolor{comment}{**\ \ -\/\ mwUnmark()\ removes\ a\ generic\ marker.\ If,\ at\ the\ end\ of\ execution,\ some}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00441}00441\ \textcolor{comment}{**\ \ \ \ \ \ markers\ are\ still\ in\ existence,\ these\ will\ be\ reported\ as\ leakage.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00442}00442\ \textcolor{comment}{**\ \ \ \ \ \ returns\ the\ pointer\ given.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00443}00443\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00444}00444\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwFlushNow(\ \textcolor{keywordtype}{void}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00445}00445\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwDoFlush(\ \textcolor{keywordtype}{int}\ onoff\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00446}00446\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwLimit(\ \textcolor{keywordtype}{long}\ bytes\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00447}00447\ \textcolor{keywordtype}{unsigned}\ \ \ \ mwGrab(\ \textcolor{keywordtype}{unsigned}\ kilobytes\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00448}00448\ \textcolor{keywordtype}{unsigned}\ \ \ \ mwDrop(\ \textcolor{keywordtype}{unsigned}\ kilobytes\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00449}00449\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwNoMansLand(\ \textcolor{keywordtype}{int}\ mw\_nml\_level\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00450}00450\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwStatistics(\ \textcolor{keywordtype}{int}\ level\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00451}00451\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwFreeBufferInfo(\ \textcolor{keywordtype}{int}\ onoff\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00452}00452\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwAutoCheck(\ \textcolor{keywordtype}{int}\ onoff\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00453}00453\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwCalcCheck(\ \textcolor{keywordtype}{void}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00454}00454\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ mwDumpCheck(\ \textcolor{keywordtype}{void}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00455}00455\ \textcolor{keywordtype}{void}\ *\ \ \ \ \ \ mwMark(\ \textcolor{keywordtype}{void}\ *p,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *description,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *file,\ \textcolor{keywordtype}{unsigned}\ line\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00456}00456\ \textcolor{keywordtype}{void}\ *\ \ \ \ \ \ mwUnmark(\ \textcolor{keywordtype}{void}\ *p,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *file,\ \textcolor{keywordtype}{unsigned}\ line\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00457}00457\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00458}00458\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00459}00459\ \textcolor{comment}{**\ Testing/verification/tracing}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00460}00460\ \textcolor{comment}{**\ \ All\ of\ these\ macros\ except\ VERIFY()\ evaluates\ to\ a\ null\ statement}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00461}00461\ \textcolor{comment}{**\ \ if\ MEMWATCH\ is\ not\ defined\ during\ compilation.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00462}00462\ \textcolor{comment}{**\ \ -\/\ mwIsReadAddr()\ checks\ a\ memory\ area\ for\ read\ privilige.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00463}00463\ \textcolor{comment}{**\ \ -\/\ mwIsSafeAddr()\ checks\ a\ memory\ area\ for\ both\ read\ \&\ write\ privilige.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00464}00464\ \textcolor{comment}{**\ \ \ \ \ \ This\ function\ and\ mwIsReadAddr()\ is\ highly\ system-\/specific\ and}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00465}00465\ \textcolor{comment}{**\ \ \ \ \ \ may\ not\ be\ implemented.\ If\ this\ is\ the\ case,\ they\ will\ default}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00466}00466\ \textcolor{comment}{**\ \ \ \ \ \ to\ returning\ nonzero\ for\ any\ non-\/NULL\ pointer.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00467}00467\ \textcolor{comment}{**\ \ -\/\ CHECK()\ does\ a\ complete\ memory\ integrity\ test.\ Slow!}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00468}00468\ \textcolor{comment}{**\ \ -\/\ CHECK\_THIS()\ checks\ only\ selected\ components.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00469}00469\ \textcolor{comment}{**\ \ -\/\ CHECK\_BUFFER()\ checks\ the\ indicated\ buffer\ for\ errors.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00470}00470\ \textcolor{comment}{**\ \ -\/\ mwASSERT()\ or\ ASSERT()\ If\ the\ expression\ evaluates\ to\ nonzero,\ execution\ continues.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00471}00471\ \textcolor{comment}{**\ \ \ \ \ \ Otherwise,\ the\ ARI\ handler\ is\ called,\ if\ present.\ If\ not\ present,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00472}00472\ \textcolor{comment}{**\ \ \ \ \ \ the\ default\ ARI\ action\ is\ taken\ (set\ with\ mwSetAriAction()).}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00473}00473\ \textcolor{comment}{**\ \ \ \ \ \ ASSERT()\ can\ be\ disabled\ by\ defining\ MW\_NOASSERT.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00474}00474\ \textcolor{comment}{**\ \ -\/\ mwVERIFY()\ or\ VERIFY()\ works\ just\ like\ ASSERT(),\ but\ when\ compiling\ without}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00475}00475\ \textcolor{comment}{**\ \ \ \ \ \ MEMWATCH\ the\ macro\ evaluates\ to\ the\ expression.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00476}00476\ \textcolor{comment}{**\ \ \ \ \ \ VERIFY()\ can\ be\ disabled\ by\ defining\ MW\_NOVERIFY.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00477}00477\ \textcolor{comment}{**\ \ -\/\ mwTRACE()\ or\ TRACE()\ writes\ some\ text\ and\ data\ to\ the\ log.\ Use\ like\ printf().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00478}00478\ \textcolor{comment}{**\ \ \ \ \ \ TRACE()\ can\ be\ disabled\ by\ defining\ MW\_NOTRACE.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00479}00479\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00480}00480\ \textcolor{keywordtype}{int}\ \ \ mwIsReadAddr(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *p,\ \textcolor{keywordtype}{unsigned}\ len\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00481}00481\ \textcolor{keywordtype}{int}\ \ \ mwIsSafeAddr(\ \textcolor{keywordtype}{void}\ *p,\ \textcolor{keywordtype}{unsigned}\ len\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00482}00482\ \textcolor{keywordtype}{int}\ \ \ mwTest(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *file,\ \textcolor{keywordtype}{int}\ line,\ \textcolor{keywordtype}{int}\ mw\_test\_flags\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00483}00483\ \textcolor{keywordtype}{int}\ \ \ mwTestBuffer(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *file,\ \textcolor{keywordtype}{int}\ line,\ \textcolor{keywordtype}{void}\ *p\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00484}00484\ \textcolor{keywordtype}{int}\ \ \ mwAssert(\ \textcolor{keywordtype}{int},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keywordtype}{int}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00485}00485\ \textcolor{keywordtype}{int}\ \ \ mwVerify(\ \textcolor{keywordtype}{int},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keywordtype}{int}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00486}00486\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00487}00487\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00488}00488\ \textcolor{comment}{**\ User\ I/O\ functions}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00489}00489\ \textcolor{comment}{**\ \ -\/\ mwTrace()\ works\ like\ printf(),\ but\ dumps\ output\ either\ to\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00490}00490\ \textcolor{comment}{**\ \ \ \ \ \ function\ specified\ with\ mwSetOutFunc(),\ or\ the\ log\ file.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00491}00491\ \textcolor{comment}{**\ \ -\/\ mwPuts()\ works\ like\ puts(),\ dumps\ output\ like\ mwTrace().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00492}00492\ \textcolor{comment}{**\ \ -\/\ mwSetOutFunc()\ allows\ you\ to\ give\ the\ adress\ of\ a\ function}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00493}00493\ \textcolor{comment}{**\ \ \ \ \ \ where\ all\ user\ output\ will\ go.\ (exeption:\ see\ mwSetAriFunc)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00494}00494\ \textcolor{comment}{**\ \ \ \ \ \ Specifying\ NULL\ will\ direct\ output\ to\ the\ log\ file.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00495}00495\ \textcolor{comment}{**\ \ -\/\ mwSetAriFunc()\ gives\ MEMWATCH\ the\ adress\ of\ a\ function\ to\ call}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00496}00496\ \textcolor{comment}{**\ \ \ \ \ \ when\ an\ 'Abort,\ Retry,\ Ignore'\ question\ is\ called\ for.\ The}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00497}00497\ \textcolor{comment}{**\ \ \ \ \ \ actual\ error\ message\ is\ NOT\ printed\ when\ you've\ set\ this\ adress,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00498}00498\ \textcolor{comment}{**\ \ \ \ \ \ but\ instead\ it\ is\ passed\ as\ an\ argument.\ If\ you\ call\ with\ NULL}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00499}00499\ \textcolor{comment}{**\ \ \ \ \ \ for\ an\ argument,\ the\ ARI\ handler\ is\ disabled\ again.\ When\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00500}00500\ \textcolor{comment}{**\ \ \ \ \ \ handler\ is\ disabled,\ MEMWATCH\ will\ automatically\ take\ the}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00501}00501\ \textcolor{comment}{**\ \ \ \ \ \ action\ specified\ by\ mwSetAriAction().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00502}00502\ \textcolor{comment}{**\ \ -\/\ mwSetAriAction()\ sets\ the\ default\ ARI\ return\ value\ MEMWATCH\ should}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00503}00503\ \textcolor{comment}{**\ \ \ \ \ \ use\ if\ no\ ARI\ handler\ is\ specified.\ Defaults\ to\ MW\_ARI\_ABORT.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00504}00504\ \textcolor{comment}{**\ \ -\/\ mwAriHandler()\ is\ an\ ANSI\ ARI\ handler\ you\ can\ use\ if\ you\ like.\ It}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00505}00505\ \textcolor{comment}{**\ \ \ \ \ \ dumps\ output\ to\ stderr,\ and\ expects\ input\ from\ stdin.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00506}00506\ \textcolor{comment}{**\ \ -\/\ mwBreakOut()\ is\ called\ in\ certain\ cases\ when\ MEMWATCH\ feels\ it\ would}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00507}00507\ \textcolor{comment}{**\ \ \ \ \ \ be\ nice\ to\ break\ into\ a\ debugger.\ If\ you\ feel\ like\ MEMWATCH,\ place}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00508}00508\ \textcolor{comment}{**\ \ \ \ \ \ an\ execution\ breakpoint\ on\ this\ function.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00509}00509\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00510}00510\ \textcolor{keywordtype}{void}\ \ mwTrace(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ format\_string,\ ...\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00511}00511\ \textcolor{keywordtype}{void}\ \ mwPuts(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ text\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00512}00512\ \textcolor{keywordtype}{void}\ \ mwSetOutFunc(\ \textcolor{keywordtype}{void}\ (*func)(\textcolor{keywordtype}{int})\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00513}00513\ \textcolor{keywordtype}{void}\ \ mwSetAriFunc(\ \textcolor{keywordtype}{int}\ (*func)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*)\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00514}00514\ \textcolor{keywordtype}{void}\ \ mwSetAriAction(\ \textcolor{keywordtype}{int}\ mw\_ari\_value\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00515}00515\ \textcolor{keywordtype}{int}\ \ \ mwAriHandler(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ cause\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00516}00516\ \textcolor{keywordtype}{void}\ \ mwBreakOut(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ cause\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00517}00517\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00518}00518\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00519}00519\ \textcolor{comment}{**\ Allocation/deallocation\ functions}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00520}00520\ \textcolor{comment}{**\ \ These\ functions\ are\ the\ ones\ actually\ to\ perform\ allocations}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00521}00521\ \textcolor{comment}{**\ \ when\ running\ MEMWATCH,\ for\ both\ C\ and\ C++\ calls.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00522}00522\ \textcolor{comment}{**\ \ -\/\ mwMalloc()\ debugging\ allocator}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00523}00523\ \textcolor{comment}{**\ \ -\/\ mwMalloc\_()\ always\ resolves\ to\ a\ clean\ call\ of\ malloc()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00524}00524\ \textcolor{comment}{**\ \ -\/\ mwRealloc()\ debugging\ re-\/allocator}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00525}00525\ \textcolor{comment}{**\ \ -\/\ mwRealloc\_()\ always\ resolves\ to\ a\ clean\ call\ of\ realloc()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00526}00526\ \textcolor{comment}{**\ \ -\/\ mwCalloc()\ debugging\ allocator,\ fills\ with\ zeros}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00527}00527\ \textcolor{comment}{**\ \ -\/\ mwCalloc\_()\ always\ resolves\ to\ a\ clean\ call\ of\ calloc()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00528}00528\ \textcolor{comment}{**\ \ -\/\ mwFree()\ debugging\ free.\ Can\ only\ free\ memory\ which\ has}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00529}00529\ \textcolor{comment}{**\ \ \ \ \ \ been\ allocated\ by\ MEMWATCH.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00530}00530\ \textcolor{comment}{**\ \ -\/\ mwFree\_()\ resolves\ to\ a)\ normal\ free()\ or\ b)\ debugging\ free.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00531}00531\ \textcolor{comment}{**\ \ \ \ \ \ Can\ free\ memory\ allocated\ by\ MEMWATCH\ and\ malloc()\ both.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00532}00532\ \textcolor{comment}{**\ \ \ \ \ \ Does\ not\ generate\ any\ runtime\ errors.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00533}00533\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00534}00534\ \textcolor{keywordtype}{void}*\ mwMalloc(\ \textcolor{keywordtype}{size\_t},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keywordtype}{int}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00535}00535\ \textcolor{keywordtype}{void}*\ mwMalloc\_(\ \textcolor{keywordtype}{size\_t}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00536}00536\ \textcolor{keywordtype}{void}*\ mwRealloc(\ \textcolor{keywordtype}{void}\ *,\ \textcolor{keywordtype}{size\_t},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keywordtype}{int}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00537}00537\ \textcolor{keywordtype}{void}*\ mwRealloc\_(\ \textcolor{keywordtype}{void}\ *,\ \textcolor{keywordtype}{size\_t}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00538}00538\ \textcolor{keywordtype}{void}*\ mwCalloc(\ \textcolor{keywordtype}{size\_t},\ \textcolor{keywordtype}{size\_t},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keywordtype}{int}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00539}00539\ \textcolor{keywordtype}{void}*\ mwCalloc\_(\ \textcolor{keywordtype}{size\_t},\ \textcolor{keywordtype}{size\_t}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00540}00540\ \textcolor{keywordtype}{void}\ \ mwFree(\ \textcolor{keywordtype}{void}*,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keywordtype}{int}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00541}00541\ \textcolor{keywordtype}{void}\ \ mwFree\_(\ \textcolor{keywordtype}{void}*\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00542}00542\ \textcolor{keywordtype}{char}*\ mwStrdup(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*,\ \textcolor{keywordtype}{int}\ );}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00543}00543\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00544}00544\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00545}00545\ \textcolor{comment}{**\ Enable/disable\ precompiler\ block}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00546}00546\ \textcolor{comment}{**\ \ This\ block\ of\ defines\ and\ if(n)defs\ make\ sure\ that\ references}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00547}00547\ \textcolor{comment}{**\ \ to\ MEMWATCH\ is\ completely\ removed\ from\ the\ code\ if\ the\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00548}00548\ \textcolor{comment}{**\ \ manifest\ constant\ is\ not\ defined.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00549}00549\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00550}00550\ \textcolor{preprocessor}{\#ifndef\ \_\_MEMWATCH\_C}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00551}00551\ \textcolor{preprocessor}{\#ifdef\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00552}00552\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00553}00553\ \textcolor{preprocessor}{\#define\ mwASSERT(exp)\ \ \ while(mwAssert((int)(exp),\#\ exp,\_\_FILE\_\_,\_\_LINE\_\_))}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00554}00554\ \textcolor{preprocessor}{\#ifndef\ MW\_NOASSERT}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00555}00555\ \textcolor{preprocessor}{\#ifndef\ ASSERT}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00556}00556\ \textcolor{preprocessor}{\#define\ ASSERT\ \ \ \ \ \ \ \ \ \ mwASSERT}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00557}00557\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !ASSERT\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00558}00558\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !MW\_NOASSERT\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00559}00559\ \textcolor{preprocessor}{\#define\ mwVERIFY(exp)\ \ \ while(mwVerify((int)(exp),\#\ exp,\_\_FILE\_\_,\_\_LINE\_\_))}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00560}00560\ \textcolor{preprocessor}{\#ifndef\ MW\_NOVERIFY}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00561}00561\ \textcolor{preprocessor}{\#ifndef\ VERIFY}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00562}00562\ \textcolor{preprocessor}{\#define\ VERIFY\ \ \ \ \ \ \ \ \ \ mwVERIFY}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00563}00563\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !VERIFY\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00564}00564\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !MW\_NOVERIFY\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00565}00565\ \textcolor{preprocessor}{\#define\ mwTRACE\ \ \ \ \ \ \ \ \ mwTrace}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00566}00566\ \textcolor{preprocessor}{\#ifndef\ MW\_NOTRACE}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00567}00567\ \textcolor{preprocessor}{\#ifndef\ TRACE}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00568}00568\ \textcolor{preprocessor}{\#define\ TRACE\ \ \ \ \ \ \ \ \ \ \ mwTRACE}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00569}00569\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !TRACE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00570}00570\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !MW\_NOTRACE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00571}00571\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00572}00572\ \textcolor{comment}{/*\ some\ compilers\ use\ a\ define\ and\ not\ a\ function\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00573}00573\ \textcolor{comment}{/*\ for\ strdup().\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00574}00574\ \textcolor{preprocessor}{\#ifdef\ strdup}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00575}00575\ \textcolor{preprocessor}{\#undef\ strdup}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00576}00576\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00577}00577\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00578}00578\ \textcolor{comment}{/*\ Added\ for\ Gamesman\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00579}00579\ \textcolor{preprocessor}{\#define\ SafeMalloc(n)\ \ \ \ \ \ \ \ \ \ \ mwMalloc(n,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00580}00580\ \textcolor{preprocessor}{\#define\ SafeRealloc(p,n)\ \ \ \ \ \ \ \ mwRealloc(p,n,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00581}00581\ \textcolor{preprocessor}{\#define\ SafeFree(p)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mwFree(p,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00582}00582\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00583}00583\ \textcolor{preprocessor}{\#define\ malloc(n)\ \ \ \ \ \ \ mwMalloc(n,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00584}00584\ \textcolor{preprocessor}{\#define\ strdup(p)\ \ \ \ \ \ \ mwStrdup(p,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00585}00585\ \textcolor{preprocessor}{\#define\ realloc(p,n)\ \ \ \ mwRealloc(p,n,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00586}00586\ \textcolor{preprocessor}{\#define\ calloc(n,m)\ \ \ \ \ mwCalloc(n,m,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00587}00587\ \textcolor{preprocessor}{\#define\ free(p)\ \ \ \ \ \ \ \ \ mwFree(p,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00588}00588\ \textcolor{preprocessor}{\#define\ CHECK()\ \ \ \ \ \ \ \ \ mwTest(\_\_FILE\_\_,\_\_LINE\_\_,MW\_TEST\_ALL)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00589}00589\ \textcolor{preprocessor}{\#define\ CHECK\_THIS(n)\ \ \ mwTest(\_\_FILE\_\_,\_\_LINE\_\_,n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00590}00590\ \textcolor{preprocessor}{\#define\ CHECK\_BUFFER(b)\ mwTestBuffer(\_\_FILE\_\_,\_\_LINE\_\_,b)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00591}00591\ \textcolor{preprocessor}{\#define\ MARK(p)\ \ \ \ \ \ \ \ \ mwMark(p,\#\ p,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00592}00592\ \textcolor{preprocessor}{\#define\ UNMARK(p)\ \ \ \ \ \ \ mwUnmark(p,\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00593}00593\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00594}00594\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{/*\ MEMWATCH\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00595}00595\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00596}00596\ \textcolor{preprocessor}{\#define\ mwASSERT(exp)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00597}00597\ \textcolor{preprocessor}{\#ifndef\ MW\_NOASSERT}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00598}00598\ \textcolor{preprocessor}{\#ifndef\ ASSERT}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00599}00599\ \textcolor{preprocessor}{\#define\ ASSERT\ \ \ \ \ \ \ \ \ \ mwASSERT}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00600}00600\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !ASSERT\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00601}00601\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !MW\_NOASSERT\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00602}00602\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00603}00603\ \textcolor{preprocessor}{\#define\ mwVERIFY(exp)\ \ \ \ exp}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00604}00604\ \textcolor{preprocessor}{\#ifndef\ MW\_NOVERIFY}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00605}00605\ \textcolor{preprocessor}{\#ifndef\ VERIFY}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00606}00606\ \textcolor{preprocessor}{\#define\ VERIFY\ \ \ \ \ \ \ \ \ \ mwVERIFY}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00607}00607\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !VERIFY\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00608}00608\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !MW\_NOVERIFY\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00609}00609\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00610}00610\ \textcolor{comment}{/*lint\ -\/esym(773,mwTRACE)\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00611}00611\ \textcolor{preprocessor}{\#define\ mwTRACE\ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*lint\ -\/save\ -\/e506\ */}\textcolor{preprocessor}{\ 1\ ?\ (void)0\ :\ mwDummyTraceFunction\ }\textcolor{comment}{/*lint\ -\/restore\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00612}00612\ \textcolor{preprocessor}{\#ifndef\ MW\_NOTRACE}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00613}00613\ \textcolor{preprocessor}{\#ifndef\ TRACE}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00614}00614\ \textcolor{comment}{/*lint\ -\/esym(773,TRACE)\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00615}00615\ \textcolor{preprocessor}{\#define\ TRACE\ \ \ \ \ \ \ \ \ \ \ mwTRACE}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00616}00616\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !TRACE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00617}00617\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !MW\_NOTRACE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00618}00618\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00619}00619\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ mwDummyTraceFunction(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,...);}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00620}00620\ \textcolor{comment}{/*lint\ -\/save\ -\/e652\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00621}00621\ \textcolor{preprocessor}{\#define\ mwDoFlush(n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00622}00622\ \textcolor{preprocessor}{\#define\ mwPuts(s)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00623}00623\ \textcolor{preprocessor}{\#define\ mwInit()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00624}00624\ \textcolor{preprocessor}{\#define\ mwGrab(n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00625}00625\ \textcolor{preprocessor}{\#define\ mwDrop(n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00626}00626\ \textcolor{preprocessor}{\#define\ mwLimit(n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00627}00627\ \textcolor{preprocessor}{\#define\ mwTest(f,l)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00628}00628\ \textcolor{preprocessor}{\#define\ mwSetOutFunc(f)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00629}00629\ \textcolor{preprocessor}{\#define\ mwSetAriFunc(f)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00630}00630\ \textcolor{preprocessor}{\#define\ mwDefaultAri()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00631}00631\ \textcolor{preprocessor}{\#define\ mwNomansland()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00632}00632\ \textcolor{preprocessor}{\#define\ mwStatistics(f)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00633}00633\ \textcolor{preprocessor}{\#define\ mwMark(p,t,f,n)\ \ \ \ \ (p)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00634}00634\ \textcolor{preprocessor}{\#define\ mwUnmark(p,f,n)\ \ \ \ \ (p)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00635}00635\ \textcolor{preprocessor}{\#define\ mwMalloc(n,f,l)\ \ \ \ \ malloc(n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00636}00636\ \textcolor{preprocessor}{\#define\ mwStrdup(p,f,l)\ \ \ \ \ strdup(p)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00637}00637\ \textcolor{preprocessor}{\#define\ mwRealloc(p,n,f,l)\ \ realloc(p,n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00638}00638\ \textcolor{preprocessor}{\#define\ mwCalloc(n,m,f,l)\ \ \ calloc(n,m)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00639}00639\ \textcolor{preprocessor}{\#define\ mwFree(p)\ \ \ \ \ \ \ \ \ \ \ free(p)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00640}00640\ \textcolor{preprocessor}{\#define\ mwMalloc\_(n)\ \ \ \ \ \ \ \ malloc(n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00641}00641\ \textcolor{preprocessor}{\#define\ mwRealloc\_(p,n)\ \ \ \ \ realloc(p,n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00642}00642\ \textcolor{preprocessor}{\#define\ mwCalloc\_(n,m)\ \ \ \ \ \ calloc(n,m)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00643}00643\ \textcolor{preprocessor}{\#define\ mwFree\_(p)\ \ \ \ \ \ \ \ \ \ free(p)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00644}00644\ \textcolor{preprocessor}{\#define\ mwAssert(e,es,f,l)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00645}00645\ \textcolor{preprocessor}{\#define\ mwVerify(e,es,f,l)\ \ (e)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00646}00646\ \textcolor{preprocessor}{\#define\ mwTrace\ \ \ \ \ \ \ \ \ \ \ \ \ mwDummyTrace}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00647}00647\ \textcolor{preprocessor}{\#define\ mwTestBuffer(f,l,b)\ (0)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00648}00648\ \textcolor{preprocessor}{\#define\ CHECK()}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00649}00649\ \textcolor{preprocessor}{\#define\ CHECK\_THIS(n)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00650}00650\ \textcolor{preprocessor}{\#define\ CHECK\_BUFFER(b)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00651}00651\ \textcolor{preprocessor}{\#define\ MARK(p)\ \ \ \ \ \ \ \ \ \ \ \ \ (p)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00652}00652\ \textcolor{preprocessor}{\#define\ UNMARK(p)\ \ \ \ \ \ \ \ \ \ \ (p)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00653}00653\ \textcolor{comment}{/*lint\ -\/restore\ */}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00654}00654\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00655}00655\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ MEMWATCH\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00656}00656\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !\_\_MEMWATCH\_C\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00657}00657\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00658}00658\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00659}00659\ \}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00660}00660\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00661}00661\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00662}00662\ \textcolor{preprocessor}{\#if\ 0\ }\textcolor{comment}{/*\ 980317:\ disabled\ C++\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00663}00663\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00664}00664\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00665}00665\ \textcolor{comment}{**\ C++\ support\ section}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00666}00666\ \textcolor{comment}{**\ \ Implements\ the\ C++\ support.\ Please\ note\ that\ in\ order\ to\ avoid}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00667}00667\ \textcolor{comment}{**\ \ messing\ up\ library\ classes,\ C++\ support\ is\ disabled\ by\ default.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00668}00668\ \textcolor{comment}{**\ \ You\ must\ NOT\ enable\ it\ until\ AFTER\ the\ inclusion\ of\ all\ header}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00669}00669\ \textcolor{comment}{**\ \ files\ belonging\ to\ code\ that\ are\ not\ compiled\ with\ MEMWATCH,\ and}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00670}00670\ \textcolor{comment}{**\ \ possibly\ for\ some\ that\ are!\ The\ reason\ for\ this\ is\ that\ a\ C++}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00671}00671\ \textcolor{comment}{**\ \ class\ may\ implement\ it's\ own\ new()\ function,\ and\ the\ preprocessor}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00672}00672\ \textcolor{comment}{**\ \ would\ substitute\ this\ crucial\ declaration\ for\ MEMWATCH\ new().}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00673}00673\ \textcolor{comment}{**\ \ You\ can\ forcibly\ deny\ C++\ support\ by\ defining\ MEMWATCH\_NOCPP.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00674}00674\ \textcolor{comment}{**\ \ To\ enble\ C++\ support,\ you\ must\ be\ compiling\ C++,\ MEMWATCH\ must}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00675}00675\ \textcolor{comment}{**\ \ be\ defined,\ MEMWATCH\_NOCPP\ must\ not\ be\ defined,\ and\ finally,}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00676}00676\ \textcolor{comment}{**\ \ you\ must\ define\ 'new'\ to\ be\ 'mwNew',\ and\ 'delete'\ to\ be\ 'mwDelete'.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00677}00677\ \textcolor{comment}{**\ \ Unlike\ C,\ C++\ code\ can\ begin\ executing\ *way*\ before\ main(),\ for}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00678}00678\ \textcolor{comment}{**\ \ example\ if\ a\ global\ variable\ is\ created.\ For\ this\ reason,\ you\ can}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00679}00679\ \textcolor{comment}{**\ \ declare\ a\ global\ variable\ of\ the\ class\ 'MemWatch'.\ If\ this\ is}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00680}00680\ \textcolor{comment}{**\ \ is\ the\ first\ variable\ created,\ it\ will\ then\ check\ ALL\ C++\ allocations}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00681}00681\ \textcolor{comment}{**\ \ and\ deallocations.\ Unfortunately,\ this\ evaluation\ order\ is\ not}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00682}00682\ \textcolor{comment}{**\ \ guaranteed\ by\ C++,\ though\ the\ compilers\ I've\ tried\ evaluates\ them}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00683}00683\ \textcolor{comment}{**\ \ in\ the\ order\ encountered.}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00684}00684\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00685}00685\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00686}00686\ \textcolor{preprocessor}{\#ifndef\ \_\_MEMWATCH\_C}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00687}00687\ \textcolor{preprocessor}{\#ifdef\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00688}00688\ \textcolor{preprocessor}{\#ifndef\ MEMWATCH\_NOCPP}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00689}00689\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ mwNCur;}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00690}00690\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *mwNFile;}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00691}00691\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ mwNLine;}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00692}00692\ \textcolor{keyword}{class\ }MemWatch\ \{}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00693}00693\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00694}00694\ MemWatch();}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00695}00695\ \string~MemWatch();}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00696}00696\ \};}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00697}00697\ \textcolor{keywordtype}{void}\ *\ \textcolor{keyword}{operator}\ \textcolor{keyword}{new}(size\_t);}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00698}00698\ \textcolor{keywordtype}{void}\ *\ \textcolor{keyword}{operator}\ \textcolor{keyword}{new}(size\_t,\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,int);}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00699}00699\ \textcolor{keywordtype}{void}\ *\ \textcolor{keyword}{operator}\ \textcolor{keyword}{new}[]\ (size\_t,\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,int);\ \ \ \ \ \ \ \ \textcolor{comment}{//\ hjc\ 07/16/02}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00700}00700\ \textcolor{keywordtype}{void}\ \textcolor{keyword}{operator}\ \textcolor{keyword}{delete}(\textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00701}00701\ \textcolor{preprocessor}{\#define\ mwNew\ new(\_\_FILE\_\_,\_\_LINE\_\_)}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00702}00702\ \textcolor{preprocessor}{\#define\ mwDelete\ (mwNCur=1,mwNFile=\_\_FILE\_\_,mwNLine=\_\_LINE\_\_),delete}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00703}00703\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ MEMWATCH\_NOCPP\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00704}00704\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ MEMWATCH\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00705}00705\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !\_\_MEMWATCH\_C\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00706}00706\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_cplusplus\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00707}00707\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00708}00708\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ 980317:\ disabled\ C++\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00709}00709\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00710}00710\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_MEMWATCH\_H\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00711}00711\ }
+\DoxyCodeLine{\Hypertarget{memwatch_8h_source_l00712}00712\ \textcolor{comment}{/*\ EOF\ MEMWATCH.H\ */}}
+
+\end{DoxyCode}

@@ -1,0 +1,531 @@
+\hypertarget{mfivefieldkono_8c_source}{}\doxysection{mfivefieldkono.\+c}
+\label{mfivefieldkono_8c_source}\index{src/mfivefieldkono.c@{src/mfivefieldkono.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ mfivefieldkono.c}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Five-\/Field\ Kono}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ \ \ Andrew\ Lee}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00008}00008\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00009}00009\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ 2023-\/02-\/24}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00011}00011\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00013}00013\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00014}00014\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00015}00015\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00020}00020\ \textcolor{comment}{/*\ GLOBAL\ VARIABLES\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00021}00021\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00023}00023\ STRING\ kAuthorName\ =\ \textcolor{stringliteral}{"{}Andrew\ Lee"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00026}00026\ STRING\ kGameName\ =\ \textcolor{stringliteral}{"{}Five-\/Field\ Kono"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00029}00029\ STRING\ kDBName\ =\ \textcolor{stringliteral}{"{}fivefieldkono"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00034}00034\ POSITION\ gNumberOfPositions\ =\ 1189188000;\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00037}00037\ POSITION\ gInitialPosition\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00040}00040\ POSITION\ kBadPosition\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00043}00043\ BOOLEAN\ kPartizan\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00046}00046\ BOOLEAN\ kTieIsPossible\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00049}00049\ BOOLEAN\ kLoopy\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00052}00052\ BOOLEAN\ kSupportsSymmetries\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00055}00055\ BOOLEAN\ kDebugDetermineValue\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00056}00056\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00058}00058\ \textcolor{keywordtype}{void}*\ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00061}00061\ BOOLEAN\ kGameSpecificMenu\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00064}00064\ BOOLEAN\ kDebugMenu\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00067}00067\ STRING\ kHelpGraphicInterface\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00068}00068\ STRING\ kHelpTextInterface\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00069}00069\ STRING\ kHelpOnYourTurn\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00070}00070\ STRING\ kHelpStandardObjective\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00071}00071\ STRING\ kHelpReverseObjective\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00072}00072\ STRING\ kHelpTieOccursWhen\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00073}00073\ STRING\ kHelpExample\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00078}00078\ \textcolor{comment}{/*\ BOARD\ DEFINITION\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00084}\mbox{\hyperlink{struct_f_f_k___board}{00084}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00085}00085\ \ \ \textcolor{keywordtype}{char}\ *even\_component;\ \textcolor{comment}{//\ 12\ characters\ +\ 1\ null\ byte}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00086}00086\ \ \ \textcolor{keywordtype}{char}\ *odd\_component;\ \textcolor{comment}{//\ 13\ characters\ +\ 1\ null\ byte}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00087}00087\ \ \ BOOLEAN\ turn;\ \textcolor{comment}{//\ TRUE\ =\ your\ turn\ (piece\ x),\ FALSE\ =\ opponent\ turn\ (piece\ o)}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00088}00088\ \}\ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00093}00093\ \textcolor{comment}{/*\ FUNCTIONAL\ DECLARATION\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00096}00096\ \textcolor{keywordtype}{void}\ InitializeGame();}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00097}00097\ POSITION\ GetInitialPosition();}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00098}00098\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(POSITION\ hash);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00099}00099\ POSITION\ GetCanonicalPosition(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00100}00100\ POSITION\ DoMove(POSITION\ hash,\ MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00101}00101\ VALUE\ Primitive(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00104}00104\ \textcolor{keywordtype}{void}\ evaluateEven(\textcolor{keywordtype}{int}\ currPos,\ \textcolor{keywordtype}{int}\ newPos,\ BOOLEAN\ turn,\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ **moves,\ \textcolor{keywordtype}{char}\ *even\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00105}00105\ \textcolor{keywordtype}{void}\ evaluateOdd(\textcolor{keywordtype}{int}\ currPos,\ \textcolor{keywordtype}{int}\ newPos,\ BOOLEAN\ turn,\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ **moves,\ \textcolor{keywordtype}{char}\ *odd\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00106}00106\ \textcolor{keywordtype}{int}\ convertChar(\textcolor{keywordtype}{char}\ char\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00107}00107\ \textcolor{keywordtype}{char}\ convertInt(\textcolor{keywordtype}{char}\ int\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00110}00110\ \textcolor{keywordtype}{void}\ transform(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board,\ \textcolor{keywordtype}{int}\ flips,\ \textcolor{keywordtype}{int}\ rotations);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00111}00111\ \textcolor{keywordtype}{void}\ rotate(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00112}00112\ \textcolor{keywordtype}{void}\ flip(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00113}00113\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00115}00115\ POSITION\ hash(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}\ *board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00116}00116\ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ unhash(POSITION\ hash);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00119}00119\ POSITION\ withTurn(POSITION\ pos,\ BOOLEAN\ turn);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00120}00120\ BOOLEAN\ getTurn(POSITION\ hash);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00123}00123\ BOOLEAN\ isWin(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00124}00124\ BOOLEAN\ isLose(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00125}00125\ BOOLEAN\ isTie(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00126}00126\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00128}00128\ MOVE\ hashMove(\textcolor{keywordtype}{int}\ oldPos,\ \textcolor{keywordtype}{int}\ newPos);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00129}00129\ \textcolor{keywordtype}{void}\ unhashMove(MOVE\ mv,\ \textcolor{keywordtype}{int}\ *oldPos,\ \textcolor{keywordtype}{int}\ *newPos);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00132}00132\ STRING\ MoveToString(MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00137}00137\ \textcolor{comment}{/*\ BOARD\ TRANSFORMATION\ ARRAYS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00138}00138\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00142}00142\ \textcolor{keywordtype}{int}\ even\_turn\_pos[12]\ =\ \{4,\ 9,\ 1,\ 6,\ 11,\ 3,\ 8,\ 0,\ 5,\ 10,\ 2,\ 7\};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00143}00143\ \textcolor{keywordtype}{int}\ odd\_turn\_pos[13]\ =\ \{2,\ 7,\ 12,\ 4,\ 9,\ 1,\ 6,\ 11,\ 3,\ 8,\ 0,\ 5,\ 10\};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00148}00148\ \textcolor{keywordtype}{int}\ even\_flip\_pos[12]\ =\ \{1,\ 0,\ 4,\ 3,\ 2,\ 6,\ 5,\ 9,\ 8,\ 7,\ 11,\ 10\};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00149}00149\ \textcolor{keywordtype}{int}\ odd\_flip\_pos[13]\ =\ \{2,\ 1,\ 0,\ 4,\ 3,\ 7,\ 6,\ 5,\ 9,\ 8,\ 12,\ 11,\ 10\};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00154}00154\ \textcolor{comment}{/*\ SOLVING\ FUNCIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00157}00157\ \textcolor{keywordtype}{void}\ InitializeGame()\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00158}00158\ \ \ gMoveToStringFunPtr\ =\ \&MoveToString;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00159}00159\ \ \ gInitialPosition\ =\ GetInitialPosition();}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00160}00160\ \ \ gCanonicalPosition\ =\ GetCanonicalPosition;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00161}00161\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00164}00164\ POSITION\ GetInitialPosition()\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00165}00165\ \ \ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}\ *initial\_board\ =\ (\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}\ *)\ malloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}));}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00166}00166\ \ \ initial\_board-\/>even\_component\ =\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*13);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00167}00167\ \ \ initial\_board-\/>odd\_component\ =\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*14);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00168}00168\ \ \ strcpy(initial\_board-\/>even\_component,\ \textcolor{stringliteral}{"{}ooo-\/o-\/-\/x-\/xxx"{}});}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00169}00169\ \ \ strcpy(initial\_board-\/>odd\_component,\ \textcolor{stringliteral}{"{}ooo-\/-\/-\/-\/-\/-\/-\/xxx"{}});}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00170}00170\ \ \ initial\_board-\/>turn\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00171}00171\ \ \ \textcolor{keywordflow}{return}\ hash(initial\_board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00172}00172\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00173}00173\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00175}00175\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(POSITION\ hash)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00176}00176\ \ \ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}\ *newboard\ =\ unhash(hash);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00177}00177\ \ \ BOOLEAN\ turn\ =\ newboard-\/>turn;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00178}00178\ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00181}00181\ \ \ \textcolor{keywordtype}{int}\ even\_len\ =\ 12;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00182}00182\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ even\_len;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00183}00183\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ !=\ 4\ \&\&\ i\ !=\ 9)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00184}00184\ \ \ \ \ \ \ evaluateEven(i,\ i\ -\/\ 2,\ turn,\ \&moves,\ newboard-\/>even\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00185}00185\ \ \ \ \ \ \ evaluateEven(i,\ i\ +\ 3,\ turn,\ \&moves,\ newboard-\/>even\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00186}00186\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00187}00187\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ !=\ 2\ \&\&\ i\ !=\ 7)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00188}00188\ \ \ \ \ \ \ evaluateEven(i,\ i\ +\ 2,\ turn,\ \&moves,\ newboard-\/>even\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00189}00189\ \ \ \ \ \ \ evaluateEven(i,\ i\ -\/\ 3,\ turn,\ \&moves,\ newboard-\/>even\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00190}00190\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00191}00191\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00193}00193\ \ \ \textcolor{keywordtype}{int}\ odd\_len\ =\ 13;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00194}00194\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ odd\_len;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00195}00195\ \ \ \ \ \textcolor{keywordflow}{if}\ (j\ !=\ 0\ \&\&\ j\ !=\ 5\ \&\&\ j\ !=\ 10)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00196}00196\ \ \ \ \ \ \ evaluateOdd(j,\ j\ +\ 2,\ turn,\ \&moves,\ newboard-\/>odd\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00197}00197\ \ \ \ \ \ \ evaluateOdd(j,\ j\ -\/\ 3,\ turn,\ \&moves,\ newboard-\/>odd\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00198}00198\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00199}00199\ \ \ \ \ \textcolor{keywordflow}{if}\ (j\ !=\ 2\ \&\&\ j\ !=\ 7\ \&\&\ j\ !=\ 12)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00200}00200\ \ \ \ \ \ \ evaluateOdd(j,\ j\ -\/\ 2,\ turn,\ \&moves,\ newboard-\/>odd\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00201}00201\ \ \ \ \ \ \ evaluateOdd(j,\ j\ +\ 3,\ turn,\ \&moves,\ newboard-\/>odd\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00202}00202\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00203}00203\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00205}00205\ \ \ \textcolor{keywordflow}{return}\ moves;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00206}00206\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00207}00207\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00209}00209\ POSITION\ DoMove(POSITION\ hash,\ MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00210}00210\ \ \ \textcolor{keywordtype}{int}\ oldPos,\ newPos;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00211}00211\ \ \ BOOLEAN\ turn\ =\ getTurn(hash);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00212}00212\ \ \ unhashMove(move,\ \&oldPos,\ \&newPos);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00213}00213\ \ \ \textcolor{keywordtype}{int}\ piece\_type\ =\ turn\ ?\ 2:\ 1;\ \textcolor{comment}{//\ o\ ==\ 1\ and\ x\ ==\ 2\ in\ base\ 3}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00214}00214\ \ \ POSITION\ original\ =\ piece\_type\ *\ pow(3,\ oldPos);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00215}00215\ \ \ POSITION\ \textcolor{keyword}{new}\ =\ piece\_type\ *\ pow(3,\ newPos);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00216}00216\ \ \ \textcolor{keywordflow}{return}\ withTurn(hash\ -\/\ original\ +\ \textcolor{keyword}{new},\ (turn\ +\ 1)\ \%\ 2);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00217}00217\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00220}00220\ POSITION\ GetCanonicalPosition(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00221}00221\ \ \ POSITION*\ symmetries\ =\ malloc(\textcolor{keyword}{sizeof}(POSITION)*8);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00222}00222\ \ \ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board\ =\ unhash(position);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00223}00223\ \ \ POSITION\ canonical\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00225}00225\ \ \ symmetries[0]\ =\ position;\ \textcolor{comment}{//\ identity}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00226}00226\ \ \ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00227}00227\ \ \ symmetries[1]\ =\ hash(board);\ \textcolor{comment}{//\ r}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00228}00228\ \ \ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00229}00229\ \ \ symmetries[2]\ =\ hash(board);\ \textcolor{comment}{//\ r\string^2}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00230}00230\ \ \ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00231}00231\ \ \ symmetries[3]\ =\ hash(board);\ \textcolor{comment}{//\ r\string^3}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00232}00232\ \ \ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00233}00233\ \ \ flip(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00234}00234\ \ \ symmetries[4]\ =\ hash(board);\ \textcolor{comment}{//\ f}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00235}00235\ \ \ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00236}00236\ \ \ symmetries[5]\ =\ hash(board);\ \textcolor{comment}{//\ fr\ (frfr\ ong\ deadass)}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00237}00237\ \ \ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00238}00238\ \ \ symmetries[6]\ =\ hash(board);\ \textcolor{comment}{//\ fr\string^2}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00239}00239\ \ \ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00240}00240\ \ \ symmetries[7]\ =\ hash(board);\ \textcolor{comment}{//\ fr\string^3}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00241}00241\ \ \ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00242}00242\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 8;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00243}00243\ \ \ \ \ \textcolor{keywordflow}{if}\ (symmetries[i]\ >\ canonical)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00244}00244\ \ \ \ \ \ \ canonical\ =\ symmetries[i];}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00245}00245\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00246}00246\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00247}00247\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00248}00248\ \ \ free(symmetries);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00249}00249\ \ \ free(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00251}00251\ \ \ \textcolor{keywordflow}{return}\ canonical;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00252}00252\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00253}00253\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00256}00256\ VALUE\ Primitive(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00257}00257\ \ \ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}\ *board\ =\ unhash(position);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00258}00258\ \ \ BOOLEAN\ is\_win\ =\ isWin(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00259}00259\ \ \ BOOLEAN\ is\_lose\ =\ isLose(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00260}00260\ \ \ BOOLEAN\ is\_tie\ =\ isTie(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00261}00261\ \ \ free(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00262}00262\ \ \ \textcolor{keywordflow}{if}\ (is\_win)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00263}00263\ \ \ \ \ \textcolor{keywordflow}{return}\ win;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00264}00264\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00265}00265\ \ \ \textcolor{keywordflow}{if}\ (is\_lose)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00266}00266\ \ \ \ \ \textcolor{keywordflow}{return}\ lose;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00267}00267\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00268}00268\ \ \ \textcolor{keywordflow}{if}\ (is\_tie)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00269}00269\ \ \ \ \ \textcolor{keywordflow}{return}\ tie;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00270}00270\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00271}00271\ \ \ \textcolor{keywordflow}{return}\ undecided;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00272}00272\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00273}00273\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00276}00276\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00277}00277\ \textcolor{comment}{/*\ SOLVING\ HELPER\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00280}00280\ \textcolor{keywordtype}{void}\ evaluateEven(\textcolor{keywordtype}{int}\ currPos,\ \textcolor{keywordtype}{int}\ newPos,\ BOOLEAN\ turn,\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ **moves,\ \textcolor{keywordtype}{char}\ *even\_component)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00281}00281\ \ \ \textcolor{keywordflow}{if}\ (newPos\ <\ 0\ ||\ newPos\ >=\ 12)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00282}00282\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00283}00283\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00284}00284\ \ \ \textcolor{keywordtype}{int}\ currElem\ =\ convertChar(even\_component[currPos]);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00285}00285\ \ \ \textcolor{keywordtype}{int}\ newElem\ =\ convertChar(even\_component[newPos]);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00286}00286\ \ \ \textcolor{keywordtype}{int}\ match\ =\ turn\ ?\ 2\ :\ 1;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00287}00287\ \ \ \textcolor{keywordflow}{if}\ (currElem\ >\ 0\ \&\&\ newElem\ ==\ 0\ \&\&\ currElem\ ==\ match)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00288}00288\ \ \ \ \ *moves\ =\ CreateMovelistNode(hashMove((12\ -\/\ 1)\ -\/\ currPos,\ (12\ -\/\ 1)\ -\/\ newPos),\ *moves);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00289}00289\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00290}00290\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00293}00293\ \textcolor{keywordtype}{void}\ evaluateOdd(\textcolor{keywordtype}{int}\ currPos,\ \textcolor{keywordtype}{int}\ newPos,\ BOOLEAN\ turn,\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ **moves,\ \textcolor{keywordtype}{char}\ *odd\_component)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00294}00294\ \ \ \textcolor{keywordflow}{if}\ (newPos\ <\ 0\ ||\ newPos\ >=\ 13)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00295}00295\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00296}00296\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00297}00297\ \ \ \textcolor{keywordtype}{int}\ currElem\ =\ convertChar(odd\_component[currPos]);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00298}00298\ \ \ \textcolor{keywordtype}{int}\ newElem\ =\ convertChar(odd\_component[newPos]);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00299}00299\ \ \ \textcolor{keywordtype}{int}\ match\ =\ turn\ ?\ 2\ :\ 1;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00300}00300\ \ \ \textcolor{keywordflow}{if}\ (currElem\ >\ 0\ \&\&\ newElem\ ==\ 0\ \&\&\ currElem\ ==\ match)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00301}00301\ \ \ \ \ *moves\ =\ CreateMovelistNode(hashMove((25\ -\/\ 1)\ -\/\ currPos,\ (25\ -\/\ 1)\ -\/\ newPos),\ *moves);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00302}00302\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00303}00303\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00304}00304\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00307}00307\ \textcolor{keywordtype}{int}\ convertChar(\textcolor{keywordtype}{char}\ char\_component)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00308}00308\ \ \ \textcolor{keywordflow}{if}\ (char\_component\ ==\ \textcolor{charliteral}{'-\/'})\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00309}00309\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00310}00310\ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (char\_component\ ==\ \textcolor{charliteral}{'o'})\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00311}00311\ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00312}00312\ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (char\_component\ ==\ \textcolor{charliteral}{'x'})\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00314}00314\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00315}00315\ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00316}00316\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00317}00317\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00320}00320\ \textcolor{keywordtype}{char}\ convertInt(\textcolor{keywordtype}{char}\ int\_component)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00321}00321\ \ \ \textcolor{keywordflow}{if}\ (int\_component\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00322}00322\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{charliteral}{'-\/'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00323}00323\ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (int\_component\ ==\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00324}00324\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{charliteral}{'o'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00325}00325\ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (int\_component\ ==\ 2)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00326}00326\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{charliteral}{'x'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00327}00327\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00328}00328\ \ \ \textcolor{keywordflow}{return}\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00329}00329\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00332}00332\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00333}00333\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00334}00334\ \textcolor{comment}{/*\ TRANSFORMATION\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00335}00335\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00337}00337\ \textcolor{keywordtype}{void}\ rotate(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00345}00345\ \ \ \textcolor{keywordtype}{char}\ *new\_even\_arr\ =\ (\textcolor{keywordtype}{char}\ *)\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*13);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00346}00346\ \ \ \textcolor{keywordtype}{int}\ even\_len\ =\ 12;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00347}00347\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ even\_len;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00348}00348\ \ \ \ \ new\_even\_arr[i]\ =\ board-\/>even\_component[even\_turn\_pos[i]];}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00349}00349\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00350}00350\ \ \ new\_even\_arr[even\_len]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00351}00351\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00353}00353\ \ \ \textcolor{keywordtype}{char}\ *new\_odd\_arr\ =\ (\textcolor{keywordtype}{char}\ *)\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*14);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00354}00354\ \ \ \textcolor{keywordtype}{int}\ odd\_len\ =\ 13;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00355}00355\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ odd\_len;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00356}00356\ \ \ \ \ new\_odd\_arr[j]\ =\ board-\/>odd\_component[odd\_turn\_pos[j]];}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00357}00357\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00358}00358\ \ \ new\_odd\_arr[odd\_len]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00359}00359\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00361}00361\ \ \ free(board-\/>even\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00362}00362\ \ \ free(board-\/>odd\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00363}00363\ \ \ board-\/>even\_component\ =\ new\_even\_arr;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00364}00364\ \ \ board-\/>odd\_component\ =\ new\_odd\_arr;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00365}00365\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00366}00366\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00369}00369\ \textcolor{keywordtype}{void}\ flip(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00370}00370\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00374}00374\ \ \ \textcolor{keywordtype}{char}\ *new\_even\_arr\ =\ (\textcolor{keywordtype}{char}\ *)\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*13);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00375}00375\ \ \ \textcolor{keywordtype}{int}\ even\_len\ =\ 12;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00376}00376\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ even\_len;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00377}00377\ \ \ \ \ new\_even\_arr[i]\ =\ board-\/>even\_component[even\_flip\_pos[i]];}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00378}00378\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00379}00379\ \ \ new\_even\_arr[even\_len]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00380}00380\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00382}00382\ \ \ \textcolor{keywordtype}{char}\ *new\_odd\_arr\ =\ (\textcolor{keywordtype}{char}\ *)\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*14);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00383}00383\ \ \ \textcolor{keywordtype}{int}\ odd\_len\ =\ 13;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00384}00384\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ odd\_len;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00385}00385\ \ \ \ \ new\_odd\_arr[j]\ =\ board-\/>odd\_component[odd\_flip\_pos[j]];}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00386}00386\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00387}00387\ \ \ new\_odd\_arr[odd\_len]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00388}00388\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00390}00390\ \ \ free(board-\/>even\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00391}00391\ \ \ free(board-\/>odd\_component);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00392}00392\ \ \ board-\/>even\_component\ =\ new\_even\_arr;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00393}00393\ \ \ board-\/>odd\_component\ =\ new\_odd\_arr;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00394}00394\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00395}00395\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00398}00398\ \textcolor{keywordtype}{void}\ transform(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board,\ \textcolor{keywordtype}{int}\ flips,\ \textcolor{keywordtype}{int}\ rotations)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00399}00399\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ flips;\ i++)\ flip(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00400}00400\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ rotations;\ j++)\ rotate(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00401}00401\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00402}00402\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00403}00403\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00405}00405\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00406}00406\ \textcolor{comment}{/*\ BOARD\ HASHING\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00407}00407\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00409}00409\ POSITION\ hash(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}\ *board)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00410}00410\ \ \ POSITION\ total\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00411}00411\ \ \ \textcolor{keywordtype}{int}\ even\_len\ =\ 12;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00412}00412\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ even\_len;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00413}00413\ \ \ \ \ total\ +=\ convertChar(board-\/>even\_component[(even\_len\ -\/\ 1)\ -\/\ i])\ *\ pow(3,\ i);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00414}00414\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00415}00415\ \ \ \textcolor{keywordtype}{int}\ odd\_len\ =\ 13;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00416}00416\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ odd\_len;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00417}00417\ \ \ \ \ total\ +=\ convertChar(board-\/>odd\_component[(odd\_len\ -\/\ 1)\ -\/\ j])\ *\ pow(3,\ 12\ +\ j);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00418}00418\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00419}00419\ \ \ \textcolor{comment}{//\ Returns\ base\_3(concatenate(odd\_component,\ even\_component))}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00420}00420\ \ \ \textcolor{comment}{//\ with\ the\ MSB\ flipped\ to\ board-\/>turn}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00421}00421\ \ \ \textcolor{keywordflow}{return}\ withTurn(total,\ board-\/>turn);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00422}00422\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00423}00423\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00425}00425\ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ unhash(POSITION\ hash)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00426}00426\ \ \ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ newBoard\ =\ (\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}\ *)\ malloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}));}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00427}00427\ \ \ newBoard-\/>even\_component\ =\ (\textcolor{keywordtype}{char}\ *)\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*13);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00428}00428\ \ \ newBoard-\/>odd\_component\ =\ (\textcolor{keywordtype}{char}\ *)\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*14);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00429}00429\ \ \ newBoard-\/>turn\ =\ getTurn(hash);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00430}00430\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00431}00431\ \ \ \textcolor{keywordtype}{int}\ remain\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00432}00432\ \ \ \textcolor{keywordtype}{int}\ even\_len\ =\ 12;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00433}00433\ \ \ newBoard-\/>even\_component[even\_len]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00434}00434\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ even\_len;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00435}00435\ \ \ \ \ remain\ =\ hash\ \%\ 3;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00436}00436\ \ \ \ \ hash\ =\ floor(hash/3);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00437}00437\ \ \ \ \ newBoard-\/>even\_component[(even\_len\ -\/\ 1)\ -\/\ i]\ =\ convertInt(remain);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00438}00438\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00439}00439\ \ \ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00440}00440\ \ \ \textcolor{keywordtype}{int}\ odd\_len\ =\ 13;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00441}00441\ \ \ newBoard-\/>odd\_component[odd\_len]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00442}00442\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ odd\_len;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00443}00443\ \ \ \ \ remain\ =\ hash\ \%\ 3;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00444}00444\ \ \ \ \ hash\ =\ floor(hash/3);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00445}00445\ \ \ \ \ newBoard-\/>odd\_component[(odd\_len\ -\/\ 1)\ -\/\ j]\ =\ convertInt(remain);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00446}00446\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00447}00447\ \ \ \textcolor{keywordflow}{return}\ newBoard;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00448}00448\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00449}00449\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00450}00450\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00451}00451\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00453}00453\ \textcolor{comment}{/*\ BOARD\ HASHING\ HELPER\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00454}00454\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00457}00457\ POSITION\ withTurn(POSITION\ pos,\ BOOLEAN\ turn)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00458}00458\ \ \ \textcolor{keywordflow}{if}\ (getTurn(pos)\ ==\ turn)\ \textcolor{keywordflow}{return}\ pos;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00459}00459\ \ \ \textcolor{keywordflow}{if}\ (getTurn(pos))\ \textcolor{keywordflow}{return}\ (pos\ -\/\ pow(3,\ 25));}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00460}00460\ \ \ \textcolor{keywordflow}{return}\ (pos\ +\ pow(3,\ 25));}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00461}00461\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00462}00462\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00465}00465\ BOOLEAN\ getTurn(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00466}00466\ \ \ \textcolor{keywordflow}{return}\ floor(pos/pow(3,\ 24));\ \textcolor{comment}{//\ TODO:\ find\ division\ alternative\ :[}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00467}00467\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00468}00468\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00469}00469\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00470}00470\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00471}00471\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00472}00472\ \textcolor{comment}{/*\ BOARD\ VALUE\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00473}00473\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00476}00476\ BOOLEAN\ isWin(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00477}00477\ \ \ \textcolor{keywordflow}{return}\ board-\/>even\_component[0]\ ==\ \textcolor{charliteral}{'x'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00478}00478\ \ \ \&\&\ board-\/>even\_component[1]\ ==\ \textcolor{charliteral}{'x'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00479}00479\ \ \ \&\&\ board-\/>even\_component[2]\ ==\ \textcolor{charliteral}{'x'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00480}00480\ \ \ \&\&\ board-\/>even\_component[4]\ ==\ \textcolor{charliteral}{'x'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00481}00481\ \ \ \&\&\ board-\/>odd\_component[0]\ ==\ \textcolor{charliteral}{'x'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00482}00482\ \ \ \&\&\ board-\/>odd\_component[1]\ ==\ \textcolor{charliteral}{'x'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00483}00483\ \ \ \&\&\ board-\/>odd\_component[2]\ ==\ \textcolor{charliteral}{'x'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00484}00484\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00485}00485\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00488}00488\ BOOLEAN\ isLose(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00489}00489\ \ \ \textcolor{keywordflow}{return}\ board-\/>even\_component[11]\ ==\ \textcolor{charliteral}{'o'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00490}00490\ \ \ \&\&\ board-\/>even\_component[10]\ ==\ \textcolor{charliteral}{'o'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00491}00491\ \ \ \&\&\ board-\/>even\_component[9]\ ==\ \textcolor{charliteral}{'o'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00492}00492\ \ \ \&\&\ board-\/>even\_component[7]\ ==\ \textcolor{charliteral}{'o'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00493}00493\ \ \ \&\&\ board-\/>odd\_component[12]\ ==\ \textcolor{charliteral}{'o'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00494}00494\ \ \ \&\&\ board-\/>odd\_component[11]\ ==\ \textcolor{charliteral}{'o'}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00495}00495\ \ \ \&\&\ board-\/>odd\_component[10]\ ==\ \textcolor{charliteral}{'o'};}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00496}00496\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00497}00497\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00499}00499\ BOOLEAN\ isTie(\mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00500}00500\ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *possible\_moves\ =\ GenerateMoves(hash(board));}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00501}00501\ \ \ \textcolor{keywordflow}{if}\ (possible\_moves\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00502}00502\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00503}00503\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00504}00504\ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00505}00505\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00506}00506\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00507}00507\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00508}00508\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00509}00509\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00515}00515\ MOVE\ hashMove(\textcolor{keywordtype}{int}\ oldPos,\ \textcolor{keywordtype}{int}\ newPos)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00516}00516\ \ \ \textcolor{comment}{//\ TODO:\ RETURN\ -\/\ 0b<base\ 25\ newPos,\ base\ 25\ oldPos>}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00517}00517\ \ \ \textcolor{keywordflow}{return}\ 25*newPos\ +\ oldPos;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00518}00518\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00519}00519\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00523}00523\ \textcolor{keywordtype}{void}\ unhashMove(MOVE\ mv,\ \textcolor{keywordtype}{int}\ *oldPos,\ \textcolor{keywordtype}{int}\ *newPos)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00524}00524\ \ \ \textcolor{comment}{//\ TODO:\ unhashMove\ }}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00525}00525\ \ \ \textcolor{comment}{//\ 0b<base\ 25\ newPos,\ base\ 25\ oldPos>}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00526}00526\ \ \ *oldPos\ =\ mv\ \%\ 25;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00527}00527\ \ \ mv\ =\ floor(mv/25);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00528}00528\ \ \ *newPos\ =\ mv\ \%\ 25;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00529}00529\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00530}00530\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00531}00531\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00532}00532\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00533}00533\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00534}00534\ \textcolor{comment}{/*\ TEXTUI\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00535}00535\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00553}00553\ \textcolor{keywordtype}{void}\ PrintPosition(POSITION\ position,\ STRING\ playerName,\ BOOLEAN\ usersTurn)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00554}00554\ \ \ \mbox{\hyperlink{struct_f_f_k___board}{FFK\_Board}}*\ board\ =\ unhash(position);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00555}00555\ \ \ \textcolor{keywordtype}{char}*\ fb\ =\ malloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})*25);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00556}00556\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ 26;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00557}00557\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ \%\ 2\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00558}00558\ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ curr\ =\ board-\/>even\_component[(i/2)-\/1];}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00559}00559\ \ \ \ \ \ \ fb[i-\/1]\ =\ (curr\ ==\ \textcolor{charliteral}{'-\/'})\ ?\ \textcolor{charliteral}{'\ '}\ :\ curr;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00560}00560\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00561}00561\ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ curr\ =\ board-\/>odd\_component[(i-\/1)/2];}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00562}00562\ \ \ \ \ \ \ fb[i-\/1]\ =\ (curr\ ==\ \textcolor{charliteral}{'-\/'})\ ?\ \textcolor{charliteral}{'\ '}\ :\ curr;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00563}00563\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00564}00564\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00565}00565\ \ \ \textcolor{keywordflow}{if}\ (usersTurn)\ printf(\textcolor{stringliteral}{"{}\%s's\ move.\(\backslash\)n"{}},\ playerName);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00566}00566\ \ \ \textcolor{comment}{//\ *shamelessly\ puts\ on\ sunglasses}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00567}00567\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ 4;\ j++)\ printf(\textcolor{stringliteral}{"{}(\%c)\ (\%c)\ (\%c)\ (\%c)\ (\%c)\ \(\backslash\)n\ \ \(\backslash\)\(\backslash\)\ /\ \(\backslash\)\(\backslash\)\ /\ \(\backslash\)\(\backslash\)\ /\ \(\backslash\)\(\backslash\)\ /\ \ \ \(\backslash\)n\ \ /\ \(\backslash\)\(\backslash\)\ /\ \(\backslash\)\(\backslash\)\ /\ \(\backslash\)\(\backslash\)\ /\ \(\backslash\)\(\backslash\)\ \ \ \(\backslash\)n"{}},\ fb[5*j],\ fb[(5*j)+1],\ fb[(5*j)+2],\ fb[(5*j)+3],\ fb[(5*j)+4]);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00568}00568\ \ \ printf(\textcolor{stringliteral}{"{}(\%c)\ (\%c)\ (\%c)\ (\%c)\ (\%c)\ \(\backslash\)n"{}},\ fb[20],\ fb[21],\ fb[22],\ fb[23],\ fb[24]);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00569}00569\ \ \ free(fb);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00570}00570\ \ \ free(board);}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00571}00571\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00572}00572\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00573}00573\ \textcolor{keywordtype}{void}\ PrintComputersMove(MOVE\ computersMove,\ STRING\ computersName)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00575}00575\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00576}00576\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00577}00577\ USERINPUT\ GetAndPrintPlayersMove(POSITION\ position,\ MOVE\ *move,\ STRING\ playerName)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00579}00579\ \ \ \textcolor{keywordflow}{return}\ Continue;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00580}00580\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00581}00581\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00583}00583\ BOOLEAN\ ValidTextInput(STRING\ input)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00585}00585\ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00586}00586\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00587}00587\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00590}00590\ MOVE\ ConvertTextInputToMove(STRING\ input)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00592}00592\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00593}00593\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00594}00594\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00598}00598\ STRING\ MoveToString(MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00600}00600\ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00601}00601\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00602}00602\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00604}00604\ \textcolor{keywordtype}{void}\ PrintMove(MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00606}00606\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00607}00607\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00608}00608\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00609}00609\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00610}00610\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00611}00611\ \textcolor{comment}{/*\ VARIANT\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00612}00612\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00614}00614\ \textcolor{keywordtype}{int}\ NumberOfOptions()\ \{\ \textcolor{keywordflow}{return}\ 1;\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00615}00615\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00617}00617\ \textcolor{keywordtype}{int}\ getOption()\ \{\ \textcolor{keywordflow}{return}\ 0;\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00618}00618\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00622}00622\ \textcolor{keywordtype}{void}\ setOption(\textcolor{keywordtype}{int}\ option)\ \{\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00623}00623\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00624}00624\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00625}00625\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00626}00626\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00627}00627\ \textcolor{comment}{/*\ INTERACT\ FUNCTIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00628}00628\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00629}00629\ POSITION\ InteractStringToPosition(STRING\ board)\ \{\ \textcolor{keywordflow}{return}\ 0;\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00630}00630\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00631}00631\ STRING\ InteractPositionToString(POSITION\ position)\ \{\ \textcolor{keywordflow}{return}\ NULL;\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00632}00632\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00633}00633\ STRING\ InteractPositionToEndData(POSITION\ position)\ \{\ \textcolor{keywordflow}{return}\ NULL;\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00634}00634\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00635}00635\ STRING\ InteractMoveToString(POSITION\ position,\ MOVE\ move)\ \{\ \textcolor{keywordflow}{return}\ MoveToString(move);\ \}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00636}00636\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00637}00637\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00638}00638\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00639}00639\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00640}00640\ \textcolor{comment}{/*\ UNUSED\ INTERFACE\ IMPLEMENTATIONS\ */}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00641}00641\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00643}00643\ \textcolor{keywordtype}{void}\ DebugMenu()\ \{\}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00644}00644\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00646}00646\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions(\textcolor{keywordtype}{int}\ theOptions[])\ \{\}}
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00647}00647\ }
+\DoxyCodeLine{\Hypertarget{mfivefieldkono_8c_source_l00649}00649\ \textcolor{keywordtype}{void}\ GameSpecificMenu()\ \{\}}
+
+\end{DoxyCode}

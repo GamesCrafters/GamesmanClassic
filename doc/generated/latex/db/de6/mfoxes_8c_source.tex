@@ -1,0 +1,1076 @@
+\hypertarget{mfoxes_8c_source}{}\doxysection{mfoxes.\+c}
+\label{mfoxes_8c_source}\index{src/mfoxes.c@{src/mfoxes.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00001}00001\ \textcolor{comment}{//\ \$Id:\ mfoxes.c,v\ 1.16\ 2008-\/02-\/20\ 06:13:23\ ungu1d3d\_s0ul\ Exp\ \$}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00003}00003\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00004}00004\ \textcolor{comment}{\ *\ The\ above\ lines\ will\ include\ the\ name\ and\ log\ of\ the\ last\ person}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00005}00005\ \textcolor{comment}{\ *\ to\ commit\ this\ file\ to\ CVS}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00006}00006\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00008}00008\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00010}00010\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ mfoxes\_new.c}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00012}00012\ \textcolor{comment}{**\ DESCRIPTION:\ Fox\ and\ Geese}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00013}00013\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00014}00014\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ \ \ Sergey\ Kirshner\ -\/\ University\ of\ California\ at\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Copyright\ (C)\ Dan\ Garcia,\ 1997.\ All\ rights\ reserved.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00016}00016\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Copied/pasted/modified\ to\ fit\ the\ current\ Gamesman\ core\ by\ Evan\ Huang.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00017}00017\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00018}00018\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ Adoption\ of\ code\ started\ on\ 4/7/05}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00019}00019\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00020}00020\ \textcolor{comment}{**\ UPDATE\ HIST:\ (was\ blank\ in\ the\ original)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00021}00021\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 4/7/05\ \ [+]Initial\ adoption\ of\ the\ old\ module\ to\ the\ current\ core}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00022}00022\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 4/11/05\ [-\/]realized\ that\ ComputeC\ is\ deprecated,\ and\ removed\ it.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00023}00023\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 4/16/05\ [*]Geese\ go\ first.\ That\ was\ the\ right\ default.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00024}00024\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 2/9/08\ \ numOfOptions\ returns\ 2\ now\ (May\ need\ more\ work).}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00026}00026\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00029}00029\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00030}00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00031}00031\ \textcolor{comment}{**\ Everything\ below\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00032}00032\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00033}00033\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00035}00035\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00037}00037\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00038}00038\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00039}00039\ \textcolor{comment}{**\ Game-\/specific\ constants}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00040}00040\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00041}00041\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00043}00043\ STRING\ kGameName\ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Foxes\ and\ Geese"{}};\ \ \ \textcolor{comment}{/*\ The\ name\ of\ your\ game\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00044}00044\ STRING\ kAuthorName\ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Sergey\ Kirshner"{}};\ \ \ \textcolor{comment}{/*\ Your\ name(s)\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00045}00045\ STRING\ kDBName\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}foxes"{}};\ \ \ \textcolor{comment}{/*\ The\ name\ to\ store\ the\ database\ under\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00047}00047\ BOOLEAN\ kPartizan\ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;\ \ \ \textcolor{comment}{/*\ A\ partizan\ game\ is\ a\ game\ where\ each\ player\ has\ different\ moves\ from\ the\ same\ board\ (chess\ -\/\ different\ pieces)\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00048}00048\ BOOLEAN\ kGameSpecificMenu\ \ \ \ =\ TRUE;\ \ \ \textcolor{comment}{/*\ TRUE\ if\ there\ is\ a\ game\ specific\ menu.\ FALSE\ if\ there\ is\ not\ one.\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00049}00049\ BOOLEAN\ kTieIsPossible\ \ \ \ \ \ \ =\ FALSE;\ \ \ \textcolor{comment}{/*\ TRUE\ if\ a\ tie\ is\ possible.\ FALSE\ if\ it\ is\ impossible.*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00050}00050\ BOOLEAN\ kLoopy\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;\ \ \ \textcolor{comment}{/*\ TRUE\ if\ the\ game\ tree\ will\ have\ cycles\ (a\ rearranger\ style\ game).\ FALSE\ if\ it\ does\ not.*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00052}00052\ BOOLEAN\ kDebugMenu\ \ \ \ \ \ \ \ \ \ \ =\ TRUE;\ \ \ \textcolor{comment}{/*\ TRUE\ only\ when\ debugging.\ FALSE\ when\ on\ release.\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00053}00053\ BOOLEAN\ kDebugDetermineValue\ =\ FALSE;\ \ \ \textcolor{comment}{/*\ TRUE\ only\ when\ debugging.\ FALSE\ when\ on\ release.\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00055}00055\ POSITION\ gNumberOfPositions\ \ \ =\ \ 0;\ \textcolor{comment}{/*\ The\ number\ of\ total\ possible\ positions\ |\ If\ you\ are\ using\ our\ hash,\ this\ is\ given\ by\ the\ hash\_init()\ function*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00056}00056\ POSITION\ gInitialPosition\ \ \ \ \ =\ \ 0;\ \textcolor{comment}{/*\ The\ initial\ hashed\ position\ for\ your\ starting\ board\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00057}00057\ POSITION\ kBadPosition\ \ \ \ \ \ \ \ \ =\ -\/1;\ \textcolor{comment}{/*\ A\ position\ that\ will\ never\ be\ used\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00058}00058\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00059}00059\ \textcolor{keywordtype}{void}*\ \ \ \ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00061}00061\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00062}00062\ \textcolor{comment}{\ *\ Help\ strings\ that\ are\ pretty\ self-\/explanatory}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00063}00063\ \textcolor{comment}{\ *\ Strings\ than\ span\ more\ than\ one\ line\ should\ have\ backslashes\ (\(\backslash\))\ at\ the\ end\ of\ the\ line.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00064}00064\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00066}00066\ STRING\ kHelpGraphicInterface\ =}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Not\ written\ yet"{}};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00069}00069\ STRING\ kHelpTextInterface\ \ \ \ =}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Move\ your\ piece\ to\ an\ adjacent\ point\ on\ the\ line.\ If\ you\ are\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00071}00071\ \textcolor{stringliteral}{a\ geese,\ then\ you\ can\ only\ move\ forward,\ diagonally\ forward\ or\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00072}00072\ \textcolor{stringliteral}{sideways.\ Use\ the\ LEGEND\ to\ detemine\ which\ numbers\ to\ choose\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00073}00073\ \textcolor{stringliteral}{to\ correspond\ to\ the\ location\ of\ your\ piece\ and\ the\ empty\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00074}00074\ \textcolor{stringliteral}{diagonally-\/adjacent\ position\ you\ wish\ to\ move\ that\ piece\ to.\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00075}00075\ \textcolor{stringliteral}{Example:\ '1\ 5'\ will\ move\ your\ piece\ from\ square\ 1\ to\ square\ 5.\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00076}00076\ \textcolor{stringliteral}{To\ capture\ a\ goose,\ a\ fox\ must\ be\ adjacent\ to\ the\ goose\ and\ the\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00077}00077\ \textcolor{stringliteral}{goose\ must\ have\ an\ empty\ square\ behind\ it.\ The\ fox\ captures\ by\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00078}00078\ \textcolor{stringliteral}{jumping\ over\ the\ goose\ to\ the\ empty\ space.\ Once\ the\ goose\ is\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00079}00079\ \textcolor{stringliteral}{captured,\ it\ is\ removed\ from\ the\ board.\ \ The\ geese\ cannot\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00080}00080\ \textcolor{stringliteral}{jump\ over\ the\ fox,\ but\ it\ can\ try\ to\ maneuver\ it\ into\ a\ position\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00081}00081\ \textcolor{stringliteral}{where\ it\ cannot\ move."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00082}00082\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00083}00083\ STRING\ kHelpOnYourTurn\ =}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}If\ you\ are\ a\ fox,\ you\ may\ move\ along\ the\ line\ to\ an\ empty\ spot\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00085}00085\ \textcolor{stringliteral}{or\ capture\ a\ goose,\ by\ jumping\ over\ it\ to\ and\ open\ spot.\ The\ fox\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00086}00086\ \textcolor{stringliteral}{may\ move\ forwards,\ backwards,\ diagonally\ or\ to\ the\ sides.\ If\ you\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00087}00087\ \textcolor{stringliteral}{are\ a\ goose,\ you\ may\ only\ move\ forward\ or\ sideways\ and\ you\ cannot\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00088}00088\ \textcolor{stringliteral}{jump\ over\ the\ fox.\ "{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00090}00090\ STRING\ kHelpStandardObjective\ =}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}If\ you\ are\ the\ fox,\ the\ objective\ is\ to\ eat\ up\ all\ the\ geese\ until\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00092}00092\ \textcolor{stringliteral}{they\ are\ unable\ to\ trap\ you.\ If\ you\ are\ a\ goose,\ the\ objective\ is\ to\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00093}00093\ \textcolor{stringliteral}{trap\ the\ fox\ so\ that\ it\ is\ impossible\ for\ him\ to\ move."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00095}00095\ STRING\ kHelpReverseObjective\ =}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00097}00097\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00098}00098\ STRING\ kHelpTieOccursWhen\ =}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}A\ tie\ occurs\ when\ ..."{}};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00101}00101\ STRING\ kHelpExample\ =}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00102}00102\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00105}00105\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00106}00106\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00107}00107\ \textcolor{comment}{**\ \#defines\ and\ structs}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00108}00108\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00109}00109\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00110}00110\ \textcolor{preprocessor}{\#define\ FOXESGEESETRAP\ 0}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00111}00111\ \textcolor{preprocessor}{\#define\ FOXESGEESENOTRAP\ 1}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00112}00112\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00113}00113\ \textcolor{preprocessor}{\#define\ BADSLOT\ -\/2}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00114}00114\ \textcolor{preprocessor}{\#define\ MAXBOARDSIZE\ 35\ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ To\ keep\ compiler\ happy\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00116}00116\ \textcolor{preprocessor}{\#define\ FOXCOUNT\ 1}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00117}00117\ \textcolor{preprocessor}{\#define\ GEESECOUNT\ 4}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00118}00118\ \textcolor{preprocessor}{\#define\ ROWCOUNT\ 8}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00120}00120\ \textcolor{preprocessor}{\#define\ MAXNUMBERROWS\ 8}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00122}00122\ \textcolor{preprocessor}{\#define\ FOXTURN\ 1}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00123}00123\ \textcolor{preprocessor}{\#define\ GOOSETURN\ 2}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00125}00125\ \textcolor{preprocessor}{\#define\ BLANKPIECE\ '-\/'}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00126}00126\ \textcolor{preprocessor}{\#define\ FOXPIECE\ 'F'}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00127}00127\ \textcolor{preprocessor}{\#define\ GOOSEPIECE\ 'G'}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00129}00129\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{int}\ SLOT;\ \ \ \ \ \textcolor{comment}{/*\ A\ slot\ is\ the\ place\ where\ a\ piece\ moves\ from\ or\ to\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00130}00130\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00131}00131\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00132}00132\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00133}00133\ \textcolor{comment}{**\ Global\ Variables}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00134}00134\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00135}00135\ \textcolor{comment}{*************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00136}00136\ \textcolor{keywordtype}{int}\ FOXES\ =\ FOXCOUNT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ foxes\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00137}00137\ \textcolor{keywordtype}{int}\ GEESE\ =\ GEESECOUNT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ geese\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00138}00138\ \textcolor{keywordtype}{int}\ TOTALPIECES\ =\ FOXCOUNT\ +\ GEESECOUNT;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Total\ number\ of\ pieces\ on\ the\ board\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00139}00139\ \textcolor{keywordtype}{int}\ ROWS\ =\ ROWCOUNT;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00140}00140\ \textcolor{keywordtype}{int}\ gGameType\ =\ FOXESGEESETRAP;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00141}00141\ \textcolor{keywordtype}{int}\ Player1Side\ =\ FOXTURN;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*player\ 1's\ side\ in\ the\ game*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00142}00142\ \textcolor{keywordtype}{int}\ Player2Side\ =\ GOOSETURN;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*player\ 2's\ side\ in\ the\ game*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00143}00143\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00144}00144\ \textcolor{keywordtype}{int}\ WhoGoesFirst\ =\ GOOSETURN;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*by\ default,\ geese\ go\ first*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00145}00145\ \textcolor{keywordtype}{int}\ BOARDSIZE\ =\ ROWCOUNT*4;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00147}00147\ \textcolor{keyword}{static}\ BOOLEAN\ connected[MAXBOARDSIZE][MAXBOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00148}00148\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ order[MAXBOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00150}00150\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00151}00151\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00152}00152\ \textcolor{comment}{**\ Function\ Prototypes}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00153}00153\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00154}00154\ \textcolor{comment}{*************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00155}00155\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00156}00156\ \textcolor{comment}{/*\ External\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00157}00157\ \textcolor{preprocessor}{\#ifndef\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00158}00158\ \textcolor{keyword}{extern}\ GENERIC\_PTR\ \ \ \ \ \ SafeMalloc\ ();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00159}00159\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree\ ();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00160}00160\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00161}00161\ \textcolor{keyword}{extern}\ POSITION\ \ \ \ \ \ \ \ \ generic\_hash\_init(\textcolor{keywordtype}{int}\ boardsize,\ \textcolor{keywordtype}{int}\ pieces\_array[],\ \textcolor{keywordtype}{int}\ (*vcfg\_function\_ptr)(\textcolor{keywordtype}{int}*\ cfg),\ \textcolor{keywordtype}{int}\ player);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00162}00162\ \textcolor{keyword}{extern}\ POSITION\ \ \ \ \ \ \ \ \ generic\_hash\_hash(\textcolor{keywordtype}{char}\ *board,\ \textcolor{keywordtype}{int}\ player);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00163}00163\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ *generic\_hash\_unhash(POSITION\ hash\_number,\ \textcolor{keywordtype}{char}\ *empty\_board);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00164}00164\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ generic\_hash\_turn\ (POSITION\ hashed);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00165}00165\ \textcolor{comment}{/*\ Internal\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00166}00166\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InitializeGame();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00167}00167\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *GenerateMoves(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00168}00168\ POSITION\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DoMove\ (POSITION\ position,\ MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00169}00169\ VALUE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Primitive\ (POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00170}00170\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintPosition(POSITION\ position,\ STRING\ playersName,\ BOOLEAN\ usersTurn);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00171}00171\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintComputersMove(MOVE\ computersMove,\ STRING\ computersName);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00172}00172\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PrintMove(MOVE\ move);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00173}00173\ USERINPUT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GetAndPrintPlayersMove\ (POSITION\ position,\ MOVE\ *move,\ STRING\ playersName);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00174}00174\ BOOLEAN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ValidTextInput(STRING\ input);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00175}00175\ MOVE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ConvertTextInputToMove(STRING\ input);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00176}00176\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GameSpecificMenu();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00177}00177\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetTclCGameSpecificOptions(\textcolor{keywordtype}{int}\ options[]);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00178}00178\ POSITION\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GetInitialPosition();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00179}00179\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NumberOfOptions();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00180}00180\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ getOption();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00181}00181\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ setOption(\textcolor{keywordtype}{int}\ option);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00182}00182\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ DebugMenu();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00183}00183\ \textcolor{comment}{/*\ Game-\/specific\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00184}00184\ BOOLEAN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OkMove(\textcolor{keywordtype}{char}\ *theBlankFG,\ \textcolor{keywordtype}{int}\ whosTurn,\ SLOT\ fromSlot,SLOT\ toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00185}00185\ BOOLEAN\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CantMove(POSITION\ position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00186}00186\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ChangeBoard();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00187}00187\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MoveToSlots(MOVE\ theMove,\ SLOT\ *fromSlot,\ SLOT\ *toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00188}00188\ MOVE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SlotsToMove\ (SLOT\ fromSlot,\ SLOT\ toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00189}00189\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InitializeAdjacency();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00190}00190\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ InitializeOrder();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00191}00191\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00192}00192\ STRING\ MoveToString(MOVE);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00194}00194\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00195}00195\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00196}00196\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ InitializeGame}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00197}00197\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00198}00198\ \textcolor{comment}{**\ DESCRIPTION:\ Prepares\ the\ game\ for\ execution.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00199}00199\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Initializes\ required\ variables.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00200}00200\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Sets\ up\ gDatabase\ (if\ necessary).}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00201}00201\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00202}00202\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00203}00203\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00204}00204\ \textcolor{keywordtype}{void}\ InitializeGame\ ()}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00205}00205\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00206}00206\ \ \ \ \ \textcolor{comment}{/*get\ the\ initialboard*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00207}00207\ \ \ \ \ \textcolor{keywordtype}{char}\ *theBlankFG;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00208}00208\ \ \ \ \ \textcolor{keywordtype}{int}\ numBlanks\ =\ BOARDSIZE\ -\/\ FOXES\ -\/\ GEESE,\ j,\ k,\ l;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00209}00209\ \ \ \ \ \textcolor{keywordtype}{int}\ p\_array[10]\ =\ \{FOXPIECE,\ 1,\ FOXES,\ GOOSEPIECE,\ 1,\ GEESE,\ BLANKPIECE,\ 0,\ numBlanks,\ -\/1\};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00211}00211\ \ \ \ \ InitializeAdjacency();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00212}00212\ \ \ \ \ InitializeOrder();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00213}00213\ \ \ \ \ theBlankFG\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc(\ (BOARDSIZE)\ *\textcolor{keyword}{sizeof}(char)\ );}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00214}00214\ \ \ \ \ gNumberOfPositions\ =\ generic\_hash\_init(BOARDSIZE,\ p\_array,\ NULL,\ 0);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00216}00216\ \ \ \ \ \textcolor{comment}{/*\ \ PositionToBlankFG(position,theBlankFg,\&whosTurn);,)*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00218}00218\ \ \ \ \ \textcolor{keywordflow}{for}\ (j=0;\ j<FOXES;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ theBlankFG[j]\ =\ FOXPIECE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ printf("{}\%d\(\backslash\)n"{},\ j);*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00221}00221\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00222}00222\ \ \ \ \ \textcolor{keywordflow}{for}\ (k=j;\ k<(numBlanks+FOXES);\ k++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ theBlankFG[k]\ =\ BLANKPIECE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ printf("{}\%d\(\backslash\)n"{},\ k);*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00225}00225\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00226}00226\ \ \ \ \ \textcolor{keywordflow}{for}\ (l=k;\ l<(FOXES+GEESE+numBlanks);\ l++)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ theBlankFG[l]\ =\ GOOSEPIECE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ printf("{}\%d\(\backslash\)n"{},\ l);*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00229}00229\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00230}00230\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00231}00231\ \ \ \ \ gInitialPosition\ =\ generic\_hash\_hash(\ theBlankFG,\ WhoGoesFirst\ );}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00232}00232\ \ \ \ \ SafeFree(theBlankFG);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00234}00234\ \ \ \ \ gMoveToStringFunPtr\ =\ \&MoveToString;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00235}00235\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00236}00236\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00237}00237\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00238}00238\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00239}00239\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00240}00240\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GenerateMoves}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00241}00241\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00242}00242\ \textcolor{comment}{**\ DESCRIPTION:\ Creates\ a\ linked\ list\ of\ every\ move\ that\ can\ be\ reached}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00243}00243\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ this\ position.\ Returns\ a\ pointer\ to\ the\ head\ of\ the}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00244}00244\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ linked\ list.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00245}00245\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00246}00246\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ Current\ position\ for\ move}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00247}00247\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ generation.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00248}00248\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00249}00249\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (MOVELIST\ *)\ \ \ \ \ \ :\ A\ pointer\ to\ the\ first\ item\ of}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00250}00250\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ linked\ list\ of\ generated\ moves}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00251}00251\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00252}00252\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ MOVELIST\ *CreateMovelistNode();}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00253}00253\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00254}00254\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00256}00256\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves\ (POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00257}00257\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00258}00258\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00259}00259\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00260}00260\ \ \ \ \ \textcolor{comment}{/*\ Use\ CreateMovelistNode(move,\ next)\ to\ 'cons'\ together\ a\ linked\ list\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00262}00262\ \ \ \ \ \textcolor{keywordtype}{char}\ theBlankFG[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00263}00263\ \ \ \ \ \textcolor{keywordtype}{int}\ whosTurn,\ i,j;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00265}00265\ \ \ \ \ generic\_hash\_unhash(position,theBlankFG);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00266}00266\ \ \ \ \ whosTurn\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00268}00268\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARDSIZE;\ i++)\ \{\ \ \ \textcolor{comment}{/*\ enumerate\ over\ all\ FROM\ slots\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(j\ =\ 0;\ j\ <\ BOARDSIZE;\ j++)\ \{\ \textcolor{comment}{/*\ enumerate\ over\ all\ TO\ slots\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(OkMove(theBlankFG,\ whosTurn,\ (SLOT)i,\ (SLOT)j))}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(SlotsToMove((SLOT)i,(SLOT)j),moves);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00273}00273\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00275}00275\ \ \ \ \ \textcolor{keywordflow}{return}\ moves;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00276}00276\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00277}00277\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00278}00278\ BOOLEAN\ OkMove(\textcolor{keywordtype}{char}\ *theBlankFG,\ \textcolor{keywordtype}{int}\ whosTurn,\ SLOT\ fromSlot,\ SLOT\ toSlot)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00279}00279\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00281}00281\ \ \ \ \ \textcolor{keywordflow}{if}(\ whosTurn\ ==\ GOOSETURN\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}((theBlankFG[fromSlot]\ ==\ GOOSEPIECE)\ \&\&}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00283}00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (theBlankFG[toSlot]\ ==\ BLANKPIECE)\ \&\&}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (connected[fromSlot][toSlot])\ \&\&}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (order[toSlot]>order[fromSlot]));}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00286}00286\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00287}00287\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00288}00288\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}((theBlankFG[fromSlot]\ ==\ FOXPIECE)\ \&\&}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (theBlankFG[toSlot]\ ==\ BLANKPIECE)\ \&\&}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (connected[fromSlot][toSlot]));}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00291}00291\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00292}00292\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00293}00293\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00294}00294\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00295}00295\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00296}00296\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DoMove}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00297}00297\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00298}00298\ \textcolor{comment}{**\ DESCRIPTION:\ Applies\ the\ move\ to\ the\ position.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00299}00299\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00300}00300\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ old\ position}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00301}00301\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ \ \ \ \ move\ \ \ \ \ :\ The\ move\ to\ apply\ to\ the\ position}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00302}00302\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00303}00303\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (POSITION)\ \ \ \ \ \ \ \ :\ The\ position\ that\ results\ from\ move}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00304}00304\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00305}00305\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ Some\ Board\ Hash\ Function}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00306}00306\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Some\ Board\ Unhash\ Function}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00307}00307\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00308}00308\ \textcolor{comment}{*************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00309}00309\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00310}00310\ POSITION\ DoMove\ (POSITION\ position,\ MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00311}00311\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00312}00312\ \ \ \ \ SLOT\ fromSlot,\ toSlot;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00313}00313\ \ \ \ \ \textcolor{keywordtype}{char}\ theBlankFG[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00314}00314\ \ \ \ \ \textcolor{keywordtype}{int}\ whosTurn;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00315}00315\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00316}00316\ \ \ \ \ generic\_hash\_unhash(position,\ theBlankFG);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00317}00317\ \ \ \ \ whosTurn\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00318}00318\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00319}00319\ \ \ \ \ MoveToSlots(move,\ \&fromSlot,\ \&toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00320}00320\ \ \ \ \ theBlankFG[toSlot]\ =\ theBlankFG[fromSlot];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00321}00321\ \ \ \ \ theBlankFG[fromSlot]\ =\ BLANKPIECE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00323}00323\ \ \ \ \ \textcolor{keywordflow}{return}(generic\_hash\_hash(theBlankFG,(whosTurn\ ==\ FOXTURN\ ?\ GOOSETURN\ :\ FOXTURN)));}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00324}00324\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00325}00325\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00327}00327\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00328}00328\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00329}00329\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ Primitive}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00330}00330\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00331}00331\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ value\ of\ a\ position\ if\ it\ fulfills\ certain}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00332}00332\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 'primitive'\ constraints.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00333}00333\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00334}00334\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Example:\ Tic-\/tac-\/toe\ -\/\ Last\ piece\ already\ placed}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00335}00335\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00336}00336\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Case\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Return\ Value}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00337}00337\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ *********************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00338}00338\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Current\ player\ sees\ three\ in\ a\ row\ \ \ \ lose}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00339}00339\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Entire\ board\ filled\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tie}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00340}00340\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ All\ other\ cases\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ undecided}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00341}00341\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00342}00342\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ inspect.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00343}00343\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00344}00344\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (VALUE)\ \ \ \ \ \ \ \ \ \ \ :\ one\ of}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00345}00345\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (win,\ lose,\ tie,\ undecided)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00346}00346\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00347}00347\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ None}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00348}00348\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00349}00349\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00350}00350\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00351}00351\ VALUE\ Primitive\ (POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00352}00352\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00353}00353\ \ \ \ \ \textcolor{keywordtype}{char}\ theBlankFG[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00354}00354\ \ \ \ \ \textcolor{keywordtype}{int}\ whosTurn;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00355}00355\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ foxMax\ =\ 0,\ gooseMax\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00356}00356\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00357}00357\ \ \ \ \ generic\_hash\_unhash(position,theBlankFG);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00358}00358\ \ \ \ \ whosTurn\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00359}00359\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00360}00360\ \ \ \ \ \textcolor{keywordflow}{for}\ (\ i=0;\ i<BOARDSIZE;\ i++\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00361}00361\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ theBlankFG[i]\ ==\ FOXPIECE)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ i/4\ >\ foxMax\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00363}00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ foxMax\ =\ i/4;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00364}00364\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (\ theBlankFG[i]\ ==\ GOOSEPIECE\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00365}00365\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ i/4\ >\ gooseMax\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00366}00366\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gooseMax\ =\ i/4;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00367}00367\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00368}00368\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00369}00369\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ foxMax\ >=\ gooseMax\ \&\&\ whosTurn\ ==\ GOOSETURN\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00370}00370\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (gStandardGame\ ?\ lose\ :\ win);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00371}00371\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (\ foxMax\ >=\ gooseMax\ \&\&\ whosTurn\ ==\ FOXTURN\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00372}00372\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (gStandardGame\ ?\ win\ :\ lose);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00373}00373\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (\ CantMove(position)\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00374}00374\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (gStandardGame\ ?\ lose\ :\ win);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00375}00375\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00376}00376\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (undecided);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00377}00377\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00378}00378\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00380}00380\ BOOLEAN\ CantMove(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00381}00381\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00382}00382\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *ptr;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00383}00383\ \ \ \ \ BOOLEAN\ cantMove;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00385}00385\ \ \ \ \ ptr\ =\ GenerateMoves(position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00386}00386\ \ \ \ \ cantMove\ =\ (ptr\ ==\ NULL);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00387}00387\ \ \ \ \ \textcolor{keywordflow}{if}\ (!cantMove)\ FreeMoveList(ptr);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00388}00388\ \ \ \ \ \textcolor{keywordflow}{return}(cantMove);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00389}00389\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00390}00390\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00391}00391\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00392}00392\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00393}00393\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintPosition}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00394}00394\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00395}00395\ \textcolor{comment}{**\ DESCRIPTION:\ Prints\ the\ position\ in\ a\ pretty\ format,\ including\ the}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00396}00396\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ prediction\ of\ the\ game's\ outcome.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00397}00397\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00398}00398\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ \ \ \ :\ The\ position\ to\ pretty\ print.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00399}00399\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ \ playersName\ :\ The\ name\ of\ the\ player.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00400}00400\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ \ usersTurn\ \ \ :\ TRUE\ <==>\ it's\ a\ user's\ turn.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00401}00401\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00402}00402\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ Unhash()}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00403}00403\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetPrediction()\ \ \ \ \ \ :\ Returns\ the\ prediction\ of\ the\ game}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00404}00404\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00405}00405\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00406}00406\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00407}00407\ \textcolor{keywordtype}{void}\ PrintPosition\ (POSITION\ position,\ STRING\ playersName,\ BOOLEAN\ usersTurn)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00408}00408\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00409}00409\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00410}00410\ \ \ \ \ \textcolor{keywordtype}{char}\ theBlankFg[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00411}00411\ \ \ \ \ \textcolor{keywordtype}{int}\ whosTurn;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00412}00412\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00413}00413\ \ \ \ \ generic\_hash\_unhash(position,\ theBlankFg);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00414}00414\ \ \ \ \ whosTurn\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00415}00415\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00416}00416\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)tLEGEND:\(\backslash\)t\(\backslash\)t\(\backslash\)tPLAYER\ \%s,\ a.k.a\ \%s's\ turn\(\backslash\)n\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00417}00417\ \ \ \ \ \ \ \ \ \ \ \ playersName,}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00418}00418\ \ \ \ \ \ \ \ \ \ \ \ whosTurn\ ==\ FOXTURN\ ?\ \textcolor{stringliteral}{"{}FOX"{}}\ :\ \textcolor{stringliteral}{"{}GOOSE"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00419}00419\ \ \ \ \ \textcolor{keywordflow}{for}(\ i=0;\ i<(ROWS/2);\ i++\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00420}00420\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00421}00421\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ (\ \ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00422}00422\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<9\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00423}00423\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 8*i+1);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00424}00424\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00425}00425\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 8*i+1);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00426}00426\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<8\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00427}00427\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 8*i+2);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00428}00428\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00429}00429\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 8*i+2);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00430}00430\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<7\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00431}00431\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 8*i+3);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00432}00432\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00433}00433\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 8*i+3);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00434}00434\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<6\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00435}00435\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ "{}},\ 8*i+4);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00436}00436\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00437}00437\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ "{}},\ 8*i+4);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00438}00438\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{})\ \ \ \ \ \ \ \ \ \ \ :\ \ \ \ \%c\ \ \ \%c\ \ \ \%c\ \ \ \%c\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00439}00439\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00440}00440\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i+1],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00441}00441\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i+2],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00442}00442\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i+3]);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00443}00443\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ (\ "{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00444}00444\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<5\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 8*i+5);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00446}00446\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00447}00447\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 8*i+5);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00448}00448\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<4\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00449}00449\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 8*i+6);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00450}00450\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00451}00451\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 8*i+6);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00452}00452\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<3\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00453}00453\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 8*i+7);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00454}00454\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00455}00455\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 8*i+7);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00456}00456\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 8*i<2\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00457}00457\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 8*i+8);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00459}00459\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 8*i+8);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00460}00460\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ )\ \ \ \ \ \ \ \ \ \ \ :\ \ \%c\ \ \ \%c\ \ \ \%c\ \ \ \%c\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00461}00461\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i+4],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00462}00462\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i+5],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00463}00463\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i+6],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00464}00464\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[8*i+7]\ );}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00465}00465\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00466}00466\ \ \ \ \ \textcolor{keywordflow}{if}(\ (ROWS\%2)!=0\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00467}00467\ \ \ \ \ \ \ \ \ i\ =\ ROWS-\/1;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00468}00468\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ (\ \ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00469}00469\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 4*i<9\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00470}00470\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 4*i+1);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00471}00471\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00472}00472\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 4*i+1);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00473}00473\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 4*i<8\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00474}00474\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 4*i+2);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00475}00475\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00476}00476\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 4*i+2);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00477}00477\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 4*i<7\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00478}00478\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ \ "{}},\ 4*i+3);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00479}00479\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00480}00480\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ 4*i+3);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00481}00481\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ 4*i<6\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00482}00482\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \%d\ "{}},\ 4*i+4);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00483}00483\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00484}00484\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ "{}},\ 4*i+4);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00485}00485\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{})\ \ \ \ \ \ \ \ \ \ \ :\ \ \ \ \%c\ \ \ \%c\ \ \ \%c\ \ \ \%c\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00486}00486\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[4*i],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00487}00487\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[4*i+1],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00488}00488\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[4*i+2],}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00489}00489\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFg[4*i+3]);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00490}00490\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00491}00491\ \ \ \ \ \textcolor{keywordflow}{if}\ (gPrintPredictions\ \&\&\ (!gUnsolved))}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00492}00492\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\%s\(\backslash\)n\(\backslash\)n"{}},GetPrediction(position,playersName,usersTurn));}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00493}00493\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00494}00494\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00495}00495\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00496}00496\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00497}00497\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00498}00498\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintComputersMove}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00499}00499\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00500}00500\ \textcolor{comment}{**\ DESCRIPTION:\ Nicely\ formats\ the\ computers\ move.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00501}00501\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00502}00502\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ \ \ \ computersMove\ :\ The\ computer's\ move.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00503}00503\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ computersName\ :\ The\ computer's\ name.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00504}00504\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00505}00505\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00506}00506\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00507}00507\ \textcolor{keywordtype}{void}\ PrintComputersMove\ (MOVE\ computersMove,\ STRING\ computersName)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00508}00508\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00509}00509\ \ \ \ \ SLOT\ fromSlot,toSlot;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00510}00510\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00511}00511\ \ \ \ \ MoveToSlots(computersMove,\&fromSlot,\&toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00512}00512\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ \%d\ \%d\(\backslash\)n"{}},\ computersName,}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00513}00513\ \ \ \ \ \ \ \ \ \ \ \ fromSlot+1,toSlot+1);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00514}00514\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00515}00515\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00516}00516\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00517}00517\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00518}00518\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00519}00519\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintMove}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00520}00520\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00521}00521\ \textcolor{comment}{**\ DESCRIPTION:\ Prints\ the\ move\ in\ a\ nice\ format.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00522}00522\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00523}00523\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ move\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ print.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00524}00524\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00525}00525\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00526}00526\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00527}00527\ \textcolor{keywordtype}{void}\ PrintMove\ (MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00528}00528\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00529}00529\ \ \ \ \ STRING\ m\ =\ MoveToString(\ move\ );}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00530}00530\ \ \ \ \ printf(\ \textcolor{stringliteral}{"{}\%s"{}},\ m\ );}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00531}00531\ \ \ \ \ SafeFree(\ m\ );}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00532}00532\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00533}00533\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00534}00534\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00535}00535\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00536}00536\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ MoveToString}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00537}00537\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00538}00538\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ move\ as\ a\ STRING}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00539}00539\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00540}00540\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ put\ into\ a\ string.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00541}00541\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00542}00542\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00543}00543\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00544}00544\ STRING\ MoveToString\ (theMove)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00545}00545\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00546}00546\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00547}00547\ \ \ \ \ STRING\ move\ =\ (STRING)\ SafeMalloc(10);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00548}00548\ \ \ \ \ SLOT\ fromSlot,\ toSlot;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00549}00549\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00550}00550\ \ \ \ \ MoveToSlots(theMove,\&fromSlot,\&toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00551}00551\ \ \ \ \ \textcolor{comment}{/*\ The\ plus\ 1\ is\ because\ the\ user\ thinks\ it's\ 1-\/9,\ but\ MOVE\ is\ 0-\/8\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00552}00552\ \ \ \ \ sprintf(\ move,\ \textcolor{stringliteral}{"{}[\ \%d\ \%d\ ]"{}},\ fromSlot\ +\ 1,\ toSlot\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00553}00553\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00554}00554\ \ \ \ \ \textcolor{keywordflow}{return}\ move;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00555}00555\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00556}00556\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00557}00557\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00558}00558\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00559}00559\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00560}00560\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetAndPrintPlayersMove}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00561}00561\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00562}00562\ \textcolor{comment}{**\ DESCRIPTION:\ Finds\ out\ if\ the\ player\ wishes\ to\ undo,\ abort,\ or\ use}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00563}00563\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ some\ other\ gamesman\ option.\ The\ gamesman\ core\ does}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00564}00564\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ most\ of\ the\ work\ here.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00565}00565\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00566}00566\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ \ \ \ :\ Current\ position}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00567}00567\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ \ \ \ \ *move\ \ \ \ \ \ \ :\ The\ move\ to\ fill\ with\ user's\ move.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00568}00568\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ \ playersName\ :\ Current\ Player's\ Name}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00569}00569\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00570}00570\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ USERINPUT\ \ \ \ \ \ \ \ \ \ :\ One\ of}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00571}00571\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (Undo,\ Abort,\ Continue)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00572}00572\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00573}00573\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ USERINPUT\ HandleDefaultTextInput(POSITION,\ MOVE*,\ STRING)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00574}00574\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ Gamesman\ Core\ Input\ Handling}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00575}00575\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00576}00576\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00577}00577\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00578}00578\ USERINPUT\ GetAndPrintPlayersMove\ (POSITION\ position,\ MOVE\ *move,\ STRING\ playersName)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00579}00579\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00580}00580\ \ \ \ \ USERINPUT\ input;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00581}00581\ \ \ \ \ USERINPUT\ HandleDefaultTextInput();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00582}00582\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00583}00583\ \ \ \ \ \textcolor{keywordflow}{for}\ (;;\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00584}00584\ \textcolor{comment}{\ \ \ \ \ \ \ \ /***********************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00585}00585\ \textcolor{comment}{\ \ \ \ \ \ \ \ *\ CHANGE\ THE\ LINE\ BELOW\ TO\ MATCH\ YOUR\ MOVE\ FORMAT}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00586}00586\ \textcolor{comment}{\ \ \ \ \ \ \ \ ***********************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00587}00587\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ [(undo)/(MOVE\ FORMAT)]\ :\ "{}},\ playersName);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00588}00588\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00589}00589\ \ \ \ \ \ \ \ \ input\ =\ HandleDefaultTextInput(position,\ move,\ playersName);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00590}00590\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00591}00591\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (input\ !=\ Continue)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00592}00592\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ input;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00593}00593\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00594}00594\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00595}00595\ \ \ \ \ \textcolor{comment}{/*\ NOTREACHED\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00596}00596\ \ \ \ \ \textcolor{keywordflow}{return}\ Continue;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00597}00597\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00598}00598\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00599}00599\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00600}00600\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00601}00601\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00602}00602\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00603}00603\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00604}00604\ \textcolor{comment}{**\ DESCRIPTION:\ Rudimentary\ check\ to\ check\ if\ input\ is\ in\ the\ move\ form}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00605}00605\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ you\ are\ expecting.\ Does\ not\ check\ if\ it\ is\ a\ valid\ move.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00606}00606\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Only\ checks\ if\ it\ fits\ the\ move\ form.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00607}00607\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00608}00608\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Reserved\ Input\ Characters\ -\/\ DO\ NOT\ USE\ THESE\ ONE\ CHARACTER}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00609}00609\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ COMMANDS\ IN\ YOUR\ GAME}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00610}00610\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ ?,\ s,\ u,\ r,\ h,\ a,\ c,\ q}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00611}00611\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ However,\ something\ like\ a3}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00612}00612\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ okay.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00613}00613\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00614}00614\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Example:\ Tic-\/tac-\/toe\ Move\ Format\ :\ Integer\ from\ 1\ to\ 9}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00615}00615\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Only\ integers\ between\ 1\ to\ 9\ are\ accepted}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00616}00616\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ regardless\ of\ board\ position.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00617}00617\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Moves\ will\ be\ checked\ by\ the\ core.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00618}00618\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00619}00619\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00620}00620\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00621}00621\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ BOOLEAN\ \ \ \ \ \ :\ TRUE\ if\ the\ input\ is\ a\ valid\ text\ input.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00622}00622\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00623}00623\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00624}00624\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00625}00625\ BOOLEAN\ ValidTextInput\ (STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00626}00626\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00627}00627\ \ \ \ \ SLOT\ fromSlot,\ toSlot;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00628}00628\ \ \ \ \ \textcolor{keywordtype}{int}\ ret;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00629}00629\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00630}00630\ \ \ \ \ ret\ =\ sscanf(input,\textcolor{stringliteral}{"{}\%d\ \%d"{}},\ \&fromSlot,\ \&toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00631}00631\ \ \ \ \ \textcolor{keywordflow}{return}(ret\ ==\ 2\ \&\&}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00632}00632\ \ \ \ \ \ \ \ \ \ \ \ fromSlot\ <=\ BOARDSIZE\ \&\&\ fromSlot\ >=\ 1\ \&\&\ toSlot\ <=\ BOARDSIZE\ \&\&\ toSlot\ >=\ 1);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00633}00633\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00634}00634\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00635}00635\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00636}00636\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00637}00637\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00638}00638\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ConvertTextInputToMove}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00639}00639\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00640}00640\ \textcolor{comment}{**\ DESCRIPTION:\ Converts\ the\ string\ input\ your\ internal\ move\ representation.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00641}00641\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ already\ checked\ the\ move\ with\ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00642}00642\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ and\ ValidMove.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00643}00643\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00644}00644\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ VALID\ string\ input\ from\ the\ user.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00645}00645\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00646}00646\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ MOVE\ \ \ \ \ \ \ \ \ :\ Move\ converted\ from\ user\ input.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00647}00647\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00648}00648\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00649}00649\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00650}00650\ MOVE\ ConvertTextInputToMove\ (STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00651}00651\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00652}00652\ \ \ \ \ SLOT\ fromSlot,\ toSlot;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00653}00653\ \ \ \ \ \textcolor{keywordtype}{int}\ ret;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00654}00654\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00655}00655\ \ \ \ \ ret\ =\ sscanf(input,\textcolor{stringliteral}{"{}\%d\ \%d"{}},\ \&fromSlot,\ \&toSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00656}00656\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00657}00657\ \ \ \ \ fromSlot-\/-\/;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ user\ input\ is\ 1-\/16,\ our\ rep.\ is\ 0-\/15\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00658}00658\ \ \ \ \ toSlot-\/-\/;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ user\ input\ is\ 1-\/16,\ our\ rep.\ is\ 0-\/15\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00659}00659\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00660}00660\ \ \ \ \ \textcolor{keywordflow}{return}(SlotsToMove(fromSlot,toSlot));}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00661}00661\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00662}00662\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00663}00663\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00664}00664\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00665}00665\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00666}00666\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00667}00667\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00668}00668\ \textcolor{comment}{**\ DESCRIPTION:\ Prints,\ receives,\ and\ sets\ game-\/specific\ parameters.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00669}00669\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00670}00670\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Examples}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00671}00671\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Board\ Size,\ Board\ Type}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00672}00672\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00673}00673\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ If\ kGameSpecificMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00674}00674\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ enable\ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00675}00675\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ call\ this\ function}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00676}00676\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00677}00677\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Resets\ gNumberOfPositions\ if\ necessary}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00678}00678\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00679}00679\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00680}00680\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00681}00681\ \textcolor{keywordtype}{void}\ GameSpecificMenu\ ()}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00682}00682\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00683}00683\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00684}00684\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Game-\/specific\ options\ for\ \%s\ -\/-\/-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}},\ kGameName);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00685}00685\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00686}00686\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tCurrent\ Initial\ Position:\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00687}00687\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ \ \ whosTurn\ =\ ((gInitialPosition>=POSITION\_OFFSET)?\ g\ :\ f);*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00688}00688\ \ \ \ \ \ \ \ \ PrintPosition(gInitialPosition,\ gPlayerName[kPlayerOneTurn],\ kHumansTurn);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00689}00689\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00690}00690\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tCurrent\ Number\ of\ Foxes:\ \%d\(\backslash\)n"{}},\ FOXES);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00691}00691\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tCurrent\ Number\ of\ Geese:\ \%d\(\backslash\)n\(\backslash\)n"{}},\ GEESE);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00692}00692\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t1)\(\backslash\)tChoose\ (manually)\ the\ initial\ position\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00693}00693\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t2)\(\backslash\)tChange\ the\ number\ of\ pieces\ and\ size\ of\ the\ board\ (the\ default\ position\ will\ be\ used)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00694}00694\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)tb)\(\backslash\)t(B)ack\ =\ Return\ to\ previous\ activity.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00695}00695\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00696}00696\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00697}00697\ \ \ \ \ \ \ \ \ \textcolor{comment}{//scanf("{}\%s"{},\ c);}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00698}00698\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00699}00699\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00700}00700\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'Q'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'q'}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00701}00701\ \ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00702}00702\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'H'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'h'}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00703}00703\ \ \ \ \ \ \ \ \ \ \ \ \ HelpMenus();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00704}00704\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00705}00705\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'1'}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00706}00706\ \ \ \ \ \ \ \ \ \ \ \ \ gInitialPosition\ =\ GetInitialPosition();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00707}00707\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00708}00708\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'2'}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00709}00709\ \ \ \ \ \ \ \ \ \ \ \ \ ChangeBoard();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00710}00710\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00711}00711\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00712}00712\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00713}00713\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00714}00714\ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00715}00715\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00716}00716\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(TRUE);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00717}00717\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00718}00718\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00719}00719\ \textcolor{keywordtype}{void}\ ChangeBoard()}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00720}00720\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00721}00721\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Change\ Board\ -\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00722}00722\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ enter\ the\ new\ number\ of\ foxes\ (currently\ \%d):\ "{}},FOXES);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00723}00723\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%d"{}},\ \&FOXES);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00724}00724\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ enter\ the\ new\ number\ of\ geese\ (currently\ \%d):\ "{}},\ GEESE);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00725}00725\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%d"{}},\ \&GEESE);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00726}00726\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ enter\ the\ new\ number\ of\ rows\ (currently\ \%d):\ "{}},\ ROWS);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00727}00727\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%d"{}},\ \&ROWS);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00728}00728\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00729}00729\ \ \ \ \ BOARDSIZE\ =\ ROWS*4;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00730}00730\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00731}00731\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ choose\ a\ side,\ \(\backslash\)"{}f\(\backslash\)"{}\ for\ FOX\ and\ \(\backslash\)"{}g\(\backslash\)"{}\ for\ GOOSE,\ to\ go\ FIRST\ (currently\ \%s):\ "{}},\ WhoGoesFirst\ ==\ FOXTURN\ ?\ \textcolor{stringliteral}{"{}FOX"{}}\ :\ \textcolor{stringliteral}{"{}GOOSE"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00732}00732\ \ \ \ \ \textcolor{keywordflow}{switch}\ (GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00733}00733\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'G'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'g'}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00734}00734\ \ \ \ \ \ \ \ \ WhoGoesFirst\ =\ GOOSETURN;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00735}00735\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00736}00736\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'F'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'f'}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00737}00737\ \ \ \ \ \ \ \ \ WhoGoesFirst\ =\ FOXTURN;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00738}00738\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00739}00739\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00740}00740\ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00741}00741\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00742}00742\ \ \ \ \ InitializeGame();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00743}00743\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00744}00744\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00745}00745\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00746}00746\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00747}00747\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ SetTclCGameSpecificOptions}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00748}00748\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00749}00749\ \textcolor{comment}{**\ DESCRIPTION:\ Set\ the\ C\ game-\/specific\ options\ (called\ from\ Tcl)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00750}00750\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Ignore\ if\ you\ don't\ care\ about\ Tcl\ for\ now.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00751}00751\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00752}00752\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00753}00753\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00754}00754\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions\ (\textcolor{keywordtype}{int}\ options[])}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00755}00755\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00756}00756\ \ \ \ \ \textcolor{keywordtype}{char}\ theBlankFG[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00757}00757\ \ \ \ \ \textcolor{comment}{/*\ \ \ \ int\ whosTurn;*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00758}00758\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00759}00759\ \ \ \ \ gInitialPosition\ =\ options[4];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00760}00760\ \ \ \ \ \textcolor{keywordflow}{if}\ (options[0])\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00761}00761\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ foxes\ go\ first\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00762}00762\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00763}00763\ \ \ \ \ \ \ \ \ generic\_hash\_unhash(gInitialPosition,\ theBlankFG);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00764}00764\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ whosTurn\ =\ generic\_hash\_turn(gInitialPosition);*/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00765}00765\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00766}00766\ \ \ \ \ \ \ \ \ gInitialPosition\ =\ generic\_hash\_hash(theBlankFG,\ FOXTURN);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00767}00767\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00768}00768\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00769}00769\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00770}00770\ \ \ \ \ TOTALPIECES\ =\ options[1];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00771}00771\ \ \ \ \ FOXES\ =\ options[2];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00772}00772\ \ \ \ \ GEESE\ =\ TOTALPIECES\ -\/\ FOXES;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00773}00773\ \ \ \ \ BOARDSIZE\ =\ options[3];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00774}00774\ \ \ \ \ ROWS\ =\ BOARDSIZE/4;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00775}00775\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00776}00776\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00777}00777\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00778}00778\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00779}00779\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00780}00780\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetInitialPosition}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00781}00781\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00782}00782\ \textcolor{comment}{**\ DESCRIPTION:\ Called\ when\ the\ user\ wishes\ to\ change\ the\ initial}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00783}00783\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ position.\ Asks\ the\ user\ for\ an\ initial\ position.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00784}00784\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Sets\ new\ user\ defined\ gInitialPosition\ and\ resets}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00785}00785\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ gNumberOfPositions\ if\ necessary}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00786}00786\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00787}00787\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION\ :\ New\ Initial\ Position}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00788}00788\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00789}00789\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00790}00790\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00791}00791\ POSITION\ GetInitialPosition\ ()}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00792}00792\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00793}00793\ \ \ \ \ \textcolor{keywordtype}{char}\ theBlankFG[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00794}00794\ \ \ \ \ \textcolor{keywordtype}{int}\ whosTurn;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00795}00795\ \ \ \ \ \textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}\ c;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00796}00796\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00797}00797\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00798}00798\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Get\ Initial\ Position\ -\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00799}00799\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ input\ the\ position\ to\ begin\ with.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00800}00800\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tNote\ that\ it\ should\ be\ in\ the\ following\ format:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00801}00801\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ -\/\ -\/\ F\ -\/\(\backslash\)n-\/\ -\/\ -\/\ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ <-\/-\/-\/-\/-\/\ EXAMPLE\ \(\backslash\)n\ -\/\ -\/\ -\/\ -\/\(\backslash\)nG\ G\ G\ G\ \(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00802}00802\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00803}00803\ \ \ \ \ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00804}00804\ \ \ \ \ getchar();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00805}00805\ \ \ \ \ \textcolor{keywordflow}{while}(i\ <\ BOARDSIZE\ \&\&\ (c\ =\ getchar())\ !=\ EOF)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00806}00806\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'f'}\ ||\ c\ ==\ \textcolor{charliteral}{'F'})}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00807}00807\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFG[i++]\ =\ FOXPIECE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00808}00808\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'g'}\ ||\ c\ ==\ \textcolor{charliteral}{'G'})}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00809}00809\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFG[i++]\ =\ GOOSEPIECE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00810}00810\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'-\/'})}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00811}00811\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankFG[i++]\ =\ BLANKPIECE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00812}00812\ \ \ \ \ \ \ \ \ else}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00813}00813\ \ \ \ \ \ \ \ \ \ \ \ \ ;\ \textcolor{comment}{/*\ do\ nothing\ */}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00814}00814\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00815}00815\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00816}00816\ \ \ \ \ getchar();}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00817}00817\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nNow,\ whose\ turn\ is\ it?\ [G/F]\ :\ "{}});}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00818}00818\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%c"{}},\&c);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00819}00819\ \ \ \ \ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'f'}\ ||\ c\ ==\ \textcolor{charliteral}{'F'})}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00820}00820\ \ \ \ \ \ \ \ \ whosTurn\ =\ FOXTURN;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00821}00821\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00822}00822\ \ \ \ \ \ \ \ \ whosTurn\ =\ GOOSETURN;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00823}00823\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00824}00824\ \ \ \ \ \textcolor{keywordflow}{return}(generic\_hash\_hash(theBlankFG,\ whosTurn));}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00825}00825\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00826}00826\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00827}00827\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00828}00828\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00829}00829\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00830}00830\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ NumberOfOptions}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00831}00831\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00832}00832\ \textcolor{comment}{**\ DESCRIPTION:\ Calculates\ and\ returns\ the\ number\ of\ variants}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00833}00833\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ your\ game\ supports.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00834}00834\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00835}00835\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ int\ :\ Number\ of\ Game\ Variants}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00836}00836\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00837}00837\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00838}00838\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00839}00839\ \textcolor{keywordtype}{int}\ NumberOfOptions\ ()}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00840}00840\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00841}00841\ \ \ \ \ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00842}00842\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00843}00843\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00844}00844\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00845}00845\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00846}00846\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00847}00847\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ getOption}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00848}00848\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00849}00849\ \textcolor{comment}{**\ DESCRIPTION:\ A\ hash\ function\ that\ returns\ a\ number\ corresponding}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00850}00850\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ the\ current\ variant\ of\ the\ game.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00851}00851\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Each\ set\ of\ variants\ needs\ to\ have\ a\ different\ number.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00852}00852\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00853}00853\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ int\ :\ the\ number\ representation\ of\ the\ options.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00854}00854\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00855}00855\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00856}00856\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00857}00857\ \textcolor{keywordtype}{int}\ getOption\ ()}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00858}00858\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00859}00859\ \ \ \ \ \textcolor{keywordflow}{if}(gStandardGame)\ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00860}00860\ \ \ \ \ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00861}00861\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00862}00862\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00863}00863\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00864}00864\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00865}00865\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00866}00866\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ setOption}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00867}00867\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00868}00868\ \textcolor{comment}{**\ DESCRIPTION:\ The\ corresponding\ unhash\ function\ for\ game\ variants.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00869}00869\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Unhashes\ option\ and\ sets\ the\ necessary\ variants.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00870}00870\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00871}00871\ \textcolor{comment}{**\ INPUT:\ \ \ \ \ \ \ int\ option\ :\ the\ number\ representation\ of\ the\ options.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00872}00872\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00873}00873\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00874}00874\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00875}00875\ \textcolor{keywordtype}{void}\ setOption\ (\textcolor{keywordtype}{int}\ option)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00876}00876\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00877}00877\ \ \ \ \ \textcolor{keywordflow}{if}(option\ ==\ 1)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00878}00878\ \ \ \ \ \ \ \ \ gStandardGame\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00879}00879\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00880}00880\ \ \ \ \ \ \ \ \ gStandardGame\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00881}00881\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00882}00882\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00883}00883\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00884}00884\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00885}00885\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00886}00886\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DebugMenu}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00887}00887\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00888}00888\ \textcolor{comment}{**\ DESCRIPTION:\ Game\ Specific\ Debug\ Menu\ (Gamesman\ comes\ with\ a\ default}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00889}00889\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ debug\ menu).\ Menu\ used\ to\ debug\ internal\ problems.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00890}00890\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00891}00891\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ If\ kDebugMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00892}00892\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ display\ a\ debug\ menu\ option}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00893}00893\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Gamesman\ will\ not\ call\ this\ function}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00894}00894\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00895}00895\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00896}00896\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00897}00897\ \textcolor{keywordtype}{void}\ DebugMenu\ ()}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00898}00898\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00899}00899\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00900}00900\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00901}00901\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00902}00902\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00903}00903\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00904}00904\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00905}00905\ \textcolor{comment}{**\ Everything\ specific\ to\ this\ module\ goes\ below\ these\ lines.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00906}00906\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00907}00907\ \textcolor{comment}{**\ Things\ you\ want\ down\ here:}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00908}00908\ \textcolor{comment}{**\ Move\ Hasher}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00909}00909\ \textcolor{comment}{**\ Move\ Unhasher}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00910}00910\ \textcolor{comment}{**\ Any\ other\ function\ you\ deem\ necessary\ to\ help\ the\ ones\ above.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00911}00911\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00912}00912\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00913}00913\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00914}00914\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00915}00915\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00916}00916\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ MoveToSlots}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00917}00917\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00918}00918\ \textcolor{comment}{**\ DESCRIPTION:\ convert\ an\ internal\ move\ to\ that\ of\ two\ slots}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00919}00919\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00920}00920\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ theMove\ \ \ \ :\ The\ move\ input.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00921}00921\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ SLOT\ *fromSlot\ \ :\ The\ slot\ the\ piece\ moves\ from\ (output)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00922}00922\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ SLOT\ *toSlot\ \ \ \ :\ The\ slot\ the\ piece\ moves\ to\ \ \ (output)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00923}00923\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00924}00924\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00925}00925\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00926}00926\ \textcolor{keywordtype}{void}\ MoveToSlots(MOVE\ theMove,\ SLOT\ *fromSlot,\ SLOT\ *toSlot)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00927}00927\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00928}00928\ \ \ \ \ *fromSlot\ =\ theMove\ \%\ BOARDSIZE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00929}00929\ \ \ \ \ *toSlot\ \ \ =\ theMove\ /\ BOARDSIZE;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00930}00930\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00931}00931\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00932}00932\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00933}00933\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00934}00934\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00935}00935\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ SlotsToMove}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00936}00936\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00937}00937\ \textcolor{comment}{**\ DESCRIPTION:\ convert\ two\ slots\ (from\ and\ to)\ to\ an\ encoded\ MOVE}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00938}00938\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00939}00939\ \textcolor{comment}{**\ INPUT:\ \ \ \ \ \ \ SLOT\ fromSlot\ \ \ :\ The\ slot\ the\ piece\ moves\ from\ (0-\/>BOARDSIZE)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00940}00940\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ SLOT\ toSlot\ \ \ \ \ :\ The\ slot\ the\ piece\ moves\ to\ \ \ (0-\/>BOARDSIZE)}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00941}00941\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00942}00942\ \textcolor{comment}{**\ OUTPUT:\ \ \ \ \ \ MOVE\ \ \ \ \ \ \ \ \ \ \ \ :\ The\ move\ corresponding\ to\ from-\/>to}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00943}00943\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00944}00944\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00945}00945\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00946}00946\ MOVE\ SlotsToMove\ (SLOT\ fromSlot,\ SLOT\ toSlot)}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00947}00947\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00948}00948\ \ \ \ \ \textcolor{keywordflow}{return}\ ((MOVE)\ toSlot*BOARDSIZE\ +\ fromSlot);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00949}00949\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00950}00950\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00951}00951\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00952}00952\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00953}00953\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00954}00954\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ InitializeAdjacency}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00955}00955\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00956}00956\ \textcolor{comment}{**\ DESCRIPTION:\ Initializes\ adjacency\ matrix\ 'conncted'.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00957}00957\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00958}00958\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ None}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00959}00959\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00960}00960\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ None}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00961}00961\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00962}00962\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00963}00963\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00964}00964\ \textcolor{keywordtype}{void}\ InitializeAdjacency\ ()\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00965}00965\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00966}00966\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00967}00967\ \ \ \ \ \textcolor{keywordflow}{for}(\ i=0;\ i<MAXBOARDSIZE;\ i++\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00968}00968\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(\ j=i;\ j<MAXBOARDSIZE;\ j++\ )}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00969}00969\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ ((j-\/i)==4)\ ||}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00970}00970\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\ (j-\/i)==5\ \&\&\ (\ (i\ \%\ 8)==0\ ||\ (i\ \%\ 8)==1\ ||\ (i\ \%\ 8)==2\ )\ )\ ||}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00971}00971\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\ (j-\/i)==3\ \&\&\ (\ (i\ \%\ 8)==5\ ||\ (i\ \%\ 8)==6\ ||\ (i\ \%\ 8)==7\ )\ ))\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00972}00972\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ connected[i][j]=1;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00973}00973\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ connected[j][i]=1;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00974}00974\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00975}00975\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00976}00976\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ connected[i][j]=0;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00977}00977\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ connected[j][i]=0;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00978}00978\ \ \ \ \ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00979}00979\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00980}00980\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00981}00981\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00982}00982\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00983}00983\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00984}00984\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00985}00985\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ InitializeOrder}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00986}00986\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00987}00987\ \textcolor{comment}{**\ DESCRIPTION:\ Initializes\ order\ of\ the\ nodes\ (array\ order).}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00988}00988\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00989}00989\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ None}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00990}00990\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00991}00991\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ None}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00992}00992\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00993}00993\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00994}00994\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00995}00995\ \textcolor{keywordtype}{void}\ InitializeOrder\ ()\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00996}00996\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00997}00997\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00998}00998\ \ \ \ \ \textcolor{keywordflow}{for}(\ i=0;\ i<ROWS;\ i++\ )\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l00999}00999\ \ \ \ \ \ \ \ \ order[4*i]=(ROWS-\/1)-\/i;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01000}01000\ \ \ \ \ \ \ \ \ order[4*i+1]=(ROWS-\/1)-\/i;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01001}01001\ \ \ \ \ \ \ \ \ order[4*i+2]=(ROWS-\/1)-\/i;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01002}01002\ \ \ \ \ \ \ \ \ order[4*i+3]=(ROWS-\/1)-\/i;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01003}01003\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01004}01004\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01005}01005\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01006}01006\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01007}01007\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01008}01008\ \textcolor{comment}{//\ \$Log:\ not\ supported\ by\ cvs2svn\ \$}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01009}01009\ \textcolor{comment}{//\ Revision\ 1.15\ \ 2006/12/19\ 20:00:50\ \ arabani}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01010}01010\ \textcolor{comment}{//\ Added\ Memwatch\ (memory\ debugging\ library)\ to\ gamesman.\ Use\ 'make\ memdebug'\ to\ compile\ with\ Memwatch}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01011}01011\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01012}01012\ \textcolor{comment}{//\ Revision\ 1.14\ \ 2006/10/17\ 10:45:20\ \ max817}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01013}01013\ \textcolor{comment}{//\ HUGE\ amount\ of\ changes\ to\ all\ generic\_hash\ games,\ so\ that\ they\ call\ the}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01014}01014\ \textcolor{comment}{//\ new\ versions\ of\ the\ functions.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01015}01015\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01016}01016\ \textcolor{comment}{//\ Revision\ 1.13\ \ 2006/03/20\ 23:56:56\ \ kmowery}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01017}01017\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01018}01018\ \textcolor{comment}{//\ Added\ MoveToString\ and\ set\ gMoveToStringFunPtr,\ required\ for\ Visual\ Value\ History.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01019}01019\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01020}01020\ \textcolor{comment}{//\ Revision\ 1.12\ \ 2006/01/11\ 22:55:03\ \ hevanm}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01021}01021\ \textcolor{comment}{//\ Hopefully\ really\ fixed\ twobitdb.\ Changed\ compiler\ flags\ for\ all\ platforms\ to\ "{}-\/Wall\ -\/g"{}.\ Look\ at\ those\ warnings.\ They\ are\ not\ critical,\ but\ they\ are\ there.\ Removed\ the\ configure\ script.\ From\ now\ on\ please\ remember\ to\ (re)grenerate\ it\ yourself\ if/when\ configure.ac\ changes,\ by\ simply\ running\ autoconf.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01022}01022\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01023}01023\ \textcolor{comment}{//\ Revision\ 1.11\ \ 2006/01/03\ 00:19:35\ \ hevanm}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01024}01024\ \textcolor{comment}{//\ Added\ types.h.\ Cleaned\ stuff\ up\ a\ little.\ Bye\ bye\ gDatabase.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01025}01025\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01026}01026\ \textcolor{comment}{//\ Revision\ 1.10\ \ 2005/12/27\ 10:57:50\ \ hevanm}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01027}01027\ \textcolor{comment}{//\ almost\ eliminated\ the\ existance\ of\ gDatabase\ in\ all\ files,\ with\ some\ declarations\ commented\ earlier\ that\ need\ to\ be\ hunt\ down\ and\ deleted\ from\ the\ source\ file.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01028}01028\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01029}01029\ \textcolor{comment}{//\ Revision\ 1.9\ \ 2005/11/10\ 20:58:51\ \ hevanm}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01030}01030\ \textcolor{comment}{//\ Renaming\ mfoxes\_new\ to\ mfoxes.\ You\ need\ to\ regenerate\ the\ makefiles\ with\ config.status\ to\ adopt\ the\ changes.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01031}01031\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01032}01032\ \textcolor{comment}{//\ Revision\ 1.3\ \ 2005/04/27\ 22:47:48\ \ ciokita}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01033}01033\ \textcolor{comment}{//\ update\ helpstrings}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01034}01034\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01035}01035\ \textcolor{comment}{//\ Revision\ 1.2\ \ 2005/04/17\ 00:45:20\ \ hevanm}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01036}01036\ \textcolor{comment}{//\ Cleaned\ up\ unused\ functions\ and\ let\ the\ geese\ go\ first\ by\ default.\ This\ completes\ all\ major\ work\ on\ bringing\ F\&G\ to\ the\ current\ core.}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01037}01037\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01038}01038\ \textcolor{comment}{//\ Revision\ 1.1\ \ 2005/04/11\ 18:01:10\ \ hevanm}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01039}01039\ \textcolor{comment}{//\ A\ version\ of\ mfoxes\ that\ uses\ the\ current\ core\ API.\ Everything\ except\ the\ GUI\ works,\ with\ the\ exception\ of\ a\ few\ strange\ bugs\ here\ and\ there...}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01040}01040\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01041}01041\ \textcolor{comment}{//\ Revision\ 1.3\ \ 2005/03/10\ 02:06:47\ \ ogren}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01042}01042\ \textcolor{comment}{//\ Capitalized\ CVS\ keywords,\ moved\ Log\ to\ the\ bottom\ of\ the\ file\ -\/\ Elmer}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01043}01043\ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01044}01044\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01045}01045\ POSITION\ InteractStringToPosition(STRING\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01046}01046\ \ \ \ \ \textcolor{keywordtype}{int}\ whosTurn\ =\ board[0]\ ==\ \textcolor{charliteral}{'F'}\ ?\ FOXTURN\ :\ GOOSETURN;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01047}01047\ \ \ \ \ \textcolor{keywordflow}{return}\ generic\_hash\_hash(\&board[1],\ whosTurn);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01048}01048\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01049}01049\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01050}01050\ STRING\ InteractPositionToString(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01051}01051\ \ \ \ \ \textcolor{keywordtype}{char}\ board[BOARDSIZE];}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01052}01052\ \ \ \ \ generic\_hash\_unhash(pos,\ board);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01053}01053\ \ \ \ \ \textcolor{keywordtype}{int}\ whosTurn\ =\ generic\_hash\_turn(pos);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01054}01054\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01055}01055\ \ \ \ \ \textcolor{keywordtype}{char}\ *ret\ =\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})\ *\ (1\ +\ BOARDSIZE\ +\ 1));}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01056}01056\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01057}01057\ \ \ \ \ ret[0]\ =\ whosTurn\ ==\ FOXTURN\ ?\ \textcolor{charliteral}{'F'}\ :\ \textcolor{charliteral}{'G'};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01058}01058\ \ \ \ \ memcpy(\&ret[1],\ board,\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})\ *\ BOARDSIZE);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01059}01059\ \ \ \ \ ret[1\ +\ BOARDSIZE]\ =\ \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01060}01060\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01061}01061\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01062}01062\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01063}01063\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01064}01064\ STRING\ InteractPositionToEndData(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01065}01065\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01066}01066\ \}}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01067}01067\ }
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01068}01068\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)\ \{}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01069}01069\ \ \ \ \ \textcolor{keywordflow}{return}\ MoveToString(mv);}
+\DoxyCodeLine{\Hypertarget{mfoxes_8c_source_l01070}01070\ \}}
+
+\end{DoxyCode}

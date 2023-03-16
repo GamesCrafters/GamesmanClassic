@@ -1,0 +1,144 @@
+\hypertarget{structf_node}{}\doxysection{f\+Node Struct Reference}
+\label{structf_node}\index{fNode@{fNode}}
+
+
+{\ttfamily \#include $<$seval.\+h$>$}
+
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+STRING \mbox{\hyperlink{structf_node_a8ab6f4b291d7c1db55aa142f2ecaae8e}{name}}
+\item 
+float \mbox{\hyperlink{structf_node_a1c5931e0ff27eeda51247116828268ab}{weight}}
+\item 
+TYPE \mbox{\hyperlink{structf_node_a9f1d8fbcba51537346a105b7f63ff72a}{type}}
+\item 
+PIECE\+\_\+\+TYPE \mbox{\hyperlink{structf_node_a47de007c1b3365eb039a28c860a0f129}{piece}}
+\item 
+float \mbox{\hyperlink{structf_node_a3773d5a60d5216b6232e829ee111329e}{scale\+Params}} \mbox{[}SEVAL\+\_\+\+NUMSCALEPARAMS\mbox{]}
+\item 
+int \mbox{\hyperlink{structf_node_a068f6ee351ff7cf2670449fd37647e12}{eval\+Params}} \mbox{[}SEVAL\+\_\+\+NUMEVALPARAMS\mbox{]}
+\item 
+scaling\+Function \mbox{\hyperlink{structf_node_a3cad7b728a2860034f1771ac77345386}{scale}}
+\item 
+feature\+Evaluator\+Custom \mbox{\hyperlink{structf_node_a1d467d15a05964a9d586c4d0404191f6}{f\+EvalC}}
+\item 
+feature\+Evaluator\+Library \mbox{\hyperlink{structf_node_a3d0d6aa823b27e440336acd3d345237f}{f\+EvalL}}
+\item 
+struct \mbox{\hyperlink{structf_node}{f\+Node}} $\ast$ \mbox{\hyperlink{structf_node_a52669339298e79d68a9a388784cba575}{next}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+I decided not to use a union for the function pointers because it really provides no additional benefit, besides saving 4 bytes of space. In either implementation, we still have to store which type of function we\textquotesingle{}re using. 
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00032}{32}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+
+
+\doxysubsection{Field Documentation}
+\Hypertarget{structf_node_a068f6ee351ff7cf2670449fd37647e12}\label{structf_node_a068f6ee351ff7cf2670449fd37647e12} 
+\index{fNode@{fNode}!evalParams@{evalParams}}
+\index{evalParams@{evalParams}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{evalParams}{evalParams}}
+{\footnotesize\ttfamily int f\+Node\+::eval\+Params\mbox{[}SEVAL\+\_\+\+NUMEVALPARAMS\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00038}{38}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a1d467d15a05964a9d586c4d0404191f6}\label{structf_node_a1d467d15a05964a9d586c4d0404191f6} 
+\index{fNode@{fNode}!fEvalC@{fEvalC}}
+\index{fEvalC@{fEvalC}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{fEvalC}{fEvalC}}
+{\footnotesize\ttfamily feature\+Evaluator\+Custom f\+Node\+::f\+EvalC}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00040}{40}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a3d0d6aa823b27e440336acd3d345237f}\label{structf_node_a3d0d6aa823b27e440336acd3d345237f} 
+\index{fNode@{fNode}!fEvalL@{fEvalL}}
+\index{fEvalL@{fEvalL}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{fEvalL}{fEvalL}}
+{\footnotesize\ttfamily feature\+Evaluator\+Library f\+Node\+::f\+EvalL}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00041}{41}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a8ab6f4b291d7c1db55aa142f2ecaae8e}\label{structf_node_a8ab6f4b291d7c1db55aa142f2ecaae8e} 
+\index{fNode@{fNode}!name@{name}}
+\index{name@{name}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily STRING f\+Node\+::name}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00033}{33}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a52669339298e79d68a9a388784cba575}\label{structf_node_a52669339298e79d68a9a388784cba575} 
+\index{fNode@{fNode}!next@{next}}
+\index{next@{next}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{next}{next}}
+{\footnotesize\ttfamily struct \mbox{\hyperlink{structf_node}{f\+Node}}$\ast$ f\+Node\+::next}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00042}{42}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a47de007c1b3365eb039a28c860a0f129}\label{structf_node_a47de007c1b3365eb039a28c860a0f129} 
+\index{fNode@{fNode}!piece@{piece}}
+\index{piece@{piece}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{piece}{piece}}
+{\footnotesize\ttfamily PIECE\+\_\+\+TYPE f\+Node\+::piece}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00036}{36}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a3cad7b728a2860034f1771ac77345386}\label{structf_node_a3cad7b728a2860034f1771ac77345386} 
+\index{fNode@{fNode}!scale@{scale}}
+\index{scale@{scale}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{scale}{scale}}
+{\footnotesize\ttfamily scaling\+Function f\+Node\+::scale}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00039}{39}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a3773d5a60d5216b6232e829ee111329e}\label{structf_node_a3773d5a60d5216b6232e829ee111329e} 
+\index{fNode@{fNode}!scaleParams@{scaleParams}}
+\index{scaleParams@{scaleParams}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{scaleParams}{scaleParams}}
+{\footnotesize\ttfamily float f\+Node\+::scale\+Params\mbox{[}SEVAL\+\_\+\+NUMSCALEPARAMS\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00037}{37}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a9f1d8fbcba51537346a105b7f63ff72a}\label{structf_node_a9f1d8fbcba51537346a105b7f63ff72a} 
+\index{fNode@{fNode}!type@{type}}
+\index{type@{type}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily TYPE f\+Node\+::type}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00035}{35}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+\Hypertarget{structf_node_a1c5931e0ff27eeda51247116828268ab}\label{structf_node_a1c5931e0ff27eeda51247116828268ab} 
+\index{fNode@{fNode}!weight@{weight}}
+\index{weight@{weight}!fNode@{fNode}}
+\doxysubsubsection{\texorpdfstring{weight}{weight}}
+{\footnotesize\ttfamily float f\+Node\+::weight}
+
+
+
+Definition at line \mbox{\hyperlink{seval_8h_source_l00034}{34}} of file \mbox{\hyperlink{seval_8h_source}{seval.\+h}}.
+
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/core/seval.\+h\end{DoxyCompactItemize}

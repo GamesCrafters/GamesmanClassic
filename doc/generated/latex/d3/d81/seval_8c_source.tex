@@ -1,0 +1,1240 @@
+\hypertarget{seval_8c_source}{}\doxysection{seval.\+c}
+\label{seval_8c_source}\index{src/core/seval.c@{src/core/seval.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ seval.c}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Static\ evaluator\ to\ be\ used\ with\ gamesman\ modules.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ \ \ Michael\ Greenbaum}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Brian\ Zimmer}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ Start:\ 19\ September\ 2006}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00012}00012\ \textcolor{comment}{**\ UPDATE\ HIST:}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 9/19/06-\/\ Initial\ draft\ of\ seval.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 10/8/06-\/\ (Michael)\ Implemented\ 4\ trait\ functions.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00016}00016\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00018}00018\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00019}00019\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00020}00020\ \textcolor{preprocessor}{\#include\ <dirent.h>}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00021}00021\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00022}00022\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00024}00024\ \textcolor{comment}{/*lBoard\ will\ contain\ board\ processing\ data.\ Requires\ call}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00025}00025\ \textcolor{comment}{\ \ \ of\ LibInitialize\ by\ the\ module.\ For\ information\ see\ mlib.c\ and\ mlib.h.*/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00026}00026\ \textcolor{preprocessor}{\#include\ "{}mlib.h"{}}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00027}00027\ \textcolor{preprocessor}{\#include\ "{}seval.h"{}}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00028}00028\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00029}00029\ \textcolor{preprocessor}{\#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00030}00030\ \textcolor{preprocessor}{\#include\ <scew/scew.h>}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00031}00031\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00033}00033\ \textcolor{preprocessor}{\#define\ compare(slot,piece,board)\ !memcmp(board+slot*lBoard.eltSize,piece,lBoard.eltSize)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00034}00034\ \textcolor{preprocessor}{\#define\ getSlot(row,col)\ (row*lBoard.cols+col)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00035}00035\ \textcolor{preprocessor}{\#define\ getRow(slot)\ (slot/lBoard.cols)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00036}00036\ \textcolor{preprocessor}{\#define\ getCol(slot)\ (slot\%lBoard.rows)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00037}00037\ \textcolor{preprocessor}{\#define\ min(a,b)\ (a<=b\ ?\ a\ :\ b)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00039}00039\ \mbox{\hyperlink{structse_node}{seList}}\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00040}00040\ \mbox{\hyperlink{structse_node}{seList}}\ currEvaluator\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00041}00041\ \textcolor{keywordtype}{char}*\ LibraryTraits[]\ =\ \{\textcolor{stringliteral}{"{}Number\ of\ Pieces"{}},\textcolor{stringliteral}{"{}Distance\ from\ Edge"{}},\textcolor{stringliteral}{"{}Clustering"{}},\textcolor{stringliteral}{"{}Connections"{}}\};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00042}00042\ \textcolor{keywordtype}{int}\ numLibraryTraits\ =\ 4;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00043}00043\ \textcolor{keywordtype}{int}\ numCustomTraits\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00045}00045\ \textcolor{comment}{//private\ functions}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00046}00046\ \textcolor{keywordtype}{void}\ printEvaluator();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00047}00047\ \textcolor{keywordtype}{void}\ printFeature();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00048}00048\ STRING\ getScaleFnName(\mbox{\hyperlink{structf_node}{fList}}\ feature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00050}00050\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00051}00051\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00052}00052\ \textcolor{comment}{**\ Initialization}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00053}00053\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00054}00054\ \textcolor{comment}{**\ -\/Read\ in\ the\ xml\ document\ for\ the\ game}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00055}00055\ \textcolor{comment}{**\ -\/Query\ the\ game\ for\ the\ function\ pointers\ for\ custom\ traits.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00056}00056\ \textcolor{comment}{**\ -\/Set\ up\ array\ for\ trait\ weights,\ scaling,\ etc}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00057}00057\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00058}00058\ \textcolor{comment}{**\ Returns\ FALSE\ if\ the\ initialization\ failed}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00059}00059\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00060}00060\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00062}00062\ featureEvaluatorLibrary\ getSEvalLibFnPtr(STRING\ fnName)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00064}00064\ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(fnName,\textcolor{stringliteral}{"{}Number\ of\ Pieces"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&numPieces;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00066}00066\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (strcmp(fnName,\textcolor{stringliteral}{"{}Distance\ from\ Edge"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00067}00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&numFromEdge;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00068}00068\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (strcmp(fnName,\textcolor{stringliteral}{"{}Clustering"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&(clustering);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00070}00070\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (strcmp(fnName,\textcolor{stringliteral}{"{}Connections"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00071}00071\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&(connections);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00072}00072\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00073}00073\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}ERROR,\ unrecognized\ trait\ name\ in\ xml\ file:\ \%s"{}},\ fnName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00074}00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00075}00075\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00076}00076\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00078}00078\ STRING\ copyString(STRING\ toCopy)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00079}00079\ \ \ \ \ STRING\ toReturn\ =\ SafeMalloc((strlen(toCopy)+1)\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00080}00080\ \ \ \ \ strcpy(toReturn,\ toCopy);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{return}\ toReturn;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00082}00082\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00084}00084\ \textcolor{keywordtype}{void}\ freeFeatureList(\mbox{\hyperlink{structf_node}{fList}}\ head)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00085}00085\ \ \ \ \ \textcolor{keywordflow}{if}(\ head==NULL\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00087}00087\ \ \ \ \ SafeFree(head-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00088}00088\ \ \ \ \ freeFeatureList(head-\/>next);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00089}00089\ \ \ \ \ SafeFree(head);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00090}00090\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00092}00092\ \textcolor{keywordtype}{void}\ freeEvaluatorList(\mbox{\hyperlink{structse_node}{seList}}\ head)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00093}00093\ \ \ \ \ \textcolor{keywordflow}{if}(\ head==NULL\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00094}00094\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{if}(\ head-\/>featureList!=NULL\ )\ \textcolor{comment}{//\ \&\&\ head-\/>featureList!=featureList}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ freeFeatureList(head-\/>featureList);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00097}00097\ \ \ \ \ SafeFree(head-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00098}00098\ \ \ \ \ freeEvaluatorList(head-\/>next);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00099}00099\ \ \ \ \ SafeFree(head);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00100}00100\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00102}00102\ \textcolor{keywordtype}{void}\ chooseEvaluator(\textcolor{keywordtype}{int}\ numInEvaluatorList)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00103}00103\ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ temp\ =\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{while}(\ numInEvaluatorList-\/-\/\ >\ 0\ \&\&\ temp!=NULL)\ temp\ =\ temp-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{if}(temp!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(currEvaluator!=NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ freeEvaluatorList(currEvaluator);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ currEvaluator\ =\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structse_node}{seNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ memcpy(currEvaluator,\ temp,\ \textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structse_node}{seNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ currEvaluator-\/>name\ =\ copyString(temp-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ currEvaluator-\/>featureList\ =\ copyFeatureList(temp-\/>featureList);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ currEvaluator-\/>next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nThe\ Evaluator\ has\ been\ set\ to\ \%s\(\backslash\)n"{}},\ currEvaluator-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ gSEvalLoaded\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00116}00116\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00117}00117\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00119}00119\ \mbox{\hyperlink{structse_node}{seList}}\ findEvaluator(STRING\ name)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00120}00120\ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ temp\ =\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{while}(temp!=NULL\ \&\&\ strcmp(temp-\/>name,\ name)!=0)\ temp\ =\ temp-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00122}00122\ \ \ \ \ \textcolor{keywordflow}{return}\ temp;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00123}00123\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00124}00124\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00125}00125\ \mbox{\hyperlink{structf_node}{fList}}\ copyFeatureList(\mbox{\hyperlink{structf_node}{fList}}\ srcFeatureList)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00126}00126\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ tempFeatureList=NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00127}00127\ \ \ \ \ \textcolor{keywordflow}{if}(srcFeatureList!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ tempFeatureList\ =\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structf_node}{fNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ memcpy(tempFeatureList,\ srcFeatureList,\ \textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structf_node}{fNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ tempFeatureList-\/>name\ =\ copyString(srcFeatureList-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ tempFeatureList-\/>next\ =\ copyFeatureList(srcFeatureList-\/>next);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00132}00132\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00133}00133\ \ \ \ \ \textcolor{keywordflow}{return}\ tempFeatureList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00134}00134\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00136}00136\ \textcolor{comment}{//\ Guaranteed\ upon\ entering\ that\ currEvaluator!=NULL}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00137}00137\ \textcolor{keywordtype}{void}\ updateCurrentEvaluator()\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00138}00138\ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ srcEvaluator\ =\ findEvaluator(currEvaluator-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00139}00139\ \ \ \ \ \textcolor{keywordflow}{if}(srcEvaluator==NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ freeEvaluatorList(currEvaluator);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ gSEvalLoaded\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00142}00142\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ currEvaluator-\/>variant\ =\ srcEvaluator-\/>variant;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ currEvaluator-\/>perfect\ =\ srcEvaluator-\/>perfect;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ currEvaluator-\/>next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(currEvaluator-\/>featureList!=NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ freeFeatureList(currEvaluator-\/>featureList);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ currEvaluator-\/>featureList\ =\ copyFeatureList(srcEvaluator-\/>featureList);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00150}00150\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00151}00151\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00152}00152\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00153}00153\ BOOLEAN\ evaluatorExistsForVariant(\textcolor{keywordtype}{int}\ variant)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00154}00154\ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ temp\ =\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00155}00155\ \ \ \ \ \textcolor{keywordflow}{while}(\ temp!=NULL\ )\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ temp-\/>variant\ ==\ -\/1\ ||\ temp-\/>variant\ ==\ variant\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ temp\ =\ temp-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00159}00159\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00161}00161\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00162}00162\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00164}00164\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00165}00165\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00166}00166\ \textcolor{comment}{**\ SCEW\ Related\ Functions}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00167}00167\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00168}00168\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00170}00170\ \textcolor{preprocessor}{\#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00171}00171\ \textcolor{comment}{//\ DON'T\ COMPILE\ THIS}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00172}00172\ \textcolor{comment}{//\ if\ XML\ not\ installed}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00173}00173\ \textcolor{comment}{//\ return\ types\ \&\ args}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00174}00174\ \textcolor{comment}{//\ will\ create\ problems}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00176}00176\ \mbox{\hyperlink{structf_node}{fList}}\ parseFeature(scew\_element*\ sEvalNode)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00177}00177\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00178}00178\ \ \ \ \ \textcolor{keywordtype}{float}\ tempEvalParams[4];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00179}00179\ \ \ \ \ scew\_element*\ element\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00180}00180\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ tempList\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00181}00181\ \ \ \ \ \textcolor{keywordflow}{while}\ ((element\ =\ scew\_element\_next(sEvalNode,\ element))\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00182}00182\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ currFeature\ =\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structf_node}{fNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ scew\_attribute*\ attribute\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00186}00186\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Default\ values\ for\ feature:}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00187}00187\ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&linear;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00188}00188\ \ \ \ \ \ \ \ \ currFeature-\/>weight\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00189}00189\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ attribute\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ ((attribute\ =\ scew\_attribute\_next(element,\ attribute))\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}name"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>name\ =\ copyString((\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}type"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>type\ =\ strcmp((\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute),\textcolor{stringliteral}{"{}custom"{}})==0\ ?\ custom\ :\ library;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}scaling"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_value(attribute),\textcolor{stringliteral}{"{}linear"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&linear;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_value(attribute),\textcolor{stringliteral}{"{}logistic"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&logistic;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_value(attribute),\textcolor{stringliteral}{"{}quadratic"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&quadratic;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00208}00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_value(attribute),\textcolor{stringliteral}{"{}logarithmic"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00209}00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&logarithmic;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_value(attribute),\textcolor{stringliteral}{"{}boolean"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&boolean;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00213}00213\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}functionParameters"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ setArrayFromString(tempEvalParams,\ (\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<SEVAL\_NUMEVALPARAMS;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00217}00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>evalParams[i]\ =\ (int)\ tempEvalParams[i];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00218}00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}scalingParams"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ setArrayFromString(currFeature-\/>scaleParams,\ (\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00222}00222\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}piece"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>piece\ =\ atoi((\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}weight"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>weight\ =\ atof((\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}parse\_element"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Bad\ attribute=\(\backslash\)"{}\%s\(\backslash\)"{}"{}},(\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ currFeature-\/>fEvalC\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ currFeature-\/>fEvalL\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Now\ we\ should\ have\ the\ name}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ currFeature-\/>type\ ==\ custom\ \&\&\ gGetSEvalCustomFnPtr!=NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>fEvalC\ =\ (featureEvaluatorCustom)gGetSEvalCustomFnPtr(currFeature-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>fEvalL\ =\ (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}((currFeature-\/>fEvalC\ ==\ NULL)\ \&\&\ (currFeature-\/>fEvalL\ ==\ NULL))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}A\ function\ for\ feature\ \(\backslash\)"{}\%s\(\backslash\)"{}\ could\ not\ be\ found!\(\backslash\)n"{}},currFeature-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00244}00244\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00245}00245\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ currFeature-\/>next\ =\ tempList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00247}00247\ \ \ \ \ \ \ \ \ tempList\ =\ currFeature;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00248}00248\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00250}00250\ \ \ \ \ \textcolor{keywordflow}{return}\ tempList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00251}00251\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00252}00252\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00253}00253\ \textcolor{keywordtype}{void}\ setArrayFromString(\textcolor{keywordtype}{float}*\ arr,\ STRING\ values)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00254}00254\ \ \ \ \ \textcolor{keywordtype}{int}\ i=0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00255}00255\ \ \ \ \ \textcolor{keywordtype}{char}\ delims[]\ =\ \textcolor{stringliteral}{"{},\ "{}};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00256}00256\ \ \ \ \ \textcolor{keywordtype}{char}\ *value\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00257}00257\ \ \ \ \ value\ =\ strtok(\ values,\ delims\ );}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00258}00258\ \ \ \ \ \textcolor{keywordflow}{while}(\ value\ !=\ NULL\ )\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf(\ "{}value\ is\ \(\backslash\)"{}\%s\(\backslash\)"{}\(\backslash\)n"{},\ value\ );}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ arr[i]\ =\ atof(value);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00261}00261\ \ \ \ \ \ \ \ \ value\ =\ strtok(\ NULL,\ delims\ );}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00262}00262\ \ \ \ \ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00263}00263\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00264}00264\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00266}00266\ \mbox{\hyperlink{structse_node}{seList}}\ parseEvaluators(scew\_element*\ element,\ \mbox{\hyperlink{structse_node}{seList}}\ tempList)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00267}00267\ \ \ \ \ scew\_element*\ child\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00268}00268\ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ currEvaluator\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00269}00269\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00270}00270\ \ \ \ \ \textcolor{keywordflow}{if}\ (element\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00271}00271\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00273}00273\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00275}00275\ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(scew\_element\_name(element),\textcolor{stringliteral}{"{}seval"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00276}00276\ \ \ \ \ \ \ \ \ currEvaluator\ =\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structse_node}{seNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00277}00277\ \ \ \ \ \ \ \ \ scew\_attribute*\ attribute\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ currEvaluator-\/>name\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00279}00279\ \ \ \ \ \ \ \ \ \textcolor{comment}{//currEvaluator-\/>element\ =\ element;}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00280}00280\ \ \ \ \ \ \ \ \ currEvaluator-\/>variant\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00281}00281\ \ \ \ \ \ \ \ \ currEvaluator-\/>perfect\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00282}00282\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ ((attribute\ =\ scew\_attribute\_next(element,\ attribute))\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00283}00283\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}name"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currEvaluator-\/>name\ =\ copyString((\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}variant"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currEvaluator-\/>variant\ =\ atoi((\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}perfect"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currEvaluator-\/>perfect\ =\ (strcmp(scew\_attribute\_value(attribute),\textcolor{stringliteral}{"{}true"{}})==0)\ ?\ TRUE\ :\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(currEvaluator-\/>perfect)\ gSEvalPerfect\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00291}00291\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}parseEvaluators"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Bad\ attribute=\(\backslash\)"{}\%s\(\backslash\)"{}"{}},(\textcolor{keywordtype}{char}\ *)scew\_attribute\_value(attribute));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ currEvaluator-\/>name==NULL\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ currEvaluator-\/>name\ =\ copyString(\textcolor{stringliteral}{"{}default"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00299}00299\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ currEvaluator-\/>featureList\ =\ parseFeature(element);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ currEvaluator-\/>next\ =\ tempList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00303}00303\ \ \ \ \ \ \ \ \ tempList\ =\ currEvaluator;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00304}00304\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00305}00305\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00311}00311\ \ \ \ \ child\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00312}00312\ \ \ \ \ \textcolor{keywordflow}{while}\ ((child\ =\ scew\_element\_next(element,\ child))\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00313}00313\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ tempList\ =\ parseEvaluators(child,\ tempList);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00315}00315\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00316}00316\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00317}00317\ \ \ \ \ \textcolor{keywordflow}{return}\ tempList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00318}00318\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00319}00319\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00320}00320\ scew\_element*\ createEvaluatorNode(\mbox{\hyperlink{structse_node}{seList}}\ evaluator)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00321}00321\ \ \ \ \ \textcolor{keywordtype}{char}\ placeHolderString[30];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00322}00322\ \ \ \ \ STRING\ scaleFnName=NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00323}00323\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ temp\ =\ evaluator-\/>featureList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00324}00324\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00325}00325\ \ \ \ \ memset(placeHolderString,0,30);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00327}00327\ \ \ \ \ scew\_element*\ evaluatorNode\ =\ scew\_element\_create(\textcolor{stringliteral}{"{}seval"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00328}00328\ \ \ \ \ scew\_element\_add\_attr\_pair(evaluatorNode,\ \textcolor{stringliteral}{"{}name"{}},\ evaluator-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00329}00329\ \ \ \ \ sprintf(placeHolderString,\textcolor{stringliteral}{"{}\%d"{}},\ evaluator-\/>variant);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00330}00330\ \ \ \ \ scew\_element\_add\_attr\_pair(evaluatorNode,\ \textcolor{stringliteral}{"{}variant"{}},\ placeHolderString);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00331}00331\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00332}00332\ \ \ \ \ \textcolor{keywordflow}{while}\ (\ temp!=NULL\ )\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00333}00333\ \ \ \ \ \ \ \ \ scew\_element*\ featureNode\ =\ scew\_element\_create(\textcolor{stringliteral}{"{}feature"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00335}00335\ \ \ \ \ \ \ \ \ scew\_element\_add\_attr\_pair(featureNode,\ \textcolor{stringliteral}{"{}name"{}},\ temp-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00336}00336\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00337}00337\ \ \ \ \ \ \ \ \ sprintf(placeHolderString,\textcolor{stringliteral}{"{}\%.3f"{}},\ temp-\/>weight);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00338}00338\ \ \ \ \ \ \ \ \ scew\_element\_add\_attr\_pair(featureNode,\ \textcolor{stringliteral}{"{}weight"{}},\ placeHolderString);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00339}00339\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00340}00340\ \ \ \ \ \ \ \ \ sprintf(placeHolderString,\textcolor{stringliteral}{"{}\%d"{}},\ temp-\/>piece);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00341}00341\ \ \ \ \ \ \ \ \ scew\_element\_add\_attr\_pair(featureNode,\ \textcolor{stringliteral}{"{}piece"{}},\ placeHolderString);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00343}00343\ \ \ \ \ \ \ \ \ sprintf(placeHolderString,\textcolor{stringliteral}{"{}\%.3f,\ \%.3f,\ \%.3f,\ \%.3f"{}},\ (\textcolor{keywordtype}{double})temp-\/>evalParams[0],\ (\textcolor{keywordtype}{double})temp-\/>evalParams[1],\ (\textcolor{keywordtype}{double})temp-\/>evalParams[2],\ (\textcolor{keywordtype}{double})temp-\/>evalParams[3]);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00344}00344\ \ \ \ \ \ \ \ \ scew\_element\_add\_attr\_pair(featureNode,\ \textcolor{stringliteral}{"{}functionParameters"{}},\ placeHolderString);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00345}00345\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00346}00346\ \ \ \ \ \ \ \ \ scew\_element\_add\_attr\_pair(featureNode,\ \textcolor{stringliteral}{"{}type"{}},\ (temp-\/>type==custom)\ ?\ \textcolor{stringliteral}{"{}custom"{}}\ :\ \textcolor{stringliteral}{"{}library"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00347}00347\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00348}00348\ \ \ \ \ \ \ \ \ scaleFnName\ =\ getScaleFnName(temp);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00349}00349\ \ \ \ \ \ \ \ \ scew\_element\_add\_attr\_pair(featureNode,\ \textcolor{stringliteral}{"{}scaling"{}},\ scaleFnName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00350}00350\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00351}00351\ \ \ \ \ \ \ \ \ sprintf(placeHolderString,\textcolor{stringliteral}{"{}\%.3f,\ \%.3f,\ \%.3f,\ \%.3f"{}},\ (\textcolor{keywordtype}{double})temp-\/>scaleParams[0],\ (\textcolor{keywordtype}{double})temp-\/>scaleParams[1],\ (\textcolor{keywordtype}{double})temp-\/>scaleParams[2],\ (\textcolor{keywordtype}{double})temp-\/>scaleParams[3]);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00352}00352\ \ \ \ \ \ \ \ \ scew\_element\_add\_attr\_pair(featureNode,\ \textcolor{stringliteral}{"{}scalingParams"{}},\ placeHolderString);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00353}00353\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00354}00354\ \ \ \ \ \ \ \ \ scew\_element\_add\_elem(evaluatorNode,\ featureNode);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00355}00355\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00356}00356\ \ \ \ \ \ \ \ \ temp\ =\ temp-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00357}00357\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00358}00358\ \ \ \ \ \textcolor{keywordflow}{return}\ evaluatorNode;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00359}00359\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00360}00360\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00361}00361\ scew\_element*\ findEvaluatorNode(scew\_element*\ root,\ STRING\ evaluatorName)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00362}00362\ \ \ \ \ scew\_element*\ child\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00363}00363\ \ \ \ \ scew\_attribute*\ attribute\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00364}00364\ \ \ \ \ \textcolor{keywordflow}{while}\ ((child\ =\ scew\_element\_next(root,\ child))\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00365}00365\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00366}00366\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ ((attribute\ =\ scew\_attribute\_next(child,\ attribute))\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00367}00367\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00368}00368\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_name(attribute),\textcolor{stringliteral}{"{}name"{}})==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00369}00369\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(scew\_attribute\_value(attribute),\ evaluatorName)==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00370}00370\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ child;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00371}00371\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00372}00372\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00373}00373\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00374}00374\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00375}00375\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00376}00376\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00377}00377\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00378}00378\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00379}00379\ \textcolor{keywordtype}{void}\ TryToLoadAnEvaluator()\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00380}00380\ \ \ \ \ \textcolor{keywordtype}{char}\ fileName[30];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00381}00381\ \ \ \ \ sprintf(fileName,\ \textcolor{stringliteral}{"{}xml/\%s.xml"{}},\ kDBName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00382}00382\ \ \ \ \ \textcolor{keywordflow}{if}(!FullInitializeSEval(fileName))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00383}00383\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00384}00384\ \ \ \ \ \textcolor{comment}{//\ If\ we\ don't\ have\ an\ evaluator\ defined,\ then}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00385}00385\ \ \ \ \ \textcolor{comment}{//\ loop\ through\ them\ and\ pick\ one}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00386}00386\ \ \ \ \ \textcolor{keywordflow}{if}(currEvaluator\ ==\ NULL\ \&\&\ evaluatorExistsForVariant(getOption()))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00387}00387\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ bestEvaluator\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00388}00388\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ bestEvalNum\ =\ -\/1,\ traverserNum=0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00389}00389\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ traverser\ =\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00390}00390\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00391}00391\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (traverser\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00392}00392\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ (traverser-\/>variant==-\/1\ ||\ traverser-\/>variant==getOption())\ )\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00393}00393\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bestEvaluator!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00394}00394\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ bestEvaluator-\/>perfect!=TRUE\ \&\&\ traverser-\/>perfect==TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00395}00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bestEvaluator\ =\ traverser;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00396}00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bestEvalNum\ =\ traverserNum;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00397}00397\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00398}00398\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00399}00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00400}00400\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bestEvaluator=traverser;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00401}00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bestEvalNum\ =\ traverserNum;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00402}00402\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00403}00403\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00405}00405\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bestEvaluator-\/>perfect\ ==\ TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00406}00406\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Set\ currEvaluator\ and\ break}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00407}00407\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chooseEvaluator(bestEvalNum);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00408}00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00409}00409\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ traverser\ =\ traverser-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00411}00411\ \ \ \ \ \ \ \ \ \ \ \ \ traverserNum++;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00412}00412\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00413}00413\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00414}00414\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(bestEvalNum!=-\/1)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00415}00415\ \ \ \ \ \ \ \ \ \ \ \ \ chooseEvaluator(bestEvalNum);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00416}00416\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00417}00417\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00418}00418\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00419}00419\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00420}00420\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00421}00421\ STRING\ getScaleFnName(\mbox{\hyperlink{structf_node}{fList}}\ feature)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00422}00422\ \ \ \ \ STRING\ scaleFnName;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00423}00423\ \ \ \ \ \textcolor{keywordflow}{if}(\ feature-\/>scale==\&linear\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00424}00424\ \ \ \ \ \ \ \ \ scaleFnName\ =\ \textcolor{stringliteral}{"{}linear"{}};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00425}00425\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(\ feature-\/>scale==\&logarithmic\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00426}00426\ \ \ \ \ \ \ \ \ scaleFnName\ =\ \textcolor{stringliteral}{"{}logarithmic"{}};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00427}00427\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(\ feature-\/>scale==\&logistic\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00428}00428\ \ \ \ \ \ \ \ \ scaleFnName\ =\ \textcolor{stringliteral}{"{}logistic"{}};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00429}00429\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(\ feature-\/>scale==\&quadratic\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00430}00430\ \ \ \ \ \ \ \ \ scaleFnName\ =\ \textcolor{stringliteral}{"{}quadratic"{}};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00431}00431\ \textcolor{preprocessor}{\#ifdef\ WIN32}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00432}00432\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(\ feature-\/>scale==\&booleanA\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00433}00433\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00434}00434\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(\ feature-\/>scale==\&\textcolor{keywordtype}{boolean}\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00435}00435\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00436}00436\ \ \ \ \ \ \ \ \ scaleFnName\ =\ \textcolor{stringliteral}{"{}boolean"{}};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00437}00437\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00438}00438\ \ \ \ \ \ \ \ \ scaleFnName\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00439}00439\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00440}00440\ \ \ \ \ \textcolor{keywordflow}{return}\ scaleFnName;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00441}00441\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00442}00442\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00443}00443\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00444}00444\ BOOLEAN\ loadDataFromXML(STRING\ fileName)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00445}00445\ \textcolor{preprocessor}{\ \ \#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00446}00446\ \ \ \ \ scew\_tree*\ tree\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00447}00447\ \ \ \ \ scew\_parser*\ parser\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00451}00451\ \ \ \ \ parser\ =\ scew\_parser\_create();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00453}00453\ \ \ \ \ scew\_parser\_ignore\_whitespaces(parser,\ 1);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00454}00454\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00455}00455\ \ \ \ \ \textcolor{comment}{/*\ Loads\ an\ XML\ file\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00456}00456\ \ \ \ \ \textcolor{keywordflow}{if}\ (!scew\_parser\_load\_file(parser,\ fileName))}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00457}00457\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ scew\_error\ code\ =\ scew\_error\_code();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00459}00459\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Unable\ to\ load\ file\ (error\ \#\%d:\ \%s)\(\backslash\)n"{}},\ code,}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00460}00460\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_string(code));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00461}00461\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (code\ ==\ scew\_error\_expat)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00462}00462\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00463}00463\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum}\ XML\_Error\ expat\_code\ =\ scew\_error\_expat\_code(parser);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00464}00464\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Expat\ error\ \#\%d\ (line\ \%d,\ column\ \%d):\ \%s\(\backslash\)n"{}},\ expat\_code,}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00465}00465\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_expat\_line(parser),}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00466}00466\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_expat\_column(parser),}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00467}00467\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_expat\_string(expat\_code));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00468}00468\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00469}00469\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00470}00470\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00471}00471\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00472}00472\ \ \ \ \ tree\ =\ scew\_parser\_tree(parser);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00473}00473\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00474}00474\ \ \ \ \ \textcolor{comment}{/*\ Actually\ get\ the\ information\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00475}00475\ \ \ \ \ evaluatorList\ =\ parseEvaluators(scew\_tree\_root(tree),\ NULL);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00476}00476\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00477}00477\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00478}00478\ \ \ \ \ \textcolor{keywordflow}{if}(currEvaluator!=NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00479}00479\ \ \ \ \ \ \ \ \ updateCurrentEvaluator();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00480}00480\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00481}00481\ \ \ \ \ \textcolor{comment}{/*\ Remember\ to\ free\ tree\ (scew\_parser\_free\ does\ not\ free\ it)\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00482}00482\ \ \ \ \ scew\_tree\_free(tree);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00483}00483\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00484}00484\ \ \ \ \ \textcolor{comment}{/*\ Frees\ the\ SCEW\ parser\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00485}00485\ \ \ \ \ scew\_parser\_free(parser);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00486}00486\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00487}00487\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00488}00488\ \textcolor{preprocessor}{\ \ \#else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00489}00489\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00490}00490\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00491}00491\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00492}00492\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00493}00493\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00494}00494\ BOOLEAN\ createNewXMLFile(STRING\ fileName)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00495}00495\ \textcolor{preprocessor}{\ \ \#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00496}00496\ \ \ \ \ scew\_tree*\ tree\ =\ scew\_tree\_create();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00497}00497\ \ \ \ \ scew\_element*\ root\ =\ scew\_tree\_add\_root(tree,\ \textcolor{stringliteral}{"{}game"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00498}00498\ \ \ \ \ scew\_element\_add\_attr\_pair(root,\ \textcolor{stringliteral}{"{}name"{}},\ kDBName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00499}00499\ \ \ \ \ \textcolor{keywordflow}{return}\ scew\_writer\_tree\_file(tree,\ fileName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00500}00500\ \textcolor{preprocessor}{\ \ \#else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00501}00501\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00502}00502\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00503}00503\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00505}00505\ BOOLEAN\ writeEvaluatorToXMLFile(\mbox{\hyperlink{structse_node}{seList}}\ evaluator,\ STRING\ fileName)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00506}00506\ \textcolor{preprocessor}{\ \ \#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00507}00507\ \ \ \ \ scew\_tree*\ tree\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00508}00508\ \ \ \ \ scew\_parser*\ parser\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00509}00509\ \ \ \ \ BOOLEAN\ success\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00510}00510\ \ \ \ \ scew\_element*\ evaluatorToReplace\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00511}00511\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00512}00512\ \ \ \ \ parser\ =\ scew\_parser\_create();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00513}00513\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00514}00514\ \ \ \ \ scew\_parser\_ignore\_whitespaces(parser,\ 1);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00515}00515\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00516}00516\ \ \ \ \ \textcolor{comment}{/*\ Loads\ an\ XML\ file\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00517}00517\ \ \ \ \ \textcolor{keywordflow}{if}\ (!scew\_parser\_load\_file(parser,\ fileName))}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00518}00518\ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00519}00519\ \ \ \ \ \ \ \ \ scew\_error\ code\ =\ scew\_error\_code();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00520}00520\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Unable\ to\ load\ file\ (error\ \#\%d:\ \%s)\(\backslash\)n"{}},\ code,}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00521}00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_string(code));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00522}00522\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (code\ ==\ scew\_error\_expat)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00523}00523\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00524}00524\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum}\ XML\_Error\ expat\_code\ =\ scew\_error\_expat\_code(parser);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00525}00525\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Expat\ error\ \#\%d\ (line\ \%d,\ column\ \%d):\ \%s\(\backslash\)n"{}},\ expat\_code,}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00526}00526\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_expat\_line(parser),}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00527}00527\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_expat\_column(parser),}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00528}00528\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scew\_error\_expat\_string(expat\_code));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00529}00529\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00530}00530\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00531}00531\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00532}00532\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00533}00533\ \ \ \ \ tree\ =\ scew\_parser\_tree(parser);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00534}00534\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00535}00535\ \ \ \ \ \textcolor{comment}{/*\ Actually\ get\ the\ information\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00536}00536\ \ \ \ \ evaluatorToReplace\ =\ findEvaluatorNode(scew\_tree\_root(tree),\ evaluator-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00537}00537\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00538}00538\ \ \ \ \ \textcolor{keywordflow}{if}(\ evaluatorToReplace!=NULL\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00539}00539\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Evaluator\ to\ replace:\ \%s"{}},\ evaluatorToReplace);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00540}00540\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00541}00541\ \ \ \ \ \textcolor{keywordflow}{if}(\ evaluatorToReplace!=NULL\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00542}00542\ \ \ \ \ \ \ \ \ scew\_element\_free(evaluatorToReplace);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00543}00543\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00544}00544\ \ \ \ \ scew\_element\_add\_elem(scew\_tree\_root(tree),\ createEvaluatorNode(evaluator));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00545}00545\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00546}00546\ \ \ \ \ success\ =\ scew\_writer\_tree\_file(tree,\ fileName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00547}00547\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00548}00548\ \ \ \ \ \textcolor{comment}{/*\ Remember\ to\ free\ tree\ (scew\_parser\_free\ does\ not\ free\ it)\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00549}00549\ \ \ \ \ scew\_tree\_free(tree);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00550}00550\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00551}00551\ \ \ \ \ \textcolor{comment}{/*\ Frees\ the\ SCEW\ parser\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00552}00552\ \ \ \ \ scew\_parser\_free(parser);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00553}00553\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00554}00554\ \ \ \ \ \textcolor{keywordflow}{return}\ success;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00555}00555\ \textcolor{preprocessor}{\ \ \#else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00556}00556\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00557}00557\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00558}00558\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00559}00559\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00560}00560\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00561}00561\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00562}00562\ \textcolor{comment}{**\ END\ SCEW\ Related\ Functions}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00563}00563\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00564}00564\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00565}00565\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00566}00566\ BOOLEAN\ initializeStaticEvaluator(STRING\ fileName)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00567}00567\ \ \ \ \ numCustomTraits=0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00568}00568\ \ \ \ \ \textcolor{keywordflow}{if}(gCustomTraits!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00569}00569\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(strcmp(gCustomTraits[numCustomTraits],\ \textcolor{stringliteral}{"{}"{}})!=0)\ numCustomTraits++;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00570}00570\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00571}00571\ \textcolor{preprocessor}{\ \ \#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00572}00572\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Reading\ XML\ data\ from:\ \%s\(\backslash\)n"{}},\ fileName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00573}00573\ \ \ \ \ \textcolor{keywordflow}{if}(evaluatorList!=NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00574}00574\ \ \ \ \ \ \ \ \ freeEvaluatorList(evaluatorList);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00575}00575\ \ \ \ \ evaluatorList\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00576}00576\ \ \ \ \ \textcolor{keywordflow}{return}\ loadDataFromXML(fileName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00577}00577\ \textcolor{preprocessor}{\ \ \#else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00578}00578\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00579}00579\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00580}00580\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00581}00581\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00582}00582\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00583}00583\ \textcolor{keywordtype}{void}\ initializeStaticEvaluatorBoard(\textcolor{keywordtype}{int}\ eltSize,\textcolor{keywordtype}{int}\ rows,\ \textcolor{keywordtype}{int}\ cols,\ BOOLEAN\ diagonals,\textcolor{keywordtype}{void}*\ initialPlayerPiece,\ \textcolor{keywordtype}{void}*\ opponentPlayerPiece,\ \textcolor{keywordtype}{void}*\ blankPiece)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00584}00584\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00585}00585\ \ \ \ \ LibInitialize(eltSize,rows,cols,diagonals);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00586}00586\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00587}00587\ \ \ \ \ lBoard.initialPlayerPiece\ =\ initialPlayerPiece;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00588}00588\ \ \ \ \ lBoard.opponentPlayerPiece\ =\ opponentPlayerPiece;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00589}00589\ \ \ \ \ lBoard.blankPiece\ =\ blankPiece;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00590}00590\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00591}00591\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00592}00592\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00593}00593\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00594}00594\ \textcolor{comment}{**\ The\ Evaluator}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00595}00595\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00596}00596\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00597}00597\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00598}00598\ \textcolor{keywordtype}{float}\ evaluatePosition(POSITION\ p)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00599}00599\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ features\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00600}00600\ \ \ \ \ \textcolor{keywordtype}{float}\ valueSum\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00601}00601\ \ \ \ \ \textcolor{keywordtype}{float}\ weightSum\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00602}00602\ \ \ \ \ \textcolor{keywordtype}{void}*\ board\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00603}00603\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00604}00604\ \ \ \ \ \textcolor{keywordflow}{if}(currEvaluator!=NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00605}00605\ \ \ \ \ \ \ \ \ features\ =\ currEvaluator-\/>featureList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00606}00606\ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00607}00607\ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}evaluatePosition"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00608}00608\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Tried\ to\ call\ evaluatePosition\ when\ currEvaluator==NULL"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00609}00609\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00610}00610\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00611}00611\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00612}00612\ \ \ \ \ \textcolor{keywordflow}{if}(linearUnhash\ !=\ NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00613}00613\ \ \ \ \ \ \ \ \ board\ =\ (*linearUnhash)(p);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00614}00614\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00615}00615\ \ \ \ \ \textcolor{keywordflow}{while}(features!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00616}00616\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(features-\/>type\ ==\ library)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00617}00617\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ linearUnhash!=NULL\ )}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00618}00618\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ valueSum\ +=\ features-\/>weight\ *\ \textcolor{comment}{//\ +=\ weight\ *\ scale(evaluateTrait(board))}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00619}00619\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ features-\/>scale(features-\/>fEvalL(board,(features-\/>piece==initial\ ?\ lBoard.initialPlayerPiece\ :\ lBoard.opponentPlayerPiece)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00620}00620\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ,features-\/>evalParams),features-\/>scaleParams);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00621}00621\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00622}00622\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}evaluatePosition"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00623}00623\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}linearUnhash\ MUST\ be\ set\ if\ library\ functions\ are\ used!\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00624}00624\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Results\ will\ be\ nondeterministic.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00625}00625\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/2;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00626}00626\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00627}00627\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(features-\/>type\ ==\ custom)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00628}00628\ \ \ \ \ \ \ \ \ \ \ \ \ valueSum\ +=\ features-\/>weight\ *\ features-\/>scale(features-\/>fEvalC(p),features-\/>scaleParams);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00629}00629\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00630}00630\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}ERROR,\ unknown\ feature\ type"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00631}00631\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00632}00632\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00633}00633\ \ \ \ \ \ \ \ \ weightSum\ +=\ features-\/>weight;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00634}00634\ \ \ \ \ \ \ \ \ features\ =\ features-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00635}00635\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00636}00636\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00637}00637\ \ \ \ \ \textcolor{keywordflow}{if}(board!=NULL)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00638}00638\ \ \ \ \ \ \ \ \ SafeFree(board);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00639}00639\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00640}00640\ \ \ \ \ \textcolor{keywordflow}{return}\ (valueSum/weightSum);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00641}00641\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00642}00642\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00643}00643\ VALUE\ evaluatePositionValue(POSITION\ p)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00644}00644\ \ \ \ \ \textcolor{keywordtype}{float}\ val\ =\ evaluatePosition(p);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00645}00645\ \ \ \ \ \textcolor{keywordflow}{return}\ (val==0)\ ?\ tie\ :\ (val>0\ ?\ win\ :\ lose);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00646}00646\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00647}00647\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00648}00648\ \textcolor{comment}{//Params\ are\ \{-\/1\ intersect,\ 1\ intersect\}}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00649}00649\ \textcolor{keywordtype}{float}\ linear(\textcolor{keywordtype}{float}\ value,\textcolor{keywordtype}{float}\ params[])\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00650}00650\ \ \ \ \ \textcolor{comment}{//return\ (value\ <\ params[0])\ ?\ -\/1\ :\ ((value\ >\ params[1])\ ?\ 1\ :\ value);}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00651}00651\ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00652}00652\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00653}00653\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00654}00654\ \textcolor{comment}{//Params\ are\ \{shift,time\ scale\}\ of\ sigmoid\ function}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00655}00655\ \textcolor{keywordtype}{float}\ logistic(\textcolor{keywordtype}{float}\ value,\textcolor{keywordtype}{float}\ params[])\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00656}00656\ \ \ \ \ \textcolor{keywordtype}{float}\ ans\ =\ (1/(1+exp(-\/params[1]*(value-\/params[0]))));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00657}00657\ \ \ \ \ \textcolor{keywordflow}{return}\ ans;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00658}00658\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00659}00659\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00660}00660\ \textcolor{comment}{//Params\ are\ \{isConcaveDown,-\/1\ intersect,1\ intersect\}}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00661}00661\ \textcolor{keywordtype}{float}\ quadratic(\textcolor{keywordtype}{float}\ value,\textcolor{keywordtype}{float}\ params[])\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00662}00662\ \ \ \ \ \textcolor{keywordtype}{float}\ ans;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00663}00663\ \ \ \ \ \textcolor{keywordtype}{float}\ width\ =\ params[2]\ -\/\ params[1];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00664}00664\ \ \ \ \ \textcolor{keywordflow}{if}(params[0]==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00665}00665\ \ \ \ \ \ \ \ \ ans\ =\ (2/(width*width))*((value\ -\/\ params[1])\ *\ (value\ -\/\ params[1]));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00666}00666\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00667}00667\ \ \ \ \ \ \ \ \ ans\ =\ 1\ -\/\ (2/(width*width))*((params[2]\ -\/\ value)\ *\ (params[2]\ -\/\ value));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00668}00668\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00669}00669\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00670}00670\ \ \ \ \ ans\ =\ (value\ <\ params[1])\ ?\ -\/1\ :\ ((value\ >\ params[2])\ ?\ 1\ :\ ans);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00671}00671\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00672}00672\ \ \ \ \ \textcolor{keywordflow}{return}\ ans;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00673}00673\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00674}00674\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00675}00675\ \textcolor{preprocessor}{\#ifdef\ WIN32}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00676}00676\ \textcolor{keywordtype}{float}\ booleanA(\textcolor{keywordtype}{float}\ value,\textcolor{keywordtype}{float}\ params[])\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00677}00677\ \ \ \ \ \textcolor{keywordflow}{return}\ (value>params[0]\ ?\ 1\ :\ -\/1);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00678}00678\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00679}00679\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00680}00680\ \textcolor{keywordtype}{float}\ boolean(\textcolor{keywordtype}{float}\ value,\textcolor{keywordtype}{float}\ params[])\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00681}00681\ \ \ \ \ \textcolor{keywordflow}{return}\ (value>params[0]\ ?\ 1\ :\ -\/1);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00682}00682\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00683}00683\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00684}00684\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00685}00685\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00686}00686\ \textcolor{comment}{//Params\ are\ \{value*10\ where\ y==1\ for\ log10(abs(value*9)+1)\ (Default=1)\}}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00687}00687\ \textcolor{keywordtype}{float}\ logarithmic(\textcolor{keywordtype}{float}\ value,\textcolor{keywordtype}{float}\ params[])\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00688}00688\ \ \ \ \ \textcolor{keywordtype}{float}\ absValue\ =\ fabs(value);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00689}00689\ \ \ \ \ \textcolor{keywordtype}{int}\ sign\ =\ (int)\ value\ /\ absValue;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00690}00690\ \ \ \ \ \textcolor{keywordtype}{float}\ scaleFactor\ =\ (params==NULL\ ||\ params[0]==0)\ ?\ 1\ :\ params[0];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00691}00691\ \ \ \ \ \textcolor{keywordtype}{float}\ ans\ =\ log10(\ (absValue*9+1)\ /\ scaleFactor\ );}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00692}00692\ \ \ \ \ \textcolor{keywordflow}{return}\ (sign\ *\ (absValue>1\ ||\ ans>1))\ ?\ 1\ :\ ans;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00693}00693\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00694}00694\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00695}00695\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00696}00696\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00697}00697\ \textcolor{comment}{**\ Text\ interface}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00698}00698\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00699}00699\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00700}00700\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00701}00701\ \textcolor{keywordtype}{void}\ NewTraitMenu(STRING\ fileName)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00702}00702\ \ \ \ \ \textcolor{keywordtype}{char}\ nextItem,\ libraryUpperBound;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00703}00703\ \ \ \ \ \textcolor{keywordtype}{int}\ traitNum;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00704}00704\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ currFeature\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00705}00705\ \ \ \ \ \textcolor{keywordtype}{char}\ namePlaceHolder[30];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00706}00706\ \ \ \ \ \textcolor{keywordtype}{char}*\ defaultName\ =\ \textcolor{stringliteral}{"{}default"{}};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00707}00707\ \ \ \ \ \textcolor{keywordtype}{int}\ variant\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00708}00708\ \ \ \ \ \textcolor{keywordtype}{char}\ choice=0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00709}00709\ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ currEvaluator\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00710}00710\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00711}00711\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Enter\ a\ name\ for\ this\ evaluator\ (''\ for\ 'default'):\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00712}00712\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%s"{}},\ namePlaceHolder);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00713}00713\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Enter\ a\ variant\ for\ this\ evaluator\ (-\/1\ for\ all):\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00714}00714\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%d"{}},\ \&variant);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00715}00715\ \ \ \ \ \textcolor{keywordflow}{while}(getchar()!=\textcolor{charliteral}{'\(\backslash\)n'})\ ;\ \textcolor{comment}{//absorb\ newline\ :(}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00716}00716\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00717}00717\ \ \ \ \ \textcolor{keywordflow}{if}(strcmp(namePlaceHolder,\ \textcolor{stringliteral}{"{}"{}})==0)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00718}00718\ \ \ \ \ \ \ \ \ strcpy(namePlaceHolder,defaultName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00719}00719\ \ \ \ \ currEvaluator\ =\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structse_node}{seNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00720}00720\ \ \ \ \ currEvaluator-\/>name\ =\ copyString(namePlaceHolder);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00721}00721\ \ \ \ \ \textcolor{comment}{//currEvaluator-\/>element\ =\ element;}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00722}00722\ \ \ \ \ currEvaluator-\/>variant\ =\ variant;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00723}00723\ \ \ \ \ currEvaluator-\/>perfect\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00724}00724\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00725}00725\ \ \ \ \ \textcolor{keywordflow}{while}(TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00726}00726\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00727}00727\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nSelect\ a\ new\ trait\ to\ add\ to\ the\ static\ evaluator\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00728}00728\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00729}00729\ \ \ \ \ \ \ \ \ nextItem\ =\ \textcolor{charliteral}{'a'};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00730}00730\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(linearUnhash!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00731}00731\ \ \ \ \ \ \ \ \ \ \ \ \ nextItem\ =\ printList(LibraryTraits,numLibraryTraits,nextItem);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00732}00732\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00733}00733\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nWarning:\ Linear\ unhash\ function\ not\ found.\ May\ only\ select\ from\ custom\ traits\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00734}00734\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00735}00735\ \ \ \ \ \ \ \ \ libraryUpperBound\ =\ nextItem-\/1;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00736}00736\ \ \ \ \ \ \ \ \ nextItem\ =\ printList(gCustomTraits,numCustomTraits,nextItem);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00737}00737\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00738}00738\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%c)\ Done\(\backslash\)n"{}},nextItem);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00739}00739\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00740}00740\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00741}00741\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nTrait\ Choice:\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00742}00742\ \ \ \ \ \ \ \ \ \ \ \ \ choice\ =\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00743}00743\ \ \ \ \ \ \ \ \ \ \ \ \ traitNum\ =\ (int)\ (choice-\/97);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00744}00744\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00745}00745\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(choice\ <\ 97\ ||\ choice\ >\ nextItem+1)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00746}00746\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nInvalid\ menu\ option,\ select\ again\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00747}00747\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00748}00748\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00749}00749\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00750}00750\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00751}00751\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(choice\ ==\ nextItem)\ \textcolor{comment}{//Done}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00752}00752\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00753}00753\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00754}00754\ \ \ \ \ \ \ \ \ \ \ \ \ currFeature\ =\ ParameterizeTrait(traitNum,\ libraryUpperBound-\/97);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00755}00755\ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>next\ =\ currEvaluator-\/>featureList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00756}00756\ \ \ \ \ \ \ \ \ \ \ \ \ currEvaluator-\/>featureList\ =\ currFeature;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00757}00757\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00758}00758\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00759}00759\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00760}00760\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00761}00761\ \ \ \ \ \textcolor{comment}{//currEvaluator-\/>featureList\ =\ copyFeatureList(featureList);}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00762}00762\ \ \ \ \ currEvaluator-\/>next\ =\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00763}00763\ \ \ \ \ evaluatorList\ =\ currEvaluator;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00764}00764\ \textcolor{preprocessor}{\ \ \#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00765}00765\ \ \ \ \ writeEvaluatorToXMLFile(evaluatorList,\ fileName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00766}00766\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00767}00767\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00768}00768\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00769}00769\ \mbox{\hyperlink{structf_node}{fList}}\ ParameterizeTrait(\textcolor{keywordtype}{int}\ traitNum,\ \textcolor{keywordtype}{int}\ libraryUpperBound)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00770}00770\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ currFeature\ =\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structf_node}{fNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00771}00771\ \ \ \ \ memset(currFeature,\ 0,\ \textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structf_node}{fNode}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00772}00772\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00773}00773\ \ \ \ \ \textcolor{keywordflow}{if}(traitNum<=libraryUpperBound)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00774}00774\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(traitNum)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00775}00775\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 0:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00776}00776\ \ \ \ \ \ \ \ \ \ \ \ \ RequestPiece(currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00777}00777\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00778}00778\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 1:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00779}00779\ \ \ \ \ \ \ \ \ \ \ \ \ RequestPiece(currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00780}00780\ \ \ \ \ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nWhich\ edge\ should\ this\ pertain\ to?\(\backslash\)n\(\backslash\)n0)\ Top\(\backslash\)n1)\ Right\(\backslash\)n2)\ Bottom\(\backslash\)nAnything\ else)\ Left\(\backslash\)n"{}},0,0,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00781}00781\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00782}00782\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 2:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00783}00783\ \ \ \ \ \ \ \ \ \ \ \ \ RequestPiece(currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00784}00784\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00785}00785\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 3:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00786}00786\ \ \ \ \ \ \ \ \ \ \ \ \ RequestPiece(currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00787}00787\ \ \ \ \ \ \ \ \ \ \ \ \ RequestBoolean(\textcolor{stringliteral}{"{}Should\ diagonals\ be\ considered?\(\backslash\)n"{}},0,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00788}00788\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00789}00789\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00790}00790\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00791}00791\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00792}00792\ \ \ \ \ \textcolor{keywordflow}{if}(traitNum\ >\ libraryUpperBound)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00793}00793\ \ \ \ \ \ \ \ \ currFeature-\/>type\ =\ custom;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00794}00794\ \ \ \ \ \ \ \ \ currFeature-\/>name\ =\ copyString(gCustomTraits[traitNum-\/libraryUpperBound]);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00795}00795\ \ \ \ \ \ \ \ \ currFeature-\/>fEvalC\ =\ (featureEvaluatorCustom)gGetSEvalCustomFnPtr(currFeature-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00796}00796\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00797}00797\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00798}00798\ \ \ \ \ \ \ \ \ currFeature-\/>type\ =\ library;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00799}00799\ \ \ \ \ \ \ \ \ currFeature-\/>name\ =\ copyString(LibraryTraits[traitNum]);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00800}00800\ \ \ \ \ \ \ \ \ currFeature-\/>fEvalL\ =\ (featureEvaluatorLibrary)getSEvalLibFnPtr(currFeature-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00801}00801\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00802}00802\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00803}00803\ \ \ \ \ ParameterizeScalingFunction(currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00804}00804\ \ \ \ \ ParameterizeWeightingFunction(currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00805}00805\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00806}00806\ \ \ \ \ \textcolor{keywordflow}{return}\ currFeature;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00807}00807\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00808}00808\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00809}00809\ \textcolor{keywordtype}{void}\ ParameterizeScalingFunction(\mbox{\hyperlink{structf_node}{fList}}\ currFeature)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00810}00810\ \ \ \ \ \textcolor{keywordtype}{char}\ choice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00811}00811\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00812}00812\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nWhat\ type\ of\ scaling\ function\ should\ be\ used\ for\ this\ trait?\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00813}00813\ \ \ \ \ printf(\textcolor{stringliteral}{"{}A\ scaling\ function\ is\ a\ function\ that\ maps\ raw\ trait\ values\ to\ the\ range\ [-\/1,1]\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00814}00814\ \ \ \ \ printf(\textcolor{stringliteral}{"{}a)\ Linear\ -\/\ A\ line\ clipped\ at\ y=1\ and\ y=-\/1\(\backslash\)nb)\ Logistic\ -\/\ A\ shifted\ and\ scaled\ sigmoid\ function\(\backslash\)nc)\ Quadratic\ -\/\ A\ parabola\ with\ vertex\ at\ either\ y=-\/1\ (concave\ up)\ or\ y=1\ (concave\ down)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00815}00815\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00816}00816\ \ \ \ \ \textcolor{keywordflow}{while}(TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00817}00817\ \ \ \ \ \ \ \ \ choice\ =\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00818}00818\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(choice\ <\ \textcolor{charliteral}{'a'}\ ||\ choice\ >\ \textcolor{charliteral}{'c'})\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00819}00819\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Invalid\ menu\ option,\ select\ again\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00820}00820\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00821}00821\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00822}00822\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00823}00823\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00824}00824\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00825}00825\ \ \ \ \ \textcolor{keywordflow}{switch}(choice)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00826}00826\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'a'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00827}00827\ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&linear;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00828}00828\ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ value\ under\ which\ the\ evaluator\ will\ assign\ -\/1:\(\backslash\)n"{}},0,1,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00829}00829\ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ value\ above\ which\ the\ evaluator\ will\ assign\ 1:\(\backslash\)n"{}},1,1,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00830}00830\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00831}00831\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00832}00832\ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&logistic;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00833}00833\ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ time\ shift\ of\ sigmoid\ function:\(\backslash\)n"{}},0,1,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00834}00834\ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ time\ scale\ of\ sigmoid\ function:\(\backslash\)n"{}},1,1,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00835}00835\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00836}00836\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'c'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00837}00837\ \ \ \ \ \ \ \ \ currFeature-\/>scale\ =\ \&quadratic;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00838}00838\ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ 0\ for\ a\ concave\ down\ function,\ otherwise\ function\ will\ be\ concave\ up:\(\backslash\)n"{}},0,1,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00839}00839\ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ value\ under\ which\ evaluator\ will\ assign\ -\/1:\(\backslash\)n"{}},1,1,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00840}00840\ \ \ \ \ \ \ \ \ RequestValue(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ value\ above\ which\ evaluator\ will\ assign\ 1:\(\backslash\)n"{}},2,1,currFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00841}00841\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00842}00842\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00843}00843\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00844}00844\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00845}00845\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00846}00846\ \textcolor{keywordtype}{void}\ ParameterizeWeightingFunction(\mbox{\hyperlink{structf_node}{fList}}\ currFeature)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00847}00847\ \ \ \ \ \textcolor{keywordtype}{float}\ choice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00848}00848\ \ \ \ \ \textcolor{keywordtype}{char}\ temp[80];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00849}00849\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00850}00850\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nEnter\ the\ weighting\ of\ this\ trait\ to\ be\ used\ in\ calculating\ the\ final\ result\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00851}00851\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00852}00852\ \ \ \ \ GetMyStr(temp,80);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00853}00853\ \ \ \ \ choice\ =\ atof(temp);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00854}00854\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00855}00855\ \ \ \ \ currFeature-\/>weight\ =\ choice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00856}00856\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00857}00857\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00858}00858\ \textcolor{keywordtype}{char}\ printList(STRING\ list[],\textcolor{keywordtype}{int}\ length,\ \textcolor{keywordtype}{char}\ start)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00859}00859\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00860}00860\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00861}00861\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<length;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00862}00862\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%c)\ \%s\(\backslash\)n"{}},start,list[i]);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00863}00863\ \ \ \ \ \ \ \ \ start++;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00864}00864\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00865}00865\ \ \ \ \ \textcolor{keywordflow}{return}\ start;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00866}00866\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00867}00867\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00868}00868\ \textcolor{keywordtype}{void}\ RequestPiece(\mbox{\hyperlink{structf_node}{fList}}\ currFeature)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00869}00869\ \ \ \ \ \textcolor{keywordtype}{char}\ choice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00870}00870\ \ \ \ \ \textcolor{keywordtype}{char}*\ listTemp[]\ =\ \{\textcolor{stringliteral}{"{}Initial\ player"{}},\textcolor{stringliteral}{"{}Opponent\ player"{}}\};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00871}00871\ \ \ \ \ \textcolor{keywordflow}{while}(TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00872}00872\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nWhose\ piece\ does\ this\ apply\ to?\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00873}00873\ \ \ \ \ \ \ \ \ printList(listTemp,2,\textcolor{charliteral}{'a'});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00874}00874\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00875}00875\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(choice\ =\ GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00876}00876\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'a'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'A'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00877}00877\ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>piece\ =\ initial;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00878}00878\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00879}00879\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00880}00880\ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>piece\ =\ opponent;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00881}00881\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00882}00882\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00883}00883\ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00884}00884\ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00885}00885\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00886}00886\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00887}00887\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00888}00888\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00889}00889\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00890}00890\ \textcolor{keywordtype}{void}\ RequestBoolean(STRING\ title,\textcolor{keywordtype}{int}\ paramNum,\mbox{\hyperlink{structf_node}{fList}}\ currFeature)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00891}00891\ \ \ \ \ \textcolor{keywordtype}{char}\ choice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00892}00892\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00893}00893\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},title);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00894}00894\ \ \ \ \ printf(\textcolor{stringliteral}{"{}(0\ for\ false,\ 1\ for\ true)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00895}00895\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00896}00896\ \ \ \ \ \textcolor{keywordflow}{while}(TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00897}00897\ \ \ \ \ \ \ \ \ choice\ =\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00898}00898\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(choice!=\textcolor{charliteral}{'0'}\ \&\&\ choice!=\textcolor{charliteral}{'1'})\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00899}00899\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Invalid\ menu\ option,\ select\ again\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00900}00900\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00901}00901\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(choice==\textcolor{charliteral}{'0'})\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00902}00902\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>evalParams[paramNum]\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00903}00903\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00904}00904\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ currFeature-\/>evalParams[paramNum]\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00905}00905\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00906}00906\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00907}00907\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00908}00908\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00909}00909\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00910}00910\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00915}00915\ \textcolor{keywordtype}{void}\ RequestValue(STRING\ title,\textcolor{keywordtype}{int}\ paramNum,\textcolor{keywordtype}{int}\ paramType,\mbox{\hyperlink{structf_node}{fList}}\ currFeature)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00916}00916\ \ \ \ \ \textcolor{keywordtype}{int}\ choice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00917}00917\ \ \ \ \ \textcolor{keywordtype}{float}\ scaleChoice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00918}00918\ \ \ \ \ \textcolor{keywordtype}{char}\ temp[80];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00919}00919\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00920}00920\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s"{}},title);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00921}00921\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00922}00922\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00923}00923\ \ \ \ \ \textcolor{keywordflow}{if}(paramType==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00924}00924\ \ \ \ \ \ \ \ \ choice\ =\ GetMyInt();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00925}00925\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00926}00926\ \ \ \ \ \ \ \ \ GetMyStr(temp,80);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00927}00927\ \ \ \ \ \ \ \ \ scaleChoice\ =\ atof(temp);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00928}00928\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00929}00929\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00930}00930\ \ \ \ \ \textcolor{keywordflow}{if}(paramType==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00931}00931\ \ \ \ \ \ \ \ \ currFeature-\/>evalParams[paramNum]\ =\ choice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00932}00932\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(paramType==1)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00933}00933\ \ \ \ \ \ \ \ \ currFeature-\/>scaleParams[paramNum]\ =\ scaleChoice;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00934}00934\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00935}00935\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}ERROR,\ unknown\ param\ type\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00936}00936\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00937}00937\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00938}00938\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00939}00939\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00940}00940\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00941}00941\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00942}00942\ \textcolor{comment}{**\ Implementation\ of\ traits\ starts\ here.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00943}00943\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00944}00944\ \textcolor{comment}{**\ Current\ list:}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00945}00945\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00946}00946\ \textcolor{comment}{**\ -\/Number\ of\ pieces\ (X)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00947}00947\ \textcolor{comment}{**\ -\/Connections\ (how\ many\ pieces\ "{}see"{}\ each\ other)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00948}00948\ \textcolor{comment}{**\ -\/NinaRow,\ AlmostNinaRow.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00949}00949\ \textcolor{comment}{**\ -\/Side\ locality.\ (X)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00950}00950\ \textcolor{comment}{**\ -\/Grouping,\ clustering.\ (X)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00951}00951\ \textcolor{comment}{**\ -\/Weighting\ of\ pieces\ for\ above\ traits.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00952}00952\ \textcolor{comment}{**\ -\/Piece\ centric\ traits-\/\ distance\ to\ piece,\ connections\ to\ piece}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00953}00953\ \textcolor{comment}{**\ -\/Slot\ centric\ traits-\/\ distance,\ connections,\ number\ on\ slots.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00954}00954\ \textcolor{comment}{**\ -\/Remaining\ moves\ (requires\ module\ info)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00955}00955\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00956}00956\ \textcolor{comment}{**\ Possible\ optimization:\ Store\ a\ list\ of\ piece\ locations\ for\ use\ by}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00957}00957\ \textcolor{comment}{**\ each\ instance\ of\ static\ evaluation.\ There\ is\ a\ lot\ of\ redundant}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00958}00958\ \textcolor{comment}{**\ comparison\ to\ determine\ piece\ locations\ on\ the\ board.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00959}00959\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00960}00960\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00961}00961\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00962}00962\ \textcolor{comment}{//Returns\ the\ number\ of\ the\ given\ piece\ on\ the\ board.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00963}00963\ \textcolor{keywordtype}{float}\ numPieces(\textcolor{keywordtype}{void}*\ board,\textcolor{keywordtype}{void}*\ piece,\ \textcolor{keywordtype}{int}\ params[])\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00964}00964\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ count=0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00965}00965\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<lBoard.size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00966}00966\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (compare(i,piece,board))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00967}00967\ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00968}00968\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00969}00969\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00970}00970\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{float})\ count;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00971}00971\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00972}00972\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00973}00973\ \textcolor{comment}{/*Returns\ the\ sum\ of\ the\ distance\ of\ each\ piece\ from\ the\ given\ edge\ of}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00974}00974\ \textcolor{comment}{\ \ \ **the\ board.\ 0\ =\ top,\ 1\ =\ right,\ 2\ =\ bottom,\ 3\ =\ left.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00975}00975\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00976}00976\ \textcolor{keywordtype}{float}\ numFromEdge(\textcolor{keywordtype}{void}*\ board,\textcolor{keywordtype}{void}*\ piece,\textcolor{keywordtype}{int}\ params[])\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00977}00977\ \ \ \ \ \textcolor{keywordtype}{int}\ count=0,i;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00978}00978\ \ \ \ \ \textcolor{keywordtype}{int}\ edge\ =\ params[0];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00979}00979\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00980}00980\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<lBoard.size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00981}00981\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(compare(i,piece,board))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00982}00982\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (edge==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00983}00983\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count+=\ (i/lBoard.cols);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00984}00984\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (edge==1)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00985}00985\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count+=\ (lBoard.cols-\/(i\%lBoard.cols));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00986}00986\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (edge==2)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00987}00987\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count+=\ (lBoard.rows-\/(i/lBoard.cols));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00988}00988\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (edge==3)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00989}00989\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count+=\ (i\%lBoard.cols);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00990}00990\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00991}00991\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Error,\ unknown\ edge\ input"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00992}00992\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00993}00993\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00994}00994\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00995}00995\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{float})count;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00996}00996\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00997}00997\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00998}00998\ \textcolor{comment}{/*Returns\ a\ measurement\ of\ the\ clustering\ of\ pieces\ on\ the\ board.\ First}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l00999}00999\ \textcolor{comment}{\ \ \ **calculates\ the\ centroid,\ then\ measures\ the\ mean\ squared\ distance\ of\ all}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01000}01000\ \textcolor{comment}{\ \ \ **pieces\ from\ the\ centroid.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01001}01001\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01002}01002\ \textcolor{keywordtype}{float}\ clustering(\textcolor{keywordtype}{void}*\ board,\textcolor{keywordtype}{void}*\ piece,\textcolor{keywordtype}{int}\ params[])\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01003}01003\ \ \ \ \ \textcolor{keywordtype}{int}\ rowAverage=0,colAverage=0,numPieces=0,i=0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01004}01004\ \ \ \ \ \textcolor{keywordtype}{float}\ value=0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01005}01005\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<lBoard.size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01006}01006\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(compare(i,piece,board))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01007}01007\ \ \ \ \ \ \ \ \ \ \ \ \ rowAverage+=getRow(i);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01008}01008\ \ \ \ \ \ \ \ \ \ \ \ \ colAverage+=getCol(i);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01009}01009\ \ \ \ \ \ \ \ \ \ \ \ \ numPieces++;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01010}01010\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01011}01011\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01012}01012\ \ \ \ \ \textcolor{keywordflow}{if}(numPieces==0)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01013}01013\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01014}01014\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01015}01015\ \ \ \ \ \textcolor{comment}{//compute\ actual\ averages}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01016}01016\ \ \ \ \ rowAverage\ =\ rowAverage/numPieces;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01017}01017\ \ \ \ \ colAverage\ =\ colAverage/numPieces;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01018}01018\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01019}01019\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<lBoard.size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01020}01020\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(compare(i,piece,board))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01021}01021\ \ \ \ \ \ \ \ \ \ \ \ \ value\ +=\ (getRow(i)-\/rowAverage)*(getRow(i)-\/rowAverage)\ +\ (getCol(i)-\/colAverage)*(getCol(i)-\/colAverage);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01022}01022\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01023}01023\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01024}01024\ \ \ \ \ value\ /=\ numPieces;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01025}01025\ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01026}01026\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01027}01027\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01028}01028\ \textcolor{comment}{/*Returns\ the\ number\ of\ connections\ between\ pieces\ on\ the\ board.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01029}01029\ \textcolor{comment}{\ \ \ **A\ connection\ is\ defined\ as\ a\ string\ of\ blank\ spaces,\ possibly}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01030}01030\ \textcolor{comment}{\ \ \ **diagonal,\ between\ two\ of\ the\ given\ piece.}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01031}01031\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01032}01032\ \textcolor{keywordtype}{float}\ connections(\textcolor{keywordtype}{void}*\ board,\textcolor{keywordtype}{void}*\ piece,\textcolor{keywordtype}{int}\ params[])\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01033}01033\ \ \ \ \ \textcolor{keywordtype}{int}\ count=0,i,j,pathLength,loc,direction;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01034}01034\ \ \ \ \ BOOLEAN\ diagonals\ =\ params[0];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01035}01035\ \ \ \ \ \textcolor{keywordtype}{void}*\ blank\ =\ lBoard.blankPiece;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01036}01036\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<lBoard.size;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01037}01037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (compare(i,piece,board))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01038}01038\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(direction\ =\ 3;\ direction<7;\ direction+=\ (diagonals\ ?\ 1\ :\ 2))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01039}01039\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01040}01040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//compute\ distance\ to\ edge\ of\ board\ along\ direction}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01041}01041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (direction==3)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01042}01042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pathLength\ =\ lBoard.cols-\/1-\/getCol(i);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01043}01043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (direction==4)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01044}01044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pathLength\ =\ min(lBoard.cols-\/1-\/getCol(i),lBoard.rows-\/1-\/getRow(i));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01045}01045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (direction==5)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01046}01046\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pathLength\ =\ lBoard.rows-\/1-\/getRow(i);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01047}01047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{\ \textcolor{comment}{//direction==6}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01048}01048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pathLength\ =\ min(lBoard.rows-\/1-\/getRow(i),getCol(i));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01049}01049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01050}01050\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01051}01051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loc\ =i;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01052}01052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(j=0;\ j<pathLength;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01053}01053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loc+=lBoard.directionMap[direction];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01054}01054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (compare(loc,piece,board))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01055}01055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01056}01056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01057}01057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (!compare(loc,blank,board))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01058}01058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01059}01059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01060}01060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01061}01061\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01062}01062\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01063}01063\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01064}01064\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01065}01065\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{float})\ count;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01066}01066\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01067}01067\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01068}01068\ \textcolor{keywordtype}{void}\ printEvaluator(\mbox{\hyperlink{structse_node}{seList}}\ evaluator)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01069}01069\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ curFeature\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01070}01070\ \ \ \ \ \textcolor{keywordflow}{if}(evaluator!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01071}01071\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nEvaluator-\/\ \%s\(\backslash\)n"{}},evaluator-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01072}01072\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Variant:\ \%d\(\backslash\)tPerfect:\ \%s\(\backslash\)n"{}},evaluator-\/>variant,(evaluator-\/>perfect\ ?\ \textcolor{stringliteral}{"{}true"{}}\ :\ \textcolor{stringliteral}{"{}false"{}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01073}01073\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nFeatures:\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01074}01074\ \ \ \ \ \ \ \ \ curFeature\ =\ evaluator-\/>featureList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01075}01075\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(curFeature!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01076}01076\ \ \ \ \ \ \ \ \ \ \ \ \ printFeature(curFeature);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01077}01077\ \ \ \ \ \ \ \ \ \ \ \ \ curFeature\ =\ curFeature-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01078}01078\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01079}01079\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01080}01080\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nEvalutator\ -\/\ (null)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01081}01081\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01082}01082\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01083}01083\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01084}01084\ \textcolor{keywordtype}{void}\ printFeature(\mbox{\hyperlink{structf_node}{fList}}\ feature)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01085}01085\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01086}01086\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t\%s\(\backslash\)n"{}},feature-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01087}01087\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tType\ -\/\ \%s\(\backslash\)n"{}},(feature-\/>type==library\ ?\ \textcolor{stringliteral}{"{}library"{}}\ :\ \textcolor{stringliteral}{"{}custom"{}}));}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01088}01088\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tWeight\ -\/\ \%.2f\(\backslash\)n"{}},feature-\/>weight);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01089}01089\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tPiece\ -\/\ \%d\(\backslash\)n"{}},(\textcolor{keywordtype}{int})feature-\/>piece);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01090}01090\ \ \ \ \ \textcolor{comment}{//printf("{}\(\backslash\)tScaling\ function:\ \%s\(\backslash\)n"{},getScaleFnName(feature));\ CAN\ SOMEONE\ TELL\ ME\ WHY\ THIS\ LINE\ DOESN'T\ WORK???????????}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01091}01091\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tScaling\ parameters:\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01092}01092\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<SEVAL\_NUMSCALEPARAMS;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01093}01093\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \%.2f"{}},feature-\/>scaleParams[i]);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01094}01094\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01095}01095\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tEvaluation\ parameters:\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01096}01096\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<SEVAL\_NUMEVALPARAMS;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01097}01097\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ \%d"{}},feature-\/>evalParams[i]);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01098}01098\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01099}01099\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01100}01100\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01101}01101\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01102}01102\ BOOLEAN\ FullInitializeSEval(\textcolor{keywordtype}{char}\ *fileName)\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01103}01103\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01104}01104\ \textcolor{preprocessor}{\ \ \#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01105}01105\ \ \ \ \ \textcolor{keywordflow}{if}(\ !gSEvalLoaded\ )\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01106}01106\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Check\ for\ existence\ of\ the\ file}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01107}01107\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(fopen(fileName,\ \textcolor{stringliteral}{"{}r"{}})\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01108}01108\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Make\ sure\ xml\ dir\ is\ there}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01109}01109\ \ \ \ \ \ \ \ \ \ \ \ \ DIR\ *xml\_dir\ =\ opendir(\textcolor{stringliteral}{"{}./xml"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01110}01110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (xml\_dir\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01111}01111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(mkdir\ (\textcolor{stringliteral}{"{}./xml"{}},\ 0755)==-\/1)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01112}01112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}SEval:\ Cannot\ create\ xml\ folder.\ Please\ create\ it\ youself.\ Returning\ to\ menu.\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01113}01113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01114}01114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01115}01115\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01116}01116\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01117}01117\ \ \ \ \ \ \ \ \ \ \ \ \ closedir\ (xml\_dir);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01118}01118\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ xml\ file\ doesn't\ already\ exist\ try\ to\ create\ it}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01119}01119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!createNewXMLFile(fileName))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01120}01120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}SEval:\ Cannot\ create\ xml\ file.\ Returning\ to\ menu.\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01121}01121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01122}01122\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01123}01123\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01124}01124\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01125}01125\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01126}01126\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01127}01127\ \ \ \ \ \textcolor{comment}{//\ By\ now,\ we\ at\ least\ have\ a\ file\ called\ kDBName.xml\ with\ a\ game\ element}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01128}01128\ \ \ \ \ \textcolor{comment}{//\ \ -\/-\/-\/>\ Enough\ for\ the\ parser\ to\ work\ with}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01129}01129\ \ \ \ \ \textcolor{comment}{//\ Regenerate\ list\ of\ defined\ Static\ Evaluators}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01130}01130\ \ \ \ \ \textcolor{comment}{//\ Base\ Menu\ Choices\ off\ of\ that}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01131}01131\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01132}01132\ \ \ \ \ \textcolor{keywordflow}{if}(!initializeStaticEvaluator(fileName))\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01133}01133\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Sorry,\ the\ Static\ Evaluator\ failed\ to\ initialize."{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01134}01134\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01135}01135\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01136}01136\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01137}01137\ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01138}01138\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01139}01139\ USERINPUT\ StaticEvaluatorMenu()}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01140}01140\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01141}01141\ \ \ \ \ USERINPUT\ result\ =\ Configure;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01142}01142\ \ \ \ \ \textcolor{keywordtype}{char}\ c;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01143}01143\ \ \ \ \ \textcolor{keywordtype}{char}\ fileName[30];}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01144}01144\ \ \ \ \ sprintf(fileName,\ \textcolor{stringliteral}{"{}xml/\%s.xml"{}},\ kDBName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01145}01145\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01146}01146\ \ \ \ \ \textcolor{keywordflow}{if}(!FullInitializeSEval(fileName))\ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01147}01147\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01148}01148\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01149}01149\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01150}01150\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Now\ we\ have\ some\ sort\ of\ a\ list\ of\ evaluators\ (may\ be\ NULL)}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01151}01151\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01152}01152\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tStatic\ Evaluator\ Options:"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01153}01153\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01154}01154\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tn)\(\backslash\)tCreate\ a\ (N)ew\ Static\ Evaluator\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01155}01155\ \ \ \ \ \ \ \ \ \textcolor{comment}{//Need\ to\ implement}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01156}01156\ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}\(\backslash\)te)\(\backslash\)t(E)dit\ an\ existing\ Static\ Evaluator\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01157}01157\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(evaluatorList!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01158}01158\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)ts)\(\backslash\)t(S)elect\ a\ Static\ Evaluator\ available\ for\ this\ variant\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01159}01159\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(gSEvalLoaded)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01160}01160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t(Currently\ \(\backslash\)"{}\%s\(\backslash\)"{})\(\backslash\)n"{}},\ currEvaluator-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01161}01161\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01162}01162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)t\(\backslash\)t(Currently\ None)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01163}01163\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01164}01164\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(gSEvalLoaded)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01165}01165\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tp)\(\backslash\)t(P)rint\ the\ current\ evaluator\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01166}01166\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01167}01167\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tb)\(\backslash\)t(B)ack\ =\ Return\ to\ previous\ activity\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01168}01168\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tq)\(\backslash\)t(Q)uit\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01169}01169\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01170}01170\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01171}01171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(c\ =\ GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01172}01172\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'n'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'N'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01173}01173\ \ \ \ \ \ \ \ \ \ \ \ \ NewTraitMenu(fileName);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01174}01174\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01175}01175\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'e'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'E'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01176}01176\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Coming\ soon\ to\ a\ Gamesman\ near\ you!"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01177}01177\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01178}01178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'s'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'S'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01179}01179\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(evaluatorList!=NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01180}01180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ variant\ =\ getOption();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01181}01181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(\ evaluatorExistsForVariant(variant)\ )\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01182}01182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01183}01183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structse_node}{seList}}\ temp\ =\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01184}01184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ optionMax,\ option\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01185}01185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tStatic\ Evaluators\ For\ This\ Variant:"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01186}01186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01187}01187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(\ temp!=NULL\ )\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01188}01188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(temp-\/>variant==-\/1)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01189}01189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t\%d)\(\backslash\)t\%s\ -\/\ all\ variants"{}},\ option++,\ temp-\/>name);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01190}01190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(temp-\/>variant==variant)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01191}01191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t\%d)\ \%s\ -\/\ variants\ \#\%d"{}},\ option++,\ temp-\/>name,\ temp-\/>variant);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01192}01192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp\ =\ temp-\/>next;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01193}01193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01194}01194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)tb)\(\backslash\)t(B)ack\ =\ Return\ to\ previous\ activity"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01195}01195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tq)\(\backslash\)t(Q)uit\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01196}01196\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01197}01197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ optionMax\ =\ option;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01198}01198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01199}01199\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01200}01200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ option\ =\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01201}01201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(option==\textcolor{charliteral}{'B'}\ ||\ option==\textcolor{charliteral}{'b'})}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01202}01202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01203}01203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(option==\textcolor{charliteral}{'Q'}\ ||\ option==\textcolor{charliteral}{'q'})\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01204}01204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01205}01205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01206}01206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01207}01207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(option>=optionMax+\textcolor{charliteral}{'0'}\ ||\ option<=0+\textcolor{charliteral}{'0'})\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01208}01208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01209}01209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01210}01210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01211}01211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01212}01212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ chooseEvaluator(option-\/\textcolor{charliteral}{'1'});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01213}01213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(gSEvalLoaded\ ==\ TRUE)}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01214}01214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01215}01215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01216}01216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{while}(TRUE);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01217}01217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01218}01218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01219}01219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01220}01220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01221}01221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01222}01222\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01223}01223\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01224}01224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01225}01225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01226}01226\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01227}01227\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01228}01228\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'P'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'p'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01229}01229\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(gSEvalLoaded)\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01230}01230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printEvaluator(currEvaluator);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01231}01231\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01232}01232\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01233}01233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01234}01234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01235}01235\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01236}01236\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01237}01237\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01238}01238\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01239}01239\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01240}01240\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'Q'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'q'}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01241}01241\ \ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01242}01242\ \ \ \ \ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01243}01243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01244}01244\ \ \ \ \ \ \ \ \ \ \ \ \ BadMenuChoice();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01245}01245\ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01246}01246\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01247}01247\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01248}01248\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(TRUE);}
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01249}01249\ }
+\DoxyCodeLine{\Hypertarget{seval_8c_source_l01250}01250\ \}}
+
+\end{DoxyCode}

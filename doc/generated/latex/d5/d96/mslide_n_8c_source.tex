@@ -1,0 +1,989 @@
+\hypertarget{mslide_n_8c_source}{}\doxysection{mslide\+N.\+c}
+\label{mslide_n_8c_source}\index{src/mslideN.c@{src/mslideN.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00001}00001\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00003}00003\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00005}00005\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ mslideN.c}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00007}00007\ \textcolor{comment}{**\ DESCRIPTION:\ Slide-\/N}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00008}00008\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00009}00009\ \textcolor{comment}{**\ AUTHORS:\ \ \ \ \ Rach\ Liu,\ Bryon\ Ross,\ Jiong\ Shen\ \&\ Tom\ Wang}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ 2003-\/03-\/12}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00013}00013\ \textcolor{comment}{**\ UPDATE\ HIST:}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00014}00014\ \textcolor{comment}{**\ 2003-\/02-\/13\ v0.9\ :\ \ Solves\ Slide-\/1\ through\ Slide-\/3}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00015}00015\ \textcolor{comment}{**\ 2003-\/02-\/21\ v1.0\ :\ \ Solves\ Slide-\/1\ through\ Slide-\/4}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00016}00016\ \textcolor{comment}{**\ 2003-\/02-\/22\ v1.1\ :\ \ X\ goes\ first\ \&\ PrintPosition\ displays\ whoseTurn}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00017}00017\ \textcolor{comment}{**\ 2003-\/03-\/05\ v1.2\ :\ \ Help\ example\ added}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00018}00018\ \textcolor{comment}{**\ 2003-\/03-\/08\ v1.3\ :\ \ Primitive\ updated\ to\ handle\ vertical\ and}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00019}00019\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ horizontal\ N-\/in-\/a-\/row}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00020}00020\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Variation\ added\ to\ Game\ Specific\ Options}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00021}00021\ \textcolor{comment}{**\ 2003-\/03-\/12\ v1.31:\ \ Fixed\ a\ bug\ in\ PositionToBlankOX}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00022}00022\ \textcolor{comment}{**\ 2003-\/05-\/09\ v1.32:\ \ Modified\ game\ menu}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00023}00023\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00024}00024\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00026}00026\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00027}00027\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00028}00028\ \textcolor{comment}{**\ Everything\ below\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00034}00034\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00035}00035\ POSITION\ gNumberOfPositions\ =\ 0;\ \ \textcolor{comment}{/*\ variable\ size\ loopy\ game\ */}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00037}00037\ POSITION\ gInitialPosition\ \ \ \ =\ \ 0;\ \textcolor{comment}{/*\ hashed\ value\ */}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00038}00038\ POSITION\ gMinimalPosition\ \ \ \ =\ \ 0;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00040}00040\ STRING\ kAuthorName\ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}Rach\ Liu,\ Bryon\ Ross,\ Jiong\ Shen\ and\ Tom\ Wang"{}};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00041}00041\ STRING\ kGameName\ \ \ \ \ \ \ \ \ \ \ =\ \textcolor{stringliteral}{"{}SlideN"{}};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00042}00042\ BOOLEAN\ kPartizan\ \ \ \ \ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00043}00043\ BOOLEAN\ kDebugMenu\ \ \ \ \ \ \ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00044}00044\ BOOLEAN\ kGameSpecificMenu\ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00045}00045\ BOOLEAN\ kTieIsPossible\ \ \ \ \ \ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00046}00046\ BOOLEAN\ kLoopy\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00047}00047\ BOOLEAN\ kDebugDetermineValue\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00048}00048\ POSITION\ kBadPosition\ \ \ \ \ \ \ \ \ \ \ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00049}00049\ \textcolor{keywordtype}{void}*\ \ \ \ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00051}00051\ STRING\ kHelpGraphicInterface\ =}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00052}00052\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}There\ is\ no\ graphical\ interface."{}};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00054}00054\ STRING\ kHelpTextInterface\ \ \ \ =}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}On\ your\ turn,\ insert\ a\ piece\ from\ one\ of\ the\ insertion\ points\ along\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00056}00056\ \textcolor{stringliteral}{the\ top\ of\ the\ board.\ \ Every\ board\ has\ 2*N\ insertion\ points\ labeled\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00057}00057\ \textcolor{stringliteral}{1\ through\ 2*N\ (where\ 1\ is\ the\ left-\/most\ entry\ point\ and\ 2*N\ is\ the\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00058}00058\ \textcolor{stringliteral}{right-\/most\ entry\ point).\ If\ the\ space\ into\ which\ you\ are\ inserting\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00059}00059\ \textcolor{stringliteral}{your\ piece\ is\ occupied,\ the\ existing\ piece\ will\ be\ pushed\ in\ the\ direction\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00060}00060\ \textcolor{stringliteral}{from\ which\ your\ new\ piece\ was\ inserted.\ If\ the\ space\ into\ which\ the\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00061}00061\ \textcolor{stringliteral}{pushed\ piece\ is\ being\ moved\ is\ occupied,\ the\ pushed\ piece\ will\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00062}00062\ \textcolor{stringliteral}{push\ that\ piece\ in\ the\ same\ direction\ as\ the\ original\ push.\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00063}00063\ \textcolor{stringliteral}{This\ process\ will\ continue\ until\ either\ a\ piece\ is\ pushed\ into\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00064}00064\ \textcolor{stringliteral}{an\ empty\ space,\ or\ a\ piece\ is\ pushed\ off\ the\ bottom\ of\ the\ board.\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00065}00065\ \textcolor{stringliteral}{Pieces\ pushed\ off\ the\ bottom\ of\ the\ board\ are\ discarded."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00067}00067\ STRING\ kHelpOnYourTurn\ =}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}You\ insert\ one\ of\ your\ pieces\ from\ one\ of\ the\ insertion\ points\ along\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00069}00069\ \textcolor{stringliteral}{the\ top\ of\ the\ board."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00071}00071\ STRING\ kHelpStandardObjective\ =}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00072}00072\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}To\ get\ N\ of\ your\ pieces\ in\ a\ row\ (where\ N\ is\ the\ length\ of\ one\ side\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00073}00073\ \textcolor{stringliteral}{of\ the\ board).\ N-\/in-\/a-\/row\ can\ be\ made\ vertically,\ horizontally,\ or\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00074}00074\ \textcolor{stringliteral}{diagonally.\ N-\/in-\/a-\/row\ WINS."{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00076}00076\ STRING\ kHelpReverseObjective\ =}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00077}00077\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}To\ force\ your\ opponent\ into\ getting\ N\ of\ his\ pieces\ in\ a\ row\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}(where\ N\ is\ the\ length\ of\ one\ side\ of\ the\ board).\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}N-\/in-\/a-\/row\ can\ be\ made\ vertically,\ horizontally,\ or\ diagonally.\ \(\backslash\)n"{}}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}N-\/in-\/a-\/row\ LOSES."{}};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00082}00082\ STRING\ kHelpTieOccursWhen\ =}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}both\ players\ get\ N\ in\ a\ row\ at\ the\ same\ time"{}};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00084}00084\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00085}00085\ STRING\ kHelpExample\ =}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}=========\ How\ moves\ and\ pieces\ work,\ how\ to\ input\ them\ ==============\ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00087}00087\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **\ This\ is\ the\ initial\ board\ set\ up.\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00088}00088\ \textcolor{stringliteral}{\ \ 2\ \ -\/\ \ 5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ The\ numbers\ along\ the\ top\ indicate\ where\ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00089}00089\ \textcolor{stringliteral}{1\ \ -\/\ \ \ -\/\ \ 6\ \ \ \ \ \ \ \ \ \ \ \ \ \ pieces\ can\ be\ inserted.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00090}00090\ \textcolor{stringliteral}{\ -\/\ \ \ -\/\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Pieces\ can\ only\ be\ inserted\ at\ the\ spots\ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00091}00091\ \textcolor{stringliteral}{\ \ \ -\/\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ directly\ adjacent\ to\ the\ numbers.\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00092}00092\ \textcolor{stringliteral}{\ \ \ \ \ -\/\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00093}00093\ \textcolor{stringliteral}{X's\ Turn\ \ \ \ \ \ \ \ (Dan\ should\ Tie\ in\ 0)\ \ \ \ \ \ Dan's\ move\ [(u)ndo/1-\/6]\ :\ 3\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00094}00094\ \textcolor{stringliteral}{**\ the\ player\ inputs\ 3,\ the\ third\ position\ **\ \(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00095}00095\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **\ The\ player\ moved,\ and\ so\ the\ player's\ piece\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00096}00096\ \textcolor{stringliteral}{\ \ 2\ \ X\ \ 5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ appears\ at\ the\ spot\ marked\ by\ the\ number\ 3.\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00097}00097\ \textcolor{stringliteral}{1\ \ -\/\ \ \ -\/\ \ 6\ \ \ \ \ \ \ \ \ \ \ \ \ \ Now\ the\ opponent\ moves...\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00098}00098\ \textcolor{stringliteral}{\ -\/\ \ \ -\/\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00099}00099\ \textcolor{stringliteral}{\ \ \ -\/\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00100}00100\ \textcolor{stringliteral}{\ \ \ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00101}00101\ \textcolor{stringliteral}{O's\ Turn\ \ \ \ \ \ \ \ (Computer\ should\ Tie\ in\ 6)\ \ \ \ \ \ Computer's\ move\ [(u)ndo/1-\/6]\ :\ 3\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00102}00102\ \textcolor{stringliteral}{**\ the\ computer\ inputs\ 3,\ the\ fifth\ position\ **\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00103}00103\ \textcolor{stringliteral}{\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00104}00104\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **\ The\ opponent\ placed\ move\ at\ position\ 3\ also.\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00105}00105\ \textcolor{stringliteral}{\ \ 2\ \ O\ \ 5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ The\ piece\ occupying\ position\ 3\ is\ now\ pushed\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00106}00106\ \textcolor{stringliteral}{1\ \ -\/\ \ \ X\ \ 6\ \ \ \ \ \ \ \ \ \ \ \ \ \ along\ the\ direction\ of\ position\ 3\ -\/-\/\ in\ this\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00107}00107\ \textcolor{stringliteral}{\ -\/\ \ \ -\/\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ case,\ it's\ pushed\ diagonally\ parallel\ to\ the\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00108}00108\ \textcolor{stringliteral}{\ \ \ -\/\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ line\ along\ position\ 3.\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00109}00109\ \textcolor{stringliteral}{\ \ \ \ \ -\/\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00110}00110\ \textcolor{stringliteral}{X's\ Turn\ \ \ \ \ \ \ \ (Dan\ should\ Tie\ in\ 6)\ \ \ \ \ \ Dan's\ move\ [(u)ndo/1-\/6]\ :\ \ 5\ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00111}00111\ \textcolor{stringliteral}{**\ the\ player\ inputs\ 5,\ the\ fifth\ position\ **\ \(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00112}00112\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **\ Since\ the\ player\ chose\ position\ 5,\ an\ X\ is\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00113}00113\ \textcolor{stringliteral}{\ \ 2\ \ O\ \ 5\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ inserted\ at\ position\ 5,\ pushing\ the\ previous\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00114}00114\ \textcolor{stringliteral}{1\ \ -\/\ \ \ X\ \ 6\ \ \ \ \ \ \ \ \ \ \ \ \ \ piece\ occupying\ that\ position\ (an\ X,\ in\ this\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00115}00115\ \textcolor{stringliteral}{\ -\/\ \ \ X\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ case)\ diagonally\ parallel\ to\ the\ line\ formed\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00116}00116\ \textcolor{stringliteral}{\ \ \ -\/\ \ \ -\/\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ along\ position\ 5.\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00117}00117\ \textcolor{stringliteral}{\ \ \ \ \ -\/\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00118}00118\ \textcolor{stringliteral}{O's\ Turn\ \ \ \ \ \ \ \ (Computer\ will\ Win\ in\ 5)\ Computer's\ move\ :\ \ 5\ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00119}00119\ \textcolor{stringliteral}{**\ Computer\ inputs\ 5,\ the\ fifth\ position\ **\ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00120}00120\ \textcolor{stringliteral}{===========================\ Winning\ Situations\ =======================\ \ \(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00121}00121\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00122}00122\ \textcolor{stringliteral}{\ \ 2\ \ O\ \ 5\ \ \ \ \ \ \ \ **\ X\ pieces\ are\ lined\ up\ diagonally\ along\ position\ 5.\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00123}00123\ \textcolor{stringliteral}{1\ \ -\/\ \ \ X\ \ 6\ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00124}00124\ \textcolor{stringliteral}{\ -\/\ \ \ X\ \ \ -\/\ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00125}00125\ \textcolor{stringliteral}{\ \ \ X\ \ \ O\ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00126}00126\ \textcolor{stringliteral}{\ \ \ \ \ \_\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00127}00127\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00128}00128\ \textcolor{stringliteral}{\ \ 2\ \ X\ \ 5\ \ \ \ \ \ \ \ **\ O\ pieces\ are\ lined\ up\ diagonally\ along\ position\ 1.\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00129}00129\ \textcolor{stringliteral}{1\ \ X\ \ \ X\ \ 6\ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00130}00130\ \textcolor{stringliteral}{\ O\ \ \ O\ \ \ -\/\ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00131}00131\ \textcolor{stringliteral}{\ \ \ O\ \ \ X\ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00132}00132\ \textcolor{stringliteral}{\ \ \ \ \ O\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00133}00133\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00134}00134\ \textcolor{stringliteral}{\ \ 2\ \ X\ \ 5\ \ \ \ \ \ \ \ **\ X\ pieces\ are\ lined\ up\ vertically.\ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00135}00135\ \textcolor{stringliteral}{1\ \ O\ \ \ \_\ \ 6\ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00136}00136\ \textcolor{stringliteral}{\ \_\ \ \ X\ \ \ -\/\ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00137}00137\ \textcolor{stringliteral}{\ \ \ \_\ \ \ \_\ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00138}00138\ \textcolor{stringliteral}{\ \ \ \ \ X\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)n\(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00139}00139\ \textcolor{stringliteral}{\ \ \ \ 3\ 4\ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00140}00140\ \textcolor{stringliteral}{\ \ 2\ \ X\ \ 5\ \ \ \ \ \ \ \ **\ O\ pieces\ are\ lined\ up\ horizontally.\ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00141}00141\ \textcolor{stringliteral}{1\ \ X\ \ \ X\ \ 6\ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00142}00142\ \textcolor{stringliteral}{\ O\ \ \ O\ \ \ O\ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00143}00143\ \textcolor{stringliteral}{\ \ \ X\ \ \ X\ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00144}00144\ \textcolor{stringliteral}{\ \ \ \ \ \_\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)n"{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00145}00145\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00155}00155\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00156}00156\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00157}00157\ \textcolor{comment}{**\ Everything\ above\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00158}00158\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00159}00159\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00161}00161\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00162}00162\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00163}00163\ \textcolor{comment}{**\ Every\ variable\ declared\ here\ is\ only\ used\ in\ this\ file\ (game-\/specific)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00164}00164\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00165}00165\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00166}00166\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00167}00167\ \textcolor{keywordtype}{int}\ DefaultN\ =\ 3;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00168}00168\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ N;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00169}00169\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ BoardSize;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00171}00171\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ possibleBoardPieces\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00172}00172\ \ \ \ \ Blank,\ x,\ o}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00173}00173\ \}\ BlankOX;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00175}00175\ \textcolor{keywordtype}{char}\ *gBlankOXString[]\ =\ \{\ \textcolor{stringliteral}{"{}-\/"{}},\ \textcolor{stringliteral}{"{}X"{}},\ \textcolor{stringliteral}{"{}O"{}}\ \};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00176}00176\ BOOLEAN\ gTieLoses\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00177}00177\ BOOLEAN\ gDiagonalsWin\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00178}00178\ BOOLEAN\ gDoubleGravity\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00179}00179\ BOOLEAN\ gDiagonalLeftGravity\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00180}00180\ BOOLEAN\ gDiagonalRightGravity\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00181}00181\ BOOLEAN\ firstPass\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00183}00183\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}*\ g3Array;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00185}00185\ STRING\ MoveToString(\ MOVE\ );}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00186}00186\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00187}00187\ \textcolor{keywordtype}{void}\ InitializeGame()}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00188}00188\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00189}00189\ \ \ \ \ \textcolor{keywordtype}{void}\ InitializeGameVariables();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00190}00190\ \ \ \ \ \textcolor{keywordflow}{if}(firstPass)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ InitializeGameVariables(DefaultN);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ firstPass\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00193}00193\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00194}00194\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00195}00195\ \ \ \ \ gMoveToStringFunPtr\ =\ \&MoveToString;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00196}00196\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00198}00198\ \textcolor{keywordtype}{void}\ FreeGame()}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00199}00199\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00200}00200\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00201}00201\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00203}00203\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00204}00204\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00205}00205\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ InitializeGameVariables}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00206}00206\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00207}00207\ \textcolor{comment}{**\ DESCRIPTION:\ Initializes\ game-\/specific\ variables}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00208}00208\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00209}00209\ \textcolor{comment}{**\ INPUT:\ \ \ \ \ \ \ int\ length:\ the\ length\ of\ a\ side\ of\ the\ board}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00210}00210\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00211}00211\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00212}00212\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00213}00213\ \textcolor{keywordtype}{void}\ InitializeGameVariables(\textcolor{keywordtype}{int}\ length)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00214}00214\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00216}00216\ \ \ \ \ N\ =\ length;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00217}00217\ \ \ \ \ BoardSize\ =\ N*N;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00218}00218\ \ \ \ \ gNumberOfPositions\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ BoardSize;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ gNumberOfPositions\ *=\ 3;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00221}00221\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00222}00222\ \ \ \ \ gNumberOfPositions\ *=\ 2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00223}00223\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00224}00224\ \ \ \ \ \textcolor{comment}{//printf("{}positions:\ \%lu\(\backslash\)n"{},(long)\ gNumberOfPositions);}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00225}00225\ \ \ \ \ fflush(NULL);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00227}00227\ \ \ \ \ \textcolor{comment}{//\ calculate\ g3Array\ here}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00228}00228\ \ \ \ \ \textcolor{keywordflow}{if}\ (g3Array\ !=\ NULL)\ SafeFree(g3Array);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00229}00229\ \ \ \ \ g3Array\ =\ (\textcolor{keywordtype}{int}*)\ SafeMalloc\ ((BoardSize+1)\ *\ \textcolor{keyword}{sizeof}(int));}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00230}00230\ \ \ \ \ g3Array[0]\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00231}00231\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 1;\ i\ <=\ BoardSize;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ g3Array[i]\ =\ 3\ *\ g3Array[i-\/1];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00233}00233\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00234}00234\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00235}00235\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00236}00236\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00237}00237\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00238}00238\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DebugMenu}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00239}00239\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00240}00240\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ debug\ internal\ problems.\ Does\ nothing\ if}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00241}00241\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ kDebugMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00242}00242\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00243}00243\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00245}00245\ \textcolor{keywordtype}{void}\ DebugMenu()}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00246}00246\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00247}00247\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00248}00248\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00249}00249\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00250}00250\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00251}00251\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00252}00252\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00253}00253\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ change\ game-\/specific\ parmeters,\ such\ as}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00254}00254\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ side\ of\ the\ board\ in\ an\ nxn\ Nim\ board,\ etc.\ Does}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00255}00255\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ nothing\ if\ kGameSpecificMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00256}00256\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00257}00257\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00258}00258\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00259}00259\ \textcolor{keywordtype}{void}\ GameSpecificMenu()\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00260}00260\ \ \ \ \ \textcolor{keywordtype}{char}\ GetMyChar();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00261}00261\ \ \ \ \ POSITION\ GetInitialPosition();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00262}00262\ \ \ \ \ \textcolor{keywordtype}{void}\ SetInitialBoardSize();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00263}00263\ \ \ \ \ VALUE\ Primitive();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00265}00265\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Game-\/specific\ options\ for\ \%s\ -\/-\/-\/-\/-\/\(\backslash\)n\(\backslash\)n"{}},\ kGameName);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00267}00267\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)ts)\(\backslash\)tSet\ the\ initial\ board\ (s)ize\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)ti)\(\backslash\)tChoose\ the\ (i)nitial\ position\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00270}00270\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tt)\(\backslash\)tToggle\ (t)ieing\ from\ \%s\ to\ \%s\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gTieLoses\ ?\ \textcolor{stringliteral}{"{}BAD\ (LOSING)"{}}\ :\ \textcolor{stringliteral}{"{}GOOD\ (WINNING)"{}},}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gTieLoses\ ?\ \textcolor{stringliteral}{"{}GOOD\ (WINNING)"{}}\ :\ \textcolor{stringliteral}{"{}BAD\ (LOSING)"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00273}00273\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)td)\(\backslash\)tToggle\ diagonal\ victory\ (horizontal\ or\ vertical\ rows)\ from\ \%s\ to\ \%s\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gDiagonalsWin\ ?\ \textcolor{stringliteral}{"{}ON"{}}\ :\ \textcolor{stringliteral}{"{}OFF"{}},\ gDiagonalsWin\ ?\ \textcolor{stringliteral}{"{}OFF"{}}\ :\ \textcolor{stringliteral}{"{}ON"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00275}00275\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tp)\(\backslash\)tDetermine\ if\ the\ initial\ position\ is\ (P)rimitive\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00276}00276\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tl)\(\backslash\)tToggle\ diagonal\ down-\/left\ gravity\ from\ \%s\ to\ \%s\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gDiagonalLeftGravity\ ?\ \textcolor{stringliteral}{"{}ON"{}}\ :\ \textcolor{stringliteral}{"{}OFF"{}},\ gDiagonalLeftGravity\ ?\ \textcolor{stringliteral}{"{}OFF"{}}\ :\ \textcolor{stringliteral}{"{}ON"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tr)\(\backslash\)tToggle\ diagonal\ down-\/right\ gravity\ from\ \%s\ to\ \%s\ \(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gDiagonalRightGravity\ ?\ \textcolor{stringliteral}{"{}ON"{}}\ :\ \textcolor{stringliteral}{"{}OFF"{}},\ gDiagonalRightGravity\ ?\ \textcolor{stringliteral}{"{}OFF"{}}\ :\ \textcolor{stringliteral}{"{}ON"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00280}00280\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tb)\(\backslash\)t(B)ack\ =\ Return\ to\ previous\ activity.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00281}00281\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nSelect\ an\ option:\ "{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00282}00282\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00283}00283\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}(GetMyChar())\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'Q'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'q'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'H'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'h'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \ \ \ \ HelpMenus();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00288}00288\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'S'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'s'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ \ \ \ \ SetInitialBoardSize();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00291}00291\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'I'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'i'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ \ \ \ \ gInitialPosition\ =\ GetInitialPosition();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'T'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'t'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ \ \ \ \ gTieLoses\ =\ !gTieLoses;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'D'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'d'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ gDiagonalsWin\ =\ !gDiagonalsWin;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'P'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'p'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gNumberOfPositions\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Set\ the\ initial\ position\ before\ determining\ primitive\ values."{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ PrintPosition(gInitialPosition,\ \textcolor{stringliteral}{"{}Nobody"{}},\ TRUE);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00307}00307\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Primitive:\ \%d\ (0=WIN,\ 1=LOSE,\ 3=UNDECIDED)\(\backslash\)n"{}},Primitive(gInitialPosition));}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00309}00309\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'L'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'l'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00310}00310\ \ \ \ \ \ \ \ \ \ \ \ \ gDiagonalLeftGravity\ =\ !gDiagonalLeftGravity;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00311}00311\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00312}00312\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'R'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'r'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00313}00313\ \ \ \ \ \ \ \ \ \ \ \ \ gDiagonalRightGravity\ =\ !gDiagonalRightGravity;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00315}00315\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'b'}:\ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'B'}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00316}00316\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gDiagonalLeftGravity\ \&\&\ gDiagonalRightGravity)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00317}00317\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gDoubleGravity\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00319}00319\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nSorry,\ I\ don't\ know\ that\ option.\ Try\ another.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00321}00321\ \ \ \ \ \ \ \ \ \ \ \ \ HitAnyKeyToContinue();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00322}00322\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00323}00323\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00324}00324\ \ \ \ \ \}\ \textcolor{keywordflow}{while}(TRUE);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00325}00325\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00326}00326\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00327}00327\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00328}00328\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00329}00329\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ SetTclCGameSpecificOptions}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00330}00330\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00331}00331\ \textcolor{comment}{**\ DESCRIPTION:\ Set\ the\ C\ game-\/specific\ options\ (called\ from\ Tcl)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00332}00332\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Ignore\ if\ you\ don't\ care\ about\ Tcl\ for\ now.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00333}00333\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00334}00334\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00335}00335\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00336}00336\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions(theOptions)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00337}00337\ \textcolor{keywordtype}{int}\ theOptions[];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00338}00338\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00339}00339\ \ \ \ \ \textcolor{comment}{/*\ No\ need\ to\ have\ anything\ here,\ we\ have\ no\ extra\ options\ */}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00340}00340\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00341}00341\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00342}00342\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00343}00343\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00344}00344\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ DoMove}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00345}00345\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00346}00346\ \textcolor{comment}{**\ DESCRIPTION:\ Apply\ the\ move\ to\ the\ position.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00347}00347\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00348}00348\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ thePosition\ :\ The\ old\ position}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00349}00349\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ \ \ \ \ theMove\ \ \ \ \ :\ The\ move\ to\ apply.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00350}00350\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00351}00351\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (POSITION)\ :\ The\ position\ that\ results\ after\ the\ move.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00352}00352\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00353}00353\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ PositionToBlankOX(POSITION,*BlankOX)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00354}00354\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BlankOX\ WhosTurn(*BlankOX)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00355}00355\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00356}00356\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00358}00358\ POSITION\ DoMove(thePosition,\ theMove)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00359}00359\ POSITION\ thePosition;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00360}00360\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00361}00361\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00362}00362\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00363}00363\ \ \ \ \ \textcolor{keywordtype}{int}\ myMove;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00364}00364\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00365}00365\ \ \ \ \ \textcolor{keywordtype}{void}\ LeftGravity(),\ RightGravity();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00366}00366\ \ \ \ \ POSITION\ BlankOXToPosition();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00367}00367\ \ \ \ \ BlankOX\ PositionToBlankOX();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00368}00368\ \ \ \ \ BlankOX\ theBlankOX[BoardSize];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00369}00369\ \ \ \ \ BlankOX\ WhoseTurn,\ temp,\ temp2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00370}00370\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00371}00371\ \ \ \ \ WhoseTurn\ =\ PositionToBlankOX(thePosition,theBlankOX);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00372}00372\ \ \ \ \ temp2\ =\ WhoseTurn;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00373}00373\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00374}00374\ \ \ \ \ \textcolor{comment}{//\ Original\ code\ for\ no\ gravity}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00375}00375\ \ \ \ \ \textcolor{keywordflow}{if}\ (theMove\ >\ N)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00376}00376\ \ \ \ \ \ \ \ \ myMove\ =\ theMove-\/N-\/1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00377}00377\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00378}00378\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ theMove-\/N-\/1;\ i\ <\ N*N;\ i\ +=\ N)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00379}00379\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theBlankOX[i]\ !=\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00380}00380\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp\ =\ theBlankOX[i];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00381}00381\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ temp2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00382}00382\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp2\ =\ temp;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00383}00383\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00384}00384\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ temp2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00385}00385\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00386}00386\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00387}00387\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00388}00388\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00389}00389\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00390}00390\ \ \ \ \ \ \ \ \ myMove\ =\ N\ *\ (N\ -\/\ theMove);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00391}00391\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00392}00392\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ N\ *\ (N\ -\/\ theMove);\ i\ <\ N\ *\ (N\ -\/\ theMove\ +\ 1);\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00393}00393\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theBlankOX[i]\ !=\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00394}00394\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp\ =\ theBlankOX[i];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00395}00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ temp2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00396}00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp2\ =\ temp;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00397}00397\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00398}00398\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ temp2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00399}00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00400}00400\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00401}00401\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00402}00402\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00403}00403\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00404}00404\ \ \ \ \ \textcolor{keywordflow}{if}\ (gDoubleGravity)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00405}00405\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theMove\ >\ N)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00406}00406\ \ \ \ \ \ \ \ \ \ \ \ \ LeftGravity(\&theBlankOX,\ \&i);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00407}00407\ \ \ \ \ \ \ \ \ \ \ \ \ RightGravity(\&theBlankOX,\ \&i);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00408}00408\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00409}00409\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00410}00410\ \ \ \ \ \ \ \ \ \ \ \ \ RightGravity(\&theBlankOX,\ \&i);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00411}00411\ \ \ \ \ \ \ \ \ \ \ \ \ LeftGravity(\&theBlankOX,\ \&i);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00412}00412\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00413}00413\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00414}00414\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (gDiagonalLeftGravity)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00415}00415\ \ \ \ \ \ \ \ \ LeftGravity(\&theBlankOX,\ \&i);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00416}00416\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00417}00417\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (gDiagonalRightGravity)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00418}00418\ \ \ \ \ \ \ \ \ RightGravity(\&theBlankOX,\ \&i);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00419}00419\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00420}00420\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00421}00421\ \ \ \ \ WhoseTurn\ =\ (WhoseTurn==x)\ ?\ o\ :\ x;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00422}00422\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00423}00423\ \ \ \ \ thePosition\ =\ BlankOXToPosition(theBlankOX,\ WhoseTurn);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00424}00424\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00425}00425\ \ \ \ \ \textcolor{keywordflow}{return}(thePosition);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00426}00426\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00427}00427\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00428}00428\ \textcolor{keywordtype}{void}\ Gravity(BlankOX\ *theBlankOX,\ \textcolor{keywordtype}{int}\ *pieceToGravitate,\ \textcolor{keywordtype}{int}\ bound,\ \textcolor{keywordtype}{int}\ increment)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00429}00429\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00430}00430\ \ \ \ \ BlankOX\ temp;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00431}00431\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00432}00432\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ *pieceToGravitate\ +\ increment;\ i\ <\ bound;\ i\ +=\ increment)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00433}00433\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theBlankOX[i]\ !=\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00434}00434\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00435}00435\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00436}00436\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00437}00437\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00438}00438\ \ \ \ \ temp\ =\ theBlankOX[*pieceToGravitate];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00439}00439\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00440}00440\ \ \ \ \ theBlankOX[*pieceToGravitate]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00441}00441\ \ \ \ \ theBlankOX[i\ -\/\ increment]\ =\ temp;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00442}00442\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00443}00443\ \ \ \ \ *pieceToGravitate\ =\ i\ -\/\ increment;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00444}00444\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00445}00445\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00446}00446\ \textcolor{keywordtype}{void}\ LeftGravity(BlankOX\ *theBlankOX,\ \textcolor{keywordtype}{int}\ *pieceToGravitate)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00447}00447\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00448}00448\ \ \ \ \ Gravity(theBlankOX,\ pieceToGravitate,\ N\ *\ N,\ N);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00449}00449\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00450}00450\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00451}00451\ \textcolor{keywordtype}{void}\ RightGravity(BlankOX\ *theBlankOX,\ \textcolor{keywordtype}{int}\ *pieceToGravitate)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00452}00452\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00453}00453\ \ \ \ \ Gravity(theBlankOX,\ pieceToGravitate,\ (*pieceToGravitate\ /\ N\ +\ 1)\ *\ N,\ 1);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00454}00454\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00455}00455\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00456}00456\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00457}00457\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00458}00458\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00459}00459\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetInitialPosition}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00460}00460\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00461}00461\ \textcolor{comment}{**\ DESCRIPTION:\ Ask\ the\ user\ for\ an\ initial\ position\ for\ testing.\ Store}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00462}00462\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ it\ in\ the\ space\ pointed\ to\ by\ initialPosition;}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00463}00463\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00464}00464\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION\ initialPosition\ :\ The\ position\ to\ fill.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00465}00465\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00466}00466\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00467}00467\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00468}00468\ \textcolor{keywordtype}{void}\ SetInitialBoardSize()}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00469}00469\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00470}00470\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Set\ Initial\ Board\ Size\ -\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00471}00471\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Size\ of\ the\ board?\ (1-\/1X1,\ 2-\/2X2,\ 3-\/3X3,\ 4-\/4X4...):\ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00472}00472\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%d"{}},\ \&N);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00473}00473\ \ \ \ \ InitializeGameVariables(N);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00474}00474\ \ \ \ \ gInitialPosition\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00475}00475\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00476}00476\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00477}00477\ POSITION\ GetInitialPosition()}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00478}00478\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00479}00479\ \ \ \ \ POSITION\ BlankOXToPosition();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00480}00480\ \ \ \ \ BlankOX\ theBlankOX[BoardSize],\ whosTurn;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00481}00481\ \ \ \ \ \textcolor{keywordtype}{char}\ c;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00482}00482\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00483}00483\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00484}00484\ \ \ \ \ \textcolor{keywordflow}{if}\ (gNumberOfPositions\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00485}00485\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n**Set\ the\ initial\ board\ size\ before\ selecting\ an\ initial\ position.**"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00486}00486\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00487}00487\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00488}00488\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00489}00489\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)n\(\backslash\)t-\/-\/-\/-\/-\/\ Get\ Initial\ Position\ -\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00490}00490\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tPlease\ input\ the\ position\ to\ begin\ with.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00491}00491\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)tNote\ that\ it\ should\ be\ in\ the\ following\ format:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00492}00492\ \ \ \ \ printf(\textcolor{stringliteral}{"{}O\ -\/\ -\/\(\backslash\)nO\ -\/\ -\/\ \ \ \ \ \ \ \ \ \ \ \ <-\/-\/-\/-\/-\/\ EXAMPLE\ \(\backslash\)n-\/\ X\ X\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00493}00493\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00494}00494\ \ \ \ \ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00495}00495\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00496}00496\ \ \ \ \ \textcolor{keywordflow}{while}(i\ <\ BoardSize\ \&\&\ (c\ =\ getchar())\ !=\ EOF)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00497}00497\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'x'}\ ||\ c\ ==\ \textcolor{charliteral}{'X'})}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00498}00498\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i++]\ =\ x;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00499}00499\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'o'}\ ||\ c\ ==\ \textcolor{charliteral}{'O'}\ ||\ c\ ==\ \textcolor{charliteral}{'0'})}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00500}00500\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i++]\ =\ o;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00501}00501\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'-\/'})}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00502}00502\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i++]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00503}00503\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00505}00505\ \ \ \ \ getchar();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00506}00506\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nNow,\ whose\ turn\ is\ it?\ [O/X]\ :\ "{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00507}00507\ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%c"{}},\&c);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00508}00508\ \ \ \ \ \textcolor{keywordflow}{if}(c\ ==\ \textcolor{charliteral}{'x'}\ ||\ c\ ==\ \textcolor{charliteral}{'X'})}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00509}00509\ \ \ \ \ \ \ \ \ whosTurn\ =\ x;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00510}00510\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00511}00511\ \ \ \ \ \ \ \ \ whosTurn\ =\ o;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00512}00512\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00513}00513\ \ \ \ \ \textcolor{keywordflow}{return}(BlankOXToPosition(theBlankOX,whosTurn));}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00514}00514\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00515}00515\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00516}00516\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00517}00517\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00518}00518\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintComputersMove}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00519}00519\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00520}00520\ \textcolor{comment}{**\ DESCRIPTION:\ Nicely\ format\ the\ computers\ move.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00521}00521\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00522}00522\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ \ \ *computersMove\ :\ The\ computer's\ move.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00523}00523\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ computersName\ :\ The\ computer's\ name.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00524}00524\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00525}00525\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00526}00526\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00527}00527\ \textcolor{keywordtype}{void}\ PrintComputersMove(computersMove,computersName)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00528}00528\ MOVE\ computersMove;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00529}00529\ STRING\ computersName;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00530}00530\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00531}00531\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ :\ \%2d\(\backslash\)n"{}},\ computersName,\ computersMove);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00532}00532\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00533}00533\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00534}00534\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00535}00535\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00536}00536\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ Primitive}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00537}00537\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00538}00538\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ the\ value\ of\ a\ position\ if\ it\ fulfills\ certain}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00539}00539\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 'primitive'\ constraints.\ Some\ examples\ of\ this\ is\ having}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00540}00540\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ three-\/in-\/a-\/row\ with\ TicTacToe.\ TicTacToe\ has\ two}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00541}00541\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ primitives\ it\ can\ immediately\ check\ for,\ when\ the\ board}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00542}00542\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ filled\ but\ nobody\ has\ one\ =\ primitive\ tie.\ Three\ in}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00543}00543\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ a\ row\ is\ a\ primitive\ lose,\ because\ the\ player\ who\ faces}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00544}00544\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ this\ board\ has\ just\ lost.\ I.e.\ the\ player\ before\ him}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00545}00545\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ created\ the\ board\ and\ won.\ Otherwise\ undecided.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00546}00546\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00547}00547\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ inspect.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00548}00548\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00549}00549\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (VALUE)\ an\ enum\ which\ is\ oneof:\ (win,lose,tie,undecided)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00550}00550\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00551}00551\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00552}00552\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00553}00553\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00554}00554\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00555}00555\ VALUE\ Primitive(position)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00556}00556\ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00557}00557\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00558}00558\ \ \ \ \ BlankOX\ NinARow(),\ PositionToBlankOX();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00559}00559\ \ \ \ \ BlankOX\ theBlankOX[BoardSize];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00560}00560\ \ \ \ \ BlankOX\ temp\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00561}00561\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ val;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00562}00562\ \ \ \ \ BlankOX\ whoseturn;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00563}00563\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00564}00564\ \ \ \ \ whoseturn\ =\ PositionToBlankOX(position,theBlankOX);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00565}00565\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00566}00566\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 1;\ i\ <=\ 2*N;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00567}00567\ \ \ \ \ \ \ \ \ temp\ |=\ NinARow(theBlankOX,\ i);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00568}00568\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00569}00569\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00570}00570\ \ \ \ \ \textcolor{keywordflow}{if}\ (gDiagonalsWin)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00571}00571\ \ \ \ \ \ \ \ \ \textcolor{comment}{//vertical\ check}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00572}00572\ \ \ \ \ \ \ \ \ val\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00573}00573\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 1;\ i\ <=\ N;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00574}00574\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theBlankOX[i*(N-\/1)]\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00575}00575\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00576}00576\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00577}00577\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00578}00578\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (val\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00579}00579\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ theBlankOX[i*(N-\/1)];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00580}00580\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00581}00581\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (val\ !=\ theBlankOX[i*(N-\/1)])\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00582}00582\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00583}00583\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00584}00584\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00585}00585\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00586}00586\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00587}00587\ \ \ \ \ \ \ \ \ temp\ |=\ val;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00588}00588\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00589}00589\ \ \ \ \ \ \ \ \ \textcolor{comment}{//horizontal\ check}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00590}00590\ \ \ \ \ \ \ \ \ val\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00591}00591\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ N;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00592}00592\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theBlankOX[i*(N+1)]\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00593}00593\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00594}00594\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00595}00595\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00596}00596\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (val\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00597}00597\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ theBlankOX[i*(N+1)];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00598}00598\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00599}00599\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (val\ !=\ theBlankOX[i*(N+1)])\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00600}00600\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00601}00601\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00602}00602\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00603}00603\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00604}00604\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00605}00605\ \ \ \ \ \ \ \ \ temp\ |=\ val;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00606}00606\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00607}00607\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00608}00608\ \ \ \ \ \textcolor{keywordflow}{if}\ (temp\ ==\ (o|x))}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00609}00609\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(gTieLoses\ ?\ win\ :\ lose);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00610}00610\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (temp\ ==\ whoseturn)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00611}00611\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(gStandardGame\ ?\ win\ :\ lose);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00612}00612\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (temp\ !=\ Blank)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00613}00613\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(gStandardGame\ ?\ lose\ :\ win);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00614}00614\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00615}00615\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(undecided);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00616}00616\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00617}00617\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00618}00618\ \textcolor{comment}{/**********************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00619}00619\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00620}00620\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ NinARow}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00621}00621\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00622}00622\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ x\ if\ X\ has\ N\ pieces\ in\ a\ row.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00623}00623\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Return\ o\ if\ O\ has\ N\ pieces\ in\ a\ row.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00624}00624\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Return\ (o|x)\ if\ both\ O\ and\ X\ have\ N\ pieces\ in\ a\ row.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00625}00625\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00626}00626\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ BlankOX\ *theBlankOX:\ the\ current\ game\ board}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00627}00627\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ int\ i:\ the\ row\ being\ examined}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00628}00628\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00629}00629\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ BlankOX\ Blank,\ x,\ o,\ or\ (x|o)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00630}00630\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00631}00631\ \textcolor{comment}{***********************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00632}00632\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00633}00633\ BlankOX\ NinARow(theBlankOX,\ i)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00634}00634\ BlankOX\ *theBlankOX;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00635}00635\ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00636}00636\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00637}00637\ \ \ \ \ BlankOX\ val\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00638}00638\ \ \ \ \ \textcolor{keywordtype}{int}\ j;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00639}00639\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00640}00640\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ >\ N)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00641}00641\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j\ =\ i-\/N-\/1;\ j\ <\ N*N;\ j\ +=\ N)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00642}00642\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theBlankOX[j]\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00643}00643\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00644}00644\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00645}00645\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (val\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00646}00646\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ theBlankOX[j];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00647}00647\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00648}00648\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (val\ !=\ theBlankOX[j])}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00649}00649\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00650}00650\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00651}00651\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00652}00652\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ val;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00653}00653\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00654}00654\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j\ =\ (N-\/i)*N;\ j\ <\ (N-\/i+1)*N;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00655}00655\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theBlankOX[j]\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00656}00656\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00657}00657\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00658}00658\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (val\ ==\ Blank)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00659}00659\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ val\ =\ theBlankOX[j];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00660}00660\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (val\ !=\ theBlankOX[j])}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00661}00661\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00662}00662\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00663}00663\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00664}00664\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ val;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00665}00665\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00666}00666\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00667}00667\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00668}00668\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00669}00669\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00670}00670\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00671}00671\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintPosition}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00672}00672\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00673}00673\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ position\ in\ a\ pretty\ format,\ including\ the}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00674}00674\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ prediction\ of\ the\ game's\ outcome.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00675}00675\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00676}00676\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ \ \ :\ The\ position\ to\ pretty\ print.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00677}00677\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ \ \ playerName\ :\ The\ name\ of\ the\ player.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00678}00678\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ \ usersTurn\ \ :\ TRUE\ <==>\ it's\ a\ user's\ turn.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00679}00679\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00680}00680\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00681}00681\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetValueOfPosition()}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00682}00682\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ GetPrediction()}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00683}00683\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00684}00684\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00685}00685\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00686}00686\ \textcolor{keywordtype}{void}\ PrintPosition(POSITION\ position,\ STRING\ playerName,\ BOOLEAN\ usersTurn)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00687}00687\ \ \ \ \ BlankOX\ PositionToBlankOX();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00688}00688\ \ \ \ \ \textcolor{keywordtype}{int}\ i,j;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00689}00689\ \ \ \ \ BlankOX\ theBlankOX[BoardSize];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00690}00690\ \ \ \ \ BlankOX\ whoseTurn;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00691}00691\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00692}00692\ \ \ \ \ whoseTurn\ =\ PositionToBlankOX(position,theBlankOX);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00693}00693\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00694}00694\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<N-\/1;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00695}00695\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00696}00696\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00697}00697\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \%d\(\backslash\)n"{}},N,N+1);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00698}00698\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<N-\/1;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00699}00699\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=0;\ j<N-\/i-\/2;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00700}00700\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00701}00701\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00702}00702\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\ \ "{}},\ N-\/i-\/1);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00703}00703\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=0;\ j<=i;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00704}00704\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s\ \ "{}},gBlankOXString[theBlankOX[N*(i-\/j)+j]]);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00705}00705\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (j!=i)\ \{\ printf(\textcolor{stringliteral}{"{}\ "{}});\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00706}00706\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00707}00707\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%d\(\backslash\)n"{}},\ N+i+2);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00708}00708\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00709}00709\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00710}00710\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<N;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00711}00711\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ "{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00712}00712\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=0;\ j<i;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00713}00713\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\ \ "{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00714}00714\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00715}00715\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=0;\ j<N-\/i;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00716}00716\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s\ \ \ "{}},gBlankOXString[theBlankOX[N*(N-\/1)+i-\/j*(N-\/1)]]);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00717}00717\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00718}00718\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00719}00719\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00720}00720\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s's\ Turn\(\backslash\)t\%s"{}},gBlankOXString[whoseTurn],GetPrediction(position,playerName,usersTurn));}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00721}00721\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00722}00722\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00723}00723\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00724}00724\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00725}00725\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GenerateMoves}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00726}00726\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00727}00727\ \textcolor{comment}{**\ DESCRIPTION:\ Create\ a\ linked\ list\ of\ every\ move\ that\ can\ be\ reached}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00728}00728\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ this\ position.\ Return\ a\ pointer\ to\ the\ head\ of\ the}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00729}00729\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ linked\ list.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00730}00730\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00731}00731\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ position\ :\ The\ position\ to\ branch\ off\ of.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00732}00732\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00733}00733\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ (MOVELIST\ *),\ a\ pointer\ that\ points\ to\ the\ first\ item}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00734}00734\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ in\ the\ linked\ list\ of\ moves\ that\ can\ be\ generated.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00735}00735\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00736}00736\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ MOVELIST\ *CreateMovelistNode(MOVE,MOVELIST\ *)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00737}00737\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00738}00738\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00739}00739\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00740}00740\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(position)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00741}00741\ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00742}00742\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00743}00743\ \ \ \ \ BlankOX\ PositionToBlankOX();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00744}00744\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *CreateMovelistNode(),\ *head\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00745}00745\ \ \ \ \ BlankOX\ theBlankOX[BoardSize];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00746}00746\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00747}00747\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00748}00748\ \ \ \ \ PositionToBlankOX(position,theBlankOX);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00749}00749\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00750}00750\ \ \ \ \ \textcolor{comment}{//moves\ 1\ to\ 2N\ is\ valid\ at\ all\ time}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00751}00751\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 1;\ i\ <=\ N*2;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00752}00752\ \ \ \ \ \ \ \ \ head\ =\ CreateMovelistNode(i,head);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00753}00753\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00754}00754\ \ \ \ \ \textcolor{keywordflow}{return}(head);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00755}00755\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00756}00756\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00757}00757\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00758}00758\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00759}00759\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ GetAndPrintPlayersMove}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00760}00760\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00761}00761\ \textcolor{comment}{**\ DESCRIPTION:\ This\ finds\ out\ if\ the\ player\ wanted\ an\ undo\ or\ abort\ or\ not.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00762}00762\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ If\ so,\ return\ Undo\ or\ Abort\ and\ don't\ change\ theMove.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00763}00763\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Otherwise\ get\ the\ new\ theMove\ and\ fill\ the\ pointer\ up.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00764}00764\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00765}00765\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ *thePosition\ :\ The\ position\ the\ user\ is\ at.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00766}00766\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ fill\ with\ user's\ move.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00767}00767\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ STRING\ playerName\ \ \ \ \ :\ The\ name\ of\ the\ player\ whose\ turn\ it\ is}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00768}00768\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00769}00769\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ USERINPUT\ \ \ \ \ \ \ \ \ \ \ \ \ :\ Oneof(\ Undo,\ Abort,\ Continue\ )}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00770}00770\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00771}00771\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ ValidMove(MOVE,\ POSITION)}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00772}00772\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BOOLEAN\ PrintPossibleMoves(POSITION)\ ...Always\ True!}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00773}00773\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00774}00774\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00775}00775\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00776}00776\ USERINPUT\ GetAndPrintPlayersMove(thePosition,\ theMove,\ playerName)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00777}00777\ POSITION\ thePosition;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00778}00778\ MOVE\ *theMove;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00779}00779\ STRING\ playerName;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00780}00780\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00781}00781\ \ \ \ \ BOOLEAN\ ValidMove();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00782}00782\ \ \ \ \ USERINPUT\ ret,\ HandleDefaultTextInput();}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00783}00783\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00784}00784\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00785}00785\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%8s's\ move\ [(u)ndo/1-\/\%d]\ :\ \ "{}},\ playerName,\ 2*N);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00786}00786\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00787}00787\ \ \ \ \ \ \ \ \ ret\ =\ HandleDefaultTextInput(thePosition,\ theMove,\ playerName);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00788}00788\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(ret\ !=\ Continue)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00789}00789\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(ret);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00790}00790\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00791}00791\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00792}00792\ \ \ \ \ \textcolor{keywordflow}{while}\ (TRUE);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00793}00793\ \ \ \ \ \textcolor{keywordflow}{return}(Continue);\ \textcolor{comment}{/*\ this\ is\ never\ reached,\ but\ lint\ is\ now\ happy\ */}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00794}00794\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00795}00795\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00796}00796\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00797}00797\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00798}00798\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00799}00799\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00800}00800\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ TRUE\ iff\ the\ string\ input\ is\ of\ the\ right\ 'form'.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00801}00801\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ For\ example,\ if\ the\ user\ is\ allowed\ to\ select\ one\ slot}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00802}00802\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ from\ the\ numbers\ 1-\/9,\ and\ the\ user\ chooses\ 0,\ it's\ not}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00803}00803\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ valid,\ but\ anything\ from\ 1-\/9\ IS,\ regardless\ if\ the\ slot}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00804}00804\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ filled\ or\ not.\ Whether\ the\ slot\ is\ filled\ is\ left\ up}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00805}00805\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ another\ routine.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00806}00806\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00807}00807\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00808}00808\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00809}00809\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ BOOLEAN\ :\ TRUE\ iff\ the\ input\ is\ a\ valid\ text\ input.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00810}00810\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00811}00811\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00812}00812\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00813}00813\ BOOLEAN\ ValidTextInput(input)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00814}00814\ STRING\ input;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00815}00815\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00816}00816\ \ \ \ \ \textcolor{keywordflow}{return}(atoi(input)<=(2*N)\ \&\&\ atoi(input)>0);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00817}00817\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00818}00818\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00819}00819\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00820}00820\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00821}00821\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ ConvertTextInputToMove}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00822}00822\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00823}00823\ \textcolor{comment}{**\ DESCRIPTION:\ Convert\ the\ string\ input\ to\ the\ internal\ move\ representation.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00824}00824\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00825}00825\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00826}00826\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00827}00827\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ MOVE\ :\ The\ move\ corresponding\ to\ the\ user's\ input.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00828}00828\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00829}00829\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00830}00830\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00831}00831\ MOVE\ ConvertTextInputToMove(input)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00832}00832\ STRING\ input;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00833}00833\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00834}00834\ \ \ \ \ \textcolor{keywordflow}{return}((MOVE)\ atoi(input));\ \textcolor{comment}{/*\ start\ with\ 1\ */}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00835}00835\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00836}00836\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00837}00837\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00838}00838\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00839}00839\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PrintMove}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00840}00840\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00841}00841\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ move\ in\ a\ nice\ format.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00842}00842\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00843}00843\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ print.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00844}00844\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00845}00845\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00846}00846\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00847}00847\ \textcolor{keywordtype}{void}\ PrintMove(theMove)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00848}00848\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00849}00849\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00850}00850\ \ \ \ \ STRING\ m\ =\ MoveToString(\ theMove\ );}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00851}00851\ \ \ \ \ printf(\ \textcolor{stringliteral}{"{}\%s"{}},\ m\ );}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00852}00852\ \ \ \ \ SafeFree(\ m\ );}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00853}00853\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00854}00854\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00855}00855\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00856}00856\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00857}00857\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ MoveToString}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00858}00858\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00859}00859\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ move\ as\ a\ STRING}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00860}00860\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00861}00861\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ MOVE\ *theMove\ \ \ \ \ \ \ \ \ :\ The\ move\ to\ put\ into\ a\ string.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00862}00862\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00863}00863\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00864}00864\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00865}00865\ STRING\ MoveToString\ (theMove)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00866}00866\ MOVE\ theMove;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00867}00867\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00868}00868\ \ \ \ \ STRING\ m\ =\ (STRING)\ SafeMalloc(\ 3\ );}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00869}00869\ \ \ \ \ sprintf(m,\ \textcolor{stringliteral}{"{}\%d"{}},\ theMove);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00870}00870\ \ \ \ \ \textcolor{keywordflow}{return}\ m;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00871}00871\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00872}00872\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00873}00873\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00874}00874\ \textcolor{comment}{*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00875}00875\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ EVERYTHING\ BELOW\ THESE\ LINES\ IS\ LOCAL\ TO\ THIS\ FILE}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00876}00876\ \textcolor{comment}{*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00877}00877\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00878}00878\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00879}00879\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00880}00880\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00881}00881\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ PositionToBlankOX}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00882}00882\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00883}00883\ \textcolor{comment}{**\ DESCRIPTION:\ convert\ an\ internal\ position\ to\ that\ of\ a\ BlankOX.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00884}00884\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00885}00885\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ POSITION\ thePos\ \ \ \ \ :\ The\ position\ input.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00886}00886\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ BlankOX\ *theBlankOx\ :\ The\ converted\ BlankOX\ output\ array.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00887}00887\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00888}00888\ \textcolor{comment}{**\ CALLS:\ \ \ \ \ \ \ BadElse()}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00889}00889\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00890}00890\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00891}00891\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00892}00892\ BlankOX\ PositionToBlankOX(thePos,theBlankOX)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00893}00893\ POSITION\ thePos;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00894}00894\ BlankOX\ *theBlankOX;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00895}00895\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00896}00896\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00897}00897\ \ \ \ \ BlankOX\ whosturn;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00898}00898\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00899}00899\ \ \ \ \ whosturn\ =\ (thePos\ /\ g3Array[BoardSize])\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00900}00900\ \ \ \ \ thePos\ =\ thePos\ \%\ g3Array[BoardSize];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00901}00901\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00902}00902\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ BoardSize-\/1;\ i\ >=\ 0;\ i-\/-\/)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00903}00903\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(thePos\ >=\ ((\textcolor{keywordtype}{int})o\ *\ g3Array[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00904}00904\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ o;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00905}00905\ \ \ \ \ \ \ \ \ \ \ \ \ thePos\ -\/=\ (int)o\ *\ g3Array[i];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00906}00906\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00907}00907\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(thePos\ >=\ ((\textcolor{keywordtype}{int})x\ *\ g3Array[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00908}00908\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ x;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00909}00909\ \ \ \ \ \ \ \ \ \ \ \ \ thePos\ -\/=\ (int)x\ *\ g3Array[i];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00910}00910\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00911}00911\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(thePos\ >=\ ((\textcolor{keywordtype}{int})Blank\ *\ g3Array[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00912}00912\ \ \ \ \ \ \ \ \ \ \ \ \ theBlankOX[i]\ =\ Blank;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00913}00913\ \ \ \ \ \ \ \ \ \ \ \ \ thePos\ -\/=\ (int)Blank\ *\ g3Array[i];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00914}00914\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00915}00915\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00916}00916\ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}PositionToBlankOX"{}});}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00917}00917\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00918}00918\ \ \ \ \ \textcolor{keywordflow}{return}\ whosturn;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00919}00919\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00920}00920\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00921}00921\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00922}00922\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00923}00923\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ BlankOXToPosition}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00924}00924\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00925}00925\ \textcolor{comment}{**\ DESCRIPTION:\ convert\ a\ BlankOX\ to\ that\ of\ an\ internal\ position.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00926}00926\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00927}00927\ \textcolor{comment}{**\ INPUTS:\ \ \ \ \ \ BlankOX\ *theBlankOx\ :\ The\ converted\ BlankOX\ output\ array.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00928}00928\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00929}00929\ \textcolor{comment}{**\ OUTPUTS:\ \ \ \ \ POSITION:\ The\ equivalent\ position\ given\ the\ BlankOX.}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00930}00930\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00931}00931\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00932}00932\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00933}00933\ POSITION\ BlankOXToPosition(theBlankOX,\ whosturn)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00934}00934\ BlankOX\ *theBlankOX,\ whosturn;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00935}00935\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00936}00936\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00937}00937\ \ \ \ \ POSITION\ position\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00938}00938\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00939}00939\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BoardSize;\ i++)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00940}00940\ \ \ \ \ \ \ \ \ position\ +=\ g3Array[i]\ *\ (\textcolor{keywordtype}{int})theBlankOX[i];}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00941}00941\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00942}00942\ \ \ \ \ position\ +=\ g3Array[BoardSize]\ *\ (whosturn-\/1);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00943}00943\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00944}00944\ \ \ \ \ \textcolor{keywordflow}{return}(position);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00945}00945\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00946}00946\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00947}00947\ STRING\ kDBName\ =\ \textcolor{stringliteral}{"{}slide-\/N"{}};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00948}00948\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00949}00949\ \textcolor{keywordtype}{int}\ NumberOfOptions()}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00950}00950\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00951}00951\ \ \ \ \ \textcolor{keywordflow}{return}\ 2*2*2*2*2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00952}00952\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00953}00953\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00954}00954\ \textcolor{keywordtype}{int}\ getOption()}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00955}00955\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00956}00956\ \ \ \ \ \textcolor{keywordtype}{int}\ option\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00957}00957\ \ \ \ \ \textcolor{keywordflow}{if}(gStandardGame)\ option\ +=\ 1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00958}00958\ \ \ \ \ \textcolor{keywordflow}{if}(gTieLoses)\ option\ +=\ 1\ *2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00959}00959\ \ \ \ \ \textcolor{keywordflow}{if}(gDiagonalsWin)\ option\ +=\ 1\ *2*2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00960}00960\ \ \ \ \ \textcolor{keywordflow}{if}(gDiagonalLeftGravity)\ option\ +=\ 1\ *2*2*2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00961}00961\ \ \ \ \ \textcolor{keywordflow}{if}(gDiagonalRightGravity)\ option\ +=\ 1\ *2*2*2*2;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00962}00962\ \ \ \ \ \textcolor{keywordflow}{return}\ option;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00963}00963\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00964}00964\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00965}00965\ \textcolor{keywordtype}{void}\ setOption(\textcolor{keywordtype}{int}\ option)}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00966}00966\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00967}00967\ \ \ \ \ option-\/-\/;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00968}00968\ \ \ \ \ gStandardGame\ =\ option\%2==1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00969}00969\ \ \ \ \ gTieLoses\ =\ option/2\%2==1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00970}00970\ \ \ \ \ gDiagonalsWin\ =\ option/(2*2)\%2==1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00971}00971\ \ \ \ \ gDiagonalLeftGravity\ =\ option/(2*2*2)\%2==1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00972}00972\ \ \ \ \ gDiagonalRightGravity\ =\ option/(2*2*2*2)\%2==1;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00973}00973\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00974}00974\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00975}00975\ POSITION\ InteractStringToPosition(STRING\ board)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00976}00976\ \ \ \ \ \textcolor{comment}{//\ FIXME:\ this\ is\ just\ a\ stub}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00977}00977\ \ \ \ \ \textcolor{keywordflow}{return}\ atoi(board);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00978}00978\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00979}00979\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00980}00980\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00981}00981\ STRING\ InteractPositionToString(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00982}00982\ \ \ \ \ \textcolor{comment}{//\ FIXME:\ this\ is\ just\ a\ stub}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00983}00983\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}Implement\ Me"{}};}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00984}00984\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00985}00985\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00986}00986\ STRING\ InteractPositionToEndData(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00987}00987\ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00988}00988\ \}}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00989}00989\ }
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00990}00990\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)\ \{}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00991}00991\ \ \ \ \ \textcolor{keywordflow}{return}\ MoveToString(mv);}
+\DoxyCodeLine{\Hypertarget{mslide_n_8c_source_l00992}00992\ \}}
+
+\end{DoxyCode}

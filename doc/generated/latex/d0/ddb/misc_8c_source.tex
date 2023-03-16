@@ -1,0 +1,699 @@
+\hypertarget{misc_8c_source}{}\doxysection{misc.\+c}
+\label{misc_8c_source}\index{src/core/misc.c@{src/core/misc.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ misc.c}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Miscellaneous\ functions\ available\ to\ the\ gamesman\ core.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00006}00006\ \textcolor{comment}{**\ \ \ \ \ \ Mostly\ have\ to\ do\ with\ data\ structure\ creation/destruction.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00007}00007\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00008}00008\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00013}00013\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00016}00016\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00017}00017\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00018}00018\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00019}00019\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00020}00020\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00021}00021\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00022}00022\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00023}00023\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00024}00024\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00025}00025\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00026}00026\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00027}00027\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00028}00028\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00029}00029\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00030}00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00031}00031\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ <time.h>}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00037}00037\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00038}00038\ \textcolor{comment}{**\ Globals}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00039}00039\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00041}00041\ \textcolor{keywordtype}{int}\ gTimer\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00043}00043\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00044}00044\ \textcolor{comment}{**\ Misc.\ variables}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00045}00045\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00047}00047\ \textcolor{keywordtype}{char}\ varstr[1024];}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00048}00048\ \textcolor{keywordtype}{char}\ kHelpStar[1024];}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00050}00050\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00051}00051\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00052}00052\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00054}00054\ \textcolor{keywordtype}{size\_t}\ MoveListLength(\mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00055}00055\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00056}00056\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ output\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00057}00057\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ ++output;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00060}00060\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00061}00061\ \ \ \ \ \textcolor{keywordflow}{return}\ output;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00062}00062\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00064}00064\ \textcolor{keywordtype}{void}\ FreeMoveList(\mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00065}00065\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00066}00066\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *last;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00067}00067\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ last\ =\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00070}00070\ \ \ \ \ \ \ \ \ SafeFree((GENERIC\_PTR)last);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00071}00071\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00072}00072\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00074}00074\ \textcolor{keywordtype}{void}\ FreeMultipartEdgeList(\mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00075}00075\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00076}00076\ \ \ \ \ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}\ *last;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00077}00077\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ last\ =\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ SafeFree((GENERIC\_PTR)last);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00081}00081\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00082}00082\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00083}00083\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00084}00084\ \textcolor{keywordtype}{void}\ FreeRemotenessList(\mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00085}00085\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00086}00086\ \ \ \ \ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ last;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ last\ =\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ gBytesInUse\ -\/=\ sizeof(REMOTENESSLIST);}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ SafeFree((GENERIC\_PTR)last);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00092}00092\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00093}00093\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00095}00095\ \textcolor{keywordtype}{void}\ FreeIPositionList(\mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}*\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00096}00096\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00097}00097\ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr-\/>head\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structipositionlistsublist}{IPOSITIONSUBLIST}}\ *tmp\ =\ ptr-\/>head;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structipositionlistsublist}{IPOSITIONSUBLIST}}\ *tmp2;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (tmp\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00102}00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(tmp-\/>positions);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tmp2\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tmp\ =\ tmp-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00105}00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SafeFree(tmp2);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00108}00108\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00109}00109\ \ \ \ \ SafeFree(ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00110}00110\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00111}00111\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00112}00112\ \textcolor{keywordtype}{void}\ FreePositionList(\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00113}00113\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00114}00114\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *last;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00115}00115\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ last\ =\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ SafeFree((GENERIC\_PTR)last);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00119}00119\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00120}00120\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00122}00122\ \textcolor{keywordtype}{void}\ FreeValueMoves(\mbox{\hyperlink{structvaluemoves__item}{VALUE\_MOVES}}\ *ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00123}00123\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00124}00124\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{if}\ (!ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00129}00129\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<3;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ FreeMoveList(ptr-\/>moveList[i]);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ FreeRemotenessList(ptr-\/>remotenessList[i]);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00132}00132\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00133}00133\ \ \ \ \ \textcolor{comment}{//\ \ gBytesInUse\ -\/=\ sizeof(VALUE\_MOVES);}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00134}00134\ \ \ \ \ SafeFree((GENERIC\_PTR)ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00135}00135\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00137}00137\ \textcolor{keywordtype}{void}\ FreeTierList(\mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00138}00138\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00139}00139\ \ \ \ \ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *last;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00140}00140\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ last\ =\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ SafeFree((GENERIC\_PTR)last);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00144}00144\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00145}00145\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00146}00146\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00147}00147\ \textcolor{keywordtype}{void}\ FreeUndoMoveList(\mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00148}00148\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00149}00149\ \ \ \ \ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}\ *last;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00150}00150\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ last\ =\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00152}00152\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ SafeFree((GENERIC\_PTR)last);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00154}00154\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00155}00155\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00156}00156\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00157}00157\ BOOLEAN\ ValidMove(POSITION\ thePosition,\ MOVE\ theMove)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00158}00158\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00159}00159\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *ptr,\ *head;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00160}00160\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00161}00161\ \ \ \ \ head\ =\ ptr\ =\ GenerateMoves(thePosition);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00162}00162\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00163}00163\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (theMove\ ==\ ptr-\/>move)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(TRUE);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00168}00168\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00169}00169\ \ \ \ \ FreeMoveList(head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00170}00170\ \ \ \ \ \textcolor{keywordflow}{return}(FALSE);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00171}00171\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00172}00172\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00173}00173\ \textcolor{keywordtype}{int}\ GetRandomNumber(\textcolor{keywordtype}{int}\ n)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00174}00174\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00175}00175\ \ \ \ \ \textcolor{keywordtype}{int}\ ans,nRequest,mulFactor;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00177}00177\ \ \ \ \ \textcolor{keywordflow}{if}(n\ <=\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ GetRandomNumber\ called\ with\ n\ <=\ 0!\ \(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00180}00180\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00182}00182\ \ \ \ \ \textcolor{comment}{/*\ Try\ a\ random\ number\ and\ if\ it's\ too\ big,\ try\ again\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00183}00183\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ ans\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00185}00185\ \ \ \ \ \ \ \ \ nRequest\ =\ n;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00186}00186\ \ \ \ \ \ \ \ \ mulFactor\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00188}00188\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (nRequest\ >=\ RAND\_MAX)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ ans\ +=\ (GetSmallRandomNumber(RAND\_MAX)\ *\ mulFactor);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00190}00190\ \ \ \ \ \ \ \ \ \ \ \ \ nRequest\ /=\ RAND\_MAX;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ nRequest\ +=\ 1;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00192}00192\ \ \ \ \ \ \ \ \ \ \ \ \ mulFactor\ *=\ RAND\_MAX;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ ans\ +=\ GetSmallRandomNumber(nRequest)\ *\ mulFactor;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00196}00196\ \ \ \ \ \}\ \textcolor{keywordflow}{while}\ (ans\ >=\ n);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00197}00197\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{return}(ans);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00199}00199\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00201}00201\ \textcolor{keywordtype}{int}\ GetSmallRandomNumber(\textcolor{keywordtype}{int}\ n)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00202}00202\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00203}00203\ \ \ \ \ \textcolor{keywordflow}{return}(n\ *\ ((\textcolor{keywordtype}{double})randSafe()/RAND\_MAX));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00204}00204\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00205}00205\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00206}00206\ \textcolor{keywordtype}{int}\ randSafe()}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00207}00207\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00208}00208\ \ \ \ \ \textcolor{keywordtype}{int}\ ans;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00209}00209\ \ \ \ \ \textcolor{keywordflow}{while}((ans\ =\ rand())\ ==\ RAND\_MAX)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00210}00210\ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00211}00211\ \ \ \ \ \textcolor{keywordflow}{return}(ans);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00212}00212\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00214}00214\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ Stopwatch()}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00215}00215\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00216}00216\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ first\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00217}00217\ \ \ \ \ \textcolor{keyword}{static}\ time\_t\ oldT,\ newT;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00218}00218\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{if}(first)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ first\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ newT\ =\ time(NULL);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00222}00222\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ first\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00224}00224\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00225}00225\ \ \ \ \ oldT\ =\ newT;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00226}00226\ \ \ \ \ newT\ =\ time(NULL);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00227}00227\ \ \ \ \ \textcolor{keywordflow}{return}(difftime(newT,\ oldT));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00228}00228\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00230}00230\ \textcolor{keywordtype}{void}\ ExitStageRight()}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00231}00231\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00232}00232\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nThanks\ for\ playing\ \%s!\(\backslash\)n"{}},kGameName);\ \textcolor{comment}{/*\ quit\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00233}00233\ \ \ \ \ \textcolor{comment}{//\ This\ is\ good\ practice}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00234}00234\ \ \ \ \ generic\_hash\_destroy();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00235}00235\ \ \ \ \ DestroyDatabases();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00236}00236\ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00237}00237\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00239}00239\ \textcolor{keywordtype}{void}\ ExitStageRightErrorString(\textcolor{keywordtype}{char}\ errorMsg[])}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00240}00240\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00241}00241\ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}\(\backslash\)nError:\ \%s\(\backslash\)n"{}},errorMsg);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00242}00242\ \ \ \ \ exit(1);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00243}00243\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00245}00245\ \textcolor{comment}{//\ A\ Helper\ added\ by\ Ofer\ and\ Max:\ prints\ only\ if\ mustBeTrue\ is\ true}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00246}00246\ \textcolor{keywordtype}{void}\ ifprintf(BOOLEAN\ mustBeTrue,\ \textcolor{keywordtype}{char}*\ formatstring,\ ...)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00247}00247\ \ \ \ \ \textcolor{keywordflow}{if}\ (mustBeTrue)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00248}00248\ \ \ \ \ \ \ \ \ va\_list\ argp;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00249}00249\ \ \ \ \ \ \ \ \ va\_start(argp,\ formatstring);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00250}00250\ \ \ \ \ \ \ \ \ vprintf(formatstring,\ argp);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00251}00251\ \ \ \ \ \ \ \ \ va\_end(argp);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00252}00252\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00253}00253\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00254}00254\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00255}00255\ \textcolor{comment}{/*\ We\ define\ these\ only\ if\ not\ using\ Memwatch\ for\ memory\ debugging.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00256}00256\ \textcolor{comment}{\ *\ Otherwise,\ we\ replace\ all\ calls\ to\ these\ functions\ with\ calls\ to}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00257}00257\ \textcolor{comment}{\ *\ Memwatch\ equivalents.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00258}00258\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00259}00259\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00260}00260\ \textcolor{preprocessor}{\#ifndef\ MEMWATCH}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00261}00261\ GENERIC\_PTR\ SafeMalloc(\textcolor{keywordtype}{size\_t}\ amount)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00262}00262\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00263}00263\ \ \ \ \ GENERIC\_PTR\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00265}00265\ \ \ \ \ \textcolor{comment}{/*\ Mando's\ Fix\ is\ to\ put\ a\ ckalloc\ here\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00266}00266\ \ \ \ \ \textcolor{keywordflow}{if}((ptr\ =\ malloc(amount))\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00267}00267\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ SafeMalloc\ could\ not\ allocate\ the\ requested\ \%lu\ bytes\(\backslash\)n"{}},(\textcolor{keywordtype}{long})\ amount);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00270}00270\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00271}00271\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00272}00272\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00273}00273\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00274}00274\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00275}00275\ GENERIC\_PTR\ SafeCalloc(\textcolor{keywordtype}{size\_t}\ nmemb,\ \textcolor{keywordtype}{size\_t}\ size)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00276}00276\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00277}00277\ \ \ \ \ GENERIC\_PTR\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00278}00278\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00279}00279\ \ \ \ \ \textcolor{keywordflow}{if}\ ((ptr\ =\ calloc(nmemb,\ size))\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00280}00280\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ SafeCalloc\ could\ not\ allocate\ the\ requested\ \%lu\ bytes\(\backslash\)n"{}},\ size);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00281}00281\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00282}00282\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00283}00283\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00285}00285\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00286}00286\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00287}00287\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00288}00288\ GENERIC\_PTR\ SafeRealloc(GENERIC\_PTR\ ptr,\ \textcolor{keywordtype}{size\_t}\ amount)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00289}00289\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00290}00290\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00291}00291\ \ \ \ \ \ \ \ \ ExitStageRightErrorString(\textcolor{stringliteral}{"{}Error:\ SafeRealloc\ was\ handed\ a\ NULL\ ptr!\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00293}00293\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}((ptr\ =\ realloc(ptr,\ amount))\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ SafeRealloc\ could\ not\ allocate\ the\ requested\ \%lu\ bytes\(\backslash\)n"{}},\ (\textcolor{keywordtype}{long})\ amount);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00297}00297\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00299}00299\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00300}00300\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00301}00301\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00302}00302\ \textcolor{keywordtype}{void}\ SafeFree(GENERIC\_PTR\ ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00303}00303\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00304}00304\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00305}00305\ \ \ \ \ \ \ \ \ ExitStageRightErrorString(\textcolor{stringliteral}{"{}Error:\ SafeFree\ was\ handed\ a\ NULL\ ptr!\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00306}00306\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00307}00307\ \ \ \ \ \ \ \ \ free(ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00308}00308\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00309}00309\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00310}00310\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00311}00311\ \textcolor{keywordtype}{void}\ SafeFreeAndSetToNull(GENERIC\_PTR\ *ptr)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00312}00312\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00313}00313\ \ \ \ \ \textcolor{keywordflow}{if}(ptr\ ==\ NULL\ ||\ *ptr\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00314}00314\ \ \ \ \ \ \ \ \ ExitStageRightErrorString(\textcolor{stringliteral}{"{}Error:\ SafeFreeAndSetToNull\ was\ handed\ a\ NULL\ ptr!\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00315}00315\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00316}00316\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00317}00317\ \ \ \ \ \ \ \ \ free(*ptr);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00318}00318\ \ \ \ \ \ \ \ \ *ptr\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00319}00319\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00320}00320\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00321}00321\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00323}00323\ \textcolor{keywordtype}{void}\ BadElse(STRING\ function)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00324}00324\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00325}00325\ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ \%s()\ just\ reached\ an\ else\ clause\ it\ shouldn't\ have!\(\backslash\)n\(\backslash\)n"{}},function);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00326}00326\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00328}00328\ \textcolor{comment}{//\ Adapted\ from\ CreateMovelistNode}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00329}00329\ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}\ *CreateRemotenesslistNode(REMOTENESS\ theRemoteness,\ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ theNextRemoteness)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00330}00330\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00331}00331\ \ \ \ \ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}\ *theHead;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00332}00332\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00333}00333\ \ \ \ \ theHead\ =\ (\mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}\ *)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00334}00334\ \ \ \ \ theHead-\/>remoteness\ =\ theRemoteness;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00335}00335\ \ \ \ \ theHead-\/>next\ =\ theNextRemoteness;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00336}00336\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00337}00337\ \ \ \ \ \textcolor{keywordflow}{return}(theHead);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00338}00338\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00339}00339\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00340}00340\ \textcolor{comment}{//\ Adapted\ from\ CopyMovelist,\ same\ problem\ of\ reverse\ order}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00341}00341\ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}\ *CopyRemotenesslist(\mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}*\ theRemotenesslist)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00342}00342\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00343}00343\ \ \ \ \ \mbox{\hyperlink{structremotenesslist__item}{REMOTENESSLIST}}\ *ptr,\ *head\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00344}00344\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00345}00345\ \ \ \ \ ptr\ =\ theRemotenesslist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00346}00346\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00347}00347\ \ \ \ \ \ \ \ \ head\ =\ CreateRemotenesslistNode(ptr-\/>remoteness,\ head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00348}00348\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00349}00349\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00350}00350\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00351}00351\ \ \ \ \ \textcolor{keywordflow}{return}(head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00352}00352\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00353}00353\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00354}00354\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *CreateMovelistNode(MOVE\ theMove,\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ theNextMove)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00355}00355\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00356}00356\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *theHead;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00357}00357\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00358}00358\ \ \ \ \ theHead\ =\ (\mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structmovelist__item}{MOVELIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00359}00359\ \ \ \ \ theHead-\/>move\ =\ theMove;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00360}00360\ \ \ \ \ theHead-\/>next\ =\ theNextMove;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00361}00361\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00362}00362\ \ \ \ \ \textcolor{keywordflow}{return}(theHead);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00363}00363\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00364}00364\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00365}00365\ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}\ *CreateMultipartEdgeListNode(POSITION\ from,\ POSITION\ to,\ MOVE\ partMove,\ MOVE\ fullMove,\ BOOLEAN\ isTerminal,\ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*\ next)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00366}00366\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00367}00367\ \ \ \ \ \mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*\ theHead;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00368}00368\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00369}00369\ \ \ \ \ theHead\ =\ (\mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}*)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structmultipartedgelist__item}{MULTIPARTEDGELIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00370}00370\ \ \ \ \ theHead-\/>from\ =\ from;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00371}00371\ \ \ \ \ theHead-\/>to\ =\ to;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00372}00372\ \ \ \ \ theHead-\/>partMove\ =\ partMove;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00373}00373\ \ \ \ \ theHead-\/>fullMove\ =\ fullMove;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00374}00374\ \ \ \ \ theHead-\/>isTerminal\ =\ isTerminal;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00375}00375\ \ \ \ \ theHead-\/>next\ =\ next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00376}00376\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00377}00377\ \ \ \ \ \textcolor{keywordflow}{return}\ theHead;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00378}00378\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00380}00380\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *CopyMovelist(\mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ theMovelist)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00381}00381\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00382}00382\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *ptr,\ *head\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00383}00383\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00384}00384\ \ \ \ \ \textcolor{comment}{/*\ Walk\ down\ the\ graph\ children\ and\ copy\ it\ into\ a\ new\ structure\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00385}00385\ \ \ \ \ \textcolor{comment}{/*\ Unfortunately,\ it\ reverses\ the\ order,\ which\ is\ ok\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00386}00386\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00387}00387\ \ \ \ \ ptr\ =\ theMovelist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00388}00388\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00389}00389\ \ \ \ \ \ \ \ \ head\ =\ CreateMovelistNode(ptr-\/>move,\ head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00390}00390\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00391}00391\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00392}00392\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00393}00393\ \ \ \ \ \textcolor{keywordflow}{return}(head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00394}00394\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00395}00395\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00396}00396\ \textcolor{keywordtype}{int}\ IPOSITION\_SUBLIST\_SIZE\ =\ 1024;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00397}00397\ \textcolor{keywordtype}{int}\ IPOSITION\_MASK\ =\ 1023;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00398}00398\ \mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}\ *StorePositionInIList(POSITION\ thePosition,\ \mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}*\ thePositionList)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00399}00399\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00400}00400\ \ \ \ \ \textcolor{keywordflow}{if}\ (thePositionList\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00401}00401\ \ \ \ \ \ \ \ \ thePositionList\ =\ (\mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}\ *)\ SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structipositionlist}{IPOSITIONLIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00402}00402\ \ \ \ \ \ \ \ \ thePositionList-\/>size\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00403}00403\ \ \ \ \ \ \ \ \ thePositionList-\/>head\ =\ (\mbox{\hyperlink{structipositionlistsublist}{IPOSITIONSUBLIST}}\ *)\ SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structipositionlistsublist}{IPOSITIONSUBLIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00404}00404\ \ \ \ \ \ \ \ \ thePositionList-\/>tail\ =\ thePositionList-\/>head;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00405}00405\ \ \ \ \ \ \ \ \ thePositionList-\/>tail-\/>positions\ =\ (POSITION\ *)\ SafeMalloc(IPOSITION\_SUBLIST\_SIZE\ *\ \textcolor{keyword}{sizeof}(POSITION));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00406}00406\ \ \ \ \ \ \ \ \ thePositionList-\/>tail-\/>next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00407}00407\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((thePositionList-\/>size\ \&\ IPOSITION\_MASK)\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00408}00408\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structipositionlistsublist}{IPOSITIONSUBLIST}}\ *tmp\ =\ (\mbox{\hyperlink{structipositionlistsublist}{IPOSITIONSUBLIST}}\ *)\ SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structipositionlistsublist}{IPOSITIONSUBLIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00409}00409\ \ \ \ \ \ \ \ \ thePositionList-\/>tail-\/>next\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00410}00410\ \ \ \ \ \ \ \ \ thePositionList-\/>tail\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00411}00411\ \ \ \ \ \ \ \ \ thePositionList-\/>tail-\/>positions\ =\ (POSITION\ *)\ SafeMalloc(IPOSITION\_SUBLIST\_SIZE\ *\ \textcolor{keyword}{sizeof}(POSITION));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00412}00412\ \ \ \ \ \ \ \ \ thePositionList-\/>tail-\/>next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00413}00413\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00414}00414\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00415}00415\ \ \ \ \ thePositionList-\/>tail-\/>positions[thePositionList-\/>size\ \&\ IPOSITION\_MASK]\ =\ thePosition;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00416}00416\ \ \ \ \ thePositionList-\/>size\ +=\ 1;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00417}00417\ \ \ \ \ \textcolor{keywordflow}{return}\ thePositionList;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00418}00418\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00419}00419\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00420}00420\ \textcolor{comment}{/*\ Stores\ pos\ as\ the\ new\ head\ of\ the\ position\ list\ and\ return\ the\ new\ head.}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00421}00421\ \textcolor{comment}{\ \ \ Usage:\ list\ =\ StorePositionInList(pos,\ list);\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00422}00422\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *StorePositionInList(POSITION\ pos,\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ head)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00423}00423\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00424}00424\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *tmp;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00425}00425\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00426}00426\ \ \ \ \ tmp\ =\ (\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00427}00427\ \ \ \ \ tmp-\/>position\ =\ pos;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00428}00428\ \ \ \ \ tmp-\/>next\ \ \ \ \ =\ head;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00429}00429\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00430}00430\ \ \ \ \ \textcolor{keywordflow}{return}(tmp);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00431}00431\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00432}00432\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00433}00433\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *CopyPositionlist(\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ thePositionlist)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00434}00434\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00435}00435\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *ptr,\ *head\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00436}00436\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00437}00437\ \ \ \ \ ptr\ =\ thePositionlist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00438}00438\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00439}00439\ \ \ \ \ \ \ \ \ head\ =\ StorePositionInList(ptr-\/>position,\ head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00440}00440\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00441}00441\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00442}00442\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00443}00443\ \ \ \ \ \textcolor{keywordflow}{return}(head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00444}00444\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00445}00445\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00446}00446\ \textcolor{comment}{/*\ be\ sure\ that\ queue\ points\ to\ the\ TAIL\ of\ the\ queue,}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00447}00447\ \textcolor{comment}{\ \ \ otherwise\ this\ will\ be\ an\ insert}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00448}00448\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00449}00449\ \textcolor{keywordtype}{void}\ AddPositionToQueue\ (POSITION\ pos,\ \mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}**\ tail)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00450}00450\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00451}00451\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}*\ new\_node\ =\ (\mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}\ *)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00452}00452\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00453}00453\ \ \ \ \ new\_node-\/>position\ =\ pos;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00454}00454\ \ \ \ \ new\_node-\/>next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00455}00455\ \ \ \ \ \textcolor{keywordflow}{if}\ (*tail)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00456}00456\ \ \ \ \ \ \ \ \ (*tail)-\/>next\ =\ new\_node;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00457}00457\ \ \ \ \ (*tail)\ =\ new\_node;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00458}00458\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00459}00459\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00460}00460\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00461}00461\ \textcolor{comment}{/*\ returns\ the\ first\ position\ in\ the\ queue\ as\ well\ as\ changing\ queue}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00462}00462\ \textcolor{comment}{\ \ \ to\ point\ to\ the\ next\ position}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00463}00463\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00464}00464\ POSITION\ RemovePositionFromQueue(\mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}**\ head)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00465}00465\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00466}00466\ \ \ \ \ POSITION\ result\ =\ (*head)-\/>position;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00467}00467\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONQUEUE}}\ *nextnode\ =\ (*head)-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00468}00468\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00469}00469\ \ \ \ \ SafeFree(*head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00470}00470\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00471}00471\ \ \ \ \ (*head)\ =\ nextnode;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00472}00472\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00473}00473\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00474}00474\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00475}00475\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00476}00476\ \textcolor{comment}{//\ list\ constructor\ function\ for\ TierLists:}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00477}00477\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *CreateTierlistNode(TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theNextTier)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00478}00478\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00479}00479\ \ \ \ \ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *theHead;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00480}00480\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00481}00481\ \ \ \ \ theHead\ =\ (\mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structtierlist__item}{TIERLIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00482}00482\ \ \ \ \ theHead-\/>tier\ =\ theTier;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00483}00483\ \ \ \ \ theHead-\/>next\ =\ theNextTier;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00484}00484\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00485}00485\ \ \ \ \ \textcolor{keywordflow}{return}(theHead);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00486}00486\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00487}00487\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00488}00488\ \textcolor{comment}{//\ return\ a\ complete\ copy\ of\ the\ list,\ reversed}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00489}00489\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *CopyTierlist(\mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theTierlist)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00490}00490\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00491}00491\ \ \ \ \ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *ptr,\ *head\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00492}00492\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00493}00493\ \ \ \ \ ptr\ =\ theTierlist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00494}00494\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00495}00495\ \ \ \ \ \ \ \ \ head\ =\ CreateTierlistNode(ptr-\/>tier,\ head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00496}00496\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00497}00497\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00498}00498\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00499}00499\ \ \ \ \ \textcolor{keywordflow}{return}(head);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00500}00500\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00501}00501\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00502}00502\ \textcolor{comment}{//\ move\ the\ tier\ to\ the\ TOP\ of\ the\ tierlist}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00503}00503\ \textcolor{comment}{//\ if\ element\ not\ it\ list,\ does\ nothing}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00504}00504\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *MoveToFrontOfTierlist(TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theTierlist)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00505}00505\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00506}00506\ \ \ \ \ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *ptr\ =\ NULL,\ *prev\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00507}00507\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00508}00508\ \ \ \ \ ptr\ =\ theTierlist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00509}00509\ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00510}00510\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr-\/>tier\ ==\ theTier)\ \{\ \ \ \ \ \ \ \ \ \textcolor{comment}{//move\ ptr\ to\ the\ front}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00511}00511\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(prev\ ==\ NULL)\ \ \ \ \ \ \ \ \ \textcolor{comment}{//this\ IS\ the\ first\ element!}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00512}00512\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ theTierlist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00513}00513\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00514}00514\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ prev-\/>next\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00515}00515\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptr-\/>next\ =\ theTierlist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00516}00516\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00517}00517\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00518}00518\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00519}00519\ \ \ \ \ \ \ \ \ prev\ =\ ptr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00520}00520\ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00521}00521\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00522}00522\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00523}00523\ \ \ \ \ \textcolor{keywordflow}{return}(theTierlist);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00524}00524\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00525}00525\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00526}00526\ \textcolor{comment}{//\ check\ whether\ the\ TIER\ is\ in\ TIERLIST}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00527}00527\ \textcolor{comment}{//\ true\ if\ so,\ false\ otherwise}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00528}00528\ BOOLEAN\ TierInList(TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ theTierlist)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00529}00529\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00530}00530\ \ \ \ \ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}\ *ptr\ =\ theTierlist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00531}00531\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00532}00532\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ ptr\ !=\ NULL;\ ptr\ =\ ptr-\/>next)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00533}00533\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ptr-\/>tier\ ==\ theTier)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00534}00534\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00535}00535\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00536}00536\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00537}00537\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00538}00538\ \textcolor{comment}{//\ removes\ the\ tier\ from\ the\ list}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00539}00539\ BOOLEAN\ RemoveTierFromList\ (TIER\ theTier,\ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}**\ theTierlist)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00540}00540\ \ \ \ \ \textcolor{keywordflow}{if}\ (!TierInList(theTier,\ (*theTierlist)))}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00541}00541\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00542}00542\ \ \ \ \ *theTierlist\ =\ MoveToFrontOfTierlist(theTier,\ (*theTierlist));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00543}00543\ \ \ \ \ \mbox{\hyperlink{structtierlist__item}{TIERLIST}}*\ temp\ =\ *theTierlist;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00544}00544\ \ \ \ \ (*theTierlist)\ =\ (*theTierlist)-\/>next;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00545}00545\ \ \ \ \ SafeFree(temp);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00546}00546\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00547}00547\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00548}00548\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00549}00549\ \textcolor{comment}{//\ list\ constructor\ function\ for\ UndoMoveLists:}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00550}00550\ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}\ *CreateUndoMovelistNode(UNDOMOVE\ theUndoMove,\ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}*\ theNextUndoMove)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00551}00551\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00552}00552\ \ \ \ \ \mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}\ *theHead;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00553}00553\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00554}00554\ \ \ \ \ theHead\ =\ (\mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}\ *)\ SafeMalloc\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structundomovelist__item}{UNDOMOVELIST}}));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00555}00555\ \ \ \ \ theHead-\/>undomove\ =\ theUndoMove;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00556}00556\ \ \ \ \ theHead-\/>next\ =\ theNextUndoMove;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00557}00557\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00558}00558\ \ \ \ \ \textcolor{keywordflow}{return}(theHead);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00559}00559\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00560}00560\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00561}00561\ \textcolor{keywordtype}{void}\ FoundBadPosition\ (POSITION\ pos,\ POSITION\ parent,\ MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00562}00562\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00563}00563\ \textcolor{preprocessor}{\#ifdef\ dup2\ \ \ \ \ }\textcolor{comment}{/*\ Redirect\ stdout\ to\ stderr\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00564}00564\ \ \ \ \ close(1);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00565}00565\ \ \ \ \ dup2(2,\ 1);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00566}00566\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00567}00567\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00568}00568\ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}\(\backslash\)n***\ ERROR:\ Invalid\ position\ ("{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{})\ encountered."{}},\ pos);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00569}00569\ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}\(\backslash\)n***\ ERROR:\ Parent="{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{},\ move=\%d"{}},\ parent,\ move);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00570}00570\ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}\(\backslash\)n***\ ERROR:\ Representation\ of\ parent\ position:\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00571}00571\ \ \ \ \ PrintPosition(pos,\ \textcolor{stringliteral}{"{}debug"{}},\ 0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00572}00572\ \ \ \ \ fflush(stdout);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00573}00573\ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00574}00574\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00575}00575\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00576}00576\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00577}00577\ BOOLEAN\ DefaultGoAgain(POSITION\ pos,MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00578}00578\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00579}00579\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;\ \textcolor{comment}{/*\ Always\ toggle\ turn\ by\ default\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00580}00580\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00581}00581\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00582}00582\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00583}00583\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00584}00584\ POSITION\ GetNextPosition()}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00585}00585\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00586}00586\ \ \ \ \ \textcolor{keyword}{static}\ POSITION\ thePosition\ =\ 0;\ \textcolor{comment}{/*\ Cycle\ through\ every\ position\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00587}00587\ \ \ \ \ POSITION\ returnPosition;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00588}00588\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00589}00589\ \ \ \ \ \textcolor{keywordflow}{while}(thePosition\ <\ gNumberOfPositions\ \&\&}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00590}00590\ \ \ \ \ \ \ \ \ \ \ GetValueOfPosition(thePosition)\ ==\ undecided)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00591}00591\ \ \ \ \ \ \ \ \ thePosition++;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00592}00592\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00593}00593\ \ \ \ \ \textcolor{keywordflow}{if}(thePosition\ ==\ gNumberOfPositions)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00594}00594\ \ \ \ \ \ \ \ \ thePosition\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00595}00595\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(kBadPosition);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00596}00596\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00597}00597\ \ \ \ \ \ \ \ \ returnPosition\ =\ thePosition++;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00598}00598\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}(returnPosition);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00599}00599\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00600}00600\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00601}00601\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00602}00602\ MEXCALC\ MexAdd(MEXCALC\ theMexCalc,\ MEX\ theMex)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00603}00603\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00604}00604\ \ \ \ \ \textcolor{keywordflow}{if}(theMex\ >\ 31)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00605}00605\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ MexAdd\ handed\ a\ theMex\ greater\ than\ 31\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00606}00606\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00607}00607\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00608}00608\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (theMex\ ==\ kBadMexValue)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00609}00609\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ MexAdd\ handed\ a\ kBadMexValue\ for\ theMex\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00610}00610\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00611}00611\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00612}00612\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00613}00613\ \ \ \ \ \textcolor{keywordflow}{return}(theMexCalc\ |\ (1\ <<\ theMex));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00614}00614\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00615}00615\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00616}00616\ MEX\ MexCompute(MEXCALC\ theMexCalc)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00617}00617\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00618}00618\ \ \ \ \ MEX\ ans\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00619}00619\ \ \ \ \ \textcolor{keywordflow}{while}(theMexCalc\ \&\ (1\ <<\ ans))}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00620}00620\ \ \ \ \ \ \ \ \ ans++;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00621}00621\ \ \ \ \ \textcolor{keywordflow}{return}(ans);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00622}00622\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00623}00623\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00624}00624\ MEXCALC\ MexCalcInit()}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00625}00625\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00626}00626\ \ \ \ \ \textcolor{keywordflow}{return}((MEXCALC)\ 0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00627}00627\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00628}00628\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00629}00629\ \textcolor{keywordtype}{void}\ MexFormat(POSITION\ position,\ STRING\ \textcolor{keywordtype}{string})}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00630}00630\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00631}00631\ \ \ \ \ MEX\ theMex;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00632}00632\ \ \ \ \ \textcolor{keywordtype}{char}\ tmp[5];}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00633}00633\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00634}00634\ \ \ \ \ \textcolor{keywordflow}{if}\ (!kPartizan\ \&\&\ !gTwoBits)\ \{\ \textcolor{comment}{/*\ Impartial,\ mex\ value\ available\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00635}00635\ \ \ \ \ \ \ \ \ theMex\ =\ MexLoad(position);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00636}00636\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(theMex\ ==\ (MEX)0)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00637}00637\ \ \ \ \ \ \ \ \ \ \ \ \ (void)\ sprintf(tmp,\ \textcolor{stringliteral}{"{}0"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00638}00638\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(theMex\ ==\ (MEX)1)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00639}00639\ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void})\ sprintf(tmp,\ \textcolor{stringliteral}{"{}*"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00640}00640\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00641}00641\ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void})\ sprintf(tmp,\ \textcolor{stringliteral}{"{}*\%d"{}},\ (\textcolor{keywordtype}{int})theMex);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00642}00642\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00643}00643\ \ \ \ \ \ \ \ \ (void)\ sprintf(\textcolor{keywordtype}{string},\textcolor{stringliteral}{"{}[Grundy\ \#\ =\ \%s]"{}},tmp);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00644}00644\ \ \ \ \ \}\ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00645}00645\ \ \ \ \ \ \ \ \ sprintf(\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}\ "{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00646}00646\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00647}00647\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00648}00648\ MEX\ MexPrimitive(VALUE\ value)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00649}00649\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00650}00650\ \ \ \ \ \textcolor{keywordflow}{if}(value\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00651}00651\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ MexPrimitive\ handed\ a\ value\ other\ than\ win/lose\ (undecided)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00652}00652\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00653}00653\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00654}00654\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(value\ ==\ tie)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00655}00655\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}Error:\ MexPrimitive\ handed\ a\ value\ other\ than\ win/lose\ (tie)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00656}00656\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00657}00657\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00658}00658\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(value\ ==\ win)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00659}00659\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}((MEX)1);\ \textcolor{comment}{/*\ A\ win\ terminal\ is\ not\ ideal,\ but\ it's\ a\ star\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00660}00660\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (value\ ==\ lose)}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00661}00661\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}((MEX)0);\ \textcolor{comment}{/*\ A\ lose\ is\ a\ zero,\ that's\ clear\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00662}00662\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00663}00663\ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}MexPrimitive"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00664}00664\ \ \ \ \ \ \ \ \ ExitStageRight();}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00665}00665\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00666}00666\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00667}00667\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00668}00668\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00669}00669\ STRING\ get\_var\_string()\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00670}00670\ \ \ \ \ sprintf(varstr,\textcolor{stringliteral}{"{}\%s\ game,\ with\%ssymmetries\ \%sloopy\ and\%spartizan)\ Hashcode:\ \%d"{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00671}00671\ \ \ \ \ \ \ \ \ \ \ \ \ (gStandardGame)\ ?\ \textcolor{stringliteral}{"{}Standard"{}}\ :\ \textcolor{stringliteral}{"{}Mis{\ucr}re"{}},\ (gSymmetries)\ ?\ \textcolor{stringliteral}{"{}\ "{}}\ :\ \textcolor{stringliteral}{"{}out\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00672}00672\ \ \ \ \ \ \ \ \ \ \ \ \ (kLoopy)\ ?\ \textcolor{stringliteral}{"{}("{}}\ :\ \textcolor{stringliteral}{"{}(non-\/"{}},\ (kPartizan)\ ?\ \textcolor{stringliteral}{"{}\ "{}}\ :\ \textcolor{stringliteral}{"{}\ non-\/"{}},\ getOption());}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00673}00673\ \ \ \ \ \textcolor{keywordflow}{return}\ varstr;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00674}00674\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00675}00675\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00676}00676\ \textcolor{comment}{/*\ Returns\ a\ string\ containing\ which\ kHelp*\ strings\ haven't\ been\ written\ */}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00677}00677\ STRING\ kHelpStarWritten()\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00678}00678\ \ \ \ \ sprintf(kHelpStar,\textcolor{stringliteral}{"{}\%s\%s\%s\%s\%s\%s\%s\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00679}00679\ \ \ \ \ \ \ \ \ \ \ \ \ strcmp(kHelpGraphicInterface,\ \textcolor{stringliteral}{"{}Not\ written\ yet"{}})\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}GUI\ help\ not\ written,\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00680}00680\ \ \ \ \ \ \ \ \ \ \ \ \ strcmp(kHelpTextInterface,\ \textcolor{stringliteral}{"{}Not\ written\ yet"{}})\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}CLI\ help\ not\ written,\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00681}00681\ \ \ \ \ \ \ \ \ \ \ \ \ strcmp(kHelpOnYourTurn,\ \textcolor{stringliteral}{"{}Not\ written\ yet"{}})\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}Move\ help\ not\ written,\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00682}00682\ \ \ \ \ \ \ \ \ \ \ \ \ strcmp(kHelpStandardObjective,\ \textcolor{stringliteral}{"{}Not\ written\ yet"{}})\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}Standard\ objective\ help\ not\ written,\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00683}00683\ \ \ \ \ \ \ \ \ \ \ \ \ strcmp(kHelpReverseObjective,\ \textcolor{stringliteral}{"{}Not\ written\ yet"{}})\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}Mis{\ucr}re\ objective\ help\ not\ written,\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00684}00684\ \ \ \ \ \ \ \ \ \ \ \ \ strcmp(kHelpTieOccursWhen,\ \textcolor{stringliteral}{"{}Not\ written\ yet"{}})\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}Tie\ help\ not\ written,\ "{}},}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00685}00685\ \ \ \ \ \ \ \ \ \ \ \ \ strcmp(kHelpExample,\ \textcolor{stringliteral}{"{}Not\ written\ yet"{}})\ ?\ \textcolor{stringliteral}{"{}"{}}\ :\ \textcolor{stringliteral}{"{}Example\ help\ not\ written"{}});}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00686}00686\ \ \ \ \ \textcolor{keywordflow}{return}\ kHelpStar;}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00687}00687\ \}}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00688}00688\ }
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00689}00689\ BOOLEAN\ FirstWordMatches(STRING\ to\_compare,\ STRING\ word)\ \{}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00690}00690\ \ \ \ \ \textcolor{keywordflow}{return}\ (strstr(to\_compare,\ word)\ ==\ to\_compare\ \&\&}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00691}00691\ \ \ \ \ \ \ \ \ \ \ \ \ (strchr(to\_compare,\ \textcolor{charliteral}{'\ '})\ ==\ to\_compare\ +\ strlen(word)\ ||}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00692}00692\ \ \ \ \ \ \ \ \ \ \ \ \ \ strlen(to\_compare)\ ==\ strlen(word)));}
+\DoxyCodeLine{\Hypertarget{misc_8c_source_l00693}00693\ \}}
+
+\end{DoxyCode}

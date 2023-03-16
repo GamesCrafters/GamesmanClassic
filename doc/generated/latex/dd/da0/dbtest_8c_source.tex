@@ -1,0 +1,101 @@
+\hypertarget{dbtest_8c_source}{}\doxysection{dbtest.\+c}
+\label{dbtest_8c_source}\index{src/core/filedb/dbtest.c@{src/core/filedb/dbtest.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ db.c}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Gamescrafters\ Database\ Test\ Program}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}db.h"{}}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00036}00036\ \textcolor{keywordtype}{int}\ main(\textcolor{keywordtype}{int}\ argc,\ \textcolor{keywordtype}{char}\ *argv[])}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00037}00037\ \{}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00038}00038\ \ \ \ \ gamesdb\_position\ totalrecs\ =\ 100;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00039}00039\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ recsize\ =\ \textcolor{keyword}{sizeof}(short);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00040}00040\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ recs\ =\ 10;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00041}00041\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ pages\_used\ =\ 8;\ \textcolor{comment}{//approx.\ 8MB\ of\ ram\ will\ be\ used}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00042}00042\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ dirsize\ =\ 3;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00043}00043\ \ \ \ \ \textcolor{keywordtype}{char}\ dbname[]\ =\ \textcolor{stringliteral}{"{}testdb\(\backslash\)0"{}};}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00045}00045\ \ \ \ \ \mbox{\hyperlink{structgamesdb}{gamesdb}}\ *testdb\ =\ gamesdb\_create(recsize,\ recs,\ pages\_used,\ dirsize,\ dbname);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00046}00046\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Starting\ DB\ test...\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00048}00048\ \ \ \ \ \textcolor{comment}{//sleep(10);}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00050}00050\ \ \ \ \ gamesdb\_position\ i;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00051}00051\ \ \ \ \ \textcolor{keywordtype}{short}\ data\ =\ 0,\ result\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00053}00053\ \ \ \ \ \textcolor{comment}{//sequencial\ read/write}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00054}00054\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00055}00055\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<totalrecs;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ data\ =\ i\ \&\ ((1<<16)\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}reading:\ \%llu\(\backslash\)n"{}},\ i);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ gamesdb\_put(testdb,\ (\textcolor{keywordtype}{void}*)\&data,\ i);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ gamesdb\_get(testdb,\ (\textcolor{keywordtype}{void}*)\&result,\ i);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00060}00060\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (data!=result)\ \{}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}ERROR\ in\ seq\ read:\ position\ \%llu,\ saved\ \%d,\ got\ \%d\(\backslash\)n"{}},\ i,\ data,\ result);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00064}00064\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00065}00065\ \ \ \ \ \textcolor{comment}{//random\ reads}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00066}00066\ \textcolor{comment}{/*\ \ for\ (i=0;i<totalrecs;i++)\ \{}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00067}00067\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ data\ =\ i\ \%\ (1<<16);}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00068}00068\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if(i\ ==\ 170)}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00069}00069\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf("{}GAHHHHHH!\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00070}00070\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf("{}reading:\ \%llu\(\backslash\)n"{},\ i);}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00071}00071\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ db\_get(testdb,\ (void*)\&result,\ i);}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00072}00072\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (data!=result)\ \{}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00073}00073\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf("{}ERROR\ in\ seq\ read:\ position\ \%llu,\ saved\ \%d,\ got\ \%d\(\backslash\)n"{},\ i,\ data,\ result);}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00074}00074\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ break;}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00075}00075\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00076}00076\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}*/}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00077}00077\ \ \ \ \ printf(\textcolor{stringliteral}{"{}entering\ random\ tests...\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00079}00079\ \ \ \ \ gamesdb\_position\ val;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00080}00080\ \ \ \ \ \textcolor{keywordflow}{for}\ (i=0;\ i<totalrecs;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (totalrecs\ <=\ (val\ =\ rand()\ *\ totalrecs\ /\ RAND\_MAX))\ ;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}reading:\ \%llu\(\backslash\)n"{}},\ val);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ data\ =\ val\ \&\ ((1\ <<\ 16)\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \textcolor{comment}{//gamesdb\_put(testdb,\ (void*)\&data,\ val);}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ gamesdb\_get(testdb,\ (\textcolor{keywordtype}{void}*)\&result,\ val);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (data!=result)\ \{}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}ERROR\ in\ rand\ read:\ position\ \%llu,\ saved\ \%d,\ got\ \%d\(\backslash\)n"{}},\ val,\ data,\ result);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00090}00090\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00092}00092\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Ending\ DB\ test...\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00093}00093\ \ \ \ \ gamesdb\_destroy(testdb);}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00094}00094\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{dbtest_8c_source_l00095}00095\ \}}
+
+\end{DoxyCode}

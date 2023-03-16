@@ -1,0 +1,543 @@
+\hypertarget{mponghauki_8c_source}{}\doxysection{mponghauki.\+c}
+\label{mponghauki_8c_source}\index{src/mponghauki.c@{src/mponghauki.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00001}00001\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00004}00004\ \textcolor{preprocessor}{\#define\ BOARD\_SIZE\ 5}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00005}00005\ \textcolor{preprocessor}{\#define\ MAX\_MOVE\_STRING\_SIZE\ (20\ *\ 2\ +\ 2)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00007}00007\ \textcolor{preprocessor}{\#define\ ENCODE\_MOVE(start,\ end)\ ((start)\ <<\ 16\ |\ (end))}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00008}00008\ \textcolor{preprocessor}{\#define\ DECODE\_MOVE\_START(move)\ ((move)\ >>\ 16)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00009}00009\ \textcolor{preprocessor}{\#define\ DECODE\_MOVE\_END(move)\ (0xffff\ \&\ (move))}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00010}00010\ \textcolor{preprocessor}{\#define\ NEXT\_PLAYER(player)\ (1\ +\ (player\ \ \%\ 2))}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00011}00011\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00012}00012\ POSITION\ gNumberOfPositions\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00013}00013\ POSITION\ kBadPosition\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00015}00015\ \textcolor{keywordtype}{char}\ playerPiece[]\ =\ \textcolor{stringliteral}{"{}\ XO"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00017}00017\ POSITION\ gInitialPosition\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00018}00018\ POSITION\ gMinimalPosition\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00019}00019\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00020}00020\ STRING\ kAuthorName\ =\ \textcolor{stringliteral}{"{}Kyle\ Zentner"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00021}00021\ STRING\ kGameName\ =\ \textcolor{stringliteral}{"{}Pong\ Hau\ K'i"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00022}00022\ BOOLEAN\ kPartizan\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00023}00023\ BOOLEAN\ kDebugMenu\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00024}00024\ BOOLEAN\ kGameSpecificMenu\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00025}00025\ BOOLEAN\ kTieIsPossible\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00026}00026\ BOOLEAN\ kLoopy\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00027}00027\ BOOLEAN\ kDebugDetermineValue\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00028}00028\ \textcolor{keywordtype}{void}*\ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00029}00029\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00030}00030\ STRING\ kHelpGraphicInterface\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00032}00032\ STRING\ kHelpTextInterface\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00034}00034\ STRING\ kHelpOnYourTurn\ =\ \textcolor{stringliteral}{"{}Please\ enter\ your\ move\ in\ the\ format\ 0-\/4,0-\/4"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00036}00036\ STRING\ kHelpStandardObjective\ =\ \textcolor{stringliteral}{"{}Slide\ your\ pieces\ along\ the\ lines\ to\ prevent\ your\ opponent\ from\ moving."{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00037}00037\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00038}00038\ STRING\ kHelpReverseObjective\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00040}00040\ STRING\ kHelpTieOccursWhen\ =\ \textcolor{comment}{/*\ Should\ follow\ 'A\ Tie\ occurs\ when...\ */}\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00042}00042\ STRING\ kHelpExample\ =\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00044}00044\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00045}00045\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00046}00046\ \textcolor{comment}{**\ Everything\ above\ here\ must\ be\ in\ every\ game\ file}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00047}00047\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00048}00048\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00049}00049\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00050}00050\ \textcolor{comment}{/*************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00051}00051\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00052}00052\ \textcolor{comment}{**\ Every\ variable\ declared\ here\ is\ only\ used\ in\ this\ file\ (game-\/specific)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00053}00053\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00054}00054\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00056}00056\ BOOLEAN\ kSupportsSymmetries\ =\ FALSE;\ \textcolor{comment}{/*\ Whether\ we\ support\ symmetries\ */}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00058}00058\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00059}00059\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00060}00060\ \textcolor{comment}{**\ NAME:\ InitializeDatabases}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00061}00061\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00062}00062\ \textcolor{comment}{**\ DESCRIPTION:\ Initialize\ the\ gDatabase,\ a\ global\ variable.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00063}00063\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00064}00064\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00066}00066\ \textcolor{keywordtype}{void}\ InitializeGame()}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00067}00067\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00068}00068\ \ \ \textcolor{keywordtype}{int}\ hash\_data[]\ =\ \{\textcolor{charliteral}{'\ '},\ 1,\ 1,\ \textcolor{charliteral}{'X'},\ 2,\ 2,\ \textcolor{charliteral}{'O'},\ 2,\ 2,\ -\/1\};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00069}00069\ \ \ gNumberOfPositions\ =\ generic\_hash\_init(BOARD\_SIZE,\ hash\_data,\ NULL,\ 0);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00070}00070\ \ \ \textcolor{keywordtype}{char}\ start[]\ =\ \textcolor{stringliteral}{"{}\ XOXO"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00071}00071\ \ \ gInitialPosition\ =\ generic\_hash\_hash(start,\ 1);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00072}00072\ \ \ \textcolor{comment}{/*\ This\ game\ is\ the\ same\ game\ as\ Blocking\ and\ is\ known\ to\ be\ pure\ draw.\ */}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00073}00073\ \ \ kUsePureDraw\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00074}00074\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00076}00076\ \textcolor{keywordtype}{void}\ FreeGame()}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00077}00077\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00078}00078\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00080}00080\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00081}00081\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00082}00082\ \textcolor{comment}{**\ NAME:\ DebugMenu}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00083}00083\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00084}00084\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ debub\ internal\ problems.\ Does\ nothing\ if}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00085}00085\ \textcolor{comment}{**\ kDebugMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00086}00086\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00087}00087\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00088}00088\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00089}00089\ \textcolor{keywordtype}{void}\ DebugMenu()}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00090}00090\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00091}00091\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00092}00092\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00093}00093\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00094}00094\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00095}00095\ \textcolor{comment}{**\ NAME:\ GameSpecificMenu}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00096}00096\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00097}00097\ \textcolor{comment}{**\ DESCRIPTION:\ Menu\ used\ to\ change\ game-\/specific\ parmeters,\ such\ as}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00098}00098\ \textcolor{comment}{**\ the\ side\ of\ the\ board\ in\ an\ nxn\ Nim\ board,\ etc.\ Does}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00099}00099\ \textcolor{comment}{**\ nothing\ if\ kGameSpecificMenu\ ==\ FALSE}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00100}00100\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00101}00101\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00103}00103\ \textcolor{keywordtype}{void}\ GameSpecificMenu()\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00104}00104\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00106}00106\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00107}00107\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00108}00108\ \textcolor{comment}{**\ NAME:\ SetTclCGameSpecificOptions}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00109}00109\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00110}00110\ \textcolor{comment}{**\ DESCRIPTION:\ Set\ the\ C\ game-\/specific\ options\ (called\ from\ Tcl)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00111}00111\ \textcolor{comment}{**\ Ignore\ if\ you\ don't\ care\ about\ Tcl\ for\ now.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00112}00112\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00113}00113\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00114}00114\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00115}00115\ \textcolor{keywordtype}{void}\ SetTclCGameSpecificOptions(\textcolor{keywordtype}{int}\ theOptions[])}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00116}00116\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00117}00117\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00119}00119\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00120}00120\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00121}00121\ \textcolor{comment}{**\ NAME:\ DoMove}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00122}00122\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00123}00123\ \textcolor{comment}{**\ DESCRIPTION:\ Apply\ the\ move\ to\ the\ position.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00124}00124\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00125}00125\ \textcolor{comment}{**\ INPUTS:\ POSITION\ position\ :\ The\ old\ position}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00126}00126\ \textcolor{comment}{**\ MOVE\ move\ :\ The\ move\ to\ apply.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00127}00127\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00128}00128\ \textcolor{comment}{**\ OUTPUTS:\ (POSITION)\ :\ The\ position\ that\ results\ after\ the\ move.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00129}00129\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00130}00130\ \textcolor{comment}{**\ CALLS:\ PositionToBlankOX(POSITION,*BlankOX)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00131}00131\ \textcolor{comment}{**\ BlankOX\ WhosTurn(*BlankOX)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00132}00132\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00133}00133\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00134}00134\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00135}00135\ POSITION\ DoMove(POSITION\ position,\ MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00136}00136\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00137}00137\ \ \ \textcolor{keywordtype}{char}\ board[BOARD\_SIZE];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00138}00138\ \ \ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00139}00139\ \ \ \textcolor{keywordtype}{int}\ start\ =\ DECODE\_MOVE\_START(move);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00140}00140\ \ \ \textcolor{keywordtype}{int}\ end\ =\ DECODE\_MOVE\_END(move);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00141}00141\ \ \ \textcolor{keywordtype}{int}\ player\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00142}00142\ \ \ assert(board[end]\ ==\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00143}00143\ \ \ assert(board[start]\ !=\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00144}00144\ \ \ board[end]\ =\ board[start];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00145}00145\ \ \ board[start]\ =\ \textcolor{charliteral}{'\ '};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00146}00146\ \ \ POSITION\ out\ =\ generic\_hash\_hash(board,\ NEXT\_PLAYER(player));}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00147}00147\ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00148}00148\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00149}00149\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00150}00150\ \textcolor{keywordtype}{void}\ UndoMove(MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00151}00151\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00152}00152\ \ \ assert(0);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00153}00153\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00155}00155\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00156}00156\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00157}00157\ \textcolor{comment}{**\ NAME:\ GetInitialPosition}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00158}00158\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00159}00159\ \textcolor{comment}{**\ DESCRIPTION:\ Ask\ the\ user\ for\ an\ initial\ position\ for\ testing.\ Store}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00160}00160\ \textcolor{comment}{**\ it\ in\ the\ space\ pointed\ to\ by\ initialPosition;}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00161}00161\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00162}00162\ \textcolor{comment}{**\ OUTPUTS:\ POSITION\ initialPosition\ :\ The\ position\ to\ fill.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00163}00163\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00164}00164\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00165}00165\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00166}00166\ POSITION\ GetInitialPosition()}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00167}00167\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00168}00168\ \ \ \textcolor{keywordflow}{return}\ gInitialPosition;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00169}00169\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00171}00171\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00172}00172\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00173}00173\ \textcolor{comment}{**\ NAME:\ PrintComputersMove}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00174}00174\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00175}00175\ \textcolor{comment}{**\ DESCRIPTION:\ Nicely\ format\ the\ computers\ move.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00176}00176\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00177}00177\ \textcolor{comment}{**\ INPUTS:\ MOVE\ *computersMove\ :\ The\ computer's\ move.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00178}00178\ \textcolor{comment}{**\ STRING\ computersName\ :\ The\ computer's\ name.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00179}00179\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00180}00180\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00181}00181\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00182}00182\ \textcolor{keywordtype}{void}\ PrintComputersMove(computersMove,computersName)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00183}00183\ MOVE\ computersMove;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00184}00184\ STRING\ computersName;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00185}00185\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00186}00186\ \ \ \textcolor{keywordtype}{int}\ start\ =\ DECODE\_MOVE\_START(computersMove);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00187}00187\ \ \ \textcolor{keywordtype}{int}\ end\ =\ DECODE\_MOVE\_END(computersMove);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00188}00188\ \ \ printf(\textcolor{stringliteral}{"{}\%s\ moved:\ \%d,\ \%d\(\backslash\)n"{}},\ computersName,\ start,\ end);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00189}00189\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00191}00191\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00192}00192\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00193}00193\ \textcolor{comment}{**\ NAME:\ Primitive}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00194}00194\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00195}00195\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ the\ value\ of\ a\ position\ if\ it\ fulfills\ certain}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00196}00196\ \textcolor{comment}{**\ 'primitive'\ constraints.\ Some\ examples\ of\ this\ is\ having}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00197}00197\ \textcolor{comment}{**\ three-\/in-\/a-\/row\ with\ TicTacToe.\ TicTacToe\ has\ two}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00198}00198\ \textcolor{comment}{**\ primitives\ it\ can\ immediately\ check\ for,\ when\ the\ board}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00199}00199\ \textcolor{comment}{**\ is\ filled\ but\ nobody\ has\ one\ =\ primitive\ tie.\ Three\ in}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00200}00200\ \textcolor{comment}{**\ a\ row\ is\ a\ primitive\ lose,\ because\ the\ player\ who\ faces}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00201}00201\ \textcolor{comment}{**\ this\ board\ has\ just\ lost.\ I.e.\ the\ player\ before\ him}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00202}00202\ \textcolor{comment}{**\ created\ the\ board\ and\ won.\ Otherwise\ undecided.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00203}00203\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00204}00204\ \textcolor{comment}{**\ INPUTS:\ POSITION\ position\ :\ The\ position\ to\ inspect.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00205}00205\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00206}00206\ \textcolor{comment}{**\ OUTPUTS:\ (VALUE)\ an\ enum\ which\ is\ oneof:\ (win,lose,tie,undecided)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00207}00207\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00208}00208\ \textcolor{comment}{**\ CALLS:\ BOOLEAN\ ThreeInARow()}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00209}00209\ \textcolor{comment}{**\ BOOLEAN\ AllFilledIn()}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00210}00210\ \textcolor{comment}{**\ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00211}00211\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00212}00212\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00214}00214\ VALUE\ Primitive(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00215}00215\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00216}00216\ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moves\ =\ GenerateMoves(position);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00217}00217\ \ \ \textcolor{keywordflow}{if}\ (moves\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00218}00218\ \ \ \ \ FreeMoveList(moves);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00219}00219\ \ \ \ \ \textcolor{keywordflow}{return}\ undecided;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00220}00220\ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00221}00221\ \ \ \ \ \textcolor{keywordflow}{return}\ lose;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00222}00222\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00223}00223\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00224}00224\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00225}00225\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00226}00226\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00227}00227\ \textcolor{comment}{**\ NAME:\ PrintPosition}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00228}00228\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00229}00229\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ position\ in\ a\ pretty\ format,\ including\ the}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00230}00230\ \textcolor{comment}{**\ prediction\ of\ the\ game's\ outcome.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00231}00231\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00232}00232\ \textcolor{comment}{**\ INPUTS:\ POSITION\ position\ :\ The\ position\ to\ pretty\ print.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00233}00233\ \textcolor{comment}{**\ STRING\ playerName\ :\ The\ name\ of\ the\ player.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00234}00234\ \textcolor{comment}{**\ BOOLEAN\ usersTurn\ :\ TRUE\ <==>\ it's\ a\ user's\ turn.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00235}00235\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00236}00236\ \textcolor{comment}{**\ CALLS:\ PositionToBlankOX()}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00237}00237\ \textcolor{comment}{**\ GetValueOfPosition()}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00238}00238\ \textcolor{comment}{**\ GetPrediction()}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00239}00239\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00240}00240\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00241}00241\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00242}00242\ \textcolor{keywordtype}{void}\ PrintPosition(POSITION\ position,\ STRING\ playerName,\ BOOLEAN\ usersTurn)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00243}00243\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00244}00244\ \ \ \textcolor{keywordtype}{char}\ board[BOARD\_SIZE];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00245}00245\ \ \ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00246}00246\ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00247}00247\ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ 3\ -\/-\/\ 4\ \ \ \ \%c\ -\/-\/\ \%c\(\backslash\)n"{}},\ board[3],\ board[4]);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00248}00248\ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ |\ \(\backslash\)\(\backslash\)\ /\ \ \ \ \ |\ \(\backslash\)\(\backslash\)\ /\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00249}00249\ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ |\ \ 0\ \ \ \ \ \ |\ \ \%c\(\backslash\)n"{}},\ board[0]);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00250}00250\ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ |\ /\ \(\backslash\)\(\backslash\)\ \ \ \ \ |\ /\ \(\backslash\)\(\backslash\)\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00251}00251\ \ \ printf(\textcolor{stringliteral}{"{}\ \ \ \ 2\ -\/-\/\ 1\ \ \ \ \%c\ -\/-\/\ \%c\(\backslash\)n"{}},\ board[2],\ board[1]);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00252}00252\ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00253}00253\ \ \ printf(\textcolor{stringliteral}{"{}It\ is\ \%s's\ turn\ (\%c).\(\backslash\)n"{}},\ playerName,\ playerPiece[generic\_hash\_turn(position)]);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00254}00254\ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00255}00255\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00256}00256\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00257}00257\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00258}00258\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00259}00259\ \textcolor{comment}{**\ NAME:\ GenerateMoves}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00260}00260\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00261}00261\ \textcolor{comment}{**\ DESCRIPTION:\ Create\ a\ linked\ list\ of\ every\ move\ that\ can\ be\ reached}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00262}00262\ \textcolor{comment}{**\ from\ this\ position.\ Return\ a\ pointer\ to\ the\ head\ of\ the}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00263}00263\ \textcolor{comment}{**\ linked\ list.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00264}00264\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00265}00265\ \textcolor{comment}{**\ INPUTS:\ POSITION\ position\ :\ The\ position\ to\ branch\ off\ of.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00266}00266\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00267}00267\ \textcolor{comment}{**\ OUTPUTS:\ (MOVELIST\ *),\ a\ pointer\ that\ points\ to\ the\ first\ item}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00268}00268\ \textcolor{comment}{**\ in\ the\ linked\ list\ of\ moves\ that\ can\ be\ generated.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00269}00269\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00270}00270\ \textcolor{comment}{**\ CALLS:\ MOVELIST\ *CreateMovelistNode(MOVE,MOVELIST\ *)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00271}00271\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00272}00272\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00273}00273\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00274}00274\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00275}00275\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00276}00276\ \ \ \textcolor{keywordtype}{char}\ board[BOARD\_SIZE];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00277}00277\ \ \ generic\_hash\_unhash(position,\ board);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00278}00278\ \ \ \textcolor{keywordtype}{int}\ player\ =\ generic\_hash\_turn(position);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00279}00279\ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moves\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00280}00280\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ BOARD\_SIZE;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00281}00281\ \ \ \ \ \textcolor{keywordflow}{if}\ (playerPiece[player]\ ==\ board[i])\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00282}00282\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00283}00283\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ j\ =\ 1;\ j\ <\ BOARD\_SIZE;\ j++)\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[j]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(ENCODE\_MOVE(i,\ j),\ moves);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00288}00288\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ next\ =\ (i\ +\ 1)\ \%\ BOARD\_SIZE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ prev\ =\ (i\ +\ (BOARD\_SIZE\ -\/\ 1))\ \%\ BOARD\_SIZE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00291}00291\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ center\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (board[next]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(ENCODE\_MOVE(i,\ next),\ moves);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (board[prev]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(ENCODE\_MOVE(i,\ prev),\ moves);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00296}00296\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (board[center]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ \ \ moves\ =\ CreateMovelistNode(ENCODE\_MOVE(i,\ center),\ moves);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00299}00299\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00300}00300\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00301}00301\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00302}00302\ \ \ \textcolor{keywordflow}{return}\ moves;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00303}00303\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00304}00304\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00305}00305\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00306}00306\ \textcolor{comment}{/****************\ SYMMETRY\ FUN\ BEGIN\ **************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00307}00307\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00308}00308\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00309}00309\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00310}00310\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00311}00311\ \textcolor{comment}{**\ NAME:\ GetCanonicalPosition}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00312}00312\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00313}00313\ \textcolor{comment}{**\ DESCRIPTION:\ Go\ through\ all\ of\ the\ positions\ that\ are\ symmetrically}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00314}00314\ \textcolor{comment}{**\ equivalent\ and\ return\ the\ SMALLEST,\ which\ will\ be\ used}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00315}00315\ \textcolor{comment}{**\ as\ the\ canonical\ element\ for\ the\ equivalence\ set.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00316}00316\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00317}00317\ \textcolor{comment}{**\ INPUTS:\ POSITION\ position\ :\ The\ position\ return\ the\ canonical\ elt.\ of.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00318}00318\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00319}00319\ \textcolor{comment}{**\ OUTPUTS:\ POSITION\ :\ The\ canonical\ element\ of\ the\ set.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00320}00320\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00321}00321\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00323}00323\ POSITION\ GetCanonicalPosition(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00324}00324\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00325}00325\ \ \ \textcolor{keywordflow}{return}\ position;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00326}00326\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00328}00328\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00329}00329\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00330}00330\ \textcolor{comment}{**\ NAME:\ DoSymmetry}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00331}00331\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00332}00332\ \textcolor{comment}{**\ DESCRIPTION:\ Perform\ the\ symmetry\ operation\ specified\ by\ the\ input}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00333}00333\ \textcolor{comment}{**\ on\ the\ position\ specified\ by\ the\ input\ and\ return\ the}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00334}00334\ \textcolor{comment}{**\ new\ position,\ even\ if\ it's\ the\ same\ as\ the\ input.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00335}00335\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00336}00336\ \textcolor{comment}{**\ INPUTS:\ POSITION\ position\ :\ The\ position\ to\ branch\ the\ symmetry\ from.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00337}00337\ \textcolor{comment}{**\ int\ symmetry\ :\ The\ number\ of\ the\ symmetry\ operation.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00338}00338\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00339}00339\ \textcolor{comment}{**\ OUTPUTS:\ POSITION,\ The\ position\ after\ the\ symmetry\ operation.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00340}00340\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00341}00341\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00343}00343\ POSITION\ DoSymmetry(POSITION\ position,\ \textcolor{keywordtype}{int}\ symmetry)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00344}00344\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00345}00345\ \ \ \textcolor{keywordflow}{return}\ position;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00346}00346\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00347}00347\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00348}00348\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00349}00349\ \textcolor{comment}{/****************\ SYMMETRY\ FUN\ END\ ****************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00350}00350\ \textcolor{comment}{/**************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00351}00351\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00352}00352\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00353}00353\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00354}00354\ \textcolor{comment}{**\ NAME:\ GetAndPrintPlayersMove}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00355}00355\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00356}00356\ \textcolor{comment}{**\ DESCRIPTION:\ This\ finds\ out\ if\ the\ player\ wanted\ an\ undo\ or\ abort\ or\ not.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00357}00357\ \textcolor{comment}{**\ If\ so,\ return\ Undo\ or\ Abort\ and\ don't\ change\ theMove.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00358}00358\ \textcolor{comment}{**\ Otherwise\ get\ the\ new\ theMove\ and\ fill\ the\ pointer\ up.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00359}00359\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00360}00360\ \textcolor{comment}{**\ INPUTS:\ POSITION\ *thePosition\ :\ The\ position\ the\ user\ is\ at.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00361}00361\ \textcolor{comment}{**\ MOVE\ *theMove\ :\ The\ move\ to\ fill\ with\ user's\ move.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00362}00362\ \textcolor{comment}{**\ STRING\ playerName\ :\ The\ name\ of\ the\ player\ whose\ turn\ it\ is}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00363}00363\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00364}00364\ \textcolor{comment}{**\ OUTPUTS:\ USERINPUT\ :\ Oneof(\ Undo,\ Abort,\ Continue\ )}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00365}00365\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00366}00366\ \textcolor{comment}{**\ CALLS:\ ValidMove(MOVE,\ POSITION)}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00367}00367\ \textcolor{comment}{**\ BOOLEAN\ PrintPossibleMoves(POSITION)\ ...Always\ True!}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00368}00368\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00369}00369\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00370}00370\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00371}00371\ USERINPUT\ GetAndPrintPlayersMove(thePosition,\ theMove,\ playerName)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00372}00372\ POSITION\ thePosition;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00373}00373\ MOVE\ *theMove;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00374}00374\ STRING\ playerName;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00375}00375\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00376}00376\ \ \ USERINPUT\ ret\ =\ Continue;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00377}00377\ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00378}00378\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\%s's\ move\ [(u)ndo/0-\/4,0-\/4]\ :\ \ "{}},\ playerName);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00380}00380\ \ \ \ \ ret\ =\ HandleDefaultTextInput(thePosition,\ theMove,\ playerName);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00381}00381\ \ \ \}\ \textcolor{keywordflow}{while}\ (ret\ ==\ Continue);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00382}00382\ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00383}00383\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00384}00384\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00385}00385\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00386}00386\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00387}00387\ \textcolor{comment}{**\ NAME:\ ValidTextInput}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00388}00388\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00389}00389\ \textcolor{comment}{**\ DESCRIPTION:\ Return\ TRUE\ iff\ the\ string\ input\ is\ of\ the\ right\ 'form'.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00390}00390\ \textcolor{comment}{**\ For\ example,\ if\ the\ user\ is\ allowed\ to\ select\ one\ slot}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00391}00391\ \textcolor{comment}{**\ from\ the\ numbers\ 1-\/9,\ and\ the\ user\ chooses\ 0,\ it's\ not}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00392}00392\ \textcolor{comment}{**\ valid,\ but\ anything\ from\ 1-\/9\ IS,\ regardless\ if\ the\ slot}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00393}00393\ \textcolor{comment}{**\ is\ filled\ or\ not.\ Whether\ the\ slot\ is\ filled\ is\ left\ up}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00394}00394\ \textcolor{comment}{**\ to\ another\ routine.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00395}00395\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00396}00396\ \textcolor{comment}{**\ INPUTS:\ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00397}00397\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00398}00398\ \textcolor{comment}{**\ OUTPUTS:\ BOOLEAN\ :\ TRUE\ iff\ the\ input\ is\ a\ valid\ text\ input.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00399}00399\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00400}00400\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00401}00401\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00402}00402\ BOOLEAN\ ValidTextInput(STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00403}00403\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00404}00404\ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00405}00405\ \ \ \textcolor{keywordflow}{while}\ (input[i]\ \&\&\ isdigit(input[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00406}00406\ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00407}00407\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00408}00408\ \ \ \textcolor{keywordflow}{while}\ (input[i]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00409}00409\ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00410}00410\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00411}00411\ \ \ \textcolor{keywordflow}{if}\ (input[i]\ !=\ \textcolor{charliteral}{','})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00412}00412\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00413}00413\ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00414}00414\ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00415}00415\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00416}00416\ \ \ \textcolor{keywordflow}{while}\ (input[i]\ ==\ \textcolor{charliteral}{'\ '})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00417}00417\ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00418}00418\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00419}00419\ \ \ \textcolor{keywordflow}{while}\ (input[i]\ \&\&\ isdigit(input[i]))\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00420}00420\ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00421}00421\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00422}00422\ \ \ \textcolor{keywordflow}{return}\ !input[i];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00423}00423\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00424}00424\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00425}00425\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00426}00426\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00427}00427\ \textcolor{comment}{**\ NAME:\ ConvertTextInputToMove}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00428}00428\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00429}00429\ \textcolor{comment}{**\ DESCRIPTION:\ Convert\ the\ string\ input\ to\ the\ internal\ move\ representation.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00430}00430\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00431}00431\ \textcolor{comment}{**\ INPUTS:\ STRING\ input\ :\ The\ string\ input\ the\ user\ typed.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00432}00432\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00433}00433\ \textcolor{comment}{**\ OUTPUTS:\ MOVE\ :\ The\ move\ corresponding\ to\ the\ user's\ input.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00434}00434\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00435}00435\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00436}00436\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00437}00437\ MOVE\ ConvertTextInputToMove(STRING\ input)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00438}00438\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00439}00439\ \ \ \textcolor{keywordtype}{char}\ *\ c\ =\ input;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00440}00440\ \ \ \textcolor{keywordtype}{long}\ start\ =\ strtol(c,\ \&c,\ 10);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00441}00441\ \ \ \textcolor{keywordflow}{while}\ (*c\ ==\ \textcolor{charliteral}{'\ '}\ ||\ *c\ ==\ \textcolor{charliteral}{','})\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00442}00442\ \ \ \ \ c++;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00443}00443\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00444}00444\ \ \ \textcolor{keywordtype}{long}\ end\ =\ strtol(c,\ \&c,\ 10);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00445}00445\ \ \ \textcolor{keywordflow}{return}\ ENCODE\_MOVE(start,\ end);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00446}00446\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00447}00447\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00448}00448\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00449}00449\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00450}00450\ \textcolor{comment}{**\ NAME:\ PrintMove}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00451}00451\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00452}00452\ \textcolor{comment}{**\ DESCRIPTION:\ Print\ the\ move\ in\ a\ nice\ format.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00453}00453\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00454}00454\ \textcolor{comment}{**\ INPUTS:\ MOVE\ *theMove\ :\ The\ move\ to\ print.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00455}00455\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00456}00456\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00457}00457\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00458}00458\ \textcolor{keywordtype}{void}\ PrintMove(MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00459}00459\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00460}00460\ \ \ \textcolor{keywordtype}{int}\ start\ =\ DECODE\_MOVE\_START(move);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00461}00461\ \ \ \textcolor{keywordtype}{int}\ end\ =\ DECODE\_MOVE\_END(move);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00462}00462\ \ \ printf(\textcolor{stringliteral}{"{}\%d,\%d"{}},\ start,\ end);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00463}00463\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00464}00464\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00465}00465\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00466}00466\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00467}00467\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00468}00468\ \textcolor{comment}{**\ NAME:\ MoveToString}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00469}00469\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00470}00470\ \textcolor{comment}{**\ DESCRIPTION:\ Returns\ the\ move\ as\ a\ STRING}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00471}00471\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00472}00472\ \textcolor{comment}{**\ INPUTS:\ MOVE\ *move\ :\ The\ move\ to\ put\ into\ a\ string.}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00473}00473\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00474}00474\ \textcolor{comment}{************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00475}00475\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00476}00476\ STRING\ MoveToString\ (MOVE\ move)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00477}00477\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00478}00478\ \ \ \textcolor{keywordtype}{char}\ *\ c\ =\ malloc(MAX\_MOVE\_STRING\_SIZE);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00479}00479\ \ \ snprintf(c,\ MAX\_MOVE\_STRING\_SIZE,\ \textcolor{stringliteral}{"{}\%u,\%u"{}},\ DECODE\_MOVE\_START(move),\ DECODE\_MOVE\_END(move));}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00480}00480\ \ \ \textcolor{keywordflow}{return}\ c;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00481}00481\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00482}00482\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00483}00483\ STRING\ kDBName\ =\ \textcolor{stringliteral}{"{}ponghauki"{}};}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00484}00484\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00485}00485\ \textcolor{keywordtype}{int}\ NumberOfOptions()}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00486}00486\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00487}00487\ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00488}00488\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00489}00489\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00490}00490\ \textcolor{keywordtype}{int}\ getOption()}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00491}00491\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00492}00492\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00493}00493\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00494}00494\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00495}00495\ \textcolor{keywordtype}{void}\ setOption(\textcolor{keywordtype}{int}\ option)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00496}00496\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00497}00497\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00498}00498\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00499}00499\ POSITION\ ActualNumberOfPositions(\textcolor{keywordtype}{int}\ variant)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00500}00500\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00501}00501\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00502}00502\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00503}00503\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00504}00504\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00505}00505\ POSITION\ InteractStringToPosition(STRING\ board)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00506}00506\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00507}00507\ \ \ \textcolor{keywordtype}{int}\ i,\ turn;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00508}00508\ \ \ \textcolor{keywordtype}{char}\ board\_char[BOARD\_SIZE];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00509}00509\ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ BOARD\_SIZE;\ i++)\{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00510}00510\ \ \ \ \ board\_char[i]\ =\ board[i];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00511}00511\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00512}00512\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00513}00513\ \ \ \textcolor{keywordtype}{int}\ success\ =\ GetValue(board,\ \textcolor{stringliteral}{"{}turn"{}},\ GetInt,\ \&turn);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00514}00514\ \ \ \textcolor{keywordflow}{if}\ (success)\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00515}00515\ \ \ \ \ \textcolor{keywordflow}{return}\ generic\_hash\_hash(board\_char,\ turn);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00516}00516\ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00517}00517\ \ \ \ \ \textcolor{keywordflow}{return}\ INVALID\_POSITION;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00518}00518\ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00519}00519\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00520}00520\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00521}00521\ STRING\ InteractPositionToString(POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00522}00522\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00523}00523\ \ \ \textcolor{keywordtype}{char}\ board[BOARD\_SIZE\ +\ 1];}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00524}00524\ \ \ \textcolor{keywordtype}{int}\ current\_player\ =\ generic\_hash\_turn(pos);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00525}00525\ \ \ generic\_hash\_unhash(pos,\ board);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00526}00526\ \ \ \textcolor{keywordflow}{return}\ MakeBoardString(board,\ \textcolor{stringliteral}{"{}turn"{}},\ \ StrFromI(current\_player),\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00527}00527\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00528}00528\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00529}00529\ STRING\ InteractPositionToEndData(POSITION\ pos)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00530}00530\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00531}00531\ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00532}00532\ \}}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00533}00533\ }
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00534}00534\ STRING\ InteractMoveToString(POSITION\ pos,\ MOVE\ mv)}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00535}00535\ \{}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00536}00536\ \ \ \textcolor{keywordflow}{return}\ MoveToString(mv);}
+\DoxyCodeLine{\Hypertarget{mponghauki_8c_source_l00537}00537\ \}}
+
+\end{DoxyCode}

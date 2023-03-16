@@ -1,0 +1,86 @@
+\hypertarget{stroke_8h_source}{}\doxysection{stroke.\+h}
+\label{stroke_8h_source}\index{src/core/pen/stroke.h@{src/core/pen/stroke.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00001}00001\ \textcolor{comment}{//\ Stroke\ structures\ and\ supporting\ functions}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00002}00002\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00003}00003\ \textcolor{preprocessor}{\#ifndef\ STROKE\_H}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00004}00004\ \textcolor{preprocessor}{\#define\ STROKE\_H}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00006}00006\ \textcolor{preprocessor}{\#ifndef\ BOOL}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00007}00007\ \textcolor{preprocessor}{\#define\ BOOL\ int}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00008}00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00009}00009\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00010}00010\ \textcolor{preprocessor}{\#ifndef\ TRUE}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00011}00011\ \textcolor{preprocessor}{\#define\ TRUE\ 1}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00012}00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00014}00014\ \textcolor{preprocessor}{\#ifndef\ FALSE}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00015}00015\ \textcolor{preprocessor}{\#define\ FALSE\ 0}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00016}00016\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00017}00017\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00019}\mbox{\hyperlink{struct_sample}{00019}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00020}00020\ \ \ \ \ \textcolor{keywordtype}{double}\ x,\ y;}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00021}00021\ \}\ \mbox{\hyperlink{struct_sample}{Sample}};}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00024}00024\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00025}00025\ \ \ \ \ STROKE\_LINE,}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00026}00026\ \ \ \ \ STROKE\_DOT,}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00027}00027\ \ \ \ \ STROKE\_SHAPE,}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00028}00028\ \ \ \ \ STROKE\_UNKNOWN}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00029}00029\ \}\ StrokeType;}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00032}\mbox{\hyperlink{struct_rect}{00032}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00033}00033\ \ \ \ \ \textcolor{keywordtype}{double}\ minX,\ minY;\ \textcolor{comment}{//\ Minumum\ coordinate}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00034}00034\ \ \ \ \ \textcolor{keywordtype}{double}\ maxX,\ maxY;\ \textcolor{comment}{//\ Maximum\ coordinate}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00035}00035\ \ \ \ \ \textcolor{keywordtype}{double}\ centerX,\ centerY;\ \textcolor{comment}{//\ Center\ coordinate\ (average\ of\ max\ \&\ min)}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00036}00036\ \ \ \ \ \textcolor{keywordtype}{double}\ width,\ height;\ \textcolor{comment}{//\ Dimension\ (max\ -\/\ min)}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00037}00037\ \ \ \ \ \textcolor{keywordtype}{double}\ area;\ \textcolor{comment}{//\ Rectangular\ area\ (width\ *\ height)}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00038}00038\ \}\ \mbox{\hyperlink{struct_rect}{Rect}};}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00041}\mbox{\hyperlink{struct_line}{00041}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00042}00042\ \ \ \ \ \textcolor{keywordtype}{double}\ x1,\ y1,\ x2,\ y2;}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00043}00043\ \ \ \ \ \textcolor{keywordtype}{double}\ centerX,\ centerY;}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00044}00044\ \ \ \ \ \textcolor{keywordtype}{double}\ length;}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00045}00045\ \ \ \ \ \textcolor{keywordtype}{double}\ angleRadians,\ angleDegrees;}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00046}00046\ \}\ \mbox{\hyperlink{struct_line}{Line}};}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00048}00048\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00049}00049\ \textcolor{preprocessor}{\#define\ MAX\_SAMPLES\ 1000}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00050}00050\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00051}\mbox{\hyperlink{struct_stroke}{00051}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00052}00052\ \ \ \ \ \mbox{\hyperlink{struct_sample}{Sample}}\ samples[MAX\_SAMPLES];\ \textcolor{comment}{//\ pen\ samples\ for\ this\ stroke}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00053}00053\ \ \ \ \ \textcolor{keywordtype}{int}\ nSamples;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ samples}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00054}00054\ \ \ \ \ \mbox{\hyperlink{struct_rect}{Rect}}\ bounds;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ rectangular\ bound\ of\ the\ samples}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00055}00055\ \ \ \ \ \textcolor{keywordtype}{double}\ radius;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ smallest\ enclosing\ radius\ for\ samples,\ around\ (bounds.centerX,\ bounds.centerY)}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00056}00056\ \ \ \ \ \textcolor{keywordtype}{double}\ averageSampleDistance;\ \textcolor{comment}{//\ average\ distance\ from\ each\ sample\ to\ (bounds.centerX,\ bounds.centerY)}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00057}00057\ \ \ \ \ StrokeType\ type;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ stroke\ type\ (see\ util.h)}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00058}00058\ \ \ \ \ \mbox{\hyperlink{struct_line}{Line}}\ line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ line\ representation\ (only\ set\ for\ type\ =\ LINE)}}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00059}00059\ \}\ \mbox{\hyperlink{struct_stroke}{Stroke}};}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00061}00061\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00062}00062\ \mbox{\hyperlink{struct_rect}{Rect}}\ newRect(\textcolor{keywordtype}{double}\ minX,\ \textcolor{keywordtype}{double}\ minY,\ \textcolor{keywordtype}{double}\ maxX,\ \textcolor{keywordtype}{double}\ maxY);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00064}00064\ \mbox{\hyperlink{struct_stroke}{Stroke}}\ newStroke();}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00065}00065\ \textcolor{keywordtype}{void}\ addStrokeSample(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *s,\ \textcolor{keywordtype}{double}\ x,\ \textcolor{keywordtype}{double}\ y);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00066}00066\ \textcolor{keywordtype}{void}\ calculateStrokeProperties(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *s);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00068}00068\ \mbox{\hyperlink{struct_line}{Line}}\ newLine(\textcolor{keywordtype}{double}\ x1,\ \textcolor{keywordtype}{double}\ y1,\ \textcolor{keywordtype}{double}\ x2,\ \textcolor{keywordtype}{double}\ y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00069}00069\ \textcolor{keywordtype}{double}\ projectPoint(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \textcolor{keywordtype}{double}\ x,\ \textcolor{keywordtype}{double}\ y);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00070}00070\ \textcolor{keywordtype}{double}\ projectedX(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \textcolor{keywordtype}{double}\ t,\ BOOL\ limitToLine);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00071}00071\ \textcolor{keywordtype}{double}\ projectedY(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \textcolor{keywordtype}{double}\ t,\ BOOL\ limitToLine);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00072}00072\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00073}00073\ \textcolor{keywordtype}{double}\ distance(\textcolor{keywordtype}{double}\ x1,\ \textcolor{keywordtype}{double}\ y1,\ \textcolor{keywordtype}{double}\ x2,\ \textcolor{keywordtype}{double}\ y2);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00074}00074\ \textcolor{keywordtype}{double}\ fitLeastSquares(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *stroke,\ \mbox{\hyperlink{struct_line}{Line}}\ *lineResult);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00075}00075\ \textcolor{keywordtype}{double}\ strokeDistance(\mbox{\hyperlink{struct_stroke}{Stroke}}\ *s1,\ \mbox{\hyperlink{struct_stroke}{Stroke}}\ *s2);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00076}00076\ \textcolor{keywordtype}{double}\ intersectionPoint(\mbox{\hyperlink{struct_line}{Line}}\ *l1,\ \mbox{\hyperlink{struct_line}{Line}}\ *l2);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00077}00077\ BOOL\ doLinesIntersect(\mbox{\hyperlink{struct_line}{Line}}\ *l1,\ \mbox{\hyperlink{struct_line}{Line}}\ *l2);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00078}00078\ BOOL\ doesLineIntersectBoundingCircle(\mbox{\hyperlink{struct_line}{Line}}\ *l,\ \mbox{\hyperlink{struct_stroke}{Stroke}}\ *s);}
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00079}00079\ }
+\DoxyCodeLine{\Hypertarget{stroke_8h_source_l00080}00080\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//STROKE\_H}}
+
+\end{DoxyCode}

@@ -147,7 +147,7 @@ void InitializeGame() {
   
 }
 
-/* Return the hash value of the initial position. */
+/** Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
   // SORRY
   // struct FFK_Board* initial_board = malloc(sizeof(struct FFK_Board));
@@ -179,7 +179,7 @@ POSITION DoMove(POSITION position, MOVE move) {
   return 0;
 }
 
-/* Return lose, win, tie, or undecided. See src/core/types.h
+/** Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
   // SORRY
@@ -211,38 +211,38 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  /* YOUR CODE HERE */
+  /** YOUR CODE HERE */
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-  /* YOUR CODE HERE */
+  /** YOUR CODE HERE */
   return Continue;
 }
 
-/* Return whether the input text signifies a valid move. */
+/** Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
-  /* YOUR CODE HERE */
+  /** YOUR CODE HERE */
   return TRUE;
 }
 
-/* Assume the text input signifies a valid move. Return
+/** Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  /* YOUR CODE HERE */
+  /** YOUR CODE HERE */
   return 0;
 }
 
-/* Return the string representation of the move. 
+/** Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type in. */
 STRING MoveToString(MOVE move) {
-  /* YOUR CODE HERE */
+  /** YOUR CODE HERE */
   return NULL;
 }
 
-/* Basically just print the move. */
+/** Basically just print the move. */
 void PrintMove(MOVE move) {
-  /* YOUR CODE HERE */
+  /** YOUR CODE HERE */
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -271,7 +271,7 @@ int getOption() {
   return 0;
 }
 
-/* The input is a variant id. This function sets any global variables
+/** The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. 
 But for now you have one variant so don't worry about this. */
 void setOption(int option) {

@@ -1,0 +1,31 @@
+\hypertarget{text_resource_8h_source}{}\doxysection{text\+Resource.\+h}
+\label{text_resource_8h_source}\index{src/core/text\_resource/textResource.h@{src/core/text\_resource/textResource.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ TEXTRESOURCE\_H\_}}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ TEXTRESOURCE\_H\_}}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}\mbox{\hyperlink{ght__hash__table_8h}{ght\_hash\_table.h}}"{}}}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00006}\mbox{\hyperlink{struct_text_resource__struct}{00006}}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_text_resource__struct}{TextResource\_struct}}\ \{}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00007}00007\ \ \ \ \ \mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *parameters;}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00008}00008\ \ \ \ \ \mbox{\hyperlink{structght__hash__table__t}{ght\_hash\_table\_t}}\ *strings;}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00009}00009\ \};}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00010}00010\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00011}00011\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_text_resource__struct}{TextResource\_struct}}\ *\ \mbox{\hyperlink{struct_text_resource__struct}{TextResource}};}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00014}00014\ \textcolor{comment}{//public\ functions}}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00015}00015\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00023}00023\ \mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ TextResource\_create(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename);}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00024}00024\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00030}00030\ \textcolor{keywordtype}{void}\ TextResource\_free(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr);}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00039}00039\ \textcolor{keywordtype}{void}\ TextResource\_setParameter(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ key,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ value);}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00051}00051\ \textcolor{keywordtype}{int}\ TextResource\_getString(\mbox{\hyperlink{struct_text_resource__struct}{TextResource}}\ tr,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ key,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ maxSize,\ \textcolor{keywordtype}{char}*\ buffer);}
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{text_resource_8h_source_l00054}00054\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*TEXTRESOURCE\_H\_*/}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

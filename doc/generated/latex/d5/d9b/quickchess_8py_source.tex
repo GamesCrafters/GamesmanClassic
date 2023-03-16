@@ -1,0 +1,26 @@
+\hypertarget{quickchess_8py_source}{}\doxysection{quickchess.\+py}
+\label{quickchess_8py_source}\index{src/py/games/quickchess.py@{src/py/games/quickchess.py}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00001}00001\ \textcolor{keyword}{import}\ game}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00002}00002\ \textcolor{keyword}{import}\ server}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00004}\mbox{\hyperlink{classquickchess_1_1quickchess}{00004}}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classquickchess_1_1quickchess}{quickchess}}(\mbox{\hyperlink{classgame_1_1_game}{game.Game}}):}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00005}00005\ }
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00006}\mbox{\hyperlink{classquickchess_1_1quickchess_1_1_quickchess_process}{00006}}\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classquickchess_1_1quickchess_1_1_quickchess_process}{QuickchessProcess}}(\mbox{\hyperlink{classserver_1_1_game_process}{server.GameProcess}}):}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00008}00008\ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ *args,\ **kwargs):}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00009}00009\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classserver_1_1_game_process_ae3ae37784f545bf948928e2f971dc223}{server.GameProcess.\_\_init\_\_}}(self,\ *args,\ **kwargs)}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00010}00010\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Set\ timeout\ to\ a\ year}}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00011}00011\ \ \ \ \ \ \ \ \ \ \ \ \ self.\mbox{\hyperlink{classquickchess_1_1quickchess_1_1_quickchess_process_a486d86897a328ac76babac599b6df02f}{req\_timeout}}\mbox{\hyperlink{classserver_1_1_game_process_a3fa40e36b2c3b18ea5a82830434a7b6f}{req\_timeout}}\ =\ 365\ *\ 24\ *\ 60\ *\ 60}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00013}00013\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ server,\ name):}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00014}00014\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classgame_1_1_game_a3676a5fc79ac6c88c6b41b38f2d0ebef}{game.Game.\_\_init\_\_}}(self,\ server,\ name)}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00015}00015\ \ \ \ \ \ \ \ \ self.process\_class\ =\ self.QuickchessProcess}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00017}00017\ \ \ \ \ \textcolor{keyword}{def\ }get\_option(self,\ query):}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00018}00018\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ query[\textcolor{stringliteral}{'misere'}]\ ==\ \textcolor{stringliteral}{'yes'}:}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00019}00019\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 2}
+\DoxyCodeLine{\Hypertarget{quickchess_8py_source_l00020}00020\ }
+
+\end{DoxyCode}

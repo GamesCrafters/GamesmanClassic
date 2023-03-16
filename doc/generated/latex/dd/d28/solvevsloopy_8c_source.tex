@@ -1,0 +1,619 @@
+\hypertarget{solvevsloopy_8c_source}{}\doxysection{solvevsloopy.\+c}
+\label{solvevsloopy_8c_source}\index{src/core/solvevsloopy.c@{src/core/solvevsloopy.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ solvevsloopy.c}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ The\ infamous\ loopy\ solver.}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}bpdb\_misc.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00035}00035\ \textcolor{preprocessor}{\#include\ "{}solvevsloopy.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00036}00036\ \textcolor{preprocessor}{\#include\ "{}analysis.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00037}00037\ \textcolor{preprocessor}{\#include\ "{}openPositions.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00039}00039\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00040}00040\ \textcolor{comment}{**\ Globals}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00041}00041\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00042}00042\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00043}00043\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ gVSHeadWinFR\ =\ NULL;\ \ \ \ \textcolor{comment}{/*\ The\ FRontier\ Win\ Queue\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00044}00044\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ gVSTailWinFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00045}00045\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ gVSHeadLoseFR\ =\ NULL;\ \ \ \textcolor{comment}{/*\ The\ FRontier\ Lose\ Queue\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00046}00046\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ gVSTailLoseFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00047}00047\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ gVSHeadTieFR\ =\ NULL;\ \ \ \ \textcolor{comment}{/*\ The\ FRontier\ Tie\ Queue\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00048}00048\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}*\ \ \ \ \ \ \ \ \ gVSTailTieFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00049}00049\ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}**\ \ gVSParents\ =\ NULL;\ \ \ \ \ \ \textcolor{comment}{/*\ The\ Parent\ of\ each\ node\ in\ a\ list\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00050}00050\ \textcolor{keywordtype}{char}*\ \ \ \ \ \ \ \ \ \ \ gVSNumberChildren\ =\ NULL;\ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ Number\ of\ children\ (used\ for\ Loopy\ games)\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00051}00051\ \textcolor{keywordtype}{char}*\ \ \ \ \ \ \ gVSNumberChildrenOriginal\ =\ NULL;\ \textcolor{comment}{/*\ Open\ Positions:\ for\ finding\ level1\ frontier\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00052}00052\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00053}00053\ \textcolor{comment}{//\ Data\ to\ be\ stored\ in\ each\ slice\ of\ the\ database}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00054}00054\ UINT32\ SL\_VALUESLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00055}00055\ UINT32\ SL\_MEXSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00056}00056\ UINT32\ SL\_WINBYSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00057}00057\ UINT32\ SL\_REMSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00058}00058\ UINT32\ SL\_VISITEDSLOT\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00059}00059\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00060}00060\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00061}00061\ \textcolor{comment}{**\ Local\ function\ prototypes}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00062}00062\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00063}00063\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00064}00064\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ VSParentInitialize\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00065}00065\ \textcolor{keyword}{static}\ VALUE\ \ \ \ VSDetermineLoopyValue1\ \ \ \ \ \ \ \ \ \ (POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00066}00066\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ VSParentFree\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00067}00067\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ VSSetParents\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (POSITION\ bad,\ POSITION\ root);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00069}00069\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00070}00070\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00071}00071\ \textcolor{comment}{**\ Code}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00072}00072\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00073}00073\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00074}00074\ \textcolor{keywordtype}{void}\ VSMyPrintParents()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00075}00075\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00076}00076\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00077}00077\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *ptr;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00078}00078\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00079}00079\ \ \ \ \ printf(\textcolor{stringliteral}{"{}PARENTS\ |\ \#Children\ |\ Value\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00080}00080\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00081}00081\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<gNumberOfPositions;\ i++)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Visited(i))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ gVSParents[i];}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ printf(POSITION\_FORMAT\ \textcolor{stringliteral}{"{}:\ "{}},i);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00086}00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}["{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}]\ "{}},ptr-\/>position);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}|\ \%d\ children\ |\ \%s\ value"{}},(\textcolor{keywordtype}{int})gVSNumberChildren[i],gValueString[GetValueOfPosition((POSITION)i)]);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00091}00091\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00092}00092\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00093}00093\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00094}00094\ VALUE\ VSDetermineLoopyValue(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00095}00095\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00096}00096\ \ \ \ \ GMSTATUS\ status\ =\ STATUS\_SUCCESS;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00097}00097\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00098}00098\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00099}00099\ \ \ \ \ \textcolor{comment}{/*\ initialize\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00100}00100\ \ \ \ \ VSInitializeFR();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00101}00101\ \ \ \ \ VSParentInitialize();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00102}00102\ \ \ \ \ VSNumberChildrenInitialize();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00103}00103\ \ \ \ \ \textcolor{comment}{//if\ (gTwoBits)}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00104}00104\ \ \ \ \ \textcolor{comment}{//\ \ \ InitializeVisitedArray();}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00107}00107\ \ \ \ \ \textcolor{keywordflow}{if}(!gBitPerfectDB)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ status\ =\ STATUS\_MISSING\_DEPENDENT\_MODULE;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Bit-\/Perfect\ DB\ must\ be\ the\ selected\ DB\ to\ use\ the\ slices\ solver"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ i\ wouldn't\ use\ this\ exit\ call\ if\ the\ status\ code}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ was\ allowed\ to\ propogate\ up}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ exit(0);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00114}00114\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00116}00116\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00117}00117\ \ \ \ \ \textcolor{comment}{//\ add\ slots\ to\ database\ slices}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00118}00118\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00119}00119\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00120}00120\ \ \ \ \ status\ =\ AddSlot(\ 2,\ \textcolor{stringliteral}{"{}VALUE"{}},\ TRUE,\ FALSE,\ FALSE,\ \&SL\_VALUESLOT\ );\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 0}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00121}00121\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ value\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00124}00124\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00126}00126\ \ \ \ \ \textcolor{keywordflow}{if}(gPutWinBy)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ status\ =\ AddSlot(\ 3,\ \textcolor{stringliteral}{"{}WINBY"{}},\ TRUE,\ TRUE,\ FALSE,\ \&SL\_WINBYSLOT\ );\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 2}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ winby\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00132}00132\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00134}00134\ \ \ \ \ \textcolor{keywordflow}{if}(!kPartizan)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00135}00135\ \ \ \ \ \ \ \ \ status\ =\ AddSlot(\ 3,\ \textcolor{stringliteral}{"{}MEX"{}},\ TRUE,\ TRUE,\ FALSE,\ \&SL\_MEXSLOT\ );\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 2}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ mex\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00140}00140\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00142}00142\ \ \ \ \ status\ =\ AddSlot(\ 5,\ \textcolor{stringliteral}{"{}REMOTENESS"{}},\ TRUE,\ TRUE,\ TRUE,\ \&SL\_REMSLOT\ );\ \ \ \ \ \ \ \ \textcolor{comment}{//\ slot\ 4}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00143}00143\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ remoteness\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00146}00146\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00148}00148\ \ \ \ \ status\ =\ AddSlot(\ 1,\ \textcolor{stringliteral}{"{}VISITED"{}},\ FALSE,\ FALSE,\ FALSE,\ \&SL\_VISITEDSLOT\ );\ \ \ \ \textcolor{comment}{//\ slot\ 1}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00149}00149\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ add\ visited\ slot"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00152}00152\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00154}00154\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00155}00155\ \ \ \ \ \textcolor{comment}{//\ allocate}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00156}00156\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00158}00158\ \ \ \ \ status\ =\ Allocate();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00159}00159\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00160}00160\ \ \ \ \ \ \ \ \ BPDB\_TRACE(\textcolor{stringliteral}{"{}DetermineValueVSSTD()"{}},\ \textcolor{stringliteral}{"{}Could\ not\ allocate\ database"{}},\ status);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ \_bailout;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00162}00162\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00165}00165\ \ \ \ \ value\ =\ VSDetermineLoopyValue1(gInitialPosition);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00166}00166\ \ \ \ \ \textcolor{keywordflow}{if}(gUseOpen)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ ComputeOpenPositions();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00168}00168\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00170}00170\ \ \ \ \ \textcolor{comment}{//PrintOpenDataFormatted();}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00171}00171\ \ \ \ \ \textcolor{comment}{/*\ free\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00172}00172\ \ \ \ \ VSNumberChildrenFree();\ \textcolor{comment}{//\ Not\ sure\ why\ this\ was\ commented\ out,\ but\ not\ making}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00173}00173\ \ \ \ \ \textcolor{comment}{//\ this\ call\ was\ causing\ memory\ leaks}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00174}00174\ \ \ \ \ VSParentFree();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00175}00175\ \ \ \ \ \textcolor{comment}{//FreeVisitedArray();}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00177}00177\ \_bailout:}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00178}00178\ \ \ \ \ \textcolor{keywordflow}{if}(!GMSUCCESS(status))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ undecided;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00180}00180\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00182}00182\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00183}00183\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00184}00184\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00185}00185\ VALUE\ VSDetermineLoopyValue1(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00186}00186\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00187}00187\ \ \ \ \ POSITION\ child=kBadPosition,\ parent;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00188}00188\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *ptr;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00189}00189\ \ \ \ \ VALUE\ childValue;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00190}00190\ \ \ \ \ REMOTENESS\ remotenessChild;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00191}00191\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00192}00192\ \ \ \ \ POSITION\ F0EdgeCount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00193}00193\ \ \ \ \ POSITION\ F0NodeCount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00194}00194\ \ \ \ \ POSITION\ F0DrawEdgeCount\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00195}00195\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00196}00196\ \ \ \ \ \textcolor{comment}{/*\ Do\ DFS\ to\ set\ up\ Parent\ pointers\ and\ initialize\ KnownList\ w/Primitives\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00197}00197\ \ \ \ \ VSSetParents(kBadPosition,position);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00198}00198\ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Number\ of\ Positions\ =\ ["{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}]\(\backslash\)n"{}},gNumberOfPositions);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ MyPrintParents();}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \textcolor{comment}{//MyPrintFR();}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00206}00206\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00207}00207\ \ \ \ \ \textcolor{comment}{/*\ Now,\ the\ fun\ part.\ Starting\ from\ the\ children,\ work\ your\ way\ back\ up.\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00208}00208\ \ \ \ \ \textcolor{comment}{//@@\ separate\ lose/win\ frontiers}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00209}00209\ \ \ \ \ \textcolor{keywordflow}{while}\ ((gVSHeadLoseFR\ !=\ NULL)\ ||\ (gVSHeadWinFR\ !=\ NULL))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00211}00211\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((child\ =\ VSDeQueueLoseFR())\ ==\ kBadPosition)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00212}00212\ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ VSDeQueueWinFR();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00214}00214\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Might\ as\ well\ grab\ these\ now,\ they'll\ be\ used\ later\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00215}00215\ \ \ \ \ \ \ \ \ childValue\ =\ GetSlot(child,\ SL\_VALUESLOT);\ \textcolor{comment}{//GetValueOfPosition(child);}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00216}00216\ \ \ \ \ \ \ \ \ remotenessChild\ =\ GetSlot(child,\ SL\_REMSLOT);\ \textcolor{comment}{//Remoteness(child);}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00217}00217\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00218}00218\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ debugging,\ print\ who's\ in\ list\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Grabbing\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ remoteness\ =\ \%d\ off\ of\ FR\(\backslash\)n"{}},}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00221}00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child,gValueString[childValue],remotenessChild);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00223}00223\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ With\ losing\ children,\ every\ parent\ is\ winning,\ so\ we\ just\ go\ through}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00224}00224\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ all\ the\ parents\ and\ declare\ them\ winning\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (childValue\ ==\ lose)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ gVSParents[child];}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00228}00228\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Make\ code\ easier\ to\ read\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parent\ =\ ptr-\/>position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00231}00231\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00232}00232\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Skip\ if\ this\ is\ the\ initial\ position\ (parent\ is\ kBadPosition)\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00233}00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (parent\ !=\ kBadPosition)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00234}00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (GetSlot(parent,\ SL\_VALUESLOT)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ is\ the\ first\ time\ we\ know\ the\ parent\ is\ a\ win\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00236}00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VSInsertWinFR(parent);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00237}00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ printf(\textcolor{stringliteral}{"{}Inserting\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ remoteness\ =\ \%d\ into\ win\ FR\(\backslash\)n"{}},parent,\textcolor{stringliteral}{"{}win"{}},remotenessChild+1);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00238}00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(parent,\ SL\_REMSLOT,\ remotenessChild\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00239}00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(parent,\ SL\_VALUESLOT,\ win);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00242}00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ We\ already\ know\ the\ parent\ is\ a\ winning\ position.\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00245}00245\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (GetSlot(parent,\ SL\_VALUESLOT)\ !=\ win)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00246}00246\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ should\ be\ win.\ \ Instead\ it\ is\ \%d."{}},\ parent,\ (\textcolor{keywordtype}{int})GetSlot(parent,\ SL\_VALUESLOT));}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00247}00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineLoopyValue"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ should\ always\ hold\ because\ the\ frontier\ is\ a\ queue.}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00251}00251\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **\ We\ always\ examine\ losing\ nodes\ with\ less\ remoteness\ first\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assert((remotenessChild\ +\ 1)\ >=\ GetSlot(parent,\ SL\_REMSLOT));}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00253}00253\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00255}00255\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{comment}{/*\ while\ there\ are\ still\ parents\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00258}00258\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ With\ winning\ children\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (childValue\ ==\ win)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ gVSParents[child];}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00262}00262\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Make\ code\ easier\ to\ read\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parent\ =\ ptr-\/>position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00265}00265\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Skip\ if\ this\ is\ the\ initial\ position\ (parent\ is\ kBadPosition)\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ this\ is\ the\ last\ unknown\ child\ and\ they\ were\ all\ wins,\ parent\ is\ lose\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(parent\ !=\ kBadPosition\ \&\&\ -\/-\/gVSNumberChildren[parent]\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ no\ more\ kids,\ it's\ not\ been\ seen\ before,\ assign\ it\ as\ losing,\ put\ at\ head\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assert(GetSlot(parent,\ SL\_VALUESLOT)\ ==\ undecided);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ F0EdgeCount\ -\/=\ (gVSNumberChildrenOriginal[parent]\ -\/\ 1);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VSInsertLoseFR(parent);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00273}00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ printf(\textcolor{stringliteral}{"{}Inserting\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ into\ FR\ head\(\backslash\)n"{}},parent,\textcolor{stringliteral}{"{}lose"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ We\ always\ need\ to\ change\ the\ remoteness\ because\ we\ examine\ winning\ node\ with}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00275}00275\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ **\ less\ remoteness\ first.\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(parent,\ SL\_REMSLOT,\ remotenessChild\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(parent,\ SL\_VALUESLOT,\ lose);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (parent\ !=\ kBadPosition)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ F0EdgeCount++;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00280}00280\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00281}00281\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00282}00282\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{comment}{/*\ while\ there\ are\ still\ parents\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00284}00284\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ With\ children\ set\ to\ other\ than\ win/lose.\ So\ stop\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00285}00285\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00286}00286\ \ \ \ \ \ \ \ \ \ \ \ \ BadElse(\textcolor{stringliteral}{"{}DetermineLoopyValue\ found\ FR\ member\ with\ other\ than\ win/lose\ value"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00287}00287\ \ \ \ \ \ \ \ \ \}\ \textcolor{comment}{/*\ else\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00289}00289\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ We\ are\ done\ with\ this\ position\ and\ no\ longer\ need\ to\ keep\ around\ its\ list\ of\ parents}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00290}00290\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ The\ tie\ frontier\ will\ not\ need\ this,\ either,\ because\ this\ child's\ value\ has\ already}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00291}00291\ \textcolor{comment}{\ \ \ \ \ \ \ \ **\ been\ determined.\ \ It\ cannot\ be\ a\ tie.\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ FreePositionList(gVSParents[child]);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ gVSParents[child]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00295}00295\ \ \ \ \ \}\ \textcolor{comment}{/*\ while\ still\ positions\ in\ FR\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00297}00297\ \ \ \ \ \textcolor{comment}{/*\ Now\ process\ the\ tie\ frontier\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00298}00298\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00299}00299\ \ \ \ \ \textcolor{keywordflow}{while}(gVSHeadTieFR\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ child\ =\ VSDeQueueTieFR();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ remotenessChild\ =\ GetSlot(child,\ SL\_REMSLOT);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00302}00302\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00303}00303\ \ \ \ \ \ \ \ \ ptr\ =\ gVSParents[child];}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00304}00304\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00305}00305\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (ptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00306}00306\ \ \ \ \ \ \ \ \ \ \ \ \ parent\ =\ ptr-\/>position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00307}00307\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00308}00308\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(parent\ !=\ kBadPosition\ \&\&\ GetSlot(parent,\ SL\_VALUESLOT)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00309}00309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ this\ position\ has\ no\ losing\ children\ but\ has\ a\ tieing\ position\ so\ it\ must\ be\ a}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00310}00310\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ tie.\ Assign\ its\ value\ and\ set\ its\ remoteness.\ \ Note\ that}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00311}00311\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ we\ give\ ties\ with\ lowest\ remoteness\ priority\ (i.e.\ if\ a}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00312}00312\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ position\ has\ no\ losing\ children,\ a\ tieing\ child\ of}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00313}00313\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ remoteness\ 2,\ and\ a\ tieing\ child\ of\ remoteness\ 10,\ the}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00314}00314\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ position\ will\ be\ a\ tie\ of\ remoteness\ 3,\ not\ 11.\ \ This}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00315}00315\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ decision\ is\ pretty\ arbitrary.\ \ We\ did\ it\ this\ way\ to\ be}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00316}00316\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ consistent\ with\ DetermineValue\ for\ non-\/loopy\ games.\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00317}00317\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00318}00318\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VSInsertTieFR(parent);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00319}00319\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ printf(\textcolor{stringliteral}{"{}Inserting\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ (\%s)\ remoteness\ =\ \%d\ into\ win\ FR\(\backslash\)n"{}},parent,\textcolor{stringliteral}{"{}tie"{}},remotenessChild+1);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00320}00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(parent,\ SL\_REMSLOT,\ remotenessChild\ +\ 1);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00321}00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot(parent,\ SL\_VALUESLOT,\ tie);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00323}00323\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00324}00324\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gVSNumberChildren[parent]\ -\/=\ 1;}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00325}00325\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gVSNumberChildrenOriginal[parent]\ -\/=1;\ //As\ it\ is\ now,\ fringe0\ can't\ have\ tie\ children}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00326}00326\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00327}00327\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00328}00328\ \ \ \ \ \ \ \ \ \ \ \ \ ptr\ =\ ptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00329}00329\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00330}00330\ \ \ \ \ \ \ \ \ FreePositionList(gVSParents[child]);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00331}00331\ \ \ \ \ \ \ \ \ gVSParents[child]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00332}00332\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00333}00333\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00334}00334\ \ \ \ \ \textcolor{comment}{/*\ Now\ set\ all\ remaining\ positions\ to\ tie\ with\ remoteness\ of\ REMOTENESS\_MAX\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00335}00335\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00336}00336\ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00337}00337\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00338}00338\ \ \ \ \ \ \ \ \ \textcolor{comment}{//MyPrintFR();}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00339}00339\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00340}00340\ \ \ \ \ \ \ \ \ VSMyPrintParents();}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00341}00341\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00342}00342\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}TIE\ cleanup\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00343}00343\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00344}00344\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00345}00345\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00346}00346\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Visited(i))\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00347}00347\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00348}00348\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(POSITION\_FORMAT\ \textcolor{stringliteral}{"{}\ was\ visited..."{}},i);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00349}00349\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(GetSlot((POSITION)\ i,\ SL\_VALUESLOT)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00350}00350\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlotMax((POSITION)\ i,\ SL\_REMSLOT);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00351}00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetSlot((POSITION)\ i,\ SL\_VALUESLOT,\ tie);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00352}00352\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00353}00353\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gVSNumberChildren[i]\ <\ gVSNumberChildrenOriginal[i])\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00354}00354\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ F0DrawEdgeCount\ +=\ gVSNumberChildren[i];}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00355}00355\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ F0NodeCount+=1;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00356}00356\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00357}00357\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//we\ are\ done\ with\ this\ position\ and\ no\ longer\ need\ to\ keep\ around\ its\ list\ of\ parents}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00358}00358\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*if\ (gVSParents[child])}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00359}00359\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreePositionList(gVSParents[child]);\ */}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ is\ this\ a\ memory\ leak?}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00360}00360\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00361}00361\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}and\ was\ undecided,\ setting\ to\ draw\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00362}00362\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00363}00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(kDebugDetermineValue)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00364}00364\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}but\ was\ decided,\ ignoring\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00365}00365\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00366}00366\ \ \ \ \ \ \ \ \ \ \ \ \ UnMarkAsVisited((POSITION)i);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00367}00367\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00368}00368\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00369}00369\ \ \ \ \ \textcolor{keywordflow}{if}\ (gInterestingness)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00370}00370\ \ \ \ \ \ \ \ \ DetermineInterestingness(position);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00371}00371\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00372}00372\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00373}00373\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00374}00374\ \ \ \ \ gAnalysis.F0EdgeCount\ =\ F0EdgeCount;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00375}00375\ \ \ \ \ gAnalysis.F0NodeCount\ =\ F0NodeCount;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00376}00376\ \ \ \ \ gAnalysis.F0DrawEdgeCount\ =\ F0DrawEdgeCount;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00377}00377\ \ \ \ \ \textcolor{keywordflow}{return}(GetSlot(position,\ SL\_VALUESLOT));}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00378}00378\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00379}00379\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00380}00380\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00381}00381\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00382}00382\ \textcolor{comment}{**\ Requires:\ the\ root\ has\ not\ been\ visited\ yet}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00383}00383\ \textcolor{comment}{**\ (We\ do\ not\ check\ to\ see\ if\ its\ been\ visited)}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00384}00384\ \textcolor{comment}{*/}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00385}00385\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00386}00386\ \textcolor{keywordtype}{void}\ VSSetParents\ (POSITION\ parent,\ POSITION\ root)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00387}00387\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00388}00388\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ \ \ \ \ \ \ moveptr;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00389}00389\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}*\ \ \ \ \ \ \ movehead;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00390}00390\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ \ \ posptr;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00391}00391\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ \ \ thisLevel;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00392}00392\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ \ \ nextLevel;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00393}00393\ \ \ \ \ POSITION\ pos;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00394}00394\ \ \ \ \ POSITION\ child;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00395}00395\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00396}00396\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00397}00397\ \ \ \ \ posptr\ =\ thisLevel\ =\ nextLevel\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00398}00398\ \ \ \ \ moveptr\ =\ movehead\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00399}00399\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00400}00400\ \ \ \ \ \textcolor{comment}{//\ Check\ if\ the\ top\ is\ primitive.}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00401}00401\ \ \ \ \ MarkAsVisited(root);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00402}00402\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00403}00403\ \ \ \ \ gVSParents[root]\ =\ StorePositionInList(parent,\ gVSParents[root]);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00404}00404\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00405}00405\ \ \ \ \ \textcolor{keywordflow}{if}\ ((value\ =\ Primitive(root))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00406}00406\ \ \ \ \ \ \ \ \ SetRemoteness(root,\ 0);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00407}00407\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (value)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00408}00408\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:\ VSInsertLoseFR(root);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00409}00409\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:\ \ VSInsertWinFR(root);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00410}00410\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ tie:\ \ VSInsertTieFR(root);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00411}00411\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ BadElse(\textcolor{stringliteral}{"{}SetParents\ found\ primitive\ with\ value\ other\ than\ win/lose/tie"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00412}00412\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00413}00413\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00414}00414\ \ \ \ \ \ \ \ \ StoreValueOfPosition(root,\ value);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00415}00415\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00416}00416\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00417}00417\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00418}00418\ \ \ \ \ thisLevel\ =\ StorePositionInList(root,\ thisLevel);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00419}00419\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00420}00420\ \ \ \ \ \textcolor{keywordflow}{while}\ (thisLevel\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00421}00421\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}*\ next;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00422}00422\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00423}00423\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (posptr\ =\ thisLevel;\ posptr\ !=\ NULL;\ posptr\ =\ next)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00424}00424\ \ \ \ \ \ \ \ \ \ \ \ \ next\ =\ posptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00425}00425\ \ \ \ \ \ \ \ \ \ \ \ \ pos\ =\ posptr-\/>position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00426}00426\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00427}00427\ \ \ \ \ \ \ \ \ \ \ \ \ movehead\ =\ GenerateMoves(pos);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00428}00428\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00429}00429\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (moveptr\ =\ movehead;\ moveptr\ !=\ NULL;\ moveptr\ =\ moveptr-\/>next)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00430}00430\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ DoMove(pos,\ moveptr-\/>move);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00431}00431\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gSymmetries)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00432}00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ gCanonicalPosition(child);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00433}00433\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00434}00434\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (child\ >=\ gNumberOfPositions)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00435}00435\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FoundBadPosition(child,\ pos,\ moveptr-\/>move);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00436}00436\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ++gVSNumberChildren[(int)pos];}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00437}00437\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ++gVSNumberChildrenOriginal[(int)pos];}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00438}00438\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gVSParents[(int)child]\ =\ StorePositionInList(pos,\ gVSParents[(\textcolor{keywordtype}{int})child]);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00439}00439\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00440}00440\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (Visited(child))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00441}00441\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MarkAsVisited(child);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00442}00442\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00443}00443\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((value\ =\ Primitive(child))\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00444}00444\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(child,\ 0);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00445}00445\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (value)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00446}00446\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ lose:\ VSInsertLoseFR(child);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00447}00447\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ win:\ VSInsertWinFR(child);\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00448}00448\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ tie:\ VSInsertTieFR(child);\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00449}00449\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ BadElse(\textcolor{stringliteral}{"{}SetParents\ found\ bad\ primitive\ value"{}});}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00450}00450\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00451}00451\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(child,\ value);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00452}00452\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00453}00453\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ nextLevel\ =\ StorePositionInList(child,\ nextLevel);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00454}00454\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00455}00455\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gTotalMoves++;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00456}00456\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00457}00457\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00458}00458\ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(movehead);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00459}00459\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00460}00460\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Free\ as\ we\ go\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00461}00461\ \ \ \ \ \ \ \ \ \ \ \ \ free(posptr);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00462}00462\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00463}00463\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00464}00464\ \ \ \ \ \ \ \ \ thisLevel\ =\ nextLevel;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00465}00465\ \ \ \ \ \ \ \ \ nextLevel\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00466}00466\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00467}00467\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00468}00468\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00469}00469\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00470}00470\ \textcolor{comment}{//void\ InitializeVisitedArray()}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00471}00471\ \textcolor{comment}{//\{}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00472}00472\ \textcolor{comment}{//\ \ \ \ size\_t\ sz\ =\ (gNumberOfPositions\ >>\ 3)\ +\ 1;}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00473}00473\ \textcolor{comment}{//\ \ \ \ gVisited\ =\ (char*)\ SafeMalloc\ (sz);}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00474}00474\ \textcolor{comment}{//\ \ \ \ memset(gVisited,\ 0,\ sz);}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00475}00475\ \textcolor{comment}{//\}}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00476}00476\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00477}00477\ \textcolor{comment}{//void\ FreeVisitedArray()}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00478}00478\ \textcolor{comment}{//\{}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00479}00479\ \textcolor{comment}{//\ \ \ \ if\ (gVisited)\ SafeFree(gVisited);}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00480}00480\ \textcolor{comment}{//\ \ \ \ gVisited\ =\ NULL;}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00481}00481\ \textcolor{comment}{//\}}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00482}00482\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00483}00483\ \textcolor{keywordtype}{void}\ VSParentInitialize()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00484}00484\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00485}00485\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00486}00486\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00487}00487\ \ \ \ \ gVSParents\ =\ (\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ **)\ SafeMalloc\ (gNumberOfPositions\ *\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structpositionlist__item}{POSITIONLIST}}\ *));}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00488}00488\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00489}00489\ \ \ \ \ \ \ \ \ gVSParents[i]\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00490}00490\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00491}00491\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00492}00492\ \textcolor{keywordtype}{void}\ VSParentFree()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00493}00493\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00494}00494\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00495}00495\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00496}00496\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00497}00497\ \ \ \ \ \ \ \ \ FreePositionList(gVSParents[i]);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00498}00498\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00499}00499\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00500}00500\ \ \ \ \ SafeFree(gVSParents);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00501}00501\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00502}00502\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00503}00503\ \textcolor{keywordtype}{void}\ VSNumberChildrenInitialize()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00504}00504\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00505}00505\ \ \ \ \ POSITION\ i;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00506}00506\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00507}00507\ \ \ \ \ gVSNumberChildren\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc\ (gNumberOfPositions\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}));}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00508}00508\ \ \ \ \ gVSNumberChildrenOriginal\ =\ (\textcolor{keywordtype}{char}\ *)\ SafeMalloc\ (gNumberOfPositions\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{signed}\ \textcolor{keywordtype}{char}));\ \ \ \ \ \textcolor{comment}{/*\ Open\ Positions:\ for\ finding\ level1\ frontier\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00509}00509\ \ \ \ \ \textcolor{keywordflow}{if}\ (gInterestingness)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00510}00510\ \ \ \ \ \ \ \ \ gAnalysis.Interestingness\ =\ (\textcolor{keywordtype}{float}\ *)\ SafeMalloc\ (gNumberOfPositions\ *\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{float}));\ \textcolor{comment}{/*\ Interestingness\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00511}00511\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00512}00512\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00513}00513\ \ \ \ \ \textcolor{keywordflow}{if}\ (gInterestingness)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00514}00514\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00515}00515\ \ \ \ \ \ \ \ \ \ \ \ \ gVSNumberChildren[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00516}00516\ \ \ \ \ \ \ \ \ \ \ \ \ gVSNumberChildrenOriginal[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00517}00517\ \ \ \ \ \ \ \ \ \ \ \ \ gAnalysis.Interestingness[i]\ =\ 0.0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00518}00518\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00519}00519\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00520}00520\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00521}00521\ \ \ \ \ \ \ \ \ \ \ \ \ gVSNumberChildren[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00522}00522\ \ \ \ \ \ \ \ \ \ \ \ \ gVSNumberChildrenOriginal[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00523}00523\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00524}00524\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00525}00525\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00526}00526\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00527}00527\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00528}00528\ \textcolor{keywordtype}{void}\ VSNumberChildrenFree()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00529}00529\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Open\ Positions:\ for\ finding\ level1\ frontier\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00530}00530\ \ \ \ \ SafeFree(gVSNumberChildren);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00531}00531\ \ \ \ \ SafeFree(gVSNumberChildrenOriginal);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00532}00532\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00533}00533\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00534}00534\ \textcolor{keywordtype}{void}\ VSInitializeFR()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00535}00535\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00536}00536\ \ \ \ \ gVSHeadWinFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00537}00537\ \ \ \ \ gVSTailWinFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00538}00538\ \ \ \ \ gVSHeadLoseFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00539}00539\ \ \ \ \ gVSTailLoseFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00540}00540\ \ \ \ \ gVSHeadTieFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00541}00541\ \ \ \ \ gVSTailTieFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00542}00542\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00543}00543\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00544}00544\ \textcolor{keyword}{static}\ POSITION\ VSDeQueueFR(\mbox{\hyperlink{structpositionlist__item}{FRnode}}\ **gHeadFR,\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}\ **gTailFR)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00545}00545\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00546}00546\ \ \ \ \ POSITION\ position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00547}00547\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{FRnode}}\ *tmp;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00548}00548\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00549}00549\ \ \ \ \ \textcolor{keywordflow}{if}\ (*gHeadFR\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00550}00550\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ kBadPosition;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00551}00551\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00552}00552\ \ \ \ \ \ \ \ \ position\ =\ (*gHeadFR)-\/>position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00553}00553\ \ \ \ \ \ \ \ \ tmp\ =\ *gHeadFR;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00554}00554\ \ \ \ \ \ \ \ \ (*gHeadFR)\ =\ (*gHeadFR)-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00555}00555\ \ \ \ \ \ \ \ \ SafeFree(tmp);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00556}00556\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00557}00557\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (*gHeadFR\ ==\ NULL)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00558}00558\ \ \ \ \ \ \ \ \ \ \ \ \ *gTailFR\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00559}00559\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00560}00560\ \ \ \ \ \textcolor{keywordflow}{return}\ position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00561}00561\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00562}00562\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00563}00563\ POSITION\ VSDeQueueWinFR()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00564}00564\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00565}00565\ \ \ \ \ \textcolor{keywordflow}{return}\ VSDeQueueFR(\&gVSHeadWinFR,\ \&gVSTailWinFR);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00566}00566\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00567}00567\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00568}00568\ POSITION\ VSDeQueueLoseFR()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00569}00569\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00570}00570\ \ \ \ \ \textcolor{keywordflow}{return}\ VSDeQueueFR(\&gVSHeadLoseFR,\ \&gVSTailLoseFR);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00571}00571\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00572}00572\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00573}00573\ POSITION\ VSDeQueueTieFR()}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00574}00574\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00575}00575\ \ \ \ \ \textcolor{keywordflow}{return}\ VSDeQueueFR(\&gVSHeadTieFR,\ \&gVSTailTieFR);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00576}00576\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00577}00577\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00578}00578\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ VSInsertFR(POSITION\ position,\ \mbox{\hyperlink{structpositionlist__item}{FRnode}}\ **firstnode,}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00579}00579\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{FRnode}}\ **lastnode)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00580}00580\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00581}00581\ \ \ \ \ \mbox{\hyperlink{structpositionlist__item}{FRnode}}\ *tmp\ =\ (\mbox{\hyperlink{structpositionlist__item}{FRnode}}\ *)\ SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structpositionlist__item}{FRnode}}));}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00582}00582\ \ \ \ \ tmp-\/>position\ =\ position;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00583}00583\ \ \ \ \ tmp-\/>next\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00584}00584\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00585}00585\ \ \ \ \ \textcolor{keywordflow}{if}\ (*lastnode\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00586}00586\ \ \ \ \ \ \ \ \ assert(*firstnode\ ==\ NULL);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00587}00587\ \ \ \ \ \ \ \ \ *firstnode\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00588}00588\ \ \ \ \ \ \ \ \ *lastnode\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00589}00589\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00590}00590\ \ \ \ \ \ \ \ \ assert((*lastnode)-\/>next\ ==\ NULL);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00591}00591\ \ \ \ \ \ \ \ \ (*lastnode)-\/>next\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00592}00592\ \ \ \ \ \ \ \ \ *lastnode\ =\ tmp;}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00593}00593\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00594}00594\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00595}00595\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00596}00596\ \textcolor{keywordtype}{void}\ VSInsertWinFR(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00597}00597\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00598}00598\ \ \ \ \ \textcolor{comment}{/*\ printf("{}Inserting\ WinFR...\(\backslash\)n"{});\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00599}00599\ \ \ \ \ VSInsertFR(position,\ \&gVSHeadWinFR,\ \&gVSTailWinFR);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00600}00600\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00601}00601\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00602}00602\ \textcolor{keywordtype}{void}\ VSInsertLoseFR(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00603}00603\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00604}00604\ \ \ \ \ \textcolor{comment}{/*\ printf("{}Inserting\ LoseFR...\(\backslash\)n"{});\ */}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00605}00605\ \ \ \ \ VSInsertFR(position,\ \&gVSHeadLoseFR,\ \&gVSTailLoseFR);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00606}00606\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00607}00607\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00608}00608\ \textcolor{keywordtype}{void}\ VSInsertTieFR(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00609}00609\ \{}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00610}00610\ \ \ \ \ VSInsertFR(position,\ \&gVSHeadTieFR,\ \&gVSTailTieFR);}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00611}00611\ \}}
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00612}00612\ }
+\DoxyCodeLine{\Hypertarget{solvevsloopy_8c_source_l00613}00613\ \textcolor{comment}{//\ End\ Loopy}}
+
+\end{DoxyCode}

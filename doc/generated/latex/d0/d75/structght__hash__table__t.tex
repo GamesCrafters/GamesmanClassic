@@ -1,0 +1,192 @@
+\hypertarget{structght__hash__table__t}{}\doxysection{ght\+\_\+hash\+\_\+table\+\_\+t Struct Reference}
+\label{structght__hash__table__t}\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+
+
+{\ttfamily \#include $<$ght\+\_\+hash\+\_\+table.\+h$>$}
+
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+unsigned int \mbox{\hyperlink{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}{i\+\_\+items}}
+\item 
+unsigned int \mbox{\hyperlink{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}{i\+\_\+size}}
+\item 
+\mbox{\hyperlink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t}} \mbox{\hyperlink{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}{fn\+\_\+hash}}
+\item 
+\mbox{\hyperlink{ght__hash__table_8h_a5f5f683e9959254798651a8557388585}{ght\+\_\+fn\+\_\+alloc\+\_\+t}} \mbox{\hyperlink{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}{fn\+\_\+alloc}}
+\item 
+\mbox{\hyperlink{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d}{ght\+\_\+fn\+\_\+free\+\_\+t}} \mbox{\hyperlink{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}{fn\+\_\+free}}
+\item 
+\mbox{\hyperlink{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640}{ght\+\_\+fn\+\_\+bucket\+\_\+free\+\_\+callback\+\_\+t}} \mbox{\hyperlink{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}{fn\+\_\+bucket\+\_\+free}}
+\item 
+int \mbox{\hyperlink{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}{i\+\_\+heuristics}}
+\item 
+int \mbox{\hyperlink{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}{i\+\_\+automatic\+\_\+rehash}}
+\item 
+\mbox{\hyperlink{structs__hash__entry}{ght\+\_\+hash\+\_\+entry\+\_\+t}} $\ast$$\ast$ \mbox{\hyperlink{structght__hash__table__t_a2f8912a18233c6cf5618f369e8df88d8}{pp\+\_\+entries}}
+\item 
+int $\ast$ \mbox{\hyperlink{structght__hash__table__t_aff7491816ad7924571f5e1c2a7b24428}{p\+\_\+nr}}
+\item 
+int \mbox{\hyperlink{structght__hash__table__t_a13021e522e79220bb0a799f49ad34b5b}{i\+\_\+size\+\_\+mask}}
+\item 
+unsigned int \mbox{\hyperlink{structght__hash__table__t_a4e7bf6763b8345694dbaacd8520f2b83}{bucket\+\_\+limit}}
+\item 
+\mbox{\hyperlink{structs__hash__entry}{ght\+\_\+hash\+\_\+entry\+\_\+t}} $\ast$ \mbox{\hyperlink{structght__hash__table__t_ad8f21924459a21f5df4e2971611f58c2}{p\+\_\+oldest}}
+\item 
+\mbox{\hyperlink{structs__hash__entry}{ght\+\_\+hash\+\_\+entry\+\_\+t}} $\ast$ \mbox{\hyperlink{structght__hash__table__t_a54ad3f637ea327a837d2b8dd80c14072}{p\+\_\+newest}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+The hash table structure. 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00169}{169}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+
+
+\doxysubsection{Field Documentation}
+\Hypertarget{structght__hash__table__t_a4e7bf6763b8345694dbaacd8520f2b83}\label{structght__hash__table__t_a4e7bf6763b8345694dbaacd8520f2b83} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!bucket\_limit@{bucket\_limit}}
+\index{bucket\_limit@{bucket\_limit}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{bucket\_limit}{bucket\_limit}}
+{\footnotesize\ttfamily unsigned int ght\+\_\+hash\+\_\+table\+\_\+t\+::bucket\+\_\+limit}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00184}{184}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1}\label{structght__hash__table__t_ab9bac678da1597ef3a28e27319ed57c1} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!fn\_alloc@{fn\_alloc}}
+\index{fn\_alloc@{fn\_alloc}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{fn\_alloc}{fn\_alloc}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ght__hash__table_8h_a5f5f683e9959254798651a8557388585}{ght\+\_\+fn\+\_\+alloc\+\_\+t}} ght\+\_\+hash\+\_\+table\+\_\+t\+::fn\+\_\+alloc}
+
+The function used for allocating entries 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00174}{174}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f}\label{structght__hash__table__t_ace73768bf001c16c8e24d8a9aab2f05f} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!fn\_bucket\_free@{fn\_bucket\_free}}
+\index{fn\_bucket\_free@{fn\_bucket\_free}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{fn\_bucket\_free}{fn\_bucket\_free}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ght__hash__table_8h_a2c6c41ab7de4d9de09134977d88c4640}{ght\+\_\+fn\+\_\+bucket\+\_\+free\+\_\+callback\+\_\+t}} ght\+\_\+hash\+\_\+table\+\_\+t\+::fn\+\_\+bucket\+\_\+free}
+
+The function called when a bucket overflows 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00176}{176}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed}\label{structght__hash__table__t_afb8b8a8e97acd1d4dc3c02bc1a53e1ed} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!fn\_free@{fn\_free}}
+\index{fn\_free@{fn\_free}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{fn\_free}{fn\_free}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ght__hash__table_8h_aff6ed75535beb00a808d8f22e43d780d}{ght\+\_\+fn\+\_\+free\+\_\+t}} ght\+\_\+hash\+\_\+table\+\_\+t\+::fn\+\_\+free}
+
+The function used for freeing entries 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00175}{175}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa}\label{structght__hash__table__t_abe1c52bc1240a13cf0c2fc13ba5ee9fa} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!fn\_hash@{fn\_hash}}
+\index{fn\_hash@{fn\_hash}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{fn\_hash}{fn\_hash}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ght__hash__table_8h_afab992d73c74bb83bf3c79d6c77040ce}{ght\+\_\+fn\+\_\+hash\+\_\+t}} ght\+\_\+hash\+\_\+table\+\_\+t\+::fn\+\_\+hash}
+
+The hash function used 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00173}{173}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f}\label{structght__hash__table__t_afc127a984b2ecc762e4f7fa36d22231f} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!i\_automatic\_rehash@{i\_automatic\_rehash}}
+\index{i\_automatic\_rehash@{i\_automatic\_rehash}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{i\_automatic\_rehash}{i\_automatic\_rehash}}
+{\footnotesize\ttfamily int ght\+\_\+hash\+\_\+table\+\_\+t\+::i\+\_\+automatic\+\_\+rehash}
+
+TRUE if automatic rehashing is used 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00178}{178}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197}\label{structght__hash__table__t_a49008eac5584c8999b083bd5c8791197} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!i\_heuristics@{i\_heuristics}}
+\index{i\_heuristics@{i\_heuristics}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{i\_heuristics}{i\_heuristics}}
+{\footnotesize\ttfamily int ght\+\_\+hash\+\_\+table\+\_\+t\+::i\+\_\+heuristics}
+
+The type of heuristics used 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00177}{177}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9}\label{structght__hash__table__t_a1818e6d254fcfe986aa61cd6cbacc3e9} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!i\_items@{i\_items}}
+\index{i\_items@{i\_items}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{i\_items}{i\_items}}
+{\footnotesize\ttfamily unsigned int ght\+\_\+hash\+\_\+table\+\_\+t\+::i\+\_\+items}
+
+The current number of items in the table 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00171}{171}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae}\label{structght__hash__table__t_a89e9ea1610b5bbd733a28ac0f10d96ae} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!i\_size@{i\_size}}
+\index{i\_size@{i\_size}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{i\_size}{i\_size}}
+{\footnotesize\ttfamily unsigned int ght\+\_\+hash\+\_\+table\+\_\+t\+::i\+\_\+size}
+
+The number of buckets 
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00172}{172}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_a13021e522e79220bb0a799f49ad34b5b}\label{structght__hash__table__t_a13021e522e79220bb0a799f49ad34b5b} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!i\_size\_mask@{i\_size\_mask}}
+\index{i\_size\_mask@{i\_size\_mask}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{i\_size\_mask}{i\_size\_mask}}
+{\footnotesize\ttfamily int ght\+\_\+hash\+\_\+table\+\_\+t\+::i\+\_\+size\+\_\+mask}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00183}{183}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_a54ad3f637ea327a837d2b8dd80c14072}\label{structght__hash__table__t_a54ad3f637ea327a837d2b8dd80c14072} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!p\_newest@{p\_newest}}
+\index{p\_newest@{p\_newest}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{p\_newest}{p\_newest}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structs__hash__entry}{ght\+\_\+hash\+\_\+entry\+\_\+t}}$\ast$ ght\+\_\+hash\+\_\+table\+\_\+t\+::p\+\_\+newest}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00187}{187}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_aff7491816ad7924571f5e1c2a7b24428}\label{structght__hash__table__t_aff7491816ad7924571f5e1c2a7b24428} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!p\_nr@{p\_nr}}
+\index{p\_nr@{p\_nr}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{p\_nr}{p\_nr}}
+{\footnotesize\ttfamily int$\ast$ ght\+\_\+hash\+\_\+table\+\_\+t\+::p\+\_\+nr}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00182}{182}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_ad8f21924459a21f5df4e2971611f58c2}\label{structght__hash__table__t_ad8f21924459a21f5df4e2971611f58c2} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!p\_oldest@{p\_oldest}}
+\index{p\_oldest@{p\_oldest}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{p\_oldest}{p\_oldest}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structs__hash__entry}{ght\+\_\+hash\+\_\+entry\+\_\+t}}$\ast$ ght\+\_\+hash\+\_\+table\+\_\+t\+::p\+\_\+oldest}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00186}{186}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+\Hypertarget{structght__hash__table__t_a2f8912a18233c6cf5618f369e8df88d8}\label{structght__hash__table__t_a2f8912a18233c6cf5618f369e8df88d8} 
+\index{ght\_hash\_table\_t@{ght\_hash\_table\_t}!pp\_entries@{pp\_entries}}
+\index{pp\_entries@{pp\_entries}!ght\_hash\_table\_t@{ght\_hash\_table\_t}}
+\doxysubsubsection{\texorpdfstring{pp\_entries}{pp\_entries}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structs__hash__entry}{ght\+\_\+hash\+\_\+entry\+\_\+t}}$\ast$$\ast$ ght\+\_\+hash\+\_\+table\+\_\+t\+::pp\+\_\+entries}
+
+
+
+Definition at line \mbox{\hyperlink{ght__hash__table_8h_source_l00181}{181}} of file \mbox{\hyperlink{ght__hash__table_8h_source}{ght\+\_\+hash\+\_\+table.\+h}}.
+
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/core/text\+\_\+resource/\mbox{\hyperlink{ght__hash__table_8h}{ght\+\_\+hash\+\_\+table.\+h}}\end{DoxyCompactItemize}

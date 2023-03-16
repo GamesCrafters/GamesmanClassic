@@ -1,0 +1,192 @@
+\hypertarget{solvezero_8c_source}{}\doxysection{solvezero.\+c}
+\label{solvezero_8c_source}\index{src/core/solvezero.c@{src/core/solvezero.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ solvezero.c}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Constant-\/memory\ "{}zero"{}\ solver.}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ Scott\ Lindeneau}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00009}00009\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00011}00011\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00012}00012\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00013}00013\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00016}00016\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00017}00017\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00018}00018\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00019}00019\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00020}00020\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00021}00021\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00022}00022\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00023}00023\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00024}00024\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00025}00025\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00026}00026\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00027}00027\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00028}00028\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00029}00029\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00030}00030\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00031}00031\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00032}00032\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}solveloopy.h"{}}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00037}00037\ \textcolor{comment}{/**************}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00038}00038\ \textcolor{comment}{**\ \ Start\ ZeroSolver}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00039}00039\ \textcolor{comment}{**\ \ \ \ \ \ Written\ by:\ Scott\ Lindeneau}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00040}00040\ \textcolor{comment}{**\ \ Requierments:\ gDatabase\ intialized\ w/\ all\ positions\ set\ to\ undecided}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00041}00041\ \textcolor{comment}{**\ \ Benefits:\ Almost\ no\ memory\ overhead\ for\ the\ solver.}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00042}00042\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ 9\ POSITION's,\ 2\ int's,\ 1\ VALUE,\ 2\ MOVELIST\ pointers}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00043}00043\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 32bit\ machines:\ around\ 60\ bytes}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00044}00044\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 64bit\ machines:\ around\ 96\ bytes}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00045}00045\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (this\ depends\ on\ the\ size\ of\ VALUE)}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00046}00046\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ plus\ whatever\ the\ movelist\ adds,\ varies\ per\ parent\ (possibly\ big)}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00047}00047\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00048}00048\ \textcolor{comment}{**\ \ Calls:\ StoreValueOfPosition,\ GetValueOfPosition}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00049}00049\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ MarkAsVisited,\ Visited}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00050}00050\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ GenerateMoves,\ DoMove,\ FreeMoveList}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00051}00051\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ Remoteness,\ SetRemoteness}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00052}00052\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00053}00053\ \textcolor{comment}{**\ \ Logic:}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00054}00054\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ Go\ through\ all\ possible\ nodes\ finding\ the\ visited\ undecided\ positions}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00055}00055\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ See\ if\ you\ can\ find\ a\ value\ for\ these\ positions,\ if\ you\ cannot,\ it\ means}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00056}00056\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ one\ of\ two\ things.\ Either}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00057}00057\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ a)\ the\ node\ you\ are\ at\ loops\ back\ up\ the\ tree\ to\ create\ a\ draw}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00058}00058\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ b)\ more\ undecided\ nodes\ beneath\ current\ node\ need\ values}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00059}00059\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ In\ the\ event\ of\ (a)\ you\ can\ mark\ those\ nodes\ off\ as\ draws,\ however\ we}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00060}00060\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ dont\ know\ if\ (a)\ is\ true\ unless\ we\ can\ be\ sure\ that\ (b)\ is\ false}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00061}00061\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ We\ can\ say\ (b)\ is\ false\ when\ the\ number\ of\ undecided\ positions\ stops}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00062}00062\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ changing}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00063}00063\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00064}00064\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ Why\ is\ this\ true?}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00065}00065\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Suppose\ (b)\ holds\ for\ some\ node\ J.\ This\ means\ that\ there\ is\ some}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00066}00066\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ node\ beneath\ node\ J\ that\ is\ undecided\ and\ can\ be\ assigned\ a\ value.\ We}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00067}00067\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ can\ call\ this\ node\ W.\ Once\ node\ W\ is\ assigned\ a\ value,}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00068}00068\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ total\ number\ of\ undecided\ nodes\ in\ the\ tree}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00069}00069\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ decreases(thus\ differs).}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00070}00070\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00071}00071\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ But\ what\ happens\ if\ you\ add\ the\ same\ number\ of\ undecided\ nodes\ to\ the\ tree}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00072}00072\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ as\ you\ find\ values\ for?}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00073}00073\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ Simple,\ if\ you\ have\ added\ new\ nodes,\ iter\ again,\ eventually\ you\ will}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00074}00074\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ have\ to\ stop\ adding\ new\ nodes,\ and\ the\ number\ of\ undecided\ positions}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00075}00075\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ can\ only\ decrease(if\ they\ change\ at\ all)}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00076}00076\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00077}00077\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ Eventually,\ the\ number\ of\ undecided\ nodes\ will\ stop\ changing,\ either}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00078}00078\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ through\ solving\ all\ of\ the\ nodes,\ or\ the\ proof\ for\ (b).}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00079}00079\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ Then\ all\ remaining\ nodes\ that\ are\ visited\ and\ undecided\ are\ set\ to\ draws}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00080}00080\ \textcolor{comment}{**************/}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00081}00081\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00082}00082\ VALUE\ DetermineZeroValue(POSITION\ position)}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00083}00083\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00084}00084\ \ \ \ \ POSITION\ i,lowSeen,highSeen;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00085}00085\ \ \ \ \ POSITION\ numUndecided,\ oldNumUndecided,\ numNew;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00086}00086\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *moveptr,\ *headMove;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00087}00087\ \ \ \ \ POSITION\ child;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00088}00088\ \ \ \ \ VALUE\ childValue;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00089}00089\ \ \ \ \ POSITION\ numTot,\ numWin,\ numTie;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00090}00090\ \ \ \ \ \textcolor{keywordtype}{int}\ tieRemoteness,\ winRemoteness;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00092}00092\ \ \ \ \ \textcolor{comment}{//if\ (gTwoBits)}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00093}00093\ \ \ \ \ \textcolor{comment}{//\ \ \ \ InitializeVisitedArray();}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00095}00095\ \ \ \ \ StoreValueOfPosition(position,Primitive(position));}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00096}00096\ \ \ \ \ MarkAsVisited(position);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00097}00097\ \ \ \ \ oldNumUndecided\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00098}00098\ \ \ \ \ numUndecided\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00099}00099\ \ \ \ \ numNew\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00101}00101\ \ \ \ \ lowSeen\ =\ position;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00102}00102\ \ \ \ \ highSeen\ =\ lowSeen+1;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00103}00103\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00104}00104\ \ \ \ \ \textcolor{keywordflow}{while}((numUndecided\ !=\ oldNumUndecided)\ ||\ (numNew\ !=\ 0))\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ oldNumUndecided\ =\ numUndecided;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ numUndecided\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ numNew\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ lowSeen;\ i\ <=\ highSeen;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00110}00110\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Visited(i))\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(GetValueOfPosition(i)\ ==\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moveptr\ =\ headMove\ =\ GenerateMoves(i);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numTot\ =\ numWin\ =\ numTie\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tieRemoteness\ =\ winRemoteness\ =\ REMOTENESS\_MAX;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(moveptr\ !=\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child\ =\ DoMove(i,moveptr-\/>move);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numTot++;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Visited(child))}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ childValue\ =\ GetValueOfPosition(child);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ childValue\ =\ Primitive(child);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numNew++;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MarkAsVisited(child);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(child,childValue);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(childValue\ !=\ undecided)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(child,0);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(child\ <\ lowSeen)\ lowSeen\ =\ child;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(child\ >\ highSeen)\ highSeen\ =\ child\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(childValue\ ==\ lose)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00133}00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(i,win);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Remoteness(i)\ >\ Remoteness(child)+1)}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(i,Remoteness(child)+1);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00136}00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(childValue\ ==\ win)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numWin++;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Remoteness(child)\ <\ winRemoteness)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ winRemoteness\ =\ Remoteness(child);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(childValue\ ==\ tie)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numTie++;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Remoteness(child)\ <\ tieRemoteness)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tieRemoteness\ =\ Remoteness(child);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00150}00150\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00151}00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moveptr\ =\ moveptr-\/>next;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FreeMoveList(headMove);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00154}00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}((numTot\ !=\ 0)\ \&\&\ (numTot\ ==\ numWin\ +\ numTie))\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(numTie\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(i,\ winRemoteness+1);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(i,lose);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\textcolor{keywordflow}{else}\{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00159}00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(i,\ tieRemoteness+1);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00160}00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(i,tie);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00161}00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00162}00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(GetValueOfPosition(i)\ ==\ undecided)}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numUndecided++;}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00168}00168\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00169}00169\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)nnumUndecided:\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{},\ diff:\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{},\ numNew:\ "{}}\ POSITION\_FORMAT}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{},\ lowSeen:\ "{}}\ POSITION\_FORMAT\ \textcolor{stringliteral}{"{},\ highSeen:\ "{}}\ POSITION\_FORMAT,}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ numUndecided,numUndecided\ -\/\ oldNumUndecided,numNew,lowSeen,highSeen);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00173}00173\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00174}00174\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00176}00176\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ gNumberOfPositions;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(Visited(i)\ \&\&\ (GetValueOfPosition(i)\ ==\ undecided))\ \{}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ SetRemoteness(i,REMOTENESS\_MAX);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00179}00179\ \ \ \ \ \ \ \ \ \ \ \ \ StoreValueOfPosition(i,\ tie);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ UnMarkAsVisited(i);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00182}00182\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00183}00183\ }
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00184}00184\ \ \ \ \ \textcolor{keywordflow}{return}\ GetValueOfPosition(position);}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00185}00185\ \}}
+\DoxyCodeLine{\Hypertarget{solvezero_8c_source_l00186}00186\ }
+
+\end{DoxyCode}

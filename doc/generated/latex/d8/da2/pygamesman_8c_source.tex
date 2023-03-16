@@ -1,0 +1,347 @@
+\hypertarget{pygamesman_8c_source}{}\doxysection{pygamesman.\+c}
+\label{pygamesman_8c_source}\index{src/pygamesman.c@{src/pygamesman.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00001}00001\ \textcolor{preprocessor}{\#include\ <Python.h>}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00002}00002\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00004}00004\ \textcolor{comment}{/*\ Interface\ to\ Tk\ not\ supported\ yet\ */}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00005}00005\ \textcolor{keywordtype}{void}*\ \ \ \ gGameSpecificTclInit\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00006}00006\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00007}00007\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00008}00008\ BOOLEAN\ kGameSpecificMenu;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00009}00009\ BOOLEAN\ kPartizan;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00010}00010\ BOOLEAN\ kDebugMenu;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00011}00011\ BOOLEAN\ kTieIsPossible;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00012}00012\ BOOLEAN\ kLoopy;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00013}00013\ BOOLEAN\ kDebugDetermineValue;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00014}00014\ STRING\ kAuthorName;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00015}00015\ STRING\ kGameName;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00016}00016\ STRING\ kHelpGraphicInterface;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00017}00017\ STRING\ kHelpTextInterface;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00018}00018\ STRING\ kHelpOnYourTurn;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00019}00019\ STRING\ kHelpStandardObjective;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00020}00020\ STRING\ kHelpReverseObjective;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00021}00021\ STRING\ kHelpTieOccursWhen;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00022}00022\ STRING\ kHelpExample;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00023}00023\ STRING\ kDBName;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00024}00024\ POSITION\ kBadPosition;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00025}00025\ POSITION\ gInitialPosition;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00026}00026\ POSITION\ gNumberOfPositions;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00027}00027\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00028}00028\ \textcolor{preprocessor}{\#define\ PyPosition\_FromPosition(x)\ PyLong\_FromUnsignedLongLong(x)}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00029}00029\ \textcolor{preprocessor}{\#define\ PyPosition\_AsPosition(x)\ PyLong\_AsUnsignedLongLong(x)}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00030}00030\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00031}00031\ \textcolor{preprocessor}{\#define\ PyMove\_FromMove(x)\ PyInt\_FromLong(x)}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00032}00032\ \textcolor{preprocessor}{\#define\ PyMove\_AsMove(x)\ PyInt\_AsLong(x)}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00034}00034\ \textcolor{preprocessor}{\#define\ PyBoolean\_FromBoolean(x)\ (x\ ==\ TRUE)\ ?\ Py\_True\ :\ Py\_False}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00035}00035\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00036}00036\ \textcolor{keywordtype}{void}\ importBOOLEAN(\textcolor{keywordtype}{void}\ *to,\ PyObject\ *from)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00037}00037\ \ \ \ \ *((BOOLEAN\ *)to)\ =\ (from\ ==\ Py\_True)\ ?\ TRUE\ :\ FALSE;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00038}00038\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00039}00039\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00040}00040\ PyObject\ *exportBOOLEAN(BOOLEAN\ from)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00041}00041\ \ \ \ \ \textcolor{keywordflow}{return}\ (\ from\ ==\ TRUE\ )\ ?\ Py\_True\ :\ Py\_False;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00042}00042\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00044}00044\ \textcolor{keywordtype}{void}\ importPOSITION(\textcolor{keywordtype}{void}\ *to,\ PyObject\ *from)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00045}00045\ \ \ \ \ *((POSITION\ *)to)\ =\ PyLong\_AsUnsignedLongLong(from);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00046}00046\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00048}00048\ PyObject\ *exportPOSITION(POSITION\ from)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00049}00049\ \ \ \ \ \textcolor{keywordflow}{return}\ PyLong\_FromUnsignedLongLong(from);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00050}00050\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00052}00052\ \textcolor{keywordtype}{void}\ importSTRING(\textcolor{keywordtype}{void}\ *to,\ PyObject\ *from)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00053}00053\ \ \ \ \ *((STRING\ *)to)\ =\ PyString\_AsString(from);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00054}00054\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00056}00056\ \textcolor{keyword}{static}\ PyObject\ *callback\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00058}00058\ \textcolor{comment}{/*\ Should\ be\ in\ gamesman.h\ */}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00059}00059\ \textcolor{keywordtype}{int}\ gamesman\_main(\textcolor{keywordtype}{int}\ argc,\ \textcolor{keywordtype}{char}\ *argv[]);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00060}00060\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00061}00061\ \textcolor{keywordtype}{void}\ *PrintError()\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00063}00063\ \ \ \ \ PyErr\_Print();}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00064}00064\ \ \ \ \ exit(1);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00065}00065\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00066}00066\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00068}00068\ \textcolor{preprocessor}{\#define\ verify(value)\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00069}00069\ \textcolor{preprocessor}{\ \ \ \ value\ ==\ 0\ \&\&\ PrintError()\ ||\ value}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00071}00071\ \textcolor{keyword}{static}\ PyObject\ *initialize(PyObject\ *self,\ PyObject\ *args)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00072}00072\ \ \ \ \ PyObject\ *result\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00073}00073\ \ \ \ \ PyObject\ *arglist;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00074}00074\ \ \ \ \ PyObject\ *handler;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00076}00076\ \ \ \ \ \textcolor{keywordflow}{if}\ (PyArg\_ParseTuple(args,\ \textcolor{stringliteral}{"{}OO"{}},\ \&arglist,\ \&handler))\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00077}00077\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00078}00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!PyCallable\_Check(handler))\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00079}00079\ \ \ \ \ \ \ \ \ \ \ \ \ PyErr\_SetString(PyExc\_TypeError,\ \textcolor{stringliteral}{"{}second\ argument\ must\ be\ callable"{}});}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00080}00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00081}00081\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00082}00082\ \ \ \ \ \ \ \ \ \ \ \ \ Py\_XINCREF(handler);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00083}00083\ \ \ \ \ \ \ \ \ \ \ \ \ Py\_XDECREF(callback);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00084}00084\ \ \ \ \ \ \ \ \ \ \ \ \ callback=handler;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00085}00085\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00087}00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!PyList\_Check(arglist))\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \ \ \ \ PyErr\_SetString(PyExc\_TypeError,\ \textcolor{stringliteral}{"{}first\ argument\ must\ be\ a\ list"{}});}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00089}00089\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00090}00090\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ index,\ argc\ =\ PyList\_Size(arglist);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00093}00093\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *argv[argc];}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00095}00095\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ argc;\ index++)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00096}00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!PyArg\_Parse(PyList\_GetItem(arglist,\ index),\ \textcolor{stringliteral}{"{}s"{}},\ argv\ +\ index))\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ NULL;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00100}00100\ \ \ \ \ \ \ \ \ \ \ \ \ result\ =\ Py\_BuildValue(\textcolor{stringliteral}{"{}i"{}},\ gamesman\_main(argc,\ argv));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00102}00102\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00103}00103\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00104}00104\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00105}00105\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00106}00106\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00107}00107\ \textcolor{keyword}{static}\ PyObject\ *export\ (PyObject\ *self,\ PyObject\ *args,\ PyObject\ *keywords)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00109}00109\ \ \ \ \ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00110}00110\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *keyword;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *variable;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ void\ (*\textcolor{keyword}{import})(\textcolor{keywordtype}{void}\ *,\ PyObject\ *);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00114}00114\ \ \ \ \ \}\ varmap[]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kGameSpecificMenu"{}},\ \&kGameSpecificMenu,\ \&importBOOLEAN\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kPartizan"{}},\ \&kPartizan,\ \&importBOOLEAN\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kDebugMenu"{}},\ \&kDebugMenu,\ \&importBOOLEAN\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kTieIsPossible"{}},\ \&kTieIsPossible,\ \&importBOOLEAN\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kLoopy"{}},\ \&kLoopy,\ \&importBOOLEAN\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00120}00120\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kDebugDetermineValue"{}},\ \&kDebugDetermineValue,\ \&importBOOLEAN\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kAuthorName"{}},\ \&kAuthorName,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kGameName"{}},\ \&kGameName,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00123}00123\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kHelpGraphicInterface"{}},\ \&kHelpGraphicInterface,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kHelpTextInterface"{}},\ \&kHelpTextInterface,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kHelpOnYourTurn"{}},\ \&kHelpOnYourTurn,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kHelpStandardObjective"{}},\ \&kHelpStandardObjective,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kHelpReverseObjective"{}},\ \&kHelpReverseObjective,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00128}00128\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kHelpTieOccursWhen"{}},\ \&kHelpTieOccursWhen,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kHelpExample"{}},\ \&kHelpExample,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kDBName"{}},\ \&kDBName,\ \&importSTRING\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00131}00131\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}kBadPosition"{}},\ \&kBadPosition,\ \&importPOSITION\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}gInitialPosition"{}},\ \&gInitialPosition,\ \&importPOSITION\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00133}00133\ \ \ \ \ \ \ \ \ \{\textcolor{stringliteral}{"{}gNumberOfPositions"{}},\ \&gNumberOfPositions,\ \&importPOSITION\}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00134}00134\ \ \ \ \ \};}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00136}00136\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ (\textcolor{keyword}{sizeof}(varmap)/\textcolor{keyword}{sizeof}(*varmap));\ index++\ )\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ PyObject\ *key\ =\ PyString\_FromString(varmap[index].keyword);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ PyObject\ *value\ =\ PyDict\_GetItem(keywords,\ key);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (value)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ varmap[index].import(\ varmap[index].variable,\ value\ );}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00141}00141\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ Py\_DECREF(key);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00143}00143\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00145}00145\ \ \ \ \ \textcolor{keywordflow}{return}\ Py\_None;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00146}00146\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00147}00147\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00148}00148\ \textcolor{keyword}{static}\ PyMethodDef\ functions[]\ =\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00149}00149\ \ \ \ \ \{\textcolor{stringliteral}{"{}initialize"{}},\ \ initialize,\ METH\_VARARGS,\ \textcolor{stringliteral}{"{}Initializes\ callback\ handler\ and\ calls\ main"{}}\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00150}00150\ \ \ \ \ \{\textcolor{stringliteral}{"{}export"{}},\ \ (PyCFunction)\ export,\ METH\_VARARGS\ |\ METH\_KEYWORDS,\ \textcolor{stringliteral}{"{}Exports\ keyworded\ variables"{}}\},}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00151}00151\ \ \ \ \ \{NULL,\ 0\}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00152}00152\ \};}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00153}00153\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00154}00154\ PyMODINIT\_FUNC\ initpygamesman()\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00155}00155\ \ \ \ \ (void)\ Py\_InitModule(\textcolor{stringliteral}{"{}pygamesman"{}},\ functions);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00156}00156\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00157}00157\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00158}00158\ PyAPI\_FUNC(PyObject\ *)\ call(PyObject\ *arglist)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00159}00159\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00160}00160\ \ \ \ \ PyObject\ *result;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00161}00161\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00162}00162\ \ \ \ \ result\ =\ PyEval\_CallObject(callback,\ arglist);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00163}00163\ \ \ \ \ Py\_DECREF(arglist);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00164}00164\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00165}00165\ \ \ \ \ \textcolor{keywordflow}{if}\ (\ result\ ==\ NULL\ )\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ PyErr\_Print();}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ exit(1);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00168}00168\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00169}00169\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00170}00170\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00171}00171\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00172}00172\ \textcolor{keywordtype}{void}\ InitializeGame()\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00173}00173\ \ \ \ \ Py\_DECREF(call(Py\_BuildValue(\textcolor{stringliteral}{"{}(s)"{}},\ \textcolor{stringliteral}{"{}InitializeGame"{}})));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00174}00174\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00175}00175\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00176}00176\ \textcolor{keywordtype}{void}\ PrintPosition(POSITION\ position,\ STRING\ playerName,\ BOOLEAN\ usersTurn)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00177}00177\ \ \ \ \ PyObject\ *py\_position,\ *py\_playerName,\ *py\_usersTurn;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00178}00178\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00179}00179\ \ \ \ \ py\_position\ =\ exportPOSITION(position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00180}00180\ \ \ \ \ py\_playerName\ =\ PyString\_FromString(playerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00181}00181\ \ \ \ \ py\_usersTurn\ =\ exportBOOLEAN(usersTurn);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00182}00182\ \ \ \ \ Py\_DECREF(call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sOOO)"{}},\ \textcolor{stringliteral}{"{}PrintPosition"{}},\ py\_position,\ py\_playerName,\ py\_usersTurn)));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00183}00183\ \ \ \ \ Py\_DECREF(py\_position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00184}00184\ \ \ \ \ Py\_DECREF(py\_playerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00186}00186\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00188}00188\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00189}00189\ \ \ \ \ PyObject\ *py\_position;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00190}00190\ \ \ \ \ PyObject\ *py\_movelist;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00191}00191\ \ \ \ \ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *movelist\ =\ NULL;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00192}00192\ \ \ \ \ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00193}00193\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00194}00194\ \ \ \ \ py\_position\ =\ PyPosition\_FromPosition(position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00195}00195\ \ \ \ \ py\_movelist\ =\ call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sO)"{}},\ \textcolor{stringliteral}{"{}GenerateMoves"{}},\ py\_position));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00196}00196\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00197}00197\ \ \ \ \ \textcolor{keywordflow}{if}\ (!PyList\_Check(py\_movelist))\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ PyErr\_SetString(PyExc\_TypeError,\ \textcolor{stringliteral}{"{}returned\ value\ must\ be\ list"{}});}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ PyErr\_Print();}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00200}00200\ \ \ \ \ \ \ \ \ exit(1);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00201}00201\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00202}00202\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00203}00203\ \ \ \ \ \textcolor{keywordflow}{for}\ (index\ =\ 0;\ index\ <\ PyList\_Size(py\_movelist);\ index++\ )\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00204}00204\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ MOVE\ move;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ verify(PyArg\_Parse(PyList\_GetItem(py\_movelist,\ index),\ \textcolor{stringliteral}{"{}i"{}},\ \&move));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ movelist\ =\ CreateMovelistNode(move,\ movelist);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00208}00208\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00209}00209\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00210}00210\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00211}00211\ \ \ \ \ Py\_DECREF(py\_movelist);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00212}00212\ \ \ \ \ \textcolor{keywordflow}{return}\ movelist;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00213}00213\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00214}00214\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00215}00215\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00216}00216\ VALUE\ Primitive(POSITION\ position)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00217}00217\ \ \ \ \ PyObject\ *py\_position,\ *py\_value;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00218}00218\ \ \ \ \ VALUE\ value;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00219}00219\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00220}00220\ \ \ \ \ py\_position\ =\ PyPosition\_FromPosition(position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00221}00221\ \ \ \ \ py\_value\ =\ call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sO)"{}},\ \textcolor{stringliteral}{"{}Primitive"{}},\ py\_position));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00222}00222\ \ \ \ \ verify(PyArg\_Parse(py\_value,\ \textcolor{stringliteral}{"{}i"{}},\ \&value));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00223}00223\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00224}00224\ \ \ \ \ Py\_DECREF(py\_position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00225}00225\ \ \ \ \ Py\_DECREF(py\_value);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00226}00226\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00227}00227\ \ \ \ \ \textcolor{keywordflow}{return}\ value;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00228}00228\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00229}00229\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00230}00230\ USERINPUT\ GetAndPrintPlayersMove(POSITION\ position,\ MOVE\ *move,\ STRING\ playerName)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00231}00231\ \ \ \ \ USERINPUT\ HandleDefaultTextInput();}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00232}00232\ \ \ \ \ USERINPUT\ input\ =\ Continue;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00233}00233\ \ \ \ \ PyObject\ *py\_position,\ *py\_playerName,\ *py\_funcall;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00234}00234\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00235}00235\ \ \ \ \ py\_position\ =\ PyPosition\_FromPosition(position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00236}00236\ \ \ \ \ py\_playerName\ =\ PyString\_FromString(playerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00237}00237\ \ \ \ \ py\_funcall\ =\ Py\_BuildValue(\textcolor{stringliteral}{"{}(sOO)"{}},\ \textcolor{stringliteral}{"{}PrintPrompt"{}},\ py\_position,\ py\_playerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00238}00238\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00239}00239\ \ \ \ \ \textcolor{keywordflow}{while}\ (\ input\ ==\ Continue\ )\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00240}00240\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00241}00241\ \ \ \ \ \ \ \ \ Py\_INCREF(py\_funcall);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00242}00242\ \ \ \ \ \ \ \ \ Py\_DECREF(call(py\_funcall));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00243}00243\ \ \ \ \ \ \ \ \ input\ =\ HandleDefaultTextInput(position,\ move,\ playerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00245}00245\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00247}00247\ \ \ \ \ Py\_DECREF(py\_position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00248}00248\ \ \ \ \ Py\_DECREF(py\_playerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00249}00249\ \ \ \ \ Py\_DECREF(py\_funcall);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00250}00250\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00251}00251\ \ \ \ \ \textcolor{keywordflow}{return}\ input;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00252}00252\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00253}00253\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00254}00254\ MOVE\ ConvertTextInputToMove(STRING\ input)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00255}00255\ \ \ \ \ PyObject\ *py\_input,\ *py\_move;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00256}00256\ \ \ \ \ MOVE\ move;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00257}00257\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00258}00258\ \ \ \ \ py\_input\ =\ PyString\_FromString(input);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00259}00259\ \ \ \ \ py\_move\ =\ call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sO)"{}},\ \textcolor{stringliteral}{"{}ConvertTextInputToMove"{}},\ py\_input));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00260}00260\ \ \ \ \ verify(PyArg\_Parse(py\_move,\ \textcolor{stringliteral}{"{}i"{}},\ \&move));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00261}00261\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00262}00262\ \ \ \ \ Py\_DECREF(py\_input);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00263}00263\ \ \ \ \ Py\_DECREF(py\_move);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00264}00264\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00265}00265\ \ \ \ \ \textcolor{keywordflow}{return}\ move;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00266}00266\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00267}00267\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00268}00268\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00269}00269\ POSITION\ GetInitialPosition()\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00270}00270\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00271}00271\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00272}00272\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00273}00273\ \textcolor{keywordtype}{void}\ PrintMove(MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00274}00274\ \ \ \ \ PyObject\ *py\_move;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00275}00275\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00276}00276\ \ \ \ \ py\_move\ =\ PyInt\_FromLong(move);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00277}00277\ \ \ \ \ Py\_DECREF(call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sO)"{}},\ \textcolor{stringliteral}{"{}PrintMove"{}},\ py\_move)));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00278}00278\ \ \ \ \ Py\_DECREF(py\_move);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00279}00279\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00280}00280\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00281}00281\ \textcolor{keywordtype}{void}\ PrintComputersMove(MOVE\ move,\ STRING\ computerName)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00282}00282\ \ \ \ \ PyObject\ *py\_move,\ *py\_computerName;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00283}00283\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00284}00284\ \ \ \ \ py\_move\ =\ PyInt\_FromLong(move);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00285}00285\ \ \ \ \ py\_computerName\ =\ PyString\_FromString(computerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00286}00286\ \ \ \ \ Py\_DECREF(call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sOO)"{}},\ \textcolor{stringliteral}{"{}PrintComputersMove"{}},\ py\_move,\ py\_computerName)));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00287}00287\ \ \ \ \ Py\_DECREF(py\_move);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00288}00288\ \ \ \ \ Py\_DECREF(py\_computerName);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00289}00289\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00290}00290\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00291}00291\ \textcolor{keywordtype}{int}\ getOption\ ()\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00292}00292\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00293}00293\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00294}00294\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00295}00295\ POSITION\ DoMove(POSITION\ position,\ MOVE\ move)\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00297}00297\ \ \ \ \ PyObject\ *py\_position,\ *py\_move,\ *py\_newposition;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00298}00298\ \ \ \ \ POSITION\ newposition;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00299}00299\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00300}00300\ \ \ \ \ py\_position\ =\ PyPosition\_FromPosition(position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00301}00301\ \ \ \ \ py\_move\ =\ PyMove\_FromMove(move);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00302}00302\ \ \ \ \ py\_newposition\ =\ call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sOO)"{}},\ \textcolor{stringliteral}{"{}DoMove"{}},\ py\_position,\ py\_move));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00303}00303\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00304}00304\ \ \ \ \ importPOSITION(\&newposition,\ py\_newposition);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00305}00305\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00306}00306\ \ \ \ \ Py\_DECREF(py\_position);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00307}00307\ \ \ \ \ Py\_DECREF(py\_move);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00308}00308\ \ \ \ \ Py\_DECREF(py\_newposition);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00309}00309\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00310}00310\ \ \ \ \ \textcolor{keywordflow}{return}\ newposition;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00311}00311\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00312}00312\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00314}00314\ \textcolor{keywordtype}{void}\ GameSpecificMenu()\{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00315}00315\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00316}00316\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00317}00317\ \textcolor{keywordtype}{void}\ DebugMenu()\{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00318}00318\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00319}00319\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00320}00320\ \textcolor{keywordtype}{void}\ setOption(\textcolor{keywordtype}{int}\ option)\{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00321}00321\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00322}00322\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00323}00323\ BOOLEAN\ ValidTextInput(STRING\ input)\{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00324}00324\ \ \ \ \ PyObject\ *py\_input;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00325}00325\ \ \ \ \ PyObject\ *py\_valid;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00326}00326\ \ \ \ \ BOOLEAN\ valid;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00327}00327\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00328}00328\ \ \ \ \ py\_input\ =\ PyString\_FromString(input);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00329}00329\ \ \ \ \ py\_valid\ =\ call(Py\_BuildValue(\textcolor{stringliteral}{"{}(sO)"{}},\ \textcolor{stringliteral}{"{}ValidTextInput"{}},\ py\_input));}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00330}00330\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00331}00331\ \ \ \ \ \textcolor{keywordflow}{if}\ (!PyBool\_Check(py\_valid))\ \{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00332}00332\ \ \ \ \ \ \ \ \ exit(1);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00333}00333\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00334}00334\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00335}00335\ \ \ \ \ importBOOLEAN(\&valid,\ py\_valid);}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00336}00336\ \ \ \ \ \textcolor{keywordflow}{return}\ valid;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00337}00337\ \}}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00338}00338\ }
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00339}00339\ \textcolor{keywordtype}{int}\ NumberOfOptions()\{}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00340}00340\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\Hypertarget{pygamesman_8c_source_l00341}00341\ \}}
+
+\end{DoxyCode}

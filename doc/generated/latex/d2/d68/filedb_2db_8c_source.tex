@@ -1,0 +1,153 @@
+\hypertarget{filedb_2db_8c_source}{}\doxysection{db.\+c}
+\label{filedb_2db_8c_source}\index{src/core/filedb/db.c@{src/core/filedb/db.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ db.c}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Gamescrafters\ Database\ Creation\ and\ Modification}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ GamesCrafters\ Research\ Group,\ UC\ Berkeley}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00008}00008\ \textcolor{comment}{**\ \ \ \ \ \ Supervised\ by\ Dan\ Garcia\ <ddgarcia@cs.berkeley.edu>}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00009}00009\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00010}00010\ \textcolor{comment}{**\ DATE:\ \ \ \ 2005-\/01-\/11}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00011}00011\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00012}00012\ \textcolor{comment}{**\ LICENSE:\ This\ file\ is\ part\ of\ GAMESMAN,}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ The\ Finite,\ Two-\/person\ Perfect-\/Information\ Game\ Generator}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ Released\ under\ the\ GPL:}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00015}00015\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00016}00016\ \textcolor{comment}{**\ This\ program\ is\ free\ software;\ you\ can\ redistribute\ it\ and/or\ modify}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00017}00017\ \textcolor{comment}{**\ it\ under\ the\ terms\ of\ the\ GNU\ General\ Public\ License\ as\ published\ by}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00018}00018\ \textcolor{comment}{**\ the\ Free\ Software\ Foundation;\ either\ version\ 2\ of\ the\ License,\ or}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00019}00019\ \textcolor{comment}{**\ (at\ your\ option)\ any\ later\ version.}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00020}00020\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00021}00021\ \textcolor{comment}{**\ This\ program\ is\ distributed\ in\ the\ hope\ that\ it\ will\ be\ useful,}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00022}00022\ \textcolor{comment}{**\ but\ WITHOUT\ ANY\ WARRANTY;\ without\ even\ the\ implied\ warranty\ of}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00023}00023\ \textcolor{comment}{**\ MERCHANTABILITY\ or\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ See\ the}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00024}00024\ \textcolor{comment}{**\ GNU\ General\ Public\ License\ for\ more\ details.}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00025}00025\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00026}00026\ \textcolor{comment}{**\ You\ should\ have\ received\ a\ copy\ of\ the\ GNU\ General\ Public\ License}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00027}00027\ \textcolor{comment}{**\ along\ with\ this\ program,\ in\ COPYING;\ if\ not,\ write\ to\ the\ Free\ Software}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00028}00028\ \textcolor{comment}{**\ Foundation,\ Inc.,\ 675\ Mass\ Ave,\ Cambridge,\ MA\ 02139,\ USA.}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00029}00029\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00030}00030\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00032}00032\ \textcolor{preprocessor}{\#include\ "{}db.h"{}}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00033}00033\ \textcolor{preprocessor}{\#include\ "{}db\_globals.h"{}}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00034}00034\ \textcolor{preprocessor}{\#include\ "{}db\_types.h"{}}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00035}00035\ \textcolor{preprocessor}{\#include\ "{}db\_bman.h"{}}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00036}00036\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00037}00037\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00038}00038\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00039}00039\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00040}00040\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00041}00041\ \textcolor{keyword}{static}\ gamesdb\_frameid\ gamesdb\_translate(\mbox{\hyperlink{structgamesdb}{gamesdb}}*\ db,\ gamesdb\_pageid\ vpn)\ \{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00042}00042\ \ \ \ \ \textcolor{comment}{//the\ thing\ it\ returns\ must\ be\ a\ frame\ identified\ by\ ppn\ in\ the\ physical\ buffer}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00043}00043\ \ \ \ \ gamesdb\_frameid\ ppn\ =\ gamesdb\_bman\_find(db,\ vpn);\ \textcolor{comment}{//see\ if\ it\ is\ in\ physical\ memory}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00045}00045\ \ \ \ \ \textcolor{keywordflow}{if}\ (ppn\ ==\ NULL)\ \{\ \textcolor{comment}{//the\ page\ is\ not\ present\ in\ physical\ memory}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00046}00046\ \ \ \ \ \ \ \ \ ppn\ =\ gamesdb\_bman\_replace(db,\ vpn);\ \textcolor{comment}{//get\ a\ replacement\ page,\ change\ page\ table\ in\ the\ process}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00047}00047\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00048}00048\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ppn-\/>valid\ ==\ GAMESDB\_TRUE)\ \{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00049}00049\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//this\ page\ got\ kicked\ out\ by\ n-\/chance}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00050}00050\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (GAMESDB\_DEBUG)\ printf(\textcolor{stringliteral}{"{}translate:\ replaced\ =\ \%u\(\backslash\)n"{}},\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})ppn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00051}00051\ \ \ \ \ \ \ \ \ \ \ \ \ assert(ppn-\/>tag\ !=\ vpn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00052}00052\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ppn-\/>tag\ !=\ vpn)\ \{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00053}00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//buffer\ page\ is\ valid\ but\ not\ the\ one\ we\ want}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00054}00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//if\ (bufp-\/>dirty[bufpage])\ //if\ the\ page\ is\ dirty\ flush\ it}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00055}00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_buf\_write(db,\ ppn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00056}00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//load\ in\ the\ new\ page}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00057}00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_buf\_read(db,\ ppn,\ vpn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00058}00058\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00059}00059\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00060}00060\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//load\ in\ the\ new\ page}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00061}00061\ \ \ \ \ \ \ \ \ \ \ \ \ gamesdb\_buf\_read(db,\ ppn,\ vpn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00062}00062\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//set\ the\ tag\ where\ it\ is}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00063}00063\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//if\ (ppn-\/>tag\ !=\ vpn)}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00064}00064\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//the\ buffer\ is\ uninitialized,\ this\ means\ no\ record\ exists\ in\ the\ page}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00065}00065\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00066}00066\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00067}00067\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00068}00068\ \ \ \ \ \textcolor{keywordflow}{if}\ (GAMESDB\_DEBUG)\ \{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00069}00069\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}translate:\ vpn\ =\ \%llu,\ ppn\ =\ \%u\ tag\ =\ \%llu\(\backslash\)n"{}},\ vpn,\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})ppn,\ ppn-\/>tag);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00070}00070\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00071}00071\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00072}00072\ \ \ \ \ assert\ (ppn-\/>tag\ ==\ vpn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00073}00073\ \ \ \ \ assert\ (ppn-\/>valid\ ==\ GAMESDB\_TRUE);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00074}00074\ \ \ \ \ \textcolor{keywordflow}{return}\ ppn;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00075}00075\ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00076}00076\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00077}00077\ \textcolor{comment}{/*}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00078}00078\ \textcolor{comment}{\ *\ allocates\ memory\ and\ sets\ up\ a\ gamescrafters\ db.\ Must\ call\ destructive}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00079}00079\ \textcolor{comment}{\ *\ function\ when\ done\ to\ free\ up\ memory.}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00080}00080\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00081}00081\ \mbox{\hyperlink{structgamesdb}{gamesdb}}*\ gamesdb\_create(\textcolor{keywordtype}{int}\ rec\_size,\ gamesdb\_pageid\ max\_recs,\ gamesdb\_pageid\ max\_pages,\ \textcolor{keywordtype}{int}\ cluster\_size,\ \textcolor{keywordtype}{char}*\ db\_name)\{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00082}00082\ \ \ \ \ \mbox{\hyperlink{structgamesdb__bman}{gamesdb\_bman}}*\ bman;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00083}00083\ \ \ \ \ \mbox{\hyperlink{structgamesdb__buffer}{gamesdb\_buffer}}*\ bufp;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00084}00084\ \ \ \ \ \mbox{\hyperlink{structdbfile__struct}{gamesdb\_store}}*\ storep;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00085}00085\ \ \ \ \ \mbox{\hyperlink{structgamesdb}{gamesdb}}*\ data;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00087}00087\ \ \ \ \ bufp\ =\ gamesdb\_buf\_init(rec\_size,\ max\_recs,\ max\_pages);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00088}00088\ \ \ \ \ bman\ =\ gamesdb\_bman\_init(bufp);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00089}00089\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00090}00090\ \ \ \ \ data\ =\ (\mbox{\hyperlink{structgamesdb}{gamesdb}}*)\ gamesdb\_SafeMalloc(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structgamesdb}{gamesdb}}));}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00091}00091\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00092}00092\ \ \ \ \ data-\/>buf\_man\ =\ bman;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00093}00093\ \ \ \ \ data-\/>buffer\ =\ bufp;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00095}00095\ \ \ \ \ storep\ =\ gamesdb\_open(data,\ db\_name,\ cluster\_size);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00096}00096\ \ \ \ \ \textcolor{keywordflow}{if}\ (storep\ ==\ NULL)\ \{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}A\ fatal\ error\ occured\ when\ trying\ to\ open\ the\ database.\ Aborting.\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ exit(1);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00099}00099\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00100}00100\ \ \ \ \ data-\/>store\ =\ storep;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00101}00101\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00102}00102\ \ \ \ \ \textcolor{comment}{//create\ initial\ page}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00103}00103\ \ \ \ \ gamesdb\_buf\_addpage(data);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00104}00104\ \ \ \ \ bman-\/>clock\_hand\ =\ bufp-\/>pages;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00106}00106\ \ \ \ \ \textcolor{keywordflow}{return}\ data;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00107}00107\ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00108}00108\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00109}00109\ \textcolor{keywordtype}{void}\ gamesdb\_destroy(\mbox{\hyperlink{structgamesdb}{gamesdb}}*\ data)\{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00111}00111\ \ \ \ \ gamesdb\_bman\_destroy(data-\/>buf\_man);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00112}00112\ \ \ \ \ gamesdb\_buf\_destroy(data);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00113}00113\ \ \ \ \ gamesdb\_close(data-\/>store);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00114}00114\ \ \ \ \ gamesdb\_SafeFree(data);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00115}00115\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00116}00116\ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00117}00117\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00118}00118\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00119}00119\ \textcolor{keywordtype}{void}\ gamesdb\_get(\mbox{\hyperlink{structgamesdb}{gamesdb}}*\ gdb,\ \textcolor{keywordtype}{char}*\ mem,\ gamesdb\_position\ pos)\{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00120}00120\ \ \ \ \ \mbox{\hyperlink{structgamesdb__buffer}{gamesdb\_buffer}}*\ bufp\ =\ gdb-\/>buffer;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00121}00121\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00122}00122\ \ \ \ \ gamesdb\_pageid\ vpn\ =\ pos\ /\ (bufp-\/>buf\_size);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00124}00124\ \ \ \ \ gamesdb\_frameid\ ppn\ =\ gamesdb\_translate(gdb,\ vpn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00125}00125\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00126}00126\ \ \ \ \ \textcolor{comment}{//byte\ offset\ of\ the\ db\ record\ (the\ extra\ byte\ +\ the\ actual\ record)}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00127}00127\ \ \ \ \ gamesdb\_offset\ off\ =\ (pos\ \%\ (bufp-\/>buf\_size))\ *\ bufp-\/>rec\_size;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00129}00129\ \ \ \ \ memcpy(mem,\ ppn-\/>mem+off,\ bufp-\/>rec\_size);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00130}00130\ \}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00132}00132\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00133}00133\ \textcolor{keywordtype}{void}\ gamesdb\_put(\mbox{\hyperlink{structgamesdb}{gamesdb}}*\ gdb,\ \textcolor{keywordtype}{char}*\ mem,\ gamesdb\_position\ pos)\{}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00134}00134\ \ \ \ \ \mbox{\hyperlink{structgamesdb__buffer}{gamesdb\_buffer}}*\ bufp\ =\ gdb-\/>buffer;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00135}00135\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00136}00136\ \ \ \ \ gamesdb\_pageid\ vpn\ =\ pos\ /\ (bufp-\/>buf\_size);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00137}00137\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00138}00138\ \ \ \ \ gamesdb\_frameid\ ppn\ =\ gamesdb\_translate(gdb,\ vpn);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00139}00139\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00140}00140\ \ \ \ \ \textcolor{comment}{//byte\ offset\ of\ the\ db\ record\ (the\ extra\ byte\ +\ the\ actual\ record)}}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00141}00141\ \ \ \ \ gamesdb\_offset\ off\ =\ (pos\ \%\ (bufp-\/>buf\_size))\ *\ bufp-\/>rec\_size;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00142}00142\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00143}00143\ \ \ \ \ memcpy(ppn-\/>mem+off,\ mem,\ bufp-\/>rec\_size);}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00144}00144\ }
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00145}00145\ \ \ \ \ ppn-\/>dirty\ =\ GAMESDB\_TRUE;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00146}00146\ \ \ \ \ ppn-\/>chances\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{filedb_2db_8c_source_l00147}00147\ \}}
+
+\end{DoxyCode}

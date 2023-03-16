@@ -1,0 +1,109 @@
+\hypertarget{seval_8h_source}{}\doxysection{seval.\+h}
+\label{seval_8h_source}\index{src/core/seval.h@{src/core/seval.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ \_SEVAL\_H\_}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ \_SEVAL\_H\_}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00003}00003\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00004}00004\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00005}00005\ \textcolor{preprocessor}{\#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ <scew/scew.h>}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00007}00007\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00008}00008\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00009}00009\ \textcolor{comment}{//\ Constants}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00010}00010\ \textcolor{preprocessor}{\#define\ SEVAL\_NUMSCALEPARAMS\ 4}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00011}00011\ \textcolor{preprocessor}{\#define\ SEVAL\_NUMEVALPARAMS\ 4}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00012}00012\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00013}00013\ \textcolor{comment}{//\ Type\ Declarations}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00014}00014\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00015}00015\ \textcolor{keyword}{typedef}\ float\ (*scalingFunction)(float,\textcolor{keywordtype}{float}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00016}00016\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00017}00017\ \textcolor{keyword}{typedef}\ float\ (*featureEvaluatorLibrary)(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00018}00018\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00019}00019\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ f\_type\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00020}00020\ \ \ \ \ library,\ custom}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00021}00021\ \}\ TYPE;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00022}00022\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00023}00023\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ p\_type\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00024}00024\ \ \ \ \ initial,\ opponent}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00025}00025\ \}\ PIECE\_TYPE;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00026}00026\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00032}\mbox{\hyperlink{structf_node}{00032}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structf_node}{fNode}}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00033}00033\ \ \ \ \ STRING\ name;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00034}00034\ \ \ \ \ \textcolor{keywordtype}{float}\ weight;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00035}00035\ \ \ \ \ TYPE\ type;\ \textcolor{comment}{//custom\ or\ library}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00036}00036\ \ \ \ \ PIECE\_TYPE\ piece;\ \textcolor{comment}{//the\ piece\ that\ this\ trait\ centers\ on}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00037}00037\ \ \ \ \ \textcolor{keywordtype}{float}\ scaleParams[SEVAL\_NUMSCALEPARAMS];}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00038}00038\ \ \ \ \ \textcolor{keywordtype}{int}\ evalParams[SEVAL\_NUMEVALPARAMS];}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00039}00039\ \ \ \ \ scalingFunction\ scale;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00040}00040\ \ \ \ \ featureEvaluatorCustom\ fEvalC;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00041}00041\ \ \ \ \ featureEvaluatorLibrary\ fEvalL;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00042}00042\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structf_node}{fNode}}\ *\ next;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00043}00043\ \}\ *\mbox{\hyperlink{structf_node}{fList}};}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00044}00044\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00045}\mbox{\hyperlink{structse_node}{00045}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structse_node}{seNode}}\ \{}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00046}00046\ \ \ \ \ \textcolor{comment}{//scew\_element*\ element;}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00047}00047\ \ \ \ \ STRING\ name;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00048}00048\ \ \ \ \ \textcolor{keywordtype}{int}\ variant;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00049}00049\ \ \ \ \ BOOLEAN\ perfect;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00050}00050\ \ \ \ \ \mbox{\hyperlink{structf_node}{fList}}\ featureList;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00051}00051\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structse_node}{seNode}}\ *\ next;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00052}00052\ \}\ *\mbox{\hyperlink{structse_node}{seList}};}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00053}00053\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00054}00054\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structse_node}{seList}}\ evaluatorList;}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00056}00056\ \textcolor{comment}{//\ Function\ Prototypes}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00058}00058\ \textcolor{keyword}{extern}\ USERINPUT\ StaticEvaluatorMenu();}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00059}00059\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{float}\ evaluatePosition(POSITION);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00060}00060\ \textcolor{keyword}{extern}\ VALUE\ evaluatePositionValue(POSITION);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00061}00061\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ TryToLoadAnEvaluator();}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00062}00062\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00063}00063\ BOOLEAN\ FullInitializeSEval(\textcolor{keywordtype}{char}*);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00064}00064\ \textcolor{keywordtype}{float}\ numPieces(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00065}00065\ \textcolor{keywordtype}{float}\ numFromEdge(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00066}00066\ \textcolor{keywordtype}{float}\ clustering(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00067}00067\ \textcolor{keywordtype}{float}\ connections(\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{int}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00068}00068\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00069}00069\ \textcolor{keywordtype}{void}\ initializeStaticEvaluatorBoard(\textcolor{keywordtype}{int},\textcolor{keywordtype}{int},\textcolor{keywordtype}{int},BOOLEAN,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*,\textcolor{keywordtype}{void}*);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00070}00070\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00071}00071\ \textcolor{preprocessor}{\#ifdef\ HAVE\_XML}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00072}00072\ scew\_element*\ findEvaluatorNode(scew\_element*,\ STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00073}00073\ scew\_element*\ createEvaluatorNode(\mbox{\hyperlink{structse_node}{seList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00074}00074\ \mbox{\hyperlink{structse_node}{seList}}\ parseEvaluators(scew\_element*,\ \mbox{\hyperlink{structse_node}{seList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00075}00075\ \mbox{\hyperlink{structf_node}{fList}}\ parseFeature(scew\_element*);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00076}00076\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00077}00077\ \textcolor{keywordtype}{void}\ setArrayFromString(\textcolor{keywordtype}{float}*,\ STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00078}00078\ \textcolor{keywordtype}{void}\ freeFeatureList(\mbox{\hyperlink{structf_node}{fList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00079}00079\ \textcolor{keywordtype}{void}\ freeEvaluatorList(\mbox{\hyperlink{structse_node}{seList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00080}00080\ STRING\ copyString(STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00081}00081\ \mbox{\hyperlink{structf_node}{fList}}\ copyFeatureList(\mbox{\hyperlink{structf_node}{fList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00082}00082\ \textcolor{keywordtype}{void}\ updateCurrentEvaluator();}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00083}00083\ BOOLEAN\ loadDataFromXML(STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00084}00084\ BOOLEAN\ writeEvaluatorToXMLFile(\mbox{\hyperlink{structse_node}{seList}},\ STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00085}00085\ BOOLEAN\ initializeStaticEvaluator(STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00086}00086\ \textcolor{keywordtype}{void}\ chooseEvaluator(\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00087}00087\ BOOLEAN\ evaluatorExistsForVariant(\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00088}00088\ BOOLEAN\ createNewXMLFile(STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00089}00089\ featureEvaluatorLibrary\ getSEvalLibFnPtr(STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00090}00090\ \textcolor{keywordtype}{float}\ linear(\textcolor{keywordtype}{float},\textcolor{keywordtype}{float}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00091}00091\ \textcolor{keywordtype}{float}\ logarithmic(\textcolor{keywordtype}{float},\textcolor{keywordtype}{float}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00092}00092\ \textcolor{keywordtype}{float}\ logistic(\textcolor{keywordtype}{float},\textcolor{keywordtype}{float}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00093}00093\ \textcolor{keywordtype}{float}\ quadratic(\textcolor{keywordtype}{float},\textcolor{keywordtype}{float}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00094}00094\ \textcolor{preprocessor}{\#ifdef\ WIN32}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00095}00095\ \ \ \ \ \textcolor{keywordtype}{float}\ booleanA(\textcolor{keywordtype}{float},\ \textcolor{keywordtype}{float}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00096}00096\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00097}00097\ \ \ \ \ \textcolor{keywordtype}{float}\ boolean(\textcolor{keywordtype}{float},\textcolor{keywordtype}{float}[]);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00098}00098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00099}00099\ }
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00100}00100\ \textcolor{keywordtype}{void}\ NewTraitMenu(STRING);}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00101}00101\ \mbox{\hyperlink{structf_node}{fList}}\ ParameterizeTrait(\textcolor{keywordtype}{int},\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00102}00102\ \textcolor{keywordtype}{void}\ ParameterizeScalingFunction(\mbox{\hyperlink{structf_node}{fList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00103}00103\ \textcolor{keywordtype}{void}\ ParameterizeWeightingFunction(\mbox{\hyperlink{structf_node}{fList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00104}00104\ \textcolor{keywordtype}{char}\ printList(STRING[],\textcolor{keywordtype}{int},\textcolor{keywordtype}{char});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00105}00105\ \textcolor{keywordtype}{void}\ RequestPiece(\mbox{\hyperlink{structf_node}{fList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00106}00106\ \textcolor{keywordtype}{void}\ RequestBoolean(STRING,\textcolor{keywordtype}{int},\mbox{\hyperlink{structf_node}{fList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00107}00107\ \textcolor{keywordtype}{void}\ RequestValue(STRING,\textcolor{keywordtype}{int},\textcolor{keywordtype}{int},\mbox{\hyperlink{structf_node}{fList}});}
+\DoxyCodeLine{\Hypertarget{seval_8h_source_l00108}00108\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

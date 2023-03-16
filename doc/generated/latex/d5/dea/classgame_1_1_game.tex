@@ -1,0 +1,478 @@
+\hypertarget{classgame_1_1_game}{}\doxysection{game.\+Game Class Reference}
+\label{classgame_1_1_game}\index{game.Game@{game.Game}}
+Inheritance diagram for game.\+Game\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{d5/dea/classgame_1_1_game}
+\end{center}
+\end{figure}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a3676a5fc79ac6c88c6b41b38f2d0ebef}{\+\_\+\+\_\+init\+\_\+\+\_\+}} (self, server, name)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a09f8fce408b10d63a3e0ffee5be4c96a}{get\+\_\+process}} (self, query)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_af7933ddedaa657fa8aa3cd3ba156761a}{format\+\_\+parsed}} (self, parsed)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a9a37d80e80f739d75d4d5b1e4d6830af}{has\+\_\+script}} (self)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a1f253bdd839d4ccccec7ca9b568b5147}{working}} (self)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a84df0ab87c6d36f1f29f23f96409ad55}{check\+\_\+if\+\_\+working}} (self)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a3c65013336d81ea27bfafc6525dd8b53}{delete\+\_\+closed\+\_\+processes}} (self)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_aa10d85ad3cf6adb0430f23e4d9553b99}{start\+\_\+process}} (self, query, opt)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a700dc91b1bb4d804817a8c0e7e6cee09}{push\+\_\+request}} (self, request)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_ace2e199c452ad1a4593385a0136a8090}{get\+\_\+option}} (self, query)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a03e303bafea72454ef9db8cee4c4b6bf}{respond\+\_\+to\+\_\+unknown\+\_\+request}} (self, req)
+\item 
+\mbox{\hyperlink{classgame_1_1_game_aabca9a7dc9f40f07d2836fd089ddb7e6}{remove\+\_\+process}} (self, process)
+\end{DoxyCompactItemize}
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}{server}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974}{name}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a1893d1b3057c24c1d6290ee2a77c56cc}{root\+\_\+dir}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}{processes}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a58bc8cd79c0d31f884ebb69321837481}{process\+\_\+class}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a2e37501e238f99e171f2f2e157a0beae}{query}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a719c5bb4ba8b152940a078c1fd8c6108}{command}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_a6eff5f2c264dec265e8380d0914b1a45}{game}}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_ac553ca9b5bffbce030b16d288ce7c224}{proc}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+bool \mbox{\hyperlink{classgame_1_1_game_a12aea4e7aaf3331b5772b3e606eecc6c}{indent\+\_\+response}} = True
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}{\+\_\+working}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00007}{7}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{classgame_1_1_game_a3676a5fc79ac6c88c6b41b38f2d0ebef}\label{classgame_1_1_game_a3676a5fc79ac6c88c6b41b38f2d0ebef} 
+\index{game.Game@{game.Game}!\_\_init\_\_@{\_\_init\_\_}}
+\index{\_\_init\_\_@{\_\_init\_\_}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{\_\_init\_\_()}{\_\_init\_\_()}}
+{\footnotesize\ttfamily game.\+Game.\+\_\+\+\_\+init\+\_\+\+\_\+ (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{server,  }\item[{}]{name }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00010}{10}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00010\ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ server,\ name):}
+\DoxyCodeLine{00011\ \ \ \ \ \ \ \ \ self.server\ =\ server}
+\DoxyCodeLine{00012\ \ \ \ \ \ \ \ \ self.name\ =\ name}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ self.root\_dir\ =\ server.root\_game\_directory}
+\DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ self.processes\ =\ collections.defaultdict(list)}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ self.process\_class\ =\ \mbox{\hyperlink{classserver_1_1_game_process}{server.GameProcess}}}
+\DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ self.\_working\ =\ \textcolor{stringliteral}{'maybe'}}
+\DoxyCodeLine{00017\ }
+
+\end{DoxyCode}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classgame_1_1_game_a84df0ab87c6d36f1f29f23f96409ad55}\label{classgame_1_1_game_a84df0ab87c6d36f1f29f23f96409ad55} 
+\index{game.Game@{game.Game}!check\_if\_working@{check\_if\_working}}
+\index{check\_if\_working@{check\_if\_working}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{check\_if\_working()}{check\_if\_working()}}
+{\footnotesize\ttfamily game.\+Game.\+check\+\_\+if\+\_\+working (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00043}{43}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{def\ }check\_if\_working(self):}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ proc\ =\ self.get\_process(collections.defaultdict(str))}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ time\_remaining\ =\ 600}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ time\_step\ =\ 0.01}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{keyword}{class\ }TestRequest(object):}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }\_\_init\_\_(self,\ game,\ proc):}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.query\ =\ collections.defaultdict(str)}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.command\ =\ \textcolor{stringliteral}{'start\_response'}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.game\ =\ game}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.proc\ =\ proc}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{def\ }respond(self,\ response):}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parsed\ =\ json.loads(response)}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.game.\_working\ =\ parsed[\textcolor{stringliteral}{u'response'}]\ !=\ \textcolor{stringliteral}{u'not\ implemented'}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{finally}:}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.proc.close()}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ proc.push\_request(TestRequest(self,\ proc))}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ AttributeError:}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ proc.alive\ \textcolor{keywordflow}{and}\ time\_remaining\ >\ 0:}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ time\_remaining\ -\/=\ time\_step}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ time.sleep(time\_step)}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\_working\ !=\ \textcolor{stringliteral}{'maybe'}:}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\_working}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\_working\ ==\ \textcolor{stringliteral}{'maybe'}:}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{False}}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\_working}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00077\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_a3c65013336d81ea27bfafc6525dd8b53}\label{classgame_1_1_game_a3c65013336d81ea27bfafc6525dd8b53} 
+\index{game.Game@{game.Game}!delete\_closed\_processes@{delete\_closed\_processes}}
+\index{delete\_closed\_processes@{delete\_closed\_processes}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{delete\_closed\_processes()}{delete\_closed\_processes()}}
+{\footnotesize\ttfamily game.\+Game.\+delete\+\_\+closed\+\_\+processes (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00078}{78}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{def\ }delete\_closed\_processes(self):}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ k,\ ps\ \textcolor{keywordflow}{in}\ self.processes.items():}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ proc\ \textcolor{keywordflow}{in}\ ps:}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ \textcolor{keywordflow}{not}\ proc.alive:}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc.process.kill()}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ Exception:}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{pass}}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ self.processes[k]\ =\ filter(\textcolor{keyword}{lambda}\ p:\ p.alive,\ ps)}
+\DoxyCodeLine{00087\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_af7933ddedaa657fa8aa3cd3ba156761a}\label{classgame_1_1_game_af7933ddedaa657fa8aa3cd3ba156761a} 
+\index{game.Game@{game.Game}!format\_parsed@{format\_parsed}}
+\index{format\_parsed@{format\_parsed}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{format\_parsed()}{format\_parsed()}}
+{\footnotesize\ttfamily game.\+Game.\+format\+\_\+parsed (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{parsed }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00030}{30}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{def\ }format\_parsed(self,\ parsed):}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ json.dumps(parsed,\ indent=self.indent\_response)}
+\DoxyCodeLine{00032\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_ace2e199c452ad1a4593385a0136a8090}\label{classgame_1_1_game_ace2e199c452ad1a4593385a0136a8090} 
+\index{game.Game@{game.Game}!get\_option@{get\_option}}
+\index{get\_option@{get\_option}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{get\_option()}{get\_option()}}
+{\footnotesize\ttfamily game.\+Game.\+get\+\_\+option (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{query }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00112}{112}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keyword}{def\ }get\_option(self,\ query):}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{00114\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_a09f8fce408b10d63a3e0ffee5be4c96a}\label{classgame_1_1_game_a09f8fce408b10d63a3e0ffee5be4c96a} 
+\index{game.Game@{game.Game}!get\_process@{get\_process}}
+\index{get\_process@{get\_process}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{get\_process()}{get\_process()}}
+{\footnotesize\ttfamily game.\+Game.\+get\+\_\+process (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{query }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00018}{18}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{def\ }get\_process(self,\ query):}
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ self.delete\_closed\_processes()}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ opt\ =\ query.get(\textcolor{stringliteral}{'number'},\ \textcolor{keywordtype}{None})}
+\DoxyCodeLine{00021\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ opt\ \textcolor{keywordflow}{is}\ \textcolor{keywordtype}{None}:}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ \ \ \ \ opt\ =\ self.get\_option(query)}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Check\ that\ there\ is\ a\ non-\/empty\ list\ of\ processes\ for\ this\ option}}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.processes[opt]:}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.processes[opt][0]}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.start\_process(query,\ opt)}
+\DoxyCodeLine{00029\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_a9a37d80e80f739d75d4d5b1e4d6830af}\label{classgame_1_1_game_a9a37d80e80f739d75d4d5b1e4d6830af} 
+\index{game.Game@{game.Game}!has\_script@{has\_script}}
+\index{has\_script@{has\_script}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{has\_script()}{has\_script()}}
+{\footnotesize\ttfamily game.\+Game.\+has\+\_\+script (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00034}{34}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keyword}{def\ }has\_script(self):}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ type(self)\ !=\ Game}
+\DoxyCodeLine{00036\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_a700dc91b1bb4d804817a8c0e7e6cee09}\label{classgame_1_1_game_a700dc91b1bb4d804817a8c0e7e6cee09} 
+\index{game.Game@{game.Game}!push\_request@{push\_request}}
+\index{push\_request@{push\_request}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{push\_request()}{push\_request()}}
+{\footnotesize\ttfamily game.\+Game.\+push\+\_\+request (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{request }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00104}{104}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keyword}{def\ }push\_request(self,\ request):}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ proc\ =\ self.get\_process(request.query)}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ proc:}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ proc.push\_request(request)}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{\#\ Handles\ game\ not\ being\ present}}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ request.respond(self.server.could\_not\_start\_msg)}
+\DoxyCodeLine{00111\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_aabca9a7dc9f40f07d2836fd089ddb7e6}\label{classgame_1_1_game_aabca9a7dc9f40f07d2836fd089ddb7e6} 
+\index{game.Game@{game.Game}!remove\_process@{remove\_process}}
+\index{remove\_process@{remove\_process}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{remove\_process()}{remove\_process()}}
+{\footnotesize\ttfamily game.\+Game.\+remove\+\_\+process (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{process }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00118}{118}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keyword}{def\ }remove\_process(self,\ process):}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ self.server.log.info(\textcolor{stringliteral}{'Removing\ \{\}.'}.format(self.name))}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ self.processes[process.option\_num].remove(process)}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ ValueError\ \textcolor{keyword}{as}\ e:}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'Trying\ to\ remove\ subprocess\ of\ \{\}\ failed\ \(\backslash\)}}
+\DoxyCodeLine{00124\ \textcolor{stringliteral}{\ \ \ \ \ \ \ \ \ \ \ \ because\ it\ could\ not\ be\ found.'}.format(self.name))}
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_a03e303bafea72454ef9db8cee4c4b6bf}\label{classgame_1_1_game_a03e303bafea72454ef9db8cee4c4b6bf} 
+\index{game.Game@{game.Game}!respond\_to\_unknown\_request@{respond\_to\_unknown\_request}}
+\index{respond\_to\_unknown\_request@{respond\_to\_unknown\_request}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{respond\_to\_unknown\_request()}{respond\_to\_unknown\_request()}}
+{\footnotesize\ttfamily game.\+Game.\+respond\+\_\+to\+\_\+unknown\+\_\+request (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{req }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00115}{115}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keyword}{def\ }respond\_to\_unknown\_request(self,\ req):}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{raise}\ Exception(\textcolor{stringliteral}{"{}Cannot\ handle\ query."{}})}
+\DoxyCodeLine{00117\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_aa10d85ad3cf6adb0430f23e4d9553b99}\label{classgame_1_1_game_aa10d85ad3cf6adb0430f23e4d9553b99} 
+\index{game.Game@{game.Game}!start\_process@{start\_process}}
+\index{start\_process@{start\_process}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{start\_process()}{start\_process()}}
+{\footnotesize\ttfamily game.\+Game.\+start\+\_\+process (\begin{DoxyParamCaption}\item[{}]{self,  }\item[{}]{query,  }\item[{}]{opt }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00088}{88}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keyword}{def\ }start\_process(self,\ query,\ opt):}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ bin\_name\ =\ \textcolor{stringliteral}{'m'}\ +\ self.name}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ f\ \textcolor{keywordflow}{in}\ os.listdir(self.root\_dir):}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ f\ ==\ bin\_name:}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.info(\textcolor{stringliteral}{'Starting\ \{\}.'}.format(self.name))}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bin\_path\ =\ os.path.join(os.path.curdir,\ bin\_name)}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gp\ =\ \textcolor{keywordtype}{None}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}:}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gp\ =\ self.process\_class(self.server,\ self,\ bin\_path,\ opt)}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{except}\ OSError\ \textcolor{keyword}{as}\ err:}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ self.server.log.error(\textcolor{stringliteral}{'Ran\ out\ of\ file\ descriptors!'})}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}:}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc\_list\ =\ self.processes.setdefault(opt,\ [])}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ proc\_list.append(gp)}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ gp}
+\DoxyCodeLine{00103\ }
+
+\end{DoxyCode}
+\Hypertarget{classgame_1_1_game_a1f253bdd839d4ccccec7ca9b568b5147}\label{classgame_1_1_game_a1f253bdd839d4ccccec7ca9b568b5147} 
+\index{game.Game@{game.Game}!working@{working}}
+\index{working@{working}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{working()}{working()}}
+{\footnotesize\ttfamily game.\+Game.\+working (\begin{DoxyParamCaption}\item[{}]{self }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00038}{38}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{def\ }working(self):}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ self.\_working\ ==\ \textcolor{stringliteral}{'maybe'}:}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ self.\_working\ =\ self.check\_if\_working()}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ self.\_working}
+\DoxyCodeLine{00042\ }
+
+\end{DoxyCode}
+
+
+\doxysubsection{Field Documentation}
+\Hypertarget{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86}\label{classgame_1_1_game_adc384e7687675eb240e9909ddc3a6e86} 
+\index{game.Game@{game.Game}!\_working@{\_working}}
+\index{\_working@{\_working}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{\_working}{\_working}}
+{\footnotesize\ttfamily game.\+Game.\+\_\+working\hspace{0.3cm}{\ttfamily [protected]}}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00016}{16}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a719c5bb4ba8b152940a078c1fd8c6108}\label{classgame_1_1_game_a719c5bb4ba8b152940a078c1fd8c6108} 
+\index{game.Game@{game.Game}!command@{command}}
+\index{command@{command}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{command}{command}}
+{\footnotesize\ttfamily game.\+Game.\+command}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00051}{51}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a6eff5f2c264dec265e8380d0914b1a45}\label{classgame_1_1_game_a6eff5f2c264dec265e8380d0914b1a45} 
+\index{game.Game@{game.Game}!game@{game}}
+\index{game@{game}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{game}{game}}
+{\footnotesize\ttfamily game.\+Game.\+game}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00052}{52}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a12aea4e7aaf3331b5772b3e606eecc6c}\label{classgame_1_1_game_a12aea4e7aaf3331b5772b3e606eecc6c} 
+\index{game.Game@{game.Game}!indent\_response@{indent\_response}}
+\index{indent\_response@{indent\_response}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{indent\_response}{indent\_response}}
+{\footnotesize\ttfamily bool game.\+Game.\+indent\+\_\+response = True\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00008}{8}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974}\label{classgame_1_1_game_ae86df55dbd7221c46ed96fbdf4421974} 
+\index{game.Game@{game.Game}!name@{name}}
+\index{name@{name}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily game.\+Game.\+name}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00012}{12}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_ac553ca9b5bffbce030b16d288ce7c224}\label{classgame_1_1_game_ac553ca9b5bffbce030b16d288ce7c224} 
+\index{game.Game@{game.Game}!proc@{proc}}
+\index{proc@{proc}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{proc}{proc}}
+{\footnotesize\ttfamily game.\+Game.\+proc}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00053}{53}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a58bc8cd79c0d31f884ebb69321837481}\label{classgame_1_1_game_a58bc8cd79c0d31f884ebb69321837481} 
+\index{game.Game@{game.Game}!process\_class@{process\_class}}
+\index{process\_class@{process\_class}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{process\_class}{process\_class}}
+{\footnotesize\ttfamily game.\+Game.\+process\+\_\+class}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00015}{15}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d}\label{classgame_1_1_game_a0c07c7ed4b791c9b73d37af4c21ba76d} 
+\index{game.Game@{game.Game}!processes@{processes}}
+\index{processes@{processes}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{processes}{processes}}
+{\footnotesize\ttfamily game.\+Game.\+processes}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00014}{14}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a2e37501e238f99e171f2f2e157a0beae}\label{classgame_1_1_game_a2e37501e238f99e171f2f2e157a0beae} 
+\index{game.Game@{game.Game}!query@{query}}
+\index{query@{query}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{query}{query}}
+{\footnotesize\ttfamily game.\+Game.\+query}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00050}{50}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a1893d1b3057c24c1d6290ee2a77c56cc}\label{classgame_1_1_game_a1893d1b3057c24c1d6290ee2a77c56cc} 
+\index{game.Game@{game.Game}!root\_dir@{root\_dir}}
+\index{root\_dir@{root\_dir}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{root\_dir}{root\_dir}}
+{\footnotesize\ttfamily game.\+Game.\+root\+\_\+dir}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00013}{13}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+\Hypertarget{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34}\label{classgame_1_1_game_a2347da9887ca7a8403a7bc40f7407d34} 
+\index{game.Game@{game.Game}!server@{server}}
+\index{server@{server}!game.Game@{game.Game}}
+\doxysubsubsection{\texorpdfstring{server}{server}}
+{\footnotesize\ttfamily game.\+Game.\+server}
+
+
+
+Definition at line \mbox{\hyperlink{game_8py_source_l00011}{11}} of file \mbox{\hyperlink{game_8py_source}{game.\+py}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/py/game.\+py\end{DoxyCompactItemize}

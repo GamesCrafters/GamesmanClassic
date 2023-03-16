@@ -1,0 +1,396 @@
+\hypertarget{mlib_8c_source}{}\doxysection{mlib.\+c}
+\label{mlib_8c_source}\index{src/core/mlib.c@{src/core/mlib.c}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00001}00001\ \textcolor{comment}{/************************************************************************}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00002}00002\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00003}00003\ \textcolor{comment}{**\ NAME:\ \ \ \ \ \ \ \ mlib.c}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00004}00004\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00005}00005\ \textcolor{comment}{**\ DESCRIPTION:\ Library\ of\ functions\ for\ game\ modules.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00006}00006\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00007}00007\ \textcolor{comment}{**\ AUTHOR:\ \ \ \ \ \ Michael\ Greenbaum}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00008}00008\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00009}00009\ \textcolor{comment}{**\ DATE:\ \ \ \ \ \ \ \ Start:\ 5\ March\ 2006}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00010}00010\ \textcolor{comment}{**}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00011}00011\ \textcolor{comment}{**\ UPDATE\ HIST:}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00012}00012\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 3/05/06\ -\/\ Created\ basic\ framework,\ draft\ of\ NinaRow}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00013}00013\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 3/11/06\ -\/\ Non-\/crashing\ BlankOX\ dependant\ NinaRow,\ modifying}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00014}00014\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ use\ void*}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00015}00015\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 3/13/06\ -\/\ Writing\ statelessNinaRow.\ Possible\ lastIndex}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00016}00016\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ NinaRow\ bug\ found.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00017}00017\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 3/14/06\ -\/\ statelessNinaRow\ seems\ to\ work,\ but\ analysis}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00018}00018\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ results\ are\ weird.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00019}00019\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 3/18/06\ -\/\ statelessNinaRow\ confirmed\ to\ work\ with\ mttt\ and}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00020}00020\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mwin4.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00021}00021\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 3/19/06\ -\/\ wrote\ amountOfWhat.\ Not\ thoroughly\ tested.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00022}00022\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 4/04/06\ -\/\ Functionality\ of\ stateful\ NinaRow\ confirmed.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00023}00023\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 4/29/06\ -\/\ Added\ OneDMatch,\ no\ support\ for\ transparencies.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00024}00024\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 4/30/06\ -\/\ OneDMatch\ confirmed\ to\ produce\ equivolent}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00025}00025\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ database\ for\ 4x4\ Toot\ \&\ Otto.\ Attempt\ at\ creating}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00026}00026\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ preprocessing\ to\ avoid\ board\ "{}overflow."{}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00027}00027\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Implemented\ in\ both\ statelessNinaRow\ and}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00028}00028\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OneDMatch.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00029}00029\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ 5/07/06\ -\/\ Implemented\ and\ confirmed\ functionality\ of}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00030}00030\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ transparencies\ in\ OneDMatch.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00031}00031\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ TO\ DO-\/\ Revise\ structure\ of\ functions\ to\ make\ them}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00032}00032\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ more\ general\ (for\ use\ in\ seval.c).\ NinaRow,}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00033}00033\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ statelessNinaRow,\ and\ OneDMatch\ should\ count}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00034}00034\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ instances\ of\ a\ pattern\ and\ have\ the\ option\ to}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00035}00035\ \textcolor{comment}{**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ return\ immediately\ if\ one\ is\ detected.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00036}00036\ \textcolor{comment}{**************************************************************************/}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00037}00037\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00038}00038\ \textcolor{preprocessor}{\#include\ "{}gamesman.h"{}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00039}00039\ \textcolor{preprocessor}{\#include\ "{}mlib.h"{}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00040}00040\ \textcolor{preprocessor}{\#include\ "{}string.h"{}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00041}00041\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00042}00042\ \textcolor{keywordtype}{void}\ overflowGuard(\textcolor{keywordtype}{int});}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00044}00044\ \mbox{\hyperlink{structlb}{LocalBoard}}\ lBoard;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00045}00045\ \textcolor{keywordtype}{int}\ bSize;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00046}00046\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00047}00047\ \textcolor{comment}{/*Set\ local\ variables\ for\ processing\ input\ arrays*/}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00048}00048\ \textcolor{keywordtype}{void}\ LibInitialize(\textcolor{keywordtype}{int}\ eltSize,\ \textcolor{keywordtype}{int}\ rows,\ \textcolor{keywordtype}{int}\ cols,\ BOOLEAN\ diagonals)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00049}00049\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00050}00050\ \ \ \ \ lBoard.eltSize\ =\ eltSize;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00051}00051\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00052}00052\ \ \ \ \ lBoard.rows\ =\ rows;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00053}00053\ \ \ \ \ lBoard.cols\ =\ cols;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00054}00054\ \ \ \ \ lBoard.size\ =\ rows*cols;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00055}00055\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00056}00056\ \ \ \ \ lBoard.diagonals\ =\ diagonals;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00057}00057\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00058}00058\ \ \ \ \ lBoard.directionMap[0]\ =\ -\/cols\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00059}00059\ \ \ \ \ lBoard.directionMap[1]\ =\ -\/cols;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00060}00060\ \ \ \ \ lBoard.directionMap[2]\ =\ -\/cols\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00061}00061\ \ \ \ \ lBoard.directionMap[3]\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00062}00062\ \ \ \ \ lBoard.directionMap[4]\ =\ cols\ +\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00063}00063\ \ \ \ \ lBoard.directionMap[5]\ =\ cols;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00064}00064\ \ \ \ \ lBoard.directionMap[6]\ =\ cols\ -\/\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00065}00065\ \ \ \ \ lBoard.directionMap[7]\ =\ -\/1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00066}00066\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00067}00067\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<MLIB\_MAXBOARDSIZE;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00068}00068\ \ \ \ \ \ \ \ \ lBoard.scratchBoard[i]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00069}00069\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00070}00070\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<MLIB\_MAXPATTERN;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00071}00071\ \ \ \ \ \ \ \ \ overflowGuard(i);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00072}00072\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00073}00073\ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00074}00074\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00075}00075\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00076}00076\ \textcolor{comment}{/*Returns\ true\ if\ boardArray\ contains\ n\ pieces\ of\ given\ type\ in\ a\ row}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00077}00077\ \textcolor{comment}{\ \ \ **Currently\ assumes\ that\ the\ board\ is\ a\ square,\ but\ it\ is\ unlikely\ this\ function}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00078}00078\ \textcolor{comment}{\ \ \ **will\ be\ called\ for\ non-\/square\ boards.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00079}00079\ \textcolor{comment}{\ \ \ **assumes\ n>1}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00080}00080\ \textcolor{comment}{\ **}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00081}00081\ \textcolor{comment}{\ ****boardArray\ is\ any\ array\ of\ some\ element,\ while\ type\ is\ a\ type\ of\ that\ element.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00082}00082\ \textcolor{comment}{\ **memcmp\ is\ used\ to\ match\ elements\ of\ boardArray\ with\ type*/}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00083}00083\ BOOLEAN\ NinaRow(\textcolor{keywordtype}{void}*\ boardArray,\textcolor{keywordtype}{void}*\ type,\ \textcolor{keywordtype}{int}\ indexOfLast,\ \textcolor{keywordtype}{int}\ n)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00084}00084\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ direction,location,count;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00085}00085\ \ \ \ \ BOOLEAN\ soFar,overflow;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00086}00086\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00087}00087\ \ \ \ \ \textcolor{keywordflow}{if}\ (indexOfLast<0)\ \{\ \textcolor{comment}{//No\ valid\ last\ index\ passed,\ call\ stateless\ NinaRow}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00088}00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ statelessNinaRow(boardArray,type,n);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00089}00089\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00090}00090\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00091}00091\ \ \ \ \ \textcolor{keywordflow}{if}\ (memcmp(boardArray\ +\ lBoard.eltSize*indexOfLast,\ type,\ lBoard.eltSize))\ \{\ \textcolor{comment}{//piece\ at\ last\ index\ isn't\ desired\ type}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00092}00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00093}00093\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00094}00094\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00095}00095\ \ \ \ \ \textcolor{keywordflow}{for}(direction\ =\ (lBoard.diagonals\ ?\ 0\ :\ 1);\ direction<4;\ direction+=\ (lBoard.diagonals\ ?\ 1\ :\ 2))\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00096}00096\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00097}00097\ \ \ \ \ \ \ \ \ count\ =\ 1;\ \textcolor{comment}{//we\ start\ with\ one\ piece\ in\ a\ row}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00098}00098\ \ \ \ \ \ \ \ \ i\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00099}00099\ \ \ \ \ \ \ \ \ soFar\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00100}00100\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00101}00101\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (i<n\ \&\&\ count<n\ \&\&\ soFar)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00102}00102\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00103}00103\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//expand\ search\ in\ the\ positive\ direction}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00104}00104\ \ \ \ \ \ \ \ \ \ \ \ \ location\ =\ indexOfLast\ +\ i*lBoard.directionMap[direction];}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00105}00105\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00106}00106\ \ \ \ \ \ \ \ \ \ \ \ \ overflow\ =\ (location\%lBoard.cols\ -\/\ indexOfLast\%lBoard.cols\ >\ 0);\ \textcolor{comment}{//true\ if\ location\ jumped\ edge}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00107}00107\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (direction\ >\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00108}00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ overflow\ =\ !(overflow);\ \textcolor{comment}{//adjust\ for\ other\ directions}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00109}00109\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00110}00110\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00111}00111\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ overflow\ ||}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00112}00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (location\ <\ 0)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//new\ location\ is\ out\ of\ bounds}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00113}00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (location\ >\ lBoard.rows*lBoard.cols\ -\/\ 1)\ ||}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00114}00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (memcmp(boardArray\ +\ lBoard.eltSize*location,\ type,\ lBoard.eltSize)))\ \{\ \textcolor{comment}{//piece\ at\ location\ isn't\ a\ match}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00115}00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ soFar\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00116}00116\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00117}00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00118}00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}positive\ count\ incremented\ to\ \%d\ with\ location\ \%d\ and\ type\ \%d\ and\ direction\ \%d\(\backslash\)n"{},count,location,*(int*)type,direction);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00119}00119\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00120}00120\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00121}00121\ \ \ \ \ \ \ \ \ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00122}00122\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00123}00123\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00124}00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (count>=n)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00125}00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}Positive\ edge\ N\ in\ a\ row\ found\ in\ direction\ \%d\(\backslash\)n"{},direction);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00126}00126\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00127}00127\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00128}00128\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00129}00129\ \ \ \ \ \ \ \ \ i\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00130}00130\ \ \ \ \ \ \ \ \ soFar\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00131}00131\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00132}00132\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (i<n\ \&\&\ count<n\ \&\&\ soFar)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00133}00133\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00134}00134\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//expand\ search\ in\ the\ positive\ direction}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00135}00135\ \ \ \ \ \ \ \ \ \ \ \ \ location\ =\ indexOfLast\ +\ -\/1*i*lBoard.directionMap[direction];}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00136}00136\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00137}00137\ \ \ \ \ \ \ \ \ \ \ \ \ overflow\ =\ (location\%lBoard.cols\ -\/\ indexOfLast\%lBoard.cols\ <\ 0);\ \textcolor{comment}{//sign\ reversed\ for\ opposite\ direction}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00138}00138\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (direction\ >\ 1)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00139}00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ overflow\ =\ !(overflow);\ \textcolor{comment}{//adjust\ for\ other\ directions}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00140}00140\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00141}00141\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00142}00142\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ overflow\ ||}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00143}00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (location\ <\ 0)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//new\ location\ is\ out\ of\ bounds}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00144}00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (location\ >\ lBoard.rows*lBoard.cols\ -\/\ 1)\ ||}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00145}00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (memcmp(boardArray\ +\ lBoard.eltSize*location,\ type,\ lBoard.eltSize)))\ \{\ \textcolor{comment}{//piece\ at\ location\ isn't\ a\ match}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00146}00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ soFar\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00147}00147\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00148}00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00149}00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}negative\ count\ incremented\ to\ \%d\ with\ location\ \%d\ and\ type\ \%d\ and\ direction\ \%d\(\backslash\)n"{},count,location,*(int*)type,direction);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00150}00150\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00151}00151\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00152}00152\ \ \ \ \ \ \ \ \ \ \ \ \ i++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00153}00153\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00154}00154\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00155}00155\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (count\ >=\ n)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00156}00156\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}Negative\ edge\ or\ center\ N\ in\ a\ row\ found\ in\ direction\ \%d\(\backslash\)n"{},direction);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00157}00157\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00158}00158\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00159}00159\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00160}00160\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00161}00161\ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00162}00162\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00163}00163\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00164}00164\ \textcolor{comment}{/*stateless\ version\ of\ NinaRow,\ which\ is\ called\ when\ no\ indexOfLast\ is\ kept.}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00165}00165\ \textcolor{comment}{\ **Checks\ the\ entire\ board\ for\ NinaRow,\ with\ minimal\ redundant\ calculations.*/}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00166}00166\ BOOLEAN\ statelessNinaRow(\textcolor{keywordtype}{void}*\ boardArray,\textcolor{keywordtype}{void}*\ type,\textcolor{keywordtype}{int}\ n)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00167}00167\ \ \ \ \ \textcolor{keywordtype}{int}\ z;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00168}00168\ \ \ \ \ \textcolor{keywordtype}{int}\ direction,location,count;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00169}00169\ \ \ \ \ BOOLEAN\ soFar;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00170}00170\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00171}00171\ \ \ \ \ \textcolor{keywordflow}{for}(z=0;\ z<lBoard.rows*lBoard.cols;\ z++)\ \{\ \textcolor{comment}{//reset\ search\ for\ all\ positions}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ lBoard.scratchBoard[z]\ =\ 0;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00173}00173\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00174}00174\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00175}00175\ \ \ \ \ \textcolor{keywordflow}{for}(z=0;\ z<lBoard.rows*lBoard.cols;\ z++)\ \{\ \textcolor{comment}{//for\ each\ board\ slot}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00176}00176\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00177}00177\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!memcmp(boardArray\ +\ lBoard.eltSize*z,\ type,\ lBoard.eltSize))\ \{\ \textcolor{comment}{//piece\ at\ slot\ is\ right\ type,\ continue\ search}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00178}00178\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(direction\ =\ 3;\ direction<7;\ direction+=\ (lBoard.diagonals\ ?\ 1\ :\ 2))\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00179}00179\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00180}00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//check\ if\ we\ should\ search\ in\ this\ direction,\ using\ overflow\ guard\ and\ already-\/searched\ data}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00181}00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((lBoard.overflowBoards[n][z]\ \&\ (1\ <<\ (direction)))\ \&\&\ !(lBoard.scratchBoard[z]\ \&\ (1\ <<\ direction)))\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00182}00182\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00183}00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00184}00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ soFar\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00185}00185\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00186}00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (count<n\ \&\&\ soFar)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00187}00187\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00188}00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//expand\ search}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00189}00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ location\ =\ z\ +\ count*lBoard.directionMap[direction];\ \textcolor{comment}{//starting\ at\ upper\ left,\ search\ from\ directions\ 3\ to\ 6}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00190}00190\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00191}00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lBoard.scratchBoard[location]\ +=\ (1\ <<\ direction);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00192}00192\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00193}00193\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ (memcmp(boardArray\ +\ lBoard.eltSize*location,\ type,\ lBoard.eltSize))\ )\ \{\ \textcolor{comment}{//piece\ at\ location\ isn't\ a\ match}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00194}00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ soFar\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00195}00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00196}00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00197}00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}positive\ count\ incremented\ to\ \%d\ with\ location\ \%d\ and\ type\ \%d\ and\ direction\ \%d\(\backslash\)n"{},count,location,*(int*)type,direction+3);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00198}00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00199}00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00200}00200\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00201}00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (count>=n)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00202}00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}N\ in\ a\ row\ found\ in\ direction\ \%d\(\backslash\)n"{},direction);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00203}00203\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00204}00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00205}00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00206}00206\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00207}00207\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00208}00208\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00209}00209\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00210}00210\ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00211}00211\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00212}00212\ \textcolor{comment}{/*Returns\ whether\ the\ board\ contains\ amount\ of\ given\ item\ 'what'}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00213}00213\ \textcolor{comment}{\ \ \ //if\ atLeast\ is\ true,\ function\ will\ short\ curcuit\ once\ amount\ is\ found*/}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00214}00214\ BOOLEAN\ amountOfWhat(\textcolor{keywordtype}{void}*\ boardArray,\textcolor{keywordtype}{void}*\ what,\textcolor{keywordtype}{int}\ amount,BOOLEAN\ atLeast)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00215}00215\ \ \ \ \ \textcolor{keywordtype}{int}\ i,count=0;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00216}00216\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00217}00217\ \ \ \ \ \textcolor{keywordflow}{if}\ (atLeast)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00218}00218\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (amount==0)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00219}00219\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00220}00220\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00221}00221\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00222}00222\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00223}00223\ \ \ \ \ \textcolor{keywordflow}{for}(i=0;\ i<lBoard.rows*lBoard.cols;\ i++)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00224}00224\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!memcmp(boardArray\ +\ lBoard.eltSize*i,what,lBoard.eltSize))\ \{\ \textcolor{comment}{//element\ found}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00225}00225\ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00226}00226\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (atLeast)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00227}00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (count\ ==\ amount)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00228}00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00229}00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00230}00230\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00231}00231\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00232}00232\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00233}00233\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00234}00234\ \ \ \ \ \textcolor{keywordflow}{if}\ (count==amount)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00235}00235\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00236}00236\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00237}00237\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00238}00238\ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00239}00239\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00240}00240\ BOOLEAN\ OneDMatch(\textcolor{keywordtype}{void}*\ boardArray,\ \textcolor{keywordtype}{void}*\ pattern,\ BOOLEAN*\ transparencies,\ BOOLEAN\ symmetrical,\ \textcolor{keywordtype}{int}\ len)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00241}00241\ \ \ \ \ \textcolor{keywordtype}{int}\ z;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00242}00242\ \ \ \ \ \textcolor{keywordtype}{int}\ direction,location,count;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00243}00243\ \ \ \ \ BOOLEAN\ soFar;\ \textcolor{comment}{//overflow;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00244}00244\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00245}00245\ \ \ \ \ \textcolor{keywordflow}{for}(z=0;\ z<lBoard.rows*lBoard.cols;\ z++)\ \{\ \textcolor{comment}{//for\ each\ board\ slot}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00246}00246\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00247}00247\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!memcmp(boardArray\ +\ lBoard.eltSize*z,\ pattern,\ lBoard.eltSize))\ \{\ \textcolor{comment}{//piece\ at\ slot\ is\ right\ type,\ continue\ search}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00248}00248\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}(direction\ =\ (symmetrical\ ?\ 3\ :\ (lBoard.diagonals\ ?\ 0\ :\ 1));\ direction\ <\ (symmetrical\ ?\ 7\ :\ 8);\ direction+=\ (lBoard.diagonals\ ?\ 1\ :\ 2))\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00249}00249\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00250}00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\ lBoard.overflowBoards[len][z]\ \&\ (1\ <<\ direction)\ )\ \{\ \textcolor{comment}{//will\ not\ run\ into\ the\ boundries\ searching\ in\ this\ direction}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00251}00251\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count\ =\ 1;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00252}00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ soFar\ =\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00253}00253\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00254}00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (count<len\ \&\&\ soFar)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00255}00255\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00256}00256\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//expand\ search}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00257}00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ location\ =\ z\ +\ count*lBoard.directionMap[direction];}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00258}00258\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00259}00259\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (transparencies\ ==\ 0)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00260}00260\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (memcmp(boardArray\ +\ lBoard.eltSize*location,\ pattern\ +\ lBoard.eltSize*count,\ lBoard.eltSize))\ \{\ \textcolor{comment}{//piece\ at\ location\ isn't\ a\ match}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00261}00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ soFar\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00262}00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00263}00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00264}00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00265}00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{\ \textcolor{comment}{//using\ transparencies}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00266}00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!transparencies[count]\ \&\&\ memcmp(boardArray\ +\ lBoard.eltSize*location,\ pattern\ +\ lBoard.eltSize*count,\ lBoard.eltSize))\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00267}00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ soFar\ =\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00268}00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00269}00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00270}00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00271}00271\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00272}00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00273}00273\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00274}00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (count>=len)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00275}00275\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//printf("{}N\ in\ a\ row\ found\ in\ direction\ \%d\(\backslash\)n"{},direction);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00276}00276\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00277}00277\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00278}00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00279}00279\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00280}00280\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00281}00281\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00282}00282\ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00283}00283\ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00284}00284\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00285}00285\ \textcolor{comment}{/*Computes,\ for\ each\ slot,\ which\ directions\ can\ be\ searched\ without\ exceeding\ board\ boundries*/}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00286}00286\ \textcolor{keywordtype}{void}\ overflowGuard(\textcolor{keywordtype}{int}\ len)\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00287}00287\ \ \ \ \ \textcolor{keywordtype}{int}\ z,upCheck,\ rightCheck,\ leftCheck,\ downCheck;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00288}00288\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00289}00289\ \ \ \ \ \textcolor{keywordflow}{for}(z=0;\ z<lBoard.rows*lBoard.cols;\ z++)\ \{\ \textcolor{comment}{//for\ each\ board\ slot}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00290}00290\ \ \ \ \ \ \ \ \ lBoard.overflowBoards[len][z]=0;}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00291}00291\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00292}00292\ \ \ \ \ \ \ \ \ upCheck\ =\ (z/lBoard.cols\ >=\ len-\/1);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00293}00293\ \ \ \ \ \ \ \ \ leftCheck\ =\ (z\%lBoard.cols\ >=\ len-\/1);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00294}00294\ \ \ \ \ \ \ \ \ rightCheck\ =\ (lBoard.cols\ -\/\ z\%lBoard.cols\ >=\ len);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00295}00295\ \ \ \ \ \ \ \ \ downCheck\ =\ (lBoard.rows\ -\/\ z/lBoard.cols\ >=\ len);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00296}00296\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00297}00297\ \ \ \ \ \ \ \ \ lBoard.overflowBoards[len][z]\ =}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00298}00298\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (upCheck\ \&\&\ leftCheck)\ +}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00299}00299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((upCheck)\ <<\ 1)\ +}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00300}00300\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((upCheck\ \&\&\ rightCheck)\ <<\ 2)\ +}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00301}00301\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((rightCheck)\ <<\ 3)\ +}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00302}00302\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((rightCheck\ \&\&\ downCheck)\ <<\ 4)\ +}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00303}00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (downCheck\ <<\ 5)\ +}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00304}00304\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((downCheck\ \&\&\ leftCheck)\ <<\ 6)\ +}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00305}00305\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (leftCheck\ <<\ 7);}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00306}00306\ \ \ \ \ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00307}00307\ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00308}00308\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00309}00309\ \textcolor{comment}{//can\ I\ call\ functions\ from\ this\ module\ remotely?}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00310}00310\ \textcolor{keywordtype}{void}\ Test()\ \{}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00311}00311\ \ \ \ \ printf(\textcolor{stringliteral}{"{}Now\ using\ game\ function\ libraries\(\backslash\)n"{}});}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00312}00312\ \}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00313}00313\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00314}00314\ \textcolor{comment}{/**************************DEPRECIATED\ CODE***********************}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00315}00315\ \textcolor{comment}{\ \ \ Assuming\ BlankOX\ representation\ is\ used,\ prints\ the\ board*}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00316}00316\ \textcolor{comment}{\ \ \ void\ printBoard(BlankOX*\ board)\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00317}00317\ \textcolor{comment}{\ \ \ int\ i;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00318}00318\ \textcolor{comment}{\ \ \ for(i=0;i<lBoard.rows*lBoard.cols;i++)\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00319}00319\ \textcolor{comment}{\ \ \ \ printf("{}\%d\ "{},board[i]);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00320}00320\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00321}00321\ \textcolor{comment}{\ \ \ printf("{}\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00322}00322\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00323}00323\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00324}00324\ \textcolor{comment}{\ \ \ BOOLEAN\ mymemcmp(void*\ data1,void*\ data2,int\ amt)\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00325}00325\ \textcolor{comment}{\ \ \ int\ i;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00326}00326\ \textcolor{comment}{\ \ \ char*\ d1;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00327}00327\ \textcolor{comment}{\ \ \ char*\ d2;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00328}00328\ \textcolor{comment}{\ \ \ d1\ =\ (char*)data1;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00329}00329\ \textcolor{comment}{\ \ \ d2\ =\ (char*)data2;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00330}00330\ \textcolor{comment}{\ \ \ for(i=0;i<amt;i++)\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00331}00331\ \textcolor{comment}{\ \ \ \ printf("{}Data\ 1\ location\ is\ \%d,\ data\ 2\ location\ is\ \%d,\ index\ is\ \%d\(\backslash\)n"{},d1+i,d2+i,i);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00332}00332\ \textcolor{comment}{\ \ \ \ if\ (d1[i]\ !=\ d2[i])\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00333}00333\ \textcolor{comment}{\ \ \ \ \ \ printf("{}memcmp\ returning\ you\ dolt\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00334}00334\ \textcolor{comment}{\ \ \ \ \ \ return\ FALSE;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00335}00335\ \textcolor{comment}{\ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00336}00336\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00337}00337\ \textcolor{comment}{\ \ \ printf("{}memcmp\ returning\ you\ dolt\(\backslash\)n"{});}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00338}00338\ \textcolor{comment}{\ \ \ return\ TRUE;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00339}00339\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00340}00340\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00341}00341\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00342}00342\ }
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00343}00343\ \textcolor{comment}{//old\ broken\ code\ for\ NinaRow}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00344}00344\ \textcolor{comment}{/*\ \ for(direction\ =\ (lBoard.diagonals\ ?\ 0\ :\ 1);direction<8;\ direction+=\ (lBoard.diagonals\ ?\ 1\ :\ 2))\ \{\ //test\ for\ each\ direction}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00345}00345\ \textcolor{comment}{\ \ \ soFar\ =\ 1;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00346}00346\ \textcolor{comment}{\ \ \ i\ =\ 0;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00347}00347\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00348}00348\ \textcolor{comment}{\ \ \ while(i<n\ \&\&\ soFar)\ \{\ //perform\ n\ slot\ checks\ on\ boardArray,\ using\ soFar\ as\ a\ condition\ to\ short\ circuit}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00349}00349\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00350}00350\ \textcolor{comment}{\ \ \ \ //printf("{}Solving\ \%dth\ in\ a\ row\(\backslash\)n"{},i);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00351}00351\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00352}00352\ \textcolor{comment}{\ \ \ \ location\ =\ indexOfLast\ +\ i*lBoard.directionMap[direction];}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00353}00353\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00354}00354\ \textcolor{comment}{\ \ \ \ if\ (\ (indexOfLast\ !=\ location\ \%\ lBoard.rows)\ ||\ \ //new\ location\ crossed\ the\ edge\ of\ the\ board}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00355}00355\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ (location\ <\ 0)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //new\ location\ is\ out\ of\ bounds}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00356}00356\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ (location\ >\ lBoard.rows*lBoard.cols\ -\/\ 1))\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00357}00357\ \textcolor{comment}{\ \ \ \ \ \ soFar\ =\ 0;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00358}00358\ \textcolor{comment}{\ \ \ \ \}\ else\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00359}00359\ \textcolor{comment}{\ \ \ \ \ \ soFar\ =\ (soFar\ \&\&\ (boardArray[location]\ ==\ type));}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00360}00360\ \textcolor{comment}{\ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00361}00361\ \textcolor{comment}{\ \ \ \ i++;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00362}00362\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00363}00363\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00364}00364\ \textcolor{comment}{\ \ \ found+=soFar;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00365}00365\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00366}00366\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00367}00367\ \textcolor{comment}{\ \ \ //old\ inner\ loop\ for\ OneDMatch}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00368}00368\ \textcolor{comment}{\ \ \ \ \ \ while\ (count<len\ \&\&\ soFar)\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00369}00369\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00370}00370\ \textcolor{comment}{\ \ \ \ \ \ \ \ //expand\ search}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00371}00371\ \textcolor{comment}{\ \ \ \ \ \ \ \ location\ =\ z\ +\ count*lBoard.directionMap[direction];}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00372}00372\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00373}00373\ \textcolor{comment}{\ \ \ \ \ \ \ \ overflow\ =\ (location\%lBoard.cols\ -\/\ z\%lBoard.cols\ >\ 0);\ //true\ if\ location\ jumped\ edge}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00374}00374\ \textcolor{comment}{\ \ \ \ \ \ \ \ if\ (direction\ >\ 1\ \&\&\ direction\ <\ 5)\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00375}00375\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ overflow\ =\ !(overflow);\ //adjust\ for\ other\ directions}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00376}00376\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00377}00377\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00378}00378\ \textcolor{comment}{\ \ \ \ \ \ \ \ //printf("{}Searching\ location\ \%d\ in\ directon\ \%d,\ from\ slot\ \%d\(\backslash\)n"{},location,direction,z);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00379}00379\ \textcolor{comment}{\ \ \ \ \ \ \ \ //printf("{}Count\ is\ \%d\(\backslash\)n"{},count);}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00380}00380\ \textcolor{comment}{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00381}00381\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ if\ (\ //overflow\ ||}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00382}00382\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ //(location\ <\ 0)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ //new\ location\ is\ out\ of\ bounds}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00383}00383\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ //(location\ >\ lBoard.rows*lBoard.cols\ -\/\ 1)\ ||}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00384}00384\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ (memcmp(boardArray\ +\ lBoard.eltSize*location,\ pattern\ +\ lBoard.eltSize*count,\ lBoard.eltSize)))\ \{\ //piece\ at\ location\ isn't\ a\ match}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00385}00385\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ soFar\ =\ FALSE;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00386}00386\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}\ else\ \{}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00387}00387\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ count++;}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00388}00388\ \textcolor{comment}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00389}00389\ \textcolor{comment}{\ \ \ \ \ \ \}}}
+\DoxyCodeLine{\Hypertarget{mlib_8c_source_l00390}00390\ \textcolor{comment}{\ */}}
+
+\end{DoxyCode}

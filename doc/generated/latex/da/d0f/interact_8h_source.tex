@@ -1,0 +1,50 @@
+\hypertarget{interact_8h_source}{}\doxysection{interact.\+h}
+\label{interact_8h_source}\index{src/core/interact.h@{src/core/interact.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00001}00001\ \textcolor{preprocessor}{\#ifndef\ GMCORE\_INTERACT\_H}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00002}00002\ \textcolor{preprocessor}{\#define\ GMCORE\_INTERACT\_H}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00003}00003\ \textcolor{preprocessor}{\#include\ "{}types.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00004}00004\ \textcolor{preprocessor}{\#include\ "{}constants.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00005}00005\ \textcolor{preprocessor}{\#include\ "{}misc.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00006}00006\ \textcolor{preprocessor}{\#include\ "{}openPositions.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00007}00007\ \textcolor{preprocessor}{\#include\ "{}globals.h"{}}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00008}00008\ \textcolor{preprocessor}{\#include\ <errno.h>}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00009}00009\ \textcolor{preprocessor}{\#include\ <signal.h>}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00010}00010\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00011}00011\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00012}00012\ \textcolor{preprocessor}{\#include\ <ctype.h>}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00013}00013\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00014}00014\ STRING\ InteractReadPosition(STRING\ input,\ POSITION\ *\ result);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00015}00015\ STRING\ InteractReadLong(STRING\ input,\ \textcolor{keywordtype}{long}\ *\ result);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00016}00016\ STRING\ InteractReadBoardString(STRING\ input,\ \textcolor{keywordtype}{char}\ **\ result);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00017}00017\ STRING\ InteractValueCharToValueString(\textcolor{keywordtype}{char}\ value\_char);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00018}00018\ \textcolor{keywordtype}{void}\ InteractPrintJSONPositionValue(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00019}00019\ \textcolor{keywordtype}{void}\ InteractFreeBoardSting(STRING\ board);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00020}00020\ \textcolor{keywordtype}{void}\ InteractCheckErrantExtra(STRING\ input,\ \textcolor{keywordtype}{int}\ max\_words);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00021}00021\ \textcolor{keywordtype}{void}\ ServerInteractLoop(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00022}00022\ \textcolor{keyword}{extern}\ POSITION\ gInitialPosition;}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00023}00023\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00024}00024\ \textcolor{keywordtype}{char}\ *\ MakeBoardString(\textcolor{keywordtype}{char}\ *\ first,\ ...);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00025}00025\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00026}00026\ \textcolor{keywordtype}{char}\ *\ StringDup(\ \textcolor{keywordtype}{char}\ \textcolor{keyword}{const}\ *\ s\ );}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00027}00027\ \textcolor{keywordtype}{void}\ SafeFreeString(\textcolor{keywordtype}{char}\ *\ \textcolor{keywordtype}{string});}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00028}00028\ \textcolor{keywordtype}{char}\ *\ StrFromI(\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ i\ );}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00029}00029\ \textcolor{keywordtype}{char}\ *\ TierstringFromPosition(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00030}00030\ \textcolor{keywordtype}{char}\ *\ StringFormat(\textcolor{keywordtype}{size\_t}\ max\_size,\ \textcolor{keywordtype}{char}\ *\ format\_str,\ ...);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00031}00031\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00032}00032\ \textcolor{keyword}{typedef}\ BOOLEAN\ (*\ get\_value\_func\_t)(\ \textcolor{keywordtype}{char}\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00033}00033\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00034}00034\ \textcolor{preprocessor}{\#define\ GetValue(board\_string,\ key,\ func,\ target)\ \(\backslash\)}}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00035}00035\ \textcolor{preprocessor}{\ \ \ \ (0\ ?\ func("{}"{}},\ target)\ :\ GetValueInner(board\_string,\ key,\ (get\_value\_func\_t)\ func,\ (void\ *)\ target))}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00036}00036\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00037}00037\ BOOLEAN\ GetValueInner(\textcolor{keywordtype}{char}\ *\ board\_string,\ \textcolor{keywordtype}{char}\ *\ key,\ get\_value\_func\_t\ func,\ \textcolor{keywordtype}{void}\ *\ target);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00038}00038\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00039}00039\ BOOLEAN\ GetInt(\textcolor{keywordtype}{char}*\ value,\ \textcolor{keywordtype}{int}*\ placeholder);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00040}00040\ BOOLEAN\ GetUnsignedLongLong(\textcolor{keywordtype}{char}*\ value,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}*\ placeholder);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00041}00041\ BOOLEAN\ GetChar(\textcolor{keywordtype}{char}*\ value,\ \textcolor{keywordtype}{char}*\ placeholder);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00042}00042\ \textcolor{keywordtype}{void}\ PrintLevel(POSITION\ pos,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ depth,\ \textcolor{keywordtype}{char}\ *\ move\_string);}
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00043}00043\ }
+\DoxyCodeLine{\Hypertarget{interact_8h_source_l00044}00044\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ GMCORE\_INTERACT\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}
