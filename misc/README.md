@@ -34,3 +34,8 @@ The original folder structure is preserved; files now inside the `/misc/src/` fo
 - `doc/games/html/`
 
   Game documentations superceded by http://gamescrafters.berkeley.edu/games.php
+
+- `doxygen-theme`
+
+  CSS resources for making the Doxygen-generated documentation prettier (credit: https://jothepro.github.io/doxygen-awesome-css/).
+  

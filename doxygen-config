@@ -1308,7 +1308,7 @@ HTML_FILE_EXTENSION    = .html
 # of the possible markers and block names see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_HEADER            =
+HTML_HEADER            = misc/doxygen-theme/header.html
 
 # The HTML_FOOTER tag can be used to specify a user-defined HTML footer for each
 # generated HTML page. If the tag is left blank doxygen will generate a standard
@@ -1348,7 +1348,10 @@ HTML_STYLESHEET        =
 # documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_STYLESHEET  =
+HTML_EXTRA_STYLESHEET  = misc/doxygen-theme/doxygen-awesome.css \
+                        misc/doxygen-theme/doxygen-awesome-sidebar-only.css \
+                        doxygen-awesome-sidebar-only-darkmode-toggle.css \
+                        misc/doxygen-theme/custom.css 
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -1371,7 +1374,7 @@ HTML_EXTRA_FILES       =
 # The default value is: AUTO_LIGHT.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_COLORSTYLE        = AUTO_LIGHT
+HTML_COLORSTYLE        = LIGHT # required by CSS theme, don't change plz
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to
@@ -1671,7 +1674,7 @@ DISABLE_INDEX          = NO
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES # Required by CSS theme, don't change plz
 
 # When both GENERATE_TREEVIEW and DISABLE_INDEX are set to YES, then the
 # FULL_SIDEBAR option determines if the side bar is limited to only the treeview
@@ -2764,3 +2767,10 @@ MSCGEN_TOOL            =
 # command).
 
 MSCFILE_DIRS           =
+
+# Theme resources
+
+HTML_EXTRA_FILES       = misc/doxygen-theme/doxygen-awesome-paragraph-link.js \
+                         misc/doxygen-theme/doxygen-awesome-darkmode-toggle.js \
+                         misc/doxygen-theme/doxygen-awesome-fragment-copy-button.js \
+                         misc/doxygen-theme/doxygen-awesome-interactive-toc.js
