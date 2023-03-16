@@ -25,6 +25,10 @@
 var NAVTREE =
 [
   [ "GamesmanClassic", "index.html", [
+    [ "Introduction", "index.html#Introduction", null ],
+    [ "Fancy Stuff", "index.html#Example", [
+      [ "this is all markdown", "index.html#autotoc_md1", null ]
+    ] ],
     [ "Data Structures", "annotated.html", [
       [ "Data Structures", "annotated.html", "annotated_dup" ],
       [ "Data Structure Index", "classes.html", null ],
