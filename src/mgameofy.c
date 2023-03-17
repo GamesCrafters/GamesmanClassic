@@ -93,7 +93,9 @@ void GameSpecificMenu() {
 		printf("\n\n\n");
 		printf("        ----- Game-specific options for Game of Y -----\n\n");
 		printf("        Enter a board dimension (4-7): ");
-		inp = getchar();
+    char buff[4];
+    fgets(buff, 4, stdin);
+		inp = buff[0];
     int dim = ((int) inp) - 48;
 
     if (inp == 'b' || inp == 'B') {
@@ -109,7 +111,9 @@ void GameSpecificMenu() {
 
 	while (TRUE) {
 		printf("        Play misere? (y/n): ");
-		inp = getchar();
+		char buff[4];
+    fgets(buff, 4, stdin);
+		inp = buff[0];
 
     if (inp == 'b' || inp == 'B') {
       ;
@@ -138,8 +142,13 @@ void InitializeGame() {
   boardSize = calculateboardSize(boardDimension);
 
   // {char, min, max, char, min, max, ..., -1}
-  int piecesArray[] = {'w', 0, boardSize / 2, 'b', 0, boardSize / 2, '-', 0, boardSize, -1};
-  gNumberOfPositions = generic_hash_init(boardSize, piecesArray, &vcfg, 1);
+  if (boardSize % 2 == 0) {
+    int piecesArray[] = {'w', 0, boardSize / 2, 'b', 0, boardSize / 2, '-', 0, boardSize, -1};
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray, &vcfg, 1);    
+  } else {
+    int piecesArray[] = {'w', 0, (boardSize / 2) + 1, 'b', 0, boardSize / 2, '-', 0, boardSize, -1};
+    gNumberOfPositions = generic_hash_init(boardSize, piecesArray, &vcfg, 1);
+  }
 
   char* initialBoard = (char*) SafeMalloc(boardSize * sizeof(char));
 
@@ -184,7 +193,7 @@ POSITION DoMove(POSITION position, MOVE move) {
 
   if (nonBlankCount % 2 == 0) {
     newBoard[move] = 'w';
-    return generic_hash_hash(newBoard, 2);
+    return generic_hash_hash(newBoard, 1);
   } else {
     newBoard[move] = 'b';
     return generic_hash_hash(newBoard, 1);
@@ -230,13 +239,10 @@ POSITION GetCanonicalPosition(POSITION position) {
     flipBoard(cousinBoards[i], cousinBoards[i + 3]);
   }
 
-  // Figure out player
-  int player = countUsed(cousinBoards[0]) % 2 == 0 ? 1 : 2;
-
   POSITION best = position;
 
   for (int i = 1; i < 6; i++) {
-    POSITION option = generic_hash_hash(cousinBoards[i], player);
+    POSITION option = generic_hash_hash(cousinBoards[i], 1);
     best = min(best, option);
   }
 
@@ -649,9 +655,7 @@ POSITION InteractStringToPosition(STRING board) {
     }
   }
 
-  int player = countUsed(realBoard) % 2 == 0 ? 1 : 2;
-
-  return generic_hash_hash(realBoard, player);
+  return generic_hash_hash(realBoard, 1);
 }
 
 STRING InteractPositionToString(POSITION position) {
