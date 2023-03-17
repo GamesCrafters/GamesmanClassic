@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['rect_0',['Rect',['../d8/d1e/struct_rect.html',1,'']]],
-  ['remotenesslist_5fitem_1',['remotenesslist_item',['../d0/d71/structremotenesslist__item.html',1,'']]],
-  ['row_2',['row',['../da/d88/structrow.html',1,'']]]
+  ['quartotier_0',['quartotier',['../da/dd4/structquartotier.html',1,'']]],
+  ['quickchess_1',['quickchess',['../d6/d64/classquickchess_1_1quickchess.html',1,'quickchess']]],
+  ['quickchessprocess_2',['QuickchessProcess',['../d6/d37/classquickchess_1_1quickchess_1_1_quickchess_process.html',1,'quickchess::quickchess']]]
 ];

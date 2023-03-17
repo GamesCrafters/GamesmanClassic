@@ -1,0 +1,7 @@
+<map id="GoBoard" name="GoBoard">
+<area shape="rect" id="node1" title=" " alt="" coords="5,181,79,207"/>
+<area shape="rect" id="node2" href="$d5/d29/struct_go_intersection.html" title=" " alt="" coords="119,93,226,119"/>
+<area shape="rect" id="node5" href="$d2/dd9/struct_go_intersection_node.html" title=" " alt="" coords="103,181,242,207"/>
+<area shape="rect" id="node3" href="$df/d02/struct_go_stone.html" title=" " alt="" coords="136,5,209,31"/>
+<area shape="rect" id="node4" href="$db/dd6/struct_go_intersection_list.html" title=" " alt="" coords="194,269,322,295"/>
+</map>

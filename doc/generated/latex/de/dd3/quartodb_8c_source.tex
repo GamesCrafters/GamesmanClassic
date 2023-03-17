@@ -145,7 +145,7 @@
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00141}00141\ }
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00142}\mbox{\hyperlink{struct_c_a_n_o_n___s_t_r_u_c_t}{00142}}\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00143}00143\ \ \ \ \ uint16\_t\ canon;}
-\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00144}00144\ \ \ \ \ uint8\_t\ transform;\ \ \textcolor{comment}{//\ 0-\/31\ for\ os,\ 0-\/23\ for\ pp}}
+\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00144}00144\ \ \ \ \ uint8\_t\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}};\ \ \textcolor{comment}{//\ 0-\/31\ for\ os,\ 0-\/23\ for\ pp}}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00145}00145\ \}\ \mbox{\hyperlink{struct_c_a_n_o_n___s_t_r_u_c_t}{CANON\_STRUCT}};}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00146}00146\ }
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00147}00147\ }
@@ -166,11 +166,11 @@
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00162}00162\ }
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00163}00163\ \ \ \ \ \textcolor{keywordflow}{for}\ (uint8\_t\ sym\ =\ 0;\ sym\ <\ 32;\ sym++)\ \{\ \textcolor{comment}{//\ 32\ symmetries}}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00164}00164\ \ \ \ \ \ \ \ \ uint8\_t\ map[16]\ =\ \{0,\ 1,\ 2,\ 3,\ 4,\ 5,\ 6,\ 7,\ 8,\ 9,\ 10,\ 11,\ 12,\ 13,\ 14,\ 15\};\ \ \ \textcolor{comment}{//\ start\ with\ original}}
-\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (uint8\_t\ transform\ =\ 0;\ transform\ <\ 5;\ transform++)\ \{}
-\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (sym\ \&\ 1\ <<\ transform)\ \{\ \textcolor{comment}{//\ applies\ one\ transform\ at\ a\ time}}
+\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00165}00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (uint8\_t\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}\ =\ 0;\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}\ <\ 5;\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}++)\ \{}
+\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00166}00166\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (sym\ \&\ 1\ <<\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}})\ \{\ \textcolor{comment}{//\ applies\ one\ transform\ at\ a\ time}}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00167}00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ map\_temp[16];}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00168}00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (uint8\_t\ i\ =\ 0;\ i\ <\ 16;\ i++)\ \{\ \textcolor{comment}{//\ for\ each\ bit,\ rearrange}}
-\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ map\_temp[i]\ =\ map[symMatrix[transform][i]];}
+\DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00169}00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ map\_temp[i]\ =\ map[symMatrix[\mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}][i]];}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00170}00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00171}00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (uint8\_t\ i\ =\ 0;\ i\ <\ 16;\ i++)\ \{}
 \DoxyCodeLine{\Hypertarget{quartodb_8c_source_l00172}00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ map[i]\ =\ map\_temp[i];}

@@ -32,7 +32,7 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
     [ "mdodgem.c", "d3/dec/mdodgem_8c_source.html", null ],
     [ "mdodgemhash.c", "d2/d50/mdodgemhash_8c_source.html", null ],
     [ "mfandan.c", "da/d38/mfandan_8c_source.html", null ],
-    [ "mfivefieldkono.c", "db/db4/mfivefieldkono_8c_source.html", null ],
+    [ "mfivefieldkono.c", "db/db4/mfivefieldkono_8c.html", "db/db4/mfivefieldkono_8c" ],
     [ "mfoxes.c", "db/de6/mfoxes_8c_source.html", null ],
     [ "mgobblet.c", "d0/d28/mgobblet_8c_source.html", null ],
     [ "mgraph.c", "d7/daa/mgraph_8c_source.html", null ],

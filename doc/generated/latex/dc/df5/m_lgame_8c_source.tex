@@ -315,7 +315,7 @@
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00312}00312\ \textcolor{keywordtype}{int}\ unhashMoveL(\textcolor{keywordtype}{int}\ total);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00313}00313\ \textcolor{keywordtype}{int}\ unhashMoveSPiece(\textcolor{keywordtype}{int}\ total);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00314}00314\ \textcolor{keywordtype}{int}\ unhashMoveSValue(\textcolor{keywordtype}{int}\ total);}
-\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00315}00315\ \textcolor{keywordtype}{int}\ transform(\textcolor{keywordtype}{int}\ orient,\ \textcolor{keywordtype}{int}\ origL);}
+\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00315}00315\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}(\textcolor{keywordtype}{int}\ orient,\ \textcolor{keywordtype}{int}\ origL);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00316}00316\ \textcolor{keywordtype}{int}\ untransformOrient(\textcolor{keywordtype}{int}\ L);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00317}00317\ \textcolor{keywordtype}{int}\ untransformOrig(\textcolor{keywordtype}{int}\ L,\ \textcolor{keywordtype}{int}\ orient);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00318}00318\ \textcolor{keywordtype}{int}\ printInit(\textcolor{keywordtype}{int}\ pieces,\ \textcolor{keywordtype}{int}\ L1,\ \textcolor{keywordtype}{int}\ L2,\ \textcolor{keywordtype}{int}\ S1,\ \textcolor{keywordtype}{int}\ S2);}
@@ -623,7 +623,7 @@
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00620}00620\ \ \ \ \ \ \ \ \ \}}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00621}00621\ \ \ \ \ \ \ \ \ printf(\textcolor{stringliteral}{"{}Invalid\ corner\ location\ for\ orientation\ \%d.\(\backslash\)nPlease\ enter\ one\ of\ the\ following\ valid\ corner\ locations:\ \%d,\ \%d,\ \%d,\ \%d,\ \%d,\ \%d.\(\backslash\)n"{}},\ Lo,\ valCor[Lo][0],\ valCor[Lo][1],\ valCor[Lo][2],\ valCor[Lo][3],\ valCor[Lo][4],\ valCor[Lo][5]);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00622}00622\ \ \ \ \ \}}
-\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00623}00623\ \ \ \ \ L1\ =\ transform(Lo,\ Lc);}
+\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00623}00623\ \ \ \ \ L1\ =\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}(Lo,\ Lc);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00624}00624\ \ \ \ \ printInit(1,\ L1,\ 0,\ 0,\ 0);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00625}00625\ }
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00626}00626\ \ \ \ \ printf(\textcolor{stringliteral}{"{}\(\backslash\)n\(\backslash\)tInput\ the\ starting\ orientation\ of\ the\ second\ L-\/piece.\(\backslash\)n"{}});}
@@ -643,7 +643,7 @@
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00640}00640\ \ \ \ \ \ \ \ \ scanf(\textcolor{stringliteral}{"{}\%s"{}},\ temp);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00641}00641\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (temp[1]\ !=\ \textcolor{charliteral}{'\(\backslash\)0'}\ \&\&\ temp[0]\ ==\ \textcolor{charliteral}{'1'}\ \&\&\ temp[1]\ >=\ \textcolor{charliteral}{'0'}\ \&\&\ temp[1]\ <=\ \textcolor{charliteral}{'6'}\ )\ \{}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00642}00642\ \ \ \ \ \ \ \ \ \ \ \ \ Lc\ =\ 10\ +\ temp[1]\ -\/\ 48;}
-\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00643}00643\ \ \ \ \ \ \ \ \ \ \ \ \ L2\ =\ transform(Lo,\ Lc);}
+\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00643}00643\ \ \ \ \ \ \ \ \ \ \ \ \ L2\ =\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}(Lo,\ Lc);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00644}00644\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i<24;\ i++)}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00645}00645\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (L2\ ==\ LPIECESREMAINING[L1][i])\ \{}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00646}00646\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp2\ =\ 1;}
@@ -652,7 +652,7 @@
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00649}00649\ \ \ \ \ \ \ \ \ \}}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00650}00650\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (temp[1]\ ==\ \textcolor{charliteral}{'\(\backslash\)0'}\ \&\&\ temp[0]\ <=\ \textcolor{charliteral}{'9'}\ \&\&\ temp[0]\ >=\ \textcolor{charliteral}{'1'})\ \{}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00651}00651\ \ \ \ \ \ \ \ \ \ \ \ \ Lc\ =\ temp[0]\ -\/\ 48;}
-\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00652}00652\ \ \ \ \ \ \ \ \ \ \ \ \ L2\ =\ transform(Lo,\ Lc);}
+\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00652}00652\ \ \ \ \ \ \ \ \ \ \ \ \ L2\ =\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}(Lo,\ Lc);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00653}00653\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i<24;\ i++)}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00654}00654\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (L2\ ==\ LPIECESREMAINING[L1][i])\ \{}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l00655}00655\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ temp2\ =\ 1;}
@@ -1189,7 +1189,7 @@
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01186}01186\ \ \ \ \ \ \ \ \ SPiece\ =\ 1;}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01187}01187\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (SPiece\ ==\ \textcolor{charliteral}{'g'}\ ||\ SPiece\ ==\ \textcolor{charliteral}{'G'})}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01188}01188\ \ \ \ \ \ \ \ \ SPiece\ =\ 2;}
-\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01189}01189\ \ \ \ \ L\ =\ transform(orient,\ L);}
+\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01189}01189\ \ \ \ \ L\ =\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}(orient,\ L);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01190}01190\ \ \ \ \ \textcolor{keywordflow}{return}((MOVE)\ hashMove(L,\ SPiece,\ S));}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01191}01191\ \}}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01192}01192\ }
@@ -1441,7 +1441,7 @@
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01438}01438\ \textcolor{comment}{**}}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01439}01439\ \textcolor{comment}{************************************************************************/}}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01440}01440\ }
-\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01441}01441\ \textcolor{keywordtype}{int}\ transform(\textcolor{keywordtype}{int}\ orient,\ \textcolor{keywordtype}{int}\ origL)\ \{}
+\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01441}01441\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}(\textcolor{keywordtype}{int}\ orient,\ \textcolor{keywordtype}{int}\ origL)\ \{}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01442}01442\ \ \ \ \ \textcolor{keywordflow}{if}\ (orient\ <\ 1\ ||\ orient\ >\ 8\ ||\ origL\ <\ 1\ ||\ origL\ >\ 16)}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01443}01443\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01444}01444\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{return}\ transArr[orient-\/1][origL-\/1];}
@@ -1939,7 +1939,7 @@
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01936}01936\ \textcolor{keywordtype}{int}\ checkOrient(\textcolor{keywordtype}{int}\ Lo,\ \textcolor{keywordtype}{int}\ L1)\ \{}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01937}01937\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ k,\ newL,\ b\ =\ 1;}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01938}01938\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ 6;\ i++)\ \{}
-\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01939}01939\ \ \ \ \ \ \ \ \ newL\ =\ transform(Lo,\ valCor[Lo][i]);}
+\DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01939}01939\ \ \ \ \ \ \ \ \ newL\ =\ \mbox{\hyperlink{mfivefieldkono_8c_af45811e83353041c384c12c2c5a0142f}{transform}}(Lo,\ valCor[Lo][i]);}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01940}01940\ \ \ \ \ \ \ \ \ b\ =\ 1;}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01941}01941\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j\ =\ 0;\ j\ <\ 4;\ j++)\ \{}
 \DoxyCodeLine{\Hypertarget{m_lgame_8c_source_l01942}01942\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k\ =\ 0;\ k\ <\ 4;\ k++)\ \{}

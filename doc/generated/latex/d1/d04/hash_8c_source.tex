@@ -70,7 +70,7 @@
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l00066}00066\ \textcolor{keywordtype}{int}\ symBoardRows\ =\ 0;}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l00067}00067\ \textcolor{keywordtype}{int}\ symBoardCols\ =\ 0;}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l00068}00068\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}*\ symmetriesList\ =\ NULL;}
-\DoxyCodeLine{\Hypertarget{hash_8c_source_l00069}00069\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}*\ new\_sym\_entry(\textcolor{keywordtype}{int}\ symType,\ \textcolor{keywordtype}{int}\ symAngle,\ \textcolor{keywordtype}{int}\ flip);}
+\DoxyCodeLine{\Hypertarget{hash_8c_source_l00069}00069\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}*\ new\_sym\_entry(\textcolor{keywordtype}{int}\ symType,\ \textcolor{keywordtype}{int}\ symAngle,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{mfivefieldkono_8c_ad83a1414057c8ffe08e22ce32605f257}{flip}});}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l00070}00070\ \textcolor{keywordtype}{void}\ composeSymmetries();}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l00071}00071\ BOOLEAN\ sym\_exists(\textcolor{keywordtype}{int}\ symType,\ \textcolor{keywordtype}{int}\ symAngle);}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l00072}00072\ \textcolor{keywordtype}{void}\ printSymmetries(\textcolor{keywordtype}{int}\ boardType);}
@@ -1398,12 +1398,12 @@
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01394}01394\ \ \ \ \ \textcolor{keywordflow}{return}\ minPos;}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01395}01395\ \}}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01396}01396\ }
-\DoxyCodeLine{\Hypertarget{hash_8c_source_l01397}01397\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}*\ new\_sym\_entry(\textcolor{keywordtype}{int}\ symType,\ \textcolor{keywordtype}{int}\ symAngle,\ \textcolor{keywordtype}{int}\ flip)\ \{}
+\DoxyCodeLine{\Hypertarget{hash_8c_source_l01397}01397\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}*\ new\_sym\_entry(\textcolor{keywordtype}{int}\ symType,\ \textcolor{keywordtype}{int}\ symAngle,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{mfivefieldkono_8c_ad83a1414057c8ffe08e22ce32605f257}{flip}})\ \{}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01398}01398\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}*\ newEntry\ =\ (\textcolor{keyword}{struct\ }\mbox{\hyperlink{structsym_entry}{symEntry}}*)\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structsym_entry}{symEntry}}));}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01399}01399\ }
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01400}01400\ \ \ \ \ newEntry-\/>type\ =\ symType;}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01401}01401\ \ \ \ \ newEntry-\/>angle\ =\ symAngle;}
-\DoxyCodeLine{\Hypertarget{hash_8c_source_l01402}01402\ \ \ \ \ newEntry-\/>flip\ =\ flip;}
+\DoxyCodeLine{\Hypertarget{hash_8c_source_l01402}01402\ \ \ \ \ newEntry-\/>flip\ =\ \mbox{\hyperlink{mfivefieldkono_8c_ad83a1414057c8ffe08e22ce32605f257}{flip}};}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01403}01403\ \ \ \ \ newEntry-\/>sym\ =\ (\textcolor{keywordtype}{int}*)\ SafeMalloc(\textcolor{keyword}{sizeof}(\textcolor{keywordtype}{int})\ *\ cCon-\/>boardSize);}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01404}01404\ \ \ \ \ newEntry-\/>next\ =\ NULL;}
 \DoxyCodeLine{\Hypertarget{hash_8c_source_l01405}01405\ \ \ \ \ \textcolor{keywordflow}{return}\ newEntry;}

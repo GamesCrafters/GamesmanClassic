@@ -1,14 +1,9 @@
-/************************************************************************
-**
-** NAME:        mfivefieldkono.c
-**
-** DESCRIPTION: Five-Field Kono
-**
-** AUTHOR:      Andrew Lee
-**
-** DATE:        2023-02-24
-**
-************************************************************************/
+/** @file
+ @author Andrew Lee
+ @date 2023-02-24
+
+Implementation of the abstract strategy game 'Five-Field-Kono.' Test.
+*/
 
 #include <stdio.h>
 #include <math.h>
@@ -211,24 +206,24 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  /** YOUR CODE HERE */
+  /* YOUR CODE HERE */
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-  /** YOUR CODE HERE */
+  /* YOUR CODE HERE */
   return Continue;
 }
 
 /** Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
-  /** YOUR CODE HERE */
+  /* YOUR CODE HERE */
   return TRUE;
 }
 
 /** Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  /** YOUR CODE HERE */
+  /* YOUR CODE HERE */
   return 0;
 }
 
@@ -236,13 +231,13 @@ MOVE ConvertTextInputToMove(STRING input) {
 Ideally this matches with what the user is supposed to
 type in. */
 STRING MoveToString(MOVE move) {
-  /** YOUR CODE HERE */
+  /* YOUR CODE HERE */
   return NULL;
 }
 
 /** Basically just print the move. */
 void PrintMove(MOVE move) {
-  /** YOUR CODE HERE */
+  /* YOUR CODE HERE */
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/

@@ -188,7 +188,7 @@
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00184}00184\ TIER\ PositionToTier(POSITION\ position);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00185}00185\ STRING\ TierToString(TIER\ tier);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00186}00186\ POSITION\ getPosition(\textcolor{keywordtype}{char}*\ board,\ \textcolor{keywordtype}{int}\ player);}
-\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00187}00187\ \textcolor{keywordtype}{int}\ getTurn(POSITION\ pos);}
+\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00187}00187\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{mfivefieldkono_8c_ab08f2d3cd278f05fe0d5dbad535d875a}{getTurn}}(POSITION\ pos);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00188}00188\ \textcolor{keywordtype}{void}\ SetupTierStuff();}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00189}00189\ \textcolor{keywordtype}{void}\ GetInitialTierPosition(TIER*\ tier,\ TIERPOSITION*\ tierposition);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00190}00190\ BOOLEAN\ IsLegal(POSITION\ position);}
@@ -368,7 +368,7 @@
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00364}00364\ \textcolor{preprocessor}{\#endif}}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00365}00365\ }
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00366}00366\ \ \ \ \ board\ =\ getBoard(thePosition);}
-\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00367}00367\ \ \ \ \ whoseturn\ =\ getTurn(thePosition);}
+\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00367}00367\ \ \ \ \ whoseturn\ =\ \mbox{\hyperlink{mfivefieldkono_8c_ab08f2d3cd278f05fe0d5dbad535d875a}{getTurn}}(thePosition);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00368}00368\ }
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00369}00369\ \ \ \ \ \textcolor{comment}{//assigning\ opponent\ pieces\ and\ own\ pieces}}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00370}00370\ \ \ \ \ \textcolor{keywordflow}{if}(whoseturn\ ==\ 1)}
@@ -600,7 +600,7 @@
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00596}00596\ \textcolor{preprocessor}{\#endif}}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00597}00597\ }
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00598}00598\ \ \ \ \ board\ =\ getBoard(pos);}
-\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00599}00599\ \ \ \ \ whoseturn\ =\ (int)\ getTurn(pos);}
+\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00599}00599\ \ \ \ \ whoseturn\ =\ (int)\ \mbox{\hyperlink{mfivefieldkono_8c_ab08f2d3cd278f05fe0d5dbad535d875a}{getTurn}}(pos);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00600}00600\ }
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00601}00601\ \ \ \ \ \textcolor{keywordflow}{for}(i\ =\ 0;\ i\ <\ (OthRows\ *\ OthCols);\ i++)}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00602}00602\ \ \ \ \ \{}
@@ -672,7 +672,7 @@
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00668}00668\ \ \ \ \ \textcolor{keywordtype}{char}\ alphabet[]\ =\ \textcolor{stringliteral}{"{}abcdefghijklmnopqrstuvwxyz"{}},\ owncolor[6];}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00669}00669\ \ \ \ \ \textcolor{keywordtype}{char}*\ board;}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00670}00670\ \ \ \ \ \textcolor{keywordtype}{int}\ blanktally\ =\ 0,\ whitetally\ =\ 0,\ blacktally\ =\ 0;}
-\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00671}00671\ \ \ \ \ \textcolor{keywordtype}{int}\ whoseturn\ =\ getTurn(position);}
+\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00671}00671\ \ \ \ \ \textcolor{keywordtype}{int}\ whoseturn\ =\ \mbox{\hyperlink{mfivefieldkono_8c_ab08f2d3cd278f05fe0d5dbad535d875a}{getTurn}}(position);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00672}00672\ \ \ \ \ \textcolor{comment}{/*int\ strlenname\ =\ strlen(playerName);*/}}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00673}00673\ \ \ \ \ \textcolor{keywordtype}{char}\ turnString1[80],\ turnString2[80],\ prediction[80];}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00674}00674\ }
@@ -868,7 +868,7 @@
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00864}00864\ }
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00865}00865\ \mbox{\hyperlink{structmovelist__item}{MOVELIST}}\ *GenerateMoves(POSITION\ position)}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00866}00866\ \{}
-\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00867}00867\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ whoseturn\ =\ getTurn(position);}
+\DoxyCodeLine{\Hypertarget{mothello_8c_source_l00867}00867\ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ whoseturn\ =\ \mbox{\hyperlink{mfivefieldkono_8c_ab08f2d3cd278f05fe0d5dbad535d875a}{getTurn}}(position);}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00868}00868\ \ \ \ \ \textcolor{keywordtype}{char}*\ board;}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00869}00869\ \ \ \ \ \textcolor{keywordtype}{char}\ ownpiece,\ opponentpiece;}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l00870}00870\ \ \ \ \ \textcolor{keywordtype}{int}\ AnyMovesAtAll\ =\ 0;}
@@ -1677,7 +1677,7 @@
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l01673}01673\ }
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l01674}01674\ }
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l01675}01675\ \textcolor{comment}{/*\ Returns\ the\ player\ whose\ turn\ it\ is\ to\ play\ (1\ or\ 2)\ */}\ \textcolor{comment}{//\ 11-\/25-\/07}}
-\DoxyCodeLine{\Hypertarget{mothello_8c_source_l01676}01676\ \textcolor{keywordtype}{int}\ getTurn(POSITION\ pos)\ \{}
+\DoxyCodeLine{\Hypertarget{mothello_8c_source_l01676}01676\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{mfivefieldkono_8c_ab08f2d3cd278f05fe0d5dbad535d875a}{getTurn}}(POSITION\ pos)\ \{}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l01677}01677\ \ \ \ \ \textcolor{keywordtype}{int}\ whoseturn;}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l01678}01678\ \ \ \ \ \textcolor{keywordflow}{if}\ (gHashWindowInitialized)\ \{}
 \DoxyCodeLine{\Hypertarget{mothello_8c_source_l01679}01679\ \ \ \ \ \ \ \ \ \textcolor{comment}{//}}

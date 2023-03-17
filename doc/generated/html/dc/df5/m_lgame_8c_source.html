@@ -44,6 +44,7 @@ DoxygenAwesomeInteractiveToc.init()
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr id="projectrow">
+  <td id="projectlogo"><img alt="Logo" src="../../logo.png"/></td>
   <td id="projectalign">
    <div id="projectname">GamesmanClassic
    </div>
@@ -426,7 +427,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span><span class="keywordtype">int</span> unhashMoveL(<span class="keywordtype">int</span> total);</div>
 <div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span><span class="keywordtype">int</span> unhashMoveSPiece(<span class="keywordtype">int</span> total);</div>
 <div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span><span class="keywordtype">int</span> unhashMoveSValue(<span class="keywordtype">int</span> total);</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span><span class="keywordtype">int</span> transform(<span class="keywordtype">int</span> orient, <span class="keywordtype">int</span> origL);</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span><span class="keywordtype">int</span> <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a>(<span class="keywordtype">int</span> orient, <span class="keywordtype">int</span> origL);</div>
 <div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span><span class="keywordtype">int</span> untransformOrient(<span class="keywordtype">int</span> L);</div>
 <div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span><span class="keywordtype">int</span> untransformOrig(<span class="keywordtype">int</span> L, <span class="keywordtype">int</span> orient);</div>
 <div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="keywordtype">int</span> printInit(<span class="keywordtype">int</span> pieces, <span class="keywordtype">int</span> L1, <span class="keywordtype">int</span> L2, <span class="keywordtype">int</span> S1, <span class="keywordtype">int</span> S2);</div>
@@ -734,7 +735,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>        }</div>
 <div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>        printf(<span class="stringliteral">&quot;Invalid corner location for orientation %d.\nPlease enter one of the following valid corner locations: %d, %d, %d, %d, %d, %d.\n&quot;</span>, Lo, valCor[Lo][0], valCor[Lo][1], valCor[Lo][2], valCor[Lo][3], valCor[Lo][4], valCor[Lo][5]);</div>
 <div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>    }</div>
-<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>    L1 = transform(Lo, Lc);</div>
+<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>    L1 = <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a>(Lo, Lc);</div>
 <div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span>    printInit(1, L1, 0, 0, 0);</div>
 <div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span> </div>
 <div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>    printf(<span class="stringliteral">&quot;\n\tInput the starting orientation of the second L-piece.\n&quot;</span>);</div>
@@ -754,7 +755,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>        scanf(<span class="stringliteral">&quot;%s&quot;</span>, temp);</div>
 <div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>        <span class="keywordflow">if</span> (temp[1] != <span class="charliteral">&#39;\0&#39;</span> &amp;&amp; temp[0] == <span class="charliteral">&#39;1&#39;</span> &amp;&amp; temp[1] &gt;= <span class="charliteral">&#39;0&#39;</span> &amp;&amp; temp[1] &lt;= <span class="charliteral">&#39;6&#39;</span> ) {</div>
 <div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>            Lc = 10 + temp[1] - 48;</div>
-<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>            L2 = transform(Lo, Lc);</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>            L2 = <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a>(Lo, Lc);</div>
 <div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>            <span class="keywordflow">for</span> (i = 0; i&lt;24; i++)</div>
 <div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>                <span class="keywordflow">if</span> (L2 == LPIECESREMAINING[L1][i]) {</div>
 <div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>                    temp2 = 1;</div>
@@ -763,7 +764,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>        }</div>
 <div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>        <span class="keywordflow">else</span> <span class="keywordflow">if</span> (temp[1] == <span class="charliteral">&#39;\0&#39;</span> &amp;&amp; temp[0] &lt;= <span class="charliteral">&#39;9&#39;</span> &amp;&amp; temp[0] &gt;= <span class="charliteral">&#39;1&#39;</span>) {</div>
 <div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>            Lc = temp[0] - 48;</div>
-<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>            L2 = transform(Lo, Lc);</div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>            L2 = <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a>(Lo, Lc);</div>
 <div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>            <span class="keywordflow">for</span> (i = 0; i&lt;24; i++)</div>
 <div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>                <span class="keywordflow">if</span> (L2 == LPIECESREMAINING[L1][i]) {</div>
 <div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>                    temp2 = 1;</div>
@@ -1300,7 +1301,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l01186" name="l01186"></a><span class="lineno"> 1186</span>        SPiece = 1;</div>
 <div class="line"><a id="l01187" name="l01187"></a><span class="lineno"> 1187</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (SPiece == <span class="charliteral">&#39;g&#39;</span> || SPiece == <span class="charliteral">&#39;G&#39;</span>)</div>
 <div class="line"><a id="l01188" name="l01188"></a><span class="lineno"> 1188</span>        SPiece = 2;</div>
-<div class="line"><a id="l01189" name="l01189"></a><span class="lineno"> 1189</span>    L = transform(orient, L);</div>
+<div class="line"><a id="l01189" name="l01189"></a><span class="lineno"> 1189</span>    L = <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a>(orient, L);</div>
 <div class="line"><a id="l01190" name="l01190"></a><span class="lineno"> 1190</span>    <span class="keywordflow">return</span>((MOVE) hashMove(L, SPiece, S));</div>
 <div class="line"><a id="l01191" name="l01191"></a><span class="lineno"> 1191</span>}</div>
 <div class="line"><a id="l01192" name="l01192"></a><span class="lineno"> 1192</span> </div>
@@ -1552,7 +1553,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l01438" name="l01438"></a><span class="lineno"> 1438</span><span class="comment">**</span></div>
 <div class="line"><a id="l01439" name="l01439"></a><span class="lineno"> 1439</span><span class="comment">************************************************************************/</span></div>
 <div class="line"><a id="l01440" name="l01440"></a><span class="lineno"> 1440</span> </div>
-<div class="line"><a id="l01441" name="l01441"></a><span class="lineno"> 1441</span><span class="keywordtype">int</span> transform(<span class="keywordtype">int</span> orient, <span class="keywordtype">int</span> origL) {</div>
+<div class="line"><a id="l01441" name="l01441"></a><span class="lineno"> 1441</span><span class="keywordtype">int</span> <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a>(<span class="keywordtype">int</span> orient, <span class="keywordtype">int</span> origL) {</div>
 <div class="line"><a id="l01442" name="l01442"></a><span class="lineno"> 1442</span>    <span class="keywordflow">if</span> (orient &lt; 1 || orient &gt; 8 || origL &lt; 1 || origL &gt; 16)</div>
 <div class="line"><a id="l01443" name="l01443"></a><span class="lineno"> 1443</span>        <span class="keywordflow">return</span> 0;</div>
 <div class="line"><a id="l01444" name="l01444"></a><span class="lineno"> 1444</span>    <span class="keywordflow">else</span> <span class="keywordflow">return</span> transArr[orient-1][origL-1];</div>
@@ -2050,7 +2051,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l01936" name="l01936"></a><span class="lineno"> 1936</span><span class="keywordtype">int</span> checkOrient(<span class="keywordtype">int</span> Lo, <span class="keywordtype">int</span> L1) {</div>
 <div class="line"><a id="l01937" name="l01937"></a><span class="lineno"> 1937</span>    <span class="keywordtype">int</span> i, j, k, newL, b = 1;</div>
 <div class="line"><a id="l01938" name="l01938"></a><span class="lineno"> 1938</span>    <span class="keywordflow">for</span> (i = 0; i &lt; 6; i++) {</div>
-<div class="line"><a id="l01939" name="l01939"></a><span class="lineno"> 1939</span>        newL = transform(Lo, valCor[Lo][i]);</div>
+<div class="line"><a id="l01939" name="l01939"></a><span class="lineno"> 1939</span>        newL = <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a>(Lo, valCor[Lo][i]);</div>
 <div class="line"><a id="l01940" name="l01940"></a><span class="lineno"> 1940</span>        b = 1;</div>
 <div class="line"><a id="l01941" name="l01941"></a><span class="lineno"> 1941</span>        <span class="keywordflow">for</span> (j = 0; j &lt; 4; j++) {</div>
 <div class="line"><a id="l01942" name="l01942"></a><span class="lineno"> 1942</span>            <span class="keywordflow">for</span> (k = 0; k &lt; 4; k++) {</div>
@@ -2398,6 +2399,7 @@ $(document).ready(function(){initNavTree('dc/df5/m_lgame_8c_source.html','../../
 <div class="line"><a id="l02284" name="l02284"></a><span class="lineno"> 2284</span>    }</div>
 <div class="line"><a id="l02285" name="l02285"></a><span class="lineno"> 2285</span>    <span class="keywordflow">return</span> mpel;</div>
 <div class="line"><a id="l02286" name="l02286"></a><span class="lineno"> 2286</span>}</div>
+<div class="ttc" id="amfivefieldkono_8c_html_af45811e83353041c384c12c2c5a0142f"><div class="ttname"><a href="../../db/db4/mfivefieldkono_8c.html#af45811e83353041c384c12c2c5a0142f">transform</a></div><div class="ttdeci">void transform(FFK_Board *board, int flips, int rotations)</div><div class="ttdef"><b>Definition:</b> <a href="../../db/db4/mfivefieldkono_8c.html#l00396">mfivefieldkono.c:396</a></div></div>
 <div class="ttc" id="astructmove_list_html"><div class="ttname"><a href="../../d0/d11/structmove_list.html">moveList</a></div><div class="ttdef"><b>Definition:</b> <a href="../../d0/d11/structmove_list.html#l00044">gameplay.c:45</a></div></div>
 <div class="ttc" id="astructmovelist__item_html"><div class="ttname"><a href="../../d5/d18/structmovelist__item.html">movelist_item</a></div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d18/structmovelist__item.html#l00138">types.h:139</a></div></div>
 <div class="ttc" id="astructmultipartedgelist__item_html"><div class="ttname"><a href="../../d1/d8c/structmultipartedgelist__item.html">multipartedgelist_item</a></div><div class="ttdef"><b>Definition:</b> <a href="../../d1/d8c/structmultipartedgelist__item.html#l00127">types.h:128</a></div></div>

@@ -29,6 +29,7 @@ var NAVTREE =
     [ "Fancy Stuff", "index.html#Example", [
       [ "this is all markdown", "index.html#autotoc_md1", null ]
     ] ],
+    [ "'s add more stuff!", "index.html#Let", null ],
     [ "Data Structures", "annotated.html", [
       [ "Data Structures", "annotated.html", "annotated_dup" ],
       [ "Data Structure Index", "classes.html", null ],
@@ -43,6 +44,7 @@ var NAVTREE =
       [ "Globals", "globals.html", [
         [ "All", "globals.html", null ],
         [ "Functions", "globals_func.html", null ],
+        [ "Variables", "globals_vars.html", null ],
         [ "Typedefs", "globals_type.html", null ]
       ] ]
     ] ]

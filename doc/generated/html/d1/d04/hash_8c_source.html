@@ -44,6 +44,7 @@ DoxygenAwesomeInteractiveToc.init()
 <table cellspacing="0" cellpadding="0">
  <tbody>
  <tr id="projectrow">
+  <td id="projectlogo"><img alt="Logo" src="../../logo.png"/></td>
   <td id="projectalign">
    <div id="projectname">GamesmanClassic
    </div>
@@ -181,7 +182,7 @@ $(document).ready(function(){initNavTree('d1/d04/hash_8c_source.html','../../');
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="keywordtype">int</span> symBoardRows = 0;</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="keywordtype">int</span> symBoardCols = 0;</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="keyword">struct </span><a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>* symmetriesList = NULL;</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keyword">struct </span><a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>* new_sym_entry(<span class="keywordtype">int</span> symType, <span class="keywordtype">int</span> symAngle, <span class="keywordtype">int</span> flip);</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keyword">struct </span><a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>* new_sym_entry(<span class="keywordtype">int</span> symType, <span class="keywordtype">int</span> symAngle, <span class="keywordtype">int</span> <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#ad83a1414057c8ffe08e22ce32605f257">flip</a>);</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="keywordtype">void</span> composeSymmetries();</div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>BOOLEAN sym_exists(<span class="keywordtype">int</span> symType, <span class="keywordtype">int</span> symAngle);</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keywordtype">void</span> printSymmetries(<span class="keywordtype">int</span> boardType);</div>
@@ -1509,12 +1510,12 @@ $(document).ready(function(){initNavTree('d1/d04/hash_8c_source.html','../../');
 <div class="line"><a id="l01394" name="l01394"></a><span class="lineno"> 1394</span>    <span class="keywordflow">return</span> minPos;</div>
 <div class="line"><a id="l01395" name="l01395"></a><span class="lineno"> 1395</span>}</div>
 <div class="line"><a id="l01396" name="l01396"></a><span class="lineno"> 1396</span> </div>
-<div class="line"><a id="l01397" name="l01397"></a><span class="lineno"> 1397</span><span class="keyword">struct </span><a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>* new_sym_entry(<span class="keywordtype">int</span> symType, <span class="keywordtype">int</span> symAngle, <span class="keywordtype">int</span> flip) {</div>
+<div class="line"><a id="l01397" name="l01397"></a><span class="lineno"> 1397</span><span class="keyword">struct </span><a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>* new_sym_entry(<span class="keywordtype">int</span> symType, <span class="keywordtype">int</span> symAngle, <span class="keywordtype">int</span> <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#ad83a1414057c8ffe08e22ce32605f257">flip</a>) {</div>
 <div class="line"><a id="l01398" name="l01398"></a><span class="lineno"> 1398</span>    <span class="keyword">struct </span><a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>* newEntry = (<span class="keyword">struct </span><a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>*) SafeMalloc(<span class="keyword">sizeof</span>(<span class="keyword">struct</span> <a class="code hl_struct" href="../../d4/d41/structsym_entry.html">symEntry</a>));</div>
 <div class="line"><a id="l01399" name="l01399"></a><span class="lineno"> 1399</span> </div>
 <div class="line"><a id="l01400" name="l01400"></a><span class="lineno"> 1400</span>    newEntry-&gt;type = symType;</div>
 <div class="line"><a id="l01401" name="l01401"></a><span class="lineno"> 1401</span>    newEntry-&gt;angle = symAngle;</div>
-<div class="line"><a id="l01402" name="l01402"></a><span class="lineno"> 1402</span>    newEntry-&gt;flip = flip;</div>
+<div class="line"><a id="l01402" name="l01402"></a><span class="lineno"> 1402</span>    newEntry-&gt;flip = <a class="code hl_function" href="../../db/db4/mfivefieldkono_8c.html#ad83a1414057c8ffe08e22ce32605f257">flip</a>;</div>
 <div class="line"><a id="l01403" name="l01403"></a><span class="lineno"> 1403</span>    newEntry-&gt;sym = (<span class="keywordtype">int</span>*) SafeMalloc(<span class="keyword">sizeof</span>(<span class="keywordtype">int</span>) * cCon-&gt;boardSize);</div>
 <div class="line"><a id="l01404" name="l01404"></a><span class="lineno"> 1404</span>    newEntry-&gt;next = NULL;</div>
 <div class="line"><a id="l01405" name="l01405"></a><span class="lineno"> 1405</span>    <span class="keywordflow">return</span> newEntry;</div>
@@ -1655,6 +1656,7 @@ $(document).ready(function(){initNavTree('d1/d04/hash_8c_source.html','../../');
 <div class="line"><a id="l01540" name="l01540"></a><span class="lineno"> 1540</span>    <span class="keywordflow">return</span> result;</div>
 <div class="line"><a id="l01541" name="l01541"></a><span class="lineno"> 1541</span>}</div>
 <div class="line"><a id="l01542" name="l01542"></a><span class="lineno"> 1542</span> </div>
+<div class="ttc" id="amfivefieldkono_8c_html_ad83a1414057c8ffe08e22ce32605f257"><div class="ttname"><a href="../../db/db4/mfivefieldkono_8c.html#ad83a1414057c8ffe08e22ce32605f257">flip</a></div><div class="ttdeci">void flip(FFK_Board *board)</div><div class="ttdef"><b>Definition:</b> <a href="../../db/db4/mfivefieldkono_8c.html#l00367">mfivefieldkono.c:367</a></div></div>
 <div class="ttc" id="astructcontext_list_html"><div class="ttname"><a href="../../dd/d39/structcontext_list.html">contextList</a></div><div class="ttdef"><b>Definition:</b> <a href="../../dd/d39/structcontext_list.html#l00154">mtilechess.c:154</a></div></div>
 <div class="ttc" id="astructhash_context_html"><div class="ttname"><a href="../../d2/df8/structhash_context.html">hashContext</a></div><div class="ttdef"><b>Definition:</b> <a href="../../d2/df8/structhash_context.html#l00032">hash.h:33</a></div></div>
 <div class="ttc" id="astructmovelist__item_html"><div class="ttname"><a href="../../d5/d18/structmovelist__item.html">movelist_item</a></div><div class="ttdef"><b>Definition:</b> <a href="../../d5/d18/structmovelist__item.html#l00138">types.h:139</a></div></div>
