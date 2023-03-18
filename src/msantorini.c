@@ -17,7 +17,7 @@
 STRING kAuthorName = "Zachary Leete";
 POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
 BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
 BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
@@ -67,7 +67,9 @@ solving or playing the game. */
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
-
+  #define height 3
+  #define width 3
+  //int startState[height][width][2];
   /* YOUR CODE HERE */
   
 }
@@ -81,26 +83,94 @@ POSITION GetInitialPosition() {
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
-  /* YOUR CODE HERE 
-     
-     To add to the linked list, do 
-     moves = CreateMovelistNode(<the move you're adding>, moves);
-     See the function CreateMovelistNode in src/core/misc.c
-  */
+  MOVE theMove;
+  int availableDirections[8][2];
+  MoveDirections(position, availableDirections);
+  int activePlayer = FindActivePlayer(position);
+  int location[2];
+  FindLocation(position, activePlayer, &location[0], &location[1]);
+  int count = 0;
+  int availableMoves[8][8][4];
+  for (int i = 0; i < 8; i++) {
+    if (availableDirections[i][0]==-5){
+      continue;
+    }
+    int newLocation[2];
+    newLocation[0] = location[0] + availableDirections[i][0];
+    newLocation[1] = location[1] + availableDirectionss[i][1];
+    // Initialize movedPosition as a copy of position
+    int movedPosition[height][width][2];
+    for (int j = 0; j < height; j++) {
+      for (int k = 0; k < width; k++) {
+        movedPosition[j][k][0] = position[j][k][0];
+        movedPosition[j][k][1] = position[j][k][1];
+      }
+    }
+    // Update movedPosition based on the move and activePlayer
+    movedPosition[location[0] + move[0]][location[1] + move[1]][1] = activePlayer;
+    movedPosition[location[0]][location[1]][1] = 0;
+    if (newLocation[0]+1 <height && movedPosition[newLocation[0]+1][newLocation[1]][1]==0 && movedPosition[newLocation[0]+1][newLocation[1]][0]<4){ //bottom middle
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0]+1, newLocation[1]);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+    if (newLocation[0]-1 >-1 && movedPosition[newLocation[0]-1][newLocation[1]][1]==0 && movedPosition[newLocation[0]-1][newLocation[1]][0]<4){ //top middle
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0]-1, newLocation[1]);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+    if (newLocation[1]+1 <width && movedPosition[newLocation[0]][newLocation[1]+1][1]==0 && movedPosition[newLocation[0]][newLocation[1]+1][0]<4){ //right middle
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0], newLocation[1]+1);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+    if (newLocation[1]-1 >-1 && movedPosition[newLocation[0]][newLocation[1]-1][1]==0 && movedPosition[newLocation[0]][newLocation[1]-1][0]<4){ //left middle
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0], newLocation[1]-1);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+    if (newLocation[0]+1 <height && newLocation[1]+1 <width && movedPosition[newLocation[0]+1][newLocation[1]+1][1]==0 && movedPosition[newLocation[0]+1][newLocation[1]+1][0]<4){ //bottom right
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0]+1, newLocation[1]+1);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+    if (newLocation[0]-1 >-1 && newLocation[1]+1 <width && movedPosition[newLocation[0]-1][newLocation[1]+1][1]==0 && movedPosition[newLocation[0]-1][newLocation[1]+1][0]<4){ //top right
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0]-1, newLocation[1]+1);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+    if (newLocation[0]+1 <height && newLocation[1]-1 >-1 && movedPosition[newLocation[0]+1][newLocation[1]-1][1]==0 && movedPosition[newLocation[0]+1][newLocation[1]-1][0]<4){ //bottom left
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0]+1, newLocation[1]-1);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+    if (newLocation[0]-1 >-1 && newLocation[1]-1 >-1 && movedPosition[newLocation[0]-1][newLocation[1]-1][1]==0 && movedPosition[newLocation[0]-1][newLocation[1]-1][0]<4){ //top left
+      theMove = encodeMove(newLocation[0], newLocation[1], newLocation[0]-1, newLocation[1]-1);
+      moves = CreateMovelistNode(theMove, moves);
+    }
+  } 
   return moves;
 }
+
 
 /* Return the position that results from making the 
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
-  /* YOUR CODE HERE */
-  return 0;
+  //int position[height][width][2], int *move, int newPosition[height][width][2]
+  int position[height][width][2]=decodePosition(position);
+  int move[4]=decodeMove(move);
+  int activePlayer = FindActivePlayer(position);
+  int activePlayerLocationX, activePlayerLocationY;
+  FindLocation(position, activePlayer, &activePlayerLocationX, &activePlayerLocationY);
+  position[move[0]][move[1]][1] = activePlayer;
+  position[activePlayerLocationX][activePlayerLocationY][1] = 0;
+  position[move[2]][move[3]][0] += 1;
+  return encodePosition(position);
 }
 
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  /* YOUR CODE HERE */
+  int unhashedPosition[height][width][2]=decodePosition(position);
+  int activePlayer = FindActivePlayer(unhashedPosition);
+  int location[2];
+  FindLocation(unhashedPosition, 3-activePlayer, &location[0], &location[1]);
+  if ((unhashedPosition[location[0]][location[1]][0] == 3 || GenerateMoves(position) == NULL)) {
+    return lose;
+  }
   return undecided;
 }
 
@@ -112,10 +182,133 @@ POSITION GetCanonicalPosition(POSITION position) {
 
 /*********** END SOLVING FUNCTIONS ***********/
 
+/*********** START HELPER FUNCTIONS ***********/
 
+void MoveDirections(int position[height][width][2], int availableDirections[8][2]) {
+  int activePlayer = FindActivePlayer(position);
+  int location[2];
+  FindLocation(position, activePlayer, &location[0], &location[1]);
+  //sides
+  if (location[0]+1 < height && position[location[0]+1][location[1]][1] == 0 && position[location[0]+1][location[1]][0] < 4
+  && (position[location[0]+1][location[1]][0] - position[location[0]][location[1]][0]) <= 1) { //bottom middle
+    availableDirections[0][0] = +1;
+    availableDirections[0][1] = 0;
+  }
+  else {
+    availableDirections[0][0] = -5;
+    availableDirections[0][1] = -5;
+  }
+  if (location[0]-1 > -1 && position[location[0]-1][location[1]][1] == 0 && position[location[0]-1][location[1]][0] < 4
+  && (position[location[0]-1][location[1]][0] - position[location[0]][location[1]][0]) <= 1) { //top middle
+    availableDirections[1][0] = -1;
+    availableDirections[1][1] = 0;
+  }
+  else {
+    availableDirections[1][0] = -5;
+    availableDirections[1][1] = -5;
+  }
+  if (location[1]+1 < width && position[location[0]][location[1]+1][1] == 0 && position[location[0]][location[1]+1][0] < 4
+  && (position[location[0]][location[1]+1][0] - position[location[0]][location[1]][0]) <= 1) { //right middle
+    availableDirections[2][0] = 0;
+    availableDirections[2][1] = +1;
+  }
+  else {
+    availableDirections[2][0] = -5;
+    availableDirections[2][1] = -5;
+  }
+  if (location[1]-1 > -1 && position[location[0]][location[1]-1][1] == 0 && position[location[0]][location[1]-1][0] < 4
+  && (position[location[0]][location[1]-1][0] - position[location[0]][location[1]][0]) <= 1) { //left middle
+    availableDirections[3][0] = 0;
+    availableDirections[3][1] = -1;
+  }
+  else {
+    availableDirections[3][0] = -5;
+    availableDirections[3][1] = -5;
+  }
+  //corners
+  if (location[0]+1 < height && location[1]+1 < width && position[location[0]+1][location[1]+1][1] == 0 && position[location[0]+1][location[1]+1][0] < 4
+  && (position[location[0]+1][location[1]+1][0] - position[location[0]][location[1]][0]) <= 1) { //bottom right
+    availableDirections[4][0] = +1;
+    availableDirections[4][1] = +1;
+  }
+  else {
+    availableDirections[4][0] = -5;
+    availableDirections[4][1] = -5;
+  }
+  if (location[0]-1 > -1 && location[1]-1 > -1 && position[location[0]-1][location[1]-1][1] == 0 && position[location[0]-1][location[1]-1][0] < 4
+  && (position[location[0]-1][location[1]-1][0] - position[location[0]][location[1]][0]) <= 1) { //top left
+    availableDirections[5][0] = -1;
+    availableDirections[5][1] = -1;
+  }
+  else {
+    availableDirections[5][0] = -5;
+    availableDirections[5][1] = -5;
+  }
+  if (location[0]+1 < height && location[1]-1 > -1 && position[location[0]+1][location[1]-1][1] == 0 && position[location[0]+1][location[1]-1][0] < 4
+  && (position[location[0]+1][location[1]-1][0] - position[location[0]][location[1]][0]) <= 1) { //bottom left
+    availableDirections[6][0] = +1;
+    availableDirections[6][1] = -1;
+  }
+  else {
+    availableDirections[6][0] = -5;
+    availableDirections[6][1] = -5;
+  }
+  if (location[0]-1 > -1 && location[1]+1 < width && position[location[0]-1][location[1]+1][1] == 0 && position[location[0]-1][location[1]+1][0] < 4
+  && (position[location[0]-1][location[1]+1][0] - position[location[0]][location[1]][0]) <= 1) { //top right
+    availableDirections[7][0] = -1;
+    availableDirections[7][1] = +1;
+  }
+  else {
+    availableDirections[7][0] = -5;
+    availableDirections[7][1] = -5;
+  }
+  return;
+}
 
+void FindLocation(int position[height][width][2], int activePlayer, int *x, int *y){
+    for (*x = 0; *x < height; (*x)++){
+        for (*y = 0; *y < width; (*y)++){
+            if (position[*x][*y][1] == activePlayer){
+                return;
+            }
+        }
+    }
+}
 
+int FindActivePlayer(int position[height][width][2]){
+  int sum = 0;
+  for (int x = 0; x < height; x++){
+    for (int y = 0; y < width; y++){
+      sum += position[x][y][0];
+    }
+  }
+  if (sum % 2 == 0){
+    return 1;
+  }
+  return 2;
+}
 
+MOVE encodeMove(int directionx, int directiony, int buildx, int buildy){
+  MOVE move = 0;
+  move = move | (directionx << ((2 * ceil(log2(width)))+ceil(log2(height))));
+  move = move | (directiony << (ceil(log2(width))+ceil(log2(height))));
+  move = move | (buildx << ceil(log2(width)));
+  move = move | buildy;
+  return move;
+}
+
+POSITION encodePosition(int position[height][width][2]){
+  POSITION encodedPosition = 0;
+  for (int x = 0; x < height; x++){
+    for (int y = 0; y < width; y++){
+      encodedPosition = encodedPosition | (position[x][y][0] << (x*16 + y*8));
+      encodedPosition = encodedPosition | (position[x][y][1] << (x*16 + y*8 + 4));
+    }
+  }
+  return encodedPosition;
+}
+
+/*********** END HELPER FUNCTIONS ***********/
 
 
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
@@ -225,150 +418,5 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
 }
 
 
-#define height 3
-#define width 3
 
-int startState[height][width][2];
 
-void FindLocation(int position[height][width][2], int activePlayer, int *x, int *y){
-    for (*x = 0; *x < height; (*x)++){
-        for (*y = 0; *y < width; (*y)++){
-            if (position[*x][*y][1] == activePlayer){
-                return;
-            }
-        }
-    }
-}
-
-int FindActivePlayer(int position[height][width][2]){
-    int sum = 0;
-    for (int x = 0; x < height; x++){
-        for (int y = 0; y < width; y++){
-            sum += position[x][y][0];
-        }
-    }
-    if (sum % 2 == 0){
-        return 1;
-    }
-    return 2;
-}
-
-void DoMove(int position[height][width][2], int *move, int newPosition[height][width][2]){
-    int activePlayer = FindActivePlayer(position);
-    int activePlayerLocationX, activePlayerLocationY;
-    FindLocation(position, activePlayer, &activePlayerLocationX, &activePlayerLocationY);
-    for (int x = 0; x < height; x++){
-        for (int y = 0; y < width; y++){
-            newPosition[x][y][0] = position[x][y][0];
-            newPosition[x][y][1] = position[x][y][1];
-        }
-    }
-    newPosition[move[0]][move[1]][1] = activePlayer;
-    newPosition[activePlayerLocationX][activePlayerLocationY][1] = 0;
-    newPosition[move[2]][move[3]][0] += 1;
-}
-
-void MoveDirections(int position[height][width][2], int availableMoves[8][2]) {
-    int activePlayer = FindActivePlayer(position);
-    int location[2];
-    FindLocation(position, activePlayer, &location[0], &location[1]);
-    //sides
-    if (location[0]+1 < height && position[location[0]+1][location[1]][1] == 0 && position[location[0]+1][location[1]][0] < 4
-    && (position[location[0]+1][location[1]][0] - position[location[0]][location[1]][0]) <= 1) { //bottom middle
-        availableMoves[0][0] = +1;
-        availableMoves[0][1] = 0;
-    }
-    if (location[0]-1 > -1 && position[location[0]-1][location[1]][1] == 0 && position[location[0]-1][location[1]][0] < 4
-    && (position[location[0]-1][location[1]][0] - position[location[0]][location[1]][0]) <= 1) { //top middle
-        availableMoves[1][0] = -1;
-        availableMoves[1][1] = 0;
-    }
-    if (location[1]+1 < width && position[location[0]][location[1]+1][1] == 0 && position[location[0]][location[1]+1][0] < 4
-    && (position[location[0]][location[1]+1][0] - position[location[0]][location[1]][0]) <= 1) { //right middle
-        availableMoves[2][0] = 0;
-        availableMoves[2][1] = +1;
-    }
-    if (location[1]-1 > -1 && position[location[0]][location[1]-1][1] == 0 && position[location[0]][location[1]-1][0] < 4
-    && (position[location[0]][location[1]-1][0] - position[location[0]][location[1]][0]) <= 1) { //left middle
-        availableMoves[3][0] = 0;
-        availableMoves[3][1] = -1;
-    }
-    //corners
-    if (location[0]+1 < height && location[1]+1 < width && position[location[0]+1][location[1]+1][1] == 0 && position[location[0]+1][location[1]+1][0] < 4
-    && (position[location[0]+1][location[1]+1][0] - position[location[0]][location[1]][0]) <= 1) { //bottom right
-        availableMoves[4][0] = +1;
-        availableMoves[4][1] = +1;
-    }
-    if (location[0]-1 > -1 && location[1]-1 > -1 && position[location[0]-1][location[1]-1][1] == 0 && position[location[0]-1][location[1]-1][0] < 4
-    && (position[location[0]-1][location[1]-1][0] - position[location[0]][location[1]][0]) <= 1) { //top left
-        availableMoves[5][0] = -1;
-        availableMoves[5][1] = -1;
-    }
-    if (location[0]+1 < height && location[1]-1 > -1 && position[location[0]+1][location[1]-1][1] == 0 && position[location[0]+1][location[1]-1][0] < 4
-    && (position[location[0]+1][location[1]-1][0] - position[location[0]][location[1]][0]) <= 1) { //bottom left
-        availableMoves[6][0] = +1;
-        availableMoves[6][1] = -1;
-    }
-    if (location[0]-1 > -1 && location[1]+1 < width && position[location[0]-1][location[1]+1][1] == 0 && position[location[0]-1][location[1]+1][0] < 4
-    && (position[location[0]-1][location[1]+1][0] - position[location[0]][location[1]][0]) <= 1) { //top right
-        availableMoves[7][0] = -1;
-        availableMoves[7][1] = +1;
-    }
-    return;
-}
-
-void GenerateMoves(int position[height][width][2], int availableMoves[8][2], int builds[8][8]) {
-    int activePlayer = FindActivePlayer(position);
-    int location[2];
-    FindLocation(position, activePlayer, &location[0], &location[1]);
-    int** moves = MoveDirections(position);
-    int count = 0;
-    for (int i = 0; i < 8; i++) {
-        int newRow = location[0] + moves[i][0];
-        int newCol = location[1] + moves[i][1];
-        if (newRow < 0 || newRow >= height || newCol < 0 || newCol >= width) {
-            continue;
-        }
-        if (position[newRow][newCol][1] != 0) {
-            continue;
-        }
-        int*** newPosition = CopyPosition(position);
-        newPosition[newRow][newCol][1] = activePlayer;
-        builds[count] = MoveDirections(newPosition);
-        count++;
-        FreePosition(newPosition);
-    }
-    FreeMoves(moves);
-    return;
-}
-
-int PrimitiveValue(int*** position) {
-    int activePlayer = FindActivePlayer(position);
-    int location[2];
-    FindLocation(position, activePlayer, &location[0], &location[1]);
-    int value = 0;
-    //check if current player is on the opponent's baseline
-    if ((activePlayer == 1 && location[0] == 0) || (activePlayer == 2 && location[0] == height-1)) {
-        value = "WIN";
-    }
-    //check if opponent is on the current player's baseline
-    else if ((activePlayer == 1 && location[0] == height-1) || (activePlayer == 2 && location[0] == 0)) {
-        value = "LOSS";
-    }
-    return value;
-}
-
-int WonCheck(int*** position) {
-    int activePlayer = FindActivePlayer(position);
-    int location[2];
-    FindLocation(position, activePlayer, &location[0], &location[1]);
-    //check if current player is on the opponent's baseline
-    if ((activePlayer == 1 && location[0] == 0) || (activePlayer == 2 && location[0] == height-1)) {
-        return 1;
-    }
-    //check if opponent is on the current player's baseline
-    else if ((activePlayer == 1 && location[0] == height-1) || (activePlayer == 2 && location[0] == 0)) {
-        return -1;
-    }
-    return 0;
-}
