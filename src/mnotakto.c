@@ -83,8 +83,6 @@ void GameSpecificMenu() {
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
 
-/* TODO: Add a hashing function and unhashing function, if needed. */
-
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
