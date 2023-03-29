@@ -119,7 +119,26 @@ $(document).ready(function(){initNavTree('d5/dc6/ght__hash__table_8h.html','../.
   <div class="headertitle"><div class="title">ght_hash_table.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;stdlib.h&gt;</code><br />
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>libghthash is a generic hash table used for storing arbitrary data.</p>
+<p>Libghthash really stores pointers to data - the hash table knows nothing about the actual type of the data.</p>
+<p>A simple example to get started can be found in the <code>example/simple.c</code> file found in the distribution. <code>hash_test.c</code> provides a more comlpete example.</p>
+<p>Some basic properties of the hash table are:</p>
+<ul>
+<li>Both the data stored and the keys are of void type, which means that you can store any kind of data.</li>
+<li>The only functions you probably will need to start is:<ul>
+<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae6b71ee9b731e74455c940d0a685efbb">ght_create()</a>, which creates a new hash table.</li>
+<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9ca06ee650eda5748deafb68ea856ac8">ght_insert()</a>, which inserts a new entry into a table.</li>
+<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae7bf67689f4b681b9370b3d806273270">ght_get()</a>, which searches for an entry.</li>
+<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa8582d55526ef0c606422dc083180dc0">ght_remove()</a>, which removes and entry.</li>
+<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2ed7c1800f34c9db08c25b1aea52d157">ght_finalize()</a>, which destroys a hash table.</li>
+</ul>
+</li>
+<li>Inserting entries is done without first creating a key, i.e. you insert with the data, the datasize, the key and the key size directly.</li>
+<li>The hash table copies the key data when inserting new entries. This means that you should <em>not</em> malloc() the key before inserting a new entry. </li>
+</ul>
+
+<p class="definition">Definition in file <a class="el" href="../../d5/dc6/ght__hash__table_8h_source.html">ght_hash_table.h</a>.</p>
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for ght_hash_table.h:</div>
 <div class="dyncontent">
@@ -142,118 +161,6 @@ This graph shows which files directly or indirectly include this file:</div>
 <area shape="rect" href="../../d3/d83/text_resource__load_resource_8c_source.html" title=" " alt="" coords="432,181,635,221"/>
 </map>
 </div>
-</div>
-<p><a href="../../d5/dc6/ght__hash__table_8h_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d41/structs__hash__key.html">s_hash_key</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d2d/structs__hash__entry.html">s_hash_entry</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:a36c9b58f543f01d2891efe50f8f8971f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a36c9b58f543f01d2891efe50f8f8971f">GHT_HEURISTICS_NONE</a>&#160;&#160;&#160;0</td></tr>
-<tr class="separator:a36c9b58f543f01d2891efe50f8f8971f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5618d62c0493513d3c8ccf9aef2dc3d5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a5618d62c0493513d3c8ccf9aef2dc3d5">GHT_HEURISTICS_TRANSPOSE</a>&#160;&#160;&#160;1</td></tr>
-<tr class="separator:a5618d62c0493513d3c8ccf9aef2dc3d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35d63817e0a10b5106b00b2dff4fb297"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a35d63817e0a10b5106b00b2dff4fb297">GHT_HEURISTICS_MOVE_TO_FRONT</a>&#160;&#160;&#160;2</td></tr>
-<tr class="separator:a35d63817e0a10b5106b00b2dff4fb297"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afd8c3b9b8978d47b073c9b354d32d38b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#afd8c3b9b8978d47b073c9b354d32d38b">GHT_AUTOMATIC_REHASH</a>&#160;&#160;&#160;4</td></tr>
-<tr class="separator:afd8c3b9b8978d47b073c9b354d32d38b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8cecfc5c5c054d2875c03e77b7be15d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa8cecfc5c5c054d2875c03e77b7be15d">TRUE</a>&#160;&#160;&#160;1</td></tr>
-<tr class="separator:aa8cecfc5c5c054d2875c03e77b7be15d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa93f0eb578d23995850d61f7d61c55c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa93f0eb578d23995850d61f7d61c55c1">FALSE</a>&#160;&#160;&#160;0</td></tr>
-<tr class="separator:aa93f0eb578d23995850d61f7d61c55c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
-Typedefs</h2></td></tr>
-<tr class="memitem:a8255dcd8ac683bedac3f1623b406c4cc"><td class="memItemLeft" align="right" valign="top">typedef unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a></td></tr>
-<tr class="separator:a8255dcd8ac683bedac3f1623b406c4cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b44bb1ec6f3dae5a06a6067217d1fb8"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="../../d3/d41/structs__hash__key.html">s_hash_key</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a></td></tr>
-<tr class="separator:a0b44bb1ec6f3dae5a06a6067217d1fb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fe53ea29a40c2eb38bc54bdf03787da"><td class="memItemLeft" align="right" valign="top"><a id="a6fe53ea29a40c2eb38bc54bdf03787da" name="a6fe53ea29a40c2eb38bc54bdf03787da"></a>
-typedef struct <a class="el" href="../../dd/d2d/structs__hash__entry.html">s_hash_entry</a>&#160;</td><td class="memItemRight" valign="bottom"><b>ght_hash_entry_t</b></td></tr>
-<tr class="separator:a6fe53ea29a40c2eb38bc54bdf03787da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afab992d73c74bb83bf3c79d6c77040ce"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#afab992d73c74bb83bf3c79d6c77040ce">ght_fn_hash_t</a>) (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
-<tr class="separator:afab992d73c74bb83bf3c79d6c77040ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f5f683e9959254798651a8557388585"><td class="memItemLeft" align="right" valign="top">typedef void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a5f5f683e9959254798651a8557388585">ght_fn_alloc_t</a>) (size_t size)</td></tr>
-<tr class="separator:a5f5f683e9959254798651a8557388585"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff6ed75535beb00a808d8f22e43d780d"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aff6ed75535beb00a808d8f22e43d780d">ght_fn_free_t</a>) (void *ptr)</td></tr>
-<tr class="separator:aff6ed75535beb00a808d8f22e43d780d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c6c41ab7de4d9de09134977d88c4640"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2c6c41ab7de4d9de09134977d88c4640">ght_fn_bucket_free_callback_t</a>) (void *data, const void *key)</td></tr>
-<tr class="separator:a2c6c41ab7de4d9de09134977d88c4640"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:ae6b71ee9b731e74455c940d0a685efbb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae6b71ee9b731e74455c940d0a685efbb">ght_create</a> (unsigned int i_size)</td></tr>
-<tr class="separator:ae6b71ee9b731e74455c940d0a685efbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60d20c2d5d0b0a4e01b35253d98625a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a60d20c2d5d0b0a4e01b35253d98625a0">ght_set_alloc</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a5f5f683e9959254798651a8557388585">ght_fn_alloc_t</a> fn_alloc, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aff6ed75535beb00a808d8f22e43d780d">ght_fn_free_t</a> fn_free)</td></tr>
-<tr class="separator:a60d20c2d5d0b0a4e01b35253d98625a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04e365a457d368c9ff6a2dc2a4fc25b6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a04e365a457d368c9ff6a2dc2a4fc25b6">ght_set_hash</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#afab992d73c74bb83bf3c79d6c77040ce">ght_fn_hash_t</a> fn_hash)</td></tr>
-<tr class="separator:a04e365a457d368c9ff6a2dc2a4fc25b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a468a80c31e88ce15044afb19cd2dbb71"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a468a80c31e88ce15044afb19cd2dbb71">ght_set_heuristics</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, int i_heuristics)</td></tr>
-<tr class="separator:a468a80c31e88ce15044afb19cd2dbb71"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d5d836a64d93889ce630d947c28b093"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9d5d836a64d93889ce630d947c28b093">ght_set_rehash</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, int b_rehash)</td></tr>
-<tr class="separator:a9d5d836a64d93889ce630d947c28b093"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfbd875e7c1e199330b179fa0e24e512"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#abfbd875e7c1e199330b179fa0e24e512">ght_set_bounded_buckets</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int limit, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2c6c41ab7de4d9de09134977d88c4640">ght_fn_bucket_free_callback_t</a> fn)</td></tr>
-<tr class="separator:abfbd875e7c1e199330b179fa0e24e512"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0ed99f688ae152d12d4e8128d281439d"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0ed99f688ae152d12d4e8128d281439d">ght_size</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht)</td></tr>
-<tr class="separator:a0ed99f688ae152d12d4e8128d281439d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad544ccaa9d5f60136200bc797d1d7108"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ad544ccaa9d5f60136200bc797d1d7108">ght_table_size</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht)</td></tr>
-<tr class="separator:ad544ccaa9d5f60136200bc797d1d7108"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ca06ee650eda5748deafb68ea856ac8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9ca06ee650eda5748deafb68ea856ac8">ght_insert</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, void *p_entry_data, unsigned int i_key_size, const void *p_key_data)</td></tr>
-<tr class="separator:a9ca06ee650eda5748deafb68ea856ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21e1055809b34a05ada1225f3ac82578"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a21e1055809b34a05ada1225f3ac82578">ght_replace</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, void *p_entry_data, unsigned int i_key_size, const void *p_key_data)</td></tr>
-<tr class="separator:a21e1055809b34a05ada1225f3ac82578"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae7bf67689f4b681b9370b3d806273270"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae7bf67689f4b681b9370b3d806273270">ght_get</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int i_key_size, const void *p_key_data)</td></tr>
-<tr class="separator:ae7bf67689f4b681b9370b3d806273270"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8582d55526ef0c606422dc083180dc0"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa8582d55526ef0c606422dc083180dc0">ght_remove</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int i_key_size, const void *p_key_data)</td></tr>
-<tr class="separator:aa8582d55526ef0c606422dc083180dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a255de024ec41108fe2c147fe4e585c4f"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a255de024ec41108fe2c147fe4e585c4f">ght_first</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key)</td></tr>
-<tr class="separator:a255de024ec41108fe2c147fe4e585c4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0227f419e840ede521e0f5daa911290d"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0227f419e840ede521e0f5daa911290d">ght_first_keysize</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key, unsigned int *size)</td></tr>
-<tr class="separator:a0227f419e840ede521e0f5daa911290d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a02aa2f564e414fb09d2adf8ea55f5a73"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a02aa2f564e414fb09d2adf8ea55f5a73">ght_next</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key)</td></tr>
-<tr class="separator:a02aa2f564e414fb09d2adf8ea55f5a73"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3251962a7ccdcf2d13086fd0b32ed358"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a3251962a7ccdcf2d13086fd0b32ed358">ght_next_keysize</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key, unsigned int *size)</td></tr>
-<tr class="separator:a3251962a7ccdcf2d13086fd0b32ed358"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56b5a79427c6f61546a187904eb83d20"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a56b5a79427c6f61546a187904eb83d20">ght_rehash</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int i_size)</td></tr>
-<tr class="separator:a56b5a79427c6f61546a187904eb83d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ed7c1800f34c9db08c25b1aea52d157"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2ed7c1800f34c9db08c25b1aea52d157">ght_finalize</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht)</td></tr>
-<tr class="separator:a2ed7c1800f34c9db08c25b1aea52d157"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9779b2a98b420e153eb53a12c1702751"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9779b2a98b420e153eb53a12c1702751">ght_one_at_a_time_hash</a> (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
-<tr class="separator:a9779b2a98b420e153eb53a12c1702751"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b82225a954364929c62ac241f417420"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a3b82225a954364929c62ac241f417420">ght_rotating_hash</a> (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
-<tr class="separator:a3b82225a954364929c62ac241f417420"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9450c892d6480f6bf6ed558945a5da37"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9450c892d6480f6bf6ed558945a5da37">ght_crc_hash</a> (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
-<tr class="separator:a9450c892d6480f6bf6ed558945a5da37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>libghthash is a generic hash table used for storing arbitrary data.</p>
-<p>Libghthash really stores pointers to data - the hash table knows nothing about the actual type of the data.</p>
-<p>A simple example to get started can be found in the <code>example/simple.c</code> file found in the distribution. <code>hash_test.c</code> provides a more comlpete example.</p>
-<p>Some basic properties of the hash table are:</p>
-<ul>
-<li>Both the data stored and the keys are of void type, which means that you can store any kind of data.</li>
-<li>The only functions you probably will need to start is:<ul>
-<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae6b71ee9b731e74455c940d0a685efbb">ght_create()</a>, which creates a new hash table.</li>
-<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9ca06ee650eda5748deafb68ea856ac8">ght_insert()</a>, which inserts a new entry into a table.</li>
-<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae7bf67689f4b681b9370b3d806273270">ght_get()</a>, which searches for an entry.</li>
-<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa8582d55526ef0c606422dc083180dc0">ght_remove()</a>, which removes and entry.</li>
-<li><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2ed7c1800f34c9db08c25b1aea52d157">ght_finalize()</a>, which destroys a hash table.</li>
-</ul>
-</li>
-<li>Inserting entries is done without first creating a key, i.e. you insert with the data, the datasize, the key and the key size directly.</li>
-<li>The hash table copies the key data when inserting new entries. This means that you should <em>not</em> malloc() the key before inserting a new entry. </li>
-</ul>
-
-<p class="definition">Definition in file <a class="el" href="../../d5/dc6/ght__hash__table_8h_source.html">ght_hash_table.h</a>.</p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="aa93f0eb578d23995850d61f7d61c55c1" name="aa93f0eb578d23995850d61f7d61c55c1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa93f0eb578d23995850d61f7d61c55c1">&#9670;&#160;</a></span>FALSE</h2>
@@ -1970,6 +1877,96 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d41/structs__hash__key.html">s_hash_key</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d2d/structs__hash__entry.html">s_hash_entry</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a36c9b58f543f01d2891efe50f8f8971f"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a36c9b58f543f01d2891efe50f8f8971f">GHT_HEURISTICS_NONE</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:a36c9b58f543f01d2891efe50f8f8971f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5618d62c0493513d3c8ccf9aef2dc3d5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a5618d62c0493513d3c8ccf9aef2dc3d5">GHT_HEURISTICS_TRANSPOSE</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:a5618d62c0493513d3c8ccf9aef2dc3d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35d63817e0a10b5106b00b2dff4fb297"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a35d63817e0a10b5106b00b2dff4fb297">GHT_HEURISTICS_MOVE_TO_FRONT</a>&#160;&#160;&#160;2</td></tr>
+<tr class="separator:a35d63817e0a10b5106b00b2dff4fb297"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd8c3b9b8978d47b073c9b354d32d38b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#afd8c3b9b8978d47b073c9b354d32d38b">GHT_AUTOMATIC_REHASH</a>&#160;&#160;&#160;4</td></tr>
+<tr class="separator:afd8c3b9b8978d47b073c9b354d32d38b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8cecfc5c5c054d2875c03e77b7be15d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa8cecfc5c5c054d2875c03e77b7be15d">TRUE</a>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:aa8cecfc5c5c054d2875c03e77b7be15d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa93f0eb578d23995850d61f7d61c55c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa93f0eb578d23995850d61f7d61c55c1">FALSE</a>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:aa93f0eb578d23995850d61f7d61c55c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a8255dcd8ac683bedac3f1623b406c4cc"><td class="memItemLeft" align="right" valign="top">typedef unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a></td></tr>
+<tr class="separator:a8255dcd8ac683bedac3f1623b406c4cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b44bb1ec6f3dae5a06a6067217d1fb8"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="../../d3/d41/structs__hash__key.html">s_hash_key</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a></td></tr>
+<tr class="separator:a0b44bb1ec6f3dae5a06a6067217d1fb8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fe53ea29a40c2eb38bc54bdf03787da"><td class="memItemLeft" align="right" valign="top"><a id="a6fe53ea29a40c2eb38bc54bdf03787da" name="a6fe53ea29a40c2eb38bc54bdf03787da"></a>
+typedef struct <a class="el" href="../../dd/d2d/structs__hash__entry.html">s_hash_entry</a>&#160;</td><td class="memItemRight" valign="bottom"><b>ght_hash_entry_t</b></td></tr>
+<tr class="separator:a6fe53ea29a40c2eb38bc54bdf03787da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afab992d73c74bb83bf3c79d6c77040ce"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#afab992d73c74bb83bf3c79d6c77040ce">ght_fn_hash_t</a>) (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
+<tr class="separator:afab992d73c74bb83bf3c79d6c77040ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f5f683e9959254798651a8557388585"><td class="memItemLeft" align="right" valign="top">typedef void *(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a5f5f683e9959254798651a8557388585">ght_fn_alloc_t</a>) (size_t size)</td></tr>
+<tr class="separator:a5f5f683e9959254798651a8557388585"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff6ed75535beb00a808d8f22e43d780d"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aff6ed75535beb00a808d8f22e43d780d">ght_fn_free_t</a>) (void *ptr)</td></tr>
+<tr class="separator:aff6ed75535beb00a808d8f22e43d780d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c6c41ab7de4d9de09134977d88c4640"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2c6c41ab7de4d9de09134977d88c4640">ght_fn_bucket_free_callback_t</a>) (void *data, const void *key)</td></tr>
+<tr class="separator:a2c6c41ab7de4d9de09134977d88c4640"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ae6b71ee9b731e74455c940d0a685efbb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae6b71ee9b731e74455c940d0a685efbb">ght_create</a> (unsigned int i_size)</td></tr>
+<tr class="separator:ae6b71ee9b731e74455c940d0a685efbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a60d20c2d5d0b0a4e01b35253d98625a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a60d20c2d5d0b0a4e01b35253d98625a0">ght_set_alloc</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a5f5f683e9959254798651a8557388585">ght_fn_alloc_t</a> fn_alloc, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aff6ed75535beb00a808d8f22e43d780d">ght_fn_free_t</a> fn_free)</td></tr>
+<tr class="separator:a60d20c2d5d0b0a4e01b35253d98625a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04e365a457d368c9ff6a2dc2a4fc25b6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a04e365a457d368c9ff6a2dc2a4fc25b6">ght_set_hash</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#afab992d73c74bb83bf3c79d6c77040ce">ght_fn_hash_t</a> fn_hash)</td></tr>
+<tr class="separator:a04e365a457d368c9ff6a2dc2a4fc25b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a468a80c31e88ce15044afb19cd2dbb71"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a468a80c31e88ce15044afb19cd2dbb71">ght_set_heuristics</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, int i_heuristics)</td></tr>
+<tr class="separator:a468a80c31e88ce15044afb19cd2dbb71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d5d836a64d93889ce630d947c28b093"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9d5d836a64d93889ce630d947c28b093">ght_set_rehash</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, int b_rehash)</td></tr>
+<tr class="separator:a9d5d836a64d93889ce630d947c28b093"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfbd875e7c1e199330b179fa0e24e512"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#abfbd875e7c1e199330b179fa0e24e512">ght_set_bounded_buckets</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int limit, <a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2c6c41ab7de4d9de09134977d88c4640">ght_fn_bucket_free_callback_t</a> fn)</td></tr>
+<tr class="separator:abfbd875e7c1e199330b179fa0e24e512"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ed99f688ae152d12d4e8128d281439d"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0ed99f688ae152d12d4e8128d281439d">ght_size</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht)</td></tr>
+<tr class="separator:a0ed99f688ae152d12d4e8128d281439d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad544ccaa9d5f60136200bc797d1d7108"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ad544ccaa9d5f60136200bc797d1d7108">ght_table_size</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht)</td></tr>
+<tr class="separator:ad544ccaa9d5f60136200bc797d1d7108"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ca06ee650eda5748deafb68ea856ac8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9ca06ee650eda5748deafb68ea856ac8">ght_insert</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, void *p_entry_data, unsigned int i_key_size, const void *p_key_data)</td></tr>
+<tr class="separator:a9ca06ee650eda5748deafb68ea856ac8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21e1055809b34a05ada1225f3ac82578"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a21e1055809b34a05ada1225f3ac82578">ght_replace</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, void *p_entry_data, unsigned int i_key_size, const void *p_key_data)</td></tr>
+<tr class="separator:a21e1055809b34a05ada1225f3ac82578"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7bf67689f4b681b9370b3d806273270"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#ae7bf67689f4b681b9370b3d806273270">ght_get</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int i_key_size, const void *p_key_data)</td></tr>
+<tr class="separator:ae7bf67689f4b681b9370b3d806273270"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8582d55526ef0c606422dc083180dc0"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#aa8582d55526ef0c606422dc083180dc0">ght_remove</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int i_key_size, const void *p_key_data)</td></tr>
+<tr class="separator:aa8582d55526ef0c606422dc083180dc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a255de024ec41108fe2c147fe4e585c4f"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a255de024ec41108fe2c147fe4e585c4f">ght_first</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key)</td></tr>
+<tr class="separator:a255de024ec41108fe2c147fe4e585c4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0227f419e840ede521e0f5daa911290d"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0227f419e840ede521e0f5daa911290d">ght_first_keysize</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key, unsigned int *size)</td></tr>
+<tr class="separator:a0227f419e840ede521e0f5daa911290d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02aa2f564e414fb09d2adf8ea55f5a73"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a02aa2f564e414fb09d2adf8ea55f5a73">ght_next</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key)</td></tr>
+<tr class="separator:a02aa2f564e414fb09d2adf8ea55f5a73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3251962a7ccdcf2d13086fd0b32ed358"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a3251962a7ccdcf2d13086fd0b32ed358">ght_next_keysize</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, <a class="el" href="../../da/db8/structght__iterator__t.html">ght_iterator_t</a> *p_iterator, const void **pp_key, unsigned int *size)</td></tr>
+<tr class="separator:a3251962a7ccdcf2d13086fd0b32ed358"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56b5a79427c6f61546a187904eb83d20"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a56b5a79427c6f61546a187904eb83d20">ght_rehash</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht, unsigned int i_size)</td></tr>
+<tr class="separator:a56b5a79427c6f61546a187904eb83d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ed7c1800f34c9db08c25b1aea52d157"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a2ed7c1800f34c9db08c25b1aea52d157">ght_finalize</a> (<a class="el" href="../../d0/d75/structght__hash__table__t.html">ght_hash_table_t</a> *p_ht)</td></tr>
+<tr class="separator:a2ed7c1800f34c9db08c25b1aea52d157"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9779b2a98b420e153eb53a12c1702751"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9779b2a98b420e153eb53a12c1702751">ght_one_at_a_time_hash</a> (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
+<tr class="separator:a9779b2a98b420e153eb53a12c1702751"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b82225a954364929c62ac241f417420"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a3b82225a954364929c62ac241f417420">ght_rotating_hash</a> (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
+<tr class="separator:a3b82225a954364929c62ac241f417420"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9450c892d6480f6bf6ed558945a5da37"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a8255dcd8ac683bedac3f1623b406c4cc">ght_uint32_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a9450c892d6480f6bf6ed558945a5da37">ght_crc_hash</a> (<a class="el" href="../../d5/dc6/ght__hash__table_8h.html#a0b44bb1ec6f3dae5a06a6067217d1fb8">ght_hash_key_t</a> *p_key)</td></tr>
+<tr class="separator:a9450c892d6480f6bf6ed558945a5da37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

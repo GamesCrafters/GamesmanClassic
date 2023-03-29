@@ -1,8 +1,9 @@
-/** @file
- @author Andrew Lee
- @date 2023-02-24
+/** 
+ @file
+ @author  Andrew Lee
+ @date    2023-02-24
 
-Implementation of the abstract strategy game 'Five-Field-Kono.' Test.
+ Detailed description.
 */
 
 #include <stdio.h>

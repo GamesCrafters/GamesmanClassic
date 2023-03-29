@@ -1,6 +1,5 @@
 var mfivefieldkono_8c =
 [
-    [ "FFK_Board", "d5/d28/struct_f_f_k___board.html", null ],
     [ "convertChar", "db/db4/mfivefieldkono_8c.html#a4b2b77cdd51f84987ede73b8fd7f00de", null ],
     [ "convertInt", "db/db4/mfivefieldkono_8c.html#abb2361bd7542d3ebb167d4d80d1c3f1b", null ],
     [ "ConvertTextInputToMove", "db/db4/mfivefieldkono_8c.html#af5b66b588974289a9e585fd7421d349d", null ],
@@ -50,5 +49,6 @@ var mfivefieldkono_8c =
     [ "kLoopy", "db/db4/mfivefieldkono_8c.html#aaf6aa2bb6208cdedb206bcde4040c387", null ],
     [ "kPartizan", "db/db4/mfivefieldkono_8c.html#a8f3089ff4064a47ce01596afdc5303de", null ],
     [ "kSupportsSymmetries", "db/db4/mfivefieldkono_8c.html#a78a5ce43b45a03ec00fff1a6ed85d100", null ],
-    [ "kTieIsPossible", "db/db4/mfivefieldkono_8c.html#a68b513ecd028982c01f7b87f2a9c3bd6", null ]
+    [ "kTieIsPossible", "db/db4/mfivefieldkono_8c.html#a68b513ecd028982c01f7b87f2a9c3bd6", null ],
+    [ "FFK_Board", "d5/d28/struct_f_f_k___board.html", null ]
 ];
