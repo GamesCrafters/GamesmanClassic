@@ -107,7 +107,7 @@ int convertChar(char char_component);
 char convertInt(char int_component);
 
 /* Transformation functions. */
-void permute(char* target, char* map, int size);
+void permute(char* target, int* map, int size);
 void rotate(FFK_Board* board);
 void flip(FFK_Board* board);
 
@@ -127,6 +127,12 @@ BOOLEAN isTie(FFK_Board* board);
 /* Move hashing functions. */
 MOVE hashMove(int oldPos, int newPos);
 void unhashMove(MOVE mv, int *oldPos, int *newPos);
+
+/* New version of hashing functions */
+POSITION hash_v2(FFK_Board* board);
+FFK_Board* unhash_v2(POSITION in);
+POSITION rearrangements(int slots, int x, int o);
+int factorial(int n);
 
 /* Other stuff we don't care about for now. */
 STRING MoveToString(MOVE move);
@@ -166,7 +172,7 @@ char initial_odd_component[13] =
 /* Describes a board transformation of keeping things the same. This is only
 for convenience and clarity (and dramatic value). */
 int even_identity_pos[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-int odd_identity_pos[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+int odd_identity_pos[13] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 
 /* Describes a board transformation of a 90 degree turn clockwise, 
 where the piece at original[i] ends up at destination[array[i]],
@@ -379,7 +385,7 @@ void flip(FFK_Board* board) {
 /* Performs an in-place rearrangement of the contents of TARGET as outlined
 by a transformation array MAP, assuming they are both the same SIZE. Does not 
 allocate memory and is linear in the size of the array being permuted. */
-void permute(char* target, char* map, int size) {
+void permute(char* target, int* map, int size) {
   register int count = 0;
   register int fromIndex = 0;
   register int toIndex = map[fromIndex];
@@ -493,7 +499,7 @@ POSITION hash_v2(FFK_Board* board) {
     if (fullBoard[i] == 'o') {
       total += t1;
       num_o -= 1;
-    } else if (fullBoard[i] = 'x') {
+    } else if (fullBoard[i] == 'x') {
       total += t2;
       num_x -= 1;
     }
