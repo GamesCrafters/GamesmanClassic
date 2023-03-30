@@ -520,7 +520,7 @@ POSITION rearrangements(int slots, int x, int o) {
 /* Returns the factorial of N, which is N(N-1)(N-2)...(2)(1). */
 int factorial(int n) {
   int total = 1;
-  for (int k = 0; k < n; k++) total *= k;
+  for (int k = 1; k <= n; k++) total *= k;
   return total;
 }
 
