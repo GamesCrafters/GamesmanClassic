@@ -82,8 +82,8 @@ components (such that pieces that start out in one cannot possibly move
 into the other). Since clever solving might be possible due to this, we
 store them separately. */
 typedef struct {
-  char *even_component; // 12 characters + 1 null byte
-  char *odd_component; // 13 characters + 1 null byte
+  char even_component[12];
+  char odd_component[13];
   BOOLEAN turn; // TRUE = your turn (piece x), FALSE = opponent turn (piece o)
 } FFK_Board;
 
@@ -107,7 +107,7 @@ int convertChar(char char_component);
 char convertInt(char int_component);
 
 /* Transformation functions. */
-void transform(FFK_Board* board, int flips, int rotations);
+void permute(char* target, char* map, int size);
 void rotate(FFK_Board* board);
 void flip(FFK_Board* board);
 
@@ -134,7 +134,31 @@ STRING MoveToString(MOVE move);
 
 
 
+/* INITIAL BOARD DESCRIPTION */
+
+/* Amount of pieces in the even component of the baord. */
+int even_comp_size = 12;
+
+/* Amount of pieces in the odd component of the baord. */
+int odd_comp_size = 13;
+
+/* Describes the initial piece positions in the even part of the board. */
+char initial_even_component[12] =
+{'o', 'o', 'o', '-', 'o', '-', '-', 'x', '-', 'x', 'x', 'x'};
+
+/* Describes the initial piece positions in the even part of the board. */
+char initial_odd_component[13] =
+{'o', 'o', 'o', '-', '-', '-', '-', '-', '-', '-', 'x', 'x', 'x'};
+
+
+
+
 /* BOARD TRANSFORMATION ARRAYS */
+
+/* Describes a board transformation of keeping things the same. This is only
+for convenience and clarity (and dramatic value). */
+int even_identity_pos[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+int odd_identity_pos[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 
 /* Describes a board transformation of a 90 degree turn clockwise, 
 where the piece at original[i] ends up at destination[array[i]],
@@ -162,11 +186,11 @@ void InitializeGame() {
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
-  FFK_Board *initial_board = (FFK_Board *) malloc(sizeof(FFK_Board));
-  initial_board->even_component = malloc(sizeof(char)*13);
-  initial_board->odd_component = malloc(sizeof(char)*14);
-  strcpy(initial_board->even_component, "ooo-o--x-xxx");
-  strcpy(initial_board->odd_component, "ooo-------xxx");
+  FFK_Board *initial_board = malloc(sizeof(FFK_Board));
+  for (int i = 0; i < even_comp_size; i++) 
+  initial_board->even_component[i] = initial_even_component[i];
+  for (int i = 0; i < odd_comp_size; i++) 
+  initial_board->odd_component[i] = initial_odd_component[i];
   initial_board->turn = TRUE;
   return hash(initial_board);
 }
@@ -178,8 +202,7 @@ MOVELIST *GenerateMoves(POSITION hash) {
   MOVELIST *moves = NULL;
 
   /* - = 0; o = 1; x = 2; total = 0b<turn_bit, base_3_odd_component, base_3_even_component))> */
-  int even_len = 12;
-  for (int i = 0; i < even_len; i++) {
+  for (int i = 0; i < even_comp_size; i++) {
     if (i != 4 && i != 9) {
       evaluateEven(i, i - 2, turn, &moves, newboard->even_component);
       evaluateEven(i, i + 3, turn, &moves, newboard->even_component);
@@ -190,8 +213,7 @@ MOVELIST *GenerateMoves(POSITION hash) {
     }
   }
 
-  int odd_len = 13;
-  for (int j = 0; j < odd_len; j++) {
+  for (int j = 0; j < odd_comp_size; j++) {
     if (j != 0 && j != 5 && j != 10) {
       evaluateOdd(j, j + 2, turn, &moves, newboard->odd_component);
       evaluateOdd(j, j - 3, turn, &moves, newboard->odd_component);
@@ -278,7 +300,7 @@ VALUE Primitive(POSITION position) {
 
 /* TODO */
 void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
-  if (newPos < 0 || newPos >= 12) {
+  if (newPos < 0 || newPos >= even_comp_size) {
     return;
   }
   int currElem = convertChar(even_component[currPos]);
@@ -291,7 +313,7 @@ void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char 
 
 /* TODO */
 void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component) {
-  if (newPos < 0 || newPos >= 13) {
+  if (newPos < 0 || newPos >= odd_comp_size) {
     return;
   }
   int currElem = convertChar(odd_component[currPos]);
@@ -335,72 +357,35 @@ char convertInt(char int_component) {
 
 /* Transforms the board by rotating it 90 degrees clockwise. */
 void rotate(FFK_Board* board) {
-
-  /* POSSIBLE OPTIMIZATION: Do this in-place (without allocating another board)
-  by moving each value to its new place, and moving the new place's old value
-  next. Note that this would de-parallelize the operation (the compiler should
-  perform the for loop cycles asynchronously). */
-
-  /* Rotate odd component clockwise. */
-  char *new_even_arr = (char *) malloc(sizeof(char)*13);
-  int even_len = 12;
-  for (int i = 0; i < even_len; i++) {
-    new_even_arr[i] = board->even_component[even_turn_pos[i]];
-  }
-  new_even_arr[even_len] = '\0';
-
-  /* Rotate even component clockwise. */
-  char *new_odd_arr = (char *) malloc(sizeof(char)*14);
-  int odd_len = 13;
-  for (int j = 0; j < odd_len; j++) {
-    new_odd_arr[j] = board->odd_component[odd_turn_pos[j]];
-  }
-  new_odd_arr[odd_len] = '\0';
-
-  /* Free old board and assign transformed one. */
-  free(board->even_component);
-  free(board->odd_component);
-  board->even_component = new_even_arr;
-  board->odd_component = new_odd_arr;
+  permute(board->even_component, even_turn_pos, even_comp_size);
+  permute(board->odd_component, odd_turn_pos, odd_comp_size);
 }
 
 /* Transforms the board by flipping it horizontally (a reflection 
 about the y-axis). */
 void flip(FFK_Board* board) {
-
-  /* POSSIBLE OPTIMIZATION: Same as rotate(). */
-
-  /* Flip odd component about y-axis. */
-  char *new_even_arr = (char *) malloc(sizeof(char)*13);
-  int even_len = 12;
-  for (int i = 0; i < even_len; i++) {
-    new_even_arr[i] = board->even_component[even_flip_pos[i]];
-  }
-  new_even_arr[even_len] = '\0';
-
-  /* Flip even component about y-axis. */
-  char *new_odd_arr = (char *) malloc(sizeof(char)*14);
-  int odd_len = 13;
-  for (int j = 0; j < odd_len; j++) {
-    new_odd_arr[j] = board->odd_component[odd_flip_pos[j]];
-  }
-  new_odd_arr[odd_len] = '\0';
-
-  /* Free old board and assign transformed one. */
-  free(board->even_component);
-  free(board->odd_component);
-  board->even_component = new_even_arr;
-  board->odd_component = new_odd_arr;
+  permute(board->even_component, even_flip_pos, even_comp_size);
+  permute(board->odd_component, odd_flip_pos, odd_comp_size);
 }
 
-/* Transforms the board by flipping and rotating it a specified
-amount of times, helping to get all of its 8 symmetries. */
-void transform(FFK_Board* board, int flips, int rotations) {
-  for (int i = 0; i < flips; i++) flip(board);
-  for (int j = 0; j < rotations; j++) rotate(board);
+/* Performs an in-place rearrangement of the contents of TARGET as outlined
+by a transformation array MAP, assuming they are both the same SIZE. Does not 
+allocate memory and is linear in the size of the array being permuted. */
+void permute(char* target, char* map, int size) {
+  register int count = 0;
+  register int fromIndex = 0;
+  register int toIndex = map[fromIndex];
+  char temp;
+  char displacedChar = target[fromIndex];
+  while (count < size) {
+    temp = displacedChar;
+    displacedChar = target[toIndex];
+    target[toIndex] = temp;
+    fromIndex = toIndex;
+    toIndex = map[toIndex];
+    count += 1;
+  }
 }
-
-
 
 
 /* BOARD HASHING FUNCTIONS */
@@ -408,13 +393,11 @@ void transform(FFK_Board* board, int flips, int rotations) {
 /* Calculates the unique base-3 integer that corresponds to the boar. */
 POSITION hash(FFK_Board *board) {
   POSITION total = 0;
-  int even_len = 12;
-  for (int i = 0; i < even_len; i++) {
-    total += convertChar(board->even_component[(even_len - 1) - i]) * pow(3, i);
+  for (int i = 0; i < even_comp_size; i++) {
+    total += convertChar(board->even_component[(even_comp_size - 1) - i]) * pow(3, i);
   }
-  int odd_len = 13;
-  for (int j = 0; j < odd_len; j++) {
-    total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j);
+  for (int j = 0; j < odd_comp_size; j++) {
+    total += convertChar(board->odd_component[(odd_comp_size - 1) - j]) * pow(3, 12 + j);
   }
   // Returns base_3(concatenate(odd_component, even_component))
   // with the MSB flipped to board->turn
@@ -424,26 +407,29 @@ POSITION hash(FFK_Board *board) {
 /* Unhash function for the Board. */
 FFK_Board* unhash(POSITION hash) {
   FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
-  newBoard->even_component = (char *) malloc(sizeof(char)*13);
-  newBoard->odd_component = (char *) malloc(sizeof(char)*14);
-  newBoard->turn = getTurn(hash);
+  char even_comp[even_comp_size];
+  char odd_comp[odd_comp_size];
+  int remain;
 
-  int remain = -1;
-  int even_len = 12;
-  newBoard->even_component[even_len] = '\0';
-  for (int i = 0; i < even_len; i++) {
+  for (int i = 0; i < even_comp_size; i++) {
     remain = hash % 3;
     hash = floor(hash/3);
-    newBoard->even_component[(even_len - 1) - i] = convertInt(remain);
+    even_comp[(even_comp_size - 1) - i] = convertInt(remain);
   }
   
-  int odd_len = 13;
-  newBoard->odd_component[odd_len] = '\0';
-  for (int j = 0; j < odd_len; j++) {
+  for (int j = 0; j < odd_comp_size; j++) {
     remain = hash % 3;
     hash = floor(hash/3);
-    newBoard->odd_component[(odd_len - 1) - j] = convertInt(remain);
+    odd_comp[(odd_comp_size - 1) - j] = convertInt(remain);
   }
+
+  // Populate fields of new board
+  for (int i = 0; i < even_comp_size; i++) 
+  newBoard->even_component[i] = even_comp[i];
+  for (int i = 0; i < odd_comp_size; i++) 
+  newBoard->odd_component[i] = odd_comp[i];
+  newBoard->turn = getTurn(hash);
+
   return newBoard;
 }
 
