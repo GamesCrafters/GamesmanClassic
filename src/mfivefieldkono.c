@@ -136,6 +136,14 @@ STRING MoveToString(MOVE move);
 
 /* INITIAL BOARD DESCRIPTION */
 
+/* Amount of 'o' pieces initially in each component. */
+int initial_even_num_o = 4;
+int initial_odd_num_o = 3;
+
+/* Amount of 'x' pieces initially in each component. */
+int initial_even_num_x = 4;
+int initial_odd_num_x = 3;
+
 /* Amount of pieces in the even component of the baord. */
 int even_comp_size = 12;
 
@@ -388,6 +396,8 @@ void permute(char* target, char* map, int size) {
 }
 
 
+
+
 /* BOARD HASHING FUNCTIONS */
 
 /* Calculates the unique base-3 integer that corresponds to the boar. */
@@ -450,6 +460,68 @@ POSITION withTurn(POSITION pos, BOOLEAN turn) {
 ternary digit in POS, and should be 0 or 1. */
 BOOLEAN getTurn(POSITION pos) {
   return floor(pos/pow(3, 24)); // TODO: find division alternative :[
+}
+
+
+
+
+/* REARRANGER HASH FUNCTIONS */
+
+/* Returns the index that IN would have in the alphabetical ordering of all
+possible strings composed of the same kinds and amounts of characters. */
+POSITION hash_v2(FFK_Board* board) {
+  int slots = odd_comp_size + even_comp_size;
+  int num_x = initial_even_num_x + initial_odd_num_x;
+  int num_o = initial_even_num_o + initial_odd_num_o;
+  
+  // Put the full board into a single char array
+  char fullBoard[25];
+  for (int i = 0; i < slots; i++) {
+    if (i < odd_comp_size) {
+      fullBoard[i] = board->odd_component[i];
+    } else {
+      fullBoard[i] = board->even_component[i - odd_comp_size];
+    }
+  }
+
+  // Calculate hash
+  char currentPiece;
+  POSITION total = 0;
+  for (int i = 0; i < slots; i++) {
+    int t1 = rearrangements(slots - 1, num_x, num_o);
+    int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
+    if (fullBoard[i] == 'o') {
+      total += t1;
+      num_o -= 1;
+    } else if (fullBoard[i] = 'x') {
+      total += t2;
+      num_x -= 1;
+    }
+    slots -= 1;
+  }
+
+  return total;
+}
+
+/* The inverse process of hash. */
+FFK_Board* unhash_v2(POSITION in) {
+  int num_slots = odd_comp_size + even_comp_size;
+  int num_x = initial_even_num_x + initial_odd_num_x;
+  int num_o = initial_even_num_o + initial_odd_num_o;
+  // TODO
+}
+
+/* Returns the amount of ways to put X x's and O o's into SLOTS slots. */
+POSITION rearrangements(int slots, int x, int o) {
+  if ((slots < 0) || (x < 0) || (o < 0) || (slots < (o + x))) return 0;
+  return factorial(slots)/(factorial(x)*factorial(o)*factorial(slots - x - o));
+}
+
+/* Returns the factorial of N, which is N(N-1)(N-2)...(2)(1). */
+int factorial(int n) {
+  int total = 1;
+  for (int k = 0; k < n; k++) total *= k;
+  return total;
 }
 
 
