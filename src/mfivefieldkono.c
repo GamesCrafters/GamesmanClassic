@@ -83,6 +83,7 @@ int fact_array[26];
 
 
 
+
 /* BOARD DEFINITION */
 
 /* A Five-Field Kono board consists of 25 spots, but has two connected 
@@ -137,12 +138,12 @@ MOVE hashMove(int oldPos, int newPos);
 void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
 /* New version of hashing functions */
-void precompute_fact(int fact_array[], int limit);
 POSITION hash_v2(FFK_Board* board);
 POSITION compute_hash(char board_component[], int slots, int num_x, int num_o);
 FFK_Board* unhash_v2(POSITION in);
 void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o);
 POSITION rearrangements(int slots, int x, int o);
+void precompute_fact(int fact_array[], int limit);
 int factorial(int n);
 
 /* Other stuff we don't care about for now. */
@@ -483,13 +484,6 @@ BOOLEAN getTurn(POSITION pos) {
 
 /* REARRANGER HASH FUNCTIONS */
 
-void precompute_fact(int fact_array[], int limit) {
-  fact_array[0] = 1;
-  for (int i = 1; i <= limit; i++) {
-    fact_array[i] = i * fact_array[i-1];
-  }
-}
-
 /* Returns the index that IN would have in the alphabetical ordering of all
 possible strings composed of the same kinds and amounts of characters. */
 POSITION hash_v2(FFK_Board* board) {
@@ -554,7 +548,14 @@ void compute_unhash(char board_component[], POSITION in, int slots, int num_x, i
 POSITION rearrangements(int slots, int x, int o) {
   if ((slots < 0) || (x < 0) || (o < 0) || (slots < (o + x))) return 0;
   // Essentially returns the number of ways to place the -'s, x's, and o's in the slots
-  return factorial(slots)/(factorial(x)*factorial(o)*factorial(slots - x - o));
+  return fact_array[slots]/(fact_array[x]*fact_array[o]*fact_array[slots - x - o]);
+}
+
+void precompute_fact(int fact_array[], int limit) {
+  fact_array[0] = 1;
+  for (int i = 1; i <= limit; i++) {
+    fact_array[i] = i * fact_array[i-1];
+  }
 }
 
 /* Returns the factorial of N, which is N(N-1)(N-2)...(2)(1). */
