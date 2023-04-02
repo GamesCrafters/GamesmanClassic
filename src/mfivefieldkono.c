@@ -255,13 +255,13 @@ MOVELIST *GenerateMoves(POSITION hash) {
 // FIXME: Should no longer encode turn information
 
 /* Return the resulting position from making 'move' on 'position'. */
-// POSITION DoMove(POSITION hash, MOVE move) {
-//   int oldPos, newPos;
-//   unhashMove(move, &oldPos, &newPos);
-//   POSITION original = piece_type * pow(3, oldPos);
-//   POSITION new = piece_type * pow(3, newPos);
-//   return (hash - original + new);
-// }
+POSITION DoMove(POSITION hash, MOVE move) {
+  int oldPos, newPos;
+  unhashMove(move, &oldPos, &newPos);
+  POSITION original = piece_type * pow(3, oldPos);
+  POSITION new = piece_type * pow(3, newPos);
+  return (hash - original + new);
+}
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
@@ -602,7 +602,7 @@ BOOLEAN isTie(FFK_Board* board) {
 component of the board it belongs to and whose turn it is to generate
 a unique hash for a game state graph edge. */
 MOVE hashMove(int oldPos, int newPos) {
-  // TODO: RETURN - 0b<base 25 newPos, base 25 oldPos>
+  // 0b<base 25 newPos, base 25 oldPos>
   return 25*newPos + oldPos;
 }
 
@@ -610,7 +610,6 @@ MOVE hashMove(int oldPos, int newPos) {
 component of the board it belongs to and whose turn it is based on
 a unique hash for a game state graph edge. */
 void unhashMove(MOVE mv, int *oldPos, int *newPos) {
-  // TODO: unhashMove 
   // 0b<base 25 newPos, base 25 oldPos>
   *oldPos = mv % 25;
   mv = floor(mv/25);
