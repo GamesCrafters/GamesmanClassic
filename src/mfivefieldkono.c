@@ -72,6 +72,14 @@ STRING kHelpReverseObjective = "";
 STRING kHelpTieOccursWhen = "";
 STRING kHelpExample = "";
 
+/* 12!/(4!4!4!) = 34650 */ 
+POSITION max_even_hash = 34650;
+
+/* 13!/(3!3!7!) = 34320 */
+POSITION max_odd_hash = 34320;
+
+/* optimized factorial lookup: 0 to 25 */
+int fact_array[26];
 
 
 
@@ -129,10 +137,11 @@ MOVE hashMove(int oldPos, int newPos);
 void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
 /* New version of hashing functions */
+void precompute_fact(int fact_array[], int limit);
 POSITION hash_v2(FFK_Board* board);
-POSITION compute_hash(char *board_component, int slots, int num_x, int num_o);
+POSITION compute_hash(char board_component[], int slots, int num_x, int num_o);
 FFK_Board* unhash_v2(POSITION in);
-void compute_unhash(char **board_component, POSITION in, int slots, int num_x, int num_o);
+void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o);
 POSITION rearrangements(int slots, int x, int o);
 int factorial(int n);
 
@@ -195,6 +204,7 @@ int odd_flip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 
 /* Initialize any global variables or data structures needed. */
 void InitializeGame() {
+  precompute_fact(fact_array, 25);
   gMoveToStringFunPtr = &MoveToString;
   gInitialPosition = GetInitialPosition();
   gCanonicalPosition = GetCanonicalPosition;
@@ -471,12 +481,14 @@ BOOLEAN getTurn(POSITION pos) {
 }
 
 
-// 12!/(4!4!4!) = 34650
-POSITION max_even_hash = rearrangements(12, 4, 4);
-// 13!/(3!3!7!) = 34320
-POSITION max_odd_hash = rearrangements(13, 3, 3);
-
 /* REARRANGER HASH FUNCTIONS */
+
+void precompute_fact(int fact_array[], int limit) {
+  fact_array[0] = 1;
+  for (int i = 1; i <= limit; i++) {
+    fact_array[i] = i * fact_array[i-1];
+  }
+}
 
 /* Returns the index that IN would have in the alphabetical ordering of all
 possible strings composed of the same kinds and amounts of characters. */
@@ -489,7 +501,7 @@ POSITION hash_v2(FFK_Board* board) {
   return odd_hash * max_even_hash + even_hash;
 }
 
-POSITION compute_hash(char *board_component, int slots, int num_x, int num_o) {
+POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
   POSITION total = 0;
   for (int i = 0; i < slots; i++) {
     int t1 = rearrangements(slots - 1, num_x, num_o);
@@ -510,27 +522,27 @@ POSITION compute_hash(char *board_component, int slots, int num_x, int num_o) {
 FFK_Board* unhash_v2(POSITION in) {
   FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
   POSITION even_hash = in % max_even_hash;
-  POSITION odd_hash = (int) (in/max_even_hash);
+  POSITION odd_hash = floor(in/max_even_hash);
 
-  compute_hash(&(newBoard->even_component), even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
-  compute_hash(&(newBoard->odd_component), odd_hash, initial_odd_num_x, initial_odd_num_o);
+  compute_unhash(newBoard->even_component, even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
+  compute_unhash(newBoard->odd_component, odd_hash, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
 
   return newBoard;
 }
 
-void compute_unhash(char **board_component, POSITION in, int slots, int num_x, int num_o) {
+void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o) {
   int idx = 0;
   while (slots > 0) {
     int t1 = rearrangements(slots - 1, num_x, num_o);
     int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
     if (in < t1) {
-      *board_component[idx] = '-';
+      board_component[idx] = '-';
     } else if (in < t2) {
-      *board_component[idx] = 'o';
+      board_component[idx] = 'o';
       in -= t1;
       num_o -= 1;
     } else {
-      *board_component[idx] = 'x';
+      board_component[idx] = 'x';
       in -= t2;
       num_x -= 1;
     }
