@@ -93,7 +93,6 @@ store them separately. */
 typedef struct {
   char even_component[12];
   char odd_component[13];
-  BOOLEAN turn; // TRUE = your turn (piece x), FALSE = opponent turn (piece o)
 } FFK_Board;
 
 
@@ -110,8 +109,8 @@ POSITION DoMove(POSITION hash, MOVE move);
 VALUE Primitive(POSITION position);
 
 /* Solving helper functions. */
-void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component);
-void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component);
+void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_component);
+void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component);
 int convertChar(char char_component);
 char convertInt(char int_component);
 
@@ -124,10 +123,6 @@ void flip(FFK_Board* board);
 POSITION hash(FFK_Board *board);
 FFK_Board* unhash(POSITION hash);
 
-/* Board hashing helper functions. */
-POSITION withTurn(POSITION pos, BOOLEAN turn);
-BOOLEAN getTurn(POSITION hash);
-
 /* Board value functions. */
 BOOLEAN isWin(FFK_Board* board);
 BOOLEAN isLose(FFK_Board* board);
@@ -137,7 +132,10 @@ BOOLEAN isTie(FFK_Board* board);
 MOVE hashMove(int oldPos, int newPos);
 void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
-/* New version of hashing functions */
+/* Move hashing helper functions. */
+char opposite(char piece)
+
+/* New version of hashing functions. */
 POSITION hash_v2(FFK_Board* board);
 POSITION compute_hash(char board_component[], int slots, int num_x, int num_o);
 FFK_Board* unhash_v2(POSITION in);
@@ -218,52 +216,52 @@ POSITION GetInitialPosition() {
   initial_board->even_component[i] = initial_even_component[i];
   for (int i = 0; i < odd_comp_size; i++) 
   initial_board->odd_component[i] = initial_odd_component[i];
-  initial_board->turn = TRUE;
   return hash(initial_board);
 }
 
+// FIXME: evaluate funcs don't need 'turn' anymore
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = unhash(hash);
-  BOOLEAN turn = newboard->turn;
   MOVELIST *moves = NULL;
 
   /* - = 0; o = 1; x = 2; total = 0b<turn_bit, base_3_odd_component, base_3_even_component))> */
   for (int i = 0; i < even_comp_size; i++) {
     if (i != 4 && i != 9) {
-      evaluateEven(i, i - 2, turn, &moves, newboard->even_component);
-      evaluateEven(i, i + 3, turn, &moves, newboard->even_component);
+      evaluateEven(i, i - 2, &moves, newboard->even_component);
+      evaluateEven(i, i + 3, &moves, newboard->even_component);
     }
     if (i != 2 && i != 7) {
-      evaluateEven(i, i + 2, turn, &moves, newboard->even_component);
-      evaluateEven(i, i - 3, turn, &moves, newboard->even_component);
+      evaluateEven(i, i + 2, &moves, newboard->even_component);
+      evaluateEven(i, i - 3, &moves, newboard->even_component);
     }
   }
 
   for (int j = 0; j < odd_comp_size; j++) {
     if (j != 0 && j != 5 && j != 10) {
-      evaluateOdd(j, j + 2, turn, &moves, newboard->odd_component);
-      evaluateOdd(j, j - 3, turn, &moves, newboard->odd_component);
+      evaluateOdd(j, j + 2, &moves, newboard->odd_component);
+      evaluateOdd(j, j - 3, &moves, newboard->odd_component);
     }
     if (j != 2 && j != 7 && j != 12) {
-      evaluateOdd(j, j - 2, turn, &moves, newboard->odd_component);
-      evaluateOdd(j, j + 3, turn, &moves, newboard->odd_component);
+      evaluateOdd(j, j - 2, &moves, newboard->odd_component);
+      evaluateOdd(j, j + 3, &moves, newboard->odd_component);
     }
   }
 
   return moves;
 }
 
+// FIXME: No longer works due to new hashing method
+// FIXME: Should no longer encode turn information
+
 /* Return the resulting position from making 'move' on 'position'. */
-POSITION DoMove(POSITION hash, MOVE move) {
-  int oldPos, newPos;
-  BOOLEAN turn = getTurn(hash);
-  unhashMove(move, &oldPos, &newPos);
-  int piece_type = turn ? 2: 1; // o == 1 and x == 2 in base 3
-  POSITION original = piece_type * pow(3, oldPos);
-  POSITION new = piece_type * pow(3, newPos);
-  return withTurn(hash - original + new, (turn + 1) % 2);
-}
+// POSITION DoMove(POSITION hash, MOVE move) {
+//   int oldPos, newPos;
+//   unhashMove(move, &oldPos, &newPos);
+//   POSITION original = piece_type * pow(3, oldPos);
+//   POSITION new = piece_type * pow(3, newPos);
+//   return (hash - original + new);
+// }
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
@@ -325,31 +323,33 @@ VALUE Primitive(POSITION position) {
 
 /* SOLVING HELPER FUNCTIONS */
 
-/* TODO */
-void evaluateEven(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *even_component) {
-  if (newPos < 0 || newPos >= even_comp_size) {
-    return;
-  }
-  int currElem = convertChar(even_component[currPos]);
-  int newElem = convertChar(even_component[newPos]);
-  int match = turn ? 2 : 1;
-  if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
-  }
-}
+// FIXME: These shouldn't care about whose turn it is -- they should assume it is
+//        always 'x's turn
 
-/* TODO */
-void evaluateOdd(int currPos, int newPos, BOOLEAN turn, MOVELIST **moves, char *odd_component) {
-  if (newPos < 0 || newPos >= odd_comp_size) {
-    return;
-  }
-  int currElem = convertChar(odd_component[currPos]);
-  int newElem = convertChar(odd_component[newPos]);
-  int match = turn ? 2 : 1;
-  if (currElem > 0 && newElem == 0 && currElem == match) {
-    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
-  }
-}
+// /* TODO */
+// void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_component) {
+//   if (newPos < 0 || newPos >= even_comp_size) {
+//     return;
+//   }
+//   int currElem = convertChar(even_component[currPos]);
+//   int newElem = convertChar(even_component[newPos]);
+//   if (currElem > 0 && newElem == 0 && currElem == match) {
+//     *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
+//   }
+// }
+
+// /* TODO */
+// void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component) {
+//   if (newPos < 0 || newPos >= odd_comp_size) {
+//     return;
+//   }
+//   int currElem = convertChar(odd_component[currPos]);
+//   int newElem = convertChar(odd_component[newPos]);
+//   int match = turn ? 2 : 1;
+//   if (currElem > 0 && newElem == 0 && currElem == match) {
+//     *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
+//   }
+// }
 
 /* Converts a character to its ternary integer equivalent
 for hash calculations. */
@@ -429,8 +429,7 @@ POSITION hash(FFK_Board *board) {
     total += convertChar(board->odd_component[(odd_comp_size - 1) - j]) * pow(3, 12 + j);
   }
   // Returns base_3(concatenate(odd_component, even_component))
-  // with the MSB flipped to board->turn
-  return withTurn(total, board->turn);
+  return total;
 }
 
 /* Unhash function for the Board. */
@@ -454,32 +453,23 @@ FFK_Board* unhash(POSITION hash) {
 
   // Populate fields of new board
   for (int i = 0; i < even_comp_size; i++) 
-  newBoard->even_component[i] = even_comp[i];
+  newBoard->even_component[i] = opposite(even_comp[i]);
   for (int i = 0; i < odd_comp_size; i++) 
-  newBoard->odd_component[i] = odd_comp[i];
-  newBoard->turn = getTurn(hash);
+  newBoard->odd_component[i] = opposite(odd_comp[i]);
 
   return newBoard;
 }
 
-
-
-
-/* BOARD HASHING HELPER FUNCTIONS */
-
-/* Minimally encodes TURN into the first ternary digit not used by the board 
-encoding in POS, which should be the 3^25 spot (so the 26th one). */
-POSITION withTurn(POSITION pos, BOOLEAN turn) {
-  if (getTurn(pos) == turn) return pos;
-  if (getTurn(pos)) return (pos - pow(3, 25));
-  return (pos + pow(3, 25));
+/* Returns the opposite of a piece (i.e. swaps 'x' <-> 'o'). */
+char opposite(char piece) {
+  if (piece == 'x') {
+    return 'o';
+  } else if (piece == 'o') {
+    return 'x';
+  }
+  return piece;
 }
 
-/* Returns whose turn it is according to a position HASH, which is the 25th 
-ternary digit in POS, and should be 0 or 1. */
-BOOLEAN getTurn(POSITION pos) {
-  return floor(pos/pow(3, 24)); // TODO: find division alternative :[
-}
 
 
 /* REARRANGER HASH FUNCTIONS */
