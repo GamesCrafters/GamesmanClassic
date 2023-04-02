@@ -225,7 +225,7 @@ MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = unhash(hash);
   MOVELIST *moves = NULL;
 
-  /* - = 0; o = 1; x = 2; total = 0b<turn_bit, base_3_odd_component, base_3_even_component))> */
+  /* - = 0; o = 1; x = 2; */
   for (int i = 0; i < even_comp_size; i++) {
     if (i != 4 && i != 9) {
       evaluateEven(i, i - 2, &moves, newboard->even_component);
@@ -326,6 +326,30 @@ VALUE Primitive(POSITION position) {
 // FIXME: These shouldn't care about whose turn it is -- they should assume it is
 //        always 'x's turn
 
+void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_component) {
+  if (newPos < 0 || newPos >= even_comp_size) {
+    return;
+  }
+  int currElem = convertChar(even_component[currPos]);
+  int newElem = convertChar(even_component[newPos]);
+  if (currElem == 2 && newElem == 0) {
+    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
+  }
+}
+
+void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component) {
+  if (newPos < 0 || newPos >= odd_comp_size) {
+    return;
+  }
+  int currElem = convertChar(odd_component[currPos]);
+  int newElem = convertChar(odd_component[newPos]);
+  if (currElem == 2 && newElem == 0) {
+    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
+  }
+}
+
+
+
 // /* TODO */
 // void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_component) {
 //   if (newPos < 0 || newPos >= even_comp_size) {
@@ -384,7 +408,7 @@ char convertInt(char int_component) {
 
 /* Transforms the board by rotating it 90 degrees clockwise. */
 void rotate(FFK_Board* board) {
-  permute(board->even_component, even_turn_pos, even_comp_size);
+  permute(board->even_compon ent, even_turn_pos, even_comp_size);
   permute(board->odd_component, odd_turn_pos, odd_comp_size);
 }
 
