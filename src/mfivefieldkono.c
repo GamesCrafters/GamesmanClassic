@@ -130,7 +130,9 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
 /* New version of hashing functions */
 POSITION hash_v2(FFK_Board* board);
+POSITION compute_hash(char *board_component, int slots, int num_x, int num_o);
 FFK_Board* unhash_v2(POSITION in);
+void compute_unhash(char **board_component, POSITION in, int slots, int num_x, int num_o);
 POSITION rearrangements(int slots, int x, int o);
 int factorial(int n);
 
@@ -469,57 +471,77 @@ BOOLEAN getTurn(POSITION pos) {
 }
 
 
-
+// 12!/(4!4!4!) = 34650
+POSITION max_even_hash = rearrangements(12, 4, 4);
+// 13!/(3!3!7!) = 34320
+POSITION max_odd_hash = rearrangements(13, 3, 3);
 
 /* REARRANGER HASH FUNCTIONS */
 
 /* Returns the index that IN would have in the alphabetical ordering of all
 possible strings composed of the same kinds and amounts of characters. */
 POSITION hash_v2(FFK_Board* board) {
-  int slots = odd_comp_size + even_comp_size;
-  int num_x = initial_even_num_x + initial_odd_num_x;
-  int num_o = initial_even_num_o + initial_odd_num_o;
+  // Collect the number of slots <-- 12 + 13 = 25 slots
+  POSITION even_hash = compute_hash(board->even_component, even_comp_size, initial_even_num_x, initial_even_num_o);
+  POSITION odd_hash = compute_hash(board->odd_component, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
   
-  // Put the full board into a single char array
-  char fullBoard[25];
-  for (int i = 0; i < slots; i++) {
-    if (i < odd_comp_size) {
-      fullBoard[i] = board->odd_component[i];
-    } else {
-      fullBoard[i] = board->even_component[i - odd_comp_size];
-    }
-  }
+  // odd_hash * max_even_hash + even_hash <= 1.2 billion positions
+  return odd_hash * max_even_hash + even_hash;
+}
 
-  // Calculate hash
-  char currentPiece;
+POSITION compute_hash(char *board_component, int slots, int num_x, int num_o) {
   POSITION total = 0;
   for (int i = 0; i < slots; i++) {
     int t1 = rearrangements(slots - 1, num_x, num_o);
     int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
-    if (fullBoard[i] == 'o') {
+    if (board_component[i] == 'o') {
       total += t1;
       num_o -= 1;
-    } else if (fullBoard[i] == 'x') {
+    } else if (board_component[i] == 'x') {
       total += t2;
       num_x -= 1;
     }
     slots -= 1;
   }
-
   return total;
 }
 
 /* The inverse process of hash. */
 FFK_Board* unhash_v2(POSITION in) {
-  int num_slots = odd_comp_size + even_comp_size;
-  int num_x = initial_even_num_x + initial_odd_num_x;
-  int num_o = initial_even_num_o + initial_odd_num_o;
-  // TODO
+  FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
+  POSITION even_hash = in % max_even_hash;
+  POSITION odd_hash = (int) (in/max_even_hash);
+
+  compute_hash(&(newBoard->even_component), even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
+  compute_hash(&(newBoard->odd_component), odd_hash, initial_odd_num_x, initial_odd_num_o);
+
+  return newBoard;
+}
+
+void compute_unhash(char **board_component, POSITION in, int slots, int num_x, int num_o) {
+  int idx = 0;
+  while (slots > 0) {
+    int t1 = rearrangements(slots - 1, num_x, num_o);
+    int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
+    if (in < t1) {
+      *board_component[idx] = '-';
+    } else if (in < t2) {
+      *board_component[idx] = 'o';
+      in -= t1;
+      num_o -= 1;
+    } else {
+      *board_component[idx] = 'x';
+      in -= t2;
+      num_x -= 1;
+    }
+    slots -= 1;
+  }
 }
 
 /* Returns the amount of ways to put X x's and O o's into SLOTS slots. */
 POSITION rearrangements(int slots, int x, int o) {
   if ((slots < 0) || (x < 0) || (o < 0) || (slots < (o + x))) return 0;
+  // Essentially returns the number of ways to place the -'s, x's, and o's in the slots
   return factorial(slots)/(factorial(x)*factorial(o)*factorial(slots - x - o));
 }
 
