@@ -226,7 +226,20 @@ MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = Unhash(hash);
   MOVELIST *moves = NULL;
 
+  printf("Turn: %d\n", newboard->oppTurn);
+
+  // DEBUG
+  printf("\nSTART DEBUGGING INFORMATION\n\n");
+  printf("EVEN: {");
+  for (int k = 0; k < 12; k++) printf("%c|", newboard->even_component[k]);
+  printf("}\n");
+  printf("ODD: {");
+  for (int k = 0; k < 13; k++) printf("%c|", newboard->odd_component[k]);
+  printf("}\n");
+  // DEBUG
+
   /* - = 0; o = 1; x = 2; */
+  printf("EVEN COMPONENT SEARCH\n");
   for (int i = 0; i < even_comp_size; i++) {
     if (i != 4 && i != 9) {
       evaluateEven(i, i - 2, &moves, newboard->even_component, newboard->oppTurn);
@@ -238,6 +251,7 @@ MOVELIST *GenerateMoves(POSITION hash) {
     }
   }
 
+  printf("ODD COMPONENT SEARCH\n");
   for (int j = 0; j < odd_comp_size; j++) {
     if (j != 0 && j != 5 && j != 10) {
       evaluateOdd(j, j + 2, &moves, newboard->odd_component, newboard->oppTurn);
@@ -249,6 +263,8 @@ MOVELIST *GenerateMoves(POSITION hash) {
     }
   }
 
+  printf("\n");
+
   return moves;
 }
 
@@ -257,17 +273,19 @@ POSITION DoMove(POSITION hash, MOVE move) {
   // Get current board
   FFK_Board* board = Unhash(hash);
   
+  printf("PREV POSITION HASH: %llu\n", hash);
   printf("MOVE HASH: %d\n", move);
 
   // Get move information (from, to = indices in board[25])
   int from, to;
   unhashMove(move, &from, &to);
-  printf("from: %d\n", from);
-  printf("to: %d\n", to);
+
+  printf("final from: %d\n", from);
+  printf("final to: %d\n", to);
   printf("\n");
 
   // Change the oppTurn --> !oppTurn to reflect change in turn
-  board->oppTurn = !(board->oppTurn);
+  board->oppTurn = board->oppTurn ? 0 : 1;
 
   if (from < 12) {
     // Piece to be moved is in board->even_component[12] which means
@@ -287,8 +305,19 @@ POSITION DoMove(POSITION hash, MOVE move) {
     board->odd_component[to] = piece;
   }
 
+  // DEBUG
+  printf("\nSTART DEBUGGING INFORMATION\n\n");
+  printf("EVEN: {");
+  for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
+  printf("}\n");
+  printf("ODD: {");
+  for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
+  printf("}\n");
+  // DEBUG
+
   // Compute hash for post-move
   POSITION result = Hash(board);
+  printf("POSITION RESULT IS: %llu\n", result);
   free(board);
   return result;
 }
@@ -382,7 +411,7 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component,
   if (currElem == match && newElem == 0) {
     printf("currPos is: %d\n", currPos);
     printf("newPos is: %d\n", newPos);
-    printf("hashedMove is: %d\n", hashMove(currPos, newPos));
+    printf("hashedMove is: %d\n", hashMove(12 + currPos, 12 + newPos));
     printf("\n");
     *moves = CreateMovelistNode(hashMove(12 + currPos, 12 + newPos), *moves);
   }
