@@ -226,10 +226,11 @@ MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = Unhash(hash);
   MOVELIST *moves = NULL;
 
-  printf("Turn: %d\n", newboard->oppTurn);
+  printf("\nGENERATE MOVES POSITION HASH: %llu\n", hash);
+  printf("TURN INFORMATION: %d\n", newboard->oppTurn);
 
   // DEBUG
-  printf("\nSTART DEBUGGING INFORMATION\n\n");
+  printf("\nGENERATE MOVES DEBUGGING INFORMATION\n\n");
   printf("EVEN: {");
   for (int k = 0; k < 12; k++) printf("%c|", newboard->even_component[k]);
   printf("}\n");
@@ -285,7 +286,7 @@ POSITION DoMove(POSITION hash, MOVE move) {
   printf("\n");
 
   // Change the oppTurn --> !oppTurn to reflect change in turn
-  board->oppTurn = board->oppTurn ? 0 : 1;
+  board->oppTurn = board->oppTurn ? FALSE : TRUE;
 
   if (from < 12) {
     // Piece to be moved is in board->even_component[12] which means
@@ -306,7 +307,7 @@ POSITION DoMove(POSITION hash, MOVE move) {
   }
 
   // DEBUG
-  printf("\nSTART DEBUGGING INFORMATION\n\n");
+  printf("\nPOST DEBUGGING INFORMATION\n\n");
   printf("EVEN: {");
   for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
   printf("}\n");
@@ -317,6 +318,7 @@ POSITION DoMove(POSITION hash, MOVE move) {
 
   // Compute hash for post-move
   POSITION result = Hash(board);
+  printf("TURN INFORMATION: %d\n", board->oppTurn);
   printf("POSITION RESULT IS: %llu\n", result);
   free(board);
   return result;
@@ -485,7 +487,7 @@ POSITION Hash(FFK_Board* board) {
   // printf("\n");
   // DEBUG
   // odd_hash * (2*max_even_hash) + (2**turn)*even_hash <= 2.4 billion positions
-  return odd_hash * (2 * max_even_hash) + pow((double) 2, (double) turn) * even_hash;
+  return odd_hash * (2 * max_even_hash) + ((turn * max_even_hash) + even_hash);
 }
 
 POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
@@ -538,14 +540,15 @@ FFK_Board* Unhash(POSITION in) {
   FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
   POSITION even_hash = in % (2*max_even_hash);
   POSITION odd_hash = floor(in/(2*max_even_hash));
-  if (even_hash % 2 == 0) newBoard->oppTurn = FALSE;
-  else newBoard->oppTurn = TRUE;
+  if (even_hash >= max_even_hash) newBoard->oppTurn = TRUE;
+  else newBoard->oppTurn = FALSE;
+  if (even_hash >= max_even_hash) even_hash -= max_even_hash;
 
   // DEBUG
-  // printf("even hash is: %llu.", even_hash);
-  // printf("\n");
-  // printf("odd hash is: %llu.", odd_hash);
-  // printf("\n");
+  printf("even hash is: %llu.", even_hash);
+  printf("\n");
+  printf("odd hash is: %llu.", odd_hash);
+  printf("\n");
   // DEBUG
 
   compute_unhash(newBoard->even_component, even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
