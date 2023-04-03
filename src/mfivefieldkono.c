@@ -133,15 +133,15 @@ MOVE hashMove(int oldPos, int newPos);
 void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
 /* Move hashing helper functions. */
-char opposite(char piece)
+char opposite(char piece);
 
 /* New version of hashing functions. */
 POSITION hash_v2(FFK_Board* board);
-POSITION compute_hash(char board_component[], int slots, int num_x, int num_o);
+POSITION compute_hash(char* board_component, int slots, int num_x, int num_o);
 FFK_Board* unhash_v2(POSITION in);
-void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o);
+void compute_unhash(char* board_component, POSITION in, int slots, int num_x, int num_o);
 POSITION rearrangements(int slots, int x, int o);
-void precompute_fact(int fact_array[], int limit);
+void precompute_fact(int* fact_array, int limit);
 int factorial(int n);
 
 /* Other stuff we don't care about for now. */
@@ -348,33 +348,6 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component)
   }
 }
 
-
-
-// /* TODO */
-// void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_component) {
-//   if (newPos < 0 || newPos >= even_comp_size) {
-//     return;
-//   }
-//   int currElem = convertChar(even_component[currPos]);
-//   int newElem = convertChar(even_component[newPos]);
-//   if (currElem > 0 && newElem == 0 && currElem == match) {
-//     *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
-//   }
-// }
-
-// /* TODO */
-// void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component) {
-//   if (newPos < 0 || newPos >= odd_comp_size) {
-//     return;
-//   }
-//   int currElem = convertChar(odd_component[currPos]);
-//   int newElem = convertChar(odd_component[newPos]);
-//   int match = turn ? 2 : 1;
-//   if (currElem > 0 && newElem == 0 && currElem == match) {
-//     *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
-//   }
-// }
-
 /* Converts a character to its ternary integer equivalent
 for hash calculations. */
 int convertChar(char char_component) {
@@ -408,7 +381,7 @@ char convertInt(char int_component) {
 
 /* Transforms the board by rotating it 90 degrees clockwise. */
 void rotate(FFK_Board* board) {
-  permute(board->even_compon ent, even_turn_pos, even_comp_size);
+  permute(board->even_component, even_turn_pos, even_comp_size);
   permute(board->odd_component, odd_turn_pos, odd_comp_size);
 }
 
@@ -509,7 +482,7 @@ POSITION hash_v2(FFK_Board* board) {
   return odd_hash * max_even_hash + even_hash;
 }
 
-POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
+POSITION compute_hash(char* board_component, int slots, int num_x, int num_o) {
   POSITION total = 0;
   for (int i = 0; i < slots; i++) {
     int t1 = rearrangements(slots - 1, num_x, num_o);
@@ -538,7 +511,7 @@ FFK_Board* unhash_v2(POSITION in) {
   return newBoard;
 }
 
-void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o) {
+void compute_unhash(char* board_component, POSITION in, int slots, int num_x, int num_o) {
   int idx = 0;
   while (slots > 0) {
     int t1 = rearrangements(slots - 1, num_x, num_o);
