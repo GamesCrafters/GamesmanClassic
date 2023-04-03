@@ -251,16 +251,37 @@ MOVELIST *GenerateMoves(POSITION hash) {
   return moves;
 }
 
-// FIXME: No longer works due to new hashing method
-// FIXME: Should no longer encode turn information
-
 /* Return the resulting position from making 'move' on 'position'. */
-POSITION DoMove(POSITION hash, MOVE move) {
-  int oldPos, newPos;
-  unhashMove(move, &oldPos, &newPos);
-  POSITION original = piece_type * pow(3, oldPos);
-  POSITION new = piece_type * pow(3, newPos);
-  return (hash - original + new);
+POSITION DoMove(POSITION pos, MOVE move) {
+  // Get current board
+  FFK_Board* board = unhash(pos);
+
+  // Get move information (from, to = indices in board[25])
+  int from, to;
+  unhashMove(move, &from, &to);
+
+  if (from < 12) {
+    // Piece to be moved is in board->even_component[12] which means
+    // that 'to' is as well; mutate board accordingly
+    char piece = board->even_component[from];
+    board->even_component[from] = '-';
+    board->even_component[to] = piece;
+  } else {
+    // Piece to be moved is in board->odd_component[13] which means
+    // that 'to' is as well
+    int from = from - 12;
+    int to = to - 12;
+
+    // Mutate board accordingly
+    char piece = board->odd_component[from];
+    board->odd_component[from] = '-';
+    board->odd_component[to] = piece;
+  }
+
+  // Compute hash for post-move
+  POSITION result = hash(board);
+  free(board);
+  return result;
 }
 
 /* Symmetry Handling: Return the canonical position. */
