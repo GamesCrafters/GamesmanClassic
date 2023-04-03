@@ -269,8 +269,8 @@ POSITION DoMove(POSITION pos, MOVE move) {
   } else {
     // Piece to be moved is in board->odd_component[13] which means
     // that 'to' is as well
-    int from = from - 12;
-    int to = to - 12;
+    from = from - 12;
+    to = to - 12;
 
     // Mutate board accordingly
     char piece = board->odd_component[from];
