@@ -615,8 +615,7 @@ a unique hash for a game state graph edge. */
 void unhashMove(MOVE mv, int *oldPos, int *newPos) {
   // 0b<base 25 newPos, base 25 oldPos>
   *oldPos = mv % 25;
-  mv = floor(mv/25);
-  *newPos = mv % 25;
+  *newPos = floor(mv/25);
 }
 
 
