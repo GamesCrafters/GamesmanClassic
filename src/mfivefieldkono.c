@@ -79,7 +79,7 @@ POSITION max_even_hash = 34650;
 POSITION max_odd_hash = 34320;
 
 /* optimized factorial lookup: 0 to 25 */
-int fact_array[26];
+long fact_array[14];
 
 
 
@@ -121,11 +121,11 @@ void flip(FFK_Board* board);
 
 /* Board hashing functions. */
 POSITION Hash(FFK_Board* board);
-POSITION compute_hash(char* board_component, int slots, int num_x, int num_o);
+POSITION compute_hash(char board_component[], int slots, int num_x, int num_o);
 FFK_Board* Unhash(POSITION in);
-void compute_unhash(char* board_component, POSITION in, int slots, int num_x, int num_o);
+void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o);
 POSITION rearrangements(int slots, int x, int o);
-void precompute_fact(int* fact_array, int limit);
+void precompute_fact(long fact_array[], int limit);
 int factorial(int n);
 
 /* Board value functions. */
@@ -199,7 +199,7 @@ int odd_flip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 
 /* Initialize any global variables or data structures needed. */
 void InitializeGame() {
-  precompute_fact(fact_array, 25);
+  precompute_fact(fact_array, 13);
   gMoveToStringFunPtr = &MoveToString;
   gInitialPosition = GetInitialPosition();
   gCanonicalPosition = GetCanonicalPosition;
@@ -444,7 +444,7 @@ POSITION Hash(FFK_Board* board) {
   return odd_hash * max_even_hash + even_hash;
 }
 
-POSITION compute_hash(char* board_component, int slots, int num_x, int num_o) {
+POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
   POSITION total = 0;
   for (int i = 0; i < slots; i++) {
     int t1 = rearrangements(slots - 1, num_x, num_o);
@@ -473,7 +473,7 @@ FFK_Board* Unhash(POSITION in) {
   return newBoard;
 }
 
-void compute_unhash(char* board_component, POSITION in, int slots, int num_x, int num_o) {
+void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o) {
   int idx = 0;
   while (slots > 0) {
     int t1 = rearrangements(slots - 1, num_x, num_o);
@@ -500,18 +500,11 @@ POSITION rearrangements(int slots, int x, int o) {
   return fact_array[slots]/(fact_array[x]*fact_array[o]*fact_array[slots - x - o]);
 }
 
-void precompute_fact(int fact_array[], int limit) {
+void precompute_fact(long fact_array[], int limit) {
   fact_array[0] = 1;
-  for (int i = 1; i <= limit; i++) {
+  for (long i = 1; i <= limit; i++) {
     fact_array[i] = i * fact_array[i-1];
   }
-}
-
-/* Returns the factorial of N, which is N(N-1)(N-2)...(2)(1). */
-int factorial(int n) {
-  int total = 1;
-  for (int k = 1; k <= n; k++) total *= k;
-  return total;
 }
 
 
@@ -612,6 +605,9 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
   // DEBUG
   printf("\nSTART DEBUGGING INFORMATION\n\n");
+  printf("factorial: {");
+  for (int k = 0; k < 14; k++) printf("%ld|", fact_array[k]);
+  printf("}\n");
   printf("EVEN: {");
   for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
   printf("}\n");
