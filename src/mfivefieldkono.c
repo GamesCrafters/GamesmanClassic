@@ -256,13 +256,15 @@ MOVELIST *GenerateMoves(POSITION hash) {
 POSITION DoMove(POSITION hash, MOVE move) {
   // Get current board
   FFK_Board* board = Unhash(hash);
+  
+  printf("MOVE HASH: %d\n", move);
 
   // Get move information (from, to = indices in board[25])
   int from, to;
   unhashMove(move, &from, &to);
-  printf("MOVE HASH: %d\n", move);
   printf("from: %d\n", from);
   printf("to: %d\n", to);
+  printf("\n");
 
   // Change the oppTurn --> !oppTurn to reflect change in turn
   board->oppTurn = !(board->oppTurn);
@@ -378,6 +380,10 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component,
   int newElem = convertCharToInt(odd_component[newPos]);
   int match = oppTurn ? 1 : 2; // if it's the opponent's turn --> o = 1, if it's the player's turn --> x = 2
   if (currElem == match && newElem == 0) {
+    printf("currPos is: %d\n", currPos);
+    printf("newPos is: %d\n", newPos);
+    printf("hashedMove is: %d\n", hashMove(currPos, newPos));
+    printf("\n");
     *moves = CreateMovelistNode(hashMove(12 + currPos, 12 + newPos), *moves);
   }
 }
