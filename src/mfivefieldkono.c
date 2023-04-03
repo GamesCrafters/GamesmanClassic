@@ -266,17 +266,17 @@ MOVELIST *GenerateMoves(POSITION hash) {
     }
   }
 
-  printf("\n");
+  // printf("\n");
   
-  printf("PRINT OUT THE MOVELIST NODE INFORMATION!\n");
-  MOVELIST **copy = &moves;
-  while (moves != NULL) {
-    printf("| %d | ", moves->move);
-    moves = moves->next;
-  }
-  moves = *copy;
+  // printf("PRINT OUT THE MOVELIST NODE INFORMATION!\n");
+  // MOVELIST **copy = &moves;
+  // while (moves != NULL) {
+  //   printf("| %d | ", moves->move);
+  //   moves = moves->next;
+  // }
+  // moves = *copy;
 
-  printf("\n");
+  // printf("\n");
 
   return moves;
 }
