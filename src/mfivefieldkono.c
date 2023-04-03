@@ -591,23 +591,35 @@ char opposite(char piece) {
 
 /* This will print the board in the following format:
 
-(o) (o) (o) (o) (o)
-  \ / \ / \ / \ /  
-  / \ / \ / \ / \  
-(o) ( ) ( ) ( ) (o)
-  \ / \ / \ / \ /  
-  / \ / \ / \ / \  
-( ) ( ) ( ) ( ) ( )
-  \ / \ / \ / \ /  
-  / \ / \ / \ / \  
-(x) ( ) ( ) ( ) (x)
-  \ / \ / \ / \ /  
-  / \ / \ / \ / \  
-(x) (x) (x) (x) (x)
+  (o) (o) (o) (o) (o)
+    \ / \ / \ / \ /  
+    / \ / \ / \ / \  
+  (o) ( ) ( ) ( ) (o)
+    \ / \ / \ / \ /  
+    / \ / \ / \ / \  
+  ( ) ( ) ( ) ( ) ( )
+    \ / \ / \ / \ /  
+    / \ / \ / \ / \  
+  (x) ( ) ( ) ( ) (x)
+    \ / \ / \ / \ /  
+    / \ / \ / \ / \  
+  (x) (x) (x) (x) (x)
 
 */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   FFK_Board* board = Unhash(position);
+  if (usersTurn) printf("%s's move.\n", playerName);
+
+  // DEBUG
+  printf("\nSTART DEBUGGING INFORMATION\n\n");
+  printf("EVEN: {");
+  for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
+  printf("}\n");
+  printf("ODD: {");
+  for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
+  printf("}\n");
+  // DEBUG
+
   char* fb = malloc(sizeof(char)*25);
   for (int i = 1; i < 26; i++) {
     if (i % 2 == 0) {
@@ -618,9 +630,17 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
       fb[i-1] = (curr == '-') ? ' ' : curr;
     }
   }
-  if (usersTurn) printf("%s's move.\n", playerName);
+
+  // DEBUG
+  printf("FB: {");
+  for (int k = 0; k < 25; k++) printf("%c|", fb[k]);
+  printf("}\n");
+  printf("\nEND DEBUGGING INFORMATION\n\n");
+  // DEBUG
+
   // *shamelessly puts on sunglasses
-  for (int j = 0; j < 4; j++) printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
+  for (int j = 0; j < 4; j++) 
+  printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
   printf("(%c) (%c) (%c) (%c) (%c) \n", fb[20], fb[21], fb[22], fb[23], fb[24]);
   free(fb);
   free(board);
