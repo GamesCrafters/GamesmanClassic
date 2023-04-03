@@ -467,6 +467,11 @@ FFK_Board* Unhash(POSITION in) {
   POSITION even_hash = in % max_even_hash;
   POSITION odd_hash = floor(in/max_even_hash);
 
+  printf("even hash is: %llu.", even_hash);
+  printf("\n");
+  printf("odd hash is: %llu.", odd_hash);
+  printf("\n");
+
   compute_unhash(newBoard->even_component, even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
   compute_unhash(newBoard->odd_component, odd_hash, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
 
@@ -490,6 +495,7 @@ void compute_unhash(char board_component[], POSITION in, int slots, int num_x, i
       num_x -= 1;
     }
     slots -= 1;
+    idx += 1;
   }
 }
 
