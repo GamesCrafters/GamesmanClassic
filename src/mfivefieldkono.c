@@ -350,7 +350,7 @@ void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_componen
   int currElem = convertChar(even_component[currPos]);
   int newElem = convertChar(even_component[newPos]);
   if (currElem == 2 && newElem == 0) {
-    *moves = CreateMovelistNode(hashMove((12 - 1) - currPos, (12 - 1) - newPos), *moves);
+    *moves = CreateMovelistNode(hashMove(currPos, newPos), *moves);
   }
 }
 
@@ -361,7 +361,7 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component)
   int currElem = convertChar(odd_component[currPos]);
   int newElem = convertChar(odd_component[newPos]);
   if (currElem == 2 && newElem == 0) {
-    *moves = CreateMovelistNode(hashMove((25 - 1) - currPos, (25 - 1) - newPos), *moves);
+    *moves = CreateMovelistNode(hashMove(12 + currPos, 12 + newPos), *moves);
   }
 }
 
