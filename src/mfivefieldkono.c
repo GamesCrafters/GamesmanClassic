@@ -91,6 +91,7 @@ long fact_array[14];
 components (such that pieces that start out in one cannot possibly move
 into the other). Since clever solving might be possible due to this, we
 store them separately. */
+// TRUE = your turn (piece x), FALSE = opponent turn (piece o)
 typedef struct {
   char even_component[12];
   char odd_component[13];
@@ -224,6 +225,7 @@ POSITION GetInitialPosition() {
 
 // FIXME: evaluate funcs don't need 'turn' anymore
 /* Return a linked list of possible moves. */
+/* always x's turn */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = Unhash(hash);
   MOVELIST *moves = NULL;
