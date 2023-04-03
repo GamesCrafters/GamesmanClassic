@@ -120,8 +120,13 @@ void rotate(FFK_Board* board);
 void flip(FFK_Board* board);
 
 /* Board hashing functions. */
-POSITION hash(FFK_Board *board);
-FFK_Board* unhash(POSITION hash);
+POSITION Hash(FFK_Board* board);
+POSITION compute_hash(char* board_component, int slots, int num_x, int num_o);
+FFK_Board* Unhash(POSITION in);
+void compute_unhash(char* board_component, POSITION in, int slots, int num_x, int num_o);
+POSITION rearrangements(int slots, int x, int o);
+void precompute_fact(int* fact_array, int limit);
+int factorial(int n);
 
 /* Board value functions. */
 BOOLEAN isWin(FFK_Board* board);
@@ -134,15 +139,6 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
 /* Move hashing helper functions. */
 char opposite(char piece);
-
-/* New version of hashing functions. */
-POSITION hash_v2(FFK_Board* board);
-POSITION compute_hash(char* board_component, int slots, int num_x, int num_o);
-FFK_Board* unhash_v2(POSITION in);
-void compute_unhash(char* board_component, POSITION in, int slots, int num_x, int num_o);
-POSITION rearrangements(int slots, int x, int o);
-void precompute_fact(int* fact_array, int limit);
-int factorial(int n);
 
 /* Other stuff we don't care about for now. */
 STRING MoveToString(MOVE move);
@@ -216,13 +212,13 @@ POSITION GetInitialPosition() {
   initial_board->even_component[i] = initial_even_component[i];
   for (int i = 0; i < odd_comp_size; i++) 
   initial_board->odd_component[i] = initial_odd_component[i];
-  return hash(initial_board);
+  return Hash(initial_board);
 }
 
 // FIXME: evaluate funcs don't need 'turn' anymore
 /* Return a linked list of possible moves. */
 MOVELIST *GenerateMoves(POSITION hash) {
-  FFK_Board *newboard = unhash(hash);
+  FFK_Board *newboard = Unhash(hash);
   MOVELIST *moves = NULL;
 
   /* - = 0; o = 1; x = 2; */
@@ -254,7 +250,7 @@ MOVELIST *GenerateMoves(POSITION hash) {
 /* Return the resulting position from making 'move' on 'position'. */
 POSITION DoMove(POSITION hash, MOVE move) {
   // Get current board
-  FFK_Board* board = unhash(hash);
+  FFK_Board* board = Unhash(hash);
 
   // Get move information (from, to = indices in board[25])
   int from, to;
@@ -279,7 +275,7 @@ POSITION DoMove(POSITION hash, MOVE move) {
   }
 
   // Compute hash for post-move
-  POSITION result = hash_v2(board);
+  POSITION result = Hash(board);
   free(board);
   return result;
 }
@@ -287,25 +283,25 @@ POSITION DoMove(POSITION hash, MOVE move) {
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
   POSITION* symmetries = malloc(sizeof(POSITION)*8);
-  FFK_Board* board = unhash(position);
+  FFK_Board* board = Unhash(position);
   POSITION canonical = 0;
 
   symmetries[0] = position; // identity
   rotate(board);
-  symmetries[1] = hash(board); // r
+  symmetries[1] = Hash(board); // r
   rotate(board);
-  symmetries[2] = hash(board); // r^2
+  symmetries[2] = Hash(board); // r^2
   rotate(board);
-  symmetries[3] = hash(board); // r^3
+  symmetries[3] = Hash(board); // r^3
   rotate(board);
   flip(board);
-  symmetries[4] = hash(board); // f
+  symmetries[4] = Hash(board); // f
   rotate(board);
-  symmetries[5] = hash(board); // fr (frfr ong deadass)
+  symmetries[5] = Hash(board); // fr (frfr ong deadass)
   rotate(board);
-  symmetries[6] = hash(board); // fr^2
+  symmetries[6] = Hash(board); // fr^2
   rotate(board);
-  symmetries[7] = hash(board); // fr^3
+  symmetries[7] = Hash(board); // fr^3
   
   for (int i = 0; i < 8; i++) {
     if (symmetries[i] > canonical) {
@@ -322,7 +318,7 @@ POSITION GetCanonicalPosition(POSITION position) {
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  FFK_Board *board = unhash(position);
+  FFK_Board *board = Unhash(position);
   BOOLEAN is_win = isWin(board);
   BOOLEAN is_lose = isLose(board);
   BOOLEAN is_tie = isTie(board);
@@ -437,64 +433,9 @@ void permute(char* target, int* map, int size) {
 
 /* BOARD HASHING FUNCTIONS */
 
-/* Calculates the unique base-3 integer that corresponds to the boar. */
-POSITION hash(FFK_Board *board) {
-  POSITION total = 0;
-  for (int i = 0; i < even_comp_size; i++) {
-    total += convertChar(board->even_component[(even_comp_size - 1) - i]) * pow(3, i);
-  }
-  for (int j = 0; j < odd_comp_size; j++) {
-    total += convertChar(board->odd_component[(odd_comp_size - 1) - j]) * pow(3, 12 + j);
-  }
-  // Returns base_3(concatenate(odd_component, even_component))
-  return total;
-}
-
-/* Unhash function for the Board. */
-FFK_Board* unhash(POSITION hash) {
-  FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
-  char even_comp[even_comp_size];
-  char odd_comp[odd_comp_size];
-  int remain;
-
-  for (int i = 0; i < even_comp_size; i++) {
-    remain = hash % 3;
-    hash = floor(hash/3);
-    even_comp[(even_comp_size - 1) - i] = convertInt(remain);
-  }
-  
-  for (int j = 0; j < odd_comp_size; j++) {
-    remain = hash % 3;
-    hash = floor(hash/3);
-    odd_comp[(odd_comp_size - 1) - j] = convertInt(remain);
-  }
-
-  // Populate fields of new board
-  for (int i = 0; i < even_comp_size; i++) 
-  newBoard->even_component[i] = opposite(even_comp[i]);
-  for (int i = 0; i < odd_comp_size; i++) 
-  newBoard->odd_component[i] = opposite(odd_comp[i]);
-
-  return newBoard;
-}
-
-/* Returns the opposite of a piece (i.e. swaps 'x' <-> 'o'). */
-char opposite(char piece) {
-  if (piece == 'x') {
-    return 'o';
-  } else if (piece == 'o') {
-    return 'x';
-  }
-  return piece;
-}
-
-
-
-/* REARRANGER HASH FUNCTIONS */
-
 /* Returns the index that IN would have in the alphabetical ordering of all
 possible strings composed of the same kinds and amounts of characters. */
-POSITION hash_v2(FFK_Board* board) {
+POSITION Hash(FFK_Board* board) {
   // Collect the number of slots <-- 12 + 13 = 25 slots
   POSITION even_hash = compute_hash(board->even_component, even_comp_size, initial_even_num_x, initial_even_num_o);
   POSITION odd_hash = compute_hash(board->odd_component, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
@@ -521,7 +462,7 @@ POSITION compute_hash(char* board_component, int slots, int num_x, int num_o) {
 }
 
 /* The inverse process of hash. */
-FFK_Board* unhash_v2(POSITION in) {
+FFK_Board* Unhash(POSITION in) {
   FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
   POSITION even_hash = in % max_even_hash;
   POSITION odd_hash = floor(in/max_even_hash);
@@ -604,7 +545,7 @@ BOOLEAN isLose(FFK_Board* board) {
 
 /* If there are no moves left to be made, then the game is a tie. */
 BOOLEAN isTie(FFK_Board* board) {
-  MOVELIST *possible_moves = GenerateMoves(hash(board));
+  MOVELIST *possible_moves = GenerateMoves(Hash(board));
   if (possible_moves == NULL) {
     return TRUE;
   }
@@ -634,6 +575,15 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos) {
   *newPos = mv % 25;
 }
 
+/* Returns the opposite of a piece (i.e. swaps 'x' <-> 'o'). */
+char opposite(char piece) {
+  if (piece == 'x') {
+    return 'o';
+  } else if (piece == 'o') {
+    return 'x';
+  }
+  return piece;
+}
 
 
 
@@ -657,7 +607,7 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos) {
 
 */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  FFK_Board* board = unhash(position);
+  FFK_Board* board = Unhash(position);
   char* fb = malloc(sizeof(char)*25);
   for (int i = 1; i < 26; i++) {
     if (i % 2 == 0) {
