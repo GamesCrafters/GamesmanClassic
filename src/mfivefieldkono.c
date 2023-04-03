@@ -252,9 +252,9 @@ MOVELIST *GenerateMoves(POSITION hash) {
 }
 
 /* Return the resulting position from making 'move' on 'position'. */
-POSITION DoMove(POSITION pos, MOVE move) {
+POSITION DoMove(POSITION hash, MOVE move) {
   // Get current board
-  FFK_Board* board = unhash(pos);
+  FFK_Board* board = unhash(hash);
 
   // Get move information (from, to = indices in board[25])
   int from, to;
@@ -279,7 +279,7 @@ POSITION DoMove(POSITION pos, MOVE move) {
   }
 
   // Compute hash for post-move
-  POSITION result = hash(board);
+  POSITION result = hash_v2(board);
   free(board);
   return result;
 }
