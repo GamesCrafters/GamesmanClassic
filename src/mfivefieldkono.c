@@ -212,6 +212,12 @@ POSITION GetInitialPosition() {
   initial_board->even_component[i] = initial_even_component[i];
   for (int i = 0; i < odd_comp_size; i++) 
   initial_board->odd_component[i] = initial_odd_component[i];
+  printf("EVEN: {");
+  for (int k = 0; k < 12; k++) printf("%c|", initial_board->even_component[k]);
+  printf("}\n");
+  printf("ODD: {");
+  for (int k = 0; k < 13; k++) printf("%c|", initial_board->odd_component[k]);
+  printf("}\n");
   return Hash(initial_board);
 }
 
@@ -439,16 +445,44 @@ POSITION Hash(FFK_Board* board) {
   // Collect the number of slots <-- 12 + 13 = 25 slots
   POSITION even_hash = compute_hash(board->even_component, even_comp_size, initial_even_num_x, initial_even_num_o);
   POSITION odd_hash = compute_hash(board->odd_component, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
-  
+  // DEBUG
+  // printf("hash: %llu", even_hash);
+  // printf("\n");
+  // printf("hash: %llu", odd_hash);
+  // printf("\n"); 
+  // DEBUG
   // odd_hash * max_even_hash + even_hash <= 1.2 billion positions
   return odd_hash * max_even_hash + even_hash;
 }
 
 POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
   POSITION total = 0;
-  for (int i = 0; i < slots; i++) {
+  // DEBUG
+  // printf("\n");
+  // printf("length is: %d", slots);
+  // DEBUG
+  int arr_len = slots;
+  for (int i = 0; i < arr_len; i++) {
+    // DEBUG
+    // printf("INDEX IS: %d", i);
+    // printf("\n");
+    // printf("total value is: %llu", total);
+    // printf("\n");
+    // DEBUG
     int t1 = rearrangements(slots - 1, num_x, num_o);
     int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
+    // DEBUG
+    // printf("slot value is: %d", slots);
+    // printf("\n");
+    // printf("x value is: %d", num_x);
+    // printf("\n");
+    // printf("o value is: %d", num_o);
+    // printf("\n");
+    // printf("thresh 1 value is: %d", t1);
+    // printf("\n");
+    // printf("thresh 2 value is: %d", t2);
+    // printf("\n");
+    // DEBUG
     if (board_component[i] == 'o') {
       total += t1;
       num_o -= 1;
@@ -458,6 +492,11 @@ POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
     }
     slots -= 1;
   }
+  // DEBUG
+  // printf("\n");
+  // printf("\n");
+  // printf("\n");
+  // DEBUG
   return total;
 }
 
@@ -467,10 +506,12 @@ FFK_Board* Unhash(POSITION in) {
   POSITION even_hash = in % max_even_hash;
   POSITION odd_hash = floor(in/max_even_hash);
 
-  printf("even hash is: %llu.", even_hash);
-  printf("\n");
-  printf("odd hash is: %llu.", odd_hash);
-  printf("\n");
+  // DEBUG
+  // printf("even hash is: %llu.", even_hash);
+  // printf("\n");
+  // printf("odd hash is: %llu.", odd_hash);
+  // printf("\n");
+  // DEBUG
 
   compute_unhash(newBoard->even_component, even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
   compute_unhash(newBoard->odd_component, odd_hash, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
@@ -481,8 +522,18 @@ FFK_Board* Unhash(POSITION in) {
 void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o) {
   int idx = 0;
   while (slots > 0) {
+    // DEBUG
+    // printf("hash: %llu", in);
+    // printf("\n");
+    // DEBUG
     int t1 = rearrangements(slots - 1, num_x, num_o);
     int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
+    // DEBUG
+    // printf("thresh 1: %d", t1);
+    // printf("\n");
+    // printf("thresh 2: %d", t2);
+    // printf("\n");
+    // DEBUG
     if (in < t1) {
       board_component[idx] = '-';
     } else if (in < t2) {
@@ -497,6 +548,7 @@ void compute_unhash(char board_component[], POSITION in, int slots, int num_x, i
     slots -= 1;
     idx += 1;
   }
+  printf("\n");
 }
 
 /* Returns the amount of ways to put X x's and O o's into SLOTS slots. */
@@ -610,16 +662,16 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   if (usersTurn) printf("%s's move.\n", playerName);
 
   // DEBUG
-  printf("\nSTART DEBUGGING INFORMATION\n\n");
-  printf("factorial: {");
-  for (int k = 0; k < 14; k++) printf("%ld|", fact_array[k]);
-  printf("}\n");
-  printf("EVEN: {");
-  for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
-  printf("}\n");
-  printf("ODD: {");
-  for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
-  printf("}\n");
+  // printf("\nSTART DEBUGGING INFORMATION\n\n");
+  // printf("factorial: {");
+  // for (int k = 0; k < 14; k++) printf("%ld|", fact_array[k]);
+  // printf("}\n");
+  // printf("EVEN: {");
+  // for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
+  // printf("}\n");
+  // printf("ODD: {");
+  // for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
+  // printf("}\n");
   // DEBUG
 
   char* fb = malloc(sizeof(char)*25);
@@ -634,10 +686,10 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   }
 
   // DEBUG
-  printf("FB: {");
-  for (int k = 0; k < 25; k++) printf("%c|", fb[k]);
-  printf("}\n");
-  printf("\nEND DEBUGGING INFORMATION\n\n");
+  // printf("FB: {");
+  // for (int k = 0; k < 25; k++) printf("%c|", fb[k]);
+  // printf("}\n");
+  // printf("\nEND DEBUGGING INFORMATION\n\n");
   // DEBUG
 
   // *shamelessly puts on sunglasses
