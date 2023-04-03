@@ -217,7 +217,9 @@ POSITION GetInitialPosition() {
   // printf("ODD: {");
   // for (int k = 0; k < 13; k++) printf("%c|", initial_board->odd_component[k]);
   // printf("}\n");
-  return Hash(initial_board);
+  POSITION result = Hash(initial_board);
+  free(initial_board);
+  return result;
 }
 
 // FIXME: evaluate funcs don't need 'turn' anymore
@@ -383,9 +385,6 @@ VALUE Primitive(POSITION position) {
 
 
 /* SOLVING HELPER FUNCTIONS */
-
-// FIXME: These shouldn't care about whose turn it is -- they should assume it is
-//        always 'x's turn
 
 void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_component, BOOLEAN oppTurn) {
   if (newPos < 0 || newPos >= even_comp_size) {
@@ -651,7 +650,7 @@ component of the board it belongs to and whose turn it is to generate
 a unique hash for a game state graph edge. */
 MOVE hashMove(int oldPos, int newPos) {
   // 0b<base 25 newPos, base 25 oldPos>
-  return 25*newPos + oldPos;
+  return (25*newPos) + oldPos;
 }
 
 /* Obtains the start and destination index of a piece in the connected
