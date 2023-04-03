@@ -260,6 +260,9 @@ POSITION DoMove(POSITION hash, MOVE move) {
   // Get move information (from, to = indices in board[25])
   int from, to;
   unhashMove(move, &from, &to);
+  printf("MOVE HASH: %d\n", move);
+  printf("from: %d\n", from);
+  printf("to: %d\n", to);
 
   // Change the oppTurn --> !oppTurn to reflect change in turn
   board->oppTurn = !(board->oppTurn);
@@ -359,6 +362,10 @@ void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_componen
   int newElem = convertCharToInt(even_component[newPos]);
   int match = oppTurn ? 1 : 2; // if it's the opponent's turn --> o = 1, if it's the player's turn --> x = 2
   if (currElem == match && newElem == 0) {
+    printf("currPos is: %d\n", currPos);
+    printf("newPos is: %d\n", newPos);
+    printf("hashedMove is: %d\n", hashMove(currPos, newPos));
+    printf("\n");
     *moves = CreateMovelistNode(hashMove(currPos, newPos), *moves);
   }
 }
