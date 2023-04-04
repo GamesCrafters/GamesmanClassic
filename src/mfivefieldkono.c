@@ -558,7 +558,7 @@ POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
 FFK_Board* Unhash(POSITION in) {
   FFK_Board* newBoard = (FFK_Board *) malloc(sizeof(FFK_Board));
   POSITION even_hash = in % (2*max_even_hash);
-  POSITION odd_hash = floor(in/(2*max_even_hash));
+  POSITION odd_hash = in/(2*max_even_hash);
   if (even_hash >= max_even_hash) newBoard->oppTurn = TRUE;
   else newBoard->oppTurn = FALSE;
   if (even_hash >= max_even_hash) even_hash -= max_even_hash;
@@ -626,7 +626,7 @@ void precompute_fact(long fact_array[], int limit) {
 POSITION swapTurn(POSITION hash) {
   BOOLEAN turn;
   POSITION even_hash = in % (2*max_even_hash);
-  POSITION odd_hash = floor(in/(2*max_even_hash));
+  POSITION odd_hash = in/(2*max_even_hash);
   // if even_hash >= max_even_hash it was the opponent's turn
   // hence, set the turn to FALSE to swap it to your turn
   // and vice versa for
@@ -693,7 +693,7 @@ a unique hash for a game state graph edge. */
 void unhashMove(MOVE mv, int *oldPos, int *newPos) {
   // 0b<base 25 newPos, base 25 oldPos>
   *oldPos = mv % 25;
-  *newPos = floor(mv/25);
+  *newPos = mv/25;
 }
 
 
