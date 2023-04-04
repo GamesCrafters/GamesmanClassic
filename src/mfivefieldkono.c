@@ -392,6 +392,7 @@ VALUE Primitive(POSITION position) {
   BOOLEAN is_win = isWin(board);
   BOOLEAN is_lose = isLose(board);
   BOOLEAN is_tie = isTie(board);
+  BOOLEAN turn = board->oppTurn;
   free(board);
   if (is_win) {
     return win;
@@ -781,10 +782,33 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 	return(Continue); /* this is never reached, but lint is now happy */
 }
 
-/* Return whether the input text signifies a valid move. */
+/* Return whether the input text signifies a valid move. Rows are letters, and
+columns are numbers:
+- A piece in rows {a, c, e} can only go to one of {b, d} and vice versa.
+- A piece in columns {1, 3, 5} can only go to one of {2, 4} and vice versa.
+- Both the rows and columns must differ in 'distance' by exactly 1.
+Example valid moves: {"a1-b2", "b2-c3", "e4-d5"}. */
 BOOLEAN ValidTextInput(STRING input) {
-  /* YOUR CODE HERE */
-  return TRUE;
+  // Check for obvious malformations
+  if (strlen(input) != 5) return false;
+  if (input[2] != '-') return false;
+
+  // Extract characters from string
+  char r1 = input[0];
+  char c1 = input[1];
+  char r2 = input[3];
+  char c2 = input[4];
+
+  // Determine if both slots are on the board using ASCII ranges
+  if (r1 < 97 || r1 > 101 || r2 < 97 || r2 > 101)) return false;
+  if (c1 < 49 || c1 > 53 || c2 < 49 || c2 > 53)) return false;
+  
+  // Use ASCII values to determine 'distance', which guarantees that
+  // the piece moves along a valid edge and that it moves a distance
+  // of exactly 1
+  if (abs(c1 - c2) != 1 || abs(r1 - r2) != 1) return false;
+
+  return true;
 }
 
 /* Assume the text input signifies a valid move. Return
