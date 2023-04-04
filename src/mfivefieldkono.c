@@ -129,6 +129,7 @@ void compute_unhash(char board_component[], POSITION in, int slots, int num_x, i
 POSITION rearrangements(int slots, int x, int o);
 void precompute_fact(long fact_array[], int limit);
 int factorial(int n);
+POSITION swapTurn(POSITION hash);
 
 /* Board value functions. */
 BOOLEAN isWin(FFK_Board* board);
@@ -635,6 +636,20 @@ void precompute_fact(long fact_array[], int limit) {
   }
 }
 
+/* Swap the turn and return the new hash */
+POSITION swapTurn(POSITION hash) {
+  BOOLEAN turn;
+  POSITION even_hash = hash % (2*max_even_hash);
+  POSITION odd_hash = floor(hash/(2*max_even_hash));
+  // if even_hash >= max_even_hash it was the opponent's turn
+  // hence, set the turn to FALSE to swap it to your turn
+  // and vice versa for else statement
+  if (even_hash >= max_even_hash) {
+    turn = FALSE;
+    even_hash -= max_even_hash;
+  } else turn = TRUE;
+  return odd_hash * (2 * max_even_hash) + ((turn * max_even_hash) + even_hash);
+}
 
 
 
