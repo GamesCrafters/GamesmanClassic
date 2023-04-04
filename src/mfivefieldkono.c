@@ -846,7 +846,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
-type in. */
+type in. This should be the inverse of the above. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
   return NULL;
@@ -854,8 +854,7 @@ STRING MoveToString(MOVE move) {
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  /* YOUR CODE HERE */
-  printf("%d", move);
+  printf("%s", MoveToString(move));
 }
 
 
