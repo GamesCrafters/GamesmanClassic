@@ -117,9 +117,12 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component,
 int convertCharToInt(char char_component);
 
 /* Transformation functions. */
+void xflip(FFK_Board* board);
+void yflip(FFK_Board* board);
 void permute(char* target, int* map, int size);
 void rotate(FFK_Board* board);
-void flip(FFK_Board* board);
+void swap(FFK_Board* board);
+
 
 /* Tier Functions for TierGamesman Support */
 TIERLIST *getTierChildren(TIER tier);
@@ -137,6 +140,7 @@ POSITION rearrangements(int slots, int x, int o);
 void precompute_fact(long fact_array[], int limit);
 int factorial(int n);
 POSITION swapTurn(POSITION hash);
+char swapPiece(char board_char);
 
 /* Board value functions. */
 BOOLEAN isWin(FFK_Board* board);
@@ -193,11 +197,17 @@ where 'array' is one of the arrays below. */
 int even_turn_pos[12] = {4, 9, 1, 6, 11, 3, 8, 0, 5, 10, 2, 7};
 int odd_turn_pos[13] = {2, 7, 12, 4, 9, 1, 6, 11, 3, 8, 0, 5, 10};
 
+/* Describes a board transformation of a vertical flip (a reflection
+across the y-axis, so to say). The piece at original[i] should end up 
+at destination[array[i]], where 'array' is one of the arrays below. */
+int even_xflip_pos[12] = {10, 11, 7, 8, 9, 5, 6, 2, 3, 4, 0, 1};
+int odd_xflip_pos[13] = {10, 11, 12, 8, 9, 5, 6, 7, 3, 4, 0, 1, 2};
+
 /* Describes a board transformation of a horizontal flip (a reflection
 across the y-axis, so to say). The piece at original[i] should end up 
 at destination[array[i]], where 'array' is one of the arrays below. */
-int even_flip_pos[12] = {1, 0, 4, 3, 2, 6, 5, 9, 8, 7, 11, 10};
-int odd_flip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
+int even_yflip_pos[12] = {1, 0, 4, 3, 2, 6, 5, 9, 8, 7, 11, 10};
+int odd_yflip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 
 
 
@@ -370,15 +380,20 @@ POSITION DoMove(POSITION hash, MOVE move) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  POSITION* symmetries = malloc(sizeof(POSITION)*2);
+  POSITION* symmetries = malloc(sizeof(POSITION)*3);
   FFK_Board* board = Unhash(position);
   POSITION canonical = 0;
 
   symmetries[0] = position; // identity
-  flip(board);
-  symmetries[1] = Hash(board); // f
+  yflip(board);
+  symmetries[1] = Hash(board); // y-flip
+  yflip(board); // return back to normal
+  xflip(board); // flip by the x-axis
+  swap(board); // swap piece colors
+  board->oppTurn = board->oppTurn ? FALSE : TRUE; // Change the turn
+  symmetries[2] = Hash(board);
   
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < 3; i++) {
     if (symmetries[i] > canonical) {
       canonical = symmetries[i];
     }
@@ -486,17 +501,18 @@ int convertCharToInt(char char_component) {
 
 /* TRANSFORMATION FUNCTIONS */
 
-/* Transforms the board by rotating it 90 degrees clockwise. */
-void rotate(FFK_Board* board) {
-  permute(board->even_component, even_turn_pos, even_comp_size);
-  permute(board->odd_component, odd_turn_pos, odd_comp_size);
+/* Transforms the board by flipping it horizontally (a reflection
+about the y-axis). */
+void yflip(FFK_Board* board) {
+  permute(board->even_component, even_yflip_pos, even_comp_size);
+  permute(board->odd_component, odd_yflip_pos, odd_comp_size);
 }
 
 /* Transforms the board by flipping it horizontally (a reflection
 about the y-axis). */
-void flip(FFK_Board* board) {
-  permute(board->even_component, even_flip_pos, even_comp_size);
-  permute(board->odd_component, odd_flip_pos, odd_comp_size);
+void xflip(FFK_Board* board) {
+  permute(board->even_component, even_xflip_pos, even_comp_size);
+  permute(board->odd_component, odd_xflip_pos, odd_comp_size);
 }
 
 /* Performs an in-place rearrangement of the contents of TARGET as outlined
@@ -516,6 +532,27 @@ void permute(char* target, int* map, int size) {
     toIndex = map[toIndex];
     count += 1;
   }
+}
+
+/* Transforms the board by rotating it 90 degrees clockwise. */
+void rotate(FFK_Board* board) {
+  permute(board->even_component, even_turn_pos, even_comp_size);
+  permute(board->odd_component, odd_turn_pos, odd_comp_size);
+}
+
+void swap(FFK_Board* board) {
+  for (int i = 0; i < even_comp_size; i++) {
+    board->even_component[i] = swapPiece(board->even_component[i]);
+  }
+  for (int j = 0; j < odd_comp_size; j++) {
+    board->odd_component[j] = swapPiece(board->odd_component[j]);
+  }
+}
+
+char swapPiece(char board_char) {
+  if (board_char == 'o') return 'x';
+  else if (board_char == 'x') return 'o';
+  else return '-';
 }
 
 
