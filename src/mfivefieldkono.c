@@ -353,28 +353,15 @@ POSITION DoMove(POSITION hash, MOVE move) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  POSITION* symmetries = malloc(sizeof(POSITION)*8);
+  POSITION* symmetries = malloc(sizeof(POSITION)*2);
   FFK_Board* board = Unhash(position);
   POSITION canonical = 0;
 
   symmetries[0] = position; // identity
-  rotate(board);
-  symmetries[1] = Hash(board); // r
-  rotate(board);
-  symmetries[2] = Hash(board); // r^2
-  rotate(board);
-  symmetries[3] = Hash(board); // r^3
-  rotate(board);
   flip(board);
-  symmetries[4] = Hash(board); // f
-  rotate(board);
-  symmetries[5] = Hash(board); // fr (frfr ong deadass)
-  rotate(board);
-  symmetries[6] = Hash(board); // fr^2
-  rotate(board);
-  symmetries[7] = Hash(board); // fr^3
+  symmetries[1] = Hash(board); // f
   
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 2; i++) {
     if (symmetries[i] > canonical) {
       canonical = symmetries[i];
     }
