@@ -230,21 +230,25 @@ MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = Unhash(hash);
   MOVELIST *moves = NULL;
 
-  printf("\nGENERATE MOVES POSITION HASH: %llu\n", hash);
-  printf("TURN INFORMATION: %d\n", newboard->oppTurn);
+  // DEBUG
+  // printf("\nGENERATE MOVES POSITION HASH: %llu\n", hash);
+  // printf("TURN INFORMATION: %d\n", newboard->oppTurn);
+  // DEBUG
 
   // DEBUG
-  printf("\nGENERATE MOVES DEBUGGING INFORMATION\n\n");
-  printf("EVEN: {");
-  for (int k = 0; k < 12; k++) printf("%c|", newboard->even_component[k]);
-  printf("}\n");
-  printf("ODD: {");
-  for (int k = 0; k < 13; k++) printf("%c|", newboard->odd_component[k]);
-  printf("}\n");
+  // printf("\nGENERATE MOVES DEBUGGING INFORMATION\n\n");
+  // printf("EVEN: {");
+  // for (int k = 0; k < 12; k++) printf("%c|", newboard->even_component[k]);
+  // printf("}\n");
+  // printf("ODD: {");
+  // for (int k = 0; k < 13; k++) printf("%c|", newboard->odd_component[k]);
+  // printf("}\n");
   // DEBUG
 
   /* - = 0; o = 1; x = 2; */
-  printf("EVEN COMPONENT SEARCH\n");
+  // DEBUG
+  // printf("EVEN COMPONENT SEARCH\n");
+  // DEBUG
   for (int i = 0; i < even_comp_size; i++) {
     if (i != 4 && i != 9) {
       evaluateEven(i, i - 2, &moves, newboard->even_component, newboard->oppTurn);
@@ -256,7 +260,9 @@ MOVELIST *GenerateMoves(POSITION hash) {
     }
   }
 
-  printf("ODD COMPONENT SEARCH\n");
+  // DEBUG
+  // printf("ODD COMPONENT SEARCH\n");
+  // DEBUG
   for (int j = 0; j < odd_comp_size; j++) {
     if (j != 0 && j != 5 && j != 10) {
       evaluateOdd(j, j + 2, &moves, newboard->odd_component, newboard->oppTurn);
@@ -267,6 +273,8 @@ MOVELIST *GenerateMoves(POSITION hash) {
       evaluateOdd(j, j + 3, &moves, newboard->odd_component, newboard->oppTurn);
     }
   }
+  
+  free(newboard);
 
   // printf("\n");
   
@@ -288,16 +296,20 @@ POSITION DoMove(POSITION hash, MOVE move) {
   // Get current board
   FFK_Board* board = Unhash(hash);
   
-  printf("PREV POSITION HASH: %llu\n", hash);
-  printf("MOVE HASH: %d\n", move);
+  // DEBUG
+  // printf("PREV POSITION HASH: %llu\n", hash);
+  // printf("MOVE HASH: %d\n", move);
+  // DEBUG
 
   // Get move information (from, to = indices in board[25])
   int from, to;
   unhashMove(move, &from, &to);
 
-  printf("final from: %d\n", from);
-  printf("final to: %d\n", to);
-  printf("\n");
+  // DEBUG
+  // printf("final from: %d\n", from);
+  // printf("final to: %d\n", to);
+  // printf("\n");
+  // DEBUG
 
   // Change the oppTurn --> !oppTurn to reflect change in turn
   board->oppTurn = board->oppTurn ? FALSE : TRUE;
@@ -321,19 +333,19 @@ POSITION DoMove(POSITION hash, MOVE move) {
   }
 
   // DEBUG
-  printf("\nPOST DEBUGGING INFORMATION\n\n");
-  printf("EVEN: {");
-  for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
-  printf("}\n");
-  printf("ODD: {");
-  for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
-  printf("}\n");
+  // printf("\nPOST DEBUGGING INFORMATION\n\n");
+  // printf("EVEN: {");
+  // for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
+  // printf("}\n");
+  // printf("ODD: {");
+  // for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
+  // printf("}\n");
   // DEBUG
 
   // Compute hash for post-move
   POSITION result = Hash(board);
-  printf("TURN INFORMATION: %d\n", board->oppTurn);
-  printf("POSITION RESULT IS: %llu\n", result);
+  // printf("TURN INFORMATION: %d\n", board->oppTurn);
+  // printf("POSITION RESULT IS: %llu\n", result);
   free(board);
   return result;
 }
@@ -406,10 +418,14 @@ void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_componen
   int newElem = convertCharToInt(even_component[newPos]);
   int match = oppTurn ? 1 : 2; // if it's the opponent's turn --> o = 1, if it's the player's turn --> x = 2
   if (currElem == match && newElem == 0) {
-    printf("currPos is: %d\n", currPos);
-    printf("newPos is: %d\n", newPos);
-    printf("hashedMove is: %d\n", hashMove(currPos, newPos));
-    printf("\n");
+
+    // DEBUG
+    // printf("currPos is: %d\n", currPos);
+    // printf("newPos is: %d\n", newPos);
+    // printf("hashedMove is: %d\n", hashMove(currPos, newPos));
+    // printf("\n");
+    // DEBUG
+
     *moves = CreateMovelistNode(hashMove(currPos, newPos), *moves);
   }
 }
@@ -422,10 +438,14 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component,
   int newElem = convertCharToInt(odd_component[newPos]);
   int match = oppTurn ? 1 : 2; // if it's the opponent's turn --> o = 1, if it's the player's turn --> x = 2
   if (currElem == match && newElem == 0) {
-    printf("currPos is: %d\n", currPos);
-    printf("newPos is: %d\n", newPos);
-    printf("hashedMove is: %d\n", hashMove(12 + currPos, 12 + newPos));
-    printf("\n");
+
+    // DEBUG
+    // printf("currPos is: %d\n", currPos);
+    // printf("newPos is: %d\n", newPos);
+    // printf("hashedMove is: %d\n", hashMove(12 + currPos, 12 + newPos));
+    // printf("\n");
+    // DEBUG
+
     *moves = CreateMovelistNode(hashMove(12 + currPos, 12 + newPos), *moves);
   }
 }
@@ -556,10 +576,10 @@ FFK_Board* Unhash(POSITION in) {
   if (even_hash >= max_even_hash) even_hash -= max_even_hash;
 
   // DEBUG
-  printf("even hash is: %llu.", even_hash);
-  printf("\n");
-  printf("odd hash is: %llu.", odd_hash);
-  printf("\n");
+  // printf("even hash is: %llu.", even_hash);
+  // printf("\n");
+  // printf("odd hash is: %llu.", odd_hash);
+  // printf("\n");
   // DEBUG
 
   compute_unhash(newBoard->even_component, even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
@@ -745,7 +765,20 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   /* YOUR CODE HERE */
-  return Continue;
+  /* YOUR CODE HERE */
+  USERINPUT ret;
+
+	do {
+    PrintMove(*move);
+		printf("%8s's move:  ", playerName);
+
+		ret = HandleDefaultTextInput(position, move, playerName);
+		if(ret != Continue)
+			return(ret);
+
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /* Return whether the input text signifies a valid move. */
@@ -758,7 +791,7 @@ BOOLEAN ValidTextInput(STRING input) {
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
   /* YOUR CODE HERE */
-  return 0;
+  return atoi(input);
 }
 
 /* Return the string representation of the move. 
@@ -772,6 +805,7 @@ STRING MoveToString(MOVE move) {
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
   /* YOUR CODE HERE */
+  printf("%d", move);
 }
 
 
