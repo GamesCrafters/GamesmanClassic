@@ -393,12 +393,12 @@ VALUE Primitive(POSITION position) {
   BOOLEAN is_win = isWin(board);
   BOOLEAN is_lose = isLose(board);
   BOOLEAN is_tie = isTie(board);
-  BOOLEAN turn = board->oppTurn;
+  BOOLEAN oppTurn = board->oppTurn;
   free(board);
-  if (is_win) {
+  if (is_win && oppTurn) {
     return win;
   }
-  if (is_lose) {
+  if (is_lose && !oppTurn) {
     return lose;
   }
   if (is_tie) {
