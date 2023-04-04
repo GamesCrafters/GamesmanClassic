@@ -380,20 +380,21 @@ POSITION DoMove(POSITION hash, MOVE move) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  POSITION* symmetries = malloc(sizeof(POSITION)*3);
+  POSITION* symmetries = malloc(sizeof(POSITION)*4);
   FFK_Board* board = Unhash(position);
   POSITION canonical = 0;
 
   symmetries[0] = position; // identity
-  yflip(board);
+  yflip(board); // flip by the y-axis
   symmetries[1] = Hash(board); // y-flip
-  yflip(board); // return back to normal
   xflip(board); // flip by the x-axis
   swap(board); // swap piece colors
   board->oppTurn = board->oppTurn ? FALSE : TRUE; // Change the turn
-  symmetries[2] = Hash(board);
+  symmetries[2] = Hash(board); // y-flip, x-flip, swap, change turn
+  yflip(board); // undo flip by y-axis
+  symmetries[3] = Hash(board); // x-flip, swap, change turn
   
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 4; i++) {
     if (symmetries[i] > canonical) {
       canonical = symmetries[i];
     }
