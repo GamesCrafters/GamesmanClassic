@@ -808,19 +808,19 @@ BOOLEAN ValidTextInput(STRING input) {
   if (input[2] != '-') return false;
 
   // Extract characters from string
-  char r1 = input[0];
-  char c1 = input[1];
-  char r2 = input[3];
-  char c2 = input[4];
+  char c1 = input[0];
+  char r1 = input[1];
+  char c2 = input[3];
+  char r2 = input[4];
 
   // Determine if both slots are on the board using ASCII ranges
-  if (r1 < 97 || r1 > 101 || r2 < 97 || r2 > 101)) return false;
-  if (c1 < 49 || c1 > 53 || c2 < 49 || c2 > 53)) return false;
+  if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101)) return false;
+  if (r1 < 49 || r1 > 53 || r2 < 49 || r2 > 53)) return false;
   
   // Use ASCII values to determine 'distance', which guarantees that
   // the piece moves along a valid edge and that it moves a distance
   // of exactly 1
-  if (abs(c1 - c2) != 1 || abs(r1 - r2) != 1) return false;
+  if (abs(r1 - r2) != 1 || abs(c1 - c2) != 1) return false;
 
   return true;
 }
@@ -828,8 +828,33 @@ BOOLEAN ValidTextInput(STRING input) {
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  /* YOUR CODE HERE */
-  return atoi(input);
+  // Convert string to 0-indexed coords. of a 5x5 board matrix
+  int colLetter1 = ((int) input[0]) - 97;
+  int rowNumber1 = ((int) input[1]) - 49;
+  int colLetter2 = ((int) input[3]) - 97;
+  int rowNumber2 = ((int) input[4]) - 49;
+
+  // Flatten 5x5 matrix indices to a 25-length list index
+  int from = colLetter1 + (5*rowNumber1);
+  int to = colLetter2 + (5*rowNumber2);
+
+  // The 12 and 13 indexed 
+  int oddFrom, oddTo, evenFrom, evenTo;
+  BOOLEAN evenMove = true;
+
+  // If the first column index is even, then we are on the odd component
+  if (colLetter1 % 2 == 0) {
+    oddFrom = from/2;
+    oddTo = to/2;
+  } else {
+    evenMove = false;
+    evenFrom = (from-1)/2;
+    evenTo = (to-1)/2;
+  }
+
+  // Encode into our little silly move hash standard
+  if (evenMove) return (MOVE) evenFrom+(25*evenTo);
+  return (MOVE) (12+oddFrom)+(25*(12+oddTo));
 }
 
 /* Return the string representation of the move. 
