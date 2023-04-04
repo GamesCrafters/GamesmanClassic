@@ -121,6 +121,13 @@ void permute(char* target, int* map, int size);
 void rotate(FFK_Board* board);
 void flip(FFK_Board* board);
 
+/* Tier Functions for TierGamesman Support */
+TIERLIST *getTierChildren(TIER tier);
+TIERPOSITION numberOfTierPositions(TIER tier);
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier);
+POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
+POSITION swapTurn(POSITION position);
+
 /* Board hashing functions. */
 POSITION Hash(FFK_Board* board);
 POSITION compute_hash(char board_component[], int slots, int num_x, int num_o);
@@ -203,6 +210,16 @@ void InitializeGame() {
   gMoveToStringFunPtr = &MoveToString;
   gInitialPosition = GetInitialPosition();
   gCanonicalPosition = GetCanonicalPosition;
+
+  /* Tier-Related Initialization */
+  gTierChildrenFunPtr = &getTierChildren;
+  gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
+  gInitialTierPosition = gInitialPosition;
+  kSupportsTierGamesman = TRUE;
+  kExclusivelyTierGamesman = TRUE;
+  gInitialTier = 0; // There will only be one tier and its ID will be 0
+  gUnDoMoveFunPtr = &UndoMove;
+  gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
 }
 
 /* Return the hash value of the initial position. */
@@ -382,7 +399,7 @@ VALUE Primitive(POSITION position) {
   BOOLEAN is_tie = isTie(board);
   free(board);
   if (is_win) {
-    return win;
+    return lose;
   }
   if (is_lose) {
     return lose;
@@ -393,7 +410,21 @@ VALUE Primitive(POSITION position) {
   return undecided;
 }
 
+TIERLIST *getTierChildren(TIER tier) {
+  return CreateTierlistNode(0, NULL);
+}
 
+TIERPOSITION numberOfTierPositions(TIER tier) {
+  return gNumberOfPositions;
+}
+
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
+  return (UNDOMOVELIST *) GenerateMoves(swapTurn(position));
+}
+
+POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
+  return DoMove(swapTurn(position), undoMove);
+}
 
 
 /* SOLVING HELPER FUNCTIONS */
@@ -625,8 +656,8 @@ void precompute_fact(long fact_array[], int limit) {
 /* Swap the turn and return the new hash */
 POSITION swapTurn(POSITION hash) {
   BOOLEAN turn;
-  POSITION even_hash = in % (2*max_even_hash);
-  POSITION odd_hash = in/(2*max_even_hash);
+  POSITION even_hash = hash % (2*max_even_hash);
+  POSITION odd_hash = hash / (2*max_even_hash);
   // if even_hash >= max_even_hash it was the opponent's turn
   // hence, set the turn to FALSE to swap it to your turn
   // and vice versa for
@@ -771,7 +802,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
   USERINPUT ret;
 
 	do {
-    PrintMove(*move);
+    //PrintMove(*move);
 		printf("%8s's move:  ", playerName);
 
 		ret = HandleDefaultTextInput(position, move, playerName);
@@ -791,62 +822,64 @@ columns are numbers:
 Example valid moves: {"a1-b2", "b2-c3", "e4-d5"}. */
 BOOLEAN ValidTextInput(STRING input) {
   // Check for obvious malformations
-  if (strlen(input) != 5) return false;
-  if (input[2] != '-') return false;
+  // if (strlen(input) != 5) return False;
+  // if (input[2] != '-') return false;
 
-  // Extract characters from string
-  char c1 = input[0];
-  char r1 = input[1];
-  char c2 = input[3];
-  char r2 = input[4];
+  // // Extract characters from string
+  // char c1 = input[0];
+  // char r1 = input[1];
+  // char c2 = input[3];
+  // char r2 = input[4];
 
-  // Determine if both slots are on the board using ASCII ranges
-  if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101)) return false;
-  if (r1 < 49 || r1 > 53 || r2 < 49 || r2 > 53)) return false;
+  // // Determine if both slots are on the board using ASCII ranges
+  // if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101)) return false;
+  // if (r1 < 49 || r1 > 53 || r2 < 49 || r2 > 53)) return false;
   
-  // Use ASCII values to determine 'distance', which guarantees that
-  // the piece moves along a valid edge and that it moves a distance
-  // of exactly 1
-  if (abs(r1 - r2) != 1 || abs(c1 - c2) != 1) return false;
+  // // Use ASCII values to determine 'distance', which guarantees that
+  // // the piece moves along a valid edge and that it moves a distance
+  // // of exactly 1
+  // if (abs(r1 - r2) != 1 || abs(c1 - c2) != 1) return false;
 
-  return true;
+  // return true;
+  return TRUE;
 }
 
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  // Convert string to 0-indexed coords. of a 5x5 board matrix
-  int colLetter1 = ((int) input[0]) - 97;
-  int rowNumber1 = ((int) input[1]) - 49;
-  int colLetter2 = ((int) input[3]) - 97;
-  int rowNumber2 = ((int) input[4]) - 49;
+  // // Convert string to 0-indexed coords. of a 5x5 board matrix
+  // int colLetter1 = ((int) input[0]) - 97;
+  // int rowNumber1 = ((int) input[1]) - 49;
+  // int colLetter2 = ((int) input[3]) - 97;
+  // int rowNumber2 = ((int) input[4]) - 49;
 
-  // Flatten 5x5 matrix indices to a 25-length list index
-  int from = colLetter1 + (5*rowNumber1);
-  int to = colLetter2 + (5*rowNumber2);
+  // // Flatten 5x5 matrix indices to a 25-length list index
+  // int from = colLetter1 + (5*rowNumber1);
+  // int to = colLetter2 + (5*rowNumber2);
 
-  // The 12 and 13 indexed 
-  int oddFrom, oddTo, evenFrom, evenTo;
-  BOOLEAN evenMove = true;
+  // // The 12 and 13 indexed 
+  // int oddFrom, oddTo, evenFrom, evenTo;
+  // BOOLEAN evenMove = true;
 
-  // If the first column index is even, then we are on the odd component
-  if (colLetter1 % 2 == 0) {
-    oddFrom = from/2;
-    oddTo = to/2;
-  } else {
-    evenMove = false;
-    evenFrom = (from-1)/2;
-    evenTo = (to-1)/2;
-  }
+  // // If the first column index is even, then we are on the odd component
+  // if (colLetter1 % 2 == 0) {
+  //   oddFrom = from/2;
+  //   oddTo = to/2;
+  // } else {
+  //   evenMove = false;
+  //   evenFrom = (from-1)/2;
+  //   evenTo = (to-1)/2;
+  // }
 
-  // Encode into our little silly move hash standard
-  if (evenMove) return (MOVE) evenFrom+(25*evenTo);
-  return (MOVE) (12+oddFrom)+(25*(12+oddTo));
+  // // Encode into our little silly move hash standard
+  // if (evenMove) return (MOVE) evenFrom+(25*evenTo);
+  // return (MOVE) (12+oddFrom)+(25*(12+oddTo));
+  return atoi(input);
 }
 
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
-type in. This should be the inverse of the above. */
+type in. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
   return NULL;
@@ -854,7 +887,8 @@ STRING MoveToString(MOVE move) {
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  printf("%s", MoveToString(move));
+  /* YOUR CODE HERE */
+  printf("%d", move);
 }
 
 

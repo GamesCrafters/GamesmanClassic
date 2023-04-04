@@ -192,6 +192,9 @@ DODGEM_SO		= $(LIBDIR)/libmdodgem$(LIBSUFFIX)
 FANDAN_EXE		= $(BINDIR)/mfandan$(EXESUFFIX) 
 FANDAN_OBJ		= mfandan$(OBJSUFFIX)
 
+FIVEFIELDKONO_EXE = $(BINDIR)/mfivefieldkono$(EXESUFFIX)
+FIVEFIELDKONO_OBJ = mfivefieldkono$(OBJSUFFIX)
+
 ## Warning: uses computec, and therefore a different tkAppInit.c
 ## Warning: Foxes uses Deprecated API
 ## The above warning does not apply anymore as of 11-10-2005. The C code uses current API now.
