@@ -310,7 +310,7 @@ switchComponent() on this is "(A_e B_e)_s." Need I say more? */
 POSITION GetCanonicalPosition(POSITION position) {
   FFK_Board* board = Unhash(position);
   POSITION symmetries[8];
-  POSITION canonical;
+  POSITION canonical = 0;
 
   // 'Flip only' symmetries
   symmetries[0] = position;  // A_e B_e
