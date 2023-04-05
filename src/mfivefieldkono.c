@@ -117,12 +117,10 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component,
 int convertCharToInt(char char_component);
 
 /* Transformation functions. */
-void xflip(FFK_Board* board);
-void yflip(FFK_Board* board);
 void permute(char* target, int* map, int size);
-void rotate(FFK_Board* board);
-void swap(FFK_Board* board);
-
+void flipComponent(FFK_Board* board, BOOLEAN evenComponent);
+void switchBoard(FFK_Board* board);
+char oppositePiece(char board_char);
 
 /* Tier Functions for TierGamesman Support */
 TIERLIST *getTierChildren(TIER tier);
@@ -186,17 +184,6 @@ char initial_odd_component[13] =
 
 /* BOARD TRANSFORMATION ARRAYS */
 
-/* Describes a board transformation of keeping things the same. This is only
-for convenience and clarity (and dramatic value). */
-int even_identity_pos[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-int odd_identity_pos[13] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-
-/* Describes a board transformation of a 90 degree turn clockwise, 
-where the piece at original[i] ends up at destination[array[i]],
-where 'array' is one of the arrays below. */
-int even_turn_pos[12] = {4, 9, 1, 6, 11, 3, 8, 0, 5, 10, 2, 7};
-int odd_turn_pos[13] = {2, 7, 12, 4, 9, 1, 6, 11, 3, 8, 0, 5, 10};
-
 /* Describes a board transformation of a vertical flip (a reflection
 across the y-axis, so to say). The piece at original[i] should end up 
 at destination[array[i]], where 'array' is one of the arrays below. */
@@ -240,43 +227,15 @@ POSITION GetInitialPosition() {
   for (int i = 0; i < odd_comp_size; i++) 
   initial_board->odd_component[i] = initial_odd_component[i];
   initial_board->oppTurn = FALSE;
-  // printf("EVEN: {");
-  // for (int k = 0; k < 12; k++) printf("%c|", initial_board->even_component[k]);
-  // printf("}\n");
-  // printf("ODD: {");
-  // for (int k = 0; k < 13; k++) printf("%c|", initial_board->odd_component[k]);
-  // printf("}\n");
   POSITION result = Hash(initial_board);
   free(initial_board);
   return result;
 }
 
-// FIXME: evaluate funcs don't need 'turn' anymore
 /* Return a linked list of possible moves. */
-/* always x's turn */
 MOVELIST *GenerateMoves(POSITION hash) {
   FFK_Board *newboard = Unhash(hash);
   MOVELIST *moves = NULL;
-
-  // DEBUG
-  // printf("\nGENERATE MOVES POSITION HASH: %llu\n", hash);
-  // printf("TURN INFORMATION: %d\n", newboard->oppTurn);
-  // DEBUG
-
-  // DEBUG
-  // printf("\nGENERATE MOVES DEBUGGING INFORMATION\n\n");
-  // printf("EVEN: {");
-  // for (int k = 0; k < 12; k++) printf("%c|", newboard->even_component[k]);
-  // printf("}\n");
-  // printf("ODD: {");
-  // for (int k = 0; k < 13; k++) printf("%c|", newboard->odd_component[k]);
-  // printf("}\n");
-  // DEBUG
-
-  /* - = 0; o = 1; x = 2; */
-  // DEBUG
-  // printf("EVEN COMPONENT SEARCH\n");
-  // DEBUG
   for (int i = 0; i < even_comp_size; i++) {
     if (i != 4 && i != 9) {
       evaluateEven(i, i - 2, &moves, newboard->even_component, newboard->oppTurn);
@@ -287,10 +246,6 @@ MOVELIST *GenerateMoves(POSITION hash) {
       evaluateEven(i, i - 3, &moves, newboard->even_component, newboard->oppTurn);
     }
   }
-
-  // DEBUG
-  // printf("ODD COMPONENT SEARCH\n");
-  // DEBUG
   for (int j = 0; j < odd_comp_size; j++) {
     if (j != 0 && j != 5 && j != 10) {
       evaluateOdd(j, j + 2, &moves, newboard->odd_component, newboard->oppTurn);
@@ -301,21 +256,7 @@ MOVELIST *GenerateMoves(POSITION hash) {
       evaluateOdd(j, j + 3, &moves, newboard->odd_component, newboard->oppTurn);
     }
   }
-  
   free(newboard);
-
-  // printf("\n");
-  
-  // printf("PRINT OUT THE MOVELIST NODE INFORMATION!\n");
-  // MOVELIST **copy = &moves;
-  // while (moves != NULL) {
-  //   printf("| %d | ", moves->move);
-  //   moves = moves->next;
-  // }
-  // moves = *copy;
-
-  // printf("\n");
-
   return moves;
 }
 
@@ -323,24 +264,13 @@ MOVELIST *GenerateMoves(POSITION hash) {
 POSITION DoMove(POSITION hash, MOVE move) {
   // Get current board
   FFK_Board* board = Unhash(hash);
-  
-  // DEBUG
-  // printf("PREV POSITION HASH: %llu\n", hash);
-  // printf("MOVE HASH: %d\n", move);
-  // DEBUG
 
   // Get move information (from, to = indices in board[25])
   int from, to;
   unhashMove(move, &from, &to);
 
-  // DEBUG
-  // printf("final from: %d\n", from);
-  // printf("final to: %d\n", to);
-  // printf("\n");
-  // DEBUG
-
   // Change the oppTurn --> !oppTurn to reflect change in turn
-  board->oppTurn = board->oppTurn ? FALSE : TRUE;
+  board->oppTurn = !(board->oppTurn);
 
   if (from < 12) {
     // Piece to be moved is in board->even_component[12] which means
@@ -360,49 +290,55 @@ POSITION DoMove(POSITION hash, MOVE move) {
     board->odd_component[to] = piece;
   }
 
-  // DEBUG
-  // printf("\nPOST DEBUGGING INFORMATION\n\n");
-  // printf("EVEN: {");
-  // for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
-  // printf("}\n");
-  // printf("ODD: {");
-  // for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
-  // printf("}\n");
-  // DEBUG
-
   // Compute hash for post-move
   POSITION result = Hash(board);
-  // printf("TURN INFORMATION: %d\n", board->oppTurn);
-  // printf("POSITION RESULT IS: %llu\n", result);
   free(board);
   return result;
 }
 
-/* Symmetry Handling: Return the canonical position. */
+/* Symmetry Handling: Return the canonical position. For reference:
+"A" - refers to the even component of the board.
+"B" - refers to the odd component of the board.
+"X_e" - refers to the X component of the board with no
+        transformations applied.
+"X_f" - refers to the X component of the board with a
+        y-axis flip applied (defined by flipComponent()).
+"(STATE)_s" - refers to the STATE of the board with a
+              switch (defined by switchComponent()) applied.
+So for example, the board in its base state is "A_e B_e," and doing 
+switchComponent() on this is "(A_e B_e)_s." Need I say more? */
 POSITION GetCanonicalPosition(POSITION position) {
-  POSITION* symmetries = malloc(sizeof(POSITION)*4);
   FFK_Board* board = Unhash(position);
-  POSITION canonical = 0;
+  POSITION symmetries[8];
+  POSITION canonical;
 
-  symmetries[0] = position; // identity
-  yflip(board); // flip by the y-axis
-  symmetries[1] = Hash(board); // y-flip
-  xflip(board); // flip by the x-axis
-  swap(board); // swap piece colors
-  board->oppTurn = board->oppTurn ? FALSE : TRUE; // Change the turn
-  symmetries[2] = Hash(board); // y-flip, x-flip, swap, change turn
-  yflip(board); // undo flip by y-axis
-  symmetries[3] = Hash(board); // x-flip, swap, change turn
+  // 'Flip only' symmetries
+  symmetries[0] = position;  // A_e B_e
+  flipComponent(board, TRUE);
+  symmetries[1] = Hash(board); // A_f B_e
+  flipComponent(board, FALSE);
+  symmetries[2] = Hash(board); // A_f B_f
+  flipComponent(board, TRUE);
+  symmetries[3] = Hash(board); // A_e B_f
+
+  // 'Board switched' symmetries
+  switchBoard(board);
+  symmetries[4] = Hash(board); // (A_e B_f)_s
+  flipComponent(board, TRUE);
+  symmetries[5] = Hash(board); // (A_f B_f)_s
+  flipComponent(board, FALSE);
+  symmetries[6] = Hash(board); // (A_f B_e)_s
+  flipComponent(board, TRUE);
+  symmetries[7] = Hash(board); // (A_e B_e)_s
   
-  for (int i = 0; i < 4; i++) {
+  // Choose the biggest hash as canonical 
+  for (int i = 0; i < 8; i++) {
     if (symmetries[i] > canonical) {
       canonical = symmetries[i];
     }
   }
 
-  free(symmetries);
   free(board);
-
   return canonical;
 }
 
@@ -451,16 +387,8 @@ void evaluateEven(int currPos, int newPos, MOVELIST **moves, char *even_componen
   }
   int currElem = convertCharToInt(even_component[currPos]);
   int newElem = convertCharToInt(even_component[newPos]);
-  int match = oppTurn ? 1 : 2; // if it's the opponent's turn --> o = 1, if it's the player's turn --> x = 2
+  int match = oppTurn ? 1 : 2;
   if (currElem == match && newElem == 0) {
-
-    // DEBUG
-    // printf("currPos is: %d\n", currPos);
-    // printf("newPos is: %d\n", newPos);
-    // printf("hashedMove is: %d\n", hashMove(currPos, newPos));
-    // printf("\n");
-    // DEBUG
-
     *moves = CreateMovelistNode(hashMove(currPos, newPos), *moves);
   }
 }
@@ -471,16 +399,8 @@ void evaluateOdd(int currPos, int newPos, MOVELIST **moves, char *odd_component,
   }
   int currElem = convertCharToInt(odd_component[currPos]);
   int newElem = convertCharToInt(odd_component[newPos]);
-  int match = oppTurn ? 1 : 2; // if it's the opponent's turn --> o = 1, if it's the player's turn --> x = 2
+  int match = oppTurn ? 1 : 2;
   if (currElem == match && newElem == 0) {
-
-    // DEBUG
-    // printf("currPos is: %d\n", currPos);
-    // printf("newPos is: %d\n", newPos);
-    // printf("hashedMove is: %d\n", hashMove(12 + currPos, 12 + newPos));
-    // printf("\n");
-    // DEBUG
-
     *moves = CreateMovelistNode(hashMove(12 + currPos, 12 + newPos), *moves);
   }
 }
@@ -500,32 +420,18 @@ int convertCharToInt(char char_component) {
 
 
 
+
 /* TRANSFORMATION FUNCTIONS */
-
-/* Transforms the board by flipping it horizontally (a reflection
-about the y-axis). */
-void yflip(FFK_Board* board) {
-  permute(board->even_component, even_yflip_pos, even_comp_size);
-  permute(board->odd_component, odd_yflip_pos, odd_comp_size);
-}
-
-/* Transforms the board by flipping it horizontally (a reflection
-about the y-axis). */
-void xflip(FFK_Board* board) {
-  permute(board->even_component, even_xflip_pos, even_comp_size);
-  permute(board->odd_component, odd_xflip_pos, odd_comp_size);
-}
 
 /* Performs an in-place rearrangement of the contents of TARGET as outlined
 by a transformation array MAP, assuming they are both the same SIZE. Does not 
 allocate memory and is linear in the size of the array being permuted. */
 void permute(char* target, int* map, int size) {
-  register int count = 0;
   register int fromIndex = 0;
   register int toIndex = map[fromIndex];
   char temp;
   char displacedChar = target[fromIndex];
-  while (count < size) {
+  for (int count = 0; count < size; count++) {
     temp = displacedChar;
     displacedChar = target[toIndex];
     target[toIndex] = temp;
@@ -535,22 +441,36 @@ void permute(char* target, int* map, int size) {
   }
 }
 
-/* Transforms the board by rotating it 90 degrees clockwise. */
-void rotate(FFK_Board* board) {
-  permute(board->even_component, even_turn_pos, even_comp_size);
-  permute(board->odd_component, odd_turn_pos, odd_comp_size);
-}
-
-void swap(FFK_Board* board) {
-  for (int i = 0; i < even_comp_size; i++) {
-    board->even_component[i] = swapPiece(board->even_component[i]);
-  }
-  for (int j = 0; j < odd_comp_size; j++) {
-    board->odd_component[j] = swapPiece(board->odd_component[j]);
+/* Transforms the board by flipping it horizontally (a reflection
+about the y-axis). */
+void flipComponent(FFK_Board* board, BOOLEAN evenComponent) {
+  if (evenComponent) {
+    permute(board->even_component, even_yflip_pos, even_comp_size);
+  } else {
+    permute(board->odd_component, odd_yflip_pos, odd_comp_size);
   }
 }
 
-char swapPiece(char board_char) {
+/* Switches whose turn it is, replaces each piece with one of the opposite
+color, and flips the board across the x-axis. */
+void switchBoard(FFK_Board* board) {
+  // Flip across the x-axis
+    permute(board->even_component, even_xflip_pos, even_comp_size);
+    permute(board->odd_component, odd_xflip_pos, odd_comp_size);
+
+  // Replace pieces with opposites
+  for (int i = 0; i < even_comp_size; i++)
+    board->even_component[i] = oppositePiece(board->even_component[i]);
+  for (int j = 0; j < odd_comp_size; j++)
+    board->odd_component[j] = oppositePiece(board->odd_component[j]);
+
+  // Switch whose turn it is
+  board->oppTurn = !(board->oppTurn);
+}
+
+/* Replaces a board piece to the opponent's piece type relative to whose
+piece it is. */
+char oppositePiece(char board_char) {
   if (board_char == 'o') return 'x';
   else if (board_char == 'x') return 'o';
   else return '-';
@@ -568,44 +488,17 @@ POSITION Hash(FFK_Board* board) {
   POSITION even_hash = compute_hash(board->even_component, even_comp_size, initial_even_num_x, initial_even_num_o);
   POSITION odd_hash = compute_hash(board->odd_component, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
   int turn = board->oppTurn ? 1 : 0;
-  // DEBUG
-  // printf("hash: %llu", even_hash);
-  // printf("\n");
-  // printf("hash: %llu", odd_hash);
-  // printf("\n");
-  // DEBUG
+
   // odd_hash * (2*max_even_hash) + (2**turn)*even_hash <= 2.4 billion positions
   return odd_hash * (2 * max_even_hash) + ((turn * max_even_hash) + even_hash);
 }
 
 POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
   POSITION total = 0;
-  // DEBUG
-  // printf("\n");
-  // printf("length is: %d", slots);
-  // DEBUG
   int arr_len = slots;
   for (int i = 0; i < arr_len; i++) {
-    // DEBUG
-    // printf("INDEX IS: %d", i);
-    // printf("\n");
-    // printf("total value is: %llu", total);
-    // printf("\n");
-    // DEBUG
     int t1 = rearrangements(slots - 1, num_x, num_o);
     int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
-    // DEBUG
-    // printf("slot value is: %d", slots);
-    // printf("\n");
-    // printf("x value is: %d", num_x);
-    // printf("\n");
-    // printf("o value is: %d", num_o);
-    // printf("\n");
-    // printf("thresh 1 value is: %d", t1);
-    // printf("\n");
-    // printf("thresh 2 value is: %d", t2);
-    // printf("\n");
-    // DEBUG
     if (board_component[i] == 'o') {
       total += t1;
       num_o -= 1;
@@ -615,11 +508,6 @@ POSITION compute_hash(char board_component[], int slots, int num_x, int num_o) {
     }
     slots -= 1;
   }
-  // DEBUG
-  // printf("\n");
-  // printf("\n");
-  // printf("\n");
-  // DEBUG
   return total;
 }
 
@@ -631,14 +519,6 @@ FFK_Board* Unhash(POSITION in) {
   if (even_hash >= max_even_hash) newBoard->oppTurn = TRUE;
   else newBoard->oppTurn = FALSE;
   if (even_hash >= max_even_hash) even_hash -= max_even_hash;
-
-  // DEBUG
-  // printf("even hash is: %llu.", even_hash);
-  // printf("\n");
-  // printf("odd hash is: %llu.", odd_hash);
-  // printf("\n");
-  // DEBUG
-
   compute_unhash(newBoard->even_component, even_hash, even_comp_size, initial_even_num_x, initial_even_num_o);
   compute_unhash(newBoard->odd_component, odd_hash, odd_comp_size, initial_odd_num_x, initial_odd_num_o);
 
@@ -648,18 +528,8 @@ FFK_Board* Unhash(POSITION in) {
 void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o) {
   int idx = 0;
   while (slots > 0) {
-    // DEBUG
-    // printf("hash: %llu", in);
-    // printf("\n");
-    // DEBUG
     int t1 = rearrangements(slots - 1, num_x, num_o);
     int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
-    // DEBUG
-    // printf("thresh 1: %d", t1);
-    // printf("\n");
-    // printf("thresh 2: %d", t2);
-    // printf("\n");
-    // DEBUG
     if (in < t1) {
       board_component[idx] = '-';
     } else if (in < t2) {
@@ -674,7 +544,6 @@ void compute_unhash(char board_component[], POSITION in, int slots, int num_x, i
     slots -= 1;
     idx += 1;
   }
-  // printf("\n");
 }
 
 /* Returns the amount of ways to put X x's and O o's into SLOTS slots. */
@@ -790,20 +659,6 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   FFK_Board* board = Unhash(position);
   if (usersTurn) printf("%s's move.\n", playerName);
-
-  // DEBUG
-  // printf("\nSTART DEBUGGING INFORMATION\n\n");
-  // printf("factorial: {");
-  // for (int k = 0; k < 14; k++) printf("%ld|", fact_array[k]);
-  // printf("}\n");
-  // printf("EVEN: {");
-  // for (int k = 0; k < 12; k++) printf("%c|", board->even_component[k]);
-  // printf("}\n");
-  // printf("ODD: {");
-  // for (int k = 0; k < 13; k++) printf("%c|", board->odd_component[k]);
-  // printf("}\n");
-  // DEBUG
-
   char* fb = malloc(sizeof(char)*25);
   for (int i = 1; i < 26; i++) {
     if (i % 2 == 0) {
@@ -814,17 +669,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
       fb[i-1] = (curr == '-') ? ' ' : curr;
     }
   }
-
-  // DEBUG
-  // printf("FB: {");
-  // for (int k = 0; k < 25; k++) printf("%c|", fb[k]);
-  // printf("}\n");
-  // printf("\nEND DEBUGGING INFORMATION\n\n");
-  // DEBUG
-
-  // *shamelessly puts on sunglasses
   for (int j = 0; j < 4; j++) 
-  printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
+    printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
   printf("(%c) (%c) (%c) (%c) (%c) \n", fb[20], fb[21], fb[22], fb[23], fb[24]);
   free(fb);
   free(board);
@@ -860,59 +706,57 @@ columns are numbers:
 Example valid moves: {"a1-b2", "b2-c3", "e4-d5"}. */
 BOOLEAN ValidTextInput(STRING input) {
   // Check for obvious malformations
-  // if (strlen(input) != 5) return False;
-  // if (input[2] != '-') return false;
+  if (strlen(input) != 5) return FALSE;
+  if (input[2] != '-') return FALSE;
 
-  // // Extract characters from string
-  // char c1 = input[0];
-  // char r1 = input[1];
-  // char c2 = input[3];
-  // char r2 = input[4];
+  // Extract characters from string
+  char c1 = input[0];
+  char r1 = input[1];
+  char c2 = input[3];
+  char r2 = input[4];
 
-  // // Determine if both slots are on the board using ASCII ranges
-  // if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101)) return false;
-  // if (r1 < 49 || r1 > 53 || r2 < 49 || r2 > 53)) return false;
+  // Determine if both slots are on the board using ASCII ranges
+  if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101) return FALSE;
+  if (r1 < 49 || r1 > 53 || r2 < 49 || r2 > 53) return FALSE;
   
-  // // Use ASCII values to determine 'distance', which guarantees that
-  // // the piece moves along a valid edge and that it moves a distance
-  // // of exactly 1
-  // if (abs(r1 - r2) != 1 || abs(c1 - c2) != 1) return false;
+  // Use ASCII values to determine 'distance', which guarantees that
+  // the piece moves along a valid edge and that it moves a distance
+  // of exactly 1
+  if (abs(r1 - r2) != 1 || abs(c1 - c2) != 1) return FALSE;
 
-  // return true;
   return TRUE;
 }
 
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  // // Convert string to 0-indexed coords. of a 5x5 board matrix
-  // int colLetter1 = ((int) input[0]) - 97;
-  // int rowNumber1 = ((int) input[1]) - 49;
-  // int colLetter2 = ((int) input[3]) - 97;
-  // int rowNumber2 = ((int) input[4]) - 49;
+  // Convert string to 0-indexed coords. of a 5x5 board matrix
+  int colLetter1 = ((int) input[0]) - 97;
+  int rowNumber1 = ((int) input[1]) - 49;
+  int colLetter2 = ((int) input[3]) - 97;
+  int rowNumber2 = ((int) input[4]) - 49;
 
-  // // Flatten 5x5 matrix indices to a 25-length list index
-  // int from = colLetter1 + (5*rowNumber1);
-  // int to = colLetter2 + (5*rowNumber2);
+  // Flatten 5x5 matrix indices to a 25-length list index
+  int from = colLetter1 + (5*rowNumber1);
+  int to = colLetter2 + (5*rowNumber2);
 
-  // // The 12 and 13 indexed 
-  // int oddFrom, oddTo, evenFrom, evenTo;
-  // BOOLEAN evenMove = true;
+  // The 12 and 13 indexed 
+  int oddFrom, oddTo, evenFrom, evenTo;
+  BOOLEAN evenMove = TRUE;
 
-  // // If the first column index is even, then we are on the odd component
-  // if (colLetter1 % 2 == 0) {
-  //   oddFrom = from/2;
-  //   oddTo = to/2;
-  // } else {
-  //   evenMove = false;
-  //   evenFrom = (from-1)/2;
-  //   evenTo = (to-1)/2;
-  // }
+  // If the first column index is even, then we are on the odd component
+  if (colLetter1 % 2 == 0) {
+    oddFrom = from/2;
+    oddTo = to/2;
+  } else {
+    evenMove = FALSE;
+    evenFrom = (from-1)/2;
+    evenTo = (to-1)/2;
+  }
 
-  // // Encode into our little silly move hash standard
-  // if (evenMove) return (MOVE) evenFrom+(25*evenTo);
-  // return (MOVE) (12+oddFrom)+(25*(12+oddTo));
-  return atoi(input);
+  // Encode into our little silly move hash standard
+  if (evenMove) return (MOVE) evenFrom+(25*evenTo);
+  return (MOVE) (12+oddFrom)+(25*(12+oddTo));
 }
 
 /* Return the string representation of the move. 
