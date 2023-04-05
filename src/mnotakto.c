@@ -185,10 +185,154 @@ VALUE Primitive(POSITION position) {
   return win;
 }
 
+void rotateBoard(char* board, char* target) {
+  /*
+    0 1 2    6 3 0 
+    3 4 5 => 7 4 1
+    6 7 8    8 5 2
+  */
+
+  int indices[] = {6, 3, 0, 7, 4, 1, 8, 5, 2};
+
+  for (int i = 0; i < 9; i++) {
+    target[i] = board[indices[i]];
+  }
+}
+
+void horizontalBoard(char* board, char* target) {
+  /*
+    0 1 2    6 7 8
+    3 4 5 => 3 4 5
+    6 7 8    0 1 2
+  */
+
+  int indices[] = {6, 7, 8, 3, 4, 5, 0, 1, 2};
+
+  for (int i = 0; i < 9; i++) {
+    target[i] = board[indices[i]];
+  }
+}
+
+void verticalBoard(char* board, char* target) {
+  /*
+    0 1 2    2 1 0
+    3 4 5 => 5 4 3
+    6 7 8    8 7 6
+  */
+
+  int indices[] = {2, 1, 0, 5, 4, 3, 8, 7, 6};
+
+  for (int i = 0; i < 9; i++) {
+    target[i] = board[indices[i]];
+  }
+}
+
+POSITION min(POSITION a, POSITION b) {
+  return a < b ? a : b;
+}
+
+POSITION GetCanonicalPositionOne(POSITION position) {
+  char options[12][9];
+  generic_hash_unhash(position, options[0]);
+
+  int player = generic_hash_turn(position);
+
+  // 4 rotations
+  for (int i = 1; i < 4; i++) {
+    rotateBoard(options[i - 1], options[i]);
+  }
+
+  // 8 flips
+  for (int i = 0; i < 4; i++) {
+    horizontalBoard(options[i], options[i + 4]);
+  }
+
+  for (int i = 0; i < 4; i++) {
+    verticalBoard(options[i], options[i + 8]);
+  }
+
+  POSITION best = generic_hash_hash(options[0], player);
+
+  for (int i = 1; i < 12; i++) {
+    best = min(best, generic_hash_hash(options[i], player));
+  }
+
+  return best;
+}
+
+POSITION GetCanonicalPositionTwo(POSITION position) {
+  char options[2][18];
+  char board[18];
+  generic_hash_unhash(position, board);
+
+  int player = generic_hash_turn(position);
+
+  // (0, 1), (1, 0)
+  int orders[6][3] = {{0, 1}, {1, 0}};
+
+  char first[9];
+  char second[9];
+
+  memcpy(first, options[0], 9);
+  memcpy(second, &options[0][9], 9);
+
+  for (int i = 0; i < 2; i++) {
+    memcpy(&options[i][0], &board[orders[i][0] * 9], 9);
+    memcpy(&options[i][9], &board[orders[i][1] * 9], 9);
+  }
+
+  POSITION best = position;
+
+  for (int i = 1; i < 6; i++) {
+    best = min(best, generic_hash_hash(options[i], player));
+  }
+
+  return best;
+}
+
+POSITION GetCanonicalPositionThree(POSITION position) {
+  char options[6][27];
+  char board[27];
+  generic_hash_unhash(position, board);
+
+  int player = generic_hash_turn(position);
+
+  // (0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 1, 0), (2, 0, 1)
+  int orders[6][3] = {{0, 1, 2}, {0, 2, 1}, {1, 0, 2}, {1, 2, 0}, {2, 1, 0}, {2, 0, 1}};
+
+  char first[9];
+  char second[9];
+  char third[9];
+
+  memcpy(first, options[0], 9);
+  memcpy(second, &options[0][9], 9);
+  memcpy(third, &options[0][18], 9);
+
+  for (int i = 0; i < 6; i++) {
+    memcpy(&options[i][0], &board[orders[i][0] * 9], 9);
+    memcpy(&options[i][9], &board[orders[i][1] * 9], 9);
+    memcpy(&options[i][18], &board[orders[i][2] * 9], 9);
+  }
+
+  POSITION best = position;
+
+  for (int i = 1; i < 6; i++) {
+    best = min(best, generic_hash_hash(options[i], player));
+  }
+
+  return best;
+}
+
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  /* YOUR CODE HERE */
-  // TODO
+  if (numberOfBoards == 1) {
+    return GetCanonicalPositionOne(position);
+  } else if (numberOfBoards == 2) {
+    return GetCanonicalPositionTwo(position);
+  } else if (numberOfBoards == 3) {
+    return GetCanonicalPositionThree(position);
+  }
+
   return position;
 }
 
@@ -345,17 +489,50 @@ void setOption(int option) {
 
 
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
 POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE */
-  return 0;
+  // Ignore the first 8 characters
+  char realBoard[boardSize];
+
+  int count = 0;
+
+  for (int i = 0; i < boardSize; i++) {
+    if (board[i + 8] == 'X') {
+      realBoard[i] = 'X';
+      count++;
+    } else {
+      realBoard[i] = ' ';
+    }
+  }
+
+  return generic_hash_hash(realBoard, (count % 2) + 1);
 }
 
 STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE */
-  return NULL;
+  char board[boardSize];
+  generic_hash_unhash(position, board);
+
+  // R_A_0_0_TG-T-S--H
+  STRING result = (STRING) SafeMalloc(9 + boardSize);
+  result[0] = 'R';
+  result[1] = '_';
+  result[2] = 'C';
+  result[3] = '_';
+  result[4] = '0';
+  result[5] = '_';
+  result[6] = '0';
+  result[7] = '_';
+
+  for (int i = 0; i < boardSize; i++) {
+    if (board[i] == 'X') {
+      result[8 + i] = 'X';
+    } else {
+      result[8 + i] = '-';
+    }
+  }
+
+  result[8 + boardSize] = '\0';
+
+  return result;
 }
 
 /* Optional. */
@@ -364,6 +541,9 @@ STRING InteractPositionToEndData(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE */
-  return MoveToString(move);
+  STRING result = (STRING) SafeMalloc(8);
+
+  sprintf(result, "A_-_%d", move);
+
+  return result;
 }
