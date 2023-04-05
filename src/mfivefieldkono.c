@@ -350,10 +350,7 @@ VALUE Primitive(POSITION position) {
   BOOLEAN is_lose = isLose(board);
   BOOLEAN is_tie = isTie(board);
   free(board);
-  if (is_win) {
-    return lose;
-  }
-  if (is_lose) {
+  if (is_win || is_lose) {
     return lose;
   }
   if (is_tie) {
@@ -362,20 +359,41 @@ VALUE Primitive(POSITION position) {
   return undecided;
 }
 
+/* The tier graph is just a single tier with id=0. */
 TIERLIST *getTierChildren(TIER tier) {
   return CreateTierlistNode(0, NULL);
 }
 
+/* We use a single tier for this entire game. This
+is returns the upper bound */
 TIERPOSITION numberOfTierPositions(TIER tier) {
   return gNumberOfPositions;
 }
 
+/* Return a linked list of all possible moves that could have been made in
+order to arrive at the input position. The movement rules of FFK are
+nice in that we can reuse GenerateMoves on the position with the turn 
+swapped. The result of GenerateMoes can be our undoMoves, except that we 
+need to filter out moves that come from primitive positions.
+There is only one tier, so all undoMoves will lead to previous positions
+that are in the same tier, so tier is ignored. */
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
-  return (UNDOMOVELIST *) GenerateMoves(swapTurn(position));
+  MOVELIST *moves = GenerateMoves(swapTurn(position));
+  MOVELIST *head = moves;
+  UNDOMOVELIST *undoMoves = NULL;
+  while (moves != NULL) {
+    if (Primitive(UndoMove(position, moves->move)) == undecided) {
+      undoMoves = CreateUndoMovelistNode(moves->move, undoMoves);
+    }
+    moves = moves->next;
+  }
+  FreeMoveList(head);
+  return undoMoves;
 }
 
+/* Return the parent position given the undoMove. */
 POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
-  return DoMove(swapTurn(position), undoMove);
+  return swapTurn(DoMove(swapTurn(position), undoMove));
 }
 
 
@@ -607,8 +625,10 @@ BOOLEAN isLose(FFK_Board* board) {
 BOOLEAN isTie(FFK_Board* board) {
   MOVELIST *possible_moves = GenerateMoves(Hash(board));
   if (possible_moves == NULL) {
+    FreeMoveList(possible_moves);
     return TRUE;
   }
+  FreeMoveList(possible_moves);
   return FALSE;
 }
 
