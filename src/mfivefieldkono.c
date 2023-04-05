@@ -455,8 +455,8 @@ void flipComponent(FFK_Board* board, BOOLEAN evenComponent) {
 color, and flips the board across the x-axis. */
 void switchBoard(FFK_Board* board) {
   // Flip across the x-axis
-    permute(board->even_component, even_xflip_pos, even_comp_size);
-    permute(board->odd_component, odd_xflip_pos, odd_comp_size);
+  permute(board->even_component, even_xflip_pos, even_comp_size);
+  permute(board->odd_component, odd_xflip_pos, odd_comp_size);
 
   // Replace pieces with opposites
   for (int i = 0; i < even_comp_size; i++)
