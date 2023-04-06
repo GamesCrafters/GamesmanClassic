@@ -310,7 +310,7 @@ switchComponent() on this is "(A_e B_e)_s." Need I say more? */
 POSITION GetCanonicalPosition(POSITION position) {
   FFK_Board* board = Unhash(position);
   POSITION symmetries[8];
-  POSITION canonical = 0;
+  POSITION canonical = gNumberOfPositions;
 
   // 'Flip only' symmetries
   symmetries[0] = position;  // A_e B_e
@@ -331,9 +331,9 @@ POSITION GetCanonicalPosition(POSITION position) {
   flipComponent(board, TRUE);
   symmetries[7] = Hash(board); // (A_e B_e)_s
   
-  // Choose the biggest hash as canonical 
+  // Choose the smallest hash as canonical 
   for (int i = 0; i < 8; i++) {
-    if (symmetries[i] > canonical) {
+    if (symmetries[i] < canonical) {
       canonical = symmetries[i];
     }
   }
@@ -685,6 +685,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   for (int j = 0; j < 4; j++) 
     printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
   printf("(%c) (%c) (%c) (%c) (%c) \n", fb[20], fb[21], fb[22], fb[23], fb[24]);
+  printf("TURN: %c\n", (board->oppTurn) ? 'o' : 'x');
   free(fb);
   free(board);
 }
