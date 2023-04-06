@@ -445,18 +445,11 @@ int convertCharToInt(char char_component) {
 by a transformation array MAP, assuming they are both the same SIZE. Does not 
 allocate memory and is linear in the size of the array being permuted. */
 void permute(char* target, int* map, int size) {
-  register int fromIndex = 0;
-  register int toIndex = map[fromIndex];
-  char temp;
-  char displacedChar = target[fromIndex];
-  for (int count = 0; count < size; count++) {
-    temp = displacedChar;
-    displacedChar = target[toIndex];
-    target[toIndex] = temp;
-    fromIndex = toIndex;
-    toIndex = map[toIndex];
-    count += 1;
+  char temp[size];
+  for (int i = 0; i < size; i++) {
+    temp[i] = target[map[i]];
   }
+  memcpy(target, temp, size * sizeof(char));
 }
 
 /* Transforms the board by flipping it horizontally (a reflection
