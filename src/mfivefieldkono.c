@@ -207,6 +207,7 @@ void InitializeGame() {
   gMoveToStringFunPtr = &MoveToString;
   gInitialPosition = GetInitialPosition();
   gCanonicalPosition = GetCanonicalPosition;
+  gSymmetries = TRUE;
 
   /* Tier-Related Initialization */
   gTierChildrenFunPtr = &getTierChildren;
@@ -686,6 +687,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
   printf("(%c) (%c) (%c) (%c) (%c) \n", fb[20], fb[21], fb[22], fb[23], fb[24]);
   printf("TURN: %c\n", (board->oppTurn) ? 'o' : 'x');
+  printf("%s\n", GetPrediction(position, playerName, usersTurn));
   free(fb);
   free(board);
 }

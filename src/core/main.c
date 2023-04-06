@@ -158,10 +158,7 @@ VALUE DetermineValue(POSITION position)
 		InitializeQuartoDB();
 		printf("Done loading quarto database.\n");
 	} else if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
-		BOOLEAN usingLookupTierDB = FALSE;
-		if (gIsInteract) {
-			usingLookupTierDB = ReinitializeTierDB();
-		}
+		BOOLEAN usingLookupTierDB = ReinitializeTierDB();
 		gSolver = &DetermineRetrogradeValue; // force the retrograde solver
 		gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
 		if (gPrintDatabaseInfo)
