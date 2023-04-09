@@ -655,19 +655,21 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos) {
 
 /* This will print the board in the following format:
 
-  (o) (o) (o) (o) (o)
-    \ / \ / \ / \ /  
-    / \ / \ / \ / \  
-  (o) ( ) ( ) ( ) (o)
-    \ / \ / \ / \ /  
-    / \ / \ / \ / \  
-  ( ) ( ) ( ) ( ) ( )
-    \ / \ / \ / \ /  
-    / \ / \ / \ / \  
-  (x) ( ) ( ) ( ) (x)
-    \ / \ / \ / \ /  
-    / \ / \ / \ / \  
-  (x) (x) (x) (x) (x)
+  5   (o) (o) (o) (o) (o)
+        \ / \ / \ / \ /  
+        / \ / \ / \ / \  
+  4   (o) ( ) ( ) ( ) (o)
+        \ / \ / \ / \ /  
+        / \ / \ / \ / \  
+  3   ( ) ( ) ( ) ( ) ( )
+        \ / \ / \ / \ /  
+        / \ / \ / \ / \  
+  2   (x) ( ) ( ) ( ) (x)
+        \ / \ / \ / \ /  
+        / \ / \ / \ / \  
+  1   (x) (x) (x) (x) (x)
+ 
+       A   B   C   D   E 
 
 */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
@@ -683,10 +685,16 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
       fb[i-1] = (curr == '-') ? ' ' : curr;
     }
   }
-  for (int j = 0; j < 4; j++) 
-    printf("(%c) (%c) (%c) (%c) (%c) \n  \\ / \\ / \\ / \\ /   \n  / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
-  printf("(%c) (%c) (%c) (%c) (%c) \n", fb[20], fb[21], fb[22], fb[23], fb[24]);
-  printf("TURN: %c\n", (board->oppTurn) ? 'o' : 'x');
+  for (int j = 0; j < 4; j++) {
+    if (j == 0) printf("E");
+    if (j == 1) printf("D");
+    if (j == 2) printf("C");
+    if (j == 3) printf("B");
+    printf("   (%c) (%c) (%c) (%c) (%c) \n      \\ / \\ / \\ / \\ /   \n      / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
+  }
+  printf("A   (%c) (%c) (%c) (%c) (%c) \n\n", fb[20], fb[21], fb[22], fb[23], fb[24]);
+  printf("     1   2   3   4   5 ");
+  printf("\tTURN: %c\n", (board->oppTurn) ? 'o' : 'x');
   printf("%s\n", GetPrediction(position, playerName, usersTurn));
   free(fb);
   free(board);
@@ -747,21 +755,21 @@ BOOLEAN ValidTextInput(STRING input) {
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
   // Convert string to 0-indexed coords. of a 5x5 board matrix
-  int colLetter1 = ((int) input[0]) - 97;
-  int rowNumber1 = ((int) input[1]) - 49;
-  int colLetter2 = ((int) input[3]) - 97;
-  int rowNumber2 = ((int) input[4]) - 49;
+  int rowLetter1 = ((int) input[0]) - ((int) 'a');
+  int colNumber1 = ((int) input[1]) - ((int) '1');
+  int rowLetter2 = ((int) input[3]) - ((int) 'a');
+  int colNumber2 = ((int) input[4]) - ((int) '1');
 
   // Flatten 5x5 matrix indices to a 25-length list index
-  int from = colLetter1 + (5*rowNumber1);
-  int to = colLetter2 + (5*rowNumber2);
+  int from = colNumber1 + (20-(5*rowLetter1));
+  int to = colNumber2 + (20-(5*rowLetter2));
 
   // The 12 and 13 indexed 
   int oddFrom, oddTo, evenFrom, evenTo;
   BOOLEAN evenMove = TRUE;
 
   // If the first column index is even, then we are on the odd component
-  if (colLetter1 % 2 == 0) {
+  if (from % 2 == 0) {
     oddFrom = from/2;
     oddTo = to/2;
   } else {
@@ -769,6 +777,14 @@ MOVE ConvertTextInputToMove(STRING input) {
     evenFrom = (from-1)/2;
     evenTo = (to-1)/2;
   }
+
+  printf("\nDEBUG\n1 is even, 0 is odd: %d\n", evenMove);
+  printf("oddFrom: %d\n", oddFrom);
+  printf("oddTo: %d\n", oddTo);
+  printf("evenFrom: %d\n", evenFrom);
+  printf("evenTo: %d\n", evenTo);
+  printf("even move: %d\n", evenFrom+(25*evenTo));
+  printf("odd move: %d\n", (12+oddFrom)+(25*(12+oddTo)));
 
   // Encode into our little silly move hash standard
   if (evenMove) return (MOVE) evenFrom+(25*evenTo);
