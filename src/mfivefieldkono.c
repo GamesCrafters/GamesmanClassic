@@ -742,7 +742,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
     availableMoves(position);
     printf("\n");
     printf("  Supported Input Formats:\n");
-    printf("  %8s: (Select one of the base 25 hash number on the 'Available Hash Moves')\n", "Format 1");
+    printf("  %8s: (Select one of the base 25 hash numbers on the 'Available Hash Moves')\n", "Format 1");
     printf("  %8s: (currrent position)-(next position)\n", "Format 2");
     printf("\n");
 		printf("%8s's move:  ", playerName);
@@ -759,19 +759,20 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 void availableMoves(POSITION position) {
   MOVELIST *available_moves = GenerateMoves(position);
   MOVELIST *ptr = available_moves;
-    printf("  %8s: \n", "Available Hash Moves");
-    while (ptr != NULL) {
-      MOVE move_val = ptr->move;
-      int from, to;
-      unhashMove(move_val, &from, &to);
-      char fromToAlpha = posToAlpha[from];
-      char toToAlpha = posToAlpha[to];
-      int fromToIdx = posToIdx[from];
-      int toToIdx = posToIdx[to];
-      printf("  %d: (%c%d-%c%d) \n", move_val, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
-      ptr = ptr->next;
-    }
-    FreeMoveList(available_moves);
+  printf("  %8s: \n", "Available Hash Moves {Hash Number: (Current Position)-(Next Position)}");
+  while (ptr != NULL) {
+    MOVE move_val = ptr->move;
+    int from, to;
+    unhashMove(move_val, &from, &to);
+    char fromToAlpha = posToAlpha[from];
+    char toToAlpha = posToAlpha[to];
+    int fromToIdx = posToIdx[from];
+    int toToIdx = posToIdx[to];
+    printf("  {%d: (%c%d-%c%d)} ", move_val, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+    ptr = ptr->next;
+  }
+  FreeMoveList(available_moves);
+  printf("\n");
 }
 
 /* Return whether the input text signifies a valid move. Rows are letters, and
