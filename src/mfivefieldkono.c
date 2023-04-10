@@ -741,7 +741,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
     /* List of available moves */
     availableMoves(position);
     printf("\n");
-    printf("%8s: (currrent position)-(next position)\n", "Format");
+    printf("%8s: (currrent position)-(next position)\n", "Format 1");
+    printf("%8s: (Select one of the base 25 hash number on the available moves)\n", "Format 2");
 		printf("%8s's move:  ", playerName);
 
 		ret = HandleDefaultTextInput(position, move, playerName);
@@ -755,9 +756,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
 void availableMoves(POSITION position) {
   MOVELIST *available_moves = GenerateMoves(position);
-  int i = 1;
   MOVELIST *ptr = available_moves;
-    printf("  %8s: \n", "Available Moves");
+    printf("  %8s: \n", "Available Hash Moves");
     while (ptr != NULL) {
       MOVE move_val = ptr->move;
       int from, to;
@@ -766,9 +766,8 @@ void availableMoves(POSITION position) {
       char toToAlpha = posToAlpha[to];
       int fromToIdx = posToIdx[from];
       int toToIdx = posToIdx[to];
-      printf("  %d. (%c%d-%c%d) \n", i, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+      printf("  %d: (%c%d-%c%d) \n", move_val, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
       ptr = ptr->next;
-      i += 1;
     }
     FreeMoveList(available_moves);
 }
@@ -781,67 +780,61 @@ columns are numbers:
 Example valid moves: {"a1-b2", "b2-c3", "e4-d5"}. */
 BOOLEAN ValidTextInput(STRING input) {
   // Check for obvious malformations
-  if (strlen(input) != 5) return FALSE;
-  if (input[2] != '-') return FALSE;
+  if (strlen(input) == 5) {
+    if (input[2] != '-') return FALSE;
 
-  // Extract characters from string
-  char c1 = (char) tolower(input[0]);
-  char r1 = (char) tolower(input[1]);
-  char c2 = (char) tolower(input[3]);
-  char r2 = (char) tolower(input[4]);
+    // Extract characters from string
+    char c1 = (char) tolower(input[0]);
+    int r1 = atoi(&input[1]);
+    char c2 = (char) tolower(input[3]);
+    int r2 = atoi(&input[4]);
 
-  // Determine if both slots are on the board using ASCII ranges
-  if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101) return FALSE;
-  if (r1 < 49 || r1 > 53 || r2 < 49 || r2 > 53) return FALSE;
-  
-  // Use ASCII values to determine 'distance', which guarantees that
-  // the piece moves along a valid edge and that it moves a distance
-  // of exactly 1
-  if (abs(r1 - r2) != 1 || abs(c1 - c2) != 1) return FALSE;
+    // Determine if both slots are on the board using ASCII ranges
+    if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101) return FALSE;
+    if (r1 < 1 || r1 > 5 || r2 < 1 || r2 > 5) return FALSE;
+    
+    // Use ASCII values to determine 'distance', which guarantees that
+    // the piece moves along a valid edge and that it moves a distance
+    // of exactly 1
+    if (abs(r1 - r2) != 1 || abs(c1 - c2) != 1) return FALSE;
 
-  return TRUE;
+    return TRUE;
+  } else if (strlen(input) <= 3) {
+    int inputToHash = atoi(input);
+    if (inputToHash >= 650 || inputToHash <= 0) return FALSE;
+    else {
+      int from, to;
+      unhashMove(inputToHash, &from, &to);
+      if (abs(from - to) == 3 || abs(from - to) == 2) return TRUE;
+      else return FALSE;
+    }
+  } else {
+    return FALSE;
+  }
 }
 
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  // Convert string to 0-indexed coords. of a 5x5 board matrix
-  int rowLetter1 = ((int) input[0]) - ((int) 'a');
-  int colNumber1 = ((int) input[1]) - ((int) '1');
-  int rowLetter2 = ((int) input[3]) - ((int) 'a');
-  int colNumber2 = ((int) input[4]) - ((int) '1');
-
-  // Flatten 5x5 matrix indices to a 25-length list index
-  int from = colNumber1 + (20-(5*rowLetter1));
-  int to = colNumber2 + (20-(5*rowLetter2));
-
-  // The 12 and 13 indexed 
-  int oddFrom, oddTo, evenFrom, evenTo;
-  BOOLEAN evenMove = TRUE;
-
-  // If the first column index is even, then we are on the odd component
-  if (from % 2 == 0) {
-    oddFrom = from/2;
-    oddTo = to/2;
+  printf("hello here:");
+  if (strlen(input) <= 3) {
+    printf("bye here:");
+    return atoi(input);
   } else {
-    evenMove = FALSE;
-    evenFrom = (from-1)/2;
-    evenTo = (to-1)/2;
+    int from = -1;
+    int to = -1;
+    char c1 = (char) tolower(input[0]);
+    int r1 = atoi(&input[1]);
+    char c2 = (char) tolower(input[3]);
+    int r2 = atoi(&input[4]);
+    for (int i = 0; i < 25; i++) {
+      char currAlpha = (char) tolower(posToAlpha[i]);
+      int currIdx = (int) posToIdx[i];
+      if (currAlpha == c1 && currIdx == r1) from = i;
+      if (currAlpha == c2 && currIdx == r2) to = i;
+    }
+    return hashMove(from, to);
   }
-
-  // DEBUG
-  // printf("\nDEBUG\n1 is even, 0 is odd: %d\n", evenMove);
-  // printf("oddFrom: %d\n", oddFrom);
-  // printf("oddTo: %d\n", oddTo);
-  // printf("evenFrom: %d\n", evenFrom);
-  // printf("evenTo: %d\n", evenTo);
-  // printf("even move: %d\n", evenFrom+(25*evenTo));
-  // printf("odd move: %d\n", (12+oddFrom)+(25*(12+oddTo)));
-  // DEBUG
-
-  // Encode into our little silly move hash standard
-  if (evenMove) return (MOVE) evenFrom+(25*evenTo);
-  return (MOVE) (12+oddFrom)+(25*(12+oddTo));
 }
 
 /* Return the string representation of the move. 
@@ -849,7 +842,20 @@ Ideally this matches with what the user is supposed to
 type in. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
-  return NULL;
+  int from, to;
+  unhashMove(move, &from, &to);
+  char fromToAlpha = posToAlpha[from];
+  char toToAlpha = posToAlpha[to];
+  char fromToIdx = (char) posToIdx[from];
+  char toToIdx = (char) posToIdx[to];
+  STRING output = (STRING) malloc(6*sizeof(char));
+  output[0] = fromToAlpha;
+  output[1] = fromToIdx;
+  output[2] = '-';
+  output[3] = toToAlpha;
+  output[4] = toToIdx;
+  output[5] = '\0';
+  return output;
 }
 
 /* Basically just print the move. */
@@ -861,7 +867,7 @@ void PrintMove(MOVE move) {
   char toToAlpha = posToAlpha[to];
   int fromToIdx = posToIdx[from];
   int toToIdx = posToIdx[to];
-  printf("(%c%d-%c%d)", fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+  printf("%d: (%c%d-%c%d)", move, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
 }
 
 
