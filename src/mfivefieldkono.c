@@ -741,8 +741,10 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
     /* List of available moves */
     availableMoves(position);
     printf("\n");
-    printf("%8s: (currrent position)-(next position)\n", "Format 1");
-    printf("%8s: (Select one of the base 25 hash number on the available moves)\n", "Format 2");
+    printf("  Supported Input Formats:\n");
+    printf("  %8s: (Select one of the base 25 hash number on the 'Available Hash Moves')\n", "Format 1");
+    printf("  %8s: (currrent position)-(next position)\n", "Format 2");
+    printf("\n");
 		printf("%8s's move:  ", playerName);
 
 		ret = HandleDefaultTextInput(position, move, playerName);
@@ -816,9 +818,7 @@ BOOLEAN ValidTextInput(STRING input) {
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  printf("hello here:");
   if (strlen(input) <= 3) {
-    printf("bye here:");
     return atoi(input);
   } else {
     int from = -1;
@@ -867,7 +867,7 @@ void PrintMove(MOVE move) {
   char toToAlpha = posToAlpha[to];
   int fromToIdx = posToIdx[from];
   int toToIdx = posToIdx[to];
-  printf("%d: (%c%d-%c%d)", move, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+  printf("{%d: (%c%d-%c%d)}", move, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
 }
 
 
