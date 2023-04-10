@@ -1,37 +1,112 @@
 /************************************************************************
 **
-** NAME:        m<your game name>.c
+** NAME:        mfivefieldkono.c
 **
-** DESCRIPTION: <Your Game Name> (use this spacing and case)
+** DESCRIPTION: Five-Field Kono
 **
-** AUTHOR:      Firstname Lastname
+** AUTHOR:      Andrew Lee
 **
-** DATE:        YYYY-MM-DD
+** DATE:        2023-02-24
 **
 ************************************************************************/
 
 #include <stdio.h>
+#include <math.h>
 #include "gamesman.h"
 
-/* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Firstname Lastname";
-STRING kGameName = "Your Game Name"; //  use this spacing and case
-STRING kDBName = "yourgamename"; // use this spacing and case
-POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
-POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+// SORRY
+// /* Factorial Helper Function */
+// int fact(n) {
+//   res = 1;
+//   for (int i = 0; i < n; i++) res = i * res;
+//   return res;
+// }
 
-/* Likely you do not have to change these. */
+// /* Board Struct */
+// typedef struct {
+//   char even_component[13]; // 12 characters + 1 null byte
+//   char odd_component[14]; // 13 characters + 1 null byte
+//   char outcome; // win = w, lose = l, tie = t
+// } FFK_Board;
+
+// /* Char to Ternary Converter */
+// int convertChar(char char_component) {
+//   if (char_component == '-') {
+//     return 0;
+//   } else if (char_component == 'o') {
+//     return 1;
+//   } else if (char_component == 'x') {
+//     return 2;
+//   }
+//   return -1;
+// }
+
+// /* Int to Char Converter */
+// char convertInt(char int_component) {
+//   if (int_component == 0) {
+//     return '-';
+//   } else if (int_component == 1) {
+//     return 'o';
+//   } else if (int_component == 2) {
+//     return 'x';
+//   }
+//   return '\0';
+// }
+
+// /* Hash Function for the Board*/
+// int hash(FFK_Board *board) {
+//   /* Base 3 Hash */
+//   int total = 0;
+//   int even_len = 12;
+//   for (int i = 0; i < even_len; i++) {
+//     total += convertChar(board->even_component[(even_len - 1) - i]) * pow(3, i);
+//   }
+//   int odd_len = 13;
+//   for (int j = 0; j < odd_len, j++) {
+//     total += convertChar(board->odd_component[(odd_len - 1) - j]) * pow(3, 12 + j)
+//   }
+//   return total;
+// }
+
+// /* Unhash function for the Board */
+// FFK_Board unhash(int hash) {
+//   FFK_Board *newBoard = malloc(sizeof(struct FFK_Board));
+//   newBoard.even_component[12] = unhash_char;
+//   newBoard.odd_component[13] = unhash_char;
+//   int remain = -1;
+//   int even_len = 12;
+//   for (int i = 0; i < even_len; i++) {
+//     remain = hash % 3;
+//     hash = floor(hash/3);
+//     board->even_component[(even_len - 1) - i] = convertInt(remain);
+//   }
+//   int odd_len = 13;
+//   for (int j = 0; j < odd_len; j++) {
+//     remain = hash % 3;
+//     hash = floor(hash/3);
+//     board->even_component[(odd_len - 1) - j] = convertInt(remain);
+//   }
+// }
+
+/* IMPORTANT GLOBAL VARIABLES */
+STRING kAuthorName = "Andrew Lee";
+POSITION gNumberOfPositions = 1189188000; // TODO: Put your number of positions upper bound here.
+POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
+BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
+BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
+BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+
+/* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
+STRING kGameName = "Five-Field Kono";
+STRING kDBName = "fivefieldkono";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-/* You do not have to change these for now. */
+/* You don't have to change these for now. */
 BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kDebugMenu = FALSE;
 
@@ -74,7 +149,12 @@ void InitializeGame() {
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
-  /* YOUR CODE HERE */
+  // SORRY
+  // struct FFK_Board* initial_board = malloc(sizeof(struct FFK_Board));
+  // initial_board->even_component = "ooo-o--x-xxx";
+  // initial_board->odd_component = "ooo-------xxx";
+  // initial_board->outcome = 'I';
+  // return hash(initial_board);
   return 0;
 }
 
@@ -85,7 +165,9 @@ MOVELIST *GenerateMoves(POSITION position) {
      
      To add to the linked list, do 
      moves = CreateMovelistNode(<the move you're adding>, moves);
+
      See the function CreateMovelistNode in src/core/misc.c
+
   */
   return moves;
 }
@@ -97,14 +179,13 @@ POSITION DoMove(POSITION position, MOVE move) {
   return 0;
 }
 
-/*****************************************************************
-**  Determine whether the position is a primitive win,
-**  primitive tie, primitive lose, or not primitive.
-**  OUTPUTS: (VALUE) an enum; one of: (win, lose, tie, undecided)
-**  See src/core/types.h for the value enum definition.
-******************************************************************/
+/* Return lose, win, tie, or undecided. See src/core/types.h
+for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  /* YOUR CODE HERE */
+  // SORRY
+  // bool x_wins;
+  // FFK_Board* board = unhash(position);
+  // TODO
   return undecided;
 }
 
@@ -153,7 +234,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
-type when they specify moves. */
+type in. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
   return NULL;
@@ -176,22 +257,25 @@ void PrintMove(MOVE move) {
 
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
-/* How many variants are you supporting? */
+/* How many variants are you supporting? For now, just 1.
+Maybe in the future you want to support more variants. */
 int NumberOfOptions() {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
   return 1;
 }
 
-/* Return the current variant id. */
+/* Return the current variant id (which is 0 in this case since
+for now you're only thinking about one variant). */
 int getOption() {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
   return 0;
 }
 
 /* The input is a variant id. This function sets any global variables
-or data structures according to the variant specified by the variant id. */
+or data structures according to the variant specified by the variant id. 
+But for now you have one variant so don't worry about this. */
 void setOption(int option) {
-  /* YOUR CODE HERE  */
+  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -206,21 +290,21 @@ void setOption(int option) {
 They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
 POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE LATER BUT NOT NOW */
   return 0;
 }
 
 STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE LATER BUT NOT NOW */
   return NULL;
 }
 
-/* Optional. */
+/* Ignore this function. */
 STRING InteractPositionToEndData(POSITION position) {
   return NULL;
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE LATER BUT NOT NOW */
   return MoveToString(move);
 }

@@ -43,6 +43,7 @@
 #include "netdb.h"
 #include "filedb.h"
 #include "tierdb.h"
+#include "quartodb.h"
 #include "sharddb.h"
 #include "symdb.h"
 
@@ -271,6 +272,11 @@ BOOLEAN ReinitializeTierDB()
 void InitializeShardDB()
 {
 	return sharddb_init(db_functions);
+}
+
+void InitializeQuartoDB()
+{
+	return quartodb_init(db_functions);
 }
 
 void DestroyDatabases()

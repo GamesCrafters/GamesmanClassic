@@ -304,6 +304,22 @@ char *UWAPI_Board_Regular2D_MakeMoveString(unsigned int from, unsigned int to)
     return str;
 }
 
+char *UWAPI_Board_Regular2D_MakeLineString(unsigned int p1, unsigned int p2)
+{
+    // Format: "L_<p1>_<p2>"
+
+    char *str = malloc(
+        1 + 1 +
+        /* from */ 10 + 1 +
+        /* to */ 10 + /* null terminator */ 1);
+
+    if (str == NULL)
+        return str;
+
+    sprintf(str, "L_%d_%d", p1, p2);
+    return str;
+}
+
 char *UWAPI_Board_Regular2D_MakeShiftString(enum UWAPI_Board_Regular2DShiftDirection dir, unsigned int row, unsigned int amt)
 {
     // Format: "S_<dir>_<row>_<amt>"

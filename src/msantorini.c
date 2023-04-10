@@ -1,12 +1,12 @@
 /************************************************************************
 **
-** NAME:        m<your game name>.c
+** NAME:        msantorini.c
 **
-** DESCRIPTION: <Your Game Name> (use this spacing and case)
+** DESCRIPTION: Santorini
 **
-** AUTHOR:      Firstname Lastname
+** AUTHOR:      Zachary Leete
 **
-** DATE:        YYYY-MM-DD
+** DATE:        2023-03-07
 **
 ************************************************************************/
 
@@ -14,9 +14,7 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Firstname Lastname";
-STRING kGameName = "Your Game Name"; //  use this spacing and case
-STRING kDBName = "yourgamename"; // use this spacing and case
+STRING kAuthorName = "Zachary Leete";
 POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -24,14 +22,16 @@ BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
 BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
 BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
-/* Likely you do not have to change these. */
+/* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
+STRING kGameName = "Santorini";
+STRING kDBName = "santorini";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-/* You do not have to change these for now. */
+/* You don't have to change these for now. */
 BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kDebugMenu = FALSE;
 
@@ -97,12 +97,8 @@ POSITION DoMove(POSITION position, MOVE move) {
   return 0;
 }
 
-/*****************************************************************
-**  Determine whether the position is a primitive win,
-**  primitive tie, primitive lose, or not primitive.
-**  OUTPUTS: (VALUE) an enum; one of: (win, lose, tie, undecided)
-**  See src/core/types.h for the value enum definition.
-******************************************************************/
+/* Return lose, win, tie, or undecided. See src/core/types.h
+for the value enum definition. */
 VALUE Primitive(POSITION position) {
   /* YOUR CODE HERE */
   return undecided;
@@ -153,7 +149,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
-type when they specify moves. */
+type in. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
   return NULL;
@@ -176,22 +172,25 @@ void PrintMove(MOVE move) {
 
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
-/* How many variants are you supporting? */
+/* How many variants are you supporting? For now, just 1.
+Maybe in the future you want to support more variants. */
 int NumberOfOptions() {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
   return 1;
 }
 
-/* Return the current variant id. */
+/* Return the current variant id (which is 0 in this case since
+for now you're only thinking about one variant). */
 int getOption() {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
   return 0;
 }
 
 /* The input is a variant id. This function sets any global variables
-or data structures according to the variant specified by the variant id. */
+or data structures according to the variant specified by the variant id. 
+But for now you have one variant so don't worry about this. */
 void setOption(int option) {
-  /* YOUR CODE HERE  */
+  /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -206,21 +205,21 @@ void setOption(int option) {
 They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
 POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE LATER BUT NOT NOW */
   return 0;
 }
 
 STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE LATER BUT NOT NOW */
   return NULL;
 }
 
-/* Optional. */
+/* Ignore this function. */
 STRING InteractPositionToEndData(POSITION position) {
   return NULL;
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE */
+  /* YOUR CODE HERE LATER BUT NOT NOW */
   return MoveToString(move);
 }

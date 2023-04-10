@@ -154,7 +154,10 @@ VALUE DetermineValue(POSITION position)
 	if(kSupportsShardGamesman) {
 		InitializeShardDB();
 		printf("Done loading shard database.\n");
-	} else if (kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
+	} else if (kUsesQuartoGamesman) {
+		InitializeQuartoDB();
+		printf("Done loading quarto database.\n");
+	} else if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
 		BOOLEAN usingLookupTierDB = FALSE;
 		if (gIsInteract) {
 			usingLookupTierDB = ReinitializeTierDB();
