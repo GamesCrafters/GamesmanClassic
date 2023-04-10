@@ -149,8 +149,31 @@ BOOLEAN isTie(FFK_Board* board);
 MOVE hashMove(int oldPos, int newPos);
 void unhashMove(MOVE mv, int *oldPos, int *newPos);
 
-/* Other stuff we don't care about for now. */
+/* TextUI functions */
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
+void PrintComputersMove(MOVE computersMove, STRING computersName);
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName);
+void availableMoves(POSITION position);
+BOOLEAN ValidTextInput(STRING input);
+MOVE ConvertTextInputToMove(STRING input);
 STRING MoveToString(MOVE move);
+void PrintMove(MOVE move);
+
+/* Variant Functions */
+int NumberOfOptions();
+int getOption();
+void setOption(int option);
+
+/* INTERACT FUNCTIONS */
+POSITION InteractStringToPosition(STRING board);
+STRING InteractPositionToString(POSITION position);
+STRING InteractPositionToEndData(POSITION position);
+STRING InteractMoveToString(POSITION position, MOVE move);
+
+/* UNUSED INTERFACE IMPLEMENTATIONS */
+void DebugMenu();
+void SetTclCGameSpecificOptions(int theOptions[]);
+void GameSpecificMenu();
 
 
 
@@ -178,6 +201,12 @@ char initial_even_component[12] =
 /* Describes the initial piece positions in the even part of the board. */
 char initial_odd_component[13] =
 {'o', 'o', 'o', '-', '-', '-', '-', '-', '-', '-', 'x', 'x', 'x'};
+
+/* Describes mapping from concatenate<odd_component_idx, even_component_idx> to an alphabet */
+char posToAlpha[25] = {'E', 'E', 'D', 'D', 'D', 'C', 'C', 'B', 'B', 'B', 'A', 'A', 'E', 'E', 'E', 'D', 'D', 'C', 'C', 'C', 'B', 'B', 'A', 'A', 'A'};
+
+/* Describes mapping from concatenate<odd_component_idx, even_component_idx> to an index */
+int posToIdx[25] = {2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5};
 
 
 
@@ -706,11 +735,13 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   /* YOUR CODE HERE */
-  /* YOUR CODE HERE */
   USERINPUT ret;
 
 	do {
-    //PrintMove(*move);
+    /* List of available moves */
+    availableMoves(position);
+    printf("\n");
+    printf("%8s: (currrent position)-(next position)\n", "Format");
 		printf("%8s's move:  ", playerName);
 
 		ret = HandleDefaultTextInput(position, move, playerName);
@@ -720,6 +751,26 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 	}
 	while (TRUE);
 	return(Continue); /* this is never reached, but lint is now happy */
+}
+
+void availableMoves(POSITION position) {
+  MOVELIST *available_moves = GenerateMoves(position);
+  int i = 1;
+  MOVELIST *ptr = available_moves;
+    printf("  %8s: \n", "Available Moves");
+    while (ptr != NULL) {
+      MOVE move_val = ptr->move;
+      int from, to;
+      unhashMove(move_val, &from, &to);
+      char fromToAlpha = posToAlpha[from];
+      char toToAlpha = posToAlpha[to];
+      int fromToIdx = posToIdx[from];
+      int toToIdx = posToIdx[to];
+      printf("  %d. (%c%d-%c%d) \n", i, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+      ptr = ptr->next;
+      i += 1;
+    }
+    FreeMoveList(available_moves);
 }
 
 /* Return whether the input text signifies a valid move. Rows are letters, and
@@ -734,10 +785,10 @@ BOOLEAN ValidTextInput(STRING input) {
   if (input[2] != '-') return FALSE;
 
   // Extract characters from string
-  char c1 = input[0];
-  char r1 = input[1];
-  char c2 = input[3];
-  char r2 = input[4];
+  char c1 = (char) tolower(input[0]);
+  char r1 = (char) tolower(input[1]);
+  char c2 = (char) tolower(input[3]);
+  char r2 = (char) tolower(input[4]);
 
   // Determine if both slots are on the board using ASCII ranges
   if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101) return FALSE;
@@ -778,13 +829,15 @@ MOVE ConvertTextInputToMove(STRING input) {
     evenTo = (to-1)/2;
   }
 
-  printf("\nDEBUG\n1 is even, 0 is odd: %d\n", evenMove);
-  printf("oddFrom: %d\n", oddFrom);
-  printf("oddTo: %d\n", oddTo);
-  printf("evenFrom: %d\n", evenFrom);
-  printf("evenTo: %d\n", evenTo);
-  printf("even move: %d\n", evenFrom+(25*evenTo));
-  printf("odd move: %d\n", (12+oddFrom)+(25*(12+oddTo)));
+  // DEBUG
+  // printf("\nDEBUG\n1 is even, 0 is odd: %d\n", evenMove);
+  // printf("oddFrom: %d\n", oddFrom);
+  // printf("oddTo: %d\n", oddTo);
+  // printf("evenFrom: %d\n", evenFrom);
+  // printf("evenTo: %d\n", evenTo);
+  // printf("even move: %d\n", evenFrom+(25*evenTo));
+  // printf("odd move: %d\n", (12+oddFrom)+(25*(12+oddTo)));
+  // DEBUG
 
   // Encode into our little silly move hash standard
   if (evenMove) return (MOVE) evenFrom+(25*evenTo);
@@ -802,7 +855,13 @@ STRING MoveToString(MOVE move) {
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
   /* YOUR CODE HERE */
-  printf("%d", move);
+  int from, to;
+  unhashMove(move, &from, &to);
+  char fromToAlpha = posToAlpha[from];
+  char toToAlpha = posToAlpha[to];
+  int fromToIdx = posToIdx[from];
+  int toToIdx = posToIdx[to];
+  printf("(%c%d-%c%d)", fromToAlpha, fromToIdx, toToAlpha, toToIdx);
 }
 
 
