@@ -136,7 +136,6 @@ FFK_Board* Unhash(POSITION in);
 void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o);
 POSITION rearrangements(int slots, int x, int o);
 void precompute_fact(long fact_array[], int limit);
-int factorial(int n);
 POSITION swapTurn(POSITION hash);
 char swapPiece(char board_char);
 
@@ -739,6 +738,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
 	do {
     /* List of available moves */
+    printf("\n");
     availableMoves(position);
     printf("\n");
     printf("  Supported Input Formats:\n");
