@@ -847,8 +847,8 @@ STRING MoveToString(MOVE move) {
   unhashMove(move, &from, &to);
   char fromToAlpha = posToAlpha[from];
   char toToAlpha = posToAlpha[to];
-  char fromToIdx = (char) posToIdx[from];
-  char toToIdx = (char) posToIdx[to];
+  char fromToIdx = (char) ('0' + posToIdx[from]);
+  char toToIdx = (char) ('0' + posToIdx[to]);
   STRING output = (STRING) malloc(6*sizeof(char));
   output[0] = fromToAlpha;
   output[1] = fromToIdx;
@@ -892,13 +892,56 @@ void setOption(int option) { }
 
 /* INTERACT FUNCTIONS */
 
-POSITION InteractStringToPosition(STRING board) { return 0; }
+POSITION InteractStringToPosition(STRING board) {
+  enum UWAPI_Turn turn;
+  unsigned int num_rows, num_columns;
+  STRING charBoard;
+  if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &charBoard)) {
+    // Failed to parse string
+    return INVALID_POSITION;
+  }
+  FFK_Board real_board;
+  for (int i = 0; i < 25; i++) {
+    if (i % 2 == 0) real_board.odd_component[i/2] = charBoard[i];
+    else real_board.even_component[(i-1)/2] = charBoard[i];
+  }
+  real_board.oppTurn = (turn == UWAPI_TURN_A) ? 0 : 1;
+  free(charBoard);
+  return Hash(&real_board);
+}
 
-STRING InteractPositionToString(POSITION position) { return NULL; }
+STRING InteractPositionToString(POSITION position) { 
+  // UWAPI_Board_Regular2D_MakeBoardString(turn, 25, charBoard);
+  // enum UWAPI_Turn turn = (whosTurn == V) ? UWAPI_TURN_A : UWAPI_TURN_B;
+  FFK_Board *board = Unhash(position);
+  enum UWAPI_Turn turn = (board->oppTurn == 0) ? UWAPI_TURN_A : UWAPI_TURN_B;
+  char charBoard[26];
+  for (int i = 0; i < 25; i++) {
+    if (i % 2 == 0) charBoard[i] = board->odd_component[i/2];
+    else charBoard[i] = board->even_component[(i-1)/2];
+  }
+  charBoard[25] = '\0';
+  free(board);
+  return UWAPI_Board_Regular2D_MakeBoardString(turn, 25, charBoard);;
+}
 
 STRING InteractPositionToEndData(POSITION position) { return NULL; }
 
-STRING InteractMoveToString(POSITION position, MOVE move) { return MoveToString(move); }
+STRING InteractMoveToString(POSITION position, MOVE move) { 
+  // return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+  int from, to;
+  unhashMove(move, &from, &to);
+  if (from >= 12) {
+    // Odd Component
+    from = 2 * (from - 12);
+    to = 2 * (to - 12);
+  } else {
+    // Even Component
+    from = (2 * from) + 1;
+    to = (2 * to) + 1;
+  }
+  return UWAPI_Board_Regular2D_MakeMoveString(from, to);
+}
 
 
 
