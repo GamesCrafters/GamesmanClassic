@@ -877,15 +877,23 @@ void PrintMove(MOVE move) {
 /* VARIANT FUNCTIONS */
 
 /* Amount of variants supported. */
-int NumberOfOptions() { return 1; }
+int NumberOfOptions() { 
+  return 2;
+}
 
 /* Return the current variant ID (0 in this case). */
-int getOption() { return 0; }
+int getOption() { 
+  if (gStandardGame) return 1;
+  else return 2;
+}
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. 
 But for now you have one variant so don't worry about this. */
-void setOption(int option) { }
+void setOption (int option) {
+	if(option == 1) gStandardGame = TRUE;
+	else gStandardGame = FALSE;
+}
 
 
 
