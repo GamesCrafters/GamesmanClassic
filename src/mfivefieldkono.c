@@ -389,7 +389,8 @@ VALUE Primitive(POSITION position) {
     return lose;
   }
   if (is_tie) {
-    return tie;
+    if (getOption() == 1) return tie; 
+    else return lose;
   }
   return undecided;
 }
@@ -897,7 +898,7 @@ int getOption() {
 or data structures according to the variant specified by the variant id. 
 But for now you have one variant so don't worry about this. */
 void setOption (int option) {
-	if(option == 1) gStandardGame = TRUE;
+	if (option == 1) gStandardGame = TRUE;
 	else gStandardGame = FALSE;
 }
 
