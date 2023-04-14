@@ -883,13 +883,13 @@ void PrintMove(MOVE move) {
 /* VARIANT FUNCTIONS */
 
 /* Amount of variants supported. */
-int NumberOfOptions() { 
+int NumberOfOptions() {
   return 2;
 }
 
 /* Return the current variant ID (0 in this case). */
 int getOption() { 
-  return gStandardGame ? 0: 1;
+  return (gStandardGame == TRUE) ? 0 : 1;
 }
 
 /* The input is a variant id. This function sets any global variables
