@@ -766,8 +766,8 @@ void availableMoves(POSITION position) {
   MOVELIST *available_moves = GenerateMoves(position);
   MOVELIST *ptr = available_moves;
   printf("  %8s: \n", "Available Hash Moves {Hash Number: (Current Position)-(Next Position)}");
-  while (ptr != NULL) {
-    MOVE move_val = ptr->move;
+  while (available_moves != NULL) {
+    MOVE move_val = available_moves->move;
     int from, to;
     unhashMove(move_val, &from, &to);
     char fromToAlpha = posToAlpha[from];
@@ -775,9 +775,9 @@ void availableMoves(POSITION position) {
     int fromToIdx = posToIdx[from];
     int toToIdx = posToIdx[to];
     printf("  {%d: (%c%d-%c%d)} ", move_val, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
-    ptr = ptr->next;
+    available_moves = available_moves->next;
   }
-  FreeMoveList(available_moves);
+  FreeMoveList(ptr);
   printf("\n");
 }
 
@@ -967,4 +967,52 @@ void DebugMenu() {}
 void SetTclCGameSpecificOptions(int theOptions[]) {}
 
 /* For implementing more than one variant */
-void GameSpecificMenu() {}
+void GameSpecificMenu() {
+  char inp;
+	while (TRUE) {
+		//inp = getchar(); // get rid of the 'g' from previous menu
+		printf("\n\n\n");
+		printf("        ----- Game-specific options for Quick Cross -----\n\n");
+		printf("        Select a game board:\n\n");
+		printf("        1)          3 X 3  Board\n");
+		printf("        2)          3 X 4  Board\n");
+		printf("        3)      15-square  Board  --  3 in a row\n");
+		printf("        4)      15-square  Board  --  4 in a row\n");
+		printf("        5)          4 X 4  Board\n\n");
+		printf("        b)      (B)ack = Return to previous activity.\n\n\n");
+		printf("Select an option: ");
+		inp = getchar();
+		if (inp == '1') {
+			BOARD = b3x3;
+			BOARDSIZE = 9;
+			gNumberOfPositions = 2 * 19683; /*  3^9  */
+		}
+		else if (inp == '2') {
+			BOARD = b3x4;
+			BOARDSIZE = 12;
+			gNumberOfPositions = 2 * 531441; /*  3^12  */
+		}
+		else if (inp == '3') {
+			BOARD = b15_3; // basically a 4 X 4 with a corner square removed
+			BOARDSIZE = 15;
+			gNumberOfPositions = 2 * 14348907; /*  3^15  */
+		}
+		else if (inp == '4') {
+			BOARD = b15_4;
+			BOARDSIZE = 15;
+			gNumberOfPositions = 2 * 14348907; /*  3^15  */
+		}
+		else if (inp == '5') {
+			BOARD = b4x4;
+			BOARDSIZE = 16;
+			gNumberOfPositions = 2 * 43046721; /*  3^16 * turn */
+		}
+		else if (inp == 'b' || inp == 'B')
+			;
+		else {
+			printf("Invalid input.\n");
+			continue;
+		}
+		break;
+	}
+}
