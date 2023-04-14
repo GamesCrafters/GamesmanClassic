@@ -389,7 +389,7 @@ VALUE Primitive(POSITION position) {
     return lose;
   }
   if (is_tie) {
-    return gStandardGame ? tie : lose; 
+    return (gStandardGame == TRUE) ? tie : lose; 
   }
   return undecided;
 }
