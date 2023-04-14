@@ -59,7 +59,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
 /* Useful when there are variants available */
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 
 /* Enables debug menu for... debugging */
 BOOLEAN kDebugMenu = FALSE;
