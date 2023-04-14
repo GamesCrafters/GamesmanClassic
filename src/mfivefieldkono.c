@@ -884,7 +884,7 @@ void PrintMove(MOVE move) {
 
 /* Amount of variants supported. */
 int NumberOfOptions() {
-  return 2;
+  return 1;
 }
 
 /* Return the current variant ID (0 in this case). */
@@ -895,8 +895,13 @@ int getOption() {
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. 
 But for now you have one variant so don't worry about this. */
-void setOption (int option) {
-  gStandardGame = (option == 0) ? TRUE : FALSE;
+void setOption(int option) {
+  if (option == 0)
+		gStandardGame = TRUE;
+	else if (option == 1)
+		gStandardGame = FALSE;
+	else
+		printf(" Sorry I don't know that option\n");
 }
 
 
@@ -970,49 +975,25 @@ void SetTclCGameSpecificOptions(int theOptions[]) {}
 void GameSpecificMenu() {
   char inp;
 	while (TRUE) {
-		//inp = getchar(); // get rid of the 'g' from previous menu
 		printf("\n\n\n");
 		printf("        ----- Game-specific options for Quick Cross -----\n\n");
 		printf("        Select a game board:\n\n");
-		printf("        1)          3 X 3  Board\n");
-		printf("        2)          3 X 4  Board\n");
-		printf("        3)      15-square  Board  --  3 in a row\n");
-		printf("        4)      15-square  Board  --  4 in a row\n");
-		printf("        5)          4 X 4  Board\n\n");
-		printf("        b)      (B)ack = Return to previous activity.\n\n\n");
-		printf("Select an option: ");
-		inp = getchar();
+		printf("        1)      Default 5 x 5 Board with Ties \n");
+		printf("        2)      Default 5 x 5 Board with Ties Being a Win or Loss \n");
+    printf("        3)      (B)ack = Return to previous activity.\n\n\n");
+		printf("\nSelect an option: ");
+		inp = GetMyChar();
 		if (inp == '1') {
-			BOARD = b3x3;
-			BOARDSIZE = 9;
-			gNumberOfPositions = 2 * 19683; /*  3^9  */
+      setOption(0);
+      return;
 		}
 		else if (inp == '2') {
-			BOARD = b3x4;
-			BOARDSIZE = 12;
-			gNumberOfPositions = 2 * 531441; /*  3^12  */
+      setOption(1);
+      return;
 		}
-		else if (inp == '3') {
-			BOARD = b15_3; // basically a 4 X 4 with a corner square removed
-			BOARDSIZE = 15;
-			gNumberOfPositions = 2 * 14348907; /*  3^15  */
-		}
-		else if (inp == '4') {
-			BOARD = b15_4;
-			BOARDSIZE = 15;
-			gNumberOfPositions = 2 * 14348907; /*  3^15  */
-		}
-		else if (inp == '5') {
-			BOARD = b4x4;
-			BOARDSIZE = 16;
-			gNumberOfPositions = 2 * 43046721; /*  3^16 * turn */
-		}
-		else if (inp == 'b' || inp == 'B')
-			;
+		else if (inp == '3' || inp == 'b' || inp == 'B') return;
 		else {
 			printf("Invalid input.\n");
-			continue;
 		}
-		break;
 	}
 }
