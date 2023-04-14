@@ -224,7 +224,9 @@ at destination[array[i]], where 'array' is one of the arrays below. */
 int even_yflip_pos[12] = {1, 0, 4, 3, 2, 6, 5, 9, 8, 7, 11, 10};
 int odd_yflip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 
-
+/* BOARD VARIANT */
+int variant_type = 0;
+VALUE variant_condition[3] = {tie, lose, win};
 
 
 /* SOLVING FUNCIONS */
@@ -389,7 +391,7 @@ VALUE Primitive(POSITION position) {
     return lose;
   }
   if (is_tie) {
-    return (gStandardGame == TRUE) ? tie : lose; 
+    return variant_condition[variant_type];
   }
   return undecided;
 }
@@ -884,23 +886,21 @@ void PrintMove(MOVE move) {
 
 /* Amount of variants supported. */
 int NumberOfOptions() {
-  return 2;
+  return 3;
 }
 
 /* Return the current variant ID (0 in this case). */
 int getOption() { 
-  return (gStandardGame == TRUE) ? 0 : 1;
+  return variant_type;
 }
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. 
 But for now you have one variant so don't worry about this. */
 void setOption(int option) {
-  if (option == 0)
-		gStandardGame = TRUE;
-	else if (option == 1)
-		gStandardGame = FALSE;
-	else
+  if (option >= 0 && option <= 2)
+		variant_type = option;
+  else
 		printf(" Sorry I don't know that option\n");
 }
 
@@ -978,9 +978,10 @@ void GameSpecificMenu() {
 		printf("\n\n\n");
 		printf("        ----- Game-specific options for Quick Cross -----\n\n");
 		printf("        Select a game board:\n\n");
-		printf("        1)      Default 5 x 5 Board with Ties \n");
-		printf("        2)      Default 5 x 5 Board with Ties Being a Win or Loss \n");
-    printf("        3)      (B)ack = Return to previous activity.\n\n\n");
+		printf("        1)      Default 5 x 5 Board with Stalemate Being a Tie \n");
+		printf("        2)      Default 5 x 5 Board with Stalemate Being a Win \n");
+    printf("        3)      Default 5 x 5 Board with Stalemate Being a Loss \n");
+    printf("        4)      (B)ack = Return to previous activity.\n\n\n");
 		printf("\nSelect an option: ");
 		inp = GetMyChar();
 		if (inp == '1') {
@@ -991,7 +992,11 @@ void GameSpecificMenu() {
       setOption(1);
       return;
 		}
-		else if (inp == '3' || inp == 'b' || inp == 'B') return;
+    else if (inp == '3') {
+      setOption(2);
+      return;
+    }
+		else if (inp == '4' || inp == 'b' || inp == 'B') return;
 		else {
 			printf("Invalid input.\n");
 		}
