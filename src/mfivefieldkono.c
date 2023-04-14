@@ -389,8 +389,7 @@ VALUE Primitive(POSITION position) {
     return lose;
   }
   if (is_tie) {
-    if (getOption() == 0) return tie; 
-    else return lose;
+    return gStandardGame ? tie : lose; 
   }
   return undecided;
 }
@@ -890,16 +889,14 @@ int NumberOfOptions() {
 
 /* Return the current variant ID (0 in this case). */
 int getOption() { 
-  if (gStandardGame) return 0;
-  else return 1;
+  return gStandardGame ? 0: 1;
 }
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. 
 But for now you have one variant so don't worry about this. */
 void setOption (int option) {
-	if (option == 0) gStandardGame = TRUE;
-	else gStandardGame = FALSE;
+  gStandardGame = (option == 0) ? TRUE : FALSE;
 }
 
 
