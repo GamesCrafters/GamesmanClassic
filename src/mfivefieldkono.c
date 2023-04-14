@@ -884,7 +884,7 @@ void PrintMove(MOVE move) {
 
 /* Amount of variants supported. */
 int NumberOfOptions() {
-  return 1;
+  return 2;
 }
 
 /* Return the current variant ID (0 in this case). */
