@@ -59,7 +59,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
 /* Useful when there are variants available */
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 
 /* Enables debug menu for... debugging */
 BOOLEAN kDebugMenu = FALSE;
@@ -224,7 +224,9 @@ at destination[array[i]], where 'array' is one of the arrays below. */
 int even_yflip_pos[12] = {1, 0, 4, 3, 2, 6, 5, 9, 8, 7, 11, 10};
 int odd_yflip_pos[13] = {2, 1, 0, 4, 3, 7, 6, 5, 9, 8, 12, 11, 10};
 
-
+/* BOARD VARIANT */
+int variant_type = 0;
+VALUE variant_condition[3] = {tie, lose, win};
 
 
 /* SOLVING FUNCIONS */
@@ -389,7 +391,7 @@ VALUE Primitive(POSITION position) {
     return lose;
   }
   if (is_tie) {
-    return tie;
+    return variant_condition[variant_type];
   }
   return undecided;
 }
@@ -710,13 +712,13 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   FFK_Board* board = Unhash(position);
   if (usersTurn) printf("%s's move.\n", playerName);
   char* fb = malloc(sizeof(char)*25);
-  for (int i = 1; i < 26; i++) {
+  for (int i = 0; i < 25; i++) {
     if (i % 2 == 0) {
-      char curr = board->even_component[(i/2)-1];
-      fb[i-1] = (curr == '-') ? ' ' : curr;
+      char curr = board->odd_component[i/2];
+      fb[i] = (curr == '-') ? ' ' : curr;
     } else {
-      char curr = board->odd_component[(i-1)/2];
-      fb[i-1] = (curr == '-') ? ' ' : curr;
+      char curr = board->even_component[(i-1)/2];
+      fb[i] = (curr == '-') ? ' ' : curr;
     }
   }
   for (int j = 0; j < 4; j++) {
@@ -766,8 +768,8 @@ void availableMoves(POSITION position) {
   MOVELIST *available_moves = GenerateMoves(position);
   MOVELIST *ptr = available_moves;
   printf("  %8s: \n", "Available Hash Moves {Hash Number: (Current Position)-(Next Position)}");
-  while (ptr != NULL) {
-    MOVE move_val = ptr->move;
+  while (available_moves != NULL) {
+    MOVE move_val = available_moves->move;
     int from, to;
     unhashMove(move_val, &from, &to);
     char fromToAlpha = posToAlpha[from];
@@ -775,9 +777,9 @@ void availableMoves(POSITION position) {
     int fromToIdx = posToIdx[from];
     int toToIdx = posToIdx[to];
     printf("  {%d: (%c%d-%c%d)} ", move_val, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
-    ptr = ptr->next;
+    available_moves = available_moves->next;
   }
-  FreeMoveList(available_moves);
+  FreeMoveList(ptr);
   printf("\n");
 }
 
@@ -883,15 +885,24 @@ void PrintMove(MOVE move) {
 /* VARIANT FUNCTIONS */
 
 /* Amount of variants supported. */
-int NumberOfOptions() { return 1; }
+int NumberOfOptions() {
+  return 3;
+}
 
 /* Return the current variant ID (0 in this case). */
-int getOption() { return 0; }
+int getOption() { 
+  return variant_type;
+}
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. 
 But for now you have one variant so don't worry about this. */
-void setOption(int option) { }
+void setOption(int option) {
+  if (option >= 0 && option <= 2)
+		variant_type = option;
+  else
+		printf(" Sorry I don't know that option\n");
+}
 
 
 
@@ -961,4 +972,33 @@ void DebugMenu() {}
 void SetTclCGameSpecificOptions(int theOptions[]) {}
 
 /* For implementing more than one variant */
-void GameSpecificMenu() {}
+void GameSpecificMenu() {
+  char inp;
+	while (TRUE) {
+		printf("\n\n\n");
+		printf("        ----- Game-specific options for Quick Cross -----\n\n");
+		printf("        Select a game board:\n\n");
+		printf("        1)      Default 5 x 5 Board with Stalemate Being a Tie \n");
+		printf("        2)      Default 5 x 5 Board with Stalemate Being a Win \n");
+    printf("        3)      Default 5 x 5 Board with Stalemate Being a Loss \n");
+    printf("        4)      (B)ack = Return to previous activity.\n\n\n");
+		printf("\nSelect an option: ");
+		inp = GetMyChar();
+		if (inp == '1') {
+      setOption(0);
+      return;
+		}
+		else if (inp == '2') {
+      setOption(1);
+      return;
+		}
+    else if (inp == '3') {
+      setOption(2);
+      return;
+    }
+		else if (inp == '4' || inp == 'b' || inp == 'B') return;
+		else {
+			printf("Invalid input.\n");
+		}
+	}
+}
