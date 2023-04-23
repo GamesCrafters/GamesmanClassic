@@ -1,6 +1,6 @@
 /************************************************************************
 **
-** NAME:        mfox.c
+** NAME:        mforestfox.c
 **
 ** DESCRIPTION: Forest Fox
 **
@@ -15,22 +15,16 @@
 
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Jiachun Li, Yifan Zhou";
-STRING kGameName = "Fox"; //  use this spacing and case
-STRING kDBName = "fox"; // use this spacing and case
+STRING kGameName = "Forest Fox"; //  use this spacing and case
+STRING kDBName = "forestfox"; // use this spacing and case
 POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
-int BOARDSIZE = 31;
-char init_board[]={'D','D','D','D','D',
-                   'D','D','D','D','D',                 
-	                 'D','D','J','D','D',                 
-	                 '-','-','-','-','-',
-	                 '-','-','-','-','-',
-	                     '-','-','- ',
-                   '-',    '-',    '-'};
+BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
+BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
+BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+
+
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
@@ -73,48 +67,10 @@ void GameSpecificMenu() {}
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
-  int piece_array[] = {'J', 1, 1,
-		                   'D', 9, 14, 
-		                   '-', 16, 21,
-		                   -1};
- 	gNumberOfPositions = generic_hash_init(BOARDSIZE, piece_array, NULL, 0);
-
-	int init;
-	int boardStats[3];
-	boardPieceStats(start_standard_board,boardStats);
-	hash_data[5] = numFoxes(boardStats);
-	hash_data[8] = numGeese(boardStats);
-	hash_data[7] = GEESE_MIN - 1;
-
-
-
-	mergePositionSetRequiredBits(numFoxes(boardStats));
-
-	init = mergePositionGoAgain(generic_hash_hash(start_standard_board,GEESE_PLAYER), 0);
-
-	gInitialPosition = init;
-	gNumberOfPositions = max * intpow(2,NUM_GOAGAIN_BITS);
-
-
-
-
-
   gCanonicalPosition = GetCanonicalPosition;
+  gMoveToStringFunPtr = &MoveToString;
 
-	gBoard = (char *) SafeMalloc (BOARDSIZE * sizeof(char));
-
-	
-
-
-  for (int i = 0; i < BOARDSIZE; i++)
-			gBoard[i] = '-';
-
-	gInitialPosition = generic_hash_hash(gBoard, 1);
-
-	gMinimalPosition = gInitialPosition;
-
-
-	gMoveToStringFunPtr = &MoveToString;
+  /* YOUR CODE HERE */
   
 }
 /*
@@ -196,9 +152,51 @@ return the card id
 */
 /* Return the position that results from making the 
 input move on the input position. */
-POSITION DoMove(POSITION position, MOVE move) {
+POSITION DoMove(POSITION position, MOVE move) {  
+  BOOLEAN first_lead = leadPlayer(); // true if first player is the lead player
+  SCORE score = firstPlayerScore(position);
+  CARD decreecard = getDecreeCard(position);
+  CARD lastcard = move;
+  if (getCardNum(move) == 1) {
+    lastcard = decreecard;
+    decreecard = move;
+  }
+  SCORE add_points = getAdditionalPoint(position);
+  // update card's status
+  STATUS cur_status = getCardStatus(position);
+  cur_status &= ~(3l << (2 * (move-1)));  // play the card out
 
-  /* YOUR CODE HERE */
+  if (!leadPlayerMoved(position)) {  // lead player's move
+    return setPositionHash(first_lead, 1, score, decreecard, lastcard, add_points, cur_status)
+  }
+  else {
+    // to check who wins
+    BOOLEAN lead_player_win;
+    SUIT decreecard_suit = getCardSuit(decreecard);
+    SUIT leadcard_suit = getCardSuit(lastcard);
+    SUIT other_player_suit = getCardSuit(move);
+    if (other_player_suit != decreecard_suit && other_player_suit != leadcard_suit) {
+      lead_player_win = TRUE;
+    }
+    else if (other_player_suit == leadcard_suit && getCardNum(move) < getCardNum(lastcard)) {
+      lead_player_win = TRUE;
+    }
+    else {
+      lead_player_win = FALSE;
+    }
+
+    // to update score and additional points
+    if (lead_player_win && first_lead) {
+      score++;
+      if (lastcard == 3) add_points++;
+    }
+    else if (!lead_player_win && !first_lead) {
+      score++;
+      if (move == 3) add_points++;
+    }
+
+    return setPositionHash(~first_lead, 0, score, decreecard, 0, add_points, cur_status)
+  }
   return 0;
 }
 
