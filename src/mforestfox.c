@@ -117,16 +117,71 @@ void InitializeGame() {
 	gMoveToStringFunPtr = &MoveToString;
   
 }
+/*
+1,2,3,4,5 || 6,7,8,9,10 || 11,12,13,14,15
+*/
 
+/* position:
+[0/1] second && last move is 5
+[0/1] not 1's turn/ 1's turn [p&1]
+[0/1] first player moves first/ second player moves first in this turn [(p>>1)&1]
+[0/1] lead player has not/ has moved 
+[0-7] the current score of the first player
+[16] decree card (only 1~15 are valid)
+[4^15] 01: first player, 10: second player, 00: already played (2 bits for each card, 11 is not valid)
+
+Special position: if init, (cards not shuffled) all 0s
+*/
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
   /* YOUR CODE HERE */
   return 0;
 }
-
+typedef int CARD;
+typedef int SCORE;
+typedef int SUIT;
+typedef int NUM;
+typedef POSITION STATUS;
 /* Return a linked list of moves. */
+BOOLEAN ifMonarch(POSITION p){
+  return p&1;
+}
+BOOLEAN ifFox(POSITION p){
+  return (p>>1)&1;
+}
+BOOLEAN leadPlayer(POSITION p){
+  return (p>>2)&1;
+}
+BOOLEAN leadPlayerMoved(POSITION p){
+  return (p>>3)&1;
+}
+SCORE firstPlayerScore(POSITION p){
+  return (p>>4)&7;
+}
+CARD decreeCard(POSITION p){
+  return (p>>7)&15;
+}
+STATUS getCardStatus(POSITION p){
+  return (p>>11);
+}
+SUIT getCardSuit(CARD card){
+  if(card>10) return 3;
+  if(card>5) return 2;
+  return 1;
+}
+NUM getCardNum(CARD card){
+  if (card>10) return card-10;
+  if (card>5) return card-5;
+  return card;
+}
+POSITION setPositionHash(BOOLEAN m,BOOLEAN f,BOOLEAN lead,BOOLEAN moved,SCORE score,CARD card,STATUS status){
+  return (((((((((((m<<1)|f)<<1)|lead)<<1)|moved)<<3)|score)<<4)|card)<<30ll)|status;
+}
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
+  if (position == 0ll){
+    
+  }
   /* YOUR CODE HERE 
      
      To add to the linked list, do 
@@ -136,9 +191,13 @@ MOVELIST *GenerateMoves(POSITION position) {
   return moves;
 }
 
+/* move
+return the card id
+*/
 /* Return the position that results from making the 
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
+
   /* YOUR CODE HERE */
   return 0;
 }
@@ -150,6 +209,13 @@ POSITION DoMove(POSITION position, MOVE move) {
 **  See src/core/types.h for the value enum definition.
 ******************************************************************/
 VALUE Primitive(POSITION position) {
+  STATUS status = getCardStatus(position);
+  if (status) return undecided;
+  if(status == 0){
+    SCORE score = firstPlayerScore(position);
+    if (score>=6||(score>=2&&score<=3)) return lose;
+    else return win; 
+  }
   /* YOUR CODE HERE */
   return undecided;
 }
