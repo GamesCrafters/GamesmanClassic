@@ -122,12 +122,12 @@ void InitializeGame() {
 */
 
 /* position:
-[0/1] second && last move is 5
-[0/1] not 1's turn/ 1's turn [p&1]
-[0/1] first player moves first/ second player moves first in this turn [(p>>1)&1]
+[0/1] not 1's turn/ 1's turn 
+[0/1] first player moves first/ second player moves first in this turn 
 [0/1] lead player has not/ has moved 
 [0-7] the current score of the first player
 [16] decree card (only 1~15 are valid)
+[16] last card (0 if it is the leading turn)
 [4^15] 01: first player, 10: second player, 00: already played (2 bits for each card, 11 is not valid)
 
 Special position: if init, (cards not shuffled) all 0s
@@ -143,26 +143,26 @@ typedef int SUIT;
 typedef int NUM;
 typedef POSITION STATUS;
 /* Return a linked list of moves. */
-BOOLEAN ifMonarch(POSITION p){
+BOOLEAN ifFox(POSITION p){
   return p&1;
 }
-BOOLEAN ifFox(POSITION p){
+BOOLEAN leadPlayer(POSITION p){
   return (p>>1)&1;
 }
-BOOLEAN leadPlayer(POSITION p){
+BOOLEAN leadPlayerMoved(POSITION p){
   return (p>>2)&1;
 }
-BOOLEAN leadPlayerMoved(POSITION p){
-  return (p>>3)&1;
-}
 SCORE firstPlayerScore(POSITION p){
-  return (p>>4)&7;
+  return (p>>3)&7;
 }
-CARD decreeCard(POSITION p){
-  return (p>>7)&15;
+CARD getDecreeCard(POSITION p){
+  return (p>>6)&15;
+}
+CARD getLastCard(POSITION p){
+  return (p>>10)&15;
 }
 STATUS getCardStatus(POSITION p){
-  return (p>>11);
+  return (p>>14);
 }
 SUIT getCardSuit(CARD card){
   if(card>10) return 3;
@@ -174,8 +174,8 @@ NUM getCardNum(CARD card){
   if (card>5) return card-5;
   return card;
 }
-POSITION setPositionHash(BOOLEAN m,BOOLEAN f,BOOLEAN lead,BOOLEAN moved,SCORE score,CARD card,STATUS status){
-  return (((((((((((m<<1)|f)<<1)|lead)<<1)|moved)<<3)|score)<<4)|card)<<30ll)|status;
+POSITION setPositionHash(BOOLEAN f,BOOLEAN lead,BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard,STATUS status){
+  return (((((((((((status<<4)|lastcard)<<4)|decreecard)<<3)|score)<<1|moved)<<1)|lead)<<1)|f);
 }
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
