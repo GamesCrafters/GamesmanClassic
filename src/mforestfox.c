@@ -130,13 +130,131 @@ NUM getCardNum(CARD card){
   if (card>5) return card-5;
   return card;
 }
+bool next_permutation(int* begin, int* end) {
+    // Find the last element in the non-increasing suffix
+    int* i = end - 1;
+    while (i > begin && *(i - 1) >= *i) {
+        --i;
+    }
+
+    // If the sequence is already the largest permutation, return false
+    if (i == begin) {
+        return false;
+    }
+
+    // Find the smallest element in the suffix that is greater than the pivot
+    int* j = end - 1;
+    while (*j <= *(i - 1)) {
+        --j;
+    }
+
+    // Swap the pivot with the smallest element greater than the pivot
+    int temp = *(i - 1);
+    *(i - 1) = *j;
+    *j = temp;
+
+    // Reverse the suffix
+    j = end - 1;
+    while (i < j) {
+        temp = *i;
+        *i = *j;
+        *j = temp;
+        ++i;
+        --j;
+    }
+
+    return true;
+}
 POSITION setPositionHash(BOOLEAN lead,BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard,SCORE add,STATUS status){
-  return (((((((((((((status<<4)|add)<<2)|lastcard)<<4)|decreecard)<<3)|score)<<1|moved)<<1)|lead)<<1)|f);
+  return (((((((((((status<<4)|add)<<2)|lastcard)<<4)|decreecard)<<3)|score)<<1|moved)<<1)|lead);
+}
+void getPositionHash(BOOLEAN &lead,BOOLEAN &moved,SCORE &score,CARD &decreecard,CARD &lastcard,SCORE &add,STATUS &status,POSITION p){
+  lead = leadPlayer(p);
+  moved = leadPlayerMoved(p);
+  score = firstPlayerScore(p);
+  decreecard = getDecreeCard(p);
+  lastcard = getLastCard(p);
+  add = getAdditionalPoint(p);
+  status = getCardStatus(p);
+}
+int max(int a,int b){
+  return a>b?a:b;
 }
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
   if (position == 0ll){
-    
+    CARD p[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    do{
+      CARD decreeCard = a[1],lastCard = 0;
+      STATUS status = 0;
+      for(int i=2;i<=8;i++) status|=(1ll<<((a[i]-1)*2));// first player 01
+      for(int i=9;i<=15;i++) status |=(3ll<<((a[i]-1)*2));//second player 10
+      BOOLEAN lead = 0,moved = 0;
+      SCORE score = 0, add=0;
+      nextMove = setPositionHash(lead,moved,score,decreeCard,lastCard,add,status);
+      moves = CreateMovelistNode(nextMove, moves);
+    }while(next_permutation(p+1,p+1+15))
+  }else{
+    CARD decreeCard,lastCard;
+    STATUS status;
+    SCORE score,add;
+    BOOLEAN lead,moved;
+    getPositionHash(lead,moved,score,decreeCard,lastCard,add,status);
+    if(moved){
+      int num = getCardNum(lastCard),suit = getCardSuit(lastCard);
+      bool hasSuit = false;
+      for(int i=0;i<32;i+=2){
+        CARD card = i/2+1;
+        int cardCol = (status>>i)&3;
+        if(cardCol==2&&getCardSuit(card)==suit){
+          hasSuit = true;
+          break;
+        }
+      }
+      if(!hasSuit){
+        for(int i=0;i<32;i+=2){
+          CARD card = i/2+1;
+          int cardCol = (status>>i)&3;
+          if(cardCol==2){
+            moves = CreateMovelistNode(card, moves);
+          }
+        }
+      }else{
+        if(num == 5){
+          int mx = 0;
+          for(int i=0;i<32;i+=2){
+            CARD card = i/2+1;
+            int cardCol = (status>>i)&3;
+            if(cardCol==2&&getCardSuit(card)==suit){
+              mx = max(getCardNum(card),mx);
+            }
+          }
+          for(int i=0;i<32;i+=2){
+            CARD card = i/2+1;
+            int cardCol = (status>>i)&3;
+            if(cardCol==2&&getCardSuit(card)==suit&&(getCardNum(card)==mx||getCardNum(card)==1)){
+              moves = CreateMovelistNode(card, moves);
+            }
+          }
+        }else{
+          for(int i=0;i<32;i+=2){
+            CARD card = i/2+1;
+            int cardCol = (status>>i)&3;
+            if(cardCol==2&&getCardSuit(card)==suit){
+              moves = CreateMovelistNode(card, moves);
+            }
+          }
+        }
+      }
+    }else{//all cards of player 1 is available
+      for(int i=0;i<32;i+=2){
+        CARD card = i/2+1;
+        int cardCol = (status>>i)&3;
+        if(cardCol==1){
+          moves = CreateMovelistNode(card, moves);
+        }
+      }
+    }
   }
   /* YOUR CODE HERE 
      
