@@ -270,13 +270,10 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  /* YOUR CODE HERE */
   printf("%s played %d\n", computersName, computersMove)
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-  /* YOUR CODE HERE */
-
   printf("%s played %d\n", playerName, *move);
   PrintPosition(position, playerName, TRUE);
   return Continue;
@@ -284,7 +281,6 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
-  /* YOUR CODE HERE */
   int len = strlen(input);
   if (len == 1) return (input[0] <= '9' && input[0] >= '1');
   else if (len == 2) return (input[0] == '1' && input[1] <= '5' && input[1] >= '0');
@@ -295,21 +291,21 @@ BOOLEAN ValidTextInput(STRING input) {
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  /* YOUR CODE HERE */
-  return 0;
+  return atoi(input);
 }
 
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
-  /* YOUR CODE HERE */
-  return NULL;
+  STRING s = (STRING) SafeMalloc(sizeof(char) * 2)
+	sprintf(s, "%d", move);
+  return s;
 }
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  /* YOUR CODE HERE */
+  printf("The move is %d\n", move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
