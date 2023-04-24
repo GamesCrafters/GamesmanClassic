@@ -218,6 +218,16 @@ VALUE Primitive(POSITION position) {
   return undecided;
 }
 
+WINBY computeWinBy(POSITION position) {
+  Primitive(firstPlayerScore(position)) + getAdditionalPoint(position) - 
+	
+  int whitetally, blacktally;
+	char *board = getBoard(position);
+	tallyPieces(board, &blacktally, &whitetally, NULL);
+	free(board);
+	return blacktally - whitetally;
+}
+
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
   /* YOUR CODE HERE */
@@ -237,21 +247,49 @@ POSITION GetCanonicalPosition(POSITION position) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
   /* YOUR CODE HERE */
+  printf("Decree Card: %d\n", getDecreeCard(position));
+  STATUS status = getCardStatus(position);
+  printf("First Player's Card: ");
+  for (i = 1; i <= 15; i++) {
+    unsigned int mask = 0x3 << ((i-1)*2);
+    unsigned int bits = (status & mask) >> ((i-1)*2);
+    if (bits == 0b01) {
+      printf("%d ", i);
+    }
+  }
+  printf("\nSecond Player's Card: ");
+  for (i = 1; i <= 15; i++) {
+    unsigned int mask = 0x3 << ((i-1)*2);
+    unsigned int bits = (status & mask) >> ((i-1)*2);
+    if (bits == 0b10) {
+      printf("%d ", i);
+    }
+  }
+  if (usersTurn) printf("\nIt's %s's turn\n", playerName);
+  else printf("\nIt's not %s's turn\n", playerName);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
   /* YOUR CODE HERE */
+  printf("%s played %d\n", computersName, computersMove)
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   /* YOUR CODE HERE */
+
+  printf("%s played %d\n", playerName, *move);
+  PrintPosition(position, playerName, TRUE);
   return Continue;
 }
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
   /* YOUR CODE HERE */
-  return TRUE;
+  int len = strlen(input);
+  if (len == 1) return (input[0] <= '9' && input[0] >= '1');
+  else if (len == 2) return (input[0] == '1' && input[1] <= '5' && input[1] >= '0');
+
+  return FALSE;
 }
 
 /* Assume the text input signifies a valid move. Return
