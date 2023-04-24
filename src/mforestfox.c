@@ -17,7 +17,7 @@
 STRING kAuthorName = "Jiachun Li, Yifan Zhou";
 STRING kGameName = "Forest Fox"; //  use this spacing and case
 STRING kDBName = "forestfox"; // use this spacing and case
-POSITION gNumberOfPositions = 10000000000000; // TODO: Put your number of positions upper bound here.
+POSITION gNumberOfPositions = 1000000000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
