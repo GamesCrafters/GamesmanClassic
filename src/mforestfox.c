@@ -17,7 +17,7 @@
 STRING kAuthorName = "Jiachun Li, Yifan Zhou";
 STRING kGameName = "Forest Fox"; //  use this spacing and case
 STRING kDBName = "forestfox"; // use this spacing and case
-POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
+POSITION gNumberOfPositions = 10000000000000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
@@ -115,7 +115,7 @@ CARD getLastCard(POSITION p){
   return (p>>9)&15;
 }
 SCORE getAdditionalPoint(POSITION p){
-  return (p>>13)&3
+  return (p>>13)&3;
 }
 STATUS getCardStatus(POSITION p){
   return (p>>15);
@@ -130,7 +130,7 @@ NUM getCardNum(CARD card){
   if (card>5) return card-5;
   return card;
 }
-bool next_permutation(int* begin, int* end) {
+Bool next_permutation(int* begin, int* end) {
     // Find the last element in the non-increasing suffix
     int* i = end - 1;
     while (i > begin && *(i - 1) >= *i) {
@@ -139,7 +139,7 @@ bool next_permutation(int* begin, int* end) {
 
     // If the sequence is already the largest permutation, return false
     if (i == begin) {
-        return false;
+        return False;
     }
 
     // Find the smallest element in the suffix that is greater than the pivot
@@ -163,12 +163,12 @@ bool next_permutation(int* begin, int* end) {
         --j;
     }
 
-    return true;
+    return True;
 }
 POSITION setPositionHash(BOOLEAN lead,BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard,SCORE add,STATUS status){
   return (((((((((((status<<4)|add)<<2)|lastcard)<<4)|decreecard)<<3)|score)<<1|moved)<<1)|lead);
 }
-void getPositionHash(BOOLEAN &lead,BOOLEAN &moved,SCORE &score,CARD &decreecard,CARD &lastcard,SCORE &add,STATUS &status,POSITION p){
+void getPositionHash(BOOLEAN *lead,BOOLEAN *moved,SCORE *score,CARD *decreecard,CARD *lastcard,SCORE *add,STATUS *status,POSITION p){
   lead = leadPlayer(p);
   moved = leadPlayerMoved(p);
   score = firstPlayerScore(p);
@@ -177,13 +177,13 @@ void getPositionHash(BOOLEAN &lead,BOOLEAN &moved,SCORE &score,CARD &decreecard,
   add = getAdditionalPoint(p);
   status = getCardStatus(p);
 }
-int max(int a,int b){
+/*int max(int a,int b){
   return a>b?a:b;
-}
+}*/
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
   if (position == 0ll){
-    CARD p[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    CARD a[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
     do{
       CARD decreeCard = a[1],lastCard = 0;
       STATUS status = 0;
@@ -191,23 +191,24 @@ MOVELIST *GenerateMoves(POSITION position) {
       for(int i=9;i<=15;i++) status |=(3ll<<((a[i]-1)*2));//second player 10
       BOOLEAN lead = 0,moved = 0;
       SCORE score = 0, add=0;
-      nextMove = setPositionHash(lead,moved,score,decreeCard,lastCard,add,status);
-      moves = CreateMovelistNode(nextMove, moves);
-    }while(next_permutation(p+1,p+1+15))
+      POSITION nextMove = setPositionHash(lead,moved,score,decreeCard,lastCard,add,status);
+      moves = CreateMovelistNode(nextMove, status);
+      // moves = CreateMovelistNode(nextMove, moves);
+    }while(next_permutation(a+1,a+1+15));
   }else{
     CARD decreeCard,lastCard;
     STATUS status;
     SCORE score,add;
     BOOLEAN lead,moved;
-    getPositionHash(lead,moved,score,decreeCard,lastCard,add,status);
+    getPositionHash(&lead,&moved,&score,&decreeCard,&lastCard,&add,&status,position);
     if(moved){
       int num = getCardNum(lastCard),suit = getCardSuit(lastCard);
-      bool hasSuit = false;
+      Bool hasSuit = False;
       for(int i=0;i<32;i+=2){
         CARD card = i/2+1;
         int cardCol = (status>>i)&3;
         if(cardCol==2&&getCardSuit(card)==suit){
-          hasSuit = true;
+          hasSuit = True;
           break;
         }
       }
@@ -226,7 +227,7 @@ MOVELIST *GenerateMoves(POSITION position) {
             CARD card = i/2+1;
             int cardCol = (status>>i)&3;
             if(cardCol==2&&getCardSuit(card)==suit){
-              mx = max(getCardNum(card),mx);
+              mx = fmax(getCardNum(card),mx);
             }
           }
           for(int i=0;i<32;i+=2){
@@ -270,8 +271,25 @@ return the card id
 */
 /* Return the position that results from making the 
 input move on the input position. */
-POSITION DoMove(POSITION position, MOVE move) {  
-  BOOLEAN first_lead = leadPlayer(); // true if first player is the lead player
+POSITION DoMove(POSITION position, MOVE move) {
+  if(position == 0){
+    CARD decreeCard,lastCard;
+    STATUS status;
+    SCORE score,add;
+    BOOLEAN lead,moved;
+    lead = 0,moved = 0;
+    score = 0,add = 0;
+    for(int i=0;i<32;i+=2){
+      CARD card = i/2+1;
+      int col = (move>>i)&3;
+      if(!col) decreeCard = card;
+    }
+    status = move;
+    lastCard = 0;
+    POSITION ret = setPositionHash(lead,moved,score,decreeCard,lastCard,add,status);
+    return ret;
+  }
+  BOOLEAN first_lead = leadPlayer(position); // true if first player is the lead player
   SCORE score = firstPlayerScore(position);
   CARD decreecard = getDecreeCard(position);
   CARD lastcard = move;
@@ -285,7 +303,7 @@ POSITION DoMove(POSITION position, MOVE move) {
   cur_status &= ~(3l << (2 * (move-1)));  // play the card out
 
   if (!leadPlayerMoved(position)) {  // lead player's move
-    return setPositionHash(first_lead, 1, score, decreecard, lastcard, add_points, cur_status)
+    return setPositionHash(first_lead, 1, score, decreecard, lastcard, add_points, cur_status);
   }
   else {
     // to check who wins
@@ -313,7 +331,7 @@ POSITION DoMove(POSITION position, MOVE move) {
       if (move == 3) add_points++;
     }
 
-    return setPositionHash(~first_lead, 0, score, decreecard, 0, add_points, cur_status)
+    return setPositionHash(~first_lead, 0, score, decreecard, 0, add_points, cur_status);
   }
   return 0;
 }
@@ -336,7 +354,7 @@ VALUE Primitive(POSITION position) {
   return undecided;
 }
 
-WINBY computeWinBy(POSITION position) {
+/*WINBY computeWinBy(POSITION position) {
   Primitive(firstPlayerScore(position)) + getAdditionalPoint(position) - 
 	
   int whitetally, blacktally;
@@ -344,7 +362,7 @@ WINBY computeWinBy(POSITION position) {
 	tallyPieces(board, &blacktally, &whitetally, NULL);
 	free(board);
 	return blacktally - whitetally;
-}
+}*/
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
@@ -368,6 +386,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("Decree Card: %d\n", getDecreeCard(position));
   STATUS status = getCardStatus(position);
   printf("First Player's Card: ");
+  int i;
   for (i = 1; i <= 15; i++) {
     unsigned int mask = 0x3 << ((i-1)*2);
     unsigned int bits = (status & mask) >> ((i-1)*2);
@@ -388,7 +407,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  printf("%s played %d\n", computersName, computersMove)
+  printf("%s played %d\n", computersName, computersMove);
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -416,7 +435,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
-  STRING s = (STRING) SafeMalloc(sizeof(char) * 2)
+  STRING s = (STRING) SafeMalloc(sizeof(char) * 2);
 	sprintf(s, "%d", move);
   return s;
 }
