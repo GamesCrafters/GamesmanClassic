@@ -158,7 +158,7 @@ Bool next_permutation(int* begin, int* end) {
     return True;
 }
 POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard,STATUS status){
-  return ((((((((status<<4)|lastcard)<<4)|decreecard)<<3)|score)<<1|moved)<<1);
+  return (((((((status<<4)|lastcard)<<4)|decreecard)<<3)|score)<<1|moved);
 }
 void getPositionHash(BOOLEAN *moved,SCORE *score,CARD *decreecard,CARD *lastcard,STATUS *status,POSITION p){
   moved = leadPlayerMoved(p);
@@ -287,6 +287,8 @@ POSITION DoMove(POSITION position, MOVE move) {
     status = move;
     lastCard = 0;
     POSITION ret = setPositionHash(moved,score,decreeCard,lastCard,status);
+    printf("ret = %lld %x\n",ret,ret);
+    printf("decree Card of ret = %d\n",getDecreeCard(ret));
     return ret;
   }
   SCORE score = firstPlayerScore(position);
