@@ -523,11 +523,47 @@ They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
 POSITION InteractStringToPosition(STRING board) {
   /* YOUR CODE HERE */
+  /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
+
+  STATUS status = 0;
+  // first check first player's cards
+  for (int i = 8; i < 15; i++) {
+    if (str[i] == '-') continue;
+    int card = str[i] - 96;
+    status |= (0b01 << (card - 1));
+  }
+  // check the second player's cards
+  for (int i = 15; i < 22; i++) {
+    if (str[i] == '-') continue;
+    int card = str[i] - 96;
+    status |= (0b10 << (card - 1));
+  }
+
+  CARD decreecard = str[22] - 96;
+  CARD firstcard = (str[23] != '-') ? str[23] - 96 : 0;
+  CARD secondcard = (str[24] != '-') ? str[24] - 96 : 0;
+  CARD lastcard = (firstcard > 0) ? firstcard : secondcard;
+  SCORE firstscore = atoi(str[25]);
+
+  return setPositionHash(firstscore, decreecard, lastcard, status);
   return 0;
 }
 
 STRING InteractPositionToString(POSITION position) {
   /* YOUR CODE HERE */
+  /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
+
+  // str[0-1] = 'R_'
+  // str[2] = 'A' / 'B', 根据position判断，如果当前是玩家1的轮数就A，否则B
+  // str[3-7] = '_0_0_'
+  // str[8-14] 为玩家1的卡牌，是哪几张，a-o分别对应1-15，如果手上只有4张牌了，就只有前四个char是字母，后3个都是'-'
+  // str[15-21] 玩家2的卡牌，同上
+  // str[22] decree card是哪一张，用a-o表示
+  // str[23] 玩家1出的牌
+  // str[24] 玩家2出的牌，str[23]和str[24]不能同时是字母，要么是 [字母][-]，要么是 [-][字母]，该字母就是last card，具体谁的是字母，如果玩家1的轮数，字母就是玩家2的，即 [-][字母]
+  // str[25] 玩家1的分数，score转换就行
+  // str[26] 玩家2的分数, 玩了的局数-score就行
+
   return NULL;
 }
 
