@@ -2,11 +2,11 @@
 from __future__ import print_function
 
 import BaseHTTPServer
-import Queue
+from queue import Queue, Empty
 import argparse
 import asynchat
 import asyncore
-import cStringIO
+from io import StringIO
 import collections
 import fcntl
 import imp
@@ -88,14 +88,14 @@ class GameRequestHandler(asynchat.async_chat,
         self.set_terminator('\r\n\r\n')
 
         self.in_buffer = []
-        self.wfile = cStringIO.StringIO()
+        self.wfile = StringIO()
         self.protocol_version = 'HTTP/1.1'
 
     def collect_incoming_data(self, data):
         self.in_buffer.append(data)
 
     def found_terminator(self):
-        self.rfile = cStringIO.StringIO(''.join(self.in_buffer))
+        self.rfile = StringIO(''.join(self.in_buffer))
         self.rfile.seek(0)
         self.raw_requestline = self.rfile.readline()
         self.parse_request()
@@ -203,7 +203,7 @@ class GameProcess(object):
     def __init__(self, server, game, bin_path, option_num=None):
         self.server = server
         self.game = game
-        self.queue = Queue.Queue()
+        self.queue = Queue()
         self.option_num = option_num
         self.req_timeout = subprocess_idle_timeout
         self.req_timeout_step = 0.1
@@ -385,7 +385,7 @@ class GameProcess(object):
             try:
                 request = self.queue.get(block=True,
                                          timeout=self.req_timeout_step)
-            except Queue.Empty as e:
+            except Empty as e:
                 total_idle_time += self.req_timeout_step
                 if total_idle_time > self.req_timeout:
                     self.server.log.error(
