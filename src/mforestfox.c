@@ -525,7 +525,7 @@ POSITION InteractStringToPosition(STRING str) {
   /* YOUR CODE HERE */
   /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
 
-  BOOLEAN moved = (board[2] == 'A') ? FALSE : TRUE; 
+  BOOLEAN moved = (str[2] == 'A') ? FALSE : TRUE; 
 
   STATUS status = 0;
   // first check first player's cards
