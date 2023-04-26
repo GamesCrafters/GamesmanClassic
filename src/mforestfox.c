@@ -17,7 +17,7 @@
 STRING kAuthorName = "Jiachun Li, Yifan Zhou";
 STRING kGameName = "Forest Fox"; //  use this spacing and case
 STRING kDBName = "forestfox"; // use this spacing and case
-POSITION gNumberOfPositions = 8000000000; // TODO: Put your number of positions upper bound here.
+POSITION gNumberOfPositions = 7000000000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
@@ -66,67 +66,36 @@ void GameSpecificMenu() {}
 
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
-void InitializeGame() {
-  gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
 
-  /* YOUR CODE HERE */
-  
-}
 /*
 1,2,3,4,5 || 6,7,8,9,10 || 11,12,13,14,15
 */
 
 /* position:
+[0/1] lead player has not/ has moved 
 [0-7] the current score of the first player
-[15] last card 
-[15] decreecard
-[4^15] status 0 played, 1 player1's card, 2 player2's card, 3 reserved
-[3500000] compressed states of 4^15
+[16] decree card (only 1~15 are valid)
+[16] last card (0 if it is the leading turn)
+[4^15] 01: first player, 10: second player, 00: already played (2 bits for each card, 11 is not valid)
+
 Special position: if init, (cards not shuffled) all 0s
 */
-// ()
 /* Return the hash value of the initial position. */
-int E_score = 8;
-int E_lst = 15;
-int E_dec = 15;
-int E_comp = 3500000;
-int Div_lst = 8;
-int Div_dec = 120;
-int Div_comp = 1800;
-int id[3500005];
-int TOT;
-void dfs(int dep,int cnt1,int cnt2,int x){
-	if(dep==0){
-		if(cnt2<=7&&cnt1<=7&&(cnt1==cnt2||cnt1-cnt2==-1))
-    {
-      int a[1]={x};
-      generic_hash_init(1,a,NULL,1);
-    }
-		return;
-	}
-	dfs(dep-1,cnt1,cnt2,(x<<2));//0
-	dfs(dep-1,cnt1+1,cnt2,(x<<2)|1);//1
-	dfs(dep-1,cnt1,cnt2+1,(x<<2)|2);//2
+Bool vcfg(int *pieces){
+  //'3': decree card
+  //'4': last card
+  int p1 = pieces[1]+pieces[6],p2 = pieces[2]+pieces[7];
+  return ((p1==p2||p1==p2-1)&&(p1<=7&&p2<=7)&&
+    (pieces[3]+pieces[8]==1)&&
+    (pieces[4]+pieces[8]==1)&&
+    (pieces[5]+pieces[6]+pieces[7]+pieces[8]+pieces[9]==1))||//normal process
+    (p1==7&&p2==7&&pieces[3]+pieces[8]==1)||//only shuffled
+    (pieces[0]==15);//unshuffled
 }
-int getIdRev(int status,int preId){
-  //as id is asc, id of status must be in [1,preID]
-  //id[preID]>status cuz status = id[preId]&~(3<<(2*(i-1)))
-  int l=1,r=preId;
-  while(l<r){
-    int mid=(l+r)>>1;
-    if(id[mid]==status) return mid;
-    if(id[mid]<status) l=mid+1;
-    else r=mid-1;
-  }
-  if(id[l]==status) return l;
-  else return r;
-}
-POSITION GetInitialPosition() {
-  dfs(15,0,0,0);
-  //printf("TOT = %d\n",TOT);
-  /* YOUR CODE HERE */
-  return 0;
+void hash_init(){
+  int pieces_array[31]={'0',0,15,'1',0,7,'2',0,7,'3',0,1,'4',0,1,'5',0,1,'6',0,1,'7',0,1,'8',0,1,'9',0,1,-1};
+  int boardsize = 15;
+  gNumberOfPositions = generic_hash_init(boardsize,pieces_array,vcfg,0);
 }
 typedef int CARD;
 typedef int SCORE;
@@ -134,31 +103,67 @@ typedef int SUIT;
 typedef int NUM;
 typedef POSITION STATUS;
 /* Return a linked list of moves. */
-BOOLEAN leadPlayerMoved(STATUS stat){
+BOOLEAN leadPlayerMoved1(char *board){
   int c1=0,c2=0;
-  while(stat) {
-    if((stat&3)==1) c1++;
-    else if((stat&3)==2) c2++;
-    stat>>=2;
+  for(int i=0;i<15;i++)
+  {
+    int x=board[i]>='5'?board[i]-'5':board[i]-'0';
+    if(x==1) c1++;
+    if(x==2) c2++;
   }
-  return (c1^c2);
+  return c1^c2;
+}
+SCORE firstPlayerScore1(char *board){
+  for(int i=0;i<=7;i++)
+  {
+    if(board[i]>='5') return i;
+  }
+  return 0;
+}
+CARD getDecreeCard1(char *board){//3
+  for(int i=0;i<15;i++)
+  {
+    int x=board[i]>='5'?board[i]-'5':board[i]-'0';
+    if(x==3) return i+1;
+  }
+  return 0;
+}
+CARD getLastCard1(char *board){//4
+  for(int i=0;i<15;i++)
+  {
+    int x=board[i]>='5'?board[i]-'5':board[i]-'0';
+    if(x==4) return i+1;
+  }
+  return 0;
+}
+STATUS getCardStatus1(char *board){
+  int ret = 0;
+  for(int i=0;i<15;i++)
+  {
+    int x=board[i]>='5'?board[i]-'5':board[i]-'0';
+    if(x==1||x==2) ret|=(x<<(i*2));
+  }
+  return ret;
+}
+char* getBoard(POSITION p){
+  char board[15];
+  generic_hash_unhash(p,board);
+  return board;
+}
+BOOLEAN leadPlayerMoved(POSITION p){
+  return leadPlayerMoved1(getBoard(p));
 }
 SCORE firstPlayerScore(POSITION p){
-  return p&7;
-}
-CARD getLastCard(POSITION p){
-  return ((p>>3)%E_lst)+1;
+  return firstPlayerScore1(getBoard(p));
 }
 CARD getDecreeCard(POSITION p){
-  return ((p/Div_dec)%E_dec)+1;
+  return getDecreeCard1(getBoard(p));
 }
-
+CARD getLastCard(POSITION p){
+  return getLastCard1(getBoard(p));
+}
 STATUS getCardStatus(POSITION p){
-  //int stat_id= p/Div_comp;
-  //return id[stat_id];
-  int tmp[1];
-  generic_hash_unhash(p,tmp);
-  return tmp[0];
+  return getCardStatus1(getBoard(p));
 }
 SUIT getCardSuit(CARD card){
   if(card>10) return 3;
@@ -170,21 +175,50 @@ NUM getCardNum(CARD card){
   if (card>5) return card-5;
   return card;
 }
-POSITION setPositionHash(SCORE score,CARD lastcard,CARD decreecard,STATUS status,POSITION prePos){
-  //int preStatId = prePos/Div_comp;
-  //int stat_comp = prePos?getIdRev(status,preStatId):getIdRev(status,3485682);//max 3485682
-  int tmp[1]={status};
-  int stat_comp = generic_hash_hash(tmp,1);
-  return (((((1ll*stat_comp*E_dec)+(decreecard-1))*E_lst)+(lastcard-1))*E_score)+score;
+POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard,STATUS status){
+  char a[15];
+  for(int i=0;i<15;i++){
+    a[i]=score==i?'5':'0';
+  }
+  for(int i=0;i<15;i++){
+    if(decreecard==i+1) a[i]+=3;
+    else if(lastcard == i+1) a[i]+=4;
+    else{
+      a[i] += ((status>>(i*2))&3);
+    }
+  }
+  POSITION p = generic_hash_hash(a,1);
+  return p;
+}
+void InitializeGame() {
+  gCanonicalPosition = GetCanonicalPosition;
+  gMoveToStringFunPtr = &MoveToString;
+  hash_init();
+  /* YOUR CODE HERE */
+  
+}
+POSITION GetInitialPosition() {
+  
+  /* YOUR CODE HERE */
+  return setPositionHash(0,0,0,0,0);
+}
+void getPositionHash(BOOLEAN *moved,SCORE *score,CARD *decreecard,CARD *lastcard,STATUS *status,POSITION p){
+  char *board = getBoard(p);
+  moved = leadPlayerMoved(board);
+  score = firstPlayerScore(board);
+  decreecard = getDecreeCard(board);
+  lastcard = getLastCard(board);
+  status = getCardStatus(board);
 }
 /*int max(int a,int b){
   return a>b?a:b;
 }*/
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
-  if (position == 0ll){
-    
-    printf("TOT = %d\n",TOT);
+  CARD preDecreeCard = getDecreeCard(position);
+  
+  if (!preDecreeCard){
+    CARD a[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
     for(int d=1;d<=15;d++){
       for(int msk=0;msk<(1<<14);msk++){
         int cnt =0,x=msk;
@@ -204,12 +238,11 @@ MOVELIST *GenerateMoves(POSITION position) {
         moves = CreateMovelistNode(stat, moves);
       }
     }
-    printf("aaa\n");
   }else{
     CARD decreeCard=getDecreeCard(position),lastCard=getLastCard(position);
     STATUS status=getCardStatus(position);
     SCORE score=firstPlayerScore(position);
-    BOOLEAN moved=leadPlayerMoved(status);
+    BOOLEAN moved=leadPlayerMoved(position);
     //getPositionHash(&moved,&score,&decreeCard,&lastCard,&status,position);
     if(moved){
       int num = getCardNum(lastCard),suit = getCardSuit(lastCard);
@@ -273,7 +306,6 @@ MOVELIST *GenerateMoves(POSITION position) {
      moves = CreateMovelistNode(<the move you're adding>, moves);
      See the function CreateMovelistNode in src/core/misc.c
   */
- printf("gagaga\n");
   return moves;
 }
 
@@ -283,7 +315,8 @@ return the card id
 /* Return the position that results from making the 
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
-  if(position == 0){
+  CARD preDecree = getDecreeCard(position);
+  if(!preDecree){
     CARD decreeCard,lastCard;
     STATUS status;
     SCORE score;
@@ -296,22 +329,20 @@ POSITION DoMove(POSITION position, MOVE move) {
       printf("card %d's color = %d\n",card,col);
       if(!col) decreeCard = card;
     }
-    printf("decreeCard = %d\n",decreeCard);
+    printf("decreeCard = %d",decreeCard);
     status = move;
     lastCard = 0;
-    POSITION ret = setPositionHash(score,lastCard,decreeCard,status,0);
+    POSITION ret = setPositionHash(moved,score,decreeCard,lastCard,status);
     printf("ret = %lld %x\n",ret,ret);
-    STATUS stat = getCardStatus(ret);
-    printf("after move pos = %d %x\n",stat,stat);
     printf("decree Card of ret = %d\n",getDecreeCard(ret));
     return ret;
   }
   SCORE score = firstPlayerScore(position);
   CARD decreecard = getDecreeCard(position);
-  STATUS lst_status = getCardStatus(position);
+  STATUS cur_status = getCardStatus(position);
   CARD lastcard = getLastCard(position);
 
-  STATUS cur_status = ((lst_status)&(~(3ll << (2 * (move-1)))));
+  cur_status &= ~(3ll << (2 * (move-1)));
   if (getCardNum(move) == 1) {
     CARD tmp = decreecard;
     decreecard = move;
@@ -323,9 +354,9 @@ POSITION DoMove(POSITION position, MOVE move) {
   //cur_status |= (3ll<<(2*(move-1)));
   //cur_status &= ~(3l << (2 * (move-1)));  // play the card out
 
-  if (!leadPlayerMoved(lst_status)) {  // lead player's move
+  if (!leadPlayerMoved(position)) {  // lead player's move
     lastcard = move;
-    return setPositionHash(score, lastcard, decreecard, cur_status,position);
+    return setPositionHash(1, score, decreecard, lastcard, cur_status);
   }
   else {
     // to check who wins
@@ -365,7 +396,7 @@ POSITION DoMove(POSITION position, MOVE move) {
       score++;
     }
 
-    return setPositionHash( score, move,decreecard, cur_status,position);
+    return setPositionHash(0, score, decreecard, 0, cur_status);
   }
   return 0;
 }
@@ -418,7 +449,7 @@ POSITION GetCanonicalPosition(POSITION position) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
   /* YOUR CODE HERE */
-  printf("Current Position = %lld %x\n",position,position);
+  printf("Current Location = %lld %x\n",position,position);
   printf("Decree Card: %d\n", getDecreeCard(position));
   STATUS status = getCardStatus(position);
   printf("Current Status = %d %x\n",status,status);
@@ -542,7 +573,6 @@ POSITION InteractStringToPosition(STRING str) {
 
   BOOLEAN moved = (str[2] == 'A') ? FALSE : TRUE; 
 
-  char str[25];
   STATUS status = 0;
   // first check first player's cards
   for (int i = 8; i < 15; i++) {
@@ -571,15 +601,15 @@ STRING InteractPositionToString(POSITION position) {
   /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
 
   // str[0-1] = 'R_'
-  // str[2] = 'A' / 'B', 根据position判断，如果当前是玩家1的轮数就A，否则B
+  // str[2] = 'A' / 'B', 鏍规嵁position鍒ゆ柇锛屽鏋滃綋鍓嶆槸鐜╁1鐨勮疆鏁板氨A锛屽惁鍒橞
   // str[3-7] = '_0_0_'
-  // str[8-14] 为玩家1的卡牌，是哪几张，a-o分别对应1-15，如果手上只有4张牌了，就只有前四个char是字母，后3个都是'-'
-  // str[15-21] 玩家2的卡牌，同上
-  // str[22] decree card是哪一张，用a-o表示
-  // str[23] 玩家1出的牌
-  // str[24] 玩家2出的牌，str[23]和str[24]不能同时是字母，要么是 [字母][-]，要么是 [-][字母]，该字母就是last card，具体谁的是字母，如果玩家1的轮数，字母就是玩家2的，即 [-][字母]
-  // str[25] 玩家1的分数，score转换就行
-  // str[26] 玩家2的分数, 玩了的局数-score就行
+  // str[8-14] 涓虹帺瀹?鐨勫崱鐗岋紝鏄摢鍑犲紶锛宎-o鍒嗗埆瀵瑰簲1-15锛屽鏋滄墜涓婂彧鏈?寮犵墝浜嗭紝灏卞彧鏈夊墠鍥涗釜char鏄瓧姣嶏紝鍚?涓兘鏄?-'
+  // str[15-21] 鐜╁2鐨勫崱鐗岋紝鍚屼笂
+  // str[22] decree card鏄摢涓€寮狅紝鐢╝-o琛ㄧず
+  // str[23] 鐜╁1鍑虹殑鐗?
+  // str[24] 鐜╁2鍑虹殑鐗岋紝str[23]鍜宻tr[24]涓嶈兘鍚屾椂鏄瓧姣嶏紝瑕佷箞鏄?[瀛楁瘝][-]锛岃涔堟槸 [-][瀛楁瘝]锛岃瀛楁瘝灏辨槸last card锛屽叿浣撹皝鐨勬槸瀛楁瘝锛屽鏋滅帺瀹?鐨勮疆鏁帮紝瀛楁瘝灏辨槸鐜╁2鐨勶紝鍗?[-][瀛楁瘝]
+  // str[25] 鐜╁1鐨勫垎鏁帮紝score杞崲灏辫
+  // str[26] 鐜╁2鐨勫垎鏁? 鐜╀簡鐨勫眬鏁?score灏辫
 
   STRING str = (STRING) SafeMalloc(sizeof(char) * 27);
   sprintf(str, "R_%c_0_0_", leadPlayerMoved(position) ? 'B' : 'A');
