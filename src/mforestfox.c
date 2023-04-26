@@ -525,6 +525,8 @@ POSITION InteractStringToPosition(STRING board) {
   /* YOUR CODE HERE */
   /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
 
+  BOOLEAN moved = (board[2] == 'A') ? FALSE : TRUE; 
+
   STATUS status = 0;
   // first check first player's cards
   for (int i = 8; i < 15; i++) {
@@ -545,8 +547,7 @@ POSITION InteractStringToPosition(STRING board) {
   CARD lastcard = (firstcard > 0) ? firstcard : secondcard;
   SCORE firstscore = atoi(str[25]);
 
-  return setPositionHash(firstscore, decreecard, lastcard, status);
-  return 0;
+  return setPositionHash(moved, firstscore, decreecard, lastcard, status);
 }
 
 STRING InteractPositionToString(POSITION position) {
@@ -564,7 +565,52 @@ STRING InteractPositionToString(POSITION position) {
   // str[25] 玩家1的分数，score转换就行
   // str[26] 玩家2的分数, 玩了的局数-score就行
 
-  return NULL;
+  STRING str = (STRING) SafeMalloc(sizeof(char) * 27);
+  sprintf(str, "R_%c_0_0_", leadPlayerMoved(position) ? 'B' : 'A');
+  
+  int index = 8;
+  // set the first player's cards
+  for (int i = 1; i <= 15; i++) {
+    unsigned int mask = 0x3 << ((i-1)*2);
+    unsigned int bits = (status & mask) >> ((i-1)*2);
+    if (bits == 0b01) {
+      str[index] = i + 96;
+      index++;
+    }
+  }
+  for (; index < 15; index++) {
+    str[index] = '-';
+  }
+  // set the second
+  for (int i = 1; i <= 15; i++) {
+    unsigned int mask = 0x3 << ((i-1)*2);
+    unsigned int bits = (status & mask) >> ((i-1)*2);
+    if (bits == 0b10) {
+      str[index] = i + 96;
+      index++;
+    }
+  }
+  int tricks = 0;
+  for (; index < 22; index++) {
+    str[index] = '-';
+    tricks++;
+  }
+  
+  // set the remaining information
+  str[22] = getDecreeCard(position) + 96;
+  if (str[2] == 'A') {
+    str[23] = '-';
+    str[24] = getLastCard(position) + 96;
+  }
+  else {
+    str[23] = getLastCard(position) + 96;
+    str[24] = '-';
+  }
+  Score firstscore = firstPlayerScore(position);
+  str[25] = firstscore + '0';
+  str[26] = tricks - firstscore + '0';
+
+  return str;
 }
 
 /* Optional. */
@@ -574,5 +620,26 @@ STRING InteractPositionToEndData(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
-  return MoveToString(move);
+  STRING str = (STRING) SafeMalloc(sizeof(char) * 5);
+  STATUS status = getCardStatus(position);
+  BOOLEAN firstplayer = leadPlayerMoved(position) ? FALSE : TRUE;
+  int cnt = 0;
+  for (int i = 1; i <= 15; i++) {
+    unsigned int mask = 0x3 << ((i-1)*2);
+    unsigned int bits = (status & mask) >> ((i-1)*2);
+    if (firstplayer && bits == 0b01) {
+      if (i == move) break;
+      cnt++;
+    }
+    else if (!firstplayer && bits == 0b10) {
+      if (i == move) break;
+      cnt++;
+    }
+  }
+  int fromindex = (firstplayer) ? cnt : (cnt + 7);
+  int toindex = firstplayer ? 15 : 16;
+
+  sprintf(str, "M_%d_%d", fromindex, toindex);
+
+  return str;
 }
