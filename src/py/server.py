@@ -1,7 +1,4 @@
-#!/usr/bin/env python2.7
-from __future__ import print_function
-
-import BaseHTTPServer
+import http.server
 from queue import Queue, Empty
 import argparse
 import asynchat
@@ -77,7 +74,7 @@ closed_msg = ('{'
 
 
 class GameRequestHandler(asynchat.async_chat,
-                         BaseHTTPServer.BaseHTTPRequestHandler):
+                         http.server.BaseHTTPRequestHandler):
 
     def __init__(self, sock, address, server):
         self.client_address = address
