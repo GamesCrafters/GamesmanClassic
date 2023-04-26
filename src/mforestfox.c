@@ -521,7 +521,7 @@ void setOption(int option) {
 /* Don't worry about these Interact functions below yet.
 They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
+POSITION InteractStringToPosition(STRING str) {
   /* YOUR CODE HERE */
   /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
 
@@ -568,6 +568,7 @@ STRING InteractPositionToString(POSITION position) {
   STRING str = (STRING) SafeMalloc(sizeof(char) * 27);
   sprintf(str, "R_%c_0_0_", leadPlayerMoved(position) ? 'B' : 'A');
   
+  STATUS status = getCardStatus(position);
   int index = 8;
   // set the first player's cards
   for (int i = 1; i <= 15; i++) {
@@ -606,7 +607,7 @@ STRING InteractPositionToString(POSITION position) {
     str[23] = getLastCard(position) + 96;
     str[24] = '-';
   }
-  Score firstscore = firstPlayerScore(position);
+  SCORE firstscore = firstPlayerScore(position);
   str[25] = firstscore + '0';
   str[26] = tricks - firstscore + '0';
 
