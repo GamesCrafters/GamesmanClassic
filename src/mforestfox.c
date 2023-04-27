@@ -48,6 +48,8 @@ STRING kHelpReverseObjective = "";
 STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 STRING kHelpExample = "";
 
+char * board;
+
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
@@ -95,6 +97,7 @@ Bool vcfg(int *pieces){
 void hash_init(){
   int pieces_array[31]={'0',0,15,'1',0,7,'2',0,7,'3',0,1,'4',0,1,'5',0,1,'6',0,1,'7',0,1,'8',0,1,'9',0,1,-1};
   int boardsize = 15;
+  board = (char *) SafeMalloc (boardsize * sizeof(char));
   gNumberOfPositions = generic_hash_init(boardsize,pieces_array,vcfg,0);
 }
 typedef int CARD;
@@ -103,7 +106,7 @@ typedef int SUIT;
 typedef int NUM;
 typedef POSITION STATUS;
 /* Return a linked list of moves. */
-BOOLEAN leadPlayerMoved1(char *board){
+BOOLEAN leadPlayerMoved1(){
   int c1=0,c2=0;
   for(int i=0;i<15;i++)
   {
@@ -113,14 +116,14 @@ BOOLEAN leadPlayerMoved1(char *board){
   }
   return c1^c2;
 }
-SCORE firstPlayerScore1(char *board){
+SCORE firstPlayerScore1(){
   for(int i=0;i<=7;i++)
   {
     if(board[i]>='5') return i;
   }
   return 0;
 }
-CARD getDecreeCard1(char *board){//3
+CARD getDecreeCard1(){//3
   for(int i=0;i<15;i++)
   {
     int x=board[i]>='5'?board[i]-'5':board[i]-'0';
@@ -128,7 +131,7 @@ CARD getDecreeCard1(char *board){//3
   }
   return 0;
 }
-CARD getLastCard1(char *board){//4
+CARD getLastCard1(){//4
   for(int i=0;i<15;i++)
   {
     int x=board[i]>='5'?board[i]-'5':board[i]-'0';
@@ -136,7 +139,7 @@ CARD getLastCard1(char *board){//4
   }
   return 0;
 }
-STATUS getCardStatus1(char *board){
+STATUS getCardStatus1(){
   int ret = 0;
   for(int i=0;i<15;i++)
   {
@@ -145,25 +148,33 @@ STATUS getCardStatus1(char *board){
   }
   return ret;
 }
-char* getBoard(POSITION p){
-  char board[15];
+void getBoard(POSITION p){
+  // char board[15];
   generic_hash_unhash(p,board);
-  return board;
+  //printf("getBoard----------------\n");
+  //for(int i=0;i<15;i++) printf("%c",board[i]);
+  //printf("---------------------\n");
+  //return board;
 }
 BOOLEAN leadPlayerMoved(POSITION p){
-  return leadPlayerMoved1(getBoard(p));
+  getBoard(p);
+  return leadPlayerMoved1();
 }
 SCORE firstPlayerScore(POSITION p){
-  return firstPlayerScore1(getBoard(p));
+  getBoard(p);
+  return firstPlayerScore1();
 }
 CARD getDecreeCard(POSITION p){
-  return getDecreeCard1(getBoard(p));
+  getBoard(p);
+  return getDecreeCard1();
 }
 CARD getLastCard(POSITION p){
-  return getLastCard1(getBoard(p));
+  getBoard(p);
+  return getLastCard1();
 }
 STATUS getCardStatus(POSITION p){
-  return getCardStatus1(getBoard(p));
+  getBoard(p);
+  return getCardStatus1();
 }
 SUIT getCardSuit(CARD card){
   if(card>10) return 3;
@@ -176,18 +187,25 @@ NUM getCardNum(CARD card){
   return card;
 }
 POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard,STATUS status){
-  char a[15];
+  if(moved +score +decreecard+lastcard+status ==0) return 0;
   for(int i=0;i<15;i++){
-    a[i]=score==i?'5':'0';
+    board[i]=score==i?'5':'0';
   }
   for(int i=0;i<15;i++){
-    if(decreecard==i+1) a[i]+=3;
-    else if(lastcard == i+1) a[i]+=4;
+    if(decreecard==i+1) board[i]+=3;
+    else if(lastcard == i+1) board[i]+=4;
     else{
-      a[i] += ((status>>(i*2))&3);
+      board[i] += ((status>>(i*2))&3);
     }
   }
-  POSITION p = generic_hash_hash(a,1);
+  for(int i=0;i<15;i++) printf("%c",board[i]);
+  printf("\n");
+  POSITION p = generic_hash_hash(board,1);
+  printf("set hash position = %d\n",p);
+  printf("--------------------immediate unhash\n");
+  generic_hash_unhash(p,board);
+  for(int i=0;i<15;i++) printf("%c",board[i]);
+  printf("\n-------------------\n");
   return p;
 }
 void InitializeGame() {
@@ -202,14 +220,14 @@ POSITION GetInitialPosition() {
   /* YOUR CODE HERE */
   return setPositionHash(0,0,0,0,0);
 }
-void getPositionHash(BOOLEAN *moved,SCORE *score,CARD *decreecard,CARD *lastcard,STATUS *status,POSITION p){
-  char *board = getBoard(p);
-  moved = leadPlayerMoved(board);
-  score = firstPlayerScore(board);
-  decreecard = getDecreeCard(board);
-  lastcard = getLastCard(board);
-  status = getCardStatus(board);
-}
+// void getPositionHash(BOOLEAN *moved,SCORE *score,CARD *decreecard,CARD *lastcard,STATUS *status,POSITION p){
+//   char *board = getBoard(p);
+//   moved = leadPlayerMoved(board);
+//   score = firstPlayerScore(board);
+//   decreecard = getDecreeCard(board);
+//   lastcard = getLastCard(board);
+//   status = getCardStatus(board);
+// }
 /*int max(int a,int b){
   return a>b?a:b;
 }*/
@@ -239,10 +257,16 @@ MOVELIST *GenerateMoves(POSITION position) {
       }
     }
   }else{
+    printf("position = %d\n",position);
     CARD decreeCard=getDecreeCard(position),lastCard=getLastCard(position);
     STATUS status=getCardStatus(position);
     SCORE score=firstPlayerScore(position);
     BOOLEAN moved=leadPlayerMoved(position);
+    getBoard(position);
+    printf("Generating moves------------------------\n");
+    for(int i=0;i<15;i++) printf("%c",board[i]);
+    printf("\n");
+    printf("decreeCard = %d\n lastCard = %d\nstatus = %d\nscore = %d\nmoved = %d\n",decreeCard,lastCard,status,score,moved);
     //getPositionHash(&moved,&score,&decreeCard,&lastCard,&status,position);
     if(moved){
       int num = getCardNum(lastCard),suit = getCardSuit(lastCard);
@@ -342,19 +366,25 @@ POSITION DoMove(POSITION position, MOVE move) {
   STATUS cur_status = getCardStatus(position);
   CARD lastcard = getLastCard(position);
 
+  Bool swaped = FALSE;
   cur_status &= ~(3ll << (2 * (move-1)));
+  printf("cur_status = %d %x\n",cur_status,cur_status);
+  BOOLEAN moved = leadPlayerMoved(position);
+  printf("moved = %d\n",moved);
   if (getCardNum(move) == 1) {
+    swaped = TRUE;
     CARD tmp = decreecard;
     decreecard = move;
     move = tmp;
   }
+  printf("move = %d\n",move);
   //SCORE add_points = getAdditionalPoint(position);
   // update card's status
   
   //cur_status |= (3ll<<(2*(move-1)));
   //cur_status &= ~(3l << (2 * (move-1)));  // play the card out
 
-  if (!leadPlayerMoved(position)) {  // lead player's move
+  if (!moved) {  // lead player's move
     lastcard = move;
     return setPositionHash(1, score, decreecard, lastcard, cur_status);
   }
@@ -367,7 +397,7 @@ POSITION DoMove(POSITION position, MOVE move) {
     int lead_num = getCardNum(decreecard);
     int other_num = getCardNum(move);
     if(!(lead_num == 3&&other_num == 3)){
-        if(lead_num == 3){//trumpth
+      if(lead_num == 3){//trumpth
         leadcard_suit = decreecard_suit;
       }
       if(other_num == 3){
@@ -395,8 +425,8 @@ POSITION DoMove(POSITION position, MOVE move) {
     if (lead_player_win) {
       score++;
     }
-
-    return setPositionHash(0, score, decreecard, 0, cur_status);
+    lastcard = move;
+    return setPositionHash(0, score, decreecard, lastcard, cur_status);
   }
   return 0;
 }
@@ -470,6 +500,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
       printf("%d ", i);
     }
   }
+  printf("LastCard = %d\n",getLastCard(position));
+  printf("FirstPlayerScore = %d\n",firstPlayerScore(position));
   if (usersTurn) printf("\nIt's %s's turn\n", playerName);
   else printf("\nIt's not %s's turn\n", playerName);
 }
@@ -601,15 +633,15 @@ STRING InteractPositionToString(POSITION position) {
   /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
 
   // str[0-1] = 'R_'
-  // str[2] = 'A' / 'B', 鏍规嵁position鍒ゆ柇锛屽鏋滃綋鍓嶆槸鐜╁1鐨勮疆鏁板氨A锛屽惁鍒橞
+  // str[2] = 'A' / 'B', 閺嶈宓乸osition閸掋倖鏌囬敍灞筋洤閺嬫粌缍嬮崜宥嗘Ц閻溾晛顔?閻ㄥ嫯鐤嗛弫鏉挎皑A閿涘苯鎯侀崚姗?
   // str[3-7] = '_0_0_'
-  // str[8-14] 涓虹帺瀹?鐨勫崱鐗岋紝鏄摢鍑犲紶锛宎-o鍒嗗埆瀵瑰簲1-15锛屽鏋滄墜涓婂彧鏈?寮犵墝浜嗭紝灏卞彧鏈夊墠鍥涗釜char鏄瓧姣嶏紝鍚?涓兘鏄?-'
-  // str[15-21] 鐜╁2鐨勫崱鐗岋紝鍚屼笂
-  // str[22] decree card鏄摢涓€寮狅紝鐢╝-o琛ㄧず
-  // str[23] 鐜╁1鍑虹殑鐗?
-  // str[24] 鐜╁2鍑虹殑鐗岋紝str[23]鍜宻tr[24]涓嶈兘鍚屾椂鏄瓧姣嶏紝瑕佷箞鏄?[瀛楁瘝][-]锛岃涔堟槸 [-][瀛楁瘝]锛岃瀛楁瘝灏辨槸last card锛屽叿浣撹皝鐨勬槸瀛楁瘝锛屽鏋滅帺瀹?鐨勮疆鏁帮紝瀛楁瘝灏辨槸鐜╁2鐨勶紝鍗?[-][瀛楁瘝]
-  // str[25] 鐜╁1鐨勫垎鏁帮紝score杞崲灏辫
-  // str[26] 鐜╁2鐨勫垎鏁? 鐜╀簡鐨勫眬鏁?score灏辫
+  // str[8-14] 娑撹櫣甯虹€?閻ㄥ嫬宕遍悧宀嬬礉閺勵垰鎽㈤崙鐘茬炊閿涘畮-o閸掑棗鍩嗙€电懓绨?-15閿涘苯顩ч弸婊勫娑撳﹤褰ч張?瀵姷澧濇禍鍡礉鐏忓崬褰ч張澶婂閸ユ稐閲渃har閺勵垰鐡уВ宥忕礉閸?娑擃亪鍏橀弰?-'
+  // str[15-21] 閻溾晛顔?閻ㄥ嫬宕遍悧宀嬬礉閸氬奔绗?
+  // str[22] decree card閺勵垰鎽㈡稉鈧鐙呯礉閻⑩暆-o鐞涖劎銇?
+  // str[23] 閻溾晛顔?閸戣櫣娈戦悧?
+  // str[24] 閻溾晛顔?閸戣櫣娈戦悧宀嬬礉str[23]閸滃tr[24]娑撳秷鍏橀崥灞炬閺勵垰鐡уВ宥忕礉鐟曚椒绠為弰?[鐎涙鐦漖[-]閿涘矁顩︽稊鍫熸Ц [-][鐎涙鐦漖閿涘矁顕氱€涙鐦濈亸杈ㄦЦlast card閿涘苯鍙挎担鎾圭殱閻ㄥ嫭妲哥€涙鐦濋敍灞筋洤閺嬫粎甯虹€?閻ㄥ嫯鐤嗛弫甯礉鐎涙鐦濈亸杈ㄦЦ閻溾晛顔?閻ㄥ嫸绱濋崡?[-][鐎涙鐦漖
+  // str[25] 閻溾晛顔?閻ㄥ嫬鍨庨弫甯礉score鏉烆剚宕茬亸杈攽
+  // str[26] 閻溾晛顔?閻ㄥ嫬鍨庨弫? 閻溾晙绨￠惃鍕湰閺?score鐏忚精顢?
 
   STRING str = (STRING) SafeMalloc(sizeof(char) * 27);
   sprintf(str, "R_%c_0_0_", leadPlayerMoved(position) ? 'B' : 'A');
