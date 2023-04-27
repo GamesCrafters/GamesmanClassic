@@ -270,8 +270,23 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
-  /* YOUR CODE HERE */
+  Slide5Board board = Unhash(position);
+
+  printf("  1 2 3 4 5\n");
+  for (int i = 0; i < 5; i++) {
+    printf("%d ", i + 1);
+    for (int j = 0; j < 5; j++) {
+      int cell_value = board.board[i * 5 + j + 1];
+      printf("%d ", cell_value);
+    }
+    printf("\n");
+  }
+
+  if (board.board[0] == 0) {
+    printf("It is Player 1's turn!\n");
+  } else {
+    printf("It is Player 2's turn!\n");
+  }
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
@@ -280,8 +295,18 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-  /* YOUR CODE HERE */
-  return Continue;
+  USERINPUT ret;
+
+	do {
+		printf("%8s's move:  ", playerName);
+
+		ret = HandleDefaultTextInput(position, move, playerName);
+		if(ret != Continue)
+			return(ret);
+
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /* Return whether the input text signifies a valid move. */
@@ -294,16 +319,16 @@ BOOLEAN ValidTextInput(STRING input) {
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  /* YOUR CODE HERE */
-  return 0;
+  return atoi(input);
 }
 
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
-  /* YOUR CODE HERE */
-  return NULL;
+  static char move_str[4];
+    snprintf(move_str, sizeof(move_str), "%d", move);
+    return move_str;
 }
 
 /* Basically just print the move. */
