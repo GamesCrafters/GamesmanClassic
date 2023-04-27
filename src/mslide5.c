@@ -66,7 +66,7 @@ typedef struct {
 /*********** BEGIN SOLVING FUNCIONS ***********/
 
 /* TODO: Add a hashing function and unhashing function, if needed. */
-uint64_t hash(Slide5Board board) {
+uint64_t Hash(Slide5Board board) {
   uint64_t tier = 0;
   uint64_t tier_position = 0;
 
@@ -87,7 +87,7 @@ uint64_t hash(Slide5Board board) {
 
   return (tier << 32) | tier_position;
 }
-Slide5Board unhash(uint64_t hash_value) {
+Slide5Board Unhash(uint64_t hash_value) {
   Slide5Board board;
 
   // Gets tier and tier_position from hash
@@ -126,14 +126,14 @@ void InitializeGame() {
 	/********************************/
 
   /* Tier-Related Initialization */
-  gTierChildrenFunPtr = &getTierChildren;
-  gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
+  gTierChildrenFunPtr = gGetTierChildren;
+  gNumberOfTierPositionsFunPtr = gNumberOfTierPositions;
   gInitialTierPosition = gInitialPosition;
   kSupportsTierGamesman = TRUE;
   kExclusivelyTierGamesman = TRUE;
   gInitialTier = 0; // There will only be one tier and its ID will be 0
-  gUnDoMoveFunPtr = &UndoMove;
-  gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
+  gUnDoMoveFunPtr = gUndoMove;
+  gGenerateUndoMovesToTierFunPtr = gGenerateUndoMovesToTier;
 }
 
 /* Return the hash value of the initial position. */
