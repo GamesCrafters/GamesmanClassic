@@ -88,10 +88,8 @@ Bool vcfg(int *pieces){
   //'4': last card
   int p1 = pieces[1]+pieces[6],p2 = pieces[2]+pieces[7];
   return ((p1==p2||p1==p2-1)&&(p1<=7&&p2<=7)&&
-    (pieces[3]+pieces[8]==1)&&
-    (pieces[4]+pieces[8]==1)&&
     (pieces[5]+pieces[6]+pieces[7]+pieces[8]+pieces[9]==1))||//normal process
-    (p1==7&&p2==7&&pieces[3]+pieces[8]==1)||//only shuffled
+    (p1==7&&p2==7&&(pieces[5]+pieces[6]+pieces[7]+pieces[8]+pieces[9]==1))||//only shuffled
     (pieces[0]==15);//unshuffled
 }
 void hash_init(){
@@ -99,6 +97,7 @@ void hash_init(){
   int boardsize = 15;
   board = (char *) SafeMalloc (boardsize * sizeof(char));
   gNumberOfPositions = generic_hash_init(boardsize,pieces_array,vcfg,0);
+  printf("total number = %d\n",gNumberOfPositions);
 }
 typedef int CARD;
 typedef int SCORE;
@@ -150,7 +149,7 @@ STATUS getCardStatus1(){
 }
 void getBoard(POSITION p){
   // char board[15];
-  generic_hash_unhash(p,board);
+  board = generic_hash_unhash(p,board);
   //printf("getBoard----------------\n");
   //for(int i=0;i<15;i++) printf("%c",board[i]);
   //printf("---------------------\n");
@@ -201,11 +200,12 @@ POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard
   for(int i=0;i<15;i++) printf("%c",board[i]);
   printf("\n");
   POSITION p = generic_hash_hash(board,1);
-  printf("set hash position = %d\n",p);
-  printf("--------------------immediate unhash\n");
-  generic_hash_unhash(p,board);
-  for(int i=0;i<15;i++) printf("%c",board[i]);
-  printf("\n-------------------\n");
+  // printf("set hash position = %d\n",p);
+  // printf("--------------------immediate unhash\n");
+  // generic_hash_unhash(p,board);
+  // for(int i=0;i<15;i++) printf("%c",board[i]);
+  // printf("\n-------------------\n");
+  
   return p;
 }
 void InitializeGame() {
@@ -257,16 +257,16 @@ MOVELIST *GenerateMoves(POSITION position) {
       }
     }
   }else{
-    printf("position = %d\n",position);
+    // printf("position = %d\n",position);
     CARD decreeCard=getDecreeCard(position),lastCard=getLastCard(position);
     STATUS status=getCardStatus(position);
     SCORE score=firstPlayerScore(position);
     BOOLEAN moved=leadPlayerMoved(position);
     getBoard(position);
-    printf("Generating moves------------------------\n");
-    for(int i=0;i<15;i++) printf("%c",board[i]);
-    printf("\n");
-    printf("decreeCard = %d\n lastCard = %d\nstatus = %d\nscore = %d\nmoved = %d\n",decreeCard,lastCard,status,score,moved);
+    // printf("Generating moves------------------------\n");
+    // for(int i=0;i<15;i++) printf("%c",board[i]);
+    // printf("\n");
+    // printf("decreeCard = %d\n lastCard = %d\nstatus = %d\nscore = %d\nmoved = %d\n",decreeCard,lastCard,status,score,moved);
     //getPositionHash(&moved,&score,&decreeCard,&lastCard,&status,position);
     if(moved){
       int num = getCardNum(lastCard),suit = getCardSuit(lastCard);
