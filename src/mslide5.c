@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
@@ -110,7 +111,76 @@ Slide5Board Unhash(uint64_t hash_value) {
 
   return board;
 }
+// Helper function for getTierChildren
+TIER apply_move_to_tier(TIER tier, int move) {
+    int move_indexes[][5] = {
+        {0, 1, 2, 3, 4},
+        {5, 6, 7, 8, 9},
+        {10, 11, 12, 13, 14},
+        {15, 16, 17, 18, 19},
+        {20, 21, 22, 23, 24},
+        {20, 15, 10, 5, 0},
+        {21, 16, 11, 6, 1},
+        {22, 17, 12, 7, 2},
+        {23, 18, 13, 8, 3},
+        {24, 19, 14, 9, 4},
+    };
 
+    TIER new_tier = tier;
+    int first_bit_occupied = (tier >> move_indexes[move][0]) & 1;
+
+    for (int i = 4; i > 0; i--) {
+        int current_index = move_indexes[move][i];
+        int prev_index = move_indexes[move][i - 1];
+
+        if (((tier >> prev_index) & 1) && !((tier >> current_index) & 1)) {
+            new_tier |= ((uint64_t)1 << current_index);
+            new_tier &= ~((uint64_t)1 << prev_index);
+        }
+    }
+
+    if (!first_bit_occupied) {
+        new_tier |= ((uint64_t)1 << move_indexes[move][0]);
+    }
+
+    return new_tier;
+}
+/* The tier graph is just a single tier with id=0. */
+TIERLIST *getTierChildren(TIER tier) {
+  TIERLIST *childTiers = NULL;
+  
+  for (int move = 0; move < 10; move++) {
+    TIER new_tier = apply_move_to_tier(tier, move);
+    
+    bool tier_exists = false;
+    TIERLIST *current = childTiers;
+    
+    while (current != NULL) {
+      if (current->tier == new_tier) {
+        tier_exists = true;
+        break;
+      }
+      current = current->next;
+    }
+    
+    if (!tier_exists) {
+      childTiers = CreateTierlistNode(new_tier, childTiers);
+    }
+  }
+
+  return childTiers;
+}
+TIERPOSITION numberOfTierPositions(TIER tier) {
+  int count = 0;
+
+  for (int i = 0; i < 25; i++) {
+    if (tier & (1 << i)) {
+      count++;
+    }
+  }
+
+  return 2 * pow(2, count);
+}
 
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
@@ -334,7 +404,7 @@ STRING MoveToString(MOVE move) {
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  /* YOUR CODE HERE */
+  printf("%d", move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
