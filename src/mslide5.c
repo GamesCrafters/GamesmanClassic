@@ -11,6 +11,7 @@
 ************************************************************************/
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
