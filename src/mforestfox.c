@@ -222,22 +222,22 @@ POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard
   
   return p;
 }
+
 void InitializeGame() {
+
+  gCanonicalPosition = GetCanonicalPosition;
+  gMoveToStringFunPtr = &MoveToString;
+  hash_init();
+  /* YOUR CODE HERE */
   gTierChildrenFunPtr = &getTierChildren;
   gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
   gInitialTierPosition = gInitialPosition;
   kSupportsTierGamesman = TRUE;
   kExclusivelyTierGamesman = TRUE;
   gInitialTier = 0; 
-
-  gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
-  hash_init();
-  /* YOUR CODE HERE */
-
-  
   
 }
+
 POSITION GetInitialPosition() {
   
   /* YOUR CODE HERE */
