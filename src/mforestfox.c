@@ -624,7 +624,7 @@ POSITION InteractStringToPosition(STRING str) {
   CARD firstcard = (str[23] != '-') ? str[23] - 96 : 0;
   CARD secondcard = (str[24] != '-') ? str[24] - 96 : 0;
   CARD lastcard = (firstcard > 0) ? firstcard : secondcard;
-  SCORE firstscore = atoi(&str[25]);
+  SCORE firstscore = str[25]-'0';
 
   return setPositionHash(moved, firstscore, decreecard, lastcard, status);
 }
