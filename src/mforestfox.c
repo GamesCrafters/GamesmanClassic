@@ -503,41 +503,41 @@ POSITION GetCanonicalPosition(POSITION position) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
   /* YOUR CODE HERE */
-  // printf("Current Location = %lld %x\n",position,position);
-  // printf("Decree Card: %d\n", getDecreeCard(position));
-  // STATUS status = getCardStatus(position);
-  // printf("Current Status = %d %x\n",status,status);
-  // printf("First Player's Card: ");
-  // int i;
-  // for (i = 1; i <= 15; i++) {
-  //   unsigned int mask = 0x3 << ((i-1)*2);
-  //   unsigned int bits = (status & mask) >> ((i-1)*2);
-  //   if (bits == 0b01) {
-  //     printf("%d ", i);
-  //   }
-  // }
-  // printf("\nSecond Player's Card: ");
-  // for (i = 1; i <= 15; i++) {
-  //   unsigned int mask = 0x3 << ((i-1)*2);
-  //   unsigned int bits = (status & mask) >> ((i-1)*2);
-  //   if (bits == 0b10) {
-  //     printf("%d ", i);
-  //   }
-  // }
-  // printf("LastCard = %d\n",getLastCard(position));
-  // printf("FirstPlayerScore = %d\n",firstPlayerScore(position));
-  // if (usersTurn) printf("\nIt's %s's turn\n", playerName);
-  // else printf("\nIt's not %s's turn\n", playerName);
+  printf("Current Location = %lld %llx\n",position,position);
+  printf("Decree Card: %d\n", getDecreeCard(position));
+  STATUS status = getCardStatus(position);
+  printf("Current Status = %lld %llx\n",status,status);
+  printf("First Player's Card: ");
+  int i;
+  for (i = 1; i <= 15; i++) {
+    unsigned int mask = 0x3 << ((i-1)*2);
+    unsigned int bits = (status & mask) >> ((i-1)*2);
+    if (bits == 0b01) {
+      printf("%d ", i);
+    }
+  }
+  printf("\nSecond Player's Card: ");
+  for (i = 1; i <= 15; i++) {
+    unsigned int mask = 0x3 << ((i-1)*2);
+    unsigned int bits = (status & mask) >> ((i-1)*2);
+    if (bits == 0b10) {
+      printf("%d ", i);
+    }
+  }
+  printf("LastCard = %d\n",getLastCard(position));
+  printf("FirstPlayerScore = %d\n",firstPlayerScore(position));
+  if (usersTurn) printf("\nIt's %s's turn\n", playerName);
+  else printf("\nIt's not %s's turn\n", playerName);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  // printf("%s played %d\n", computersName, computersMove);
+  printf("%s played %d\n", computersName, computersMove);
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
 	USERINPUT ret;
 	do {
-		// printf("%8s's move [(u)ndo]/[1-15] :  ", playerName);
+		printf("%8s's move [(u)ndo]/[1-15] :  ", playerName);
 		ret = HandleDefaultTextInput(position, move, playerName);
 		if (ret != Continue) {
 			return ret;
@@ -579,7 +579,7 @@ STRING MoveToString(MOVE move) {
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  // printf("The move is %d %x\n", move,move);
+  printf("The move is %d %x\n", move,move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
