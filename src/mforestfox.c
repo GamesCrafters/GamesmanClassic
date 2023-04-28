@@ -97,7 +97,7 @@ void hash_init(){
   int boardsize = 15;
   board = (char *) SafeMalloc (boardsize * sizeof(char));
   gNumberOfPositions = generic_hash_init(boardsize,pieces_array,vcfg,0);
-  printf("total number = %d\n",gNumberOfPositions);
+  // printf("total number = %d\n",gNumberOfPositions);
 }
 typedef int CARD;
 typedef int SCORE;
@@ -197,8 +197,8 @@ POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard
       board[i] += ((status>>(i*2))&3);
     }
   }
-  for(int i=0;i<15;i++) printf("%c",board[i]);
-  printf("\n");
+  // for(int i=0;i<15;i++) printf("%c",board[i]);
+  // printf("\n");
   POSITION p = generic_hash_hash(board,1);
   // printf("set hash position = %d\n",p);
   // printf("--------------------immediate unhash\n");
@@ -350,15 +350,15 @@ POSITION DoMove(POSITION position, MOVE move) {
     for(int i=0;i<30;i+=2){
       CARD card = i/2+1;
       int col = (move>>i)&3;
-      printf("card %d's color = %d\n",card,col);
+      // printf("card %d's color = %d\n",card,col);
       if(!col) decreeCard = card;
     }
-    printf("decreeCard = %d",decreeCard);
+    // printf("decreeCard = %d",decreeCard);
     status = move;
     lastCard = 0;
     POSITION ret = setPositionHash(moved,score,decreeCard,lastCard,status);
-    printf("ret = %lld %x\n",ret,ret);
-    printf("decree Card of ret = %d\n",getDecreeCard(ret));
+    // printf("ret = %lld %x\n",ret,ret);
+    // printf("decree Card of ret = %d\n",getDecreeCard(ret));
     return ret;
   }
   SCORE score = firstPlayerScore(position);
@@ -368,16 +368,16 @@ POSITION DoMove(POSITION position, MOVE move) {
 
   Bool swaped = FALSE;
   cur_status &= ~(3ll << (2 * (move-1)));
-  printf("cur_status = %d %x\n",cur_status,cur_status);
+  // printf("cur_status = %d %x\n",cur_status,cur_status);
   BOOLEAN moved = leadPlayerMoved(position);
-  printf("moved = %d\n",moved);
+  // printf("moved = %d\n",moved);
   if (getCardNum(move) == 1) {
     swaped = TRUE;
     CARD tmp = decreecard;
     decreecard = move;
     move = tmp;
   }
-  printf("move = %d\n",move);
+  // printf("move = %d\n",move);
   //SCORE add_points = getAdditionalPoint(position);
   // update card's status
   
@@ -479,41 +479,41 @@ POSITION GetCanonicalPosition(POSITION position) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
   /* YOUR CODE HERE */
-  printf("Current Location = %lld %x\n",position,position);
-  printf("Decree Card: %d\n", getDecreeCard(position));
-  STATUS status = getCardStatus(position);
-  printf("Current Status = %d %x\n",status,status);
-  printf("First Player's Card: ");
-  int i;
-  for (i = 1; i <= 15; i++) {
-    unsigned int mask = 0x3 << ((i-1)*2);
-    unsigned int bits = (status & mask) >> ((i-1)*2);
-    if (bits == 0b01) {
-      printf("%d ", i);
-    }
-  }
-  printf("\nSecond Player's Card: ");
-  for (i = 1; i <= 15; i++) {
-    unsigned int mask = 0x3 << ((i-1)*2);
-    unsigned int bits = (status & mask) >> ((i-1)*2);
-    if (bits == 0b10) {
-      printf("%d ", i);
-    }
-  }
-  printf("LastCard = %d\n",getLastCard(position));
-  printf("FirstPlayerScore = %d\n",firstPlayerScore(position));
-  if (usersTurn) printf("\nIt's %s's turn\n", playerName);
-  else printf("\nIt's not %s's turn\n", playerName);
+  // printf("Current Location = %lld %x\n",position,position);
+  // printf("Decree Card: %d\n", getDecreeCard(position));
+  // STATUS status = getCardStatus(position);
+  // printf("Current Status = %d %x\n",status,status);
+  // printf("First Player's Card: ");
+  // int i;
+  // for (i = 1; i <= 15; i++) {
+  //   unsigned int mask = 0x3 << ((i-1)*2);
+  //   unsigned int bits = (status & mask) >> ((i-1)*2);
+  //   if (bits == 0b01) {
+  //     printf("%d ", i);
+  //   }
+  // }
+  // printf("\nSecond Player's Card: ");
+  // for (i = 1; i <= 15; i++) {
+  //   unsigned int mask = 0x3 << ((i-1)*2);
+  //   unsigned int bits = (status & mask) >> ((i-1)*2);
+  //   if (bits == 0b10) {
+  //     printf("%d ", i);
+  //   }
+  // }
+  // printf("LastCard = %d\n",getLastCard(position));
+  // printf("FirstPlayerScore = %d\n",firstPlayerScore(position));
+  // if (usersTurn) printf("\nIt's %s's turn\n", playerName);
+  // else printf("\nIt's not %s's turn\n", playerName);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  printf("%s played %d\n", computersName, computersMove);
+  // printf("%s played %d\n", computersName, computersMove);
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
 	USERINPUT ret;
 	do {
-		printf("%8s's move [(u)ndo]/[1-15] :  ", playerName);
+		// printf("%8s's move [(u)ndo]/[1-15] :  ", playerName);
 		ret = HandleDefaultTextInput(position, move, playerName);
 		if (ret != Continue) {
 			return ret;
@@ -555,7 +555,7 @@ STRING MoveToString(MOVE move) {
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  printf("The move is %d %x\n", move,move);
+  // printf("The move is %d %x\n", move,move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
