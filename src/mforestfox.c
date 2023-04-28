@@ -50,6 +50,9 @@ STRING kHelpExample = "";
 
 char * board;
 
+TIERLIST *getTierChildren(TIER tier);
+TIERPOSITION numberOfTierPositions(TIER tier);
+
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
@@ -63,6 +66,17 @@ void GameSpecificMenu() {}
 
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
+
+/* The tier graph is just a single tier with id=0. */
+TIERLIST *getTierChildren(TIER tier) {
+  return CreateTierlistNode(0, NULL);
+}
+
+/* We use a single tier for this entire game. This
+is returns the upper bound */
+TIERPOSITION numberOfTierPositions(TIER tier) {
+  return gNumberOfPositions;
+}
 
 /* TODO: Add a hashing function and unhashing function, if needed. */
 
@@ -97,7 +111,7 @@ void hash_init(){
   int boardsize = 15;
   board = (char *) SafeMalloc (boardsize * sizeof(char));
   gNumberOfPositions = generic_hash_init(boardsize,pieces_array,vcfg,0);
-  // printf("total number = %d\n",gNumberOfPositions);
+  printf("total number = %lld\n",gNumberOfPositions);
 }
 typedef int CARD;
 typedef int SCORE;
@@ -209,10 +223,19 @@ POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard
   return p;
 }
 void InitializeGame() {
+  gTierChildrenFunPtr = &getTierChildren;
+  gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
+  gInitialTierPosition = gInitialPosition;
+  kSupportsTierGamesman = TRUE;
+  kExclusivelyTierGamesman = TRUE;
+  gInitialTier = 0; 
+
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
   hash_init();
   /* YOUR CODE HERE */
+
+  
   
 }
 POSITION GetInitialPosition() {
