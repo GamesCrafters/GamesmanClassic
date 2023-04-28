@@ -366,7 +366,7 @@ POSITION DoMove(POSITION position, MOVE move) {
   STATUS cur_status = getCardStatus(position);
   CARD lastcard = getLastCard(position);
 
-  Bool swaped = FALSE;
+  BOOLEAN swaped = FALSE;
   cur_status &= ~(3ll << (2 * (move-1)));
   // printf("cur_status = %d %x\n",cur_status,cur_status);
   BOOLEAN moved = leadPlayerMoved(position);
@@ -623,7 +623,7 @@ POSITION InteractStringToPosition(STRING str) {
   CARD firstcard = (str[23] != '-') ? str[23] - 96 : 0;
   CARD secondcard = (str[24] != '-') ? str[24] - 96 : 0;
   CARD lastcard = (firstcard > 0) ? firstcard : secondcard;
-  SCORE firstscore = atoi(str[25]);
+  SCORE firstscore = atoi(&str[25]);
 
   return setPositionHash(moved, firstscore, decreecard, lastcard, status);
 }
