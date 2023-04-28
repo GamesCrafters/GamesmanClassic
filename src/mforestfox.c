@@ -105,7 +105,7 @@ typedef int SUIT;
 typedef int NUM;
 typedef POSITION STATUS;
 /* Return a linked list of moves. */
-BOOLEAN leadPlayerMoved1(){
+BOOLEAN  leadPlayerMoved1(){
   int c1=0,c2=0;
   for(int i=0;i<15;i++)
   {
@@ -236,7 +236,7 @@ MOVELIST *GenerateMoves(POSITION position) {
   CARD preDecreeCard = getDecreeCard(position);
   
   if (!preDecreeCard){
-    CARD a[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    //CARD a[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
     for(int d=1;d<=15;d++){
       for(int msk=0;msk<(1<<14);msk++){
         int cnt =0,x=msk;
@@ -258,9 +258,10 @@ MOVELIST *GenerateMoves(POSITION position) {
     }
   }else{
     // printf("position = %d\n",position);
-    CARD decreeCard=getDecreeCard(position),lastCard=getLastCard(position);
+    //CARD decreeCard=getDecreeCard(position);
+    CARD lastCard=getLastCard(position);
     STATUS status=getCardStatus(position);
-    SCORE score=firstPlayerScore(position);
+    //SCORE score=firstPlayerScore(position);
     BOOLEAN moved=leadPlayerMoved(position);
     getBoard(position);
     // printf("Generating moves------------------------\n");
@@ -366,13 +367,13 @@ POSITION DoMove(POSITION position, MOVE move) {
   STATUS cur_status = getCardStatus(position);
   CARD lastcard = getLastCard(position);
 
-  BOOLEAN swaped = FALSE;
+  //BOOLEAN swaped = FALSE;
   cur_status &= ~(3ll << (2 * (move-1)));
   // printf("cur_status = %d %x\n",cur_status,cur_status);
   BOOLEAN moved = leadPlayerMoved(position);
   // printf("moved = %d\n",moved);
   if (getCardNum(move) == 1) {
-    swaped = TRUE;
+    //swaped = TRUE;
     CARD tmp = decreecard;
     decreecard = move;
     move = tmp;
