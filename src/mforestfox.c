@@ -52,6 +52,7 @@ char * board;
 
 TIERLIST *getTierChildren(TIER tier);
 TIERPOSITION numberOfTierPositions(TIER tier);
+BOOLEAN isLegal(POSITION position);
 
 /* You don't have to change this. */
 void DebugMenu() {}
@@ -223,6 +224,11 @@ POSITION setPositionHash(BOOLEAN moved,SCORE score,CARD decreecard,CARD lastcard
   return p;
 }
 
+BOOLEAN isLegal(POSITION position) {
+  CARD preDecreeCard = getDecreeCard(position);
+  return preDecreeCard || position == 0;
+}
+
 void InitializeGame() {
 
   gCanonicalPosition = GetCanonicalPosition;
@@ -235,6 +241,7 @@ void InitializeGame() {
   kSupportsTierGamesman = TRUE;
   kExclusivelyTierGamesman = TRUE;
   gInitialTier = 0; 
+  gIsLegalFunPtr = &isLegal;
   
 }
 
