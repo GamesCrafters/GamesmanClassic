@@ -242,7 +242,9 @@ void InitializeGame() {
   kExclusivelyTierGamesman = TRUE;
   gInitialTier = 0; 
   gIsLegalFunPtr = &isLegal;
-  
+  if (gIsInteract) {
+    gLoadTierdbArray = FALSE; 
+  } 
 }
 
 POSITION GetInitialPosition() {
@@ -533,6 +535,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   }
   printf("LastCard = %d\n",getLastCard(position));
   printf("FirstPlayerScore = %d\n",firstPlayerScore(position));
+  printf("%s\n", GetPrediction(position, playerName, usersTurn));
   if (usersTurn) printf("\nIt's %s's turn\n", playerName);
   else printf("\nIt's not %s's turn\n", playerName);
 }
