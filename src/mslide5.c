@@ -326,8 +326,27 @@ VALUE Primitive(POSITION position) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  /* YOUR CODE HERE */
-  return position;
+  Slide5Board board = Unhash(position);
+    Slide5Board transformed_board;
+
+  
+    transformed_board.board[0] = board.board[0] == 0 ? 1 : 0;
+    for (int i = 1; i < 26; i++) {
+        if (board.board[i] == 1) {
+            transformed_board.board[i] = 2;
+        } else if (board.board[i] == 2) {
+            transformed_board.board[i] = 1;
+        } else {
+            transformed_board.board[i] = 0;
+        }
+    }
+
+    
+    POSITION original_hash = Hash(board);
+    POSITION transformed_hash = Hash(transformed_board);
+
+    
+    return (original_hash < transformed_hash) ? original_hash : transformed_hash;
 }
 
 /*********** END SOLVING FUNCTIONS ***********/
