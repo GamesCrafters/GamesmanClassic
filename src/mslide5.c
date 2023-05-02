@@ -32,7 +32,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
 /* You do not have to change these for now. */
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 TIERLIST *getTierChildren(TIER tier);
 TIERPOSITION numberOfTierPositions(TIER tier);
@@ -52,14 +52,14 @@ STRING kHelpExample = "";
 void DebugMenu() {}
 /* Ignore this function. */
 void SetTclCGameSpecificOptions(int theOptions[]) {}
-/* Do not worry about this yet because you will only be supporting 1 variant for now. */
-void GameSpecificMenu() {}
 
 // Defining Slide5Board
 typedef struct {
     int board[26];
 } Slide5Board;
 
+
+VALUE tieResult = lose;
 
 int move_indexes[][5] = {
         {0, 1, 2, 3, 4},
@@ -321,7 +321,7 @@ VALUE Primitive(POSITION position) {
   free(board);
 
   if (blue_five && red_five) {
-    return tie;
+    return tieResult;
   } else if (blue_five) {
     return turn == 0 ? win : lose;
   } else if (red_five) {
@@ -443,22 +443,50 @@ void PrintMove(MOVE move) {
 
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
+/* For implementing more than one variant */
+void GameSpecificMenu() {
+  char inp;
+	while (TRUE) {
+		printf("\n\n\n");
+		printf("        ----- Game-specific options for Slide 5 -----\n\n");
+		printf("        Select a game board:\n\n");
+		printf("        0)      If 5-in-a-rows of both colors exist, the player who created it wins. \n");
+		printf("        1)      If 5-in-a-rows of both colors exist, the game is a tie. \n");
+    printf("        B)      (B)ack = Return to previous activity.\n\n\n");
+		printf("\nSelect an option: ");
+		inp = GetMyChar();
+		if (inp == '0') {
+      setOption(0);
+      return;
+		}
+		else if (inp == '1') {
+      setOption(1);
+      return;
+		}
+		else if (inp == 'b' || inp == 'B') return;
+		else {
+			printf("Invalid input.\n");
+		}
+	}
+}
+
 /* How many variants are you supporting? */
 int NumberOfOptions() {
   /* YOUR CODE HERE */
-  return 1;
+  return 2;
 }
 
 /* Return the current variant id. */
 int getOption() {
   /* YOUR CODE HERE */
-  return 0;
+  return tieResult == lose ? 0 : 1;
 }
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
   /* YOUR CODE HERE  */
+  tieResult = option == 0 ? lose : tie;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
