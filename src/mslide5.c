@@ -11,8 +11,6 @@
 ************************************************************************/
 
 #include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
@@ -22,9 +20,9 @@ STRING kDBName = "Slide-5";
 POSITION gNumberOfPositions = 77834825526; 
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
+BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
 BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
@@ -36,6 +34,8 @@ void* gGameSpecificTclInit = NULL;
 /* You do not have to change these for now. */
 BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kDebugMenu = FALSE;
+TIERLIST *getTierChildren(TIER tier);
+TIERPOSITION numberOfTierPositions(TIER tier);
 
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
@@ -61,59 +61,7 @@ typedef struct {
 } Slide5Board;
 
 
-
-
-
-
-/*********** BEGIN SOLVING FUNCIONS ***********/
-
-/* TODO: Add a hashing function and unhashing function, if needed. */
-uint64_t Hash(Slide5Board board) {
-  uint64_t tier = 0;
-  uint64_t tier_position = 0;
-
-  // Calculate the tier
-  for (int i = 1; i < 26; i++) {
-    tier = (tier << 1) | (board.board[i] > 0 ? 1 : 0);
-  }
-
-  // Calculate the tier position
-  uint64_t bit_position = 1;
-  for (int i = 1; i < 26; i++) {
-    if (board.board[i] > 0) {
-      tier_position |= (board.board[i] - 1) * bit_position;
-      bit_position <<= 1;
-    }
-  }
-  tier_position = (tier_position << 1) | board.board[0];
-
-  return (tier << 32) | tier_position;
-}
-Slide5Board Unhash(uint64_t hash_value) {
-  Slide5Board board;
-
-  // Gets tier and tier_position from hash
-  uint64_t tier = hash_value >> 32;
-  uint64_t tier_position = hash_value & 0xFFFFFFFF;
-
-  board.board[0] = tier_position & 1;
-  tier_position >>= 1;
-
-  for (int i = 1; i < 26; i++) {
-    if (tier & 1) {
-      board.board[i] = (tier_position & 1) + 1;
-      tier_position >>= 1;
-    } else {
-      board.board[i] = 0;
-    }
-    tier >>= 1;
-  }
-
-  return board;
-}
-// Helper function for getTierChildren
-TIER apply_move_to_tier(TIER tier, int move) {
-    int move_indexes[][5] = {
+int move_indexes[][5] = {
         {0, 1, 2, 3, 4},
         {5, 6, 7, 8, 9},
         {10, 11, 12, 13, 14},
@@ -126,22 +74,96 @@ TIER apply_move_to_tier(TIER tier, int move) {
         {24, 19, 14, 9, 4},
     };
 
+int indexes[][5] = {
+        {1, 2, 3, 4, 5},
+        {6, 7, 8, 9, 10},
+        {11, 12, 13, 14, 15},
+        {16, 17, 18, 19, 20},
+        {21, 22, 23, 24, 25},
+        {21, 16, 11, 6, 1},
+        {22, 17, 12, 7, 2},
+        {23, 18, 13, 8, 3},
+        {24, 19, 14, 9, 4},
+        {25, 20, 15, 10, 5},
+        {21, 17, 13, 9, 5},
+        {1, 7, 13, 19, 25}
+    };
+
+
+
+/*********** BEGIN SOLVING FUNCIONS ***********/
+
+/* TODO: Add a hashing function and unhashing function, if needed. */
+uint64_t Hash(Slide5Board *board) {
+
+  TIER tier = 0;
+  TIERPOSITION tier_position = 0;
+  // Calculate the tier
+  for (int i = 25; i > 0; i--) {
+    tier = (tier << 1) | (board->board[i] > 0 ? 1 : 0);
+  }
+
+  // Calculate the tier position 
+  uint64_t bit_position = 1;
+  for (int i = 1; i < 26; i++) {
+    if (board->board[i] > 0) {
+      tier_position |= (board->board[i] - 1) * bit_position;
+      bit_position <<= 1;
+    }
+  }
+  tier_position = (tier_position << 1) | board->board[0];
+
+  POSITION pos = 0;
+  if (gHashWindowInitialized) {
+    pos = gHashToWindowPosition(tier_position, tier);
+  }
+
+  return pos;
+}
+
+Slide5Board* Unhash(uint64_t hash_value) {
+  Slide5Board *board = (Slide5Board *) malloc(sizeof(Slide5Board));
+
+  // Gets tier and tier_position from hash
+  TIER tier;
+  TIERPOSITION tier_position;
+
+  if (gHashWindowInitialized) {
+    gUnhashToTierPosition(hash_value, &tier_position, &tier);
+  }
+
+  board->board[0] = tier_position & 1;
+  tier_position >>= 1;
+
+  for (int i = 1; i < 26; i++) {
+    if (tier & 1) {
+      board->board[i] = (tier_position & 1) + 1;
+      tier_position >>= 1;
+    } else {
+      board->board[i] = 0;
+    }
+    tier >>= 1;
+  }
+
+  return board;
+}
+
+// Helper function for getTierChildren
+TIER apply_move_to_tier(TIER tier, int move) {
     TIER new_tier = tier;
-    int first_bit_occupied = (tier >> move_indexes[move][0]) & 1;
 
-    for (int i = 4; i > 0; i--) {
-        int current_index = move_indexes[move][i];
-        int prev_index = move_indexes[move][i - 1];
-
-        if (((tier >> prev_index) & 1) && !((tier >> current_index) & 1)) {
-            new_tier |= ((uint64_t)1 << current_index);
-            new_tier &= ~((uint64_t)1 << prev_index);
-        }
+    int emptyIndex = 4;
+    for (int i = 0; i < 5; i++) {
+      if ((tier >> move_indexes[move][i] & 1) == 0) {
+        emptyIndex = i;
+        break;
+      }
     }
 
-    if (!first_bit_occupied) {
-        new_tier |= ((uint64_t)1 << move_indexes[move][0]);
+    for (int i = emptyIndex; i > 0; i--) {
+      new_tier |= ((tier >> move_indexes[move][i - 1]) & 1) << move_indexes[move][i];
     }
+    new_tier |= 1 << move_indexes[move][0];
 
     return new_tier;
 }
@@ -152,12 +174,12 @@ TIERLIST *getTierChildren(TIER tier) {
   for (int move = 0; move < 10; move++) {
     TIER new_tier = apply_move_to_tier(tier, move);
     
-    bool tier_exists = false;
+    BOOLEAN tier_exists = FALSE;
     TIERLIST *current = childTiers;
     
     while (current != NULL) {
       if (current->tier == new_tier) {
-        tier_exists = true;
+        tier_exists = TRUE;
         break;
       }
       current = current->next;
@@ -179,14 +201,14 @@ TIERPOSITION numberOfTierPositions(TIER tier) {
     }
   }
 
-  return 2 * pow(2, count);
+  return 2 << count;
 }
 
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
   gMoveToStringFunPtr = &MoveToString;
-  gInitialPosition = GetInitialPosition();
+  gInitialPosition = 0;
   gCanonicalPosition = GetCanonicalPosition;
   gSymmetries = TRUE;
 
@@ -197,14 +219,14 @@ void InitializeGame() {
 	/********************************/
 
   /* Tier-Related Initialization */
-  gTierChildrenFunPtr = gGetTierChildren;
-  gNumberOfTierPositionsFunPtr = gNumberOfTierPositions;
+  gTierChildrenFunPtr = &getTierChildren;
+  gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
   gInitialTierPosition = gInitialPosition;
   kSupportsTierGamesman = TRUE;
   kExclusivelyTierGamesman = TRUE;
   gInitialTier = 0; // There will only be one tier and its ID will be 0
-  gUnDoMoveFunPtr = gUndoMove;
-  gGenerateUndoMovesToTierFunPtr = gGenerateUndoMovesToTier;
+  //gUnDoMoveFunPtr = gUndoMove;
+  //gGenerateUndoMovesToTierFunPtr = gGenerateUndoMovesToTier;
 }
 
 /* Return the hash value of the initial position. */
@@ -216,7 +238,7 @@ POSITION GetInitialPosition() {
     initial_board.board[i] = 0; 
   }
 
-  return Hash(initial_board);
+  return Hash(&initial_board);
 }
 
 /* Return a linked list of moves. */
@@ -231,53 +253,35 @@ MOVELIST *GenerateMoves(POSITION position) {
 }
 
 int* get_indexes(int move) {
-    static int indexes[][5] = {
-        {1, 2, 3, 4, 5},
-        {6, 7, 8, 9, 10},
-        {11, 12, 13, 14, 15},
-        {16, 17, 18, 19, 20},
-        {21, 22, 23, 24, 25},
-        {21, 16, 11, 6, 1},
-        {22, 17, 12, 7, 2},
-        {23, 18, 13, 8, 3},
-        {24, 19, 14, 9, 4},
-        {25, 20, 15, 10, 5}
-    };
     return indexes[move];
 }
 
 /* Return the position that results from making the 
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
-  Slide5Board board = Unhash(position);
+    Slide5Board* board = Unhash(position);
     int* indexes = get_indexes(move);
-    int currentPlayerPiece = board.board[0] == 0 ? 1 : 2;
+    int currentPlayerPiece = board->board[0] == 0 ? 1 : 2;
 
-    int emptyIndex = -1;
-    for (int i = 4; i >= 0; i--) {
-        if (board.board[indexes[i]] == 0) {
+    int emptyIndex = 4;
+    for (int i = 0; i < 5; i++) {
+        if (board->board[indexes[i]] == 0) {
             emptyIndex = i;
             break;
         }
     }
 
-    if (emptyIndex != -1) {
-        for (int i = emptyIndex; i > 0; i--) {
-            board.board[indexes[i]] = board.board[indexes[i - 1]];
-        }
-        board.board[indexes[0]] = currentPlayerPiece;
-    } else {
-        for (int i = 4; i > 0; i--) {
-            board.board[indexes[i]] = board.board[indexes[i - 1]];
-        }
-        board.board[indexes[0]] = currentPlayerPiece;
+    for (int i = emptyIndex; i > 0; i--) {
+      board->board[indexes[i]] = board->board[indexes[i - 1]];
     }
+    board->board[indexes[0]] = currentPlayerPiece;
 
     // Switch current player
-    board.board[0] = 1 - board.board[0];
+    board->board[0] = 1 - board->board[0];
 
-    Slide5Board nextPosition = board;
-    return Hash(nextPosition);
+    POSITION toReturn = Hash(board);
+    free(board);
+    return toReturn;
 }
 
 /*****************************************************************
@@ -287,38 +291,41 @@ POSITION DoMove(POSITION position, MOVE move) {
 **  See src/core/types.h for the value enum definition.
 ******************************************************************/
 VALUE Primitive(POSITION position) {
-  Slide5Board board = Unhash(position);
-  bool blue_five = false;
-  bool red_five = false;
+  Slide5Board* board = Unhash(position);
+  BOOLEAN blue_five = FALSE;
+  BOOLEAN red_five = FALSE;
 
-  for (int move = 0; move < 10; move++) {
-    int *indexes = get_indexes(move);
+  for (int run = 0; run < 12; run++) {
+    int *indexes = get_indexes(run);
 
     int blue_count = 0;
     int red_count = 0;
 
     for (int i = 0; i < 5; i++) {
-      if (board.board[indexes[i]] == 1) {
+      if (board->board[indexes[i]] == 1) {
         blue_count++;
-      } else if (board.board[indexes[i]] == 2) {
+      } else if (board->board[indexes[i]] == 2) {
         red_count++;
       }
     }
 
     if (blue_count == 5) {
-      blue_five = true;
+      blue_five = TRUE;
     }
     if (red_count == 5) {
-      red_five = true;
+      red_five = TRUE;
     }
   }
+
+  int turn = board->board[0];
+  free(board);
 
   if (blue_five && red_five) {
     return tie;
   } else if (blue_five) {
-    return board.board[0] == 0 ? win : lose;
+    return turn == 0 ? win : lose;
   } else if (red_five) {
-    return board.board[0] == 0 ? lose : win;
+    return turn == 0 ? lose : win;
   } else {
     return undecided;
   }
@@ -326,27 +333,24 @@ VALUE Primitive(POSITION position) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  Slide5Board board = Unhash(position);
+    Slide5Board* board = Unhash(position);
     Slide5Board transformed_board;
 
   
-    transformed_board.board[0] = board.board[0] == 0 ? 1 : 0;
+    transformed_board.board[0] = board->board[0] == 0 ? 1 : 0;
     for (int i = 1; i < 26; i++) {
-        if (board.board[i] == 1) {
+        if (board->board[i] == 1) {
             transformed_board.board[i] = 2;
-        } else if (board.board[i] == 2) {
+        } else if (board->board[i] == 2) {
             transformed_board.board[i] = 1;
         } else {
             transformed_board.board[i] = 0;
         }
     }
 
-    
-    POSITION original_hash = Hash(board);
-    POSITION transformed_hash = Hash(transformed_board);
-
-    
-    return (original_hash < transformed_hash) ? original_hash : transformed_hash;
+    POSITION transformed_hash = Hash(&transformed_board);
+    free(board);
+    return (position < transformed_hash) ? position : transformed_hash;
 }
 
 /*********** END SOLVING FUNCTIONS ***********/
@@ -360,23 +364,24 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  Slide5Board board = Unhash(position);
+  Slide5Board* board = Unhash(position);
 
   printf("  1 2 3 4 5\n");
   for (int i = 0; i < 5; i++) {
     printf("%d ", i + 1);
     for (int j = 0; j < 5; j++) {
-      int cell_value = board.board[i * 5 + j + 1];
+      int cell_value = board->board[i * 5 + j + 1];
       printf("%d ", cell_value);
     }
     printf("\n");
   }
 
-  if (board.board[0] == 0) {
+  if (board->board[0] == 0) {
     printf("It is Player 1's turn!\n");
   } else {
     printf("It is Player 2's turn!\n");
   }
+  free(board);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
