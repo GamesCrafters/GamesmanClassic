@@ -656,9 +656,14 @@ POSITION InteractStringToPosition(STRING str) {
   }
 
   CARD decreecard = str[22] - 96;
-  CARD firstcard = (str[23] != '-') ? str[23] - 96 : 0;
-  CARD secondcard = (str[24] != '-') ? str[24] - 96 : 0;
-  CARD lastcard = (firstcard > 0) ? firstcard : secondcard;
+  CARD lastcard;
+  if (str[23] == '-' && str[24] == '-') lastcard = 0;
+  else {
+    CARD firstcard = (str[23] != '-') ? str[23] - 96 : 0;
+    CARD secondcard = (str[24] != '-') ? str[24] - 96 : 0;
+    lastcard = (firstcard > 0) ? firstcard : secondcard;
+  }
+  
   SCORE firstscore = str[25]-'0';
 
   return setPositionHash(moved, firstscore, decreecard, lastcard, status);
