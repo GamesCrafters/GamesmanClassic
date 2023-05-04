@@ -637,6 +637,8 @@ POSITION InteractStringToPosition(STRING str) {
   /* YOUR CODE HERE */
   /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
 
+  if (strcmp(str, "R_R_0_0_-------------------\0") == 0) return 0;
+
   BOOLEAN moved = (str[2] == 'A') ? FALSE : TRUE; 
 
   STATUS status = 0;
@@ -677,7 +679,14 @@ STRING InteractPositionToString(POSITION position) {
   // str[25] 閻溾晛顔?閻ㄥ嫬鍨庨弫甯礉score鏉烆剚宕茬亸杈攽
   // str[26] 閻溾晛顔?閻ㄥ嫬鍨庨弫? 閻溾晙绨￠惃鍕湰閺?score鐏忚精顢?
 
+  
   STRING str = (STRING) SafeMalloc(sizeof(char) * 27);
+
+  if (position == 0) {
+    sprintf(str, "R_R_0_0_-------------------");
+    return str;
+  }
+
   sprintf(str, "R_%c_0_0_", leadPlayerMoved(position) ? 'B' : 'A');
   
   STATUS status = getCardStatus(position);
@@ -733,7 +742,15 @@ STRING InteractPositionToEndData(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
+
   STRING str = (STRING) SafeMalloc(sizeof(char) * 5);
+
+  // shuffled moves
+  if (position == 0) {
+    sprintf(str, "R_-_0");
+    return str;
+  }
+
   STATUS status = getCardStatus(position);
   BOOLEAN firstplayer = leadPlayerMoved(position) ? FALSE : TRUE;
   int cnt = 0;
