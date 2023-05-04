@@ -19,7 +19,7 @@ STRING kGameName = "Forest Fox"; //  use this spacing and case
 STRING kDBName = "forestfox"; // use this spacing and case
 POSITION gNumberOfPositions = 7000000000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
 BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
 BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
@@ -667,18 +667,6 @@ POSITION InteractStringToPosition(STRING str) {
 STRING InteractPositionToString(POSITION position) {
   /* YOUR CODE HERE */
   /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
-
-  // str[0-1] = 'R_'
-  // str[2] = 'A' / 'B', 閺嶈宓乸osition閸掋倖鏌囬敍灞筋洤閺嬫粌缍嬮崜宥嗘Ц閻溾晛顔?閻ㄥ嫯鐤嗛弫鏉挎皑A閿涘苯鎯侀崚姗?
-  // str[3-7] = '_0_0_'
-  // str[8-14] 娑撹櫣甯虹€?閻ㄥ嫬宕遍悧宀嬬礉閺勵垰鎽㈤崙鐘茬炊閿涘畮-o閸掑棗鍩嗙€电懓绨?-15閿涘苯顩ч弸婊勫娑撳﹤褰ч張?瀵姷澧濇禍鍡礉鐏忓崬褰ч張澶婂閸ユ稐閲渃har閺勵垰鐡уВ宥忕礉閸?娑擃亪鍏橀弰?-'
-  // str[15-21] 閻溾晛顔?閻ㄥ嫬宕遍悧宀嬬礉閸氬奔绗?
-  // str[22] decree card閺勵垰鎽㈡稉鈧鐙呯礉閻⑩暆-o鐞涖劎銇?
-  // str[23] 閻溾晛顔?閸戣櫣娈戦悧?
-  // str[24] 閻溾晛顔?閸戣櫣娈戦悧宀嬬礉str[23]閸滃tr[24]娑撳秷鍏橀崥灞炬閺勵垰鐡уВ宥忕礉鐟曚椒绠為弰?[鐎涙鐦漖[-]閿涘矁顩︽稊鍫熸Ц [-][鐎涙鐦漖閿涘矁顕氱€涙鐦濈亸杈ㄦЦlast card閿涘苯鍙挎担鎾圭殱閻ㄥ嫭妲哥€涙鐦濋敍灞筋洤閺嬫粎甯虹€?閻ㄥ嫯鐤嗛弫甯礉鐎涙鐦濈亸杈ㄦЦ閻溾晛顔?閻ㄥ嫸绱濋崡?[-][鐎涙鐦漖
-  // str[25] 閻溾晛顔?閻ㄥ嫬鍨庨弫甯礉score鏉烆剚宕茬亸杈攽
-  // str[26] 閻溾晛顔?閻ㄥ嫬鍨庨弫? 閻溾晙绨￠惃鍕湰閺?score鐏忚精顢?
-
   
   STRING str = (STRING) SafeMalloc(sizeof(char) * 27);
 
@@ -722,7 +710,9 @@ STRING InteractPositionToString(POSITION position) {
   str[22] = getDecreeCard(position) + 96;
   if (str[2] == 'A') {
     str[23] = '-';
-    str[24] = getLastCard(position) + 96;
+    CARD second_card = getLastCard(position);
+    if (second_card == 0) str[24] = '-';
+    else str[24] = getLastCard(position) + 96;
   }
   else {
     str[23] = getLastCard(position) + 96;
