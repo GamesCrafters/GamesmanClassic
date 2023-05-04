@@ -646,13 +646,13 @@ POSITION InteractStringToPosition(STRING str) {
   for (int i = 8; i < 15; i++) {
     if (str[i] == '-') continue;
     int card = str[i] - 96;
-    status |= (0b01 << (card - 1));
+    status |= (0b01 << 2*(card - 1));
   }
   // check the second player's cards
   for (int i = 15; i < 22; i++) {
     if (str[i] == '-') continue;
     int card = str[i] - 96;
-    status |= (0b10 << (card - 1));
+    status |= (0b10 << 2*(card - 1));
   }
 
   CARD decreecard = str[22] - 96;
