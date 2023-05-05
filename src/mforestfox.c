@@ -427,7 +427,7 @@ POSITION DoMove(POSITION position, MOVE move) {
     SUIT decreecard_suit = getCardSuit(decreecard);
     SUIT leadcard_suit = getCardSuit(lastcard);
     SUIT other_player_suit = getCardSuit(move);
-    int lead_num = getCardNum(decreecard);
+    int lead_num = getCardNum(lastcard);
     int other_num = getCardNum(move);
     if(!(lead_num == 3&&other_num == 3)){
       if(lead_num == 3){//trumpth
