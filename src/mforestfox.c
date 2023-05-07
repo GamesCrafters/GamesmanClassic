@@ -439,7 +439,7 @@ POSITION DoMove(POSITION position, MOVE move) {
     }
     if(other_player_suit != leadcard_suit){
       if(other_player_suit == decreecard_suit || leadcard_suit == decreecard_suit)
-        lead_player_win = (leadcard_suit = decreecard_suit);
+        lead_player_win = (leadcard_suit == decreecard_suit);
       else lead_player_win = TRUE;
     }else{
       lead_player_win = (lead_num > other_num);
