@@ -71,6 +71,7 @@ STRING InteractPositionToEndData(POSITION pos);
 STRING InteractMoveToString(POSITION pos, MOVE mv);
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
+POSITION GetCanonicalPositionTest(POSITION position, POSITION *symmetricTo);
 
 /*************************************************************************
 **
@@ -383,9 +384,47 @@ void InitializeGame() {
 	gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
   gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 
+  gSymmetries = TRUE;
+
 	setOption(getOption());
 
 	unhashCacheInit();
+
+  // TIER theTiers[13] = {0, 10, 11, 21, 22, 32, 23, 42, 33, 24, 43, 34, 44};
+  // POSITION symmetricTo[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  // POSITION zpc = 0;
+  // for (TIER t = 0; t < 13; t++) {
+  //   gInitializeHashWindow(theTiers[t], FALSE);
+  //   for (POSITION tp = 0; tp < NumberOfTierPositions(theTiers[t]); tp++) {
+  //     POSITION tpc = GetCanonicalPositionTest(tp, symmetricTo);
+  //     if (tp == tpc) {
+  //       for (int k = 0; k < 8; k++) {
+  //         zpc = GetCanonicalPosition(symmetricTo[k]);
+  //         if (zpc != tp) {
+  //           printf("MISMATCH %llu %d %llu %llu %llu", theTiers[t], k, tp, symmetricTo[k], zpc);
+  //           PrintPosition(tp, "", FALSE);
+  //           PrintPosition(symmetricTo[k], "", FALSE);
+  //           PrintPosition(zpc, "", FALSE);
+  //           exit(1);
+  //         }
+  //       }
+  //       if (theTiers[t] == 22 || theTiers[t] == 33 || theTiers[t] == 44) {
+  //         for (int k = 8; k < 16; k++) {
+  //           zpc = GetCanonicalPosition(symmetricTo[k]);
+  //           if (zpc != tp) {
+  //             printf("MISMATCH %llu %d %llu %llu %llu", theTiers[t], k, tp, symmetricTo[k], zpc);
+  //             PrintPosition(tp, "", FALSE);
+  //             PrintPosition(symmetricTo[k], "", FALSE);
+  //             PrintPosition(zpc, "", FALSE);
+  //             exit(1);
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  // printf("ENDED SYMMETRY CHECK\n");
+  // exit(1);
 
   /*
   TIER tiers[13] = {0,10,11,21,22,23,24,32,33,34,42,43,44};
@@ -418,8 +457,7 @@ void InitializeGame() {
 **
 ************************************************************************/
 
-void DebugMenu() {
-}
+void DebugMenu() {}
 
 void hashBoard(char *board, int xPlaced, int oPlaced, int gridPos, char turn, TIER *tier, TIERPOSITION *tierposition) {
 	POSITION sum = 0;
@@ -694,7 +732,8 @@ VALUE Primitive(POSITION position) {
   }
   SafeFree(board);
   if (x3inARow && o3inARow) return tie;
-  if (x3inARow || o3inARow) return lose;
+  else if (x3inARow) return (turn == X) ? win : lose;
+  else if (o3inARow) return (turn == O) ? win : lose;
   return undecided;
 }
 
@@ -847,15 +886,44 @@ MOVELIST *GenerateMoves(POSITION position) {
 **
 ************************************************************************/
 
-POSITION DoSymmetry(POSITION position, int symmetry, char *originalBoard, int xPlaced, int oPlaced, int gridPos, char turn) {
+POSITION DoSymmetry(int symmetry, char *originalBoard, int xPlaced, int oPlaced, int gridPos, char turn) {
+
 	char symBoard[boardSize];
   int symGridPos;
 
   for (int i = 0; i < boardSize; i++)
-    symBoard[i] = originalBoard[symmetriesToUse[symmetry][i]];
+    symBoard[symmetriesToUse[symmetry][i]] = originalBoard[i];
   symGridPos = symmetriesToUse[symmetry][gridPos];
+  //printf("%d %d %d\n", gridPos, symGridPos, symmetry);
 
   return hash(symBoard, xPlaced, oPlaced, symGridPos, turn);
+}
+
+POSITION GetCanonicalPositionTest(POSITION position, POSITION *symmetricTo) {
+  char turn;
+	int xPlaced, oPlaced, gridPos;
+	char *originalBoard = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
+  POSITION canonPos = position;
+  for (int i = 0; i < 8; i++) {
+    POSITION symPos = DoSymmetry(i, originalBoard, xPlaced, oPlaced, gridPos, turn);
+    symmetricTo[i] = symPos;
+    if (symPos < canonPos) canonPos = symPos;
+  }
+  if (xPlaced >= 2 && xPlaced == oPlaced) {
+    for (int i = 0; i < 25; i++) {
+      if (originalBoard[i] != BLANK) {
+        originalBoard[i] = (originalBoard[i] == X) ? O : X;
+      }
+    }
+    turn = (turn == X) ? O : X;
+    for (int i = 0; i < 8; i++) {
+      POSITION symPos = DoSymmetry(i, originalBoard, xPlaced, oPlaced, gridPos, turn);
+      symmetricTo[i + 8] = symPos;
+      if (symPos < canonPos) canonPos = symPos;
+    }
+  }
+  SafeFree(originalBoard);
+  return canonPos;
 }
 
 POSITION GetCanonicalPosition(POSITION position) {
@@ -863,9 +931,27 @@ POSITION GetCanonicalPosition(POSITION position) {
 	int xPlaced, oPlaced, gridPos;
 	char *originalBoard = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
   POSITION canonPos = position;
-  for (int i = 1; i < 8; i++) {
-    POSITION symPos = DoSymmetry(position, i, originalBoard, xPlaced, oPlaced, gridPos, turn);
+  // if (position == 39) {
+  //   printf("------------\n");
+  // }
+  for (int i = 0; i < 8; i++) {
+    POSITION symPos = DoSymmetry(i, originalBoard, xPlaced, oPlaced, gridPos, turn);
+    // if (position == 39) {
+    //   PrintPosition(symPos, "", FALSE);
+    // }
     if (symPos < canonPos) canonPos = symPos;
+  }
+  if (xPlaced >= 2 && xPlaced == oPlaced) {
+    for (int i = 0; i < 25; i++) {
+      if (originalBoard[i] != BLANK) {
+        originalBoard[i] = (originalBoard[i] == X) ? O : X;
+      }
+    }
+    turn = (turn == X) ? O : X;
+    for (int i = 0; i < 8; i++) {
+      POSITION symPos = DoSymmetry(i, originalBoard, xPlaced, oPlaced, gridPos, turn);
+      if (symPos < canonPos) canonPos = symPos;
+    }
   }
   SafeFree(originalBoard);
   return canonPos;
@@ -1110,7 +1196,7 @@ MOVE ConvertTextInputToMove(STRING input) {
   char type = input[0]; 
   int source; 
   int dest; 
-  MOVE ret;
+  MOVE ret = 0;
   if (type == 'A') {
     if (input[3] != 0) {
       dest = (input[2] - '0') * 10 + (input[3] - '0');
@@ -1118,8 +1204,7 @@ MOVE ConvertTextInputToMove(STRING input) {
       dest = input[2] - '0'; 
     }
     ret = hashMove(FALSE, dest - 1, dest - 1);
-  }
-  else if (type == 'M' || type == 'G') {
+  } else if (type == 'M' || type == 'G') {
     // Get source
     if (input[3] != '-') {
       source = (input[2] - '0') * 10 + (input[3] - '0');
@@ -1143,8 +1228,7 @@ MOVE ConvertTextInputToMove(STRING input) {
     } else {
       ret = hashMove(TRUE, source - 1, dest - 1);
     }
-  }
-  else {
+  } else {
     printf("You should not be here. Something went wrong."); 
   }
   return ret; 
@@ -1292,8 +1376,6 @@ int boardToGridIdxMapping5[25] = {
 };
 int xLeftIdx = 33;
 int oLeftIdx = 34;
-//int gridPosTensIdx = 35;
-//int gridPosOnesIdx = 36;
 int selectMoveGridIdx = 37;
 int iPosFromTensIdx = 35;
 int iPosFromOnesIdx = 36;
