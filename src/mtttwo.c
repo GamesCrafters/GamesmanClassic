@@ -384,8 +384,6 @@ void InitializeGame() {
 	gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
   gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 
-  gSymmetries = TRUE;
-
 	setOption(getOption());
 
 	unhashCacheInit();
@@ -931,14 +929,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 	int xPlaced, oPlaced, gridPos;
 	char *originalBoard = unhash(position, &xPlaced, &oPlaced, &gridPos, &turn);
   POSITION canonPos = position;
-  // if (position == 39) {
-  //   printf("------------\n");
-  // }
   for (int i = 0; i < 8; i++) {
     POSITION symPos = DoSymmetry(i, originalBoard, xPlaced, oPlaced, gridPos, turn);
-    // if (position == 39) {
-    //   PrintPosition(symPos, "", FALSE);
-    // }
     if (symPos < canonPos) canonPos = symPos;
   }
   if (xPlaced >= 2 && xPlaced == oPlaced) {
