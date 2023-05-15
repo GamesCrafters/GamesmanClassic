@@ -15,12 +15,12 @@
 
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Zachary Leete";
-POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
-POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
+POSITION gNumberOfPositions = 17580000000000; // TODO: Put your number of positions upper bound here.
+POSITION gInitialPosition; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
 BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
@@ -67,17 +67,20 @@ solving or playing the game. */
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
-  #define height 3
-  #define width 3
-  //int startState[height][width][2];
-  /* YOUR CODE HERE */
+  #define height 4
+  #define width 4
+  #define size height*width
+  int startState[height][width][2];
+  startState[0][0][1] = 1;
+  startState[height-1][width-1][1] = 2;
+  gInitialPosition = encodePosition[startState];
   
 }
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
   /* YOUR CODE HERE */
-  return 0;
+  return gInitialPosition;
 }
 
 /* Return a linked list of moves. */
@@ -148,10 +151,12 @@ MOVELIST *GenerateMoves(POSITION position) {
 
 /* Return the position that results from making the 
 input move on the input position. */
-POSITION DoMove(POSITION position, MOVE move) {
+POSITION DoMove(POSITION encodedPosition, MOVE encodedMove) {
   //int position[height][width][2], int *move, int newPosition[height][width][2]
-  int position[height][width][2]=decodePosition(position);
-  int move[4]=decodeMove(move);
+  int position[height][width][2];
+  decodePosition(encodedPosition, position);
+  int move[4];
+  decodeMove(encodedMove, move);
   int activePlayer = FindActivePlayer(position);
   int activePlayerLocationX, activePlayerLocationY;
   FindLocation(position, activePlayer, &activePlayerLocationX, &activePlayerLocationY);
@@ -164,7 +169,8 @@ POSITION DoMove(POSITION position, MOVE move) {
 /* Return lose, win, tie, or undecided. See src/core/types.h
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
-  int unhashedPosition[height][width][2]=decodePosition(position);
+  int unhashedPosition[height][width][2];
+  decodePosition(position, unhashedPosition);
   int activePlayer = FindActivePlayer(unhashedPosition);
   int location[2];
   FindLocation(unhashedPosition, 3-activePlayer, &location[0], &location[1]);
@@ -176,7 +182,8 @@ VALUE Primitive(POSITION position) {
 
 /* Symmetry Handling: Return the canonical position. */
 POSITION GetCanonicalPosition(POSITION position) {
-  int unhashedPosition[height][width][2]=decodePosition(position);
+  int unhashedPosition[height][width][2];
+  decodePosition(position, unhashedPosition);
   int P1location[2];
   FindLocation(unhashedPosition, 1, &P1location[0], &P1location[1]);
   int P2location[2];
@@ -274,9 +281,19 @@ POSITION GetCanonicalPosition(POSITION position) {
   return lowestCanonicalPosition;
 }
 
-TIERLIST GetTierChildren(TIER tier) {
-  /* YOUR CODE HERE */
+TIERLIST* GetTierChildren(TIER tier) {
+  TIERLIST* list = NULL;
+  for (int i = 0; i < 4; i++) {
+    if (floor(tier / pow(size, i)) % pow(size, i+1) > 1) {
+      list = CreateTierlistNode(tier - pow(size, i) + pow(size, i+1), list);
+    }
+  }
   return NULL;
+}
+
+TIERPOSITION NumberOfPositionsPerTier(TIER tier) {
+  // Not a generic function, only works for 4x4
+  return pow(2, 56)
 }
 /*********** END SOLVING FUNCTIONS ***********/
 
@@ -470,15 +487,51 @@ MOVE encodeMove(int directionx, int directiony, int buildx, int buildy){
   return move;
 }
 
+void decodeMove(MOVE move, int decodedMove[4]){
+  decodedMove[0] = (move >> ((2 * ceil(log2(width)))+ceil(log2(height)))) & ((1 << ceil(log2(width)))-1);
+  decodedMove[1] = (move >> (ceil(log2(width))+ceil(log2(height)))) & ((1 << ceil(log2(width)))-1);
+  decodedMove[2] = (move >> ceil(log2(width))) & ((1 << ceil(log2(width)))-1);
+  decodedMove[3] = move & ((1 << ceil(log2(width)))-1);
+  return;
+}
+
 POSITION encodePosition(int position[height][width][2]){
   POSITION encodedPosition = 0;
   for (int x = 0; x < height; x++){
     for (int y = 0; y < width; y++){
-      encodedPosition = encodedPosition | (position[x][y][0] << (x*16 + y*8));
-      encodedPosition = encodedPosition | (position[x][y][1] << (x*16 + y*8 + 4));
+      encodedPosition = encodedPosition | (position[x][y][0] << (x*width*3 + y*3));
     }
   }
-  return encodedPosition;
+  int x;
+  int y;
+  FindLocation(position, 1, &x, &y);
+  encodedPosition = encodedPosition | (x*width+y << (size*3));
+  FindLocation(position, 2, &x, &y);
+  encodedPosition = encodedPosition | (x*width+y << (size*3+ceil(log2(size))));
+  if (gHashWindowInitialized) {
+      TIER tier = BoardToTier(gBoard);
+      return gHashToWindowPosition(encodedPosition, tier);
+  }
+  else return encodedPosition;
+}
+
+void decodePosition (POSITION position, int decodedPosition[height][width][2]) {
+  TIERPOSITION tierPos; TIER tier;
+  if (gHashWindowInitialized) {
+      gUnhashToTierPosition(position, &tierPos, &tier);
+  }
+  else {
+    tierPos = position;
+  }
+  for (int x = 0; x < height; x++){
+    for (int y = 0; y < width; y++){
+      decodedPosition[x][y][0] = (tierPos >> (x*width*3 + y*3))%8;
+    }
+  }
+  int p1position = (tierPos >> (size*3)%size);
+  decodedPosition[floor(p1position/width)][p1position%width][1] = 1;
+  int p2position = (tierPos >> (size*3+ceil(log2(size)))%size);
+  decodedPosition[floor(p2position/width)][p1position%width][1] = 2;
 }
 
 /*********** END HELPER FUNCTIONS ***********/
