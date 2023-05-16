@@ -123,6 +123,9 @@ void InitializeGame()
   printf("hashed start state: %llu\n", gInitialPosition);
   gTierChildrenFunPtr = &GetTierChildren;
   gNumberOfTierPositionsFunPtr = &NumberOfPositionsPerTier;
+  kSupportsTierGamesman = TRUE;
+  gInitialTier = 0;
+  gInitialTierPosition = gInitialPosition;
 }
 
 /* Return the hash value of the initial position. */
