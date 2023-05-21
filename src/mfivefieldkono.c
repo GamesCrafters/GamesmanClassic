@@ -202,10 +202,10 @@ char initial_odd_component[13] =
 {'o', 'o', 'o', '-', '-', '-', '-', '-', '-', '-', 'x', 'x', 'x'};
 
 /* Describes mapping from concatenate<odd_component_idx, even_component_idx> to an alphabet */
-char posToAlpha[25] = {'E', 'E', 'D', 'D', 'D', 'C', 'C', 'B', 'B', 'B', 'A', 'A', 'E', 'E', 'E', 'D', 'D', 'C', 'C', 'C', 'B', 'B', 'A', 'A', 'A'};
+char posToAlpha[25] = {'b', 'd', 'a', 'c', 'e', 'b', 'd', 'a', 'c', 'e', 'b', 'd', 'a', 'c', 'e', 'b', 'd', 'a', 'c', 'e', 'b', 'd', 'a', 'c', 'e'};
 
 /* Describes mapping from concatenate<odd_component_idx, even_component_idx> to an index */
-int posToIdx[25] = {2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5};
+int posToIdx[25] = {5, 5, 4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 5, 5, 5, 4, 4, 3, 3, 3, 2, 2, 1, 1, 1};
 
 
 
@@ -722,14 +722,14 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     }
   }
   for (int j = 0; j < 4; j++) {
-    if (j == 0) printf("E");
-    if (j == 1) printf("D");
-    if (j == 2) printf("C");
-    if (j == 3) printf("B");
+    if (j == 0) printf("5");
+    if (j == 1) printf("4");
+    if (j == 2) printf("3");
+    if (j == 3) printf("2");
     printf("   (%c) (%c) (%c) (%c) (%c) \n      \\ / \\ / \\ / \\ /   \n      / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
   }
-  printf("A   (%c) (%c) (%c) (%c) (%c) \n\n", fb[20], fb[21], fb[22], fb[23], fb[24]);
-  printf("     1   2   3   4   5 ");
+  printf("1   (%c) (%c) (%c) (%c) (%c) \n\n", fb[20], fb[21], fb[22], fb[23], fb[24]);
+  printf("     A   B   C   D   E ");
   printf("\tTURN: %c\n", (board->oppTurn) ? 'o' : 'x');
   printf("%s\n", GetPrediction(position, playerName, usersTurn));
   free(fb);
@@ -746,14 +746,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
 	do {
     /* List of available moves */
-    printf("\n");
-    availableMoves(position);
-    printf("\n");
-    printf("  Supported Input Formats:\n");
-    printf("  %8s: (Select one of the base 25 hash numbers on the 'Available Hash Moves')\n", "Format 1");
-    printf("  %8s: (currrent position)-(next position)\n", "Format 2");
-    printf("\n");
-		printf("%8s's move:  ", playerName);
+    // availableMoves(position);
+		printf("%8s's move [(undo)/([a-e][1-5][a-e][1-5])]:  ", playerName);
 
 		ret = HandleDefaultTextInput(position, move, playerName);
 		if(ret != Continue)
@@ -767,7 +761,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 void availableMoves(POSITION position) {
   MOVELIST *available_moves = GenerateMoves(position);
   MOVELIST *ptr = available_moves;
-  printf("  %8s: \n", "Available Hash Moves {Hash Number: (Current Position)-(Next Position)}");
+  printf("  %8s: \n", "Available Hash Moves {(Current Position)-(Next Position)}");
   while (available_moves != NULL) {
     MOVE move_val = available_moves->move;
     int from, to;
@@ -776,7 +770,7 @@ void availableMoves(POSITION position) {
     char toToAlpha = posToAlpha[to];
     int fromToIdx = posToIdx[from];
     int toToIdx = posToIdx[to];
-    printf("  {%d: (%c%d-%c%d)} ", move_val, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+    printf("  {%c%d-%c%d} ", fromToAlpha, fromToIdx, toToAlpha, toToIdx);
     available_moves = available_moves->next;
   }
   FreeMoveList(ptr);
@@ -788,20 +782,18 @@ columns are numbers:
 - A piece in rows {a, c, e} can only go to one of {b, d} and vice versa.
 - A piece in columns {1, 3, 5} can only go to one of {2, 4} and vice versa.
 - Both the rows and columns must differ in 'distance' by exactly 1.
-Example valid moves: {"a1-b2", "b2-c3", "e4-d5"}. */
+Example valid moves: {"a1b2", "b2c3", "e4d5"}. */
 BOOLEAN ValidTextInput(STRING input) {
   // Check for obvious malformations
-  if (strlen(input) == 5) {
-    if (input[2] != '-') return FALSE;
-
+  if (strlen(input) == 4) {
     // Extract characters from string
     char c1 = (char) tolower(input[0]);
     int r1 = atoi(&input[1]);
-    char c2 = (char) tolower(input[3]);
-    int r2 = atoi(&input[4]);
+    char c2 = (char) tolower(input[2]);
+    int r2 = atoi(&input[3]);
 
     // Determine if both slots are on the board using ASCII ranges
-    if (c1 < 97 || c1 > 101 || c2 < 97 || c2 > 101) return FALSE;
+    if (c1 < 'a' || c1 > 'e' || c2 < 'a' || c2 > 'e') return FALSE;
     if (r1 < 1 || r1 > 5 || r2 < 1 || r2 > 5) return FALSE;
     
     // Use ASCII values to determine 'distance', which guarantees that
@@ -834,8 +826,8 @@ MOVE ConvertTextInputToMove(STRING input) {
     int to = -1;
     char c1 = (char) tolower(input[0]);
     int r1 = atoi(&input[1]);
-    char c2 = (char) tolower(input[3]);
-    int r2 = atoi(&input[4]);
+    char c2 = (char) tolower(input[2]);
+    int r2 = atoi(&input[3]);
     for (int i = 0; i < 25; i++) {
       char currAlpha = (char) tolower(posToAlpha[i]);
       int currIdx = (int) posToIdx[i];
@@ -860,10 +852,9 @@ STRING MoveToString(MOVE move) {
   STRING output = (STRING) malloc(6*sizeof(char));
   output[0] = fromToAlpha;
   output[1] = fromToIdx;
-  output[2] = '-';
-  output[3] = toToAlpha;
-  output[4] = toToIdx;
-  output[5] = '\0';
+  output[2] = toToAlpha;
+  output[3] = toToIdx;
+  output[4] = '\0';
   return output;
 }
 
@@ -876,7 +867,7 @@ void PrintMove(MOVE move) {
   char toToAlpha = posToAlpha[to];
   int fromToIdx = posToIdx[from];
   int toToIdx = posToIdx[to];
-  printf("{%d: (%c%d-%c%d)}", move, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+  printf("%c%d%c%d", fromToAlpha, fromToIdx, toToAlpha, toToIdx);
 }
 
 
