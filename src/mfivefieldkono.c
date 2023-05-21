@@ -722,14 +722,14 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     }
   }
   for (int j = 0; j < 4; j++) {
-    if (j == 0) printf("E");
-    if (j == 1) printf("D");
-    if (j == 2) printf("C");
-    if (j == 3) printf("B");
+    if (j == 0) printf("5");
+    if (j == 1) printf("4");
+    if (j == 2) printf("3");
+    if (j == 3) printf("2");
     printf("   (%c) (%c) (%c) (%c) (%c) \n      \\ / \\ / \\ / \\ /   \n      / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
   }
-  printf("A   (%c) (%c) (%c) (%c) (%c) \n\n", fb[20], fb[21], fb[22], fb[23], fb[24]);
-  printf("     1   2   3   4   5 ");
+  printf("1   (%c) (%c) (%c) (%c) (%c) \n\n", fb[20], fb[21], fb[22], fb[23], fb[24]);
+  printf("     A   B   C   D   E ");
   printf("\tTURN: %c\n", (board->oppTurn) ? 'o' : 'x');
   printf("%s\n", GetPrediction(position, playerName, usersTurn));
   free(fb);
