@@ -202,10 +202,10 @@ char initial_odd_component[13] =
 {'o', 'o', 'o', '-', '-', '-', '-', '-', '-', '-', 'x', 'x', 'x'};
 
 /* Describes mapping from concatenate<odd_component_idx, even_component_idx> to an alphabet */
-char posToAlpha[25] = {'E', 'E', 'D', 'D', 'D', 'C', 'C', 'B', 'B', 'B', 'A', 'A', 'E', 'E', 'E', 'D', 'D', 'C', 'C', 'C', 'B', 'B', 'A', 'A', 'A'};
+char posToAlpha[25] = {'B', 'D', 'A', 'C', 'E', 'B', 'D', 'A', 'C', 'E', 'B', 'D', 'A', 'C', 'E', 'B', 'D', 'A', 'C', 'E', 'B', 'D', 'A', 'C', 'E'};
 
 /* Describes mapping from concatenate<odd_component_idx, even_component_idx> to an index */
-int posToIdx[25] = {2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5, 2, 4, 1, 3, 5};
+int posToIdx[25] = {5, 5, 4, 4, 4, 3, 3, 2, 2, 2, 1, 1, 5, 5, 5, 4, 4, 3, 3, 3, 2, 2, 1, 1, 1};
 
 
 
@@ -749,9 +749,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
     printf("\n");
     availableMoves(position);
     printf("\n");
-    printf("  Supported Input Formats:\n");
-    printf("  %8s: (Select one of the base 25 hash numbers on the 'Available Hash Moves')\n", "Format 1");
-    printf("  %8s: (currrent position)-(next position)\n", "Format 2");
+    printf("  Supported Input Format:\n");
+    printf("  (Currrent Position)-(Next Position)\n");
     printf("\n");
 		printf("%8s's move:  ", playerName);
 
@@ -767,7 +766,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 void availableMoves(POSITION position) {
   MOVELIST *available_moves = GenerateMoves(position);
   MOVELIST *ptr = available_moves;
-  printf("  %8s: \n", "Available Hash Moves {Hash Number: (Current Position)-(Next Position)}");
+  printf("  %8s: \n", "Available Hash Moves {(Current Position)-(Next Position)}");
   while (available_moves != NULL) {
     MOVE move_val = available_moves->move;
     int from, to;
@@ -776,7 +775,7 @@ void availableMoves(POSITION position) {
     char toToAlpha = posToAlpha[to];
     int fromToIdx = posToIdx[from];
     int toToIdx = posToIdx[to];
-    printf("  {%d: (%c%d-%c%d)} ", move_val, fromToAlpha, fromToIdx, toToAlpha, toToIdx);
+    printf("  {%c%d-%c%d} ", fromToAlpha, fromToIdx, toToAlpha, toToIdx);
     available_moves = available_moves->next;
   }
   FreeMoveList(ptr);
