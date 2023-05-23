@@ -710,8 +710,8 @@ void unhashMove(MOVE mv, int *oldPos, int *newPos) {
 */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   FFK_Board* board = Unhash(position);
-  if (usersTurn) printf("%s's move.\n", playerName);
   char* fb = malloc(sizeof(char)*25);
+  printf("\n\n");
   for (int i = 0; i < 25; i++) {
     if (i % 2 == 0) {
       char curr = board->odd_component[i/2];
@@ -726,18 +726,30 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     if (j == 1) printf("4");
     if (j == 2) printf("3");
     if (j == 3) printf("2");
-    printf("   (%c) (%c) (%c) (%c) (%c) \n      \\ / \\ / \\ / \\ /   \n      / \\ / \\ / \\ / \\   \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
+    printf("   (%c) (%c) (%c) (%c) (%c) \n", fb[5*j], fb[(5*j)+1], fb[(5*j)+2], fb[(5*j)+3], fb[(5*j)+4]);
+    printf("      \\ / \\ / \\ / \\ /   ");
+    if (j == 2) {
+      printf("         %s\n", GetPrediction(position, playerName, usersTurn));
+    } else {
+      printf("\n");
+    }
+    printf("      / \\ / \\ / \\ / \\   ");
+    if (j == 1) {
+      printf("         TURN: %c\n", (board->oppTurn) ? 'o' : 'x');
+    } else {
+      printf("\n");
+    }
   }
   printf("1   (%c) (%c) (%c) (%c) (%c) \n\n", fb[20], fb[21], fb[22], fb[23], fb[24]);
-  printf("     A   B   C   D   E ");
-  printf("\tTURN: %c\n", (board->oppTurn) ? 'o' : 'x');
-  printf("%s\n", GetPrediction(position, playerName, usersTurn));
+  printf("     A   B   C   D   E \n\n");
   free(fb);
   free(board);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  /* YOUR CODE HERE */
+	printf("%8s's move                                : ", computersName);
+  PrintMove(computersMove);
+  printf("\n");
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -747,7 +759,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 	do {
     /* List of available moves */
     // availableMoves(position);
-		printf("%8s's move [(undo)/([a-e][1-5][a-e][1-5])]:  ", playerName);
+		printf("%8s's move [(undo)/([a-e][1-5][a-e][1-5])]: ", playerName);
 
 		ret = HandleDefaultTextInput(position, move, playerName);
 		if(ret != Continue)
@@ -967,11 +979,11 @@ void GameSpecificMenu() {
   char inp;
 	while (TRUE) {
 		printf("\n\n\n");
-		printf("        ----- Game-specific options for Quick Cross -----\n\n");
-		printf("        Select a game board:\n\n");
-		printf("        1)      Default 5 x 5 Board with Stalemate Being a Tie \n");
-		printf("        2)      Default 5 x 5 Board with Stalemate Being a Win \n");
-    printf("        3)      Default 5 x 5 Board with Stalemate Being a Loss \n");
+		printf("        ----- Game-specific options for Five Field Kono -----\n\n");
+		printf("        Select an option:\n\n");
+		printf("        1)      Default 5 x 5 Board; Tie if you can't move\n");
+		printf("        2)      Default 5 x 5 Board; Lose if you can't move\n");
+    printf("        3)      Default 5 x 5 Board; Win if you can't move\n");
     printf("        4)      (B)ack = Return to previous activity.\n\n\n");
 		printf("\nSelect an option: ");
 		inp = GetMyChar();
