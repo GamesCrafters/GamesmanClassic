@@ -184,12 +184,14 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	ifprintf(gTierSolvePrint, "\n----- Checking and Generating the Tier Tree: -----\n\n");
 
-	solveList = checkAndDefineTierTree();
-	if (solveList == NULL) {
-		printf("\nPlease fix gTierChildren before attempting to solve!\n"
-		       "Exiting Retrograde Solver (WITHOUT Solving)...\n");
-		ExitStageRight();
-	} else ifprintf(gTierSolvePrint, "No Errors Found! Tier Tree generated successfully.\n");
+	if (!gIsInteract) {
+		solveList = checkAndDefineTierTree();
+		if (solveList == NULL) {
+			printf("\nPlease fix gTierChildren before attempting to solve!\n"
+				"Exiting Retrograde Solver (WITHOUT Solving)...\n");
+			ExitStageRight();
+		} else ifprintf(gTierSolvePrint, "No Errors Found! Tier Tree generated successfully.\n");
+	}
 
 	//OK, the pure tier tree is here! let's use it from here
 	if (gVisTiers)

@@ -128,9 +128,7 @@ Slide5Board* Unhash(uint64_t hash_value) {
   TIER tier;
   TIERPOSITION tier_position;
 
-  if (gHashWindowInitialized) {
-    gUnhashToTierPosition(hash_value, &tier_position, &tier);
-  }
+  gUnhashToTierPosition(hash_value, &tier_position, &tier);
 
   board->board[0] = tier_position & 1;
   tier_position >>= 1;
@@ -213,9 +211,9 @@ void InitializeGame() {
   gSymmetries = TRUE;
 
   /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
-	// if (gIsInteract) {
-	// 	gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
-	// }
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
 	/********************************/
 
   /* Tier-Related Initialization */
@@ -515,14 +513,20 @@ POSITION InteractStringToPosition(STRING str) {
 				s5b.board[i] = 1;
 				break;
 			case 'O':
-				realBoard[i] = 2;
+				s5b.board[i] = 2;
 				break;
 		}
 	}
   s5b.board[0] = (turn == UWAPI_TURN_A) ? 0 : 1;
 
+  TIER tier;
+  for (int i = 25; i > 0; i--) {
+    tier = (tier << 1) | (s5b.board[i] > 0 ? 1 : 0);
+  }
+  gInitializeHashWindow(tier, FALSE);
+
 	SafeFreeString(board); // Free the string.
-	return Hash(s5b);
+	return Hash(&s5b);
 }
 
 STRING InteractPositionToString(POSITION position) {
