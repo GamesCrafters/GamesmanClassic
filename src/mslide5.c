@@ -19,7 +19,7 @@ STRING kGameName = "Slide-5";
 STRING kDBName = "slide5"; 
 POSITION gNumberOfPositions = 77834825526; 
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
 BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
 BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
@@ -402,7 +402,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
-  return TRUE;
+  return input[0] >= '0' && input[0] <= '9';
 }
 
 /* Assume the text input signifies a valid move. Return
@@ -415,9 +415,9 @@ MOVE ConvertTextInputToMove(STRING input) {
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
-  static char move_str[4];
-    snprintf(move_str, sizeof(move_str), "%d", move);
-    return move_str;
+  char * move_str = malloc(sizeof(char) * 3);
+  snprintf(move_str, 2, "%d", move);
+  return move_str;
 }
 
 /* Basically just print the move. */
@@ -501,25 +501,25 @@ POSITION InteractStringToPosition(STRING str) {
 	}
 
 	Slide5Board s5b;
-	for (int i = 1; i < 26; i++) {
+	for (int i = 0; i < 25; i++) {
 		switch (board[i]) {
 			default:
 				fprintf(stderr, "Error: Unexpected char in position\n");
 				break;
 			case '-':
-				s5b.board[i] = 0;
+				s5b.board[i + 1] = 0;
 				break;
 			case 'X':
-				s5b.board[i] = 1;
+				s5b.board[i + 1] = 1;
 				break;
 			case 'O':
-				s5b.board[i] = 2;
+				s5b.board[i + 1] = 2;
 				break;
 		}
 	}
   s5b.board[0] = (turn == UWAPI_TURN_A) ? 0 : 1;
 
-  TIER tier;
+  TIER tier = 0;
   for (int i = 25; i > 0; i--) {
     tier = (tier << 1) | (s5b.board[i] > 0 ? 1 : 0);
   }
@@ -539,13 +539,13 @@ STRING InteractPositionToString(POSITION position) {
 				fprintf(stderr, "Error: Unexpected position\n");
 				break;
 			case 0:
-				board[i] = '-';
+				board[i - 1] = '-';
 				break;
 			case 1:
-				board[i] = 'X';
+				board[i - 1] = 'X';
 				break;
 			case 2:
-				board[i] = 'O';
+				board[i - 1] = 'O';
 				break;
 		}
 	}

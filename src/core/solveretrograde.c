@@ -219,8 +219,10 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	ifprintf(gTierSolvePrint, "\n   %llu Tiers are confirmed to be solved.\n", numTiers);
 	gTotalTiers = numTiers; // for the GUI load percentage printing
 
-	ifprintf(gTierSolvePrint, "\n----- Checking for existing Tier DBs: -----\n\n");
-	checkExistingDB();
+	if (!gIsInteract) {
+		ifprintf(gTierSolvePrint, "\n----- Checking for existing Tier DBs: -----\n\n");
+		checkExistingDB();
+	}
 
 	//Now, if we need to genreate a plain file that doesn't include solved tiers, here's our chance
 	if (gVisTiersPlain) {
