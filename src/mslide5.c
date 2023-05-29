@@ -16,7 +16,7 @@
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Harnoor Dhillon";
 STRING kGameName = "Slide-5"; 
-STRING kDBName = "Slide-5"; 
+STRING kDBName = "slide5"; 
 POSITION gNumberOfPositions = 77834825526; 
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -385,8 +385,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  /* YOUR CODE HERE */
-  /* DONT DO THIS YET */
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -406,8 +404,6 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
-  /* YOUR CODE HERE */
-  /* DONT DO THIS YET */
   return TRUE;
 }
 
@@ -472,20 +468,17 @@ void GameSpecificMenu() {
 
 /* How many variants are you supporting? */
 int NumberOfOptions() {
-  /* YOUR CODE HERE */
   return 2;
 }
 
 /* Return the current variant id. */
 int getOption() {
-  /* YOUR CODE HERE */
   return tieResult == lose ? 0 : 1;
 }
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
-  /* YOUR CODE HERE  */
   tieResult = option == 0 ? lose : tie;
 }
 
@@ -500,14 +493,63 @@ void setOption(int option) {
 /* Don't worry about these Interact functions below yet.
 They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE */
-  return 0;
+POSITION InteractStringToPosition(STRING str) {
+  enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+
+	Slide5Board s5b;
+	for (int i = 1; i < 26; i++) {
+		switch (board[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case '-':
+				s5b.board[i] = 0;
+				break;
+			case 'X':
+				s5b.board[i] = 1;
+				break;
+			case 'O':
+				realBoard[i] = 2;
+				break;
+		}
+	}
+  s5b.board[0] = (turn == UWAPI_TURN_A) ? 0 : 1;
+
+	SafeFreeString(board); // Free the string.
+	return Hash(s5b);
 }
 
 STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE */
-  return NULL;
+  Slide5Board *s5b = Unhash(position);
+
+	char board[26];
+	for (int i = 1; i < 26; i++) {
+		switch (s5b->board[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected position\n");
+				break;
+			case 0:
+				board[i] = '-';
+				break;
+			case 1:
+				board[i] = 'X';
+				break;
+			case 2:
+				board[i] = 'O';
+				break;
+		}
+	}
+	board[25] = '\0'; // Make sure to null-terminate your board.
+
+	enum UWAPI_Turn turn = s5b->board[0] ? UWAPI_TURN_B : UWAPI_TURN_A;
+  free(s5b);
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25, board);
 }
 
 /* Optional. */
@@ -516,6 +558,5 @@ STRING InteractPositionToEndData(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE */
-  return MoveToString(move);
+  return UWAPI_Board_Regular2D_MakeMoveString(25 + move * 2, 26 + move * 2);
 }
