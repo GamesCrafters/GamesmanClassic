@@ -687,8 +687,7 @@ MOVE ConvertTextInputToMove(input)
 STRING input;
 {
 	SLOT fromSlot, toSlot;
-	int text;
-	text = sscanf(input, "%d %d", &fromSlot, &toSlot);
+	sscanf(input, "%d %d", &fromSlot, &toSlot);
 
 	fromSlot--;
 	toSlot--;
@@ -852,20 +851,91 @@ SLOT fromSlot, toSlot;
 
 
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+	BlankOX theBlankOx[BOARDSIZE], whoseTurn;
+
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (board[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case '-':
+				theBlankOx[i] = Blank;
+				break;
+			case 'x':
+				theBlankOx[i] = x;
+				break;
+			case 'o':
+				theBlankOx[i] = o;
+				break;
+		}
+	}
+
+	whoseTurn = (turn == UWAPI_TURN_A) ? x : o;
+	
+	return BlankOXToPosition(theBlankOx, whoseTurn);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankOX theBlankOx[BOARDSIZE], whoseTurn;
+	PositionToBlankOX(pos,theBlankOx,&whoseTurn);
+	char board[BOARDSIZE + 1];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (theBlankOx[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected position\n");
+				break;
+			case Blank:
+				board[i] = '-';
+				break;
+			case o:
+				board[i] = 'o';
+				break;
+			case x:
+				board[i] = 'x';
+				break;
+		}
+	}
+	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
+
+	enum UWAPI_Turn turn = (whoseTurn == x) ? UWAPI_TURN_A : UWAPI_TURN_B;
+
+	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 14, board);
 }
 
 STRING InteractPositionToEndData(POSITION pos) {
 	return NULL;
 }
 
+
+int arrowSource[14][14] = {
+	{-1,-1,-1,0,0,-1,-1,3,-1,4,-1,-1,-1,9},
+	{-1,-1,-1,-1,1,1,-1,-1,4,-1,5,8,-1,-1},
+	{-1,-1,-1,-1,-1,2,2,-1,-1,5,-1,-1,9,-1},
+	{3,-1,-1,-1,-1,-1,-1,3,3,-1,-1,-1,8,-1},
+	{4,4,-1,-1,-1,-1,-1,-1,4,4,-1,8,-1,9},
+	{-1,5,5,-1,-1,-1,-1,-1,-1,5,5,-1,9,-1},
+	{-1,-1,6,-1,-1,-1,-1,-1,-1,-1,6,-1,-1,10},
+	{3,-1,-1,7,-1,-1,-1,-1,-1,-1,-1,7,-1,-1},
+	{-1,4,-1,8,8,-1,-1,-1,-1,-1,-1,8,8,-1},
+	{4,-1,5,-1,9,9,-1,-1,-1,-1,-1,-1,9,9},
+	{-1,5,-1,-1,-1,10,10,-1,-1,-1,-1,-1,-1,10},
+	{-1,4,-1,-1,8,-1,-1,11,11,-1,-1,-1,-1,-1},
+	{-1,-1,5,8,-1,9,-1,-1,12,12,-1,-1,-1,-1},
+	{4,-1,-1,-1,9,-1,10,-1,-1,13,13,-1,-1,-1}
+};
+
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	int fromSlot = mv % (BOARDSIZE + 1);
+	int toSlot = mv / (BOARDSIZE + 1);
+	int adjustedFromSlot = arrowSource[fromSlot][toSlot];
+	return UWAPI_Board_Regular2D_MakeMoveString(adjustedFromSlot, toSlot);
 }

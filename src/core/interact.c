@@ -505,7 +505,7 @@ void ServerInteractLoop(void) {
 			InteractPrintJSONPositionValue(pos);
 
 			printf(",\"moves\":[");
-			if (Primitive(pos) == undecided) {
+			if (Primitive(pos) == undecided && board[2] != 'R') {
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
 					choice = DoMove(pos, current_move->move);

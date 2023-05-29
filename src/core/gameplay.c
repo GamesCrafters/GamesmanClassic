@@ -441,7 +441,7 @@ void PrintHeader(int maxMoveLength, int maxRemoteness,
 
 	POSITION tmp = gInitialPosition;
 	if (gHashWindowInitialized) {         //Tier-Gamesman
-		gInitializeHashWindowToPosition(&position, !usingLookupTierDB);
+		gInitializeHashWindow(gInitialTier, !usingLookupTierDB);
 		tmp = gInitialTierPosition;
 	}
 	PrintPosition(tmp, gPlayerName[whoseTurn], whoseTurn);
