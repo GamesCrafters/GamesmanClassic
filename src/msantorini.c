@@ -214,11 +214,6 @@ STRING InteractPositionToString(POSITION position) {
   return NULL;
 }
 
-/* Ignore this function. */
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE LATER BUT NOT NOW */
   return MoveToString(move);

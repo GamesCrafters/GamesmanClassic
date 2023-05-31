@@ -741,10 +741,6 @@ STRING InteractPositionToString(POSITION position) {
     return ret;
 }
 
-STRING InteractPositionToEndData(POSITION position) {
-    return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
     int destIdx, srcIdx;
     unpackMove(move, &destIdx, &srcIdx);

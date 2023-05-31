@@ -46,7 +46,6 @@ char * StringFormat(size_t max_size, char * format_str, ...) {
 
 STRING InteractPositionToString(POSITION pos);
 POSITION InteractStringToPosition(STRING str);
-STRING InteractPositionToEndData(POSITION pos);
 STRING InteractMoveToString(POSITION pos, MOVE mv);
 
 static char * AllocVa(va_list lst, size_t accum, size_t * total) {
@@ -325,26 +324,6 @@ void ServerInteractLoop(void) {
 			}
 			printf("}");
 			InteractFreeBoardSting(board);
-		} else if (FirstWordMatches(input, "end_response")) {
-			if (!InteractReadBoardString(input, &board)) {
-				printf("%s", invalid_board_string);
-				continue;
-			}
-			pos = InteractStringToPosition(board);
-			if (pos == -1) {
-				printf("%s", invalid_board_string);
-				continue;
-			}
-			printf(RESULT "{\"status\":\"ok\",\"response\":{");
-			/* For debuggin purposes. */
-			/*printf("\"board\": \"%s\",",  board);*/
-			InteractPrintJSONPositionValue(pos);
-			data = InteractPositionToEndData(pos);
-			if (data) {
-				printf(",%s", data);
-				SafeFree(data);
-			}
-			printf("}}");
 		} else if (FirstWordMatches(input, "value")) {
 			if (!InteractReadPosition(input, &pos)) {
 				continue;

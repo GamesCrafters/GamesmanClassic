@@ -986,8 +986,3 @@ POSITION ActualNumberOfPositions(int variant) {
 }
 
 GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
-
-STRING InteractPositionToEndData(POSITION pos)
-{
-	return NULL;
-}

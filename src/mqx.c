@@ -1113,10 +1113,6 @@ STRING InteractPositionToString(POSITION pos) {
 		return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, charBoard); //this function puts the R_A_0_0 in front of our string
 }
 
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
 //UWAPI format: A_(some character)_(some positon)
 //A (Add): Move token. There are 2 types. Default and Custom
 // A Default Move (Just a circle) and 

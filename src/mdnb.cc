@@ -875,10 +875,6 @@ EXTERNC STRING MoveToString(MOVE theMove) {
   return ret;
 }
 
-EXTERNC STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 EXTERNC STRING InteractMoveToString(POSITION pos, MOVE mv) {
   return MoveToString(mv);
 }

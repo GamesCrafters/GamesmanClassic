@@ -1677,10 +1677,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return formatted;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if ((int)mv == PASSMOVE) {
 		STRING move = (STRING)SafeMalloc(2);

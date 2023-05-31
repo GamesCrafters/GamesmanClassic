@@ -1665,10 +1665,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	return MoveToString(mv);
 }

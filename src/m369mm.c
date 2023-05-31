@@ -2107,10 +2107,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return finalBoard;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE move) {
 	// Move will be of the form:
 	// from, to (for sliding only)

@@ -934,10 +934,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakePositionString(UWAPI_TURN_C, 4, 4, posString);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	int lsb = -1, msb = -1;
 	for (int i = 0; i < 16; i++) {

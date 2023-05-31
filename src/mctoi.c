@@ -2530,10 +2530,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return finalBoard;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >= 300000) { // Select where to place; encoded as 300000 + original mv 
 		return UWAPI_Board_Regular2D_MakeAddString((WhoseTurn(pos) == Rx) ? '-' : '-', MoveTo(mv % 100000));

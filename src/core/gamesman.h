@@ -58,7 +58,7 @@ void                    PrintMove                       (MOVE theMove);
 int                     NumberOfOptions                 (void);
 int                     getOption                       (void);
 void                    setOption                       (int option);
-void SetTclCGameSpecificOptions      (int theOptions[]);
+void                    SetTclCGameSpecificOptions      (int theOptions[]);
 void                    GameSpecificMenu                (void);
 void                    DebugMenu                       (void);
 

@@ -730,11 +730,6 @@ STRING InteractPositionToString(POSITION position) {
   return str;
 }
 
-/* Optional. */
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
 

@@ -2177,10 +2177,6 @@ STRING InteractPositionToString(POSITION interpos) {
 	return board_string;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >= 300000) { // Selecting L: corner and orientation
 		int L = unhashMoveL(mv % 100000);

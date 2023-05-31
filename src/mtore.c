@@ -994,10 +994,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakeBoardString(turn, 9, board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	char board[9];
 	generic_hash_unhash(pos, board);

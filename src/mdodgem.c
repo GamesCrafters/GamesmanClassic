@@ -936,10 +936,6 @@ STRING MoveToString(MOVE theMove) {
 	return NULL;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 
 	enum UWAPI_Turn turn;

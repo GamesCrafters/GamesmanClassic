@@ -1,10 +1,3 @@
-// $Id: mfoxes.c,v 1.16 2008-02-20 06:13:23 ungu1d3d_s0ul Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mfoxes_new.c
@@ -650,9 +643,7 @@ BOOLEAN ValidTextInput (STRING input)
 MOVE ConvertTextInputToMove (STRING input)
 {
 	SLOT fromSlot, toSlot;
-	int ret;
-
-	ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+	sscanf(input,"%d %d", &fromSlot, &toSlot);
 
 	fromSlot--;           /* user input is 1-16, our rep. is 0-15 */
 	toSlot--;             /* user input is 1-16, our rep. is 0-15 */
@@ -1005,66 +996,36 @@ void InitializeOrder () {
 	return;
 }
 
-// $Log: not supported by cvs2svn $
-// Revision 1.15  2006/12/19 20:00:50  arabani
-// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
-//
-// Revision 1.14  2006/10/17 10:45:20  max817
-// HUGE amount of changes to all generic_hash games, so that they call the
-// new versions of the functions.
-//
-// Revision 1.13  2006/03/20 23:56:56  kmowery
-//
-// Added MoveToString and set gMoveToStringFunPtr, required for Visual Value History.
-//
-// Revision 1.12  2006/01/11 22:55:03  hevanm
-// Hopefully really fixed twobitdb. Changed compiler flags for all platforms to "-Wall -g". Look at those warnings. They are not critical, but they are there. Removed the configure script. From now on please remember to (re)grenerate it yourself if/when configure.ac changes, by simply running autoconf.
-//
-// Revision 1.11  2006/01/03 00:19:35  hevanm
-// Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
-//
-// Revision 1.10  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.9  2005/11/10 20:58:51  hevanm
-// Renaming mfoxes_new to mfoxes. You need to regenerate the makefiles with config.status to adopt the changes.
-//
-// Revision 1.3  2005/04/27 22:47:48  ciokita
-// update helpstrings
-//
-// Revision 1.2  2005/04/17 00:45:20  hevanm
-// Cleaned up unused functions and let the geese go first by default. This completes all major work on bringing F&G to the current core.
-//
-// Revision 1.1  2005/04/11 18:01:10  hevanm
-// A version of mfoxes that uses the current core API. Everything except the GUI works, with the exception of a few strange bugs here and there...
-//
-// Revision 1.3  2005/03/10 02:06:47  ogren
-// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
-//
+POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
 
-POSITION InteractStringToPosition(STRING board) {
-	int whosTurn = board[0] == 'F' ? FOXTURN : GOOSETURN;
-	return generic_hash_hash(&board[1], whosTurn);
+	int whoseTurn = (turn == UWAPI_TURN_B) ? FOXTURN : GOOSETURN;
+	POSITION ret = generic_hash_hash(board, whoseTurn);
+	SafeFreeString(board); // Free the string.
+	return ret;
 }
 
 STRING InteractPositionToString(POSITION pos) {
 	char board[BOARDSIZE];
 	generic_hash_unhash(pos, board);
-	int whosTurn = generic_hash_turn(pos);
+	int whoseTurn = generic_hash_turn(pos);
+	char ret[BOARDSIZE + 1];
 
-	char *ret = SafeMalloc(sizeof(char) * (1 + BOARDSIZE + 1));
+	enum UWAPI_Turn turn = (whoseTurn == FOXTURN) ? UWAPI_TURN_B : UWAPI_TURN_A;
+	memcpy(&ret[0], board, sizeof(char) * BOARDSIZE);
+	ret[BOARDSIZE] = '\0';
 
-	ret[0] = whosTurn == FOXTURN ? 'F' : 'G';
-	memcpy(&ret[1], board, sizeof(char) * BOARDSIZE);
-	ret[1 + BOARDSIZE] = '\0';
-
-	return ret;
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 32, ret);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	SLOT fromSlot, toSlot;
+	MoveToSlots(mv,&fromSlot,&toSlot);
+	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
 }

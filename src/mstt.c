@@ -1347,10 +1347,6 @@ void setOption(int option)
 // Note on interact: Currently, this only works with the default variant
 ////////////////////////////////////////////////////////////////////////////////
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	BlankOX oxboard[BOARDSIZE];
 	PositionToBlankOX(pos, oxboard);

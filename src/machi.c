@@ -1344,10 +1344,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakePositionString(turn, 3, 3, board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	BlankOX oxboard[BOARDSIZE];
 	BlankOX whosTurn;

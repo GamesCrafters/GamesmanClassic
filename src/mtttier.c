@@ -946,10 +946,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return whole_board;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	return MoveToString(mv);
 }

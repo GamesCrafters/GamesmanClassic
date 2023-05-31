@@ -67,7 +67,6 @@ int getOption();
 void setOption(int option);
 POSITION InteractStringToPosition(STRING board);
 STRING InteractPositionToString(POSITION pos);
-STRING InteractPositionToEndData(POSITION pos);
 STRING InteractMoveToString(POSITION pos, MOVE mv);
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
@@ -1462,9 +1461,6 @@ STRING InteractPositionToString(POSITION interPos) {
   return finalBoard;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-  return NULL;
-}
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
   int isGridMove, from, to;

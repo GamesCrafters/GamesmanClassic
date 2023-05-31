@@ -631,10 +631,6 @@ STRING MoveToString(MOVE theMove) {
 	return "Implement MoveToString";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	return MoveToString(mv);
 }

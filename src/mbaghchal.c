@@ -1699,10 +1699,6 @@ POSITION InteractStringToPosition(STRING string) {
 	return tierposition;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
   int from, to, remove;

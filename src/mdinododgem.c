@@ -1474,10 +1474,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25 + 8, finalBoard);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT fromSlot, toSlot;
 	BlankOX turn;

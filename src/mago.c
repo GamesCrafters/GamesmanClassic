@@ -1058,10 +1058,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return out;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	return MoveToString(mv);
 }

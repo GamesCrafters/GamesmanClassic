@@ -166,7 +166,6 @@ void setOption(int option);
 /* INTERACT FUNCTIONS */
 POSITION InteractStringToPosition(STRING board);
 STRING InteractPositionToString(POSITION position);
-STRING InteractPositionToEndData(POSITION position);
 STRING InteractMoveToString(POSITION position, MOVE move);
 
 /* UNUSED INTERFACE IMPLEMENTATIONS */
@@ -944,8 +943,6 @@ STRING InteractPositionToString(POSITION position) {
   free(board);
   return UWAPI_Board_Regular2D_MakeBoardString(turn, 25, charBoard);;
 }
-
-STRING InteractPositionToEndData(POSITION position) { return NULL; }
 
 STRING InteractMoveToString(POSITION position, MOVE move) { 
   // return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);

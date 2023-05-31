@@ -3172,10 +3172,6 @@ STRING MoveToString(MOVE theMove) {
 	return StringDup("");
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	return MoveToString(mv);
 }

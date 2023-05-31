@@ -687,10 +687,6 @@ STRING InteractPositionToString(POSITION position) {
 		"second_player_matches", StrFromI(second_player_matches), "position", StrFromI(position), "");
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	return MoveToString(mv);
 }

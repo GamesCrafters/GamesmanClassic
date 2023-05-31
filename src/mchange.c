@@ -911,10 +911,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakeBoardString(turn, 14, board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 
 int arrowSource[14][14] = {
 	{-1,-1,-1,0,0,-1,-1,3,-1,4,-1,-1,-1,9},

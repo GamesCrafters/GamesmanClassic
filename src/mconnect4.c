@@ -512,10 +512,6 @@ STRING InteractPositionToString(POSITION position) {
   return UWAPI_Board_Regular2D_MakePositionString(turn, ROWCOUNT + 1, COLUMNCOUNT, pieces);
 }
 
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
   return UWAPI_Board_Regular2D_MakeAddString('a', (ROWCOUNT + 1) * COLUMNCOUNT - 1 - (move / (ROWCOUNT + 1)));
 }

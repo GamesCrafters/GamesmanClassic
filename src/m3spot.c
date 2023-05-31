@@ -1462,10 +1462,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return boardString;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >> 9) { // Placing player's piece.	
 		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[((mv & 0xFF) >> 4)-2], betweenMap[(mv >> 4) & 0xF]);

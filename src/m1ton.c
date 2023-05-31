@@ -491,10 +491,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Custom_MakePositionString(buffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	return MoveToString(mv);
 }

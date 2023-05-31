@@ -1262,10 +1262,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT toSlot;

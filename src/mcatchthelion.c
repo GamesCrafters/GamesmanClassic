@@ -401,11 +401,6 @@ STRING InteractPositionToString(POSITION position) {
   return NULL;
 }
 
-/* Optional. */
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
   return MoveToString(move);

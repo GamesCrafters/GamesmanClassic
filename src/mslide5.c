@@ -556,11 +556,6 @@ STRING InteractPositionToString(POSITION position) {
 	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25, board);
 }
 
-/* Optional. */
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
   return UWAPI_Board_Regular2D_MakeMoveString(25 + move * 2, 26 + move * 2);
 }

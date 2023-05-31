@@ -403,11 +403,6 @@ STRING InteractPositionToString(POSITION pos)
   return NULL;
 }
 
-STRING InteractPositionToEndData(POSITION pos)
-{
-  return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) 
 {
   return MoveToString(mv);

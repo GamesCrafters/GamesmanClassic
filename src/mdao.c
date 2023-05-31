@@ -901,10 +901,6 @@ STRING InteractPositionToString(POSITION pos) {
   return result;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE move) {
   STRING result = (STRING) SafeMalloc(10);
 

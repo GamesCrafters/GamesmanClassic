@@ -1150,10 +1150,6 @@ STRING InteractPositionToString(POSITION pos) {
   return UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, 4, 4, board, "phase", phaseValue, "numSwans", numSwansValue, "");
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
 	SLOT fromSlot, toSlot;
 	int phase;

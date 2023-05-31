@@ -3750,10 +3750,6 @@ char* InteractPositionToString(POSITION pos) {
   }
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE move) {
   char rowf, colf, rowi, coli;
   rowf = (move & 15);
