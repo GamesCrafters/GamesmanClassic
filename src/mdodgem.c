@@ -923,7 +923,7 @@ STRING InteractPositionToString(POSITION pos) {
 
 	for (int j = 0; j < INTERACT_BOARDSIZE; j += 1) {
 		if (j % 4 == 3 || j / 4 == 0) {
-			oxboard[j] = '*';
+			oxboard[j] = '-';
 		}
 	}
 
