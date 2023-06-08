@@ -1,4 +1,5 @@
 // Tic Tac Toe stroke parser
+#ifndef NO_GRAPHICS
 
 #include "loader.h"
 #include "stroke.h"
@@ -227,3 +228,5 @@ void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, 
 		Tcl_CreateTimerHandler(TCL_TIMER_MS, &TclTimerProc, NULL);
 	}
 }
+
+#endif // NO_GRAPHICS

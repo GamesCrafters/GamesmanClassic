@@ -1516,12 +1516,14 @@ float PercentDone (STATICMESSAGE msg)
 	if (gHashWindowInitialized) { // Tier-Gamesman Retrograde Solver!
 		total_positions = gCurrentTierSize;
 		useTcl = FALSE;
+#ifndef NO_GRAPHICS
 		if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
 			percent = 1/(float)gTotalTiers*100;
 			char str[100];
 			sprintf(str, "advanceProgressBar %f", percent);
 			Tcl_Eval(gTclInterp, str);
 		}
+#endif
 	} else if (gActualNumberOfPositionsOptFunPtr != NULL) {
 		total_positions = gActualNumberOfPositionsOptFunPtr(getOption());
 		if (total_positions < 0)
@@ -1531,13 +1533,17 @@ float PercentDone (STATICMESSAGE msg)
 	{
 	case Update:
 		num_pos_seen++;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_seen % (total_positions / 1000)))
 			Tcl_Eval(gTclInterp, "advanceProgressBar 0.1");
+#endif
 		break;
 	case Clean:
 		num_pos_seen = 0;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL)
 			Tcl_Eval(gTclInterp, "advanceProgressBar 0");
+#endif
 		break;
 	default:
 		break;
@@ -1555,24 +1561,30 @@ float PercentLoaded (STATICMESSAGE msg)
 	if (gHashWindowInitialized) { // Tier-Gamesman Retrograde Solver!
 		total_positions = gCurrentTierSize;
 		useTcl = FALSE;
+#ifndef NO_GRAPHICS
 		if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
 			float percent = 1/(float)gTotalTiers;
 			char str[100];
 			sprintf(str, "advanceLoadingProgressBar %f", percent);
 			Tcl_Eval(gTclInterp, str);
 		}
+#endif
 	}
 	switch (msg)
 	{
 	case Update:
 		num_pos_loaded++;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_loaded % (total_positions / 1000)))
 			Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0.1");
+#endif
 		break;
 	case Clean:
 		num_pos_loaded = 0;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL)
 			Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0");
+#endif
 		break;
 	default:
 		break;

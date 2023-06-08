@@ -98,7 +98,7 @@ solving or playing the game. */
 Special position: if init, (cards not shuffled) all 0s
 */
 /* Return the hash value of the initial position. */
-Bool vcfg(int *pieces){
+BOOLEAN vcfg(int *pieces){
   //'3': decree card
   //'4': last card
   int p1 = pieces[1]+pieces[6],p2 = pieces[2]+pieces[7];
@@ -303,12 +303,12 @@ MOVELIST *GenerateMoves(POSITION position) {
     //getPositionHash(&moved,&score,&decreeCard,&lastCard,&status,position);
     if(moved){
       int num = getCardNum(lastCard),suit = getCardSuit(lastCard);
-      Bool hasSuit = False;
+      BOOLEAN hasSuit = FALSE;
       for(int i=0;i<30;i+=2){
         CARD card = i/2+1;
         int cardCol = (status>>i)&3;
         if(cardCol==2&&getCardSuit(card)==suit){
-          hasSuit = True;
+          hasSuit = TRUE;
           break;
         }
       }

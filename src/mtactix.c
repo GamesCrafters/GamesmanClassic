@@ -351,6 +351,7 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 **
 ************************************************************************/
 
+#ifndef NO_GRAPHICS
 void SetTclCGameSpecificOptions(int theOptions[])
 {
 	// Anoto pen support
@@ -358,6 +359,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 		gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
 	}
 }
+#endif
 
 /************************************************************************
 **

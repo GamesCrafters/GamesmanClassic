@@ -1,6 +1,8 @@
 // Tac Tix stroke parser
 // Note: Dots and Boxes and Tac Tix use similar board parsers - should probably refactor the common code
 
+#ifndef NO_GRAPHICS
+
 #include "loader.h"
 #include "stroke.h"
 #include "tcl.h"
@@ -227,3 +229,5 @@ void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, 
 		Tcl_CreateTimerHandler(TCL_TIMER_MS, &TclTimerProc, NULL);
 	}
 }
+
+#endif // NO_GRAPHICS
