@@ -743,7 +743,7 @@ void quartoDetailedPositionResponse(STRING str) {
                     printf("{\"board\":\"%s\",", UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board));
                     printf("\"remoteness\":%d,", remoteness);
                     printf("\"value\":\"%s\",", vctvs(valueChar));
-                    printf("\"move\":\"A_%c_%d\",", childTier.pieceToPlace + 'a', 16 + nextSlot * 16 + childTier.pieceToPlace);
+                    printf("\"move\":\"A_%c_%d\",", childTier.pieceToPlace + 'A', 16 + nextSlot * 16 + childTier.pieceToPlace);
                     printf("\"moveName\":\"%d-%d%d%d%d\"}", nextSlot+1, (childTier.pieceToPlace>>3)&1, (childTier.pieceToPlace>>2)&1, (childTier.pieceToPlace>>1)&1, childTier.pieceToPlace&1);  // slot is 1-indexed in moveName
                     if (i < 15 - level || j < 14 - level) {
                         printf(",");
