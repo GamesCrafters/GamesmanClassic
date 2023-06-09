@@ -506,9 +506,11 @@ char **argv;                            /* Argument strings. */
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		if(!kPartizan)
-			MexFormat(position,Tcl_GetStringResult(interp));
-		else
+		if(!kPartizan) {
+			char mex[80];
+			MexFormat(position, mex);
+			Tcl_SetResult(interp, mex, TCL_STATIC);
+		} else
 			Tcl_SetResult(interp, " ", TCL_STATIC);
 		return TCL_OK;
 	}

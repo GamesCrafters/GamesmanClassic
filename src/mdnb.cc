@@ -1002,9 +1002,10 @@ static int
 ScoredCmd(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
 {
   int position,x,y;
+  char result[200] = "wrong # args: Scored (int)Position (int)x (int)y";
 
   if (argc != 4) {
-    Tcl_SetResult(interp,  "wrong # args: Scored (int)Position (int)x (int)y", TCL_STATIC);
+    Tcl_SetResult(interp, result, TCL_STATIC);
     return TCL_ERROR;
   }
   else {

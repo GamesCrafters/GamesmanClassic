@@ -1346,9 +1346,11 @@ char **argv;                            /* Argument strings. */
 		if (sscanf(argv[1], POSITION_FORMAT, &position) == EOF)
 			return TCL_ERROR;
 
-		if(!kPartizan)
-			MexFormat(position,Tcl_GetStringResult(interp));
-		else
+		if(!kPartizan) {
+			char mex[80];
+			MexFormat(position, mex);
+			Tcl_SetResult(interp, mex, TCL_STATIC);
+		} else
 			Tcl_SetResult(interp, " ", TCL_STATIC);
 		return TCL_OK;
 	}
@@ -1700,7 +1702,11 @@ char **argv;                            /* Argument strings. */
 	}
 
 	else {
-		Tcl_SetResult(interp,  kHelpStandardObjective, TCL_STATIC);
+		char *kHelpStandardObjectiveCopy =
+			(char*)SafeCalloc(strlen(kHelpStandardObjective) * 2, sizeof(char));
+		strcpy(kHelpStandardObjectiveCopy, kHelpStandardObjective);
+		Tcl_SetResult(interp,  kHelpStandardObjectiveCopy, TCL_STATIC);
+		free(kHelpStandardObjectiveCopy);
 		return TCL_OK;
 	}
 }
@@ -1719,7 +1725,11 @@ char **argv;                            /* Argument strings. */
 	}
 
 	else {
-		Tcl_SetResult(interp,  kHelpReverseObjective, TCL_STATIC);
+		char *kHelpReverseObjectiveCopy =
+			(char*)SafeCalloc(strlen(kHelpReverseObjective) * 2, sizeof(char));
+		strcpy(kHelpReverseObjectiveCopy, kHelpReverseObjective);
+		Tcl_SetResult(interp, kHelpReverseObjectiveCopy, TCL_STATIC);
+		free(kHelpReverseObjectiveCopy);
 		return TCL_OK;
 	}
 }
