@@ -1748,7 +1748,7 @@ emergency:
 			if( mw1->next )
 			{
 				if( !mwIsReadAddr(mw1->next,mwDataSize) ||
-				    !mw1->next->check != CHKVAL(mw1) ||
+				    (!mw1->next->check) != CHKVAL(mw1) ||
 				    mw1->next->prev != mw1 )
 				{
 					mwWrite("relink: forward chain's last intact MW is MW-%p, %ld %sbytes at %s(%d)\n",
@@ -1790,7 +1790,7 @@ scan_reverse:
 			if( mw2->prev )
 			{
 				if( !mwIsReadAddr(mw2->prev,mwDataSize) ||
-				    !mw2->prev->check != CHKVAL(mw2) ||
+				    (!mw2->prev->check) != CHKVAL(mw2) ||
 				    mw2->prev->next != mw2 )
 				{
 					mwWrite("relink: reverse chain's last intact MW is MW-%p, %ld %sbytes at %s(%d)\n",

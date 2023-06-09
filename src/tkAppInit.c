@@ -29,8 +29,8 @@ extern POSITION gInitialPosition;
 extern int smartness;
 extern int scalelvl;
 extern MENU gMenuMode;
-extern STRING kHelpStandardObjective;
-extern STRING kHelpReverseObjective;
+extern CONST_STRING kHelpStandardObjective;
+extern CONST_STRING kHelpReverseObjective;
 
 /*
  * The following variable is a special hack that is needed in order for

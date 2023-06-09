@@ -30,16 +30,16 @@
 /********************************************* Global variables for Gamesman */
 POSITION gInitialPosition       = 0;
 POSITION gNumberOfPositions     = 0;
-STRING kAuthorName            = "Eric Siroker";
+CONST_STRING kAuthorName            = "Eric Siroker";
 POSITION kBadPosition           = -1;
-STRING kDBName                = "pylos";
+CONST_STRING kDBName                = "pylos";
 BOOLEAN kDebugDetermineValue   = FALSE;
 BOOLEAN kDebugMenu             = FALSE;
-STRING kGameName              = "Pylos";
+CONST_STRING kGameName              = "Pylos";
 BOOLEAN kGameSpecificMenu      = TRUE;
 
 /* Out of date. */
-STRING kHelpExample           = "\
+CONST_STRING kHelpExample           = "\
          (  1   2   3 )          : - - -\n\
          (    4   5   )          :  - -\n\
 LEGEND:  (  6   7   8 )  BOARD:  : - - -\n\
@@ -180,21 +180,21 @@ LEGEND:  (  6   7   8 )  BOARD:  : X - O\n\
          ( 11  12  13 )          : X O O (Computer should Lose in 0)\n\n\
 PIECES LEFT: (0)\n\n\n\
 Excellent! You won!";
-STRING kHelpGraphicInterface  = "";
-STRING kHelpOnYourTurn        = "\
+CONST_STRING kHelpGraphicInterface  = "";
+CONST_STRING kHelpOnYourTurn        = "\
 Place a piece on a blank spot. If a two-by-two square is formed, you must\n\
 take back one of your pieces. You may not take back a piece that is being\n\
 used to support another piece. If a two-by-two square already exists and you\n\
 have any pieces of equal or lower height to the square, you must take one of\n\
 those pieces and stack it on top of the square if you intend to put any piece\n\
 on top of the square.";
-STRING kHelpReverseObjective  = "\
+CONST_STRING kHelpReverseObjective  = "\
 To either use all of your pieces before your opponent does or to complete the\n\
 pyramid.";
-STRING kHelpStandardObjective = "\
+CONST_STRING kHelpStandardObjective = "\
 To make your opponent either use all of his or her pieces before you do or\n\
 make your opponent complete the pyramid.";
-STRING kHelpTextInterface     = "\
+CONST_STRING kHelpTextInterface     = "\
 The board represents a bird's eye view of a pyramid. Pieces are placed\n\
 building this pyramid. A piece can only be placed on a higher level of the\n\
 pyramid if all four of its bases have a piece on them. The legend indicates\n\
@@ -203,7 +203,7 @@ adding a piece, but, if a two-by-two square is formed, a move can consist of\n\
 two actions: an addition and a removal. An addition and removal can also\n\
 occur when a two-by-two square already exists and a piece already on the\n\
 board is moved on top of the square.";
-STRING kHelpTieOccursWhen     = "";
+CONST_STRING kHelpTieOccursWhen     = "";
 BOOLEAN kLoopy                 = TRUE;
 BOOLEAN kPartizan              = TRUE;
 BOOLEAN kTieIsPossible         = FALSE;

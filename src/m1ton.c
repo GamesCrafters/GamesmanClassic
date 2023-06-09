@@ -45,8 +45,8 @@ POSITION gInitialPosition    = 0;
 
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName          = "Dan Garcia";
-STRING kGameName            = "1 TO N";
+CONST_STRING kAuthorName          = "Dan Garcia";
+CONST_STRING kGameName            = "1 TO N";
 BOOLEAN kPartizan            = FALSE;
 BOOLEAN kDebugMenu           = FALSE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -55,28 +55,28 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";    /* empty since kSupportsGraphics == FALSE */
+CONST_STRING kHelpGraphicInterface = "";    /* empty since kSupportsGraphics == FALSE */
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, select the number 1 or 2 to raise the total sum. After\n\
 selecting your move, the total is displayed. The play then alternates to the\n\
 second player, who also has the choice of raising the sum by 1 or 2 points.\n\
 The winneris the first person to raise the total sum to N. If at any point\n\
 you have made a mistake, type u to revert back to your previous position."                                                                                                                                                                                                                                                                                                                              ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Select the number 1 or 2 to raise the total sum. You can also revert to the\n\
 previous position by typing u."                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the player to raise the total to N.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force the other player to raise the total to N.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "TOTAL                        :  0   \n\n\
      Dan's move [(u)ndo/1/2] : { 2 } \n\n\
 TOTAL                        :  2    \n\n\
@@ -352,9 +352,6 @@ STRING playerName;
 {
 	USERINPUT ret, HandleDefaultTextInput();
 	BOOLEAN ValidMove();
-	char input[2];
-
-	input[0] = '3';
 
 	do {
 		printf("%8s's move [(u)ndo/1/2] :  ", playerName);
@@ -444,7 +441,7 @@ MOVE theMove;
 
 
 
-STRING kDBName = "1TON";
+CONST_STRING kDBName = "1TON";
 
 int NumberOfOptions()
 {

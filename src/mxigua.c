@@ -98,9 +98,9 @@ char EMPTYSPACE ='-';
 char PLAYER1 = 'X';
 char PLAYER2 = 'O';
 
-STRING kGameName            = "XiGua";   /* The name of your game */
-STRING kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder";   /* Your name(s) */
-STRING kDBName              = "xigua";   /* The name to store the database under */
+CONST_STRING kGameName            = "XiGua";   /* The name of your game */
+CONST_STRING kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder";   /* Your name(s) */
+CONST_STRING kDBName              = "xigua";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -119,25 +119,25 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Selecting a move is done by picking a letter corresponding with a square on the board. The board displayed will list the key to base your selection from (Note: not all spots on the board will be possible at any given time).";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by an edge in the board.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective of the game is to be the player with the most pieces on the board when the last piece is placed.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "The objective of the game is to be the player with the least number of pieces of the board when the last piece is placed.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when both players have the same number of pieces on the board when the last piece is placed.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Legend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       �\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n";
 
 

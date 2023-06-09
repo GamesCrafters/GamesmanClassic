@@ -25,6 +25,7 @@ typedef int MOVES;                              /* to make it a leeeetle bit eas
 
 typedef int REMOTENESS;
 typedef char*                   STRING;
+typedef const char*				CONST_STRING;
 typedef void*                   GENERIC_PTR;
 
 // Tier Gamesman typedefs

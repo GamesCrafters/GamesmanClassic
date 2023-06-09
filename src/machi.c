@@ -37,8 +37,8 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Jeffrey Chiang, Jennifer Lee, and Jesse Phillips";
-STRING kGameName           = "Achi";
+CONST_STRING kAuthorName         = "Jeffrey Chiang, Jennifer Lee, and Jesse Phillips";
+CONST_STRING kGameName           = "Achi";
 
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = TRUE;
@@ -52,25 +52,25 @@ BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
 // Help strings are placeholders to be filled in after InitializeGame
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Help strings not initialized.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Help strings not initialized.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
 /*************************************************************************
@@ -1150,7 +1150,7 @@ BOOLEAN phase1(BlankOX *theBlankOX)
 
 
 
-STRING kDBName = "achi";
+CONST_STRING kDBName = "achi";
 
 int NumberOfOptions()
 {

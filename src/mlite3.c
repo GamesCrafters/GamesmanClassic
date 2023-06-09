@@ -55,8 +55,8 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition           = -1;
 
-STRING kAuthorName         = "Alex Perelmen and Babak Hamadani";
-STRING kGameName           = "Lite-3";
+CONST_STRING kAuthorName         = "Alex Perelmen and Babak Hamadani";
+CONST_STRING kGameName           = "Lite-3";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -65,25 +65,25 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Help strings not initialized.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Help strings not initialized.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
 /*************************************************************************
@@ -1150,7 +1150,7 @@ POSITION thePosition;
 	return (thePosition & 1);
 }
 
-STRING kDBName = "lite3";
+CONST_STRING kDBName = "lite3";
 
 int NumberOfOptions()
 {

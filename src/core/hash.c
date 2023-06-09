@@ -498,10 +498,9 @@ char* generic_hash_unhash_tcl(POSITION pos)
 char* generic_hash_unhash(POSITION hashed, char* dest)
 {
 	POSITION offst;
-	int i, j, boardSize;
+	int i, j;
 	hashed %= cCon->maxPos; //accomodates generic_hash_turn
 
-	boardSize = cCon->boardSize;
 	j = searchOffset(hashed);
 	offst = cCon->hashOffset[j];
 	hashed -= offst;
@@ -948,7 +947,7 @@ void freeHashtable() {
 // should be called after generic_hash_init
 void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots, int flippable) {
 
-	int i,j,k,numDiags;
+	int i,j,k;
 	int boardSize = 0;
 	int *hex60Rot = NULL, *tempSym = NULL, *hex0Ref;
 	struct symEntry *symIndex = NULL;
@@ -971,8 +970,6 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 			if (j >= numRows/2 && j < numRows-1)
 				numCols--;
 		}
-		// FIGURE THIS OUT
-		numDiags = 0;
 	}
 	symBoardRows = numRows;
 	symBoardCols = numCols;

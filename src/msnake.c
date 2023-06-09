@@ -63,9 +63,9 @@ POSITION gInitialPosition    = 8357;
 POSITION gMinimalPosition    = 8357; /* This may not be the minimal position. Use the upward solver when it's invented */
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Alice Chang, Judy Chen, Eleen Chiang, and Peter Foo";
-STRING kGameName           = "Snake";
-STRING kDBName             = "snake";
+CONST_STRING kAuthorName         = "Alice Chang, Judy Chen, Eleen Chiang, and Peter Foo";
+CONST_STRING kGameName           = "Snake";
+CONST_STRING kDBName             = "snake";
 BOOLEAN kPartizan           = TRUE;  /* each player only has control
                                       * over one type of piece, so
                                       * both players do not have the
@@ -80,25 +80,25 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which numbers to choose (between\n1 and 16, with 1 at the upper left and 16 at the lower right) to correspond\nto the board position that you desire to move from and the empty board position\n you desire to move to and hit return. If at any point you have made a mistake\nyou can type u and hit return and the system will revert back to your most recent\nposition.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You move your piece to one of the empty board positions.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To trap your opponent so that he/she is no longer able to make a valid move.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To trap yourself so that you are no longer able to make a valid move.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "A tie is not possible in this game.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "          1   2   3   4             +   +   +   +\nLEGEND:   5   6   7   8  TOTAL:     +   H   B   + \n          9   10  11  12            +   +   T   +\n          13  14  15  16            +   +   +   + \n\
 Head's turn.\n     Dan's move [(u)ndo/1-9] : 6 10\n          1   2   3   4             +   +   +   + \n\
 LEGEND:   5   6   7   8  TOTAL:     +   B   B   + \n          9   10  11  12            +   H   T   + \n          13  14  15  16            +   +   +   + \nTail's turn.\nComputer's move              : 11 15\n          1   2   3   4             +   +   +   + \nLEGEND:   5   6   7   8  TOTAL:     +   B   B   + \n          9   10  11  12            +   H   B   + \n          13  14  15  16            +   +   T   +\n\
@@ -492,7 +492,7 @@ BlankBHT who;
 /* PrintPosition function call prototypes:  */
 struct node * constructTree (struct node* node, BlankBHT boardArray[36], struct node* nodeArray[36], struct node *root);
 struct node* farthestTail (struct node *tree, BlankBHT boardArray[36]);
-void path(struct node *tailNode, struct node* pathArray[tailNode->depth]);
+void path(struct node *tailNode, struct node **pathArray);
 void PrintBoard(struct node* *pathArray, int pathArrayLength, BlankBHT board[36]);
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
@@ -677,7 +677,7 @@ struct node* farthestTail (struct node *tree, BlankBHT boardArray[36]) {
 
 // took tailNode->depth out of pathArray (we don't need to know its size to declare
 // the function) -JJ
-void path(struct node *tailNode, struct node* pathArray[]) {
+void path(struct node *tailNode, struct node **pathArray) {
 	struct node* temp = tailNode;
 	//struct node* pathArray[temp->depth];
 	int i = (temp->depth)-1;
@@ -1028,7 +1028,7 @@ STRING input;
 {
 	MOVE SlotsToMove();
 	SLOT fromSlot, toSlot;
-	int text = sscanf(input, "%d %d", &fromSlot, &toSlot);
+	(void)sscanf(input, "%d %d", &fromSlot, &toSlot);
 
 	fromSlot--;
 	toSlot--;

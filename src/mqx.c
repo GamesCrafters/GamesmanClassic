@@ -27,8 +27,8 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition        = -1;
 
-STRING kAuthorName         = "Dan Garcia";
-STRING kGameName           = "Quick Cross";
+CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kGameName           = "Quick Cross";
 BOOLEAN kPartizan           = FALSE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -37,33 +37,33 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "GUI not available at the moment.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine your desired action (place\n\
 horizonally (-), place vertically (|), or switch (x)) and board position\n\
 number. If at any point you have made a mistake, you can type u and hit\n\
 return and the system will revert back to your most recent position."                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of the pieces on one of the empty board positions either\n\
 horizontally or vertically, or you switch its orientation."                                                                                   ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three or four pieces in a row, depending on the game mode, either\n\
 horizontally, vertically, or diagonally. 3/4-in-a-row WINS."                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three or four pieces in a row,\n\
 depending on the game mode, either horizontally, vertically, or diagonally.\n\
 3/4-in-a-row LOSES."                                                                                                                                                              ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "an infinite loop occurs and no player can be forced into a winning or\n\
 losing position."                                                                                                      ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         (  1  2  3  4 )           : o o o o\n\
 LEGEND:  (  5  6  7  8 )  TOTAL:   : o o o o\n\
          (  9 10 11 12 )           : o o o o \n\n\
@@ -947,7 +947,7 @@ BlankHV theBlankHV[];
 	return(answer);
 }
 
-STRING kDBName = "quickcross";
+CONST_STRING kDBName = "quickcross";
 
 int NumberOfOptions()
 {

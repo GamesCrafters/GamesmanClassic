@@ -36,9 +36,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "1,2,...,10";
-STRING kAuthorName          = "Dan Garcia and his GamesCrafters";
-STRING kDBName              = "1210";
+CONST_STRING kGameName            = "1,2,...,10";
+CONST_STRING kAuthorName          = "Dan Garcia and his GamesCrafters";
+CONST_STRING kDBName              = "1210";
 
 BOOLEAN kPartizan            = FALSE;
 BOOLEAN kGameSpecificMenu    = FALSE;
@@ -56,10 +56,10 @@ void*    gGameSpecificTclInit = NULL;
 
 POSITION gMinimalPosition     = 0;        /* Is this used by anyone? */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
 /*
    --------------------------------------------------------------------------------
  */
@@ -69,18 +69,18 @@ STRING kHelpTextInterface    =
         "choice of raising the sum by 1 or 2 points. The winner is the first\n"
         "person to raise the total sum to exactly 10.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Type 1 or 2 to choose how much you'd like to increase the total.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the first player to raise the total to 10.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to raise the total to 10.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "TOTAL                        :  0   \n\n\
      Dan's move [(u)ndo/1/2] : { 2 } \n\n\
 TOTAL                        :  2    \n\n\

@@ -41,9 +41,9 @@ POSITION gInitialPosition    = 9;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING kAuthorName         = "Jerry Hong, Daniel Wei, Michael Mottmann and Melinda Franco";
-STRING kGameName           = "Abalone";
-STRING kDBName             = "Abalone";
+CONST_STRING kAuthorName         = "Jerry Hong, Daniel Wei, Michael Mottmann and Melinda Franco";
+CONST_STRING kGameName           = "Abalone";
+CONST_STRING kDBName             = "Abalone";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
@@ -55,10 +55,10 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "ON YOUR TURN, use the legend to determine which pieces to move.\n\
 In a move, multiple pieces can be moved, but any one piece\n\
 can only shift one space away from where it started.\n\
@@ -76,19 +76,19 @@ TO PERFORM A PUSH, enter the first piece that pushes all the rest, followed\n\
 by the direction of the push.  TO PERFORM A SIDE-STEP, enter all the pieces to\n\
 be moved, followed by the direction of the side-step.\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Choose which piece(s) of yours to move, and in what direction.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To push as many of your opponent's pieces off the board as it takes to win";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to push as many of your pieces off the board as it takes to win.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "There is no tie, only do";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "          BOARD                 LEGEND        DIRECTIONS\n\
 \n\
        -----------        \n\
@@ -784,12 +784,6 @@ BOOLEAN usersTurn;
 	int whoseMove;
 	unhash(position, &whoseMove);
 	int r, spacing;
-
-	char piece;
-	if (whoseMove == 2)
-		piece = 'x';
-	else
-		piece = 'y';
 
 	//printf("trying to print in PrintPosition");
 	if (N < 4) {

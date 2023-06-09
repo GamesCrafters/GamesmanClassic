@@ -66,9 +66,9 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING kAuthorName         = "Dan Garcia (and Max Delgadillo)";
-STRING kGameName           = "Tic-Tac-Tier";
-STRING kDBName             = "tttier";
+CONST_STRING kAuthorName         = "Dan Garcia (and Max Delgadillo)";
+CONST_STRING kGameName           = "Tic-Tac-Tier";
+CONST_STRING kDBName             = "tttier";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = FALSE;
@@ -77,35 +77,35 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
 to the empty board position you desire and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                                                                                                                                                                           ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\

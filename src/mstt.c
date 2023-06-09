@@ -27,8 +27,8 @@ POSITION gNumberOfPositions  = 14348907;  /* 3^15 */
 POSITION gInitialPosition    =  (59049 + 177147 + 531441) + 1;
 POSITION gMinimalPosition    =  (59049 + 177147 + 531441) + 1;
 
-STRING kAuthorName         = "David Chen and Ling Xiao";
-STRING kGameName           = "Shift-Tac-Toe";
+CONST_STRING kAuthorName         = "David Chen and Ling Xiao";
+CONST_STRING kGameName           = "Shift-Tac-Toe";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -38,7 +38,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whetherxinn you went first\n\
 or second) in the slot the arrow which you clicked is pointing to (if\n\
 you clicked on one of the three arrows at the top.)  Or it shifts the\n\
@@ -47,7 +47,7 @@ on one of the six arrows on the sides.) The MIDDLE button does nothing,\n\
 and the RIGHT button is the same as UNDO, in that it reverts back to your\n\
 your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 9, 1 through 3 puts a piece in the chose slot and 4 through 9 shifts\n\
 the chosen row left or right) to correspond to the empty board position or\n\
@@ -55,23 +55,23 @@ the shifting you desire and hit return.  If at any point you have made a\n\
 mistake, you can type u and hit return and the system will revert back to\n\
 your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                           ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions, or you\n\
 shift one of the rows."                                                                                     ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample = "stuff";
+CONST_STRING kHelpExample = "stuff";
 /*
    "moves:
          0 1 2
@@ -1304,7 +1304,7 @@ int colEmptyPos(BlankOX* theBoard, int col)
 
 
 
-STRING kDBName = "stt";
+CONST_STRING kDBName = "stt";
 
 int NumberOfOptions()
 {

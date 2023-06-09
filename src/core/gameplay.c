@@ -2085,7 +2085,7 @@ USERINPUT RemoteMove(POSITION position, MOVE* move, STRING name) {
 	return Continue;
 }
 
-int SetupNetworkGame(STRING gameName) {
+int SetupNetworkGame(CONST_STRING gameName) {
 	httpreq *req;
 	httpres *res;
 	char *url = malloc(256); //"127.0.0.1:3000/game/request_game_url"; //gMPServerAddress

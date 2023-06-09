@@ -102,9 +102,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Quick Chess";   /* The name of your game */
-STRING kAuthorName          = "Aaron Levitan, Adam Abed, Glenn Kim";   /* Your name(s) */
-STRING kDBName              = "quickchess";   /* The name to store the database under */
+CONST_STRING kGameName            = "Quick Chess";   /* The name of your game */
+CONST_STRING kAuthorName          = "Aaron Levitan, Adam Abed, Glenn Kim";   /* Your name(s) */
+CONST_STRING kDBName              = "quickchess";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -125,27 +125,27 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "The board is arranged like a standard chess board. \n\
 The rows are specified by numeric values, while the \n\
 columns are specified by letters. A square is referenced \n\
 by the column and then the row, i.e. b4."                                                                                                                                                                                     ;
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Try to checkmate your opponent's king.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Try to get your king checkmated.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when a player is not in check and does not have any valid moves.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -1365,11 +1365,6 @@ BOOLEAN rookCheck(char *Board, int row, int col, int currentPlayer, char current
 }
 
 BOOLEAN knightCheck(char *Board, int row, int col, int currentPlayer, char currentPiece, char whitePiece, char blackPiece) {
-	int rowTemp, colTemp;
-
-	rowTemp = row;
-	colTemp = col;
-
 	// up two left one
 	if(row-2 >= 0 && col-1 >= 0) {
 		if(isKingCaptureable(Board, row-2, col-1, currentPlayer, currentPiece, whitePiece, blackPiece)) {
@@ -3414,11 +3409,6 @@ char *getBoard() {
 }
 
 BOOLEAN isLegalBoard(char *Board){
-	int i;
-	char piece;
-	for (i = 0; i < rows*cols; i++) {
-		piece = Board[i];
-	}
 	return TRUE;
 }
 

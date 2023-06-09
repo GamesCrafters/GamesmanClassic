@@ -14,7 +14,7 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Zachary Leete";
+CONST_STRING kAuthorName = "Zachary Leete";
 POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -26,8 +26,8 @@ BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
-STRING kGameName = "Santorini";
-STRING kDBName = "santorini";
+CONST_STRING kGameName = "Santorini";
+CONST_STRING kDBName = "santorini";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
@@ -38,13 +38,13 @@ BOOLEAN kDebugMenu = FALSE;
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 /* You don't have to change this. */
 void DebugMenu() {}

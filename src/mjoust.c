@@ -62,9 +62,9 @@ POSITION gInitialPosition    = 16778208; //Blank with pieces in the corners for 
 POSITION gMinimalPosition    = 16778208;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Dave Le, Isaac Greenbride, and Mike Jurka";
-STRING kGameName           = "Joust";
-STRING kDBName             = "joust";
+CONST_STRING kAuthorName         = "Dave Le, Isaac Greenbride, and Mike Jurka";
+CONST_STRING kGameName           = "Joust";
+CONST_STRING kDBName             = "joust";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = TRUE;
 BOOLEAN kSupportsSymmetries = TRUE;
@@ -77,28 +77,28 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Two players control a single knight chess piece. Players alternate turns\n\
 moving their piece in an L shaped movement on the board. Once the player\n\
 has moved from space, the square that was previously occupied is considered\n\
 to be burned. No piece may occupy the square again."                                                                                                                                                                                                                                                ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Move your knight piece to any open spot that is not burned.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To force your opponent into a position where he cannot move.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be in a spot where you cannot move your piece.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\
@@ -1336,11 +1336,8 @@ BOOLEAN PossibleQueen(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX t
 /* Note, burn AFTER move is implemented merely by passing Possible burn
 * i (the proposed move), along with piecePos (its current position). */
 BOOLEAN PossibleBurn(unsigned int pPos, unsigned int mPos, unsigned int bPos, POSITION Pos, BlankBurntOX theBlankBurntOX[]){
-	int piecePos;
 	MOVE aMove;
-
-	piecePos = GetPFromPosition(Pos);
-
+	(void)GetPFromPosition(Pos);
 	switch(burnType) {
 
 /* burn old position (it MUST be open) */
@@ -2231,28 +2228,31 @@ void PieceMessage(POSITION thePos, BOOLEAN DisplayPieceType){
  * this takes either case of K, Q, R, B, or N
  * and changes thePiece to match the choice.*/
 void ChangeThePiece(char input){
-	Piecetype thePiece;
+	/* Robert Shi: Commenting the entire function
+	   out as it does not appear to do anything. */
 
-	switch(input) {
-	case 'k': case 'K':
-		thePiece = king;
-		break;
-	case 'q': case 'Q':
-		thePiece = queen;
-		break;
-	case 'r': case 'R':
-		thePiece = rook;
-		break;
-	case 'b': case 'B':
-		thePiece = bishop;
-		break;
-	case 'n': case 'N':
-		thePiece = knight;
-		break;
-	default:
-		thePiece = knight;
-		break;
-	};
+	// Piecetype thePiece;
+
+	// switch(input) {
+	// case 'k': case 'K':
+	// 	thePiece = king;
+	// 	break;
+	// case 'q': case 'Q':
+	// 	thePiece = queen;
+	// 	break;
+	// case 'r': case 'R':
+	// 	thePiece = rook;
+	// 	break;
+	// case 'b': case 'B':
+	// 	thePiece = bishop;
+	// 	break;
+	// case 'n': case 'N':
+	// 	thePiece = knight;
+	// 	break;
+	// default:
+	// 	thePiece = knight;
+	// 	break;
+	// };
 }
 
 /************************************************************************
@@ -2271,19 +2271,17 @@ void ChangeThePiece(char input){
 
 void ChangePiece(POSITION thePos){
 
-	Piecetype thePiece, theBurn;
+	Piecetype thePiece;
 
 	if(WhoseTurn(thePos) == x)
 	{
 		printf("X ");
 		thePiece = Xtype;
-		theBurn = XBurn;
 	}
 	else
 	{
 		printf("O ");
 		thePiece = Otype;
-		theBurn = OBurn;
 	}
 
 	printf("moves like a ");

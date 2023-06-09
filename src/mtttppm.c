@@ -144,8 +144,6 @@ int toPS, toFile;
 
 	if(toPS && toFile) {
 		fclose(fp);
-		int z;
-		int x;
 		const char *myFirst = "pstoedit -f plot-svg ";
 		char command[256];
 		int k;
@@ -153,18 +151,18 @@ int toPS, toFile;
 			command[k] = myFirst[k];
 		}
 		for (k = 21; k<101; k++) {
-			command[20] = " ";
+			command[20] = ' ';
 			command[k] = (char)filename[k-21];
 		}
 		for (k = 102; k<182; k++) {
-			command[101] = " ";
+			command[101] = ' ';
 			command[k+1] = (char)filename[k-102];
 		}
-		command[185] = ".";
-		command[186] = "s";
-		command[187] = "v";
-		command[188] = "g";
-		printf(command);
+		command[185] = '.';
+		command[186] = 's';
+		command[187] = 'v';
+		command[188] = 'g';
+		printf("%s", command);
 		system(command);
 	}
 

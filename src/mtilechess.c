@@ -37,9 +37,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Tile Chess";   /* The name of your game */
-STRING kAuthorName          = "Alan Roytman, Brian Zimmer";   /* Your name(s) */
-STRING kDBName              = "tilechess";   /* The name to store the database under */
+CONST_STRING kGameName            = "Tile Chess";   /* The name of your game */
+CONST_STRING kAuthorName          = "Alan Roytman, Brian Zimmer";   /* Your name(s) */
+CONST_STRING kDBName              = "tilechess";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -60,25 +60,25 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "The board is arranged like a standard chess board, with the exception that it can change size. The rows are specified by numeric values, while the rows are specified by letters. A square is referenced by the column and then the row, i.e. a1.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Enter your move in a style similar to algebraic notation for chess. Specify the beginning square with the rank and file (a letter then a number), and the destination square. All of the pieces move in the same way as regular chess, with a few exceptions. You can jump over your own pieces with pieces other than the knight, and pawns can move, as well as capture, forwards and backwards.\nEx: If you want to move a king from square b2 to b3, type b2b3.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Try to checkmate your opponent's king.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Try to get your king checkmated.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "the current player is not in check and cannot move his/her king.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "    +---+---+---+---+---+\n\
   3 |   |   |   |   |   |\n\
     +---+---+---+---+---+\n\
@@ -1252,7 +1252,6 @@ POSITION hashBoardWithoutTiers(char boardArray[], int currentPlayer) {
 	contextList *tempNode;
 	int bi=0,pi=0,x,y;
 	int minx=sideLength, maxx=0, miny=sideLength, maxy=0;
-	int hp;
 	// Find the rectangle of the board that the pieces occupy
 	for(bi=0; bi<boardLength; bi++) {
 		if(boardArray[bi]!=' ') {
@@ -1268,7 +1267,6 @@ POSITION hashBoardWithoutTiers(char boardArray[], int currentPlayer) {
 	snewPieces[pi] = '\0';
 	strcpy(tempPieces,snewPieces);
 	quickSort(tempPieces,0,strlen(tempPieces)-1);
-	hp = hashPieces(tempPieces);
 	tempNode = getContextNodeFromHashPieces(hashPieces(tempPieces));
 	// Squarize the rectangle
 	limit = strlen(snewPieces);
@@ -2401,11 +2399,10 @@ char* flushBoard(char* bA) {
 //Tier Gamesman stuff below
 //NTS: put in the function prototypes
 void SetupTierStuff() {
-	TIERPOSITION maxtierpos;
 	kSupportsTierGamesman = TRUE;
 	gInitialTier = getInitialTier();
 	gInitialTierPosition = getInitialTierPosition();
-	maxtierpos = NumberOfTierPositions(gInitialTier);
+	// TIERPOSITION maxtierpos = NumberOfTierPositions(gInitialTier);
 	//printf("Initial tier: %llu\n", gInitialTier);
 	//printf("Initial tier position: %llu\n", gInitialTierPosition);
 	//printf("Max tier number: %llu\n", maxtierpos);

@@ -66,8 +66,8 @@ POSITION gNumberOfPositions  = 27011250;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0;
 
-STRING kAuthorName         = "Peterson Tretheway";
-STRING kGameName           = "Critical Mass";
+CONST_STRING kAuthorName         = "Peterson Tretheway";
+CONST_STRING kGameName           = "Critical Mass";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -77,10 +77,10 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Nothing yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Players alternate turns placing pieces in one of the squares that do not \n\
 contain the opponent's piece. When the box is filled, as shown by the counter \n\
 next to the player's piece, the slot explodes. One piece remains in the \n\
@@ -88,20 +88,20 @@ original spot, while the others  are distributed to each adjacent square. \n\
 If the spot is occupied by the opponent, their piece is removed and replaced \n\
 by your piece."                                                                                                                                                                                                                                                                                                                                                                                                                   ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Select the desired spot to place your piece by using the legend. A counter \n\
 next to your piece keeps track of how many of your pieces are in the spot. "                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To occupy the whole board.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be the first player to completely remove all his or her pieces.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "A tie is not possible";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "It's not rocket science.";
 
 STRING MoveToString(MOVE);
@@ -598,7 +598,7 @@ BOOLEAN usersTurn;
 	}
 
 	stringsandwich( theInst, theBuffer, theSand );
-	printf( theSand );
+	printf("%s", theSand);
 
 	printf( "\n\n" );
 	printf( "%s", (char*)GetPrediction(position,playerName,usersTurn) );
@@ -1355,7 +1355,7 @@ Player DecodeBoard( Node* theBoard, long NodeCount, POSITION inPos )
 }
 
 
-STRING kDBName = "cmass";
+CONST_STRING kDBName = "cmass";
 
 int NumberOfOptions()
 {

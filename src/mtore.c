@@ -48,9 +48,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Mu Torere";   /* The name of your game */
-STRING kAuthorName          = "Joe Jing, Jeff Chou, Jingfan Xia";   /* Your name(s) */
-STRING kDBName              = "tore";   /* The name to store the database under */
+CONST_STRING kGameName            = "Mu Torere";   /* The name of your game */
+CONST_STRING kAuthorName          = "Joe Jing, Jeff Chou, Jingfan Xia";   /* Your name(s) */
+CONST_STRING kDBName              = "tore";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -71,26 +71,26 @@ void* gGameSpecificTclInit    = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Type in from what position you want to move.  For example, if you want to move to 3, type in '3'.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Any piece may move into the middle as long as the middle space is empty and the moving piece is adjacent to an opponent's piece.  Any piece may move to any free adjacent side position.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective is to trap your opponent so he has no possible moves left.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Objective is to obtain a position in which you have no more moves";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie will never occur";
 
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "   Board         Key \n\
   o  |  o      2  |  4\n\
    \\ | /        \\ | /\n\

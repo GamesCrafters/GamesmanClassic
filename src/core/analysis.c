@@ -37,6 +37,7 @@
 #include "hashwindow.h"
 #include <math.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 /*
 ** Globals
@@ -191,7 +192,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 
 	printf("\r    Progress: [%3d%%]\n", 100);
 
-	printf("Maximum move choices: %llu\n", max_move_choices);
+	printf("Maximum move choices: %"PRIu64"\n", max_move_choices);
 
 	output = max_move_choices;
 	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
@@ -376,23 +377,8 @@ void PrintValuePositions(char c, int maxPositions)
 
 void PrintDetailedGameValueSummary()
 {
-	char *initialPositionValue = "";
 	REMOTENESS currentRemoteness;
 
-	switch(gAnalysis.InitialPositionValue)
-	{
-	case win:
-		initialPositionValue = "Win";
-		break;
-	case lose:
-		initialPositionValue = "Lose";
-		break;
-	case tie:
-		initialPositionValue = "Tie";
-		break;
-	default:
-		BadElse("PrintGameValueSummary [InitialPositionValue]");
-	}
 	printf("\n\n\t----- Detailed Summary of Game values -----\n\n");
 
 	if (!gCheckPure) {
@@ -1512,11 +1498,13 @@ float PercentDone (STATICMESSAGE msg)
 	static POSITION num_pos_seen = 0;
 	float percent = 0;
 	int total_positions = gNumberOfPositions;
+#ifndef NO_GRAPHICS
 	BOOLEAN useTcl = TRUE;
+#endif
 	if (gHashWindowInitialized) { // Tier-Gamesman Retrograde Solver!
 		total_positions = gCurrentTierSize;
-		useTcl = FALSE;
 #ifndef NO_GRAPHICS
+		useTcl = FALSE;
 		if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
 			percent = 1/(float)gTotalTiers*100;
 			char str[100];
@@ -1557,11 +1545,13 @@ float PercentLoaded (STATICMESSAGE msg)
 {
 	static POSITION num_pos_loaded = 0;
 	int total_positions = gNumberOfPositions;
+#ifndef NO_GRAPHICS
 	BOOLEAN useTcl = TRUE;
+#endif
 	if (gHashWindowInitialized) { // Tier-Gamesman Retrograde Solver!
 		total_positions = gCurrentTierSize;
-		useTcl = FALSE;
 #ifndef NO_GRAPHICS
+		useTcl = FALSE;
 		if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
 			float percent = 1/(float)gTotalTiers;
 			char str[100];

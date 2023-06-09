@@ -54,9 +54,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Wu Zhi";   /* The name of your game */
-STRING kAuthorName          = "Dan Yan and Diana Fang";   /* Your name(s) */
-STRING kDBName              = "wuzhi";   /* The name to store the database under */
+CONST_STRING kGameName            = "Wu Zhi";   /* The name of your game */
+CONST_STRING kAuthorName          = "Dan Yan and Diana Fang";   /* Your name(s) */
+CONST_STRING kDBName              = "wuzhi";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -76,22 +76,22 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, pick a piece that you want to move and then move it.  You \n\
 can only move up, down, left, or right.  Diagonals are only allowed if \n\
 you set up that option."                                                                                                                                                                ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, pick a piece that you want to move. Look at the key to the \n\
 right of the board to determine the number of the position of the piece you \n\
 want to move.  Then choose the direction you want to move your piece (up, \n\
 down, left, right...you can also refer to the compass, shown above the board).\n\
 A sample move would be '1 u'(which means 1 up). "                                                                                                                                                                                                                                                                                                                                      ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Capture all but one of your opponent's pieces to win. You can also win \n\
 if your opponent does not have any more moves possible. Capturing takes \n\
 place when you move your piece into a specific configuration.  The \n\
@@ -151,13 +151,13 @@ the white piece is not adjacent to the black piece:\n\
  |    |    |    |    |\n\
 ( )--( )--( )--( )--( )\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Try to lose all but one of your pieces.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when ...";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Player Player 1's turn \n\
         (u)p            \n\
           |             \n\

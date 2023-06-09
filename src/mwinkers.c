@@ -43,9 +43,9 @@ POSITION gInitialPosition; /* The initial position (starting board) */
 POSITION gMinimalPosition; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING kGameName           = "Winkers";   /* The name of your game */
-STRING kDBName             = "winkers";   /* The name to store the database under */
-STRING kAuthorName         = "Newton Le and Edward Li";
+CONST_STRING kGameName           = "Winkers";   /* The name of your game */
+CONST_STRING kDBName             = "winkers";   /* The name to store the database under */
+CONST_STRING kAuthorName         = "Newton Le and Edward Li";
 BOOLEAN kPartizan           = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kDebugMenu          = FALSE;  /* TRUE while debugging */
 BOOLEAN kGameSpecificMenu   = TRUE;  /* TRUE if there is a game specific menu*/
@@ -58,33 +58,33 @@ void*    gGameSpecificTclInit = NULL;
    Help strings that are pretty self-explanatory
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number you want to make\n\
 a move on. You can choose any number that doesn't have a winker on it. A\n\
 blank position will mean you place a checker, and a checker position will\n\
 mean you place your color winker."                                                                                                                                                                                                                                             ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place either a checker onto an empty position, or a winker onto\n\
 a checker as long as you have a piece of that type. If you can't make a\n\
 move with the pieces you have, you will pass."                                                                                                                                                           ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your winkers in a row, horizontally or diagonally.\n\
 Three-in-a-row WINS."                                                                               ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three winker in a row of their color\n\
 horizontally or diagonally. Three-in-a-row LOSES."                                                                                     ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the entire board has been filled with winkers without either player\n\
 getting three-in-a-row."                                                                                                    ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "            1   2   3     :  - - - \n\
  LEGEND:  4   5   6   7   : - - - - \n\
             8   9  10     :  - - - \n\

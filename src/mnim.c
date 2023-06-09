@@ -18,18 +18,18 @@ BOOLEAN kGameSpecificMenu      = TRUE;
 BOOLEAN kTieIsPossible         = FALSE;
 BOOLEAN kLoopy                 = FALSE;
 BOOLEAN kDebugDetermineValue   = FALSE;
-STRING kGameName              = "2-D Nim";
+CONST_STRING kGameName              = "2-D Nim";
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit   = NULL;
 
-STRING kHelpGraphicInterface  = "Help Graphic Interface: Fill in later";
-STRING kHelpTextInterface     = "Help Text Interface: Fill in later";
-STRING kHelpOnYourTurn        = "Help on your turn";
-STRING kHelpStandardObjective = "help standard objective";
-STRING kHelpReverseObjective  = "reverse objective";
-STRING kHelpTieOccursWhen     = "A tie is not possible in this game";
-STRING kHelpExample           = "some really long thing<-Actually play a game,then copy/paste";
-STRING kAuthorName            = "Gamescrafters";
+CONST_STRING kHelpGraphicInterface  = "Help Graphic Interface: Fill in later";
+CONST_STRING kHelpTextInterface     = "Help Text Interface: Fill in later";
+CONST_STRING kHelpOnYourTurn        = "Help on your turn";
+CONST_STRING kHelpStandardObjective = "help standard objective";
+CONST_STRING kHelpReverseObjective  = "reverse objective";
+CONST_STRING kHelpTieOccursWhen     = "A tie is not possible in this game";
+CONST_STRING kHelpExample           = "some really long thing<-Actually play a game,then copy/paste";
+CONST_STRING kAuthorName            = "Gamescrafters";
 
 STRING CUSTOM_TRAITS[3] = {"XORofColumns", "MisereXORofColumns", ""};
 
@@ -265,7 +265,7 @@ MOVE theMove;
 	return move;
 }
 
-STRING kDBName = "nim";
+CONST_STRING kDBName = "nim";
 
 int NumberOfOptions()
 {

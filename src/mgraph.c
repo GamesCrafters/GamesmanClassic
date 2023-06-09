@@ -29,9 +29,10 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition           = -1;
 
-STRING kAuthorName          = "Dan Garcia";
-STRING kGameName            = "Graph";
-STRING kDBName              = "graph";
+CONST_STRING kAuthorName     = "Dan Garcia";
+CONST_STRING kGameName       = "Graph";
+CONST_STRING kDBName         = "graph";
+STRING kDBNameVolatile 	     = NULL;
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -40,26 +41,26 @@ BOOLEAN kLoopy               = TRUE;  /* set this to true */
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";    /* empty since kSupportsGraphics == FALSE */
+CONST_STRING kHelpGraphicInterface = "";    /* empty since kSupportsGraphics == FALSE */
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, type in the number 1 or 2 and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                  ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You say either 1 or 2. A running total (sum) is kept.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the FIRST player to raise the total above 10.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be the LAST player to raise the total above 10. (i.e. to force your\n\
 opponent into raising the total above 10 first."                                                                                   ;
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "TOTAL                        :  0   \n\n\
      Dan's move [(u)ndo/1/2] : { 2 } \n\n\
 TOTAL                        :  2    \n\n\
@@ -125,9 +126,10 @@ void InitializeGame()
 
 	if (!gGraphFilenameSet) {
 		(void) sprintf((char *)gGraphFilename, "../meta/default.grf");
-		if (kDBName != NULL) SafeFree(kDBName);
-		kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
-		sprintf(kDBName, "graph-default");
+		if (kDBNameVolatile) SafeFree(kDBNameVolatile);
+		kDBNameVolatile = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
+		sprintf(kDBNameVolatile, "graph-default");
+		kDBName = kDBNameVolatile;
 	}
 
 	for(i = 0; i < gNumberOfPositions; i++) {
@@ -286,7 +288,7 @@ void DebugMenu()
 ************************************************************************/
 
 void GameSpecificMenu() {
-	char tmp[MAXINPUTLENGTH];
+	char tmp[MAXINPUTLENGTH - 20];
 	FILE* fp;
 
 	gGraphFilenameSet = FALSE;
@@ -297,13 +299,14 @@ void GameSpecificMenu() {
 		system("ls ../meta");
 		printf("\nLoad Graph from : ");
 		scanf("%s", tmp);
-		(void) sprintf((char *)gGraphFilename, "../meta/%s.grf", tmp);
+		(void) sprintf(gGraphFilename, "../meta/%s.grf", tmp);
 
 		if((fp = fopen(gGraphFilename, "r")) != NULL) {
 			gGraphFilenameSet = TRUE;
-			if (kDBName != NULL) SafeFree(kDBName);
-			kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
-			sprintf(kDBName, "graph-%s", tmp);
+			if (kDBNameVolatile) SafeFree(kDBNameVolatile);
+			kDBNameVolatile = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
+			sprintf(kDBNameVolatile, "graph-%s", tmp);
+			kDBName = kDBNameVolatile;
 		}
 		else {
 			printf("Invalid file name\n");

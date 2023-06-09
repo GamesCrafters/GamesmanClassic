@@ -37,7 +37,7 @@
 
 #define DEFAULTLENGTH MAXINPUTLENGTH
 
-extern int SetupNetworkGame(STRING);
+extern int SetupNetworkGame(CONST_STRING);
 /*
 ** Local function prototypes
 */

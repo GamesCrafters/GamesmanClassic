@@ -31,9 +31,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Atari Go";   /* The name of your game */
-STRING kAuthorName          = "Ofer Sadgat";   /* Your name(s) */
-STRING kDBName              = "mago";   /* The name to store the database under */
+CONST_STRING kGameName            = "Atari Go";   /* The name of your game */
+CONST_STRING kAuthorName          = "Ofer Sadgat";   /* Your name(s) */
+CONST_STRING kDBName              = "mago";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -56,25 +56,25 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized!";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Help strings not initialized!";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 

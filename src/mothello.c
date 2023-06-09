@@ -42,9 +42,9 @@ POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If
 POSITION gInitialPosition    = 593531; /* The initial position (starting board) */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING kGameName           		= "Othello";   /* The name of your game */
-STRING kDBName             		= "othello";   /* The name to store the database under */
-STRING kAuthorName         		= "Michael Chen and Robert Liao v1, Robert Shi v2";
+CONST_STRING kGameName           		= "Othello";   /* The name of your game */
+CONST_STRING kDBName             		= "othello";   /* The name to store the database under */
+CONST_STRING kAuthorName         		= "Michael Chen and Robert Liao v1, Robert Shi v2";
 
 /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kPartizan           	= TRUE;  
@@ -55,33 +55,33 @@ BOOLEAN kLoopy               	= FALSE;  /* TRUE if the game tree will have cycle
 BOOLEAN kDebugDetermineValue 	= FALSE;  /* TRUE while debugging */
 void* gGameSpecificTclInit 		= NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "No Graphic Interface with Othello Right Now";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Enter the coordinate of where you would like to put your piece.\n\
 Example: b4\n\
 When you cannot place any pieces, hit 'd' to pass.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You can place a piece on any blank spot such that it has at least\n\
 one of your opponent's pieces adjacent to that spot, and the line\n\
 from the blank spot and the opponent's piece has, at the end of it,\n\
 one of your own pieces, with all of your opponent's pieces in between."                                                                                                                                                                                                                          ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "When neither player can move (usually this means the entire board\n\
 has been filled), be the player with the most pieces.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "When neither player can move (usually this means the entire board\n\
 has been filled), be the player with the least number of pieces.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "A tie can occur in Othello when neither player can move and both\n\
 players have an equal number of pieces.";
 
-STRING kHelpExample = "Help Example Unavailable.";
+CONST_STRING kHelpExample = "Help Example Unavailable.";
 
 /*************************************************************************
 **

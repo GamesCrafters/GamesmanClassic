@@ -42,9 +42,9 @@ POSITION gNumberOfPositions  = 9565938;  /* 3^14 times 2 */
 POSITION gInitialPosition    = 9388804; /* x goes first. 4605835 + POSITION_OFFSET */
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Alice Chang and Judy Tuan";
-STRING kGameName           = "Change!";
-STRING kDBName             = "change";
+CONST_STRING kAuthorName         = "Alice Chang and Judy Tuan";
+CONST_STRING kGameName           = "Change!";
+CONST_STRING kDBName             = "change";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -53,34 +53,34 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Players alternate turns moving one of their pieces along the lines. First\n\
 select the piece by typing in the number the piece is in. Then select where\n\
 you want to move the piece by typing in the corresponding space. Pieces may\n\
 not move backward, jump pieces or turn corners "                                                                                                                                                                                                                                                    ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Slide your piece to an empty space by first selecting your piece number\n\
 the space number."                                                                                    ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the first player to occupy your opponent's spaces.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\

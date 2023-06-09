@@ -20,13 +20,13 @@
 /* GLOBAL VARIABLES */
 
 /* The person who implemented this game */
-STRING kAuthorName = "Andrew Lee";
+CONST_STRING kAuthorName = "Andrew Lee";
 
 /* Full name of the game */
-STRING kGameName = "Five-Field Kono";
+CONST_STRING kGameName = "Five-Field Kono";
 
 /* Name of the game for databases */
-STRING kDBName = "fivefieldkono";
+CONST_STRING kDBName = "fivefieldkono";
 
 /* How big our POSITION hash can get -- note that this isn't the same
 as the upper bound on the number of positions of the game for unefficient 
@@ -65,13 +65,13 @@ BOOLEAN kGameSpecificMenu = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 
 /* Help strings for human players */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = "";
+CONST_STRING kHelpExample = "";
 
 /* 12!/(4!4!4!) = 34650 */ 
 POSITION max_even_hash = 34650;

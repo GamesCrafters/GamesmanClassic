@@ -17,8 +17,8 @@ char playerPiece[] = " XO";
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Kyle Zentner";
-STRING kGameName = "Pong Hau K'i";
+CONST_STRING kAuthorName = "Kyle Zentner";
+CONST_STRING kGameName = "Pong Hau K'i";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -27,19 +27,19 @@ BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "Please enter your move in the format 0-4,0-4";
+CONST_STRING kHelpOnYourTurn = "Please enter your move in the format 0-4,0-4";
 
-STRING kHelpStandardObjective = "Slide your pieces along the lines to prevent your opponent from moving.";
+CONST_STRING kHelpStandardObjective = "Slide your pieces along the lines to prevent your opponent from moving.";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -480,7 +480,7 @@ STRING MoveToString (MOVE move)
   return c;
 }
 
-STRING kDBName = "ponghauki";
+CONST_STRING kDBName = "ponghauki";
 
 int NumberOfOptions()
 {

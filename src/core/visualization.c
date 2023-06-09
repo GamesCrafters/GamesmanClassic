@@ -218,6 +218,7 @@ void PopulateEdgelist(EDGELIST *tree) {
 				pdata = GetOpenData(parent);
 				cdata = GetOpenData(child);
 				level = GetLevelNumber(pdata);
+				(void)cdata;
 			}
 
 			/* If the level is more than the number in tree, resize to handle more levels */

@@ -958,10 +958,7 @@ void DeterminePure1(POSITION position)
 	POSITION child=kBadPosition, parent;
 	POSITIONLIST *ptr;
 	VALUE childValue;
-	POSITION i;
 	POSITION F0EdgeCount = 0;
-	POSITION F0NodeCount = 0;
-	POSITION F0DrawEdgeCount = 0;
 
 	/* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
 

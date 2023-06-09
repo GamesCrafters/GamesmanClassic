@@ -75,8 +75,6 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 	MOVELIST *moves_list, *move_node;
 	POSITION child, best_child;
 	SCORE score, best_score;
-	BOOLEAN set = FALSE;
-	BOOLEAN run = FALSE;
 
 	if (alpha>=beta) {
 
@@ -129,7 +127,6 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 			     move_node = move_node->next)
 			{
 				/*SCORE tempa, tempb;*/
-				run = TRUE;
 
 				/* Obtain position resulting from application of move */
 				child = DoMove(position, move_node->move);
@@ -162,7 +159,6 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 
 					best_score = score;
 					best_child = child;
-					set = TRUE;
 
 					/* If inverse of min score exceeds alpha */
 					if (best_score > alpha) {
@@ -185,7 +181,6 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 
 			/* Set value of position to depending on value of best child */
 			switch (GetValueOfPosition(best_child)) {
-
 			case win:
 				/* If child's can force win, this board's value is lose */
 				value = lose;
@@ -198,9 +193,8 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 				/* If child's value is tie, this board's value is tie */
 				value = tie;
 				break;
-			case undecided:
+			default: // undecided, drawwin, drawlose, drawtie.
 				break;
-
 			}
 
 			/* Set remoteness of position value to one more than that of chosen child */

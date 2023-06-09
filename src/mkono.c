@@ -54,9 +54,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "(Four Field) Kono";   /* The name of your game */
-STRING kAuthorName          = "Greg Bonin and Nathan Spindel";     /* Your name(s) */
-STRING kDBName              = "kono";   /* The name to store the database under */
+CONST_STRING kGameName            = "(Four Field) Kono";   /* The name of your game */
+CONST_STRING kAuthorName          = "Greg Bonin and Nathan Spindel";     /* Your name(s) */
+CONST_STRING kDBName              = "kono";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -76,33 +76,33 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose to move your\n\
 piece from, a space character, and a second number to where you want the piece\n\
 to move to, and hit return. If at any point you have made a mistake, you can\n\
  type u and hit return and the system will revert back to your most recent position."                                                                                                                                                                                                                                                            ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If a capture is available, you must make a capture move by moving one of your\n\
 pieces (up/down/left/right) over another one of your pieces and capturing the\n\
 opponent piece two spaces away. If a capture move is not available, you move\n\
 one of your pieces to an adjacent space."                                                                                                                                                                                                                                                           ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To capture all but one of your opponent's pieces, or to put them into a position\n\
 where they cannot move."                                                                                             ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To have all but one of your pieces captured first, or to be put in a position where\n\
 you cannot move."                                                                                                ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Both players have exactly one piece each, or both players cannot move.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 

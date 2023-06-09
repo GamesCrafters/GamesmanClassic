@@ -14,9 +14,9 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Jiachun Li, Yifan Zhou";
-STRING kGameName = "Forest Fox"; //  use this spacing and case
-STRING kDBName = "forestfox"; // use this spacing and case
+CONST_STRING kAuthorName = "Jiachun Li, Yifan Zhou";
+CONST_STRING kGameName = "Forest Fox"; //  use this spacing and case
+CONST_STRING kDBName = "forestfox"; // use this spacing and case
 POSITION gNumberOfPositions = 7000000000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -40,13 +40,13 @@ BOOLEAN kDebugMenu = TRUE;
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 char * board;
 

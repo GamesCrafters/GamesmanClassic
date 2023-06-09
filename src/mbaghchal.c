@@ -22,9 +22,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Bagh-Chal (Tigers Move)";   /* The name of your game */
-STRING kAuthorName          = "Damian Hites, Max Delgadillo, Deepa Mahajan, Cameron Cheung";   /* Your name(s) */
-STRING kDBName              = "baghchal";   /* The name to store the database under */
+CONST_STRING kGameName            = "Bagh-Chal (Tigers Move)";   /* The name of your game */
+CONST_STRING kAuthorName          = "Damian Hites, Max Delgadillo, Deepa Mahajan, Cameron Cheung";   /* Your name(s) */
+CONST_STRING kDBName              = "baghchal";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;  /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -48,10 +48,10 @@ void* gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your move, if you are placing a goat, you enter the\n"
         "coordinates of the space where you would like to place\n"
         "your goat (ex: a3).  If you are moving a goat or a tiger,\n"
@@ -59,7 +59,7 @@ STRING kHelpTextInterface    =
         "move and the coordinates of the space you would like to\n"
         "move the piece to (ex: a3 b3).";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "FOR TIGER:\n"
         "Move one tiger one space in any of the directions\n"
         "indicated by the lines.  You may also jump one goat\n"
@@ -72,19 +72,19 @@ STRING kHelpOnYourTurn =
         "Move one goat one space in any of the directions\n"
         "indicated by the lines.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective of the goats is to try and trap the tigers\n"
         "so that they are unable to move.  The tigers are trying to\n"
         "remove every goat from the board.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "This is not implemented because it makes the game\n"
         "really really stupid.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie cannot occur.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "  1 2 3 4 5\n"
         "a T-+-+-+-T\n"
         "  |\\|/|\\|/|\n"

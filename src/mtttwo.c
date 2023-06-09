@@ -7,9 +7,9 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Stella Wan, Nala Chen, and Cameron Cheung";
-STRING kGameName = "Tic-Tac-Two";
-STRING kDBName = "tttwo";
+CONST_STRING kAuthorName = "Stella Wan, Nala Chen, and Cameron Cheung";
+CONST_STRING kGameName = "Tic-Tac-Two";
+CONST_STRING kDBName = "tttwo";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = TRUE;
@@ -18,13 +18,13 @@ BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **

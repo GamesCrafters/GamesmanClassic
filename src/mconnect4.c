@@ -19,9 +19,9 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Justin Yokota^^^, Cameron Cheung^";
-STRING kGameName = "mconnect4";
-STRING kDBName = "connect4new"; // should not be used
+CONST_STRING kAuthorName = "Justin Yokota^^^, Cameron Cheung^";
+CONST_STRING kGameName = "mconnect4";
+CONST_STRING kDBName = "connect4new"; // should not be used
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -31,19 +31,19 @@ BOOLEAN kDebugDetermineValue = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpOnYourTurn = "";
 
-STRING kHelpStandardObjective = "";
+CONST_STRING kHelpStandardObjective = "";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -184,11 +184,13 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
     printf("the computer moved\n");
 }
 
+/*
 static BOOLEAN isawin(POSITION position, POSITION pieces)
 {
     //System.out.printf("%016X %b %n", pieces, (position&pieces) == pieces);
     return (position&pieces) == pieces;
 }
+*/
 
 /************************************************************************
 **

@@ -100,7 +100,7 @@ void skipToNewline(FILE*);
 void TestRemote();
 void r_getBounds(TIER, char*, BOOLEAN);
 BOOLEAN r_checkChar(char, char, char*, int*);
-BOOLEAN r_checkStr(char*, char*, int*);
+BOOLEAN r_checkStr(const char*, char*, int*);
 char* r_intToString(int);
 // Level File Functions
 BOOLEAN l_readFullLevelFile(POSITION*, POSITION*);
@@ -298,10 +298,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 					printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
 					BOOLEAN loop = TRUE;
 
-					TIERLIST *list;
-					list = RemoteGetTierSolveOrder();
 					TIERLIST *ptr;
-
 					while (loop) {
 						PrepareToSolveNextTier();
 						SolveTier(0,gCurrentTierSize);
@@ -2225,7 +2222,7 @@ BOOLEAN RemoteMergeToMakeTierDBIfCan(TIER tier) {
 	if (!SaveDatabase())
 		return FALSE;
 	// now, we delete all minifiles and return true
-	char removeFile[MAXINPUTLENGTH];
+	char removeFile[MAXINPUTLENGTH * 2];
 	dfd = opendir(directory);
 	if(dfd != NULL) {
 		while((dp = readdir(dfd)) != NULL) {
@@ -2309,7 +2306,7 @@ BOOLEAN r_checkChar(char chStart, char chEnd, char* str, int* i) {
 
 // also helps above, uses checkChar on a whole string
 // (so, checks that it's NOT equal)
-BOOLEAN r_checkStr(char* check, char* str, int* i) {
+BOOLEAN r_checkStr(const char* check, char* str, int* i) {
 	int j;
 	for (j = 0; j < strlen(check); j++) {
 		if (r_checkChar(check[j],check[j],str,i))
@@ -2425,7 +2422,7 @@ BOOLEAN RemoteMergeToMakeLevelFileIfCan(TIER tier) {
 	}
 	l_freeBitArray();
 	// now, we delete all minifiles and return true
-	char removeFile[MAXINPUTLENGTH];
+	char removeFile[MAXINPUTLENGTH * 2];
 	dfd = opendir(directory);
 	if(dfd != NULL) {
 		while((dp = readdir(dfd)) != NULL) {

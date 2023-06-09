@@ -689,7 +689,7 @@ float logarithmic(float value,float params[]){
 	int sign = (int) value / absValue;
 	float scaleFactor = (params==NULL || params[0]==0) ? 1 : params[0];
 	float ans = log10( (absValue*9+1) / scaleFactor );
-	return (sign * (absValue>1 || ans>1)) ? 1 : ans;
+	return (sign && (absValue>1 || ans>1)) ? 1 : ans;
 }
 
 /************************************************************************

@@ -900,7 +900,7 @@ BlankOX WhoseTurn(theBlankOX)
       return(o);
 }
 
-STRING kDBName = "ttt" ;
+CONST_STRING kDBName = "ttt" ;
      
 int NumberOfOptions()
 {    

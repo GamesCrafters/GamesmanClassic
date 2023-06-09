@@ -31,9 +31,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "369 Men's Morris";   /* The name of your game */
-STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee, Cameron Cheung";   /* Your name(s) */
-STRING kDBName              = "369mm";   /* The name to store the database under */
+CONST_STRING kGameName            = "369 Men's Morris";   /* The name of your game */
+CONST_STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee, Cameron Cheung";   /* Your name(s) */
+CONST_STRING kDBName              = "369mm";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -81,25 +81,25 @@ int multipartToIdx;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "369 Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 /*************************************************************************

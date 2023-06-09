@@ -26,8 +26,8 @@ POSITION gNumberOfPositions  = 129022;  /* (6 + 7*7 + 23*7*8 + 47*7*8*24)*2 */
 POSITION gInitialPosition    =  19388;
 POSITION gMinimalPosition    =  19388;
 
-STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, and Cameron Cheung";
-STRING kGameName           = "L-game";
+CONST_STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, and Cameron Cheung";
+CONST_STRING kGameName           = "L-game";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -38,13 +38,13 @@ POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "MOVING YOUR L-PIECE:\n\
 First enter the orientation index number of your desired L-piece position.\n\
 Then, after entering a space, enter the desired position for the corner square \n\
@@ -70,22 +70,22 @@ STRING kMove1SpecHelpOnYourTurn =
         "Move your L-piece to an empty position and then your neutral piece\n\
 to an empty square."                                                                               ;
 
-STRING kHelpOnYourTurn = "You move your L-piece to an empty position and then one (or neither) of\n\
+CONST_STRING kHelpOnYourTurn = "You move your L-piece to an empty position and then one (or neither) of\n\
 the neutral pieces to an empty square.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To position your L-piece and the neutral pieces so that your opponent\n\
 cannot move his L-piece."                                                                                  ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To not be able to move your L-piece.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "you have been playing in a loop and you're sick of it, so you and your\n\
 opponent (or just you if you're playing the computer) decide that you'd \n\
 rather be doing something else."                                                                                                                                                                                   ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Ok, Dan and Computer, let us begin.\n\n\
 Type '?' if you need assistance...\n\n\n\
    CURRENT               POSSIBLE ORIENTATIONS                 LEGEND\n\
@@ -1951,7 +1951,7 @@ int checkOrient(int Lo, int L1) {
 	return b;
 }
 
-STRING kDBName = "Lgame";
+CONST_STRING kDBName = "Lgame";
 
 int NumberOfOptions()
 {

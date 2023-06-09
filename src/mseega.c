@@ -62,9 +62,9 @@ POSITION gInitialPosition    =  147972; /* The initial position (starting board)
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING kAuthorName          = "Emad Salman, Yonathan Randolph, and Peter Wu";
-STRING kGameName           = "Seega";   /* The name of your game */
-STRING kDBName             = "seega";   /* The name to store the database under */
+CONST_STRING kAuthorName          = "Emad Salman, Yonathan Randolph, and Peter Wu";
+CONST_STRING kGameName           = "Seega";   /* The name of your game */
+CONST_STRING kDBName             = "seega";   /* The name to store the database under */
 //TODO Peter: check this - this could be a partisan game
 BOOLEAN kPartizan           = FALSE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 //BOOLEAN  kSupportsHeuristic  = ;
@@ -82,10 +82,10 @@ void*    gGameSpecificTclInit = NULL;
    Help strings that are pretty self-explanatory
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "There are two types of turns in Seega: place moves, and slide moves.\n\
 ***Part 1: PLACE MOVES:***\n\
 First, you and your opponent will take turns placing TWO moves at a time.\n\
@@ -101,7 +101,7 @@ Note: You may only do slide moves to adjacent squares connected to the\n\
 current square. If at any point you have made a mistake, you can type u and\n\
 hit return and the system will revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "There are two types of turns in Seega: place moves, and slide moves.\n\
 ***Part 1: PLACE MOVES:***\n\
 Each player alternates taking turns putting down pieces on the board,\n\
@@ -124,19 +124,19 @@ x-ox   =======>     -x-x\n\
 -x-o                -x-o\n\
 x's turn to move    x moves right and captures two o pieces."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To capture the opponent's counters until the opponent only has one\n"
         "counter left.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to make moves that will eat of your pieces until\n"
         "you are left with one piece.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "NOT possible in this game.";
 
 //TODO
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "  LEGEND:            TOTAL (forbidden spots don't show up):\n\
   ( 0  1  2 )        :- - -\n\
   ( 3  4  5 )        :-   -\n\
@@ -400,9 +400,8 @@ void GameSpecificMenu()
 //cheesy error: floating point input doesn't work
 void changeBoard()
 {
-	int n_rows, n_cols, valid_cols, valid_rows;
+	int n_rows, n_cols, valid_cols;
 	valid_cols = 0; //a flag
-	valid_rows = 0; //another flag - not used
 	printf("Enter the new number of rows (3-%d):  ", MAXROWS);
 	n_rows = GetMyUInt();
 	if ((n_rows < 3) || (n_rows > MAXROWS)) {
@@ -822,7 +821,6 @@ MOVELIST *GenerateMoves (POSITION position)
 	int player,i;
 	// void boardcopy();
 	int legalMove();
-	int isoddbrd;
 	MOVE m;
 	MOVELIST *head = NULL;
 	MOVELIST *CreateMovelistNode();
@@ -835,7 +833,6 @@ MOVELIST *GenerateMoves (POSITION position)
 		mover=P2;
 
 	if (placingBoard(gBoard)) {
-		isoddbrd=BOARDSIZE%2;
 		for (i=0; i<BOARDSIZE; i++) {
 			//   if (!isoddbrd && i<4)
 			//continue;
@@ -848,7 +845,6 @@ MOVELIST *GenerateMoves (POSITION position)
 			}
 		}
 	}
-
 
 	else{
 

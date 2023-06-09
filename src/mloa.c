@@ -70,9 +70,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Lines of Action";
-STRING kAuthorName          = "Albert Shau";
-STRING kDBName              = "loa";   /* The name to store the database under */
+CONST_STRING kGameName            = "Lines of Action";
+CONST_STRING kAuthorName          = "Albert Shau";
+CONST_STRING kDBName              = "loa";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -95,17 +95,17 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "No graphic interface yet.";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "The board is a square with columns labeled by letter and rows labeled by number. \n\
 A position is referenced with a letter first and then a number.  A move consists \n\
 of two positions: the starting position followed by the ending position.  \n\
 For example, the bottom left square of the board is a1.  If you want to move a piece \n\
 from a1 to a3, the format of the move is a1a3."                                                                                                                                                                                                                                                                                                                                                          ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, pick a piece of your color that you wish to move.  You may move \n\
 in a straight line in any direction.  This line is called a line of action. \n\
 To find the number of spaces you may move in a given line of action, count all \n\
@@ -114,7 +114,7 @@ squares in that line.  You may jump over your own pieces, but not your opponents
 You may also capture the opponents' pieces if your piece lands directly on it.  You \n\
 may not capture your own pieces."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective of the game is to move all your pieces into a single connected \n\
 block.  A piece is connected to another piece if it occupies one of the eight \n\
 squares directly surrounding the other peice.  If a move causes both players' \n\
@@ -132,17 +132,17 @@ illustrates a game in which X has won.\n\
      +---+---+---+---+\n\
        a   b   c   d "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "The misere (reverse) objective of the game to get your opponents pieces into \n\
 a single connected block.  If the opponent only has one piece left, that counts \n\
 as a single connected block.  If a move results in both players having single \n\
 connected blocks of their own pieces, the player that just moved loses."                                                                                                                                                                                                                                                                ;
 
 // A tie occurs when is already displayed above this
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "a player cannot move on his/her turn.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "The following is an example game played on a 4x4 board. Player1 is X and Player2 is o. \n\
 \n\
 Starting Position:\n\

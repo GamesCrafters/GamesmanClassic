@@ -60,9 +60,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Toot and Otto";   /* The name of your game */
-STRING kAuthorName          = "Kyler Murlas and Zach Wasserman";   /* Your name(s) */
-STRING kDBName              = "mtootnotto";   /* The name to store the database under */
+CONST_STRING kGameName            = "Toot and Otto";   /* The name of your game */
+CONST_STRING kAuthorName          = "Kyler Murlas and Zach Wasserman";   /* Your name(s) */
+CONST_STRING kDBName              = "mtootnotto";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -82,38 +82,38 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn enter the number of the column (each number corresponds to \n\
 its respective column) and the piece you would like to place there (t or o). \n\
 Below the board is a count of how many Ts and Os that you are still able \n\
 to place. If at any point you have made a mistake, you can type u and hit \n\
 return and the system will revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                 ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Enter the number of the column and the type of piece, t or o. The piece \n\
 that you chose will be 'dropped' into that column on top of any other \n\
 pieces, if there are any."                                                                                                                                                               ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get your name, either Toot or Otto depending on which player you are, \n\
 spelled on the board vertically, horizontally, or diagonally. First player \n\
 to spell their name WINS. The first player is Toot, second player Otto."                                                                                                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to spell their name, either Toot or Otto depending \n\
 on which player you are, spelled on the board vertically, horizontally, or \n\
 diagonally. First player to spell their name LOSES.\n\
 The first player is Toot, second player Otto."                                                                                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "the board is filled and there is no winner\n\
 OR both players win with one move\n\
 OR both players run out of pieces."                                                                                            ;
 
-STRING kHelpExample ="";
+CONST_STRING kHelpExample ="";
 /*"        +-------------+\n\
  |             |												\n\
  |   1 2 3 4   | You (OTTO) have:        TTTT    OOOO		\n\

@@ -366,8 +366,8 @@ POSITION gMinimalPosition    = 0;
 /*static char board[BOARDSIZE];*/
 int gCTOffsets[OFFSETSIZE] = {1, 19, 307, 2323, 14419, 54739, 162259};
 
-STRING kAuthorName          = "Dan Garcia, Farzad H. Eskafi, Erwin A. Vedar, Matthew Yu, and Cameron Cheung";
-STRING kGameName            = "Chung-Toi";
+CONST_STRING kAuthorName          = "Dan Garcia, Farzad H. Eskafi, Erwin A. Vedar, Matthew Yu, and Cameron Cheung";
+CONST_STRING kGameName            = "Chung-Toi";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kSupportsHeuristic   = TRUE;
 BOOLEAN kSupportsSymmetries  = FALSE;
@@ -381,25 +381,25 @@ BOOLEAN kLoopy               = TRUE;         /* Rotating in place
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Help strings not initialized.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Help strings not initialized.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
 STRING MoveToString(MOVE);
@@ -2366,7 +2366,7 @@ void printMask(int mask) {
            !gStuckAWin ? "WINNER" : "LOSER");
  ***/
 
-STRING kDBName = "ctoi";
+CONST_STRING kDBName = "ctoi";
 
 int NumberOfOptions()
 {

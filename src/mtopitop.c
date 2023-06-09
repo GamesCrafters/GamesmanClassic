@@ -86,9 +86,9 @@ int idsToMoves[2][41] = {
 	{0, 1, 3, 4, 0, 2, 3, 4, 5, 1, 4, 5, 0, 1, 4, 6, 7, 0, 1, 2, 3, 5, 6, 7, 8, 1, 2, 4, 7, 8, 3, 4, 7, 3, 4, 5, 6, 8, 4, 5, 7}
 };
 
-STRING kAuthorName = "(V1) Mike Hamada, Alex Choy; (V2) Matthew Yu, Cameron Cheung";
-STRING kGameName = "Topitop";
-STRING kDBName = "topitop";   /* The name to store the database under */
+CONST_STRING kAuthorName = "(V1) Mike Hamada, Alex Choy; (V2) Matthew Yu, Cameron Cheung";
+CONST_STRING kGameName = "Topitop";
+CONST_STRING kDBName = "topitop";   /* The name to store the database under */
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = TRUE;
@@ -102,11 +102,11 @@ BOOLEAN tyingRule = FALSE;
 VALUE ifNoLegalMoves = undecided;
 BOOLEAN isMisere = FALSE;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
 "Each player takes turns making one valid move, also noting\n\
 that player CANNOT reverse an opponent's move that was just made.\n\
 Use the BOARD to determine which numbers to choose to\n\
@@ -132,16 +132,16 @@ VALID MOVES:\n\
 3.) Move any combination of Sand Piles with your Buckets on top,\n\
     or any Sand Castle, to any free space.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
 "Be the first to have your 2 Buckets on top of 2 Sand Castles,\n\
 where a Sand Castle consists of 1 Small Sand Pile put on top\n\
 of 1 Large Sand Pile.";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = "A tie never occurs.";
+CONST_STRING kHelpTieOccursWhen = "A tie never occurs.";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **

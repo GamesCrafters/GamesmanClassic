@@ -94,9 +94,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Paradux";   /* The name of your game */
-STRING kAuthorName          = "David Chen, Yanpei Chen";   /* Your name(s) */
-STRING kDBName              = "Paradux";   /* The name to store the database under */
+CONST_STRING kGameName            = "Paradux";   /* The name of your game */
+CONST_STRING kAuthorName          = "David Chen, Yanpei Chen";   /* Your name(s) */
+CONST_STRING kDBName              = "Paradux";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = FALSE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -117,10 +117,10 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "ON YOUR TURN, use the legend to determine which pieces to move.\n\
 Every legal move requires two pieces, one of each color.\n\
 These two pieces can then be moved together in any direction (northwest,\n\
@@ -130,21 +130,21 @@ To perform a move, use the legend to find the slots associated with your\n\
 pieces. Enter those (in either order) and then enter the direction using\n\
 the movement key, each separated by spaces."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Choose one of your pieces and one of your opponent's pieces.\n\
 Then choose a direction to move in or SWAP to swap the pieces."                                                                         ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "On a board with side length N, to line N of your pieces in a row in any direction.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "On a board with side length N, to line N of your opponent's pieces in a row in\n\
 any direction."                                                                                           ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie can never occur";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 /*************************************************************************

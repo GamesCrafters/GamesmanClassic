@@ -38,9 +38,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Dao";   /* The name of your game */
-STRING kAuthorName          = "GamesCrafters2005Fa";   /* Your name(s) */
-STRING kDBName              = "dao";   /* The name to store the database under */
+CONST_STRING kGameName            = "Dao";   /* The name of your game */
+CONST_STRING kAuthorName          = "GamesCrafters2005Fa";   /* Your name(s) */
+CONST_STRING kDBName              = "dao";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -61,25 +61,25 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when ...";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 

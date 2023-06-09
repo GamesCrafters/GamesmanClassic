@@ -256,7 +256,6 @@ void ServerInteractLoop(void) {
 	MOVE move;
 	STRING move_string = NULL;
 	char * board = NULL;
-        char * data = NULL;
 	MEX mex = 0;
 	TIER tier = 0;
 	if (kSupportsShardGamesman) {

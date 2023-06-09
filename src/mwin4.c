@@ -55,9 +55,9 @@ POSITION kBadPosition         = 0;     // This can never be the rep.
                                        // of a position
 
 POSITION gMinimalPosition     =  0;
-STRING kDBName              = "win4";
-STRING kAuthorName          = "Michael Thon";
-STRING kGameName            = "Connect-4";
+CONST_STRING kDBName              = "win4";
+CONST_STRING kAuthorName          = "Michael Thon";
+CONST_STRING kGameName            = "Connect-4";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kSupportsHeuristic   = FALSE;
 BOOLEAN kSupportsSymmetries  = FALSE;
@@ -70,31 +70,31 @@ BOOLEAN kDebugDetermineValue = FALSE;
 
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Click on a highlighted sqare to make your move there.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, enter the number (usually 1 through 5) corresponding to a\n\
 slot that is not yet full. This will ''drop'' a piece of yours into the\n\
 slot. If at any point you have made a mistake, you can type u and hit\n\
 return and the system will revert back to your most recent position."                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "''Drop'' one of your pieces into an open slot by entering the \n\
 corresponding number. "                                                                           ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get four of your pieces in a row, either horizontally, vertically,\n\
  or diagonally."                                                                                  ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting four of his pieces  in a row, either \n\
  horizontally, vertically, or diagonally."                                                                                      ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting four-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Just go ahead and try it out for yourself. No need to be scared...";
 
 /*************************************************************************
@@ -926,7 +926,7 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 }
 
 
-void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
+void linearUnhash2(POSITION pos, XOBlank *board) {
 	int col, row, h;
 	POSITION permutation_index, tierbits, temp1, temp2, temp3 = 1;
 	TIER tier;
@@ -1509,7 +1509,7 @@ void positionToBinary(POSITION pos) {
 	board[64]='\n';
 	board[65]='\0';
 
-	printf(board);
+	printf("%s", board);
 	SafeFree(board);
 }
 

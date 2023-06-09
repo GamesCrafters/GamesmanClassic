@@ -39,8 +39,8 @@ POSITION gInitialPosition     = 0;      /* Calculated in InitializeGame */
 
 //POSITION gMinimalPosition     = 0;       /* TODO: ? */
 
-STRING kAuthorName          = "Johnny Tran and Steve Wu";
-STRING kGameName            = "Rubik's Checkers";
+CONST_STRING kAuthorName          = "Johnny Tran and Steve Wu";
+CONST_STRING kGameName            = "Rubik's Checkers";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -49,23 +49,23 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";      /* TODO */
+CONST_STRING kHelpGraphicInterface = "";      /* TODO */
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Play like checkers, except only kings can capture, men can only move backwards\n and cannot capture, and jumping a piece demotes a king to a man and captures a man.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Select a piece and its destination(s). (i.e. a2c4a6 to double-capture; a2\nto promote)";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Eliminate all your opponent's pieces or block them from moving.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Eliminate all your pieces or block them from moving.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =             /* TODO */
+CONST_STRING kHelpExample =             /* TODO */
                       "Help Example";
 
 /*************************************************************************
@@ -808,9 +808,9 @@ POSITION position;
 	// Check for no more pieces
 	CountPieces(board, &p1Pieces, &p2Pieces);
 	if(whosTurn == P1) {
-		if (&p1Pieces == 0) return (gStandardGame ? lose : win); // Player 1 has no more pieces
+		if (p1Pieces == 0) return (gStandardGame ? lose : win); // Player 1 has no more pieces
 	}
-	else if(&p2Pieces == 0) return (gStandardGame ? lose : win); // P2 has no more pieces
+	else if(p2Pieces == 0) return (gStandardGame ? lose : win); // P2 has no more pieces
 
 	// TODO: Check for all pieces being locked (unable to move)
 	if(GenerateMoves(position) == NULL)
@@ -1253,10 +1253,7 @@ STRING playerName;
 {
 	USERINPUT ret, HandleDefaultTextInput();
 	BOOLEAN ValidMove();
-	char input[2];
-	// TODO
-
-	input[0] = '3';
+	
 	do {
 		printf("%8s's move [ (u)ndo/(a-%c)(1-%d)[(a-%c)(1-%d)]* ] : ", playerName, 'a' - 1 + cols*2, rows, 'a' - 1 + cols*2, rows);
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
@@ -1681,7 +1678,7 @@ MOVE theMove;
 }
 
 
-STRING kDBName = "Rubik's Checkers";
+CONST_STRING kDBName = "Rubik's Checkers";
 
 int NumberOfOptions()
 {

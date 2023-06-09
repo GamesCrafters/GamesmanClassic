@@ -14,7 +14,7 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Andrew Esteban";
+CONST_STRING kAuthorName = "Andrew Esteban";
 POSITION gNumberOfPositions; // Set in InitializeGame().
 POSITION gInitialPosition; // Put the hash value of the initial position.
 BOOLEAN kPartizan = TRUE; // Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -26,8 +26,8 @@ BOOLEAN kSupportsSymmetries = TRUE; // Whether symmetries are supported (i.e. wh
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
-STRING kGameName = "Game of Y";
-STRING kDBName = "gameofy";
+CONST_STRING kGameName = "Game of Y";
+CONST_STRING kDBName = "gameofy";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
@@ -38,20 +38,20 @@ BOOLEAN kDebugMenu = FALSE;
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "On your turn, place the piece of your colour \
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "On your turn, place the piece of your colour \
 (either white or black) onto the board, using a letter (a, b, c,..) to signify \
 the row and the number of spaces from the left for the column. For example, \
 on the board \n\na\t   -\nb\t  - -\nc\t - - -\nd\t- - - -\n\ncalling a0 will \
 place a piece on the top space like so: \n\na\t   w\nb\t  - -\nc\t - - -\nd\t- - - -\n";
-STRING kHelpStandardObjective = "The goal of the game is to form a connected \
+CONST_STRING kHelpStandardObjective = "The goal of the game is to form a connected \
 component within the graph using pieces from your colour that joins the three \
 edges of the triangle together (corner spaces count as touching the two edges they join).\n";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "there \
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "there \
 are no more empty spaces and neither player has formed a Y joining all three edges.";
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /* You don't have to change this. */
 void DebugMenu() {}

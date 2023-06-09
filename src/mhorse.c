@@ -28,9 +28,9 @@ POSITION gNumberOfPositions  = 39366;  /* 3^9*2  */
 POSITION gInitialPosition    = 116;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Dave Wong and Venu Kolavennu";
-STRING kGameName           = "Horseshoe";
-STRING kDBName             = "horse";
+CONST_STRING kAuthorName         = "Dave Wong and Venu Kolavennu";
+CONST_STRING kGameName           = "Horseshoe";
+CONST_STRING kDBName             = "horse";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
@@ -44,34 +44,34 @@ BOOLEAN kUseCustomBoard      = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts a small circle over your piece. This selects\n\
 the FROM slot. The MIDDLE button then selects the TO slot. If you\n\
 wish to remove a piece from the board, click the MIDDLE button on\n\
 the same place as the FROM slot. The RIGHT button is the same as UNDO,\n\
 in that it reverts back to your most recent position."                                                                                                                                                                                                                                                                                                  ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which numbers to choose to\n\
 correspond to the location of your piece and an empty connected-adjacent\n\
 slot you wish to move that piece to. Example: '5 2' moves your piece from\n\
 slot 5 to slot 2, assuming the two slots are connected."                                                                                                                                                                                                                                          ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Note: The circle always goes first.  Move one of your pieces to an empty\n\
 slot.  To do so, type in two numbers: the fromSlot and the toSlot, like\n\
 so: 2 3 and then hit <RETURN>"                                                                                                                                                                ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the FIRST player to prevent your opponent from moving.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be prevented from moving by your opponent's pieces.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
