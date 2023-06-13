@@ -162,8 +162,8 @@ double fitLeastSquares(Stroke *stroke, Line *lineResult)
 
 	// apply Least Squares
 	double st = 0, st2 = 0;
-	double sx = 0, sx2 = 0, stx = 0;
-	double sy = 0, sy2 = 0, sty = 0;
+	double sx = 0, stx = 0;
+	double sy = 0, sty = 0;
 	// note: no timestamps at the moment
 	Sample s;
 	double t, x, y;
@@ -178,10 +178,8 @@ double fitLeastSquares(Stroke *stroke, Line *lineResult)
 		x = s.x - boundX;
 		y = s.y - boundY;
 		sx += x;
-		sx2 += x*x;
 		stx += t*x;
 		sy += y;
-		sy2 += y*y;
 		sty += t*y;
 	}
 	double sst = n*st2 - st*st;
@@ -259,7 +257,7 @@ double strokeDistance(Stroke *s1, Stroke *s2)
 		distances[2] = distance(projectedX(&l2, t21, TRUE), projectedY(&l2, t21, TRUE), l1.x1, l1.y1);
 		distances[3] = distance(projectedX(&l2, t22, TRUE), projectedY(&l2, t22, TRUE), l1.x2, l1.y2);
 
-		double dist = distances[0];
+		dist = distances[0];
 		int idx;
 		for (idx = 1; idx < 4; idx++) {
 			dist = fmin(dist, distances[idx]);

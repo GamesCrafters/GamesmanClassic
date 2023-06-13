@@ -240,9 +240,7 @@ BOOLEAN GraphGoAgain(POSITION position, MOVE move) {
 }
 
 
-VALUE TextToValue(c)
-char c;
-{
+VALUE TextToValue(char c) {
 	if (c == 'u' || c == 'U')
 		return(undecided);
 	else if (c == 'l' || c == 'L')

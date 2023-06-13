@@ -1152,22 +1152,24 @@ int min(int a, int b)
 
 void SetPieces(int currentcol)
 {
-	int xcount = 0, ocount = 0, i;
-	POSITION pos = 0, temp1, temp2, temp3=1;
+	//int xcount = 0, ocount = 0, i;
+	//POSITION pos;
+	POSITION temp1, temp2, temp3=1;
 
 	if (currentcol > WIN4_WIDTH) {
-		for(i=0; i<WIN4_WIDTH; i++)
-			pos |= (currentPieces[MAXW] << (i*(WIN4_HEIGHT+1)));
-		CountPieces(pos, &xcount, &ocount);
-		if ((xcount == ocount) || (xcount == ocount+1)) { //seems like a valid pos
-			StorePositionInList(pos, currentStage);
+		// for(i=0; i<WIN4_WIDTH; i++)
+		// 	pos |= (currentPieces[MAXW] << (i*(WIN4_HEIGHT+1)));
+		// CountPieces(pos, &xcount, &ocount);
+		// if ((xcount == ocount) || (xcount == ocount+1)) { //seems like a valid pos
+		// 	// StorePositionInList(pos, currentStage); This does nothing unless you assign it to something
 
-			for (i=0; i< 20; i++) {
-				printf("%d", (int)(pos & 1));
-				pos = pos >> 1;
-			}
+		// 	for (i=0; i< 20; i++) {
+		// 		printf("%d", (int)(pos & 1));
+		// 		pos = pos >> 1;
+		// 	}
 
-		}
+		// }
+		return;
 	} else {
 		for (currentPieces[currentcol] = (temp1 = (temp3 << currentHeights[currentcol]));
 		     currentPieces[currentcol] < (temp2 = (temp3 << (currentHeights[currentcol]+1)));

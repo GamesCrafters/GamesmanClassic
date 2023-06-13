@@ -511,41 +511,36 @@ POSITION GetInitialPosition()
 	int i;
 	int j;
 
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\n\tNote that X will always go first\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("\t-- X  -x\n");
-	printf("\tO  X  --         <----- EXAMPLE\n");
-	printf("\t-o O  --\n");
-	printf("\tFor example, to get the position printed above, type:\n");
-	printf("\t--X--x \nO-X--- \n-oO--- \n");
+	do {
+		printf("\n\n\t----- Get Initial Position -----\n");
+		printf("\n\tPlease input the position to begin with.\n");
+		printf("\n\tNote that X will always go first\n");
+		printf("\tNote that it should be in the following format:\n\n");
+		printf("\t-- X  -x\n");
+		printf("\tO  X  --         <----- EXAMPLE\n");
+		printf("\t-o O  --\n");
+		printf("\tFor example, to get the position printed above, type:\n");
+		printf("\t--X--x \nO-X--- \n-oO--- \n");
 
-	i = 0;
-	getchar();
-	while(i < TABLE_SLOTS && (c = getchar()) != EOF) {
-		j = 0;
-		do {
-			if((c == 'X') || (c == 'x') || (c == '*'))
-				myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_X;
-			else if((c == 'O') || (c == 'o') || (c == '.'))
-				myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_O;
-			j++;
-		} while((j < PIECE_SIZES) && (c = getchar()) != EOF);
-		i++;
-	}
-	myPosition.turn = TURN_X;
-	comparePosition = unhash(hash(myPosition));
-	if((myPosition.board != comparePosition.board) ||
+		i = 0;
+		getchar();
+		while(i < TABLE_SLOTS && (c = getchar()) != EOF) {
+			j = 0;
+			do {
+				if((c == 'X') || (c == 'x') || (c == '*'))
+					myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_X;
+				else if((c == 'O') || (c == 'o') || (c == '.'))
+					myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_O;
+				j++;
+			} while((j < PIECE_SIZES) && (c = getchar()) != EOF);
+			i++;
+		}
+		myPosition.turn = TURN_X;
+		comparePosition = unhash(hash(myPosition));
+	} while ((myPosition.board != comparePosition.board) ||
 	   (myPosition.stash != comparePosition.stash) ||
-	   (myPosition.turn != comparePosition.turn))
-	{
-		printf("\n Illegal Board Position Please Re-Enter\n");
-		return GetInitialPosition();
-	}
-	else{
-		return(hash(myPosition));
-	}
+	   (myPosition.turn != comparePosition.turn));
+	return (hash(myPosition));
 }
 
 

@@ -370,7 +370,7 @@ STRING computersName;
 		moveType = '-';
 	else if(BOARDSIZE <= computersMove && computersMove < 2 * BOARDSIZE)
 		moveType = '|';
-	else if(2 * BOARDSIZE <= computersMove && computersMove < 3 * BOARDSIZE)
+	else
 		moveType = 'x';
 
 	printf("%8s's move              : %c%d\n", computersName, moveType,
@@ -746,6 +746,8 @@ STRING input;
 		theMove = (MOVE) squareNum + BOARDSIZE;
 	else if(input[0] == 'x' || input[0] == 'X')
 		theMove = (MOVE) squareNum + 2 * BOARDSIZE;
+	else
+		theMove = -1;
 
 	return theMove;
 }
@@ -791,7 +793,7 @@ MOVE theMove;
 		moveType = '-';
 	else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE)
 		moveType = '|';
-	else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE)
+	else
 		moveType = 'x';
 
 	sprintf(m, "%c%d", moveType, squareNum);

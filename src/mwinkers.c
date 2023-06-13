@@ -1105,7 +1105,6 @@ STRING input;
 
 	if (strlen(input) == 1) {
 		char a = input[0];
-
 		x = a - '0';
 	} else if (strlen(input) == 2) {
 		int a = input[0] - '0';
@@ -1115,6 +1114,8 @@ STRING input;
 			return -1;
 
 		x = 10*a + b;
+	} else {
+		return -1;
 	}
 
 	if (x < 0 || x > BOARDSIZE)

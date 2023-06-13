@@ -57,6 +57,7 @@ SCORE generate_score(VALUE value, REMOTENESS remoteness, REMOTENESS min_remotene
 		break;
 	default:
 		printf("Invalid game value: %d\n", value);
+		return -1;
 	}
 
 	if (abs(score) >= INFINITY) {

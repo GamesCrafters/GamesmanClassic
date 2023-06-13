@@ -1534,7 +1534,7 @@ void SetupTierStuff(void) {
 //Returns list of all children for a particular tier.
 TIERLIST* TierChildren(TIER tier) {
 	// New tierization scheme: tier = B + OthArea*W, so tier children =
-	int OthArea = OthRows * OthCols;
+	TIER OthArea = OthRows * OthCols;
 	int blacks = tier % OthArea;
 	int whites = tier / OthArea;
 	int tempBlacks;

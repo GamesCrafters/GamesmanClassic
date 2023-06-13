@@ -1533,7 +1533,7 @@ char **argv;                            /* Argument strings. */
 					switch(value) {
 					case win: value = lose; break;
 					case lose: value = win; break;
-					default: value = value;
+					default: break;
 					}
 				}
 			} else {

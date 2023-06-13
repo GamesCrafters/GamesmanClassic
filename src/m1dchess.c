@@ -19,7 +19,7 @@ CONST_STRING kGameName = "1D Chess"; //  Use this spacing and case
 CONST_STRING kDBName = "onedchess"; // Use this spacing and case
 POSITION gNumberOfPositions; // Put your number of positions upper bound here.
 POSITION gInitialPosition; // Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
+BOOLEAN kPartizan = TRUE; // Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = TRUE; // Is a tie or draw possible?
 BOOLEAN kLoopy = TRUE; // Is this game loopy?
 BOOLEAN kSupportsSymmetries = FALSE; // Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)

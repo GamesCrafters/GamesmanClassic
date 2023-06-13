@@ -469,8 +469,7 @@ MOVE theMove; {
 	/* Hash. */
 	if (whosTurn == x)
 		nextplayer = o;
-	else if (whosTurn == o)
-		nextplayer = x;
+	else nextplayer = x;
 	thePosition = BlankOXToPosition(theBlankOX, nextplayer);
 	// thePosition = BlankOXToPosition(theBlankOX, 3-whosTurn);
 	/* Return hashed position. */
@@ -1300,8 +1299,8 @@ POSITION DefaultInitialPosition() {
 ** INPUTS:      The current position array and whos turn.
 ** OUTPUTS:     The integer hashcode that embodies current position array and who's turn.
 ************************************************************************/
-POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
-	int player;
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
+	int player = 0;
 	if (whosTurn == x)
 		player = 2;
 	else if (whosTurn == o)

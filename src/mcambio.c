@@ -1039,8 +1039,10 @@ MOVE ConvertTextInputToMove (STRING input)
 		move = (colcount*rowcount) + (colcount+rowcount) + (move1-'v');
 	else if(move1 >= '0' && move1 <= ('0'+rowcount-1))
 		move = (colcount*rowcount) + (colcount+rowcount+colcount) + (move1-'0');
-	else
+	else {
 		printf("Error in: ConvertTextInputToMove");
+		return -1;
+	}
 
 	return (MOVE) move;
 }

@@ -993,7 +993,10 @@ MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELI
 		currentMobility = manMobility;
 	else if(initialPosition[currentIndex] == P2MAN)
 		currentMobility = reverseMobility(manMobility);
-	else BadElse("makeMove");
+	else {
+		BadElse("makeMove");
+		return NULL;
+	}
 
 	if((currentMobility&FORWARD) == FORWARD) {
 		if(forwardLeft(currentIndex)!= -1 && initialPosition[forwardLeft(currentIndex)] == EMPTY)
@@ -1196,7 +1199,7 @@ POSITION position;
 		currentMan = P2MAN;
 	}
 	for(int i = 0; i < (int)boardSize; i++) {
-		if((initialPosition[i] == currentKing)) {
+		if (initialPosition[i] == currentKing) {
 			if(whosTurn == P1)
 				head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC+1)), 2, kingMobility);
 			else if (whosTurn == P2)

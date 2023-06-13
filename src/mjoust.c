@@ -1735,6 +1735,7 @@ int getOption() {
 	}
 	else {
 		BadElse("NumberOfOptions");
+		return -1;
 	}
 
 	option += burnOption;

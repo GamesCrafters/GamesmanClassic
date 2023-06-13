@@ -704,9 +704,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX)
 {
 	int i;
 	for(i = BOARDSIZE-1; i >= 0; i--) {
@@ -718,7 +716,7 @@ BlankOX *theBlankOX;
 			theBlankOX[i] = o;
 			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= (Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
 			thePos -= Blank * g3Array[i];
 		}

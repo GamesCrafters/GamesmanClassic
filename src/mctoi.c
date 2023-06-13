@@ -1231,7 +1231,7 @@ MOVE ConvertTextInputToMove(input)
 STRING input;
 {
 	/* local variable */
-	MOVE theMove;
+	MOVE theMove = -1;
 	int length;
 
 	length = strlen ( input );          /* caculating the length                */

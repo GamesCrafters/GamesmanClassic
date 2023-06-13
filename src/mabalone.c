@@ -1334,6 +1334,8 @@ STRING input;
 		p2 = coordinateToInt(input[3], input[4]) - 1;
 		p3 = coordinateToInt(input[6], input[7]) - 1;
 		i = 9;
+	} else {
+		return 0;
 	}
 
 	/* check direction */
@@ -1362,6 +1364,8 @@ STRING input;
 	else if(((input[i] == 'S') || (input[i] == 's')) && ((input[i+1] == 'E') || (input[i+1] == 'e')))
 	{
 		dir = 2;
+	} else {
+		return 0;
 	}
 
 	/*fill in implicit push moves*/

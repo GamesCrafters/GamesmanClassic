@@ -823,11 +823,7 @@ void zeroChecked() {
 		checked[i] = FALSE;
 }
 
-BOOLEAN isSurrounded(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+BOOLEAN isSurrounded(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	if(board[move] != p)
 		return (board[move] == EMPTYSPACE) ? FALSE : TRUE;
@@ -845,11 +841,7 @@ BOOLEAN *check;
 	}
 }
 
-void removeStones(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+void removeStones(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	int i;
 	if(board[move] == p) {
@@ -959,11 +951,7 @@ POSITION position;
 }
 
 /* helper function to count empty indices surrounded by one player as territory for that player */
-BOOLEAN isTerritory(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+BOOLEAN isTerritory(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	if(board[move] != EMPTYSPACE)
 		return (board[move] == p);
@@ -1848,9 +1836,7 @@ POSITION hashed;
 **
 ***********/
 
-int countboard(board, tocount)
-char *board;
-char tocount;
+int countboard(char *board, char tocount)
 {
 	int counter=0,i=0;
 	for(; i<maxsize; i++)

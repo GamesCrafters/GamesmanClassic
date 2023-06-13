@@ -447,7 +447,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	int dir = GetDirection(move);
 	int x0 = GetXCoord(move);
 	int y0 = GetYCoord(move);
-	int x1, y1;
+	int x1 = 0, y1 = 0;
 
 	char* board = (char*)generic_hash_unhash(position, gBoard);
 	int player = generic_hash_turn(position);
@@ -914,7 +914,7 @@ MOVE theMove;
 {
 	STRING m = (STRING) SafeMalloc( 8 );
 	int xcoord, ycoord, dir, Arraynum;
-	STRING direction;
+	STRING direction = NULL;
 	xcoord = GetXCoord(theMove);
 	ycoord = GetYCoord(theMove);
 	dir = GetDirection(theMove);
@@ -1058,7 +1058,7 @@ MOVE ConvertTextInputToMove (STRING input)
 	int location = atoi(input);
 	location--;
 
-	int dir;
+	int dir = 0;
 	if (0 == strcmp(direction,"u")) {
 		dir = UP;
 	} else if (0 == strcmp(direction,"r")) {

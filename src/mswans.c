@@ -691,11 +691,7 @@ POSITION position;
 	return(head);
 }
 
-BOOLEAN OkMove(theBoard,whosTurn,fromSlot,direction)
-char theBoard[16];
-char whosTurn;
-SLOT fromSlot;
-int direction;
+BOOLEAN OkMove(char *theBoard, char whosTurn, SLOT fromSlot, int direction)
 {
 	SLOT toSlot;
 	toSlot = GetToSlot(theBoard,fromSlot,direction,whosTurn);
@@ -704,11 +700,7 @@ int direction;
 	       (theBoard[toSlot] == 'b'));
 }
 
-SLOT GetToSlot(theBoard,fromSlot,direction,whosTurn)
-char theBoard[16];
-SLOT fromSlot;
-int direction;
-char whosTurn;
+SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn)
 {
 	/* direction:
 	       5

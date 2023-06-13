@@ -456,7 +456,7 @@ VALUE Primitive (POSITION pos) {
 ************************************************************************/
 
 POSITION GetInitialPosition() {
-	int i, numX, numO, turn;
+	int i, numX = 0, numO = 0, turn;
 	char input[sumto(base)], c;
 	BOOLEAN cont = TRUE;
 	while(cont) {

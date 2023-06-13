@@ -1112,6 +1112,7 @@ int getOption ()
 		scoreVal = 2;
 	} else {
 		BadElse("getOption");
+		return 0;
 	}
 
 	return 245*8*2*scoreVal + 8*2*boardSizeVal + 2*moveStyleVal + winConditionVal + 1;

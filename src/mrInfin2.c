@@ -1084,7 +1084,7 @@ POSITION GetInitialPosition()
 	signed char c;
 	int i;
 	int c1,c2,c3,c4,c5,c6,c7,c8,c9; // REDUCT: These nums stores all the values first before actually storing them into theBlankOX var
-	int column1, column2, column3;
+	int column1 = 0, column2 = 0, column3 = 0;
 
 	printf("\n\n\t----- Get Initial Position -----\n");
 	printf("\n\tPlease input the position to begin with.\n");
@@ -1760,7 +1760,7 @@ int a,b,c;
 	int column2 = (int)theBlankOX[4];
 	int column3 = (int)theBlankOX[5];
 
-	char piece1, piece2, piece3;
+	char piece1 = '\0', piece2 = '\0', piece3 = '\0';
 
 	// get the pieces
 	if (a == 8) {
