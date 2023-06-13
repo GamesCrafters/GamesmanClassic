@@ -159,6 +159,7 @@ void GameSpecificMenu() {
             break;
         case 'Q': case 'q':
             ExitStageRight();
+            break;
         case 'H': case 'h':
             HelpMenus();
             break;
@@ -680,6 +681,7 @@ void setOption(int option) {
 
 POSITION ActualNumberOfPositions(int variant) {
     // Ignoring for now.
+    (void)variant;
     return 0;
 }
 
@@ -742,6 +744,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+    (void)position;
     int destIdx, srcIdx;
     unpackMove(move, &destIdx, &srcIdx);
     return UWAPI_Board_Regular2D_MakeMoveString(srcIdx, destIdx);

@@ -308,6 +308,8 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	(void)playersName;
+	(void)usersTurn;
 	int i;
 	int currentMatches = numberOfMatches(position);
 	printf("\n");
@@ -511,7 +513,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -589,11 +591,11 @@ int getOption ()
 
 void setOption (int option)
 {
+	(void)option;
 	int maxMoves;
 	printf("Please enter the number of matches you allow to be taken off board each time:");
 	scanf("%d", &maxMoves);
 	MAXMOVE = maxMoves;
-
 }
 
 
@@ -688,5 +690,6 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

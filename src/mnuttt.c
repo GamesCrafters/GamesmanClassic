@@ -464,6 +464,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	(void)usersTurn;
 	char board[BOARD_SIZE];
 
 	generic_hash_unhash (position, board);
@@ -761,7 +762,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1034,8 +1035,8 @@ POSITION getCanonicalPosition (POSITION p) {
 	}
 
 	for (x = 0; x < 4; x++) {
-		y = generic_hash_hash(boards[x], player);
-		if (y < p) p = y;
+		POSITION h = generic_hash_hash(boards[x], player);
+		if (h < p) p = h;
 	}
 	return p;
 }
@@ -1047,9 +1048,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

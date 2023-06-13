@@ -245,6 +245,7 @@ char **argv;                            /* Argument strings. */
 	POSITION BlankOXToPosition();
 	int i, j;
 	POSITION position;
+	(void)dummy;
 
 	if (argc != 2) {
 		Tcl_SetResult(interp, "wrong # args: Hash (STRING)board", TCL_STATIC);
@@ -276,6 +277,7 @@ char **argv;                            /* Argument strings. */
 	BlankOX board[BOARDSIZE];
 	char boardString[BOARDSIZE+1];
 	int i;
+	(void)dummy;
 
 	if (argc != 2) {
 		Tcl_SetResult(interp, "wrong # args: Unhash (POSITION)position", TCL_STATIC);
@@ -553,6 +555,7 @@ void GameSpecificMenu() {
 			return;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'I': case 'i':
 			gInitialPosition = GetInitialPosition();
 			break;
@@ -1407,12 +1410,12 @@ BlankOX *theBlankOX;
 	oPos = thePos / C(BOARDSIZE,numX);
 
 	for (i=BOARDSIZE-1; i>=0; i--) {
-		if (xPos >= C(i,numX)) {
+		if (xPos >= (POSITION)C(i,numX)) {
 			theBlankOX[i] = x;
 			xPos -= C(i,numX);
 			numX--;
 		}
-		else if (oPos >= C(i-numX, numO)) {
+		else if (oPos >= (POSITION)C(i-numX, numO)) {
 			theBlankOX[i] = o;
 			oPos -= C(i-numX, numO);
 			numO--;
@@ -1662,9 +1665,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

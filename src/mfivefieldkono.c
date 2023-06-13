@@ -397,12 +397,14 @@ VALUE Primitive(POSITION position) {
 
 /* The tier graph is just a single tier with id=0. */
 TIERLIST *getTierChildren(TIER tier) {
+  (void)tier;
   return CreateTierlistNode(0, NULL);
 }
 
 /* We use a single tier for this entire game. This
 is returns the upper bound */
 TIERPOSITION numberOfTierPositions(TIER tier) {
+  (void)tier;
   return gNumberOfPositions;
 }
 
@@ -414,6 +416,7 @@ need to filter out moves that come from primitive positions.
 There is only one tier, so all undoMoves will lead to previous positions
 that are in the same tier, so tier is ignored. */
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
+  (void)tier;
   MOVELIST *moves = GenerateMoves(swapTurn(position));
   MOVELIST *head = moves;
   UNDOMOVELIST *undoMoves = NULL;
@@ -575,8 +578,8 @@ FFK_Board* Unhash(POSITION in) {
 void compute_unhash(char board_component[], POSITION in, int slots, int num_x, int num_o) {
   int idx = 0;
   while (slots > 0) {
-    int t1 = rearrangements(slots - 1, num_x, num_o);
-    int t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
+    POSITION t1 = rearrangements(slots - 1, num_x, num_o);
+    POSITION t2 = t1 + rearrangements(slots - 1, num_x, num_o - 1);
     if (in < t1) {
       board_component[idx] = '-';
     } else if (in < t2) {
@@ -945,7 +948,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) { 
-  // return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+  (void)position;
   int from, to;
   unhashMove(move, &from, &to);
   if (from >= 12) {
@@ -969,7 +972,9 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
 void DebugMenu() {}
 
 /* Should be configured when Tcl is initialized non-generically */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 
 /* For implementing more than one variant */
 void GameSpecificMenu() {

@@ -448,6 +448,7 @@ void GameSpecificMenu() {
 		switch(toupper(GetMyChar())) {
 		case 'Q':
 			ExitStageRight();
+			break;
 		case 'H':
 			HelpMenus();
 			break;
@@ -483,10 +484,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -537,6 +538,7 @@ Coordinates CarryOutMove(BlankOX* board, char turn, MOVE theMove, BOOLEAN* captu
 	Coordinates coord;
 	Coordinates result;
 	*captured = FALSE;
+	(void)turn;
 
 	// extract the information from theMove
 	cap = 3 & theMove;
@@ -1834,10 +1836,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv)
 {
+	(void)pos;
 	return MoveToString(mv);
 }

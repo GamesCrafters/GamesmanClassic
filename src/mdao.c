@@ -446,6 +446,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	(void)usersTurn;
 	char board[BOARD_SIZE];
 
 	generic_hash_unhash (position, board);
@@ -684,7 +685,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -761,6 +762,7 @@ void setOption (int option)
 	/* If you have implemented symmetries you should
 	   include the boolean variable gSymmetries in your
 	   hash */
+	   (void)option;
 }
 
 
@@ -847,6 +849,7 @@ int Unhasher_Direction(MOVE hashed_move) {
 }
 
 POSITION ActualNumberOfPositions(int variant) {
+	(void)variant;
 	return 1768108;
 }
 
@@ -870,52 +873,53 @@ POSITION InteractStringToPosition(STRING str) {
 }
 
 STRING InteractPositionToString(POSITION pos) {
-  char board[BOARD_SIZE];
-  generic_hash_unhash(pos, board);
+	char board[BOARD_SIZE];
+	generic_hash_unhash(pos, board);
 
-  int player = generic_hash_turn(pos);
+	int player = generic_hash_turn(pos);
 
-  // R_A_0_0_TG-T-S--H
-  STRING result = (STRING) SafeMalloc(9 + BOARD_SIZE);
-  result[0] = 'R';
-  result[1] = '_';
-  result[2] = player % 2 == 1 ? 'A' : 'B';
-  result[3] = '_';
-  result[4] = '0';
-  result[5] = '_';
-  result[6] = '0';
-  result[7] = '_';
+	// R_A_0_0_TG-T-S--H
+	STRING result = (STRING) SafeMalloc(9 + BOARD_SIZE);
+	result[0] = 'R';
+	result[1] = '_';
+	result[2] = player % 2 == 1 ? 'A' : 'B';
+	result[3] = '_';
+	result[4] = '0';
+	result[5] = '_';
+	result[6] = '0';
+	result[7] = '_';
 
-  for (int i = 0; i < BOARD_SIZE; i++) {
-    if (board[i] == 'X') {
-      result[8 + i] = 'X';
-    } else if (board[i] == 'O') {
-      result[8 + i] = 'O';
-    } else {
-      result[8 + i] = '-';
-    }
-  }
+	for (int i = 0; i < BOARD_SIZE; i++) {
+		if (board[i] == 'X') {
+		result[8 + i] = 'X';
+		} else if (board[i] == 'O') {
+		result[8 + i] = 'O';
+		} else {
+		result[8 + i] = '-';
+		}
+	}
 
-  result[8 + BOARD_SIZE] = '\0';
+	result[8 + BOARD_SIZE] = '\0';
 
-  return result;
+	return result;
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
-  STRING result = (STRING) SafeMalloc(10);
+    (void)pos;
+    STRING result = (STRING) SafeMalloc(10);
 
 	int position = Unhasher_Index(move);
 	int direction = Unhasher_Direction(move);
 
-  //   STRING directions[NUM_OF_DIRS] = {
-  //    "ne", "e", "se",
-  //    "n",        "s",
-  //    "nw", "w", "sw"
-  //   };
+	//   STRING directions[NUM_OF_DIRS] = {
+	//    "ne", "e", "se",
+	//    "n",        "s",
+	//    "nw", "w", "sw"
+	//   };
 
-  int indexAdjust[] = {-3, 1, 5, -4, 4, -5, -1, 3};
+	int indexAdjust[] = {-3, 1, 5, -4, 4, -5, -1, 3};
 
-  sprintf(result, "M_%d_%d", position, position + indexAdjust[direction]);
+	sprintf(result, "M_%d_%d", position, position + indexAdjust[direction]);
 
 	return result;
 }

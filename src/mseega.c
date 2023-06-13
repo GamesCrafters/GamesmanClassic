@@ -460,7 +460,7 @@ void changeForbiddenSpots()
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
-
+	(void)options;
 }
 
 
@@ -601,9 +601,9 @@ POSITION GetInitialPosition ()
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
-
+	(void)computersMove;
+	(void)computersName;
 }
-
 
 
 /************************************************************************
@@ -705,6 +705,7 @@ VALUE Primitive (POSITION position) {
 //TODO: get predicition here
 void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+	(void)usersTurn;
 	int index=0;
 	int currRow;
 	char currCol;
@@ -1222,18 +1223,22 @@ BOOLEAN placingBoard(Board b) {
 void setWhoseBoard(Board b, char t) {
 	b[width*height+1]=t;
 }
+
 void setpce(Board b, int r, char c) {
 	b[r]=c;
 }
+
 void setMove2(SMove m, int val){
 	*m=val;
 }
+
 void setMove(SMove m, char who, int rfrom, int rto) {
 	/* TODO: figure out how we're supposed to encode invariants.
 	   if ((unsigned int)rfrom >= 1<<8*sizeof(MOVE)/2 ||
 	   (unsigned int)rto >= 1<<8*sizeof(MOVE)/2)
 	   error("Moves are too big to store.");
 	 */
+	(void)who;
 	*m = rfrom<<8*sizeof(MOVE)/2 | rto;
 }
 void setPlacingBoard(Board b, BOOLEAN t) {
@@ -1396,9 +1401,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

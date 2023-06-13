@@ -49,7 +49,9 @@ CONST_STRING kHelpExample = "";
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
@@ -367,6 +369,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+  (void)playerName;
+  (void)usersTurn;
   char board[8];
   generic_hash_unhash(position, board);
 
@@ -468,6 +472,7 @@ int getOption() {
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
+  (void)option;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -508,6 +513,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
   STRING result = (STRING) SafeMalloc(8);
 
   int origin = move / 100;

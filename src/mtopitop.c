@@ -456,22 +456,31 @@ void hashBoard(char *board, char turn, int disallowedMove, TIER *tier, TIERPOSIT
 		switch(board[i]) {
 			case REDCASTLEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc - 1, rc, s, l, c);
+  				// fall through
 			case BLUECASTLEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc, rc, s, l, c - 1);
+  				// fall through
 			case CASTLEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs - 1, bc, rc, s, l, c);
+  				// fall through
 			case REDSMALLPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs - 1, rs, bc, rc, s, l, c);
+  				// fall through
 			case BLUESMALLPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc, rc, s, l - 1, c);
+  				// fall through
 			case LARGEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc, rc, s - 1, l, c);
+  				// fall through
 			case SMALLPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb - 1, bs, rs, bc, rc, s, l, c);
+  				// fall through
 			case REDBUCKETPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb - 1, rb, bs, rs, bc, rc, s, l, c);
+  				// fall through
 			case BLUEBUCKETPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks - 1, bb, rb, bs, rs, bc, rc, s, l, c);
+  				// fall through
 			default:
 				break; 
 		}
@@ -822,6 +831,7 @@ void setOption(int option) {
 ************************************************************************/
 void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -1411,6 +1421,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
+	(void)pos;
 	if (move == NULLMOVE) {
 		char* finalMove = calloc(7, sizeof(char));
 		memcpy(finalMove, "A_-_22", 6);

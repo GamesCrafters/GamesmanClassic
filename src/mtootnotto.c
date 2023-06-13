@@ -706,7 +706,7 @@ VALUE Primitive (POSITION position)
 	//printf("primitive position= %ld\n", pos);
 
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	int col,row, player1=1, t=1, blank=2, count=0, ottoWins=0, tootWins=0;
+	int col,row, player1=1, t=1, count=0, ottoWins=0, tootWins=0;
 	PositionToBoard(position, board); // Temporary storage.
 
 
@@ -719,11 +719,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]   == board[col][row+3])
 			      && (board[col][row+1] == board[col][row+2])
 			      && (board[col][row]   != board[col][row+2])
-			      && (board[col][row]   != blank) //check blanks
-			      && (board[col][row+1] != blank)) //check blanks
+			      && (board[col][row]   != Blank) //check blanks
+			      && (board[col][row+1] != Blank)) //check blanks
 			{
 				//printf("Column Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -754,11 +754,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]   == board[col+3][row])
 			      && (board[col+1][row] == board[col+2][row])
 			      && (board[col][row]   != board[col+2][row])
-			      && (board[col][row]   != blank)
-			      && (board[col+1][row] != blank))
+			      && (board[col][row]   != Blank)
+			      && (board[col+1][row] != Blank))
 			{
 				//printf("Row Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -788,11 +788,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]     == board[col+3][row+3])
 			      && (board[col+1][row+1] == board[col+2][row+2])
 			      && (board[col][row]     != board[col+2][row+2])
-			      && (board[col][row]     != blank)
-			      && (board[col+1][row+1] != blank))
+			      && (board[col][row]     != Blank)
+			      && (board[col+1][row+1] != Blank))
 			{
 				//printf("Diag A Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -820,11 +820,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]     == board[col+3][row-3])
 			      && (board[col+1][row-1] == board[col+2][row-2])
 			      && (board[col][row]     != board[col+2][row-2])
-			      && (board[col][row]     != blank)
-			      && (board[col+1][row-1] != blank))
+			      && (board[col][row]     != Blank)
+			      && (board[col+1][row-1] != Blank))
 			{
 				//printf("Diag B Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -1305,7 +1305,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1499,6 +1499,7 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
+	(void)tier;
 	TIERPOSITION maxTierPos = 1;
 	int i;
 	for(i = 1; i < (TNO_WIDTH*(TNO_HEIGHT+1)); i++) {
@@ -1572,9 +1573,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

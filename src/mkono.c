@@ -589,9 +589,9 @@ BOOLEAN ValidTextInput (STRING input)
 	/* move format: "xx yy" where xx is source and yy is dest (board is 10 to 99 squares)
 	 *              "xxx yyy" is board has 100 to 999 squares */
 
-	int i, spaceCount = 0;
+	int spaceCount = 0;
 
-	for (i = 0; i < strlen(input); i++) {
+	for (size_t i = 0; i < strlen(input); i++) {
 		if (input[i] == ' ')
 			spaceCount++;
 	}
@@ -627,7 +627,7 @@ MOVE ConvertTextInputToMove (STRING input)
 	k = 0;
 	stringPos = i;
 
-	for (; i < strlen(input); i++) {}
+	for (; i < (int)strlen(input); i++) {}
 
 	for (j = i-1; j >= stringPos; j--)
 		dest += ((input[j]-'0') * exponent(10, k++));
@@ -670,6 +670,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -720,7 +721,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -904,9 +905,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

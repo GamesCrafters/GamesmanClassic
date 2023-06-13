@@ -213,6 +213,7 @@ void GameSpecificMenu() {
 			return;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -242,6 +243,7 @@ void GameSpecificMenu() {
 void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -313,8 +315,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -787,17 +788,17 @@ BlankOX *theBlankOX, *whosTurn;
 	else *whosTurn = o;
 
 	for(i = (BOARDSIZE - 1); i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -930,6 +931,7 @@ int arrowSource[14][14] = {
 };
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	int fromSlot = mv % (BOARDSIZE + 1);
 	int toSlot = mv / (BOARDSIZE + 1);
 	int adjustedFromSlot = arrowSource[fromSlot][toSlot];

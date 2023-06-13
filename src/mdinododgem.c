@@ -358,6 +358,7 @@ void GameSpecificMenu() {
 			break;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -723,6 +724,8 @@ POSITION position;
 STRING playerName;
 BOOLEAN usersTurn;
 {
+	(void)playerName;
+	(void)usersTurn;
 	int row = 0, col = 0;
 	VALUE GetValueOfPosition();
 	BlankOX theBlankOx[boardsize], whosTurn;
@@ -1471,6 +1474,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	SLOT fromSlot, toSlot;
 	BlankOX turn;
 	MoveToSlots(mv, &fromSlot, &toSlot, &turn);

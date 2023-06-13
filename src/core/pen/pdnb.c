@@ -78,6 +78,7 @@ int closestPoint(double cx, double cy) {
 // called by Tcl Event loop to check for new data
 void TclTimerProc(ClientData clientData)
 {
+	(void)clientData;
 	if (!isPenLoaderStarted()) {
 		printLog("Timer stopped\n");
 		return;

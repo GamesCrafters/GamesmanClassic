@@ -634,9 +634,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions (int options[])
 {
+	(void)options;
 }
 
 
@@ -1926,13 +1926,13 @@ void AddRemoveFoxes(char board[])
 		case 'B':
 			if (numFoxes(boardStats) < 2)
 			{
+				/* Robert Shi: the original code falls through in this
+				   case. Preserving the behavior. */
 				printf("You must have two foxes on the board.\n");
+				printf("Invalid option. Try again\n");
 				selection = 'Z';
 			}
-			else
-			{
-				break;
-			}
+			break;
 		default:
 			printf("Invalid option. Try again\n");
 			selection = 'Z';
@@ -2280,9 +2280,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

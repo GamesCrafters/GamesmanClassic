@@ -235,10 +235,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -329,8 +329,7 @@ POSITION GetInitialPosition()
 			theBlankHV[i++] = V;
 		else if(c == 'o' || c == 'O' || c == '0')
 			theBlankHV[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	/*
@@ -830,17 +829,17 @@ BlankHV *theBlankHV, *whosTurn;
 
 	int i;
 	for(i = BOARDSIZE - 1; i >= 0; i--) {
-		if(thePos >= ((int)V * g3Array[i])) {
+		if(thePos >= (POSITION)(V * g3Array[i])) {
 			theBlankHV[i] = V;
-			thePos -= (int)V * g3Array[i];
+			thePos -= V * g3Array[i];
 		}
-		else if(thePos >= ((int)H * g3Array[i])) {
+		else if(thePos >= (POSITION)(H * g3Array[i])) {
 			theBlankHV[i] = H;
-			thePos -= (int)H * g3Array[i];
+			thePos -= H * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankHV[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankHV");
@@ -1125,6 +1124,7 @@ STRING InteractPositionToString(POSITION pos) {
 // pos: a number you have to unhash"
 STRING InteractMoveToString(POSITION pos, MOVE theMove) 
 {
+	(void)pos;
 	int squareNum;
 	if(0 <= theMove && theMove < BOARDSIZE){
 		squareNum = theMove % BOARDSIZE;

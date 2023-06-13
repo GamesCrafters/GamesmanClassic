@@ -112,8 +112,6 @@ POSITION gLargestNodeNumber;
 
 void InitializeGame()
 {
-	int i;
-
 	if (gGraphPrimitiveList != NULL) {
 		SafeFree(gGraphPrimitiveList);
 	}
@@ -132,7 +130,7 @@ void InitializeGame()
 		kDBName = kDBNameVolatile;
 	}
 
-	for(i = 0; i < gNumberOfPositions; i++) {
+	for(POSITION i = 0; i < gNumberOfPositions; i++) {
 		gGraphPrimitiveList[i] = undecided;
 		gGraphNeighborList[i]  = NULL;
 	}
@@ -158,8 +156,8 @@ STRING graphFilename;
 {
 	POSITIONLIST *head = NULL;
 	FILE *fp;
-	POSITION nodeNumber, nodeChild;
-	int i, j, numChildren, numberNodes, largestNodeSoFar = -1;
+	POSITION nodeNumber, nodeChild, i, numberNodes;
+	int j, numChildren, largestNodeSoFar = -1;
 	char theValueChar;
 	char goAgainChar;
 
@@ -172,7 +170,7 @@ STRING graphFilename;
 
 	/*** See if we haven't requested too many nodes ***/
 
-	if (fscanf(fp, "%d", &numberNodes) == EOF) {
+	if (fscanf(fp, "%llu", &numberNodes) == EOF) {
 		printf("LoadGraphFromFile Error: couldn't read number of nodes from %s\n", graphFilename);
 		ExitStageRight();
 	}
@@ -186,7 +184,7 @@ STRING graphFilename;
 
 	for (i = 0; i < numberNodes; i++) {
 		if (fscanf(fp, POSITION_FORMAT " %c %d", &nodeNumber, &theValueChar, &numChildren) == EOF) {
-			printf("LoadGraphFromFile Error: couldn't read node %d from %s\n", i, graphFilename);
+			printf("LoadGraphFromFile Error: couldn't read node %llu from %s\n", i, graphFilename);
 			ExitStageRight();
 		}
 
@@ -200,7 +198,7 @@ STRING graphFilename;
 
 		/*** Find the largest node number ***/
 
-		if (nodeNumber > largestNodeSoFar)
+		if ((int)nodeNumber > largestNodeSoFar)
 			largestNodeSoFar = nodeNumber;
 
 		/*** Store the value from its text character ***/
@@ -212,7 +210,7 @@ STRING graphFilename;
 		head = NULL;
 		for(j = 0; j < numChildren; j++) {
 			if (fscanf(fp, POSITION_FORMAT, &nodeChild) == EOF) {
-				printf("LoadGraphFromFile Error: couldn't read child %d from node %d in %s\n", j, i, graphFilename);
+				printf("LoadGraphFromFile Error: couldn't read child %d from node %llu in %s\n", j, i, graphFilename);
 				ExitStageRight();
 			}
 
@@ -237,7 +235,8 @@ STRING graphFilename;
 }
 
 BOOLEAN GraphGoAgain(POSITION position, MOVE move) {
-	return move>=gNumberOfPositions;
+	(void)position;
+	return (POSITION)move >= gNumberOfPositions;
 }
 
 
@@ -326,10 +325,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -345,11 +344,10 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
+POSITION DoMove(POSITION thePosition, MOVE theMove)
 {
 	/* the move IS the position */
+	(void)thePosition;
 	return(theMove%gNumberOfPositions);
 }
 
@@ -593,7 +591,7 @@ STRING input;
 void PrintMove(theMove)
 MOVE theMove;
 {
-	if (theMove>=gNumberOfPositions) {
+	if ((POSITION)theMove >= gNumberOfPositions) {
 		printf(POSITION_FORMAT "g", (POSITION)theMove%gNumberOfPositions);
 	} else {
 		printf("%d", theMove);
@@ -627,13 +625,16 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING MoveToString(MOVE theMove) {
+	(void)theMove;
 	return "Implement MoveToString";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

@@ -114,6 +114,7 @@ void GameSpecificMenu() {
 
 void SetTclCGameSpecificOptions(int theOptions[])
 {
+  (void)theOptions;
 }
 
 /************************************************************************
@@ -149,7 +150,8 @@ POSITION DoMove(POSITION position, MOVE move)
 
 void UndoMove(MOVE move)
 {
-  assert(0);
+  (void)move;
+  ExitStageRightErrorString("UndoMove not implemented.");
 }
 
 /************************************************************************
@@ -241,6 +243,7 @@ VALUE Primitive(POSITION position)
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  (void)usersTurn;
   char board[BOARD_SIZE];
   generic_hash_unhash(position, board);
   printf("\n");
@@ -342,6 +345,7 @@ POSITION GetCanonicalPosition(POSITION position)
 
 POSITION DoSymmetry(POSITION position, int symmetry)
 {
+  (void)symmetry;
   return position;
 }
 
@@ -494,10 +498,12 @@ int getOption()
 
 void setOption(int option)
 {
+  (void)option;
 }
 
 POSITION ActualNumberOfPositions(int variant)
 {
+  (void)variant;
   return 0;
 }
 
@@ -528,5 +534,6 @@ STRING InteractPositionToString(POSITION pos)
 
 STRING InteractMoveToString(POSITION pos, MOVE mv)
 {
+  (void)pos;
   return MoveToString(mv);
 }

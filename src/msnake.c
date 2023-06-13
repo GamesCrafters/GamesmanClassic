@@ -213,6 +213,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -367,8 +368,7 @@ POSITION GetInitialPosition()
 			theBlankBHT[i++] = b;
 		else if(c == '+')
 			theBlankBHT[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	printf("In this game, the head of the snake always goes first.\n");
@@ -496,9 +496,9 @@ void path(struct node *tailNode, struct node **pathArray);
 void PrintBoard(struct node* *pathArray, int pathArrayLength, BlankBHT board[36]);
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-
+	(void)playerName;
+	(void)usersTurn;
 	int i;
-	//    VALUE GetValueOfPosition();
 	BlankBHT theBlankBHT[BOARDSIZE];
 
 	SnakeUnhash(position, theBlankBHT);
@@ -1314,6 +1314,7 @@ STRING InteractPositionToString(POSITION pos) {
 
 BOOLEAN arrowMoves = TRUE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	SLOT fromSlot, toSlot;
 	MoveToSlots(mv, &fromSlot, &toSlot);
 	if (arrowMoves) {

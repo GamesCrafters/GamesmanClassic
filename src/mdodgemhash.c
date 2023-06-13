@@ -198,6 +198,7 @@ GameSpecificMenu()
 			return;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -283,8 +284,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 			gBoard[i++] = 'o';
 		else if(c == '-')
 			gBoard[i++] = 'b';
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -800,9 +800,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

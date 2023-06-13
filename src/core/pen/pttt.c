@@ -75,6 +75,7 @@ BOOL checkForFinishCondition()
 // called by Tcl Event loop to check for new data
 void TclTimerProc(ClientData clientData)
 {
+	(void)clientData;
 	if (!isPenLoaderStarted()) {
 		printLog("Timer stopped\n");
 		return;
@@ -213,6 +214,7 @@ void TclTimerProc(ClientData clientData)
 // called by Gamesman when new game is started
 void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, int debug)
 {
+	(void)options;
 	if (hasPenLoaderFinished()) {
 		// already read through entire file, no need to do it again
 		return;

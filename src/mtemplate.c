@@ -49,7 +49,9 @@ CONST_STRING kHelpExample = "";
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 

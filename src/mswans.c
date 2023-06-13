@@ -302,6 +302,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -438,8 +439,7 @@ POSITION GetInitialPosition()
 			}
 			else if(c == '-')
 				gBoard[i++] = 'b';
-			else
-				; /* do nothing */
+			/* else do nothing */
 		}
 
 		getchar();
@@ -1150,6 +1150,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
+	(void)thePosition;
 	SLOT fromSlot, toSlot;
 	int phase;
 	phase = theMove & 1;

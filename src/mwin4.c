@@ -234,7 +234,6 @@ POSITION GetInitialPosition() {
 
 void InitializeGame()
 {
-	unsigned int i, j;
 	gNumberOfPositions = MyNumberOfPos();
 	gInitialPosition    = MyInitialPosition();
 	gEnumerateWithinStage = &EnumerateWithinStage;
@@ -249,10 +248,10 @@ void InitializeGame()
 	SetupTierStuff();
 	PositionToBoard(gInitialPosition, gPosition.board);
 
-	for (i = 0; i < WIN4_WIDTH; ++i) {
+	for (int i = 0; i < WIN4_WIDTH; ++i) {
 		gPosition.heights[i] = 0;
 
-		for (j = 0; j < WIN4_HEIGHT; ++j) {
+		for (int j = 0; j < WIN4_HEIGHT; ++j) {
 			if (gPosition.board[i][j] == Blank)
 				break;
 
@@ -367,8 +366,8 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int theOptions[])
-
 {
+	(void)theOptions;
 	/* No need to have anything here, we have no extra options */
 }
 
@@ -516,7 +515,7 @@ VALUE Primitive(POSITION position)
 					return gStandardGame ? lose : win;
 			}
 
-			return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
+			return gPosition.piecesPlaced == (POSITION)(WIN4_WIDTH * WIN4_HEIGHT) ? tie : undecided;
 		}
 
 		int ul[WIN4_WIDTH][WIN4_HEIGHT]; //upper left
@@ -654,7 +653,7 @@ VALUE Primitive(POSITION position)
 				}
 			}
 
-			return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
+			return gPosition.piecesPlaced == (POSITION)(WIN4_WIDTH * WIN4_HEIGHT) ? tie : undecided;
 		}
 
 		linearUnhash2(position, linearBoard); // Temporary storage.
@@ -1053,6 +1052,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -1182,7 +1182,8 @@ void SetHeights(int currentcol, int piecesleft)
 		SetPieces(0);
 	} else {
 		for (currentHeights[currentcol] = min(WIN4_HEIGHT, piecesleft);
-		     currentHeights[currentcol] >= 0;
+			 // Robert Shi: The following line is always true. Commenting out.
+		     /* currentHeights[currentcol] >= 0 */ ;
 		     currentHeights[currentcol]--) {
 			SetHeights(currentcol + 1, piecesleft - currentHeights[currentcol]);
 		}
@@ -1299,7 +1300,7 @@ void SetupTierStuff() {
 
 /* Returns list of all children for a particular tier. */
 TIERLIST* TierChildren(TIER tier) {
-	if (tier<WIN4_WIDTH*WIN4_HEIGHT)
+	if (tier < (TIER)(WIN4_WIDTH*WIN4_HEIGHT))
 		return CreateTierlistNode(tier+1, NULL);
 	else
 		return NULL;
@@ -1522,10 +1523,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

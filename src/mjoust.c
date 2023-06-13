@@ -144,9 +144,9 @@ Computer wins. Nice try, Dan."                                                  
 **
 **************************************************************************/
 #define MAXBOARDSIZE 20
-unsigned int BOARDSIZE  =   16;          /* ROWSIZE x COLUMNSIZE board. */
-unsigned int ROWSIZE    =   4;           /* Rows on the board. */
-unsigned int COLUMNSIZE =   4;           /* Columns on the board. */
+int BOARDSIZE  =   16;          /* ROWSIZE x COLUMNSIZE board. */
+int ROWSIZE    =   4;           /* Rows on the board. */
+int COLUMNSIZE =   4;           /* Columns on the board. */
 unsigned int BITSIZE    =   4;           /* The number of bits needed to
                                           * store the largest square number
                                           * on the board. EX: For a 20
@@ -202,11 +202,11 @@ void ChangeOrder();
 
 /* Possible move and helpers */
 BOOLEAN PossibleMove(int, POSITION, BlankBurntOX[]);
-BOOLEAN PossibleRook(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleKnight(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleBishop(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleKing(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleQueen(int, int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleRook(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleKnight(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleBishop(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleKing(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleQueen(int, int, int, int, BlankBurntOX[]);
 
 /* Possible burn and helpers */
 BOOLEAN PieceBurn(int, POSITION, BlankBurntOX[]);
@@ -421,10 +421,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /* 11/4 Isaac: Mask off the position's turn bit that has been preserved
@@ -601,8 +601,7 @@ POSITION GetInitialPosition()
 			theBlankBurntOX[i++] = Blank;
 		else if(c == '*')
 			theBlankBurntOX[i++] = Burnt;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -887,19 +886,19 @@ BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[
 	{
 		switch (thePiece) {
 		case knight:
-			return(PossibleKnight(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKnight(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case queen:
-			return(PossibleQueen(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleQueen(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case rook:
-			return(PossibleRook(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleRook(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case bishop:
-			return(PossibleBishop(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleBishop(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case king:
-			return(PossibleKing(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKing(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		default:
 			BadElse("Error in PossibleMove\n");
@@ -920,9 +919,8 @@ BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[
         <-||->
     3            4
  */
-BOOLEAN PossibleBishop(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[])
+BOOLEAN PossibleBishop(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[])
 {
-
 	if (kPrintDebug)
 		printf(" PossibleBishop: rd=%d cd=%d|", rd, cd);
 
@@ -1114,7 +1112,7 @@ BOOLEAN PossibleBishop(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX 
         <-||->
     3            4
  */
-BOOLEAN PossibleRook(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[]){
+BOOLEAN PossibleRook(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[]){
 
 	if (kPrintDebug)
 		printf(" PossibleRook: rd=%d cd=%d|", rd, cd);
@@ -1247,7 +1245,7 @@ BOOLEAN PossibleRook(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX th
 
 /* Knight jumps over occupied squares so only the destination
  * matters, the King only moves one square, so the same is true */
-BOOLEAN PossibleKnight(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[]){
+BOOLEAN PossibleKnight(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[]){
 	int r1 = rp - 2;
 	int r2 = rp - 1;
 	int r3 = rp + 1;
@@ -1288,7 +1286,7 @@ BOOLEAN PossibleKnight(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX 
    r3   f    g   h
 
  */
-BOOLEAN PossibleKing(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[]){
+BOOLEAN PossibleKing(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[]){
 
 	int r1 = rp + 1;
 	int r3 = rp - 1;
@@ -1316,10 +1314,10 @@ BOOLEAN PossibleKing(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX th
 
 /* Oh no, not more Possibilities....
  * Haha, fooled ya! We can cheat and use old stuff here! Nyaaa Nyaaa.. */
-BOOLEAN PossibleQueen(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[])
+BOOLEAN PossibleQueen(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[])
 {
-	return (PossibleBishop(rp, cp, rd, cd, thePos, theBlankBurntOX) ||
-	        PossibleRook(rp, cp, rd, cd, thePos, theBlankBurntOX));
+	return (PossibleBishop(rp, cp, rd, cd, theBlankBurntOX) ||
+	        PossibleRook(rp, cp, rd, cd, theBlankBurntOX));
 	/* Notice that PossibleBishop and Rook return false when the move
 	 * is not of their type */
 }
@@ -1435,19 +1433,19 @@ BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
 	{
 		switch (theBurn) {
 		case knight:
-			return(PossibleKnight(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKnight(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case queen:
-			return(PossibleQueen(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleQueen(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case rook:
-			return(PossibleRook(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleRook(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case bishop:
-			return(PossibleBishop(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleBishop(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case king:
-			return(PossibleKing(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKing(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		default:
 			BadElse("Error in PossibleMove\n");
@@ -1953,11 +1951,10 @@ POSITION BlankBurntOXToPosition(theBlankBurntOX, whoseTurn)
 BlankBurntOX *theBlankBurntOX, whoseTurn;
 {
 	POSITION position = 0;
-	unsigned int i;
 	int emptycount = 0;
 	BOOLEAN foundX = FALSE;
 	// Set occupied spots, and x,o locations.
-	for(i = 0; i < BOARDSIZE; i++)
+	for(int i = 0; i < BOARDSIZE; i++)
 	{
 		if((int)theBlankBurntOX[i] == x)
 		{
@@ -2230,6 +2227,7 @@ void PieceMessage(POSITION thePos, BOOLEAN DisplayPieceType){
 void ChangeThePiece(char input){
 	/* Robert Shi: Commenting the entire function
 	   out as it does not appear to do anything. */
+	(void)input;
 
 	// Piecetype thePiece;
 
@@ -2450,9 +2448,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

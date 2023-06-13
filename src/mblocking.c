@@ -451,9 +451,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions(int options[])
 {
+	(void)options;
 }
 
 
@@ -977,8 +977,10 @@ void moveUnHash(int move, int* to, int* from) {
 
 char* boardToString(char* s, nodes board, pieces black_pieces,
                     pieces white_pieces) {
-	int i;
+	(void)black_pieces;
+	(void)white_pieces;
 
+	int i;
 	for(i = 0; i < num_nodes; i++) {
 		s[i] = (board[i].game_piece ? board[i].game_piece->pic :
 		        '_');
@@ -1755,9 +1757,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
+	(void)mv;
 	return "Implement MoveToString";
 }

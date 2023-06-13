@@ -731,8 +731,8 @@ void GameSpecificMenu (){
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (int options[]){
-
+void SetTclCGameSpecificOptions (int options[]) {
+	(void)options;
 }
 
 
@@ -1059,5 +1059,6 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

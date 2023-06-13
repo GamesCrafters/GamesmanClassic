@@ -56,7 +56,9 @@ CONST_STRING kHelpExample = "";
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 
 
 #define MIN_DIMENSION 4
@@ -690,6 +692,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
   STRING result = (STRING) SafeMalloc(8);
 
   sprintf(result, "A_-_%d", move);

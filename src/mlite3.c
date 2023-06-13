@@ -319,6 +319,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 
 		case '1':
 			gGameObjective = THREE_IN_A_ROW;
@@ -517,18 +518,16 @@ POSITION GetInitialPosition()
 	printf("\tNote that it should be in the following format:\n\n");
 	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
 
-	theBlankOOOXXX[0] = x;
+	theBlankOOOXXX[0] = (BlankOOOXXX)x;
 	i = 1;
 	getchar();
 	while(i < BOARDSIZE && (c = getchar()) != EOF) {
 		if(c == 'x' || c == 'X')
-			theBlankOOOXXX[i++] = x;
+			theBlankOOOXXX[i++] = (BlankOOOXXX)x;
 		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOOOXXX[i++] = o;
+			theBlankOOOXXX[i++] = (BlankOOOXXX)o;
 		else if(c == '-')
 			theBlankOOOXXX[i++] = Blank;
-		else
-			;
 	}
 
 	return(BlankOOOXXXToPosition(theBlankOOOXXX));
@@ -793,6 +792,7 @@ STRING playerName;
 		switch(input[0]) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'u': case 'U':
 			return(Undo);
 		case 'a': case 'A':
@@ -1188,7 +1188,7 @@ POSITION InteractStringToPosition(STRING board) {
 	}
 
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	theBlankOOOXXX[0] = turn == UWAPI_TURN_B? o : x;
+	theBlankOOOXXX[0] = (BlankOOOXXX)(turn == UWAPI_TURN_B ? o : x);
 	for (int i = 1; i < BOARDSIZE; i++) {
 		switch (board[i-1]) {
 			default:
@@ -1265,6 +1265,7 @@ STRING InteractPositionToString(POSITION pos) {
 BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT toSlot;
+	(void)pos;
 	MoveToSlots(mv, &toSlot);
 	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot - 1);
 }

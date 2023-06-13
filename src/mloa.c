@@ -960,7 +960,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1398,6 +1398,7 @@ char* boardUnhash(POSITION pos, char* board)
 
 POSITION boardHash(char* board, int player)
 {
+	(void)board;
 	int i;
 	POSITION result;
 
@@ -1514,9 +1515,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

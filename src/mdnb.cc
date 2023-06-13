@@ -629,6 +629,8 @@ EXTERNC VALUE Primitive(POSITION position)
 
 EXTERNC void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 {
+  (void)playerName;
+  (void)usersTurn;
   DNB board(position);
   
   board.Print();
@@ -745,6 +747,7 @@ EXTERNC USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, ST
 
 EXTERNC BOOLEAN ValidTextInput(STRING input)
 {
+  (void)input;
   return TRUE;
 }
 
@@ -884,6 +887,7 @@ EXTERNC STRING MoveToString(MOVE theMove) {
 }
 
 EXTERNC STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  (void)pos;
   return MoveToString(mv);
 }
 
@@ -999,8 +1003,9 @@ POSITION ActualNumberOfPositions(int variant) {
 #ifndef NO_GRAPHICS
 
 static int
-ScoredCmd(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
+ScoredCmd(ClientData dummy, Tcl_Interp *interp, int argc, char** argv)
 {
+  (void)dummy;
   int position,x,y;
   char result[200] = "wrong # args: Scored (int)Position (int)x (int)y";
 

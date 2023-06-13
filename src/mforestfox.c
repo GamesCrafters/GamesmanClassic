@@ -57,7 +57,9 @@ BOOLEAN isLegal(POSITION position);
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
@@ -70,12 +72,14 @@ void GameSpecificMenu() {}
 
 /* The tier graph is just a single tier with id=0. */
 TIERLIST *getTierChildren(TIER tier) {
+  (void)tier;
   return CreateTierlistNode(0, NULL);
 }
 
 /* We use a single tier for this entire game. This
 is returns the upper bound */
 TIERPOSITION numberOfTierPositions(TIER tier) {
+  (void)tier;
   return gNumberOfPositions;
 }
 
@@ -620,6 +624,7 @@ int getOption() {
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
   /* YOUR CODE HERE  */
+  (void)option;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/

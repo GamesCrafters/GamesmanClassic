@@ -122,6 +122,7 @@ void GameSpecificMenu()
 // Probably don't need to write this
 void SetTclCGameSpecificOptions(int theOptions [])
 {
+  (void)theOptions;
 }
 
 // just a nice maxing function
@@ -194,6 +195,7 @@ VALUE Primitive(POSITION position)
 // Print out a visual representation of the position
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  (void)usersTurn;
   printf("TURN: %s\n", playerName);
   printf("UNAVAILABLE NUMBERS: ");
   int mask = 1;
@@ -284,9 +286,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE* theMove, STRING pla
 
 BOOLEAN ValidTextInput(STRING input)
 {
-	int i;
-	for(i = 0; i < strlen(input); i++)
-		if(!isdigit(input[i]))
+	for (size_t i = 0; i < strlen(input); i++)
+		if (!isdigit(input[i]))
 			return FALSE;
 	return TRUE;
 }
@@ -342,9 +343,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+  (void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  (void)pos;
   return MoveToString(mv);
 }

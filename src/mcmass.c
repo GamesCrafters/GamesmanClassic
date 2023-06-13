@@ -54,7 +54,7 @@ Player Winner( Node* theBoard, int nodecount );
 
 POSITION EncodeBoard( Node* theBoard, long NodeCount );
 Player DecodeBoard( Node* theBoard, long NodeCount, POSITION inPos );
-long GetTotalCombinations( Node* theBoard, int NodeCount );
+POSITION GetTotalCombinations( Node* theBoard, int NodeCount );
 
 
 /*for a 3x3 board, it's 5 possible in the corners, 7 in the edges and 9 in the middle * 2 possible WhoseTurn's*/
@@ -224,6 +224,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -369,7 +370,7 @@ MOVE theMove;
 	POSITION realPosition=0;
 	POSITION outPosition=0;
 	Player WhoseTurnItIs = 1;
-	long totalcombos = 0;
+	POSITION totalcombos = 0;
 	static int lastboardsize = 0;
 	static Node* theBoard = NULL;
 
@@ -480,7 +481,7 @@ POSITION position;
 	VALUE outValue;
 	Player theWinner;
 	Player WhoseTurnItIs = 0;
-	long totalcombos=0;
+	POSITION totalcombos=0;
 	static int lastboardsize = 0;
 	static Node* theBoard = NULL;
 
@@ -630,7 +631,7 @@ POSITION position;
 	int i;
 	Player WhoseTurnItIs=0;
 	POSITION realPosition;
-	long totalcombos=0;
+	POSITION totalcombos=0;
 	static int lastboardsize = 0;
 	static Node* theBoard = NULL;
 
@@ -927,7 +928,7 @@ BlankOX *theBlankOX;
 			xcount++;
 		else if(theBlankOX[i] == o)
 			ocount++;
-		else ;    /* don't count blanks */
+		/* else don't count blanks */
 
 	if(xcount == ocount)
 		return(x);  /* in our TicTacToe, x always goes first */
@@ -963,9 +964,9 @@ Node* NewNode(void)
 
 void PrintNodes( Node* theNodes, int NodeCount )
 {
-	int i;
+	(void)theNodes;
 
-	for( i=0; i<NodeCount; i++ )
+	for( int i=0; i<NodeCount; i++ )
 	{
 		// what happened to this printf?
 	}
@@ -1152,7 +1153,7 @@ void SprintBoard( char* theBuffer, Node* theBoard, int Rows, int Columns )
 char GetPlayerCharacter( Player i )
 {
 	char CharArray[] = {' ','x','o'};
-	if( i<sizeof( CharArray ) && i>=0 )
+	if( i<(int)sizeof( CharArray ) && i>=0 )
 		return CharArray[i];
 	else
 		return ' ';
@@ -1253,26 +1254,17 @@ void stringsandwich( char* A, char* B, char* C )
 	}
 }
 
-
-
-long GetTotalCombinations( Node* theBoard, int NodeCount )
+POSITION GetTotalCombinations( Node* theBoard, int NodeCount )
 {
-	long counter;
-	long i;
+	POSITION counter = 1;
 
-	counter = 1;
-	for( i=0; i<NodeCount; i++ )
+	for (int i=0; i<NodeCount; i++ )
 	{
 		counter*=( theBoard[i].neighborcount )*2+1;
 	}
 
 	return counter;
 }
-
-
-
-
-
 
 POSITION EncodeBoard( Node* theBoard, long NodeCount )
 {
@@ -1388,9 +1380,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

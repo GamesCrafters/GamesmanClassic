@@ -167,7 +167,7 @@ Computer wins. Nice try, Dan."                                                  
 #define k4InARow      8         /*  8 ways for there to be 4 in a row with a 4x4 board */
 
 int kNumberMoves       = k1InARow + k2InARow + k3InARow + k4InARow;
-int kFull3x3Board      = 1911;  /* 1 + 2 + 4 + 16 + 32 + 64 + 256 + 512 + 1024 */
+POSITION kFull3x3Board      = 1911;  /* 1 + 2 + 4 + 16 + 32 + 64 + 256 + 512 + 1024 */
 
 int gBoardColumns      = 4;     /* 3 columns on the board */
 int gBoardRows         = 4;     /* 3 rows on the board */
@@ -287,6 +287,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case '1':
 			gInitialPosition = GetRandomNumber(gNumberOfPositions); /* random board */
 			break;
@@ -321,8 +322,7 @@ void GameSpecificMenu()
 					gInitialPosition += (int)pow(2.0,(double)i++);
 				else if(c == '-')
 					i++; /* do nothing */
-				else
-					; /* do nothing */
+				/* else do nothing */
 			}
 
 			break;
@@ -937,6 +937,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	int lsb = -1, msb = -1;
 	for (int i = 0; i < 16; i++) {
 		if (mv & 1) {

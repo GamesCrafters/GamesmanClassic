@@ -302,7 +302,7 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 
 /** Local Prototypes **/
-int hash(int L1, int L2, int S1, int S2, int whosMove);
+POSITION hash(int L1, int L2, int S1, int S2, int whosMove);
 int unhashL1(int total);
 int unhashL2(int total);
 int unhashS1(int total);
@@ -370,6 +370,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -431,6 +432,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'A': case 'a':
 			if (oneL) {
 				oneL = 0;
@@ -493,10 +495,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -1255,7 +1257,7 @@ MOVE theMove;
 **                             relative to all the other pieces (1-7).
 **              INT whosmove : The player whose turn it is (1 or 2).
 **
-** OUTPUTS:     INT pos : The hash value of the board
+** OUTPUTS:     POSITION pos : The hash value of the board
 **
 ** CALLS:       unhashMoveL(MOVE)
 **              unhashMoveSPiece(MOVE)
@@ -1263,8 +1265,8 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int hash(int L1, int L2, int S1, int S2, int whosMove) {
-	int pos;
+POSITION hash(int L1, int L2, int S1, int S2, int whosMove) {
+	POSITION pos;
 	pos = (S2-1) + (S1-1)*7 + (L2-1)*7*8 + (L1-1)*7*8*24;
 	pos = (pos << 1) | (whosMove - 1);
 	return pos;

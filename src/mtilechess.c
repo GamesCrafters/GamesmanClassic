@@ -187,7 +187,7 @@ long long unsigned power(int base, int exp);
 long long unsigned atobi(char s[], int base);
 BOOLEAN isEqualString(char s[], char t[]);
 int hashPieces(char *pieces);
-int isLegalPlacement(long long unsigned place, int sideLength, int numPieces, BOOLEAN isolation);
+int isLegalPlacement(long long unsigned place, int sideLength, int numPieces);
 void PreProcess(char *pieces);
 POSITION hashBoard(char bA[], int currentPlayer);
 POSITION hashBoardWithoutTiers(char bA[], int currentPlayer);
@@ -200,7 +200,7 @@ MOVE createMove(char *bA, int init, int final, int sidelength);
 BOOLEAN testMove(char *bA, int newspot, int origspot, int currentPlayer);
 BOOLEAN inCheck(char *bA, int currentPlayer);
 BOOLEAN kingCheck(char *bA, int place, int currentPlayer);
-BOOLEAN isLegalBoard(char *bA, BOOLEAN isolation);
+BOOLEAN isLegalBoard(char *bA);
 BOOLEAN isLegalFormat(char *board);
 BOOLEAN isIsolation(char **board);
 char *setBoard(char *board);
@@ -210,9 +210,9 @@ void generateRookMoves(char *bA, MOVELIST **moves, int place, int currentPlayer)
 void generateQueenMoves(char *bA, MOVELIST **moves, int place, int currentPlayer);
 void generatePawnMoves(char *bA, MOVELIST **moves, int place, int currentPlayer);
 void generateKnightMoves(char *bA, MOVELIST **moves, int place, int currentPlayer);
-BOOLEAN rookCheck(char *bA, int place, int opKingPlace, int currentPlayer);
-BOOLEAN bishopCheck(char *bA, int place, int opKingPlace, int currentPlayer);
-BOOLEAN queenCheck(char *bA, int place, int opKingPlace, int currentPlayer);
+BOOLEAN rookCheck(char *bA, int place, int opKingPlace);
+BOOLEAN bishopCheck(char *bA, int place, int opKingPlace);
+BOOLEAN queenCheck(char *bA, int place, int opKingPlace);
 BOOLEAN pawnCheck(char *bA, int place, int currentPlayer);
 BOOLEAN knightCheck(char *bA, int place, int opKingPlace, int currentPlayer);
 BOOLEAN canMove(char *bA, int currentPlayer);
@@ -233,7 +233,7 @@ BOOLEAN opponentCanMove(POSITION position);
 void fillFuturePieces(int *fP, char *pA, BOOLEAN *visited, int index, int sideLength, int *fpCounter);
 BOOLEAN inFuturePieces(int *fP, int piecePlace, int *fpCounter);
 int bitCount(long long unsigned n);
-BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponentKingPlace, int currentPlayer);
+BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponentKingPlace);
 void fillMove(MOVE move, char *moveStr);
 MOVE getMove(STRING input);
 void SetupTierStuff();
@@ -274,20 +274,20 @@ extern void             SafeFree ();
 
 void InitializeGame ()
 {
-	int i, counter = 0, boardSize = (int)(pow((int)sqrt(strlen(theBoard))-2,2)), totalPieces = (int)sqrt(boardSize);
+	int counter = 0, boardSize = (int)(pow((int)sqrt(strlen(theBoard))-2,2)), totalPieces = (int)sqrt(boardSize);
 	long long unsigned largestBoard = 0;
 	char *pieces = SafeMalloc(totalPieces+1);
 
 	kUsePureDraw = TRUE; /* This game is known to be a pure draw game. */
 
-	for (i = 0; i < strlen(theBoard); i++) {
+	for (size_t i = 0; i < strlen(theBoard); i++) {
 		if (theBoard[i] != ' ') {
 			pieces[counter++] = theBoard[i];
 		}
 	}
 	pieces[counter] = '\0';
 	gMoveToStringFunPtr = &MToS;
-	for (i = 0; i < boardSize; i += (totalPieces+1)) {
+	for (int i = 0; i < boardSize; i += (totalPieces+1)) {
 		largestBoard = largestBoard | (long long unsigned)pow(2,i);
 	}
 	boardToIndex = (int*)SafeMalloc(sizeof(int)*pow(2,totalPieces*totalPieces));
@@ -484,13 +484,13 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	int r, c, sideLength, x, y;
 	boardArray = unhashBoard(position);
 	sideLength = sqrt(strlen(boardArray));
-	int bi=0, iterations = 0;
+	int iterations = 0;
 	int minx=sideLength, maxx=0, miny=sideLength, maxy=0;
 
 	/* Determine the rectangle the pieces reside in.
 	   This is done so as not to print unnecessary empty
 	   rows and columns. */
-	for(bi=0; bi<strlen(boardArray); bi++) {
+	for(size_t bi=0; bi<strlen(boardArray); bi++) {
 		if(boardArray[bi]!=' ') {
 			x = bi%sideLength;
 			y = bi/sideLength;
@@ -543,7 +543,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-
+	(void)computersMove;
+	(void)computersName;
 }
 
 
@@ -693,7 +694,7 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void GameSpecificMenu ()
 {
-	int i = 0, numpieces = 0;
+	int numpieces = 0;
 	char *board = NULL;
 	char c;
 	printf("\n");
@@ -705,6 +706,7 @@ void GameSpecificMenu ()
 	switch(GetMyChar()) {
 	case 'Q': case 'q':
 		ExitStageRight();
+		break;
 	case '1':
 		printf("Limit on total pieces is 5. Tier solver will only work for boards\n\
 with 3 pieces.  Each player MUST have one king and all other\n\
@@ -734,7 +736,7 @@ lower-case letters indicate the pieces that belong to black:\n");
 			} while (c != 'w' && c != 'b');
 			theCurrentPlayer = (c == 'w') ? PLAYER1_TURN : PLAYER2_TURN;
 			if (isLegalFormat(board) && isIsolation(&board)) {
-				for (i = 0; i < strlen(board); i++) {
+				for (size_t i = 0; i < strlen(board); i++) {
 					if (board[i] != ' ')
 						numpieces++;
 				}
@@ -770,7 +772,7 @@ lower-case letters indicate the pieces that belong to black:\n");
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -824,11 +826,11 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	int numPieces = (int)sqrt(strlen(theBoard))-2, i, j = 0, offset;
+	int numPieces = (int)sqrt(strlen(theBoard))-2, j = 0, offset;
 	int temp = 0;
 	char *pieces = SafeMalloc(numPieces+1);
 	pieces[numPieces] = 0;
-	for (i = 0; i < strlen(theBoard); i++) {
+	for (size_t i = 0; i < strlen(theBoard); i++) {
 		if (theBoard[i] != ' ') {
 			pieces[j++] = theBoard[i];
 		}
@@ -1009,19 +1011,13 @@ long long unsigned atobi(char s[], int base) {
    POSTCONDITION: s ends in a null character contains
    the digits of n*/
 void llutoa(long long unsigned n, char s[], int base){
-	int i, nmodbase;
-	long long unsigned sign;
-	if ((sign = n) <0)
-		n = -n;
-	i=0;
+	int i = 0, nmodbase;
 	do {
 		if ((nmodbase = n%base) > 9)
 			s[i++] = nmodbase-10 + 'a';
 		else
 			s[i++] = n%base + '0';
 	} while((n = n / base)>0);
-	if(sign<0)
-		s[i++] = '-';
 	s[i] = '\0';
 	reverse(s);
 }
@@ -1040,7 +1036,7 @@ void PreProcess(char *pieces) {
 			largestBoard = largestBoard | (long long unsigned)pow(2,j);
 		}
 		for (i = 0; i < largestBoard+1; i++) {
-			if (bitCount(i) == world && isLegalPlacement(i,world,world,FALSE)) {
+			if (bitCount(i) == world && isLegalPlacement(i,world,world)) {
 				indexToBoard[legalcounter] = i;
 				boardToIndex[i] = legalcounter;
 				legalcounter++;
@@ -1096,7 +1092,7 @@ int hashPieces(char *pieces) {
    For each piece (1) that it finds, it makes sure that there is at least
    1 other piece around it.  If it is a legal board, this function returns
    1.  Otherwise, it returns 0. */
-int isLegalPlacement(long long unsigned place, int sideLength, int numPieces, BOOLEAN isolation) {
+int isLegalPlacement(long long unsigned place, int sideLength, int numPieces) {
 	char *pA;
 	BOOLEAN visitedPieces[1156]; //34x34 board
 	int futurePieces[100];
@@ -1619,7 +1615,7 @@ void generateMovesDirection(char *boardArray, MOVELIST **moves, int place, int d
 	}
 }
 
-BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponentKingPlace, int currentPlayer) {
+BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponentKingPlace) {
 	int i, iterations=0, sideLength, x, y, x_inc=0, y_inc=0, newplace;
 	int difference = (place>opponentKingPlace) ? place-opponentKingPlace : opponentKingPlace-place;
 	char piece, opKing = boardArray[opponentKingPlace];
@@ -1756,7 +1752,7 @@ BOOLEAN testMove(char *bA, int newspot, int origspot, int currentPlayer) {
 	if (!isSameTeam(newpiece,currentPlayer)) {
 		bA[newspot] = bA[origspot];
 		bA[origspot] = ' ';
-		if (isLegalBoard(bA,(newpiece == ' ') ? FALSE : TRUE) && !inCheck(bA,currentPlayer)) {
+		if (isLegalBoard(bA) && !inCheck(bA,currentPlayer)) {
 			bA[origspot] = bA[newspot];
 			bA[newspot] = newpiece;
 			return TRUE;
@@ -1794,19 +1790,19 @@ BOOLEAN inCheck(char *bA, int currentPlayer) {
 					break;
 				}
 			case 'B':
-				if (bishopCheck(bA,i,kingPlace,currentPlayer) && legalCapture(kingPlace,i,bA)) {
+				if (bishopCheck(bA,i,kingPlace) && legalCapture(kingPlace,i,bA)) {
 					return TRUE;
 				} else {
 					break;
 				}
 			case 'R':
-				if (rookCheck(bA,i,kingPlace,currentPlayer) && legalCapture(kingPlace,i,bA)) {
+				if (rookCheck(bA,i,kingPlace) && legalCapture(kingPlace,i,bA)) {
 					return TRUE;
 				} else {
 					break;
 				}
 			case 'Q':
-				if (queenCheck(bA,i,kingPlace,currentPlayer) && legalCapture(kingPlace,i,bA)) {
+				if (queenCheck(bA,i,kingPlace) && legalCapture(kingPlace,i,bA)) {
 					return TRUE;
 				} else {
 					break;
@@ -1836,7 +1832,7 @@ BOOLEAN legalCapture(int kingSpot, int pieceSpot, char *bA) {
 	BOOLEAN retval;
 	bA[kingSpot] = bA[pieceSpot];
 	bA[pieceSpot] = ' ';
-	retval = isLegalBoard(bA,TRUE);
+	retval = isLegalBoard(bA);
 	bA[pieceSpot] = bA[kingSpot];
 	bA[kingSpot] = king;
 	return retval;
@@ -1861,39 +1857,39 @@ BOOLEAN kingCheck(char *bA, int place, int currentPlayer) {
 
 /* Checks if the bishop is checking the opposing king based on the given
    board, the placement of the bishop, and the currentPlayer. */
-BOOLEAN bishopCheck(char *bA, int place, int opKingPlace, int currentPlayer) {
+BOOLEAN bishopCheck(char *bA, int place, int opKingPlace) {
 	if (place < opKingPlace) {
-		return (isDirectionCheck(bA,place,DR,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,DL,opKingPlace,currentPlayer));
+		return (isDirectionCheck(bA,place,DR,opKingPlace) ||
+		        isDirectionCheck(bA,place,DL,opKingPlace));
 	} else {
-		return (isDirectionCheck(bA,place,UL,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,UR,opKingPlace,currentPlayer));
+		return (isDirectionCheck(bA,place,UL,opKingPlace) ||
+		        isDirectionCheck(bA,place,UR,opKingPlace));
 	}
 }
 
 /* Checks if the rook is checking the opposing king based on the given
    board, the placement of the rook, and the currentPlayer. */
-BOOLEAN rookCheck(char *bA, int place, int opKingPlace, int currentPlayer) {
+BOOLEAN rookCheck(char *bA, int place, int opKingPlace) {
 	if (place < opKingPlace) {
-		return (isDirectionCheck(bA,place,RIGHT,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,DOWN,opKingPlace,currentPlayer));
+		return (isDirectionCheck(bA,place,RIGHT,opKingPlace) ||
+		        isDirectionCheck(bA,place,DOWN,opKingPlace));
 	} else {
-		return (isDirectionCheck(bA,place,LEFT,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,UP,opKingPlace,currentPlayer));
+		return (isDirectionCheck(bA,place,LEFT,opKingPlace) ||
+		        isDirectionCheck(bA,place,UP,opKingPlace));
 	}
 }
 
-BOOLEAN queenCheck(char *bA, int place, int opKingPlace, int currentPlayer) {
+BOOLEAN queenCheck(char *bA, int place, int opKingPlace) {
 	if (place < opKingPlace) {
-		return (isDirectionCheck(bA,place,RIGHT,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,DOWN,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,DR,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,DL,opKingPlace,currentPlayer));
+		return (isDirectionCheck(bA,place,RIGHT,opKingPlace) ||
+		        isDirectionCheck(bA,place,DOWN,opKingPlace) ||
+		        isDirectionCheck(bA,place,DR,opKingPlace) ||
+		        isDirectionCheck(bA,place,DL,opKingPlace));
 	} else {
-		return (isDirectionCheck(bA,place,UL,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,UR,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,LEFT,opKingPlace,currentPlayer) ||
-		        isDirectionCheck(bA,place,UP,opKingPlace,currentPlayer));
+		return (isDirectionCheck(bA,place,UL,opKingPlace) ||
+		        isDirectionCheck(bA,place,UR,opKingPlace) ||
+		        isDirectionCheck(bA,place,LEFT,opKingPlace) ||
+		        isDirectionCheck(bA,place,UP,opKingPlace));
 	}
 }
 
@@ -1998,7 +1994,7 @@ BOOLEAN canMove(char *boardArray, int currentPlayer) {
 /* Temporary work around so that we do not need to hash a board that is
    not of size 9 - Our preprocessed arrays only deal with this size.
    Same as isLegalPlacement, but takes a board instead of a placement. */
-BOOLEAN isLegalBoard(char *bA, BOOLEAN isolation) {
+BOOLEAN isLegalBoard(char *bA) {
 	int i, sideLength, length = strlen(bA), numPieces = 0;
 	char temp[length+1];
 	long long unsigned place;
@@ -2013,7 +2009,7 @@ BOOLEAN isLegalBoard(char *bA, BOOLEAN isolation) {
 	temp[i] = '\0';
 	sideLength = (int) sqrt(length);
 	place = atobi(temp,2);
-	return isLegalPlacement(place,sideLength,numPieces,isolation); //ignore border regarding sideLength
+	return isLegalPlacement(place,sideLength,numPieces); //ignore border regarding sideLength
 }
 
 BOOLEAN isIsolation(char **board) {
@@ -2051,7 +2047,7 @@ BOOLEAN isIsolation(char **board) {
 	newBoard[i] = '\0';
 	SafeFree(*board);
 	*board = newBoard;
-	return isLegalBoard(newBoard,FALSE);
+	return isLegalBoard(newBoard);
 }
 
 char *setBoard(char *board) {
@@ -2561,21 +2557,20 @@ TIER getInitialTier() {
 //  starting from the least significant bit (white's king)
 int alignPieceToTier(char piece, TIER tempTier, int reset) {
 	int total = 0; //keeps track of the nth piece in the tier
-	int i = 0;
 	TIER tempPieceValue = TierPieceValue(piece, 0);
 	if (reset) {
 		TierPieceValue(0, 1); //reset the counters in this function
 		return -1;
 	}
 
-	for (i = 0; i < sizeof(tempTier) * 8; i++) {
+	for (size_t i = 0; i < sizeof(tempTier) * 8; i++) {
 		//if (TierPieceValue(piece, 0) & tempTier) {
 		//  return total;
 		//}
 
 		//updates the nth piece in the tier because we've found a piece
 		if (1 << i & tempTier) {
-			if (1 << i == tempPieceValue)
+			if ((TIER)(1 << i) == tempPieceValue)
 				return total;
 			else
 				total++;
@@ -2999,7 +2994,7 @@ BOOLEAN isLegalPos(POSITION pos)
 		SafeFree(boardArray);
 		return FALSE;
 	}
-	temp = isLegalBoard(boardArray, TRUE);
+	temp = isLegalBoard(boardArray);
 	temp = temp && (pieces(boardArray) > 2);
 
 	SafeFree(flushedBoard);
@@ -3166,9 +3161,11 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING MoveToString(MOVE theMove) {
+	(void)theMove;
 	return StringDup("");
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

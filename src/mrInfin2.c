@@ -424,10 +424,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -1106,8 +1106,7 @@ POSITION GetInitialPosition()
 			temp = o;
 		else if(c == '-')
 			temp = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 		if (i ==0) { c1 = temp; }
 		else if ( i == 1) { c2 = temp; }
 		else if ( i == 2) { c3 = temp; }
@@ -1932,9 +1931,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

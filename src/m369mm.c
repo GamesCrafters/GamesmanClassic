@@ -672,7 +672,7 @@ UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
 	int undoMoveType;
 
 	if (tier < 100 && ((tier / 10) % 10 == 2 || tier % 10 == 2)) return NULL;
-	int currTier = piecesLeft * 100 + numX * 10 + numO;
+	TIER currTier = piecesLeft * 100 + numX * 10 + numO;
 	if (currTier == tier - (oppTurn == X ? 91 : 109))
 		// Placement with removal.
 		undoMoveType = 0;
@@ -1444,6 +1444,7 @@ void GameSpecificMenu() {
 			break;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -1474,6 +1475,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int options[]) {
+	(void)options;
 }
 
 
@@ -1754,6 +1756,7 @@ STRING TierToString(TIER tier) {
 // Given POSITION, slot
 // Return whether player indicated by `turn` has all pieces in a mill.
 BOOLEAN all_mills(char *board, int slot, char turn) {
+	(void)slot;
 	for (int i = 0; i < BOARDSIZE; i++) {
 		if (board[i] == turn) {
 			if (!checkMill(board, i, turn)) {
@@ -2140,8 +2143,8 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 	int piecesLeft, numX, numO;
 	char turn;
 	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
-	int currFrom = 31;
-	int currTo = 31;
+	POSITION currFrom = 31ULL;
+	POSITION currTo = 31ULL;
 	POSITION currIntermediatePosition = 0;
 
 	while (moveList != NULL) {

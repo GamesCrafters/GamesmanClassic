@@ -677,23 +677,23 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	//Player Name, Predictions. Stolen directly from Asalto
 	sprintf(turnString1,"| It is %s's turn.", playerName);
 	printf("\t%s",turnString1);
-	if (strlen(turnString1) < (2 * OthCols) + 26)
-		for (hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 26 - strlen(turnString1); hyphens++)
+	if ((int)strlen(turnString1) < (2 * OthCols) + 26)
+		for (hyphens = 0; hyphens < (2 * OthCols) + 26 - (int)strlen(turnString1); hyphens++)
 			printf(" ");
 	printf("|\n");
 
 	sprintf(turnString2,"| %s is playing %s", playerName, owncolor);
 	printf("\t%s",turnString2);
-	if (strlen(turnString2) < (2 * OthCols) + 26)
-		for (hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 26 - strlen(turnString2); hyphens++)
+	if ((int)strlen(turnString2) < (2 * OthCols) + 26)
+		for (hyphens = 0; hyphens < (2 * OthCols) + 26 - (int)strlen(turnString2); hyphens++)
 			printf(" ");
 	printf("|\n");
 
 	sprintf(prediction,"| %s",GetPrediction(position,playerName,usersTurn));
 	if (prediction[2] == '(') {
 		printf("\t%s", prediction);
-		if (strlen(prediction) < (2 * OthCols) + 26)
-			for (hyphens = 0; (int) hyphens < (int) (2 * OthCols) + 26 - strlen(prediction); hyphens++)
+		if ((int)strlen(prediction) < (2 * OthCols) + 26)
+			for (hyphens = 0; hyphens < (2 * OthCols) + 26 - (int)strlen(prediction); hyphens++)
 				printf(" ");
 		printf("|\n");
 	}
@@ -1632,7 +1632,7 @@ POSITION InteractStringToPosition(STRING pos) {
 	}
 
 	// Validate parsed board size
-	if (num_rows != OthRows || num_columns != OthCols) {
+	if ((int)num_rows != OthRows || (int)num_columns != OthCols) {
 		SafeFreeString(board); // Free the string!
 		return INVALID_POSITION;
 	}
@@ -1678,6 +1678,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	if ((int)mv == PASSMOVE) {
 		STRING move = (STRING)SafeMalloc(2);
 		sprintf(move, "P");

@@ -267,7 +267,7 @@ void generateQueenUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int current
 void generateKnightUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t);
 void generatePawnUndoMoves(char *boardArray,  UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t);
 void generateKingUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t);
-void generateReplacementUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, char replacementPiece, TIER t);
+void generateReplacementUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t);
 UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t);
 void PrintUndoMove (UNDOMOVE umove);
 void printUndoMoveList(UNDOMOVELIST *moves);
@@ -670,7 +670,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-
+	(void)computersMove;
+	(void)computersName;
 }
 
 
@@ -853,6 +854,7 @@ void GameSpecificMenu ()
 	switch(GetMyChar()) {
 	case 'Q': case 'q':
 		ExitStageRight();
+		break;
 	case '1':
 		normalVariant = TRUE;
 		misereVariant = FALSE;
@@ -925,7 +927,7 @@ lower-case letters indicate the pieces that belong to black:\n\n");
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -2398,9 +2400,9 @@ UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
 				case WHITE_QUEEN: case BLACK_QUEEN:
 
 					if (i == 0 && piece == WHITE_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					} else if(i == rows-1 && piece == BLACK_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					}
 
 					generateQueenUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
@@ -2408,9 +2410,9 @@ UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
 				case WHITE_BISHOP: case BLACK_BISHOP:
 
 					if (i == 0 && piece == WHITE_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					} else if(i == rows-1 && piece == BLACK_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					}
 
 					generateBishopUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
@@ -2418,18 +2420,18 @@ UNDOMOVELIST *gGenerateUndoMovesToTier (POSITION position, TIER t)
 				case WHITE_ROOK: case BLACK_ROOK:
 
 					if (i == 0 && piece == WHITE_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					} else if(i == rows-1 && piece == BLACK_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					}
 
 					generateRookUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					break;
 				case WHITE_KNIGHT: case BLACK_KNIGHT:
 					if (i == 0 && piece == WHITE_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, WHITE_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					} else if(i == rows-1 && piece == BLACK_QUEEN) {
-						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, BLACK_QUEEN, t);
+						generateReplacementUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					}
 					generateKnightUndoMoves(boardArray, &moves, currentPlayer, i, j, t);
 					break;
@@ -2740,7 +2742,7 @@ MOVE move;
 
 
 
-void generateReplacementUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, char replacementPiece, TIER t){
+void generateReplacementUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
 	UNDOMOVE newuMove;
 	if(currentPlayer == WHITE_TURN) {
 		// UP
@@ -3409,6 +3411,7 @@ char *getBoard() {
 }
 
 BOOLEAN isLegalBoard(char *Board){
+	(void)Board;
 	return TRUE;
 }
 
@@ -3681,7 +3684,7 @@ POSITION InteractStringToPosition(STRING str) {
   }
 
   // Validate parsed board size
-  if (num_rows != rows || num_columns != cols) {
+  if ((int)num_rows != rows || (int)num_columns != cols) {
     SafeFreeString(board); // Free the string!
     return INVALID_POSITION;
   }
@@ -3741,6 +3744,7 @@ char* InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
+  (void)pos;
   char rowf, colf, rowi, coli;
   rowf = (move & 15);
   colf = ((move >> 4) & 15) - 10;

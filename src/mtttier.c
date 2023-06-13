@@ -303,10 +303,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -359,8 +359,7 @@ POSITION GetInitialPosition()
 			board[i++] = o; ycount++;
 		} else if(c == '-')
 			board[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	return(BlankOXToPosition(board));
@@ -848,8 +847,7 @@ void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
 			board[i++] = o; ycount++;
 		} else if(c == '-')
 			board[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	(*tier) = BoardToTier(board);
@@ -859,6 +857,7 @@ void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
 
 // Not used, since we deal with the double-hash problem already.
 BOOLEAN IsLegal(POSITION position) {
+	(void)position;
 	return TRUE;
 }
 
@@ -947,5 +946,6 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

@@ -652,6 +652,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -1406,10 +1407,10 @@ POSITION position;
 **
 ************************************************************************/
 
-MOVE DecodeMove(thePosition, canPosition, move)
-POSITION thePosition, canPosition;
-MOVE move;
+MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move)
 {
+	(void)thePosition;
+	(void)canPosition;
 	return move;
 }
 
@@ -1430,10 +1431,9 @@ MOVE move;
 **
 ************************************************************************/
 
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
+POSITION DoSymmetry(POSITION position, int symmetry)
 {
+	(void)symmetry;
 	return position;
 }
 

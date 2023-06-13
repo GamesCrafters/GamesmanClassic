@@ -137,6 +137,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
 }
 
 /************************************************************************
@@ -200,6 +201,7 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  (void)computersName;
   PrintMove(computersMove);
 }
 
@@ -783,9 +785,11 @@ int getOption() {
 }
 
 void setOption(int option) {
+  (void)option;
 }
 
 POSITION ActualNumberOfPositions(int variant) {
+  (void)variant;
   return gNumberOfPositions;
 }
 
@@ -839,6 +843,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
   STRING result = (STRING) SafeMalloc(8);
 
   int origin = move / 100;

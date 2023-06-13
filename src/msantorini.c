@@ -49,7 +49,9 @@ CONST_STRING kHelpExample = "";
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
@@ -87,6 +89,7 @@ MOVELIST *GenerateMoves(POSITION position) {
      moves = CreateMovelistNode(<the move you're adding>, moves);
      See the function CreateMovelistNode in src/core/misc.c
   */
+  (void)position;
   return moves;
 }
 
@@ -94,6 +97,8 @@ MOVELIST *GenerateMoves(POSITION position) {
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
+  (void)position;
+  (void)move;
   return 0;
 }
 
@@ -101,6 +106,7 @@ POSITION DoMove(POSITION position, MOVE move) {
 for the value enum definition. */
 VALUE Primitive(POSITION position) {
   /* YOUR CODE HERE */
+  (void)position;
   return undecided;
 }
 
@@ -123,20 +129,29 @@ POSITION GetCanonicalPosition(POSITION position) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
   /* YOUR CODE HERE */
+  (void)position;
+  (void)playerName;
+  (void)usersTurn;
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
   /* YOUR CODE HERE */
+  (void)computersMove;
+  (void)computersName;
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   /* YOUR CODE HERE */
+  (void)position;
+  (void)move;
+  (void)playerName;
   return Continue;
 }
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
   /* YOUR CODE HERE */
+  (void)input;
   return TRUE;
 }
 
@@ -144,6 +159,7 @@ BOOLEAN ValidTextInput(STRING input) {
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
   /* YOUR CODE HERE */
+  (void)input;
   return 0;
 }
 
@@ -152,12 +168,14 @@ Ideally this matches with what the user is supposed to
 type in. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
+  (void)move;
   return NULL;
 }
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
   /* YOUR CODE HERE */
+  (void)move;
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -191,6 +209,7 @@ or data structures according to the variant specified by the variant id.
 But for now you have one variant so don't worry about this. */
 void setOption(int option) {
   /* YOUR CODE HERE MAYBE LATER BUT NOT NOW */
+  (void)option;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -206,15 +225,18 @@ They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
 POSITION InteractStringToPosition(STRING board) {
   /* YOUR CODE HERE LATER BUT NOT NOW */
+  (void)board;
   return 0;
 }
 
 STRING InteractPositionToString(POSITION position) {
   /* YOUR CODE HERE LATER BUT NOT NOW */
+  (void)position;
   return NULL;
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE LATER BUT NOT NOW */
+  (void)position;
   return MoveToString(move);
 }

@@ -588,7 +588,8 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-
+	(void)playersName;
+	(void)usersTurn;
 	char *gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
 	int countA = 0, countB = 0, i = 0;
 
@@ -1137,7 +1138,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1260,6 +1261,7 @@ void setOption (int option)
 	/* If you have implemented symmetries you should
 	   include the boolean variable gSymmetries in your
 	   hash */
+	(void)option;
 }
 
 
@@ -1533,7 +1535,7 @@ TIERLIST *TierChildren(TIER tier) {
 	int i;
 	int countA, countB;
 
-	if(tier < (rowcount - 1) + (rowcount - 1)*boardSize*boardSize) {
+	if(tier < (TIER)((rowcount - 1) + (rowcount - 1)*boardSize*boardSize)) {
 		for(i = 0; i < (rowcount - 1)*2; i++) {
 			// initial tier
 			if(i == 0) {
@@ -1547,7 +1549,7 @@ TIERLIST *TierChildren(TIER tier) {
 				countA = i/2 + 1;
 				countB = i/2;
 
-				if(tier == countA + countB*boardSize*boardSize) {
+				if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
 					return tierlist;
 				}
@@ -1557,7 +1559,7 @@ TIERLIST *TierChildren(TIER tier) {
 				countA = i/2;
 				countB = i/2;
 
-				if(tier == countA + countB*boardSize*boardSize) {
+				if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					tierlist = CreateTierlistNode(tier+1, tierlist);
 					return tierlist;
 				}
@@ -1568,8 +1570,8 @@ TIERLIST *TierChildren(TIER tier) {
 	else {
 		for(countA = (rowcount - 1); countA <= boardSize; countA++) {
 			for(countB = (rowcount - 1); countB <= boardSize - countA; countB++) {
-				if(tier + 1 == countA + countB*boardSize*boardSize ||
-				   tier + boardSize*boardSize == countA + countB*boardSize*boardSize) {
+				if(tier + 1 == (TIER)(countA + countB*boardSize*boardSize) ||
+				   tier + boardSize*boardSize == (TIER)(countA + countB*boardSize*boardSize)) {
 					// self loop
 					tierlist = CreateTierlistNode(tier, tierlist);
 					// putting an X down
@@ -1577,7 +1579,7 @@ TIERLIST *TierChildren(TIER tier) {
 					// putting an O down
 					tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
 				}
-				else if(tier == countA + countB*boardSize*boardSize) {
+				else if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					// self loop
 					tierlist = CreateTierlistNode(tier, tierlist);
 				}
@@ -1761,9 +1763,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
+	(void)mv;
 	return "Implement MoveToString";
 }

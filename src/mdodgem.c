@@ -227,6 +227,7 @@ void GameSpecificMenu()
 			return;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -328,8 +329,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -731,17 +731,17 @@ BlankOX *whosTurn;
 		*whosTurn = o;
 
 	for(i = 8; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -905,15 +905,15 @@ STRING InteractPositionToString(POSITION pos) {
 		// 0    1    2    3 
 		// Therefore, we need to add offset of i/4 when putting it onto a 4x4 board
 		int offset = i / 3 + 4;
-		if (pos >= ((int) x * g3Array[i])) {
+		if (pos >= (POSITION)(x * g3Array[i])) {
 			oxboard[i + offset] = 'x';
-			pos -= (int) x * g3Array[i];
-		} else if (pos >= ((int) o * g3Array[i])) {
+			pos -= x * g3Array[i];
+		} else if (pos >= (POSITION)(o * g3Array[i])) {
 			oxboard[i + offset] = 'o';
-			pos -= (int) o * g3Array[i];
-		} else if (pos >= ((int) Blank * g3Array[i])) {
+			pos -= o * g3Array[i];
+		} else if (pos >= (POSITION)(Blank * g3Array[i])) {
 			oxboard[i + offset] = '-';
-			pos -= (int) Blank * g3Array[i];
+			pos -= Blank * g3Array[i];
 		} else {
 			BadElse("InteractPositionToString");
 		}
@@ -931,6 +931,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING MoveToString(MOVE theMove) {
+	(void)theMove;
 	return NULL;
 }
 

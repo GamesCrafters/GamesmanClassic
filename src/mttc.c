@@ -739,6 +739,7 @@ void GameSpecificMenu () {
 ************************************************************************/
 
 void SetTclCf (int options[]) {
+	(void)options;
 	return;
 }
 
@@ -1833,6 +1834,9 @@ MOVELIST *genQueenMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) 
 }
 /* Generates the Pawn moves */
 MOVELIST *genPawnMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
+	(void)board;
+	(void)player;
+	(void)cell;
 	return head;
 }
 
@@ -1971,9 +1975,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

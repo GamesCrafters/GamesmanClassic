@@ -51,7 +51,9 @@ CONST_STRING kHelpExample = "";
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 
 // Defining Slide5Board
 typedef struct {
@@ -241,6 +243,7 @@ POSITION GetInitialPosition() {
 
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
+  (void)position;
   MOVELIST *moves = NULL;
 
   for (int i = 0; i < 10; i++) {
@@ -362,6 +365,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+  (void)playerName;
+  (void)usersTurn;
   Slide5Board* board = Unhash(position);
 
   printf("  1 2 3 4 5\n");
@@ -383,6 +388,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  (void)computersMove;
+  (void)computersName;
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -557,5 +564,6 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
   return UWAPI_Board_Regular2D_MakeMoveString(25 + move * 2, 26 + move * 2);
 }

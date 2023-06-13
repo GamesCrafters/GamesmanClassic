@@ -617,6 +617,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
 }
 
 /************************************************************************
@@ -962,6 +963,7 @@ void unhashTier(TIER tier, int *xPlaced, int *oPlaced, char *turn) {
 }
 
 TIER hashTier(int xPlaced, int oPlaced, char turn) {
+  (void)turn;
 	return xPlaced * 10 + oPlaced;
 }
 
@@ -1463,6 +1465,7 @@ STRING InteractPositionToString(POSITION interPos) {
 
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  (void)pos;
   int isGridMove, from, to;
   unhashMove(mv % 100000, &isGridMove, &from, &to);
   if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv

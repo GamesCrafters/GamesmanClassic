@@ -759,6 +759,7 @@ BOOLEAN hashCacheGet(TIER tier, POSITION tierposition, char *board, char *turn, 
 ************************************************************************/
 
 int vcfg_board(int* configuration) {
+	(void)configuration;
 	return 1;
 }
 
@@ -769,6 +770,7 @@ STRING copy(STRING toCopy) {
 }
 
 void *fakeUnhash(POSITION p) {
+	(void)p;
 	return (void *) copy("balhblahblah");
 }
 
@@ -1142,6 +1144,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
+	(void)options;
 }
 
 /************************************************************************
@@ -1437,6 +1440,7 @@ char* TclUnhash(POSITION position) {
 	if (board != NULL)
 		SafeFree(board);
 	return TclBoard;*/
+	(void)position;
 	return NULL;
 }
 
@@ -1701,13 +1705,14 @@ POSITION InteractStringToPosition(STRING string) {
 
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-  int from, to, remove;
-  unhashMove(mv, &from, &to, &remove);
-  if (from == to) {
-	  return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping[to]);
-  } else {
-	  return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping[from], boardToGridIdxMapping[to]);
-  }
+	(void)pos;
+	int from, to, remove;
+	unhashMove(mv, &from, &to, &remove);
+	if (from == to) {
+		return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping[to]);
+	} else {
+		return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping[from], boardToGridIdxMapping[to]);
+	}
 }
 
 

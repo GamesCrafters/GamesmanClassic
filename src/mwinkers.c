@@ -380,6 +380,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -486,9 +487,9 @@ void printBoard (char * board) {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions (int options[])
 {
+	(void)options;
 }
 
 
@@ -582,8 +583,7 @@ POSITION GetInitialPosition()
 			gBoard[i++] = 'B';
 		else if(c == '-')
 			gBoard[i++] = EMPTYSPACE;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 	DEFAULT = FALSE;
 	return(generic_hash_hash(gBoard, 1));
@@ -1294,10 +1294,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

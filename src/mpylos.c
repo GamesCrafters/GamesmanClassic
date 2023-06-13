@@ -285,13 +285,12 @@ STRING MoveToString(MOVE);
 
 /**************************************************** ConvertTextInputToMove */
 MOVE ConvertTextInputToMove(STRING input) {
-	int index;
 	char *move;
 	MoveGroup moveGroup;
 
 	move = strtok(input, " ");
 
-	for (index = 0; index < MOVES_IN_GROUP; index++) {
+	for (size_t index = 0; index < MOVES_IN_GROUP; index++) {
 		moveGroup.moves[index] = move == NULL ? 0 : atoi(move);
 		move = strtok(NULL, " ");
 	}
@@ -307,7 +306,7 @@ void DebugMenu() {
 POSITION DoMove(POSITION position, MOVE move) {
 	char board[gBoardSize];
 	MoveGroup moveGroup = *(MoveGroup*)&move;
-	int index = ConvertAddressToIndex(moveGroup.moves[0]);
+	size_t index = ConvertAddressToIndex(moveGroup.moves[0]);
 	Piece piece = generic_hash_turn(position) == LIGHT_PIECE ? DARK_PIECE : LIGHT_PIECE;
 
 	generic_hash_unhash(position, board);
@@ -354,6 +353,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -396,7 +396,7 @@ void GameSpecificMenu() {
 MOVELIST *GenerateMoves(POSITION position) {
 	char board[gBoardSize];
 	char center; /* Used for hardcoding */
-	int height, index;
+	int height;
 	MOVELIST* moveList = NULL;
 	MoveGroup moveGroup;
 	Pyramid *pyramid, pyramids[gBoardAddresses];
@@ -410,7 +410,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	MakeAddressable(board);
 	CreatePyramidHashTable(pyramids, board);
 
-	for (index = 0; index < MOVES_IN_GROUP; index++)
+	for (size_t index = 0; index < MOVES_IN_GROUP; index++)
 		moveGroup.moves[index] = 0;
 
 	for (moveGroup.moves[0] = gBoardAddresses; moveGroup.moves[0] > 0;
@@ -647,13 +647,12 @@ void setOption(int option) {
 
 /************************************************************ ValidTextInput */
 BOOLEAN ValidTextInput(STRING input) {
-	int index;
 	char *move, inputBackup[strlen(input)];
 
 	strcpy(inputBackup, input);
 	move = strtok(inputBackup, " ");
 
-	for (index = 0; index < MOVES_IN_GROUP && move != NULL; index++) {
+	for (size_t index = 0; index < MOVES_IN_GROUP && move != NULL; index++) {
 		if (atoi(move) < 1)
 			return FALSE;
 
@@ -889,10 +888,9 @@ void PrintMoveGroup(MOVE move) {
 
 STRING MoveGroupToString(MOVE move) {
 	STRING s = (STRING) SafeMalloc( 10 );
-	int index;
 	MoveGroup moveGroup = *(MoveGroup*)&move;
 
-	for (index = 0; index < MOVES_IN_GROUP; index++) {
+	for (size_t index = 0; index < MOVES_IN_GROUP; index++) {
 		if (moveGroup.moves[index] != 0) {
 			if (index > 0)
 				sprintf( s, " " );
@@ -925,9 +923,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
   return MoveToString(mv);
 }

@@ -386,9 +386,9 @@ void changeBoard()
 
 void changeKills()
 {
-	unsigned int kills;
+	int kills;
 	printf("Enter the new number of pieces to capture:   ");
-	kills = GetMyUInt();
+	kills = GetMyInt();
 	if (PIECES - kills < 0) {
 		printf("A player can only lose as many pieces as the game starts with\n");
 		changeKills();
@@ -441,10 +441,9 @@ void changePieces()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
-
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -2468,5 +2467,6 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

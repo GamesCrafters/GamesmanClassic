@@ -426,9 +426,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	GoPosition pos = unhashPosition(position);
 
 /* FIXME:  Invert */
-	int i, j;
-	for (i = 0; i < DEFAULT_BOARD_SIZE; ++i) {
-		for (j = 0; j < DEFAULT_BOARD_SIZE; ++j) {
+	for (size_t i = 0; i < DEFAULT_BOARD_SIZE; ++i) {
+		for (size_t j = 0; j < DEFAULT_BOARD_SIZE; ++j) {
 			GoMove move = newGoMove(i + 1, j + 1);
 			if (isValidMove(move, pos)) {
 				moves = CreateMovelistNode(hashMove(move), moves);
@@ -561,7 +560,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-
+	(void)computersMove;
+	(void)computersName;
 }
 
 
@@ -677,12 +677,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-#if 0
-	return (tolower(input[0]) >= 'a' && tolower(input[0]) <= 'c'
-	        && input[1] >= 1 && input[1] <= 3);
-#else
+	// return (tolower(input[0]) >= 'a' && tolower(input[0]) <= 'c'
+	//         && input[1] >= 1 && input[1] <= 3);
+	(void)input;
 	return TRUE;
-#endif
 }
 
 
@@ -744,7 +742,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -868,8 +866,7 @@ static POSITION
 hashPosition(GoPosition pos) {
 	char pos_string[DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE];
 	POSITION result;
-	int i;
-	for (i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
+	for (size_t i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
 		pos_string[i] = pos->board->matrix[i]->stone
 		                ? (pos->board->matrix[i]->stone->color == STONE_BLACK ? 'X' : 'O')
 				: '-';
@@ -894,8 +891,7 @@ unhashPosition(POSITION pos) {
 	}
 	pos >>= 2;
 	generic_hash_unhash(pos, pos_string);
-	int i;
-	for (i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
+	for (size_t i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
 		result->board->matrix[i]->stone =
 		        pos_string[i] == '-'
 		        ? NULL
@@ -1018,22 +1014,22 @@ stringifyGoPosition(GoPosition pos) {
 #else
 	static char str[800];
 #endif
-	int i, j;
+	size_t i, j;
 	sprintf(str, "         ");
 	for (i = 0; i < pos->board->size; ++i)
-		sprintf(str + strlen(str), " %c", 'A' + i);
+		sprintf(str + strlen(str), " %c", (char)('A' + i));
 	strcat(str, "\n      ");
 	for (j = pos->board->size; j > 0; --j) {
-		sprintf(str + strlen(str), " %2d ", j);
+		sprintf(str + strlen(str), " %2zd ", j);
 		for (i = 0; i < pos->board->size; ++i) {
 			GoStone stone = getGoIntersection(pos->board, i, j - 1)->stone;
 			strcat(str, stone ? (stone->color == STONE_WHITE ? "O " : "X ") : ". ");
 		}
-		sprintf(str + strlen(str), "%2d\n      ", j);
+		sprintf(str + strlen(str), "%2zd\n      ", j);
 	}
 	strcat(str, "   ");
 	for (i = 0; i < pos->board->size; ++i)
-		sprintf(str + strlen(str), " %c", 'A' + i);
+		sprintf(str + strlen(str), " %c", (char)('A' + i));
 	strcat(str, "\n");
 	return str;
 }
@@ -1049,7 +1045,7 @@ newGoBoard(size_t boardsize) {
 	new_board->size = boardsize;
 	new_board->matrix = SafeMalloc(new_board->size * new_board->size * sizeof(GoIntersection));
 	/* construct empty intersections */
-	int i, j;
+	size_t i, j;
 	for (j = 0; j < new_board->size; ++j)           /* rows */
 		for (i = 0; i < new_board->size; ++i)   /* cols */
 			*(new_board->matrix + (j * new_board->size) + i) = newGoIntersectionDefault();
@@ -1076,7 +1072,7 @@ copyGoBoard(const GoBoard RHS) {
 	new_board->size = RHS->size;
 	new_board->matrix = SafeMalloc(new_board->size * new_board->size * sizeof(GoIntersection));
 	/* construct empty intersections */
-	int i, j;
+	size_t i, j;
 	for (j = 0; j < new_board->size; ++j)           /* rows */
 		for (i = 0; i < new_board->size; ++i)   /* cols */
 			*(new_board->matrix + (j * new_board->size) + i) = newGoIntersectionDefault();
@@ -1363,9 +1359,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

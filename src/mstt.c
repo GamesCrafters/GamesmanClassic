@@ -223,6 +223,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -281,10 +282,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -427,8 +428,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	printf("Get Initial Move Called");
@@ -487,24 +487,24 @@ POSITION position;
 
 	PositionToBlankOX(position,theBlankOX);
 
-	if( (ThreeInARow(theBlankOX,0,1,2) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,3,4,5) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,6,7,8) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,0,3,6) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,1,4,7) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,2,5,8) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,0,4,8) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,2,4,6) == NotWhoseTurn)) {
+	if( (ThreeInARow(theBlankOX,0,1,2) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,3,4,5) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,6,7,8) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,0,3,6) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,1,4,7) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,2,5,8) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,0,4,8) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,2,4,6) == (int)NotWhoseTurn)) {
 		return(gStandardGame ? lose : win);
 	}
-	else if( (ThreeInARow(theBlankOX,0,1,2) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,3,4,5) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,6,7,8) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,0,3,6) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,1,4,7) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,2,5,8) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,0,4,8) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,2,4,6) == WhichTurn)) {
+	else if( (ThreeInARow(theBlankOX,0,1,2) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,3,4,5) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,6,7,8) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,0,3,6) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,1,4,7) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,2,5,8) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,0,4,8) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,2,4,6) == (int)WhichTurn)) {
 		return(gStandardGame ? win : lose);
 	}
 	/*  el
@@ -929,17 +929,17 @@ BlankOX *theBlankOX;
 	thePos = (thePos - (thePos%3))/3; /*take out last turn bit*/
 
 	for(i = BOARDSIZE-1; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else {
 			BadElse("PositionToBlankOX");
@@ -1026,14 +1026,14 @@ POSITION position;
 **
 ************************************************************************/
 
-MOVE DecodeMove(thePosition, canPosition, move)
-POSITION thePosition, canPosition;
-MOVE move;
+MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move)
 {
 	/*  int i;*/
 	/*for(i = 0 ; i < NUMSYMMETRIES ; i++)*/
 	/*if(canPosition == DoSymmetry(thePosition, i))*/    /* THIS is the one */
 	/*return((MOVE) gSymmetryMatrix[i][move]); */
+	(void)thePosition;
+	(void)canPosition;
 	return move;
 }
 

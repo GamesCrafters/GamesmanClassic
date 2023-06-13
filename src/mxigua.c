@@ -205,7 +205,7 @@ int getplayer(POSITION);
 int getturnnumber(POSITION);
 int countboard(char *,char);
 char *getprediction(char *);
-BOOLEAN isValidMove(char *, MOVE, char);      /* helper for GenerateMoves */
+BOOLEAN isValidMove(MOVE, char);      /* helper for GenerateMoves */
 VALUE countWinner(POSITION);              /* helper for Primitive */
 BOOLEAN isSurrounded(char *, MOVE, char, BOOLEAN *);  /* helper for DoMove, isValidMove */
 void zeroChecked(); /* helper for InitializeGame, isSurrounded, isTerritory */
@@ -708,7 +708,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* wow, talk about making something foolproof for having students coding games */
 	board=unhashboard(position,board);
 	for(i=0; i<maxsize; i++) {
-		if(isValidMove(board, (MOVE) i, piece)) {
+		if(isValidMove((MOVE) i, piece)) {
 			moves = CreateMovelistNode((MOVE)i,moves);
 		}
 	}
@@ -717,7 +717,7 @@ MOVELIST *GenerateMoves (POSITION position)
 }
 
 /* Generate Moves helper function isValidMove */
-BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
+BOOLEAN isValidMove(MOVE mv, char p) {
 	if(board[mv] != EMPTYSPACE)
 		return FALSE;
 
@@ -911,7 +911,7 @@ POSITION position;
 	}
 
 	for(i = 0; i < maxsize && noValidMoves; i++)
-		if(isValidMove(board, (MOVE) i, piece))
+		if(isValidMove((MOVE) i, piece))
 			noValidMoves = FALSE;
 
 	/* if we've ran out of pieces or there are no more valid spaces on the board */
@@ -1563,10 +1563,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1809,7 +1808,9 @@ char *board;
 ***************************************************************************/
 
 int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg)) {
-	return (generic_hash_init(boardsize, pieces_array, NULL, 0) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
+	(void)vcfg_function_ptr;
+	return (generic_hash_init(boardsize, pieces_array, NULL, 0)
+		<< NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
 }
 
 /***************************************************************************
@@ -1941,11 +1942,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-
 STRING InteractMoveToString(POSITION pos, MOVE mv)
 {
+	(void)pos;
 	return MoveToString(mv);
 }

@@ -283,6 +283,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -333,10 +334,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -572,7 +573,7 @@ POSITION position;
 				if (val == Blank) {
 					val = theBlankOX[i*(N-1)];
 				}
-				else if (val != theBlankOX[i*(N-1)]) {
+				else if (val != (int)theBlankOX[i*(N-1)]) {
 					val = Blank;
 					break;
 				}
@@ -590,7 +591,7 @@ POSITION position;
 				if (val == Blank) {
 					val = theBlankOX[i*(N+1)];
 				}
-				else if (val != theBlankOX[i*(N+1)]) {
+				else if (val != (int)theBlankOX[i*(N+1)]) {
 					val = Blank;
 					break;
 				}
@@ -894,17 +895,17 @@ BlankOX *theBlankOX;
 	thePos = thePos % g3Array[BoardSize];
 
 	for(i = BoardSize-1; i >= 0; i--) {
-		if(thePos >= ((int)o * g3Array[i])) {
+		if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)x * g3Array[i])) {
+		else if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -974,9 +975,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

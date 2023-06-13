@@ -122,7 +122,7 @@ BOOLEAN OkMove(BlankOX*, BlankOX, SLOT, int);
 void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn);
 void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
-SLOT GetToSlot(SLOT fromSlot,int neighbor,BlankOX whosturn);
+SLOT GetToSlot(SLOT fromSlot,int neighbor);
 
 STRING MoveToString(MOVE);
 
@@ -252,6 +252,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -284,9 +285,9 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -356,8 +357,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -491,15 +491,10 @@ POSITION position;
  |\
    4 3
  */
-void PrintPosition(position,playerName,usersTurn)
-
-
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
-
+	(void)playerName;
+	(void)usersTurn;
 	BlankOX theBlankOx[BOARDSIZE], whosTurn;
 
 	PositionToBlankOX(position,theBlankOx,&whosTurn);
@@ -560,7 +555,7 @@ POSITION position;
 	for(i = 0; i < BOARDSIZE; i++) { /* enumerate over all FROM slots */
 		for(j = 0; j < gVertices; j++) { /* enumerate over all directions */
 			if(OkMove(theBlankOX,whosTurn,(SLOT)i,j))
-				head = CreateMovelistNode(SlotsToMove((SLOT)i,GetToSlot(i,j,whosTurn)),head);
+				head = CreateMovelistNode(SlotsToMove((SLOT)i,GetToSlot(i,j)),head);
 		}
 	}
 	return(head);
@@ -573,16 +568,13 @@ int neighbor;
 {
 	SLOT toSlot;
 	//  if (kDebugMenu) printf("OkMove called.\n");
-	toSlot = GetToSlot(fromSlot,neighbor,whosTurn);
+	toSlot = GetToSlot(fromSlot,neighbor);
 	return((theBlankOX[fromSlot] == whosTurn) &&
 	       (toSlot != BADSLOT) &&
 	       (theBlankOX[toSlot] == Blank));
 }
 
-SLOT GetToSlot(fromSlot,neighbor,whosturn)
-SLOT fromSlot;
-int neighbor;
-BlankOX whosturn;
+SLOT GetToSlot(SLOT fromSlot, int neighbor)
 {
 	SLOT toSlot;
 	if (!kUseCustomBoard) {
@@ -773,7 +765,7 @@ BlankOX *theBlankOX, *whosTurn;
 {
 	int i;
 
-	if (thePos >= POSITION_OFFSET) { /* X moves first <==> pos >= offset */
+	if (thePos >= (POSITION)POSITION_OFFSET) { /* X moves first <==> pos >= offset */
 		*whosTurn = x;
 		thePos -= POSITION_OFFSET;
 	}
@@ -781,17 +773,17 @@ BlankOX *theBlankOX, *whosTurn;
 		*whosTurn = o;
 
 	for(i = BOARDSIZE-1; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -871,9 +863,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

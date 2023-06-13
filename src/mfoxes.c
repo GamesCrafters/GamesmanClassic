@@ -690,6 +690,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -800,8 +801,7 @@ POSITION GetInitialPosition ()
 			theBlankFG[i++] = GOOSEPIECE;
 		else if(c == '-')
 			theBlankFG[i++] = BLANKPIECE;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -1025,6 +1025,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	SLOT fromSlot, toSlot;
 	MoveToSlots(mv,&fromSlot,&toSlot);
 	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);

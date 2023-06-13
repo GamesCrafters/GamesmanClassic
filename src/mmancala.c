@@ -310,12 +310,12 @@ void SetupTierStuff() {
 
 TIERLIST* TierChildren(TIER tier)
 {
-	int i,j;
+	TIER i,j;
 	TIERLIST* list = NULL;
 	list = CreateTierlistNode(tier, list);
 
-	for(i=0; i <= numOfPieces - (tier/10000)- (tier%10000); i++) {
-		for(j=0; j <= numOfPieces - (tier/10000) - (tier%10000) - i; j++) {
+	for(i=0; i <= (TIER)numOfPieces - (tier/10000)- (tier%10000); i++) {
+		for(j=0; j <= (TIER)numOfPieces - (tier/10000) - (tier%10000) - i; j++) {
 			if(i != 0 || j!= 0)
 				list = CreateTierlistNode(tier+(10000*i)+j,list);
 		}
@@ -604,8 +604,9 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions [])
+void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 
@@ -1255,11 +1256,10 @@ int *array_hash (POSITION position) {
 		char *board = (char *) SafeMalloc (rsize * sizeof(char));
 		int *result = (int *) SafeMalloc ((boardSize + 1) * sizeof (int));
 
-		if (position > turnOffset) {
+		if (position > (POSITION)turnOffset) {
 			position -= turnOffset;
 			result[turn] = 1;
 		} else result[turn] = 0;
-
 
 		rearranger_unhash (position, board); //analogous to generic hash
 
@@ -1559,5 +1559,6 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

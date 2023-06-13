@@ -322,6 +322,8 @@ Tcl_Interp *interp;
 int argc;
 char **argv;
 {
+	(void)dummy;
+	(void)argv;
 	if (argc != 1) {
 		Tcl_SetResult(interp, "wrong # args: shouldn't be any", TCL_STATIC);
 		return TCL_ERROR;
@@ -338,6 +340,7 @@ Tcl_Interp *interp;
 int argc;
 char **argv;
 {
+	(void)dummy;
 	/* argv[1] is position, argv[2] USED to be boardsize */
 	if (!(argc == 2 || argc == 3)) {
 		Tcl_SetResult(interp,  "wrong # args: should be 1 (or 2 for backwards compat)", TCL_STATIC);
@@ -366,6 +369,7 @@ Tcl_Interp *interp;
 int argc;
 char **argv;
 {
+	(void)dummy;
 	/* argv[1] is position, argv[2] USED to be boardsize */
 	if (!(argc == 2 || argc == 3)) {
 		Tcl_SetResult(interp,  "wrong # args: should be 1 (or 2 for backwards compat)", TCL_STATIC);
@@ -390,6 +394,7 @@ Tcl_Interp *interp;
 int argc;
 char **argv;
 {
+	(void)dummy;
 	/* argv[1] is position, argv[2] USED to be boardsize */
 	if (!(argc == 2 || argc == 3)) {
 		Tcl_SetResult(interp,  "wrong # args: should be 1 (or 2 for backwards compat)", TCL_STATIC);
@@ -413,6 +418,7 @@ Tcl_Interp *interp;
 int argc;
 char **argv;
 {
+	(void)dummy;
 	POSITION position;
 	MOVELIST *ptr, *head;
 	char theAnswer[10000], tmp[1000];
@@ -455,6 +461,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	if (argc != 4) {
 		Tcl_AppendResult(interp, "wrong # args: should be \"", argv[0],
 		                 " x y z\"", (char *) NULL);
@@ -473,6 +480,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	char **ap, *args[20];
 	int numArgs = 0;
 	if (argc != 2) {
@@ -504,6 +512,8 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 	if (argc != 1) {
 		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
@@ -523,6 +533,8 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 	if (argc != 1) {
 		Tcl_SetResult(interp,  "wrong # args: shouldn't have any args", TCL_STATIC);
 		return TCL_ERROR;
@@ -541,6 +553,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	MOVE GetComputersMove();
 	POSITION position;
 
@@ -565,6 +578,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int GetLastOnlineMove();
 	POSITION position;
 	int errCode;
@@ -612,6 +626,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int SendNewOnlineMove();
 	POSITION position;
 	int errCode;
@@ -650,6 +665,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int SendGameOver();
 	int errCode;
 	char* errMsg;
@@ -683,6 +699,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int SendResign();
 	int errCode;
 	char* errMsg;
@@ -716,6 +733,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int LoginUser();
 	int errCode;
 	char* errMsg;
@@ -753,6 +771,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int LogoutUser();
 	int errCode;
 	char* errMsg;
@@ -787,6 +806,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int RegisterUser();
 	int errCode;
 	char* errMsg;
@@ -821,6 +841,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int GetUsers();
 	int errCode;
 	char* errMsg;
@@ -866,6 +887,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int RegisterGame();
 	int errCode;
 	char* errMsg;
@@ -903,6 +925,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int JoinGame();
 	int errCode;
 	char* errMsg;
@@ -937,6 +960,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int ReceivedChallenge();
 	int errCode;
 	char* errMsg;
@@ -974,6 +998,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int AcceptChallenge();
 	int errCode;
 	char* errMsg;
@@ -1011,6 +1036,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int GetGameStatus();
 	int errCode;
 	char* errMsg;
@@ -1056,6 +1082,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int AcceptedChallenge();
 	int errCode;
 	char* errMsg;
@@ -1102,6 +1129,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int UnregisterGame();
 	int errCode;
 	char* errMsg;
@@ -1143,6 +1171,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int DeselectChallenger();
 	int errCode;
 	char* errMsg;
@@ -1184,6 +1213,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int SelectChallenger();
 	int errCode;
 	char* errMsg;
@@ -1224,6 +1254,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int i, theOptions[100];
 	int standardGame = 0;
 
@@ -1259,6 +1290,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	VALUE DetermineValue(), DetermineLoopyValue();
 	gTclInterp = interp;
@@ -1289,6 +1321,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	VALUE GetValueOfPosition();
 
@@ -1312,6 +1345,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	REMOTENESS Remoteness();
 
@@ -1334,6 +1368,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	REMOTENESS Remoteness();
 	void MexFormat();
@@ -1364,6 +1399,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	MOVE move;
 	POSITION DoMove();
@@ -1390,6 +1426,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	MOVE move;
 	extern BOOLEAN (*gGoAgain)(POSITION,MOVE);
@@ -1416,6 +1453,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	VALUE Primitive();
 
@@ -1448,6 +1486,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	BOOLEAN solved = TRUE;
 	MOVELIST *ptr, *head;
@@ -1541,6 +1580,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int GetRandomNumber();
 	int n;
 
@@ -1564,6 +1604,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 	STRING playerName, prediction;
 
@@ -1590,6 +1631,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int smartnessScale;
 	STRING smartnessString;
 
@@ -1633,6 +1675,7 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
 	int option;
 
 	if (argc != 2) {
@@ -1656,6 +1699,8 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 	int option;
 
 	if (argc != 1) {
@@ -1678,6 +1723,8 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 	if (argc != 1) {
 		Tcl_SetResult(interp,  "wrong # args: PercentDone", TCL_STATIC);
 		return TCL_ERROR;
@@ -1695,6 +1742,8 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 
 	if (argc != 1) {
 		Tcl_SetResult(interp, "wrong # args: shouldn't be any", TCL_STATIC);
@@ -1718,6 +1767,8 @@ Tcl_Interp *interp;                     /* Current interpreter. */
 int argc;                               /* Number of arguments. */
 char **argv;                            /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 
 	if (argc != 1) {
 		Tcl_SetResult(interp, "wrong # args: shouldn't be any", TCL_STATIC);
@@ -1741,6 +1792,7 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
 	if (argc != 2) {
 		Tcl_SetResult(interp,  "wrong # args: MoveToString", TCL_STATIC);
 		return TCL_ERROR;
@@ -1797,6 +1849,8 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 	if (argc != 1) {
 		Tcl_SetResult(interp,  "wrong # args: UsingTiers", TCL_STATIC);
 		return TCL_ERROR;
@@ -1817,6 +1871,7 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 
 	if (argc != 2) {
@@ -1844,6 +1899,7 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 
 	if (argc != 2) {
@@ -1869,6 +1925,7 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
 	TIER tier;
 
 	if (argc != 2) {
@@ -1894,6 +1951,8 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
+	(void)argv;
 	if (argc != 1) {
 		Tcl_SetResult(interp,  "wrong # args: UsingTiers", TCL_STATIC);
 		return TCL_ERROR;
@@ -1914,6 +1973,7 @@ Tcl_Interp *interp;             /* Current interpreter. */
 int argc;                   /* Number of arguments. */
 char **argv;                /* Argument strings. */
 {
+	(void)dummy;
 	POSITION position;
 
 	if (argc != 2) {
