@@ -85,6 +85,7 @@ void MyPrintParents()
 
 VALUE DetermineLoopyValue(POSITION position)
 {
+	(void) position;
 	VALUE value;
 
 	/* initialize */

@@ -380,7 +380,7 @@ void PrintMoveHistory(POSITION position)
 
 	printf("\n\n");
 
-	if (position != -1) {
+	if (position != (POSITION)(-1)) {
 		PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
 	}
 
@@ -421,7 +421,7 @@ char* digitToString(char* s, int d)
 }
 
 void PrintHeader(int maxMoveLength, int maxRemoteness,
-                 int maxTieRemoteness, POSITION position, int whoseTurn)
+                 int maxTieRemoteness, int whoseTurn)
 {
 
 	int length = 2*maxMoveLength+2*maxRemoteness+2*maxTieRemoteness+6;
@@ -503,7 +503,7 @@ void PrintFooter(int maxMoveLength, int maxRemoteness,
 	char line[maxPossibleLineLength];
 	int i;
 
-	if (position != -1)
+	if (position != (POSITION)(-1))
 		PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
 	strcpy(line, "*");
 	for (i = 0; i < lineLength-2; i++)
@@ -904,7 +904,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 {
 	// if using TinumMoveser-Gamesman, save the current tier
 	TIERPOSITION currentTP; TIER currentTier;
-	if (gHashWindowInitialized && position != -1) {
+	if (gHashWindowInitialized && position != (POSITION)(-1)) {
 		gUnhashToTierPosition(position, &currentTP, &currentTier);
 	}
 
@@ -970,7 +970,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	// Print header
 
-	PrintHeader(maxMoveLength, maxR, maxTR, position, kPlayerOneTurn);
+	PrintHeader(maxMoveLength, maxR, maxTR, kPlayerOneTurn);
 
 	// Determine players' names
 
@@ -1033,7 +1033,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	// Print footer
 	tmp = position;
-	if (gHashWindowInitialized && position != -1) {         //Tier-Gamesman
+	if (gHashWindowInitialized && position != (POSITION)(-1)) {         //Tier-Gamesman
 		gInitializeHashWindow(currentTier, !usingLookupTierDB);         // If playing Tier-Gamesman,
 		tmp = currentTP;         // this returns to current hash window before exiting
 	}
@@ -2078,10 +2078,12 @@ USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
 }
 
 USERINPUT RemoteMove(POSITION position, MOVE* move, STRING name) {
-	int getRemoteMove();
-	*move = getRemoteMove(name, gTurnNumber);
-	PrintComputersMove(*move, name);
-	gTurnNumber++;
+	if (position != (POSITION)(-1)) {
+		int getRemoteMove();
+		*move = getRemoteMove(name, gTurnNumber);
+		PrintComputersMove(*move, name);
+		gTurnNumber++;
+	}
 	return Continue;
 }
 
@@ -2196,10 +2198,6 @@ int getRemoteMove(STRING name, int turnNumber) {
 	free(body);
 	free(url);
 	return result;
-}
-
-void reportGameEnd(int code) {
-	printf("Game ended!\n");
 }
 
 /* END Jiong

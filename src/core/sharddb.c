@@ -27,20 +27,13 @@ void            sharddb_free                     ();
 
 /* Value */
 VALUE           sharddb_get_value                (POSITION pos);
-VALUE           sharddb_set_value                (POSITION pos, VALUE val);
 
 /* Remoteness */
 REMOTENESS      sharddb_get_remoteness           (POSITION pos);
-void            sharddb_set_remoteness           (POSITION pos, REMOTENESS val);
 
 /* Visited */
-BOOLEAN         sharddb_check_visited            (POSITION pos);
-void            sharddb_mark_visited             (POSITION pos);
-void            sharddb_unmark_visited           (POSITION pos);
 
 /* Mex */
-MEX             sharddb_get_mex                  (POSITION pos);
-void            sharddb_set_mex                  (POSITION pos, MEX mex);
 
 /* saving to/reading from a file */
 BOOLEAN         sharddb_save_database            ();
@@ -73,17 +66,17 @@ static void sharddb_cache_get(VALUE *v, REMOTENESS *r, POSITION p);
 */
 
 void sharddb_init(DB_Table *new_db) {
-	new_db->put_value = sharddb_set_value;
-	new_db->put_remoteness = sharddb_set_remoteness;
-	new_db->mark_visited = sharddb_mark_visited;
-	new_db->unmark_visited = sharddb_unmark_visited;
-	new_db->put_mex = sharddb_set_mex;
+	new_db->put_value = NULL;
+	new_db->put_remoteness = NULL;
+	new_db->mark_visited = NULL;
+	new_db->unmark_visited = NULL;
+	new_db->put_mex = NULL;
 	new_db->free_db = sharddb_free;
 
 	new_db->get_value = sharddb_get_value;
 	new_db->get_remoteness = sharddb_get_remoteness;
-	new_db->check_visited = sharddb_check_visited;
-	new_db->get_mex = sharddb_get_mex;
+	new_db->check_visited = NULL;
+	new_db->get_mex = NULL;
 	new_db->save_database = sharddb_save_database;
 	new_db->load_database = sharddb_load_database;
 }
@@ -92,12 +85,6 @@ void sharddb_free() {
 	return;
 }
 
-
-VALUE sharddb_set_value(POSITION pos, VALUE val) {
-	return 0;
-}
-
-//char initializesegment(POSITION offset, FILE *file, int size, POSITION key) {
 char initializesegment(POSITION offset, char *gzbuffer, int size, POSITION key, POSITION *gzOffset) {
     int64_t ptr = 0;
 	ptr = gzbuffer[(*gzOffset)++];
@@ -164,31 +151,6 @@ REMOTENESS sharddb_get_remoteness(POSITION pos)
 	REMOTENESS remoteness;
 	sharddb_cache_get(&value, &remoteness, pos);
 	return remoteness;
-}
-
-void sharddb_set_remoteness (POSITION pos, REMOTENESS val) {
-	return;
-}
-
-BOOLEAN sharddb_check_visited(POSITION pos) {
-	return FALSE;
-}
-
-
-void sharddb_mark_visited (POSITION pos) {
-	return;
-}
-
-void sharddb_unmark_visited (POSITION pos) {
-	return;
-}
-
-void sharddb_set_mex(POSITION pos, MEX mex) {
-	return;
-}
-
-MEX sharddb_get_mex(POSITION pos) {
-	return 0;
 }
 
 BOOLEAN sharddb_save_database () {
@@ -283,6 +245,7 @@ STRING IInteractPositionToString(POSITION position) {
 }
 
 STRING IInteractMoveToString(POSITION position, MOVE move) {
+	(void)position;
   return UWAPI_Board_Regular2D_MakeAddString('a', (IROWCOUNT + 1) * ICOLUMNCOUNT - 1 - (move / (IROWCOUNT + 1)));
 }
 

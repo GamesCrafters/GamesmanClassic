@@ -2407,6 +2407,7 @@ static void mwSIGSEGV( int n );
 
 static void mwSIGSEGV( int n )
 {
+	(void) n;
 	longjmp( mwSIGSEGVjump, 1 );
 }
 

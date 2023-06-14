@@ -207,7 +207,7 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), i
 	temp = 0;
 	cCon->numCfgs = 1;
 	for (i = 0; i < cCon->numPieces; i++) {
-		if(cCon->numCfgs < temp)
+		if((POSITION)(cCon->numCfgs) < temp)
 			ExitStageRightErrorString("Generic Hash: Number of Cfg's wrap on current POSITION type");
 		cCon->numCfgs *= cCon->nums[i];
 		temp = cCon->numCfgs;
@@ -782,7 +782,7 @@ int searchOffset(POSITION h)
 POSITION combiCount(int* tc)
 {
 	POSITION sum = 0, prod = 1, ind = 0,old=1,hold=0;
-	for (ind = 0; ind < cCon->numPieces - 1; ind++) {
+	for (ind = 0; ind < (POSITION)(cCon->numPieces - 1); ind++) {
 		sum += tc[ind];
 		hold = nCr(sum+tc[ind+1], sum);
 		prod *= hold;
@@ -871,7 +871,7 @@ void generic_hash_destroy()
 
 void initializeHashtable() {
 	generic_hash_hashtable = (MOVELIST**) SafeMalloc(HASHTABLE_BUCKETS * sizeof(MOVELIST*));
-	int i;
+	unsigned int i;
 	for (i = 0; i < HASHTABLE_BUCKETS; i++)
 		generic_hash_hashtable[i] = NULL;
 	hashtableInitialized = TRUE;
@@ -936,7 +936,7 @@ int hashtableGet(int context) {
 }
 
 void freeHashtable() {
-	int i;
+	unsigned int i;
 	for (i = 0; i < HASHTABLE_BUCKETS; i++)
 		FreeMoveList(generic_hash_hashtable[i]);
 	if (generic_hash_hashtable != NULL)

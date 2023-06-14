@@ -141,10 +141,10 @@ void PrintBinaryGameValuesToFile(char * filename)
 	uint64_t max_move_choices = 0;
 	uint64_t possible_move_choices = 0;
 	POSITION choice = 0;
-	int j = 0;
+	POSITION j = 0;
 	POSITION max_position = gNumberOfPositions;
 	size_t count = 1;
-	int last_printed = 0;
+	POSITION last_printed = 0;
 
 	if (!filename) {
 		printf("File to save to: ");
@@ -179,7 +179,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	for(i=0; i < max_position; i++) {
 		if (last_printed != ((100 * i) / max_position)) {
 			last_printed = ((100 * i) / max_position);
-			printf("\r    Progress: [%3d%%]", last_printed);
+			printf("\r    Progress: [%3llu%%]", last_printed);
 			fflush(stdout);
 		}
 		all_next_moves = GenerateMoves(i);
@@ -206,7 +206,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	for(i=0; i < gNumberOfPositions; i++) {
 		if (last_printed != ((100 * i) / max_position)) {
 			last_printed = ((100 * i) / max_position);
-			printf("\r    Progress: [%3d%%]", last_printed);
+			printf("\r    Progress: [%3llu%%]", last_printed);
 			fflush(stdout);
 		}
 		if (kSupportsTierGamesman && gTierGamesman) {

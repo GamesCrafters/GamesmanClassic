@@ -119,6 +119,7 @@ void netdb_init(DB_Table *new_db)
 
 void error(char * reason, int code) /*fixme: handle better*/
 {
+	(void) code;
 	fprintf(stderr, "\nCRITICAL NETDB ERROR:\n");
 	fprintf(stderr, "%s\n",reason);
 	exit(1);
@@ -126,6 +127,7 @@ void error(char * reason, int code) /*fixme: handle better*/
 
 void badResponseCode(char * reason, int code)
 {
+	(void) reason;
 	fprintf(stderr, "\nCRITICAL NETDB ERROR:\n");
 	fprintf(stderr, "Server responded with HTTP status code: %d\n", code);
 	exit(1);

@@ -247,4 +247,5 @@ htable_free(
         HTABLE ht
         )
 {
+	(void) ht;
 }

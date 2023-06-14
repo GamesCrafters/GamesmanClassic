@@ -423,7 +423,7 @@ BOOLEAN tierdb_save_database ()
 	sprintf(tierdb_lookupfilename,"./data/m%s_%d_tierdb/lookup", kDBName, getOption());
 	mkdir(tierdb_lookupfilename, 0755);
 
-	if (gDBTierStart != -1 && gDBTierEnd != -1) { // we're creating a partial tier file!
+	if (gDBTierStart != -1ULL && gDBTierEnd != -1ULL) { // we're creating a partial tier file!
 		snprintf(tierdb_outfilename, TIERDB_OUTFILENAME_LENGTH_MAX, "%s/m%s_%d_%llu__%llu_%llu_minitierdb.dat.gz",
 		        tierdb_outfilename_partial, kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
 		start = gDBTierStart;
@@ -517,7 +517,7 @@ BOOLEAN tierdb_load_database()
 	if(!gHashWindowInitialized)
 		return FALSE;
 
-	POSITION i, maxpos; int j;
+	POSITION i, maxpos; POSITION j;
 	tierdb_goodDecompression = 1;
 	tierdb_goodClose = 1;
 	BOOLEAN correctDBVer;

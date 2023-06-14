@@ -1505,6 +1505,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 
 void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, char input)
 {
+	(void) usersTurn;
 	char c;
 
 	do {

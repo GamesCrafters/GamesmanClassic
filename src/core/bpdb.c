@@ -540,7 +540,7 @@ bpdb_get_value(
         )
 {
 	VALUE val = (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_VALUESLOT );
-	if (val == tie && bpdb_get_remoteness(pos) == bpdb_write_slice->maxvalue[BPDB_REMSLOT/2] ) {
+	if (val == tie && bpdb_get_remoteness(pos) == (int) bpdb_write_slice->maxvalue[BPDB_REMSLOT/2] ) {
 		val = drawtie;
 	}
 	return val;
@@ -1737,7 +1737,7 @@ bpdb_save_database()
 	GMSTATUS status = STATUS_SUCCESS;
 
 	// counter
-	int i = 0;
+	unsigned int i = 0;
 	SLIST cur = NULL;
 
 	// file names of saved files

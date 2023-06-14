@@ -97,7 +97,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
 			if (initial == 0) {
 				initial = 1;
 			}
-			while (bufp->num_pages > initial) {
+			while ((gamesdb_pageid) bufp->num_pages > initial) {
 				gamesdb_buf_removepage(db);
 			}
 		}

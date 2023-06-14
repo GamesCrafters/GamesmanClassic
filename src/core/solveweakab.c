@@ -19,9 +19,8 @@
 int ctra = 0;
 
 SCORE invert_score(SCORE score, REMOTENESS max_remoteness) {
-
+	(void) max_remoteness;
 	return -score;
-
 }
 
 

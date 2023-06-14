@@ -93,6 +93,7 @@ void VSMyPrintParents()
 
 VALUE VSDetermineLoopyValue(POSITION position)
 {
+	(void) position;
 	GMSTATUS status = STATUS_SUCCESS;
 	VALUE value;
 

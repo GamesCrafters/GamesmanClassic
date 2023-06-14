@@ -442,6 +442,7 @@ STRING getScaleFnName(fList feature) {
 
 
 BOOLEAN loadDataFromXML(STRING fileName) {
+	(void) fileName;
   #ifdef HAVE_XML
 	scew_tree* tree = NULL;
 	scew_parser* parser = NULL;
@@ -492,6 +493,7 @@ BOOLEAN loadDataFromXML(STRING fileName) {
 }
 
 BOOLEAN createNewXMLFile(STRING fileName) {
+	(void) fileName;
   #ifdef HAVE_XML
 	scew_tree* tree = scew_tree_create();
 	scew_element* root = scew_tree_add_root(tree, "game");
@@ -503,6 +505,8 @@ BOOLEAN createNewXMLFile(STRING fileName) {
 }
 
 BOOLEAN writeEvaluatorToXMLFile(seList evaluator, STRING fileName) {
+	(void) evaluator;
+	(void) fileName;
   #ifdef HAVE_XML
 	scew_tree* tree = NULL;
 	scew_parser* parser = NULL;
@@ -564,6 +568,7 @@ BOOLEAN writeEvaluatorToXMLFile(seList evaluator, STRING fileName) {
 ************************************************************************/
 
 BOOLEAN initializeStaticEvaluator(STRING fileName){
+	(void) fileName;
 	numCustomTraits=0;
 	if(gCustomTraits!=NULL) {
 		while(strcmp(gCustomTraits[numCustomTraits], "")!=0) numCustomTraits++;
@@ -647,6 +652,7 @@ VALUE evaluatePositionValue(POSITION p) {
 
 //Params are {-1 intersect, 1 intersect}
 float linear(float value,float params[]){
+	(void) params;
 	//return (value < params[0]) ? -1 : ((value > params[1]) ? 1 : value);
 	return value;
 }
@@ -699,6 +705,7 @@ float logarithmic(float value,float params[]){
 ************************************************************************/
 
 void NewTraitMenu(STRING fileName) {
+	(void) fileName;
 	char nextItem, libraryUpperBound;
 	int traitNum;
 	fList currFeature = NULL;
@@ -961,6 +968,7 @@ void RequestValue(STRING title,int paramNum,int paramType,fList currFeature) {
 
 //Returns the number of the given piece on the board.
 float numPieces(void* board,void* piece, int params[]) {
+	(void) params;
 	int i, count=0;
 	for(i=0; i<lBoard.size; i++) {
 		if (compare(i,piece,board)) {
@@ -1000,6 +1008,7 @@ float numFromEdge(void* board,void* piece,int params[]) {
    **pieces from the centroid.
  */
 float clustering(void* board,void* piece,int params[]) {
+	(void) params;
 	int rowAverage=0,colAverage=0,numPieces=0,i=0;
 	float value=0;
 	for(i=0; i<lBoard.size; i++) {

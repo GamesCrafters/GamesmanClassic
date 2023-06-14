@@ -187,6 +187,7 @@ void Visualize() {
 }
 
 void PopulateEdgelist(EDGELIST *tree) {
+	(void) tree;
 	int level;
 	POSITION parent, child;
 	MOVELIST *childMoves;
@@ -249,6 +250,7 @@ void PopulateEdgelist(EDGELIST *tree) {
 }
 
 void Write(FILE *fp, EDGELIST *tree) {
+	(void) fp;
 	int currentLevel;
 
 	for(currentLevel = tree->NumberOfLevels - 1; currentLevel > -1; currentLevel--) {
@@ -396,9 +398,9 @@ void WriteNode(FILE *fp, POSITION node, int level, EDGELIST *tree) {
 				} else {
 					UpdateRankList(tree, node, nodeRemoteness);
 				}
-			} else if(level > GetLevelNumber(pdata)) {
+			} else if((unsigned int) level > GetLevelNumber(pdata)) {
 				UpdateRankList(tree, node, REMOTENESS_MAX+1);
-			} else if(level < GetLevelNumber(pdata)) {
+			} else if((unsigned int) level < GetLevelNumber(pdata)) {
 				UpdateRankList(tree, node, REMOTENESS_MAX);
 			} else {
 				BadElse("WriteNode");

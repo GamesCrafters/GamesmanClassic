@@ -435,7 +435,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -466,7 +466,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -563,7 +563,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -619,7 +619,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
