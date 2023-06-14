@@ -330,6 +330,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 					       "databases (in your data/m%s_%d_tierdb directory) are not altered,\n"
 					       "and the API functions are unchanged from their current state.\n", kDBName, variant);
 					ExitStageRight();
+					break;
 				case 'h': case 'H':
 					for (ptr = tierSolveList; ptr != NULL; ptr = ptr->next) {
 						char f1[80], f2[80];
@@ -1991,6 +1992,7 @@ void TestRemote() {
 			break;
 		case 'q': case 'Q':
 			ExitStageRight();
+			break;
 		default:
 			printf("Invalid option!\n");
 		}
@@ -2289,7 +2291,7 @@ void r_getBounds(TIER tier, char* name, BOOLEAN tierdb) {
 	}
 	endStr[index] = '\0';
 	POSITION end = (POSITION) atoi(endStr);
-	if (start < 0 || start >= end || end > gCurrentTierSize) return;
+	if (start >= end || end > gCurrentTierSize) return;
 	// check _minitierdb.dat.gz
 	if (r_checkStr((tierdb ? "_minitierdb.dat.gz" : "_minilevelfile.dat.gz"),name,&i)) return;
 	// sucess! set the vars and return

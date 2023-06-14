@@ -945,6 +945,7 @@ void ParseEvaluatedMenuChoice(char c)
 			playerTwo->GetMove = RemoteMove;
 		}
 		PlayGame(playerOne, playerTwo);
+		break;
 	case 'p': case 'P':
 		if(gOpponent == AgainstComputer) {
 			if(gHumanGoesFirst) {

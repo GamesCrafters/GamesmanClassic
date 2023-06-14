@@ -609,7 +609,7 @@ void quartoDetailedPositionResponse(STRING str) {
             occupiedSlots ^= UINT16_C(1) << i;
         } else {
             piece = board[i] - 'A';
-            if (piece < 0 || piece > 15) {
+            if (piece > 15) {
                 printf("}}"); // Invalid board string: contains invalid characters
                 return;
             }

@@ -227,7 +227,7 @@ void netdb_get_raw(POSITION * positions, cellValue * cells, int length){ //dispa
 	//verify server not broken
 	char * len_str;
 	getheader(res,HD_LENGTH,&len_str);
-	if (len_str == NULL || length!=atoi(len_str) || res->bodyLength != length*sizeof(cellValue)) {
+	if (len_str == NULL || length!=atoi(len_str)) {
 		error("Server sent back invalid response",10);
 	}
 

@@ -459,7 +459,7 @@ BOOLEAN tierdb_save_database ()
 			gzclose(tierdb_filep);
 			off_t prevsize = statbuf.st_size;
 			stat(tierdb_outfilename, &statbuf);
-			fprintf(indexFP, "%lld\n",statbuf.st_size - prevsize);
+			fprintf(indexFP, "%ld\n",(long unsigned int)(statbuf.st_size - prevsize));
 			if((tierdb_filep = gzopen(tierdb_outfilename, "ab")) == NULL) {
 				if(kDebugDetermineValue) {
 					printf("Unable to create compressed data file\n");
