@@ -4,9 +4,6 @@
 
 - zlib
     - `zlib1g-dev`
-- Tcl/Tk
-    - `tcl-dev`
-    - `tk-dev`
 - Build Tools
     - `build-essential`
     - `autoconf`
@@ -14,28 +11,43 @@
 You may install these prerequisites with the following command:
 
 ```
-sudo apt update
+sudo apt update && sudo apt upgrade
 
-sudo apt install build-essential autoconf zlib1g-dev tcl-dev tk-dev
+sudo apt install build-essential autoconf zlib1g-dev
 ```
 
 ### Optional Dependencies
 
-If you want to compile games with big integer support, you'll need the GMP library (latest version).
+The following are required to compile with the Tcl/Tk graphical user interface:
+
+- Tcl/Tk
+    - `tcl-dev`
+    - `tk-dev`
+
+```
+sudo apt install tcl-dev tk-dev
+```
+
+Note: If you are running WSL on Windows, make sure your operating system meets the requirement for [Linux GUI apps on the Windows Subsystem for Linux](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps). As of June 25, 2023, the requirement is Windows 10 Build 19044+ or Windows 11.
 
 ## Building GamesmanClassic
 
-Make sure you're in the directory of the repository. Then use the following script to build GamesmanClassic.
+Make sure you're in the directory of the repository. Then use the following script to build GamesmanClassic:
 
 ```bash
 # Generate configure script
-autoconf # Successful execution of this command should not generate any console output. See the note below for troubleshooting.
+autoconf # Successful execution of this command should not generate any console output.
 
-# Configure
-./configure
+# Configure or reconfigure without graphics.
+./configure --disable-graphics
 ```
 
-3/6/2023: __Issue with autoconf 2.71:__ we recently updated autoconf to 2.71, which is the new default in latest distributions of Linux. This new version is frustratingly not backward compatible with autoconf 2.69 or earlier. Please make sure that you are using the latest version of autoconf by checking its version using `autoconf --version`.
+Optionall, if you successfully installed Tcl/Tk and would like to build with graphics, configure with the default settings instead:
+
+```bash
+# Configure or reconfigure with graphics.
+./configure
+```
 
 If you want to change an option such as whether or not to build with graphics, then you may need to change the configuration options.
 The configuration options are available here: [GamesmanClassic Configuration Options](build-configuration-options.md).
@@ -57,7 +69,7 @@ cd bin
 ./mttt
 ```
 
-To start up the graphical GamesmanClassic interface, you may go to the `bin/` directory and type:
+To start up the optional graphical GamesmanClassic interface, you may go to the `bin/` directory and type:
 
 ```bash
 # Run the new GUI
