@@ -1,6 +1,10 @@
-# Build Instructions (Ubuntu)
+# Build Instructions (Ubuntu/Debian)
 
-Note: These instructions were tested on June 23, 2023 on Ubuntu 22.04.2 LTS and Windows Subsystem for Linux Ubuntu Distribution 22.04.2 LTS.
+These instructions were tested on June 23, 2023 on the following operating systems:
+- Ubuntu 22.04.2 LTS
+- Windows Subsystem for Linux
+    - Ubuntu 22.04.2 LTS
+    - Debian GNU/Linux 11 (bullseye)
 
 ## Summary
 
@@ -101,12 +105,15 @@ Packages required to compile with the Tcl/Tk graphical user interface:
 sudo apt install tcl-dev tk-dev
 ```
 
-### 2. Reconfigure with Graphics
-Make sure you are in the GamesmanClassic base project directory. Then run the following to reconfigure with graphics.
+### 2. Reconfigure and Recompile with Graphics
+Make sure you are in the GamesmanClassic base project directory. Then run the following to recompile with graphics.
 
 ```bash
 # Configure or reconfigure with graphics.
 ./configure
+
+# Recompile
+make clean && make
 ```
 
 Explanations for configuration options are available here: [GamesmanClassic Configuration Options](build-configuration-options.md).
