@@ -48,7 +48,7 @@ make
 Note: If you ever change a ```Makefile.in``` file, you should rerun ```./configure --disable-graphics``` then rerun ```make clean``` then ```make```. If you just make a change to a C file, then you can recompile with ```make```.
 
 ### 6. Run GamesmanClassic
-Once GamesmanClassic is configured and compiled, you can run it by `cd`-ing to the `GamesmanClassic/bin/` directory and running a script that starts with `m` (such as `machi`, or `mttt`), and play the game from the console.
+Once GamesmanClassic is configured and compiled, you can run it by `cd`-ing to the `GamesmanClassic/bin/` directory and running a binary that starts with `m` (such as `machi`, or `mttt`), and play the game from the console.
 
 ```bash
 # Must be in the "bin/" directory first
