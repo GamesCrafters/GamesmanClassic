@@ -6,6 +6,7 @@
 bin/*
 bin\*
 Makefile
+Brewfile
 *.log
 config.status
 configure
