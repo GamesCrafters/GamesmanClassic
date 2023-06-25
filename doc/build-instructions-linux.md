@@ -42,7 +42,7 @@ autoconf # Successful execution of this command should not generate any console 
 ./configure --disable-graphics
 ```
 
-Optionall, if you successfully installed Tcl/Tk and would like to build with graphics, configure with the default settings instead:
+Optional, if you successfully installed Tcl/Tk and would like to build with graphics, configure with the default settings instead:
 
 ```bash
 # Configure or reconfigure with graphics.
