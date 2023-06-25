@@ -32,9 +32,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Hex";
-STRING kAuthorName          = "Shah Bawany and Jacob Andreas";
-STRING kDBName              = "Hex";
+CONST_STRING kGameName            = "Hex";
+CONST_STRING kAuthorName          = "Shah Bawany and Jacob Andreas";
+CONST_STRING kDBName              = "Hex";
 
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -57,25 +57,25 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized!";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Help strings not initialized!";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 
@@ -530,7 +530,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 	printf("\n\n");
 
-	printf(GetPrediction(position, playersName, usersTurn));
+	printf("%s", GetPrediction(position, playersName, usersTurn));
 	printf("\n\n");
 
 	SafeFree(board);
@@ -784,7 +784,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1139,9 +1139,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

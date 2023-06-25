@@ -31,6 +31,7 @@
 
 #include "types.h"
 #include "constants.h"
+#include <stddef.h>
 
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;

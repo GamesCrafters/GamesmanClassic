@@ -96,8 +96,8 @@ POSITION gInitialPosition    =  0x001009BD;
 POSITION gMinimalPosition = 0x001009BD;
 POSITION kBadPosition = -1;
 
-STRING kAuthorName         = "Attila Gyulassy, Matthew Yu, Cameron Cheung";
-STRING kGameName           = "3Spot";
+CONST_STRING kAuthorName         = "Attila Gyulassy, Matthew Yu, Cameron Cheung";
+CONST_STRING kGameName           = "3Spot";
 
 //?
 BOOLEAN kPartizan           = TRUE;
@@ -108,15 +108,15 @@ BOOLEAN kLoopy              = TRUE;
 
 //?
 BOOLEAN kDebugDetermineValue = FALSE;
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Umm, i'm not sure what you want to hear here, so\n\
 i'm not going to tell you anything... =)\n"                                                             ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "It is your turn: you need to input a valid move:\n\
 VALID MOVES: a valid move is a pair of a pair of a \n\
 number(1-8) and a letter indicating the orientation\n\
@@ -132,16 +132,16 @@ You must change the position of your piece, and the\n\
 the white piece. You earn points by covering up the\n\
 squares with \'o\'s.\n "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ;
 
-STRING kHelpStandardObjective ="PlayerX wins if:\n\
+CONST_STRING kHelpStandardObjective ="PlayerX wins if:\n\
 PlayerX >= PlayerX's winning score AND\n\
 PlayerY >= PlayerY's minimum score. \n\n\
 PlayerX loses if:\n\
 PlayerX >= PlayerX's winning score AND\n\
 PlayerY < PlayerY's minimum score.\n";
 
-STRING kHelpReverseObjective ="";
-STRING kHelpTieOccursWhen ="";
-STRING kHelpExample = "";
+CONST_STRING kHelpReverseObjective ="";
+CONST_STRING kHelpTieOccursWhen ="";
+CONST_STRING kHelpExample = "";
 
 STRING MoveToString(MOVE);
 
@@ -372,6 +372,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -524,9 +525,9 @@ void SetDotPositionMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -1351,7 +1352,7 @@ MOVE theMove;
 }
 
 
-STRING kDBName = "3dot";
+CONST_STRING kDBName = "3dot";
 
 int NumberOfOptions()
 {
@@ -1463,6 +1464,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	if (mv >> 9) { // Placing player's piece.	
 		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[((mv & 0xFF) >> 4)-2], betweenMap[(mv >> 4) & 0xF]);
 	} else if ((mv >> 8) & 1) { // Placing neutral piece.

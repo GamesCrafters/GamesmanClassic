@@ -38,9 +38,9 @@ extern STRING gValueString[];
 POSITION gNumberOfPositions   = 0;
 POSITION gInitialPosition     = 0;
 POSITION kBadPosition         = -1;
-STRING kAuthorName          = "Kevin Duncan and Neil Trotter";
-STRING kGameName            = "Ice Blocks";
-STRING kDBName              = "iceblocks";
+CONST_STRING kAuthorName          = "Kevin Duncan and Neil Trotter";
+CONST_STRING kGameName            = "Ice Blocks";
+CONST_STRING kDBName              = "iceblocks";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = FALSE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -78,21 +78,21 @@ STRING gTallyThreesR =
         "The objective of this game is to get less threes in a row than your\n\
 opponent. If you have 4 in a row, it will be counted as two threes in a row.\n\
 Same goes for any sequence of blocks greater than 4. Diagonals are valid."                                                                                                                                                                ;
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "On your turn, determine where you wish to move your piece.Simply type in\n\
 the numeric representation of that position as it is presented on the board."                                                                                     ;
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Place a block in the pyramid by entering the corresponding number.\n\
 You may only place a block if it is on the bottom row, or on top of two\n\
 adjacent pieces."                                                                                                                                                          ;
-STRING kHelpStandardObjective = NULL;
-STRING kHelpReverseObjective = NULL;
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpStandardObjective = NULL;
+CONST_STRING kHelpReverseObjective = NULL;
+CONST_STRING kHelpTieOccursWhen =
         "each player has accumulated an equal\n"
         "number of points by the end of the game.";
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "      [10]\n"
         "    [08][09]\n"
         "  [05][06][07]\n"
@@ -201,6 +201,7 @@ void GameSpecificMenu () {
 			break;
 		case 'b':
 			cont = FALSE;
+			break;
 		default:
 			printf("Invalid option!\n");
 		}
@@ -455,7 +456,7 @@ VALUE Primitive (POSITION pos) {
 ************************************************************************/
 
 POSITION GetInitialPosition() {
-	int i, numX, numO, turn;
+	int i, numX = 0, numO = 0, turn;
 	char input[sumto(base)], c;
 	BOOLEAN cont = TRUE;
 	while(cont) {
@@ -744,6 +745,7 @@ void setOption(int option) {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
+	(void)options;
 }
 
 
@@ -1017,10 +1019,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }
 

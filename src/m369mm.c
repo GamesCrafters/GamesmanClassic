@@ -31,9 +31,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "369 Men's Morris";   /* The name of your game */
-STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee, Cameron Cheung";   /* Your name(s) */
-STRING kDBName              = "369mm";   /* The name to store the database under */
+CONST_STRING kGameName            = "369 Men's Morris";   /* The name of your game */
+CONST_STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee, Cameron Cheung";   /* Your name(s) */
+CONST_STRING kDBName              = "369mm";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -81,25 +81,25 @@ int multipartToIdx;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "369 Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 /*************************************************************************
@@ -672,7 +672,7 @@ UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
 	int undoMoveType;
 
 	if (tier < 100 && ((tier / 10) % 10 == 2 || tier % 10 == 2)) return NULL;
-	int currTier = piecesLeft * 100 + numX * 10 + numO;
+	TIER currTier = piecesLeft * 100 + numX * 10 + numO;
 	if (currTier == tier - (oppTurn == X ? 91 : 109))
 		// Placement with removal.
 		undoMoveType = 0;
@@ -1444,6 +1444,7 @@ void GameSpecificMenu() {
 			break;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -1474,6 +1475,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int options[]) {
+	(void)options;
 }
 
 
@@ -1754,6 +1756,7 @@ STRING TierToString(TIER tier) {
 // Given POSITION, slot
 // Return whether player indicated by `turn` has all pieces in a mill.
 BOOLEAN all_mills(char *board, int slot, char turn) {
+	(void)slot;
 	for (int i = 0; i < BOARDSIZE; i++) {
 		if (board[i] == turn) {
 			if (!checkMill(board, i, turn)) {
@@ -2140,8 +2143,8 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 	int piecesLeft, numX, numO;
 	char turn;
 	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
-	int currFrom = 31;
-	int currTo = 31;
+	POSITION currFrom = 31ULL;
+	POSITION currTo = 31ULL;
 	POSITION currIntermediatePosition = 0;
 
 	while (moveList != NULL) {

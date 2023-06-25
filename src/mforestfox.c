@@ -14,9 +14,9 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Jiachun Li, Yifan Zhou";
-STRING kGameName = "Forest Fox"; //  use this spacing and case
-STRING kDBName = "forestfox"; // use this spacing and case
+CONST_STRING kAuthorName = "Jiachun Li, Yifan Zhou";
+CONST_STRING kGameName = "Forest Fox"; //  use this spacing and case
+CONST_STRING kDBName = "forestfox"; // use this spacing and case
 POSITION gNumberOfPositions = 7000000000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -40,13 +40,13 @@ BOOLEAN kDebugMenu = TRUE;
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 char * board;
 
@@ -57,7 +57,9 @@ BOOLEAN isLegal(POSITION position);
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
@@ -70,12 +72,14 @@ void GameSpecificMenu() {}
 
 /* The tier graph is just a single tier with id=0. */
 TIERLIST *getTierChildren(TIER tier) {
+  (void)tier;
   return CreateTierlistNode(0, NULL);
 }
 
 /* We use a single tier for this entire game. This
 is returns the upper bound */
 TIERPOSITION numberOfTierPositions(TIER tier) {
+  (void)tier;
   return gNumberOfPositions;
 }
 
@@ -98,7 +102,7 @@ solving or playing the game. */
 Special position: if init, (cards not shuffled) all 0s
 */
 /* Return the hash value of the initial position. */
-Bool vcfg(int *pieces){
+BOOLEAN vcfg(int *pieces){
   //'3': decree card
   //'4': last card
   int p1 = pieces[1]+pieces[6],p2 = pieces[2]+pieces[7];
@@ -303,12 +307,12 @@ MOVELIST *GenerateMoves(POSITION position) {
     //getPositionHash(&moved,&score,&decreeCard,&lastCard,&status,position);
     if(moved){
       int num = getCardNum(lastCard),suit = getCardSuit(lastCard);
-      Bool hasSuit = False;
+      BOOLEAN hasSuit = FALSE;
       for(int i=0;i<30;i+=2){
         CARD card = i/2+1;
         int cardCol = (status>>i)&3;
         if(cardCol==2&&getCardSuit(card)==suit){
-          hasSuit = True;
+          hasSuit = TRUE;
           break;
         }
       }
@@ -620,6 +624,7 @@ int getOption() {
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
   /* YOUR CODE HERE  */
+  (void)option;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/

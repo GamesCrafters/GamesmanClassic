@@ -1,6 +1,8 @@
 // Dots and Boxes stroke parser
 // Note: Dots and Boxes and Tac Tix use similar board parsers - should probably refactor the common code
 
+#ifndef NO_GRAPHICS
+
 #include "loader.h"
 #include "stroke.h"
 #include "tcl.h"
@@ -76,6 +78,7 @@ int closestPoint(double cx, double cy) {
 // called by Tcl Event loop to check for new data
 void TclTimerProc(ClientData clientData)
 {
+	(void)clientData;
 	if (!isPenLoaderStarted()) {
 		printLog("Timer stopped\n");
 		return;
@@ -229,3 +232,5 @@ void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, 
 		Tcl_CreateTimerHandler(TCL_TIMER_MS, &TclTimerProc, NULL);
 	}
 }
+
+#endif // NO_GRAPHICS

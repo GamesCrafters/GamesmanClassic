@@ -11,6 +11,7 @@
 ************************************************************************/
 
 #include <stdio.h>
+
 #include "gamesman.h"
 
 POSITION gNumberOfPositions = 0;
@@ -19,9 +20,9 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Justin Yokota^^^, Cameron Cheung^";
-STRING kGameName = "mconnect4";
-STRING kDBName = "connect4new"; // should not be used
+CONST_STRING kAuthorName = "Justin Yokota^^^, Cameron Cheung^";
+CONST_STRING kGameName = "mconnect4";
+CONST_STRING kDBName = "connect4new";  // should not be used
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -29,21 +30,22 @@ BOOLEAN kTieIsPossible = TRUE;
 BOOLEAN kLoopy = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
-void* gGameSpecificTclInit = NULL;
+void *gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpOnYourTurn = "";
 
-STRING kHelpStandardObjective = "";
+CONST_STRING kHelpStandardObjective = "";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen =
+    /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -53,7 +55,8 @@ STRING kHelpExample = "";
 
 /*************************************************************************
 **
-** Every variable declared here is only used in this file (game-specific)
+** Every variable declared here is only used in this file
+*(game-specific)
 **
 **************************************************************************/
 
@@ -70,16 +73,13 @@ static uint64_t VERTICALWIN;
 static uint64_t UPDIAGWIN;
 static uint64_t INITIALPOSITION;
 
-POSITION GetCanonicalPosition(POSITION position) {
-  return position;
-}
+POSITION GetCanonicalPosition(POSITION position) { return position; }
 
-void DebugMenu() {
-}
+void DebugMenu() {}
 
 void SetTclCGameSpecificOptions(int theOptions[]) {
+    (void)theOptions;
 }
-
 
 /************************************************************************
 **
@@ -90,26 +90,27 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 ************************************************************************/
 
 void InitializeGame() {
-  kSupportsShardGamesman = TRUE;
-  gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
-  
-  uint64_t l = 0;
-  for (int i = 0; i < COLUMNCOUNT; i++) l |= 1ULL<<((ROWCOUNT+1)*i);
-  uint64_t down=0, left=0, updiag=0, downdiag=0;
-  for (int i = 0; i < CONNECT; i++) {
-    down = (down << 1)|1;
-    left = (left << (ROWCOUNT+1))|1;
-    downdiag = (downdiag << ROWCOUNT)|1;
-    updiag = (updiag << (ROWCOUNT+2))|1;
-  }
-  DOWNDIAGWIN = downdiag;
-  HORIZONTALWIN = left;
-  VERTICALWIN = down;
-  UPDIAGWIN = updiag;
-  INITIALPOSITION = l;
+    kSupportsShardGamesman = TRUE;
+    gCanonicalPosition = GetCanonicalPosition;
+    gMoveToStringFunPtr = &MoveToString;
 
-  gInitialPosition = INITIALPOSITION;
+    uint64_t l = 0;
+    for (int i = 0; i < COLUMNCOUNT; i++)
+        l |= 1ULL << ((ROWCOUNT + 1) * i);
+    uint64_t down = 0, left = 0, updiag = 0, downdiag = 0;
+    for (int i = 0; i < CONNECT; i++) {
+        down = (down << 1) | 1;
+        left = (left << (ROWCOUNT + 1)) | 1;
+        downdiag = (downdiag << ROWCOUNT) | 1;
+        updiag = (updiag << (ROWCOUNT + 2)) | 1;
+    }
+    DOWNDIAGWIN = downdiag;
+    HORIZONTALWIN = left;
+    VERTICALWIN = down;
+    UPDIAGWIN = updiag;
+    INITIALPOSITION = l;
+
+    gInitialPosition = INITIALPOSITION;
 }
 
 /************************************************************************
@@ -122,8 +123,7 @@ void InitializeGame() {
 **
 ************************************************************************/
 
-void GameSpecificMenu() {
-}
+void GameSpecificMenu() {}
 
 /************************************************************************
 **
@@ -142,22 +142,25 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 /** Returns the result of moving at the given position
-    * Bit 63 is flipped to change current player
-    * Bit 62-55 will have the most recent move (because primitive relies on it; when querying db this will be truncated)
-    * Move is assumed to be the bit position of the empty cell.
-    * As such, we add 1<<move for a yellow, and 1<<(move+1) for red
-    * 0b0001011 + 1<<move = 0b0010011 = ---YYRR
-    * 0b0001011 + 1<<(move+1) = 0b0011011 = ---RYRR 
-    * ASSUMES boardhash is at most 54 bits */
+ * Bit 63 is flipped to change current player
+ * Bit 62-55 will have the most recent move (because primitive relies
+ * on it; when querying db this will be truncated) Move is assumed to
+ * be the bit position of the empty cell. As such, we add 1<<move for
+ * a yellow, and 1<<(move+1) for red 0b0001011 + 1<<move = 0b0010011 =
+ * ---YYRR 0b0001011 + 1<<(move+1) = 0b0011011 = ---RYRR ASSUMES
+ * boardhash is at most 54 bits */
 POSITION DoMove(POSITION position, MOVE move) {
-  return (((position & 0x807FFFFFFFFFFFFFL)  ^ 0x8000000000000000L) | ((POSITION) move << 55)) + (1ULL<<(move+(position >> 63)));
+    return (((position & 0x807FFFFFFFFFFFFFL) ^ 0x8000000000000000L) |
+            ((POSITION)move << 55)) +
+           (1ULL << (move + (position >> 63)));
 }
 
 /************************************************************************
 **
 ** NAME: GetInitialPosition
 **
-** DESCRIPTION: Ask the user for an initial position for testing. Store
+** DESCRIPTION: Ask the user for an initial position for testing.
+*Store
 ** it in the space pointed to by initialPosition;
 **
 ** OUTPUTS: POSITION initialPosition : The position to fill.
@@ -165,8 +168,8 @@ POSITION DoMove(POSITION position, MOVE move) {
 ************************************************************************/
 
 POSITION GetInitialPosition() {
-  //printf("Initialposition: %llu\n", INITIALPOSITION);
-  return INITIALPOSITION;
+    // printf("Initialposition: %llu\n", INITIALPOSITION);
+    return INITIALPOSITION;
 }
 
 /************************************************************************
@@ -181,14 +184,18 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    (void)computersMove;
+    (void)computersName;
     printf("the computer moved\n");
 }
 
+/*
 static BOOLEAN isawin(POSITION position, POSITION pieces)
 {
-    //System.out.printf("%016X %b %n", pieces, (position&pieces) == pieces);
-    return (position&pieces) == pieces;
+    //System.out.printf("%016X %b %n", pieces, (position&pieces) ==
+pieces); return (position&pieces) == pieces;
 }
+*/
 
 /************************************************************************
 **
@@ -210,7 +217,8 @@ static BOOLEAN isawin(POSITION position, POSITION pieces)
 ************************************************************************/
 
 VALUE Primitive(POSITION position) {
-  return undecided;
+    (void)position;
+    return undecided;
 }
 
 /************************************************************************
@@ -230,7 +238,10 @@ VALUE Primitive(POSITION position) {
 **
 ************************************************************************/
 
-void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+void PrintPosition(POSITION position, STRING playerName,
+                   BOOLEAN usersTurn) {
+    (void)playerName;
+    (void)usersTurn;
     for (int i = 63; i >= 0; i--) {
         printf("%llu", (position >> i) & 1);
     }
@@ -265,7 +276,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
         }
         printf("\n");
     }
-    printf("Most Recent Move: %llu\n", (((position >> 55) & 0xFF) / (ROWCOUNT + 1)));
+    printf("Most Recent Move: %llu\n",
+           (((position >> 55) & 0xFF) / (ROWCOUNT + 1)));
     printf("Turn: %s\n", (position >> 63) ? "Yellow" : "Red");
 }
 
@@ -287,22 +299,25 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 MOVELIST *GenerateMoves(POSITION position) {
-  MOVELIST *moves = NULL;
-  for (int i = 0; i < COLUMNCOUNT; i++) {
-    MOVE start = (ROWCOUNT + 1) * (i + 1) - 1;
-    while ((position & (1ULL<<start)) == 0) start--; // This is what sigbit does
-    if (start != (ROWCOUNT + 1) * (i + 1) - 1) { // If there is space in this column
-      moves = CreateMovelistNode(start, moves);
+    MOVELIST *moves = NULL;
+    for (int i = 0; i < COLUMNCOUNT; i++) {
+        MOVE start = (ROWCOUNT + 1) * (i + 1) - 1;
+        while ((position & (1ULL << start)) == 0)
+            start--;  // This is what sigbit does
+        if (start != (ROWCOUNT + 1) * (i + 1) -
+                         1) {  // If there is space in this column
+            moves = CreateMovelistNode(start, moves);
+        }
     }
-  }
-  return moves;
+    return moves;
 }
 
 /************************************************************************
 **
 ** NAME: GetAndPrintPlayersMove
 **
-** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
+** DESCRIPTION: This finds out if the player wanted an undo or abort
+*or not.
 ** If so, return Undo or Abort and don't change theMove.
 ** Otherwise get the new theMove and fill the pointer up.
 **
@@ -317,23 +332,25 @@ MOVELIST *GenerateMoves(POSITION position) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-  /* local variables */
-	USERINPUT ret, HandleDefaultTextInput();
-	do {
-		printf("Enter your move here: ");
-		ret = HandleDefaultTextInput(position, move, playerName);
-		if(ret != Continue) return(ret);
-	}
-	while (TRUE);
-	return(Continue); /* this is never reached, but link is now happy */
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move,
+                                 STRING playerName) {
+    /* local variables */
+    USERINPUT ret, HandleDefaultTextInput();
+    do {
+        printf("Enter your move here: ");
+        ret = HandleDefaultTextInput(position, move, playerName);
+        if (ret != Continue) return (ret);
+    } while (TRUE);
+    return (
+        Continue); /* this is never reached, but link is now happy */
 }
 
 /************************************************************************
 **
 ** NAME: ValidTextInput
 **
-** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
+** DESCRIPTION: Return TRUE iff the string input is of the right
+*'form'.
 ** For example, if the user is allowed to select one slot
 ** from the numbers 1-9, and the user chooses 0, it's not
 ** valid, but anything from 1-9 IS, regardless if the slot
@@ -347,14 +364,16 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 ************************************************************************/
 
 BOOLEAN ValidTextInput(STRING input) {
-  return TRUE;
+    (void)input;
+    return TRUE;
 }
 
 /************************************************************************
 **
 ** NAME: ConvertTextInputToMove
 **
-** DESCRIPTION: Convert the string input to the internal move representation.
+** DESCRIPTION: Convert the string input to the internal move
+*representation.
 **
 ** INPUTS: STRING input : The string input the user typed.
 **
@@ -363,11 +382,11 @@ BOOLEAN ValidTextInput(STRING input) {
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(STRING input) {
-  if (input[1]) {
-    return (input[0] - '0') * 10 + (input[1] - '0');
-  } else {
-    return input[0] - '0';
-  }
+    if (input[1]) {
+        return (input[0] - '0') * 10 + (input[1] - '0');
+    } else {
+        return input[0] - '0';
+    }
 }
 
 /************************************************************************
@@ -380,9 +399,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 **
 ************************************************************************/
 
-void PrintMove(MOVE move) {
-    printf("%s", MoveToString(move));
-}
+void PrintMove(MOVE move) { printf("%s", MoveToString(move)); }
 
 /************************************************************************
 **
@@ -395,123 +412,128 @@ void PrintMove(MOVE move) {
 ************************************************************************/
 
 STRING MoveToString(MOVE move) {
-  STRING movestring = (STRING) SafeMalloc(5);
-  movestring[1] = '\0';
-  movestring[2] = '\0';
-  if (gIsInteract) {
-    snprintf(movestring, 4, "%d", COLUMNCOUNT - (move / (ROWCOUNT + 1)));
-  } else {
-    snprintf(movestring, 4, "%d", move);
-  }
-  return movestring;
+    STRING movestring = (STRING)SafeMalloc(5);
+    movestring[1] = '\0';
+    movestring[2] = '\0';
+    if (gIsInteract) {
+        snprintf(movestring, 4, "%d",
+                 COLUMNCOUNT - (move / (ROWCOUNT + 1)));
+    } else {
+        snprintf(movestring, 4, "%d", move);
+    }
+    return movestring;
 }
 
-int NumberOfOptions() {
-  return 2;
-}
+int NumberOfOptions() { return 2; }
 
-int getOption() {
-  return (COLUMNCOUNT == 7) ? 2 : 1;
-}
+int getOption() { return (COLUMNCOUNT == 7) ? 2 : 1; }
 
 void setOption(int option) {
-  if (option == 2) {
-    COLUMNCOUNT = 7;
-  } else {
-    COLUMNCOUNT = 6;
-  }
-  uint64_t l = 0;
-  for (int i = 0; i < COLUMNCOUNT; i++) l |= 1ULL<<((ROWCOUNT+1)*i);
-  uint64_t down=0, left=0, updiag=0, downdiag=0;
-  for (int i = 0; i < CONNECT; i++) {
-    down = (down << 1)|1;
-    left = (left << (ROWCOUNT+1))|1;
-    downdiag = (downdiag << ROWCOUNT)|1;
-    updiag = (updiag << (ROWCOUNT+2))|1;
-  }
-  DOWNDIAGWIN = downdiag;
-  HORIZONTALWIN = left;
-  VERTICALWIN = down;
-  UPDIAGWIN = updiag;
-  INITIALPOSITION = l;
+    if (option == 2) {
+        COLUMNCOUNT = 7;
+    } else {
+        COLUMNCOUNT = 6;
+    }
+    uint64_t l = 0;
+    for (int i = 0; i < COLUMNCOUNT; i++)
+        l |= 1ULL << ((ROWCOUNT + 1) * i);
+    uint64_t down = 0, left = 0, updiag = 0, downdiag = 0;
+    for (int i = 0; i < CONNECT; i++) {
+        down = (down << 1) | 1;
+        left = (left << (ROWCOUNT + 1)) | 1;
+        downdiag = (downdiag << ROWCOUNT) | 1;
+        updiag = (updiag << (ROWCOUNT + 2)) | 1;
+    }
+    DOWNDIAGWIN = downdiag;
+    HORIZONTALWIN = left;
+    VERTICALWIN = down;
+    UPDIAGWIN = updiag;
+    INITIALPOSITION = l;
 
-  gInitialPosition = INITIALPOSITION;
+    gInitialPosition = INITIALPOSITION;
 }
 
 POSITION InteractStringToPosition(STRING str) {
-  enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-  POSITION pos = 0;
-  for (int c = 0; c < COLUMNCOUNT; c++) {
-    POSITION colbits = 0;
-    BOOLEAN endFound = FALSE;
-    for (int r = 0; !endFound && r < ROWCOUNT; r++) {
-      /*printf("%d,", ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
-      printf("\n");
-      printf("%d,", ROWCOUNT * (c + 1) - 1 - r);
-      printf("\n");*/
-      char piece = board[ROWCOUNT * (c + 1) - 1 - r];
-      if (piece == 'O') {
-        colbits |= (1 << r);
-      } else if (piece == '-') {
-        endFound = TRUE;
-        colbits |= (1 << r);
-      }
+    enum UWAPI_Turn turn;
+    unsigned int num_rows, num_columns;  // Unused
+    STRING board;
+    if (!UWAPI_Board_Regular2D_ParsePositionString(
+            str, &turn, &num_rows, &num_columns, &board)) {
+        // Failed to parse string
+        return INVALID_POSITION;
     }
-    if (!endFound) colbits |= (1 << ROWCOUNT);
-    /*printf("%llu", colbits);
-    printf("\n");*/
-    pos |= (colbits << ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
-  }
-  if (turn == UWAPI_TURN_B) pos |= (1ULL << 63);
-  SafeFree(board);
-  return pos;
+
+    POSITION pos = 0;
+    for (int c = 0; c < COLUMNCOUNT; c++) {
+        POSITION colbits = 0;
+        BOOLEAN endFound = FALSE;
+        for (int r = 0; !endFound && r < ROWCOUNT; r++) {
+            /*printf("%d,", ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
+            printf("\n");
+            printf("%d,", ROWCOUNT * (c + 1) - 1 - r);
+            printf("\n");*/
+            char piece = board[ROWCOUNT * (c + 1) - 1 - r];
+            if (piece == 'O') {
+                colbits |= (1 << r);
+            } else if (piece == '-') {
+                endFound = TRUE;
+                colbits |= (1 << r);
+            }
+        }
+        if (!endFound) colbits |= (1 << ROWCOUNT);
+        /*printf("%llu", colbits);
+        printf("\n");*/
+        pos |= (colbits << ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
+    }
+    if (turn == UWAPI_TURN_B) pos |= (1ULL << 63);
+    SafeFree(board);
+    return pos;
 }
 
 STRING InteractPositionToString(POSITION position) {
-  char pieces[(ROWCOUNT + 1) * COLUMNCOUNT + 1];
-  int piecesPlaced = 0;
-  int k = 0;
-  BOOLEAN pastSigBit = FALSE;
+    char pieces[(ROWCOUNT + 1) * COLUMNCOUNT + 1];
+    int piecesPlaced = 0;
+    int k = 0;
+    BOOLEAN pastSigBit = FALSE;
 
-  for (int i = (ROWCOUNT + 1) * COLUMNCOUNT - 1; i >= 0; i--) {
-    BOOLEAN bit = (position >> i) & 1;
-    if (i % (ROWCOUNT + 1) == ROWCOUNT) {
-      pastSigBit = bit;
-    } else if (bit) {
-      if (pastSigBit) {
-        pieces[k] = 'O';
-        piecesPlaced++;
-      } else {
-        pieces[k] = '-';
-        pastSigBit = TRUE;
-      }
-      k++;
-    } else {
-      if (pastSigBit) {
-        pieces[k] = 'X';
-        piecesPlaced++;
-      } else {
-        pieces[k] = '-';
-      }
-      k++;
+    for (int i = (ROWCOUNT + 1) * COLUMNCOUNT - 1; i >= 0; i--) {
+        BOOLEAN bit = (position >> i) & 1;
+        if (i % (ROWCOUNT + 1) == ROWCOUNT) {
+            pastSigBit = bit;
+        } else if (bit) {
+            if (pastSigBit) {
+                pieces[k] = 'O';
+                piecesPlaced++;
+            } else {
+                pieces[k] = '-';
+                pastSigBit = TRUE;
+            }
+            k++;
+        } else {
+            if (pastSigBit) {
+                pieces[k] = 'X';
+                piecesPlaced++;
+            } else {
+                pieces[k] = '-';
+            }
+            k++;
+        }
     }
-  }
-  for (int i = (ROWCOUNT * COLUMNCOUNT); i < (ROWCOUNT + 1) * COLUMNCOUNT; i++) {
-    pieces[i] = '-';
-  }
+    for (int i = (ROWCOUNT * COLUMNCOUNT);
+         i < (ROWCOUNT + 1) * COLUMNCOUNT; i++) {
+        pieces[i] = '-';
+    }
 
-  pieces[(ROWCOUNT + 1) * COLUMNCOUNT] = '\0';
-  enum UWAPI_Turn turn = (piecesPlaced & 1) ? UWAPI_TURN_B : UWAPI_TURN_A; 
-  return UWAPI_Board_Regular2D_MakePositionString(turn, ROWCOUNT + 1, COLUMNCOUNT, pieces);
+    pieces[(ROWCOUNT + 1) * COLUMNCOUNT] = '\0';
+    enum UWAPI_Turn turn =
+        (piecesPlaced & 1) ? UWAPI_TURN_B : UWAPI_TURN_A;
+    return UWAPI_Board_Regular2D_MakePositionString(
+        turn, ROWCOUNT + 1, COLUMNCOUNT, pieces);
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  return UWAPI_Board_Regular2D_MakeAddString('a', (ROWCOUNT + 1) * COLUMNCOUNT - 1 - (move / (ROWCOUNT + 1)));
+    (void)position;
+    return UWAPI_Board_Regular2D_MakeAddString(
+        'a',
+        (ROWCOUNT + 1) * COLUMNCOUNT - 1 - (move / (ROWCOUNT + 1)));
 }

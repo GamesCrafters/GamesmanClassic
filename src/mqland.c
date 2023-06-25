@@ -54,9 +54,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Queensland";   /* The name of your game */
-STRING kAuthorName          = "Steven Kusalo and Alex Wallisch";   /* Your name(s) */
-STRING kDBName              = "qland";   /* The name to store the database under */
+CONST_STRING kGameName            = "Queensland";   /* The name of your game */
+CONST_STRING kAuthorName          = "Steven Kusalo and Alex Wallisch";   /* Your name(s) */
+CONST_STRING kDBName              = "qland";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -76,25 +76,25 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, enter the coordinates of a piece you want to move and then the coordinates of where you want to move it to.  Then type the coordinates of an empty position on the board where you'd like to place a piece.  If you don't want to move a piece, you may just type the coordinates of where you want to place a new piece and ignore the first part.  For example, these are both legal moves: [a1 a3 b2] [b2]";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If you want to move a piece, type the position of the piece and the position you want to move it to (e.g. \"a1 a3\").  Ignore this if you don't want to move.  Then, type the number of an empty position where you want to place a new piece (e.g. \"b2\").  A complete move will look something like this: \"a1 a3 b2\", or alternatively, if you don't want to move the piece from a1 to a3, you can just type \"b2\"";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical or diagonal), unbroken line score one point for each empty space they cover.  You win if you score MORE points than your opponent.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical, or diagonal), unbroken line score one point for each empty space they cover.  You win if you score FEWER points than your opponent.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when each player has played all their pieces and have the same number of points.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "   Queensland!\n\
 /===============\\\n\
 |   XXXX OOOO   |\n\
@@ -953,7 +953,7 @@ void GameSpecificMenu () {
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1112,6 +1112,7 @@ int getOption ()
 		scoreVal = 2;
 	} else {
 		BadElse("getOption");
+		return 0;
 	}
 
 	return 245*8*2*scoreVal + 8*2*boardSizeVal + 2*moveStyleVal + winConditionVal + 1;
@@ -1449,9 +1450,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

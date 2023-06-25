@@ -26,23 +26,6 @@ static const int8_t QUARTO_UNDECIDED = -2, QUARTO_LOSE0 = 0, QUARTO_TIE0_16 = 1;
 
 void            quartodb_free                     ();
 
-/* Value */
-VALUE           quartodb_get_value                (POSITION pos);
-VALUE           quartodb_set_value                (POSITION pos, VALUE val);
-
-/* Remoteness */
-REMOTENESS      quartodb_get_remoteness           (POSITION pos);
-void            quartodb_set_remoteness           (POSITION pos, REMOTENESS val);
-
-/* Visited */
-BOOLEAN         quartodb_check_visited            (POSITION pos);
-void            quartodb_mark_visited             (POSITION pos);
-void            quartodb_unmark_visited           (POSITION pos);
-
-/* Mex */
-MEX             quartodb_get_mex                  (POSITION pos);
-void            quartodb_set_mex                  (POSITION pos, MEX mex);
-
 /* saving to/reading from a file */
 BOOLEAN         quartodb_save_database            ();
 BOOLEAN         quartodb_load_database            ();
@@ -273,17 +256,16 @@ void initializeHashing() {
 }
 
 void quartodb_init(DB_Table *new_db) {
-	new_db->put_value = quartodb_set_value;
-	new_db->put_remoteness = quartodb_set_remoteness;
-	new_db->mark_visited = quartodb_mark_visited;
-	new_db->unmark_visited = quartodb_unmark_visited;
-	new_db->put_mex = quartodb_set_mex;
+	new_db->put_value = NULL;
+	new_db->put_remoteness = NULL;
+	new_db->mark_visited = NULL;
+	new_db->unmark_visited = NULL;
+	new_db->put_mex = NULL;
 	new_db->free_db = quartodb_free;
-
-	new_db->get_value = quartodb_get_value;
-	new_db->get_remoteness = quartodb_get_remoteness;
-	new_db->check_visited = quartodb_check_visited;
-	new_db->get_mex = quartodb_get_mex;
+    new_db->get_value = NULL;
+	new_db->get_remoteness = NULL;
+	new_db->check_visited = NULL;
+	new_db->get_mex = NULL;
 	new_db->save_database = quartodb_save_database;
 	new_db->load_database = quartodb_load_database;
 
@@ -544,42 +526,6 @@ int8_t solvePositionLive(QUARTOTIER *tier, uint64_t bitBoard, uint8_t slot) {
     return 17 - tier->level - minChildValue;
 }
 
-VALUE quartodb_set_value(POSITION pos, VALUE val) {
-	return 0;
-}
-
-VALUE quartodb_get_value(POSITION pos) {
-	return 0;
-}
-
-REMOTENESS quartodb_get_remoteness(POSITION pos) {
-	return 1;
-}
-
-void quartodb_set_remoteness(POSITION pos, REMOTENESS val) {
-	return;
-}
-
-BOOLEAN quartodb_check_visited(POSITION pos) {
-	return FALSE;
-}
-
-void quartodb_mark_visited (POSITION pos) {
-	return;
-}
-
-void quartodb_unmark_visited (POSITION pos) {
-	return;
-}
-
-void quartodb_set_mex(POSITION pos, MEX mex) {
-	return;
-}
-
-MEX quartodb_get_mex(POSITION pos) {
-	return 0;
-}
-
 BOOLEAN quartodb_save_database () {
 	return FALSE;
 }
@@ -663,7 +609,7 @@ void quartoDetailedPositionResponse(STRING str) {
             occupiedSlots ^= UINT16_C(1) << i;
         } else {
             piece = board[i] - 'A';
-            if (piece < 0 || piece > 15) {
+            if (piece > 15) {
                 printf("}}"); // Invalid board string: contains invalid characters
                 return;
             }

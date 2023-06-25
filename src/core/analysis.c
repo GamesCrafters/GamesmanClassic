@@ -37,6 +37,7 @@
 #include "hashwindow.h"
 #include <math.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 /*
 ** Globals
@@ -140,10 +141,10 @@ void PrintBinaryGameValuesToFile(char * filename)
 	uint64_t max_move_choices = 0;
 	uint64_t possible_move_choices = 0;
 	POSITION choice = 0;
-	int j = 0;
+	POSITION j = 0;
 	POSITION max_position = gNumberOfPositions;
 	size_t count = 1;
-	int last_printed = 0;
+	POSITION last_printed = 0;
 
 	if (!filename) {
 		printf("File to save to: ");
@@ -178,7 +179,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	for(i=0; i < max_position; i++) {
 		if (last_printed != ((100 * i) / max_position)) {
 			last_printed = ((100 * i) / max_position);
-			printf("\r    Progress: [%3d%%]", last_printed);
+			printf("\r    Progress: [%3llu%%]", last_printed);
 			fflush(stdout);
 		}
 		all_next_moves = GenerateMoves(i);
@@ -191,7 +192,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 
 	printf("\r    Progress: [%3d%%]\n", 100);
 
-	printf("Maximum move choices: %llu\n", max_move_choices);
+	printf("Maximum move choices: %"PRIu64"\n", max_move_choices);
 
 	output = max_move_choices;
 	count = (count == 1) && (fwrite(&output, sizeof(uint64_t), 1, fp) == 1);
@@ -205,7 +206,7 @@ void PrintBinaryGameValuesToFile(char * filename)
 	for(i=0; i < gNumberOfPositions; i++) {
 		if (last_printed != ((100 * i) / max_position)) {
 			last_printed = ((100 * i) / max_position);
-			printf("\r    Progress: [%3d%%]", last_printed);
+			printf("\r    Progress: [%3llu%%]", last_printed);
 			fflush(stdout);
 		}
 		if (kSupportsTierGamesman && gTierGamesman) {
@@ -376,23 +377,8 @@ void PrintValuePositions(char c, int maxPositions)
 
 void PrintDetailedGameValueSummary()
 {
-	char *initialPositionValue = "";
 	REMOTENESS currentRemoteness;
 
-	switch(gAnalysis.InitialPositionValue)
-	{
-	case win:
-		initialPositionValue = "Win";
-		break;
-	case lose:
-		initialPositionValue = "Lose";
-		break;
-	case tie:
-		initialPositionValue = "Tie";
-		break;
-	default:
-		BadElse("PrintGameValueSummary [InitialPositionValue]");
-	}
 	printf("\n\n\t----- Detailed Summary of Game values -----\n\n");
 
 	if (!gCheckPure) {
@@ -1512,9 +1498,12 @@ float PercentDone (STATICMESSAGE msg)
 	static POSITION num_pos_seen = 0;
 	float percent = 0;
 	int total_positions = gNumberOfPositions;
+#ifndef NO_GRAPHICS
 	BOOLEAN useTcl = TRUE;
+#endif
 	if (gHashWindowInitialized) { // Tier-Gamesman Retrograde Solver!
 		total_positions = gCurrentTierSize;
+#ifndef NO_GRAPHICS
 		useTcl = FALSE;
 		if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
 			percent = 1/(float)gTotalTiers*100;
@@ -1522,6 +1511,7 @@ float PercentDone (STATICMESSAGE msg)
 			sprintf(str, "advanceProgressBar %f", percent);
 			Tcl_Eval(gTclInterp, str);
 		}
+#endif
 	} else if (gActualNumberOfPositionsOptFunPtr != NULL) {
 		total_positions = gActualNumberOfPositionsOptFunPtr(getOption());
 		if (total_positions < 0)
@@ -1531,13 +1521,17 @@ float PercentDone (STATICMESSAGE msg)
 	{
 	case Update:
 		num_pos_seen++;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_seen % (total_positions / 1000)))
 			Tcl_Eval(gTclInterp, "advanceProgressBar 0.1");
+#endif
 		break;
 	case Clean:
 		num_pos_seen = 0;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL)
 			Tcl_Eval(gTclInterp, "advanceProgressBar 0");
+#endif
 		break;
 	default:
 		break;
@@ -1551,9 +1545,12 @@ float PercentLoaded (STATICMESSAGE msg)
 {
 	static POSITION num_pos_loaded = 0;
 	int total_positions = gNumberOfPositions;
+#ifndef NO_GRAPHICS
 	BOOLEAN useTcl = TRUE;
+#endif
 	if (gHashWindowInitialized) { // Tier-Gamesman Retrograde Solver!
 		total_positions = gCurrentTierSize;
+#ifndef NO_GRAPHICS
 		useTcl = FALSE;
 		if (msg == AdvanceTier && gTclInterp != NULL && gTotalTiers != 0) {
 			float percent = 1/(float)gTotalTiers;
@@ -1561,18 +1558,23 @@ float PercentLoaded (STATICMESSAGE msg)
 			sprintf(str, "advanceLoadingProgressBar %f", percent);
 			Tcl_Eval(gTclInterp, str);
 		}
+#endif
 	}
 	switch (msg)
 	{
 	case Update:
 		num_pos_loaded++;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL && total_positions >= 1000 && 0 == (num_pos_loaded % (total_positions / 1000)))
 			Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0.1");
+#endif
 		break;
 	case Clean:
 		num_pos_loaded = 0;
+#ifndef NO_GRAPHICS
 		if (useTcl && gTclInterp != NULL)
 			Tcl_Eval(gTclInterp, "advanceLoadingProgressBar 0");
+#endif
 		break;
 	default:
 		break;

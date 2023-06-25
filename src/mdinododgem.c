@@ -13,9 +13,9 @@
 #include "gamesman.h"
 #include <math.h>
 
-STRING kAuthorName         = "Ming Can Chang and Desmond Cheung";
-STRING kDBName             = "dinododgem";
-STRING kGameName           = "Dino Dodgem";
+CONST_STRING kAuthorName         = "Ming Can Chang and Desmond Cheung";
+CONST_STRING kDBName             = "dinododgem";
+CONST_STRING kGameName           = "Dino Dodgem";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;  /*TRUE;*/
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -24,14 +24,14 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts a small circle over your piece. This selects\n\
 the FROM slot. The MIDDLE button then selects the TO slot. If you\n\
 wish to remove a piece from the board, click the MIDDLE button on\n\
 the same place as the FROM slot. The RIGHT button is the same as UNDO,\n\
 in that it reverts back to your most recent position."                                                                                                                                                                                                                                                                                                  ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which numbers to choose (between\n\
 1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
 to the location of your piece and the empty orthogonally-adjacent position\n\
@@ -39,7 +39,7 @@ you wish to move that piece to. If you wish to move a piece off of the board,\n\
 choose 0 as your destination. Example: '2 0' moves the piece on location\n\
 2 off of the board. '5 2' moves your piece from position 5 to position 2."                                                                                                                                                                                                                                                                                                                                                                                                               ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "The moves on your turn are different for different players. Here is a summary:\n\
 \n\
 O player:      The O player may move his pieces UP, DOWN and to the RIGHT.\n\
@@ -56,18 +56,18 @@ X player:      The X player may move his pieces LEFT, UP, and to the RIGHT.\n\
  <- X ->       means moving one of your pieces past the UPPER-side of the board.\n\n\
 Note: The circle always goes first."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the FIRST player to move both your pieces off of the board OR prevent\n\
 your opponent from moving."                                                                                        ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be the LAST player to move your pieces off of the board OR to be\n\
 prevented from moving by your opponent's pieces."                                                                                ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : O - -     PLAYER O's turn\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - -                     \n\
          ( 7 8 9 )           : - X X                     \n\n\
@@ -358,6 +358,7 @@ void GameSpecificMenu() {
 			break;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -468,8 +469,7 @@ MOVE theMove; {
 	/* Hash. */
 	if (whosTurn == x)
 		nextplayer = o;
-	else if (whosTurn == o)
-		nextplayer = x;
+	else nextplayer = x;
 	thePosition = BlankOXToPosition(theBlankOX, nextplayer);
 	// thePosition = BlankOXToPosition(theBlankOX, 3-whosTurn);
 	/* Return hashed position. */
@@ -521,9 +521,8 @@ POSITION GetInitialPosition()
 {
 	BlankOX theBlankOX[boardsize], whosTurn;
 	signed char c;
-	int i, goodInputs, row, col;
+	int row, col;
 	int numX, numO;
-	goodInputs = 0;
 	printf("\n\n\t----- Get Initial Position -----\n");
 	printf("\n\tPlease input the position to begin with.\n");
 	printf("\tYou board must have at least one x or o and no more than %d x's and %d o's\n", side-1, side-1);
@@ -560,7 +559,6 @@ POSITION GetInitialPosition()
 		printf("\nNow enter a new board:\n");
 
 		/* Get inputted initial position. */
-		i = 0;
 		getchar();
 
 		row = side - 1;
@@ -725,12 +723,13 @@ POSITION position;
 STRING playerName;
 BOOLEAN usersTurn;
 {
+	(void)playerName;
+	(void)usersTurn;
 	int row = 0, col = 0;
 	VALUE GetValueOfPosition();
 	BlankOX theBlankOx[boardsize], whosTurn;
 
-	int pbar_max, pbar_len, xcount, ocount, numx, numo, i;
-
+	int /*pbar_max, pbar_len,*/ xcount, ocount, numx, numo, i;
 
 	PositionToBlankOX(position,theBlankOx,&whosTurn);
 
@@ -846,8 +845,8 @@ BOOLEAN usersTurn;
 	printf("\n\n");
 
 	if (gWinByBar) {
-		pbar_max = NUMPIECES * (side-1);
-		pbar_len = 2*pbar_max + 1;
+		// pbar_max = NUMPIECES * (side-1);
+		// pbar_len = 2*pbar_max + 1;
 		xcount = ocount = numx = numo = 0;
 
 		for (row = 0; row < side; row++) {
@@ -1170,10 +1169,9 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 	char letter, num, dir;
 	DIRECTION theDirection;
 	int l, n;
-	int ret;
 
 	if (gChessMoves) {
-		ret = sscanf(input,"%c%c%c", &letter, &num, &dir);
+		(void)sscanf(input,"%c%c%c", &letter, &num, &dir);
 
 		l = letter-'a';
 		n = (num - '1');
@@ -1202,7 +1200,7 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 			toSlot = (fromSlot - side);
 		else toSlot = -1;
 
-	} else ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+	} else (void)sscanf(input,"%d %d", &fromSlot, &toSlot);
 
 	/* Encrypt from and to into a MOVE. */
 	/*theMove = fromSlot;
@@ -1301,8 +1299,8 @@ POSITION DefaultInitialPosition() {
 ** INPUTS:      The current position array and whos turn.
 ** OUTPUTS:     The integer hashcode that embodies current position array and who's turn.
 ************************************************************************/
-POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
-	int player;
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
+	int player = 0;
 	if (whosTurn == x)
 		player = 2;
 	else if (whosTurn == o)
@@ -1475,6 +1473,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	SLOT fromSlot, toSlot;
 	BlankOX turn;
 	MoveToSlots(mv, &fromSlot, &toSlot, &turn);

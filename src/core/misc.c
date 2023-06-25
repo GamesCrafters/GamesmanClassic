@@ -574,8 +574,10 @@ void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
 }
 
 
-BOOLEAN DefaultGoAgain(POSITION pos,MOVE move)
+BOOLEAN DefaultGoAgain(POSITION pos, MOVE move)
 {
+	(void) pos;
+	(void) move;
 	return FALSE; /* Always toggle turn by default */
 }
 

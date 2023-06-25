@@ -33,9 +33,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Foxes and Geese";   /* The name of your game */
-STRING kAuthorName          = "Sergey Kirshner";   /* Your name(s) */
-STRING kDBName              = "foxes";   /* The name to store the database under */
+CONST_STRING kGameName            = "Foxes and Geese";   /* The name of your game */
+CONST_STRING kAuthorName          = "Sergey Kirshner";   /* Your name(s) */
+CONST_STRING kDBName              = "foxes";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -56,10 +56,10 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Move your piece to an adjacent point on the line. If you are\n\
 a geese, then you can only move forward, diagonally forward or\n\
 sideways. Use the LEGEND to detemine which numbers to choose\n\
@@ -73,25 +73,25 @@ captured, it is removed from the board.  The geese cannot\n\
 jump over the fox, but it can try to maneuver it into a position\n\
 where it cannot move."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If you are a fox, you may move along the line to an empty spot\n\
 or capture a goose, by jumping over it to and open spot. The fox\n\
 may move forwards, backwards, diagonally or to the sides. If you\n\
 are a goose, you may only move forward or sideways and you cannot\n\
 jump over the fox. "                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "If you are the fox, the objective is to eat up all the geese until\n\
 they are unable to trap you. If you are a goose, the objective is to\n\
 trap the fox so that it is impossible for him to move."                                                                                                                                                       ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when ...";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -690,6 +690,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -800,8 +801,7 @@ POSITION GetInitialPosition ()
 			theBlankFG[i++] = GOOSEPIECE;
 		else if(c == '-')
 			theBlankFG[i++] = BLANKPIECE;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -1025,6 +1025,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	SLOT fromSlot, toSlot;
 	MoveToSlots(mv,&fromSlot,&toSlot);
 	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);

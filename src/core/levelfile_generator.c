@@ -321,16 +321,12 @@ int isValidLevelFile(char* compressed_filename)
 {
 	//read bytes until two 0xC 0xA have been found. Then read next bit, must be 1
 	int status;
-	int firstValid = 0;
 	int endSectionCounter = 0;
 	int sawx0C = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
 	compressed_filep = gzopen(compressed_filename, "rb");
 	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-	if((BYTE)(*buffer)=='1')
-	{
-		firstValid = 1;
-	}
+
 	while(status == STATUS_SUCCESS && endSectionCounter < 3)
 	{
 		status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
@@ -385,7 +381,6 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 	POSITION counter = startIndex;
 	UINT8 bitcounter = 0, currentByte;
 	BYTE* buffer = (BYTE*)malloc(sizeof(UINT64));
-	GMSTATUS status = STATUS_SUCCESS;
 	char positionString[22];
 
 	while(counter <= maxHashValue)
@@ -397,7 +392,7 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 			if(getBitValue(currentByte, bitcounter))
 			{
 				sprintf(positionString, "%llu ", counter);
-				status = bitlib_file_write_bytes(compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
+				(void)bitlib_file_write_bytes(compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
 			}
 			bitcounter++;
 			counter++;
@@ -406,9 +401,9 @@ int ArrayToType0Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue)
 	}
 	char endline = 0x0C;
 	sprintf(positionString, "%c\n", endline);
-	status = bitlib_file_write_bytes(compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
-	if(buffer)
-		free(buffer);
+	(void)bitlib_file_write_bytes(compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
+	if(buffer) free(buffer);
+
 	return 0;
 }
 
@@ -435,7 +430,6 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 	char positionString[22];
 	GMSTATUS status = STATUS_SUCCESS;
 	UINT8 leftOffset=0;
-	int numBytesInCurrent = 0;
 	UINT64 offsetValue;
 	int leftShift;
 	/*
@@ -457,9 +451,6 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 				leftShift = 8*8 - leftOffset - bitsPerPosition;
 				positionToByteArray(bufferCurr, offsetValue << leftShift, bufferPrev);
 				status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, floor((bitsPerPosition + leftOffset)/8));
-//				bitlib_print_bytes_in_bits(bufferCurr, floor((bitsPerPosition + leftOffset)/8));
-//				printf("counter %d amountt %d", counter, (UINT8)(bitsPerPosition));
-				numBytesInCurrent = floor((leftOffset + bitsPerPosition)/8);
 				bufferPrev = *(bufferCurr + (UINT8)floor((leftOffset+bitsPerPosition)/8));
 				leftOffset = ((bitsPerPosition+leftOffset)%8);
 			}
@@ -496,7 +487,7 @@ int ArrayToType1Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 ****************************************************************************/
 int positionToByteArray(BITARRAY* buffer, UINT64 value, BYTE bufferPrev)
 {
-	int byteNum = 0;
+	unsigned long byteNum = 0;
 	BYTE oneByte;
 //	printf("value %x	\n", bufferPrev);
 	while(byteNum < sizeof(UINT64))
@@ -540,9 +531,7 @@ int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 	char positionString[22];
 	GMSTATUS status = STATUS_SUCCESS;
 	UINT8 leftOffset=0;
-	int numBytesInCurrent = 0;
 	UINT64 offsetValue;
-	int leftShift;
 	/*
 	   take the first one, bitshift by bpp. Then print the floor(first bpp/8) Bytes.
 	   set leftOffset to 8-(bpp%8) and take the next Byte and set to buffer Prev
@@ -559,10 +548,8 @@ int ArrayToType2Write(BITARRAY *array, UINT64 startIndex, UINT64 maxHashValue, U
 			if(counter >= offset && !getBitValue(currentByte, bitcounter)) // you have a position
 			{
 				offsetValue = counter - offset;
-				leftShift = 8*8 - leftOffset - bitsPerPosition;
 				positionToByteArray(bufferCurr, offsetValue << (64 - bitsPerPosition-leftOffset), bufferPrev);
 				status = bitlib_file_write_bytes(compressed_filep_type1, bufferCurr, floor((bitsPerPosition + leftOffset)/8));
-				numBytesInCurrent = floor((leftOffset + bitsPerPosition)/8);
 				bufferPrev = *(bufferCurr + (UINT8)floor((leftOffset+bitsPerPosition)/8));
 				leftOffset = ((bitsPerPosition+leftOffset)%8);
 			}
@@ -598,28 +585,24 @@ int ArrayToType3Write(BITARRAY *array, UINT64 startIndex, UINT64 minHashValue, U
 {
 	POSITION counter = minHashValue;
 	BYTE* buffer = (BYTE*)malloc(sizeof(UINT8));
-	GMSTATUS status = STATUS_SUCCESS;
-	char positionString[1];
+	char positionString[2];
 	UINT64 temp = minHashValue - startIndex;
 	int offset = temp % 8;
 	array += (temp / 8);
 
-
-
-// Get this to just rite the 8 bits skipping the 0's between start index and minHashValue
+	// Get this to just rite the 8 bits skipping the 0's between start index and minHashValue
 	while(counter <= maxHashValue)
 	{
 		*buffer = (*array << offset) + (*(array+1) >> (8-offset));
-		status = bitlib_file_write_bytes(compressed_filep_type3, buffer, 1);
+		(void)bitlib_file_write_bytes(compressed_filep_type3, buffer, 1);
 		counter+=8;
 		array++;
-
 	}
 
-	sprintf(positionString, "%c\n", 0x0C);
-	status = bitlib_file_write_bytes(compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
-	if(buffer)
-		free(buffer);
+	sprintf(positionString, "%c", 0x0C);
+	(void)bitlib_file_write_bytes(compressed_filep_type0, (BYTE *)positionString, strlen(positionString));
+	if(buffer) free(buffer);
+
 	return 0;
 }
 
@@ -637,29 +620,28 @@ int ArrayToType3Write(BITARRAY *array, UINT64 startIndex, UINT64 minHashValue, U
 ****************************************************************************/
 int ReadLevelFile(char* compressed_filename, BITARRAY *array, int length)
 {
-	int status;
-	//length++;
 	int type = getLevelFileType(compressed_filename);
 	if(type == 0)
 	{
-		status = readLevelFileType0(compressed_filename, array, length);
+		(void)readLevelFileType0(compressed_filename, array, length);
 	}
 	else if(type == 1)
 	{
-		status = readLevelFileType1(compressed_filename, array, length);
+		(void)readLevelFileType1(compressed_filename, array, length);
 	}
 	else if(type == 2)
 	{
-		status = readLevelFileType2(compressed_filename, array, length);
+		(void)readLevelFileType2(compressed_filename, array, length);
 	}
 	else if(type == 3)
 	{
-		status = readLevelFileType3(compressed_filename, array, length);
+		(void)readLevelFileType3(compressed_filename, array, length);
 	}
 	else
 	{
 		return 1;
 	}
+
 	return 0;
 }
 /****************************************************************************
@@ -812,7 +794,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 		{
 			printf("case1\n");
 			printf("--- %x %d\n", *buffer, currentIndex);
-			if((8 - (tempBitIndexInByte - 1)) > bitsPerPosition) // doesn't use up rest of byte
+			if((8 - (tempBitIndexInByte - 1)) > (int) bitsPerPosition) // doesn't use up rest of byte
 			{
 				printf(" == %d %x==", tempBitIndexInByte, *buffer);
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (8 - (bitsPerPosition)));
@@ -866,7 +848,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 				printf(" *** %d %d ", currentIndex, tempBitIndexInByte);
 				currentIndex += (8-(tempBitIndexInByte-1));
 				tempBitIndexInByte = 1;
-				if(currentIndex >= bitsPerPosition) //add number to bitArray
+				if(currentIndex >= (int) bitsPerPosition) //add number to bitArray
 				{
 //					printf("add case1b to array ");
 					///ADDNUMBERTOBITARRAY
@@ -918,7 +900,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 				}
 			}
 		}
-		else if((currentIndex + 8) < bitsPerPosition) //if using whole Byte
+		else if((currentIndex + 8) < (int) bitsPerPosition) //if using whole Byte
 		{
 			printf("case2\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
@@ -927,7 +909,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
 			tempBitIndexInByte = 1;
 			currentIndex += 8;
-			if(currentIndex >= bitsPerPosition) //add number to bitArray
+			if(currentIndex >= (int) bitsPerPosition) //add number to bitArray
 			{
 				printf("3tempNumber %d\n", tempNumber);
 				///ADDNUMBERTOBITARRAY
@@ -990,7 +972,7 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 			tempBitIndexInByte = (bitsPerPosition - currentIndex + 1);
 //			printf("tempNumber %x %d %d\n", *buffer, bitsPerPosition, tempBitIndexInByte);
 			currentIndex = bitsPerPosition;
-			if(currentIndex >= bitsPerPosition) //add number to bitArray
+			if(currentIndex >= (int) bitsPerPosition) //add number to bitArray
 			{
 				///ADDNUMBERTOBITARRAY
 				lastTempNumber = tempNumber;
@@ -1076,8 +1058,6 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 	BYTE*     buffer = (BYTE*)malloc(sizeof(BYTE));
 	int status = STATUS_SUCCESS;
 	int endSectionCounter = 0;
-
-	//    BITARRAY* bitArray = (BITARRAY*)malloc(sizeof(BITARRAY)*BITSINPOS/BITSINBYTE);
 	int currentIndex = 0;
 	BYTE*     currentByte = (BYTE*)malloc(sizeof(BYTE));
 
@@ -1101,19 +1081,16 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 	UINT8 tempNumber = 0;
 	int bitValue;
 	int counter = 0;
-	int lastTempNumber = -1;
 	status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
-	while(counter <= lastZero)
+	while(counter <= (int) lastZero)
 	{
 		if(tempBitIndexInByte != 1) //stll evaluating same byte
 		{
-//			printf("case1\n");
-			if((8 - (tempBitIndexInByte - 1)) > bitsPerPosition) // doesn't use up rest of byte
+			if((8 - (tempBitIndexInByte - 1)) > (int) bitsPerPosition) // doesn't use up rest of byte
 			{
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (8 - (bitsPerPosition)));
 				tempBitIndexInByte += bitsPerPosition;
 				//add number to bitArray
-				lastTempNumber = tempNumber;
 				///ADDNUMBERTOBITARRAY
 				if(counter > length)
 				{
@@ -1159,10 +1136,9 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 				tempNumber += (UINT8)((UINT8)((*buffer) << (tempBitIndexInByte - 1)) >> (tempBitIndexInByte - 1));
 				currentIndex = (8-(tempBitIndexInByte-1));
 				tempBitIndexInByte = 1;
-				if(currentIndex >= bitsPerPosition) //add number to bitArray
+				if(currentIndex >= (int) bitsPerPosition) //add number to bitArray
 				{
 					///ADDNUMBERTOBITARRAY
-					lastTempNumber = tempNumber;
 					if(counter > length)
 					{
 						gzclose(compressed_filep);
@@ -1206,7 +1182,7 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 				}
 			}
 		}
-		else if((currentIndex + 8) < bitsPerPosition) //if using whole Byte
+		else if((currentIndex + 8) < (int) bitsPerPosition) //if using whole Byte
 		{
 //			printf("case2\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
@@ -1217,7 +1193,6 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 				if(endSectionCounter == 1 && (*buffer) == 0x0A)
 				{
 					///ADDNUMBERTOBITARRAY
-					lastTempNumber = tempNumber;
 					if(counter > length)
 					{
 						gzclose(compressed_filep);
@@ -1252,10 +1227,9 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
 			tempBitIndexInByte = 1;
 			currentIndex += 8;
-			if(currentIndex >= bitsPerPosition) //add number to bitArray
+			if(currentIndex >= (int) bitsPerPosition) //add number to bitArray
 			{
 				///ADDNUMBERTOBITARRAY
-				lastTempNumber = tempNumber;
 				if(counter > length)
 				{
 					gzclose(compressed_filep);
@@ -1322,8 +1296,6 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 					}
 					else
 					{
-						lastTempNumber = tempNumber;
-//						printf("tempnumber %d", tempNumber);
 						while(counter <= length)
 						{
 							bitValue = counter % 8;
@@ -1355,7 +1327,6 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 						{
 							(*bitArray) = 0;
 						}
-//						printf("count %d", counter);
 						(*bitArray) = (*bitArray) | (1 << (7-bitValue));
 						counter++;
 						if(bitValue == 7)
@@ -1782,7 +1753,6 @@ int getLastZero(char* compressed_filename)
 {
 	int status;
 	int lastZero=0;
-	int pastMin = 0;
 	int pastMax = 0;
 	int pastType = 0;
 	BYTE* buffer = (BYTE*)malloc(sizeof(BYTE));
@@ -1829,8 +1799,6 @@ int getLastZero(char* compressed_filename)
 				{
 					status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				}
-				if(*buffer == 0x20)
-					pastMin=1;
 				status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 				while(*buffer>='0' && *buffer <='9' && status == STATUS_SUCCESS)
 				{
@@ -1848,7 +1816,6 @@ int getLastZero(char* compressed_filename)
 						lastZero = lastZero*10 + ((BYTE)(*buffer)-'0');
 					}
 				}
-//                    printf("max = %d \n", maxHashValue);
 				gzclose(compressed_filep);
 				return lastZero;
 			}

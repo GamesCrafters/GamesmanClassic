@@ -126,6 +126,7 @@ void lpds_PrintParents() {
 
 /* Returns the VALUE of the given POSITION. */
 VALUE lpds_DetermineValue(POSITION position) {
+	(void) position;
 	GMSTATUS status = STATUS_SUCCESS;
 	VALUE value = undecided;
 

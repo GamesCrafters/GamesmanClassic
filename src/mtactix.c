@@ -61,8 +61,8 @@
 POSITION gInitialPosition  = 65535;
 POSITION gMinimalPosition  = 65535;
 
-STRING kAuthorName         = "Dan Garcia";
-STRING kGameName           = "Tac Tix";
+CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kGameName           = "Tac Tix";
 BOOLEAN kPartizan           = FALSE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -72,7 +72,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button toggles the pieces under the cursor on and off for\n\
 removal.  An 'X' is drawn in the center of the piece when it has been\n\
 chosen for removal. The interface prevents you from selecting invalid\n\
@@ -81,7 +81,7 @@ doesn't matter where the cursor is when you click the MIDDLE button.\n\
 The RIGHT button is the same as UNDO, in that it reverts back to\n\
 your your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                     ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine the positions (between 1 and\n\
 16, with 1 at the upper left and 9 at the lower right) of the pieces you\n\
 wish to remove and hit return. To select more than one piece (which\n\
@@ -91,23 +91,23 @@ the top layer, type '1 2 3' and hit return. If at any point you have\n\
 made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You remove as many disks as you want from any row or column (but NOT\n\
 diagonal), as long as the disks you removed ARE contiguous (next to\n\
 each other)."                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To remove the last disk. Your last move does not necessarily have to be\n\
 one disk, however.  Example: If there are only two disks (in a row, and\n\
 contiguous) on the board and it's your turn, you should take both of them\n\
 for the win.  (The last disk was removed with your turn)."                                                                                                                                                                                                                                            ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to remove the last disk.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         (  1  2  3  4 )           : O O O O\n\
          (  5  6  7  8 )           : O O O O\n\
 LEGEND:  (  9 10 11 12 )  TOTAL:   : O O O O\n\
@@ -167,7 +167,7 @@ Computer wins. Nice try, Dan."                                                  
 #define k4InARow      8         /*  8 ways for there to be 4 in a row with a 4x4 board */
 
 int kNumberMoves       = k1InARow + k2InARow + k3InARow + k4InARow;
-int kFull3x3Board      = 1911;  /* 1 + 2 + 4 + 16 + 32 + 64 + 256 + 512 + 1024 */
+POSITION kFull3x3Board      = 1911;  /* 1 + 2 + 4 + 16 + 32 + 64 + 256 + 512 + 1024 */
 
 int gBoardColumns      = 4;     /* 3 columns on the board */
 int gBoardRows         = 4;     /* 3 rows on the board */
@@ -287,6 +287,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case '1':
 			gInitialPosition = GetRandomNumber(gNumberOfPositions); /* random board */
 			break;
@@ -321,8 +322,7 @@ void GameSpecificMenu()
 					gInitialPosition += (int)pow(2.0,(double)i++);
 				else if(c == '-')
 					i++; /* do nothing */
-				else
-					; /* do nothing */
+				/* else do nothing */
 			}
 
 			break;
@@ -351,6 +351,7 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 **
 ************************************************************************/
 
+#ifndef NO_GRAPHICS
 void SetTclCGameSpecificOptions(int theOptions[])
 {
 	// Anoto pen support
@@ -358,6 +359,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 		gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
 	}
 }
+#endif
 
 /************************************************************************
 **
@@ -873,7 +875,7 @@ int a,b;
 	return(theBlankO[a] == o && theBlankO[b] == o );
 }
 
-STRING kDBName = "tactix";
+CONST_STRING kDBName = "tactix";
 
 int NumberOfOptions()
 {
@@ -935,6 +937,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	int lsb = -1, msb = -1;
 	for (int i = 0; i < 16; i++) {
 		if (mv & 1) {

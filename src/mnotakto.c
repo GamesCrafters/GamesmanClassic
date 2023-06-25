@@ -14,9 +14,9 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Andrew Esteban";
-STRING kGameName = "Notakto"; //  use this spacing and case
-STRING kDBName = "notakto"; // use this spacing and case
+CONST_STRING kAuthorName = "Andrew Esteban";
+CONST_STRING kGameName = "Notakto"; //  use this spacing and case
+CONST_STRING kDBName = "notakto"; // use this spacing and case
 POSITION gNumberOfPositions; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -38,18 +38,20 @@ BOOLEAN kDebugMenu = FALSE;
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 
 #define MIN_BOARDS 1
 #define MAX_BOARDS 3
@@ -347,6 +349,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+  (void)playerName;
+  (void)usersTurn;
   char board[boardSize];
   generic_hash_unhash(position, board);
 
@@ -393,6 +397,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  (void)computersName;
   PrintMove(computersMove);
 }
 
@@ -411,7 +416,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 BOOLEAN isNumeric(STRING input) {
    BOOLEAN result = TRUE;
 
-   for (int i = 0; i < strlen(input); i++) {
+   for (size_t i = 0; i < strlen(input); i++) {
       if (input[i] < 48 || input[i] > 48 + 9) {
         result = FALSE;
       }
@@ -536,6 +541,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
   STRING result = (STRING) SafeMalloc(8);
 
   sprintf(result, "A_-_%d", move);

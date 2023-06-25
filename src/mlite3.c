@@ -55,8 +55,8 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition           = -1;
 
-STRING kAuthorName         = "Alex Perelmen and Babak Hamadani";
-STRING kGameName           = "Lite-3";
+CONST_STRING kAuthorName         = "Alex Perelmen and Babak Hamadani";
+CONST_STRING kGameName           = "Lite-3";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -65,25 +65,25 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Help strings not initialized.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Help strings not initialized.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
 /*************************************************************************
@@ -319,6 +319,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 
 		case '1':
 			gGameObjective = THREE_IN_A_ROW;
@@ -517,18 +518,16 @@ POSITION GetInitialPosition()
 	printf("\tNote that it should be in the following format:\n\n");
 	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
 
-	theBlankOOOXXX[0] = x;
+	theBlankOOOXXX[0] = (BlankOOOXXX)x;
 	i = 1;
 	getchar();
 	while(i < BOARDSIZE && (c = getchar()) != EOF) {
 		if(c == 'x' || c == 'X')
-			theBlankOOOXXX[i++] = x;
+			theBlankOOOXXX[i++] = (BlankOOOXXX)x;
 		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOOOXXX[i++] = o;
+			theBlankOOOXXX[i++] = (BlankOOOXXX)o;
 		else if(c == '-')
 			theBlankOOOXXX[i++] = Blank;
-		else
-			;
 	}
 
 	return(BlankOOOXXXToPosition(theBlankOOOXXX));
@@ -793,6 +792,7 @@ STRING playerName;
 		switch(input[0]) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'u': case 'U':
 			return(Undo);
 		case 'a': case 'A':
@@ -1150,7 +1150,7 @@ POSITION thePosition;
 	return (thePosition & 1);
 }
 
-STRING kDBName = "lite3";
+CONST_STRING kDBName = "lite3";
 
 int NumberOfOptions()
 {
@@ -1188,7 +1188,7 @@ POSITION InteractStringToPosition(STRING board) {
 	}
 
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	theBlankOOOXXX[0] = turn == UWAPI_TURN_B? o : x;
+	theBlankOOOXXX[0] = (BlankOOOXXX)(turn == UWAPI_TURN_B ? o : x);
 	for (int i = 1; i < BOARDSIZE; i++) {
 		switch (board[i-1]) {
 			default:
@@ -1265,6 +1265,7 @@ STRING InteractPositionToString(POSITION pos) {
 BOOLEAN arrowMoves = FALSE;
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT toSlot;
+	(void)pos;
 	MoveToSlots(mv, &toSlot);
 	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot - 1);
 }

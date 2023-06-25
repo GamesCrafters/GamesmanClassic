@@ -37,9 +37,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Odd or Even";   /* The name of your game */
-STRING kAuthorName          = "Peter Yu";   /* Your name(s) */
-STRING kDBName              = "ooe";   /* The name to store the database under */
+CONST_STRING kGameName            = "Odd or Even";   /* The name of your game */
+CONST_STRING kAuthorName          = "Peter Yu";   /* Your name(s) */
+CONST_STRING kDBName              = "ooe";   /* The name to store the database under */
 
 void* gGameSpecificTclInit = NULL;
 
@@ -61,31 +61,31 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, type in the number 1, 2, or 3 and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You can enter 1, 2, or 3 to indicate how many match(es) you want take off board.\
 A running total of how many matches you and your opponents have will be kept.\
 Keep in mind though that the objective is not to get the last match; instead, you would have to have\
 an even number of matches to win"                                                                                                                                                                                                                                                                                   ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "At the end game, to have an even number of matches.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "At the end game, to have an odd number of matches. (i.e. to force your opponent to take a total of even number\
 of matches."                                                                                                                          ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "There cannot be a tie";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -308,6 +308,8 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	(void)playersName;
+	(void)usersTurn;
 	int i;
 	int currentMatches = numberOfMatches(position);
 	printf("\n");
@@ -511,7 +513,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -589,11 +591,11 @@ int getOption ()
 
 void setOption (int option)
 {
+	(void)option;
 	int maxMoves;
 	printf("Please enter the number of matches you allow to be taken off board each time:");
 	scanf("%d", &maxMoves);
 	MAXMOVE = maxMoves;
-
 }
 
 
@@ -688,5 +690,6 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

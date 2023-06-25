@@ -37,8 +37,8 @@ POSITION gNumberOfPositions = 0;  /* variable size loopy game */
 POSITION gInitialPosition    =  0; /* hashed value */
 POSITION gMinimalPosition    =  0;
 
-STRING kAuthorName         = "Rach Liu, Bryon Ross, Jiong Shen and Tom Wang";
-STRING kGameName           = "SlideN";
+CONST_STRING kAuthorName         = "Rach Liu, Bryon Ross, Jiong Shen and Tom Wang";
+CONST_STRING kGameName           = "SlideN";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -48,10 +48,10 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "There is no graphical interface.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, insert a piece from one of the insertion points along\n\
 the top of the board.  Every board has 2*N insertion points labeled\n\
 1 through 2*N (where 1 is the left-most entry point and 2*N is the\n\
@@ -64,25 +64,25 @@ This process will continue until either a piece is pushed into\n\
 an empty space, or a piece is pushed off the bottom of the board.\n\
 Pieces pushed off the bottom of the board are discarded."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You insert one of your pieces from one of the insertion points along \n\
 the top of the board."                                                                                  ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get N of your pieces in a row (where N is the length of one side \n\
 of the board). N-in-a-row can be made vertically, horizontally, or \n\
 diagonally. N-in-a-row WINS."                                                                                                                                                        ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting N of his pieces in a row \n"
         "(where N is the length of one side of the board). \n"
         "N-in-a-row can be made vertically, horizontally, or diagonally. \n"
         "N-in-a-row LOSES.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "both players get N in a row at the same time";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "========= How moves and pieces work, how to input them ==============  \n\n\
     3 4               ** This is the initial board set up.             \n\
   2  -  5                The numbers along the top indicate where      \n\
@@ -283,6 +283,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -333,10 +334,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -360,8 +361,6 @@ POSITION thePosition;
 MOVE theMove;
 {
 	int i;
-	int myMove;
-
 	void LeftGravity(), RightGravity();
 	POSITION BlankOXToPosition();
 	BlankOX PositionToBlankOX();
@@ -373,8 +372,6 @@ MOVE theMove;
 
 	// Original code for no gravity
 	if (theMove > N) {
-		myMove = theMove-N-1;
-
 		for (i = theMove-N-1; i < N*N; i += N) {
 			if (theBlankOX[i] != Blank) {
 				temp = theBlankOX[i];
@@ -387,8 +384,6 @@ MOVE theMove;
 		}
 	}
 	else {
-		myMove = N * (N - theMove);
-
 		for (i = N * (N - theMove); i < N * (N - theMove + 1); i++) {
 			if (theBlankOX[i] != Blank) {
 				temp = theBlankOX[i];
@@ -578,7 +573,7 @@ POSITION position;
 				if (val == Blank) {
 					val = theBlankOX[i*(N-1)];
 				}
-				else if (val != theBlankOX[i*(N-1)]) {
+				else if (val != (int)theBlankOX[i*(N-1)]) {
 					val = Blank;
 					break;
 				}
@@ -596,7 +591,7 @@ POSITION position;
 				if (val == Blank) {
 					val = theBlankOX[i*(N+1)];
 				}
-				else if (val != theBlankOX[i*(N+1)]) {
+				else if (val != (int)theBlankOX[i*(N+1)]) {
 					val = Blank;
 					break;
 				}
@@ -900,17 +895,17 @@ BlankOX *theBlankOX;
 	thePos = thePos % g3Array[BoardSize];
 
 	for(i = BoardSize-1; i >= 0; i--) {
-		if(thePos >= ((int)o * g3Array[i])) {
+		if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)x * g3Array[i])) {
+		else if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -944,7 +939,7 @@ BlankOX *theBlankOX, whosturn;
 	return(position);
 }
 
-STRING kDBName = "slide-N";
+CONST_STRING kDBName = "slide-N";
 
 int NumberOfOptions()
 {
@@ -980,9 +975,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

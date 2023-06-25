@@ -37,9 +37,9 @@
 /**
  * externs
  */
-STRING kAuthorName         = "Alexander D'Archangel";
-STRING kGameName           = "Go";
-STRING kDBName                         = "igo";
+CONST_STRING kAuthorName         = "Alexander D'Archangel";
+CONST_STRING kGameName           = "Go";
+CONST_STRING kDBName                         = "igo";
 
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -62,25 +62,25 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized!";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Help strings not initialized!";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 /*************************************************************************
@@ -142,7 +142,7 @@ static GoPosition
 newGoPosition(size_t boardsize);
 
 static GoPosition
-copyGoPosition(const GoPosition const pos);
+copyGoPosition(const GoPosition pos);
 
 static void
 delGoPosition(GoPosition which);
@@ -221,13 +221,13 @@ static GoBoard
 newGoBoard(size_t boardsize);
 
 static GoBoard
-copyGoBoard(const GoBoard const RHS);
+copyGoBoard(const GoBoard RHS);
 
 static void
 delGoBoard(GoBoard const gbDestructee);
 
 static GoIntersection
-getGoIntersection(const GoBoard const board, size_t const x, size_t const y);
+getGoIntersection(const GoBoard board, size_t const x, size_t const y);
 
 /* Move abstraction */
 
@@ -256,14 +256,14 @@ isValidMove(GoMove move, GoPosition pos);
 typedef GoIntersectionList StoneString;
 
 static StoneString
-getStoneString(const GoIntersection const start);
+getStoneString(const GoIntersection start);
 
 static unsigned int
-countLiberties(const StoneString const which);
+countLiberties(const StoneString which);
 
 #ifdef DONE
 static unsigned int
-countStones(const StoneString const which);
+countStones(const StoneString which);
 #endif
 
 static void
@@ -426,9 +426,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	GoPosition pos = unhashPosition(position);
 
 /* FIXME:  Invert */
-	int i, j;
-	for (i = 0; i < DEFAULT_BOARD_SIZE; ++i) {
-		for (j = 0; j < DEFAULT_BOARD_SIZE; ++j) {
+	for (size_t i = 0; i < DEFAULT_BOARD_SIZE; ++i) {
+		for (size_t j = 0; j < DEFAULT_BOARD_SIZE; ++j) {
 			GoMove move = newGoMove(i + 1, j + 1);
 			if (isValidMove(move, pos)) {
 				moves = CreateMovelistNode(hashMove(move), moves);
@@ -561,7 +560,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-
+	(void)computersMove;
+	(void)computersName;
 }
 
 
@@ -677,12 +677,10 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 BOOLEAN ValidTextInput (STRING input)
 {
-#if 0
-	return (tolower(input[0]) >= 'a' && tolower(input[0]) <= 'c'
-	        && input[1] >= 1 && input[1] <= 3);
-#else
+	// return (tolower(input[0]) >= 'a' && tolower(input[0]) <= 'c'
+	//         && input[1] >= 1 && input[1] <= 3);
+	(void)input;
 	return TRUE;
-#endif
 }
 
 
@@ -744,7 +742,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -868,8 +866,7 @@ static POSITION
 hashPosition(GoPosition pos) {
 	char pos_string[DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE];
 	POSITION result;
-	int i;
-	for (i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
+	for (size_t i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
 		pos_string[i] = pos->board->matrix[i]->stone
 		                ? (pos->board->matrix[i]->stone->color == STONE_BLACK ? 'X' : 'O')
 				: '-';
@@ -894,8 +891,7 @@ unhashPosition(POSITION pos) {
 	}
 	pos >>= 2;
 	generic_hash_unhash(pos, pos_string);
-	int i;
-	for (i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
+	for (size_t i = 0; i < DEFAULT_BOARD_SIZE * DEFAULT_BOARD_SIZE; ++i)
 		result->board->matrix[i]->stone =
 		        pos_string[i] == '-'
 		        ? NULL
@@ -986,7 +982,7 @@ newGoPosition(size_t boardsize) {
 }
 
 static GoPosition
-copyGoPosition(const GoPosition const RHS) {
+copyGoPosition(const GoPosition RHS) {
 	GoPosition pos = SafeMalloc(sizeof(struct GoPosition));
 	pos->board = copyGoBoard(RHS->board);
 	pos->turn = RHS->turn;
@@ -1018,22 +1014,22 @@ stringifyGoPosition(GoPosition pos) {
 #else
 	static char str[800];
 #endif
-	int i, j;
+	size_t i, j;
 	sprintf(str, "         ");
 	for (i = 0; i < pos->board->size; ++i)
-		sprintf(str + strlen(str), " %c", 'A' + i);
+		sprintf(str + strlen(str), " %c", (char)('A' + i));
 	strcat(str, "\n      ");
 	for (j = pos->board->size; j > 0; --j) {
-		sprintf(str + strlen(str), " %2d ", j);
+		sprintf(str + strlen(str), " %2zd ", j);
 		for (i = 0; i < pos->board->size; ++i) {
 			GoStone stone = getGoIntersection(pos->board, i, j - 1)->stone;
 			strcat(str, stone ? (stone->color == STONE_WHITE ? "O " : "X ") : ". ");
 		}
-		sprintf(str + strlen(str), "%2d\n      ", j);
+		sprintf(str + strlen(str), "%2zd\n      ", j);
 	}
 	strcat(str, "   ");
 	for (i = 0; i < pos->board->size; ++i)
-		sprintf(str + strlen(str), " %c", 'A' + i);
+		sprintf(str + strlen(str), " %c", (char)('A' + i));
 	strcat(str, "\n");
 	return str;
 }
@@ -1049,7 +1045,7 @@ newGoBoard(size_t boardsize) {
 	new_board->size = boardsize;
 	new_board->matrix = SafeMalloc(new_board->size * new_board->size * sizeof(GoIntersection));
 	/* construct empty intersections */
-	int i, j;
+	size_t i, j;
 	for (j = 0; j < new_board->size; ++j)           /* rows */
 		for (i = 0; i < new_board->size; ++i)   /* cols */
 			*(new_board->matrix + (j * new_board->size) + i) = newGoIntersectionDefault();
@@ -1071,12 +1067,12 @@ newGoBoard(size_t boardsize) {
 }
 
 static GoBoard
-copyGoBoard(const GoBoard const RHS) {
+copyGoBoard(const GoBoard RHS) {
 	GoBoard new_board = SafeMalloc(sizeof(struct GoBoard));
 	new_board->size = RHS->size;
 	new_board->matrix = SafeMalloc(new_board->size * new_board->size * sizeof(GoIntersection));
 	/* construct empty intersections */
-	int i, j;
+	size_t i, j;
 	for (j = 0; j < new_board->size; ++j)           /* rows */
 		for (i = 0; i < new_board->size; ++i)   /* cols */
 			*(new_board->matrix + (j * new_board->size) + i) = newGoIntersectionDefault();
@@ -1111,7 +1107,7 @@ delGoBoard(GoBoard const old_board) {
 }
 
 static GoIntersection
-getGoIntersection(const GoBoard const board, size_t const x, size_t const y) {
+getGoIntersection(const GoBoard board, size_t const x, size_t const y) {
 	GoIntersection result;
 	if (x < board->size && y < board->size) {
 		result = *(board->matrix + y * board->size + x);
@@ -1264,7 +1260,7 @@ findGoIntersection(GoIntersectionList list, GoIntersection element) {
 /* StoneString */
 
 static StoneString
-getStoneString(const GoIntersection const start) {
+getStoneString(const GoIntersection start) {
 	/* FIXME:  Refactor! */
 	StoneString result = newGoIntersectionListDefault();
 	GoIntersectionList visited = newGoIntersectionListDefault();
@@ -1295,7 +1291,7 @@ getStoneString(const GoIntersection const start) {
 }
 
 static unsigned int
-countLiberties(const StoneString const which) {
+countLiberties(const StoneString which) {
 	unsigned int liberties = 0;
 	GoIntersectionNode node, neighborNode;
 	GoIntersectionList counted = newGoIntersectionListDefault();
@@ -1363,9 +1359,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

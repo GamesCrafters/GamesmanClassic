@@ -64,9 +64,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Cambio";   /* The name of your game */
-STRING kAuthorName          = "Albert Chae and Simon Tao";   /* Your name(s) */
-STRING kDBName              = "cambio";   /* The name to store the database under */
+CONST_STRING kGameName            = "Cambio";   /* The name of your game */
+CONST_STRING kAuthorName          = "Albert Chae and Simon Tao";   /* Your name(s) */
+CONST_STRING kDBName              = "cambio";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -88,16 +88,16 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Input the letter or number you wish to move to then press enter.\n\
 You may only push off neutral cubes, or cubes of your own symbol.\n\
 As the game progresses, you should have more and more of your own\n\
 cubes in play.\n"                                                                                                                                                                                                                          ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "BOARD SETUP:\n\
 1. The players each select a symbol to be their own, and decide\n\
    who will begin the game.\n\
@@ -116,17 +116,17 @@ it from the board; then pushes all the pieces in that line along\n\
 one place. A player MAY NOT push cubes with your opponents symbol\n\
 showing OFF the board.\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To make a line composed of all 3, 4, or 5 (depending on the board size)\n\
 of your own symbol - horizontally, vertically or diagonally.\n"                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "a player's move causes two 3 in a rows simultaneously.\n";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -588,7 +588,8 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-
+	(void)playersName;
+	(void)usersTurn;
 	char *gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
 	int countA = 0, countB = 0, i = 0;
 
@@ -866,9 +867,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 	//generic_hash_unhash(position, gBoard);
 
-	int countA = 0, countB = 0, i = 0, turn;
-
-	turn = generic_hash_turn(position);
+	int countA = 0, countB = 0, i = 0;
 
 	/* count the number of pieces for each player */
 	for(i = 0; i < boardSize; i++)
@@ -1040,8 +1039,10 @@ MOVE ConvertTextInputToMove (STRING input)
 		move = (colcount*rowcount) + (colcount+rowcount) + (move1-'v');
 	else if(move1 >= '0' && move1 <= ('0'+rowcount-1))
 		move = (colcount*rowcount) + (colcount+rowcount+colcount) + (move1-'0');
-	else
+	else {
 		printf("Error in: ConvertTextInputToMove");
+		return -1;
+	}
 
 	return (MOVE) move;
 }
@@ -1139,7 +1140,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1262,6 +1263,7 @@ void setOption (int option)
 	/* If you have implemented symmetries you should
 	   include the boolean variable gSymmetries in your
 	   hash */
+	(void)option;
 }
 
 
@@ -1535,7 +1537,7 @@ TIERLIST *TierChildren(TIER tier) {
 	int i;
 	int countA, countB;
 
-	if(tier < (rowcount - 1) + (rowcount - 1)*boardSize*boardSize) {
+	if(tier < (TIER)((rowcount - 1) + (rowcount - 1)*boardSize*boardSize)) {
 		for(i = 0; i < (rowcount - 1)*2; i++) {
 			// initial tier
 			if(i == 0) {
@@ -1549,7 +1551,7 @@ TIERLIST *TierChildren(TIER tier) {
 				countA = i/2 + 1;
 				countB = i/2;
 
-				if(tier == countA + countB*boardSize*boardSize) {
+				if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
 					return tierlist;
 				}
@@ -1559,7 +1561,7 @@ TIERLIST *TierChildren(TIER tier) {
 				countA = i/2;
 				countB = i/2;
 
-				if(tier == countA + countB*boardSize*boardSize) {
+				if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					tierlist = CreateTierlistNode(tier+1, tierlist);
 					return tierlist;
 				}
@@ -1570,8 +1572,8 @@ TIERLIST *TierChildren(TIER tier) {
 	else {
 		for(countA = (rowcount - 1); countA <= boardSize; countA++) {
 			for(countB = (rowcount - 1); countB <= boardSize - countA; countB++) {
-				if(tier + 1 == countA + countB*boardSize*boardSize ||
-				   tier + boardSize*boardSize == countA + countB*boardSize*boardSize) {
+				if(tier + 1 == (TIER)(countA + countB*boardSize*boardSize) ||
+				   tier + boardSize*boardSize == (TIER)(countA + countB*boardSize*boardSize)) {
 					// self loop
 					tierlist = CreateTierlistNode(tier, tierlist);
 					// putting an X down
@@ -1579,7 +1581,7 @@ TIERLIST *TierChildren(TIER tier) {
 					// putting an O down
 					tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
 				}
-				else if(tier == countA + countB*boardSize*boardSize) {
+				else if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					// self loop
 					tierlist = CreateTierlistNode(tier, tierlist);
 				}
@@ -1763,9 +1765,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
+	(void)mv;
 	return "Implement MoveToString";
 }

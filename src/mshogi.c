@@ -43,9 +43,9 @@
 **************************************************************************/
 
 void*   gGameSpecificTclInit = NULL;
-STRING kGameName            = "Hasami Shogi";   /* The name of your game */
-STRING kAuthorName          = "Chris Willmore, Ann Chen";   /* Your name(s) */
-STRING kDBName              = "mhshogi";   /* The name to store the database under */
+CONST_STRING kGameName            = "Hasami Shogi";   /* The name of your game */
+CONST_STRING kAuthorName          = "Chris Willmore, Ann Chen";   /* Your name(s) */
+CONST_STRING kDBName              = "mhshogi";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -64,10 +64,10 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, lookup the horizontal and vertical position of the piece\n\
 you want to move and the destination of the move.  The position\n\
 notation is the same as chess notation, and you can find the positions\n\
@@ -77,7 +77,7 @@ between (e.g. a1a2). If at any point you have made a mistake, you can\n\
 type u and hit return and the system will revert back to your most\n\
 recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, move one or more spaces in any direction--forward,\n\
 backward, left, right--everything except diagonal. All the spaces\n\
 passed over and the one landed upon must be empty. You can jump over\n\
@@ -101,7 +101,7 @@ line of pieces--of which one is in a corner--can be captured by your\n\
 pieces on both ends of the line. This just means you can make right-\n\
 angle sandwiches."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To make a chain of 5 connected pieces of your markers (either x or o)\n\
 in a straight line. The chain can be in any direction--vertical,\n\
 horizontal, or diagonal. None of the pieces may be in your original\n\
@@ -109,7 +109,7 @@ starting rows.\n\
 The War Version: To capture all of the enemy pieces, or reduce the\n\
 enemy to one or no pieces."                                                                                                                                                                                                                                                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your enemy into making a chain of 5 connected pieces of\n\
 his/her markers (either x or o) in a straight line. The chain can be in\n\
 any direction--vertical, horizontal, or diagonal. None of the pieces\n\
@@ -117,11 +117,11 @@ may be in his/her original starting rows.\n\
 The War Version: To force your enemy into capturing all of your pieces,\n\
 or reduce you to one or no pieces."                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "both players have less than 5 pieces.\n\
 The War Version: A tie never occurs."                                                  ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Player's turn\n\
   -----\n\
 3 |o|o|\n\
@@ -779,7 +779,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1341,9 +1341,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

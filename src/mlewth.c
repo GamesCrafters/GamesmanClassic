@@ -72,9 +72,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Lewthwaite's Game";   /* The name of your game */
-STRING kAuthorName          = "Cindy Song, Yuliya Sarkisyan";   /* Your name(s) */
-STRING kDBName              = "lewth";   /* The name to store the database under */
+CONST_STRING kGameName            = "Lewthwaite's Game";   /* The name of your game */
+CONST_STRING kAuthorName          = "Cindy Song, Yuliya Sarkisyan";   /* Your name(s) */
+CONST_STRING kDBName              = "lewth";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -132,11 +132,11 @@ BOOLEAN detailedDebug         = FALSE;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
 // How to tell the computer WHICH MOVE I want?
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "The text input of a move is composed of a direction (one of the \
 following four letters: ijkl, corresponding \
 to up, left, down, and right), and, if multiple piece moves are allowed, of \
@@ -144,7 +144,7 @@ the number of pieces to move. Please note, under regular rules, \
 you can only move one piece at a time."                                                                                                                                                                                                                                                                         ;
 
 // What do I do on MY TURN?
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, you try to move one of your pieces \
 into the available space. If you are playing under the regular rules, \
 you can only move one piece at a time.  Therefore, choose \
@@ -152,21 +152,21 @@ one of your pieces on the left, right, top, or bottom \
 of the available space to move into the space."                                                                                                                                                                                                                                                        ;
 
 // std objective of lewth game
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The standard objective of Lewthwaite's game is to move your \
 pieces so that your opponent cannot move any \
 of his pieces on his turn."                                                                                                                      ;
 
 //
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "The reverse objective of Lewthwaite's game is to move your \
 pieces so that after your opponent's turn, you cannot move any \
 of your pieces."                                                                                                                                       ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie is not possible in this game.";
 
-STRING kHelpExample = "                DIRECTION KEY\n\n\
+CONST_STRING kHelpExample = "                DIRECTION KEY\n\n\
                     (up)\n\
                      i\n\
            (left) j     l (right)\n\
@@ -759,18 +759,9 @@ BOOLEAN ValidTextInput (STRING input)
 {
 	if (detailedDebug) printf("ValidTextInput start\n");
 	char c = *input;
-	int direction = 0;
 	int numPieces = 0;
 
-	if (c == 'i') {
-		direction = up;
-	} else if (c == 'k') {
-		direction = down;
-	} else if (c == 'j') {
-		direction = left;
-	} else if (c == 'l') {
-		direction = right;
-	} else {
+	if (c != 'i' && c != 'k' && c != 'j' && c != 'l') {
 		return FALSE;
 	}
 
@@ -876,6 +867,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 
 		case 'H': case 'h':
 			HelpMenus();
@@ -933,7 +925,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1320,9 +1312,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

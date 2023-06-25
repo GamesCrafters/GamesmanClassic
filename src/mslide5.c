@@ -14,9 +14,9 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Harnoor Dhillon";
-STRING kGameName = "Slide-5"; 
-STRING kDBName = "slide5"; 
+CONST_STRING kAuthorName = "Harnoor Dhillon";
+CONST_STRING kGameName = "Slide-5"; 
+CONST_STRING kDBName = "slide5"; 
 POSITION gNumberOfPositions = 77834825526; 
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = TRUE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -40,18 +40,20 @@ TIERPOSITION numberOfTierPositions(TIER tier);
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 
 // Defining Slide5Board
 typedef struct {
@@ -241,6 +243,7 @@ POSITION GetInitialPosition() {
 
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
+  (void)position;
   MOVELIST *moves = NULL;
 
   for (int i = 0; i < 10; i++) {
@@ -362,6 +365,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+  (void)playerName;
+  (void)usersTurn;
   Slide5Board* board = Unhash(position);
 
   printf("  1 2 3 4 5\n");
@@ -383,6 +388,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  (void)computersMove;
+  (void)computersName;
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -557,5 +564,6 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
   return UWAPI_Board_Regular2D_MakeMoveString(25 + move * 2, 26 + move * 2);
 }

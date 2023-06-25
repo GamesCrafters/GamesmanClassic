@@ -7,9 +7,9 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Stella Wan, Nala Chen, and Cameron Cheung";
-STRING kGameName = "Tic-Tac-Two";
-STRING kDBName = "tttwo";
+CONST_STRING kAuthorName = "Stella Wan, Nala Chen, and Cameron Cheung";
+CONST_STRING kGameName = "Tic-Tac-Two";
+CONST_STRING kDBName = "tttwo";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = TRUE;
@@ -18,13 +18,13 @@ BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -617,6 +617,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
 }
 
 /************************************************************************
@@ -962,6 +963,7 @@ void unhashTier(TIER tier, int *xPlaced, int *oPlaced, char *turn) {
 }
 
 TIER hashTier(int xPlaced, int oPlaced, char turn) {
+  (void)turn;
 	return xPlaced * 10 + oPlaced;
 }
 
@@ -1463,6 +1465,7 @@ STRING InteractPositionToString(POSITION interPos) {
 
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  (void)pos;
   int isGridMove, from, to;
   unhashMove(mv % 100000, &isGridMove, &from, &to);
   if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv

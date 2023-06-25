@@ -256,7 +256,6 @@ void ServerInteractLoop(void) {
 	MOVE move;
 	STRING move_string = NULL;
 	char * board = NULL;
-        char * data = NULL;
 	MEX mex = 0;
 	TIER tier = 0;
 	if (kSupportsShardGamesman) {
@@ -436,7 +435,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -467,7 +466,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -564,7 +563,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -620,7 +619,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}

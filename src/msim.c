@@ -34,8 +34,8 @@ POSITION gNumberOfPositions  = 14348907;  /* 3^15 */
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0;
 
-STRING kAuthorName          = "Dan Garcia and Sunil Ramesh et. al";
-STRING kGameName            = "SIM";
+CONST_STRING kAuthorName          = "Dan Garcia and Sunil Ramesh et. al";
+CONST_STRING kGameName            = "SIM";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = FALSE;
@@ -44,26 +44,26 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Place one of your pieces by selecting two endpoints of a line segment\n\
 that does not yet have a piece on it."                                                                                  ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Force your opponent to form a triangle of three of your opponent's pieces.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Form a triangle of three of your pieces.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Neither player forms a triangle of three pieces of the same type.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "\n\
   (Computer should Lose in 15)  \n\
 Computer's move              : 36\n\
@@ -200,6 +200,7 @@ void DebugMenu()
 		{
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -236,10 +237,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -301,8 +302,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	return(BlankOXToPosition(theBlankOX));
@@ -464,8 +464,6 @@ void DrawMove( char** disp, int width, int height, int from, int to, char c )
 void DrawSimBoard( char** disp, int width, int height )
 {
 	int i;
-	float min = height;
-	if( width<height ) min = width;
 
 	for( i=0; i<6; i++ )
 	{
@@ -706,23 +704,21 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX)
 {
 	int i;
 	for(i = BOARDSIZE-1; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -823,7 +819,7 @@ BlankOX *theBlankOX;
 			xcount++;
 		else if(theBlankOX[i] == o)
 			ocount++;
-		else ;    /* don't count blanks */
+		/* else don't count blanks */
 
 	if(xcount == ocount)
 		return(x);  /* in our TicTacToe, x always goes first */
@@ -832,7 +828,7 @@ BlankOX *theBlankOX;
 }
 
 
-STRING kDBName = "sim";
+CONST_STRING kDBName = "sim";
 
 int NumberOfOptions()
 {
@@ -1025,5 +1021,6 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

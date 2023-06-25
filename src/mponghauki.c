@@ -17,8 +17,8 @@ char playerPiece[] = " XO";
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Kyle Zentner";
-STRING kGameName = "Pong Hau K'i";
+CONST_STRING kAuthorName = "Kyle Zentner";
+CONST_STRING kGameName = "Pong Hau K'i";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -27,19 +27,19 @@ BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "Please enter your move in the format 0-4,0-4";
+CONST_STRING kHelpOnYourTurn = "Please enter your move in the format 0-4,0-4";
 
-STRING kHelpStandardObjective = "Slide your pieces along the lines to prevent your opponent from moving.";
+CONST_STRING kHelpStandardObjective = "Slide your pieces along the lines to prevent your opponent from moving.";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -114,6 +114,7 @@ void GameSpecificMenu() {
 
 void SetTclCGameSpecificOptions(int theOptions[])
 {
+  (void)theOptions;
 }
 
 /************************************************************************
@@ -149,7 +150,8 @@ POSITION DoMove(POSITION position, MOVE move)
 
 void UndoMove(MOVE move)
 {
-  assert(0);
+  (void)move;
+  ExitStageRightErrorString("UndoMove not implemented.");
 }
 
 /************************************************************************
@@ -241,6 +243,7 @@ VALUE Primitive(POSITION position)
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  (void)usersTurn;
   char board[BOARD_SIZE];
   generic_hash_unhash(position, board);
   printf("\n");
@@ -342,6 +345,7 @@ POSITION GetCanonicalPosition(POSITION position)
 
 POSITION DoSymmetry(POSITION position, int symmetry)
 {
+  (void)symmetry;
   return position;
 }
 
@@ -480,7 +484,7 @@ STRING MoveToString (MOVE move)
   return c;
 }
 
-STRING kDBName = "ponghauki";
+CONST_STRING kDBName = "ponghauki";
 
 int NumberOfOptions()
 {
@@ -494,10 +498,12 @@ int getOption()
 
 void setOption(int option)
 {
+  (void)option;
 }
 
 POSITION ActualNumberOfPositions(int variant)
 {
+  (void)variant;
   return 0;
 }
 
@@ -528,5 +534,6 @@ STRING InteractPositionToString(POSITION pos)
 
 STRING InteractMoveToString(POSITION pos, MOVE mv)
 {
+  (void)pos;
   return MoveToString(mv);
 }

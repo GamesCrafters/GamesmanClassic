@@ -98,9 +98,9 @@ char EMPTYSPACE ='-';
 char PLAYER1 = 'X';
 char PLAYER2 = 'O';
 
-STRING kGameName            = "XiGua";   /* The name of your game */
-STRING kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder";   /* Your name(s) */
-STRING kDBName              = "xigua";   /* The name to store the database under */
+CONST_STRING kGameName            = "XiGua";   /* The name of your game */
+CONST_STRING kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder";   /* Your name(s) */
+CONST_STRING kDBName              = "xigua";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -119,25 +119,25 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Selecting a move is done by picking a letter corresponding with a square on the board. The board displayed will list the key to base your selection from (Note: not all spots on the board will be possible at any given time).";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by an edge in the board.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective of the game is to be the player with the most pieces on the board when the last piece is placed.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "The objective of the game is to be the player with the least number of pieces of the board when the last piece is placed.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when both players have the same number of pieces on the board when the last piece is placed.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Legend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       �\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n";
 
 
@@ -205,7 +205,7 @@ int getplayer(POSITION);
 int getturnnumber(POSITION);
 int countboard(char *,char);
 char *getprediction(char *);
-BOOLEAN isValidMove(char *, MOVE, char);      /* helper for GenerateMoves */
+BOOLEAN isValidMove(MOVE, char);      /* helper for GenerateMoves */
 VALUE countWinner(POSITION);              /* helper for Primitive */
 BOOLEAN isSurrounded(char *, MOVE, char, BOOLEAN *);  /* helper for DoMove, isValidMove */
 void zeroChecked(); /* helper for InitializeGame, isSurrounded, isTerritory */
@@ -708,7 +708,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* wow, talk about making something foolproof for having students coding games */
 	board=unhashboard(position,board);
 	for(i=0; i<maxsize; i++) {
-		if(isValidMove(board, (MOVE) i, piece)) {
+		if(isValidMove((MOVE) i, piece)) {
 			moves = CreateMovelistNode((MOVE)i,moves);
 		}
 	}
@@ -717,7 +717,7 @@ MOVELIST *GenerateMoves (POSITION position)
 }
 
 /* Generate Moves helper function isValidMove */
-BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
+BOOLEAN isValidMove(MOVE mv, char p) {
 	if(board[mv] != EMPTYSPACE)
 		return FALSE;
 
@@ -823,11 +823,7 @@ void zeroChecked() {
 		checked[i] = FALSE;
 }
 
-BOOLEAN isSurrounded(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+BOOLEAN isSurrounded(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	if(board[move] != p)
 		return (board[move] == EMPTYSPACE) ? FALSE : TRUE;
@@ -845,11 +841,7 @@ BOOLEAN *check;
 	}
 }
 
-void removeStones(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+void removeStones(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	int i;
 	if(board[move] == p) {
@@ -911,7 +903,7 @@ POSITION position;
 	}
 
 	for(i = 0; i < maxsize && noValidMoves; i++)
-		if(isValidMove(board, (MOVE) i, piece))
+		if(isValidMove((MOVE) i, piece))
 			noValidMoves = FALSE;
 
 	/* if we've ran out of pieces or there are no more valid spaces on the board */
@@ -959,11 +951,7 @@ POSITION position;
 }
 
 /* helper function to count empty indices surrounded by one player as territory for that player */
-BOOLEAN isTerritory(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+BOOLEAN isTerritory(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	if(board[move] != EMPTYSPACE)
 		return (board[move] == p);
@@ -1563,10 +1551,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1809,7 +1796,9 @@ char *board;
 ***************************************************************************/
 
 int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg)) {
-	return (generic_hash_init(boardsize, pieces_array, NULL, 0) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
+	(void)vcfg_function_ptr;
+	return (generic_hash_init(boardsize, pieces_array, NULL, 0)
+		<< NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
 }
 
 /***************************************************************************
@@ -1847,9 +1836,7 @@ POSITION hashed;
 **
 ***********/
 
-int countboard(board, tocount)
-char *board;
-char tocount;
+int countboard(char *board, char tocount)
 {
 	int counter=0,i=0;
 	for(; i<maxsize; i++)
@@ -1941,11 +1928,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-
 STRING InteractMoveToString(POSITION pos, MOVE mv)
 {
+	(void)pos;
 	return MoveToString(mv);
 }

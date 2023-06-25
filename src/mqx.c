@@ -27,8 +27,8 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition        = -1;
 
-STRING kAuthorName         = "Dan Garcia";
-STRING kGameName           = "Quick Cross";
+CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kGameName           = "Quick Cross";
 BOOLEAN kPartizan           = FALSE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -37,33 +37,33 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "GUI not available at the moment.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine your desired action (place\n\
 horizonally (-), place vertically (|), or switch (x)) and board position\n\
 number. If at any point you have made a mistake, you can type u and hit\n\
 return and the system will revert back to your most recent position."                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of the pieces on one of the empty board positions either\n\
 horizontally or vertically, or you switch its orientation."                                                                                   ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three or four pieces in a row, depending on the game mode, either\n\
 horizontally, vertically, or diagonally. 3/4-in-a-row WINS."                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three or four pieces in a row,\n\
 depending on the game mode, either horizontally, vertically, or diagonally.\n\
 3/4-in-a-row LOSES."                                                                                                                                                              ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "an infinite loop occurs and no player can be forced into a winning or\n\
 losing position."                                                                                                      ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         (  1  2  3  4 )           : o o o o\n\
 LEGEND:  (  5  6  7  8 )  TOTAL:   : o o o o\n\
          (  9 10 11 12 )           : o o o o \n\n\
@@ -235,10 +235,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -329,8 +329,7 @@ POSITION GetInitialPosition()
 			theBlankHV[i++] = V;
 		else if(c == 'o' || c == 'O' || c == '0')
 			theBlankHV[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	/*
@@ -371,7 +370,7 @@ STRING computersName;
 		moveType = '-';
 	else if(BOARDSIZE <= computersMove && computersMove < 2 * BOARDSIZE)
 		moveType = '|';
-	else if(2 * BOARDSIZE <= computersMove && computersMove < 3 * BOARDSIZE)
+	else
 		moveType = 'x';
 
 	printf("%8s's move              : %c%d\n", computersName, moveType,
@@ -747,6 +746,8 @@ STRING input;
 		theMove = (MOVE) squareNum + BOARDSIZE;
 	else if(input[0] == 'x' || input[0] == 'X')
 		theMove = (MOVE) squareNum + 2 * BOARDSIZE;
+	else
+		theMove = -1;
 
 	return theMove;
 }
@@ -792,7 +793,7 @@ MOVE theMove;
 		moveType = '-';
 	else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE)
 		moveType = '|';
-	else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE)
+	else
 		moveType = 'x';
 
 	sprintf(m, "%c%d", moveType, squareNum);
@@ -830,17 +831,17 @@ BlankHV *theBlankHV, *whosTurn;
 
 	int i;
 	for(i = BOARDSIZE - 1; i >= 0; i--) {
-		if(thePos >= ((int)V * g3Array[i])) {
+		if(thePos >= (POSITION)(V * g3Array[i])) {
 			theBlankHV[i] = V;
-			thePos -= (int)V * g3Array[i];
+			thePos -= V * g3Array[i];
 		}
-		else if(thePos >= ((int)H * g3Array[i])) {
+		else if(thePos >= (POSITION)(H * g3Array[i])) {
 			theBlankHV[i] = H;
-			thePos -= (int)H * g3Array[i];
+			thePos -= H * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankHV[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankHV");
@@ -947,7 +948,7 @@ BlankHV theBlankHV[];
 	return(answer);
 }
 
-STRING kDBName = "quickcross";
+CONST_STRING kDBName = "quickcross";
 
 int NumberOfOptions()
 {
@@ -1125,6 +1126,7 @@ STRING InteractPositionToString(POSITION pos) {
 // pos: a number you have to unhash"
 STRING InteractMoveToString(POSITION pos, MOVE theMove) 
 {
+	(void)pos;
 	int squareNum;
 	if(0 <= theMove && theMove < BOARDSIZE){
 		squareNum = theMove % BOARDSIZE;

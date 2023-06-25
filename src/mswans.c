@@ -34,8 +34,8 @@ POSITION gNumberOfPositions  = 33430528;
 /* POSITION gInitialPosition    = (2285 << 6) + 12;  */  /* for full 4-dragon bd */
 POSITION gInitialPosition;
 POSITION kBadPosition        = -1;
-STRING kAuthorName         = "Anh Thai and Sandra Tang";
-STRING kGameName           = "Dragons & Swans";
+CONST_STRING kAuthorName         = "Anh Thai and Sandra Tang";
+CONST_STRING kGameName           = "Dragons & Swans";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -44,25 +44,25 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On the dragon's turn, use the LEGEND to determine which numbers to choose (between 1 and 16, with 1 at the upper left and 16 at the lower right) to correspond to the location of your dragon and the empty orthogonally-adjacent position you wish to move that dragon to. On the swan's turn, if the swan still has pieces remaining from the initial pile, choose a number between 1 and 16 to correspond to the location you want to place your swan. If the swan has no remaining swans from the inital pile, choose numbers between 1 and 16 to correspond to the location of your swan and the emtpy orthogonally-adjacent position you wish to move that swan to.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If it is the swan's turn and there are swans remaining from the intial pile place a swan on one of the empty board positions. If it is the swan's turn and there are no swans remaining in the initial pile, or it is the dragon's turn, move one of your pieces to an orthogonally-adjacent empty board position.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Swans will try to TRAP all the dragons and dragons will try to EAT all the swans";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Dragons will try to be TRAPPED and swans will try to be EATEN.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
 "         ( 1  2  3  4 )           : X - - X     PLAYER O's turn\n\
 LEGEND:  ( 5  6  7  8 )  TOTAL:   : - - - -\n\
          ( 9 10 11 12 )           : - - - -\n\
@@ -302,6 +302,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -438,8 +439,7 @@ POSITION GetInitialPosition()
 			}
 			else if(c == '-')
 				gBoard[i++] = 'b';
-			else
-				; /* do nothing */
+			/* else do nothing */
 		}
 
 		getchar();
@@ -691,11 +691,7 @@ POSITION position;
 	return(head);
 }
 
-BOOLEAN OkMove(theBoard,whosTurn,fromSlot,direction)
-char theBoard[16];
-char whosTurn;
-SLOT fromSlot;
-int direction;
+BOOLEAN OkMove(char *theBoard, char whosTurn, SLOT fromSlot, int direction)
 {
 	SLOT toSlot;
 	toSlot = GetToSlot(theBoard,fromSlot,direction,whosTurn);
@@ -704,11 +700,7 @@ int direction;
 	       (theBoard[toSlot] == 'b'));
 }
 
-SLOT GetToSlot(theBoard,fromSlot,direction,whosTurn)
-char theBoard[16];
-SLOT fromSlot;
-int direction;
-char whosTurn;
+SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn)
 {
 	/* direction:
 	       5
@@ -826,14 +818,13 @@ BOOLEAN ValidTextInput(input)
 STRING input;
 {
 	SLOT fromSlot, toSlot;
-	int ret;
 	if(input[1] == '\0') /* one digit input */
 		return((input[0] >= '1') && (input[0] <= '9'));
 	else if(input[2] == '\0') { /* two digit input */
 		return((input[0] == '1') && (input[1] >= '0') && (input[1] <= '6'));
 	}
 	else {
-		ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+		(void)sscanf(input,"%d %d", &fromSlot, &toSlot);
 		return((fromSlot <= 16) && (fromSlot >= 1) && (toSlot <= 16) && (toSlot >= 1));
 	}
 }
@@ -1064,7 +1055,7 @@ char theBoard[16];
 }
 
 
-STRING kDBName = "swans";
+CONST_STRING kDBName = "swans";
 
 int NumberOfOptions()
 {
@@ -1151,6 +1142,7 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
+	(void)thePosition;
 	SLOT fromSlot, toSlot;
 	int phase;
 	phase = theMove & 1;

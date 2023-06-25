@@ -96,9 +96,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Nu Tic-Tac-Toe";
-STRING kAuthorName          = "Guy Boo and Ming (Evan) Huang";
-STRING kDBName              = "nuttt";   /* The name of the stored database */
+CONST_STRING kGameName            = "Nu Tic-Tac-Toe";
+CONST_STRING kAuthorName          = "Guy Boo and Ming (Evan) Huang";
+CONST_STRING kDBName              = "nuttt";   /* The name of the stored database */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -121,9 +121,9 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings that span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
+CONST_STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
 void*  gGameSpecificTclInit = NULL;
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "On your turn, enter the location of the piece you'd like to move\n\
 and the direction you wish to move it. Enter your move in the format\n\
 <column><row> <direction> where 'direction' is one of the eight cardinal\n\
@@ -131,22 +131,22 @@ points.  For example, to move a piece from a1 up one square, enter 'a1 N'.\n\
 the diagonal directions NW, NE, SW, and SE will not be accepted unless\n\
 diagonal moves are legal in the current game."                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, you slide one of your pieces in one of the directions available.\n\
 You should type: <column number><row number> <direction>, where direction\n\
 is a cardinal direction."                                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Get any three of your pieces to form a horizontal, diagonal, or vertical\n\
 line."                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Force your opponent to arrange three pieces in a horizontal, diagonal,\n\
 or vertical line."                                                                                   ;
 
-STRING kHelpTieOccursWhen = "";   /* kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* kTieIsPossible == FALSE */
 
-STRING kHelpExample = "coming soon!";
+CONST_STRING kHelpExample = "coming soon!";
 
 
 /*************************************************************************
@@ -464,6 +464,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	(void)usersTurn;
 	char board[BOARD_SIZE];
 
 	generic_hash_unhash (position, board);
@@ -690,11 +691,10 @@ MOVE ConvertTextInputToMove (STRING input)
 void GameSpecificMenu ()
 {
 	BOOLEAN tryagain = TRUE;
-	STRING miserelabel, dialabel;
+	STRING dialabel;
 	char c;
 	int i;
 	while (tryagain) {
-		miserelabel = (MISERE) ? "ON" : "OFF";
 		dialabel = (CAN_MOVE_DIAGONALLY) ? "ALLOWED" : "DISALLOWED";
 		printf("\nHere is where you set game options.\n\n");
 		printf("\tr)\tset the number of (R)ows, currently %d\n", BOARD_ROWS);
@@ -762,7 +762,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1035,8 +1035,8 @@ POSITION getCanonicalPosition (POSITION p) {
 	}
 
 	for (x = 0; x < 4; x++) {
-		y = generic_hash_hash(boards[x], player);
-		if (y < p) p = y;
+		POSITION h = generic_hash_hash(boards[x], player);
+		if (h < p) p = h;
 	}
 	return p;
 }
@@ -1048,9 +1048,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

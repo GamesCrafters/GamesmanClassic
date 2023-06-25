@@ -14,7 +14,7 @@
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Andrew Esteban";
+CONST_STRING kAuthorName = "Andrew Esteban";
 POSITION gNumberOfPositions; // Set in InitializeGame().
 POSITION gInitialPosition; // Put the hash value of the initial position.
 BOOLEAN kPartizan = TRUE; // Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -26,8 +26,8 @@ BOOLEAN kSupportsSymmetries = TRUE; // Whether symmetries are supported (i.e. wh
 POSITION GetCanonicalPosition(POSITION);
 STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
-STRING kGameName = "Beeline";
-STRING kDBName = "beeline";
+CONST_STRING kGameName = "Beeline";
+CONST_STRING kDBName = "beeline";
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
@@ -38,13 +38,13 @@ BOOLEAN kDebugMenu = FALSE;
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -137,6 +137,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
 }
 
 /************************************************************************
@@ -200,6 +201,7 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  (void)computersName;
   PrintMove(computersMove);
 }
 
@@ -783,9 +785,11 @@ int getOption() {
 }
 
 void setOption(int option) {
+  (void)option;
 }
 
 POSITION ActualNumberOfPositions(int variant) {
+  (void)variant;
   return gNumberOfPositions;
 }
 
@@ -839,6 +843,7 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
   STRING result = (STRING) SafeMalloc(8);
 
   int origin = move / 100;

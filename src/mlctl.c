@@ -28,9 +28,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Let's Catch The Lion!";   /* The name of your game */
-STRING kAuthorName          = "Roger Tu";   /* Your name(s) */
-STRING kDBName              = "lctl";   /* The name to store the database under */
+CONST_STRING kGameName            = "Let's Catch The Lion!";   /* The name of your game */
+CONST_STRING kAuthorName          = "Roger Tu";   /* Your name(s) */
+CONST_STRING kDBName              = "lctl";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -52,25 +52,25 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "\n☖ Hand\n╔════╗  ╔════╤════╤════╗\n║☖C 0║  ║ 00 │ 01 │ 02 ║\n║☖E 0║  ╟────┼────┼────╢\n║☖G 0║  ║ 03 │ 04 │ 05 ║\n╚════╝  ╟────┼────┼────╢  ╔════╗\n        ║ 06 │ 07 │ 08 ║  ║☗G 0║\n        ╟────┼────┼────╢  ║☗E 0║\n        ║ 09 │ 10 │ 11 ║  ║☗C 0║\n        ╚════╧════╧════╝  ╚════╝\n                          ☗ Hand\n";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Try to checkmate your opponent's lion or get your lion to the otherside without being checkmated.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Try to get your lion checkmated or get your opponent to move his lion to yourside without being checkmated.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Ties are not possible.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -2290,7 +2290,7 @@ lower-case letters indicate the pieces that belong to black:\n\n");
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -2925,9 +2925,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }
