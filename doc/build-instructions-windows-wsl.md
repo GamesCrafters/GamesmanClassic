@@ -1,5 +1,5 @@
-# Ubuntu Installation
-## Windows Subsystem for Linux (WSL 2)
+# Build Instructions (Windows Subsystem for Linux 2)
+
 Windows Subsystem for Linux is a virtual machine platform that lets you install popular Linux distributions natively on Windows 10 or above. This is the recommended way to build GamesmanClassic on Windows. See also [Build Instructions for Windows Using Cygwin](build-instructions-windows-cygwin.md).
 
 - We recommend choosing Ubuntu as your Linux distro with version >= 20.04 as the rest of the guide will assume so.
