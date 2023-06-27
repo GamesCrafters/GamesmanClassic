@@ -4,9 +4,9 @@
 
 - [Building on macOS](build-instructions-macos.md)
 - [Building on Linux](build-instructions-linux.md)
-- [Building on Windows](build-instructions-windows-cygwin.md)
+- [Building on Windows](build-instructions-windows-wsl.md)
     - [WSL (Recommended)](build-instructions-windows-wsl.md)
-    - [Cygwin](build-instructions-windows-cygwin.md)
+    - [Cygwin (Deprecated)](build-instructions-windows-cygwin.md)
 
 ## Development Tutorials
 
