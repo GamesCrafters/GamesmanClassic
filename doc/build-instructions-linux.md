@@ -14,7 +14,7 @@ You can complete required setup (installing and building GamesmanClassic without
 sudo apt update && sudo apt upgrade && sudo apt install git build-essential autoconf zlib1g-dev && git clone https://github.com/GamesCrafters/GamesmanClassic.git && cd GamesmanClassic && autoconf && ./configure --disable-graphics && make && cd bin && ./mttt
 ```
 
-If you are using one of the Berkeley EECS instructional computers, use the following command instead.
+If you are on one of the Berkeley EECS instructional computers, use the following command instead.
 
 ```bash
 git clone https://github.com/GamesCrafters/GamesmanClassic.git && cd GamesmanClassic && autoconf && ./configure --disable-graphics && make && cd bin && ./mttt
