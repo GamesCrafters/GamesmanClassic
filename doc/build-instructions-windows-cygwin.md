@@ -1,33 +1,37 @@
-# Build Instructions (Windows)
+# Build Instructions (Cygwin)
+
+IMPORTANT: Cygwin is now deprecated due to low performance and lack of support for GUI.
 
 ## Running on `cygwin`
 
 ### Prerequisites
 
 - zlib
-    - `zlib-devel@v1.2.11-1`
-- X11
-    - `libX11-devel@v1.6.8-1`
-    - `libX11_6@v1.6.8-1`
-    - `xinit@1.4.1-1`
-- Tcl/Tk
-    - `tcl@v8.6.8-1`
-    - `tcl-devel@v8.6.8-1`
-    - `tcl-tk@v8.6.8-1`
-    - `tcl-tk-devel@v8.6.8-1`
+    - `zlib-devel@1.2.13-1`
 - Build Tools
-    - `autoconf@v13-1`
-    - `autoconf2.5@v2.69-4`
-    - `make@v4.2.1-2`
-    - `gcc-core@v7.4.0-1`
-    - `gcc-g++@v7.4.0-1`
+    - `autoconf@15-1`
+    - `autoconf2.7@2.71-2`
+    - `make@v4.4.1-2`
+    - `gcc-core@v11.4.0-1`
+    - `gcc-g++@v11.4.0-1`
 - Misc
-    - `git@v2.17.0-1` for cloning the repo
-    - `vim@8.1.1772-1` for editing code (opinionated & optional)
+    - `git@2.39.0-1` for cloning the repo
+    - `nano@4.9-1` for editing code (optional)
+    - `vim@8.2.4372-1` for editing code (optional)
 
 #### Optional Dependencies
 
-If you want to compile games with big integer support, you'll need the GMP library (latest version).
+The following were used to run Tcl/Tk-based GUI in the past but are no longer working.
+
+- X11
+    - `libX11-devel@v1.8.4-1`
+    - `libX11_6@v1.8.4-1`
+    - `xinit@1.4.2-2`
+- Tcl/Tk
+    - `tcl@v8.6.12-1`
+    - `tcl-devel@v8.6.12-1`
+    - `tcl-tk@v8.6.12-1`
+    - `tcl-tk-devel@v8.6.12-1`
 
 ### Install `cygwin`
 
@@ -53,8 +57,8 @@ Follow the below instructions to build GamesmanClassic:
 # Generate configure script
 autoconf
 
-# Configure
-./configure
+# Configure without graphics
+./configure --disable-graphics
 ```
 
 If you want to change an option such as whether or not to build with graphics, then you may need to change the configuration options.
@@ -65,7 +69,9 @@ The configuration options are available here: [GamesmanClassic Configuration Opt
 make
 ```
 
-### Run GamesmanClassic with GUI
+## (Deprecated) Run GamesmanClassic with GUI
+
+NOTE: GUI is no longer supported on Cygwin. The following steps are for informational purposes only.
 
 First, we start the X server in multiwindow mode in the background:
 
