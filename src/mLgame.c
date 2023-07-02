@@ -2083,11 +2083,9 @@ POSITION InteractStringToPosition(STRING str) {
 		}
 	}
 	
-	//printf("H: %d %d %d %d,", L1, L2, S1, S2);
 	S2 = Make16to7(L1, L2, S1, S2);
 	S1 = Make16to8(L1, L2, S1);
 	L2 = Make24(L1, L2);
-	//printf("HA: %d %d %d %d,", L1, L2, S1, S2);
 
 	return hash(L1, L2, S1, S2, whoseMove);
 }
@@ -2107,16 +2105,13 @@ STRING InteractPositionToString(POSITION interpos) {
 	int whoseTurn = unhashTurn(pos);
 
 	board_string[2] = (whoseTurn == 1) ? 'A' : 'B';
-	//printf("POS: %llu, %d %d %d %d", pos, L1, L2, S1, S2);
 
 	L2 = Make48(L1, L2);
 	S1 = Make8to16(L1, L2, S1);
 	S2 = Make7to16(L1, L2, S1, S2);
 
-	//printf("%d %d %d %d", L1, L2, S1, S2);
 	if (isIntermediate > 0) {
 		if (isIntermediate > 1) {
-			//printf("\nFROMSPIECE: %d, isIntermediate: %d\n", fromSPiece, isIntermediate);
 			if (SPiece == 1) {
 				board_string[posMap[fromSPiece]] = '-';
 				board_string[posMap[S2]] = 'G';
@@ -2146,34 +2141,6 @@ STRING InteractPositionToString(POSITION interpos) {
 		board_string[posMap[S2]] = 'G';
 		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
 		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
-		/*
-		if (whoseTurn == 1) {
-			for (int i = 1; i < 49; i++) {
-				if (L1 != i) {
-					if (
-						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'R') &&
-						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'R') &&
-						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'R') && 
-						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'R')
-					) {
-						board_string[56 + i] = ((i - 1) / 6) + '1';
-					}
-				}
-			}
-		} else {
-			for (int i = 1; i < 49; i++) {
-				if (L2 != i) {
-					if (
-						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'B') &&
-						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'B') &&
-						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'B') && 
-						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'B')
-					) {
-						board_string[56 + i] = ((i - 1) / 6) + '1';
-					}
-				}
-			}
-		}*/
 	}
 	
 	return board_string;
@@ -2264,13 +2231,11 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 				prevSP = SP;
 				continue;
 			} else {
-				
 				if (SP == 1) {
 					interPos2 = interPos2w;
 				} else {
 					interPos2 = interPos2g;
 				}
-				//mpel = CreateMultipartEdgeListNode(interPos1, interPos2, moveList->move + 200000, 0, FALSE, mpel); // from L to SP
 				prevSP = SP;
 			}
 		}

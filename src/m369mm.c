@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
-#include <time.h>
 
 /*************************************************************************
 **
@@ -187,7 +186,6 @@ BOOLEAN all_mills(char *board, int slot, char turn);
 int find_pieces(char *board, char piece, int *pieces);
 BOOLEAN closes_mill(POSITION position, int raw_move);
 BOOLEAN checkMill(char *board, int slot, char turn);
-//BOOLEAN THREE_IN_A_ROW(char *board, int slot1, int slot2, char turn);
 char returnTurn(POSITION pos);
 char* customUnhash(POSITION pos);
 void changeToSix();
@@ -702,21 +700,6 @@ UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
 	int legalRemoves[BOARDSIZE];
 	int numLegalRemoves = findLegalRemovesUndo(board, turn, legalRemoves);
 
-	// if (undoMoveType == 0 && numCurr < maxx) {
-	// 	for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++)
-	// 		if (board[toIdx] == oppTurn && closesMillNew(board, oppTurn, 31, toIdx))
-	// 			for (int i = 0; i < numLegalRemoves; i++)
-	// 				/* ONLY this type of undomove is encoded as "from: to, to: remove, remove: remove" instead of 
-	// 				"from: from, to: to, remove: remove" in order to distinguish this type of move (to+remove for placement and removal) 
-	// 				from the other type of two-argument move (from+to for sliding) for the sake of correctly converting 
-	// 				text inputs to moves. All functions that unhash moves will account for this peculiarity 
-	// 				and set from, to, and remove to the correct values. */
-	// 				undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(toIdx, legalRemoves[i], legalRemoves[i]), undoMoves);
-	// } else if (undoMoveType == 1) {
-	// 	for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++)
-	// 		if (board[toIdx] == oppTurn && (!closesMillNew(board, oppTurn, 31, toIdx) || (millType == 2 && allMillsNew(board, -1, turn))))
-	// 			undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(31, toIdx, 31), undoMoves);
-	// } else
 	if (undoMoveType == 2 && numCurr < maxx) {
 		for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++) {
 			if (gFlying && ((oppTurn == X && numX <= 3) || (oppTurn == O && numO <= 3))) {
@@ -1901,11 +1884,6 @@ BOOLEAN checkMill(char *board, int slot, char turn) {
 	}
 	return FALSE;
 }
-
-// given new board, slots to compare.  if slots all same, then it's a 3
-//BOOLEAN THREE_IN_A_ROW(char *board, int slot1, int slot2, char turn) {
-//	return board[slot1] == turn && board[slot2] == turn;
-//}
 
 void changeToThree() {
 	gameType = 3;
