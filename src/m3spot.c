@@ -4,13 +4,9 @@
 **
 ** DESCRIPTION: 3Dot
 **
-** AUTHOR:      Attila Gyulassy, Matthew Yu, Cameron Cheung
+** AUTHOR:      Attila Gyulassy, Cameron Cheung
 **
 ** DATE:        02/02/02
-**
-** UPDATE HIST:
-**   02-02-02  started by copying and modifying tictactoe
-**	 04-04-28  Name Chang
 **
 **************************************************************************/
 
@@ -83,10 +79,7 @@
 ** Everything below here must be in every game file
 **
 **************************************************************************/
-//#define debugdomove
-//#define debugmovelist 1
-//#define x 1
-//#define funcname 1
+
 #include <stdio.h>
 #include "gamesman.h"
 

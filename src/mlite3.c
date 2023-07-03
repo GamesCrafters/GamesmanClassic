@@ -4,39 +4,11 @@
 **
 ** DESCRIPTION: Lite-3
 **
-** AUTHORS:      Alex Perelman
+** AUTHORS:     Alex Perelman
 **              Babak Hamadani
 **              Kehan Chen
 **
 ** DATE:        11/16/22
-**
-** UPDATE HIST:
-**   3/1/02 - First Changes:
-**        BlankOX to BlankOOOXXX
-**        PositionToBlankOOOXXX()
-**        BlankOOOXXXToPosition()
-**        BOARDSIZE = 10 (first element is whoseTurn()
-**        ThreeInARow()
-**        Primitive() - got rid of AllFilledIn (impossible)
-**        LOOPY = TRUE
-**        Got rid of WhoseTurn()
-**        In StaticEvaluator - instead of WhoseTurn() - blankOOOXXX[0]
-**
-**   3/4/02 - More Changes
-**        Fixed bug in PositionToBlankOOOXXX (when a piece is 0)
-**
-**   3/5/02 - More Changes
-**        Wrote DoMove: 0 - x's turn, 1 - o's turn
-**        Changed calls to WhoseTurn() to BlankOOOXXX[0]
-**        Changed ConvertTextInputToMove and PrintMove, Move is now 1-9
-**        WOOHOO!! 17 \/\/3|2|<$!!!
-**
-**   11/16/22 - More Changes
-**        Fixed bug in Surround
-**        InteractStringToPosition()
-**        InteractPositionToString()
-**        InteractMoveToString()
-**        MoveToSlots()
 **
 **************************************************************************/
 
@@ -46,7 +18,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 2097152;  /* 2^21 */

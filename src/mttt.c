@@ -78,7 +78,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 19683;  /* 3^9 */

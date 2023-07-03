@@ -10,14 +10,6 @@
 **
 ** DATE:        10/7/03
 **
-** UPDATE HIST:
-** 9/12/03 - Some Work on Text Interface, and file maintnence. -SL
-** 10/7/03 - Imported Our functions from other files. -SL
-** 10/14/03 - Finished other functions. Don't know if it works. - SL
-** 11/12/03 - Added Comments. Fixed kParizan. Fixed Some other comments. -SL
-**
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -26,11 +18,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 POSITION gNumberOfPositions   = 0;
 POSITION gInitialPosition     = 0;

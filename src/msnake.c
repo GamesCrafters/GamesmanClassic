@@ -22,7 +22,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* The beginning position is:

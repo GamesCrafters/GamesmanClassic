@@ -14,7 +14,6 @@
 
 #include "tk.h"
 #include "gamesman.h"
-#include <string.h>
 
 extern STRING gValueString[];        /* The GAMESMAN Value strings */
 extern BOOLEAN gStandardGame;

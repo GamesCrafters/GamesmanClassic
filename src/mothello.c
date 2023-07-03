@@ -8,18 +8,7 @@
 **              Robert Liao
 **				Robert Shi
 **
-** DATE:        1 May 2004 - Added Initial Code. Five Functions Done
-**
-** UPDATE HIST: 5 May 2004 - Added lots of UI stuff. Print Position revamped
-**				10 May 2004 - Menus. The Menus.
-** 								12 May 2004 - Finishing touches. Layout tweaked.
-                31 Dec 2007 - Tried adding tiers, but still buggy, so I
-                                commented out the call to SetupTierStuff().
-                                At least it still works like the previous
-                                version.
-				14 Mar 2023 - Transform to AutoGUI v2; multiple memory leak
-								fixes.
-**
+** DATE:        1 May 2004
 **************************************************************************/
 
 /*************************************************************************
@@ -28,12 +17,7 @@
 **
 *************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 extern STRING gValueString[];
 

@@ -16,8 +16,6 @@
 
 #include "tk.h"
 #include "gamesman.h"
-#include "hash.h"
-#include <string.h>
 #include "core/analysis.h"
 #include "core/gameplay.h"
 #include "core/solveretrograde.h" // For InitTierGamesman()

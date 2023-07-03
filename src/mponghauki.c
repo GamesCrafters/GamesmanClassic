@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "gamesman.h"
 
 #define BOARD_SIZE 5

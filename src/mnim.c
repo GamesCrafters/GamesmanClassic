@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <ctype.h>
 #include "gamesman.h"
 
 #define MIN_ROWS 1
@@ -10,7 +8,6 @@ int rows = 4;
 POSITION gNumberOfPositions = 0;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
-//POSITION gMinimalPosition = (1<<(ROWS*3)) - 1 ;
 
 BOOLEAN kPartizan              = FALSE;
 BOOLEAN kDebugMenu             = FALSE;

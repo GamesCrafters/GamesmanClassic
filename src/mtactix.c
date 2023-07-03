@@ -54,8 +54,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
-#include <math.h>
 #include "gamesman.h"
 
 POSITION gInitialPosition  = 65535;

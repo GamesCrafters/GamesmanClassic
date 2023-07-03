@@ -10,8 +10,6 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
-
 #include "gamesman.h"
 
 POSITION gNumberOfPositions = 0;

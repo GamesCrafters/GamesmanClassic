@@ -6,7 +6,6 @@
 **
 ** AUTHOR:      David Chen & Ling Xiao  -  University of California at Berkeley
 **
-**
 ** DATE:        03/06/01
 **
 **************************************************************************/
@@ -17,7 +16,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 extern STRING gValueString[];

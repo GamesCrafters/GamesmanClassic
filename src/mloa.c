@@ -8,47 +8,6 @@
 **
 ** DATE:        Started 9/18/2006
 **
-** UPDATE HIST: 2008.05.05 Fixed getOption to start at 1 instead of 0
-**              2006.09.18 Coded InitializeGame and PrintPosition
-**                         without hashes
-**              2006.09.19 Fixed PrintPosition
-**              2006.09.25 Fixed InitializeGame and PrintPosition to work
-**                         with generic hash
-**              2006.09.26 Coded Primitive and created isConnected to help
-**                         Coded GenerateMoves and its helper functions
-**              2006.10.07 Coded DoMove and debugged all previous functions
-**                         fixed piecesInLineOfAction, got rid of board
-**                         within functions in favor of gBoard everywhere
-**                         to get rid of seg faults, fixed Primitive so that
-**                         result is not always undecided
-**              2006.10.12 Debugged Primitive and changed the way the board
-**                         is printed so it's like a chessboard.
-**              2006.10.13 Fixed Primitive to check for a tie. Fixed
-**                         MoveToString (forgot to add '\0' to the end of
-**                         strings)
-**              2006.10.16 Fixed GenerateMoves to check that the destination
-**                         square is blank before adding to list of moves.
-**              2006.10.17 Fixed GenerateMoves to check that the destination
-**                         square does not have a piece of your own color.
-**                         Fixed moveHash hardcoding 4 instead of SIDELENGTH
-**                         Wrote my own hash, unhash and turn functions since
-**                         generic_hash stuff was acting up and didn't let me
-**                         go over a 4x4 board. Fixed Primitive so it doesn't
-**                         think win means Black won.  Instead, win means the
-**                         player whose turn it is has won.
-**              2006.11.28 Added game specific menu, allowing you to resize
-**                         the board.  Added help strings and misere to
-**                         Primitive.
-**              2006.12.13 Changed PrintPosition to also display info on
-**                         whose turn it is and what piece that player is using.
-**                         Also changed to 1-based game variants.
-**              2007.2.16  Fixed primitive so it didn't try and free a null pointer
-**              2007.2.19  Added symmetries using generic symmetries
-**
-**
-**
-** LAST CHANGE: $Id: mloa.c,v 1.18 2008-05-08 06:09:42 l156steven Exp $
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -57,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **

@@ -8,28 +8,6 @@
 **
 ** DATE:        Start: ~ Jan 28, 2004
 **
-** UPDATE HIST:
-**              16 Mar, 04: Tentatively added structs, defines, globals,
-**                          DoMove, PrintComputersMove,
-**                          PrintPosition (depends on parser),
-**                          GetAndPrintPlayersMove, ConvertTextInputToMove,
-**                          and several auxillary functions.
-**              19 Mar, 04: Added parsing and printing code.
-**              06 Apr, 04: Added the rest of the functions, fixed
-**                          compiler errors.
-**              10 Apr, 04: Many bugfixes throughout the code, changes in
-**                          output functions, and (untested) support for
-**                          node classes.
-**              11 Apr, 04: Changed handling of the image array to work
-**                          with changing the graph file.
-**                          Added error-catching to the parser and put in
-**                          kHelpExample.
-**              19 Apr, 04: Fixed more bugs, changed the output format.
-**              23 Apr, 04: Minor changes in primitive and output,
-**                          a little more error checking.
-**
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -38,13 +16,8 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 #include <dirent.h>
-#include "hash.h"
 
 extern STRING gValueString[];
 

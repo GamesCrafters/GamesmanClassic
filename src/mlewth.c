@@ -1,12 +1,3 @@
-// $id$
-// $log$
-
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mlewthwaite.c
@@ -17,39 +8,6 @@
 **
 ** DATE:        Feb 17, 2005
 **
-** UPDATE HIST: 2/19 - Cindy - Changed constants;
-**			       Primitive and two helpers;
-**			       PrintPosition
-**              2/22 - Yuliya - DoMove and two Primitive helpers
-**                              Added some constants
-**                              Moved helpers to the bottom of file to the
-**                                 space allocated for them
-**                     NOTE: All functions are tentative until we come up
-**                           with a final representation of position
-**              2/25 - Cindy - Fixed PrintPosition
-**			     - Fixed Primitive
-**		       NOTE: Primitive will work with the variation of
-**			     the game
-**              2/26 - Yuliya - Changed game type to LOOPY
-**                            - Adjusted constants a little
-**                            - Did hash intialization in initializeGame()
-**                            - Fixed DoMove to handle sliding more than
-**                              one square at a time
-**                            - Fixed GetSpace, GetPlayer and added one
-**                              more helper
-**                            - Wrote functions for hashing and unhashing
-**                              moves
-**		2/26 - Cindy - PrintPosition uses generic hash
-**			     - Fixed DoMove minor errors
-**			     - Add rule variation constant
-**			     - Implemented GenerateMoves
-**			     - Fixed and added helpers
-**              2/27 - Yuliya - Added some more rule variation constants
-**                              See comment
-**                            - Finished implementing IntializeGame
-**                            - Implemented PrintComputersMove, PrintMove
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -58,13 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
-
 
 /*************************************************************************
 **

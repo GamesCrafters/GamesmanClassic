@@ -11,72 +11,6 @@
 ** CREDITS:     Questions answered by Dam, JJ, and Scott
 **              Minor debugging by Jonathon Tsai
 **
-** 2004.3.30    First compilation of subroutines into mttc.c; this update
-**              basically includes all functions below except for
-**              ttc_hash and ttc_unhash, which still needs to be written
-**                                                                -- rc
-** 2004.3.31    Added row nums and letters to print position. Shall we
-**              consider changing the Queen to Bishop? That's what the
-**              original game has. I'll add some variants later.
-**                                                                -- jt
-**
-** 2004.4.6     Added in support for generic_hash; still have to add in
-**              modified ruleset as per discussion with Dom.
-**                                                                -- rc
-**
-** 2004.4.18    Fixed some stuff, found lots more to fix, etc. etc.
-**                                                                -- rc
-**
-** 2004.4.25    Complete rewrite! This version makes all board options
-**              configurable, notably: board width, board height, number
-**              of pieces for each side, types of pieces for each side,
-**              and number of pieces necessary to get in a row to win!
-**              Still need to rewrite GenerateMoves() and
-**              GameSpecificMenu().
-**                                                                 --rc
-**
-** 2004.4.26    Added in GenerateMoves() for all pieces except for the
-**              pawns (which present a problem because they have
-**              direction associated with their move).  Fixed some
-**              memory leaks.
-**
-**              It turns out the original ruleset specified that moving
-**              pieces was only allowed after the third turn.  Since
-**              this would require me to add in extra state to an already
-**              jam packed position, I have no plans to implement this
-**              rule at this time.
-**
-**              Added in GameSpecificMenu as well, which is really
-**              cool because the knob can be turned on almost every
-**              aspect of this game.
-**
-**              Hmmm everything seems to be fine but....segfaults.
-**                                                                 --rc
-**
-** 2004.4.27    It solves!  And better yet, it solves correctly (or so
-**              it appears).  This looks to be an interesting game,
-**              especially with the modifiability of all the game
-**              parameters.  I've only just now started testing the limits
-**              of hash and memory....so I'll probably be modifying
-**              initial starting positions in the near future (to find
-**              one more interesting than the current)
-**
-**              Fixed primitive position, which was buggy.
-**
-**              Added documentation (help sections)
-**                                                                 --rc
-** 2004.5.4     Fixed bug in moving pieces (ala knight thing)
-**              Fixed printMove bug
-**              Changed moves to 'a2a4' as opposed to 'qa2a4' format
-**
-**              Need to add in options, i.e. misere and diagonals off
-**                                                                --rc
-**
-** 2004.5.11    Fixed another bug in inputting text - hopefully that's it.
-**
-** 2005.3.3     Added missing generic hasher prototypes and include time.h
-**              To suppress GCC 3.4 warnings
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -85,12 +19,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <time.h>
 
 extern STRING gValueString[];
 

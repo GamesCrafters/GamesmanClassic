@@ -5,7 +5,6 @@
  */
 
 #include "gamesman.h"
-#include "hash.h"
 
 #define BOARD_SPACE                " )          : "
 #define BOARD_TITLE                " )  BOARD:  : "

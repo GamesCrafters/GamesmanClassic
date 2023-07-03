@@ -1,10 +1,3 @@
-// $id$
-// $log$
-
-/* Above is will include the name and the log of the last
- * person to commit this file to gamesman.
- */
-
 /************************************************************************
 **
 ** NAME:        mwinkers.c
@@ -16,10 +9,6 @@
 **
 ** DATE:        02/26/2004
 **
-** UPDATE HIST:
-**      Highest height 1 game solved: width 4
-**      Highest height 2 game solved: width 1
-**	8-21-06 fflush(stdin) should no longer be needed - dmchan
 **************************************************************************/
 
 /*************************************************************************
@@ -28,12 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 extern STRING gValueString[];
 

@@ -2,7 +2,7 @@
 **
 ** NAME:        mharegame.c
 **
-** DESCRIPTION: Hare Game.
+** DESCRIPTION: Hare Game
 **
 ** AUTHOR:      Robert Shi
 **
@@ -10,7 +10,6 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions; // Initialized in InitializeGame().

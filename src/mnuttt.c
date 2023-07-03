@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mnuttt.c
@@ -13,50 +5,6 @@
 ** DESCRIPTION: Nu Tic-Tac-Toe
 **
 ** AUTHOR:      Guy Boo, Ming (Evan) Huang
-**
-** DATE:        Initial editing started on 2/5/05.
-**              Ending date: unknown yet
-**
-** UPDATE HIST: legend: [+]: feature/new stuff,
-**                      [-]: bug fixes
-**                      [*]: comments
-**
-**              2/5/05: [+] initial commit, some game-specific consts,
-**                          global variables for directions, IntitializeGame(),
-**                          PrintPosition(), DoMove(), primitive(),
-**                          printComputersMove (), Hash/unhash for moves,
-**                          and other helpers.
-**                      [*] we may need to consult Garcia to see of our board
-**                          is too big.  see the note in gNumberOfPositions
-**                          global variables for directions,
-**                          IntitializeGame(), PrintPosition(), DoMove(),
-**                          primitive(), printComputersMove (), Hash/unhash for
-**                          moves, and other helpers.
-**              2/6/05: [-] fixed some hardcoded constants, Position(), Row(),
-**                          Column() now operates on an arbitrarily sized
-**                          board.  Easy job for getAndPrintUserInput().
-**              2/7/05: [+] Added validTextMove(), convertTextInputToMove()
-**                      [*] Game should be playable by now. Added rules to
-**                          Makefile.  GenerateMoves () is next.
-**              2/8/05: [+] GenerateMove () complete, borrowing Guys's code.
-**              2/9/05: [*] Corrected some indexing and pointer problems.
-**                      [+] Implemented GetAndPrintPlayersMove correctly and
-**                          hotwired GetInitialPosition
-**              2/11/05 [*] Guy: added function prototypes so it compiles on
-**                          my backwards compiler, and revised getOptions so it
-**                          returns stuff that makes sense.  hope i didn't
-**                          break it!
-**              2/14/05 [-] Merged changes from Guy's code, as instructed.
-**                          Various abstraction fixes, more prototypes, new
-**                          func setGameParameters()
-**              2/15/05 [+] Added diagonal movement and redefined input formats
-**                          for it.  GenerateMoves() takes care of it.
-**                          variants of the game now include variable board,
-**                          variable number of pieces in a line for victory,
-**                          misere play, and diagonal moves.
-**              2/23/05 [-] Cosmetic fixes to conform to conventions by other
-**                          games.
-**		3/7/05  [-] fixed up printing and move parsing.
 **
 **************************************************************************/
 
@@ -83,12 +31,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **

@@ -10,18 +10,17 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
 CONST_STRING kAuthorName = "Andrew Esteban";
-CONST_STRING kGameName = "Notakto"; //  use this spacing and case
-CONST_STRING kDBName = "notakto"; // use this spacing and case
-POSITION gNumberOfPositions; // TODO: Put your number of positions upper bound here.
-POSITION gInitialPosition; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = FALSE; // Is a tie or draw possible?
-BOOLEAN kLoopy = FALSE; // Is this game loopy?
+CONST_STRING kGameName = "Notakto";
+CONST_STRING kDBName = "notakto";
+POSITION gNumberOfPositions;
+POSITION gInitialPosition;
+BOOLEAN kPartizan = FALSE;
+BOOLEAN kTieIsPossible = FALSE;
+BOOLEAN kLoopy = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Likely you do not have to change these. */

@@ -28,9 +28,6 @@
  *  this module, because it already supports the ability to change.
  */
 
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
 #include "gamesman.h"
 
 int *array_hash (POSITION position);

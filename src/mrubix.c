@@ -8,28 +8,6 @@
 **
 ** DATE:        2003-10-11
 **
-** UPDATE HIST:
-**
-** 0.0.0 (02-09-06) Dan Garcia's Tic-Tac-Toe minus the game-dependent code.
-** 0.0.1 (10-06) PrintPosition, PositionToBlankOX, BlankOXToPosition,
-**	        and possibleBoardPieces updated
-** 0.0.2 (10-14) GetAndPrintPlayersMoves, ValidTextInput,
-**              ConvertTextInputToMove, and PrintMove updated
-** 0.0.3 (10-15) Removed Symmetry Code
-**              Updated PrintComputersMove
-** 0.1.0 (10-26) First solvable version
-** 0.1.1 (11-20) Updated GenerateMoves, Text UI & X moves first
-** 0.1.2 (03-02-22) Updated ValidTextInput, GetAndPrintPlayersMove,
-**              ConvertTextInputToMove, & PrintPosition to handle
-**              large board sizes.
-** 0.2.0 (04-19) Now meets the GAMESMAN3 standard.
-** 0.2.1 (05-10) Dynamically resizable game board size
-** 0.2.2 (08-26) Fixed bugs relating to setting board size
-** 0.2.3 (09-09) Updated hash function to use combinatorics
-** 0.2.4 (10-03) Fixed an initialization bug in CombinationInit
-** 0.2.5 (10-11) Added sanity check in GetInitialPosition
-**
-**	(8-21)	Changed to GetMyInt()/GetMyChar()
 **************************************************************************/
 
 /*************************************************************************
@@ -38,7 +16,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 0;

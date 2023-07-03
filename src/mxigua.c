@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        xigua.c
@@ -16,60 +8,6 @@
 **
 ** DATE:        1.27.05 - ????
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**              -- 1.27.05 -- Created file and started adding in game info. -JK
-**		-- 1.30.05 -- Added to displayasciitable.
-**                            Filled in most of PrintPosition.
-**                            Still need code to unhash.  -JK
-**		-- 2.9.05 -- Filled in code for the following functions:
-**                           - NumberOfOptions()
-**			     - getOption()
-**                           - setOption()
-**              -- 2.23.05 -- Fixed Initialize game (set gNumberOfPositions and gInitialPosition)
-**                            Filled in DoMove and GenerateMoves();
-**                            Actually allocated space for the board in PrintPosition
-**              -- 3.01.05 -- Added in wrapped hash functions
-**			      Wrote Primitive()
-**                            Changed functions to reflect the new hash functions
-**			      Get a floating point exception now though when trying to go into the debug
-**			      menu.
-**			      Also cannot represent more than 6 empty spaces...maybe something to do with
-**		              my new hash functions. Need the symmetries.
-**              -- 3.01.05 -- Switched to SafeMalloc and SafeFree
-**                            Made #define NUM_HASHED_WRAPPER_BITS to hold '5' for use in hash wrapper
-**                            Filled in GenerateMoves to be more selective (use isValidMove()) (incomplete)
-**                             - uses adjacency information implemented for DoMove
-**                             - uses isSurrounded
-**                            DoMove now captures stones; requires helpers
-**                             - isSurrounded
-**                             - removeStones
-**                             - adjacency information initialized in InitializeGame
-**                            Note: solving algorithm does not account for "pass" ability - plays out all outcomes to unquestionable end (unlike game of Go between humans) to enable this, use Chinese rules for Go territory counting
-**	        -- 3.06.05 -- Fixed compile time errors.
-**	                      Created a game specific menu, (currently only changes boardsize)
-**			      Created smaller board sizes (5 board, have functions for 9, 13, 17)
-**              -- 3.07.05 -- Created more boards (9, 13, and 17)
-**			      Wrote ValidTextInput() and ConvertTextInputToMove()
-**			            PrintComputersMove(), PrintMove(), getmovechar(),
-**				    GetAndPrintPlayersMove()
-**
-**              -- 3.08.05 -- Filled in adjacency info for new boards
-**                            Fixed Primitive() to 1) comply with win condition
-**                                                 2) count "territory" not actually filled with stones
-**                            Filled in isValidMove() (still incomplete)
-**	        -- 3.08.05 -- Fixed compile time errors.
-**			      Wrote GetInitialPosition()
-**              -- 3.09.05 -- Finally completed isValidMove()
-**		-- 3.9.05 -- Fixed problem with ocount and scount not being initialized in isValidMove()
-**		-- 4.5.05 -- fixed issues with the prediction not being displayed
-**			     made the debug menu look like the other menus
-**			     fixed a floating point exception bug in the hash piece array (introduced by me).
-**            -- 04.14.05 -- Added symmetries
-**                           changed most function declarations to old C-style
-**                           few minuteia such as SafeMallocs, other debugging
-**
-**		-- 8.19.06	commented out fflush and added in GetMyInt()
-**				seg fault in intialize game, someone fix
 **************************************************************************/
 
 
@@ -79,14 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
-/* didn't see hash.h included in gamesman.h */
-#include "hash.h"
 
 /*************************************************************************
 **

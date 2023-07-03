@@ -47,14 +47,8 @@
 ** Everything below here must be in every game file
 **
 **************************************************************************/
-#include <stdio.h>
+
 #include "gamesman.h"
-/* 10/12 Isaac: this is new */
-#include <math.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-/* end new include */
 
 POSITION gNumberOfPositions  = 3932160; //99614720;  /* (20 * 19 * 2^18) */ //203954088 from InitDatabases
 

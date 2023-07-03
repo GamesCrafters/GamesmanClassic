@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "gamesman.h"
-
 
 void stringsandwich( char* A, char* B, char* C );
 void APPEND(char* C, char c);

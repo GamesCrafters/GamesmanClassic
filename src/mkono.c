@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mkono.c
@@ -16,23 +8,6 @@
 **
 ** DATE:        09/29/04
 **
-** UPDATE HIST: 09/29/04 - Initial Commit: DoMove, PrintPosition, Primitive,
-**                         helper functions, board representation.
-**
-**              10/07/04 - Fixed up everything. Game runs!
-**                         To-do: ValidTextInput and game specific options.
-**
-**              10/08/04 - Changed it so the user input is 1-16 instead of 0-15.
-**                         Added help strings. Added LEGEND and BOARD to printPosition.
-**
-**              10/11/04 - Fixed i/o formatting a bit, added predictions to PrintPosition.
-**
-**              12/09/04 - Fixed misere to use gStandard instead of our own bool.
-**                         Added [x, y] to PrintComputersMove.
-**                         Fixed little bug in GenerateMoves that was generating bogus moves.
-**                         Fixed bug in numberOfPieces so that it now works.
-**                         Tweaked the hash to be slightly more efficient.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -41,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 /*************************************************************************
 **

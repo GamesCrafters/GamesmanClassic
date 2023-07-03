@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mwuzhi.c
@@ -16,22 +8,6 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST:
-**              2004-10-5  Added GenerateMoves with all its helpers
-**              2004-10-12 Added Help Strings, Defines, Global Variables
-**                         Started Initialize Game
-**              2004-10-18 Added Print Position, Print Move, Print Computer's Move, Primitive,
-**                         Added another helper to Moves: GetArrayNum given xycoords.
-**              2004-10-19 Added DoMove to this template
-**              2004-11-2  Set kPartizan to TRUE, modified help strings so they are not all on one line. Moves are now formatted as [1 d]
-**                         rather than [1 down] Added a sample game to the help string.
-**              2004-11-26 Added diagonal variation in generatemoves
-**              2004-12-5  Finished implementation of diagonals and game specific menu
-**              2004-12-19 Added in primitive that you lose if no moves left. Also tells the player what color they
-**                         when printing the board.
-**              2005-3-3   Added missing prototypes
-**              2005-3-25  Added SetOptions and GetOptions to work with Diagonals
-**		2006-8-21  changed to GetMyInt() dmchan
 **************************************************************************/
 
 /*************************************************************************
@@ -40,13 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
-
 
 /*************************************************************************
 **

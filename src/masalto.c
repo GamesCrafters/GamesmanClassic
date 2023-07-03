@@ -9,29 +9,6 @@
 **
 ** DATE:        24 Feb 2004 - Added Initial Code
 **
-** UPDATE HIST: 24 Feb 2004 - Initial Setup
-**              31 Mar 2004 - More Stuff Added. Almost Done.
-**              18 Apr 2004 - Revamped Generate Moves. Now shows up in Gamesman
-**              23 May 2004 - Began Reduction of Board Size from 33 positions to 21
-**              Dates After - Refer to CVS Logs
-**
-** CHECKLIST:
-**            Fix Bugs (GoAgain)
-**            Unflag GoAgain
-**            PROOFREAD
-**            DOUBLE CHECK DEFAULT POSITION!
-**
-** DONE       Reverse Board
-**            Make User Lowercase
-**            'D' DONE instead of Pass
-**            Hash Go Again
-**            Make more Friendly
-**            Make EVERYTHING Pretty. Mimic Gamesman
-**            Add Sample Game Help
-**            Fix Menus. B) Categorically Go Back
-**            Add Piece on PrintPosition
-**            Redo Example Game
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -40,12 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 extern STRING gValueString[];
 

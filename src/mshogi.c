@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mshogi.c
@@ -28,13 +20,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
 
 /*************************************************************************
 **

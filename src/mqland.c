@@ -1,11 +1,3 @@
-// Alex Wallisch
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mqland.c
@@ -16,21 +8,6 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-10-30	Finished GetInitialPosition
-                2004-10-26	Finished helpstrings, finalized PrintPosition
-                2004-10-25      Fixed the last bug in GameSpecificMenu
-**				Wrote ValidTextInput
-**              2004-10-08      Partially wrote GameSpecificMenu
-**		2004-10-03      Wrote Primitive
-**				Wrote ConvertTextInputToMove
-**                              Wrote PrintComputersMove
-**                              Wrote PrintMove
-**              2004-10-02:	Wrote GetMoveList
-**		2004-09-27:     Wrote vcfg
-**				Wrote DoMove
-**		2004-09-26:	Wrote InitializeBoard
-**		2004-09-25:	Wrote PrintPosition
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -39,14 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
-
 
 /*************************************************************************
 **

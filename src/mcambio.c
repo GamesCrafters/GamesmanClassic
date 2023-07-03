@@ -1,10 +1,3 @@
-// $Id: mcambio.c,v 1.36 2007-01-26 19:13:33 simontaotw Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mcambio.c
@@ -12,37 +5,7 @@
 ** DESCRIPTION: Cambio
 ** AUTHOR:      Albert Chae and Simon Tao
 **
-** DATE:        Begin: 2/20/2006 End:
-**
-** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
-**              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
-**              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
-**              3/02/2006 - Fixed various errors.
-**              3/04/2006 - Fixed compile errors.
-**              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
-**              3/06/2006 - Updated GetInitialPosition().
-**	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loop.
-**                          Removed blanks from the game.
-**              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
-**              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
-**              3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
-**                          Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
-**              3/19/2006 - Changed the Legend so it looks less cramped.
-**	        4/16/2006 - Trying 3x3 board to see if it solves
-**              4/28/2006 - Added new input format with 3x3 board.
-**              5/03/2006 - Fix small bug in DoMove, changed GetAndPrintPlayersMove.
-**              5/03/2006 - Changed winning condition in DoMove.
-**              5/08/2006 - Fixed some bugs. Game solves.
-**              5/09/2006 - Code cleanup.
-**              5/09/2006 - Added FourInARow, FiveInARow. Modified PrintPosition, ValidTextInput, ConvertTextInputToMove.
-**              5/10/2006 - Added NInARow. Modified PrintPosition, GenerateMove, Primitive, PrintMove, GetAndPrintPlayersMove.
-**              5/22/2006 - Added shiftXX functions to accommodate DoMove. Modified DoMove and GameSpecificMenu.
-**              5/24/2006 - Modified some hash calls. 5x5 does not work because 3^25 is too big.
-**              10/05/2006 - Deleted unnecessary functions. 5x5 player vs. player does not work... too big for hash...
-**              12/19/2006 - Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
-**              1/5/2007 - Added variable number of placement variant.
-**              1/7/2007 - Fixed original gamesman; changed input so it does not conflict with system inputs.
-**		1/26/2007 - Fixed setOption
+** DATE:        Begin: 2/20/2006
 **
 **************************************************************************/
 
@@ -52,11 +15,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 /*************************************************************************
 **

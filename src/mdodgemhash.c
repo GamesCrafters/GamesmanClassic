@@ -22,9 +22,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-
 
 POSITION gInitialPosition    = 17524;
 POSITION gMinimalPosition    = 17524;

@@ -9,11 +9,6 @@
 **
 ** DATE:        2002-10-29
 **
-** UPDATE HIST:
-**
-** Decided to check out how much space was wasted with the array:
-**
-** Symmetries implemented, Ilya Landa
 **************************************************************************/
 
 /*************************************************************************
@@ -22,9 +17,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 #include "gamesman.h"
 
 extern STRING gValueString[];

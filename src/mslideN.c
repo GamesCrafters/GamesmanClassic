@@ -10,17 +10,6 @@
 **
 ** DATE:        2003-03-12
 **
-** UPDATE HIST:
-** 2003-02-13 v0.9 :  Solves Slide-1 through Slide-3
-** 2003-02-21 v1.0 :  Solves Slide-1 through Slide-4
-** 2003-02-22 v1.1 :  X goes first & PrintPosition displays whoseTurn
-** 2003-03-05 v1.2 :  Help example added
-** 2003-03-08 v1.3 :  Primitive updated to handle vertical and
-**                    horizontal N-in-a-row
-**                    Variation added to Game Specific Options
-** 2003-03-12 v1.31:  Fixed a bug in PositionToBlankOX
-** 2003-05-09 v1.32:  Modified game menu
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -29,7 +18,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions = 0;  /* variable size loopy game */

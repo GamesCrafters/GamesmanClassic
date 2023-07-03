@@ -8,16 +8,9 @@
 **
 ** DATE:         2004.05.01
 **
-** UPDATE HIST:  a lot of shit happened.
-**
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 #define X               99999
 #define O               9999

@@ -8,41 +8,9 @@
 **              Copyright (C) Dan Garcia, 1995. All rights reserved.
 **              Farzad H. Eskafi
 **              Erwin A. Vedar
-**              Matthew Yu
 **              Cameron Cheung
 **
 ** DATE:        2001/10/29
-**
-** UPDATE HIST:
-** 2003/02/18     :The new hash function was added. Proper documentation
-**                 was done.  The file is ready to go.
-**
-** 2001/12/04     :We are done with the first phase!
-**
-** 2001/12/03     :Finished adding options.  Now there are misere,
-**                 rotating in place, turning off one space hops, two
-**                 space hops, landing in different orientations, and
-**                 trapped is a win or lose options.
-**
-** 2001/11/26     :Added option to enable/disable rotating in place
-**
-** 2001/11/1      :Finished writing a modified version of Chung-Toi.
-**
-** 2001/10/29     :Scrapped old mctoi as mchung.
-**                 Restarting, with 6-piece tic-tac-toe
-**                 Note that tie is possible in this game
-**                 Used a really wasteful gNumberOfPositions
-**                 Did InitializeDatabases, DoMove,
-**                 GetInitialPosition, PrintComputersMove,
-**                 It does have some bugs in it, but it works.
-**
-**  10-10-01      :The coding part of the program is complete.
-**                 We got rid of all the errors and buggs. But
-**                 we are not able to run the program.
-**
-**  10-07-01      :The main modification started to change the
-**                 Tic-Tac-Toi to Chung-Toi
-*
 **
 **************************************************************************/
 
@@ -52,9 +20,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
 #include "gamesman.h"
 
 #define BOARDSIZE 9

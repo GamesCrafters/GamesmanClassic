@@ -16,7 +16,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 extern STRING gValueString[];

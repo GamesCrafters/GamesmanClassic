@@ -1,36 +1,15 @@
 /************************************************************************
-   c**
- ** NAME:        mwin4.c
- **
- ** DESCRIPTION: Connect-4
- **
- ** AUTHOR:      Michael Thon, University of Berkeley
- **              Copyright (C) Michael Thon, 2002. All rights reserved.
- **
- ** DATE:        07/12/02
- **
- ** UPDATE HIST:
- **
- **  7-12-02 1.0 : Getting started (not using RCS though)
- **                will first attempt only 5x4 size boards
- **  9-12-02 1.1 : Board sizes (smaller than 5x5) can be set in mwin4.h
- **                Text-based module works for these.
- **                ToDo: -graphics
- **                      -help-Information
- **                      -documentation
- ** 10-12-02 1.2 : - Board sizes now set in this file (no more mwin4.h)
- **                  MUST ALSO SET IN mwin4.tcl !! (gSlotsX and Y)
- **                  Feasale sizes are 5x4 or 4x5 (both interesting)
- **                - Program will probably SegFault if sizeof(int)<4
- **                  Would be nice to have POSITION be long int or even
- **                  unsigned long int
- **                - Graphical Module mwin4.tcl done
- **
- ** 08-19-06	: change to GetMyInt();
- **
- ** 02-23-06       Ilya Landa
- **                Implementing symmetries
- **************************************************************************/
+**
+** NAME:        mwin4.c
+**
+** DESCRIPTION: Connect-4
+**
+** AUTHOR:      Michael Thon, University of Berkeley
+**              Copyright (C) Michael Thon, 2002. All rights reserved.
+**
+** DATE:        07/12/02
+**
+**************************************************************************/
 
 /* a position seem to be made with this: (4x4)
  * 10100 10010 11010 01110

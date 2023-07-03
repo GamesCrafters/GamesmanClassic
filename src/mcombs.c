@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <ctype.h>
 #include "gamesman.h"
-#include <math.h>
 
 /*******************************************************************************
 *

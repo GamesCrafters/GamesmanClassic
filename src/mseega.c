@@ -1,18 +1,3 @@
-
-// $id$
-// $log$
-
-/*
-   To compile, use
-   gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include -fPIC -lz -lnsl -lsocket -lm -shared -static-libgcc -L/usr/sww/pkg/tcltk-8.4.4/lib -ltk8.4 -L/usr/sww/pkg/tcltk-8.4.4/lib -ltcl8.4 -L/usr/sww/pkg/tcltk-8.4.4/lib -ltcl8.4 mseega.c
- */
-
-//Please write down updates!!
-/*
- * Above is will include the name and the log of the last
- * person to commit this file to gamesman.
- */
-
 /************************************************************************
 **
 ** NAME:        mseega.c
@@ -25,17 +10,6 @@
 **
 ** DATE:        Began 2004-09-29; Finished 2004-10-...
 **
-** UPDATE HIST: 2004-10-04 YR: Put it into CVS.
-**              2004-10-11 Peter: I wrote this earlier, but I didn't know
-**               know that checking-in a file would lead to a vi interface
-**              2004-10-11 Added more defines, GamesSpecificMenu, PrintPosition
-**	        2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
-**              **PLEASE PUT UPDATES HERE**
-**
-**		2006-8-21	change to GetMyChar()/GetMyInt() dmchan
-**     2008-2-05   Implemented getOption(), setOption(int option), and NumberOfOption().
-**     2008-2-09   Added checks for misere mode and modified options to handle the new variants introcuted by misere mode.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -44,13 +18,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <math.h>
 #define DEBUGGING 0
 #define DEBUGGING2 0
 #define DEBUGGING3 0 //Peter's debugging flag

@@ -9,47 +9,9 @@
 **
 ** DATE: November 22, 2001 (the beginning)
 **
-** UPDATES HISTORY:
-**           - Apr 3, 2002  - Fixed bug for Special/normal piece.
-**           - Mar 1-2, 2002   - Attempt REDUCT again (EM)
-**           - Jan 2-4, 2002 - Make Gametree smaller by hard-coding possible move positions. The
-**                           reduction will still use 60 megs. Changes are tagged "REDUCT" (EM)
-**           - Dec 25-27, 2001 - Aesthetic fixes. :) (EM)
-**           - Dec 9, 2001  - Bugs #1-19 FIXED (CH)
-**                          - Still need to make it look nicer. :)
-**           - Dec 6, 2001  - Bugs #1-16 FIXED (CH EM not chemistry)
-**           - Dec 2, 2001  - Rewrote the Help menu and a mini-INTERNALS (EM)
-**                          - Bugs #1-9 FIXED (EM)
-**           - Dec 1, 2001  - attempt to fix the bugs.  (EM)
-**                          - Fixed several crucial bugs.  (EM)
-**                          - I have the hardcopy of bugs, btw. (EM)
-**           - Nov 30, 2001 - ran debugger, no more seg fault! but need to fix
-**                            some minor details about the game. Otherwise it works! (EM)
-**           - Nov 22, 2001 - Compiled but when first playing the game, Seg fault! (EM)
-**                          - Rewrote the ENTIRE game from scratch and developing new data struct.(EM)
-**
-**
-** BUG REPORT: FIXES
-**   1. "2" is actually "1" for human player. FIXED (EM)
-**   2. The computer moved 3 but nothing happened. FIXED (EM)
-**   3. "Special piece" printout skews table. FIXED (EM)
-**   4. 2nd row is skewed by 2 spaces to the right. FIXED (EM)
-**   5. Line space before showing the first row of board. FIXED (EM)
-**   6. Can't take "1" as input from human player. FIXED (EM)
-**   7. Can't see the computer's move except the Big "X". FIXED (EM)
-**   8. Comp's move of 2 is a special piece "X". FIXED (EM)
-**   9. Sometimes, I don't even see my own moves! FIXED (EM)
-**  10. Init Score is 6 and Yellow wins !!! FIXED (CH)
-**  11. Shifting up of some pieces were wrong.  FIXED (CH)
-**  12. Numbers passed into ThreeInaRow method were off by one.  FIXED (CH)
-**  13. Special pieces can now be inputted correctly.  Previously,
-**      white special pieces could not be inputted properly because
-**      it was checking the existence of the black special FIXED (CH)
-**  14. Shifting of all pieces is now correct. FIXED (CH)
-**  15. Score is never UPDATED!!!  ThreeInaRow always returns 0, but why? FIXED (EM)
-**  16. Shifting of pieces II. They should all be fixed now. FIXED (EM)
-**  18. Score update is delayed by 1 move. I just noticed this... (CM)
-**  19. a. Computer wins, when the PLAYER actually wins. (CM)
+** BUG REPORT:
+**  1. Score update is delayed by 1 move. I just noticed this... (CM)
+**  2. a. Computer wins, when the PLAYER actually wins. (CM)
 **      b. The program outputs the correct winners when someone gets two matches.
 **         however, when my score goes to 5, I lose, but i'm not supposed to.(CM)
 **
@@ -59,8 +21,6 @@
 ** TIE. The game SHOULD be a TIE.
 **      - ThreeInARow works. Try looking at the Static Eval and
 * Fuzzy methods...(EM)
-**
-**
 **
 ** NOTE: When adding comments or whatnot, please follow the format. Thanks.
 **
@@ -173,8 +133,6 @@
 **
 **************************************************************************/
 
-#include <string.h>
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 7425000; // REDUCT: 11*10*10*15^3*2

@@ -3,15 +3,12 @@
 ** DESCRIPTION: Dino Dodgem (Arbitrary Board Size)
 ** AUTHOR:      Can Chang, Desmond Cheung
 ** DATE:        2002-11-10
-** UPDATE HIST: Version 1.0
 **************************************************************************/
 
 /*************************************************************************
 ** Everything below here must be in every game file
 **************************************************************************/
-#include <stdio.h>
 #include "gamesman.h"
-#include <math.h>
 
 CONST_STRING kAuthorName         = "Ming Can Chang and Desmond Cheung";
 CONST_STRING kDBName             = "dinododgem";

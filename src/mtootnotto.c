@@ -8,37 +8,6 @@
 **
 ** DATE:        2007-02-26
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**
-**              2005-11-28  Added Primitive
-**				2006-04-05  Edited Primitive to player1 wins if toot and
-**							player2 wins if otto. Also fixed tie condition and
-**							default output is now undecided if no win/lose/tie.
-**				2006-04-08	Added a lot of printfs for debugging. Gets bus error
-**							with GetAndPrintPlayersMove
-**				2006-04-11  Fixed bus error and all warnings. DoMove working
-**							correctly now. Primitive needs rewrite.
-**				2006-04-14  Fixed part of problem with primitive. Doesn't
-**							work perfectly, but will solve and it's playable
-**							on a 4x4 board. Will not work for bigger boards.
-**							number of starting pieces is now a variable.
-**				2006-04-15	Fixed primitive, should be working correctly now.
-**							Found bug in primitive. Added #define for move
-**							hashing and unhashing. Debugging...
-**				2006-04-16	Everything seems to be working correctly. Primitive
-**							needs to be changed so when a move causes both
-**							players to win it returns tie.
-**				2006-04-21	Primitive now handles both players winning at
-**							the same time. It returns a tie. PrintPosition
-**							has improvements suggested. Added GameSpecificMenu.
-**				2006-05-09	Added MoveToString.
-**				2006-05-22	Edited help strings. Fixed primitive to return tie
-**							if both players are out of pieces and there is no
-**							win or lose.
-**				2006-08-19	Changed scanf to use GetMyInt(), bounds checking still needs to be done
-**				2007-02-26	Small changes, nothing significant
-**				2007-05-01	Tiers working! Hooray!
-**              2008-02-19  Reimplemented game options, added error checking on game-specific options. -EthanR + AlanW
 **************************************************************************/
 
 /*************************************************************************
@@ -47,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **

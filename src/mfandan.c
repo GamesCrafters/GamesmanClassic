@@ -18,10 +18,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-// #include "loopygasolver.h"
 
 int debug = 0;
 int printMethods = 0;

@@ -9,14 +9,6 @@
 **
 ** DATE:        WHEN YOU START/FINISH
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**
-** 2005-11-12
-**   Joey - Fixed the problem in initializeGame().  The game now solves and plays
-**          for 3x3.  Memory allocation error for 4x3, still possibly a problem
-**          with my initializeGame() or maybe something else.
-**
-**   Joey - Major changes: Added a call to freeBoard before returns in
 */
 /*************************************************************************
 **
@@ -100,11 +92,7 @@ void PrintMove(MOVE move);
 **************************************************************************/
 #ifndef SQUAREDANCEDEBUG
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 #endif
 

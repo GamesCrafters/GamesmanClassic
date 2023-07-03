@@ -1,4 +1,3 @@
-// $Id: mabalone.c,v 1.46 2007-10-17 02:37:50 dmchan Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -6,16 +5,6 @@
 ** DESCRIPTION: Abalone
 **
 ** AUTHOR:      Daniel Wei & Jerry Hong & Michael Mottmann & Melinda Franco
-**
-** DATE:        10/2/06 - Attempted to tierify
-**              4/6/04 - Working and all nice and pretty and stuff
-**              5/3/04 - Even better than before!
-**
-** UPDATE HIST: WHAT ONCE WAS BROKEN NOW IS FIXED
-**		8-21-06	commented out fflush and changed to use GetMyChar()/GetMyInt();
-**			dmchan
-**
-**
 **
 **************************************************************************/
 
@@ -25,14 +14,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
-#include <string.h>
-#include <math.h>
 
 extern STRING gValueString[];
 POSITION gNumberOfPositions  = 924;

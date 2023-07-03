@@ -18,7 +18,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 2 * 43046721;  // changed later if board size changes

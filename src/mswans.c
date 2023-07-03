@@ -18,9 +18,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
 
 /* With 0-4 dragons and 0-12 swans, we get the incredible
 * 14593151 * 64 => 933,961,664 positions!!! (too many) */

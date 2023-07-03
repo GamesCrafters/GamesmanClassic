@@ -1,9 +1,4 @@
 
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        MOOE.C
@@ -14,8 +9,6 @@
 **
 ** DATE:        WHEN YOU START/FINISH
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -24,12 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **

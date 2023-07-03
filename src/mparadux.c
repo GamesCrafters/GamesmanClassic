@@ -1,10 +1,3 @@
-// $Id: mparadux.c,v 1.24 2006-12-19 20:00:51 arabani Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mparadux.c
@@ -16,63 +9,6 @@
 **
 ** DATE:        09/13/03
 **
-** UPDATE HIST:
-**
-** 09/13/2005 David  - First Revision
-** 09/14/2005 Yanpei - Fixed some typo in InitializeGame().
-**                     Proposed alternative board indexing.
-**                     Drew initial board position.
-** 09/26/2005 Yanpei - Re-drew board position and coordinates.
-** 09/27/2005 Yanpei - Some support functions and data structs
-** 09/27/2005 David  - Merged some changes from my version (CVS doesn't
-**                     work for me?)
-** 10/04/2005 David  - Added a bunch of simple functions--without testing
-**                     and which are incomplete; just wanted to get
-**                     something out before the meeting.
-** 10/18/2005 Yanpei - Tidied up davidPrintPos(), wrote dyPrintPos() using
-**                     more tidy code. Proof read hashMove() unhashMove()
-** 10/26/2005 Yanpei - PrintPos and initializeGame for odd boards debugged.
-** 11/09/2005 Yanpei - DoMove proof read, reasonably confident,
-**                     need to write getNeighbor,
-**                     yanpeiTestNeighboringDir() written but yet to run.
-**                     Primitive proof read, reasonably confident
-**                     Wrote PrintMove + PrintComputersMove
-**                     Still to do: GenerateMoves + test UI functions
-** 11/10/2005 Yanpei - GenerateMoves proof read, reasonably confident
-**                     Need to write AddMovesPerPair to make it work
-**                     Need to check hash to see whether need to keep
-**                     track of turns.
-** 11/18/2005 David  - Got it compiling and running. Looks like there's a
-**                     memory leak somewhere when solving. Also, solving
-**                     is very slow. Anyways, this update plays. Next will
-**                     have optimizations, maybe GPS.
-** 11/19/2005 David  - Added caching of all lookups. Solved in 18000 secs
-**                     as a draw. However, there are still some small
-**                     issues that need to be resolved so that solution
-**                     might not be correct.
-** 11/21/2005 David  - Added help text (except the example play, because
-**                     solving the game takes too long). Cleaned up the
-**                     code a lot.
-** 11/22/2005 David  - Added functionality to support the rule that a
-**                     player cannot undo the move that his opponent has
-**                     just made. Unfortunately, this brings the number of
-**                     positions to ~37 billion. Will decide proper course
-**                     of action tomorrow.
-** 11/22/2005 David  - Solved Paradux without the undo stuff last night.
-**                     At most, a player can have 34 moves (experimentally
-**                     discovered). Therefore, I simply enumerate the
-**                     moves and the hash actually fits under 2^31.
-**                     Unfortunately, memdb calls malloc on
-**                     gNumberOfPositions * sizeof(VALUE)--which is about
-**                     2 GB--which my computer can't handle. Using 2-bit
-**                     solver thrases my hard drive. This is about as
-**                     compact as we can get... Time to commit and let
-**                     Yanpei think about this one.
-** 12/07/2005 Yanpei - Added prevMoveAllowed as game option
-**                     Coded brief game options menu
-**                     Fixed some memory leaks
-** 12/19/2005 David  - Fixed first player always wins
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -81,12 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 /*************************************************************************
 **

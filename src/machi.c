@@ -1,4 +1,3 @@
-// $Id: machi.c,v 1.34 2008-05-08 05:12:56 l156steven Exp $
 /************************************************************************
 **
 ** NAME:        machi.c
@@ -7,19 +6,10 @@
 **
 ** AUTHOR:      Jeffrey Chiang
 **              Jennifer Lee
-**	                 Jesse Phillips
+**	            Jesse Phillips
 **
 ** DATE:        02/11/2003
 **
-** UPDATE HIST:
-**
-** 2/11/2003 - wrote printPosition, doMove, generateMoves excluding diagonal moves
-**	2/13/2003 - wrote get input functions, print functions, fixed errors
-**	2/20/2003 - wrote hash/unhash, whosemove, fixed domove, representation of our move
-**	2/27/2003 - wrote help strings, added nodiag, alldiag variations
-** 3/06/2003 - updated print position
-** 4/02/2006 - added GetVarString to return English description of option hash
-** ?/??/2008 - added symmetries (getCanonicalPosition, DoSymmetry)
 **************************************************************************/
 
 /*************************************************************************
@@ -28,7 +18,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 39366; /*19683;*/  /* 3^9 */

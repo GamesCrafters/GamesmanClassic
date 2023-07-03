@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mtore.c
@@ -16,17 +8,6 @@
 **
 ** DATE:        2004-9-28 Started Module.
 **
-** UPDATE HIST: 2006-5-22	 Fixed getoption() and setoption()
-**				2005-3-3     Added missing prototypes
-**              2004-10-26   Changed PrintPosition to include layout of board
-**                           Wrote GetinitialPosition
-**              2004-10-22   Error still in ValidTextInput
-**              2004-10-21   Fixed GenerateMoves, Primitive
-**              2004-10-10   Wrote ConvertTextInputToMove
-**                           Wrote PrintMove, and ValidTextInput
-**              2004-10-4    Wrote GenerateMoves, and Primative
-**              2004-9-28    Started Module. Print Position, Do Move, Hash Stuff.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -35,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **

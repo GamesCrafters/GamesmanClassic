@@ -10,18 +10,6 @@
 **
 ** DATE:        Sunday, February 26 2006
 **
-** UPDATE HIST:
-** 3/19/2006     fixed DoMove, added ConvertTextInputToMove, printMove(for debugging)
-**              Problems with internal row representation: printposition prints "bottom-up",
-**              while directional functions use implied "top-down."
-** 3/12/2006    Modified Forward-directions to return index instead of char
-** 2/26/2006    GenerateMoves, DoMoves, forward-directions
-** 2/13/2006    Started. Much of the code is shamelessly borrowed from
-**              m1210.c, which is used as a template. Done: InitializeGame,
-**              PrintPosition
-** 2/20/2008    Added bounds checking, adjusted bounds to be from 2 to 9 and
-**              implemented options commands -EthanR+AlanW
-** 3/10/2008    Further refined functions for options. -EthanR+AlanW
 *****************************************************************************/
 
 /*****************************************************************************
@@ -29,7 +17,7 @@
 ** Everything below here must be in every game file
 **
 *****************************************************************************/
-#include <stdio.h>
+
 #include "gamesman.h"
 
 POSITION gNumberOfPositions   = 0;      /* Calculated in InitializeGame */

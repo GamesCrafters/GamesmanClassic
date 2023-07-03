@@ -1,6 +1,6 @@
 /************************************************************************
 **
-** NAME:        mfoxes_new.c
+** NAME:        mfoxes.c
 **
 ** DESCRIPTION: Fox and Geese
 **
@@ -9,12 +9,6 @@
 **              Copied/pasted/modified to fit the current Gamesman core by Evan Huang.
 **
 ** DATE:        Adoption of code started on 4/7/05
-**
-** UPDATE HIST: (was blank in the original)
-**              4/7/05  [+]Initial adoption of the old module to the current core
-**              4/11/05 [-]realized that ComputeC is deprecated, and removed it.
-**              4/16/05 [*]Geese go first. That was the right default.
-**              2/9/08  numOfOptions returns 2 now (May need more work).
 **
 **************************************************************************/
 

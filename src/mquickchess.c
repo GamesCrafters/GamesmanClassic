@@ -1,10 +1,3 @@
-// $Id: mquickchess.c,v 1.52 2007-04-05 19:16:19 max817 Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mquickchess.c
@@ -15,73 +8,6 @@
 **
 ** DATE:        Start Spring 2006
 **
-** UPDATE HIST:
-** 11 Mar 2006 Aaron: updated string fields with game information
-** 17 Mar 2006 Adam:  finished all of primitive
-** 01 Apr 2006 Aaron: added generateMoves code, with helper functions:
-**                    getCurrTurn - returns whose turn it is
-**                    isSameTeam - checks if the piece is the current player's
-**                    defined player1 and player2 turn constants
-** 07 Apr 2006 Adam:  reverted back to using a single array for board
-** 09 Apr 2006 Aaron: Changed move to be a 4 byte character array of numbers
-**                    in the format old i, old j, new i, new j
-** 10 Apr 2006 Aaron: converted generate moves function and helper functions
-**                    to use moves instead of helper struct from testing file
-**                    Remove BOARDSIZE constant and replaced with rows*cols
-**                    Fixed DoMove's use of generic hash by changing WHITE
-**                    and BLACK players constants to use 1,2 instead of 0,1
-** 15 Apr 2006 Aaron: Got rid of global currentPlayer to use generic hash player
-**                    Modified substitutePawn and other functions to use generic
-**                    hash player variable.
-**                    Fixed ConvertTextInputToMove
-**                    Fixed ValidTextInput by removing = sign in third char check
-**                    Added kingCheck function and case in inCheck
-** 18 Apr 2006 Aaron: Removed return char in PrintMove
-**                    Moved setupPieces code into InitializeGame()
-**                    Downsized board to make it solve
-** 25 Apr 2006 Adam:  Added substitute pawn functionality
-** 02 May 2006 Aaron: Added code to print and move functions to make work with
-**                    substitute pawn.  Substitute pawn only working with queens.
-**                    Changed way to display whose turn.  now based on WhoseMove instead of
-**                    is users turn.
-**                    Removed substitutePawn, isWhiteReplacementValid, and isBlackReplacementValid
-** 19 May 2006 Adam:  Added replacement function, needed for pawn promotion
-**                    Worked on implementing pawn promotion
-** 6 Jun 2006 Adam:   Finished pawn replacement
-** 11 Jun 2006 Adam:  Worked on getCanoncial() for symmetries
-** 12 Jun 2006 Adam:  Worked on getCanoncial() for symmetries
-** 15 Jun 2006 Adam:  Worked on getCanoncial() for symmetries
-** 20 Jun 2006 Adam:  Finished function getCanonical() still need to debug
-** 23 Jun 2006 Adam:  Begin writing gTierValue
-** 24 Jun 2006 Adam:  Wrote gTierValue for tiers with 2 and 3 pieces, now need 4-20 YIKES!
-**                    Also finished writing gUndoMove
-** 25 Jun 2006 Adam:  Finished debugging getCanonical() and finished writing
-**                    MoveToString()
-** 26 Jun 2006 Adam:  Made comment of finalized 3x4 starting board
-** 27 Jun 2006 Adam:  Wrote much of generateUndoMoves and accompanying helper functions
-** 28 Jun 2006 Adam:  Wrote more of generateUndoMoves: switched white to bottom and black to top
-** 29 Jun 2006 Adam:  Finished writing generateUndoMoves
-** 10 Jul 2006 Adam:  Finished Debugging gUndoMove and generateUndoMoves
-** 13 Jul 2006 Adam:  Finished writing and debugging gPositionToTie
-** 14 Jul 2006 Adam:  Finished writing and debugging gTierChildren
-** 15 Jul 2006 Adam:  Finished writing and gInitializeHashWindow
-** 16 Jul 2006 Adam:  Wrote gPositionToTierPosition by generating hash context everytime
-** 17 Jul 2006 Adam:  Used array "contextArray" in order to cache contexts for the various tiers. This makes
-**                    the function call to gPositionToTierPosition much faster. Also wrote the order of
-**                    tierlist, the order in which the game is solved.
-** 18-31 Jul 2006 Adam: Testing tierGamesman; changed inCheck to be more efficient
-** 2 Aug 2006 Adam: Wrote IsLegal and began add a feature to the game specific
-**                  menus in order to change the board initially.
-** 4 Aug 2006 Adam: Debug some of the game specific menu. Wrote hash and unhash functions.
-** 5 Aug 2006 Adam: A user can now enter a customizable board! Note: for now instructions must be
-**                  followed closely. A simple mistake could make it error. This will be fixed soon so
-**                  that there is a high error tolerance.
-** 6-7 Aug 2006 Adam: Debugged Tier Gamesman. Can now solve all 3-piece game tiers.
-** 8 Aug  2006 Adam: Wrote TierToString. Changed incheck to take in board instead of position. Debugging Tier
-**                   Gamesman.Prevented memory leaks. Got game to solve up the 3 major pieces stuck on tier 14
-** 15 Aug 2006 Adam: Debugged hash contexts
-** 06 Dec 2006 Aaron: Implementing big changes from the semester.  Fixed gamespecific menu changes of original
-**                    board and solving of tiers.  Changed default to 5x6 board.
 **************************************************************************/
 
 /*************************************************************************
@@ -90,11 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 /*************************************************************************
 **

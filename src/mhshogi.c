@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mshogi.c
@@ -16,13 +8,6 @@
 **
 ** DATE:        February 1, 2005 / December 6, 2005
 **
-** UPDATE HIST:
-** 02/02/2005 Updated some game-specific constants.
-** 02/02/2005 Added PrintPosition().
-**
-** 04/30/2008 Added Symmetries:
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -31,13 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
 
 /*************************************************************************
 **
