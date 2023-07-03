@@ -163,6 +163,10 @@ COMBS_EXE		= $(BINDIR)/mcombs$(EXESUFFIX)	# The explosive game of critical mass
 COMBS_OBJ		= mcombs$(OBJSUFFIX)
 COMBS_SO		= $(LIBDIR)/libmcombs$(LIBSUFFIX)
 
+CON_EXE			= $(BINDIR)/mcon$(EXESUFFIX)	# The cool game of Connections!
+CON_OBJ			= mcon$(OBJSUFFIX)
+CON_SO			= $(LIBDIR)/libmcon$(LIBSUFFIX)
+
 CONNECT4_EXE			= $(BINDIR)/mconnect4$(EXESUFFIX)	# Connect4
 CONNECT4_OBJ			= mconnect4$(OBJSUFFIX)
 CONNECT4_SO			= $(LIBDIR)/libmconnect4$(LIBSUFFIX)
@@ -487,7 +491,13 @@ CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_S
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
-CCGAMEOBJS = $(DNB_OBJ)
+CCGAMEOBJS = $(CON_OBJ) $(DNB_OBJ)
+
+# Binary files
+CCGAMES = $(CON_EXE)
+
+# Tcl/Tk libraries
+CCTCL = $(CON_SO)
 
 ### Games that need special attention
 SPECIALGAMES = $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE) $(DNB_EXE) $(TACTIX_EXE)
@@ -515,17 +525,17 @@ dist-clean:		clean
 clean:		clean-bins
 		@$(MAKE) -w -C core clean
 		@$(MAKE) -w -C ../extern/libUWAPI clean
-		rm -rf $(CTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
+		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
 		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
 		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A) $(GAMESDB_A) \
 		$(ANOTO_PEN_OBJ) $(TTT_PEN_OBJ) $(TACTIX_EXE) $(DNB_PEN_OBJ) $(TACTIX_PEN_OBJ) \
 		$(LIBUWAPI_A)
 
 clean-bins:
-		rm -rf $(CGAMES) $(SPECIALGAMES)
+		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
 
-text_all:	$(CGAMES) $(SPECIALGAMES)
-so_all:		text_all $(CTCL) $(SPECIALTCL)
+text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
+so_all:		text_all $(CTCL) $(CCTCL) $(SPECIALTCL)
 gameline:	$(GAMELINE_EXE)
 
 
@@ -590,6 +600,12 @@ $(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(
 
 $(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE) $(LIBUWAPI_INCLUDE)
 	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
+
+$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+
+$(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) 
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
