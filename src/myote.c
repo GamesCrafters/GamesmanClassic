@@ -867,8 +867,6 @@ POSITION InteractStringToPosition(STRING board) {
     int from = board[multipartFromIndex] - 'A';
     int to = board[multipartToIndex] - 'A';
     int pass = board[multipartPassIndex] -'A';
-    realBoard[from] = realBoard[to];
-    realBoard[to] = BLANK;
     if (realBoard[to] == X){
       realBoard[pass] = O;
       numo++;
@@ -876,6 +874,8 @@ POSITION InteractStringToPosition(STRING board) {
       realBoard[pass] = X;
       numx++;
     }
+    realBoard[from] = realBoard[to];
+    realBoard[to] = BLANK;
   }
 	// End Conversion from intermediate to real
 	gInitializeHashWindow(SetTier(leftx, lefto, numx, numo), FALSE);
