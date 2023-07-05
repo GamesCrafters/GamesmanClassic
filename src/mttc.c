@@ -20,6 +20,7 @@
 **************************************************************************/
 
 #include "gamesman.h"
+#include <time.h>
 
 extern STRING gValueString[];
 

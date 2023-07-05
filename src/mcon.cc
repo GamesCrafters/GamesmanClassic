@@ -510,18 +510,21 @@ EXTERNC MOVELIST *GenerateMoves(POSITION position)
 
   int turn = board.Turn();
   
-  for (unsigned j = 0; j <= BoardSize; j++)
+  for (unsigned j = 0; j <= BoardSize; j++) {
     for (unsigned i = 0; i <= BoardSize; i++) {
       int p = board.Pos(i,j);
       if (p < 0) continue;
-      if (turn)
-	if (j==0 || j==BoardSize) continue; else;
-      else
-	if (i==0 || i==BoardSize) continue; else;
+      
+      if (turn) {
+        if (j==0 || j==BoardSize) continue;
+      } else {
+        if (i==0 || i==BoardSize) continue;
+      }
       if (board.PieceAt(p)) continue;
+      
       head = CreateMovelistNode(p,head);
-      //      printf("Found a move %i\n",p);
     }
+  }
 
   return(head);
 }

@@ -749,6 +749,7 @@ Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
   STRING movestring = (STRING) SafeMalloc(40);
+  char temp[40];
   if (move % 3 == 0){
     move /= 3;
     int from = move / BOARDSIZE;
@@ -768,7 +769,8 @@ STRING MoveToString(MOVE move) {
     } else {
       sprintf(movestring, "%s", "j");
       for (; top >= 0; top--){
-        sprintf(movestring, "%s %d", movestring, stack[top]);
+        sprintf(temp, "%s", movestring);
+        sprintf(movestring, "%s %d", temp, stack[top]);
       }
     }
   }
