@@ -110,6 +110,8 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
+int moveCount = 0;
+
 char *gBlankOXString[] = { " ", "o", "x" };
 
 /* Powers of 3 - this is the way I encode the position, as an integer */
@@ -280,11 +282,11 @@ void SetTclCGameSpecificOptions(int theOptions[])
 //changed 
 POSITION DoMove(POSITION position, MOVE move)
 {
+  moveCount = moveCount + 1;
   int pos = move/10;
   int mov = move % 10;
 
   if (gUseGPS) {
-    printf("im'here");
     if (mov == 1){
       gPosition.board[pos] = x;
     }else if(mov == 2){
@@ -295,7 +297,6 @@ POSITION DoMove(POSITION position, MOVE move)
 		return BlankOXToPosition(gPosition.board);
 	}
 	else {
-    printf("im actually here");
 		BlankOX board[BOARDSIZE];
 
 		PositionToBlankOX(position, board);
@@ -848,19 +849,11 @@ BlankOX theBlankOX[];
 BlankOX WhoseTurn(theBlankOX)
 BlankOX *theBlankOX;
 {
-	int i, xcount = 0, ocount = 0;
-
-	for(i = 0; i < BOARDSIZE; i++)
-		if(theBlankOX[i] == x)
-			xcount++;
-		else if(theBlankOX[i] == o)
-			ocount++;
-		/* else don't count blanks */
-
-	if(xcount == ocount)
-		return(x);  /* in our TicTacToe, x always goes first */
-	else
-		return(o);
+	if(moveCount % 2 == 0){
+    return (x);
+  }else{
+    return (o);
+  }
 }
 
 CONST_STRING kDBName = "oandc";
