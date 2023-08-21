@@ -18,7 +18,7 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kAuthorName         = "";
 CONST_STRING kGameName           = "Order and Chaos";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
@@ -280,34 +280,34 @@ void SetTclCGameSpecificOptions(int theOptions[])
 //changed 
 POSITION DoMove(POSITION position, MOVE move)
 {
-	printf("the move You entered: %d", move);
   int pos = move/10;
   int mov = move % 10;
-  if (mov == 1){
+
+  if (gUseGPS) {
+    printf("im'here");
+    if (mov == 1){
       gPosition.board[pos] = x;
     }else if(mov == 2){
       gPosition.board[pos] = o;
     }
+		++gPosition.piecesPlaced;
+
 		return BlankOXToPosition(gPosition.board);
+	}
+	else {
+    printf("im actually here");
+		BlankOX board[BOARDSIZE];
 
-	// if (gUseGPS) {
-	// 	// gPosition.board[move] = gPosition.nextPiece;
-	// 	// gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
-	// 	// ++gPosition.piecesPlaced;
-    // if (mov == 1){
-    //   gPosition.board[pos] = x;
-    // }else if(mov == 2){
-    //   gPosition.board[pos] = o;
-    // }
-	// 	return BlankOXToPosition(gPosition.board);
-	// }
-	// else {
-	// 	BlankOX board[BOARDSIZE];
+		PositionToBlankOX(position, board);
 
-	// 	PositionToBlankOX(position, board);
+    if (mov == 1){
+      return position + g3Array[pos] * (int) x;
+    }else{
+      return position + g3Array[pos] * (int) o;
+    }
 
-	// 	return position + g3Array[move] * (int) WhoseTurn(board);
-	// }
+	}
+
 }
 
 void UndoMove(MOVE move)
@@ -418,11 +418,21 @@ VALUE Primitive(POSITION position)
 	    ThreeInARow(gPosition.board, 1, 4, 7) ||
 	    ThreeInARow(gPosition.board, 2, 5, 8) ||
 	    ThreeInARow(gPosition.board, 0, 4, 8) ||
-	    ThreeInARow(gPosition.board, 2, 4, 6))
-		return win;
+	    ThreeInARow(gPosition.board, 2, 4, 6)){
+        if (WhoseTurn(gPosition.board) == x){
+          return win;
+        }else{
+          return lose;
+        }
+
+      }
 	else if ((gUseGPS && (gPosition.piecesPlaced == BOARDSIZE)) ||
 	         ((!gUseGPS) && AllFilledIn(gPosition.board)))
-		return lose;
+		 if (WhoseTurn(gPosition.board) == x){
+          return lose;
+        }else{
+          return win;
+        }
 	else
 		return undecided;
 }
@@ -853,7 +863,7 @@ BlankOX *theBlankOX;
 		return(o);
 }
 
-CONST_STRING kDBName = "ttt";
+CONST_STRING kDBName = "oandc";
 
 int NumberOfOptions()
 {

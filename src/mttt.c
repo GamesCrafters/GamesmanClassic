@@ -942,7 +942,7 @@ int NumberOfOptions()
 	return 2;
 }
   
-  
+
 int getOption()
 {
 	int option = 0;
