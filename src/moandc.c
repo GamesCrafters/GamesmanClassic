@@ -1,82 +1,14 @@
 /************************************************************************
 **
-** NAME:        mttt.c
+** NAME:        moandc.c
 **
-** DESCRIPTION: Tic-Tac-Toe
-**
-** AUTHOR:      Dan Garcia  -  University of California at Berkeley
-**              Copyright (C) Dan Garcia, 1995. All rights reserved.
-**
-** DATE:        08/28/91
-**
-** UPDATE HIST:
-**
-**  8-30-91 1.0a1 : Fixed the bug in reading the input - now 'q' doesn't barf.
-**  9-06-91 1.0a2 : Added the two extra arguments to PrintPosition
-**                  Recoded the way to do "visited" - bitmask
-**  9-06-91 1.0a3 : Added Symmetry code - whew was that a lot of code!
-**  9-06-91 1.0a4 : Added ability to have random linked list in gNextMove.
-**  9-06-91 1.0a5 : Removed redundant code - replaced w/GetRawValueFromDatabase
-**  9-17-91 1.0a7 : Added graphics code.
-**  5-12-92 1.0a8 : Added Static Evaluation - it's far from perfect, but
-**                  it works!
-** 05-15-95 1.0   : Final release code for M.S.
-** 97-05-12 1.1   : Removed gNextMove and any storage of computer's move
-**
-** Decided to check out how much space was wasted with the array:
-**
-** A Dartboard 9-slot hash has 6046 positions (all symmetries included)
-**
-** Without checking for symmetries
-**
-** Undecided = 14205 out of 19683
-** Lose      =  1574 out of 19683
-** Win       =  2836 out of 19683
-** Tie       =  1068 out of 19683
-** Unknown   =     0 out of 19683
-** TOTAL     =  5478 out of 19683
-**
-** With SLIM = Symmetry-limiting Initial Move
-** (only 1st move do we limit moves to 1,2,5)
-**
-** Lose      =  1274 out of 4163
-** Win       =  2083 out of 4163
-** Tie       =   806 out of 4163
-** Unknown   =     0 out of 4163
-** TOTAL     =  4163 out of 19683 allocated
-**
-** With SLIMFAST = Symmetry-LImiting Move Fast!
-** (EVERY move we limit if there are symmetries)
-**
-** Lose      =  1084 out of 3481
-** Win       =  1725 out of 3481
-** Tie       =   672 out of 3481
-** Unknown   =     0 out of 3481 (Sanity-check...should always be 0)
-** TOTAL     =  3481 out of 19683 allocated
-**
-**     Time Loss : ??
-** Space Savings : 1.573
-**
-** While checking for symmetries and storing a canonical elt from them.
-**
-** Evaluating the value of Tic-Tac-Toe...done in 5.343184 seconds!
-** Undecided = 18917 out of 19682
-** Lose      =   224 out of 19682
-** Win       =   390 out of 19682
-** Tie       =   151 out of 19682
-** Unk       =     0 out of 19682
-** TOTAL     =   765 out of 19682
-**
-**     Time Loss : 3.723
-** Space Savings : 7.160 (why did I earlier write 6.279?)
-**
-**************************************************************************/
+** DESCRIPTION:  Order and chaos
 
-/*************************************************************************
+** AUTHOR:      Dan Garcia and Samhith Kakarla
 **
-** Everything below here must be in every game file
+** DATE:        2023-08-21
 **
-**************************************************************************/
+************************************************************************/
 
 #include "gamesman.h"
 
@@ -86,8 +18,8 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-CONST_STRING kAuthorName         = "Dan Garcia";
-CONST_STRING kGameName           = "Tic-Tac-Toe";
+CONST_STRING kAuthorName         = "Dan Garcia and Samhith Kakarla";
+CONST_STRING kGameName           = "Order and Chaos";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = FALSE;
@@ -96,80 +28,15 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-CONST_STRING kHelpGraphicInterface =
-        "The LEFT button puts an X or O (depending on whether you went first\n\
-or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
-button does nothing, and the RIGHT button is the same as UNDO, in that\n\
-it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
+CONST_STRING kHelpGraphicInterface =""                                                                                                                                                                                                                                   ;
+CONST_STRING kHelpTextInterface = "On your turn choose the position you want to place your piece in and wether u want it to be an x or an o by denoting 1 or 2 after the position number"                                                                                                                                                                                                                                            ;
+CONST_STRING kHelpOnYourTurn = "You place a piece on one of the empty board positions.";
+CONST_STRING kHelpStandardObjective = "Get 3 in a row of any peice";                                                                        
+CONST_STRING kHelpReverseObjective = "Fill up the board without letting 3 of any peice end up in a row"                                                                                                                                                             ;
+CONST_STRING kHelpTieOccursWhen =  "a tie never occurs";
+CONST_STRING kHelpExample ="";                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ;
 
-CONST_STRING kHelpTextInterface    =
-        "On your turn, use the LEGEND to determine which number to choose (between\n\
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
-to the empty board position you desire and hit return. If at any point\n\
-you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position."                                                                                                                                                                                                                                                                                                                           ;
-
-CONST_STRING kHelpOnYourTurn =
-        "You place one of your pieces on one of the empty board positions.";
-
-CONST_STRING kHelpStandardObjective =
-        "To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
-
-CONST_STRING kHelpReverseObjective =
-        "To force your opponent into getting three of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES."                                                                                                                                                             ;
-
-CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
-                            "the board fills up without either player getting three-in-a-row.";
-
-CONST_STRING kHelpExample =
-        "         ( 1 2 3 )           : - - -\n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  3    \n\n\
-         ( 1 2 3 )           : - - X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 2 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  6    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 9 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - O \n\n\
-Computer's move              :  5    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : - - O \n\n\
-     Dan's move [(u)ndo/1-9] : { 7 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer's move              :  4    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
-         ( 7 8 9 )           : O - O \n\n\
-Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
-
-/*************************************************************************
-**
-** Everything above here must be in every game file
-**
-**************************************************************************/
-
-/*************************************************************************
-**
-** Every variable declared here is only used in this file (game-specific)
-**
-**************************************************************************/
-
+// game spesific variables
 #define BOARDSIZE     9           /* 3x3 board */
 #define BOARDROWS     3
 #define BOARDCOLS     3
@@ -177,6 +44,8 @@ Computer wins. Nice try, Dan."                                                  
 typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
+
+int moveCount = 0;
 
 char *gBlankOXString[] = { " ", "o", "x" };
 
@@ -186,7 +55,6 @@ int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561 };
 /* Global position solver variables.*/
 struct {
 	BlankOX board[BOARDSIZE];
-	BlankOX nextPiece;
 	int piecesPlaced;
 } gPosition;
 
@@ -202,24 +70,11 @@ BlankOX WhoseTurn(BlankOX *theBlankOX);
 STRING MoveToString( MOVE );
 POSITION ActualNumberOfPositions(int variant);
 
-/**************************************************/
-/**************** SYMMETRY FUN BEGIN **************/
-/**************************************************/
-
 BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
 #define NUMSYMMETRIES 8   /*  4 rotations, 4 flipped rotations */
 
 int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
-
-/* Proofs of correctness for the below arrays:
-**
-** FLIP						ROTATE
-**
-** 0 1 2	2 1 0		0 1 2		6 3 0		8 7 6		2 5 8
-** 3 4 5  ->    5 4 3		3 4 5	->	7 4 1  ->	5 4 3	->	1 4 7
-** 6 7 8	8 7 6		6 7 8		8 5 2		2 1 0		0 3 6
-*/
 
 /* This is the array used for flipping along the N-S axis */
 int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
@@ -227,25 +82,11 @@ int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
 /* This is the array used for rotating 90 degrees clockwise */
 int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
-/**************************************************/
-/**************** SYMMETRY FUN END ****************/
-/**************************************************/
-
-/************************************************************************
-**
-** NAME:        InitializeDatabases
-**
-** DESCRIPTION: Initialize the gDatabase, a global variable.
-**
-************************************************************************/
-
+/* Initialize any global variables or data structures needed before
+solving or playing the game. */
 void InitializeGame()
 {
-	/**************************************************/
-	/**************** SYMMETRY FUN BEGIN **************/
-	/**************************************************/
-
-	gCanonicalPosition = GetCanonicalPosition;
+  gCanonicalPosition = GetCanonicalPosition;
 
 	int i, j, temp; /* temp is used for debugging */
 
@@ -263,12 +104,8 @@ void InitializeGame()
 		}
 	}
 
-	/**************************************************/
-	/**************** SYMMETRY FUN END ****************/
-	/**************************************************/
 
 	PositionToBlankOX(gInitialPosition, gPosition.board);
-	gPosition.nextPiece = x;
 	gPosition.piecesPlaced = 0;
 	gUndoMove = UndoMove;
 
@@ -291,46 +128,6 @@ void FreeGame()
 
 void DebugMenu()
 {
-	int tttppm();
-	char GetMyChar();
-
-	do {
-		printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
-
-		printf("\tc)\tWrite PPM to s(C)reen\n");
-		printf("\ti)\tWrite PPM to f(I)le\n");
-		printf("\ts)\tWrite Postscript to (S)creen\n");
-		printf("\tf)\tWrite Postscript to (F)ile\n");
-		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-		printf("\n\nSelect an option: ");
-
-		switch(GetMyChar()) {
-		case 'Q': case 'q':
-			ExitStageRight();
-			break;
-		case 'H': case 'h':
-			HelpMenus();
-			break;
-		case 'C': case 'c': /* Write PPM to s(C)reen */
-			tttppm(0,0);
-			break;
-		case 'I': case 'i': /* Write PPM to f(I)le */
-			tttppm(0,1);
-			break;
-		case 'S': case 's': /* Write Postscript to (S)creen */
-			tttppm(1,0);
-			break;
-		case 'F': case 'f': /* Write Postscript to (F)ile */
-			tttppm(1,1);
-			break;
-		case 'B': case 'b':
-			return;
-		default:
-			BadMenuChoice();
-			HitAnyKeyToContinue();
-			break;
-		}
-	} while(TRUE);
 
 }
 
@@ -387,9 +184,15 @@ void SetTclCGameSpecificOptions(int theOptions[])
 
 POSITION DoMove(POSITION position, MOVE move)
 {
-	if (gUseGPS) {
-		gPosition.board[move] = gPosition.nextPiece;
-		gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
+  int pos = move/10;
+  int mov = move % 10;
+
+  if (gUseGPS) {
+    if (mov == 1){
+      gPosition.board[pos] = x;
+    }else if(mov == 2){
+      gPosition.board[pos] = o;
+    }
 		++gPosition.piecesPlaced;
 
 		return BlankOXToPosition(gPosition.board);
@@ -399,14 +202,21 @@ POSITION DoMove(POSITION position, MOVE move)
 
 		PositionToBlankOX(position, board);
 
-		return position + g3Array[move] * (int) WhoseTurn(board);
+    if (mov == 1){
+      return position + g3Array[pos] * (int) x;
+    }else{
+      return position + g3Array[pos] * (int) o;
+    }
+
 	}
+
+  moveCount += 1;
+
 }
 
 void UndoMove(MOVE move)
 {
-	gPosition.board[move] = Blank;
-	gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
+	gPosition.board[move/10] = Blank;
 	--gPosition.piecesPlaced;
 }
 
@@ -511,11 +321,25 @@ VALUE Primitive(POSITION position)
 	    ThreeInARow(gPosition.board, 1, 4, 7) ||
 	    ThreeInARow(gPosition.board, 2, 5, 8) ||
 	    ThreeInARow(gPosition.board, 0, 4, 8) ||
-	    ThreeInARow(gPosition.board, 2, 4, 6))
-		return gStandardGame ? lose : win;
+	    ThreeInARow(gPosition.board, 2, 4, 6)){
+        if (WhoseTurn(gPosition.board) == x){
+          return win;
+        }else{
+          return lose;
+        }
+        // return win;
+
+      }
 	else if ((gUseGPS && (gPosition.piecesPlaced == BOARDSIZE)) ||
-	         ((!gUseGPS) && AllFilledIn(gPosition.board)))
-		return tie;
+	         ((!gUseGPS) && AllFilledIn(gPosition.board))){
+            printf("im actually here");
+		 if (WhoseTurn(gPosition.board) == x){
+          return lose;
+        }else{
+          return win;
+        }
+    // return lose;
+           }
 	else
 		return undecided;
 }
@@ -587,9 +411,10 @@ MOVELIST *GenerateMoves(POSITION position)
 		PositionToBlankOX(position, gPosition.board); // Temporary storage.
 
 	for (index = 0; index < BOARDSIZE; ++index)
-		if (gPosition.board[index] == Blank)
-			moves = CreateMovelistNode(index, moves);
-
+		if (gPosition.board[index] == Blank){
+			moves = CreateMovelistNode(index*10 + 1, moves);
+      		moves = CreateMovelistNode(index*10 + 2, moves);
+		}
 	return moves;
 }
 
@@ -694,7 +519,7 @@ STRING playerName;
 	USERINPUT ret;
 
 	do {
-		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
+		printf("%8s's move [(u)ndo/11-92] :  ", playerName);
 
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if(ret != Continue)
@@ -725,7 +550,10 @@ STRING playerName;
 BOOLEAN ValidTextInput(input)
 STRING input;
 {
-	return(input[0] <= '9' && input[0] >= '1');
+	// printf(input[0]);
+	// printf((int)input[0] <= 92 && (int)input[0] >= 1);
+	// return((int)input[0] <= 92 && (int)input[0] >= 1);
+	return TRUE;
 }
 
 /************************************************************************
@@ -743,7 +571,8 @@ STRING input;
 MOVE ConvertTextInputToMove(input)
 STRING input;
 {
-	return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
+	
+	return((MOVE) atoi(input) - 10); 
 }
 
 /************************************************************************
@@ -779,7 +608,7 @@ STRING MoveToString (MOVE theMove)
 {
 	STRING m = (STRING) SafeMalloc( 3 );
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf( m, "%d", theMove + 1);
+	sprintf( m, "%d", theMove + 10);
 
 	return m;
 }
@@ -920,28 +749,24 @@ BlankOX theBlankOX[];
 BlankOX WhoseTurn(theBlankOX)
 BlankOX *theBlankOX;
 {
-	int i, xcount = 0, ocount = 0;
+  int moveCount = 0;
+  for(int i = 0; i < BOARDSIZE; i++)
+		if(theBlankOX[i] == x || theBlankOX[i] == o)
+			moveCount++;
 
-	for(i = 0; i < BOARDSIZE; i++)
-		if(theBlankOX[i] == x)
-			xcount++;
-		else if(theBlankOX[i] == o)
-			ocount++;
-		/* else don't count blanks */
-
-	if(xcount == ocount)
-		return(x);  /* in our TicTacToe, x always goes first */
-	else
-		return(o);
+	if(moveCount % 2 == 0){
+    return (x);
+  }else{
+    return (o);
+  }
 }
 
-CONST_STRING kDBName = "ttt";
+CONST_STRING kDBName = "oandc";
 
 int NumberOfOptions()
 {
 	return 2;
 }
-  
 
 int getOption()
 {
