@@ -8,14 +8,6 @@
 **
 ** DATE:        too long to remember
 **
-** LAST CHANGE: $Id: m369mm.c,v 1.4 2008-09-29 07:33:40 noafroboy Exp $
-**
-**************************************************************************/
-
-/*************************************************************************
-**
-** Everything below here must be in every game file
-**
 **************************************************************************/
 
 #include "gamesman.h"
@@ -42,32 +34,6 @@ POSITION gNumberOfPositions   =  0; /* The number of total possible positions | 
 POSITION gInitialPosition     =  0; /* The initial hashed position for your starting board */
 POSITION kBadPosition         = -1; /* A position that will never be used */
 void*    gGameSpecificTclInit = NULL;
-
-char initial9mmInteractString[] = "R_A_8_7_9-----9-------------------------------------------------";
-char initial6mmInteractString[] = "R_A_6_5_6---6-------------------------";
-
-int indexMapInteractString9[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
-int indexMapMoveString9[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
-
-int remainingXIdxInteractString9 = 8;
-int remainingOIdxInteractString9 = 14;
-int multipartFromIdx9 = 9;
-int multipartToIdx9 = 10;
-
-int indexMapInteractString6[18] = {13,15,17,19,20,21,23,24,26,27,29,30,31,33,35,37};
-int indexMapMoveString6[18] = {5,7,9,11,12,13,15,16,18,19,21,22,23,25,27,29};
-int remainingXIdxInteractString6 = 8;
-int remainingOIdxInteractString6 = 12;
-int multipartFromIdx6 = 9;
-int multipartToIdx6 = 10;
-
-STRING initialInteractString = initial9mmInteractString;
-int (*indexMapInteractString);
-int (*indexMapMoveString);
-int remainingXIdxInteractString;
-int remainingOIdxInteractString;
-int multipartFromIdx;
-int multipartToIdx;
 
 /**
  * Help strings that are pretty self-explanatory
@@ -1897,7 +1863,7 @@ void changeToThree() {
 
 void changeToSix() {
 	gameType = 6;
-	BOARDSIZE =16;
+	BOARDSIZE = 16;
 	maxx = 6;
 	maxo = 6;
 	minb = 4;
@@ -1907,14 +1873,6 @@ void changeToSix() {
 	adjacent = adjacent6;
 	symmetriesToUse = gSymmetryMatrix6MM;
 	totalNumSymmetries = 16;
-
-	initialInteractString = initial6mmInteractString;
-	indexMapInteractString = indexMapInteractString6;
-	indexMapMoveString = indexMapMoveString6;
-	remainingXIdxInteractString = remainingXIdxInteractString6;
-	remainingOIdxInteractString = remainingOIdxInteractString6;
-	multipartFromIdx = multipartFromIdx6;
-	multipartToIdx = multipartToIdx6;
 }
 
 void changeToNine() {
@@ -1929,14 +1887,6 @@ void changeToNine() {
 	adjacent = adjacent9;
 	symmetriesToUse = gSymmetryMatrix9MM;
 	totalNumSymmetries = 16;
-
-	initialInteractString = initial9mmInteractString;
-	indexMapInteractString = indexMapInteractString9;
-	indexMapMoveString = indexMapMoveString9;
-	remainingXIdxInteractString = remainingXIdxInteractString9;
-	remainingOIdxInteractString = remainingOIdxInteractString9;
-	multipartFromIdx = multipartFromIdx9;
-	multipartToIdx = multipartToIdx9;
 }
 
 
@@ -1994,15 +1944,25 @@ POSITION GetCanonicalPosition(POSITION position) {
     return canonPos;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	int origFrom = 31, origTo = 31;
-	char realBoard[BOARDSIZE];
-	char turn = (board[2] == 'A') ? X : O;
-	int numX = 0;
-	int numO = 0;
+/* POSITION STRING FORMAT
+	First BOARDSIZE characters represent pieces of board
+	(BOARDSIZE+1)th character: Number of X left to place
+	(BOARDSIZE+2)th character: Number of O left to place
+	(BOARDSIZE+3)th character: Multipart move info for piece destination space
+	(BOARDSIZE+4)th character: Multipart move info for piece departure space
+*/
+POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int r, c; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &r, &c, &board)) {
+		return INVALID_POSITION; // Failed to parse string
+	}
 
+	char realBoard[BOARDSIZE];
+	int numX = 0, numO = 0;
 	for (int i = 0; i < BOARDSIZE; i++) {
-		char piece = board[indexMapInteractString[i]];
+		char piece = board[i];
         if (piece == '-') {
 			realBoard[i] = BLANK;
     	} else {
@@ -2016,15 +1976,15 @@ POSITION InteractStringToPosition(STRING board) {
 	}
 
 	// Conversion from intermediate to real
-	int isPlacement = 0;
-	if (board[multipartToIdx] != '-') { // Detects if position is intermediate
-		origTo = board[multipartToIdx] - 'A';
-		if (board[multipartFromIdx] != '-') { // Sliding
-			origFrom = board[multipartFromIdx] - 'A';
+	int isPlacement = 0, origFrom = 31, origTo = 31;
+	if (board[BOARDSIZE + 3] != '-') { // Detects if position is intermediate
+		origTo = board[BOARDSIZE + 3] - 'A';
+		if (board[BOARDSIZE + 2] != '-') { // Sliding
+			origFrom = board[BOARDSIZE + 2] - 'A';
 			realBoard[origFrom] = realBoard[origTo];
 		} else { // Placing
 			isPlacement = 1;
-			if (turn == X) {
+			if (turn == UWAPI_TURN_A) {
 				numX--;
 			} else {
 				numO--;
@@ -2034,14 +1994,15 @@ POSITION InteractStringToPosition(STRING board) {
 	}
 	// End Conversion from intermediate to real
 
-	int piecesLeft = (board[remainingXIdxInteractString] - '0') + (board[remainingOIdxInteractString] - '0') + isPlacement;
+	int piecesLeft = (board[BOARDSIZE] - '0') + (board[BOARDSIZE + 1] - '0') + isPlacement;
 	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
-	return hash(realBoard, turn, piecesLeft, numX, numO);
+	return hash(realBoard, turn == UWAPI_TURN_A ? X : O, piecesLeft, numX, numO);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char* finalBoard = calloc(65, sizeof(char));
-	memcpy(finalBoard, initialInteractString, 64);
+	char finalBoard[29];
+	memset(finalBoard, '-', 29 * sizeof(char));
+	
 	int origFrom = 31, origTo = 31;
 	if (pos >> 63) {
 		origFrom = (pos >> 58) & 0x1F;
@@ -2057,31 +2018,34 @@ STRING InteractPositionToString(POSITION pos) {
 	gUnhashToTierPosition(pos, &tierPosition, &tier);
 	for (int i = 0; i < BOARDSIZE; i++) {
         if (board[i] != BLANK) {
-		    finalBoard[indexMapInteractString[i]] = (board[i] == X) ? 'W' : 'B';
+		    finalBoard[i] = (board[i] == X) ? 'W' : 'B';
         }
 	}
 	SafeFree(board);
 
-	finalBoard[2] = (turn == X) ? 'A' : 'B';
-	finalBoard[remainingXIdxInteractString] = ((tier / 100) / 2) + '0';
-	finalBoard[remainingOIdxInteractString] = (((tier / 100) + 1) / 2) + '0';
+	enum UWAPI_Turn uwapi_turn = (turn == X) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
-	if (origTo != 31) {
-		finalBoard[indexMapInteractString[origTo]] = (turn == X) ? 'W' : 'B';
-		finalBoard[multipartToIdx] = origTo + 'A';
+	finalBoard[BOARDSIZE] = ((tier / 100) / 2) + '0';
+	finalBoard[BOARDSIZE + 1] = (((tier / 100) + 1) / 2) + '0';
+
+	if (origTo != 31) { // If pos is an intermediate state
+		finalBoard[origTo] = (turn == X) ? 'W' : 'B';
+		finalBoard[BOARDSIZE + 3] = origTo + 'A';
 		if (origFrom != 31) {
-			finalBoard[indexMapInteractString[origFrom]] = '-';
-			finalBoard[multipartFromIdx] = origFrom + 'A';
+			finalBoard[origFrom] = '-';
+			finalBoard[BOARDSIZE + 2] = origFrom + 'A';
 		} else {
 			if (turn == X) {
-				finalBoard[remainingXIdxInteractString]--;
+				finalBoard[BOARDSIZE]--;
 			} else {
-				finalBoard[remainingOIdxInteractString]--;
+				finalBoard[BOARDSIZE + 1]--;
 			}
 		}
 	}
 
-	return finalBoard;
+	finalBoard[BOARDSIZE + 4] = '\0';
+
+	return UWAPI_Board_Regular2D_MakeBoardString(uwapi_turn, 30, finalBoard);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
@@ -2092,20 +2056,16 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 	int from = move >> 10;
 	int to = (move >> 5) & 0x1F;
 	int remove = move & 0x1F;
-	char turn;
-	int piecesLeft, numX, numO;
-	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
-	SafeFree(board);
 
 	if (to != 31 && remove != 31) { // Fullmove
 		return MoveToString(move);
 	} else {
 		if (from != 31 && to != 31) { // Sliding piece partmove
-			return UWAPI_Board_Regular2D_MakeMoveString(indexMapMoveString[from], indexMapMoveString[to]);
+			return UWAPI_Board_Regular2D_MakeMoveString(from, to);
 		} else if (to != 31) { // Placing piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? '-' : '-', indexMapMoveString[to]);
+			return UWAPI_Board_Regular2D_MakeAddString('-', to);
 		} else { // Removing opponent piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? '-' : '-', indexMapMoveString[remove]);
+			return UWAPI_Board_Regular2D_MakeAddString('z', remove);
 		}
 	}
 }
