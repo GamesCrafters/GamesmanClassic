@@ -145,7 +145,7 @@ void GameSpecificMenu() {
 }
 
 // Anoto pen support - implemented in core/pen/pttt.c
-extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, int debug);
+// extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, int debug);
 
 /************************************************************************
 **
@@ -159,10 +159,10 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 #ifndef NO_GRAPHICS
 void SetTclCGameSpecificOptions(int theOptions[])
 {
-	// Anoto pen support
-	if ((gPenFile != NULL) && (gTclInterp != NULL)) {
-		gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
-	}
+	// // Anoto pen support
+	// if ((gPenFile != NULL) && (gTclInterp != NULL)) {
+	// 	gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
+	// }
 }
 #endif
 
