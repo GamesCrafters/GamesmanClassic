@@ -932,5 +932,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	int fromSlot = mv % (BOARDSIZE + 1);
 	int toSlot = mv / (BOARDSIZE + 1);
 	int adjustedFromSlot = arrowSource[fromSlot][toSlot];
-	return UWAPI_Board_Regular2D_MakeMoveString(adjustedFromSlot, toSlot);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(adjustedFromSlot, toSlot, 'x');
 }

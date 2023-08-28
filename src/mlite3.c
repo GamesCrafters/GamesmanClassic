@@ -1238,5 +1238,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT toSlot;
 	(void)pos;
 	MoveToSlots(mv, &toSlot);
-	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot - 1);
+	return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', toSlot - 1, 'x');
 }

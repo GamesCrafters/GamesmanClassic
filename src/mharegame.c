@@ -743,10 +743,14 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-    (void)position;
+    int indices[4];
+    int hare_i;
+    BOOLEAN haresTurn;
+    unpackPosition(position, indices, &hare_i, &haresTurn);
     int destIdx, srcIdx;
     unpackMove(move, &destIdx, &srcIdx);
-    return UWAPI_Board_Regular2D_MakeMoveString(srcIdx, destIdx);
+    char sound = (haresTurn) ? 'r' : 'd';
+    return UWAPI_Board_Regular2D_MakeMoveStringWithSound(srcIdx, destIdx, sound);
 }
 
 /* Algorithm by Sufian Latif,

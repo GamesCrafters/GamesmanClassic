@@ -319,3 +319,51 @@ char *UWAPI_Board_Regular2D_MakeLineString(unsigned int p1, unsigned int p2)
     sprintf(str, "L_%d_%d", p1, p2);
     return str;
 }
+
+char *UWAPI_Board_Regular2D_MakeAddStringWithSound(char piece, unsigned int to, char sound)
+{
+    // Format: "A_<piece>_<to>_<sound>"
+
+    char *str = malloc(
+        1 + 1 +
+        /* piece */ 1 + 1 +
+        /* to */ 10 + /* sound */ 2 + /* null terminator */ 1);
+
+    if (str == NULL)
+        return str;
+
+    sprintf(str, "A_%c_%d_%c", piece, to, sound);
+    return str;
+}
+
+char *UWAPI_Board_Regular2D_MakeMoveStringWithSound(unsigned int from, unsigned int to, char sound)
+{
+    // Format: "M_<from>_<to>_<sound>"
+
+    char *str = malloc(
+        1 + 1 +
+        /* from */ 10 + 1 +
+        /* to */ 10 + /* sound */ 2 + /* null terminator */ 1);
+
+    if (str == NULL)
+        return str;
+
+    sprintf(str, "M_%d_%d_%c", from, to, sound);
+    return str;
+}
+
+char *UWAPI_Board_Regular2D_MakeLineStringWithSound(unsigned int p1, unsigned int p2, char sound)
+{
+    // Format: "L_<p1>_<p2>_<sound>"
+
+    char *str = malloc(
+        1 + 1 +
+        /* from */ 10 + 1 +
+        /* to */ 10 + /* sound */ 2 + /* null terminator */ 1);
+
+    if (str == NULL)
+        return str;
+
+    sprintf(str, "L_%d_%d_%c", p1, p2, sound);
+    return str;
+}

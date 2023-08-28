@@ -956,7 +956,7 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
     from = (2 * from) + 1;
     to = (2 * to) + 1;
   }
-  return UWAPI_Board_Regular2D_MakeMoveString(from, to);
+  return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'x');
 }
 
 

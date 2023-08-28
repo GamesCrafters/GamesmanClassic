@@ -945,7 +945,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		mv >>= 1;
 	}
 	if (msb == lsb) {
-		return UWAPI_Board_Regular2D_MakeAddString('-', lsb);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', lsb, 'x');
 	}
 	BOOLEAN isVert = (msb - lsb > 3);
 	int which = -1, lsbi = -1, msbi = -1;
@@ -965,7 +965,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		default: idx = (lsbi) ? 4 : 3; break;
 	}
 	int from = 16 + ((isVert) ? 48 : 0) + 2 * (6 * which + idx);
-	char *toReturn = UWAPI_Board_Regular2D_MakeMoveString(from, from + 1);
+	char *toReturn = UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, from + 1, 'x');
 	toReturn[0] = 'L';
 	return toReturn;
 }

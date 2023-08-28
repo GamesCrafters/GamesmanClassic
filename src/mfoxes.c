@@ -1019,8 +1019,11 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
+	char board[BOARDSIZE];
+	generic_hash_unhash(pos, board);
+	int whoseTurn = generic_hash_turn(pos);
+	char sound = (whoseTurn == FOXTURN) ? 'f' : 'h';
 	SLOT fromSlot, toSlot;
 	MoveToSlots(mv,&fromSlot,&toSlot);
-	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, sound);
 }

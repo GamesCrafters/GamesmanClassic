@@ -843,7 +843,7 @@ STRING InteractPositionToString(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   (void)position;
-  STRING result = (STRING) SafeMalloc(8);
+  STRING result = (STRING) SafeMalloc(10);
 
   int origin = move / 100;
   int target = move % 100;
@@ -870,7 +870,7 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
     newTarget = origin - boardDimension + 1;
   }
 
-  sprintf(result, "M_%d_%d", origin, newTarget);
+  sprintf(result, "M_%d_%d_b", origin, newTarget);
 
   return result;
 }

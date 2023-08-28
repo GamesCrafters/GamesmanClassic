@@ -1317,8 +1317,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(mv, &fromSlot, &toSlot);
 	if (arrowMoves) {
-		return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+		return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, 'x');
 	} else {
-		return UWAPI_Board_Regular2D_MakeAddString('-', toSlot);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', toSlot, 'x');
 	}
 }

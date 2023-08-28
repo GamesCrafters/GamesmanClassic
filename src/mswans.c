@@ -1140,16 +1140,19 @@ STRING InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
-	(void)thePosition;
+	char oxboard[BOARDSIZE];
+	char whosTurn;
+	int p, numSwans;
+	generic_hash_unhash2(thePosition, oxboard, &whosTurn, &p, &numSwans);
 	SLOT fromSlot, toSlot;
 	int phase;
 	phase = theMove & 1;
 	theMove = theMove >> 1;
-	if(phase == 0)
-    return UWAPI_Board_Regular2D_MakeAddString('o', theMove);
-	else {
+	if (phase == 0) {
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('o', theMove, whosTurn);
+	} else {
 		MoveToSlots(theMove,&fromSlot,&toSlot);
 		/* MOVE is 0-15 */
-    return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
-  }
+    	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, whosTurn);
+	}
 }
