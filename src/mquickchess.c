@@ -3666,11 +3666,16 @@ char* InteractPositionToString(POSITION pos) {
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
-  (void)pos;
+  char oxboard[BOARDSIZE];
+  unhash(pos, oxboard);
+
   char rowf, colf, rowi, coli;
   rowf = (move & 15);
   colf = ((move >> 4) & 15) - 10;
   rowi = ((move >> 8) & 15);
   coli = ((move >> 12) & 15) - 10;
-	return UWAPI_Board_Regular2D_MakeMoveString((rows - rowi)*(cols)+coli, (rows - rowf)*(cols)+colf);
+  int from = (rows - rowi)*(cols)+coli;
+  int to = (rows - rowf)*(cols)+colf;
+  char sound = (oxboard[to] == ' ') ? 'x' : 'y';
+  return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, sound);
 }

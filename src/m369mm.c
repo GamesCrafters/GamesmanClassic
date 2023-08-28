@@ -2061,11 +2061,11 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 		return MoveToString(move);
 	} else {
 		if (from != 31 && to != 31) { // Sliding piece partmove
-			return UWAPI_Board_Regular2D_MakeMoveString(from, to);
+			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'y');
 		} else if (to != 31) { // Placing piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString('-', to);
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'x');
 		} else { // Removing opponent piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString('z', remove);
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('z', remove, 'z');
 		}
 	}
 }

@@ -1131,19 +1131,19 @@ STRING InteractMoveToString(POSITION pos, MOVE theMove)
 		squareNum = theMove % BOARDSIZE;
 		int left = squareNum + 16;
 		int right = squareNum + 32;
-		return UWAPI_Board_Regular2D_MakeLineString(left, right);
+		return UWAPI_Board_Regular2D_MakeLineStringWithSound(left, right, 'y');
 	}
 		
 	else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE){
 		squareNum = theMove % BOARDSIZE;
 		int top = squareNum + 32 + 16;
 		int bottom = squareNum + 32 + 32;
-		return UWAPI_Board_Regular2D_MakeLineString(top, bottom);
+		return UWAPI_Board_Regular2D_MakeLineStringWithSound(top, bottom, 'y');
 	}
 		
 	else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE){
 		squareNum = theMove % BOARDSIZE;
-		return UWAPI_Board_Regular2D_MakeAddString('r', squareNum);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('r', squareNum, 'x');
 
 	}
 	return MoveToString(theMove);

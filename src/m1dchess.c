@@ -512,13 +512,18 @@ STRING InteractPositionToString(POSITION position) {
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  (void)position;
-  STRING result = (STRING) SafeMalloc(8);
+  
+  STRING result = (STRING) SafeMalloc(10);
+
+  char board[boardSize];
+  generic_hash_unhash(position, board);
 
   int origin = move / 100;
   int target = move % 100;
 
-  sprintf(result, "M_%d_%d", origin, target);
+  char sound = (board[target] == '-') ? 'x' : 'y';
+
+  sprintf(result, "M_%d_%d_%c", origin, target, sound);
 
   return result;
 }

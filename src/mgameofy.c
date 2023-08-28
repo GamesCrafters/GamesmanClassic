@@ -692,9 +692,9 @@ STRING InteractPositionToString(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   (void)position;
-  STRING result = (STRING) SafeMalloc(8);
+  STRING result = (STRING) SafeMalloc(10);
 
-  sprintf(result, "A_-_%d", move);
+  sprintf(result, "A_-_%d_x", move);
 
   return result;
 }

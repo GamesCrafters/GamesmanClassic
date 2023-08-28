@@ -1704,12 +1704,21 @@ POSITION InteractStringToPosition(STRING string) {
 
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
+	TIER tier; TIERPOSITION tierposition;
+	gUnhashToTierPosition(pos, &tierposition, &tier);
+	int goatsLeft, goatsCaptured;
+	char turn = GOAT;
+	unhashTier(tier, &goatsLeft, &goatsCaptured, &turn);
+	if (goatsLeft == 0) {
+		turn = (pos >= combinations[boardSize][tigers][20 - goatsLeft - goatsCaptured]) ? TIGER : GOAT;
+	}
+
+	char sound = (turn == GOAT) ? 'g' : 't';
 	int from, to, remove;
 	unhashMove(mv, &from, &to, &remove);
 	if (from == to) {
-		return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping[to]);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', boardToGridIdxMapping[to], sound);
 	} else {
-		return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping[from], boardToGridIdxMapping[to]);
+		return UWAPI_Board_Regular2D_MakeMoveStringWithSound(boardToGridIdxMapping[from], boardToGridIdxMapping[to], sound);
 	}
 }

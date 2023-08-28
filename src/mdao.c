@@ -892,7 +892,7 @@ STRING InteractPositionToString(POSITION pos) {
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
     (void)pos;
-    STRING result = (STRING) SafeMalloc(10);
+    STRING result = (STRING) SafeMalloc(12);
 
 	int position = Unhasher_Index(move);
 	int direction = Unhasher_Direction(move);
@@ -905,7 +905,7 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 
 	int indexAdjust[] = {-3, 1, 5, -4, 4, -5, -1, 3};
 
-	sprintf(result, "M_%d_%d", position, position + indexAdjust[direction]);
+	sprintf(result, "M_%d_%d_x", position, position + indexAdjust[direction]);
 
 	return result;
 }

@@ -1668,6 +1668,6 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		sprintf(move, "P");
 		return move;
 	} else {
-		return UWAPI_Board_Regular2D_MakeAddString('-', mv);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', mv, 'x');
 	}
 }

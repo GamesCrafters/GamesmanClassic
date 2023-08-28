@@ -975,7 +975,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	generic_hash_unhash(pos, board);
 	for (int i = 0; i < 9; i++) {
 		if (board[i] == '_') {
-			return UWAPI_Board_Regular2D_MakeMoveString(mv, i);
+			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(mv, i, 'x');
 		}
 	}
 	return NULL;
