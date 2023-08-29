@@ -1998,7 +1998,7 @@ POSITION decodeInterpos(POSITION interPos, int *isIntermediate, int *fromLPiece,
 	return interPos & 0x0000000FFFFFFFFF;
 }
 
-/* R_A_0_0_[16][5]*/
+/* R_A_0_0_[16 (board)][5 (multipart move information)]*/
 POSITION InteractStringToPosition(STRING str) {
 	char *board = str + 7; // Note that this board is offset by -1 from the pieceString
 	BOOLEAN L1Found = FALSE, L2Found = FALSE, S1Found = FALSE, S2Found = FALSE;
@@ -2075,7 +2075,6 @@ STRING InteractPositionToString(POSITION interpos) {
 	int isIntermediate, fromLPiece, SPiece, fromSPiece, toLPiece;
 	POSITION pos = decodeInterpos(interpos, &isIntermediate, &fromLPiece, &SPiece, &fromSPiece, &toLPiece);
 	char board[23] = "-----------------aaaaa\0";
-	//memset(board, '-', 23 * sizeof(char));
 	int L1 = unhashL1(pos);
 	int L2 = unhashL2(pos);
 	int S1 = unhashS1(pos);
@@ -2128,10 +2127,9 @@ STRING InteractPositionToString(POSITION interpos) {
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >= 300000) { // Selecting L: corner and orientation
 		int L = unhashMoveL(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString(((L - 1) / 6) + '1', 20 + L);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound(((L - 1) / 6) + '1', 20 + L, 'x');
 	} else if (mv >= 200000) { // Selecting which neutral piece to place
-		int SP = unhashMoveSPiece(mv % 100000);
-		// SP will NOT be 0 if mv is a part-move
+		int SP = unhashMoveSPiece(mv % 100000); // SP will NOT be 0 if mv is a part-move
 		int L1 = unhashL1(pos);
 		int L2 = unhashL2(pos);
 		int S1 = unhashS1(pos);
@@ -2141,13 +2139,13 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		S1 = Make8to16(L1, L2, S1);
 		S2 = Make7to16(L1, L2, S1, S2);
 		if (SP == 1) { 
-			return UWAPI_Board_Regular2D_MakeAddString('-', S1 - 1);
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', S1 - 1, 'y');
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddString('-', S2 - 1);
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', S2 - 1, 'y');
 		}
 	} else if (mv >= 100000) { // Choosing where to place neutral piece
 		int SV = unhashMoveSValue(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString('-', SV - 1);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', SV - 1, 'z');
 	} else {
 		return MoveToString(mv);
 	}
@@ -2155,6 +2153,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 
 // CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	// Assumes moveList is in reverse order of what is returned by GenerateMoves, i.e. 
+	// The order of elements appended to the linked list of moves i.e.
 	// Assumes moveList is grouped by L, then grouped by SPiece. Assumes no-neutral-move move comes before neutral-move moves
 	MULTIPARTEDGELIST *mpel = NULL;
 	int prevL = -1;

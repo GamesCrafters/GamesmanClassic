@@ -1440,7 +1440,7 @@ STRING InteractPositionToString(POSITION pos) {
 	
 	enum UWAPI_Turn turn = (GetWhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
-	if (pos >> 63) {
+	if (pos >> 63) { // Convert intermediate state to real position
 		board[13] = 'a' + ((pos >> 59) & 0b1111);
 		pos &= 0xFFFFFFFFFFF;
 	}
