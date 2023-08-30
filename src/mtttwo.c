@@ -386,63 +386,6 @@ void InitializeGame() {
 	setOption(getOption());
 
 	unhashCacheInit();
-
-  // TIER theTiers[13] = {0, 10, 11, 21, 22, 32, 23, 42, 33, 24, 43, 34, 44};
-  // POSITION symmetricTo[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  // POSITION zpc = 0;
-  // for (TIER t = 0; t < 13; t++) {
-  //   gInitializeHashWindow(theTiers[t], FALSE);
-  //   for (POSITION tp = 0; tp < NumberOfTierPositions(theTiers[t]); tp++) {
-  //     POSITION tpc = GetCanonicalPositionTest(tp, symmetricTo);
-  //     if (tp == tpc) {
-  //       for (int k = 0; k < 8; k++) {
-  //         zpc = GetCanonicalPosition(symmetricTo[k]);
-  //         if (zpc != tp) {
-  //           printf("MISMATCH %llu %d %llu %llu %llu", theTiers[t], k, tp, symmetricTo[k], zpc);
-  //           PrintPosition(tp, "", FALSE);
-  //           PrintPosition(symmetricTo[k], "", FALSE);
-  //           PrintPosition(zpc, "", FALSE);
-  //           exit(1);
-  //         }
-  //       }
-  //       if (theTiers[t] == 22 || theTiers[t] == 33 || theTiers[t] == 44) {
-  //         for (int k = 8; k < 16; k++) {
-  //           zpc = GetCanonicalPosition(symmetricTo[k]);
-  //           if (zpc != tp) {
-  //             printf("MISMATCH %llu %d %llu %llu %llu", theTiers[t], k, tp, symmetricTo[k], zpc);
-  //             PrintPosition(tp, "", FALSE);
-  //             PrintPosition(symmetricTo[k], "", FALSE);
-  //             PrintPosition(zpc, "", FALSE);
-  //             exit(1);
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-  // printf("ENDED SYMMETRY CHECK\n");
-  // exit(1);
-
-  /*
-  TIER tiers[13] = {0,10,11,21,22,23,24,32,33,34,42,43,44};
-  int xPlaced, oPlaced, gridPos;
-  char turn;
-  for (int i = 0; i < 13; i++) {
-    TIER tier = tiers[i];
-    POSITION total = NumberOfTierPositions(tier);
-    printf("Checking Tier %llu which has %llu positions.\n", tier, total);
-    for (POSITION tierposition = 0; tierposition < total; tierposition++) {
-      char board[boardSize];
-      unhashToBoard(tier, tierposition, &xPlaced, &oPlaced, &gridPos, &turn, board);
-      TIER tier2;
-      TIERPOSITION tierposition2;
-      hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier2, &tierposition2);
-      if (tierposition != tierposition2 || tier != tier2) {
-        printf("ERROR: TP: %llu %llu; T: %llu %llu", tierposition, tierposition2, tier, tier2);
-      }
-      if (tierposition % 100000000 == 0) printf("%llu\n", tierposition);
-    }
-  }*/
 }
 
 /************************************************************************
