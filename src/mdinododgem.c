@@ -886,30 +886,8 @@ BOOLEAN usersTurn;
 			else printf ("-");
 		}
 		printf (" O\n");
-
-		/*
-		   printf("  O");
-		   for (col = 0; col < pbar_len-2; col++)
-		   printf(" ");
-		   printf("X\n");
-
-		   printf("        X power: ", xcount);
-		   for (col = 0; col < xcount; col++)
-		   printf("X");
-		   //if (gBlankOXString[(int)whosTurn] == "X") printf("x");
-		   if (whosTurn == x) printf("x");
-		   printf("\n");
-
-		   printf("        O power: ", ocount);
-		   for (col = 0; col < ocount; col++)
-		   printf("O");
-		   // if (gBlankOXString[(int)whosTurn] == "O") printf("o");
-		   if (whosTurn == o) printf("o");
-		   printf("\n");
-		 */
 	}
 
-	/* if ( gBlankOXString[(int)whosTurn] == "O") */
 	if (whosTurn == o)
 		printf("\n\
         l \n\
@@ -926,31 +904,6 @@ BOOLEAN usersTurn;
            |       ** and this is the move you can\n\
        l<- X ->r   ** perform on one of your pieces.\n\n");
 	printf("  Move format: [from to] \n\n");
-
-
-//  PositionToBlankOX(position,theBlankOx,&whosTurn);
-//  for (row = side - 1; row >= 0; row--) {
-//    printf("\n\t");
-//    for (col = 0; col < side; col++) {
-//      printf ("%s ", gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
-//    }
-//  }
-//  printf("\n\n");
-
-/*    if ( gBlankOXString[(int)whosTurn] == "O") */
-/*      printf("  */
-/*        ^     ** It is player O's turn to move */
-/*        |     ** and this is the move you can   */
-/*        O->   ** perform on one of your pieces. */
-/*        |     */
-/*        v \n\n"); */
-/*    else */
-/*      printf("             */
-/*           ^       ** It is player X's turn to move */
-/*           |       ** and this is the move you can */
-/*        <- X ->    ** perform on one of your pieces.\n\n"); */
-/*    printf("   **Enter your input in the following format: */
-/*         <from slot #> < space > <to slot #>\n\n"); */
 }
 
 
@@ -987,42 +940,22 @@ POSITION position;
 				/* left */
 				if ((i % side) != 0 && theBlankOX[left] == Blank && DINO_COND(i,left)) {
 					// add new move i to left
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += left;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, left, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* right */
 				if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i,right)) {
 					// add new move i to right
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += right;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, right, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* up */
 				if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 					// add new move i to up
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += up;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, up, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				else if (up >= boardsize) {
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += boardsize;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, boardsize, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
@@ -1039,42 +972,22 @@ POSITION position;
 				/* up */
 				if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 					// add new move i to up
-					/* theMove = i;
-					   theMove = theMove << 8;
-					   theMove += up;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, up, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* down */
 				if (down >= 0 && theBlankOX[down] == Blank && DINO_COND(i,down)) {
 					// add new move i to down
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += down;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, down, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* right */
 				if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i, right)) {
 					// add new move i to right
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += right;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, right, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				else if ((i % side) == (side - 1)) {
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += boardsize;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, boardsize, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
@@ -1200,11 +1113,6 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 	} else (void)sscanf(input,"%d %d", &fromSlot, &toSlot);
 
 	/* Encrypt from and to into a MOVE. */
-	/*theMove = fromSlot;
-	   theMove = theMove << 8;
-	   theMove += toSlot;
-	   theMove = theMove << 8;
-	   theMove += gWhosTurn;*/
 	theMove = encodemove(fromSlot, toSlot, gWhosTurn);
 	return(theMove);
 }
@@ -1244,10 +1152,7 @@ MOVE theMove;
 	whosTurn = getwhosTurnfromMove(theMove);
 	to = getto(theMove);
 	from = getfrom(theMove);
-	/*whosTurn = theMove & 255;
-	   theMove = theMove >> 8;
-	   to = theMove & 255;
-	   from = (theMove >> 8) & 255;*/
+
 	letter = from%side + 'a';
 	num = from/side + '1';
 	theDirection = getDirection (from, to, whosTurn);
@@ -1303,17 +1208,6 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
 	else if (whosTurn == o)
 		player = 1;
 	return generic_hash_hash(theBlankOX, player);
-	/*
-	   int i;
-	   int position = 0;
-
-	   for (i = 0; i < boardsize; i++) {
-	    position += (theBlankOX[i] * g3Array[i]);
-	   }
-	   position = position << 1;
-	   position += whosTurn - 1;
-	   return(position);
-	 */
 }
 
 /************************************************************************
@@ -1328,15 +1222,6 @@ void PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *the
 	generic_hash_unhash(thePos, theBlankOX);
 	player = generic_hash_turn(thePos);
 	*whosTurn = (player == 1 ? o : x);
-	/*
-	   int i;
-
-	 * whosTurn = (thePos & 1) + 1;
-	   thePos = thePos >> 1;
-	   for(i = 0; i < boardsize; i++) {
-	   theBlankOX[i] = (thePos / g3Array[i]) % 3;
-	   }
-	 */
 }
 
 /************************************************************************
@@ -1439,8 +1324,6 @@ STRING InteractPositionToString(POSITION pos) {
 	BlankOX board[boardsize];
 	PositionToBlankOX(pos,board,&whoseTurn);
 	int i = 0;
-	//generic_hash_unhash(pos, &board);
-	// char* finalBoard = calloc((boardsize+1), sizeof(char));
 	char finalBoard[boardsize + 8 + 1];
 
 	for (i = 0; i < boardsize; i++) {
@@ -1458,10 +1341,8 @@ STRING InteractPositionToString(POSITION pos) {
 				finalBoard[i] = 'o';
 				break;
 		}
-		// finalBoard[i] = board[i];
 	}
 
-	// return finalBoard;
 	for (int j = boardsize; j < boardsize + 8; j++) finalBoard[j] = '-';
 	finalBoard[boardsize + 8] = '\0'; // Make sure to null-terminate your board.
 
@@ -1474,8 +1355,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT fromSlot, toSlot;
 	BlankOX turn;
 	MoveToSlots(mv, &fromSlot, &toSlot, &turn);
-
-	//fromSlot = fromSlot / 3 + 4 + fromSlot;
+	BlankOX theBlankOx[boardsize], whoseTurn;
+	PositionToBlankOX(pos, theBlankOx, &whoseTurn);
 
 	if (toSlot == offtheboard) {
 		switch (fromSlot) {
@@ -1487,18 +1368,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 			case 23: toSlot = 30; break;
 			default: toSlot = (turn == x) ? 29 : 28;
 		}
-		//if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
-			// If the piece is moving off the board from the top row
-			/*if (turn == UWAPI_TURN_A) {
-				toSlot = fromSlot + 1;
-			} else {
-				toSlot = fromSlot - 4;
-			}*/
-		//}
-	} //else {
-		//toSlot = to//toSlot / 3 + 4 + toSlot;
-	//}
+	}
+	char soundChar = (whoseTurn == x) ? 'x' : 'y';
 
-	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
-	// return MoveToString(mv);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, soundChar);
 }
