@@ -1370,7 +1370,7 @@ STRING InteractPositionToString(POSITION interPos) {
 
   if (isIntermediate) {
     if (isGridMove) {
-      finalBoard[bsngp] = 'g';
+      finalBoard[bsngp] = 't';
     } else {
       finalBoard[bsngp + 1] = (from / 10) + '0';
       finalBoard[bsngp + 2] = (from % 10) + '0';
@@ -1388,7 +1388,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
   int isGridMove, from, to;
   unhashMove(mv % 100000, &isGridMove, &from, &to);
   if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', boardSize + numGridPlacements, 'x');
+    return UWAPI_Board_Regular2D_MakeAddStringWithSound('g', boardSize + numGridPlacements, 'x');
   } else if (mv >= 400000) { // Move is "choose where to move grid" 400000 + mv
     return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'z');
   } else if (mv >= 300000) { // Move is "select piece to move" 300000 + mv
