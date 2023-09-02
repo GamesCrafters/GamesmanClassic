@@ -386,63 +386,6 @@ void InitializeGame() {
 	setOption(getOption());
 
 	unhashCacheInit();
-
-  // TIER theTiers[13] = {0, 10, 11, 21, 22, 32, 23, 42, 33, 24, 43, 34, 44};
-  // POSITION symmetricTo[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  // POSITION zpc = 0;
-  // for (TIER t = 0; t < 13; t++) {
-  //   gInitializeHashWindow(theTiers[t], FALSE);
-  //   for (POSITION tp = 0; tp < NumberOfTierPositions(theTiers[t]); tp++) {
-  //     POSITION tpc = GetCanonicalPositionTest(tp, symmetricTo);
-  //     if (tp == tpc) {
-  //       for (int k = 0; k < 8; k++) {
-  //         zpc = GetCanonicalPosition(symmetricTo[k]);
-  //         if (zpc != tp) {
-  //           printf("MISMATCH %llu %d %llu %llu %llu", theTiers[t], k, tp, symmetricTo[k], zpc);
-  //           PrintPosition(tp, "", FALSE);
-  //           PrintPosition(symmetricTo[k], "", FALSE);
-  //           PrintPosition(zpc, "", FALSE);
-  //           exit(1);
-  //         }
-  //       }
-  //       if (theTiers[t] == 22 || theTiers[t] == 33 || theTiers[t] == 44) {
-  //         for (int k = 8; k < 16; k++) {
-  //           zpc = GetCanonicalPosition(symmetricTo[k]);
-  //           if (zpc != tp) {
-  //             printf("MISMATCH %llu %d %llu %llu %llu", theTiers[t], k, tp, symmetricTo[k], zpc);
-  //             PrintPosition(tp, "", FALSE);
-  //             PrintPosition(symmetricTo[k], "", FALSE);
-  //             PrintPosition(zpc, "", FALSE);
-  //             exit(1);
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-  // printf("ENDED SYMMETRY CHECK\n");
-  // exit(1);
-
-  /*
-  TIER tiers[13] = {0,10,11,21,22,23,24,32,33,34,42,43,44};
-  int xPlaced, oPlaced, gridPos;
-  char turn;
-  for (int i = 0; i < 13; i++) {
-    TIER tier = tiers[i];
-    POSITION total = NumberOfTierPositions(tier);
-    printf("Checking Tier %llu which has %llu positions.\n", tier, total);
-    for (POSITION tierposition = 0; tierposition < total; tierposition++) {
-      char board[boardSize];
-      unhashToBoard(tier, tierposition, &xPlaced, &oPlaced, &gridPos, &turn, board);
-      TIER tier2;
-      TIERPOSITION tierposition2;
-      hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier2, &tierposition2);
-      if (tierposition != tierposition2 || tier != tier2) {
-        printf("ERROR: TP: %llu %llu; T: %llu %llu", tierposition, tierposition2, tier, tier2);
-      }
-      if (tierposition % 100000000 == 0) printf("%llu\n", tierposition);
-    }
-  }*/
 }
 
 /************************************************************************
@@ -1353,38 +1296,6 @@ void setOption(int option) {
   gInitialPosition = gInitialTierPosition;
 }
 
-int boardToStringIdxMapping5[25] = {
-  8,9,10,11,12,
-  13,14,15,16,17,
-  18,19,20,21,22,
-  23,24,25,26,27,
-  28,29,30,31,32
-};
-int boardToGridIdxMapping5[25] = {
-  0,1,2,3,4,
-  5,6,7,8,9,
-  10,11,12,13,14,
-  15,16,17,18,19,
-  20,21,22,23,24
-};
-int xLeftIdx = 33;
-int oLeftIdx = 34;
-int selectMoveGridIdx = 37;
-int iPosFromTensIdx = 35;
-int iPosFromOnesIdx = 36;
-int strLen = 53;
-STRING tttwoInteractString[9] = {
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-  "R_A_6_5_-------------------------44---",
-};
-
 POSITION encodeIntermediatePosition(POSITION position, BOOLEAN isGridMove, int from) {
 	// 0b1 1 00000 0; intermediate marker (1), isGridMove (1), from (5)
 	return position | (1LL << 63) | (((isGridMove) ? 1LL : 0LL) << 62) | (((POSITION) from) << 57); 
@@ -1399,29 +1310,31 @@ BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN
 
 POSITION InteractStringToPosition(STRING str) {
   char turn = (str[2] == 'A') ? X : O;
-  int xPlaced = numPiecesPerPlayer - (str[xLeftIdx] - '0');
-  int oPlaced = numPiecesPerPlayer - (str[oLeftIdx] - '0');
-  int gridPos = 12;
-  char board[boardSize];
-  for (int i = 0; i < boardSize; i++) {
-    board[i] = str[boardToStringIdxMapping5[i]];
+  char *board = str + 8;
+  int xPlaced = 0, oPlaced = 0;
+  int i;
+  for (i = 0; i < boardSize; i++) {
     switch (board[i]) {
-      case 'x':
-        gridPos = i;
-        board[i] = X;
+      case 'X':
+        xPlaced++;
         break;
-      case 'o':
-        gridPos = i;
-        board[i] = O;
-        break;
-      case 's':
-        gridPos = i;
-        board[i] = BLANK;
+      case 'O':
+        oPlaced++;
         break;
       default:
         break;
     }
   }
+  int gridPos = 12;
+  for (; i < boardSize + numGridPlacements; i++) {
+    if (board[i] == 'G') {
+      gridPos = revCenterMapping[i - boardSize];
+      break;
+    }
+  }
+
+  // No work needed to convert from intermediate state to real position
+  // because entities in intermediate state are the same as in real position
 
   TIER tier;
 	TIERPOSITION tierposition;
@@ -1430,6 +1343,7 @@ POSITION InteractStringToPosition(STRING str) {
 	return tierposition;
 }
 
+/* boardSize (pieces) + numGridPlacements (where grid is) + 1 ("select grid center" sign + also for multipart) + 2 (multipart) */
 STRING InteractPositionToString(POSITION interPos) {
   POSITION pos;
   BOOLEAN isGridMove;
@@ -1440,27 +1354,32 @@ STRING InteractPositionToString(POSITION interPos) {
   char turn;
   char *board = unhash(pos, &xPlaced, &oPlaced, &gridPos, &turn);
 
-  char *finalBoard = calloc(strLen + 1, sizeof(char));
-  int cmIdx = centerMapping[gridPos];
-  memcpy(finalBoard, tttwoInteractString[cmIdx], strLen);
+  enum UWAPI_Turn uwapi_turn = (turn == X) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
-  finalBoard[2] = (turn == X) ? 'A' : 'B';
-  for (int i = 0; i < boardSize; i++) {
-    finalBoard[boardToStringIdxMapping5[i]] = board[i];
+  int bsngp = boardSize + numGridPlacements;
+
+  char finalBoard[bsngp + 4];
+  memset(finalBoard, '-', (bsngp + 4) * sizeof(char));
+  int i;
+  for (i = 0; i < boardSize; i++) {
+    finalBoard[i] = board[i];
   }
-  finalBoard[xLeftIdx] = (numPiecesPerPlayer - xPlaced) + '0';
-  finalBoard[oLeftIdx] = (numPiecesPerPlayer - oPlaced) + '0';
+
+  int cmIdx = centerMapping[gridPos];
+  finalBoard[boardSize + cmIdx] = 'G';
+
   if (isIntermediate) {
     if (isGridMove) {
-      finalBoard[selectMoveGridIdx] = 'G';
+      finalBoard[bsngp] = 't';
     } else {
-      finalBoard[iPosFromTensIdx] = (from / 10) + '0';
-      finalBoard[iPosFromOnesIdx] = (from % 10) + '0';
+      finalBoard[bsngp + 1] = (from / 10) + '0';
+      finalBoard[bsngp + 2] = (from % 10) + '0';
     }
   }
-  finalBoard[gridPos + 8] = (board[gridPos] == X) ? 'x' : (board[gridPos] == O) ? 'o' : 's';
+  finalBoard[bsngp + 3] = '\0';
   SafeFree(board);
-  return finalBoard;
+  STRING test = UWAPI_Board_Regular2D_MakeBoardString(uwapi_turn, 40, finalBoard);
+  return test;
 }
 
 
@@ -1469,16 +1388,16 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
   int isGridMove, from, to;
   unhashMove(mv % 100000, &isGridMove, &from, &to);
   if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv
-    return UWAPI_Board_Regular2D_MakeAddString('-', selectMoveGridIdx - 8);
+    return UWAPI_Board_Regular2D_MakeAddStringWithSound('g', boardSize + numGridPlacements, 'x');
   } else if (mv >= 400000) { // Move is "choose where to move grid" 400000 + mv
-    return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping5[to]);
+    return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'z');
   } else if (mv >= 300000) { // Move is "select piece to move" 300000 + mv
-    return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping5[from]);
+    return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', from, 'y');
   } else if (mv >= 200000) { // Move is "select where to move piece" 200000 + mv
-    return UWAPI_Board_Regular2D_MakeMoveString(boardToGridIdxMapping5[from], boardToGridIdxMapping5[to]);
+    return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'z');
   } else {
     if (from == to) {
-      return UWAPI_Board_Regular2D_MakeAddString('-', boardToGridIdxMapping5[to]);
+      return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'x');
     } else {
       return MoveToString(mv);
     }

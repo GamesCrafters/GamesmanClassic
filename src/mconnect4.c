@@ -452,81 +452,61 @@ void setOption(int option) {
 }
 
 POSITION InteractStringToPosition(STRING str) {
-    enum UWAPI_Turn turn;
-    unsigned int num_rows, num_columns;  // Unused
-    STRING board;
-    if (!UWAPI_Board_Regular2D_ParsePositionString(
-            str, &turn, &num_rows, &num_columns, &board)) {
-        // Failed to parse string
-        return INVALID_POSITION;
+  char *board = str + 8;
+  POSITION pos = 0;
+  for (int c = 0; c < COLUMNCOUNT; c++) {
+    POSITION colbits = 0;
+    BOOLEAN endFound = FALSE;
+    for (int r = 0; !endFound && r < ROWCOUNT; r++) {
+      char piece = board[ROWCOUNT * (c + 1) - 1 - r];
+      if (piece == 'O') {
+        colbits |= (1 << r);
+      } else if (piece == '-') {
+        endFound = TRUE;
+        colbits |= (1 << r);
+      }
     }
-
-    POSITION pos = 0;
-    for (int c = 0; c < COLUMNCOUNT; c++) {
-        POSITION colbits = 0;
-        BOOLEAN endFound = FALSE;
-        for (int r = 0; !endFound && r < ROWCOUNT; r++) {
-            /*printf("%d,", ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
-            printf("\n");
-            printf("%d,", ROWCOUNT * (c + 1) - 1 - r);
-            printf("\n");*/
-            char piece = board[ROWCOUNT * (c + 1) - 1 - r];
-            if (piece == 'O') {
-                colbits |= (1 << r);
-            } else if (piece == '-') {
-                endFound = TRUE;
-                colbits |= (1 << r);
-            }
-        }
-        if (!endFound) colbits |= (1 << ROWCOUNT);
-        /*printf("%llu", colbits);
-        printf("\n");*/
-        pos |= (colbits << ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
-    }
-    if (turn == UWAPI_TURN_B) pos |= (1ULL << 63);
-    SafeFree(board);
-    return pos;
+    if (!endFound) colbits |= (1 << ROWCOUNT);
+    pos |= (colbits << ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
+  }
+  if (str[2] == 'B') pos |= (1ULL << 63);
+  return pos;
 }
 
 STRING InteractPositionToString(POSITION position) {
-    char pieces[(ROWCOUNT + 1) * COLUMNCOUNT + 1];
-    int piecesPlaced = 0;
-    int k = 0;
-    BOOLEAN pastSigBit = FALSE;
+  int strLen = ROWCOUNT * COLUMNCOUNT + 1;
+  char pieces[strLen];
+  int piecesPlaced = 0;
+  int k = 0;
+  BOOLEAN pastSigBit = FALSE;
 
-    for (int i = (ROWCOUNT + 1) * COLUMNCOUNT - 1; i >= 0; i--) {
-        BOOLEAN bit = (position >> i) & 1;
-        if (i % (ROWCOUNT + 1) == ROWCOUNT) {
-            pastSigBit = bit;
-        } else if (bit) {
-            if (pastSigBit) {
-                pieces[k] = 'O';
-                piecesPlaced++;
-            } else {
-                pieces[k] = '-';
-                pastSigBit = TRUE;
-            }
-            k++;
-        } else {
-            if (pastSigBit) {
-                pieces[k] = 'X';
-                piecesPlaced++;
-            } else {
-                pieces[k] = '-';
-            }
-            k++;
-        }
+  for (int i = (ROWCOUNT + 1) * COLUMNCOUNT - 1; i >= 0; i--) {
+    BOOLEAN bit = (position >> i) & 1;
+    if (i % (ROWCOUNT + 1) == ROWCOUNT) {
+      pastSigBit = bit;
+    } else if (bit) {
+      if (pastSigBit) {
+        pieces[k] = 'O';
+        piecesPlaced++;
+      } else {
+        pieces[k] = '-';
+        pastSigBit = TRUE;
+      }
+      k++;
+    } else {
+      if (pastSigBit) {
+        pieces[k] = 'X';
+        piecesPlaced++;
+      } else {
+        pieces[k] = '-';
+      }
+      k++;
     }
-    for (int i = (ROWCOUNT * COLUMNCOUNT);
-         i < (ROWCOUNT + 1) * COLUMNCOUNT; i++) {
-        pieces[i] = '-';
-    }
+  }
 
-    pieces[(ROWCOUNT + 1) * COLUMNCOUNT] = '\0';
-    enum UWAPI_Turn turn =
-        (piecesPlaced & 1) ? UWAPI_TURN_B : UWAPI_TURN_A;
-    return UWAPI_Board_Regular2D_MakePositionString(
-        turn, ROWCOUNT + 1, COLUMNCOUNT, pieces);
+  pieces[ROWCOUNT * COLUMNCOUNT] = '\0';
+  enum UWAPI_Turn turn = (piecesPlaced & 1) ? UWAPI_TURN_B : UWAPI_TURN_A; 
+  return UWAPI_Board_Regular2D_MakeBoardString(turn, strLen, pieces);
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {

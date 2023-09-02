@@ -957,5 +957,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		toSlot = toSlot / 3 + 4 + toSlot;
 	}
 
-	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, 'x');
 }

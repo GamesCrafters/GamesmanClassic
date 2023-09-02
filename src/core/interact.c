@@ -218,7 +218,7 @@ STRING InteractValueCharToValueString(char value_char) {
 }
 
 void InteractPrintJSONMEXValue(POSITION pos) {
-	if (!kPartizan && !gTwoBits) {
+	if (kCombinatorial && !gTwoBits) {
 		printf("\"mex\":");
 		int theMex = MexLoad(pos);
 		if(theMex == (MEX) 0)

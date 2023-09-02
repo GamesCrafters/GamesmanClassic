@@ -223,6 +223,7 @@ STRING MoveToString( MOVE );
 
 void InitializeGame()
 {
+	kCombinatorial = TRUE;
 	gMoveToStringFunPtr= &MoveToString;
 }
 

@@ -81,6 +81,7 @@ extern BOOLEAN kDebugDetermineValue;
 extern BOOLEAN kDebugMenu;                     /* whether to display the debug menu or not*/
 extern POSITION kBadPosition;
 extern BOOLEAN kPartizan;                      /* TRUE <==> module is a Partizan game */
+extern BOOLEAN kCombinatorial;                 /* TRUE <==> game is combinatorial */
 extern BOOLEAN kGameSpecificMenu;              /* TRUE <==> module supports GameSpecificMenu() */
 extern BOOLEAN kTieIsPossible;                 /* TRUE <==> A Tie is possible */
 extern BOOLEAN kLoopy;                         /* TRUE <==> Game graph has cycles */

@@ -54,12 +54,14 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
+/* Tier Functions for TierGamesman Support */
+TIERLIST *getTierChildren(TIER tier);
+TIERPOSITION numberOfTierPositions(TIER tier);
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier); // Not needed if not using undomove
+POSITION UndoMove(POSITION position, UNDOMOVE undoMove); // Not needed if not using undomove
 
 
-
-
-
-/*********** BEGIN SOLVING FUNCIONS ***********/
+/*********** BEGIN BASIC SOLVING FUNCIONS ***********/
 
 /* TODO: Add a hashing function and unhashing function, if needed. */
 
@@ -68,6 +70,16 @@ solving or playing the game. */
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
+
+  /* Tier and UndoMove Variables and Function Pointers */
+  gTierChildrenFunPtr = &getTierChildren;
+  gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
+  gInitialTierPosition = gInitialPosition; // May need to modify this
+  kSupportsTierGamesman = TRUE;
+  kExclusivelyTierGamesman = TRUE; // Set this to false if you wish
+  gInitialTier = 0; // May need to modify this
+  gUnDoMoveFunPtr = &UndoMove; // If you decide not to use UndoMove, then remove this
+  gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier; // If you decide not to use UndoMove, remove this
 
   /* YOUR CODE HERE */
   
@@ -115,10 +127,60 @@ POSITION GetCanonicalPosition(POSITION position) {
   return position;
 }
 
-/*********** END SOLVING FUNCTIONS ***********/
+/*********** END BASIC SOLVING FUNCTIONS ***********/
 
 
 
+
+
+/*********** BEGIN TIER/UNDOMOVE FUNCTIONS ***********/
+
+TIERLIST *getTierChildren(TIER tier) {
+  /*
+    Return a linked list of child tiers of this tier.
+    If making a move from some position in this tier can
+    lead to another position in this tier, then include
+    this tier in the linked list as well.
+
+    You can use CreateTierlistNode(tier, <tierchild linked list>) to append to 
+    linked list.
+  */
+
+  /* YOUR CODE HERE */
+  return NULL;
+}
+
+/* How many positions are in the input tier? You may return
+an upper bound on the number of positions (if perhaps
+the way you encode positions includes unreachable positions).
+Try to make that upper bound as small as you can. */
+TIERPOSITION numberOfTierPositions(TIER tier) {
+  /* YOUR CODE HERE */
+  return 1;
+}
+
+/* If not using undomove, you can remove this function. 
+If using undomove, return a linked list of all possible moves from parent 
+positions in the input tier that could have been made in order to arrive 
+at the input position. */
+UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
+  /*
+    You can use CreateUndoMovelistNode() to append to a linked list
+    of undomoves.
+  */
+
+  /* YOUR CODE HERE */
+  return NULL;
+}
+
+/* If not using undomove, you can remove this function.
+Return the parent position given the undoMove. */
+POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
+  /* YOUR CODE HERE */
+  return 0;
+}
+
+/*********** END TIER/UNDOMOVE FUNCTIONS ***********/
 
 
 
@@ -177,8 +239,6 @@ void PrintMove(MOVE move) {
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
-
-
 
 
 

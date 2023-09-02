@@ -407,7 +407,7 @@ TIERPOSITION numberOfTierPositions(TIER tier) {
 /* Return a linked list of all possible moves that could have been made in
 order to arrive at the input position. The movement rules of FFK are
 nice in that we can reuse GenerateMoves on the position with the turn 
-swapped. The result of GenerateMoes can be our undoMoves, except that we 
+swapped. The result of GenerateMoves can be our undoMoves, except that we 
 need to filter out moves that come from primitive positions.
 There is only one tier, so all undoMoves will lead to previous positions
 that are in the same tier, so tier is ignored. */
