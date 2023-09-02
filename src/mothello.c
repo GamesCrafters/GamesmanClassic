@@ -1652,10 +1652,9 @@ STRING InteractPositionToString(POSITION pos) {
 	tallyPieces(board, &blacktally, &whitetally, NULL);
 	formatted[24] = blacktally / 10 + '0';
 	formatted[25] = blacktally % 10 + '0';
-	formatted[26] = '-';
-	formatted[27] = whitetally / 10 + '0';
-	formatted[28] = whitetally % 10 + '0';
-	formatted[29] = '\0';
+	formatted[26] = whitetally / 10 + '0';
+	formatted[27] = whitetally % 10 + '0';
+	formatted[28] = '\0';
 
 	free(board);
 	return formatted;
@@ -1664,9 +1663,7 @@ STRING InteractPositionToString(POSITION pos) {
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	(void)pos;
 	if ((int)mv == PASSMOVE) {
-		STRING move = (STRING)SafeMalloc(2);
-		sprintf(move, "P");
-		return move;
+		return UWAPI_Board_Regular2D_MakeAddString('P', 20);
 	} else {
 		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', mv, 'x');
 	}

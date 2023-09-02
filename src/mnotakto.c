@@ -87,6 +87,7 @@ void GameSpecificMenu() {
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
+  kCombinatorial = TRUE;
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
 

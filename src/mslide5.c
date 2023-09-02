@@ -564,5 +564,5 @@ STRING InteractPositionToString(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   (void)position;
-  return UWAPI_Board_Regular2D_MakeMoveString(25 + move * 2, 26 + move * 2);
+  return UWAPI_Board_Regular2D_MakeMoveStringWithSound(25 + move * 2, 26 + move * 2, 'x');
 }
