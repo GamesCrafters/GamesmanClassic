@@ -615,9 +615,6 @@ char initialBaghchalInteractString3[] = "R_A_0_0_T-T---T-T00";
 char initialBaghchalInteractString4[] = "R_A_0_0_T--T--------T--T000";
 char initialBaghchalInteractString5[] = "R_A_0_0_T---T---------------T---T0000";
 
-int boardToStringIdxMapping[25] = {8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
-int boardToGridIdxMapping[25] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24};
-
 int goatsLeftTensIdx5 = 33;
 int goatsLeftOnesIdx5 = 34;
 int goatsCapturedTensIdx5 = 35;
@@ -1709,8 +1706,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	int from, to, remove;
 	unhashMove(mv, &from, &to, &remove);
 	if (from == to) {
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', boardToGridIdxMapping[to], sound);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, sound);
 	} else {
-		return UWAPI_Board_Regular2D_MakeMoveStringWithSound(boardToGridIdxMapping[from], boardToGridIdxMapping[to], sound);
+		return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, sound);
 	}
 }
