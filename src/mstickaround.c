@@ -2,7 +2,7 @@
 **
 ** NAME:        mstickaround.c
 **
-** DESCRIPTION: Stick Around  (use this spacing and case)
+** DESCRIPTION: Stick Around is a board game. (use this spacing and case)
 **
 ** AUTHOR:      Amy Chakladar
 **
