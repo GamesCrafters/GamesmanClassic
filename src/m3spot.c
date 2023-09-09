@@ -1435,8 +1435,8 @@ POSITION InteractStringToPosition(STRING str) {
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char board[14];
-	memset(board, '-', 14 * sizeof(char));
+	char board[15];
+	memset(board, '-', 15 * sizeof(char));
 	
 	enum UWAPI_Turn turn = (GetWhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
@@ -1462,7 +1462,7 @@ STRING InteractPositionToString(POSITION pos) {
 	board[12] = (player2Score % 10) + '0';
 	board[14] = '\0';
 
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 15, board);
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
