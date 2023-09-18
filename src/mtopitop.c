@@ -175,8 +175,6 @@ void setOption(int option);
 POSITION InteractStringToPosition(STRING board);
 STRING InteractPositionToString(POSITION pos);
 STRING InteractMoveToString(POSITION pos, MOVE mv);
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
-
 
 void countPiecesOnBoard(char *board, int *bb, int *rb, int *bs, int *rs, int *bc, int *rc, int *s, int *l, int *c);
 
@@ -218,7 +216,6 @@ void InitializeGame() {
 	gNumberOfTierPositionsFunPtr = &gNumberOfTierPositions;
 	gTierToStringFunPtr = &TierToString;
 	gIsLegalFunPtr = &isLegal;
-	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 
 	symmetriesToUse = gSymmetryMatrix;
 	unhashCacheInit();
@@ -1358,122 +1355,136 @@ STRING MoveToString(MOVE move) {
 	}
 }
 
-STRING initialTopitopInteractString = "R_A_8_5_-------------------------B--R-S--L------";
-#define NUMBINDEX 34
-#define NUMRINDEX 37
-#define NUMSINDEX 39
-#define NUMLINDEX 42
-#define DISALLOWEDFROMINDEX 43
-#define DISALLOWEDTOINDEX 44
-#define PASSTURNINDEX 30
-#define ADDITIONALTURNINDEX 46
-#define PIECEBEINGPLACEDINDEX 47
-#define INTERMEDIATEPOSMASK 0xE000000000000000
-int indexMap[9] = {14,15,16,19,20,21,24,25,26};
-char pieceMap[4] = {'b', 'r', 's', 'l'};
-int pieceIndexMap[4] = {33, 36, 38, 41};
+// 27 bucket centers
+// 18 small piece centers
+// 9 large piece centers
+// 1 disallowedFromIdx [54]
+// 1 disallowedToIdx [55]
+// 20*2 arrow centers [56-95]
+// 27 placepiece move button centers [96-122]
+// 1 pass turn center [123]
 
-POSITION InteractStringToPosition(STRING board) { // Assumes board is non-intermediate
-	char turn = (board[2] == 'A') ? BLUE : RED;
-	char fboard[9] = {board[14], board[15], board[16], board[19], board[20], board[21], board[24], board[25], board[26]};
-	int disallowedMove = (board[DISALLOWEDFROMINDEX] == '-') ? 0 : movesToIds[board[DISALLOWEDFROMINDEX] - '1'][board[DISALLOWEDTOINDEX] - '1'];
+// BUCKET (3) top mid bottom SMALL mid bottom (2) LARGE bottom (1) 
+POSITION InteractStringToPosition(STRING str) {
+	char turn = (str[2] == 'A') ? BLUE : RED;
+	char *entityString = str + 8;
+	char board[9];
+	int i, j;
+	for (i = 0, j = 0; i < 9; i++, j += 6) {
+		if (entityString[j] == BLUEBUCKETPIECE) {
+			board[i] = BLUECASTLEPIECE;
+		} else if (entityString[j] == REDBUCKETPIECE) {
+			board[i] = REDCASTLEPIECE;
+		} else if (entityString[j + 1] == BLUEBUCKETPIECE) {
+			board[i] = BLUESMALLPIECE;
+		} else if (entityString[j + 1] == REDBUCKETPIECE) {
+			board[i] = REDSMALLPIECE;
+		} else if (entityString[j + 2] == BLUEBUCKETPIECE) {
+			board[i] = BLUEBUCKETPIECE;
+		} else if (entityString[j + 2] == REDBUCKETPIECE) {
+			board[i] = REDBUCKETPIECE;
+		} else if (entityString[j + 3] == SMALLPIECE) {
+			board[i] = CASTLEPIECE;
+		} else if (entityString[j + 4] == SMALLPIECE) {
+			board[i] = SMALLPIECE;
+		} else if (entityString[j + 5] == LARGEPIECE) {
+			board[i] = LARGEPIECE;
+		} else {
+			board[i] = BLANKPIECE;
+		}
+	}
+	int disallowedMove = (entityString[54] == '-') ? 0 : movesToIds[entityString[54] - '1'][entityString[55] - '1'];
 
 	TIER tier;
 	TIERPOSITION tierposition;
-	hashBoard(fboard, turn, disallowedMove, &tier, &tierposition);
+	hashBoard(board, turn, disallowedMove, &tier, &tierposition);
 	gInitializeHashWindow(tier, FALSE);
 	return tierposition;
 }
 
 STRING InteractPositionToString(POSITION position) {
-	int partialInfo = position >> 61;
-	if (partialInfo) {
-		position &= ~INTERMEDIATEPOSMASK;
-	}
-	char* finalBoard = calloc(49, sizeof(char));
-	memcpy(finalBoard, initialTopitopInteractString, 48);
+	char entityString[57];
+	memset(entityString, '-', 57 * sizeof(char));
+
 	char turn;
 	int disallowedMove, blueLeft, redLeft, smallLeft, largeLeft;
 	char *board = unhashPosition(position, &turn, &disallowedMove, &blueLeft, &redLeft, &smallLeft, &largeLeft);
+	int i, j;
 
-	for (int i = 0; i < 9; i++) {
-		finalBoard[indexMap[i]] = board[i];
+	for (i = 0, j = 0; i < 9; i++, j += 6) {
+		if (board[i] == BLUECASTLEPIECE) {
+			entityString[j] = BLUEBUCKETPIECE;
+			entityString[j + 3] = SMALLPIECE;
+			entityString[j + 5] = LARGEPIECE;
+		} else if (board[i] == REDCASTLEPIECE) {
+			entityString[j] = REDBUCKETPIECE;
+			entityString[j + 3] = SMALLPIECE;
+			entityString[j + 5] = LARGEPIECE;
+		} else if (board[i] == BLUESMALLPIECE) {
+			entityString[j + 1] = BLUEBUCKETPIECE;
+			entityString[j + 4] = SMALLPIECE;
+		} else if (board[i] == REDSMALLPIECE) {
+			entityString[j + 1] = REDBUCKETPIECE;
+			entityString[j + 4] = SMALLPIECE;
+		} else if (board[i] == BLUEBUCKETPIECE) {
+			entityString[j + 2] = BLUEBUCKETPIECE;
+		} else if (board[i] == REDBUCKETPIECE) {
+			entityString[j + 2] = REDBUCKETPIECE;
+		} else if (board[i] == CASTLEPIECE) {
+			entityString[j + 3] = SMALLPIECE;
+			entityString[j + 5] = LARGEPIECE;
+		} else if (board[i] == SMALLPIECE) {
+			entityString[j + 4] = SMALLPIECE;
+		} else if (board[i] == LARGEPIECE) {
+			entityString[j + 5] = LARGEPIECE;
+		}
 	}
 
-	if (turn == BLUE) {
-		finalBoard[ADDITIONALTURNINDEX] = 'B';
-	} else {
-		finalBoard[2] = 'B';
-		finalBoard[ADDITIONALTURNINDEX] = 'R';
-	}
-	finalBoard[NUMBINDEX] = blueLeft + '0';
-	finalBoard[NUMRINDEX] = redLeft + '0';
-	finalBoard[NUMSINDEX] = smallLeft + '0';
-	finalBoard[NUMLINDEX] = largeLeft + '0';
-	finalBoard[DISALLOWEDFROMINDEX] = (disallowedMove == 0) ? '-' : idsToMoves[0][disallowedMove] + '1';
-	finalBoard[DISALLOWEDTOINDEX] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
-	if (partialInfo) {
-		finalBoard[PIECEBEINGPLACEDINDEX] = pieceMap[partialInfo & 0b11];
-		finalBoard[pieceIndexMap[partialInfo & 0b11]] = pieceMap[partialInfo & 0b11];
-	}
-	return finalBoard;
+	SafeFree(board);
+
+	enum UWAPI_Turn uwapiTurn = (turn == BLUE) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	entityString[54] = (disallowedMove == 0) ? '-' : idsToMoves[0][disallowedMove] + '1';
+	entityString[55] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
+	entityString[56] = '\0';
+	return UWAPI_Board_Regular2D_MakeBoardString(uwapiTurn, 57, entityString);
 }
+
+int uwapiArrowCoords[8][9] = {
+	{ 9,  0,  9,  2,  4,  9,  9,  9,  9},
+	{ 9,  9,  6,  8, 10, 12,  9,  9,  9},
+	{ 9,  9,  9,  9, 14, 16,  9,  9,  9},
+	{ 9,  9,  9,  9, 18,  9, 20, 22,  9},
+	{ 9,  9,  9,  9,  9, 24, 26, 28, 30},
+	{ 9,  9,  9,  9,  9,  9,  9, 32, 34},
+	{ 9,  9,  9,  9,  9,  9,  9, 36,  9},
+	{ 9,  9,  9,  9,  9,  9,  9,  9, 38}
+};
 
 STRING InteractMoveToString(POSITION pos, MOVE move) {
 	(void)pos;
 	if (move == NULLMOVE) {
-		char* finalMove = calloc(7, sizeof(char));
-		memcpy(finalMove, "A_-_22", 6);
-		return finalMove;
-	}
-	BOOLEAN partial = move >> 10;
-	move &= 0b1111111111;
-	
-	int to = move & 0b1111;
-	int from = (move >> 4) & 0b1111;
-	int piece = (move >> 8) & 0b11;
-	
-	if (partial == 0 && to == from) {
-		return MoveToString(move);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('P', 123, 'v');
 	}
 	
-	switch (partial) {
-		case 0: // sliding
-			return UWAPI_Board_Regular2D_MakeMoveString(indexMap[from] - 8, indexMap[to] - 8);
-		case 1: // selecting piece to place
-			return UWAPI_Board_Regular2D_MakeAddString('-', pieceIndexMap[piece] - 8);
-		default: // placing selected piece
-			return UWAPI_Board_Regular2D_MakeAddString('-', indexMap[to] - 8);
-	}
-}
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
-	MULTIPARTEDGELIST *mpel = NULL;
-	BOOLEAN edgeToAdded[4] = {FALSE, FALSE, FALSE, FALSE};
-	while (moveList != NULL) {
-		MOVE move = moveList->move;
-		if (move == NULLMOVE) {
-			break;
-		}
-		int to = move & 0b1111;
-		int from = (move >> 4) & 0b1111;
-		MOVE piece = (move >> 8) & 0b11;
-		POSITION intermediateMarker = ((POSITION) (4L | piece)) << 61;
-		if (from == to) {
-			// Select piece to place
-			if (!edgeToAdded[piece]) {
-				mpel = CreateMultipartEdgeListNode(position, position | intermediateMarker, move | 0b10000000000, 0, FALSE, mpel);
-				edgeToAdded[piece] = TRUE;
-			}
-			
-			// Place selected piece
-			mpel = CreateMultipartEdgeListNode(position | intermediateMarker, positionList->position, move | 0b100000000000, move, TRUE, mpel);
-		}
+	char piece;
+	int from, to;
+	unhashMove(move, &piece, &from, &to);
 
-		// Ignore sliding moves, they are single-part
-
-		moveList = moveList->next;
-		positionList = positionList->next;
+	if (from == to) {// Placement
+		if (piece == SMALLPIECE) {
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('v', 105 + to, 'w');
+		} else if (piece == LARGEPIECE) {
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('w', 114 + to, 'x');
+		} else {
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('u', 96 + to, 'y');
+		}
+	} else {
+		if (to > from) {
+			int d = uwapiArrowCoords[from][to] + 56;
+			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(d, d + 1, 'z');
+		} else {
+			int d = uwapiArrowCoords[to][from] + 56;
+			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(d + 1, d, 'z');
+		}
 	}
-	return mpel;
 }
