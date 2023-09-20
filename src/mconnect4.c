@@ -511,7 +511,5 @@ STRING InteractPositionToString(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
     (void)position;
-    return UWAPI_Board_Regular2D_MakeAddString(
-        'a',
-        (ROWCOUNT + 1) * COLUMNCOUNT - 1 - (move / (ROWCOUNT + 1)));
+    return NULL;
 }
