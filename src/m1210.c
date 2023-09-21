@@ -537,18 +537,25 @@ STRING GetNextMoveValues(char* board, int option) {
 }
 
 POSITION InteractStringToPosition(STRING board) {
-	return atoi(board);
+	board = board + 8;
+	for (int i = 0; i < gNumberOfPositions; i++) {
+		if (board[i] == 'x') {
+			return i;
+		}
+	}
+	return 0;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char buffer[32];
-	snprintf(buffer, 32, "%lld",pos);
-	char* ret = malloc(sizeof(char)*(strlen(buffer)+1));
-	strncpy(ret, buffer, (strlen(buffer)+1));
-	return ret;
+	char buffer[gNumberOfPositions + 1];
+	for (int i = 0; i < gNumberOfPositions; i++) {
+		buffer[i] = '-';
+	}
+	buffer[pos] = 'x';
+	buffer[gNumberOfPositions] = '\0';
+	return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, gNumberOfPositions + 1, buffer);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(pos, pos + mv, 'x');
 }
