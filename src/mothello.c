@@ -1663,7 +1663,7 @@ STRING InteractPositionToString(POSITION pos) {
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	(void)pos;
 	if ((int)mv == PASSMOVE) {
-		return UWAPI_Board_Regular2D_MakeAddString('P', 20);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('P', 20, 'y');
 	} else {
 		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', mv, 'x');
 	}

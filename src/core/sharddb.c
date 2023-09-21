@@ -279,7 +279,8 @@ void shardGamesmanDetailedPositionResponse(STRING board, POSITION pos) {
 		printf("\"remoteness\":%d,", remoteness);
 		char value_char = gValueLetter[value];
 		printf("\"value\":\"%s\"", ValueCharToValueString(value_char));
-		printf(",\"move\":\"A_a_%d_x\"", (IROWCOUNT + 1) * ICOLUMNCOUNT - 1 - (current_move->move / (IROWCOUNT + 1)));
+		int w = (IROWCOUNT + 1) * ICOLUMNCOUNT - 1 - (current_move->move / (IROWCOUNT + 1));
+		printf(",\"move\":\"M_%d_%d_x\"", w, w + 7);
 		move_string = gMoveToStringFunPtr(current_move->move);
 		printf(",\"moveName\":\"%s\"", move_string);
 		SafeFree(move_string);
