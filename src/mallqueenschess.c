@@ -192,7 +192,6 @@ void InitializeGame() {
   char initialBoard[BOARD_SIZE + 1] = "WBWBW-----B---W-----BWBWB\0";
 
   gInitialPosition = hashIt(initialBoard, 'W');
-  printf("ASDF: %s, %llu\n", initialBoard, gInitialPosition);
 
   gTierChildrenFunPtr = &getTierChildren; // returns a linked list of child tiers of a given tier
   gNumberOfTierPositionsFunPtr = &numberOfTierPositions; // this returns the number of tierpositions in a given tier
