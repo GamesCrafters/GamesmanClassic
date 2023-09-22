@@ -439,6 +439,12 @@ STRING TierToString(TIER tier) {
 void InitializeGame() {
   BOARDSIZE = BOARDDIMENSIONX * BOARDDIMENSIONY;
 
+  /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
+	/********************************/
+
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
  	gSymmetries = TRUE;
