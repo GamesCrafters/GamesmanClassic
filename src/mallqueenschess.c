@@ -64,8 +64,6 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
 #define BOARD_SIZE 25
 #define BOARD_DIMS 5
 #define WIN_COUNT 4
-POSITION numBoardArrangements = 4805077200;
-
 
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
@@ -138,18 +136,15 @@ unsigned long long hashIt(char *board, char turn) {
         }
     }
     if (turn == 'B') {
-        return sum + numBoardArrangements;
+        return (sum << 1) | 1;
     }
-    return sum;
+    return (sum << 1);
 }
 
 void unhashIt(POSITION pos, char *board, char *turn) {
-    if (pos < numBoardArrangements) {
-        (*turn) = 'W';
-    } else {
-        (*turn) = 'B';
-        pos -= numBoardArrangements;
-    }
+    (*turn) = (pos & 1) ? 'B' : 'W';
+    pos >>= 1;
+
     int numx = 6, numo = 6;
     POSITION o1, o2;
     for (int i = BOARD_SIZE - 1; i >= 0; i--) {
@@ -188,6 +183,7 @@ void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
   gNumberOfPositions = 9610154400;
+  gSymmetries = TRUE;
 
   char initialBoard[BOARD_SIZE + 1] = "WBWBW-----B---W-----BWBWB\0";
 
@@ -686,11 +682,7 @@ void setOption(int option) {
 /***************** TIER FUNCTIONS ********************/
 
 POSITION swapTurn(POSITION position) {
-  if (position < numBoardArrangements) {
-    return position + numBoardArrangements;
-  } else {
-    return position - numBoardArrangements;
-  }
+  return position ^ 1;
 }
 
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
@@ -715,22 +707,19 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
 /* Don't worry about these Interact functions below yet.
 They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE */
-  return 0;
+POSITION InteractStringToPosition(STRING str) {
+  return hashIt(str + 8, str[2] == 'A' ? 'W' : 'B');
 }
 
 STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE */
-  return NULL;
-}
-
-/* Optional. */
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
+  char board[BOARD_SIZE];
+  char turn;
+  unhashIt(position, board, &turn);
+  return UWAPI_Board_Regular2D_MakeBoardString(
+    turn == 'W' ? UWAPI_TURN_A : UWAPI_TURN_B, BOARD_SIZE, board
+  );
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE */
-  return MoveToString(move);
+  return UWAPI_Board_Regular2D_MakeMoveStringWithSound(move / 100, move % 100, 'x');
 }
