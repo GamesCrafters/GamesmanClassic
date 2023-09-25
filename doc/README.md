@@ -3,7 +3,9 @@
 ## Build Instructions
 
 - [Building on macOS](build-instructions-macos.md)
-- [Building on Linux](build-instructions-linux.md)
+- [Building on Linux](build-instructions-ubuntu-debian.md)
+    - [Debian/Ubuntu](build-instructions-ubuntu-debian.md)
+    - [RedHat Enterprise Linux](build-instructions-rhel.md)
 - [Building on Windows](build-instructions-windows-wsl.md)
     - [WSL (Recommended)](build-instructions-windows-wsl.md)
     - [Cygwin (Deprecated)](build-instructions-windows-cygwin.md)
