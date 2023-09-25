@@ -422,18 +422,14 @@ STRING TierToString(TIER tier) {
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
-  /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
-	if (gIsInteract) {
-		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
-	}
-	/********************************/
-  BOARDSIZE = BOARDDIMENSIONX * BOARDDIMENSIONY;
 
   /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
-	if (gIsInteract) {
-		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
-	}
-	/********************************/
+  if (gIsInteract) {
+    gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+  }
+  /********************************/
+
+  BOARDSIZE = BOARDDIMENSIONX * BOARDDIMENSIONY;
 
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
