@@ -1952,13 +1952,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 	(BOARDSIZE+4)th character: Multipart move info for piece departure space
 */
 POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int r, c; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &r, &c, &board)) {
-		return INVALID_POSITION; // Failed to parse string
-	}
-
+	enum UWAPI_Turn turn = (str[2] == 'A') ? UWAPI_TURN_A : UWAPI_TURN_B;
+	char *board = str + 8;
 	char realBoard[BOARDSIZE];
 	int numX = 0, numO = 0;
 	for (int i = 0; i < BOARDSIZE; i++) {
@@ -1993,8 +1988,10 @@ POSITION InteractStringToPosition(STRING str) {
 		realBoard[origTo] = BLANK;
 	}
 	// End Conversion from intermediate to real
-
-	int piecesLeft = (board[BOARDSIZE] - '0') + (board[BOARDSIZE + 1] - '0') + isPlacement;
+	int piecesLeft = isPlacement;
+	if (board[BOARDSIZE + 1] != '-') {
+		piecesLeft += (board[BOARDSIZE] - '0') + (board[BOARDSIZE + 1] - '0');
+	}
 	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
 	return hash(realBoard, turn == UWAPI_TURN_A ? X : O, piecesLeft, numX, numO);
 }
@@ -2041,6 +2038,11 @@ STRING InteractPositionToString(POSITION pos) {
 				finalBoard[BOARDSIZE + 1]--;
 			}
 		}
+	}
+
+	if (finalBoard[BOARDSIZE + 1] == '0') {
+		finalBoard[BOARDSIZE] = '-';
+		finalBoard[BOARDSIZE + 1] = '-';
 	}
 
 	finalBoard[BOARDSIZE + 4] = '\0';

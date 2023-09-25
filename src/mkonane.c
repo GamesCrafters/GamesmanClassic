@@ -270,7 +270,7 @@ int boardStatus(POSITION position){
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
-  
+
   /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
 	if (gIsInteract) {
 		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
@@ -632,14 +632,14 @@ STRING InteractPositionToString(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   (void) position;
-  char* result = (char*) SafeMalloc(30);
+  char* result = (char*) SafeMalloc(16);
   int simMove = move / 2;
   if (move % 2 == 0){
-    sprintf(result, "A_-_%d", simMove);
+    sprintf(result, "A_-_%d_x", simMove);
   } else {
     int from = simMove / boardSize;
     int to = simMove % boardSize;
-    sprintf(result, "M_%d_%d", from, to);
+    sprintf(result, "M_%d_%d_y", from, to);
   }    
   return result;
 }

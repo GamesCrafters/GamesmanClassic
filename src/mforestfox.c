@@ -737,7 +737,7 @@ STRING InteractPositionToString(POSITION position) {
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
 
-  STRING str = (STRING) SafeMalloc(sizeof(char) * 5);
+  STRING str = (STRING) SafeMalloc(sizeof(char) * 10);
 
   // shuffled moves
   if (position == 0) {
@@ -761,9 +761,8 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
     }
   }
   int fromindex = (firstplayer) ? cnt : (cnt + 7);
-  int toindex = firstplayer ? 15 : 16;
 
-  sprintf(str, "M_%d_%d", fromindex, toindex);
+  sprintf(str, "A_-_%d_x", fromindex);
 
   return str;
 }

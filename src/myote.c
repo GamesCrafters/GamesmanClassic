@@ -437,6 +437,11 @@ STRING TierToString(TIER tier) {
 
 /*********** BEGIN SOLVING FUNCTIONS ***********/
 void InitializeGame() {
+  /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
+	/********************************/
   BOARDSIZE = BOARDDIMENSIONX * BOARDDIMENSIONY;
 
   /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
