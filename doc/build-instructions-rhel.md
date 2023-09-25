@@ -1,4 +1,4 @@
-# Build Instructions (Ubuntu/Debian)
+# Build Instructions (RedHat Enterprise Linux)
 
 These instructions were tested on August 19, 2023 on Red Hat Enterprise Linux 9.2 with basic building tools installed at system installation.
 
