@@ -179,6 +179,11 @@ void unhashIt(POSITION pos, char *board, char *turn) {
 }
 
 void InitializeGame() {
+  /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */ 
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
+	}
+	/********************************/
   combinationsInit();
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
@@ -712,9 +717,10 @@ POSITION InteractStringToPosition(STRING str) {
 }
 
 STRING InteractPositionToString(POSITION position) {
-  char board[BOARD_SIZE];
+  char board[BOARD_SIZE + 1];
   char turn;
   unhashIt(position, board, &turn);
+  board[BOARD_SIZE] = '\0';
   return UWAPI_Board_Regular2D_MakeBoardString(
     turn == 'W' ? UWAPI_TURN_A : UWAPI_TURN_B, BOARD_SIZE, board
   );

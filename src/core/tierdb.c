@@ -419,7 +419,7 @@ BOOLEAN tierdb_save_database ()
 	// Make the directory for this game's tierdb's
 	mkdir("data", 0755);
 	snprintf(tierdb_outfilename_partial, TIERDB_OUTFILENAME_PARTIAL_LENGTH_MAX, "./data/m%s_%d_tierdb",kDBName,getOption());
-	mkdir(tierdb_outfilename, 0755);
+	mkdir(tierdb_outfilename_partial, 0755);
 	sprintf(tierdb_lookupfilename,"./data/m%s_%d_tierdb/lookup", kDBName, getOption());
 	mkdir(tierdb_lookupfilename, 0755);
 
