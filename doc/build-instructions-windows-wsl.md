@@ -13,4 +13,4 @@ If you are installing the latest version of Ubuntu, you might be prompted to upd
 You will be prompted to set up your username and password for Ubuntu when you launch the virtual machine for the first time. __The username might need to be in all lowercase letters and contain no white spaces.__
 
 
-After finishing the steps, [follow the instructions for setting up GamesmanClassic on Linux](/doc/build-instructions-linux.md).
+After finishing the steps, [follow the instructions for setting up GamesmanClassic on Linux](/doc/build-instructions-ubuntu-debian.md).
