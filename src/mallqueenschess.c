@@ -468,9 +468,8 @@ void rotate(char board[BOARD_SIZE], char target[BOARD_SIZE]) {
   */
 
   int targetIndex = 0;
-
-  for (int i = 0; i < BOARD_DIMS; i++) {
-    for (int j = BOARD_DIMS - 1; j >= 0; j--) {
+  for (int j = BOARD_DIMS - 1; j >= 0; j--) {
+    for (int i = 0; i < BOARD_DIMS; i++) {
       target[targetIndex++] = board[i * BOARD_DIMS + j];
     }
   }
