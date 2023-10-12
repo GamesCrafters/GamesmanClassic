@@ -1,10 +1,3 @@
-// $Id: mdao.c,v 1.10 2008-05-08 05:13:44 l156steven Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mdao.c
@@ -15,8 +8,6 @@
 **
 ** DATE:        2005-10-05
 **
-** UPDATE HIST: 1.0 Release
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -25,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -38,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Dao";   /* The name of your game */
-STRING kAuthorName          = "GamesCrafters2005Fa";   /* Your name(s) */
-STRING kDBName              = "Dao";   /* The name to store the database under */
+CONST_STRING kGameName            = "Dao";   /* The name of your game */
+CONST_STRING kAuthorName          = "GamesCrafters2005Fa";   /* Your name(s) */
+CONST_STRING kDBName              = "dao";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -61,25 +47,25 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when ...";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -120,9 +106,9 @@ BOOLEAN MISERE              = FALSE;
 
 /*the corresponding direction for output*/
 STRING directions[NUM_OF_DIRS] = {
-	"sw", "s", "se",
-	"w",        "e",
-	"nw", "n", "ne"
+  "ne", "e", "se",
+  "n",        "s",
+  "nw", "w", "sw"
 };
 
 /*char* alpha = "abcdefghij";  used to print row letter */
@@ -446,6 +432,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	(void)usersTurn;
 	char board[BOARD_SIZE];
 
 	generic_hash_unhash (position, board);
@@ -684,7 +671,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -761,6 +748,7 @@ void setOption (int option)
 	/* If you have implemented symmetries you should
 	   include the boolean variable gSymmetries in your
 	   hash */
+	   (void)option;
 }
 
 
@@ -847,99 +835,77 @@ int Unhasher_Direction(MOVE hashed_move) {
 }
 
 POSITION ActualNumberOfPositions(int variant) {
+	(void)variant;
 	return 1768108;
 }
 
+/****************** AUTOGUI FUNCTIONS ******************/
+
 POSITION InteractStringToPosition(STRING str) {
-    enum UWAPI_Turn turn;
-  	unsigned int num_rows, num_columns;
-  	STRING board;
-  	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-  		// Failed to parse string
-  		return INVALID_POSITION;
-  	}
+  // Ignore the first 8 characters
+  char realBoard[BOARD_SIZE];
 
-  	// Validate parsed board size
-  	if (num_rows != BOARD_ROWS || num_columns != BOARD_COLS) {
-  		SafeFreeString(board); // Free the string!
-  		return INVALID_POSITION;
-  	}
+  for (int i = 0; i < BOARD_SIZE; i++) {
+    if (str[i + 8] == 'X') {
+      realBoard[i] = 'X';
+    } else if (str[i + 8] == 'O') {
+      realBoard[i] = 'O';
+    } else {
+      realBoard[i] = ' ';
+    }
+  }
 
-  	// Convert UWAPI standard board string to internal board representation
-    char oxboard[BOARD_SIZE];
-  	int i;
-  	for (i = 0; i < BOARD_SIZE; i++) {
-  		if (board[i] == 'o') {
-  			oxboard[i] = PLAYER2_PIECE;
-  		} else if (board[i] == 'x') {
-  			oxboard[i] = PLAYER1_PIECE;
-  		} else if (board[i] == '-') {
-  			oxboard[i] = EMPTY_PIECE;
-  		} else {
-  			SafeFreeString(board); // Free the string!
-  			return INVALID_POSITION;
-  		}
-  	}
-
-  	// Convert internal board representation to internal position
-  	POSITION position = generic_hash_hash(oxboard, (turn == UWAPI_TURN_A ? PLAYER1_TURN : PLAYER2_TURN));
-
-  	// Return internal position
-  	SafeFreeString(board); // Free the string!
-  	return position;
+  return generic_hash_hash(realBoard, str[2] == 'A' ? 1 : 2);
 }
 
 STRING InteractPositionToString(POSITION pos) {
+	char board[BOARD_SIZE];
+	generic_hash_unhash(pos, board);
 
-  // Convert internal position to internal board representation
-  char oxboard[BOARD_SIZE];
-  int whosturn = generic_hash_turn(pos);
-  generic_hash_unhash(pos, oxboard);
+	int player = generic_hash_turn(pos);
 
-  // Convert internal board representation to UWAPI standard board string
-  char board[BOARD_SIZE + 1];
-  int i;
-  for (i = 0; i < BOARD_SIZE; i++) {
-    if (oxboard[i] == PLAYER2_PIECE) {
-      board[i] = 'o';
-    } else if (oxboard[i] == PLAYER1_PIECE) {
-      board[i] = 'x';
-    } else if (oxboard[i] == EMPTY_PIECE) {
-      board[i] = '-';
-    }
-  }
-  board[BOARD_SIZE] = '\0';
+	// R_A_0_0_TG-T-S--H
+	STRING result = (STRING) SafeMalloc(9 + BOARD_SIZE);
+	result[0] = 'R';
+	result[1] = '_';
+	result[2] = player % 2 == 1 ? 'A' : 'B';
+	result[3] = '_';
+	result[4] = '0';
+	result[5] = '_';
+	result[6] = '0';
+	result[7] = '_';
 
-  // Return formatted UWAPI position string
-  enum UWAPI_Turn turn = (whosturn == PLAYER1_TURN) ? UWAPI_TURN_A : UWAPI_TURN_B;
-  return UWAPI_Board_Regular2D_MakePositionString(turn, BOARD_ROWS, BOARD_COLS, board);
-  //return UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, BOARD_ROWS, BOARD_COLS, board, "name", "Diana", "year", "2020", "");
+	for (int i = 0; i < BOARD_SIZE; i++) {
+		if (board[i] == 'X') {
+		result[8 + i] = 'X';
+		} else if (board[i] == 'O') {
+		result[8 + i] = 'O';
+		} else {
+		result[8 + i] = '-';
+		}
+	}
+
+	result[8 + BOARD_SIZE] = '\0';
+
+	return result;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
+STRING InteractMoveToString(POSITION pos, MOVE move) {
+    (void)pos;
+    STRING result = (STRING) SafeMalloc(12);
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-		// Move piece as far as possible
-    char board[BOARD_SIZE];
-  	int move_position = Unhasher_Index(move);
-  	int row = Row (move_position);
-  	int col = Column (move_position);
-  	int direction = Unhasher_Direction(move);
-  	int new_position;
+	int position = Unhasher_Index(move);
+	int direction = Unhasher_Direction(move);
 
-  	generic_hash_unhash(position, board);
-  	do {
-  		row += dir_increments[direction][0];
-  		col += dir_increments[direction][1];
-  	} while ( (row >= 0) && (col >= 0) &&
-  	          (row < BOARD_ROWS) && (col < BOARD_COLS) &&
-  	          (board[Index(row,col)] == EMPTY_PIECE));
+	//   STRING directions[NUM_OF_DIRS] = {
+	//    "ne", "e", "se",
+	//    "n",        "s",
+	//    "nw", "w", "sw"
+	//   };
 
-  	new_position = Index(row - dir_increments[direction][0],
-  	                     col - dir_increments[direction][1]);
+	int indexAdjust[] = {-3, 1, 5, -4, 4, -5, -1, 3};
 
-		return UWAPI_Board_Regular2D_MakeMoveString(move_position, new_position);
+	sprintf(result, "M_%d_%d_x", position, position + indexAdjust[direction]);
 
+	return result;
 }

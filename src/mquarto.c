@@ -12,7 +12,6 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions = 0;
@@ -21,9 +20,9 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Cameron Cheung";
-STRING kGameName = "mquarto";
-STRING kDBName = "quarto"; // should not be used
+CONST_STRING kAuthorName = "Cameron Cheung";
+CONST_STRING kGameName = "mquarto";
+CONST_STRING kDBName = "quarto"; // should not be used
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -33,19 +32,19 @@ BOOLEAN kDebugDetermineValue = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpOnYourTurn = "";
 
-STRING kHelpStandardObjective = "";
+CONST_STRING kHelpStandardObjective = "";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -70,6 +69,7 @@ void DebugMenu() {
 }
 
 void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
 }
 
 
@@ -116,6 +116,8 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 POSITION DoMove(POSITION position, MOVE move) {
+  (void)position;
+  (void)move;
   return 0;
 }
 
@@ -146,7 +148,9 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-    printf("the computer moved\n");
+  (void)computersMove;
+  (void)computersName;
+  printf("the computer moved\n");
 }
 
 /************************************************************************
@@ -169,6 +173,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 ************************************************************************/
 
 VALUE Primitive(POSITION position) {
+  (void)position;
   return undecided;
 }
 
@@ -190,7 +195,9 @@ VALUE Primitive(POSITION position) {
 ************************************************************************/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-    
+    (void)position;
+    (void)playerName;
+    (void)usersTurn;
 }
 
 /************************************************************************
@@ -211,6 +218,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 MOVELIST *GenerateMoves(POSITION position) {
+  (void)position;
   return NULL;
 }
 
@@ -263,6 +271,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 ************************************************************************/
 
 BOOLEAN ValidTextInput(STRING input) {
+  (void)input;
   return TRUE;
 }
 
@@ -311,6 +320,7 @@ void PrintMove(MOVE move) {
 ************************************************************************/
 
 STRING MoveToString(MOVE move) {
+  (void)move;
   return NULL;
 }
 
@@ -323,21 +333,22 @@ int getOption() {
 }
 
 void setOption(int option) {
+  (void)option;
   gInitialPosition = 0;
 }
 
 POSITION InteractStringToPosition(STRING str) {
+  (void)str;
  return 0;
 }
 
 STRING InteractPositionToString(POSITION position) {
+  (void)position;
   return UWAPI_Board_Regular2D_MakePositionString(UWAPI_TURN_A, 17, 1, "-----------------");
 }
 
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
+  (void)position;
+  (void)move;
   return "not implemented";
 }

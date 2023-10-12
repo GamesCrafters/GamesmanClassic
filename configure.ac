@@ -287,8 +287,8 @@ if test "$graphics" != "no"
 then
   tclconf=""
   tkconf=""
-  _common_tcl_locations="/usr/lib /usr/local/lib /lib /sw/lib /usr/sww/lib /usr/lib/tcl8.4 /usr/lib/tcl8.5"
-  _common_tk_locations="/usr/lib /usr/local/lib /lib /sw/lib /usr/sww/lib /usr/lib/tk8.4 /usr/lib/tk8.5"
+  _common_tcl_locations="/usr/lib /usr/lib64 /usr/local/lib /lib /sw/lib /usr/sww/lib /usr/lib/tcl8.4 /usr/lib/tcl8.5"
+  _common_tk_locations="/usr/lib /usr/lib64 /usr/local/lib /lib /sw/lib /usr/sww/lib /usr/lib/tk8.4 /usr/lib/tk8.5"
   _mac_locations="/Library/Frameworks /System/Library/Frameworks"
   
   ### Look for tclConfig.sh and tkConfig.sh

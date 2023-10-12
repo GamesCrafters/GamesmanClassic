@@ -3,19 +3,16 @@
 ** DESCRIPTION: Dino Dodgem (Arbitrary Board Size)
 ** AUTHOR:      Can Chang, Desmond Cheung
 ** DATE:        2002-11-10
-** UPDATE HIST: Version 1.0
 **************************************************************************/
 
 /*************************************************************************
 ** Everything below here must be in every game file
 **************************************************************************/
-#include <stdio.h>
 #include "gamesman.h"
-#include <math.h>
 
-STRING kAuthorName         = "Ming Can Chang and Desmond Cheung";
-STRING kDBName             = "dinododgem";
-STRING kGameName           = "Dino Dodgem";
+CONST_STRING kAuthorName         = "Ming Can Chang and Desmond Cheung";
+CONST_STRING kDBName             = "dinododgem";
+CONST_STRING kGameName           = "Dino Dodgem";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;  /*TRUE;*/
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -24,14 +21,14 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts a small circle over your piece. This selects\n\
 the FROM slot. The MIDDLE button then selects the TO slot. If you\n\
 wish to remove a piece from the board, click the MIDDLE button on\n\
 the same place as the FROM slot. The RIGHT button is the same as UNDO,\n\
 in that it reverts back to your most recent position."                                                                                                                                                                                                                                                                                                  ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which numbers to choose (between\n\
 1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
 to the location of your piece and the empty orthogonally-adjacent position\n\
@@ -39,7 +36,7 @@ you wish to move that piece to. If you wish to move a piece off of the board,\n\
 choose 0 as your destination. Example: '2 0' moves the piece on location\n\
 2 off of the board. '5 2' moves your piece from position 5 to position 2."                                                                                                                                                                                                                                                                                                                                                                                                               ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "The moves on your turn are different for different players. Here is a summary:\n\
 \n\
 O player:      The O player may move his pieces UP, DOWN and to the RIGHT.\n\
@@ -56,18 +53,18 @@ X player:      The X player may move his pieces LEFT, UP, and to the RIGHT.\n\
  <- X ->       means moving one of your pieces past the UPPER-side of the board.\n\n\
 Note: The circle always goes first."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the FIRST player to move both your pieces off of the board OR prevent\n\
 your opponent from moving."                                                                                        ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be the LAST player to move your pieces off of the board OR to be\n\
 prevented from moving by your opponent's pieces."                                                                                ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : O - -     PLAYER O's turn\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - -                     \n\
          ( 7 8 9 )           : - X X                     \n\n\
@@ -358,6 +355,7 @@ void GameSpecificMenu() {
 			break;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -468,8 +466,7 @@ MOVE theMove; {
 	/* Hash. */
 	if (whosTurn == x)
 		nextplayer = o;
-	else if (whosTurn == o)
-		nextplayer = x;
+	else nextplayer = x;
 	thePosition = BlankOXToPosition(theBlankOX, nextplayer);
 	// thePosition = BlankOXToPosition(theBlankOX, 3-whosTurn);
 	/* Return hashed position. */
@@ -521,9 +518,8 @@ POSITION GetInitialPosition()
 {
 	BlankOX theBlankOX[boardsize], whosTurn;
 	signed char c;
-	int i, goodInputs, row, col;
+	int row, col;
 	int numX, numO;
-	goodInputs = 0;
 	printf("\n\n\t----- Get Initial Position -----\n");
 	printf("\n\tPlease input the position to begin with.\n");
 	printf("\tYou board must have at least one x or o and no more than %d x's and %d o's\n", side-1, side-1);
@@ -560,7 +556,6 @@ POSITION GetInitialPosition()
 		printf("\nNow enter a new board:\n");
 
 		/* Get inputted initial position. */
-		i = 0;
 		getchar();
 
 		row = side - 1;
@@ -725,12 +720,13 @@ POSITION position;
 STRING playerName;
 BOOLEAN usersTurn;
 {
+	(void)playerName;
+	(void)usersTurn;
 	int row = 0, col = 0;
 	VALUE GetValueOfPosition();
 	BlankOX theBlankOx[boardsize], whosTurn;
 
-	int pbar_max, pbar_len, xcount, ocount, numx, numo, i;
-
+	int /*pbar_max, pbar_len,*/ xcount, ocount, numx, numo, i;
 
 	PositionToBlankOX(position,theBlankOx,&whosTurn);
 
@@ -846,8 +842,8 @@ BOOLEAN usersTurn;
 	printf("\n\n");
 
 	if (gWinByBar) {
-		pbar_max = NUMPIECES * (side-1);
-		pbar_len = 2*pbar_max + 1;
+		// pbar_max = NUMPIECES * (side-1);
+		// pbar_len = 2*pbar_max + 1;
 		xcount = ocount = numx = numo = 0;
 
 		for (row = 0; row < side; row++) {
@@ -890,30 +886,8 @@ BOOLEAN usersTurn;
 			else printf ("-");
 		}
 		printf (" O\n");
-
-		/*
-		   printf("  O");
-		   for (col = 0; col < pbar_len-2; col++)
-		   printf(" ");
-		   printf("X\n");
-
-		   printf("        X power: ", xcount);
-		   for (col = 0; col < xcount; col++)
-		   printf("X");
-		   //if (gBlankOXString[(int)whosTurn] == "X") printf("x");
-		   if (whosTurn == x) printf("x");
-		   printf("\n");
-
-		   printf("        O power: ", ocount);
-		   for (col = 0; col < ocount; col++)
-		   printf("O");
-		   // if (gBlankOXString[(int)whosTurn] == "O") printf("o");
-		   if (whosTurn == o) printf("o");
-		   printf("\n");
-		 */
 	}
 
-	/* if ( gBlankOXString[(int)whosTurn] == "O") */
 	if (whosTurn == o)
 		printf("\n\
         l \n\
@@ -930,31 +904,6 @@ BOOLEAN usersTurn;
            |       ** and this is the move you can\n\
        l<- X ->r   ** perform on one of your pieces.\n\n");
 	printf("  Move format: [from to] \n\n");
-
-
-//  PositionToBlankOX(position,theBlankOx,&whosTurn);
-//  for (row = side - 1; row >= 0; row--) {
-//    printf("\n\t");
-//    for (col = 0; col < side; col++) {
-//      printf ("%s ", gBlankOXString[ (int) theBlankOx[((side*row)+col)] ]);
-//    }
-//  }
-//  printf("\n\n");
-
-/*    if ( gBlankOXString[(int)whosTurn] == "O") */
-/*      printf("  */
-/*        ^     ** It is player O's turn to move */
-/*        |     ** and this is the move you can   */
-/*        O->   ** perform on one of your pieces. */
-/*        |     */
-/*        v \n\n"); */
-/*    else */
-/*      printf("             */
-/*           ^       ** It is player X's turn to move */
-/*           |       ** and this is the move you can */
-/*        <- X ->    ** perform on one of your pieces.\n\n"); */
-/*    printf("   **Enter your input in the following format: */
-/*         <from slot #> < space > <to slot #>\n\n"); */
 }
 
 
@@ -991,42 +940,22 @@ POSITION position;
 				/* left */
 				if ((i % side) != 0 && theBlankOX[left] == Blank && DINO_COND(i,left)) {
 					// add new move i to left
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += left;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, left, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* right */
 				if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i,right)) {
 					// add new move i to right
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += right;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, right, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* up */
 				if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 					// add new move i to up
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += up;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, up, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				else if (up >= boardsize) {
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += boardsize;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, boardsize, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
@@ -1043,42 +972,22 @@ POSITION position;
 				/* up */
 				if (up < boardsize && theBlankOX[up] == Blank && DINO_COND(i,up)) {
 					// add new move i to up
-					/* theMove = i;
-					   theMove = theMove << 8;
-					   theMove += up;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, up, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* down */
 				if (down >= 0 && theBlankOX[down] == Blank && DINO_COND(i,down)) {
 					// add new move i to down
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += down;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, down, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				/* right */
 				if ((i % side) != (side - 1) && theBlankOX[right] == Blank && DINO_COND(i, right)) {
 					// add new move i to right
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += right;
-					   theMove = theMove << 8;
-					   theMove += whosTurn; */
 					theMove = encodemove(i, right, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
 				else if ((i % side) == (side - 1)) {
-					/*theMove = i;
-					   theMove = theMove << 8;
-					   theMove += boardsize;
-					   theMove = theMove << 8;
-					   theMove += whosTurn;*/
 					theMove = encodemove(i, boardsize, whosTurn);
 					head = CreateMovelistNode (theMove, head);
 				}
@@ -1170,10 +1079,9 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 	char letter, num, dir;
 	DIRECTION theDirection;
 	int l, n;
-	int ret;
 
 	if (gChessMoves) {
-		ret = sscanf(input,"%c%c%c", &letter, &num, &dir);
+		(void)sscanf(input,"%c%c%c", &letter, &num, &dir);
 
 		l = letter-'a';
 		n = (num - '1');
@@ -1202,14 +1110,9 @@ MOVE ConvertTextInputToMove(input) STRING input; {
 			toSlot = (fromSlot - side);
 		else toSlot = -1;
 
-	} else ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+	} else (void)sscanf(input,"%d %d", &fromSlot, &toSlot);
 
 	/* Encrypt from and to into a MOVE. */
-	/*theMove = fromSlot;
-	   theMove = theMove << 8;
-	   theMove += toSlot;
-	   theMove = theMove << 8;
-	   theMove += gWhosTurn;*/
 	theMove = encodemove(fromSlot, toSlot, gWhosTurn);
 	return(theMove);
 }
@@ -1249,10 +1152,7 @@ MOVE theMove;
 	whosTurn = getwhosTurnfromMove(theMove);
 	to = getto(theMove);
 	from = getfrom(theMove);
-	/*whosTurn = theMove & 255;
-	   theMove = theMove >> 8;
-	   to = theMove & 255;
-	   from = (theMove >> 8) & 255;*/
+
 	letter = from%side + 'a';
 	num = from/side + '1';
 	theDirection = getDirection (from, to, whosTurn);
@@ -1301,24 +1201,13 @@ POSITION DefaultInitialPosition() {
 ** INPUTS:      The current position array and whos turn.
 ** OUTPUTS:     The integer hashcode that embodies current position array and who's turn.
 ************************************************************************/
-POSITION BlankOXToPosition(theBlankOX,whosTurn) BlankOX *theBlankOX,whosTurn; {
-	int player;
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
+	int player = 0;
 	if (whosTurn == x)
 		player = 2;
 	else if (whosTurn == o)
 		player = 1;
 	return generic_hash_hash(theBlankOX, player);
-	/*
-	   int i;
-	   int position = 0;
-
-	   for (i = 0; i < boardsize; i++) {
-	    position += (theBlankOX[i] * g3Array[i]);
-	   }
-	   position = position << 1;
-	   position += whosTurn - 1;
-	   return(position);
-	 */
 }
 
 /************************************************************************
@@ -1333,15 +1222,6 @@ void PositionToBlankOX(thePos,theBlankOX,whosTurn) POSITION thePos; BlankOX *the
 	generic_hash_unhash(thePos, theBlankOX);
 	player = generic_hash_turn(thePos);
 	*whosTurn = (player == 1 ? o : x);
-	/*
-	   int i;
-
-	 * whosTurn = (thePos & 1) + 1;
-	   thePos = thePos >> 1;
-	   for(i = 0; i < boardsize; i++) {
-	   theBlankOX[i] = (thePos / g3Array[i]) % 3;
-	   }
-	 */
 }
 
 /************************************************************************
@@ -1444,8 +1324,6 @@ STRING InteractPositionToString(POSITION pos) {
 	BlankOX board[boardsize];
 	PositionToBlankOX(pos,board,&whoseTurn);
 	int i = 0;
-	//generic_hash_unhash(pos, &board);
-	// char* finalBoard = calloc((boardsize+1), sizeof(char));
 	char finalBoard[boardsize + 8 + 1];
 
 	for (i = 0; i < boardsize; i++) {
@@ -1463,10 +1341,8 @@ STRING InteractPositionToString(POSITION pos) {
 				finalBoard[i] = 'o';
 				break;
 		}
-		// finalBoard[i] = board[i];
 	}
 
-	// return finalBoard;
 	for (int j = boardsize; j < boardsize + 8; j++) finalBoard[j] = '-';
 	finalBoard[boardsize + 8] = '\0'; // Make sure to null-terminate your board.
 
@@ -1474,16 +1350,13 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25 + 8, finalBoard);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	SLOT fromSlot, toSlot;
 	BlankOX turn;
 	MoveToSlots(mv, &fromSlot, &toSlot, &turn);
-
-	//fromSlot = fromSlot / 3 + 4 + fromSlot;
+	BlankOX theBlankOx[boardsize], whoseTurn;
+	PositionToBlankOX(pos, theBlankOx, &whoseTurn);
 
 	if (toSlot == offtheboard) {
 		switch (fromSlot) {
@@ -1495,18 +1368,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 			case 23: toSlot = 30; break;
 			default: toSlot = (turn == x) ? 29 : 28;
 		}
-		//if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
-			// If the piece is moving off the board from the top row
-			/*if (turn == UWAPI_TURN_A) {
-				toSlot = fromSlot + 1;
-			} else {
-				toSlot = fromSlot - 4;
-			}*/
-		//}
-	} //else {
-		//toSlot = to//toSlot / 3 + 4 + toSlot;
-	//}
+	}
+	char soundChar = (whoseTurn == x) ? 'x' : 'y';
 
-	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
-	// return MoveToString(mv);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, soundChar);
 }

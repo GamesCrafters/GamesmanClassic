@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mtore.c
@@ -16,17 +8,6 @@
 **
 ** DATE:        2004-9-28 Started Module.
 **
-** UPDATE HIST: 2006-5-22	 Fixed getoption() and setoption()
-**				2005-3-3     Added missing prototypes
-**              2004-10-26   Changed PrintPosition to include layout of board
-**                           Wrote GetinitialPosition
-**              2004-10-22   Error still in ValidTextInput
-**              2004-10-21   Fixed GenerateMoves, Primitive
-**              2004-10-10   Wrote ConvertTextInputToMove
-**                           Wrote PrintMove, and ValidTextInput
-**              2004-10-4    Wrote GenerateMoves, and Primative
-**              2004-9-28    Started Module. Print Position, Do Move, Hash Stuff.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -35,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -48,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Mu Torere";   /* The name of your game */
-STRING kAuthorName          = "Joe Jing, Jeff Chou, Jingfan Xia";   /* Your name(s) */
-STRING kDBName              = "tore";   /* The name to store the database under */
+CONST_STRING kGameName            = "Mu Torere";   /* The name of your game */
+CONST_STRING kAuthorName          = "Joe Jing, Jeff Chou, Jingfan Xia";   /* Your name(s) */
+CONST_STRING kDBName              = "tore";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -71,26 +47,26 @@ void* gGameSpecificTclInit    = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Type in from what position you want to move.  For example, if you want to move to 3, type in '3'.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Any piece may move into the middle as long as the middle space is empty and the moving piece is adjacent to an opponent's piece.  Any piece may move to any free adjacent side position.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective is to trap your opponent so he has no possible moves left.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Objective is to obtain a position in which you have no more moves";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie will never occur";
 
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "   Board         Key \n\
   o  |  o      2  |  4\n\
    \\ | /        \\ | /\n\
@@ -751,7 +727,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -994,16 +970,12 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakeBoardString(turn, 9, board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	char board[9];
 	generic_hash_unhash(pos, board);
 	for (int i = 0; i < 9; i++) {
 		if (board[i] == '_') {
-			return UWAPI_Board_Regular2D_MakeMoveString(mv, i);
+			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(mv, i, 'x');
 		}
 	}
 	return NULL;

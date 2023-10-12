@@ -1,4 +1,3 @@
-// $Id: machi.c,v 1.34 2008-05-08 05:12:56 l156steven Exp $
 /************************************************************************
 **
 ** NAME:        machi.c
@@ -7,19 +6,10 @@
 **
 ** AUTHOR:      Jeffrey Chiang
 **              Jennifer Lee
-**	                 Jesse Phillips
+**	            Jesse Phillips
 **
 ** DATE:        02/11/2003
 **
-** UPDATE HIST:
-**
-** 2/11/2003 - wrote printPosition, doMove, generateMoves excluding diagonal moves
-**	2/13/2003 - wrote get input functions, print functions, fixed errors
-**	2/20/2003 - wrote hash/unhash, whosemove, fixed domove, representation of our move
-**	2/27/2003 - wrote help strings, added nodiag, alldiag variations
-** 3/06/2003 - updated print position
-** 4/02/2006 - added GetVarString to return English description of option hash
-** ?/??/2008 - added symmetries (getCanonicalPosition, DoSymmetry)
 **************************************************************************/
 
 /*************************************************************************
@@ -28,7 +18,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 39366; /*19683;*/  /* 3^9 */
@@ -37,8 +26,8 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Jeffrey Chiang, Jennifer Lee, and Jesse Phillips";
-STRING kGameName           = "Achi";
+CONST_STRING kAuthorName         = "Jeffrey Chiang, Jennifer Lee, and Jesse Phillips";
+CONST_STRING kGameName           = "Achi";
 
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = TRUE;
@@ -52,25 +41,25 @@ BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
 // Help strings are placeholders to be filled in after InitializeGame
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Help strings not initialized.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Help strings not initialized.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
 /*************************************************************************
@@ -296,6 +285,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -349,6 +339,7 @@ void GameSpecificMenu()
 	switch(GetMyChar()) {
 	case 'Q': case 'q':
 		ExitStageRight();
+		break;
 	case '1':
 		noDiag = TRUE;
 		allDiag = FALSE;
@@ -383,10 +374,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -546,8 +537,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	/*
@@ -1036,17 +1026,17 @@ BlankOX *theBlankOX, *whosTurn;
 	else
 		*whosTurn = o;
 	for(i = 8; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -1150,7 +1140,7 @@ BOOLEAN phase1(BlankOX *theBlankOX)
 
 
 
-STRING kDBName = "achi";
+CONST_STRING kDBName = "achi";
 
 int NumberOfOptions()
 {
@@ -1208,6 +1198,7 @@ void setOption(int option)
 }
 
 POSITION ActualNumberOfPositions(int variant) {
+	(void)variant;
 	return 5390;
 }
 
@@ -1344,10 +1335,6 @@ STRING InteractPositionToString(POSITION pos) {
 	return UWAPI_Board_Regular2D_MakePositionString(turn, 3, 3, board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	BlankOX oxboard[BOARDSIZE];
 	BlankOX whosTurn;
@@ -1355,9 +1342,9 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 
 	if (mv < 9) {
 		// Add piece
-		return UWAPI_Board_Regular2D_MakeAddString('-', mv);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', mv, 'x');
 	} else {
 		// Move piece
-		return UWAPI_Board_Regular2D_MakeMoveString(mv / 10 - 1, mv % 10 - 1);
+		return UWAPI_Board_Regular2D_MakeMoveStringWithSound(mv / 10 - 1, mv % 10 - 1, 'y');
 	}
 }

@@ -46,7 +46,6 @@ char * StringFormat(size_t max_size, char * format_str, ...) {
 
 STRING InteractPositionToString(POSITION pos);
 POSITION InteractStringToPosition(STRING str);
-STRING InteractPositionToEndData(POSITION pos);
 STRING InteractMoveToString(POSITION pos, MOVE mv);
 
 static char * AllocVa(va_list lst, size_t accum, size_t * total) {
@@ -219,7 +218,7 @@ STRING InteractValueCharToValueString(char value_char) {
 }
 
 void InteractPrintJSONMEXValue(POSITION pos) {
-	if (!kPartizan && !gTwoBits) {
+	if (kCombinatorial && !gTwoBits) {
 		printf("\"mex\":");
 		int theMex = MexLoad(pos);
 		if(theMex == (MEX) 0)
@@ -257,7 +256,6 @@ void ServerInteractLoop(void) {
 	MOVE move;
 	STRING move_string = NULL;
 	char * board = NULL;
-        char * data = NULL;
 	MEX mex = 0;
 	TIER tier = 0;
 	if (kSupportsShardGamesman) {
@@ -325,26 +323,6 @@ void ServerInteractLoop(void) {
 			}
 			printf("}");
 			InteractFreeBoardSting(board);
-		} else if (FirstWordMatches(input, "end_response")) {
-			if (!InteractReadBoardString(input, &board)) {
-				printf("%s", invalid_board_string);
-				continue;
-			}
-			pos = InteractStringToPosition(board);
-			if (pos == -1) {
-				printf("%s", invalid_board_string);
-				continue;
-			}
-			printf(RESULT "{\"status\":\"ok\",\"response\":{");
-			/* For debuggin purposes. */
-			/*printf("\"board\": \"%s\",",  board);*/
-			InteractPrintJSONPositionValue(pos);
-			data = InteractPositionToEndData(pos);
-			if (data) {
-				printf(",%s", data);
-				SafeFree(data);
-			}
-			printf("}}");
 		} else if (FirstWordMatches(input, "value")) {
 			if (!InteractReadPosition(input, &pos)) {
 				continue;
@@ -457,7 +435,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -489,7 +467,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -507,7 +485,7 @@ void ServerInteractLoop(void) {
 			InteractPrintJSONPositionValue(pos);
 
 			printf(",\"moves\":[");
-			if (Primitive(pos) == undecided) {
+			if (Primitive(pos) == undecided && board[2] != 'R') {
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
 					choice = DoMove(pos, current_move->move);
@@ -588,7 +566,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}
@@ -645,7 +623,7 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(tier, TRUE);
 			}
 			pos = InteractStringToPosition(board);
-			if (pos == -1) {
+			if (pos == -1ULL) {
 				printf("%s", invalid_board_string);
 				continue;
 			}

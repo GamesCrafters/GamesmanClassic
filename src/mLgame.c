@@ -16,7 +16,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 extern STRING gValueString[];
@@ -26,8 +25,8 @@ POSITION gNumberOfPositions  = 129022;  /* (6 + 7*7 + 23*7*8 + 47*7*8*24)*2 */
 POSITION gInitialPosition    =  19388;
 POSITION gMinimalPosition    =  19388;
 
-STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, and Cameron Cheung";
-STRING kGameName           = "L-game";
+CONST_STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, and Cameron Cheung";
+CONST_STRING kGameName           = "L-game";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -38,13 +37,13 @@ POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "MOVING YOUR L-PIECE:\n\
 First enter the orientation index number of your desired L-piece position.\n\
 Then, after entering a space, enter the desired position for the corner square \n\
@@ -70,22 +69,22 @@ STRING kMove1SpecHelpOnYourTurn =
         "Move your L-piece to an empty position and then your neutral piece\n\
 to an empty square."                                                                               ;
 
-STRING kHelpOnYourTurn = "You move your L-piece to an empty position and then one (or neither) of\n\
+CONST_STRING kHelpOnYourTurn = "You move your L-piece to an empty position and then one (or neither) of\n\
 the neutral pieces to an empty square.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To position your L-piece and the neutral pieces so that your opponent\n\
 cannot move his L-piece."                                                                                  ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To not be able to move your L-piece.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "you have been playing in a loop and you're sick of it, so you and your\n\
 opponent (or just you if you're playing the computer) decide that you'd \n\
 rather be doing something else."                                                                                                                                                                                   ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Ok, Dan and Computer, let us begin.\n\n\
 Type '?' if you need assistance...\n\n\n\
    CURRENT               POSSIBLE ORIENTATIONS                 LEGEND\n\
@@ -302,7 +301,7 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 
 /** Local Prototypes **/
-int hash(int L1, int L2, int S1, int S2, int whosMove);
+POSITION hash(int L1, int L2, int S1, int S2, int whosMove);
 int unhashL1(int total);
 int unhashL2(int total);
 int unhashS1(int total);
@@ -370,6 +369,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -431,6 +431,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'A': case 'a':
 			if (oneL) {
 				oneL = 0;
@@ -493,10 +494,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -1255,7 +1256,7 @@ MOVE theMove;
 **                             relative to all the other pieces (1-7).
 **              INT whosmove : The player whose turn it is (1 or 2).
 **
-** OUTPUTS:     INT pos : The hash value of the board
+** OUTPUTS:     POSITION pos : The hash value of the board
 **
 ** CALLS:       unhashMoveL(MOVE)
 **              unhashMoveSPiece(MOVE)
@@ -1263,8 +1264,8 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int hash(int L1, int L2, int S1, int S2, int whosMove) {
-	int pos;
+POSITION hash(int L1, int L2, int S1, int S2, int whosMove) {
+	POSITION pos;
 	pos = (S2-1) + (S1-1)*7 + (L2-1)*7*8 + (L1-1)*7*8*24;
 	pos = (pos << 1) | (whosMove - 1);
 	return pos;
@@ -1951,7 +1952,7 @@ int checkOrient(int Lo, int L1) {
 	return b;
 }
 
-STRING kDBName = "Lgame";
+CONST_STRING kDBName = "Lgame";
 
 int NumberOfOptions()
 {
@@ -1984,26 +1985,6 @@ void setOption(int option)
 
 // 1 11111111 11111 isIntermediate(2), fromLPiece (8), NPiece(2), fromNPiece (5), toLPiece(8)
 
-/*
-R_A_8_12_----WBB----------RB----------RB-----00---RRG-000111111222222333333444444555555666666777777888888
-
-R_A_8_12_
-----WBB-----
------RB-----
------RB-----
-00---RRG-000
-111111222222
-333333444444
-555555666666
-777777888888
-*/
-
-//STRING initialLGameInteractString = "R_A_8_12_----WRR----------BR----------BR-----00---BBG-000111111222222333333444444555555666666777777888888";
-STRING initialLGameInteractString = "R_A_8_12_------------------------------------aa-------aaa------------------------------------------------";
-int posMap[17] = {-1, 13,14,15,16,25,26,27,28, 37,38,39,40, 49,50,51,52};
-int gridMap[17] = {-1, 4,5,6,7,16,17,18,19, 28,29,30,31, 40,41,42,43};
-int strLen = 105;
-
 POSITION encodeInterpos(POSITION origPos, POSITION isIntermediate, POSITION fromLPiece, POSITION SPiece, POSITION fromSPiece, POSITION toLPiece) {
 	return origPos | (isIntermediate << 62) | (fromLPiece << 54) | (SPiece << 52) | (fromSPiece << 47) | (toLPiece << 39);
 }
@@ -2017,13 +1998,15 @@ POSITION decodeInterpos(POSITION interPos, int *isIntermediate, int *fromLPiece,
 	return interPos & 0x0000000FFFFFFFFF;
 }
 
+/* R_A_0_0_[16 (board)][5 (multipart move information)]*/
 POSITION InteractStringToPosition(STRING str) {
+	char *board = str + 7; // Note that this board is offset by -1 from the pieceString
 	BOOLEAN L1Found = FALSE, L2Found = FALSE, S1Found = FALSE, S2Found = FALSE;
 	int L1 = 0, L2 = 0, S1 = 0, S2 = 0;
 	int whoseMove = (str[2] == 'A') ? 1 : 2;
-	int prevL = 10 * (str[45] - 'a') + (str[46] - 'a');
-	int prevS = 10 * (str[55] - 'a') + (str[56] - 'a');
-	int whichS = str[54] - 'a';
+	int prevL = 10 * (board[17] - 'a') + (board[18] - 'a');
+	int whichS = board[19] - 'a';
+	int prevS = 10 * (board[20] - 'a') + (board[21] - 'a');
 	if (prevL != 0) {
 		if (whichS == 1) {
 			S1 = prevS;
@@ -2043,7 +2026,7 @@ POSITION InteractStringToPosition(STRING str) {
 
 	if (!S1Found) {
 		for (int i = 1; i <= 16; i++) {
-			if (str[posMap[i]] == 'W') {
+			if (board[i] == 'W') {
 				S1 = i;
 				break;
 			}
@@ -2051,7 +2034,7 @@ POSITION InteractStringToPosition(STRING str) {
 	}
 	if (!S2Found) {
 		for (int i = 1; i <= 16; i++) {
-			if (str[posMap[i]] == 'G') {
+			if (board[i] == 'G') {
 				S2 = i;
 				break;
 			}
@@ -2060,10 +2043,10 @@ POSITION InteractStringToPosition(STRING str) {
 
 	if (!L1Found) {
 		for (int i = 1; i <= 48; i++) {
-			if (str[posMap[FOURSQUARES[i][0]]] == 'R' && 
-			str[posMap[FOURSQUARES[i][1]]] == 'R' &&
-			str[posMap[FOURSQUARES[i][2]]] == 'R' &&
-			str[posMap[FOURSQUARES[i][3]]] == 'R') {
+			if (board[FOURSQUARES[i][0]] == 'R' && 
+				board[FOURSQUARES[i][1]] == 'R' &&
+				board[FOURSQUARES[i][2]] == 'R' &&
+				board[FOURSQUARES[i][3]] == 'R') {
 				L1 = i;
 				break;
 			}
@@ -2071,123 +2054,82 @@ POSITION InteractStringToPosition(STRING str) {
 	}
 	if (!L2Found) {
 		for (int i = 1; i <= 48; i++) {
-			if (str[posMap[FOURSQUARES[i][0]]] == 'B' && 
-			str[posMap[FOURSQUARES[i][1]]] == 'B' &&
-			str[posMap[FOURSQUARES[i][2]]] == 'B' &&
-			str[posMap[FOURSQUARES[i][3]]] == 'B') {
+			if (board[FOURSQUARES[i][0]] == 'B' && 
+				board[FOURSQUARES[i][1]] == 'B' &&
+				board[FOURSQUARES[i][2]] == 'B' &&
+				board[FOURSQUARES[i][3]] == 'B') {
 				L2 = i;
 				break;
 			}
 		}
 	}
 	
-	//printf("H: %d %d %d %d,", L1, L2, S1, S2);
 	S2 = Make16to7(L1, L2, S1, S2);
 	S1 = Make16to8(L1, L2, S1);
 	L2 = Make24(L1, L2);
-	//printf("HA: %d %d %d %d,", L1, L2, S1, S2);
 
 	return hash(L1, L2, S1, S2, whoseMove);
 }
 
-/*
-"R_A_8_12_----WRR----------BR----------BR-----aa---BBG-aaa--1-----2---3--------------5-----6--------------"
-*/
-STRING InteractPositionToString(POSITION interpos) {
+STRING InteractPositionToString(POSITION interpos) {	
 	int isIntermediate, fromLPiece, SPiece, fromSPiece, toLPiece;
 	POSITION pos = decodeInterpos(interpos, &isIntermediate, &fromLPiece, &SPiece, &fromSPiece, &toLPiece);
-	char *board_string = (char *) calloc(strLen + 1, sizeof(char));
-	memcpy(board_string, initialLGameInteractString, strLen);
+	char board[23] = "-----------------aaaaa\0";
 	int L1 = unhashL1(pos);
 	int L2 = unhashL2(pos);
 	int S1 = unhashS1(pos);
 	int S2 = unhashS2(pos);
 	int whoseTurn = unhashTurn(pos);
 
-	board_string[2] = (whoseTurn == 1) ? 'A' : 'B';
-	//printf("POS: %llu, %d %d %d %d", pos, L1, L2, S1, S2);
+	enum UWAPI_Turn turn = (whoseTurn == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
 	L2 = Make48(L1, L2);
 	S1 = Make8to16(L1, L2, S1);
 	S2 = Make7to16(L1, L2, S1, S2);
 
-	//printf("%d %d %d %d", L1, L2, S1, S2);
 	if (isIntermediate > 0) {
 		if (isIntermediate > 1) {
-			//printf("\nFROMSPIECE: %d, isIntermediate: %d\n", fromSPiece, isIntermediate);
 			if (SPiece == 1) {
-				board_string[posMap[fromSPiece]] = '-';
-				board_string[posMap[S2]] = 'G';
+				board[fromSPiece] = '-';
+				board[S2] = 'G';
 			} else {
-				board_string[posMap[S1]] = 'W';
-				board_string[posMap[fromSPiece]] = '-';
+				board[S1] = 'W';
+				board[fromSPiece] = '-';
 			}
 		} else {
-			board_string[posMap[S1]] = 'W';
-			board_string[posMap[S2]] = 'G';
+			board[S1] = 'W';
+			board[S2] = 'G';
 		}
 		
 		if (whoseTurn == 1) {
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[toLPiece][i]]] = 'R';
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
+			for (int i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i]] = 'R';
+			for (int i = 0; i < 4; i++) board[FOURSQUARES[L2][i]] = 'B';
 		} else {
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[toLPiece][i]]] = 'B';
+			for (int i = 0; i < 4; i++) board[FOURSQUARES[L1][i]] = 'R';
+			for (int i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i]] = 'B';
 		}
-		board_string[45] = (fromLPiece / 10) + 'a';
-		board_string[46] = (fromLPiece % 10) + 'a';
-		board_string[54] = SPiece + 'a';
-		board_string[55] = (fromSPiece / 10) + 'a';
-		board_string[56] = (fromSPiece % 10) + 'a';
+		board[17] = (fromLPiece / 10) + 'a';
+		board[18] = (fromLPiece % 10) + 'a';
+		board[19] = SPiece + 'a';
+		board[20] = (fromSPiece / 10) + 'a';
+		board[21] = (fromSPiece % 10) + 'a';
 	} else {
-		board_string[posMap[S1]] = 'W';
-		board_string[posMap[S2]] = 'G';
-		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
-		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
-		/*
-		if (whoseTurn == 1) {
-			for (int i = 1; i < 49; i++) {
-				if (L1 != i) {
-					if (
-						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'R') &&
-						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'R') &&
-						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'R') && 
-						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'R')
-					) {
-						board_string[56 + i] = ((i - 1) / 6) + '1';
-					}
-				}
-			}
-		} else {
-			for (int i = 1; i < 49; i++) {
-				if (L2 != i) {
-					if (
-						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'B') &&
-						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'B') &&
-						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'B') && 
-						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'B')
-					) {
-						board_string[56 + i] = ((i - 1) / 6) + '1';
-					}
-				}
-			}
-		}*/
+		board[S1] = 'W';
+		board[S2] = 'G';
+		for (int i = 0; i < 4; i++) board[FOURSQUARES[L1][i]] = 'R';
+		for (int i = 0; i < 4; i++) board[FOURSQUARES[L2][i]] = 'B';
 	}
+	board[22] = '\0';
 	
-	return board_string;
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 23, board + 1);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	if (mv >= 300000) { // Selecting L: corner and orientation
 		int L = unhashMoveL(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString(((L - 1) / 6) + '1', 47 + L);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound(((L - 1) / 6) + '1', 20 + L, 'x');
 	} else if (mv >= 200000) { // Selecting which neutral piece to place
-		int SP = unhashMoveSPiece(mv % 100000);
-		// SP will NOT be 0 if mv is a part-move
+		int SP = unhashMoveSPiece(mv % 100000); // SP will NOT be 0 if mv is a part-move
 		int L1 = unhashL1(pos);
 		int L2 = unhashL2(pos);
 		int S1 = unhashS1(pos);
@@ -2197,14 +2139,13 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		S1 = Make8to16(L1, L2, S1);
 		S2 = Make7to16(L1, L2, S1, S2);
 		if (SP == 1) { 
-			return UWAPI_Board_Regular2D_MakeAddString('-', gridMap[S1]);
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', S1 - 1, 'y');
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddString('-', gridMap[S2]);
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', S2 - 1, 'y');
 		}
-	} else if (mv >= 100000) {
-		int SP = unhashMoveSPiece(mv % 100000);
+	} else if (mv >= 100000) { // Choosing where to place neutral piece
 		int SV = unhashMoveSValue(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString((SP == 1) ? '-' : '-', gridMap[SV]);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', SV - 1, 'z');
 	} else {
 		return MoveToString(mv);
 	}
@@ -2212,6 +2153,8 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 
 // CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	// Assumes moveList is in reverse order of what is returned by GenerateMoves, i.e. 
+	// The order of elements appended to the linked list of moves i.e.
 	// Assumes moveList is grouped by L, then grouped by SPiece. Assumes no-neutral-move move comes before neutral-move moves
 	MULTIPARTEDGELIST *mpel = NULL;
 	int prevL = -1;
@@ -2266,13 +2209,11 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 				prevSP = SP;
 				continue;
 			} else {
-				
 				if (SP == 1) {
 					interPos2 = interPos2w;
 				} else {
 					interPos2 = interPos2g;
 				}
-				//mpel = CreateMultipartEdgeListNode(interPos1, interPos2, moveList->move + 200000, 0, FALSE, mpel); // from L to SP
 				prevSP = SP;
 			}
 		}

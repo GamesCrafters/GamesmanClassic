@@ -30,118 +30,145 @@
 **************************************************************************/
 
 #include "db.h"
-#include "db_globals.h"
-#include "db_types.h"
-#include "db_bman.h"
+
+#include <assert.h>
+#include <inttypes.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
-static gamesdb_frameid gamesdb_translate(gamesdb* db, gamesdb_pageid vpn) {
-	//the thing it returns must be a frame identified by ppn in the physical buffer
-	gamesdb_frameid ppn = gamesdb_bman_find(db, vpn); //see if it is in physical memory
+#include "db_bman.h"
+#include "db_globals.h"
+#include "db_types.h"
 
-	if (ppn == NULL) { //the page is not present in physical memory
-		ppn = gamesdb_bman_replace(db, vpn); //get a replacement page, change page table in the process
+static gamesdb_frameid gamesdb_translate(gamesdb* db,
+                                         gamesdb_pageid vpn) {
+    // the thing it returns must be a frame identified by ppn in the
+    // physical buffer
+    gamesdb_frameid ppn = gamesdb_bman_find(
+        db, vpn);  // see if it is in physical memory
 
-		if (ppn->valid == GAMESDB_TRUE) {
-			//this page got kicked out by n-chance
-			if (GAMESDB_DEBUG) printf("translate: replaced = %u\n", (unsigned int)ppn);
-			assert(ppn->tag != vpn);
-			if (ppn->tag != vpn) {
-				//buffer page is valid but not the one we want
-				//if (bufp->dirty[bufpage]) //if the page is dirty flush it
-				gamesdb_buf_write(db, ppn);
-				//load in the new page
-				gamesdb_buf_read(db, ppn, vpn);
-			}
-		} else {
-			//load in the new page
-			gamesdb_buf_read(db, ppn, vpn);
-			//set the tag where it is
-			//if (ppn->tag != vpn)
-			//the buffer is uninitialized, this means no record exists in the page
-		}
-	}
+    if (ppn == NULL) {  // the page is not present in physical memory
+        ppn = gamesdb_bman_replace(
+            db, vpn);  // get a replacement page, change page table in
+                       // the process
 
-	if (GAMESDB_DEBUG) {
-		printf("translate: vpn = %llu, ppn = %u tag = %llu\n", vpn, (unsigned int)ppn, ppn->tag);
-	}
+        if (ppn->valid == GAMESDB_TRUE) {
+            // this page got kicked out by n-chance
+            if (GAMESDB_DEBUG) {
+#if defined(__LP64__) || defined(_WIN64)
+                printf("translate: replaced = %" PRIu64 "\n",
+                       (uint64_t)ppn);
+#else
+                printf("translate: replaced = %u\n", (uint32_t)ppn);
+#endif
+            }
+            assert(ppn->tag != vpn);
+            if (ppn->tag != vpn) {
+                // buffer page is valid but not the one we want
+                // if (bufp->dirty[bufpage]) //if the page is dirty
+                // flush it
+                gamesdb_buf_write(db, ppn);
+                // load in the new page
+                gamesdb_buf_read(db, ppn, vpn);
+            }
+        } else {
+            // load in the new page
+            gamesdb_buf_read(db, ppn, vpn);
+            // set the tag where it is
+            // if (ppn->tag != vpn)
+            // the buffer is uninitialized, this means no record
+            // exists in the page
+        }
+    }
 
-	assert (ppn->tag == vpn);
-	assert (ppn->valid == GAMESDB_TRUE);
-	return ppn;
+    if (GAMESDB_DEBUG) {
+#if defined(__LP64__) || defined(_WIN64)
+        printf("translate: vpn = %llu, ppn = %" PRIu64
+               " tag = %llu\n",
+               vpn, (uint64_t)ppn, ppn->tag);
+#else
+        printf("translate: vpn = %llu, ppn = %u tag = %llu\n", vpn,
+               (uint32_t)ppn, ppn->tag);
+#endif
+    }
+
+    assert(ppn->tag == vpn);
+    assert(ppn->valid == GAMESDB_TRUE);
+    return ppn;
 }
 
 /*
- * allocates memory and sets up a gamescrafters db. Must call destructive
- * function when done to free up memory.
+ * allocates memory and sets up a gamescrafters db. Must call
+ * destructive function when done to free up memory.
  */
-gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_recs, gamesdb_pageid max_pages, int cluster_size, char* db_name){
-	gamesdb_bman* bman;
-	gamesdb_buffer* bufp;
-	gamesdb_store* storep;
-	gamesdb* data;
+gamesdb* gamesdb_create(int rec_size, gamesdb_pageid max_recs,
+                        gamesdb_pageid max_pages, int cluster_size,
+                        char* db_name) {
+    gamesdb_bman* bman;
+    gamesdb_buffer* bufp;
+    gamesdb_store* storep;
+    gamesdb* data;
 
-	bufp = gamesdb_buf_init(rec_size, max_recs, max_pages);
-	bman = gamesdb_bman_init(bufp);
+    bufp = gamesdb_buf_init(rec_size, max_recs, max_pages);
+    bman = gamesdb_bman_init(bufp);
 
-	data = (gamesdb*) gamesdb_SafeMalloc(sizeof(gamesdb));
+    data = (gamesdb*)gamesdb_SafeMalloc(sizeof(gamesdb));
 
-	data->buf_man = bman;
-	data->buffer = bufp;
+    data->buf_man = bman;
+    data->buffer = bufp;
 
-	storep = gamesdb_open(data, db_name, cluster_size);
-	if (storep == NULL) {
-		printf("A fatal error occured when trying to open the database. Aborting.\n");
-		exit(1);
-	}
-	data->store = storep;
+    storep = gamesdb_open(data, db_name, cluster_size);
+    if (storep == NULL) {
+        printf(
+            "A fatal error occured when trying to open the database. "
+            "Aborting.\n");
+        exit(1);
+    }
+    data->store = storep;
 
-	//create initial page
-	gamesdb_buf_addpage(data);
-	bman->clock_hand = bufp->pages;
+    // create initial page
+    gamesdb_buf_addpage(data);
+    bman->clock_hand = bufp->pages;
 
-	return data;
+    return data;
 }
 
-void gamesdb_destroy(gamesdb* data){
-
-	gamesdb_bman_destroy(data->buf_man);
-	gamesdb_buf_destroy(data);
-	gamesdb_close(data->store);
-	gamesdb_SafeFree(data);
-
+void gamesdb_destroy(gamesdb* data) {
+    gamesdb_bman_destroy(data->buf_man);
+    gamesdb_buf_destroy(data);
+    gamesdb_close(data->store);
+    gamesdb_SafeFree(data);
 }
 
+void gamesdb_get(gamesdb* gdb, char* mem, gamesdb_position pos) {
+    gamesdb_buffer* bufp = gdb->buffer;
 
-void gamesdb_get(gamesdb* gdb, char* mem, gamesdb_position pos){
-	gamesdb_buffer* bufp = gdb->buffer;
+    gamesdb_pageid vpn = pos / (bufp->buf_size);
 
-	gamesdb_pageid vpn = pos / (bufp->buf_size);
+    gamesdb_frameid ppn = gamesdb_translate(gdb, vpn);
 
-	gamesdb_frameid ppn = gamesdb_translate(gdb, vpn);
+    // byte offset of the db record (the extra byte + the actual
+    // record)
+    gamesdb_offset off = (pos % (bufp->buf_size)) * bufp->rec_size;
 
-	//byte offset of the db record (the extra byte + the actual record)
-	gamesdb_offset off = (pos % (bufp->buf_size)) * bufp->rec_size;
-
-	memcpy(mem, ppn->mem+off, bufp->rec_size);
+    memcpy(mem, ppn->mem + off, bufp->rec_size);
 }
 
+void gamesdb_put(gamesdb* gdb, char* mem, gamesdb_position pos) {
+    gamesdb_buffer* bufp = gdb->buffer;
 
-void gamesdb_put(gamesdb* gdb, char* mem, gamesdb_position pos){
-	gamesdb_buffer* bufp = gdb->buffer;
+    gamesdb_pageid vpn = pos / (bufp->buf_size);
 
-	gamesdb_pageid vpn = pos / (bufp->buf_size);
+    gamesdb_frameid ppn = gamesdb_translate(gdb, vpn);
 
-	gamesdb_frameid ppn = gamesdb_translate(gdb, vpn);
+    // byte offset of the db record (the extra byte + the actual
+    // record)
+    gamesdb_offset off = (pos % (bufp->buf_size)) * bufp->rec_size;
 
-	//byte offset of the db record (the extra byte + the actual record)
-	gamesdb_offset off = (pos % (bufp->buf_size)) * bufp->rec_size;
+    memcpy(ppn->mem + off, mem, bufp->rec_size);
 
-	memcpy(ppn->mem+off, mem, bufp->rec_size);
-
-	ppn->dirty = GAMESDB_TRUE;
-	ppn->chances = 0;
+    ppn->dirty = GAMESDB_TRUE;
+    ppn->chances = 0;
 }

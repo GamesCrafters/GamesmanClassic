@@ -37,9 +37,9 @@ POSITION gNumberOfPositions  =  0;
 POSITION gInitialPosition    =  0;
 POSITION kBadPosition        = (unsigned long long) -1; /* This can never be the rep. of a position */
 
-STRING   kAuthorName         = "Brian Carnes";
-STRING   kGameName           = "Dots and Boxes";
-STRING   kDBName             = "dnb";
+CONST_STRING kAuthorName         = "Brian Carnes";
+CONST_STRING   kGameName           = "Dots and Boxes";
+CONST_STRING   kDBName             = "dnb";
 BOOLEAN  kPartizan           = TRUE;
 BOOLEAN  kDebugMenu          = TRUE;
 BOOLEAN  kGameSpecificMenu   = TRUE;
@@ -47,22 +47,16 @@ BOOLEAN  kTieIsPossible      = TRUE;
 BOOLEAN  kLoopy               = FALSE;
 BOOLEAN  kDebugDetermineValue = FALSE;
 
-STRING   kHelpGraphicInterface = "No help";
-
-STRING   kHelpTextInterface    = "No help";
-
-STRING   kHelpOnYourTurn = "Players alternate turns connecting vertical or\n\
+CONST_STRING   kHelpGraphicInterface = "No help";
+CONST_STRING   kHelpTextInterface    = "No help";
+CONST_STRING   kHelpOnYourTurn = "Players alternate turns connecting vertical or\n\
 horizontal lines between dots. To draw a line, select the letter that\n\
 corresponds to where you would like the line to be drawn.";
-
-STRING   kHelpStandardObjective = "To create the most boxes.";
-
-STRING   kHelpReverseObjective = "To force your opponent to create the most\n\
+CONST_STRING   kHelpStandardObjective = "To create the most boxes.";
+CONST_STRING   kHelpReverseObjective = "To force your opponent to create the most\n\
 boxes.";
-
-STRING   kHelpTieOccursWhen = "No help";
-
-STRING   kHelpExample = "No help";
+CONST_STRING   kHelpTieOccursWhen = "No help";
+CONST_STRING   kHelpExample = "No help";
 
 /*************************************************************************
 **
@@ -254,7 +248,12 @@ struct DNB {
         printf("%c", EdgeV(i, j) ? '|' : ChoiceV(i, j));
         if (i == BoardSizeX)
           break;
-        printf(" %c ", BoxCompleted(i, j) ? (!TrackBoxOwners ? '?' : Scored(i, j)) ? 'O' : 'X' : ' ');
+        /* Robert Shi: the following line probably contains a bug.
+           It is rewritten in an equivalent way to suppress a
+           compiler warning. The original code is preserved as a
+           comment. */
+        printf(" %c ", BoxCompleted(i, j) ? ((!TrackBoxOwners ? true : Scored(i, j)) ? 'O' : 'X') : ' ');
+        // printf(" %c ", BoxCompleted(i, j) ? ((!TrackBoxOwners ? '?' : Scored(i, j)) ? 'O' : 'X') : ' ');
       }
       printf("\n");
 
@@ -432,10 +431,13 @@ EXTERNC void InitializeGame()
   */
 
   if (!ParallelMoves) {
-    if (!&gGoAgain)
-      ParallelMoves=true;
-    else
-      gGoAgain=DNBGoAgain;
+    /* Robert Shi: not sure what this if statement wants
+       to check but it does not have any effect. Commenting
+       out for now. */
+    // if (!&gGoAgain)
+    //   ParallelMoves=true;
+    // else
+    gGoAgain=DNBGoAgain;
   }
   
   gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
@@ -503,6 +505,7 @@ EXTERNC void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tcl
 ** 
 ************************************************************************/
 
+#ifndef NO_GRAPHICS
 EXTERNC void SetTclCGameSpecificOptions(int theOptions[])
 {
   // Anoto pen support
@@ -510,6 +513,7 @@ EXTERNC void SetTclCGameSpecificOptions(int theOptions[])
       gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
   }  
 }
+#endif
 
 /************************************************************************
 **
@@ -625,6 +629,8 @@ EXTERNC VALUE Primitive(POSITION position)
 
 EXTERNC void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 {
+  (void)playerName;
+  (void)usersTurn;
   DNB board(position);
   
   board.Print();
@@ -708,7 +714,6 @@ EXTERNC MOVELIST *GenerateMoves(POSITION position)
 
 EXTERNC USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName)
 {
-  BOOLEAN ValidMove = FALSE;
   USERINPUT ret; 
   
   do {
@@ -742,6 +747,7 @@ EXTERNC USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, ST
 
 EXTERNC BOOLEAN ValidTextInput(STRING input)
 {
+  (void)input;
   return TRUE;
 }
 
@@ -860,7 +866,12 @@ EXTERNC STRING InteractPositionToString(POSITION pos) {
 
   for (unsigned j = 0; j < BoardSizeY; j++) {
     for (unsigned i = 0; i < BoardSizeX; i++) {
-      ret[count++] = board.BoxCompleted(i, j) ? (!TrackBoxOwners ? '?' : board.Scored(i, j)) ? 'o' : 'x' : '-';
+      /* Robert Shi: the following line probably contains a bug.
+          It is rewritten in an equivalent way to suppress a
+          compiler warning. The original code is preserved as a
+          comment. */
+      ret[count++] = board.BoxCompleted(i, j) ? ((!TrackBoxOwners ? true : board.Scored(i, j)) ? 'o' : 'x') : '-';
+      // ret[count++] = board.BoxCompleted(i, j) ? ((!TrackBoxOwners ? '?' : board.Scored(i, j)) ? 'o' : 'x') : '-';
     }
   }
 
@@ -875,11 +886,8 @@ EXTERNC STRING MoveToString(MOVE theMove) {
   return ret;
 }
 
-EXTERNC STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 EXTERNC STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  (void)pos;
   return MoveToString(mv);
 }
 
@@ -995,12 +1003,14 @@ POSITION ActualNumberOfPositions(int variant) {
 #ifndef NO_GRAPHICS
 
 static int
-ScoredCmd(ClientData dummy,Tcl_Interp *interp, int argc, char** argv)
+ScoredCmd(ClientData dummy, Tcl_Interp *interp, int argc, char** argv)
 {
+  (void)dummy;
   int position,x,y;
+  char result[200] = "wrong # args: Scored (int)Position (int)x (int)y";
 
   if (argc != 4) {
-    Tcl_SetResult(interp,  "wrong # args: Scored (int)Position (int)x (int)y", TCL_STATIC);
+    Tcl_SetResult(interp, result, TCL_STATIC);
     return TCL_ERROR;
   }
   else {

@@ -5,7 +5,6 @@
  */
 
 #include "gamesman.h"
-#include "hash.h"
 
 #define BOARD_SPACE                " )          : "
 #define BOARD_TITLE                " )  BOARD:  : "
@@ -30,16 +29,16 @@
 /********************************************* Global variables for Gamesman */
 POSITION gInitialPosition       = 0;
 POSITION gNumberOfPositions     = 0;
-STRING kAuthorName            = "Eric Siroker";
+CONST_STRING kAuthorName            = "Eric Siroker";
 POSITION kBadPosition           = -1;
-STRING kDBName                = "pylos";
+CONST_STRING kDBName                = "pylos";
 BOOLEAN kDebugDetermineValue   = FALSE;
 BOOLEAN kDebugMenu             = FALSE;
-STRING kGameName              = "Pylos";
+CONST_STRING kGameName              = "Pylos";
 BOOLEAN kGameSpecificMenu      = TRUE;
 
 /* Out of date. */
-STRING kHelpExample           = "\
+CONST_STRING kHelpExample           = "\
          (  1   2   3 )          : - - -\n\
          (    4   5   )          :  - -\n\
 LEGEND:  (  6   7   8 )  BOARD:  : - - -\n\
@@ -180,21 +179,21 @@ LEGEND:  (  6   7   8 )  BOARD:  : X - O\n\
          ( 11  12  13 )          : X O O (Computer should Lose in 0)\n\n\
 PIECES LEFT: (0)\n\n\n\
 Excellent! You won!";
-STRING kHelpGraphicInterface  = "";
-STRING kHelpOnYourTurn        = "\
+CONST_STRING kHelpGraphicInterface  = "";
+CONST_STRING kHelpOnYourTurn        = "\
 Place a piece on a blank spot. If a two-by-two square is formed, you must\n\
 take back one of your pieces. You may not take back a piece that is being\n\
 used to support another piece. If a two-by-two square already exists and you\n\
 have any pieces of equal or lower height to the square, you must take one of\n\
 those pieces and stack it on top of the square if you intend to put any piece\n\
 on top of the square.";
-STRING kHelpReverseObjective  = "\
+CONST_STRING kHelpReverseObjective  = "\
 To either use all of your pieces before your opponent does or to complete the\n\
 pyramid.";
-STRING kHelpStandardObjective = "\
+CONST_STRING kHelpStandardObjective = "\
 To make your opponent either use all of his or her pieces before you do or\n\
 make your opponent complete the pyramid.";
-STRING kHelpTextInterface     = "\
+CONST_STRING kHelpTextInterface     = "\
 The board represents a bird's eye view of a pyramid. Pieces are placed\n\
 building this pyramid. A piece can only be placed on a higher level of the\n\
 pyramid if all four of its bases have a piece on them. The legend indicates\n\
@@ -203,7 +202,7 @@ adding a piece, but, if a two-by-two square is formed, a move can consist of\n\
 two actions: an addition and a removal. An addition and removal can also\n\
 occur when a two-by-two square already exists and a piece already on the\n\
 board is moved on top of the square.";
-STRING kHelpTieOccursWhen     = "";
+CONST_STRING kHelpTieOccursWhen     = "";
 BOOLEAN kLoopy                 = TRUE;
 BOOLEAN kPartizan              = TRUE;
 BOOLEAN kTieIsPossible         = FALSE;
@@ -285,13 +284,12 @@ STRING MoveToString(MOVE);
 
 /**************************************************** ConvertTextInputToMove */
 MOVE ConvertTextInputToMove(STRING input) {
-	int index;
 	char *move;
 	MoveGroup moveGroup;
 
 	move = strtok(input, " ");
 
-	for (index = 0; index < MOVES_IN_GROUP; index++) {
+	for (size_t index = 0; index < MOVES_IN_GROUP; index++) {
 		moveGroup.moves[index] = move == NULL ? 0 : atoi(move);
 		move = strtok(NULL, " ");
 	}
@@ -307,7 +305,7 @@ void DebugMenu() {
 POSITION DoMove(POSITION position, MOVE move) {
 	char board[gBoardSize];
 	MoveGroup moveGroup = *(MoveGroup*)&move;
-	int index = ConvertAddressToIndex(moveGroup.moves[0]);
+	size_t index = ConvertAddressToIndex(moveGroup.moves[0]);
 	Piece piece = generic_hash_turn(position) == LIGHT_PIECE ? DARK_PIECE : LIGHT_PIECE;
 
 	generic_hash_unhash(position, board);
@@ -354,6 +352,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -396,7 +395,7 @@ void GameSpecificMenu() {
 MOVELIST *GenerateMoves(POSITION position) {
 	char board[gBoardSize];
 	char center; /* Used for hardcoding */
-	int height, index;
+	int height;
 	MOVELIST* moveList = NULL;
 	MoveGroup moveGroup;
 	Pyramid *pyramid, pyramids[gBoardAddresses];
@@ -410,7 +409,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	MakeAddressable(board);
 	CreatePyramidHashTable(pyramids, board);
 
-	for (index = 0; index < MOVES_IN_GROUP; index++)
+	for (size_t index = 0; index < MOVES_IN_GROUP; index++)
 		moveGroup.moves[index] = 0;
 
 	for (moveGroup.moves[0] = gBoardAddresses; moveGroup.moves[0] > 0;
@@ -647,13 +646,12 @@ void setOption(int option) {
 
 /************************************************************ ValidTextInput */
 BOOLEAN ValidTextInput(STRING input) {
-	int index;
 	char *move, inputBackup[strlen(input)];
 
 	strcpy(inputBackup, input);
 	move = strtok(inputBackup, " ");
 
-	for (index = 0; index < MOVES_IN_GROUP && move != NULL; index++) {
+	for (size_t index = 0; index < MOVES_IN_GROUP && move != NULL; index++) {
 		if (atoi(move) < 1)
 			return FALSE;
 
@@ -889,10 +887,9 @@ void PrintMoveGroup(MOVE move) {
 
 STRING MoveGroupToString(MOVE move) {
 	STRING s = (STRING) SafeMalloc( 10 );
-	int index;
 	MoveGroup moveGroup = *(MoveGroup*)&move;
 
-	for (index = 0; index < MOVES_IN_GROUP; index++) {
+	for (size_t index = 0; index < MOVES_IN_GROUP; index++) {
 		if (moveGroup.moves[index] != 0) {
 			if (index > 0)
 				sprintf( s, " " );
@@ -925,13 +922,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
   return MoveToString(mv);
 }

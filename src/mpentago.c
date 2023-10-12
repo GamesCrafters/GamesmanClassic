@@ -23,12 +23,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 /*************************************************************************
 **
@@ -36,9 +31,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Pentago";   /* The name of your game */
-STRING kAuthorName          = "Jun Kang Chin and David Wu";   /* Your name(s) */
-STRING kDBName              = "pentago";   /* The name to store the database under */
+CONST_STRING kGameName            = "Pentago";   /* The name of your game */
+CONST_STRING kAuthorName          = "Jun Kang Chin and David Wu";   /* Your name(s) */
+CONST_STRING kDBName              = "pentago";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -61,10 +56,10 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Graphic Interface Unavailable";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Enter the coordinates of where you like to place your piece\n\
 followed by quadrant letter and the direction you wish to rotate it.\n\
 \n\
@@ -90,25 +85,25 @@ Example:  Place piece at A1 and rotate the 4th quadrant clockwise. \n\
           Input should look like a1dc \n\
 "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Place a piece into an empty coordiante and rotate a quadrant of your choice.\n\
 Read help text interface for instructions on entering your move"                                                                                         ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get the game winning number of your makers(either X or 0) in a row, \n\
 either horizontally, vertically, or diagonally. For the original rules of \n\
  pentago, 5-in-a-row wins."                                                                                                                                                                  ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to get the game winning number of your makers\n\
 (either X or 0) in a row, either horizontally, vertically, or diagonally.\n\
  For the original rules of pentago, 5-in-a-row wins."                                                                                                                                                              ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when the board is filled and  neither side is able to get \n\
 a game winning number of markers in a row."                                                                                    ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "4X4 Pentago Game: \n\
 \n\
  Human Player move: a1ac \n\
@@ -1003,7 +998,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1856,9 +1851,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

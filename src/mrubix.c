@@ -8,28 +8,6 @@
 **
 ** DATE:        2003-10-11
 **
-** UPDATE HIST:
-**
-** 0.0.0 (02-09-06) Dan Garcia's Tic-Tac-Toe minus the game-dependent code.
-** 0.0.1 (10-06) PrintPosition, PositionToBlankOX, BlankOXToPosition,
-**	        and possibleBoardPieces updated
-** 0.0.2 (10-14) GetAndPrintPlayersMoves, ValidTextInput,
-**              ConvertTextInputToMove, and PrintMove updated
-** 0.0.3 (10-15) Removed Symmetry Code
-**              Updated PrintComputersMove
-** 0.1.0 (10-26) First solvable version
-** 0.1.1 (11-20) Updated GenerateMoves, Text UI & X moves first
-** 0.1.2 (03-02-22) Updated ValidTextInput, GetAndPrintPlayersMove,
-**              ConvertTextInputToMove, & PrintPosition to handle
-**              large board sizes.
-** 0.2.0 (04-19) Now meets the GAMESMAN3 standard.
-** 0.2.1 (05-10) Dynamically resizable game board size
-** 0.2.2 (08-26) Fixed bugs relating to setting board size
-** 0.2.3 (09-09) Updated hash function to use combinatorics
-** 0.2.4 (10-03) Fixed an initialization bug in CombinationInit
-** 0.2.5 (10-11) Added sanity check in GetInitialPosition
-**
-**	(8-21)	Changed to GetMyInt()/GetMyChar()
 **************************************************************************/
 
 /*************************************************************************
@@ -38,7 +16,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 0;
@@ -47,8 +24,8 @@ POSITION gMinimalPosition    = 0;
 POSITION gInitialPosition    =  0;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Jeffrey Chiang and Bryon Ross";
-STRING kGameName           = "Rubik's Magic";
+CONST_STRING kAuthorName         = "Jeffrey Chiang and Bryon Ross";
+CONST_STRING kGameName           = "Rubik's Magic";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
@@ -59,7 +36,7 @@ BOOLEAN kTieIsPossible      = TRUE;
 BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "There is currently no graphic interface.";
 /*STRING   kHelpGraphicInterface =
    "The LEFT button puts an X or O (depending on whether you went first\n\
@@ -67,7 +44,7 @@ STRING kHelpGraphicInterface =
    button does nothing, and the RIGHT button is the same as UNDO, in that\n\
    it reverts back to your your most recent position.";*/
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Your turn consists of up to two parts:\n\n\
 1) Using the LEGEND, determine the number corresponding to\n\
 the opponent's piece to flip and the direction to flip it.\n\
@@ -80,27 +57,27 @@ The input should take the form:\n\
 [initialLocation][direction] [newLocation][orientation]\n\n\
 Example input: 4U 2X"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Flip an opponent's piece into an adjacent, but not diagonal space.\n\
 (This will change the size [example: X -> x] of your opponent's piece.)\n\
 Then place one of your pieces on any empty space (including the one you\n\
 flipped your opponent's piece from), either side facing up."                                                                                                                                                                                                                                     ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To complete either a vertical, horizontal, or diagonal line with three\n\
 of your pieces, all of them of the same size. If your opponent cannot\n\
 break this three piece line in the next move, you have won the game."                                                                                                                                                            ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To prevent a vertical, horizontal, or diagonal line with three\n\
 of your pieces, each of them of the same size. If your opponent cannot\n\
 break this three piece line in the next move, you have lost the game."                                                                                                                                                     ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board becomes entirely filled without either player\n\
 getting three-in-a-row."                                                                                        ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Ok, Dan Garcia and Computer, let us begin.\n\
 \n\
 Type '?' if you need assistance...\n\
@@ -245,6 +222,7 @@ char **argv;                            /* Argument strings. */
 	POSITION BlankOXToPosition();
 	int i, j;
 	POSITION position;
+	(void)dummy;
 
 	if (argc != 2) {
 		Tcl_SetResult(interp, "wrong # args: Hash (STRING)board", TCL_STATIC);
@@ -276,6 +254,7 @@ char **argv;                            /* Argument strings. */
 	BlankOX board[BOARDSIZE];
 	char boardString[BOARDSIZE+1];
 	int i;
+	(void)dummy;
 
 	if (argc != 2) {
 		Tcl_SetResult(interp, "wrong # args: Unhash (POSITION)position", TCL_STATIC);
@@ -553,6 +532,7 @@ void GameSpecificMenu() {
 			return;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'I': case 'i':
 			gInitialPosition = GetInitialPosition();
 			break;
@@ -1299,7 +1279,7 @@ MOVE theMove;
 ** FOR USE IN DATABASE *************************************************
 ***********************************************************************/
 
-STRING kDBName = "rubix";
+CONST_STRING kDBName = "rubix";
 
 int NumberOfOptions()
 {
@@ -1407,12 +1387,12 @@ BlankOX *theBlankOX;
 	oPos = thePos / C(BOARDSIZE,numX);
 
 	for (i=BOARDSIZE-1; i>=0; i--) {
-		if (xPos >= C(i,numX)) {
+		if (xPos >= (POSITION)C(i,numX)) {
 			theBlankOX[i] = x;
 			xPos -= C(i,numX);
 			numX--;
 		}
-		else if (oPos >= C(i-numX, numO)) {
+		else if (oPos >= (POSITION)C(i-numX, numO)) {
 			theBlankOX[i] = o;
 			oPos -= C(i-numX, numO);
 			numO--;
@@ -1662,13 +1642,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

@@ -10,18 +10,6 @@
 **
 ** DATE:        Sunday, February 26 2006
 **
-** UPDATE HIST:
-** 3/19/2006     fixed DoMove, added ConvertTextInputToMove, printMove(for debugging)
-**              Problems with internal row representation: printposition prints "bottom-up",
-**              while directional functions use implied "top-down."
-** 3/12/2006    Modified Forward-directions to return index instead of char
-** 2/26/2006    GenerateMoves, DoMoves, forward-directions
-** 2/13/2006    Started. Much of the code is shamelessly borrowed from
-**              m1210.c, which is used as a template. Done: InitializeGame,
-**              PrintPosition
-** 2/20/2008    Added bounds checking, adjusted bounds to be from 2 to 9 and
-**              implemented options commands -EthanR+AlanW
-** 3/10/2008    Further refined functions for options. -EthanR+AlanW
 *****************************************************************************/
 
 /*****************************************************************************
@@ -29,7 +17,7 @@
 ** Everything below here must be in every game file
 **
 *****************************************************************************/
-#include <stdio.h>
+
 #include "gamesman.h"
 
 POSITION gNumberOfPositions   = 0;      /* Calculated in InitializeGame */
@@ -39,8 +27,8 @@ POSITION gInitialPosition     = 0;      /* Calculated in InitializeGame */
 
 //POSITION gMinimalPosition     = 0;       /* TODO: ? */
 
-STRING kAuthorName          = "Johnny Tran and Steve Wu";
-STRING kGameName            = "Rubik's Checkers";
+CONST_STRING kAuthorName          = "Johnny Tran and Steve Wu";
+CONST_STRING kGameName            = "Rubik's Checkers";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -49,23 +37,23 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";      /* TODO */
+CONST_STRING kHelpGraphicInterface = "";      /* TODO */
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Play like checkers, except only kings can capture, men can only move backwards\n and cannot capture, and jumping a piece demotes a king to a man and captures a man.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Select a piece and its destination(s). (i.e. a2c4a6 to double-capture; a2\nto promote)";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Eliminate all your opponent's pieces or block them from moving.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Eliminate all your pieces or block them from moving.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =             /* TODO */
+CONST_STRING kHelpExample =             /* TODO */
                       "Help Example";
 
 /*************************************************************************
@@ -168,14 +156,13 @@ void ForceInitialize() {
 		         EMPTY,  boardSize-(maxPieces*2), boardSize-1,
 		         -1 };
 	char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
-	int i;
 	gNumberOfPositions = generic_hash_init(boardSize, pieces, vcfg, 0);
 	// Create initial position
-	for (i = 0; i < maxPieces; i++) {
+	for (int i = 0; i < maxPieces; i++) {
 		initialPosition[i] = (startPromoted ? P1KING : P1MAN);
 		initialPosition[boardSize-1 - i] = (startPromoted ? P2KING : P2MAN);
 	}
-	for (i = maxPieces; i < (boardSize - maxPieces); i++) {
+	for (unsigned int i = maxPieces; i < (boardSize - maxPieces); i++) {
 		initialPosition[i] = EMPTY;
 	}
 	gInitialPosition = generic_hash_hash(initialPosition, P1);
@@ -391,7 +378,7 @@ void setBoardSize() {
 
 	printf("How many starting rows per player? ");
 	temp = GetMyInt();
-	if ((temp < 1) || (temp >= rows/2)) {
+	if ((temp < 1) || (temp >= (int)rows/2)) {
 		printf("Starting rows should be between 1 and 1/2 the number of rows\n");
 		HitAnyKeyToContinue();
 		return;
@@ -450,6 +437,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -479,10 +467,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -610,7 +598,7 @@ MOVE theMove;
 		previousMove = nextMove;
 		theMove = theMove << 2;
 		nextMove = (theMove >> 30)&0x00000003;
-		if(oppositeMove(previousMove)==nextMove)
+		if((unsigned int)oppositeMove(previousMove) == nextMove)
 			done = TRUE;
 	}
 
@@ -650,7 +638,7 @@ MOVE theMove;
 
 POSITION GetInitialPosition()
 {
-	int i = 0;
+	unsigned int i = 0;
 	boardSize = rows * cols;
 	char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
 	char c;
@@ -731,10 +719,10 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
+void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
+	(void)computersMove;
+	(void)computersName;
 	// TODO
 }
 
@@ -808,9 +796,9 @@ POSITION position;
 	// Check for no more pieces
 	CountPieces(board, &p1Pieces, &p2Pieces);
 	if(whosTurn == P1) {
-		if (&p1Pieces == 0) return (gStandardGame ? lose : win); // Player 1 has no more pieces
+		if (p1Pieces == 0) return (gStandardGame ? lose : win); // Player 1 has no more pieces
 	}
-	else if(&p2Pieces == 0) return (gStandardGame ? lose : win); // P2 has no more pieces
+	else if(p2Pieces == 0) return (gStandardGame ? lose : win); // P2 has no more pieces
 
 	// TODO: Check for all pieces being locked (unable to move)
 	if(GenerateMoves(position) == NULL)
@@ -981,6 +969,7 @@ BOOLEAN usersTurn;
 ************************************************************************/
 //currentIndex
 MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head){
+	(void)whosTurn;
 	unsigned int myMove = (currentIndex << (32-MVHASHACC+1));
 	int currentMobility;
 
@@ -992,7 +981,10 @@ MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELI
 		currentMobility = manMobility;
 	else if(initialPosition[currentIndex] == P2MAN)
 		currentMobility = reverseMobility(manMobility);
-	else BadElse("makeMove");
+	else {
+		BadElse("makeMove");
+		return NULL;
+	}
 
 	if((currentMobility&FORWARD) == FORWARD) {
 		if(forwardLeft(currentIndex)!= -1 && initialPosition[forwardLeft(currentIndex)] == EMPTY)
@@ -1128,7 +1120,7 @@ MOVELIST *makeCapture(char *initialPosition, int whosTurn, int currentIndex, MOV
 }
 
 
-MOVELIST *makePromote(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head){
+MOVELIST *makePromote(char *initialPosition, int currentIndex, MOVELIST *head){
 	int isFirstRow = ((currentIndex/cols) == 0),
 	    isLastRow = ((currentIndex/cols) == rows-1);
 	if(promoteRow == BACKWARD) {
@@ -1183,7 +1175,6 @@ POSITION position;
 
 	int whosTurn = generic_hash_turn(position);
 	char currentKing, currentMan;
-	int i;
 	int hasCaptures = 0;
 
 	generic_hash_unhash(position, initialPosition);
@@ -1195,8 +1186,8 @@ POSITION position;
 		currentKing = P2KING;
 		currentMan = P2MAN;
 	}
-	for(i = 0; i < boardSize; i++) {
-		if((initialPosition[i] == currentKing)) {
+	for(int i = 0; i < (int)boardSize; i++) {
+		if (initialPosition[i] == currentKing) {
 			if(whosTurn == P1)
 				head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC+1)), 2, kingMobility);
 			else if (whosTurn == P2)
@@ -1205,7 +1196,7 @@ POSITION position;
 			if (head != oldHead) hasCaptures = 1;
 			if (!forceCapture || !hasCaptures) {
 				head = makeMove(initialPosition, whosTurn, i, head);
-				head = makePromote(initialPosition, whosTurn, i, head);
+				head = makePromote(initialPosition, i, head);
 			}
 		}
 		else if (initialPosition[i] == currentMan) {
@@ -1217,7 +1208,7 @@ POSITION position;
 			if (head != oldHead) hasCaptures = 1;
 			if (!forceCapture || !hasCaptures) {
 				head = makeMove(initialPosition, whosTurn, i, head);
-				head = makePromote(initialPosition, whosTurn, i, head);
+				head = makePromote(initialPosition, i, head);
 			}
 		}
 
@@ -1253,10 +1244,7 @@ STRING playerName;
 {
 	USERINPUT ret, HandleDefaultTextInput();
 	BOOLEAN ValidMove();
-	char input[2];
-	// TODO
-
-	input[0] = '3';
+	
 	do {
 		printf("%8s's move [ (u)ndo/(a-%c)(1-%d)[(a-%c)(1-%d)]* ] : ", playerName, 'a' - 1 + cols*2, rows, 'a' - 1 + cols*2, rows);
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
@@ -1329,12 +1317,11 @@ STRING input;
 		isEvenRow = (((rows+'0')-currentRow)%2 == 0);
 		isEvenCol = ((currentCol - 'a')%2 == 0);
 
-		if(currentRow-'1'>rows || (currentCol-'a')/2>cols)
+		if(currentRow-'1'>(int)rows || (currentCol-'a')/2>(int)cols)
 			return(FALSE);
 		if(currentRow-'1'<0 || currentCol-'a'<0)
 			return(FALSE);
-		//printf("%d\n", myIndex);
-		if(myIndex<0 || myIndex>boardSize)
+		if(myIndex>boardSize)
 			return(FALSE);
 		i= i+2;
 		if(!isEvenRow && isEvenCol)
@@ -1344,9 +1331,6 @@ STRING input;
 	}
 	return(TRUE);
 }
-
-
-
 
 
 /************************************************************************
@@ -1368,7 +1352,7 @@ STRING input;
 {
 	int i = 2;
 	char currentRow = input[1], currentCol = input[0];
-	unsigned int myMove, currentIndex, nextIndex;
+	int myMove, currentIndex, nextIndex;
 	int previousMove = -1;
 	myMove = currentIndex = getIndexFromText(currentRow, currentCol);
 	myMove = myMove<<(32-MVHASHACC+1);
@@ -1443,7 +1427,7 @@ int canPromote(int index, POSITION position) {
 
 	if (promoteRow == BACKWARD) {
 		if (player == P1) {
-			return (row == rows);
+			return (row == (int)rows);
 		} else if (player == P2) {
 			return (row == 1);
 		} else BadElse("canPromote()");
@@ -1451,7 +1435,7 @@ int canPromote(int index, POSITION position) {
 		if (player == P1) {
 			return (row == 1);
 		} else if (player == P2) {
-			return (row == rows);
+			return (row == (int)rows);
 		} else BadElse("canPromote()");
 	}
 
@@ -1477,7 +1461,7 @@ MOVE theMove;
 	unsigned int move = theMove;
 	unsigned int startIndex = (move >> (32-MVHASHACC+1));
 	unsigned int currentIndex = startIndex;
-	unsigned int currentMove = 0, previousMove = 0;
+	int currentMove = 0, previousMove = 0;
 	char startSq[3], nextSq[3];
 	unsigned int maxJumps = (32-MVHASHACC)/2, i = 0;
 	int done = FALSE, jump = FALSE;
@@ -1681,7 +1665,7 @@ MOVE theMove;
 }
 
 
-STRING kDBName = "Rubik's Checkers";
+CONST_STRING kDBName = "Rubik's Checkers";
 
 int NumberOfOptions()
 {
@@ -1741,13 +1725,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

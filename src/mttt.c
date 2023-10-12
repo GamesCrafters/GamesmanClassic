@@ -78,7 +78,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 19683;  /* 3^9 */
@@ -87,8 +86,8 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING kAuthorName         = "Dan Garcia";
-STRING kGameName           = "Tic-Tac-Toe";
+CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kGameName           = "Tic-Tac-Toe";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = FALSE;
@@ -97,35 +96,35 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
 to the empty board position you desire and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                                                                                                                                                                           ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\
@@ -308,6 +307,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -359,6 +359,7 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 **
 ************************************************************************/
 
+#ifndef NO_GRAPHICS
 void SetTclCGameSpecificOptions(int theOptions[])
 {
 	// Anoto pen support
@@ -366,6 +367,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 		gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
 	}
 }
+#endif
 
 /************************************************************************
 **
@@ -440,8 +442,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	/*
@@ -815,17 +816,17 @@ BlankOX *theBlankOX;
 {
 	int i;
 	for(i = 8; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -926,7 +927,7 @@ BlankOX *theBlankOX;
 			xcount++;
 		else if(theBlankOX[i] == o)
 			ocount++;
-		else ;    /* don't count blanks */
+		/* else don't count blanks */
 
 	if(xcount == ocount)
 		return(x);  /* in our TicTacToe, x always goes first */
@@ -934,12 +935,13 @@ BlankOX *theBlankOX;
 		return(o);
 }
 
-STRING kDBName = "ttt";
+CONST_STRING kDBName = "ttt";
 
 int NumberOfOptions()
 {
 	return 2;
 }
+  
 
 int getOption()
 {
@@ -959,11 +961,8 @@ void setOption(int option)
 }
 
 POSITION ActualNumberOfPositions(int variant) {
+	(void)variant;
 	return 5478;
 }
 
 GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}

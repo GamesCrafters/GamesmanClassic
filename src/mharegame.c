@@ -2,7 +2,7 @@
 **
 ** NAME:        mharegame.c
 **
-** DESCRIPTION: Hare Game.
+** DESCRIPTION: Hare Game
 **
 ** AUTHOR:      Robert Shi
 **
@@ -10,7 +10,6 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions; // Initialized in InitializeGame().
@@ -18,9 +17,9 @@ POSITION kBadPosition = -1;
 
 POSITION gInitialPosition; // Initialized in InitializeGame().
 
-STRING kAuthorName = "Robert Shi";
-STRING kGameName = "Hare Game";
-STRING kDBName = "haregame";
+CONST_STRING kAuthorName = "Robert Shi";
+CONST_STRING kGameName = "Hare Game";
+CONST_STRING kDBName = "haregame";
 BOOLEAN kPartizan = TRUE; // Set this to true if different sets of moves are available to each player given a position.
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = TRUE; // Game-specific menu to choose the game variant.
@@ -30,13 +29,13 @@ BOOLEAN kDebugDetermineValue = FALSE;
 BOOLEAN kSupportsSymmetries = TRUE; // Flipping the board across the x-axis gives a symmetric position.
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = ""; // Ignore for now.
-STRING kHelpTextInterface = "kHelpTextInterface goes here"; // Answer to "What do I do on MY TURN?"
-STRING kHelpOnYourTurn = "kHelpOnYourTurn goes here"; // Answer to "How do I tell the computer WHICH MOVE I want?"
-STRING kHelpStandardObjective = "kHelpStandardObjective goes here"; // Answer to "What is the %s OBJECTIVE of Hare Game?"
-STRING kHelpReverseObjective = ""; // Ignore for now. 
-STRING kHelpTieOccursWhen = "A tie never occurs."; // Should follow "A Tie occurs when..."
-STRING kHelpExample = "kHelpExample goes here"; // A string that shows an example game.
+CONST_STRING kHelpGraphicInterface = ""; // Ignore for now.
+CONST_STRING kHelpTextInterface = "kHelpTextInterface goes here"; // Answer to "What do I do on MY TURN?"
+CONST_STRING kHelpOnYourTurn = "kHelpOnYourTurn goes here"; // Answer to "How do I tell the computer WHICH MOVE I want?"
+CONST_STRING kHelpStandardObjective = "kHelpStandardObjective goes here"; // Answer to "What is the %s OBJECTIVE of Hare Game?"
+CONST_STRING kHelpReverseObjective = ""; // Ignore for now. 
+CONST_STRING kHelpTieOccursWhen = "A tie never occurs."; // Should follow "A Tie occurs when..."
+CONST_STRING kHelpExample = "kHelpExample goes here"; // A string that shows an example game.
 
 /*************************************************************************
 **
@@ -159,6 +158,7 @@ void GameSpecificMenu() {
             break;
         case 'Q': case 'q':
             ExitStageRight();
+            break;
         case 'H': case 'h':
             HelpMenus();
             break;
@@ -680,6 +680,7 @@ void setOption(int option) {
 
 POSITION ActualNumberOfPositions(int variant) {
     // Ignoring for now.
+    (void)variant;
     return 0;
 }
 
@@ -741,14 +742,15 @@ STRING InteractPositionToString(POSITION position) {
     return ret;
 }
 
-STRING InteractPositionToEndData(POSITION position) {
-    return NULL;
-}
-
 STRING InteractMoveToString(POSITION position, MOVE move) {
+    int indices[4];
+    int hare_i;
+    BOOLEAN haresTurn;
+    unpackPosition(position, indices, &hare_i, &haresTurn);
     int destIdx, srcIdx;
     unpackMove(move, &destIdx, &srcIdx);
-    return UWAPI_Board_Regular2D_MakeMoveString(srcIdx, destIdx);
+    char sound = (haresTurn) ? 'r' : 'd';
+    return UWAPI_Board_Regular2D_MakeMoveStringWithSound(srcIdx, destIdx, sound);
 }
 
 /* Algorithm by Sufian Latif,

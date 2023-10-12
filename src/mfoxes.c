@@ -1,13 +1,6 @@
-// $Id: mfoxes.c,v 1.16 2008-02-20 06:13:23 ungu1d3d_s0ul Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
-** NAME:        mfoxes_new.c
+** NAME:        mfoxes.c
 **
 ** DESCRIPTION: Fox and Geese
 **
@@ -16,12 +9,6 @@
 **              Copied/pasted/modified to fit the current Gamesman core by Evan Huang.
 **
 ** DATE:        Adoption of code started on 4/7/05
-**
-** UPDATE HIST: (was blank in the original)
-**              4/7/05  [+]Initial adoption of the old module to the current core
-**              4/11/05 [-]realized that ComputeC is deprecated, and removed it.
-**              4/16/05 [*]Geese go first. That was the right default.
-**              2/9/08  numOfOptions returns 2 now (May need more work).
 **
 **************************************************************************/
 
@@ -40,9 +27,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Foxes and Geese";   /* The name of your game */
-STRING kAuthorName          = "Sergey Kirshner";   /* Your name(s) */
-STRING kDBName              = "foxes";   /* The name to store the database under */
+CONST_STRING kGameName            = "Foxes and Geese";   /* The name of your game */
+CONST_STRING kAuthorName          = "Sergey Kirshner";   /* Your name(s) */
+CONST_STRING kDBName              = "foxes";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -63,10 +50,10 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Move your piece to an adjacent point on the line. If you are\n\
 a geese, then you can only move forward, diagonally forward or\n\
 sideways. Use the LEGEND to detemine which numbers to choose\n\
@@ -80,25 +67,25 @@ captured, it is removed from the board.  The geese cannot\n\
 jump over the fox, but it can try to maneuver it into a position\n\
 where it cannot move."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If you are a fox, you may move along the line to an empty spot\n\
 or capture a goose, by jumping over it to and open spot. The fox\n\
 may move forwards, backwards, diagonally or to the sides. If you\n\
 are a goose, you may only move forward or sideways and you cannot\n\
 jump over the fox. "                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "If you are the fox, the objective is to eat up all the geese until\n\
 they are unable to trap you. If you are a goose, the objective is to\n\
 trap the fox so that it is impossible for him to move."                                                                                                                                                       ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when ...";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -650,9 +637,7 @@ BOOLEAN ValidTextInput (STRING input)
 MOVE ConvertTextInputToMove (STRING input)
 {
 	SLOT fromSlot, toSlot;
-	int ret;
-
-	ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
+	sscanf(input,"%d %d", &fromSlot, &toSlot);
 
 	fromSlot--;           /* user input is 1-16, our rep. is 0-15 */
 	toSlot--;             /* user input is 1-16, our rep. is 0-15 */
@@ -699,6 +684,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -809,8 +795,7 @@ POSITION GetInitialPosition ()
 			theBlankFG[i++] = GOOSEPIECE;
 		else if(c == '-')
 			theBlankFG[i++] = BLANKPIECE;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -1005,66 +990,40 @@ void InitializeOrder () {
 	return;
 }
 
-// $Log: not supported by cvs2svn $
-// Revision 1.15  2006/12/19 20:00:50  arabani
-// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
-//
-// Revision 1.14  2006/10/17 10:45:20  max817
-// HUGE amount of changes to all generic_hash games, so that they call the
-// new versions of the functions.
-//
-// Revision 1.13  2006/03/20 23:56:56  kmowery
-//
-// Added MoveToString and set gMoveToStringFunPtr, required for Visual Value History.
-//
-// Revision 1.12  2006/01/11 22:55:03  hevanm
-// Hopefully really fixed twobitdb. Changed compiler flags for all platforms to "-Wall -g". Look at those warnings. They are not critical, but they are there. Removed the configure script. From now on please remember to (re)grenerate it yourself if/when configure.ac changes, by simply running autoconf.
-//
-// Revision 1.11  2006/01/03 00:19:35  hevanm
-// Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
-//
-// Revision 1.10  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.9  2005/11/10 20:58:51  hevanm
-// Renaming mfoxes_new to mfoxes. You need to regenerate the makefiles with config.status to adopt the changes.
-//
-// Revision 1.3  2005/04/27 22:47:48  ciokita
-// update helpstrings
-//
-// Revision 1.2  2005/04/17 00:45:20  hevanm
-// Cleaned up unused functions and let the geese go first by default. This completes all major work on bringing F&G to the current core.
-//
-// Revision 1.1  2005/04/11 18:01:10  hevanm
-// A version of mfoxes that uses the current core API. Everything except the GUI works, with the exception of a few strange bugs here and there...
-//
-// Revision 1.3  2005/03/10 02:06:47  ogren
-// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
-//
+POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
 
-POSITION InteractStringToPosition(STRING board) {
-	int whosTurn = board[0] == 'F' ? FOXTURN : GOOSETURN;
-	return generic_hash_hash(&board[1], whosTurn);
+	int whoseTurn = (turn == UWAPI_TURN_B) ? FOXTURN : GOOSETURN;
+	POSITION ret = generic_hash_hash(board, whoseTurn);
+	SafeFreeString(board); // Free the string.
+	return ret;
 }
 
 STRING InteractPositionToString(POSITION pos) {
 	char board[BOARDSIZE];
 	generic_hash_unhash(pos, board);
-	int whosTurn = generic_hash_turn(pos);
+	int whoseTurn = generic_hash_turn(pos);
+	char ret[BOARDSIZE + 1];
 
-	char *ret = SafeMalloc(sizeof(char) * (1 + BOARDSIZE + 1));
+	enum UWAPI_Turn turn = (whoseTurn == FOXTURN) ? UWAPI_TURN_B : UWAPI_TURN_A;
+	memcpy(&ret[0], board, sizeof(char) * BOARDSIZE);
+	ret[BOARDSIZE] = '\0';
 
-	ret[0] = whosTurn == FOXTURN ? 'F' : 'G';
-	memcpy(&ret[1], board, sizeof(char) * BOARDSIZE);
-	ret[1 + BOARDSIZE] = '\0';
-
-	return ret;
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 32, ret);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	char board[BOARDSIZE];
+	generic_hash_unhash(pos, board);
+	int whoseTurn = generic_hash_turn(pos);
+	char sound = (whoseTurn == FOXTURN) ? 'f' : 'h';
+	SLOT fromSlot, toSlot;
+	MoveToSlots(mv,&fromSlot,&toSlot);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, sound);
 }

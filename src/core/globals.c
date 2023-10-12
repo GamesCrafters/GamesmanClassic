@@ -31,6 +31,7 @@
 
 #include "types.h"
 #include "constants.h"
+#include <stddef.h>
 
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
@@ -160,6 +161,7 @@ TIER gCurrentTier = -1;
 TIERPOSITION gCurrentTierSize = 0;
 BOOLEAN*        gTierDBExists = NULL;
 // For the modules
+BOOLEAN kCombinatorial = FALSE;
 BOOLEAN kSupportsTierGamesman = FALSE;
 BOOLEAN kSupportsShardGamesman = FALSE;
 BOOLEAN kUsesQuartoGamesman = FALSE;

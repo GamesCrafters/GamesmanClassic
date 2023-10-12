@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mkono.c
@@ -16,23 +8,6 @@
 **
 ** DATE:        09/29/04
 **
-** UPDATE HIST: 09/29/04 - Initial Commit: DoMove, PrintPosition, Primitive,
-**                         helper functions, board representation.
-**
-**              10/07/04 - Fixed up everything. Game runs!
-**                         To-do: ValidTextInput and game specific options.
-**
-**              10/08/04 - Changed it so the user input is 1-16 instead of 0-15.
-**                         Added help strings. Added LEGEND and BOARD to printPosition.
-**
-**              10/11/04 - Fixed i/o formatting a bit, added predictions to PrintPosition.
-**
-**              12/09/04 - Fixed misere to use gStandard instead of our own bool.
-**                         Added [x, y] to PrintComputersMove.
-**                         Fixed little bug in GenerateMoves that was generating bogus moves.
-**                         Fixed bug in numberOfPieces so that it now works.
-**                         Tweaked the hash to be slightly more efficient.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -41,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 /*************************************************************************
 **
@@ -54,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "(Four Field) Kono";   /* The name of your game */
-STRING kAuthorName          = "Greg Bonin and Nathan Spindel";     /* Your name(s) */
-STRING kDBName              = "kono";   /* The name to store the database under */
+CONST_STRING kGameName            = "(Four Field) Kono";   /* The name of your game */
+CONST_STRING kAuthorName          = "Greg Bonin and Nathan Spindel";     /* Your name(s) */
+CONST_STRING kDBName              = "kono";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -76,33 +46,33 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose to move your\n\
 piece from, a space character, and a second number to where you want the piece\n\
 to move to, and hit return. If at any point you have made a mistake, you can\n\
  type u and hit return and the system will revert back to your most recent position."                                                                                                                                                                                                                                                            ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If a capture is available, you must make a capture move by moving one of your\n\
 pieces (up/down/left/right) over another one of your pieces and capturing the\n\
 opponent piece two spaces away. If a capture move is not available, you move\n\
 one of your pieces to an adjacent space."                                                                                                                                                                                                                                                           ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To capture all but one of your opponent's pieces, or to put them into a position\n\
 where they cannot move."                                                                                             ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To have all but one of your pieces captured first, or to be put in a position where\n\
 you cannot move."                                                                                                ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Both players have exactly one piece each, or both players cannot move.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -589,9 +559,9 @@ BOOLEAN ValidTextInput (STRING input)
 	/* move format: "xx yy" where xx is source and yy is dest (board is 10 to 99 squares)
 	 *              "xxx yyy" is board has 100 to 999 squares */
 
-	int i, spaceCount = 0;
+	int spaceCount = 0;
 
-	for (i = 0; i < strlen(input); i++) {
+	for (size_t i = 0; i < strlen(input); i++) {
 		if (input[i] == ' ')
 			spaceCount++;
 	}
@@ -627,7 +597,7 @@ MOVE ConvertTextInputToMove (STRING input)
 	k = 0;
 	stringPos = i;
 
-	for (; i < strlen(input); i++) {}
+	for (; i < (int)strlen(input); i++) {}
 
 	for (j = i-1; j >= stringPos; j--)
 		dest += ((input[j]-'0') * exponent(10, k++));
@@ -670,6 +640,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -720,7 +691,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -904,13 +875,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

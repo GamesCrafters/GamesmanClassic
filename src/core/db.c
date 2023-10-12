@@ -192,44 +192,56 @@ VALUE db_get_value(POSITION pos){
 }
 
 VALUE db_put_value(POSITION pos, VALUE data){
-	printf("DB: Cannot store value of position " POSITION_FORMAT ". The database is uninitialized.\n", pos);
+	printf("DB: Cannot store value %d of position " POSITION_FORMAT ". The database is uninitialized.\n", data, pos);
 	ExitStageRight();
 	exit(0);
 }
 
 REMOTENESS db_get_remoteness(POSITION pos){
+	(void) pos;
 	return kBadRemoteness;
 }
 
 void db_put_remoteness(POSITION pos, REMOTENESS data){
+	(void) pos;
+	(void) data;
 	return;
 }
 
 BOOLEAN db_check_visited(POSITION pos){
+	(void) pos;
 	return FALSE;
 }
 
 void db_mark_visited(POSITION pos){
+	(void) pos;
 	return;
 }
 
 void db_unmark_visited(POSITION pos){
+	(void) pos;
 	return;
 }
 
 MEX db_get_mex(POSITION pos){
+	(void) pos;
 	return kBadMexValue;
 }
 
 void db_put_mex(POSITION pos, MEX theMex){
+	(void) pos;
+	(void) theMex;
 	return;
 }
 
 WINBY db_get_winby(POSITION pos) {
+	(void) pos;
 	return 0;
 }
 
 void db_put_winby(POSITION pos, WINBY winBy) {
+	(void) pos;
+	(void) winBy;
 	return;
 }
 
@@ -401,7 +413,7 @@ void UnMarkAsVisited (POSITION position)
 
 void UnMarkAllAsVisited()
 {
-	int i;
+	POSITION i;
 
 	for(i = 0; i < gNumberOfPositions; i++)
 	{

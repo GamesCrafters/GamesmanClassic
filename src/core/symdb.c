@@ -535,7 +535,7 @@ symdb_get_remoteness(
         )
 {
 	REMOTENESS rem = (REMOTENESS) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_REMSLOT );
-	if(symdb_write_slice->maxvalue[SYMDB_REMSLOT/2]+1 == rem) {
+	if((REMOTENESS)(symdb_write_slice->maxvalue[SYMDB_REMSLOT/2]+1) == rem) {
 		return REMOTENESS_MAX;
 	} else {
 		return rem;
@@ -1761,7 +1761,7 @@ symdb_save_database()
 	}
 
 	// allocate memory for each filename
-	for(i = 0; i<slist_size(symdb_schemes); i++) {
+	for(i = 0; i<(int) slist_size(symdb_schemes); i++) {
 		outfilenames[i] = (char *) malloc( 256*sizeof(char) );
 		if(NULL == outfilenames[i]) {
 			status = STATUS_NOT_ENOUGH_MEMORY;
@@ -1865,7 +1865,7 @@ symdb_save_database()
 
 _bailout:
 
-	for(i = 0; i<slist_size(symdb_schemes); i++) {
+	for(i = 0; i<(int) slist_size(symdb_schemes); i++) {
 		SAFE_FREE(outfilenames[i]);
 	}
 

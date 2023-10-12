@@ -11,72 +11,6 @@
 ** CREDITS:     Questions answered by Dam, JJ, and Scott
 **              Minor debugging by Jonathon Tsai
 **
-** 2004.3.30    First compilation of subroutines into mttc.c; this update
-**              basically includes all functions below except for
-**              ttc_hash and ttc_unhash, which still needs to be written
-**                                                                -- rc
-** 2004.3.31    Added row nums and letters to print position. Shall we
-**              consider changing the Queen to Bishop? That's what the
-**              original game has. I'll add some variants later.
-**                                                                -- jt
-**
-** 2004.4.6     Added in support for generic_hash; still have to add in
-**              modified ruleset as per discussion with Dom.
-**                                                                -- rc
-**
-** 2004.4.18    Fixed some stuff, found lots more to fix, etc. etc.
-**                                                                -- rc
-**
-** 2004.4.25    Complete rewrite! This version makes all board options
-**              configurable, notably: board width, board height, number
-**              of pieces for each side, types of pieces for each side,
-**              and number of pieces necessary to get in a row to win!
-**              Still need to rewrite GenerateMoves() and
-**              GameSpecificMenu().
-**                                                                 --rc
-**
-** 2004.4.26    Added in GenerateMoves() for all pieces except for the
-**              pawns (which present a problem because they have
-**              direction associated with their move).  Fixed some
-**              memory leaks.
-**
-**              It turns out the original ruleset specified that moving
-**              pieces was only allowed after the third turn.  Since
-**              this would require me to add in extra state to an already
-**              jam packed position, I have no plans to implement this
-**              rule at this time.
-**
-**              Added in GameSpecificMenu as well, which is really
-**              cool because the knob can be turned on almost every
-**              aspect of this game.
-**
-**              Hmmm everything seems to be fine but....segfaults.
-**                                                                 --rc
-**
-** 2004.4.27    It solves!  And better yet, it solves correctly (or so
-**              it appears).  This looks to be an interesting game,
-**              especially with the modifiability of all the game
-**              parameters.  I've only just now started testing the limits
-**              of hash and memory....so I'll probably be modifying
-**              initial starting positions in the near future (to find
-**              one more interesting than the current)
-**
-**              Fixed primitive position, which was buggy.
-**
-**              Added documentation (help sections)
-**                                                                 --rc
-** 2004.5.4     Fixed bug in moving pieces (ala knight thing)
-**              Fixed printMove bug
-**              Changed moves to 'a2a4' as opposed to 'qa2a4' format
-**
-**              Need to add in options, i.e. misere and diagonals off
-**                                                                --rc
-**
-** 2004.5.11    Fixed another bug in inputting text - hopefully that's it.
-**
-** 2005.3.3     Added missing generic hasher prototypes and include time.h
-**              To suppress GCC 3.4 warnings
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -85,11 +19,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 #include <time.h>
 
 extern STRING gValueString[];
@@ -99,9 +29,9 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1; /* Need to ask michel if this is correct */
 
-STRING kAuthorName         = "Reman Child";
-STRING kGameName           = "Tic-Tac-Chec";
-STRING kDBName             = "ttc";
+CONST_STRING kAuthorName         = "Reman Child";
+CONST_STRING kGameName           = "Tic-Tac-Chec";
+CONST_STRING kDBName             = "ttc";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -113,10 +43,10 @@ BOOLEAN kDebugDetermineValue = TRUE;
    Help strings that are pretty self-explanatory
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, you must make a move corresponding to the piece you choose\n\
 to move. If you want to *place* a piece from off the board, moves are\n\
 specified by the piece followed by the destination cell.  If you want to\n\
@@ -134,24 +64,24 @@ Examples of MOVING pieces:\n\
 Capturing consists of the same conventions; no differentiation is made in\n\
 move nomenclature."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You input a valid move - either a capture, placement, or simple piece move";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective of this game is to get N of your pieces in a row, where N \n\
 denotes the win condition that the game is initialized with (default: ).\n\
 This includes a row in either the horizontal, vertical, or diagonal \n\
 directions."                                                                                                                                                                                                                                         ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "The misere option of this game is essentially meaningless.  There is no\n\
 forcing combination to make your opponent 'lose'."                                                                                    ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
 /* Added \n\ to handle multi-lined strings. --- Robert Liao */
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Ok, Player and Computer, let us begin. \n\
 \n\
 Type '?' if you need assistance...\n\
@@ -621,7 +551,7 @@ void GameSpecificMenu () {
 	void PrintPosition (POSITION, STRING, BOOLEAN);
 	void resetBoard(), resetPieces(),addPieceToInit(PIECE);
 	PIECE stringToPiece(char);
-	int *input,i;
+	int *input;
 	char move[MOVE_LENGTH+1], piece;
 	char option[2];
 	BOOLEAN hadInitialPieces(MPLAYER);
@@ -694,7 +624,6 @@ void GameSpecificMenu () {
 			printf("  Input a line of WHITE pieces (q,b,n,k,r)\n");
 			printf("  i.e. '> q b q' would correspond to starting with two queens and a bishop\n\n");
 			printf("  > ");
-			i = 0;
 			getchar(); // Account for the previous input from stdin
 			// Hmmm will eventually have to check string to make sure something legal is added
 			if (hadInitialPieces(WHITE))
@@ -710,7 +639,6 @@ void GameSpecificMenu () {
 			printf("  Input a line of BLACK pieces (Q,B,N,K,R))\n");
 			printf("  i.e. '> Q B Q' would correspond to starting with two queens and a bishop\n\n");
 			printf("  > ");
-			i = 0;
 			getchar(); // Account for the previous input from stdin
 			// Hmmm will eventually have to check string to make sure something legal is added
 			if (hadInitialPieces(BLACK))
@@ -741,6 +669,7 @@ void GameSpecificMenu () {
 ************************************************************************/
 
 void SetTclCf (int options[]) {
+	(void)options;
 	return;
 }
 
@@ -872,7 +801,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 
 VALUE Primitive (POSITION position) {
 	BOARD board, getBoard(POSITION);
-	MPLAYER player;
+	MPLAYER player = getPlayer(position);
 	int i, numInRow(CELL,BOARD);
 
 	board = getBoard(position);
@@ -1835,6 +1764,9 @@ MOVELIST *genQueenMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) 
 }
 /* Generates the Pawn moves */
 MOVELIST *genPawnMoves(BOARD board, MPLAYER player, CELL cell, MOVELIST *head) {
+	(void)board;
+	(void)player;
+	(void)cell;
 	return head;
 }
 
@@ -1973,13 +1905,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

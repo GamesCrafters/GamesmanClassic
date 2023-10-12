@@ -1,4 +1,3 @@
-
 #ifndef GMCORE_GLOBALS_H
 #define GMCORE_GLOBALS_H
 
@@ -61,16 +60,16 @@ extern BOOLEAN gAnalysisLoaded;
 */
 
 /* constant string literals */
-extern STRING kHelpGraphicInterface;           /* The Graphical Interface Help string. */
-extern STRING kHelpTextInterface;              /* The Help for Text Interface string. */
-extern STRING kHelpOnYourTurn;                 /* The Help for Your turn string. */
-extern STRING kHelpStandardObjective;          /* The Help for Objective string. */
-extern STRING kHelpReverseObjective;           /* The Help for reverse Objective string. */
-extern STRING kHelpTieOccursWhen;              /* The Help for Tie occuring string. */
-extern STRING kHelpExample;                    /* The Help for Exmaples string. */
-extern STRING kAuthorName;                     /* Name of the Author ... */
-extern STRING kGameName;
-extern STRING kDBName;                         /* supposed to be the name of the DB?*/
+extern CONST_STRING kHelpGraphicInterface;           /* The Graphical Interface Help string. */
+extern CONST_STRING kHelpTextInterface;              /* The Help for Text Interface string. */
+extern CONST_STRING kHelpOnYourTurn;                 /* The Help for Your turn string. */
+extern CONST_STRING kHelpStandardObjective;          /* The Help for Objective string. */
+extern CONST_STRING kHelpReverseObjective;           /* The Help for reverse Objective string. */
+extern CONST_STRING kHelpTieOccursWhen;              /* The Help for Tie occuring string. */
+extern CONST_STRING kHelpExample;                    /* The Help for Exmaples string. */
+extern CONST_STRING kAuthorName;                     /* Name of the Author ... */
+extern CONST_STRING kGameName;
+extern CONST_STRING kDBName;                         /* supposed to be the name of the DB?*/
 
 /* constant numeric and boolean values*/
 extern POSITION gInitialPosition;              /* The initial position of the game */
@@ -82,6 +81,7 @@ extern BOOLEAN kDebugDetermineValue;
 extern BOOLEAN kDebugMenu;                     /* whether to display the debug menu or not*/
 extern POSITION kBadPosition;
 extern BOOLEAN kPartizan;                      /* TRUE <==> module is a Partizan game */
+extern BOOLEAN kCombinatorial;                 /* TRUE <==> game is combinatorial */
 extern BOOLEAN kGameSpecificMenu;              /* TRUE <==> module supports GameSpecificMenu() */
 extern BOOLEAN kTieIsPossible;                 /* TRUE <==> A Tie is possible */
 extern BOOLEAN kLoopy;                         /* TRUE <==> Game graph has cycles */

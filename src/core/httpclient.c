@@ -224,7 +224,6 @@ int post(httpreq *req, char body[], int bodyLength, httpres** res, char** errMsg
 	header *tmpHdr = NULL;
 	char buffer[64];
 	int sockFd;
-	int n;
 	*res = NULL;
 	*errMsg = NULL;
 
@@ -256,25 +255,25 @@ int post(httpreq *req, char body[], int bodyLength, httpres** res, char** errMsg
 	}
 
 	// Submit the http request
-	n = write(sockFd, "POST ", 5);
-	n = write(sockFd, req->path, strlen(req->path));
-	n = write(sockFd, " HTTP/1.1\r\n", 11);
+	(void)write(sockFd, "POST ", 5);
+	(void)write(sockFd, req->path, strlen(req->path));
+	(void)write(sockFd, " HTTP/1.1\r\n", 11);
 	// Add the headers
 	currHdr = req->headers;
 	while (currHdr != NULL)
 	{
-		n = write(sockFd, currHdr->name, strlen(currHdr->name));
-		n = write(sockFd, ": ", 2);
-		n = write(sockFd, currHdr->value, strlen(currHdr->value));
-		n = write(sockFd, "\r\n", 2);
+		(void)write(sockFd, currHdr->name, strlen(currHdr->name));
+		(void)write(sockFd, ": ", 2);
+		(void)write(sockFd, currHdr->value, strlen(currHdr->value));
+		(void)write(sockFd, "\r\n", 2);
 		currHdr = currHdr->next;
 	}
 
 	// Add the extra line to separate headers from body
-	n = write(sockFd, "\r\n", 2);
+	(void)write(sockFd, "\r\n", 2);
 	// Add the body (if any)
 	if (bodyLength > 0)
-		n = write(sockFd, body, bodyLength);
+		(void)write(sockFd, body, bodyLength);
 
 	// Create the response
 	if ((*res = malloc(sizeof(httpres))) == NULL)
@@ -315,7 +314,6 @@ int post(httpreq *req, char body[], int bodyLength, httpres** res, char** errMsg
 	if (req->path != NULL)
 		free(req->path);
 	free(req);
-
 	return 0;
 }
 
@@ -514,7 +512,7 @@ void settype(httpreq *req, char value[])
  * name - name of the header to add
  * value - value for the header to add
  */
-void addheader(httpreq *req, char name[], char value[])
+void addheader(httpreq *req, char name[], CONST_STRING value)
 {
 	header *hdr = NULL;
 	header *currHdr = NULL;

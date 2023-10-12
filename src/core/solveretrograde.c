@@ -100,7 +100,7 @@ void skipToNewline(FILE*);
 void TestRemote();
 void r_getBounds(TIER, char*, BOOLEAN);
 BOOLEAN r_checkChar(char, char, char*, int*);
-BOOLEAN r_checkStr(char*, char*, int*);
+BOOLEAN r_checkStr(const char*, char*, int*);
 char* r_intToString(int);
 // Level File Functions
 BOOLEAN l_readFullLevelFile(POSITION*, POSITION*);
@@ -127,6 +127,7 @@ void DoTierDependencies(TIER, FILE*, time_t times[][2], time_t, time_t);
 ************************************************************************/
 
 VALUE DetermineRetrogradeValue(POSITION position) {
+	if (position == -1ULL) return undecided;
 	gDontLoadTierDB = FALSE;
 	// for the experimental GenerateMoves (commented out for now)
 	//if (gGenerateMovesEfficientFunPtr != NULL)
@@ -144,10 +145,10 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	ifprintf(gTierSolvePrint, "\n----- Checking the REQUIRED API Functions: -----\n\n");
 
-	if (gInitialTier == -1) {
+	if (gInitialTier == -1ULL) {
 		ifprintf(gTierSolvePrint, "-gInitialTier NOT GIVEN\n"); cont = FALSE;
 	}
-	if (gInitialTierPosition == -1) {
+	if (gInitialTierPosition == -1ULL) {
 		ifprintf(gTierSolvePrint, "-gInitialTierPosition NOT GIVEN\n"); cont = FALSE;
 	}
 	if (gTierChildrenFunPtr == NULL) {
@@ -184,12 +185,14 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 
 	ifprintf(gTierSolvePrint, "\n----- Checking and Generating the Tier Tree: -----\n\n");
 
-	solveList = checkAndDefineTierTree();
-	if (solveList == NULL) {
-		printf("\nPlease fix gTierChildren before attempting to solve!\n"
-		       "Exiting Retrograde Solver (WITHOUT Solving)...\n");
-		ExitStageRight();
-	} else ifprintf(gTierSolvePrint, "No Errors Found! Tier Tree generated successfully.\n");
+	if (!gIsInteract) {
+		solveList = checkAndDefineTierTree();
+		if (solveList == NULL) {
+			printf("\nPlease fix gTierChildren before attempting to solve!\n"
+				"Exiting Retrograde Solver (WITHOUT Solving)...\n");
+			ExitStageRight();
+		} else ifprintf(gTierSolvePrint, "No Errors Found! Tier Tree generated successfully.\n");
+	}
 
 	//OK, the pure tier tree is here! let's use it from here
 	if (gVisTiers)
@@ -217,8 +220,10 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 	ifprintf(gTierSolvePrint, "\n   %llu Tiers are confirmed to be solved.\n", numTiers);
 	gTotalTiers = numTiers; // for the GUI load percentage printing
 
-	ifprintf(gTierSolvePrint, "\n----- Checking for existing Tier DBs: -----\n\n");
-	checkExistingDB();
+	if (!gIsInteract) {
+		ifprintf(gTierSolvePrint, "\n----- Checking for existing Tier DBs: -----\n\n");
+		checkExistingDB();
+	}
 
 	//Now, if we need to genreate a plain file that doesn't include solved tiers, here's our chance
 	if (gVisTiersPlain) {
@@ -294,10 +299,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 					printf("Fully Solving starting from Tier %llu...\n\n",gCurrentTier);
 					BOOLEAN loop = TRUE;
 
-					TIERLIST *list;
-					list = RemoteGetTierSolveOrder();
 					TIERLIST *ptr;
-
 					while (loop) {
 						PrepareToSolveNextTier();
 						SolveTier(0,gCurrentTierSize);
@@ -328,6 +330,7 @@ VALUE DetermineRetrogradeValue(POSITION position) {
 					       "databases (in your data/m%s_%d_tierdb directory) are not altered,\n"
 					       "and the API functions are unchanged from their current state.\n", kDBName, variant);
 					ExitStageRight();
+					break;
 				case 'h': case 'H':
 					for (ptr = tierSolveList; ptr != NULL; ptr = ptr->next) {
 						char f1[80], f2[80];
@@ -408,7 +411,7 @@ void AutoSolveAllTiersMultiProcess() {
 
 	time_t rawtime;
 	for (ptr = list; ptr != NULL; ptr = ptr->next) {
-		if (ptr->tier > max) {
+		if ((int) ptr->tier > max) {
 			max = (int) ptr->tier;
 		}
 	}
@@ -837,10 +840,10 @@ POSITION InitTierGamesman() {
 	ifprintf(gTierSolvePrint, "\n-----Checking the REQUIRED TIER GAMESMAN API Functions:-----\n\n");
 	BOOLEAN cont = TRUE;
 
-	if (gInitialTier == -1) {
+	if (gInitialTier == -1ULL) {
 		ifprintf(gTierSolvePrint, "-gInitialTier NOT GIVEN\n"); cont = FALSE;
 	}
-	if (gInitialTierPosition == -1) {
+	if (gInitialTierPosition == -1ULL) {
 		ifprintf(gTierSolvePrint, "-gInitialTierPosition NOT GIVEN\n"); cont = FALSE;
 	}
 	if (gTierChildrenFunPtr == NULL) {
@@ -919,7 +922,7 @@ POSITIONLIST* solveTheseTooList;
  */
 
 void rInitFRStuff() {
-	int i;
+	POSITION i;
 	childCounts = (CHILDCOUNT*) SafeMalloc (gCurrentTierSize * sizeof(CHILDCOUNT));
 	for (i = 0; i < gCurrentTierSize; i++)
 		childCounts[i] = 0;
@@ -941,7 +944,7 @@ void rFreeFRStuff() {
 	if (childCounts != NULL) SafeFree(childCounts);
 	if (!useUndo) {
 		// Free the Position Lists
-		int i;
+		POSITION i;
 		for (i = 0; i < gNumberOfPositions; i++)
 			FreePositionList(rParents[i]);
 		if (rParents != NULL) SafeFree(rParents);
@@ -1161,7 +1164,7 @@ void dedupHashExpand() {
 			ExitStageRight();
 			exit(0);
 		}
-		for (int i = 0; i < oldDedupHashSize; i++) {
+		for (POSITION i = 0; i < oldDedupHashSize; i++) {
 			if (oldDedupHash[i] != 0) {
 				dedupHashAdd(oldDedupHash[i] - 1);
 			}
@@ -1596,14 +1599,14 @@ TIERNODELIST** nodesHashTable = NULL; // a hashtable to keep track of nodes
 void initDFSStuff() {
 	list = NULL;
 	nodesHashTable = (TIERNODELIST**) SafeMalloc(HASHTABLE_BUCKETS * sizeof(TIERNODELIST*));
-	int i;
+	unsigned int i;
 	for (i = 0; i < HASHTABLE_BUCKETS; i++)
 		nodesHashTable[i] = NULL;
 }
 
 void freeDFSStuff() {
 	FreeTierList(list);
-	int i;
+	unsigned int i;
 	for (i = 0; i < HASHTABLE_BUCKETS; i++)
 		FreeTierNodeList(nodesHashTable[i]);
 	if (nodesHashTable != NULL)
@@ -1872,8 +1875,7 @@ void skipToNewline(FILE* fp) {
 void TestRemote() {
 	BOOLEAN cont = TRUE;
 	TIERLIST *list, *ptr;
-	TIERPOSITION tier, start, finish;
-	int comps, i;
+	TIERPOSITION tier, start, finish, i, comps;
 	POSITION end, *starts;
 	char c;
 	RemoteInitialize();
@@ -1976,7 +1978,7 @@ void TestRemote() {
 				for (ptr = list; ptr != NULL; ptr = ptr->next, tier++) {
 					end = (RemoteGetTierSize(ptr->tier)*(i+1))/comps;
 					RemoteSolveTier(ptr->tier, starts[tier], end);
-					printf("CPU %d solved Tier %llu, from %llu to %llu\n", i+1, ptr->tier, starts[tier], end);
+					printf("CPU %llu solved Tier %llu, from %llu to %llu\n", i+1, ptr->tier, starts[tier], end);
 					starts[tier] = end;
 				}
 			}
@@ -1990,6 +1992,7 @@ void TestRemote() {
 			break;
 		case 'q': case 'Q':
 			ExitStageRight();
+			break;
 		default:
 			printf("Invalid option!\n");
 		}
@@ -2189,7 +2192,7 @@ BOOLEAN RemoteMergeToMakeTierDBIfCan(TIER tier) {
 	gInitializeHashWindow(tier, TRUE);
 	// keep an array of visited nums
 	BOOLEAN* seen = (BOOLEAN*) SafeMalloc(gCurrentTierSize * sizeof(BOOLEAN));
-	int i;
+	POSITION i;
 	for (i = 0; i < gCurrentTierSize; i++)
 		seen[i] = FALSE;
 	// check through all the minifiles
@@ -2199,7 +2202,7 @@ BOOLEAN RemoteMergeToMakeTierDBIfCan(TIER tier) {
 		while((dp = readdir(dfd)) != NULL) {
 			filename = dp->d_name;
 			r_getBounds(tier, filename, TRUE);
-			if (gDBTierStart != -1 && tierdb_load_minifile(filename)) { // is a correct minitierdb!
+			if (gDBTierStart != -1ULL && tierdb_load_minifile(filename)) { // is a correct minitierdb!
 				for (i = gDBTierStart; i < gDBTierEnd; i++)
 					seen[i] = TRUE;
 			}
@@ -2221,13 +2224,13 @@ BOOLEAN RemoteMergeToMakeTierDBIfCan(TIER tier) {
 	if (!SaveDatabase())
 		return FALSE;
 	// now, we delete all minifiles and return true
-	char removeFile[MAXINPUTLENGTH];
+	char removeFile[MAXINPUTLENGTH * 2];
 	dfd = opendir(directory);
 	if(dfd != NULL) {
 		while((dp = readdir(dfd)) != NULL) {
 			filename = dp->d_name;
 			r_getBounds(tier, filename, TRUE);
-			if (gDBTierStart != -1) { // is a minitierdb!
+			if (gDBTierStart != -1ULL) { // is a minitierdb!
 				sprintf(removeFile, "%s/%s", directory, filename);
 				remove(removeFile);
 			}
@@ -2277,7 +2280,7 @@ void r_getBounds(TIER tier, char* name, BOOLEAN tierdb) {
 		index++; i++;
 	}
 	startStr[index] = '\0';
-	int start = atoi(startStr);
+	POSITION start = (POSITION) atoi(startStr);
 	// check _
 	if (r_checkChar('_','_',name,&i)) return;
 	// check end
@@ -2287,8 +2290,8 @@ void r_getBounds(TIER tier, char* name, BOOLEAN tierdb) {
 		index++; i++;
 	}
 	endStr[index] = '\0';
-	int end = atoi(endStr);
-	if (start < 0 || start >= end || end > gCurrentTierSize) return;
+	POSITION end = (POSITION) atoi(endStr);
+	if (start >= end || end > gCurrentTierSize) return;
 	// check _minitierdb.dat.gz
 	if (r_checkStr((tierdb ? "_minitierdb.dat.gz" : "_minilevelfile.dat.gz"),name,&i)) return;
 	// sucess! set the vars and return
@@ -2305,8 +2308,8 @@ BOOLEAN r_checkChar(char chStart, char chEnd, char* str, int* i) {
 
 // also helps above, uses checkChar on a whole string
 // (so, checks that it's NOT equal)
-BOOLEAN r_checkStr(char* check, char* str, int* i) {
-	int j;
+BOOLEAN r_checkStr(const char* check, char* str, int* i) {
+	size_t j;
 	for (j = 0; j < strlen(check); j++) {
 		if (r_checkChar(check[j],check[j],str,i))
 			return TRUE;
@@ -2378,7 +2381,7 @@ BOOLEAN RemoteMergeToMakeLevelFileIfCan(TIER tier) {
 	POSITION cells = (gNumberOfPositions/8)+1;
 	BOOLEAN* seen = (BOOLEAN*) SafeMalloc(gCurrentTierSize * sizeof(BOOLEAN));
 	BITARRAY* visited = (BITARRAY*) SafeMalloc(cells * sizeof(BITARRAY));
-	int i;
+	POSITION i;
 	for (i = 0; i < gCurrentTierSize; i++)
 		seen[i] = FALSE;
 	for (i = 0; i < cells; i++)
@@ -2390,7 +2393,7 @@ BOOLEAN RemoteMergeToMakeLevelFileIfCan(TIER tier) {
 		while((dp = readdir(dfd)) != NULL) {
 			filename = dp->d_name;
 			r_getBounds(tier, filename, FALSE);
-			if (gDBTierStart != -1 && l_readPartialLevelFile(&min, &max)) { // is a correct minilevelfile!
+			if (gDBTierStart != -1ULL && l_readPartialLevelFile(&min, &max)) { // is a correct minilevelfile!
 				for (i = gDBTierStart; i < gDBTierEnd; i++)
 					seen[i] = TRUE;
 				for (i = min; i < max; i++)
@@ -2421,13 +2424,13 @@ BOOLEAN RemoteMergeToMakeLevelFileIfCan(TIER tier) {
 	}
 	l_freeBitArray();
 	// now, we delete all minifiles and return true
-	char removeFile[MAXINPUTLENGTH];
+	char removeFile[MAXINPUTLENGTH * 2];
 	dfd = opendir(directory);
 	if(dfd != NULL) {
 		while((dp = readdir(dfd)) != NULL) {
 			filename = dp->d_name;
 			r_getBounds(tier, filename, FALSE);
-			if (gDBTierStart != -1) { // is a minilevelfile!
+			if (gDBTierStart != -1ULL) { // is a minilevelfile!
 				sprintf(removeFile, "%s/%s", directory, filename);
 				remove(removeFile);
 			}
@@ -2463,7 +2466,7 @@ BOOLEAN l_readFullLevelFile(POSITION* minHash, POSITION* maxHash) {
 	POSITION size = (max-min)+1;
 	if (l_bitArray != NULL) SafeFree(l_bitArray);
 	l_bitArray = (BITARRAY*) SafeMalloc(((size/8)+1) * sizeof(BITARRAY));
-	int i;
+	POSITION i;
 	for (i = 0; i < ((size/8)+1); i++)
 		l_bitArray[i] = 0;
 	printf("READING!!!!! size: %llu\n", size);
@@ -2525,7 +2528,7 @@ void l_initWindowBitArray() {
 	if (l_windowBitArray != NULL) SafeFree(l_windowBitArray);
 	POSITION cells = ((gNumberOfPositions/8)+1);
 	l_windowBitArray = (BITARRAY*) SafeMalloc(cells * sizeof(BITARRAY));
-	int i;
+	POSITION i;
 	for (i = 0; i < cells; i++)
 		l_windowBitArray[i] = 0;
 }
@@ -2546,7 +2549,7 @@ BOOLEAN l_initLevelFileSolve() {
 	POSITION cells = (gCurrentTierSize/8)+1;
 	printf("CELLS: %llu\n", cells);
 	BITARRAY* visited = (BITARRAY*) SafeMalloc(cells * sizeof(BITARRAY));
-	int i;
+	POSITION i;
 	for (i = 0; i < cells; i++)
 		visited[i] = 0;
 	// init vars and go
@@ -2617,7 +2620,7 @@ BOOLEAN l_writeLevelFile(POSITION start, POSITION end) {
 		        kDBName, getOption(), kDBName, getOption(), gCurrentTier, start, end);
 	printf("I'MMA BE WRITIN'!!\n");
 	printf("Here's what I be writin' wit': ");
-	int i;
+	POSITION i;
 	for (i = 0; i < ((gNumberOfPositions/8)+1); i++)
 		printf("%x ", l_windowBitArray[i]);
 	printf("\n");

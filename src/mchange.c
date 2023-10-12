@@ -12,8 +12,6 @@
 **
 ** UPDATE HIST: 2004-04-14 Upgraded to work with Gamesman3
 **
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -22,7 +20,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* The beginning position is:
@@ -42,9 +39,9 @@ POSITION gNumberOfPositions  = 9565938;  /* 3^14 times 2 */
 POSITION gInitialPosition    = 9388804; /* x goes first. 4605835 + POSITION_OFFSET */
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Alice Chang and Judy Tuan";
-STRING kGameName           = "Change!";
-STRING kDBName             = "change";
+CONST_STRING kAuthorName         = "Alice Chang and Judy Tuan";
+CONST_STRING kGameName           = "Change!";
+CONST_STRING kDBName             = "change";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -53,34 +50,34 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Players alternate turns moving one of their pieces along the lines. First\n\
 select the piece by typing in the number the piece is in. Then select where\n\
 you want to move the piece by typing in the corresponding space. Pieces may\n\
 not move backward, jump pieces or turn corners "                                                                                                                                                                                                                                                    ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Slide your piece to an empty space by first selecting your piece number\n\
 the space number."                                                                                    ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the first player to occupy your opponent's spaces.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\
@@ -213,6 +210,7 @@ void GameSpecificMenu() {
 			return;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -242,6 +240,7 @@ void GameSpecificMenu() {
 void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -313,8 +312,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -687,8 +685,7 @@ MOVE ConvertTextInputToMove(input)
 STRING input;
 {
 	SLOT fromSlot, toSlot;
-	int text;
-	text = sscanf(input, "%d %d", &fromSlot, &toSlot);
+	sscanf(input, "%d %d", &fromSlot, &toSlot);
 
 	fromSlot--;
 	toSlot--;
@@ -788,17 +785,17 @@ BlankOX *theBlankOX, *whosTurn;
 	else *whosTurn = o;
 
 	for(i = (BOARDSIZE - 1); i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -852,20 +849,88 @@ SLOT fromSlot, toSlot;
 
 
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	enum UWAPI_Turn turn;
+	unsigned int num_rows, num_columns; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
+		// Failed to parse string
+		return INVALID_POSITION;
+	}
+	BlankOX theBlankOx[BOARDSIZE], whoseTurn;
+
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (board[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected char in position\n");
+				break;
+			case '-':
+				theBlankOx[i] = Blank;
+				break;
+			case 'x':
+				theBlankOx[i] = x;
+				break;
+			case 'o':
+				theBlankOx[i] = o;
+				break;
+		}
+	}
+
+	whoseTurn = (turn == UWAPI_TURN_A) ? x : o;
+	
+	return BlankOXToPosition(theBlankOx, whoseTurn);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+	BlankOX theBlankOx[BOARDSIZE], whoseTurn;
+	PositionToBlankOX(pos,theBlankOx,&whoseTurn);
+	char board[BOARDSIZE + 1];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (theBlankOx[i]) {
+			default:
+				fprintf(stderr, "Error: Unexpected position\n");
+				break;
+			case Blank:
+				board[i] = '-';
+				break;
+			case o:
+				board[i] = 'o';
+				break;
+			case x:
+				board[i] = 'x';
+				break;
+		}
+	}
+	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
+
+	enum UWAPI_Turn turn = (whoseTurn == x) ? UWAPI_TURN_A : UWAPI_TURN_B;
+
+	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 14, board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
+
+int arrowSource[14][14] = {
+	{-1,-1,-1,0,0,-1,-1,3,-1,4,-1,-1,-1,9},
+	{-1,-1,-1,-1,1,1,-1,-1,4,-1,5,8,-1,-1},
+	{-1,-1,-1,-1,-1,2,2,-1,-1,5,-1,-1,9,-1},
+	{3,-1,-1,-1,-1,-1,-1,3,3,-1,-1,-1,8,-1},
+	{4,4,-1,-1,-1,-1,-1,-1,4,4,-1,8,-1,9},
+	{-1,5,5,-1,-1,-1,-1,-1,-1,5,5,-1,9,-1},
+	{-1,-1,6,-1,-1,-1,-1,-1,-1,-1,6,-1,-1,10},
+	{3,-1,-1,7,-1,-1,-1,-1,-1,-1,-1,7,-1,-1},
+	{-1,4,-1,8,8,-1,-1,-1,-1,-1,-1,8,8,-1},
+	{4,-1,5,-1,9,9,-1,-1,-1,-1,-1,-1,9,9},
+	{-1,5,-1,-1,-1,10,10,-1,-1,-1,-1,-1,-1,10},
+	{-1,4,-1,-1,8,-1,-1,11,11,-1,-1,-1,-1,-1},
+	{-1,-1,5,8,-1,9,-1,-1,12,12,-1,-1,-1,-1},
+	{4,-1,-1,-1,9,-1,10,-1,-1,13,13,-1,-1,-1}
+};
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	(void)pos;
+	int fromSlot = mv % (BOARDSIZE + 1);
+	int toSlot = mv / (BOARDSIZE + 1);
+	int adjustedFromSlot = arrowSource[fromSlot][toSlot];
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(adjustedFromSlot, toSlot, 'x');
 }

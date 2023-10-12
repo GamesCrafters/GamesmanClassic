@@ -9,47 +9,9 @@
 **
 ** DATE: November 22, 2001 (the beginning)
 **
-** UPDATES HISTORY:
-**           - Apr 3, 2002  - Fixed bug for Special/normal piece.
-**           - Mar 1-2, 2002   - Attempt REDUCT again (EM)
-**           - Jan 2-4, 2002 - Make Gametree smaller by hard-coding possible move positions. The
-**                           reduction will still use 60 megs. Changes are tagged "REDUCT" (EM)
-**           - Dec 25-27, 2001 - Aesthetic fixes. :) (EM)
-**           - Dec 9, 2001  - Bugs #1-19 FIXED (CH)
-**                          - Still need to make it look nicer. :)
-**           - Dec 6, 2001  - Bugs #1-16 FIXED (CH EM not chemistry)
-**           - Dec 2, 2001  - Rewrote the Help menu and a mini-INTERNALS (EM)
-**                          - Bugs #1-9 FIXED (EM)
-**           - Dec 1, 2001  - attempt to fix the bugs.  (EM)
-**                          - Fixed several crucial bugs.  (EM)
-**                          - I have the hardcopy of bugs, btw. (EM)
-**           - Nov 30, 2001 - ran debugger, no more seg fault! but need to fix
-**                            some minor details about the game. Otherwise it works! (EM)
-**           - Nov 22, 2001 - Compiled but when first playing the game, Seg fault! (EM)
-**                          - Rewrote the ENTIRE game from scratch and developing new data struct.(EM)
-**
-**
-** BUG REPORT: FIXES
-**   1. "2" is actually "1" for human player. FIXED (EM)
-**   2. The computer moved 3 but nothing happened. FIXED (EM)
-**   3. "Special piece" printout skews table. FIXED (EM)
-**   4. 2nd row is skewed by 2 spaces to the right. FIXED (EM)
-**   5. Line space before showing the first row of board. FIXED (EM)
-**   6. Can't take "1" as input from human player. FIXED (EM)
-**   7. Can't see the computer's move except the Big "X". FIXED (EM)
-**   8. Comp's move of 2 is a special piece "X". FIXED (EM)
-**   9. Sometimes, I don't even see my own moves! FIXED (EM)
-**  10. Init Score is 6 and Yellow wins !!! FIXED (CH)
-**  11. Shifting up of some pieces were wrong.  FIXED (CH)
-**  12. Numbers passed into ThreeInaRow method were off by one.  FIXED (CH)
-**  13. Special pieces can now be inputted correctly.  Previously,
-**      white special pieces could not be inputted properly because
-**      it was checking the existence of the black special FIXED (CH)
-**  14. Shifting of all pieces is now correct. FIXED (CH)
-**  15. Score is never UPDATED!!!  ThreeInaRow always returns 0, but why? FIXED (EM)
-**  16. Shifting of pieces II. They should all be fixed now. FIXED (EM)
-**  18. Score update is delayed by 1 move. I just noticed this... (CM)
-**  19. a. Computer wins, when the PLAYER actually wins. (CM)
+** BUG REPORT:
+**  1. Score update is delayed by 1 move. I just noticed this... (CM)
+**  2. a. Computer wins, when the PLAYER actually wins. (CM)
 **      b. The program outputs the correct winners when someone gets two matches.
 **         however, when my score goes to 5, I lose, but i'm not supposed to.(CM)
 **
@@ -59,8 +21,6 @@
 ** TIE. The game SHOULD be a TIE.
 **      - ThreeInARow works. Try looking at the Static Eval and
 * Fuzzy methods...(EM)
-**
-**
 **
 ** NOTE: When adding comments or whatnot, please follow the format. Thanks.
 **
@@ -173,8 +133,6 @@
 **
 **************************************************************************/
 
-#include <string.h>
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 7425000; // REDUCT: 11*10*10*15^3*2
@@ -184,9 +142,9 @@ POSITION gInitialPosition    = 3375000; // REDUCT: score = 5, everythign else 0
 // 19683000<-- old num; //
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position  */
 
-STRING kAuthorName         = "Edwin Mach and Chi Huynh";
-STRING kGameName           = "Rubik's Infinity";
-STRING kDBName             = "rinfin2";
+CONST_STRING kAuthorName         = "Edwin Mach and Chi Huynh";
+CONST_STRING kGameName           = "Rubik's Infinity";
+CONST_STRING kDBName             = "rinfin2";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = FALSE;
@@ -195,13 +153,13 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 6, with 1 - 3 as inputting the normal pieces into columns 1-3 and\n\
 humbers 4-6 as the optional pieces into columns 1-3 (Basically, subtract 3\n\
@@ -209,24 +167,24 @@ from your option 4-6.) Then hit return. If at any point you have made a mistake,
 you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces into any of the columns (1-3). For putting in\n\
 special pieces use move Numbers (4-6)."                                                                                       ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. Two 3-in-a-row WINS the game\n\
 automatically."                                                                                                                                                   ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "you just can't beat the computer.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         |:Rubik:|                    |:Infin:|\n\
          | _ _ _ |                    | - - - |\n\
 LEGEND:  | _ _ _ |                    | - - - |\n\
@@ -424,10 +382,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -1080,11 +1038,11 @@ MOVE theMove;
 POSITION GetInitialPosition()
 {
 	POSITION BlankOXToPosition();
-	BlankOX theBlankOX[REDUCTBOARDSIZE], whosTurn, temp;
+	BlankOX theBlankOX[REDUCTBOARDSIZE], temp;
 	signed char c;
 	int i;
 	int c1,c2,c3,c4,c5,c6,c7,c8,c9; // REDUCT: These nums stores all the values first before actually storing them into theBlankOX var
-	int column1, column2, column3;
+	int column1 = 0, column2 = 0, column3 = 0;
 
 	printf("\n\n\t----- Get Initial Position -----\n");
 	printf("\n\tPlease input the position to begin with.\n");
@@ -1106,8 +1064,7 @@ POSITION GetInitialPosition()
 			temp = o;
 		else if(c == '-')
 			temp = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 		if (i ==0) { c1 = temp; }
 		else if ( i == 1) { c2 = temp; }
 		else if ( i == 2) { c3 = temp; }
@@ -1194,7 +1151,7 @@ POSITION GetInitialPosition()
 /*    }  */
 
 
-	return(BlankOXToPosition(theBlankOX,whosTurn));
+	return(BlankOXToPosition(theBlankOX));
 }
 
 /************************************************************************
@@ -1251,7 +1208,7 @@ POSITION position;
 
 	int turn;
 	int b0,b6;
-	int currentScore, tempScore;
+	int currentScore;
 
 	PositionToBlankOX(position,theBlankOX);
 	// EVERY VARIABLE INIT needs to be before this line!
@@ -1260,7 +1217,6 @@ POSITION position;
 	b0 = (position / (2*15*15*15*10*10)) % 11; // score
 	turn = b6;
 	currentScore = b0; // attempt to keep the score current, not delayed by 1
-	tempScore = 0;
 
 	// NOTE: Something different than Dan's code is that we return WIN when Dan's code returns LOSE,
 	// and vice-versa
@@ -1337,7 +1293,7 @@ BOOLEAN usersTurn;
 		           "-@---------",
 		           "@----------" };
 	int white,black;
-	int yellowLeads;
+	// int yellowLeads;
 	int score;
 	int tempScore;
 	int b0, b1, b2, b3,b4,b5,b6; //immediate retrieval of thePosition's values
@@ -1377,15 +1333,15 @@ BOOLEAN usersTurn;
 	}
 
 	// Calculate score BEFORE we print
-	yellowLeads = 0;
+	// yellowLeads = 0;
 	tempScore = b0 - 5;
 
 	if (tempScore > 0) {
-		yellowLeads = 1;
+		// yellowLeads = 1;
 		score = tempScore;
 	}
 	else if (tempScore < 0) {
-		yellowLeads = 2;
+		// yellowLeads = 2;
 		score = tempScore;
 	}
 	else
@@ -1762,7 +1718,7 @@ int a,b,c;
 	int column2 = (int)theBlankOX[4];
 	int column3 = (int)theBlankOX[5];
 
-	char piece1, piece2, piece3;
+	char piece1 = '\0', piece2 = '\0', piece3 = '\0';
 
 	// get the pieces
 	if (a == 8) {
@@ -1933,13 +1889,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

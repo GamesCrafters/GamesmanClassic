@@ -4,13 +4,9 @@
 **
 ** DESCRIPTION: 3Dot
 **
-** AUTHOR:      Attila Gyulassy, Matthew Yu, Cameron Cheung
+** AUTHOR:      Attila Gyulassy, Cameron Cheung
 **
 ** DATE:        02/02/02
-**
-** UPDATE HIST:
-**   02-02-02  started by copying and modifying tictactoe
-**	 04-04-28  Name Chang
 **
 **************************************************************************/
 
@@ -83,10 +79,7 @@
 ** Everything below here must be in every game file
 **
 **************************************************************************/
-//#define debugdomove
-//#define debugmovelist 1
-//#define x 1
-//#define funcname 1
+
 #include <stdio.h>
 #include "gamesman.h"
 
@@ -96,8 +89,8 @@ POSITION gInitialPosition    =  0x001009BD;
 POSITION gMinimalPosition = 0x001009BD;
 POSITION kBadPosition = -1;
 
-STRING kAuthorName         = "Attila Gyulassy, Matthew Yu, Cameron Cheung";
-STRING kGameName           = "3Spot";
+CONST_STRING kAuthorName         = "Attila Gyulassy, Matthew Yu, Cameron Cheung";
+CONST_STRING kGameName           = "3Spot";
 
 //?
 BOOLEAN kPartizan           = TRUE;
@@ -108,15 +101,15 @@ BOOLEAN kLoopy              = TRUE;
 
 //?
 BOOLEAN kDebugDetermineValue = FALSE;
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Umm, i'm not sure what you want to hear here, so\n\
 i'm not going to tell you anything... =)\n"                                                             ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "It is your turn: you need to input a valid move:\n\
 VALID MOVES: a valid move is a pair of a pair of a \n\
 number(1-8) and a letter indicating the orientation\n\
@@ -132,16 +125,16 @@ You must change the position of your piece, and the\n\
 the white piece. You earn points by covering up the\n\
 squares with \'o\'s.\n "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ;
 
-STRING kHelpStandardObjective ="PlayerX wins if:\n\
+CONST_STRING kHelpStandardObjective ="PlayerX wins if:\n\
 PlayerX >= PlayerX's winning score AND\n\
 PlayerY >= PlayerY's minimum score. \n\n\
 PlayerX loses if:\n\
 PlayerX >= PlayerX's winning score AND\n\
 PlayerY < PlayerY's minimum score.\n";
 
-STRING kHelpReverseObjective ="";
-STRING kHelpTieOccursWhen ="";
-STRING kHelpExample = "";
+CONST_STRING kHelpReverseObjective ="";
+CONST_STRING kHelpTieOccursWhen ="";
+CONST_STRING kHelpExample = "";
 
 STRING MoveToString(MOVE);
 
@@ -372,6 +365,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -524,9 +518,9 @@ void SetDotPositionMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -1351,7 +1345,7 @@ MOVE theMove;
 }
 
 
-STRING kDBName = "3dot";
+CONST_STRING kDBName = "3dot";
 
 int NumberOfOptions()
 {
@@ -1379,98 +1373,104 @@ void setOption(int option)
 	winScore2 = option/(2*2*2*MAX_SCORE)%(MAX_SCORE-MIN_SCORE+1)+MIN_SCORE;
 }
 
-STRING initial3SpotInteractString = "R_A_6_5_-------------------------00-00";
-int strLen = 38;
-int posMap[9] = {8,10,12,18,20,22,28,30,32};
-int betweenMap[14] = {-1,-1,21,5,11,7,1,9,23,15,13,17,3,19};
+int betweenMap[14] = {-1,-1,24,16,19,17,14,18,25,21,20,22,15,23};
 int horList[2][6] = {{0,1,3,4,6,7}, {1,2,4,5,7,8}};
 int verList[2][6] = {{0,1,2,3,4,5}, {3,4,5,6,7,8}};
 
 POSITION InteractStringToPosition(STRING str) {
-	POSITION turn = (str[2] == 'A') ? 0x100000LL : 0;
+	enum UWAPI_Turn t;
+	unsigned int r, c; // Unused
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &t, &r, &c, &board)) {
+		return INVALID_POSITION;
+	}
+	POSITION turn = (t == UWAPI_TURN_A) ? 0x100000LL : 0;
 	POSITION red, white, blue;
 
 	for (int i = 0; i < 6; i++) {
-		char h1 = str[posMap[horList[0][i]]];
-		char h2 = str[posMap[horList[1][i]]];
-		char v1 = str[posMap[verList[0][i]]];
-		char v2 = str[posMap[verList[1][i]]];
+		char h1 = board[horList[0][i]];
+		char h2 = board[horList[1][i]];
+		char v1 = board[verList[0][i]];
+		char v2 = board[verList[1][i]];
+		// We're actually switching B and R here because we want B to be the first player
+		// but the game was coded to have red go first.
 		if (h1 == h2) {
 			int value = boardToPos(horList[0][i], 'h');
-			if (h1 == 'R') {
+			if (h1 == 'B') {
 				red = value << 8;
 			} else if (h1 == 'W') {
 				white = value << 4;
-			} else if (h1 == 'B') {
+			} else if (h1 == 'R') {
 				blue = value;
 			}
 		}
 		if (v1 == v2) {
 			int value = boardToPos(verList[0][i], 'v');
-			if (v1 == 'R') {
+			if (v1 == 'B') {
 				red = value << 8;
 			} else if (v1 == 'W') {
 				white = value << 4;
-			} else if (v1 == 'B') {
+			} else if (v1 == 'R') {
 				blue = value;
 			}
 		}
 	}
 
-	POSITION ptsA = (10 * (str[33] - '0') + (str[34] - '0'));
-	POSITION ptsB = (10 * (str[36] - '0') + (str[37] - '0'));
-	if (str[35] != '-') {
+	POSITION ptsA = (10 * (board[9] - '0') + (board[10] - '0'));
+	POSITION ptsB = (10 * (board[11] - '0') + (board[12] - '0'));
+	// Conversion from intermediate state to real position
+	if (board[13] != '-') {
 		if (turn) {
 			ptsA -= pointsEarned[(red >> 8) - 2];
-			red = (str[35] - 'a') << 8;
+			red = (board[13] - 'a') << 8;
 		} else {
 			ptsB -= pointsEarned[blue - 2];
-			blue = str[35] - 'a';
+			blue = board[13] - 'a';
 		}
 	}
 	ptsA <<= 16;
 	ptsB <<= 12;
+	SafeFreeString(board);
 	return turn | ptsA | ptsB | red | white | blue;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char *boardString = calloc(strLen + 1, sizeof(char));
-	memcpy(boardString, initial3SpotInteractString, strLen);
+	char board[15];
+	memset(board, '-', 15 * sizeof(char));
 	
+	enum UWAPI_Turn turn = (GetWhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
-	boardString[2] = (GetWhoseTurn(pos)) ? 'A' : 'B';
-
-	if (pos >> 63) {
-		boardString[35] = 'a' + ((pos >> 59) & 0b1111);
+	if (pos >> 63) { // Convert intermediate state to real position
+		board[13] = 'a' + ((pos >> 59) & 0b1111);
 		pos &= 0xFFFFFFFFFFF;
 	}
 
-	boardString[posMap[pieceToBoard(GetRedPosition(pos),0)]] = 'R';
-	boardString[posMap[pieceToBoard(GetRedPosition(pos),1)]] = 'R';
-	boardString[posMap[pieceToBoard(GetBluePosition(pos),0)]] = 'B';
-	boardString[posMap[pieceToBoard(GetBluePosition(pos),1)]] = 'B';
-	boardString[posMap[pieceToBoard(GetWhitePosition(pos),0)]] = 'W';
-	boardString[posMap[pieceToBoard(GetWhitePosition(pos),1)]] = 'W';
+	// We're actually switching B and R here because we want B to be the first player
+	// but the game was coded to have red go first.
+	board[pieceToBoard(GetRedPosition(pos), 0)] = 'B';
+	board[pieceToBoard(GetRedPosition(pos), 1)] = 'B';
+	board[pieceToBoard(GetBluePosition(pos), 0)] = 'R';
+	board[pieceToBoard(GetBluePosition(pos), 1)] = 'R';
+	board[pieceToBoard(GetWhitePosition(pos), 0)] = 'W';
+	board[pieceToBoard(GetWhitePosition(pos), 1)] = 'W';
 
 	int player1Score = GetPlayer1Score(pos);
 	int player2Score = GetPlayer2Score(pos);
-	boardString[33] = (player1Score / 10) + '0';
-	boardString[34] = (player1Score % 10) + '0';
-	boardString[36] = (player2Score / 10) + '0';
-	boardString[37] = (player2Score % 10) + '0';
-	
-	return boardString;
-}
+	board[9] = (player1Score / 10) + '0';
+	board[10] = (player1Score % 10) + '0';
+	board[11] = (player2Score / 10) + '0';
+	board[12] = (player2Score % 10) + '0';
+	board[14] = '\0';
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	if (mv >> 9) { // Placing player's piece.	
-		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[((mv & 0xFF) >> 4)-2], betweenMap[(mv >> 4) & 0xF]);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound(moveToTextOri[((mv & 0xFF) >> 4)-2], betweenMap[(mv >> 4) & 0xF], 'x');
 	} else if ((mv >> 8) & 1) { // Placing neutral piece.
-		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[(mv & 0x0F) -2], betweenMap[mv & 0xF]);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound(moveToTextOri[(mv & 0x0F)-2], betweenMap[mv & 0xF], 'x');
 	} else {
 		return MoveToString(mv);
 	}

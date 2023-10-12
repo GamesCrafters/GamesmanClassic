@@ -124,7 +124,7 @@ static gamesdb_pageid gamesdb_checkpath(char *base_path, gamesdb_pageid page_no,
 	char temp[GAMESDB_MAX_FILENAME_LEN] = "";
 	//DIR *data_dir = NULL;
 
-	while (page_no >= (1 << dir_size)) {
+	while (page_no >= (gamesdb_pageid) (1 << dir_size)) {
 
 		this_cluster = page_no & ((1 << dir_size) - 1);
 

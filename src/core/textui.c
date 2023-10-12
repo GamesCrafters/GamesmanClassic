@@ -37,7 +37,7 @@
 
 #define DEFAULTLENGTH MAXINPUTLENGTH
 
-extern int SetupNetworkGame(STRING);
+extern int SetupNetworkGame(CONST_STRING);
 /*
 ** Local function prototypes
 */
@@ -945,6 +945,7 @@ void ParseEvaluatedMenuChoice(char c)
 			playerTwo->GetMove = RemoteMove;
 		}
 		PlayGame(playerOne, playerTwo);
+		break;
 	case 'p': case 'P':
 		if(gOpponent == AgainstComputer) {
 			if(gHumanGoesFirst) {
@@ -1505,6 +1506,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 
 void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, char input)
 {
+	(void) usersTurn;
 	char c;
 
 	do {

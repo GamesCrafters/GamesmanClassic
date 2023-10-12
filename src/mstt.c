@@ -6,7 +6,6 @@
 **
 ** AUTHOR:      David Chen & Ling Xiao  -  University of California at Berkeley
 **
-**
 ** DATE:        03/06/01
 **
 **************************************************************************/
@@ -17,7 +16,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 extern STRING gValueString[];
@@ -27,8 +25,8 @@ POSITION gNumberOfPositions  = 14348907;  /* 3^15 */
 POSITION gInitialPosition    =  (59049 + 177147 + 531441) + 1;
 POSITION gMinimalPosition    =  (59049 + 177147 + 531441) + 1;
 
-STRING kAuthorName         = "David Chen and Ling Xiao";
-STRING kGameName           = "Shift-Tac-Toe";
+CONST_STRING kAuthorName         = "David Chen and Ling Xiao";
+CONST_STRING kGameName           = "Shift-Tac-Toe";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -38,7 +36,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whetherxinn you went first\n\
 or second) in the slot the arrow which you clicked is pointing to (if\n\
 you clicked on one of the three arrows at the top.)  Or it shifts the\n\
@@ -47,7 +45,7 @@ on one of the six arrows on the sides.) The MIDDLE button does nothing,\n\
 and the RIGHT button is the same as UNDO, in that it reverts back to your\n\
 your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 9, 1 through 3 puts a piece in the chose slot and 4 through 9 shifts\n\
 the chosen row left or right) to correspond to the empty board position or\n\
@@ -55,23 +53,23 @@ the shifting you desire and hit return.  If at any point you have made a\n\
 mistake, you can type u and hit return and the system will revert back to\n\
 your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                           ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions, or you\n\
 shift one of the rows."                                                                                     ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your markers (either X or O) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample = "stuff";
+CONST_STRING kHelpExample = "stuff";
 /*
    "moves:
          0 1 2
@@ -223,6 +221,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -281,10 +280,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -427,8 +426,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	printf("Get Initial Move Called");
@@ -487,24 +485,24 @@ POSITION position;
 
 	PositionToBlankOX(position,theBlankOX);
 
-	if( (ThreeInARow(theBlankOX,0,1,2) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,3,4,5) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,6,7,8) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,0,3,6) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,1,4,7) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,2,5,8) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,0,4,8) == NotWhoseTurn) ||
-	    (ThreeInARow(theBlankOX,2,4,6) == NotWhoseTurn)) {
+	if( (ThreeInARow(theBlankOX,0,1,2) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,3,4,5) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,6,7,8) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,0,3,6) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,1,4,7) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,2,5,8) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,0,4,8) == (int)NotWhoseTurn) ||
+	    (ThreeInARow(theBlankOX,2,4,6) == (int)NotWhoseTurn)) {
 		return(gStandardGame ? lose : win);
 	}
-	else if( (ThreeInARow(theBlankOX,0,1,2) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,3,4,5) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,6,7,8) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,0,3,6) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,1,4,7) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,2,5,8) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,0,4,8) == WhichTurn) ||
-	         (ThreeInARow(theBlankOX,2,4,6) == WhichTurn)) {
+	else if( (ThreeInARow(theBlankOX,0,1,2) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,3,4,5) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,6,7,8) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,0,3,6) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,1,4,7) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,2,5,8) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,0,4,8) == (int)WhichTurn) ||
+	         (ThreeInARow(theBlankOX,2,4,6) == (int)WhichTurn)) {
 		return(gStandardGame ? win : lose);
 	}
 	/*  el
@@ -929,17 +927,17 @@ BlankOX *theBlankOX;
 	thePos = (thePos - (thePos%3))/3; /*take out last turn bit*/
 
 	for(i = BOARDSIZE-1; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else {
 			BadElse("PositionToBlankOX");
@@ -1026,14 +1024,14 @@ POSITION position;
 **
 ************************************************************************/
 
-MOVE DecodeMove(thePosition, canPosition, move)
-POSITION thePosition, canPosition;
-MOVE move;
+MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move)
 {
 	/*  int i;*/
 	/*for(i = 0 ; i < NUMSYMMETRIES ; i++)*/
 	/*if(canPosition == DoSymmetry(thePosition, i))*/    /* THIS is the one */
 	/*return((MOVE) gSymmetryMatrix[i][move]); */
+	(void)thePosition;
+	(void)canPosition;
 	return move;
 }
 
@@ -1304,7 +1302,7 @@ int colEmptyPos(BlankOX* theBoard, int col)
 
 
 
-STRING kDBName = "stt";
+CONST_STRING kDBName = "stt";
 
 int NumberOfOptions()
 {
@@ -1347,100 +1345,55 @@ void setOption(int option)
 // Note on interact: Currently, this only works with the default variant
 ////////////////////////////////////////////////////////////////////////////////
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
+// UWAPI Position String: 
+// 0-9: Pieces (9 places where pieces can be)
+// 10-17: Sliders (3 places where each slider can be)
+// 18-23: top arrow buttons (6 arrow endpoint coords needed)
+// 24-41: side arrows (3 arrow endpoints needed for each of six side arrow buttons)
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	BlankOX oxboard[BOARDSIZE];
-	PositionToBlankOX(pos, oxboard);
-
-	switch (mv) {
-		default: {
-			 // Unknown move
-			fprintf(stderr, "Unknown move: %d\n", mv);
-			return NULL;
-		}
-		case 0:
-			return UWAPI_Board_Regular2D_MakeMoveString(0, 3);
-		case 1:
-			return UWAPI_Board_Regular2D_MakeMoveString(1, 4);
-		case 2:
-			return UWAPI_Board_Regular2D_MakeMoveString(2, 5);
-		
-		case 3: case 4: case 5: // shift to the right
-			switch (oxboard[9 + mv - 3]) {
-				default: return NULL; // Unexpected shift
-				case 0:
-					return UWAPI_Board_Regular2D_MakeMoveString(6 + (mv - 3) * 11, 7 + (mv - 3) * 11);
-				case 1:
-					return UWAPI_Board_Regular2D_MakeMoveString(7 + (mv - 3) * 11, 8 + (mv - 3) * 11);
-			}
-		case 6: case 7: case 8: // shift to the left
-			switch (oxboard[9 + mv - 6]) {
-				default: return NULL; // Unexpected shift
-				case 2: 
-					return UWAPI_Board_Regular2D_MakeMoveString(16 + (mv - 6) * 11, 15 + (mv - 6) * 11);
-				case 1:
-					return UWAPI_Board_Regular2D_MakeMoveString(15 + (mv - 6) * 11, 14 + (mv - 6) * 11);
-			}
-	}
-}
-
-int boardIndicesU[9] = { 10, 11, 12, 21, 22, 23, 32, 33, 34 };
 POSITION InteractStringToPosition(STRING str) {
-	// Parse UWAPI standard position string & get UWAPI standard board string
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns;
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	// Convert UWAPI standard board string to internal board representation
+	STRING board = str + 8;
 	BlankOX oxboard[BOARDSIZE];
+
+	// Set the pieces
+	for (int i = 0; i < 9; i++) {
+		int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
+
+		if (board[i] == 'o') {
+			oxboard[oxboard_index] = o;
+		} else if (board[i] == 'x') {
+			oxboard[oxboard_index] = x;
+		} else {
+			oxboard[oxboard_index] = Blank;
+		}
+	}
 
 	// Note the row shifts
 	// Top row shifts
-	if (board[41] == 'S') {
+	if (board[9] == 'S') {
 		oxboard[9] = 0;
-	} else if (board[42] == 'S') {
+	} else if (board[10] == 'S') {
 		oxboard[9] = 1;
 	} else {
 		oxboard[9] = 2;
 	}
 
 	// Middle row shifts
-	if (board[44] == 'S') {
+	if (board[12] == 'S') {
 		oxboard[10] = 0;
-	} else if (board[45] == 'S') {
+	} else if (board[13] == 'S') {
 		oxboard[10] = 1;
 	} else {
 		oxboard[10] = 2;
 	}
 
 	// Bottom row shifts
-	if (board[47] == 'S') {
+	if (board[15] == 'S') {
 		oxboard[11] = 0;
-	} else if (board[48] == 'S') {
+	} else if (board[16] == 'S') {
 		oxboard[11] = 1;
 	} else {
 		oxboard[11] = 2;
-	}
-
-	// Add all pieces
-	for (int i = 0; i < 9; i++) {
-		int board_index = boardIndicesU[i];
-		int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
-
-		if (board[board_index] == 'o') {
-			oxboard[oxboard_index] = o;
-		} else if (board[board_index] == 'x') {
-			oxboard[oxboard_index] = x;
-		} else {
-			oxboard[oxboard_index] = Blank;
-		}
 	}
 
 	// A hack to get everything to work
@@ -1448,11 +1401,10 @@ POSITION InteractStringToPosition(STRING str) {
 	oxboard[12] = 0;
 	oxboard[13] = 0;
 	oxboard[14] = 0;
-	BlankOX whosTurn = (turn == UWAPI_TURN_A) ? o : x;
-	POSITION position = BlankOXToPosition(oxboard) + whosTurn;
+	BlankOX whoseTurn = (str[2] == 'A') ? o : x;
+	POSITION position = BlankOXToPosition(oxboard) + whoseTurn;
 
 	// Return internal position
-	SafeFreeString(board); // Free the string!
 	return position;
 }
 
@@ -1460,73 +1412,45 @@ STRING InteractPositionToString(POSITION pos) {
 	// Convert internal position to internal board representation
 	BlankOX oxboard[BOARDSIZE];
 	PositionToBlankOX(pos, oxboard);
-	BlankOX whosTurn = WhoseTurn(pos);
+	BlankOX whoseTurn = WhoseTurn(pos);
 
 	// Convert internal board representation to UWAPI standard board string
-	char board[50 + 1];
-	for (int i = 0; i < 50; i++) {
-		board[i] = '-';
-	}
+	char board[19];
+	memset(board, '-', 19 * sizeof(char));
 
-	// Note the row shifts
-	switch (oxboard[9]) {
-		default: return NULL; // Unexpected shift
-		case 0:
-			board[41] = 'S';
-			break;
-		case 1:
-			board[42] = 'S';
-			break;
-		case 2:
-			board[43] = 'S';
-			break;
-	}
-
-	switch (oxboard[10]) {
-		default: return NULL; // Unexpected shift
-		case 0:
-			board[44] = 'S';
-			break;
-		case 1:
-			board[45] = 'S';
-			break;
-		case 2:
-			board[46] = 'S';
-			break;
-	}
-
-	switch (oxboard[11]) {
-		default: return NULL; // Unexpected shift
-		case 0:
-			board[47] = 'S';
-			break;
-		case 1:
-			board[48] = 'S';
-			break;
-		case 2:
-			board[49] = 'S';
-			break;
-	}
-
-	
-	// Add all pieces
+	// Set pieces
 	for (int i = 0; i < 9; i++) {
-		int board_index = boardIndicesU[i];
 		int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
-
 		if (oxboard[oxboard_index] == o) {
-			board[board_index] = 'o';
+			board[i] = 'o';
 		} else if (oxboard[oxboard_index] == x) {
-			board[board_index] = 'x';
-		} else if (oxboard[oxboard_index] == Blank) {
-			board[board_index] = '-';
-		} else {
-			return NULL; // Unexpected piece
+			board[i] = 'x';
 		}
 	}
-	board[50] = '\0';
+
+	// Set slider locations
+	board[9 + oxboard[9]] = 'S';
+	board[12 + oxboard[10]] = 'S';
+	board[15 + oxboard[11]] = 'S';
+	
+	board[18] = '\0'; // Null-terminate boardstring
 	
 	// Return formatted UWAPI position string
-	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakePositionString(turn, 5, 10, board);
+	enum UWAPI_Turn turn = (whoseTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 19, board);
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	BlankOX oxboard[BOARDSIZE];
+	PositionToBlankOX(pos, oxboard);
+
+	if (mv < 3) {
+		return UWAPI_Board_Regular2D_MakeMoveString(18 + mv, 21 + mv);
+	} else if (mv < 6) {
+		int a = 24 + oxboard[9 + mv - 3] + (mv - 3) * 3;
+		return UWAPI_Board_Regular2D_MakeMoveString(a, a + 1);
+	} else {
+		int a = 33 + oxboard[9 + mv - 6] + (mv - 6) * 3;
+		return UWAPI_Board_Regular2D_MakeMoveString(a, a - 1);
+	}
 }

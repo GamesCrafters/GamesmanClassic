@@ -9,14 +9,6 @@
 **
 ** DATE:        WHEN YOU START/FINISH
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**
-** 2005-11-12
-**   Joey - Fixed the problem in initializeGame().  The game now solves and plays
-**          for 3x3.  Memory allocation error for 4x3, still possibly a problem
-**          with my initializeGame() or maybe something else.
-**
-**   Joey - Major changes: Added a call to freeBoard before returns in
 */
 /*************************************************************************
 **
@@ -100,17 +92,13 @@ void PrintMove(MOVE move);
 **************************************************************************/
 #ifndef SQUAREDANCEDEBUG
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 #endif
 
-STRING kGameName            = "Square Dance";   /* The name of your game */
-STRING kAuthorName          = "Jack Hsu, Joey Corless";   /* Your name(s) */
-STRING kDBName              = "squaredance";   /* The name to store the database under */
+CONST_STRING kGameName            = "Square Dance";   /* The name of your game */
+CONST_STRING kAuthorName          = "Jack Hsu, Joey Corless";   /* Your name(s) */
+CONST_STRING kDBName              = "squaredance";   /* The name to store the database under */
 
 void* gGameSpecificTclInit = NULL;
 
@@ -132,21 +120,21 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "No Graphic Interface with Square Dance Right Now";
 
-STRING kHelpTextInterface=
+CONST_STRING kHelpTextInterface=
         "You denote the column of your move with a letter (starting with a on the \n\
 left and increasing), and the row with a number (starting with 1 on the bottom \n\
 and increasing).  You then specify which way you want to place it (u for up, d \n\
 for down).  All three characters should be entered on one line with no spaces \n\
 in between.\n"                                                                                                                                                                                                                                                                                                                                              ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You can place your piece on the blank spot.\n\
 For example: a1u means put a piece at (a,1) with position up"                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Your goal is to form a square with four pieces sharing one of the attributes\n\
 Attributes include:\n\
   O or X (player's color), U or D (up or down)\n\
@@ -188,11 +176,11 @@ Example 3  \n\
 O wins!\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ;
 
 
-STRING kHelpReverseObjective ="Force your opponent to make a square before you do.";
+CONST_STRING kHelpReverseObjective ="Force your opponent to make a square before you do.";
 
-STRING kHelpTieOccursWhen ="the board is full and no squares are formed.";
+CONST_STRING kHelpTieOccursWhen ="the board is full and no squares are formed.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "              \n\
    ----------  \n\
  3 |  |OU|  |  \n\
@@ -468,10 +456,9 @@ int vcfg(int *this_cfg)
 #ifndef SQUAREDANCEDEBUG
 MOVELIST *GenerateMoves (POSITION position)
 {
-	int x, y, valid_color;
+	int x, y;
 	MOVELIST *moves = NULL;
 	SDBPtr board = unhashBoard(position);
-	valid_color = getCurrentTurn(position);
 
 	for(x=0; x<BOARD_WIDTH; x++) {
 		for(y=0; y<BOARD_HEIGHT; y++) {
@@ -1335,17 +1322,16 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING MoveToString(MOVE theMove) {
+	(void)theMove;
 	return "Implement MoveToString";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

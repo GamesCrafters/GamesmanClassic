@@ -1,36 +1,15 @@
 /************************************************************************
-   c**
- ** NAME:        mwin4.c
- **
- ** DESCRIPTION: Connect-4
- **
- ** AUTHOR:      Michael Thon, University of Berkeley
- **              Copyright (C) Michael Thon, 2002. All rights reserved.
- **
- ** DATE:        07/12/02
- **
- ** UPDATE HIST:
- **
- **  7-12-02 1.0 : Getting started (not using RCS though)
- **                will first attempt only 5x4 size boards
- **  9-12-02 1.1 : Board sizes (smaller than 5x5) can be set in mwin4.h
- **                Text-based module works for these.
- **                ToDo: -graphics
- **                      -help-Information
- **                      -documentation
- ** 10-12-02 1.2 : - Board sizes now set in this file (no more mwin4.h)
- **                  MUST ALSO SET IN mwin4.tcl !! (gSlotsX and Y)
- **                  Feasale sizes are 5x4 or 4x5 (both interesting)
- **                - Program will probably SegFault if sizeof(int)<4
- **                  Would be nice to have POSITION be long int or even
- **                  unsigned long int
- **                - Graphical Module mwin4.tcl done
- **
- ** 08-19-06	: change to GetMyInt();
- **
- ** 02-23-06       Ilya Landa
- **                Implementing symmetries
- **************************************************************************/
+**
+** NAME:        mwin4.c
+**
+** DESCRIPTION: Connect-4
+**
+** AUTHOR:      Michael Thon, University of Berkeley
+**              Copyright (C) Michael Thon, 2002. All rights reserved.
+**
+** DATE:        07/12/02
+**
+**************************************************************************/
 
 /* a position seem to be made with this: (4x4)
  * 10100 10010 11010 01110
@@ -55,9 +34,9 @@ POSITION kBadPosition         = 0;     // This can never be the rep.
                                        // of a position
 
 POSITION gMinimalPosition     =  0;
-STRING kDBName              = "win4";
-STRING kAuthorName          = "Michael Thon";
-STRING kGameName            = "Connect-4";
+CONST_STRING kDBName              = "win4";
+CONST_STRING kAuthorName          = "Michael Thon";
+CONST_STRING kGameName            = "Connect-4";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kSupportsHeuristic   = FALSE;
 BOOLEAN kSupportsSymmetries  = FALSE;
@@ -70,31 +49,31 @@ BOOLEAN kDebugDetermineValue = FALSE;
 
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Click on a highlighted sqare to make your move there.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, enter the number (usually 1 through 5) corresponding to a\n\
 slot that is not yet full. This will ''drop'' a piece of yours into the\n\
 slot. If at any point you have made a mistake, you can type u and hit\n\
 return and the system will revert back to your most recent position."                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "''Drop'' one of your pieces into an open slot by entering the \n\
 corresponding number. "                                                                           ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get four of your pieces in a row, either horizontally, vertically,\n\
  or diagonally."                                                                                  ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting four of his pieces  in a row, either \n\
  horizontally, vertically, or diagonally."                                                                                      ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting four-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Just go ahead and try it out for yourself. No need to be scared...";
 
 /*************************************************************************
@@ -234,7 +213,6 @@ POSITION GetInitialPosition() {
 
 void InitializeGame()
 {
-	unsigned int i, j;
 	gNumberOfPositions = MyNumberOfPos();
 	gInitialPosition    = MyInitialPosition();
 	gEnumerateWithinStage = &EnumerateWithinStage;
@@ -249,10 +227,10 @@ void InitializeGame()
 	SetupTierStuff();
 	PositionToBoard(gInitialPosition, gPosition.board);
 
-	for (i = 0; i < WIN4_WIDTH; ++i) {
+	for (int i = 0; i < WIN4_WIDTH; ++i) {
 		gPosition.heights[i] = 0;
 
-		for (j = 0; j < WIN4_HEIGHT; ++j) {
+		for (int j = 0; j < WIN4_HEIGHT; ++j) {
 			if (gPosition.board[i][j] == Blank)
 				break;
 
@@ -367,8 +345,8 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int theOptions[])
-
 {
+	(void)theOptions;
 	/* No need to have anything here, we have no extra options */
 }
 
@@ -516,7 +494,7 @@ VALUE Primitive(POSITION position)
 					return gStandardGame ? lose : win;
 			}
 
-			return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
+			return gPosition.piecesPlaced == (POSITION)(WIN4_WIDTH * WIN4_HEIGHT) ? tie : undecided;
 		}
 
 		int ul[WIN4_WIDTH][WIN4_HEIGHT]; //upper left
@@ -654,7 +632,7 @@ VALUE Primitive(POSITION position)
 				}
 			}
 
-			return gPosition.piecesPlaced == WIN4_WIDTH * WIN4_HEIGHT ? tie : undecided;
+			return gPosition.piecesPlaced == (POSITION)(WIN4_WIDTH * WIN4_HEIGHT) ? tie : undecided;
 		}
 
 		linearUnhash2(position, linearBoard); // Temporary storage.
@@ -926,7 +904,7 @@ void PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH])
 }
 
 
-void linearUnhash2(POSITION pos, XOBlank board[WIN4_HEIGHT*WIN4_WIDTH]) {
+void linearUnhash2(POSITION pos, XOBlank *board) {
 	int col, row, h;
 	POSITION permutation_index, tierbits, temp1, temp2, temp3 = 1;
 	TIER tier;
@@ -1053,6 +1031,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -1152,22 +1131,24 @@ int min(int a, int b)
 
 void SetPieces(int currentcol)
 {
-	int xcount = 0, ocount = 0, i;
-	POSITION pos = 0, temp1, temp2, temp3=1;
+	//int xcount = 0, ocount = 0, i;
+	//POSITION pos;
+	POSITION temp1, temp2, temp3=1;
 
 	if (currentcol > WIN4_WIDTH) {
-		for(i=0; i<WIN4_WIDTH; i++)
-			pos |= (currentPieces[MAXW] << (i*(WIN4_HEIGHT+1)));
-		CountPieces(pos, &xcount, &ocount);
-		if ((xcount == ocount) || (xcount == ocount+1)) { //seems like a valid pos
-			StorePositionInList(pos, currentStage);
+		// for(i=0; i<WIN4_WIDTH; i++)
+		// 	pos |= (currentPieces[MAXW] << (i*(WIN4_HEIGHT+1)));
+		// CountPieces(pos, &xcount, &ocount);
+		// if ((xcount == ocount) || (xcount == ocount+1)) { //seems like a valid pos
+		// 	// StorePositionInList(pos, currentStage); This does nothing unless you assign it to something
 
-			for (i=0; i< 20; i++) {
-				printf("%d", (int)(pos & 1));
-				pos = pos >> 1;
-			}
+		// 	for (i=0; i< 20; i++) {
+		// 		printf("%d", (int)(pos & 1));
+		// 		pos = pos >> 1;
+		// 	}
 
-		}
+		// }
+		return;
 	} else {
 		for (currentPieces[currentcol] = (temp1 = (temp3 << currentHeights[currentcol]));
 		     currentPieces[currentcol] < (temp2 = (temp3 << (currentHeights[currentcol]+1)));
@@ -1182,7 +1163,8 @@ void SetHeights(int currentcol, int piecesleft)
 		SetPieces(0);
 	} else {
 		for (currentHeights[currentcol] = min(WIN4_HEIGHT, piecesleft);
-		     currentHeights[currentcol] >= 0;
+			 // Robert Shi: The following line is always true. Commenting out.
+		     /* currentHeights[currentcol] >= 0 */ ;
 		     currentHeights[currentcol]--) {
 			SetHeights(currentcol + 1, piecesleft - currentHeights[currentcol]);
 		}
@@ -1299,7 +1281,7 @@ void SetupTierStuff() {
 
 /* Returns list of all children for a particular tier. */
 TIERLIST* TierChildren(TIER tier) {
-	if (tier<WIN4_WIDTH*WIN4_HEIGHT)
+	if (tier < (TIER)(WIN4_WIDTH*WIN4_HEIGHT))
 		return CreateTierlistNode(tier+1, NULL);
 	else
 		return NULL;
@@ -1509,7 +1491,7 @@ void positionToBinary(POSITION pos) {
 	board[64]='\n';
 	board[65]='\0';
 
-	printf(board);
+	printf("%s", board);
 	SafeFree(board);
 }
 
@@ -1522,13 +1504,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

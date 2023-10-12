@@ -25,6 +25,7 @@ typedef int MOVES;                              /* to make it a leeeetle bit eas
 
 typedef int REMOTENESS;
 typedef char*                   STRING;
+typedef const char*				CONST_STRING;
 typedef void*                   GENERIC_PTR;
 
 // Tier Gamesman typedefs
@@ -45,11 +46,7 @@ typedef float (*featureEvaluatorCustom)(POSITION);
 typedef UINT32 GMSTATUS;
 
 #ifndef BOOLEAN             /* To satisfy Visual C++ 6.0 compiler */
-#ifdef WIN32
-typedef unsigned char BOOLEAN;
-#else /* WIN32 */
 typedef int BOOLEAN;
-#endif /* WIN32 */
 #endif /* BOOLEAN */
 
 typedef enum value_enum
@@ -67,7 +64,6 @@ MENU;
 typedef enum user_input_enum
 {
 	Undo, Abort, Continue, Move, Configure, Switch
-
 }
 USERINPUT;
 

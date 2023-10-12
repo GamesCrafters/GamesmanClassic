@@ -9,8 +9,6 @@
 **
 ** DATE:        96-04-20
 **
-** UPDATE HIST:
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -19,7 +17,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* variables */
@@ -29,9 +26,10 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition           = -1;
 
-STRING kAuthorName          = "Dan Garcia";
-STRING kGameName            = "Graph";
-STRING kDBName              = "graph";
+CONST_STRING kAuthorName     = "Dan Garcia";
+CONST_STRING kGameName       = "Graph";
+CONST_STRING kDBName         = "graph";
+STRING kDBNameVolatile 	     = NULL;
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -40,26 +38,26 @@ BOOLEAN kLoopy               = TRUE;  /* set this to true */
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";    /* empty since kSupportsGraphics == FALSE */
+CONST_STRING kHelpGraphicInterface = "";    /* empty since kSupportsGraphics == FALSE */
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, type in the number 1 or 2 and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                  ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You say either 1 or 2. A running total (sum) is kept.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the FIRST player to raise the total above 10.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be the LAST player to raise the total above 10. (i.e. to force your\n\
 opponent into raising the total above 10 first."                                                                                   ;
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "TOTAL                        :  0   \n\n\
      Dan's move [(u)ndo/1/2] : { 2 } \n\n\
 TOTAL                        :  2    \n\n\
@@ -111,8 +109,6 @@ POSITION gLargestNodeNumber;
 
 void InitializeGame()
 {
-	int i;
-
 	if (gGraphPrimitiveList != NULL) {
 		SafeFree(gGraphPrimitiveList);
 	}
@@ -125,12 +121,13 @@ void InitializeGame()
 
 	if (!gGraphFilenameSet) {
 		(void) sprintf((char *)gGraphFilename, "../meta/default.grf");
-		if (kDBName != NULL) SafeFree(kDBName);
-		kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
-		sprintf(kDBName, "graph-default");
+		if (kDBNameVolatile) SafeFree(kDBNameVolatile);
+		kDBNameVolatile = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
+		sprintf(kDBNameVolatile, "graph-default");
+		kDBName = kDBNameVolatile;
 	}
 
-	for(i = 0; i < gNumberOfPositions; i++) {
+	for(POSITION i = 0; i < gNumberOfPositions; i++) {
 		gGraphPrimitiveList[i] = undecided;
 		gGraphNeighborList[i]  = NULL;
 	}
@@ -156,8 +153,8 @@ STRING graphFilename;
 {
 	POSITIONLIST *head = NULL;
 	FILE *fp;
-	POSITION nodeNumber, nodeChild;
-	int i, j, numChildren, numberNodes, largestNodeSoFar = -1;
+	POSITION nodeNumber, nodeChild, i, numberNodes;
+	int j, numChildren, largestNodeSoFar = -1;
 	char theValueChar;
 	char goAgainChar;
 
@@ -170,7 +167,7 @@ STRING graphFilename;
 
 	/*** See if we haven't requested too many nodes ***/
 
-	if (fscanf(fp, "%d", &numberNodes) == EOF) {
+	if (fscanf(fp, "%llu", &numberNodes) == EOF) {
 		printf("LoadGraphFromFile Error: couldn't read number of nodes from %s\n", graphFilename);
 		ExitStageRight();
 	}
@@ -184,7 +181,7 @@ STRING graphFilename;
 
 	for (i = 0; i < numberNodes; i++) {
 		if (fscanf(fp, POSITION_FORMAT " %c %d", &nodeNumber, &theValueChar, &numChildren) == EOF) {
-			printf("LoadGraphFromFile Error: couldn't read node %d from %s\n", i, graphFilename);
+			printf("LoadGraphFromFile Error: couldn't read node %llu from %s\n", i, graphFilename);
 			ExitStageRight();
 		}
 
@@ -198,7 +195,7 @@ STRING graphFilename;
 
 		/*** Find the largest node number ***/
 
-		if (nodeNumber > largestNodeSoFar)
+		if ((int)nodeNumber > largestNodeSoFar)
 			largestNodeSoFar = nodeNumber;
 
 		/*** Store the value from its text character ***/
@@ -210,7 +207,7 @@ STRING graphFilename;
 		head = NULL;
 		for(j = 0; j < numChildren; j++) {
 			if (fscanf(fp, POSITION_FORMAT, &nodeChild) == EOF) {
-				printf("LoadGraphFromFile Error: couldn't read child %d from node %d in %s\n", j, i, graphFilename);
+				printf("LoadGraphFromFile Error: couldn't read child %d from node %llu in %s\n", j, i, graphFilename);
 				ExitStageRight();
 			}
 
@@ -235,13 +232,12 @@ STRING graphFilename;
 }
 
 BOOLEAN GraphGoAgain(POSITION position, MOVE move) {
-	return move>=gNumberOfPositions;
+	(void)position;
+	return (POSITION)move >= gNumberOfPositions;
 }
 
 
-VALUE TextToValue(c)
-char c;
-{
+VALUE TextToValue(char c) {
 	if (c == 'u' || c == 'U')
 		return(undecided);
 	else if (c == 'l' || c == 'L')
@@ -286,7 +282,7 @@ void DebugMenu()
 ************************************************************************/
 
 void GameSpecificMenu() {
-	char tmp[MAXINPUTLENGTH];
+	char tmp[MAXINPUTLENGTH - 20];
 	FILE* fp;
 
 	gGraphFilenameSet = FALSE;
@@ -297,13 +293,14 @@ void GameSpecificMenu() {
 		system("ls ../meta");
 		printf("\nLoad Graph from : ");
 		scanf("%s", tmp);
-		(void) sprintf((char *)gGraphFilename, "../meta/%s.grf", tmp);
+		(void) sprintf(gGraphFilename, "../meta/%s.grf", tmp);
 
 		if((fp = fopen(gGraphFilename, "r")) != NULL) {
 			gGraphFilenameSet = TRUE;
-			if (kDBName != NULL) SafeFree(kDBName);
-			kDBName = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
-			sprintf(kDBName, "graph-%s", tmp);
+			if (kDBNameVolatile) SafeFree(kDBNameVolatile);
+			kDBNameVolatile = (STRING) SafeMalloc(sizeof(char)*MAXINPUTLENGTH);
+			sprintf(kDBNameVolatile, "graph-%s", tmp);
+			kDBName = kDBNameVolatile;
 		}
 		else {
 			printf("Invalid file name\n");
@@ -323,10 +320,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -342,11 +339,10 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
+POSITION DoMove(POSITION thePosition, MOVE theMove)
 {
 	/* the move IS the position */
+	(void)thePosition;
 	return(theMove%gNumberOfPositions);
 }
 
@@ -590,7 +586,7 @@ STRING input;
 void PrintMove(theMove)
 MOVE theMove;
 {
-	if (theMove>=gNumberOfPositions) {
+	if ((POSITION)theMove >= gNumberOfPositions) {
 		printf(POSITION_FORMAT "g", (POSITION)theMove%gNumberOfPositions);
 	} else {
 		printf("%d", theMove);
@@ -624,17 +620,16 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
 STRING MoveToString(MOVE theMove) {
+	(void)theMove;
 	return "Implement MoveToString";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

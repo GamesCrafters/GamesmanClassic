@@ -10,13 +10,12 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Firstname Lastname";
-STRING kGameName = "Your Game Name"; //  use this spacing and case
-STRING kDBName = "yourgamename"; // use this spacing and case
+CONST_STRING kAuthorName = "Firstname Lastname";
+CONST_STRING kGameName = "Your Game Name"; //  use this spacing and case
+CONST_STRING kDBName = "yourgamename"; // use this spacing and case
 POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
@@ -38,18 +37,20 @@ BOOLEAN kDebugMenu = FALSE;
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
 with something helpful. */
-STRING kHelpGraphicInterface = "";
-STRING kHelpTextInterface = "";
-STRING kHelpOnYourTurn = "";
-STRING kHelpStandardObjective = "";
-STRING kHelpReverseObjective = "";
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "";
+CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpStandardObjective = "";
+CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpExample = "";
 
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
+}
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
@@ -134,8 +135,19 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-  /* YOUR CODE HERE */
-  return Continue;
+  USERINPUT ret;
+	do {
+    /* List of available moves */
+    // Modify the player's move prompt as you wish
+		printf("%8s's move: ", playerName);
+
+		ret = HandleDefaultTextInput(position, move, playerName);
+		if(ret != Continue)
+			return(ret);
+
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /* Return whether the input text signifies a valid move. */
@@ -212,11 +224,6 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION position) {
   /* YOUR CODE HERE */
-  return NULL;
-}
-
-/* Optional. */
-STRING InteractPositionToEndData(POSITION position) {
   return NULL;
 }
 

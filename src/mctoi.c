@@ -8,41 +8,9 @@
 **              Copyright (C) Dan Garcia, 1995. All rights reserved.
 **              Farzad H. Eskafi
 **              Erwin A. Vedar
-**              Matthew Yu
 **              Cameron Cheung
 **
 ** DATE:        2001/10/29
-**
-** UPDATE HIST:
-** 2003/02/18     :The new hash function was added. Proper documentation
-**                 was done.  The file is ready to go.
-**
-** 2001/12/04     :We are done with the first phase!
-**
-** 2001/12/03     :Finished adding options.  Now there are misere,
-**                 rotating in place, turning off one space hops, two
-**                 space hops, landing in different orientations, and
-**                 trapped is a win or lose options.
-**
-** 2001/11/26     :Added option to enable/disable rotating in place
-**
-** 2001/11/1      :Finished writing a modified version of Chung-Toi.
-**
-** 2001/10/29     :Scrapped old mctoi as mchung.
-**                 Restarting, with 6-piece tic-tac-toe
-**                 Note that tie is possible in this game
-**                 Used a really wasteful gNumberOfPositions
-**                 Did InitializeDatabases, DoMove,
-**                 GetInitialPosition, PrintComputersMove,
-**                 It does have some bugs in it, but it works.
-**
-**  10-10-01      :The coding part of the program is complete.
-**                 We got rid of all the errors and buggs. But
-**                 we are not able to run the program.
-**
-**  10-07-01      :The main modification started to change the
-**                 Tic-Tac-Toi to Chung-Toi
-*
 **
 **************************************************************************/
 
@@ -52,9 +20,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
 #include "gamesman.h"
 
 #define BOARDSIZE 9
@@ -366,8 +331,8 @@ POSITION gMinimalPosition    = 0;
 /*static char board[BOARDSIZE];*/
 int gCTOffsets[OFFSETSIZE] = {1, 19, 307, 2323, 14419, 54739, 162259};
 
-STRING kAuthorName          = "Dan Garcia, Farzad H. Eskafi, Erwin A. Vedar, Matthew Yu, and Cameron Cheung";
-STRING kGameName            = "Chung-Toi";
+CONST_STRING kAuthorName          = "Dan Garcia, Farzad H. Eskafi, Erwin A. Vedar, Matthew Yu, and Cameron Cheung";
+CONST_STRING kGameName            = "Chung-Toi";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kSupportsHeuristic   = TRUE;
 BOOLEAN kSupportsSymmetries  = FALSE;
@@ -381,25 +346,25 @@ BOOLEAN kLoopy               = TRUE;         /* Rotating in place
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Help strings not initialized.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Help strings not initialized.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
 STRING MoveToString(MOVE);
@@ -652,6 +617,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -1230,7 +1196,7 @@ MOVE ConvertTextInputToMove(input)
 STRING input;
 {
 	/* local variable */
-	MOVE theMove;
+	MOVE theMove = -1;
 	int length;
 
 	length = strlen ( input );          /* caculating the length                */
@@ -1406,10 +1372,10 @@ POSITION position;
 **
 ************************************************************************/
 
-MOVE DecodeMove(thePosition, canPosition, move)
-POSITION thePosition, canPosition;
-MOVE move;
+MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move)
 {
+	(void)thePosition;
+	(void)canPosition;
 	return move;
 }
 
@@ -1430,10 +1396,9 @@ MOVE move;
 **
 ************************************************************************/
 
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
+POSITION DoSymmetry(POSITION position, int symmetry)
 {
+	(void)symmetry;
 	return position;
 }
 
@@ -2366,7 +2331,7 @@ void printMask(int mask) {
            !gStuckAWin ? "WINNER" : "LOSER");
  ***/
 
-STRING kDBName = "ctoi";
+CONST_STRING kDBName = "ctoi";
 
 int NumberOfOptions()
 {
@@ -2528,10 +2493,6 @@ STRING InteractPositionToString(POSITION pos) {
 
 	SafeFree(board);
 	return finalBoard;
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {

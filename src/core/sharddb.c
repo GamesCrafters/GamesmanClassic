@@ -27,20 +27,13 @@ void            sharddb_free                     ();
 
 /* Value */
 VALUE           sharddb_get_value                (POSITION pos);
-VALUE           sharddb_set_value                (POSITION pos, VALUE val);
 
 /* Remoteness */
 REMOTENESS      sharddb_get_remoteness           (POSITION pos);
-void            sharddb_set_remoteness           (POSITION pos, REMOTENESS val);
 
 /* Visited */
-BOOLEAN         sharddb_check_visited            (POSITION pos);
-void            sharddb_mark_visited             (POSITION pos);
-void            sharddb_unmark_visited           (POSITION pos);
 
 /* Mex */
-MEX             sharddb_get_mex                  (POSITION pos);
-void            sharddb_set_mex                  (POSITION pos, MEX mex);
 
 /* saving to/reading from a file */
 BOOLEAN         sharddb_save_database            ();
@@ -73,17 +66,17 @@ static void sharddb_cache_get(VALUE *v, REMOTENESS *r, POSITION p);
 */
 
 void sharddb_init(DB_Table *new_db) {
-	new_db->put_value = sharddb_set_value;
-	new_db->put_remoteness = sharddb_set_remoteness;
-	new_db->mark_visited = sharddb_mark_visited;
-	new_db->unmark_visited = sharddb_unmark_visited;
-	new_db->put_mex = sharddb_set_mex;
+	new_db->put_value = NULL;
+	new_db->put_remoteness = NULL;
+	new_db->mark_visited = NULL;
+	new_db->unmark_visited = NULL;
+	new_db->put_mex = NULL;
 	new_db->free_db = sharddb_free;
 
 	new_db->get_value = sharddb_get_value;
 	new_db->get_remoteness = sharddb_get_remoteness;
-	new_db->check_visited = sharddb_check_visited;
-	new_db->get_mex = sharddb_get_mex;
+	new_db->check_visited = NULL;
+	new_db->get_mex = NULL;
 	new_db->save_database = sharddb_save_database;
 	new_db->load_database = sharddb_load_database;
 }
@@ -92,12 +85,6 @@ void sharddb_free() {
 	return;
 }
 
-
-VALUE sharddb_set_value(POSITION pos, VALUE val) {
-	return 0;
-}
-
-//char initializesegment(POSITION offset, FILE *file, int size, POSITION key) {
 char initializesegment(POSITION offset, char *gzbuffer, int size, POSITION key, POSITION *gzOffset) {
     int64_t ptr = 0;
 	ptr = gzbuffer[(*gzOffset)++];
@@ -166,31 +153,6 @@ REMOTENESS sharddb_get_remoteness(POSITION pos)
 	return remoteness;
 }
 
-void sharddb_set_remoteness (POSITION pos, REMOTENESS val) {
-	return;
-}
-
-BOOLEAN sharddb_check_visited(POSITION pos) {
-	return FALSE;
-}
-
-
-void sharddb_mark_visited (POSITION pos) {
-	return;
-}
-
-void sharddb_unmark_visited (POSITION pos) {
-	return;
-}
-
-void sharddb_set_mex(POSITION pos, MEX mex) {
-	return;
-}
-
-MEX sharddb_get_mex(POSITION pos) {
-	return 0;
-}
-
 BOOLEAN sharddb_save_database () {
 	return FALSE;
 }
@@ -215,14 +177,7 @@ MOVELIST *IGenerateMoves(POSITION position) {
 }
 
 POSITION IInteractStringToPosition(STRING str) {
-  enum UWAPI_Turn turn;
-  unsigned int num_rows, num_columns; // Unused
-  STRING board;
-  if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-	// Failed to parse string
-	return INVALID_POSITION;
-	}
-
+  char *board = str + 8; // Assumes UWAPI position string header is R_(A|B)_0_0_
   POSITION pos = 0;
   for (int c = 0; c < ICOLUMNCOUNT; c++) {
     POSITION colbits = 0;
@@ -239,13 +194,13 @@ POSITION IInteractStringToPosition(STRING str) {
     if (!endFound) colbits |= (1 << IROWCOUNT);
     pos |= (colbits << ((IROWCOUNT + 1) * (ICOLUMNCOUNT - 1 - c)));
   }
-  if (turn == UWAPI_TURN_B) pos |= (1ULL << 63);
-  SafeFree(board);
+  if (str[2] == 'B') pos |= (1ULL << 63);
   return pos;
 }
 
 STRING IInteractPositionToString(POSITION position) {
-  char pieces[(IROWCOUNT + 1) * ICOLUMNCOUNT + 1];
+  int strLen = IROWCOUNT * ICOLUMNCOUNT + 1;
+  char pieces[strLen];
   int piecesPlaced = 0;
   int k = 0;
   BOOLEAN pastSigBit = FALSE;
@@ -273,17 +228,10 @@ STRING IInteractPositionToString(POSITION position) {
       k++;
     }
   }
-  for (int i = (IROWCOUNT * ICOLUMNCOUNT); i < (IROWCOUNT + 1) * ICOLUMNCOUNT; i++) {
-    pieces[i] = '-';
-  }
 
-  pieces[(IROWCOUNT + 1) * ICOLUMNCOUNT] = '\0';
+  pieces[IROWCOUNT * ICOLUMNCOUNT] = '\0';
   enum UWAPI_Turn turn = (piecesPlaced & 1) ? UWAPI_TURN_B : UWAPI_TURN_A; 
-  return UWAPI_Board_Regular2D_MakePositionString(turn, IROWCOUNT + 1, ICOLUMNCOUNT, pieces);
-}
-
-STRING IInteractMoveToString(POSITION position, MOVE move) {
-  return UWAPI_Board_Regular2D_MakeAddString('a', (IROWCOUNT + 1) * ICOLUMNCOUNT - 1 - (move / (IROWCOUNT + 1)));
+  return UWAPI_Board_Regular2D_MakeBoardString(turn, strLen, pieces);
 }
 
 STRING ValueCharToValueString(char value_char) {
@@ -331,11 +279,8 @@ void shardGamesmanDetailedPositionResponse(STRING board, POSITION pos) {
 		printf("\"remoteness\":%d,", remoteness);
 		char value_char = gValueLetter[value];
 		printf("\"value\":\"%s\"", ValueCharToValueString(value_char));
-		move_string = IInteractMoveToString(pos, current_move->move);
-					
-		printf(",\"move\":\"%s\"", move_string);
-		SafeFree(move_string);
-
+		int w = (IROWCOUNT + 1) * ICOLUMNCOUNT - 1 - (current_move->move / (IROWCOUNT + 1));
+		printf(",\"move\":\"M_%d_%d_x\"", w, w + ICOLUMNCOUNT);
 		move_string = gMoveToStringFunPtr(current_move->move);
 		printf(",\"moveName\":\"%s\"", move_string);
 		SafeFree(move_string);

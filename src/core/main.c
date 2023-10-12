@@ -274,25 +274,6 @@ void SolveAndStore()
 	}
 }
 
-void RemoteStartGamesman(BOOLEAN admin) {
-	Initialize();
-	InitializeDatabases();
-	InitializeAnalysis();
-	gAnalysis.TotalMoves = 0;
-
-	gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
-	if (gPrintDatabaseInfo)
-		printf("\nEvaluating the value of %s...", kGameName);
-	gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
-	gTierSolvePrint = FALSE;
-
-	RemoteInitialize(); //init the retrograde solver
-	//if (admin)
-	//    runAdmin_Main(NULL);
-	//else runClient_Main(NULL);
-}
-
-
 /* Handles the command line arguments by setting flags and options
    declared in in globals.h */
 void HandleArguments (int argc, char *argv[])

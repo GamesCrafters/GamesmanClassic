@@ -10,14 +10,6 @@
 **
 ** DATE:        10/7/03
 **
-** UPDATE HIST:
-** 9/12/03 - Some Work on Text Interface, and file maintnence. -SL
-** 10/7/03 - Imported Our functions from other files. -SL
-** 10/14/03 - Finished other functions. Don't know if it works. - SL
-** 11/12/03 - Added Comments. Fixed kParizan. Fixed Some other comments. -SL
-**
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -26,20 +18,16 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 POSITION gNumberOfPositions   = 0;
 POSITION gInitialPosition     = 0;
 POSITION gMinimalPosition     = 0;
 POSITION kBadPosition         = -1;
 
-STRING kAuthorName          = "Damian Hites, Scott Lindeneau, and John Jordan";
-STRING kGameName            = "Gobblet Jr";
-STRING kDBName              = "gobblet";
+CONST_STRING kAuthorName          = "Damian Hites, Scott Lindeneau, and John Jordan";
+CONST_STRING kGameName            = "Gobblet Jr";
+CONST_STRING kDBName              = "gobblet";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kSupportsHeuristic   = FALSE;
 BOOLEAN kSupportsSymmetries  = FALSE;
@@ -50,10 +38,10 @@ BOOLEAN kTieIsPossible       = FALSE;
 BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, determine if you wish to move a new piece onto the board\n\
 or move an existing piece on the board. If you want to move an existing\n\
 piece, use the LEGEND to determine which number (from 1 and 9, with 1\n\
@@ -67,21 +55,21 @@ postion you wish to move to. If at any point you have made a mistake you can\n\
 type u and hit return and the system will revert back to your most recent\n\
 position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You move a piece, either from the board or stock, to an applicable board\n\
 position."                                                                                     ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To make three in a row, horizontally, vertically, or diagonally.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force the other player into three in a row.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "A tie is not possible in this game.";
 
 //might need to change this.
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )            : -- -- --\n\
 LEGEND:  ( 4 5 6 )   Board:   : -- -- -- \n\
          ( 7 8 9 )            : -- -- -- \n\
@@ -405,6 +393,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -443,9 +432,9 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -510,41 +499,36 @@ POSITION GetInitialPosition()
 	int i;
 	int j;
 
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\n\tNote that X will always go first\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("\t-- X  -x\n");
-	printf("\tO  X  --         <----- EXAMPLE\n");
-	printf("\t-o O  --\n");
-	printf("\tFor example, to get the position printed above, type:\n");
-	printf("\t--X--x \nO-X--- \n-oO--- \n");
+	do {
+		printf("\n\n\t----- Get Initial Position -----\n");
+		printf("\n\tPlease input the position to begin with.\n");
+		printf("\n\tNote that X will always go first\n");
+		printf("\tNote that it should be in the following format:\n\n");
+		printf("\t-- X  -x\n");
+		printf("\tO  X  --         <----- EXAMPLE\n");
+		printf("\t-o O  --\n");
+		printf("\tFor example, to get the position printed above, type:\n");
+		printf("\t--X--x \nO-X--- \n-oO--- \n");
 
-	i = 0;
-	getchar();
-	while(i < TABLE_SLOTS && (c = getchar()) != EOF) {
-		j = 0;
-		do {
-			if((c == 'X') || (c == 'x') || (c == '*'))
-				myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_X;
-			else if((c == 'O') || (c == 'o') || (c == '.'))
-				myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_O;
-			j++;
-		} while((j < PIECE_SIZES) && (c = getchar()) != EOF);
-		i++;
-	}
-	myPosition.turn = TURN_X;
-	comparePosition = unhash(hash(myPosition));
-	if((myPosition.board != comparePosition.board) ||
+		i = 0;
+		getchar();
+		while(i < TABLE_SLOTS && (c = getchar()) != EOF) {
+			j = 0;
+			do {
+				if((c == 'X') || (c == 'x') || (c == '*'))
+					myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_X;
+				else if((c == 'O') || (c == 'o') || (c == '.'))
+					myPosition.board[i] = (myPosition.board[i] << 2) + PIECE_O;
+				j++;
+			} while((j < PIECE_SIZES) && (c = getchar()) != EOF);
+			i++;
+		}
+		myPosition.turn = TURN_X;
+		comparePosition = unhash(hash(myPosition));
+	} while ((myPosition.board != comparePosition.board) ||
 	   (myPosition.stash != comparePosition.stash) ||
-	   (myPosition.turn != comparePosition.turn))
-	{
-		printf("\n Illegal Board Position Please Re-Enter\n");
-		return GetInitialPosition();
-	}
-	else{
-		return(hash(myPosition));
-	}
+	   (myPosition.turn != comparePosition.turn));
+	return (hash(myPosition));
 }
 
 
@@ -793,7 +777,6 @@ POSITION position;
 	int pieceColorFrom;
 	int currentColor;
 	int topPieceTo;
-	int stockValue;
 	int i, j;
 
 	if(Primitive(position) == undecided) {
@@ -801,7 +784,6 @@ POSITION position;
 		currentColor = (myPosition.turn == TURN_O ? PIECE_O : PIECE_X);
 		/* For pieces in the stock */
 		for(i = 0 + myPosition.turn; i < PIECE_SIZES * 2; i += 2) {
-			stockValue = i / 2;
 			if(myPosition.stash[i] > 0) {
 				for(j = 0; j < TABLE_SLOTS; j++) {
 					topPieceTo = getTopPieceSize(myPosition.board[j]);
@@ -1301,13 +1283,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

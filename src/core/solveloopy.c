@@ -85,6 +85,7 @@ void MyPrintParents()
 
 VALUE DetermineLoopyValue(POSITION position)
 {
+	(void) position;
 	VALUE value;
 
 	/* initialize */
@@ -352,6 +353,7 @@ void DFS_SetParents (POSITION parent, POSITION position)
 
 		for (moveptr = movehead; moveptr != NULL; moveptr = moveptr->next) {
 			gNumberChildren[(int)position]++; /* Record the number of kids */
+			printf("\n\nLOOPY SOLVER MOVE: %d\n\n", moveptr->move);
 			child = DoMove(position, moveptr->move); /* Create the child */
 			if (Visited(child)) {        /* Visited? */
 				DFS_SetParents(position, child); /* Go ahead and call (it'll be quick) */
@@ -422,6 +424,7 @@ void SetParents (POSITION parent, POSITION root)
 			movehead = GenerateMoves(pos);
 
 			for (moveptr = movehead; moveptr != NULL; moveptr = moveptr->next) {
+				printf("\n\nLOOPY SOLVER MOVE: %d\n\n", moveptr->move);
 				child = DoMove(pos, moveptr->move);
 				// Robert Shi: can we speed this up by removing
 				// branching and use a default gCanonicalPosition

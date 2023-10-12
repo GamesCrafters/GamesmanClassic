@@ -9,29 +9,6 @@
 **
 ** DATE:        24 Feb 2004 - Added Initial Code
 **
-** UPDATE HIST: 24 Feb 2004 - Initial Setup
-**              31 Mar 2004 - More Stuff Added. Almost Done.
-**              18 Apr 2004 - Revamped Generate Moves. Now shows up in Gamesman
-**              23 May 2004 - Began Reduction of Board Size from 33 positions to 21
-**              Dates After - Refer to CVS Logs
-**
-** CHECKLIST:
-**            Fix Bugs (GoAgain)
-**            Unflag GoAgain
-**            PROOFREAD
-**            DOUBLE CHECK DEFAULT POSITION!
-**
-** DONE       Reverse Board
-**            Make User Lowercase
-**            'D' DONE instead of Pass
-**            Hash Go Again
-**            Make more Friendly
-**            Make EVERYTHING Pretty. Mimic Gamesman
-**            Add Sample Game Help
-**            Fix Menus. B) Categorically Go Back
-**            Add Piece on PrintPosition
-**            Redo Example Game
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -40,12 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 extern STRING gValueString[];
 
@@ -55,9 +27,9 @@ POSITION gInitialPosition    = 812760; /* The initial position (starting board) 
 POSITION gMinimalPosition    = 0; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING kGameName           = "Asalto";   /* The name of your game */
-STRING kDBName             = "Asalto";   /* The name to store the database under */
-STRING kAuthorName          = "Robert Liao and Michael Chen";
+CONST_STRING kGameName           = "Asalto";   /* The name of your game */
+CONST_STRING kDBName             = "Asalto";   /* The name to store the database under */
+CONST_STRING kAuthorName          = "Robert Liao and Michael Chen";
 BOOLEAN kPartizan           = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kDebugMenu          = FALSE;  /* TRUE while debugging */
 BOOLEAN kGameSpecificMenu   = TRUE;  /* TRUE if there is a game specific menu*/
@@ -66,20 +38,20 @@ BOOLEAN kLoopy               = TRUE;  /* TRUE if the game tree will have cycles 
 BOOLEAN kDebugDetermineValue = FALSE;  /* TRUE while debugging */
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "init_game_help not run!";
+CONST_STRING kHelpGraphicInterface = "init_game_help not run!";
 
-STRING kHelpTextInterface  = "init_game_help not run!";
+CONST_STRING kHelpTextInterface  = "init_game_help not run!";
 
-STRING kHelpOnYourTurn     = "init_game_help not run!";
+CONST_STRING kHelpOnYourTurn     = "init_game_help not run!";
 
-STRING kHelpStandardObjective = "init_game_help not run!";
+CONST_STRING kHelpStandardObjective = "init_game_help not run!";
 
-STRING kHelpReverseObjective  = "init_game_help not run!";
+CONST_STRING kHelpReverseObjective  = "init_game_help not run!";
 
-STRING kHelpTieOccursWhen =  "init_game_help not run!";
+CONST_STRING kHelpTieOccursWhen =  "init_game_help not run!";
 /* Should follow 'A Tie occurs when... */
 
-STRING kHelpExample = "init_game_help not run!";
+CONST_STRING kHelpExample = "init_game_help not run!";
 
 /*************************************************************************
 **
@@ -634,9 +606,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions (int options[])
 {
+	(void)options;
 }
 
 
@@ -791,7 +763,7 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 
 POSITION GetInitialPosition()
 {
-	int boardStats[2];
+	int boardStats[3];
 	char selection = 'Z';
 
 	do
@@ -1926,13 +1898,13 @@ void AddRemoveFoxes(char board[])
 		case 'B':
 			if (numFoxes(boardStats) < 2)
 			{
+				/* Robert Shi: the original code falls through in this
+				   case. Preserving the behavior. */
 				printf("You must have two foxes on the board.\n");
+				printf("Invalid option. Try again\n");
 				selection = 'Z';
 			}
-			else
-			{
-				break;
-			}
+			break;
 		default:
 			printf("Invalid option. Try again\n");
 			selection = 'Z';
@@ -1950,7 +1922,7 @@ void AddRemoveGeese(char board[])
 	char selection = 'Z';
 	int location = -1;
 	int coordinate[2] = {-1,-1};
-	int boardStats[2];
+	int boardStats[3];
 	int validCoord=0;
 
 	do
@@ -2280,13 +2252,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	(void)pos;
 	return MoveToString(mv);
 }

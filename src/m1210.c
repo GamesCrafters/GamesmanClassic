@@ -27,7 +27,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /*************************************************************************
@@ -36,9 +35,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "1,2,...,10";
-STRING kAuthorName          = "Dan Garcia and his GamesCrafters";
-STRING kDBName              = "1210";
+CONST_STRING kGameName            = "1,2,...,10";
+CONST_STRING kAuthorName          = "Dan Garcia and his GamesCrafters";
+CONST_STRING kDBName              = "1210";
 
 BOOLEAN kPartizan            = FALSE;
 BOOLEAN kGameSpecificMenu    = FALSE;
@@ -56,10 +55,10 @@ void*    gGameSpecificTclInit = NULL;
 
 POSITION gMinimalPosition     = 0;        /* Is this used by anyone? */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
 /*
    --------------------------------------------------------------------------------
  */
@@ -69,18 +68,18 @@ STRING kHelpTextInterface    =
         "choice of raising the sum by 1 or 2 points. The winner is the first\n"
         "person to raise the total sum to exactly 10.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Type 1 or 2 to choose how much you'd like to increase the total.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the first player to raise the total to 10.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to raise the total to 10.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "TOTAL                        :  0   \n\n\
      Dan's move [(u)ndo/1/2] : { 2 } \n\n\
 TOTAL                        :  2    \n\n\
@@ -390,10 +389,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 
@@ -538,21 +537,25 @@ STRING GetNextMoveValues(char* board, int option) {
 }
 
 POSITION InteractStringToPosition(STRING board) {
-	return atoi(board);
+	board = board + 8;
+	for (int i = 0; i < gNumberOfPositions; i++) {
+		if (board[i] == 'x') {
+			return i;
+		}
+	}
+	return 0;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char buffer[32];
-	snprintf(buffer, 32, "%lld",pos);
-	char* ret = malloc(sizeof(char)*(strlen(buffer)+1));
-	strncpy(ret, buffer, (strlen(buffer)+1));
-	return ret;
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+	char buffer[gNumberOfPositions + 1];
+	for (int i = 0; i < gNumberOfPositions; i++) {
+		buffer[i] = '-';
+	}
+	buffer[pos] = 'x';
+	buffer[gNumberOfPositions] = '\0';
+	return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, gNumberOfPositions + 1, buffer);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(pos, pos + mv, 'x');
 }

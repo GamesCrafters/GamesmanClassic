@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions = 0;
@@ -7,8 +6,8 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "";
-STRING kGameName = "";
+CONST_STRING kAuthorName = "";
+CONST_STRING kGameName = "";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -17,19 +16,19 @@ BOOLEAN kLoopy = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpOnYourTurn = "";
 
-STRING kHelpStandardObjective = "";
+CONST_STRING kHelpStandardObjective = "";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -372,7 +371,7 @@ STRING MoveToString (MOVE theMove)
   return NULL;
 }
 
-STRING kDBName = "";
+CONST_STRING kDBName = "";
 
 int NumberOfOptions()
 {
@@ -399,11 +398,6 @@ POSITION InteractStringToPosition(STRING board)
 }
 
 STRING InteractPositionToString(POSITION pos)
-{
-  return NULL;
-}
-
-STRING InteractPositionToEndData(POSITION pos)
 {
   return NULL;
 }

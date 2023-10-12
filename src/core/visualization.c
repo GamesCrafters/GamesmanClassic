@@ -187,6 +187,7 @@ void Visualize() {
 }
 
 void PopulateEdgelist(EDGELIST *tree) {
+	(void) tree;
 	int level;
 	POSITION parent, child;
 	MOVELIST *childMoves;
@@ -218,6 +219,7 @@ void PopulateEdgelist(EDGELIST *tree) {
 				pdata = GetOpenData(parent);
 				cdata = GetOpenData(child);
 				level = GetLevelNumber(pdata);
+				(void)cdata;
 			}
 
 			/* If the level is more than the number in tree, resize to handle more levels */
@@ -248,6 +250,7 @@ void PopulateEdgelist(EDGELIST *tree) {
 }
 
 void Write(FILE *fp, EDGELIST *tree) {
+	(void) fp;
 	int currentLevel;
 
 	for(currentLevel = tree->NumberOfLevels - 1; currentLevel > -1; currentLevel--) {
@@ -345,7 +348,7 @@ void WriteNode(FILE *fp, POSITION node, int level, EDGELIST *tree) {
 	}
 
 	if(!Visited(node)) {
-		if(level != GetLevelNumber(pdata)) {
+		if((unsigned) level != GetLevelNumber(pdata)) {
 			fprintf(fp, "\t\tsubgraph cluster%llu {\n", node);
 			fprintf(fp, "\t\t\tlabel = \" \"\n");
 			fprintf(fp, "\t\t\tcolor = \"blue\"\n\t");
@@ -355,11 +358,11 @@ void WriteNode(FILE *fp, POSITION node, int level, EDGELIST *tree) {
 		}
 
 		if(node == gInitialPosition) {
-			if(level == GetLevelNumber(pdata)) {
+			if((unsigned) level == GetLevelNumber(pdata)) {
 				fprintf(fp, "\t\tsubgraph cluster%llu {\n", node);
 				fprintf(fp, "\t\t\tcolor = \"blue\"\n\t");
 			}
-			fprintf(fp, "%slabel = \"Initial Position\"\n\t", (level == GetLevelNumber(pdata)) ? "\t\t\t" : "\t\t");
+			fprintf(fp, "%slabel = \"Initial Position\"\n\t", ((unsigned) level == GetLevelNumber(pdata)) ? "\t\t\t" : "\t\t");
 		}
 
 		if(GetLevelNumber(pdata) == 0) {
@@ -372,7 +375,7 @@ void WriteNode(FILE *fp, POSITION node, int level, EDGELIST *tree) {
 			BadElse("WriteNode");
 		}
 
-		if(level != GetLevelNumber(pdata) || node == gInitialPosition) {
+		if((unsigned) level != GetLevelNumber(pdata) || node == gInitialPosition) {
 			fprintf(fp, "\n\t\t}\n");
 		} else {
 			fprintf(fp, "\n");
@@ -389,15 +392,15 @@ void WriteNode(FILE *fp, POSITION node, int level, EDGELIST *tree) {
 		//REMOTENESS_MAX level above current level,
 		//REMOTENESS_MAX+1 level below current level
 		if(gRemotenessOrder) {
-			if(level == GetLevelNumber(pdata)) {
+			if((unsigned) level == GetLevelNumber(pdata)) {
 				if(GetFringe(pdata)) {
 					UpdateRankList(tree, node, REMOTENESS_MAX+1); // want fringes at bottom
 				} else {
 					UpdateRankList(tree, node, nodeRemoteness);
 				}
-			} else if(level > GetLevelNumber(pdata)) {
+			} else if((unsigned int) level > GetLevelNumber(pdata)) {
 				UpdateRankList(tree, node, REMOTENESS_MAX+1);
-			} else if(level < GetLevelNumber(pdata)) {
+			} else if((unsigned int) level < GetLevelNumber(pdata)) {
 				UpdateRankList(tree, node, REMOTENESS_MAX);
 			} else {
 				BadElse("WriteNode");

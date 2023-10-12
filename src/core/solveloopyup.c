@@ -245,7 +245,7 @@ void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMO
 		return;
 	}
 
-	if (loopyup_childrenCount[pos] == BadChildrenCount) {
+	if (loopyup_childrenCount[pos] == (POSITION) BadChildrenCount) {
 		loopyup_CountChildren(pos);
 	}
 
@@ -281,6 +281,9 @@ void loopyup_DetermineLocalValueNoGoAgain(POSITION pos, VALUE callersValue, REMO
 }
 
 void loopyup_DetermineLocalValueGoAgain(POSITION pos, VALUE callersValue, REMOTENESS callersRemoteness, BOOLEAN updateRemotenessOnly) {
+	(void) callersValue;
+	(void) callersRemoteness;
+	(void) updateRemotenessOnly;
 	BOOLEAN foundTie, foundWin, foundLose, foundUndecided;
 	REMOTENESS winRemoteness, tieRemoteness, loseRemoteness;
 	MOVELIST *mhead, *moveList;

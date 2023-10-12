@@ -18,10 +18,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-// #include "loopygasolver.h"
 
 int debug = 0;
 int printMethods = 0;
@@ -34,8 +31,8 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING kAuthorName         = "Gamescrafters";
-STRING kGameName           = "Fandango";
+CONST_STRING kAuthorName         = "Gamescrafters";
+CONST_STRING kGameName           = "Fandango";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -43,9 +40,9 @@ BOOLEAN kTieIsPossible      = FALSE;
 BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 
-STRING kHelpGraphicInterface ="";
+CONST_STRING kHelpGraphicInterface ="";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn use the file letter and row number to determine the piece you wish\n\
 to move, the direction and attack method. A move consists of moving a piece to an\n\
 empty adjacent spot. You can capture either by approach or withdrawal. If you move\n\
@@ -58,7 +55,7 @@ If you have made a wrong move at any point,you can type u to revert back to the 
 "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ;
 
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Move one of your pieces in one of the eight directions by selecting the letter and row\n"
         "number,direction, and attack method. Capturing can be done by withdrawal or approach. To\n"
         "capture by approach the player must move towards the opponent piece so that it is\n"
@@ -67,18 +64,18 @@ STRING kHelpOnYourTurn =
         "opponent's piece away from the opposing piece.";
 
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To capture all of your opponents pieces or to leave them in a position where they have\n"
         "no more available moves.";
 
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To get all of your pieces captured.\n";
 
 
-STRING kHelpTieOccursWhen ="";
+CONST_STRING kHelpTieOccursWhen ="";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "            BOARD \n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    O --- O --- O          NW  N  NE        N = no action \n\
@@ -448,6 +445,7 @@ void GameSpecificMenu() {
 		switch(toupper(GetMyChar())) {
 		case 'Q':
 			ExitStageRight();
+			break;
 		case 'H':
 			HelpMenus();
 			break;
@@ -483,10 +481,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -537,6 +535,7 @@ Coordinates CarryOutMove(BlankOX* board, char turn, MOVE theMove, BOOLEAN* captu
 	Coordinates coord;
 	Coordinates result;
 	*captured = FALSE;
+	(void)turn;
 
 	// extract the information from theMove
 	cap = 3 & theMove;
@@ -729,15 +728,14 @@ BOOLEAN usersTurn;
 	int x, y;
 	int displayBoardWidth = (BOARDWIDTH - 1 ) * 6 + 1;
 	int displayBoardHeight = (BOARDHEIGHT - 1) * 2 + 1;
-	int numOfDigit = 0;
-	int temp;
-	int maxX;
+	// int numOfDigit = 0;
+	// int temp;
+	// int maxX;
 	int maxY;
 	int slashFlag = 1;
-	int commentx;
 	int myBoardStartAt;
-	int myDirectionStartAt;
-	int myActionStartAt;
+	// int myDirectionStartAt;
+	// int myActionStartAt;
 	int boardIndex;
 	int rowNum = 1;
 
@@ -749,8 +747,8 @@ BOOLEAN usersTurn;
 	PositionToBlankOX(position,theBoard);
 
 	// get the maximum num of digit of the position
-	temp = BOARDWIDTH*BOARDHEIGHT;
-	numOfDigit = getNumOfDigit(temp) - 1;
+	// temp = BOARDWIDTH*BOARDHEIGHT;
+	// numOfDigit = getNumOfDigit(temp) - 1;
 
 	// the word "BOARD" starts at location:
 	myBoardStartAt = ceil((displayBoardWidth - 5)/2.0)  + 8;
@@ -758,13 +756,13 @@ BOOLEAN usersTurn;
 	// myLegendStartAt = ceil((displayBoardWidth -6)/2.0) + 8 + 8 + displayBoardWidth;
 	// the word "DIREDTION" starts at location:
 	//myDirectionStartAt = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 2;
-	myDirectionStartAt = 5 + displayBoardWidth + 8;
+	// myDirectionStartAt = 5 + displayBoardWidth + 8;
 	// the word "ACTION" starts at location:
-	myActionStartAt = myDirectionStartAt + 9 + 8 + 1;
+	// myActionStartAt = myDirectionStartAt + 9 + 8 + 1;
 
 	// get the maximum width
 	//maxX = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 9 + 8 + 24;
-	maxX = 5 + displayBoardWidth + 8 + 9 + 8 + 24;
+	// maxX = 5 + displayBoardWidth + 8 + 9 + 8 + 24;
 
 	maxY = displayBoardHeight;
 
@@ -777,8 +775,6 @@ BOOLEAN usersTurn;
 		maxY = 5;
 
 	maxY = maxY + 2;
-	commentx = maxX + 1 + COMMENTSPACE;
-
 
 	/*
 	   // Display title
@@ -1640,7 +1636,7 @@ BlankOX OtherPlayer(char current) {
 	return current==X ? O : X;
 }
 
-STRING kDBName = "fandan";
+CONST_STRING kDBName = "fandan";
 
 int NumberOfOptions()
 {
@@ -1837,14 +1833,12 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+	(void)pos;
 	return "Implement Me";
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv)
 {
+	(void)pos;
 	return MoveToString(mv);
 }

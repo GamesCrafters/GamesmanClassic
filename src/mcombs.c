@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <ctype.h>
 #include "gamesman.h"
-#include <math.h>
 
 /*******************************************************************************
 *
@@ -45,18 +42,18 @@ BOOLEAN kGameSpecificMenu      = TRUE;
 BOOLEAN kTieIsPossible         = FALSE;
 BOOLEAN kLoopy                 = FALSE;
 BOOLEAN kDebugDetermineValue   = FALSE;
-STRING kGameName              = "Combinations";
+CONST_STRING kGameName              = "Combinations";
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit   = NULL;
 
-STRING kHelpGraphicInterface  = "Help Graphic Interface: Fill in later";
-STRING kHelpTextInterface     = "Help Text Interface: Fill in later";
-STRING kHelpOnYourTurn        = "Help on your turn";
-STRING kHelpStandardObjective = "help standard objective";
-STRING kHelpReverseObjective  = "reverse objective";
-STRING kHelpTieOccursWhen     = "A tie is not possible in this game";
-STRING kHelpExample           = "some really long thing<-Actually play a game,then copy/paste";
-STRING kAuthorName            = "Nicholas Herson";
+CONST_STRING kHelpGraphicInterface  = "Help Graphic Interface: Fill in later";
+CONST_STRING kHelpTextInterface     = "Help Text Interface: Fill in later";
+CONST_STRING kHelpOnYourTurn        = "Help on your turn";
+CONST_STRING kHelpStandardObjective = "help standard objective";
+CONST_STRING kHelpReverseObjective  = "reverse objective";
+CONST_STRING kHelpTieOccursWhen     = "A tie is not possible in this game";
+CONST_STRING kHelpExample           = "some really long thing<-Actually play a game,then copy/paste";
+CONST_STRING kAuthorName            = "Nicholas Herson";
 
 static int isLinearCombination(POSITION, int, int);
 STRING MoveToString(MOVE);
@@ -122,6 +119,7 @@ void GameSpecificMenu()
 // Probably don't need to write this
 void SetTclCGameSpecificOptions(int theOptions [])
 {
+  (void)theOptions;
 }
 
 // just a nice maxing function
@@ -194,6 +192,7 @@ VALUE Primitive(POSITION position)
 // Print out a visual representation of the position
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  (void)usersTurn;
   printf("TURN: %s\n", playerName);
   printf("UNAVAILABLE NUMBERS: ");
   int mask = 1;
@@ -284,9 +283,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE* theMove, STRING pla
 
 BOOLEAN ValidTextInput(STRING input)
 {
-	int i;
-	for(i = 0; i < strlen(input); i++)
-		if(!isdigit(input[i]))
+	for (size_t i = 0; i < strlen(input); i++)
+		if (!isdigit(input[i]))
 			return FALSE;
 	return TRUE;
 }
@@ -313,7 +311,7 @@ MOVE theMove;
 	return move;
 }
 
-STRING kDBName = "combinations";
+CONST_STRING kDBName = "combinations";
 
 int NumberOfOptions()
 {
@@ -342,13 +340,11 @@ POSITION InteractStringToPosition(STRING board) {
 
 STRING InteractPositionToString(POSITION pos) {
 	// FIXME: this is just a stub
+  (void)pos;
 	return "Implement Me";
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
+  (void)pos;
   return MoveToString(mv);
 }
