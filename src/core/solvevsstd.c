@@ -124,7 +124,7 @@ VALUE DetermineValueVSSTDHelper(POSITION position) {
 	REMOTENESS maxRemoteness = 0, minRemoteness = MAXINT2;
 	REMOTENESS minTieRemoteness = MAXINT2, remoteness;
 	MEXCALC theMexCalc = 0; /* default to satisfy compiler */
-	int winByValue = 0, minWinByValue = ((1 << (MEX_BITS-1))-1), maxWinByValue = -(1 << (MEX_BITS-1));
+	int minWinByValue = INT_MAX;
 
 	if (GetSlot(position, VISITEDSLOT)) {
 		/* Cycle! */
@@ -155,10 +155,13 @@ VALUE DetermineValueVSSTDHelper(POSITION position) {
 			if (gSymmetries) child = gCanonicalPosition(child);
 			if (child >= gNumberOfPositions) FoundBadPosition(child, position, move);
 			value = DetermineValueVSSTDHelper(child); /* DFS call. */
+
 			if (kPartizan && gPutWinBy && !gTwoBits) {
 				int childWinByValue = WinByLoad(child);
-				if (childWinByValue < minWinByValue) minWinByValue = childWinByValue;
-				if (childWinByValue > maxWinByValue) maxWinByValue = childWinByValue;
+				if (value == lose) childWinByValue = -childWinByValue;
+				if (childWinByValue < minWinByValue) {
+					minWinByValue = childWinByValue;
+				}
 			}
 			if (gGoAgain(position,move)) {
 				switch(value) {
@@ -192,16 +195,7 @@ VALUE DetermineValueVSSTDHelper(POSITION position) {
 		if (!kPartizan && !gTwoBits) {
 			SetSlot(position, MEXSLOT, MexCompute(theMexCalc));
 		} else if (kPartizan && gPutWinBy && !gTwoBits) {
-			/* TODO: make winby independent of turn. */
-			int turn = generic_hash_turn(position);
-			if (turn == 1) {
-				winByValue = maxWinByValue;
-			} else if (turn == 2) {
-				winByValue = minWinByValue;
-			} else {
-				BadElse("Bad generic_hash_turn(position)");
-			}
-			SetSlot(position, WINBYSLOT, (winByValue & (MEX_MASK >> MEX_SHIFT)));
+			SetSlot(position, WINBYSLOT, minWinByValue > 0 ? minWinByValue : -minWinByValue);
 		}
 		if (foundLose) {
 			SetSlot(position, REMSLOT, minRemoteness+1);
