@@ -527,10 +527,13 @@ VALUE Primitive(POSITION pos) {
     whoseturn = (int)getTurn(pos);
     tallyPieces(board, &blacktally, &whitetally, &blanktally);
     if (blanktally != 0) {
-        if (quickgeneratemoves(board, whoseturn))
+        if (quickgeneratemoves(board, whoseturn)) {
+            free(board);
             return undecided;
-        else if (quickgeneratemoves(board, oppositeturn(whoseturn)))
+        } else if (quickgeneratemoves(board, oppositeturn(whoseturn))) {
+            free(board);
             return undecided;
+        }
     }
     free(board);
 

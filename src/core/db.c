@@ -449,14 +449,10 @@ void WinByStore(POSITION position, WINBY winBy)
 
 WINBY WinByLoad(POSITION position)
 {
-	WINBY result;
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
-	result = db_functions->get_winby(position);
-	if (result > ((1 << (MEX_BITS-1))-1))
-		result |= ~MEX_MAX;
-	return result;
+	return db_functions->get_winby(position);
 }
 
 BOOLEAN SaveDatabase() {
