@@ -140,7 +140,7 @@ VALUE DetermineValueVSSTDHelper(POSITION position) {
 		if (!kPartizan && !gTwoBits) {
 			SetSlot(position, MEXSLOT, MexPrimitive(value)); /* lose=0, win=* */
 		} else if (kPartizan && gPutWinBy && !gTwoBits) {
-			SetSlot(position, WINBYSLOT, (gPutWinBy(position) & (MEX_MASK >> MEX_SHIFT)));
+			SetSlot(position, WINBYSLOT, gPutWinBy(position));
 		}
 		return(SetSlot(position, VALUESLOT, value));
 	} else {

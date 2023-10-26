@@ -497,7 +497,7 @@ void ServerInteractLoop(void) {
 					InteractFreeBoardSting(board);
 					InteractPrintJSONMEXValue(choice);
 					printf("\"remoteness\":%d,", Remoteness(choice));
-					if (gPutWinBy) printf("\"winby\":\"%d\",", WinByLoad(pos));
+					if (gPutWinBy) printf("\"winby\":\"%d\",", WinByLoad(choice));
 					InteractPrintJSONPositionValue(choice);
 					move_string = InteractMoveToString(pos, current_move->move);
 					
