@@ -442,7 +442,7 @@ void ServerInteractLoop(void) {
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
 			printf("\"board\":\"%s\",", board);
 			printf("\"remoteness\":%d,", Remoteness(pos));
-			if (gPutWinBy) printf("\"winby\":\"%d\",", WinByLoad(pos));
+			if (gPutWinBy) printf("\"winby\":%d,", WinByLoad(pos));
 			InteractPrintJSONPositionValue(pos);
 			printf("}}");
 		} else if (FirstWordMatches(input, "position")) {
@@ -481,7 +481,7 @@ void ServerInteractLoop(void) {
 			printf("\"board\": \"%s\",", board);
 			InteractPrintJSONMEXValue(pos);
 			printf("\"remoteness\":%d,", Remoteness(pos));
-			if (gPutWinBy) printf("\"winby\":\"%d\",", WinByLoad(pos));
+			if (gPutWinBy) printf("\"winby\":%d,", WinByLoad(pos));
 			InteractPrintJSONPositionValue(pos);
 
 			printf(",\"moves\":[");
@@ -497,7 +497,7 @@ void ServerInteractLoop(void) {
 					InteractFreeBoardSting(board);
 					InteractPrintJSONMEXValue(choice);
 					printf("\"remoteness\":%d,", Remoteness(choice));
-					if (gPutWinBy) printf("\"winby\":\"%d\",", WinByLoad(choice));
+					if (gPutWinBy) printf("\"winby\":%d,", WinByLoad(choice));
 					InteractPrintJSONPositionValue(choice);
 					move_string = InteractMoveToString(pos, current_move->move);
 					
@@ -583,7 +583,7 @@ void ServerInteractLoop(void) {
 					printf("{\"board\":\"%s\",", board);
 					InteractFreeBoardSting(board);
 					printf("\"remoteness\":%d,", Remoteness(choice));
-					if (gPutWinBy) printf("\"winby\":\"%d\",", WinByLoad(pos));
+					if (gPutWinBy) printf("\"winby\":%d,", WinByLoad(pos));
 					InteractPrintJSONPositionValue(choice);
 					move_string = InteractMoveToString(pos, current_move->move);
 					
@@ -724,7 +724,7 @@ void PrintLevel(POSITION pos, unsigned int depth, char * move_string) {
 	char * board = InteractPositionToString(pos);
 	printf("{\"board\":\"%s\",", board);
 	printf("\"remoteness\":%d,", Remoteness(pos));
-	if (gPutWinBy) printf("\"winby\":\"%d\",", WinByLoad(pos));
+	if (gPutWinBy) printf("\"winby\":%d,", WinByLoad(pos));
 	if (move_string) {
 		printf("\"move\":\"%s\",", move_string);
 	}
