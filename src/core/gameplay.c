@@ -1332,7 +1332,7 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
 		value = GetValueOfPosition(position);
 		if (gWinBy && value != tie) {
 			int winBy = (int) WinByLoad(position);
-			sprintf(winByString, " by %d", ((winBy < 0) ? -winBy : winBy));
+			sprintf(winByString, " by %d", winBy);
 		}
 		if (value == tie && Remoteness(position) == REMOTENESS_MAX) {
 			(void) sprintf(prediction, "(%s %s draw) %s",
