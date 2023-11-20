@@ -16,7 +16,7 @@
 CONST_STRING kAuthorName = "Arihant Choudhary, Cameron Cheung";
 CONST_STRING kGameName = "Example Graph Game for Draw Remoteness/Level Demo"; //  use this spacing and case
 CONST_STRING kDBName = "graphgame";     // use this spacing and case
-POSITION gNumberOfPositions = 19;           // TODO: Put your number of positions upper bound here.
+POSITION gNumberOfPositions = 21;           // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0;             // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE;                 // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = TRUE;            // TODO: Is a tie or draw possible?
@@ -57,25 +57,28 @@ void GameSpecificMenu() {}
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
 int listOfMoves[][4] = {
-    {1, 1},
-    {2, 0, 2},
-    {1, 3},
-    {1, 4},
-    {1, 7},
-    {2, 3, 4},
-    {2, 5, 8},
-    {2, 5, 8},
-    {1, 9},
-    {2, 8, 10},
-    {3, 9, 11, 12},
-    {1, 10},
-    {1, 13},
-    {1, 15},
-    {1, 12},
-    {1, 14},
-    {0},
-    {2, 11, 18},
-    {0}};
+    {1, 1}, //0
+    {2, 0, 2}, // 1
+    {1, 3}, // 2
+    {1, 4}, //3
+    {2, 6, 7}, //4
+    {2, 3, 4}, // 5
+    {2, 5, 8}, //6
+    {2, 5, 8}, //7
+    {1, 9}, // 8
+    {2, 8, 10}, // 9
+    {3, 9, 11, 12}, //10
+    {1, 10}, //11
+    {2, 13, 17}, //12
+    {1, 15}, // 13
+    {1, 12}, //14
+    {2, 14, 16}, //15
+    {1, 18}, //16
+    {3, 11, 18, 20}, //17
+    {0}, //18 Loss State
+    {2, 16, 20}, //19
+    {2, 16, 19} //20
+    };
 
 /* TODO: Add a hashing function and unhashing function, if needed. */
 
@@ -87,6 +90,8 @@ void InitializeGame()
     gMoveToStringFunPtr = &MoveToString;
 
     /* YOUR CODE HERE */
+    kUsePureDraw = TRUE;
+
 }
 
 /* Return the hash value of the initial position. */
@@ -160,12 +165,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
     /* YOUR CODE HERE */
     printf("%llu", position);
+    printf("\n");
+
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
     /* YOUR CODE HERE */
     printf("%d", computersMove);
+    printf("\n");
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName)
