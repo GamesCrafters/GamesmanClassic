@@ -1,9 +1,12 @@
-import http.server
-from queue import Queue, Empty
+#!/usr/bin/env python2.7
+from __future__ import print_function
+
+import BaseHTTPServer
+import Queue
 import argparse
 import asynchat
 import asyncore
-from io import StringIO
+import cStringIO
 import collections
 import fcntl
 import imp
@@ -74,7 +77,7 @@ closed_msg = ('{'
 
 
 class GameRequestHandler(asynchat.async_chat,
-                         http.server.BaseHTTPRequestHandler):
+                         BaseHTTPServer.BaseHTTPRequestHandler):
 
     def __init__(self, sock, address, server):
         self.client_address = address
@@ -85,14 +88,14 @@ class GameRequestHandler(asynchat.async_chat,
         self.set_terminator('\r\n\r\n')
 
         self.in_buffer = []
-        self.wfile = StringIO()
+        self.wfile = cStringIO.StringIO()
         self.protocol_version = 'HTTP/1.1'
 
     def collect_incoming_data(self, data):
         self.in_buffer.append(data)
 
     def found_terminator(self):
-        self.rfile = StringIO(''.join(self.in_buffer))
+        self.rfile = cStringIO.StringIO(''.join(self.in_buffer))
         self.rfile.seek(0)
         self.raw_requestline = self.rfile.readline()
         self.parse_request()
@@ -168,9 +171,9 @@ class GameRequestHandler(asynchat.async_chat,
         try:
             self.server.lock.acquire()
             self.send_response(200)
-            self.send_header('Content-Length', len(response))
+#            self.send_header('Content-Length', len(response))
             self.send_header('Content-Type', 'text/plain')
-            self.send_header('Access-Control-Allow-Origin', '*')
+#            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             self.wfile.seek(0)
             headers = self.wfile.read()
@@ -200,7 +203,7 @@ class GameProcess(object):
     def __init__(self, server, game, bin_path, option_num=None):
         self.server = server
         self.game = game
-        self.queue = Queue()
+        self.queue = Queue.Queue()
         self.option_num = option_num
         self.req_timeout = subprocess_idle_timeout
         self.req_timeout_step = 0.1
@@ -382,7 +385,7 @@ class GameProcess(object):
             try:
                 request = self.queue.get(block=True,
                                          timeout=self.req_timeout_step)
-            except Empty as e:
+            except Queue.Empty as e:
                 total_idle_time += self.req_timeout_step
                 if total_idle_time > self.req_timeout:
                     self.server.log.error(
