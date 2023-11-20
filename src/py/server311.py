@@ -234,6 +234,8 @@ class GameProcess():
         
         self.setup_subprocess_pipe(self.stdout)
         
+        self.close()
+        
         self.timeout_msg = timeout_msg
         self.crash_msg = crash_msg
         self.closed_msg = closed_msg
@@ -283,9 +285,17 @@ class GameProcess():
         if time_remaining <= 0:
             return self.handle_timeout(request, process_output='')
         self.server.log.debug('Sent command {}.'.format(request.command))
-            
-        self.stdin.write((request.command + '\n').encode())
-        self.stdin.flush()
+           
+        try:
+            self.stdin.write((request.command + '\n').encode())
+            self.stdin.flush()
+        except BrokenPipeError:
+            # This case can be hit if the subprocess crashes between requests
+            # (known to occasionally happen).
+            self.server.log.error('{} crashed on write!'
+                                  .format(self.game.name))
+            request.respond(self.crash_msg)
+            return False
         
         response: str = ''
         timeout = 0.01
@@ -366,29 +376,27 @@ class GameProcess():
             percent = 0.0
         return percent
 
-    
     def close(self) -> None:
         while not self.request_queue.empty():
             self.request_queue.get().respond(self.closed_msg)
         self.server.log.info('Closing {}.'.format(self.game.name))
         self.game.remove_process(self)
+        self.server.log.debug('Sending exit command to {}.'.format(self.game.name))
+        self.stdin.write(b'exit\n')
         try:
-            self.server.log.debug('Sending exit command to {}.'.format(self.game.name))
-            self.stdin.write(b'exit\n')
             self.stdin.flush()
-            normal_exit_timeout = 60
-            normal_exit_timeout_step = 5
-            while self.process.poll() is None and normal_exit_timeout > 0:
-                time.sleep(normal_exit_timeout_step)
-                normal_exit_timeout -= normal_exit_timeout_step
-            if normal_exit_timeout <= 0:
-                raise RuntimeError
+        except BrokenPipeError: # TODO
+            self.server.log.error(f"{self.game.name} normal exit BrokenPipeError. 
+                                  The process was likely terminated already.")
+        normal_exit_timeout = 60
+        normal_exit_timeout_step = 5
+        while self.process.poll() is None and normal_exit_timeout > 0:
+            time.sleep(normal_exit_timeout_step)
+            normal_exit_timeout -= normal_exit_timeout_step
+        if self.process.poll() is not None:
+            # Program successfully terminated
             return
-        except IOError:
-            self.server.log.error('{} normal exit IOError. The process may'
-                ' have been terminated already.'.format(self.game.name))
-        except RuntimeError:
-            self.server.log.error('{} normal exit timeout!'.format(self.game.name))
+        self.server.log.error(f"{self.game.name} normal exit timeout!")
         try:
             self.process.terminate()
             time.sleep(1)
