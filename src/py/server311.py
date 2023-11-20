@@ -63,7 +63,7 @@ closed_msg: str = ('{' +
                    '\n "reason":"Subprocess was closed."' +
                    '\n}')
 
-class GameRequestServer(http.server.HTTPServer):
+class GameRequestServer(http.server.ThreadingHTTPServer):
     def __init__(self, server_address: tuple[str, int], RequestHandlerClass: type[GameRequestHandler], log: logging.Logger):
         super().__init__(server_address, RequestHandlerClass)
         self.server_name: str = server_address[0]
@@ -105,9 +105,11 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(unquoted)
         path = parsed.path.split('/')
         httpCommand = path[-1]
+        print(f"path=", path)
         # No favorite icon for the classic server
         if httpCommand == 'favicon.ico':
             self.respond("Not supported")
+            return
         if httpCommand == 'getGames':
             # TODO
             return
@@ -163,7 +165,7 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):
         process.push_request(GameRequest(self, query, c_command))
 
     def respond(self, response: str) -> None:
-        self.server
+        self.close_connection = True
         self.send_response(200)
         self.send_header('Content-Type', 'text/plain')
         self.send_header('Content-Length', str(len(response)))
@@ -208,7 +210,8 @@ class GameProcess():
         # Time to wait polling response queue
         self.req_timeout_step = 0.1
         
-        # Time to TODO
+        # Time to wait for ready message when handling a request. If time
+        # waiting exceeds this, then crash
         self.read_timeout = subprocess_response_timeout
 
         # Note that arguments to GamesmanClassic must be given in the right
@@ -234,8 +237,6 @@ class GameProcess():
         
         self.setup_subprocess_pipe(self.stdout)
         
-        self.close()
-        
         self.timeout_msg = timeout_msg
         self.crash_msg = crash_msg
         self.closed_msg = closed_msg
@@ -245,6 +246,8 @@ class GameProcess():
         self.thread.daemon = True
         self.thread.start()
         
+    # Request will be handled in request_loop. Also requests will be responded
+    # to eventually.
     def push_request(self, request: GameRequest):
         self.request_queue.put(request)
         
@@ -254,8 +257,8 @@ class GameProcess():
         live = True
         total_idle_time = 0.0 # Time spent with no request
         while live:
-            self.server.log.debug(
-                'In request loop for {}.'.format(self.game.name))
+            #self.server.log.debug(
+            #    'In request loop for {}.'.format(self.game.name))
             try:
                 # Wait for request for self.req_timeout_step time
                 request = self.request_queue.get(block=True,
@@ -271,15 +274,19 @@ class GameProcess():
                 # Found a request in the queue, so reset idle time and handle request
                 total_idle_time = 0.0
                 live = self.handle(request)
-            self.server.log.debug('{} is using {}% of memory.'
-                                  .format(self.game.name,
-                                          self.memory_percent_usage()))
+            #self.server.log.debug('{} is using {}% of memory.'
+            #                      .format(self.game.name,
+            #                              self.memory_percent_usage()))
             if self.memory_percent_usage() > max_memory_percent_per_process:
                 self.server.log.error('{} used too much memory!'
                                       .format(self.game.name))
                 live = False
         self.close()
         
+    # Respond to a request by sending the appropriate command to the process,
+    # parse the output, and send the response.
+    #
+    # Returns whether the process should continue
     def handle(self, request: GameRequest) -> bool:
         time_remaining = self.wait_for_ready(self.read_timeout)
         if time_remaining <= 0:
@@ -319,6 +326,7 @@ class GameProcess():
         request.respond(parsed)
         return True
     
+    # Respond with timeout message and returns whether the process should continue
     def handle_timeout(self, request: GameRequest, process_output: str) -> bool:
         # Did not receive a response from the subprocess, so
         # exit and kill it.
@@ -361,6 +369,7 @@ class GameProcess():
             self.server.log.error(f"Could not find ready prompt for {self.game.name}.")
         return timeout - total_time
 
+    # Returns the percentage of on device memory this process is using
     def memory_percent_usage(self) -> float:
         try:
             # "ps -o pmem pid returns %MEM \n mem_percentage for process with id pid"
@@ -376,6 +385,8 @@ class GameProcess():
             percent = 0.0
         return percent
 
+    # Close the program by all means necessary. First, send the exit command to the
+    # program. If that does not work, then forcefully kill the process.
     def close(self) -> None:
         while not self.request_queue.empty():
             self.request_queue.get().respond(self.closed_msg)
@@ -386,8 +397,8 @@ class GameProcess():
         try:
             self.stdin.flush()
         except BrokenPipeError: # TODO
-            self.server.log.error(f"{self.game.name} normal exit BrokenPipeError. 
-                                  The process was likely terminated already.")
+            self.server.log.error(f"{self.game.name} normal exit BrokenPipeError." + 
+                                  "The process was likely terminated already.")
         normal_exit_timeout = 60
         normal_exit_timeout_step = 5
         while self.process.poll() is None and normal_exit_timeout > 0:
@@ -444,7 +455,8 @@ class GameProcess():
 
 def main():
     server: GameRequestServer = GameRequestServer((server_address, port), GameRequestHandler, get_log())
-    server.serve_forever()
+    thread = threading.Thread(target=server.serve_forever)
+    thread.start()
 
 if __name__ == "__main__":
     main()
