@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections import defaultdict
 import fcntl
+import json
 import os
 from queue import Queue
 import queue
@@ -37,7 +38,7 @@ subprocess_response_timeout: int = 5
 subprocess_idle_timeout: int = 600
 
 log_to_file: bool = True
-log_to_stdout: bool = False
+log_to_stdout: bool = True
 log_to_stderr: bool = False
 log_level: int = logging.DEBUG
 
@@ -90,16 +91,23 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):
         super().__init__(request, client_address, server)
         self.server: GameRequestServer = server # Not necessary, helps with type inference
         self.protocol_version = 'HTTP/1.1'
+        
     
 
     def do_GET(self) -> None:
-        print("handling")
+        # Prevent the connection from closes when this function returns
+        # Allows us to relegate responding to another thread
+        # However, we must actually respond to each 
+        # request, otherwise the server will hang
+        self.close_connection = False
+                
         unquoted = urllib.parse.unquote(self.path)
         parsed = urllib.parse.urlparse(unquoted)
         path = parsed.path.split('/')
         httpCommand = path[-1]
+        # No favorite icon for the classic server
         if httpCommand == 'favicon.ico':
-            return
+            self.respond("Not supported")
         if httpCommand == 'getGames':
             # TODO
             return
@@ -146,8 +154,16 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):
         c_command = httpCommandToGamesmanCommand[httpCommand]
         # Dispatches responsibility to the game object to respond
         game.push_request(GameRequest(self, query, c_command))
+        
+        # TODO
+        for f in os.listdir(root_game_directory):
+            if f == "mttt":
+                bin_path = os.path.join(os.path.curdir, "mttt")
+        process = GameProcess(self.server, game, bin_path)
+        process.push_request(GameRequest(self, query, c_command))
 
     def respond(self, response: str) -> None:
+        self.server
         self.send_response(200)
         self.send_header('Content-Type', 'text/plain')
         self.send_header('Content-Length', str(len(response)))
@@ -208,12 +224,12 @@ class GameProcess():
         self.process = subprocess.Popen(arg_list, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
-                                        cwd=root_game_directory,
-                                        bufsize=1,
+                                        cwd=root_game_directory, 
                                         close_fds=True)
         
         # Casting does nothing in runtime but makes the linter happy, since
         # we know self.process.stdout will not be None, but the linter does not. 
+        self.stdin = typing.cast(typing.IO[bytes], self.process.stdin)
         self.stdout = typing.cast(typing.IO[bytes], self.process.stdout)
         
         self.setup_subprocess_pipe(self.stdout)
@@ -236,7 +252,6 @@ class GameProcess():
         live = True
         total_idle_time = 0.0 # Time spent with no request
         while live:
-            self.wait_for_ready(1000)
             self.server.log.debug(
                 'In request loop for {}.'.format(self.game.name))
             try:
@@ -264,35 +279,145 @@ class GameProcess():
         self.close()
         
     def handle(self, request: GameRequest) -> bool:
-        return True # TODO
+        time_remaining = self.wait_for_ready(self.read_timeout)
+        if time_remaining <= 0:
+            return self.handle_timeout(request, process_output='')
+        self.server.log.debug('Sent command {}.'.format(request.command))
+            
+        self.stdin.write((request.command + '\n').encode())
+        self.stdin.flush()
         
-    def wait_for_ready(self, timeout):
+        response: str = ''
+        timeout = 0.01
+        parsed = None
+        # Construct response by reading character by character.
+        # Whenever a newline is reached, try to parse the response
+        # If it is parsable (thus complete), we respond with the parsed request
+        # Otherwise, we repeat
+        while not parsed:
+            while (next_char := self.stdout.read(1)) != b'\n':
+                if time_remaining <= 0:
+                    self.server.log.debug('timeout')
+                    return self.handle_timeout(request, response)
+                if next_char is None:
+                    # Nothing to read, waiting on output, so wait and try again 
+                    time.sleep(timeout)
+                    time_remaining -= timeout
+                else:
+                    response += next_char.decode()
+            parsed = self.parse_response(response)
+        request.respond(parsed)
+        return True
+    
+    def handle_timeout(self, request: GameRequest, process_output: str) -> bool:
+        # Did not receive a response from the subprocess, so
+        # exit and kill it.
+        self.server.log.error('Did not receive result '
+                              'from {}!'.format(self.game.name))
+        self.server.log.error('Process sent output:\n'
+                              '{}'.format(process_output))
+        if self.process.poll() is not None:
+            # If the process is no longer running
+            self.server.log.error(f"{self.game.name} crashed!")
+            response = self.crash_msg
+            program_should_live = False
+        else:
+            self.server.log.error('{} timed out!'.format(self.game.name))
+            response = self.timeout_msg
+            program_should_live = not close_on_timeout
+        request.respond(response)
+        return program_should_live
+
+    # Wait until we see ready string in process output to indicate we
+    # can send input. Returns the amount of time until a timeout
+    # based on the timeout argument.
+    def wait_for_ready(self, timeout: float) -> float:
         read_timeout: float = 0.001
         total_time = read_timeout
         ready: bool = False # True iff ready string found in output
         while total_time < timeout and not ready:
             total_time += read_timeout
-            time.sleep(read_timeout)
             last_output: bytes | None = self.stdout.read()
             if last_output is None:
                 # None if output stream was empty
                 last_output = b""
             last_output_str = last_output.decode()
             self.server.log.debug(f"{self.game.name} read:\n"
-                                  f"{last_output_str}")
-            if ' ready =>>' in last_output.decode():
-                self.server.log.debug('Found ready prompt in {} seconds.'
-                                      .format(total_time))
+                                  f"{last_output}")
+            if ' ready =>>' in last_output_str:
+                self.server.log.debug(f'Found ready prompt in {total_time} seconds.')
                 ready = True
         if not ready:
             self.server.log.error(f"Could not find ready prompt for {self.game.name}.")
         return timeout - total_time
 
     def memory_percent_usage(self) -> float:
-        return 0.0 # TODO
+        try:
+            # "ps -o pmem pid returns %MEM \n mem_percentage for process with id pid"
+            ps_output = subprocess.check_output(
+                'ps -o pmem'.split() + [str(self.process.pid)]).decode()
+            percent = float(ps_output.split('\n')[1].strip())
+            #self.server.log.debug('{} is using {}% of memory.'
+            #                      .format(self.game.name, percent))
+        except Exception as e:
+            self.server.log.error('Could not get memory use of {}, '
+                                  'because of error: {}.'
+                                  .format(self.game.name, e))
+            percent = 0.0
+        return percent
+
     
     def close(self) -> None:
-        pass # TODO
+        while not self.request_queue.empty():
+            self.request_queue.get().respond(self.closed_msg)
+        self.server.log.info('Closing {}.'.format(self.game.name))
+        self.game.remove_process(self)
+        try:
+            self.server.log.debug('Sending exit command to {}.'.format(self.game.name))
+            self.stdin.write(b'exit\n')
+            self.stdin.flush()
+            normal_exit_timeout = 60
+            normal_exit_timeout_step = 5
+            while self.process.poll() is None and normal_exit_timeout > 0:
+                time.sleep(normal_exit_timeout_step)
+                normal_exit_timeout -= normal_exit_timeout_step
+            if normal_exit_timeout <= 0:
+                raise RuntimeError
+            return
+        except IOError:
+            self.server.log.error('{} normal exit IOError. The process may'
+                ' have been terminated already.'.format(self.game.name))
+        except RuntimeError:
+            self.server.log.error('{} normal exit timeout!'.format(self.game.name))
+        try:
+            self.process.terminate()
+            time.sleep(1)
+            self.process.kill()
+        except OSError:
+            pass
+
+    def parse_response(self, response: str) -> str | None:
+    # TODO
+        if 'result' not in response:
+            self.server.log.debug('"result" not in string to parse: {!r}'
+                                 .format(response))
+            return None
+        lines = response.split('\n')
+        for line in lines:
+            if line.startswith('result'):
+                self.server.log.debug('Parsing line starting with result.')
+                try:
+                    result = line.split('=>>')[1].strip()
+                    self.server.log.debug('Split off "result =>>"')
+                    parsed = json.loads(result)
+                    self.server.log.debug('Parsed json from {!r}'.format(result))
+                except Exception as e:
+                    self.server.log.debug('Could not parse: {!r}'.format(result))
+                    # Catches problems with split, indexing, and non json
+                    # together
+                    return None
+                return self.game.format_parsed(parsed)
+
         
     @property
     def alive(self):
