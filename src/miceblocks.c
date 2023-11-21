@@ -1001,7 +1001,8 @@ WINBY computeWinBy(POSITION pos) {
 			}
 		}
 	}
-	return pointsX - pointsO;
+	int diff = pointsX - pointsO;
+	return diff > 0 ? diff : -diff;
 }
 
 /* end of file. */

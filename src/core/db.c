@@ -425,7 +425,6 @@ void UnMarkAllAsVisited()
 
 void MexStore(POSITION position, MEX theMex)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -434,7 +433,6 @@ void MexStore(POSITION position, MEX theMex)
 
 MEX MexLoad(POSITION position)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -443,7 +441,6 @@ MEX MexLoad(POSITION position)
 
 void WinByStore(POSITION position, WINBY winBy)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -452,15 +449,10 @@ void WinByStore(POSITION position, WINBY winBy)
 
 WINBY WinByLoad(POSITION position)
 {
-	WINBY result;
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
-	result = db_functions->get_winby(position);
-	if (result > ((1 << (MEX_BITS-1))-1))
-		result |= ~MEX_MAX;
-	return result;
+	return db_functions->get_winby(position);
 }
 
 BOOLEAN SaveDatabase() {

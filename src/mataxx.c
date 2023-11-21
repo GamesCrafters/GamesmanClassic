@@ -739,7 +739,8 @@ WINBY computeWinBy (POSITION position)
 	countPieces(board, &reds, &blues);
 	if (board != NULL)
 		SafeFree(board);
-	return reds-blues;
+	int diff = reds - blues;
+	return diff > 0 ? diff : -diff;
 }
 
 /*
