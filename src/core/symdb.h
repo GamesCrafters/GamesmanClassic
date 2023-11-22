@@ -118,6 +118,11 @@ symdb_set_winby(
         POSITION pos,
         WINBY winBy);
 
+DRAWLEVEL
+symdb_get_drawlevel(
+        POSITION pos
+        );
+
 //
 // functions for internal use
 //

@@ -1693,7 +1693,7 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
 	}
 	if (childValue == lose || childValue == drawlose) {  //winning moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
-	} else if (childValue == tie || childValue == drawtie) {  //tie moves
+	} else if (childValue == tie || childValue == drawdraw) {  //tie moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
 	} else if (childValue == win || childValue == drawwin) {  //lose moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);

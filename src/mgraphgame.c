@@ -135,16 +135,9 @@ POSITION DoMove(POSITION position, MOVE move)
 VALUE Primitive(POSITION position)
 {
     /* YOUR CODE HERE */
-    if (position == 18)
-    {
+    if (position == 18) {
         return lose;
-    }
-    else if (position == 16)
-    {
-        return win;
-    }
-    else
-    {
+    } else {
         return undecided;
     }
 }
@@ -197,7 +190,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 BOOLEAN ValidTextInput(STRING input)
 {
     /* YOUR CODE HERE */
-    return TRUE;
+    return input[0] >= '0' && input[0] <= '9';
 }
 
 /* Assume the text input signifies a valid move. Return

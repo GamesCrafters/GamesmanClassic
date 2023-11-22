@@ -508,7 +508,7 @@ USERINPUT ConfigurationMenu()
 			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
 			// 		   gHumanGoesFirst ? "draw/lose" : "draw and force opponent to a draw-lose",
 			// 		   gHumanGoesFirst ? "draw and force opponent to a draw-lose" : "draw/lose");
-			// } else if (gameValue == drawtie) {
+			// } else if (gameValue == drawdraw) {
 			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
 			// 		   gHumanGoesFirst ? "draw/lose" : "draw",
 			// 		   gHumanGoesFirst ? "draw" : "draw/lose");
@@ -857,11 +857,21 @@ void ParseBeforeEvaluationMenuChoice(char c)
 		} else {
 			MexFormat(gInitialPosition, mexString); /* Mex value not so well-defined for draws */
 			sprintf(tmpString, "in %d", Remoteness(gInitialPosition));
-			printf("\n\nThe Game %s has value: %s %s %s\n\n",
-			       kGameName,
-			       gValueString[(int)gameValue],
-			       gTwoBits ? "" : tmpString, /* TwoBit solvers have no remoteness */
-			       mexString);
+			if (gameValue == drawlose || gameValue == drawwin) {
+				printf("\n\nThe Game %s has value: %s %s Level %d\n\n",
+					kGameName,
+					gValueString[(int)gameValue],
+					tmpString, /* TwoBit solvers have no remoteness */
+					DrawLevelLoad(gInitialPosition));
+			} else if (gameValue == drawdraw) {
+				printf("\n\nThe Game %s has value: Draw \n\n", kGameName);
+			} else {
+				printf("\n\nThe Game %s has value: %s %s %s\n\n",
+					kGameName,
+					gValueString[(int)gameValue],
+					gTwoBits ? "" : tmpString, /* TwoBit solvers have no remoteness */
+					mexString);
+			}
 		}
 		gMenuMode = Evaluated;
 		if(gameValue == lose) {

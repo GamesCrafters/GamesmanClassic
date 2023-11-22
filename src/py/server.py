@@ -148,14 +148,8 @@ class GameRequestHandler(asynchat.async_chat,
                 'getStart':
                 'start_response',
 
-                'getEnd':
-                'end_response {}'.format(query['board']),
-
                 'getNextMoveValues':
-                'detailed_position_response {}'.format(query['board']),
-
-                'getMoveValue':
-                'move_value_response {}'.format(query['board'])
+                'position_response {}'.format(query['board'])
             }[command]
         except KeyError:
             try:

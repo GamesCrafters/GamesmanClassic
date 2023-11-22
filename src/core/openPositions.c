@@ -798,6 +798,7 @@ BOOLEAN SaveOpenPositionsData()
 	return TRUE;
 }
 
+/* DEPRECATED */
 BOOLEAN LoadOpenPositionsData()
 {
 	char openDataFileName[256];
@@ -1491,8 +1492,8 @@ void PrintDrawAnalysis() {
 	printf("Draw Level Analysis:\n");
 	printf("\tDraw Level          Win         Lose          Total\n");
 	printf("\t------------------------------------------------------------------------------\n");
-	printf("\t         0   %10llu   %10llu   %10llu\n", gNumWins[0], gNumLoses[0], gNumWins[0] + gNumLoses[0]);
-	for(k=1; k <= maxLevel; k++) {
+	printf("\t  Non-Draw   %10llu   %10llu   %10llu\n", gNumWins[0], gNumLoses[0], gNumWins[0] + gNumLoses[0]);
+	for(k=0; k <= maxLevel; k++) {
 		printf("\t%10d   %10llu   %10llu   %10llu\n", k, gNumWins[k], gNumLoses[k], gNumWins[k] + gNumLoses[k]);
 		}
 	}

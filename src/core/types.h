@@ -16,6 +16,7 @@ typedef int ClientData;
 
 typedef signed char MEX;                 /* The max mex value is 31 */
 typedef int WINBY;                       /* WinBy can be positive or negative */
+typedef int DRAWLEVEL;                   /* DrawLevel will be a typically small number */
 typedef unsigned long int MEXCALC;       /* ...since we use a long int here */
 
 typedef unsigned long long POSITION;           /* This used to be determined by mTempTypedef.h */
@@ -51,7 +52,7 @@ typedef int BOOLEAN;
 
 typedef enum value_enum
 {
-	undecided, win, lose, tie, drawwin, drawlose, drawtie
+	undecided, win, lose, tie, drawwin, drawlose, drawdraw
 }
 VALUE;
 

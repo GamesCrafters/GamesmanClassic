@@ -100,6 +100,7 @@ UINT32 SYMDB_WINBYSLOT = 0;
 UINT32 SYMDB_MEXSLOT = 0;
 UINT32 SYMDB_REMSLOT = 0;
 UINT32 SYMDB_VISITEDSLOT = 0;
+UINT32 SYMDB_DRAWLEVELSLOT = 0;
 
 //
 // graphical purposes - used to test whether a new
@@ -264,6 +265,7 @@ symdb_init(
 	new_db->put_mex = symdb_set_mex;
 	new_db->get_winby = symdb_get_winby;
 	new_db->put_winby = symdb_set_winby;
+	new_db->get_drawlevel = symdb_get_drawlevel;
 	new_db->save_database = symdb_save_database;
 	new_db->load_database = symdb_load_database;
 	new_db->allocate = symdb_allocate;
@@ -607,6 +609,14 @@ symdb_get_winby(
         )
 {
 	return (WINBY) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_WINBYSLOT );
+}
+
+WINBY
+symdb_get_drawlevel(
+        POSITION pos
+        )
+{
+	return (DRAWLEVEL) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_DRAWLEVELSLOT );
 }
 
 /*++

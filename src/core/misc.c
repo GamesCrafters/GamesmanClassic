@@ -633,7 +633,7 @@ void MexFormat(POSITION position, STRING string)
 	MEX theMex;
 	char tmp[5];
 
-	if (!kPartizan && !gTwoBits) { /* Impartial, mex value available */
+	if (kCombinatorial && !gTwoBits) { /* Impartial, mex value available */
 		theMex = MexLoad(position);
 		if(theMex == (MEX)0)
 			(void) sprintf(tmp, "0");

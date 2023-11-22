@@ -501,8 +501,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 	printf("     |   -   -   |      |   -   -   |\n");
 
-	printf("     |     2     |      |     %s     |\n",
-	       gBlankOXString[(int)theBlankOx[2]]);
+	printf("     |     2     |      |     %s     |      Turn = %c\n",
+	       gBlankOXString[(int)theBlankOx[2]], whosTurn == x ? 'X' : 'O');
 	printf("     |   -   -   |      |   -   -   |\n");
 	printf("     | -       - |      | -       - |\n");
 	printf("     3 - - - - - 4      %s - - - - - %s\n\n",

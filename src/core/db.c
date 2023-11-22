@@ -76,6 +76,7 @@ MEX             db_get_mex              (POSITION pos);
 void            db_put_mex              (POSITION pos, MEX theMex);
 WINBY           db_get_winby            (POSITION pos);
 void            db_put_winby            (POSITION pos, WINBY winBy);
+DRAWLEVEL       db_get_drawlevel        (POSITION pos);
 BOOLEAN         db_save_database        ();
 BOOLEAN         db_load_database        ();
 void            db_get_bulk             (POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
@@ -109,6 +110,7 @@ void db_create() {
 	db_functions->put_mex = db_put_mex;
 	db_functions->get_winby = db_get_winby;
 	db_functions->put_winby = db_put_winby;
+	db_functions->get_drawlevel = db_get_drawlevel;
 	db_functions->save_database = db_save_database;
 	db_functions->load_database = db_load_database;
 	db_functions->free_db = db_free;
@@ -243,6 +245,11 @@ void db_put_winby(POSITION pos, WINBY winBy) {
 	(void) pos;
 	(void) winBy;
 	return;
+}
+
+DRAWLEVEL db_get_drawlevel(POSITION pos) {
+	(void) pos;
+	return 0;
 }
 
 BOOLEAN db_save_database(){
@@ -453,6 +460,11 @@ WINBY WinByLoad(POSITION position)
 		position = gCanonicalPosition(position);
 
 	return db_functions->get_winby(position);
+}
+
+DRAWLEVEL DrawLevelLoad(POSITION position) {
+	if (gSymmetries) position = gCanonicalPosition(position);
+	return db_functions->get_drawlevel(position);
 }
 
 BOOLEAN SaveDatabase() {
