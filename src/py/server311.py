@@ -1,6 +1,7 @@
 from __future__ import annotations
 from collections import defaultdict
 import fcntl
+import importlib.util
 import json
 import os
 from queue import Queue
@@ -22,7 +23,7 @@ max_log_size: int = 10 * bytes_per_mb
 
 max_memory_percent_per_process: float = 5.0
 
-server_address: str = '' # Local
+server_address: str = '' # Localhost
 port: int = 8083
 root_game_directory: str = "./bin/"
 log_filename: str = "server.log"
@@ -40,7 +41,8 @@ subprocess_idle_timeout: int = 600
 log_to_file: bool = True
 log_to_stdout: bool = True
 log_to_stderr: bool = False
-log_level: int = logging.DEBUG
+# Choose between logging.DEBUG, logging.INFO, logging.ERROR
+log_level: int = logging.INFO
 
 could_not_parse_msg: str = ('{' +
                             '\n "status":"error",' +
@@ -64,36 +66,83 @@ closed_msg: str = ('{' +
                    '\n}')
 
 class GameRequestServer(http.server.ThreadingHTTPServer):
-    def __init__(self, server_address: tuple[str, int], RequestHandlerClass: type[GameRequestHandler], log: logging.Logger):
+    
+    could_not_start_msg = could_not_parse_msg # TODO
+    root_game_directory = root_game_directory
+    
+    def __init__(self, 
+                 server_address: tuple[str, int], 
+                 RequestHandlerClass: type[GameRequestHandler], 
+                 log: logging.Logger):
         super().__init__(server_address, RequestHandlerClass)
         self.server_name: str = server_address[0]
         self.server_port: int = server_address[1]
         self.HandlerRequestClass = RequestHandlerClass
         self.log = log
+        self._game_table: dict[str, game311.Game] = {}
 
     def get_game(self, name: str) -> game311.Game:
-        # TODO
-       return game311.Game()
+        if name not in self._game_table:
+            self._game_table[name] = start_game(name, self)
+        return self._game_table[name]
+
+# Looks for a python game with given name, start it, and return it
+# If no python games have that name, start a regular Game instance and return it
+def start_game(name: str, server: GameRequestServer) -> game311.Game:
+    script_name = name + '.py'
+    rel_path = os.path.join(game_script_directory, script_name)
+    game_class: type[game311.Game] | None = None
+    if (spec := importlib.util.spec_from_file_location(name, rel_path)) is not None:
+        # Game module found
+        module = importlib.util.module_from_spec(spec)
+        if name in module.__dict__:
+            game_class = module.__dict__[name]
+            server.log.debug(f"Loaded script for {format(name)}")
+        else:
+            server.log.error(f"Game class not found in module for {format(name)}")
+    if not game_class:
+        server.log.debug('Could not find script for {}.'.format(name))
+        game_class = game311.Game
+    return game_class(server, name)
+
+def get_log():
+    log = logging.getLogger('server')
+
+    if log_to_file:
+        file_logger = RotatingFileHandler(log_filename, maxBytes=max_log_size)
+        file_logger.setLevel(logging.DEBUG)
+        log.addHandler(file_logger)
+
+    if log_to_stdout:
+        stdout_logger = logging.StreamHandler(sys.stdout)
+        stdout_logger.setLevel(logging.DEBUG)
+        log.addHandler(stdout_logger)
+
+    if log_to_stderr:
+        stderr_logger = logging.StreamHandler(sys.stderr)
+        stderr_logger.setLevel(logging.ERROR)
+        log.addHandler(stderr_logger)
+
+    log.setLevel(log_level)
+    return log
 
 class GameRequest():
-    def __init__(self, handler: GameRequestHandler, query: dict[str, str], c_command: str):
+
+    def __init__(self, handler: GameRequestHandler, query: dict[str, str], command: str):
         self.handler = handler
         self.query = query
-        self.command = c_command
+        self.command = command
 
     def respond(self, response: str):
         self.handler.respond(response)
 
-
-class GameRequestHandler(http.server.BaseHTTPRequestHandler):
+class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
 
     def __init__(self, request, client_address, server: GameRequestServer):
         super().__init__(request, client_address, server)
-        self.server: GameRequestServer = server # Not necessary, helps with type inference
+        self.server: GameRequestServer = server # Not necessary but helps with type inference
         self.protocol_version = 'HTTP/1.1'
         
-    
-
     def do_GET(self) -> None:
         # Prevent the connection from closes when this function returns
         # Allows us to relegate responding to another thread
@@ -105,14 +154,6 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(unquoted)
         path = parsed.path.split('/')
         httpCommand = path[-1]
-        print(f"path=", path)
-        # No favorite icon for the classic server
-        if httpCommand == 'favicon.ico':
-            self.respond("Not supported")
-            return
-        if httpCommand == 'getGames':
-            # TODO
-            return
         game_name = path[-2]
         
         # Can't use urlparse.parse_qs because of equal signs in board string
@@ -150,20 +191,17 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):
                 f'move_value_response {query["board"]}'
             }
         
-        if httpCommand not in httpCommandToGamesmanCommand:
-            self.respond(could_not_parse_msg)
-            return
-        c_command = httpCommandToGamesmanCommand[httpCommand]
-        # Dispatches responsibility to the game object to respond
-        game.push_request(GameRequest(self, query, c_command))
+        if httpCommand in httpCommandToGamesmanCommand:
+            c_command = httpCommandToGamesmanCommand[httpCommand]
+            # Dispatches responsibility to the game object to respond
+            game.push_request(GameRequest(self, query, c_command))
+        else:
+            try:
+                game.respond_to_unknown_request(GameRequest(self, query, httpCommand))
+            except NotImplementedError:
+                self.respond(could_not_parse_msg)
         
-        # TODO
-        for f in os.listdir(root_game_directory):
-            if f == "mttt":
-                bin_path = os.path.join(os.path.curdir, "mttt")
-        process = GameProcess(self.server, game, bin_path)
-        process.push_request(GameRequest(self, query, c_command))
-
+    # Send a response to the http request assigned to this handler
     def respond(self, response: str) -> None:
         self.close_connection = True
         self.send_response(200)
@@ -175,35 +213,15 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):
 
         self.server.log.debug(f"Sent headers {str(self.headers)}.")
         self.server.log.info(f"Sent response {response}")        
-    
-def get_log():
-    log = logging.getLogger('server')
 
-    if log_to_file:
-        file_logger = RotatingFileHandler(log_filename, maxBytes=max_log_size)
-        file_logger.setLevel(logging.DEBUG)
-        log.addHandler(file_logger)
-
-    if log_to_stdout:
-        stdout_logger = logging.StreamHandler(sys.stdout)
-        stdout_logger.setLevel(logging.DEBUG)
-        log.addHandler(stdout_logger)
-
-    if log_to_stderr:
-        stderr_logger = logging.StreamHandler(sys.stderr)
-        stderr_logger.setLevel(logging.ERROR)
-        log.addHandler(stderr_logger)
-
-    log.setLevel(log_level)
-    return log
-
+# Represents a classic instance of GamesmanClassic running in interact mode
+# Responsible for receiving requests, and responding to them 
 class GameProcess():
-
-    def __init__(self, server: GameRequestServer, game: game311.Game, bin_path: str, game_option_id: typing.Optional[int] = None):
+    def __init__(self, server: GameRequestServer, game: game311.Game, bin_path: str, game_option: typing.Optional[int] = None):
         self.server = server 
         self.game = game
         self.request_queue: Queue[GameRequest] = Queue()
-        self.game_option_id = game_option_id
+        self.game_option = game_option
         # How long with no activity in process until it's closed
         self.req_timeout = subprocess_idle_timeout
         
@@ -217,13 +235,13 @@ class GameProcess():
         # Note that arguments to GamesmanClassic must be given in the right
         # order (this one, to be precise).
         arg_list = [bin_path]
-        if game_option_id is not None:
+        if game_option is not None:
             arg_list.append('--option')
-            arg_list.append(str(game_option_id))
+            arg_list.append(str(game_option))
         arg_list.append('--interact')
 
-        # Open a subprocess, connecting all of its file descriptors to pipes,
-        # and set it to line buffer mode.
+        # Open GamesmanClassic in interact mode, connecting all of its 
+        # file descriptors to pipes.
         self.process = subprocess.Popen(arg_list, stdin=subprocess.PIPE,
                                         stdout=subprocess.PIPE,
                                         stderr=subprocess.STDOUT,
@@ -245,7 +263,17 @@ class GameProcess():
         self.thread = threading.Thread(target=self.request_loop)
         self.thread.daemon = True
         self.thread.start()
-        
+
+    def setup_subprocess_pipe(self, pipe: typing.IO[bytes]):
+        descriptor = pipe.fileno()
+        # fcntl is not available on windows. Use WSL and run a remote
+        # vscode session to use it
+
+        # Add a flag to the file descriptor allowing non-blocking reads / writes
+        # to the file
+        flags = fcntl.fcntl(descriptor, fcntl.F_GETFL)
+        fcntl.fcntl(descriptor, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+   
     # Request will be handled in request_loop. Also requests will be responded
     # to eventually.
     def push_request(self, request: GameRequest):
@@ -257,8 +285,8 @@ class GameProcess():
         live = True
         total_idle_time = 0.0 # Time spent with no request
         while live:
-            #self.server.log.debug(
-            #    'In request loop for {}.'.format(self.game.name))
+            self.server.log.debug(
+                'In request loop for {}.'.format(self.game.name))
             try:
                 # Wait for request for self.req_timeout_step time
                 request = self.request_queue.get(block=True,
@@ -271,12 +299,11 @@ class GameProcess():
                         f"{self.game.name} closed from lack of use.")
                     live = False
             else:
-                # Found a request in the queue, so reset idle time and handle request
                 total_idle_time = 0.0
                 live = self.handle(request)
-            #self.server.log.debug('{} is using {}% of memory.'
-            #                      .format(self.game.name,
-            #                              self.memory_percent_usage()))
+            self.server.log.debug('{} is using {}% of memory.'
+                                  .format(self.game.name,
+                                          self.memory_percent_usage()))
             if self.memory_percent_usage() > max_memory_percent_per_process:
                 self.server.log.error('{} used too much memory!'
                                       .format(self.game.name))
@@ -308,21 +335,18 @@ class GameProcess():
         timeout = 0.01
         parsed = None
         # Construct response by reading character by character.
-        # Whenever a newline is reached, try to parse the response
-        # If it is parsable (thus complete), we respond with the parsed request
-        # Otherwise, we repeat
-        while not parsed:
-            while (next_char := self.stdout.read(1)) != b'\n':
-                if time_remaining <= 0:
-                    self.server.log.debug('timeout')
-                    return self.handle_timeout(request, response)
-                if next_char is None:
-                    # Nothing to read, waiting on output, so wait and try again 
-                    time.sleep(timeout)
-                    time_remaining -= timeout
-                else:
-                    response += next_char.decode()
-            parsed = self.parse_response(response)
+        # A newline signifies the end of a response, so we parse the response and respond
+        while (next_char := self.stdout.read(1)) != b'\n':
+            if time_remaining <= 0:
+                self.server.log.debug('timeout')
+                return self.handle_timeout(request, response)
+            if next_char is None:
+                # Nothing to read, waiting on output, so wait and try again 
+                time.sleep(timeout)
+                time_remaining -= timeout
+            else:
+                response += next_char.decode()
+        parsed = self.parse_response(response)
         request.respond(parsed)
         return True
     
@@ -415,48 +439,23 @@ class GameProcess():
         except OSError:
             pass
 
-    def parse_response(self, response: str) -> str | None:
-    # TODO
-        if 'result' not in response:
-            self.server.log.debug('"result" not in string to parse: {!r}'
-                                 .format(response))
-            return None
-        lines = response.split('\n')
-        for line in lines:
-            if line.startswith('result'):
-                self.server.log.debug('Parsing line starting with result.')
-                try:
-                    result = line.split('=>>')[1].strip()
-                    self.server.log.debug('Split off "result =>>"')
-                    parsed = json.loads(result)
-                    self.server.log.debug('Parsed json from {!r}'.format(result))
-                except Exception as e:
-                    self.server.log.debug('Could not parse: {!r}'.format(result))
-                    # Catches problems with split, indexing, and non json
-                    # together
-                    return None
-                return self.game.format_parsed(parsed)
-
+    # Parsing a result that looks like
+    # result =>> {result}
+    def parse_response(self, response: str) -> str:
+        result = response.split('=>>')[1].strip()
+        self.server.log.debug(f'Split off "result =>>"')
+        parsed = json.loads(result)
+        self.server.log.debug('Parsed json from {!r}'.format(result))
+        return self.game.format_parsed(parsed)
         
     @property
     def alive(self):
         return self.thread.is_alive()
         
-        
-    def setup_subprocess_pipe(self, pipe: typing.IO[bytes]):
-        descriptor = pipe.fileno()
-        # fcntl is not available on windows. Use WSL and run a remote
-        # vscode session to use it
-
-        # Add a flag to the file descriptor allowing non-blocking reads / writes
-        # to the file
-        flags = fcntl.fcntl(descriptor, fcntl.F_GETFL)
-        fcntl.fcntl(descriptor, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-
 def main():
     server: GameRequestServer = GameRequestServer((server_address, port), GameRequestHandler, get_log())
-    thread = threading.Thread(target=server.serve_forever)
+    # Argument below is the polling interval
+    thread = threading.Thread(target=server.serve_forever, args=[0.01])
     thread.start()
-
 if __name__ == "__main__":
     main()
