@@ -14,7 +14,7 @@ import http.server
 import logging
 from logging.handlers import RotatingFileHandler
 import urllib.parse
-from game import Game
+import game
 
 bytes_per_mb: int = 1024 ** 2
 
@@ -78,19 +78,19 @@ class GameRequestServer(http.server.ThreadingHTTPServer):
         self.server_port: int = server_address[1]
         self.HandlerRequestClass = RequestHandlerClass
         self.log = log
-        self._game_table: dict[str, Game] = {}
+        self._game_table: dict[str, game.Game] = {}
 
-    def get_game(self, name: str) -> Game:
+    def get_game(self, name: str) -> game.Game:
         if name not in self._game_table:
             self._game_table[name] = start_game(name, self)
         return self._game_table[name]
 
 # Looks for a python game with given name, start it, and return it
 # If no python games have that name, start a regular Game instance and return it
-def start_game(name: str, server: GameRequestServer) -> Game:
+def start_game(name: str, server: GameRequestServer) -> game.Game:
     script_name = name + '.py'
     rel_path = os.path.join(game_script_directory, script_name)
-    game_class: type[Game] | None = None
+    game_class: type[game.Game] | None = None
     if (spec := importlib.util.spec_from_file_location(name, rel_path)) is not None:
         # Game module found
         module = importlib.util.module_from_spec(spec)
@@ -101,7 +101,7 @@ def start_game(name: str, server: GameRequestServer) -> Game:
             server.log.error(f"Game class not found in module for {format(name)}")
     if not game_class:
         server.log.debug('Could not find script for {}.'.format(name))
-        game_class = Game
+        game_class = game.Game
     return game_class(server, name)
 
 def get_log():
@@ -217,7 +217,7 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
 # Responsible for receiving requests, and responding to them 
 class GameProcess():
     def __init__(self, server: GameRequestServer, 
-                 game: Game, 
+                 game: game.Game, 
                  bin_path: str, 
                  game_option: int | None = None):
         self.server = server 
