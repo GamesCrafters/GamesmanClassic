@@ -3,7 +3,6 @@ import json
 import os
 from server import GameProcess, GameRequest, GameRequestServer
 
-
 class Game:
     
     indent_response = True
@@ -80,7 +79,6 @@ class Game:
             self.server.log.error('Trying to remove subprocess of {} failed \
             because it could not be found.'.format(self.name))
 
-    
     # Raises not implemented to game does not know how to respond
     # to unknown request
     def respond_to_unknown_request(self, request: GameRequest):

@@ -4,8 +4,7 @@ import fcntl
 import importlib.util
 import json
 import os
-from queue import Queue
-import queue
+from queue import Queue, Empty
 import subprocess
 import threading
 import time
@@ -15,7 +14,7 @@ import http.server
 import logging
 from logging.handlers import RotatingFileHandler
 import urllib.parse
-import game as game
+from game import Game
 
 bytes_per_mb: int = 1024 ** 2
 
@@ -79,19 +78,19 @@ class GameRequestServer(http.server.ThreadingHTTPServer):
         self.server_port: int = server_address[1]
         self.HandlerRequestClass = RequestHandlerClass
         self.log = log
-        self._game_table: dict[str, game.Game] = {}
+        self._game_table: dict[str, Game] = {}
 
-    def get_game(self, name: str) -> game.Game:
+    def get_game(self, name: str) -> Game:
         if name not in self._game_table:
             self._game_table[name] = start_game(name, self)
         return self._game_table[name]
 
 # Looks for a python game with given name, start it, and return it
 # If no python games have that name, start a regular Game instance and return it
-def start_game(name: str, server: GameRequestServer) -> game.Game:
+def start_game(name: str, server: GameRequestServer) -> Game:
     script_name = name + '.py'
     rel_path = os.path.join(game_script_directory, script_name)
-    game_class: type[game.Game] | None = None
+    game_class: type[Game] | None = None
     if (spec := importlib.util.spec_from_file_location(name, rel_path)) is not None:
         # Game module found
         module = importlib.util.module_from_spec(spec)
@@ -102,7 +101,7 @@ def start_game(name: str, server: GameRequestServer) -> game.Game:
             server.log.error(f"Game class not found in module for {format(name)}")
     if not game_class:
         server.log.debug('Could not find script for {}.'.format(name))
-        game_class = game.Game
+        game_class = Game
     return game_class(server, name)
 
 def get_log():
@@ -217,7 +216,10 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
 # Represents a classic instance of GamesmanClassic running in interact mode
 # Responsible for receiving requests, and responding to them 
 class GameProcess():
-    def __init__(self, server: GameRequestServer, game: game.Game, bin_path: str, game_option: typing.Optional[int] = None):
+    def __init__(self, server: GameRequestServer, 
+                 game: Game, 
+                 bin_path: str, 
+                 game_option: int | None = None):
         self.server = server 
         self.game = game
         self.request_queue: Queue[GameRequest] = Queue()
@@ -291,7 +293,7 @@ class GameProcess():
                 # Wait for request for self.req_timeout_step time
                 request = self.request_queue.get(block=True,
                                          timeout=self.req_timeout_step)
-            except queue.Empty as e:
+            except Empty as e:
                 # Waited self.req_timeout_step time with no requests arriving
                 total_idle_time += self.req_timeout_step
                 if total_idle_time > self.req_timeout:
