@@ -381,6 +381,7 @@ class GameProcess():
         ready: bool = False # True iff ready string found in output
         while total_time < timeout and not ready:
             total_time += read_timeout
+            time.sleep(read_timeout)
             last_output: bytes | None = self.stdout.read()
             if last_output is None:
                 # None if output stream was empty
