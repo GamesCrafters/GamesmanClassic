@@ -1,7 +1,6 @@
 from __future__ import annotations
 from collections import defaultdict
 import fcntl
-import importlib.util
 import json
 import os
 from queue import Queue, Empty
@@ -14,7 +13,7 @@ import http.server
 import logging
 from logging.handlers import RotatingFileHandler
 import urllib.parse
-import game
+import py.game as game
 
 bytes_per_mb: int = 1024 ** 2
 
@@ -26,8 +25,6 @@ server_address: str = '' # Localhost
 port: int = 8083
 root_game_directory: str = "./bin/"
 log_filename: str = "server.log"
-
-game_script_directory: str = "./src/py/games"
 
 close_on_timeout: bool = False
 
@@ -41,7 +38,7 @@ log_to_file: bool = True
 log_to_stdout: bool = True
 log_to_stderr: bool = False
 # Choose between logging.DEBUG, logging.INFO, logging.ERROR
-log_level: int = logging.INFO
+log_level: int = logging.DEBUG
 
 could_not_parse_msg: str = ('{' +
                             '\n "status":"error",' +
@@ -85,24 +82,8 @@ class GameRequestServer(http.server.ThreadingHTTPServer):
             self._game_table[name] = start_game(name, self)
         return self._game_table[name]
 
-# Looks for a python game with given name, start it, and return it
-# If no python games have that name, start a regular Game instance and return it
-def start_game(name: str, server: GameRequestServer) -> game.Game:
-    script_name = name + '.py'
-    rel_path = os.path.join(game_script_directory, script_name)
-    game_class: type[game.Game] | None = None
-    if (spec := importlib.util.spec_from_file_location(name, rel_path)) is not None:
-        # Game module found
-        module = importlib.util.module_from_spec(spec)
-        if name in module.__dict__:
-            game_class = module.__dict__[name]
-            server.log.debug(f"Loaded script for {format(name)}")
-        else:
-            server.log.error(f"Game class not found in module for {format(name)}")
-    if not game_class:
-        server.log.debug('Could not find script for {}.'.format(name))
-        game_class = game.Game
-    return game_class(server, name)
+def start_game(name, server):
+    return game.Game(server, name)
 
 def get_log():
     log = logging.getLogger('server')
@@ -220,6 +201,7 @@ class GameProcess():
                  game: game.Game, 
                  bin_path: str, 
                  game_option: int | None = None):
+
         self.server = server 
         self.game = game
         self.request_queue: Queue[GameRequest] = Queue()

@@ -1,8 +1,10 @@
 from collections import defaultdict
 import json
 import os
-from server import GameProcess, GameRequest, GameRequestServer
+from py.server import GameProcess, GameRequest, GameRequestServer
 
+# Represents one game and its variants. Keeps track of the running processes for that game,
+# and is responsible for accepting requests for that game.
 class Game:
     
     indent_response = True
