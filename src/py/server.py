@@ -13,7 +13,7 @@ import http.server
 import logging
 from logging.handlers import RotatingFileHandler
 import urllib.parse
-import py.game as game
+import game as game
 
 bytes_per_mb: int = 1024 ** 2
 
@@ -34,11 +34,11 @@ subprocess_response_timeout: int = 5
 # Seconds to wait without a request before shutting down process
 subprocess_idle_timeout: int = 600
 
-log_to_file: bool = True
+log_to_file: bool = False
 log_to_stdout: bool = True
 log_to_stderr: bool = False
 # Choose between logging.DEBUG, logging.INFO, logging.ERROR
-log_level: int = logging.DEBUG
+log_level: int = logging.INFO
 
 could_not_parse_msg: str = ('{' +
                             '\n "status":"error",' +
@@ -134,6 +134,8 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         parsed = urllib.parse.urlparse(unquoted)
         path = parsed.path.split('/')
         httpCommand = path[-1]
+        if httpCommand == 'favicon.ico':
+            return
         game_name = path[-2]
         
         # Can't use urlparse.parse_qs because of equal signs in board string
@@ -192,7 +194,7 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         self.wfile.write(response.encode('utf-8'))
 
         self.server.log.debug(f"Sent headers {str(self.headers)}.")
-        self.server.log.info(f"Sent response {response}")        
+        self.server.log.debug(f"Sent response {response}")        
 
 # Represents a classic instance of GamesmanClassic running in interact mode
 # Responsible for receiving requests, and responding to them 
