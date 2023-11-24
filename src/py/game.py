@@ -1,124 +1,87 @@
-import collections
-import os
-import os.path
+from collections import defaultdict
 import json
-import time
+import os
+from server import GameProcess, GameRequest, GameRequestServer
 
-class Game(object):
+# Represents one game and its variants. Keeps track of the running processes for that game,
+# and is responsible for accepting requests for that game.
+class Game:
+    
     indent_response = True
 
-    def __init__(self, server, name):
+    def __init__(self, server: GameRequestServer, name: str):
         self.server = server
         self.name = name
-        self.root_dir = server.root_game_directory
-        self.processes = collections.defaultdict(list)
-        self.process_class = server.GameProcess
-        self._working = 'maybe'
-
-    def get_process(self, query):
-        self.delete_closed_processes()
-        opt = query.get('number', None)
-        if opt is None:
-            opt = self.get_option(query)
-
-        # Check that there is a non-empty list of processes for this option
-        if self.processes[opt]:
-            return self.processes[opt][0]
-        else:
-            return self.start_process(query, opt)
-
-    def format_parsed(self, parsed):
-        return json.dumps(parsed, indent=self.indent_response)
-
-    @property
-    def has_script(self):
-        return type(self) != Game
-
-    @property
-    def working(self):
-        if self._working == 'maybe':
-            self._working = self.check_if_working()
-        return self._working
-
-    def check_if_working(self):
-        proc = self.get_process(collections.defaultdict(str))
-        time_remaining = 600
-        time_step = 0.01
-        class TestRequest(object):
-
-            def __init__(self, game, proc):
-                self.query = collections.defaultdict(str)
-                self.command = 'start_response'
-                self.game = game
-                self.proc = proc
-
-            def respond(self, response):
-                try:
-                    parsed = json.loads(response)
-                    self.game._working = parsed[u'response'] != u'not implemented'
-                except Exception:
-                    pass
-                finally:
-                    self.proc.close()
-        try:
-            proc.push_request(TestRequest(self, proc))
-        except AttributeError:
-            return False
-        while proc.alive and time_remaining > 0:
-            time_remaining -= time_step
-            time.sleep(time_step)
-            if self._working != 'maybe':
-                return self._working
-        if self._working == 'maybe':
-            return False
-        else:
-            return self._working
+        self.root_game_dir = server.root_game_directory
+        self.option_to_processes: defaultdict[int | None, list[GameProcess]] = defaultdict(list)
+        self.process_class = GameProcess
         
-
-    def delete_closed_processes(self):
-        for k, ps in self.processes.items():
-            for proc in ps:
-                if not proc.alive:
-                    try:
-                        proc.process.kill()
-                    except Exception:
-                        pass
-            self.processes[k] = filter(lambda p: p.alive, ps)
-
-    def start_process(self, query, opt):
+    def start_process(self, option: int | None) -> GameProcess | None:
         bin_name = 'm' + self.name
-        for f in os.listdir(self.root_dir):
+        for f in os.listdir(self.root_game_dir):
             if f == bin_name:
-                self.server.log.info('Starting {}.'.format(self.name))
+                self.server.log.info(f"Starting {self.name}.")
                 bin_path = os.path.join(os.path.curdir, bin_name)
                 gp = None
                 try:
-                    gp = self.process_class(self.server, self, bin_path, opt)
-                except OSError as err:
+                    gp = self.process_class(self.server, self, bin_path, option)
+                except OSError:
                     self.server.log.error('Ran out of file descriptors!')
                 else:
-                    proc_list = self.processes.setdefault(opt, [])
-                    proc_list.append(gp)
+                    self.option_to_processes[option].append(gp)
                 return gp
+        
+    def get_process(self, query: dict[str, str]) -> GameProcess | None:
+        self.delete_closed_processes()
+        option_str = query.get('number', '')
+        if not option_str:
+            option = self.get_option(query)
+        else:
+            option = int(option_str)
+        if processes := self.option_to_processes[option]:
+            process = processes[0]
+        else:
+            process = self.start_process(option)
+        return process
 
-    def push_request(self, request):
+    # Close and remove any dead processes (thread is dead) that were not properly
+    # closed (and thus removed from the process list in the first place)
+    # This should ideally never do anything, but accounts for threads
+    # dying and any uncaught exceptions in the process request loop 
+    # causing the process to stay alive while the thread is dead
+    def delete_closed_processes(self) -> None:
+        for _, processes in self.option_to_processes.items():
+            for proc in processes:
+                if not proc.alive:
+                        proc.close()
+        
+    def get_option(self, query: dict[str, str]) -> int | None:
+        return None
+
+    # Gets the appropritate process and pushes the request to the process
+    # All requests sent to processes are guaranteed to be responded to
+    def push_request(self, request: GameRequest) -> None:
         proc = self.get_process(request.query)
         if proc:
             proc.push_request(request)
         else:
             # Handles game not being present
             request.respond(self.server.could_not_start_msg)
+        
+    # Takes in an object as returned from json.loads and formats
+    # the object into the required response output
+    def format_parsed(self, parsed_object) -> str:
+        return json.dumps(parsed_object, indent=self.indent_response)
 
-    def get_option(self, query):
-        return None
-
-    def respond_to_unknown_request(self, req):
-        raise Exception("Cannot handle query.")
-
-    def remove_process(self, process):
+    def remove_process(self, process: GameProcess) -> None:
         self.server.log.info('Removing {}.'.format(self.name))
         try:
-            self.processes[process.option_num].remove(process)
+            self.option_to_processes[process.game_option].remove(process)
         except ValueError as e:
             self.server.log.error('Trying to remove subprocess of {} failed \
             because it could not be found.'.format(self.name))
+
+    # Raises not implemented to game does not know how to respond
+    # to unknown request
+    def respond_to_unknown_request(self, request: GameRequest):
+        raise NotImplementedError()
