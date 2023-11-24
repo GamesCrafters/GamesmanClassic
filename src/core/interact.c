@@ -291,7 +291,7 @@ void ServerInteractLoop(void) {
 		}
 		/* Clear the '\n' so that string comparison is clearer. */
 		*strchr(input, '\n') = '\0';
-		if (FirstWordMatches(input, "position_response")) {
+		if (FirstWordMatches(input, "position_response") || FirstWordMatches(input, "p")) {
 			if (!InteractReadBoardString(input, &board)) {
 				printf("%s", invalid_board_string);
 				continue;
@@ -316,7 +316,7 @@ void ServerInteractLoop(void) {
 			POSITIONLIST *nextPositions = NULL;
 			MOVELIST *reversedMoves = NULL;
 			printf(RESULT "{\"status\":\"ok\",\"response\":{");
-			printf("\"board\": \"%s\"", board);
+			printf("\"board\":\"%s\"", board);
 
 			val = GetValueOfPosition(pos);
 			InteractPrintJSONPositionValue(val); // e.g. will print ,"value":"win"
@@ -327,7 +327,9 @@ void ServerInteractLoop(void) {
 
 			InteractPrintJSONMEXValue(pos);
 			if (gPutWinBy) printf(",\"winby\":%d", WinByLoad(pos));
-			if (kUsePureDraw) {
+			if (kUsePureDraw && (val == drawwin || val == drawlose)) {
+				// If using Pure Draw Analysis, the absence of drawlevel and drawremoteness 
+				// means that this position is not part of a pure draw cluster
 				printf(",\"drawlevel\":%d,\"drawremoteness\":%d", DrawLevelLoad(pos), Remoteness(pos));
 			}
 
@@ -343,7 +345,7 @@ void ServerInteractLoop(void) {
 					printf("{\"board\":\"%s\"", board);
 					InteractFreeBoardString(board);
 
-					val = GetValueOfPosition(pos);
+					val = GetValueOfPosition(childPosition);
 					InteractPrintJSONPositionValue(val);
 
 					if (val != drawwin && val != drawlose && val != drawdraw) {
@@ -351,7 +353,9 @@ void ServerInteractLoop(void) {
 					}
 					InteractPrintJSONMEXValue(childPosition);
 					if (gPutWinBy) printf(",\"winby\":%d", WinByLoad(childPosition));
-					if (kUsePureDraw) {
+					if (kUsePureDraw && (val == drawwin || val == drawlose)) {
+						// If using Pure Draw Analysis, the absence of drawlevel and drawremoteness 
+						// means that this position is not part of a pure draw cluster
 						printf(",\"drawlevel\":%d,\"drawremoteness\":%d", DrawLevelLoad(childPosition), Remoteness(childPosition));
 					}
 
@@ -547,62 +551,6 @@ void ServerInteractLoop(void) {
 			pos = InteractStringToPosition(board);
 			printf("board: " POSITION_FORMAT,pos);
 
-		} else if (FirstWordMatches(input, "r") || FirstWordMatches(input, "next_move_values_response")) {
-			if (!InteractReadBoardString(input, &board)) {
-				printf("%s", invalid_board_string);
-				continue;
-			}
-			if(kSupportsTierGamesman && gTierGamesman && GetValue(board, "tier", GetUnsignedLongLong, &tier)) {
-				gInitializeHashWindow(tier, TRUE);
-			}
-			pos = InteractStringToPosition(board);
-			if (pos == -1ULL) {
-				printf("%s", invalid_board_string);
-				continue;
-			}
-			char opp_turn_char = (board[2] == 'A') ? 'B' : 'A';
-			printf(RESULT "{\"status\":\"ok\",\"response\":[");
-			if (Primitive(pos) == undecided && board[2] != 'R') {
-				current_move = all_next_moves = GenerateMoves(pos);
-				while (current_move) {
-					childPosition = DoMove(pos, current_move->move);
-					board = InteractPositionToString(childPosition);
-					board[2] = (board[2] == 'C') ? opp_turn_char : board[2];
-					printf("{\"board\":\"%s\"", board);
-					InteractFreeBoardString(board);
-
-					val = GetValueOfPosition(pos);
-					InteractPrintJSONPositionValue(val);
-
-					if (val != drawwin && val != drawlose && val != drawdraw) {
-						printf(",\"remoteness\":%d", Remoteness(childPosition));
-					}
-					InteractPrintJSONMEXValue(childPosition);
-					if (gPutWinBy) printf(",\"winby\":%d", WinByLoad(childPosition));
-					if (kUsePureDraw) {
-						printf(",\"drawlevel\":%d,\"drawremoteness\":%d", DrawLevelLoad(childPosition), Remoteness(childPosition));
-					}
-
-					move_string = InteractMoveToString(pos, current_move->move);
-					printf(",\"move\":\"%s\"", move_string);
-					SafeFree(move_string);
-
-					if (gMoveToStringFunPtr != NULL) {
-						move_string = gMoveToStringFunPtr(current_move->move);
-						printf(",\"moveName\":\"%s\"", move_string);
-						SafeFree(move_string);
-					}
-
-					current_move = current_move->next;
-					printf("}");
-					if (current_move) {
-						printf(",");
-					}
-				}
-				move_string = NULL;
-				FreeMoveList(all_next_moves);
-			}
-			printf("]}");
 		} else if (FirstWordMatches(input, "tree_response")) {
 			char * next_word = InteractReadBoardString(input, &board);
 			if (!next_word) {
@@ -631,7 +579,6 @@ void ServerInteractLoop(void) {
 			printf("   start_response                                      [JSON Response Providing Initial Position String]\n");
 			//printf("   tree_response <board string> <depth>                \n");
 			printf("   position_response <position string>                 [JSON Response Providing Solved Data for Position Represented by Input String and Solved Data for its Child Positions]\n");
-			printf("   next_move_values_response <board string>            [JSON Response Providing Solved Data for Child Positions of Position Represented by Input String]\n");
 			printf("   position <position string>                          [Hash of Input Position String, Provided By InteractStringToPosition()]\n");
 			printf("   start                                               [Hash of Initial Position]\n");
 			printf("   board <hashed position>                             [Position String of Input Hashed Position, Provided by InteractPositionToString()]\n");
