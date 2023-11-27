@@ -200,6 +200,7 @@ void InitializeGame ()
 
 	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+
 }
 
 

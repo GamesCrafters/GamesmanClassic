@@ -145,6 +145,7 @@ void memdb_init(DB_Table *new_db)
 	new_db->check_visited = memdb_check_visited;
 	new_db->get_mex = memdb_get_mex;
 	new_db->get_winby = NULL;
+	new_db->get_drawlevel = NULL;
 	new_db->save_database = memdb_save_database;
 	new_db->load_database = memdb_load_database;
 }

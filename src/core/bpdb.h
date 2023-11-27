@@ -131,6 +131,11 @@ bpdb_set_winby(
         POSITION pos,
         WINBY winBy);
 
+DRAWLEVEL
+bpdb_get_drawlevel(
+        POSITION pos
+        );
+
 //
 // functions for internal use
 //

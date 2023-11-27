@@ -72,6 +72,8 @@ typedef struct DB {
 	WINBY (*get_winby)(POSITION pos);
 	void (*put_winby)(POSITION pos, WINBY winBy);
 
+	DRAWLEVEL (*get_drawlevel)(POSITION pos);
+
 	BOOLEAN (*save_database)();
 	BOOLEAN (*load_database)();
 
@@ -158,6 +160,10 @@ MEX             MexLoad                 (POSITION pos);
 /* WinBy */
 void            WinByStore              (POSITION pos, WINBY winBy);
 WINBY           WinByLoad               (POSITION pos);
+
+/* DrawLevel */
+void            DrawLevelStore          (POSITION pos, DRAWLEVEL level);
+DRAWLEVEL       DrawLevelLoad           (POSITION pos);
 
 /* Persistence */
 BOOLEAN         SaveDatabase            ();

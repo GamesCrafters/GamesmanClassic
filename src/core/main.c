@@ -184,7 +184,7 @@ VALUE DetermineValue(POSITION position)
 		//    SaveAnalysis();
 		//}
 
-	} else if (gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
+	} else if (gLoadDatabase && LoadDatabase()) {
 		if (GetValueOfPosition(position) == undecided) {
 			if (gPrintDatabaseInfo)
 				printf("\nRe-evaluating the value of %s...", kGameName);

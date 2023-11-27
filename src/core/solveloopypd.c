@@ -124,18 +124,15 @@ void lpds_PrintParents() {
     }
 }
 
-/* Returns the VALUE of the given POSITION. */
-VALUE lpds_DetermineValue(POSITION position) {
-	(void) position;
+BOOLEAN initializePureDrawAnalysisDB(BOOLEAN allocate) {
 	GMSTATUS status = STATUS_SUCCESS;
-	VALUE value = undecided;
 
     /* This solver must be used with Bit-Perfect Database. */
 	if (!gBitPerfectDB) {
 		status = STATUS_MISSING_DEPENDENT_MODULE;
 		BPDB_TRACE("lpds_DetermineValue()", "Bit-Perfect DB must be "
             "the selected DB to use the slices solver", status);
-		return value;
+		return FALSE;
 	}
 
     /* Add slots to database slices. */
@@ -143,35 +140,50 @@ VALUE lpds_DetermineValue(POSITION position) {
 	status =   AddSlot(3,     "VALUE",    TRUE,   FALSE,  FALSE,      &SL_VALUE_SLOT);
 	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("lpds_DetermineValue()", "Could not add value slot", status);
-		return value;
+		return FALSE;
 	}
 	if (gPutWinBy) {
 		status = AddSlot(3, "WINBY", TRUE, TRUE, FALSE, &SL_WINBY_SLOT);
 		if(!GMSUCCESS(status)) {
 			BPDB_TRACE("lpds_DetermineValue()", "Could not add winby slot", status);
-		    return value;
+		    return FALSE;
 		}
 	}
 	status = AddSlot(5, "REMOTENESS", TRUE, TRUE, TRUE, &SL_REM_SLOT);
 	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("lpds_DetermineValue()", "Could not add remoteness slot", status);
-		return value;
+		return FALSE;
 	}
-    status = AddSlot(2, "DRAW LEVEL", TRUE, TRUE, TRUE, &SL_DRAW_LEVEL_SLOT);
+    status = AddSlot(2, "DRAWLEVEL", TRUE, TRUE, TRUE, &SL_DRAW_LEVEL_SLOT);
 	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("lpds_DetermineValue()", "Could not add draw level slot", status);
-		return value;
+		return FALSE;
 	}
+
 	status = AddSlot(1, "VISITED", FALSE, FALSE, FALSE, &SL_VISITED_SLOT);
 	if (!GMSUCCESS(status)) {
 		BPDB_TRACE("lpds_DetermineValue()", "Could not add visited slot", status);
-		return value;
+		return FALSE;
 	}
 
     /* Allocate database. */
-	status = Allocate();
-	if(!GMSUCCESS(status)) {
-		BPDB_TRACE("lpds_DetermineValue()", "Could not allocate database", status);
+	if (allocate) {
+		status = Allocate();
+		if(!GMSUCCESS(status)) {
+			BPDB_TRACE("lpds_DetermineValue()", "Could not allocate database", status);
+			return FALSE;
+		}
+	}
+
+	return TRUE;
+}
+
+/* Returns the VALUE of the given POSITION. */
+VALUE lpds_DetermineValue(POSITION position) {
+	(void) position;
+
+	VALUE value = undecided;
+	if (!initializePureDrawAnalysisDB(TRUE)) {
 		return value;
 	}
 
@@ -352,6 +364,7 @@ static VALUE SetPrimitiveOrEnqueue(POSITION pos, POSITIONLIST **nextLevel) {
 			BadElse("SetParents found bad primitive value");
 		}
 		SetValueInBPDB(pos, value);
+		SetSlotMax(pos, SL_DRAW_LEVEL_SLOT);
 	} else {
 		*nextLevel = StorePositionInList(pos, *nextLevel);
 	}
@@ -414,13 +427,13 @@ static void SetParents(POSITION root) {
 	}
 }
 
-static BOOLEAN ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
+static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 	POSITION child, parent;
 	VALUE childValue, parentValue;
 	POSITIONLIST *ptr;
-	REMOTENESS remotenessChild;
+	REMOTENESS childRemoteness;
 
-	assert(valForLose == lose && valForWin == win && level == 0 ||
+	assert(valForLose == lose && valForWin == win && level == -1 ||
 			 valForLose == drawlose && valForWin == drawwin);
 
 	while (loseFRHead || winFRHead) {
@@ -434,88 +447,147 @@ static BOOLEAN ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 			child = DeQueueWinFR();
 		}
 		childValue = GetValueFromBPDB(child);
-		remotenessChild = GetSlot(child, SL_REM_SLOT);
+		childRemoteness = GetSlot(child, SL_REM_SLOT);
 
 		for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
 			parent = ptr->position;
-			if (parent == kBadPosition) {
-				/* Skip if child is the initial position (parent is kBadPosition). */
-				break;
-			} else if (childValue == valForLose) {
-				/* With losing child, every parent is winning, so we just go through
-		   	   	   all the parents and declare them winning. */
-				parentValue = GetValueFromBPDB(parent);
-				if (parentValue == undecided) {
-					/* This is the first time we know the parent is a win. */
-					InsertWinFR(parent);
-					InsertUnanalyzedWin(parent);
-					SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
-					SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
-					SetValueInBPDB(parent, valForWin);
-				} else {
-					/* We already know the value for parent, which can only be winning
-					   or draw-losing. Otherwise there is a bug. */
-					if (parentValue != win && parentValue != drawwin &&
-					  	parentValue != drawlose) {
-						BadElse("ProcessWinLose");
-					} else if (parentValue == drawlose) {
-						/* There is a contradiction in current draw level:
-						   a draw-lose has another draw-lose as its parent.
-						   Therefore, this game is not pure. */
-						return FALSE;
+			if (parent != kBadPosition) {
+				if (childValue == valForLose) {
+					/* With losing child, every parent is winning, so we just go through
+					all the parents and declare them winning. */
+					parentValue = GetValueFromBPDB(parent);
+					if (parentValue == undecided) {
+						/* This is the first time we know the parent is a win. */
+						InsertWinFR(parent);
+						InsertUnanalyzedWin(parent);
+						SetSlot(parent, SL_REM_SLOT, childRemoteness + 1);
+						SetValueInBPDB(parent, valForWin);
+						if (valForWin == win) {
+							SetSlotMax(parent, SL_DRAW_LEVEL_SLOT);
+						} else {
+							SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
+						}
+					} else {
+						/* We already know the value for parent, which can only be winning
+						or draw-losing. Otherwise there is a bug. */
+						if (parentValue == drawlose || parentValue == drawdraw) {
+							/* There is a pure draw violation:
+							a draw-lose has another draw-lose as its parent.
+							Therefore, the child position is part of a nonpure draw cluster.
+							Thus, insert it into the tie frontier */
+							InsertTieFR(child);
+							SetValueInBPDB(child, drawdraw);
+							SetSlotMax(child, SL_REM_SLOT);
+							SetSlotMax(child, SL_DRAW_LEVEL_SLOT);
+							break;
+						} else if (parentValue != win && parentValue != drawwin) {
+							printf("PWL: %d\n", parentValue);
+							BadElse("ProcessWinLose");
+						}
 					}
+				} else if (childValue == valForWin) {
+					/* With winning child, we can only eliminate one losing move from its parent.
+					If this is the last unknown child and they were all wins, parent is lose. */
+					parentValue = GetValueFromBPDB(parent);
+					if (parentValue == undecided && --numberChildren[parent] == 0) {
+						/* No more kids, it's not been seen before, assign it as losing and enqueue. */
+						InsertLoseFR(parent);
+						/* We always need to change the remoteness because we examine winning node with
+						less remoteness first. */
+						SetSlot(parent, SL_REM_SLOT, childRemoteness + 1);
+						if (valForWin == win) {
+							SetSlotMax(parent, SL_DRAW_LEVEL_SLOT);
+						} else {
+							SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
+						}
+						SetValueInBPDB(parent, valForLose);
+					}
+				} else {
+					/* We should not see other values DeQueued from win and lose queues. */
+					printf("PWL2: %d\n", childValue);
+					BadElse("ProcessWinLose2");
 				}
-			} else if (childValue == valForWin) {
-				/* With winning child, we can only eliminate one losing move from its parent.
-				   If this is the last unknown child and they were all wins, parent is lose. */
-				parentValue = GetValueFromBPDB(parent);
-				if (parentValue == undecided && --numberChildren[parent] == 0) {
-					/* No more kids, it's not been seen before, assign it as losing and enqueue. */
-					InsertLoseFR(parent);
-					/* We always need to change the remoteness because we examine winning node with
-					   less remoteness first. */
-					SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
-					SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
-					SetValueInBPDB(parent, valForLose);
-				}
-			} else {
-				/* We should not see other values DeQueued from win and lose queues. */
-				BadElse("DetermineLoopyValue");
 			}
 		}
 	} /* while there are still positions in win/lose FR. */
-	return TRUE;
 }
 
 static void ProcessTie() {
 	POSITION child, parent;
 	VALUE parentValue;
 	POSITIONLIST *ptr;
-	REMOTENESS remotenessChild;
+	REMOTENESS childRemoteness;
 
 	while (tieFRHead) {
 		child = DeQueueTieFR();
-		remotenessChild = GetSlot(child, SL_REM_SLOT);
+		childRemoteness = GetSlot(child, SL_REM_SLOT);
 		for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
 			parent = ptr->position;
 			/* Skip if this is the initial position (parent is kBadPosition). */
 			if (parent == kBadPosition) {
-				continue;
-			}
-			parentValue = GetValueFromBPDB(parent);
-			/* If parent is undecided and this is the last unknown child, parent is tie. */
-			if (parentValue == undecided && --numberChildren[parent] == 0) {
-				/* No more kids and parent has not been seen before,
-				   assign it as tying and enqueue. */
-				InsertTieFR(parent);
-				SetSlot(parent, SL_REM_SLOT, remotenessChild + 1);
-				SetValueInBPDB(parent, tie);
+				parentValue = GetValueFromBPDB(parent);
+				/* If parent is undecided and this is the last unknown child, parent is tie. */
+				if (parentValue == undecided && --numberChildren[parent] == 0) {
+					/* No more kids and parent has not been seen before,
+					assign it as tying and enqueue. */
+					InsertTieFR(parent);
+					SetSlot(parent, SL_REM_SLOT, childRemoteness + 1);
+					SetValueInBPDB(parent, tie);
+				}
 			}
 		}
 		/* We won't need to visit the parents of a tying position again. */
 		FreePositionList(parentsOf[child]);
 		parentsOf[child] = NULL;
 	} /* while there are still positions in tie FR. */
+}
+
+/* All draw ancestors of a nonpure draw position such that there exists a path
+from the draw ancestor to the nonpure draw position consisting of only draw moves
+are also nonpure draws.
+Mark all nonpure draw positions as drawdraws. The Tie frontier is repurposed
+to contain nonpure draw positions. */
+static BOOLEAN ProcessDrawDraws() {
+	POSITION pos, parent, child;
+	VALUE parentValue, childValue;
+	POSITIONLIST *ptr;
+	MOVELIST *moves, *head;
+
+	BOOLEAN nonpureDrawsExist = tieFRHead != NULL;
+	while (tieFRHead) {
+		pos = DeQueueTieFR();
+		for (ptr = parentsOf[pos]; ptr; ptr = ptr->next) {
+			parent = ptr->position;
+			/* Skip if this is the initial position (parent is kBadPosition). */
+			if (parent != kBadPosition) {
+				parentValue = GetValueFromBPDB(parent);
+				if (parentValue == drawwin || parentValue == drawlose || parentValue == undecided) {
+					InsertTieFR(parent);
+					SetValueInBPDB(parent, drawdraw);
+					SetSlotMax(parent, SL_REM_SLOT);
+					SetSlotMax(parent, SL_DRAW_LEVEL_SLOT);
+				}
+			}
+		}
+
+		// moves = GenerateMoves(pos);
+		// head = moves;
+		// while (moves) {
+		// 	child = DoMove(pos, moves->move);
+		// 	if (child != kBadPosition) {
+		// 		childValue = GetValueFromBPDB(child);
+		// 		if (childValue == drawwin || childValue == drawlose || childValue == undecided) {
+		// 			InsertTieFR(child);
+		// 			SetValueInBPDB(child, drawdraw);
+		// 			SetSlotMax(child, SL_REM_SLOT);
+		// 			SetSlotMax(child, SL_DRAW_LEVEL_SLOT);
+		// 		}
+		// 	}
+		// 	moves = moves->next;
+		// }
+		// FreeMoveList(head);
+	} /* while there are still positions in tie FR. */
+	return nonpureDrawsExist;
 }
 
 /* Draw analysis: find all draw-lose positions of level LEVEL
@@ -528,88 +600,75 @@ static void ProcessTie() {
    function call. */
 static void ProcessLevelFringe(int level) {
 	POSITION child, parent;
-	REMOTENESS childRem, parentRem;
+	VALUE parentValue;
+	POSITIONLIST *parentsList;
 
 	while (unanalyzedWinList) {
 		child = DeQueueUnanalyzedWin();
-		while (parentsOf[child]) {
-			parent = RemovePositionFromQueue(&parentsOf[child]);
-			childRem = GetSlot(child, SL_REM_SLOT);
-			if (parent == kBadPosition) {
-				continue;
-			} else if (GetValueFromBPDB(parent) == undecided) {
-				SetValueInBPDB(parent, drawlose);
-				SetSlot(parent, SL_REM_SLOT, childRem + 1);
-				SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
-				InsertLoseFR(parent);
-			} else if (GetValueFromBPDB(parent) == drawlose) {
-				/* Parent already assigned as draw-lose. Update its
-				   remoteness to max(curr_rem, child_rem + 1). */
-				parentRem = GetSlot(parent, SL_REM_SLOT);
-				SetSlot(parent, SL_REM_SLOT, childRem + 1 > parentRem ? childRem + 1 : parentRem);
+		parentsList = parentsOf[child];
+		while (parentsList) {
+			parent = parentsList->position;
+			if (parent != kBadPosition) {
+				parentValue = GetValueFromBPDB(parent);
+				if (parentValue == undecided) {
+					SetValueInBPDB(parent, drawlose);
+					SetSlot(parent, SL_REM_SLOT, 0);
+					SetSlot(parent, SL_DRAW_LEVEL_SLOT, level);
+					InsertLoseFR(parent);
+				}
 			}
+			parentsList = parentsList->next;
 		}
 	}
 }
 
-static void MarkDrawTies(BOOLEAN isPure) {
-	POSITION i;
-	VALUE val;
-	BOOLEAN mark;
-
-	for (i = 0; i < gNumberOfPositions; ++i) {
-		if (!GetSlot(i, SL_VISITED_SLOT)) {
-			continue;
-		}
-		val = GetValueFromBPDB(i);
-		mark = (isPure && val == undecided) ||
-		       (!isPure && (val == undecided || val == drawlose || val == drawwin));
-		if (mark) {
-			SetValueInBPDB(i, drawtie);
-			SetSlotMax(i, SL_REM_SLOT);
-		}
-		if (!isPure) {
-			SetSlotMax(i, SL_DRAW_LEVEL_SLOT);
+static BOOLEAN CheckExistenceOfPureDrawClusters(POSITION *example) {
+	VALUE v;
+	for (POSITION p = 0; p < gNumberOfPositions; p++) {
+		v = GetValueFromBPDB(p);
+		if (v == drawlose || v == drawwin) {
+			*example = p;
+			return TRUE;
 		}
 	}
+	return FALSE;
 }
 
 /* Returns the value of pos, solving all positions reacheable
    from it. */
 static VALUE DetermineValueHelper(POSITION pos) {
-	int level = 0;
-	BOOLEAN isPure;
 
 	/* Do BFS to set up parent pointers. */
 	SetParents(pos);
-	
+
 	/* Now, the fun part. Starting from the children, work your way back up. */
-	ProcessWinLose(win, lose, 0);
+	ProcessWinLose(win, lose, -1);
+	printf("Finished processing win/lose frontier.\n");
 
 	/* Process the tie frontier. */
 	ProcessTie();
+	printf("Finished processing tie frontier.\n");
 
 	/* Determine all draw-win and draw-lose positions. */
+	int level = 0;
 	while (unanalyzedWinList) {
 		ProcessLevelFringe(level);
+		
 		/* In a similar way, work your way back up from draw-lose primitives. */
-		isPure = ProcessWinLose(drawwin, drawlose, level);
-		if (!isPure) {
-			/* The game is not pure. Set all draw positions to draw ties,
-			   all draw levels and draw remotenesses to their max values. */
-			printf("Pure Draw Analysis: The game is not pure.\n");
-			MarkDrawTies(isPure);
-			break;
-		}
+		ProcessWinLose(drawwin, drawlose, level);
 		++level;
 	}
-	/* If the game is pure, there may exist positions that are visited
-	   but not on any draw level. These remaining positions are labeled
-	   as draw-tie. */
-	if (isPure) {
-		printf("Pure Draw Analysis: The game is pure.\n");
-		MarkDrawTies(isPure);
+	BOOLEAN nonpureDrawsExist = ProcessDrawDraws();
+	POSITION example;
+	BOOLEAN pureDrawsExist = CheckExistenceOfPureDrawClusters(&example);
+
+	printf("Pure Draw Analysis: ");
+	printf("Nonpure draw clusters%s exist. ", nonpureDrawsExist ? "" : " do not");
+	printf("Pure draw clusters%s exist.\n", pureDrawsExist ? "": " do not");
+	if (pureDrawsExist) {
+		printf("Example Position in Pure Draw Cluster: %llu\n", example);
 	}
+
 	return GetValueFromBPDB(pos);
 }
 
@@ -674,8 +733,8 @@ static BOOLEAN SanityCheckDatabase(void) {
 			valid = OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,0,0}) && HasChild(i, drawwin);
 			break;
 			
-		case drawtie:
-			valid = OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,0,1}) && HasChild(i, drawtie);
+		case drawdraw:
+			valid = OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,0,1}) && HasChild(i, drawdraw);
 			break;
 		
 		default:
@@ -683,8 +742,44 @@ static BOOLEAN SanityCheckDatabase(void) {
 			break;
 		}
 	}
+
+	int totalrems = 100;
+	int totaldls = 100;
+	POSITION drawLevelCount[totalrems * totaldls];
+	memset(drawLevelCount, 0, sizeof(POSITION) * totalrems * totaldls);
+	for (POSITION po = 0; po < gNumberOfPositions; po++) {
+		VALUE va = GetValueFromBPDB(po);
+		if (va != undecided) {
+			REMOTENESS rem = (REMOTENESS) GetSlot(po, SL_REM_SLOT);
+			DRAWLEVEL dl = (DRAWLEVEL) GetSlot(po, SL_DRAW_LEVEL_SLOT);
+			// PrintPosition(po, "", FALSE);
+			// printf("%llu %s Remoteness: %d; Level: %d\n", po, gValueString[va], rem, dl);
+			drawLevelCount[dl * totalrems + rem]++;
+		}
+	}
+	for (int i = 0; i < totaldls; i++) {
+		for (int j = 0; j < totalrems; j++) {
+			if (drawLevelCount[i * totalrems + j] > 0) {
+				printf("DrawLevel: %d | Remoteness: %d | Count %llu\n", i, j, drawLevelCount[i * totalrems + j]);
+			}
+		}
+	}
 	if (!valid) {
-		printf("Invalid position value at %llu\n", i - 1);
+		i = i - 1;
+		PrintPosition(i, "", FALSE);
+		printf("Invalid position value at %llu. It is value %d\n", i, v);
+		printf("F: %d %d\n", OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,0,0}), HasChild(i, drawwin));
+		MOVELIST *m = GenerateMoves(i);
+		MOVELIST *h = m;
+		printf("CValues: ");
+		while (m) {
+			POSITION chi = DoMove(i, m->move);
+			VALUE cv = GetValueFromBPDB(chi);
+			printf("%llu:%d ", chi, cv);
+			m = m->next;
+		}
+		FreeMoveList(h);
+		printf("\n");
 	}
 	return valid;
 }

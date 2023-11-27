@@ -103,7 +103,6 @@ typedef struct analysis_info
 
 	POSITION DrawWinCount;
 	POSITION DrawLoseCount;
-	POSITION DrawTieCount;
 	POSITION DrawDraws;
 	POSITION TotalOpenPositions;
 

@@ -193,7 +193,7 @@ SCORE alpha_beta(POSITION position, SCORE alpha, SCORE beta, REMOTENESS min_remo
 				/* If child's value is tie, this board's value is tie */
 				value = tie;
 				break;
-			default: // undecided, drawwin, drawlose, drawtie.
+			default: // undecided, drawwin, drawlose, drawdraw.
 				break;
 			}
 

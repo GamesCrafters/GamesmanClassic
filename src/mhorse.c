@@ -501,8 +501,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 
 	printf("     |   -   -   |      |   -   -   |\n");
 
-	printf("     |     2     |      |     %s     |\n",
-	       gBlankOXString[(int)theBlankOx[2]]);
+	printf("     |     2     |      |     %s     |      Turn = %c\n",
+	       gBlankOXString[(int)theBlankOx[2]], whosTurn == x ? 'X' : 'O');
 	printf("     |   -   -   |      |   -   -   |\n");
 	printf("     | -       - |      | -       - |\n");
 	printf("     3 - - - - - 4      %s - - - - - %s\n\n",
@@ -851,18 +851,43 @@ BlankOX *theBlankOX,whosTurn;
 	return(position);
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	BlankOX theBlankOX[BOARDSIZE], whosTurn;
+	whosTurn = (str[2] == 'A') ? o : x;
+	str += 8;
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (str[i] == 'x') { 
+			theBlankOX[i] = o;
+		} else if (str[i] == 'o') {
+			theBlankOX[i] = x;
+		} else {
+			theBlankOX[i] = Blank;
+		}
+	}
+	return BlankOXToPosition(theBlankOX, whosTurn);
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+STRING InteractPositionToString(POSITION position) {
+	BlankOX theBlankOX[BOARDSIZE], whosTurn;
+	PositionToBlankOX(position, theBlankOX, &whosTurn);
+	char board[6];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (theBlankOX[i] == o) {
+			board[i] = 'x';
+		} else if (theBlankOX[i] == x) {
+			board[i] = 'o';
+		} else {
+			board[i] = '-';
+		}
+	}
+	board[5] = '\0';
+	enum UWAPI_Turn turn = whosTurn == o ? UWAPI_TURN_A : UWAPI_TURN_B;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 6, board);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	(void)pos;
-	return MoveToString(mv);
+	int fromSlot, toSlot;
+	MoveToSlots(mv, &fromSlot, &toSlot);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, 'x');
 }
