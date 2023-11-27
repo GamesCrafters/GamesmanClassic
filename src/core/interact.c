@@ -332,7 +332,7 @@ void ServerInteractLoop(void) {
 			if (kUsePureDraw && (val == drawwin || val == drawlose)) {
 				// If using Pure Draw Analysis, the absence of drawlevel and drawremoteness 
 				// means that this position is not part of a pure draw cluster
-				printf(",\"drawlevel\":%d,\"drawremoteness\":%d", DrawLevelLoad(pos), Remoteness(pos));
+				printf(",\"drawLevel\":%d,\"drawRemoteness\":%d", DrawLevelLoad(pos), Remoteness(pos));
 			}
 
 			printf(",\"moves\":[");
@@ -360,7 +360,7 @@ void ServerInteractLoop(void) {
 					if (kUsePureDraw && (val == drawwin || val == drawlose)) {
 						// If using Pure Draw Analysis, the absence of drawlevel and drawremoteness 
 						// means that this position is not part of a pure draw cluster
-						printf(",\"drawlevel\":%d,\"drawremoteness\":%d", DrawLevelLoad(childPosition), Remoteness(childPosition));
+						printf(",\"drawLevel\":%d,\"drawRemoteness\":%d", DrawLevelLoad(childPosition), Remoteness(childPosition));
 					}
 
 					move_string = InteractMoveToString(pos, current_move->move);
