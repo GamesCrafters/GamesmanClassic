@@ -249,20 +249,24 @@ void setOption(int option)
 /* Don't worry about these Interact functions below yet.
 They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board)
-{
-    /* YOUR CODE HERE */
+POSITION InteractStringToPosition(STRING str) {
+    str += 8;
+    for (POSITION p = 0; p < 21; p++) {
+        if (str[p] == 'x') {
+            return p;
+        }
+    }
     return 0;
 }
 
-STRING InteractPositionToString(POSITION position)
-{
-    /* YOUR CODE HERE */
-    return NULL;
+STRING InteractPositionToString(POSITION position) {
+    char board[22];
+    memset(board, '-', 21);
+    board[position] = 'x';
+    board[21] = '\0';
+    return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, 22, board);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move)
-{
-    /* YOUR CODE HERE */
-    return MoveToString(move);
+STRING InteractMoveToString(POSITION position, MOVE move) {
+    return UWAPI_Board_Regular2D_MakeMoveStringWithSound((unsigned int) position, (unsigned int) move, 'x');
 }

@@ -174,6 +174,8 @@ BOOLEAN initializePureDrawAnalysisDB(BOOLEAN allocate) {
 			return FALSE;
 		}
 	}
+
+	return TRUE;
 }
 
 /* Returns the VALUE of the given POSITION. */
@@ -546,14 +548,15 @@ are also nonpure draws.
 Mark all nonpure draw positions as drawdraws. The Tie frontier is repurposed
 to contain nonpure draw positions. */
 static BOOLEAN ProcessDrawDraws() {
-	POSITION child, parent;
-	VALUE parentValue;
+	POSITION pos, parent, child;
+	VALUE parentValue, childValue;
 	POSITIONLIST *ptr;
+	MOVELIST *moves, *head;
 
 	BOOLEAN nonpureDrawsExist = tieFRHead != NULL;
 	while (tieFRHead) {
-		child = DeQueueTieFR();
-		for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
+		pos = DeQueueTieFR();
+		for (ptr = parentsOf[pos]; ptr; ptr = ptr->next) {
 			parent = ptr->position;
 			/* Skip if this is the initial position (parent is kBadPosition). */
 			if (parent != kBadPosition) {
@@ -566,9 +569,23 @@ static BOOLEAN ProcessDrawDraws() {
 				}
 			}
 		}
-		/* We won't need to visit the parents of a draw-draw position again. */
-		FreePositionList(parentsOf[child]);
-		parentsOf[child] = NULL;
+
+		// moves = GenerateMoves(pos);
+		// head = moves;
+		// while (moves) {
+		// 	child = DoMove(pos, moves->move);
+		// 	if (child != kBadPosition) {
+		// 		childValue = GetValueFromBPDB(child);
+		// 		if (childValue == drawwin || childValue == drawlose || childValue == undecided) {
+		// 			InsertTieFR(child);
+		// 			SetValueInBPDB(child, drawdraw);
+		// 			SetSlotMax(child, SL_REM_SLOT);
+		// 			SetSlotMax(child, SL_DRAW_LEVEL_SLOT);
+		// 		}
+		// 	}
+		// 	moves = moves->next;
+		// }
+		// FreeMoveList(head);
 	} /* while there are still positions in tie FR. */
 	return nonpureDrawsExist;
 }
@@ -584,11 +601,13 @@ static BOOLEAN ProcessDrawDraws() {
 static void ProcessLevelFringe(int level) {
 	POSITION child, parent;
 	VALUE parentValue;
+	POSITIONLIST *parentsList;
 
 	while (unanalyzedWinList) {
 		child = DeQueueUnanalyzedWin();
-		while (parentsOf[child]) {
-			parent = RemovePositionFromQueue(&parentsOf[child]);
+		parentsList = parentsOf[child];
+		while (parentsList) {
+			parent = parentsList->position;
 			if (parent != kBadPosition) {
 				parentValue = GetValueFromBPDB(parent);
 				if (parentValue == undecided) {
@@ -598,15 +617,17 @@ static void ProcessLevelFringe(int level) {
 					InsertLoseFR(parent);
 				}
 			}
+			parentsList = parentsList->next;
 		}
 	}
 }
 
-static BOOLEAN CheckExistenceOfPureDrawClusters() {
+static BOOLEAN CheckExistenceOfPureDrawClusters(POSITION *example) {
 	VALUE v;
 	for (POSITION p = 0; p < gNumberOfPositions; p++) {
 		v = GetValueFromBPDB(p);
 		if (v == drawlose || v == drawwin) {
+			*example = p;
 			return TRUE;
 		}
 	}
@@ -638,11 +659,15 @@ static VALUE DetermineValueHelper(POSITION pos) {
 		++level;
 	}
 	BOOLEAN nonpureDrawsExist = ProcessDrawDraws();
-	BOOLEAN pureDrawsExist = CheckExistenceOfPureDrawClusters();
+	POSITION example;
+	BOOLEAN pureDrawsExist = CheckExistenceOfPureDrawClusters(&example);
 
 	printf("Pure Draw Analysis: ");
 	printf("Nonpure draw clusters%s exist. ", nonpureDrawsExist ? "" : " do not");
 	printf("Pure draw clusters%s exist.\n", pureDrawsExist ? "": " do not");
+	if (pureDrawsExist) {
+		printf("Example Position in Pure Draw Cluster: %llu\n", example);
+	}
 
 	return GetValueFromBPDB(pos);
 }
@@ -740,7 +765,21 @@ static BOOLEAN SanityCheckDatabase(void) {
 		}
 	}
 	if (!valid) {
-		printf("Invalid position value at %llu. It is value %d\n", i - 1, v);
+		i = i - 1;
+		PrintPosition(i, "", FALSE);
+		printf("Invalid position value at %llu. It is value %d\n", i, v);
+		printf("F: %d %d\n", OnlyHasChildrenOf(i, (int[7]){0,1,0,1,1,0,0}), HasChild(i, drawwin));
+		MOVELIST *m = GenerateMoves(i);
+		MOVELIST *h = m;
+		printf("CValues: ");
+		while (m) {
+			POSITION chi = DoMove(i, m->move);
+			VALUE cv = GetValueFromBPDB(chi);
+			printf("%llu:%d ", chi, cv);
+			m = m->next;
+		}
+		FreeMoveList(h);
+		printf("\n");
 	}
 	return valid;
 }

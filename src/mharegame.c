@@ -93,6 +93,7 @@ void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
     gMoveToStringFunPtr = &MoveToString;
     gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+    kUsePureDraw = TRUE;
 
     makeTriangle();
     switchVariant(currVariant);

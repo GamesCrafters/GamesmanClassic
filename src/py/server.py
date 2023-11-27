@@ -160,17 +160,11 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
             query['board'] = f'"{query["board"]}"'
 
         httpCommandToGamesmanCommand = {
-                'getStart':
+                'start':
                 'start_response',
 
-                'getEnd':
-                f'end_response {query["board"]}',
-
-                'getNextMoveValues':
-                f'detailed_position_response {query["board"]}',
-
-                'getMoveValue':
-                f'move_value_response {query["board"]}'
+                'position':
+                f'position_response {query["board"]}',
             }
         
         if httpCommand in httpCommandToGamesmanCommand:

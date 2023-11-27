@@ -265,8 +265,6 @@ void InitializeGame ()
 	long long unsigned largestBoard = 0;
 	char *pieces = SafeMalloc(totalPieces+1);
 
-	kUsePureDraw = TRUE; /* This game is known to be a pure draw game. */
-
 	for (size_t i = 0; i < strlen(theBoard); i++) {
 		if (theBoard[i] != ' ') {
 			pieces[counter++] = theBoard[i];

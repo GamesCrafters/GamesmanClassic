@@ -335,8 +335,6 @@ void InitializeGame ()
 	gCanonicalPosition = getCanonicalPosition;
 
 	gMoveToStringFunPtr = &MoveToString;
-
-	kUsePureDraw = TRUE;
 }
 
 

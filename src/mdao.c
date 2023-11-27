@@ -201,7 +201,6 @@ void InitializeGame ()
 	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 
-	kUsePureDraw = TRUE;
 }
 
 

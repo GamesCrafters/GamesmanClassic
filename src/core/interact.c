@@ -323,6 +323,8 @@ void ServerInteractLoop(void) {
 
 			if (val != drawwin && val != drawlose && val != drawdraw) {
 				printf(",\"remoteness\":%d", Remoteness(pos));
+			} else {
+				printf(",\"remoteness\":%d", 255);
 			}
 
 			InteractPrintJSONMEXValue(pos);
@@ -350,6 +352,8 @@ void ServerInteractLoop(void) {
 
 					if (val != drawwin && val != drawlose && val != drawdraw) {
 						printf(",\"remoteness\":%d", Remoteness(childPosition));
+					} else {
+						printf(",\"remoteness\":%d", 255);
 					}
 					InteractPrintJSONMEXValue(childPosition);
 					if (gPutWinBy) printf(",\"winby\":%d", WinByLoad(childPosition));
