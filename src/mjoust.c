@@ -2288,7 +2288,7 @@ int GenerateNewInitial(){
 	{
 		for(j=0; j < COLUMNSIZE; j++)
 		{
-			NewInitial[i*ROWSIZE + j] = Blank;
+			NewInitial[i*COLUMNSIZE + j] = Blank;
 		}
 	}
 
