@@ -11,7 +11,7 @@ void            GetMy                   (char *format, GENERIC_PTR target, int l
 void            GetMyStr                (STRING str, int len);
 void            BadMenuChoice           ();
 
-void            Menus                   ();
+void            Menus                   (STRING executableName);
 void            HelpMenus               ();
 
 USERINPUT       HandleDefaultTextInput  (POSITION pos, MOVE* move, STRING name);

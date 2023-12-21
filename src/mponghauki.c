@@ -1,3 +1,19 @@
+/************************************************************************
+**
+** NAME:        mponghauki.c
+**
+** DESCRIPTION: Pong Hau K'i
+**
+** AUTHOR:      Kyle Zentner
+**
+**************************************************************************/
+
+/*************************************************************************
+**
+** Everything below here must be in every game file
+**
+**************************************************************************/
+
 #include "gamesman.h"
 
 #define BOARD_SIZE 5
@@ -180,10 +196,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
   int start = DECODE_MOVE_START(computersMove);
   int end = DECODE_MOVE_END(computersMove);
   printf("%s moved: %d, %d\n", computersName, start, end);
@@ -342,8 +355,7 @@ POSITION GetCanonicalPosition(POSITION position)
 **
 ************************************************************************/
 
-POSITION DoSymmetry(POSITION position, int symmetry)
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
   (void)symmetry;
   return position;
 }
@@ -371,11 +383,7 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
   USERINPUT ret = Continue;
   do {
     printf("%s's move [(u)ndo/0-4,0-4] :  ", playerName);

@@ -46,6 +46,7 @@ POSITION gMinimalPosition = 0;
 
 CONST_STRING kAuthorName          = "Dan Garcia";
 CONST_STRING kGameName            = "1 TO N";
+CONST_STRING kDBName = "1TON";
 BOOLEAN kPartizan            = FALSE;
 BOOLEAN kDebugMenu           = FALSE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -197,10 +198,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	return(thePosition + theMove);
 }
 
@@ -215,8 +213,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	POSITION initialPosition;
 	printf("Please input the starting value [0 - N] : ");
 	scanf(POSITION_FORMAT,&initialPosition);
@@ -234,10 +231,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove);
 }
 
@@ -260,9 +254,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(pos)
-POSITION pos;
-{
+VALUE Primitive(POSITION pos) {
 	if(pos >= N) /* once they get to N, the game is over*/
 		return(gStandardGame ? lose : win); /* gStandardGame  lose win*/
 	else
@@ -286,11 +278,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	printf("\nTOTAL                        : "POSITION_FORMAT " %s \n\n",position,
 	       GetPrediction(position,playerName,usersTurn));
 }
@@ -312,12 +300,9 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	unsigned int count = 1;
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	while((count <= gTurn) && (count + position <= N)) {
 		head = CreateMovelistNode(count, head);
 		count++;
@@ -344,13 +329,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
-	BOOLEAN ValidMove();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1/2] :  ", playerName);
@@ -380,9 +360,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	unsigned int theInput = atoi(input);
 	return(theInput <= gTurn && theInput >= 1);
 }
@@ -399,9 +377,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) atoi(input)); /* user input is 1-9, our rep. is 0-8 */
 }
 
@@ -430,17 +406,11 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString (MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(3);
 	sprintf( move, "%d", theMove );
 	return move;
 }
-
-
-
-CONST_STRING kDBName = "1TON";
 
 int NumberOfOptions()
 {

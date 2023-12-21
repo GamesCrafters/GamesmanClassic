@@ -87,7 +87,6 @@ void GameSpecificMenu() {
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
-  kCombinatorial = TRUE;
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
 
@@ -543,8 +542,6 @@ STRING InteractPositionToString(POSITION position) {
 STRING InteractMoveToString(POSITION position, MOVE move) {
   (void)position;
   STRING result = (STRING) SafeMalloc(8);
-
-  sprintf(result, "A_-_%d", move);
-
+  sprintf(result, "A_h_%d_x", move);
   return result;
 }

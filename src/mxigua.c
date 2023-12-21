@@ -115,12 +115,6 @@ adjacency *adjacent;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 void* gGameSpecificTclInit = NULL;
 
 /* Internal */
@@ -587,9 +581,7 @@ void InitializeGame ()
 	gMoveToStringFunPtr = &MoveToString;
 }
 
-char * emptyboard(board)
-char *board;
-{
+char * emptyboard(char *board) {
 	int i;
 
 	board = (char *) SafeMalloc(sizeof(char) * maxsize);
@@ -810,9 +802,7 @@ void removeStones(char *board, MOVE move, char p, BOOLEAN *check)
 **
 ************************************************************************/
 
-VALUE Primitive (position)
-POSITION position;
-{
+VALUE Primitive (POSITION position) {
 	int player,turn;
 	int p1c, p2c;
 	int i;
@@ -916,10 +906,7 @@ BOOLEAN isTerritory(char *board, MOVE move, char p, BOOLEAN *check)
 **
 *************************************************************************/
 
-void display5board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display5board(char *pos, char *prediction) {
 	printf("Legend:    1         Current:      %c\n",pos[0]);
 	printf("          /|\\        Player1: X   /|\\\n");
 	printf("         2-3-4       Player2: *  %c-%c-%c\n",pos[1],pos[2],pos[3]);
@@ -927,10 +914,7 @@ char *prediction;
 	printf("           5                       %c\n",pos[4]);
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
-void display9board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display9board(char *pos, char *prediction) {
 	printf("Legend:   1      2        Current:      %c      %c\n",pos[0],pos[1]);
 	printf("         /|\\    /|        Player1: X   /|\\    /|\n");
 	printf("        3-4-5--6-7        Player2: *  %c-%c-%c--%c-%c\n",pos[2],pos[3],pos[4],pos[5],pos[6]);
@@ -938,10 +922,7 @@ char *prediction;
 	printf("          8      9                      %c      %c\n",pos[7],pos[8]);
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
-void display13board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display13board(char *pos, char *prediction) {
 	printf("Legend:   1      2      3   Current:    %c      %c      %c\n",pos[0],pos[1],pos[2]);
 	printf("          |\\    /|\\    /|   Player1: X  |\\    /|\\    /|\n");
 	printf("          4-5--6-7-8--9-B   Player2: *  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
@@ -950,10 +931,7 @@ char *prediction;
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 
-void display17board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display17board(char *pos, char *prediction) {
 	printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
 	printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
 	printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
@@ -966,10 +944,7 @@ char *prediction;
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 
-void display21board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display21board(char *pos, char *prediction) {
 	printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
 	printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
 	printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
@@ -987,9 +962,7 @@ char *prediction;
 
 }
 
-char *getprediction(pred)
-char *pred;
-{
+char *getprediction(char *pred) {
 	int i=0;
 	/* code to initialize it to blank values until a later time */
 	for(; i<16; i++) pred[i]=(char)32; /* fill with spaces */
@@ -1012,11 +985,7 @@ char *pred;
 **
 ************************************************************************/
 
-void PrintPosition (position, playersName, usersTurn)
-POSITION position;
-STRING playersName;
-BOOLEAN usersTurn;
-{
+void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	/* just a doodle of the gameboard
 	 * - Josh
 	 *              /0-0-0\
@@ -1079,10 +1048,7 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-void PrintComputersMove (computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
 	char move=0;
 	if(computersMove>-1 && computersMove < 9) {
 		move=49+computersMove;
@@ -1141,9 +1107,7 @@ STRING computersName;
 ************************************************************************/
 
 
-void PrintMove (move)
-MOVE move;
-{
+void PrintMove(MOVE move) {
 	STRING m = MoveToString( move );
 	printf( "%s", m );
 	SafeFree( m );
@@ -1159,9 +1123,7 @@ MOVE move;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 2 );
 	char movechar=getmovechar(theMove);
 
@@ -1169,9 +1131,7 @@ MOVE theMove;
 	return m;
 }
 
-char getmovechar(move)
-MOVE move;
-{
+char getmovechar(MOVE move) {
 	char movechar=0;
 	if(move>-1 && move < 9) {
 		movechar=49+move;
@@ -1239,13 +1199,8 @@ MOVE move;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (position, move, playersName)
-POSITION position;
-MOVE *move;
-STRING playersName;
-{
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName) {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	MOVELIST *moves;
 	MOVE thisMove;
@@ -1306,9 +1261,7 @@ STRING playersName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	switch(toupper(input[0])) {
 	case '1':
 	case '2':
@@ -1351,9 +1304,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	switch(toupper(input[0])) {
 	case 'B':
 		return (MOVE)9;
@@ -1501,8 +1452,7 @@ void SetTclCGameSpecificOptions (int options[])
 **
 ************************************************************************/
 
-POSITION GetInitialPosition ()
-{
+POSITION GetInitialPosition() {
 	char *moves;
 	char in;
 	char *prediction="";
@@ -1634,9 +1584,7 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (option)
-int option;
-{
+void setOption(int option) {
 	rulesvariant=option/30;
 	option-=(rulesvariant*30);
 	handicapping=option/15;
@@ -1687,11 +1635,7 @@ void DebugMenu ()
 ** shifts that left 5 bits and encodes the turn number
 **
 **************************************************************************/
-POSITION hash(board, player, turn)
-char *board;
-int player;
-int turn;
-{
+POSITION hash(char *board, int player, int turn) {
 	POSITION ret;
 
 	/* do the generic hash */
@@ -1710,10 +1654,7 @@ int turn;
 **
 ***************************************************************************/
 
-char *unhashboard(hashed, board)
-POSITION hashed;
-char *board;
-{
+char *unhashboard(POSITION hashed, char *board) {
 	hashed=hashed>>NUM_HASH_WRAPPER_BITS; /* get rid of the turn encoding */
 	/* better have a non null board */
 	return generic_hash_unhash(hashed, board);
@@ -1740,9 +1681,7 @@ int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* c
 **
 *****************************************************************************/
 
-int getplayer(hashed)
-POSITION hashed;
-{
+int getplayer(POSITION hashed) {
 	hashed = hashed>>NUM_HASH_WRAPPER_BITS;
 	return generic_hash_turn(hashed);
 }
@@ -1754,9 +1693,7 @@ POSITION hashed;
 **
 *****************************************************************************/
 
-int getturnnumber(hashed)
-POSITION hashed;
-{
+int getturnnumber(POSITION hashed) {
 	return hashed&31;
 }
 
@@ -1767,8 +1704,7 @@ POSITION hashed;
 **
 ***********/
 
-int countboard(char *board, char tocount)
-{
+int countboard(char *board, char tocount) {
 	int counter=0,i=0;
 	for(; i<maxsize; i++)
 		if(board[i]==tocount)
@@ -1780,39 +1716,6 @@ int countboard(char *board, char tocount)
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
 /**************************************************/
-
-/************************************************************************
-**
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-************************************************************************/
-
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION DoSymmetry();
-	POSITION newPosition, theCanonicalPosition;
-	int i;
-
-	theCanonicalPosition = position;
-
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-
-		newPosition = DoSymmetry(position, i); /* get new */
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
-	}
-
-	return(theCanonicalPosition);
-}
 
 /************************************************************************
 **
@@ -1829,10 +1732,7 @@ POSITION position;
 **
 ************************************************************************/
 
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
 	int i;
 	int player = getplayer(position);
 	int turn = getturnnumber(position);
@@ -1846,6 +1746,36 @@ int symmetry;
 		symmboard[i] = board[gSymmetryMatrix[symmetry][i]];
 
 	return(hash(symmboard, player, turn));
+}
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+**
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(POSITION position) {
+	POSITION newPosition, theCanonicalPosition;
+	int i;
+
+	theCanonicalPosition = position;
+
+	for(i = 0; i < NUMSYMMETRIES; i++) {
+
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
+
+	return(theCanonicalPosition);
 }
 
 /**************************************************/

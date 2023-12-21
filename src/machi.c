@@ -28,6 +28,7 @@ POSITION kBadPosition        = -1; /* This can never be the rep. of a position *
 
 CONST_STRING kAuthorName         = "Jeffrey Chiang, Jennifer Lee, and Jesse Phillips";
 CONST_STRING kGameName           = "Achi";
+CONST_STRING kDBName = "achi";
 
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = TRUE;
@@ -96,6 +97,9 @@ STRING MoveToString (MOVE);
 STRING _PositionToString(POSITION);
 POSITION ActualNumberOfPositions(int variant);
 POSITION GetCanonicalPosition(POSITION position);
+BOOLEAN AllFilledIn(BlankOX *theBlankOX);
+BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
+BOOLEAN phase1(BlankOX *theBlankOX);
 
 /* Variants */
 BOOLEAN allDiag = FALSE;
@@ -124,7 +128,6 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 void InitializeGame()
 {
-	//Symmetry code (directly from mttt.c)
 	gCanonicalPosition = GetCanonicalPosition;
 
 	int i, j, temp; /* temp is used for debugging */
@@ -151,9 +154,7 @@ void InitializeGame()
 	InitializeHelpStrings();
 }
 
-void FreeGame()
-{
-}
+void FreeGame() {}
 
 /*****
 ** void InitializeHelpStrings()
@@ -267,50 +268,7 @@ Computer wins. Nice try, Dan."                                                  
 **        DebugMenu adapted from Dan Garcia's mttt.c
 ************************************************************************/
 
-void DebugMenu()
-{
-	char GetMyChar();
-	void tttppm();
-
-	do {
-		printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
-
-		printf("\tc)\tWrite PPM to s(C)reen\n");
-		printf("\ti)\tWrite PPM to f(I)le\n");
-		printf("\ts)\tWrite Postscript to (S)creen\n");
-		printf("\tf)\tWrite Postscript to (F)ile\n");
-		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-		printf("\n\nSelect an option: ");
-
-		switch(GetMyChar()) {
-		case 'Q': case 'q':
-			ExitStageRight();
-			break;
-		case 'H': case 'h':
-			HelpMenus();
-			break;
-		case 'C': case 'c': /* Write PPM to s(C)reen */
-			tttppm(0,0);
-			break;
-		case 'I': case 'i': /* Write PPM to f(I)le */
-			tttppm(0,1);
-			break;
-		case 'S': case 's': /* Write Postscript to (S)creen */
-			tttppm(1,0);
-			break;
-		case 'F': case 'f': /* Write Postscript to (F)ile */
-			tttppm(1,1);
-			break;
-		case 'B': case 'b':
-			return;
-		default:
-			BadMenuChoice();
-			HitAnyKeyToContinue();
-			break;
-		}
-	} while(TRUE);
-
-}
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -322,8 +280,7 @@ void DebugMenu()
 **
 ************************************************************************/
 
-void GameSpecificMenu()
-{
+void GameSpecificMenu() {
 	char GetMyChar();
 
 	printf("\n");
@@ -374,8 +331,7 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions[])
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	/* No need to have anything here, we have no extra options */
 	(void)theOptions;
 }
@@ -396,16 +352,11 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 
 	BlankOX theBlankOX[BOARDSIZE];
 	int from, to;
 	BlankOX whosTurn;
-	BOOLEAN phase1();
-
 
 	PositionToBlankOX(thePosition,theBlankOX, &whosTurn);
 	from = 0;
@@ -435,6 +386,39 @@ MOVE theMove;
 
 /************************************************************************
 **
+** NAME:        DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+**              on the position specified by the input and return the
+**              new position, even if it's the same as the input.
+**
+** INPUTS:      POSITION position : The position to branch the symmetry from.
+**              int      symmetry : The number of the symmetry operation.
+**
+** OUTPUTS:     POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(POSITION position, int symmetry) {
+	int i;
+	BlankOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
+	BlankOX whosTurn; //has to be same person's move
+	BlankOX whosTurnSym;
+
+	PositionToBlankOX(position,theBlankOx, &whosTurn);
+	PositionToBlankOX(position,symmBlankOx, &whosTurnSym); /* Make copy */
+
+	/* Copy from the symmetry matrix */
+
+	for(i = 0; i < BOARDSIZE; i++)
+		symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
+
+
+	return(BlankOXToPosition(symmBlankOx, whosTurnSym));
+}
+
+/************************************************************************
+**
 ** NAME:        GetCanonicalPosition
 **
 ** DESCRIPTION: Go through all of the positions that are symmetrically
@@ -448,10 +432,8 @@ MOVE theMove;
 ************************************************************************/
 
 
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
+POSITION GetCanonicalPosition(POSITION position) {
+	POSITION newPosition, theCanonicalPosition;
 	int i;
 
 	theCanonicalPosition = position;
@@ -468,43 +450,6 @@ POSITION position;
 
 /************************************************************************
 **
-** NAME:        DoSymmetry
-**
-** DESCRIPTION: Perform the symmetry operation specified by the input
-**              on the position specified by the input and return the
-**              new position, even if it's the same as the input.
-**
-** INPUTS:      POSITION position : The position to branch the symmetry from.
-**              int      symmetry : The number of the symmetry operation.
-**
-** OUTPUTS:     POSITION, The position after the symmetry operation.
-**
-************************************************************************/
-
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
-	int i;
-	BlankOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
-	POSITION BlankOXToPosition();
-
-	BlankOX whosTurn; //has to be same person's move
-	BlankOX whosTurnSym;
-
-	PositionToBlankOX(position,theBlankOx, &whosTurn);
-	PositionToBlankOX(position,symmBlankOx, &whosTurnSym); /* Make copy */
-
-	/* Copy from the symmetry matrix */
-
-	for(i = 0; i < BOARDSIZE; i++)
-		symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
-
-
-	return(BlankOXToPosition(symmBlankOx, whosTurnSym));
-}
-/************************************************************************
-**
 ** NAME:        GetInitialPosition
 **
 ** DESCRIPTION: Ask the user for an initial position for testing. Store
@@ -516,8 +461,7 @@ int symmetry;
 
 /*  we haven't changed this, but we probably should */
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	BlankOX theBlankOX[BOARDSIZE], whosTurn;
 	signed char c;
 	int i;
@@ -540,15 +484,6 @@ POSITION GetInitialPosition()
 		/* else do nothing */
 	}
 
-	/*
-	   getchar();
-	   printf("\nNow, whose turn is it? [O/X] : ");
-	   scanf("%c",&c);
-	   if(c == 'x' || c == 'X')
-	   whosTurn = x;
-	   else
-	   whosTurn = o;
-	 */
 	whosTurn = o;
 	return(BlankOXToPosition(theBlankOX,whosTurn));
 }
@@ -564,10 +499,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	BOOLEAN phase1;
 	if(computersMove < 9) {
 		computersMove++; // internally moves are 0-8
@@ -601,10 +533,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN ThreeInARow(), AllFilledIn();
+VALUE Primitive(POSITION position) {
 	BlankOX theBlankOX[BOARDSIZE];
 	BlankOX whosTurn;
 
@@ -642,11 +571,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	BlankOX theBlankOx[BOARDSIZE];
 	BlankOX whosTurn;
 
@@ -723,14 +648,10 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankOX player;
 	BlankOX theBlankOX[BOARDSIZE];
-	BOOLEAN phase1();
 	BlankOX whosTurn;
 	MOVE aMove;
 	int i;
@@ -857,13 +778,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move :  ", playerName);
@@ -894,9 +810,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	if (!input[1])
 		return(input[0] <= '9' && input[0] >= '1');
 	return(input[0] <= '9' && input[0] >= '1' && input[1] <= '9' && input[1] >= '1');
@@ -914,9 +828,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	MOVE theMove = 0;
 	if (!input[1])
 		return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
@@ -937,9 +849,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	if(theMove < 9) {
 		printf("%d", theMove + 1);
@@ -951,9 +861,7 @@ MOVE theMove;
 }
 
 
-STRING MoveToString(theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	if(theMove < 9) {
 		STRING move = (STRING) SafeMalloc(2);
@@ -966,9 +874,7 @@ MOVE theMove;
 	}
 }
 
-STRING _PositionToString( thePos )
-POSITION thePos;
-{
+STRING _PositionToString(POSITION thePos) {
 	BlankOX* turn = SafeMalloc( sizeof(BlankOX) );
 	BlankOX* board = SafeMalloc( sizeof(BlankOX)*BOARDSIZE );
 
@@ -1013,10 +919,7 @@ POSITION thePos;
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX,whosTurn)
-POSITION thePos;
-BlankOX *theBlankOX, *whosTurn;
-{
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn) {
 	int i;
 
 	if(thePos >= POSITION_OFFSET) {
@@ -1056,10 +959,7 @@ BlankOX *theBlankOX, *whosTurn;
 ************************************************************************/
 
 
-POSITION BlankOXToPosition(theBlankOX, whosTurn)
-BlankOX *theBlankOX,whosTurn;
-
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
 	int i;
 	POSITION position = 0;
 
@@ -1088,10 +988,7 @@ BlankOX *theBlankOX,whosTurn;
 **
 ************************************************************************/
 
-BOOLEAN ThreeInARow(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
 	return(     theBlankOX[a] == theBlankOX[b] &&
 	            theBlankOX[b] == theBlankOX[c] &&
 	            theBlankOX[c] != Blank );
@@ -1109,9 +1006,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankOX)
-BlankOX theBlankOX[];
-{
+BOOLEAN AllFilledIn(BlankOX *theBlankOX) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -1123,8 +1018,7 @@ BlankOX theBlankOX[];
 
 
 
-BOOLEAN phase1(BlankOX *theBlankOX)
-{
+BOOLEAN phase1(BlankOX *theBlankOX) {
 	int count = 0;
 	int i = 0;
 	while(i < BOARDSIZE)
@@ -1139,16 +1033,11 @@ BOOLEAN phase1(BlankOX *theBlankOX)
 }
 
 
-
-CONST_STRING kDBName = "achi";
-
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	return 2*3;
 }
 
-int getOption()
-{
+int getOption() {
 	int option = 1;
 	if(gStandardGame) option += 1;
 	if(allDiag) option += 1 *2;
@@ -1186,8 +1075,7 @@ STRING GetVarString() {
 }
 
 
-void setOption(int option)
-{
+void setOption(int option) {
 	option -= 1;
 	gStandardGame = option%2==1;
 	allDiag = option/2%3==1;
@@ -1201,73 +1089,6 @@ POSITION ActualNumberOfPositions(int variant) {
 	(void)variant;
 	return 5390;
 }
-
-
-// $Log: not supported by cvs2svn $
-// Revision 1.33  2006/10/03 08:10:02  scarr2508
-// added ActualNumberOfPositions
-// -sean
-//
-// Revision 1.32  2006/04/11 02:10:52  kmowery
-//
-//
-// Added PositionToString and set gCustomUnhash (used in the java gui)
-//
-// Revision 1.31  2006/04/05 11:42:00  arabani
-// Fixed XML file writing.
-//
-// Revision 1.30  2006/02/26 08:31:15  kmowery
-//
-// Changed MToS to MoveToString
-//
-// Revision 1.29  2006/02/12 02:30:58  kmowery
-//
-// Changed MoveToString to be gMoveToStringFunPtr.  Updated already existing MoveToString implementations (Achi, Dodgem, SquareDance, and Othello)
-//
-// Revision 1.28  2006/02/03 06:08:39  hevanm
-// fixed warnings. I will leave the real bugs to retro hehehehe.
-//
-// Revision 1.27  2006/01/03 00:19:34  hevanm
-// Added types.h. Cleaned stuff up a little. Bye bye gDatabase.
-//
-// Revision 1.26  2005/12/28 18:34:03  ddgarcia
-// Fixed some trailing \n\ in the text strings...
-//
-// Revision 1.25  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.24  2005/12/27 05:25:19  ciokita
-// *** empty log message ***
-//
-// Revision 1.23  2005/12/21 00:54:22  hevanm
-// database updates and various commenting through out the modules where getValueOfPosition is declared outside of core code.... bad bad bad
-//
-// Revision 1.22  2005/12/08 04:00:22  ogren
-// removed debug string. -Elmer
-//
-// Revision 1.21  2005/12/08 03:56:29  ogren
-// achi has holder text for HelpOnYourTurn with noDiag. -Elmer
-//
-// Revision 1.20  2005/12/08 03:24:33  ogren
-// created InitializeHelpStrings() to prepare for dynamic help strings.  -Elmer
-//
-// Revision 1.19  2005/12/08 01:26:18  yulikjan
-// Added MoveToString.
-//
-// Revision 1.18  2005/05/06 07:24:55  nizebulous
-// Finally fixed ALL the function prototypes so that there are NO warnings
-// when gamesman compiles.  YAY!
-//      -Dom
-//
-// Revision 1.17  2005/05/05 02:19:03  ogren
-// local prototyped void tttppm() in DebugMenu() -Elmer
-//
-// Revision 1.16  2005/05/04 22:47:47  ciokita
-// fixed help strings
-//
-// Revision 1.15  2005/04/27 21:22:03  ogren
-// fixed CVS tags, turned off kDebugMenu.  GameTree printer still in DebugMenu, however. -Elmer
-//
 
 POSITION InteractStringToPosition(STRING str) {
 	// Parse UWAPI standard position string & get UWAPI standard board string

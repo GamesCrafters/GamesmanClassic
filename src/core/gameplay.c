@@ -83,6 +83,8 @@ extern MOVE             GetWinByMove                    (POSITION, MOVELIST*);
 
 void             PrintMoveHistory                (POSITION);
 void             PrintVisualValueHistory         (POSITION, int);
+void sendLocalMove(MOVE* move, STRING name, int turnNumber);
+int getRemoteMove(STRING name, int turnNumber);
 
 /**
  * Prototypes for delta-Remoteness
@@ -1530,8 +1532,10 @@ MOVE GetSEvalMove(POSITION thePosition) {
 	float SEvalValue = 0.0;
 	MOVE theMove = 0;
 	MOVELIST* moves = GenerateMoves(thePosition);
-	if( moves == NULL )
-		ExitStageRight("GetSEvalMoves got NULL from GenerateMoves! Shun... SHUN!");
+	if( moves == NULL ) {
+		printf("GetSEvalMoves got NULL from GenerateMoves! Shun... SHUN!");
+		ExitStageRight();
+	}
 
 
 	if(gSEvalPerfect) {
@@ -2070,7 +2074,6 @@ PLAYER NewSEvalPlayer(STRING name, int turn)
 }
 
 USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
-	void sendLocalMove();
 	USERINPUT result = GetAndPrintPlayersMove(position, move, name);
 	sendLocalMove(move, name, gTurnNumber);
 	gTurnNumber++;
@@ -2079,7 +2082,6 @@ USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
 
 USERINPUT RemoteMove(POSITION position, MOVE* move, STRING name) {
 	if (position != (POSITION)(-1)) {
-		int getRemoteMove();
 		*move = getRemoteMove(name, gTurnNumber);
 		PrintComputersMove(*move, name);
 		gTurnNumber++;

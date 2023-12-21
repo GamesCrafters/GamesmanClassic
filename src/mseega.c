@@ -243,6 +243,7 @@ int nextOpenInitSpot(Board b, int lowerBound);
 int nextSpotOfType(Board b, int lowerBound, int whoseTurn);
 MOVELIST *GeneratePlacingMoves(Board b);
 MOVELIST *GenerateMovingMoves(Board b);
+int legalMove(int from, int to);
 
 
 /*************************************************************************
@@ -251,17 +252,7 @@ MOVELIST *GenerateMovingMoves(Board b);
 **
 *************************************************************************/
 
-/*
-** Function Prototypes:
-*/
-
 /* Function prototypes here. */
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
 
 STRING                  MoveToString(MOVE);
 
@@ -330,7 +321,6 @@ void changeForbiddenSpots();
 
 void GameSpecificMenu()
 {
-	char GetMyChar();
 
 	printf("\n");
 	printf("Seega Game Specific Menu\n\n");
@@ -789,10 +779,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	char mover;
 	int player,i;
 	// void boardcopy();
-	int legalMove();
 	MOVE m;
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	unhash(gBoard,position);
 	player=generic_hash_turn(position);
 	if(player == 1)
@@ -879,9 +867,6 @@ MOVELIST *GenerateMoves (POSITION position)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
-
-	BOOLEAN ValidMove();
 
 	do {
 		printf("%8s's move [(undo)/<number> <number>] : ", playersName);
@@ -1059,9 +1044,7 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString (move)
-MOVE move;
-{
+STRING MoveToString(MOVE move) {
 	STRING m = (STRING) SafeMalloc( 5 );
 
 	sprintf(m, "[%d]", toWhere(&move));
@@ -1244,7 +1227,7 @@ int nextSpotOfType(Board b, int lowerBound, int whoseTurn) {
 	return -1;
 }
 MOVELIST *GeneratePlacingMoves(Board b) {
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	char c = whoseBoard(b);
 	int i,move=0;
 	for (i=nextOpenInitSpot(b,0);
@@ -1273,7 +1256,7 @@ MOVELIST *GeneratePlacingMoves(Board b) {
 	return head;
 }
 MOVELIST *GenerateMovingMoves(Board b) {
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	char c = whoseBoard(b);
 	int i,j,move=0;
 	for (i=nextSpotOfType(b,0,c);

@@ -110,12 +110,6 @@ int totalPieces = 18; //Remove when tiering
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 /*function prototypes*/
 void InitializeGame ();
 void SetupTierStuff();

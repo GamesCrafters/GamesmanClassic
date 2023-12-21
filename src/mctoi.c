@@ -413,6 +413,8 @@ BlankoxOX WhoseTurn       ( POSITION          );
 BOOLEAN   IsLegalJump     (int, int, BlankoxOX);
 BOOLEAN   RedIsStuck      ( POSITION          );
 BOOLEAN   WhiteIsStuck    ( POSITION          );
+BOOLEAN   AllFilledIn     ( BlankoxOX *       );
+BOOLEAN   ThreeInARow     ( BlankoxOX *, int, int, int);
 
 /**********************************/
 /* Before converting to TTT */
@@ -554,8 +556,7 @@ Computer wins. Nice try, Dan."                                                  
 **
 ************************************************************************/
 
-void DebugMenu()
-{
+void DebugMenu() {
 	char GetMyChar();
 
 	do {
@@ -658,9 +659,7 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	/* This part has been added for the eight different options we have*/
 	gRotateInPlace =  (BOOLEAN) theOptions[0];
 	gHopOne        =  (BOOLEAN) theOptions[1];
@@ -687,10 +686,7 @@ int theOptions[];
 **              BlankoxOX WhoseTurn(thePosition), RedPiece(BlankoxOX)
 **
 ************************************************************************/
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	/* local variables */
 	int to;
 	int from;
@@ -767,8 +763,7 @@ MOVE theMove;
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
 ************************************************************************/
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	static BlankoxOX theBlankoxOX[BOARDSIZE];
 	BlankoxOX whosTurn;
 	signed char c;
@@ -832,10 +827,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int to = MoveTo(computersMove), from = MoveFrom(computersMove),
 	    orientation = MoveOrientation(computersMove);
 	if (from == 9) {
@@ -867,10 +859,7 @@ STRING computersName;
 **              WhiteIsStuck()
 **
 ************************************************************************/
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN ThreeInARow(), AllFilledIn();
+VALUE Primitive(POSITION position) {
 	static BlankoxOX theBlankoxOX[BOARDSIZE];
 
 	PositionToBlankoxOX(position,theBlankoxOX); /* function call      */
@@ -928,11 +917,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	static BlankoxOX theBlankoxOX[BOARDSIZE];
 
 	PositionToBlankoxOX(position,theBlankoxOX);    /* function call */
@@ -975,12 +960,9 @@ BOOLEAN usersTurn;
 **              IsLegalJump()
 **
 ************************************************************************/
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
-	BlankoxOX WhoseTurn(), turn;
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
+	BlankoxOX turn;
 	int i, j, k, blankCount = 0;
 	static int theBlanks[3];
 	static BlankoxOX theBlankoxOX[BOARDSIZE];
@@ -1111,14 +1093,9 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	/* local variables */
-	BOOLEAN ValidMove(), AllFilledIn();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 	BlankoxOX theBlankoxOX[BOARDSIZE];
 
 	PositionToBlankoxOX(thePosition, theBlankoxOX);
@@ -1154,9 +1131,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	/* local variable */
 	int length;
 	length = strlen (input);
@@ -1192,9 +1167,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	/* local variable */
 	MOVE theMove = -1;
 	int length;
@@ -1234,10 +1207,10 @@ STRING input;
 ** INPUTS:      MOVE *theMove         : The move to print.
 **
 ************************************************************************/
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
+void PrintMove(MOVE theMove) {
+	STRING moveString = MoveToString(theMove);
+	printf( "%s", moveString );
+	SafeFree(moveString);
 }
 
 /************************************************************************
@@ -1250,9 +1223,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString (MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(4);
 
 	if (MoveFrom(theMove) == 9) { /* if placing pieces into the board     */
@@ -1289,10 +1260,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankoxOX(thePos,theBlankoxOX)
-POSITION thePos;
-BlankoxOX *theBlankoxOX;
-{
+void PositionToBlankoxOX(POSITION thePos, BlankoxOX *theBlankoxOX) {
 	/* local variable */
 
 	UnHashChungToi(theBlankoxOX, thePos); /* function call to */
@@ -1314,9 +1282,7 @@ BlankoxOX *theBlankoxOX;
 ** OUTPUTS:     POSITION: The equivalent position given the BlankoxOX.
 **
 ************************************************************************/
-POSITION BlankoxOXToPosition(theBlankoxOX, turn)
-BlankoxOX *theBlankoxOX, turn;
-{
+POSITION BlankoxOXToPosition(BlankoxOX *theBlankoxOX, BlankoxOX turn) {
 	/* local variables */
 	POSITION position = 0;
 
@@ -1344,9 +1310,7 @@ BlankoxOX *theBlankoxOX, turn;
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
+POSITION GetCanonicalPosition(POSITION position) {
 	POSITION theCanonicalPosition;
 
 	theCanonicalPosition = position;
@@ -1372,8 +1336,7 @@ POSITION position;
 **
 ************************************************************************/
 
-MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move)
-{
+MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move) {
 	(void)thePosition;
 	(void)canPosition;
 	return move;
@@ -1396,8 +1359,7 @@ MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move)
 **
 ************************************************************************/
 
-POSITION DoSymmetry(POSITION position, int symmetry)
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
 	(void)symmetry;
 	return position;
 }
@@ -1416,12 +1378,8 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 ** CALLS:       BOOLEAN RedPiece  (theBlankoxOX )
 **              BOOLEAN WhitePiece(theBlankoxOX )
 ************************************************************************/
-BOOLEAN ThreeInARow(theBlankoxOX,a,b,c)
-BlankoxOX theBlankoxOX[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankoxOX *theBlankoxOX, int a, int b, int c) {
 	/* returning true if it could find three pieces in a row, false otherwise */
-
 
 	return((
 	               ( RedPiece( theBlankoxOX[a] )) &&
@@ -1450,9 +1408,7 @@ int a,b,c;
 ** CALLS:       none
 **
 ***********************************************************************/
-BOOLEAN RedPiece (aBlankoxOX )
-BlankoxOX aBlankoxOX;
-{
+BOOLEAN RedPiece (BlankoxOX aBlankoxOX ) {
 	return ( aBlankoxOX == Rx || aBlankoxOX == Rt );
 
 }
@@ -1470,9 +1426,7 @@ BlankoxOX aBlankoxOX;
 ** CALLS:       none
 **
 ***********************************************************************/
-BOOLEAN WhitePiece (aBlankoxOX )
-BlankoxOX aBlankoxOX;
-{
+BOOLEAN WhitePiece (BlankoxOX aBlankoxOX ) {
 	return ( aBlankoxOX == Wx || aBlankoxOX == Wt );
 
 }
@@ -1491,9 +1445,7 @@ BlankoxOX aBlankoxOX;
 ** CALLS:       none
 **
 ***********************************************************************/
-BOOLEAN BlankPiece (aBlankoxOX )
-BlankoxOX aBlankoxOX;
-{
+BOOLEAN BlankPiece (BlankoxOX aBlankoxOX ) {
 	return ( aBlankoxOX == Blank );
 
 }
@@ -1512,9 +1464,7 @@ BlankoxOX aBlankoxOX;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankoxOX)
-BlankoxOX theBlankoxOX[];
-{
+BOOLEAN AllFilledIn(BlankoxOX *theBlankoxOX) {
 	int i, count = 0;
 
 	for(i = 0; i < BOARDSIZE; i++) {
@@ -1543,12 +1493,8 @@ BlankoxOX theBlankoxOX[];
 ** OUTPUTS:     (BlankoxOX) Rx or Wx
 **
 ************************************************************************/
-BlankoxOX WhoseTurn(thePosition)
-POSITION thePosition;
-{
-
+BlankoxOX WhoseTurn(POSITION thePosition) {
 	return GetTurn(thePosition);
-
 }
 
 
@@ -1566,9 +1512,7 @@ POSITION thePosition;
 ** CALLS:       none
 **
 **********************************************************************/
-int MoveFrom (theMove )
-MOVE theMove;
-{
+int MoveFrom (MOVE theMove ) {
 	/* local variables */
 	int from;
 
@@ -1591,9 +1535,7 @@ MOVE theMove;
 ** CALLS:       int MoveFrom( theMove )
 **
 ***********************************************************************/
-int MoveTo(theMove )
-MOVE theMove;
-{
+int MoveTo(MOVE theMove ) {
 	/* local variables */
 	int to;
 	int from;
@@ -1621,9 +1563,7 @@ MOVE theMove;
 **              int MoveTo  ( theMove )
 **
 **********************************************************************/
-int MoveOrientation (theMove )
-MOVE theMove;
-{
+int MoveOrientation (MOVE theMove ) {
 	/* local variables */
 	int to;
 	int from;
@@ -1656,10 +1596,7 @@ MOVE theMove;
 **
 *************************************************************************/
 
-BOOLEAN IsLegalJump (from, to, piece)
-int from, to;
-BlankoxOX piece;
-{
+BOOLEAN IsLegalJump (int from, int to, BlankoxOX piece) {
 	int orientation;
 	if ((piece == Rx) || (piece == Wx)) {
 		orientation = 0;
@@ -1855,9 +1792,7 @@ BlankoxOX piece;
 ** CALLS:       PositionToBlankoxOX(), IsLegalJump()
 **
 **********************************************************************/
-BOOLEAN RedIsStuck (position)
-POSITION position;
-{
+BOOLEAN RedIsStuck (POSITION position) {
 	int i, j;
 	static BlankoxOX theBlankoxOX[BOARDSIZE];
 
@@ -1892,9 +1827,7 @@ POSITION position;
 ** CALLS:       PositionToBlankoxOX(), IsLegalJump()
 **
 **********************************************************************/
-BOOLEAN WhiteIsStuck (position)
-POSITION position;
-{
+BOOLEAN WhiteIsStuck (POSITION position) {
 	int i, j;
 	static BlankoxOX theBlankoxOX[BOARDSIZE];
 
@@ -1987,15 +1920,15 @@ void printoxOX(BlankoxOX *board) {
 ************************************************************************/
 int CreateOrientationBitmask(BlankoxOX *board) {
 	int i;
-	int count = NUMPIECES;
+	//int count = NUMPIECES;
 	int result = 0;
 	for (i = 0; i <BOARDSIZE; i++) {
 		if (board[i] == Rt || board[i] == Wt ) {
 			result = (result << 1) | 0x1;
-			count--;
+			//count--;
 		} else if (board [i] == Rx || board[i] == Wx ) {
 			result = (result << 1);
-			count--;
+			//count--;
 		}
 
 
@@ -2396,25 +2329,14 @@ STRING unhash (POSITION pos) {
 	return board;
 }
 
-STRING ctoiInitialInteractString = "R_A_6_3_------------------";
-int boardToStringIdxMapping[9] = {8,9,10,11,12,13,14,15,16};
-
-POSITION InteractStringToPosition(STRING string) {
-	BlankoxOX turn = (string[2] == 'A') ? Rx : Wx;
-	char* copystring = calloc(27, sizeof(char));
-	memcpy(copystring, string, 26);
-
-	/* Needed for converting intermediate position represented by string to the last non-intermediate position. */
-	if (copystring[22] != '-') {
-		copystring[boardToStringIdxMapping[copystring[22] - '0']] = copystring[25];
-	}
+POSITION InteractStringToPosition(STRING str) {
+	BlankoxOX turn = (str[2] == 'A') ? Rx : Wx;
+	str += 8;
 	
 	static BlankoxOX board[BOARDSIZE];
 	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (copystring[boardToStringIdxMapping[i]]) {
+		switch (str[i]) {
 			case '-':
-			case 'R': // Needed for interposition conversion
-			case 'W': // Needed for interposition conversion
 				board[i] = Blank;
 				break;
 			case 'X':
@@ -2433,87 +2355,91 @@ POSITION InteractStringToPosition(STRING string) {
 				break;
 		}
 	}
-
-	SafeFree(copystring);
+	// BOARDSIZE = from, BOARDSIZE+1 = to
+	// Conversion from intermediate to real
+	if (str[BOARDSIZE] != '-') { // is intermediate position
+		int mpfrom = str[BOARDSIZE] - 'a', mpto = str[BOARDSIZE + 1] - 'a';
+		board[mpfrom] = board[mpto];
+		if (mpfrom != mpto) {
+			board[str[BOARDSIZE + 1] - 'a'] = Blank;
+		}
+	}
 	return HashChungToi(board, turn);
 }
 
-POSITION encodeIntermediatePosition(POSITION position, BOOLEAN isSliding, POSITION from, POSITION to, char p) {
-	// 0b1 1 00000 0; intermediate marker (1), isSliding (1), from (5), to (5), piece (4)
-	POSITION piece = (p == 'X') ? 1LL : (p == 'x') ? 2LL : (p == 'T') ? 3LL : (p == 't') ? 4LL : 0LL;
-	return position | (1LL << 63) | (((isSliding) ? 1LL : 0LL) << 62) | (from << 57) | (to << 52) | (piece << 48);
+POSITION encodeIntermediatePosition(POSITION position, POSITION from, POSITION to) {
+	// 0b1 1 00000 0; intermediate marker (1), from (5), to (5)
+	return position | (1LL << 63) | (from << 58) | (to << 53);
 }
 
-BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN *isSliding, int *from, int *to, char *piece) {
-	(*origPos) = interPos & 0x00000FFFFFFFFFFF;
-	(*isSliding) = ((interPos >> 62) & 1) ? TRUE : FALSE;
-	(*from) = (interPos >> 57) & 0x1F;
-	(*to) = (interPos >> 52) & 0x1F;
-	int p = (interPos >> 48) & 0b111;
-	(*piece) = (p == 1) ? 'X' : (p == 2) ? 'x' : (p == 3) ? 'T' : (p == 4) ? 't' : '-';
+BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, int *from, int *to) {
+	*origPos = interPos & 0x0000FFFFFFFFFFFF;
+	*from = (interPos >> 58) & 0x1F;
+	*to = (interPos >> 53) & 0x1F;
 	return (interPos >> 63) ? TRUE : FALSE;
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	char* finalBoard = calloc(27, sizeof(char));
-	memcpy(finalBoard, ctoiInitialInteractString, 26);
-
 	POSITION origPos;
-	BOOLEAN isSliding;
 	int from, to;
-	char piece;
 
-	BOOLEAN isIntermediate = decodeIntermediatePosition(pos, &origPos, &isSliding, &from, &to, &piece);
-	BlankoxOX turn = GetTurn(origPos);
+	BOOLEAN isIntermediate = decodeIntermediatePosition(pos, &origPos, &from, &to);
 	char *board = unhash(origPos);
 
-	if (turn == Wx) finalBoard[2] = 'B';
+	enum UWAPI_Turn turn = (GetTurn(origPos) == Rx) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
+	char finalBoard[BOARDSIZE + 3];
 	for (int i = 0; i < BOARDSIZE; i++) {
-		finalBoard[boardToStringIdxMapping[i]] = board[i];
+		finalBoard[i] = board[i];
 	}
-
 	if (isIntermediate) {
-		if (turn == Rx) {
-			finalBoard[20] = 'Y';
-			finalBoard[21] = 'Z';
-		} else {
-			finalBoard[20] = 'y';
-			finalBoard[21] = 'z';
+		finalBoard[to] = finalBoard[from];
+		if (from != to) {
+			finalBoard[from] = '-';
 		}
-		if (isSliding) {
-			finalBoard[22] = from + '0';
-			finalBoard[25] = piece;
-			finalBoard[boardToStringIdxMapping[from]] = '-';
-		} else {
-			finalBoard[22] = to + '0';
-		}
-		finalBoard[boardToStringIdxMapping[to]] = (turn == Rx) ? 'R' : 'W';
+		finalBoard[BOARDSIZE] = from + 'a';
+		finalBoard[BOARDSIZE + 1] = to + 'a';
+	} else {
+		finalBoard[BOARDSIZE] = '-';
+		finalBoard[BOARDSIZE + 1] = '-';
 	}
+	finalBoard[BOARDSIZE + 2] = '\0';
 
 	SafeFree(board);
-	return finalBoard;
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, BOARDSIZE + 3, finalBoard);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	if (mv >= 300000) { // Select where to place; encoded as 300000 + original mv 
-		return UWAPI_Board_Regular2D_MakeAddString((WhoseTurn(pos) == Rx) ? '-' : '-', MoveTo(mv % 100000));
-	} else if (mv >= 200000) { // Select which and where to move; encoded as 200000 + original mv
-		mv %= 100000;
-		int from = MoveFrom(mv);
-		int to = MoveTo(mv);
+	int from = MoveFrom(mv & 0xFFFF);
+	int to = MoveTo(mv & 0xFFFF);
+	if (mv & (1 << 18)) { // PartMove: selecting which piece to move and where to move it. Encoded as 1 << 18 | original mv
+		mv ^= (1 << 18);
 		if (from == to) {
-			char *board = unhash(pos);
-			STRING toReturn = UWAPI_Board_Regular2D_MakeAddString('-', to);
-			SafeFree(board);
-			return toReturn;
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'y');
 		} else {
-			return UWAPI_Board_Regular2D_MakeMoveString(from, to);
+			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'z');
 		}
-	} else if (mv >= 100000) { // Select orientation encoded as 100000 + original mv
-		return UWAPI_Board_Regular2D_MakeAddString('-', (MoveOrientation(mv % 100000)) ? 16 : 15);
-	} else {
-		return MoveToString(mv);
+	} else if (mv & (1 << 17)) { // PartMove: After slide, select orientation. Encoded as 1 << 17 | original mv
+		mv ^= (1 << 17);
+		int orientation = MoveOrientation(mv);
+		char *board = unhash(pos & 0x0000FFFFFFFFFFFF);
+		BOOLEAN isDifferentOrientation = (orientation && (board[from] == 'X' || board[from] == 'x')) || (!orientation && (board[from] == 'T' || board[from] == 't'));
+		SafeFree(board);
+		if (isDifferentOrientation) {
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('r', to + 9, 'x');
+		} else {
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'y');
+		}
+	} else { // Placing piece fullmove
+		char c; int at;
+		if (MoveOrientation(mv)) {
+			c = 'p';
+			at = to;
+		} else {
+			c = 'q';
+			at = to + 9;
+		}
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound(c, 18 + at, 'x');
 	}
 }
 
@@ -2531,32 +2457,22 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
 		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}
 	};
-	BOOLEAN edgeToAdded[9] = {FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
-	char *board = unhash(position);
+	int from, to;
 	
 	while (moveList != NULL) {
-		int from = MoveFrom(moveList->move);
-		int to = MoveTo(moveList->move);
-
-		if (from == 9) {
-			POSITION interPos = encodeIntermediatePosition(position, FALSE, 9, to, 't');
-			if (!edgeToAdded[to]) {
-				mpel = CreateMultipartEdgeListNode(position, interPos, 300000 + moveList->move, 0, FALSE, mpel);
-				edgeToAdded[to] = TRUE;
-			}
-			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, 100000 + moveList->move, moveList->move, TRUE, mpel);
-		} else {
-			POSITION interPos = encodeIntermediatePosition(position, TRUE, from, to, board[from]);
+		from = MoveFrom(moveList->move);
+		if (from != 9) {
+			to = MoveTo(moveList->move);
+			POSITION interPos = encodeIntermediatePosition(position, from, to);
 			if (!edgeFromToAdded[from][to]) {
-				mpel = CreateMultipartEdgeListNode(position, interPos, 200000 + moveList->move, 0, FALSE, mpel);
+				mpel = CreateMultipartEdgeListNode(position, interPos, (1 << 18) | moveList->move, 0, FALSE, mpel);
 				edgeFromToAdded[from][to] = TRUE;
 			}
-			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, 100000 + moveList->move, moveList->move, TRUE, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, (1 << 17) | moveList->move, moveList->move, TRUE, mpel);
 		}
 
 		moveList = moveList->next;
 		positionList = positionList->next;
 	}
-	SafeFree(board);
 	return mpel;
 }

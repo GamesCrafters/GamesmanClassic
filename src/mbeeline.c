@@ -99,6 +99,7 @@ void InitializeGame() {
   initialBoard[15] = 'b';
 
   gInitialPosition = generic_hash_hash(initialBoard, 1);
+  kUsePureDraw = TRUE;
 }
 
 /************************************************************************
@@ -228,6 +229,13 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 ************************************************************************/
 
 VALUE Primitive(POSITION position) {
+  MOVELIST *moves = GenerateMoves(position);
+  if (moves == NULL) {
+    return lose;
+  } else {
+    FreeMoveList(moves);
+  }
+
   char board[boardSize];
 
   generic_hash_unhash(position, board);

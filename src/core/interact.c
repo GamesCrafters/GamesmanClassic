@@ -324,7 +324,7 @@ void ServerInteractLoop(void) {
 			if (val != drawwin && val != drawlose && val != drawdraw) {
 				printf(",\"remoteness\":%d", Remoteness(pos));
 			} else {
-				printf(",\"remoteness\":%d", 255);
+				printf(",\"remoteness\":%d", -200);
 			}
 
 			InteractPrintJSONMEXValue(pos);
@@ -337,15 +337,20 @@ void ServerInteractLoop(void) {
 
 			printf(",\"moves\":[");
 			if (Primitive(pos) == undecided && board[2] != 'R') {
+				STRING childBoard = NULL;
 				current_move = all_next_moves = GenerateMoves(pos);
 				while (current_move) {
 					childPosition = DoMove(pos, current_move->move);
 					nextPositions = StorePositionInList(childPosition, nextPositions);
 					reversedMoves = CreateMovelistNode(current_move->move, reversedMoves);
-					board = InteractPositionToString(childPosition);
-					board[2] = (board[2] == 'C') ? opp_turn_char : board[2];
-					printf("{\"board\":\"%s\"", board);
-					InteractFreeBoardString(board);
+					if (gInteractCustomDoMoveFunPtr != NULL) {
+						childBoard = gInteractCustomDoMoveFunPtr(board, current_move->move);
+					} else {
+						childBoard = InteractPositionToString(childPosition);
+					}
+					childBoard[2] = (childBoard[2] == 'C') ? opp_turn_char : childBoard[2]; // Handle impartial games
+					printf("{\"board\":\"%s\"", childBoard);
+					InteractFreeBoardString(childBoard);
 
 					val = GetValueOfPosition(childPosition);
 					InteractPrintJSONPositionValue(val);
@@ -353,7 +358,7 @@ void ServerInteractLoop(void) {
 					if (val != drawwin && val != drawlose && val != drawdraw) {
 						printf(",\"remoteness\":%d", Remoteness(childPosition));
 					} else {
-						printf(",\"remoteness\":%d", 255);
+						printf(",\"remoteness\":%d", -200);
 					}
 					InteractPrintJSONMEXValue(childPosition);
 					if (gPutWinBy) printf(",\"winby\":%d", WinByLoad(childPosition));

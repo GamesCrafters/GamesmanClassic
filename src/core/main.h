@@ -4,13 +4,13 @@
 
 void    Initialize              ();
 
-void    StartGame               ();
+void    StartGame               (STRING executableName);
 void    SolveAndStore           ();
 VALUE   DetermineValue          (POSITION start);
 void    HandleArguments         (int argc, char *argv[]);
 int     main                    (int argc, char *argv[]);
 
 /* Real main to be called by wrapper main() or by external linked modules */
-int     gamesman_main           ();
+int     gamesman_main           (STRING executableName);
 
 #endif /* GMCORE_MAIN_H */

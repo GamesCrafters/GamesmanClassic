@@ -314,11 +314,10 @@ VALUE DetermineLoopyValue1(POSITION position)
 
 void DFS_SetParents (POSITION parent, POSITION position)
 {
-	BOOLEAN Visited();
-	MOVELIST *moveptr, *movehead, *GenerateMoves();
-	VALUE Primitive(), value;
+	MOVELIST *moveptr, *movehead;
+	VALUE value;
 	POSITION child;
-	POSITIONLIST *posptr, *poshead, *StorePositionInList();
+	POSITIONLIST *posptr, *poshead;
 
 	if(kDebugDetermineValue) printf("DV (" POSITION_FORMAT "," POSITION_FORMAT ")\n", parent, position);
 	if(Visited(position)) { /* We've been down this path before, don't DFS */

@@ -28,6 +28,7 @@ POSITION kBadPosition        = -1;
 
 CONST_STRING kAuthorName         = "Dan Garcia";
 CONST_STRING kGameName           = "Quick Cross";
+CONST_STRING kDBName = "quickcross";
 BOOLEAN kPartizan           = FALSE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -114,8 +115,8 @@ typedef enum possibleBoards {
 	b4x4, b3x4, b3x3, b15_3, b15_4
 } Boards;
 
-Boards BOARD = b3x4;
-int BOARDSIZE = 12;
+Boards BOARD = b4x4;
+int BOARDSIZE = 16;
 
 typedef enum possibleBoardPieces {
 	Blank, H, V
@@ -130,6 +131,10 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683,
 
 /** Function Prototypes **/
 void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV);
+BOOLEAN AllFilledIn(BlankHV *theBlankHV);
+BOOLEAN FourInARow(BlankHV *theBlankHV, int a, int b, int c, int d);
+BOOLEAN ThreeInARow(BlankHV *theBlankHV, int a, int b, int c);
+POSITION BlankHVToPosition(BlankHV *theBlankHV);
 
 STRING MoveToString(MOVE move);
 
@@ -255,10 +260,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	BlankHV theBlankHV[BOARDSIZE];
 	int moveModifier = 0;
 
@@ -298,7 +300,6 @@ MOVE theMove;
 
 POSITION GetInitialPosition()
 {
-	POSITION BlankHVToPosition(); //hash function
 	BlankHV theBlankHV[BOARDSIZE]; //, whosTurn;
 	signed char c;
 	int i;
@@ -343,10 +344,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int squareNum;
 	char moveType;
 
@@ -387,10 +385,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN FourInARow(), ThreeInARow(), AllFilledIn();
+VALUE Primitive(POSITION position) {
 	BlankHV theBlankHV[BOARDSIZE];
 
 	PositionToBlankHV(position, theBlankHV);
@@ -503,11 +498,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	BlankHV theBlankHV[BOARDSIZE];
 
 	PositionToBlankHV(position, theBlankHV); //unhash function
@@ -609,11 +600,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankHV theBlankHV[BOARDSIZE];
 	int i;
 
@@ -651,13 +639,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/(-|x)(1-%d)] :  ", playerName, BOARDSIZE);
@@ -688,9 +671,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	BOOLEAN valid;
 
 	valid = ((input[0] == '-' || input[0] == '|' || input[0] == 'x' ||
@@ -715,9 +696,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	MOVE theMove;
 	int squareNum;
 
@@ -748,9 +727,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -766,9 +743,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString (MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 4 );
 	int squareNum;
 	char moveType;
@@ -805,10 +780,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankHV(thePos, theBlankHV)
-POSITION thePos;
-BlankHV *theBlankHV;
-{
+void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV) {
 	int i;
 	for(i = BOARDSIZE - 1; i >= 0; i--) {
 		if(thePos >= (POSITION)(V * g3Array[i])) {
@@ -840,9 +812,7 @@ BlankHV *theBlankHV;
 **
 ************************************************************************/
 
-POSITION BlankHVToPosition(theBlankHV)
-BlankHV *theBlankHV;
-{
+POSITION BlankHVToPosition(BlankHV *theBlankHV) {
 	int i;
 	POSITION position = 0;
 
@@ -866,10 +836,7 @@ BlankHV *theBlankHV;
 **
 ************************************************************************/
 
-BOOLEAN ThreeInARow(theBlankHV,a,b,c)
-BlankHV theBlankHV[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankHV *theBlankHV, int a, int b, int c) {
 	return(theBlankHV[a] == theBlankHV[b] &&
 	       theBlankHV[b] == theBlankHV[c] &&
 	       theBlankHV[c] != Blank );
@@ -889,10 +856,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN FourInARow(theBlankHV,a,b,c,d)
-BlankHV theBlankHV[];
-int a,b,c,d;
-{
+BOOLEAN FourInARow(BlankHV *theBlankHV, int a, int b, int c, int d) {
 	return(theBlankHV[a] == theBlankHV[b] &&
 	       theBlankHV[b] == theBlankHV[c] &&
 	       theBlankHV[c] == theBlankHV[d] &&
@@ -913,9 +877,7 @@ int a,b,c,d;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankHV)
-BlankHV theBlankHV[];
-{
+BOOLEAN AllFilledIn(BlankHV *theBlankHV) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -924,8 +886,6 @@ BlankHV theBlankHV[];
 
 	return(answer);
 }
-
-CONST_STRING kDBName = "quickcross";
 
 int NumberOfOptions()
 {

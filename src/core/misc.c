@@ -603,7 +603,7 @@ POSITION GetNextPosition()
 
 MEXCALC MexAdd(MEXCALC theMexCalc, MEX theMex)
 {
-	if(theMex > 31) {
+	if(theMex > 62) {
 		fprintf(stderr, "Error: MexAdd handed a theMex greater than 31\n");
 		ExitStageRight();
 		exit(0);
@@ -612,13 +612,13 @@ MEXCALC MexAdd(MEXCALC theMexCalc, MEX theMex)
 		ExitStageRight();
 		exit(0);
 	}
-	return(theMexCalc | (1 << theMex));
+	return(theMexCalc | (((MEXCALC) 1) << theMex));
 }
 
 MEX MexCompute(MEXCALC theMexCalc)
 {
 	MEX ans = 0;
-	while(theMexCalc & (1 << ans))
+	while(theMexCalc & (((MEXCALC) 1) << ans))
 		ans++;
 	return(ans);
 }

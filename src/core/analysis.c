@@ -117,7 +117,7 @@ void PrintRawGameValues(BOOLEAN toFile)
 				fprintf(fp,",%d\n",MexLoad((POSITION)i));
 			else
 				fprintf(fp,"\n");
-			PrintPosition(i, "", generic_hash_turn(i));
+			//PrintPosition(i, "", generic_hash_turn(i));
 		}
 
 	if(toFile) {
@@ -558,7 +558,7 @@ void analyze() {
 
 void DetermineInterestingness(POSITION position) {
 	int debugme = 0;
-	int count_max = 0;
+	//int count_max = 0;
 	float max_seen = 0.0;
 	POSITION i;
 	POSITION most_interesting = 0;
@@ -580,11 +580,11 @@ void DetermineInterestingness(POSITION position) {
 			printf("%d\tNONZERO INTERESTINGNESS IN LOOP at %llu (%f)\n",GetValueOfPosition(i),i,gAnalysis.Interestingness[i]);
 		}
 		if (GetValueOfPosition(i) == win && gAnalysis.Interestingness[i] > max_seen) {
-			count_max = 0;
+			//count_max = 0;
 			max_seen = gAnalysis.Interestingness[i];
 			most_interesting = i;
 		} else if (gAnalysis.Interestingness[i] == max_seen) {
-			count_max++;
+			//count_max++;
 		}
 	}
 

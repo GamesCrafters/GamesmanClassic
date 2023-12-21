@@ -27,6 +27,7 @@ POSITION gMinimalPosition    =  0;
 
 CONST_STRING kAuthorName         = "Rach Liu, Bryon Ross, Jiong Shen and Tom Wang";
 CONST_STRING kGameName           = "SlideN";
+CONST_STRING kDBName = "slideN";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -171,10 +172,17 @@ BOOLEAN firstPass = TRUE;
 static int* g3Array;
 
 STRING MoveToString( MOVE );
+void SetInitialBoardSize();
+void InitializeGameVariables(int);
+BlankOX PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX);
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosturn);
+void LeftGravity(BlankOX *theBlankOX, int *pieceToGravitate);
+void RightGravity(BlankOX *theBlankOX, int *pieceToGravitate);
+void Gravity(BlankOX *theBlankOX, int *pieceToGravitate, int bound, int increment);
+BlankOX NinARow(BlankOX *theBlankOX, int i);
 
 void InitializeGame()
 {
-	void InitializeGameVariables();
 	if(firstPass) {
 		InitializeGameVariables(DefaultN);
 		firstPass = FALSE;
@@ -245,10 +253,6 @@ void DebugMenu()
 ************************************************************************/
 
 void GameSpecificMenu() {
-	char GetMyChar();
-	POSITION GetInitialPosition();
-	void SetInitialBoardSize();
-	VALUE Primitive();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -344,14 +348,8 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	int i;
-	void LeftGravity(), RightGravity();
-	POSITION BlankOXToPosition();
-	BlankOX PositionToBlankOX();
 	BlankOX theBlankOX[BoardSize];
 	BlankOX WhoseTurn, temp, temp2;
 
@@ -386,19 +384,19 @@ MOVE theMove;
 
 	if (gDoubleGravity) {
 		if (theMove > N) {
-			LeftGravity(&theBlankOX, &i);
-			RightGravity(&theBlankOX, &i);
+			LeftGravity(theBlankOX, &i);
+			RightGravity(theBlankOX, &i);
 		}
 		else {
-			RightGravity(&theBlankOX, &i);
-			LeftGravity(&theBlankOX, &i);
+			RightGravity(theBlankOX, &i);
+			LeftGravity(theBlankOX, &i);
 		}
 	}
 	else if (gDiagonalLeftGravity) {
-		LeftGravity(&theBlankOX, &i);
+		LeftGravity(theBlankOX, &i);
 	}
 	else if (gDiagonalRightGravity) {
-		RightGravity(&theBlankOX, &i);
+		RightGravity(theBlankOX, &i);
 	}
 
 	WhoseTurn = (WhoseTurn==x) ? o : x;
@@ -459,7 +457,6 @@ void SetInitialBoardSize()
 
 POSITION GetInitialPosition()
 {
-	POSITION BlankOXToPosition();
 	BlankOX theBlankOX[BoardSize], whosTurn;
 	char c;
 	int i;
@@ -507,10 +504,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move : %2d\n", computersName, computersMove);
 }
 
@@ -535,10 +529,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BlankOX NinARow(), PositionToBlankOX();
+VALUE Primitive(POSITION position) {
 	BlankOX theBlankOX[BoardSize];
 	BlankOX temp = Blank;
 	int i, val;
@@ -613,10 +604,7 @@ POSITION position;
 **
 ***********************************************************************/
 
-BlankOX NinARow(theBlankOX, i)
-BlankOX *theBlankOX;
-int i;
-{
+BlankOX NinARow(BlankOX *theBlankOX, int i) {
 	BlankOX val = Blank;
 	int j;
 
@@ -667,7 +655,6 @@ int i;
 ************************************************************************/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-	BlankOX PositionToBlankOX();
 	int i,j;
 	BlankOX theBlankOX[BoardSize];
 	BlankOX whoseTurn;
@@ -720,11 +707,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	BlankOX PositionToBlankOX();
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankOX theBlankOX[BoardSize];
 	int i;
 
@@ -756,13 +740,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1-%d] :  ", playerName, 2*N);
@@ -793,9 +772,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return(atoi(input)<=(2*N) && atoi(input)>0);
 }
 
@@ -811,9 +788,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) atoi(input)); /* start with 1 */
 }
 
@@ -827,9 +802,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -845,9 +818,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 3 );
 	sprintf(m, "%d", theMove);
 	return m;
@@ -872,10 +843,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-BlankOX PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
-{
+BlankOX PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 	int i;
 	BlankOX whosturn;
 
@@ -913,9 +881,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX, whosturn)
-BlankOX *theBlankOX, whosturn;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosturn) {
 	int i;
 	POSITION position = 0;
 
@@ -926,8 +892,6 @@ BlankOX *theBlankOX, whosturn;
 
 	return(position);
 }
-
-CONST_STRING kDBName = "slide-N";
 
 int NumberOfOptions()
 {

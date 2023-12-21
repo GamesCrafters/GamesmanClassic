@@ -383,7 +383,9 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  printf("%s's move: [%s]\n", computersName, MoveToString(computersMove));
+  STRING moveString = MoveToString(computersMove);
+  printf("%s's move: [%s]\n", computersName, moveString);
+  SafeFree(moveString);
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -443,7 +445,9 @@ STRING MoveToString(MOVE move) {
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  printf("[%s]", MoveToString(move));
+  STRING moveString = MoveToString(move);
+  printf("[%s]", moveString);
+  SafeFree(moveString);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/

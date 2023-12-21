@@ -1,33 +1,19 @@
 
 /************************************************************************
 **
-** NAME:        MOOE.C
+** NAME:        mooe.c
 **
 ** DESCRIPTION: ODD OR EVEN
 **
 ** AUTHOR:      PAI-HSIEN (PETER) YU
 **
-** DATE:        WHEN YOU START/FINISH
-**
-**************************************************************************/
-
-/*************************************************************************
-**
-** Everything below here must be in every game file
-**
 **************************************************************************/
 
 #include "gamesman.h"
 
-/*************************************************************************
-**
-** Game-specific constants
-**
-**************************************************************************/
-
 CONST_STRING kGameName            = "Odd or Even";   /* The name of your game */
 CONST_STRING kAuthorName          = "Peter Yu";   /* Your name(s) */
-CONST_STRING kDBName              = "ooe";   /* The name to store the database under */
+CONST_STRING kDBName              = "oddoreven";   /* The name to store the database under */
 
 void* gGameSpecificTclInit = NULL;
 
@@ -35,19 +21,12 @@ BOOLEAN kPartizan            = FALSE;   /* A partizan game is a game where each 
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
 BOOLEAN kTieIsPossible       = FALSE;   /* TRUE if a tie is possible. FALSE if it is impossible.*/
 BOOLEAN kLoopy               = FALSE;   /* TRUE if the game tree will have cycles (a rearranger style game). FALSE if it does not.*/
+BOOLEAN kDebugMenu           = FALSE;   /* TRUE only when debugging. FALSE when on release. */
+BOOLEAN kDebugDetermineValue = FALSE;
 
-BOOLEAN kDebugMenu           = TRUE;   /* TRUE only when debugging. FALSE when on release. */
-BOOLEAN kDebugDetermineValue = TRUE;   /* TRUE only when debugging. FALSE when on release. */
-
-POSITION gNumberOfPositions   =  3000000; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
-/* Don't know */
-POSITION gInitialPosition     =  1150000; /* The initial hashed position for your starting board */
+POSITION gNumberOfPositions   =  338;
+POSITION gInitialPosition     =  0;
 POSITION kBadPosition         = -1; /* A position that will never be used */
-
-/*
- * Help strings that are pretty self-explanatory
- * Strings than span more than one line should have backslashes (\) at the end of the line.
- */
 
 CONST_STRING kHelpGraphicInterface =
         "Not written yet";
@@ -55,20 +34,20 @@ CONST_STRING kHelpGraphicInterface =
 CONST_STRING kHelpTextInterface    =
         "On your turn, type in the number 1, 2, or 3 and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
-revert back to your most recent position."                                                                                                                                                                        ;
+revert back to your most recent position.";
 
 CONST_STRING kHelpOnYourTurn =
         "You can enter 1, 2, or 3 to indicate how many match(es) you want take off board.\
 A running total of how many matches you and your opponents have will be kept.\
 Keep in mind though that the objective is not to get the last match; instead, you would have to have\
-an even number of matches to win"                                                                                                                                                                                                                                                                                   ;
+an even number of matches to win";
 
 CONST_STRING kHelpStandardObjective =
         "At the end game, to have an even number of matches.";
 
 CONST_STRING kHelpReverseObjective =
         "At the end game, to have an odd number of matches. (i.e. to force your opponent to take a total of even number\
-of matches."                                                                                                                          ;
+of matches.";
 
 CONST_STRING kHelpTieOccursWhen =
         "There cannot be a tie";
@@ -76,205 +55,52 @@ CONST_STRING kHelpTieOccursWhen =
 CONST_STRING kHelpExample =
         "";
 
-
-/*************************************************************************
-**
-** #defines and structs
-**
-**************************************************************************/
-
-#define FIRST_TURN 1
-#define SECOND_TURN 2
-
-/*************************************************************************
-**
-** Global Variables
-**
-*************************************************************************/
-
-const int MULTIPLE = 100;
-int MAXMOVE = 3; /* Maximum matches that is allowed to be taken off the board */
-int currentTurn = FIRST_TURN; /* current turn for player */
-
-/*************************************************************************
-**
-** Function Prototypes
-**
-*************************************************************************/
-
-int playersTurn(POSITION position);
-BOOLEAN gameOver(POSITION position);
-int numberOfMatches(POSITION position);
-int firstPlayerMatches(POSITION position);
-int secondPlayerMatches(POSITION position);
-int power(int number, int pow);
-
 STRING MoveToString(MOVE);
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
-
-/************************************************************************
-**
-** NAME:        InitializeGame
-**
-** DESCRIPTION: Prepares the game for execution.
-**              Initializes required variables.
-**              Sets up gDatabase (if necessary).
-**
-************************************************************************/
-
-void InitializeGame ()
-{
-	gMoveToStringFunPtr = &MoveToString;
+POSITION hash(int p1Matches, int p2Matches, int isP2Turn) {
+	return (p2Matches * 26 + (p1Matches << 1)) | isP2Turn;
 }
 
+void unhash(POSITION position, int *p1Matches, int *p2Matches, int *isP2Turn) {
+	*p2Matches = position / 26;
+	*p1Matches = (position >> 1) % 13;
+	*isP2Turn = position & 1;
+}
 
-/************************************************************************
-**
-** NAME:        GenerateMoves
-**
-** DESCRIPTION: Creates a linked list of every move that can be reached
-**              from this position. Returns a pointer to the head of the
-**              linked list.
-**
-** INPUTS:      POSITION position : Current position for move
-**                                  generation.
-**
-** OUTPUTS:     (MOVELIST *)      : A pointer to the first item of
-**                                  the linked list of generated moves
-**
-** CALLS:       MOVELIST *CreateMovelistNode();
-**
-************************************************************************/
+void InitializeGame() { gMoveToStringFunPtr = &MoveToString; }
 
-/* Move is in form of 103, where 1 is the player's turn and 3 is the matches taken off */
-MOVELIST *GenerateMoves (POSITION position)
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *moves = NULL;
-	int matchCount = numberOfMatches(position);
-	int whoseTurn = playersTurn(position);
-	int moveCount = 1; /* Minimum move is 1 */
-	if(matchCount == 0) {
-		moves = CreateMovelistNode(whoseTurn*MULTIPLE, moves);
+	int p1Matches, p2Matches, isP2Turn;
+	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
+	for (int i = 1; i <= 3 && i <= 15 - p1Matches - p2Matches; i++) {
+		moves = CreateMovelistNode(i, moves);
 	}
-	else
-	if(whoseTurn == FIRST_TURN) {
-		while(matchCount > 0 && moveCount <= MAXMOVE) {
-			moves = CreateMovelistNode(FIRST_TURN*MULTIPLE + moveCount, moves);
-			--matchCount;
-			++moveCount;
-		}
-	}
-	else {
-		while(matchCount > 0 && moveCount <= MAXMOVE) {
-			moves = CreateMovelistNode(SECOND_TURN*MULTIPLE + moveCount, moves);
-			--matchCount;
-			++moveCount;
-		}
-	}
-
 	return moves;
 }
 
-
-/************************************************************************
-**
-** NAME:        DoMove
-**
-** DESCRIPTION: Applies the move to the position.
-**
-** INPUTS:      POSITION position : The old position
-**              MOVE     move     : The move to apply to the position
-**
-** OUTPUTS:     (POSITION)        : The position that results from move
-**
-** CALLS:       Some Board Hash Function
-**              Some Board Unhash Function
-**
-*************************************************************************/
-
-POSITION DoMove (POSITION position, MOVE move)
-{
-	int whoseTurn = move / MULTIPLE;
-	int matches = move % MULTIPLE;
-	int addition;
-	if(whoseTurn == FIRST_TURN) {
-		addition = matches * MULTIPLE;
-		matches = matches * power(MULTIPLE, 2);
-		/*if(matchesLeft - matches <= 0)
-		        currentTurn = FIRST_TURN;
-		   else*/
-		currentTurn = SECOND_TURN;
-		return (position + power(MULTIPLE, 3) - matches + addition);
-		/* Add 1000000 to get second player turn*/
+POSITION DoMove(POSITION position, MOVE move) {
+	int p1Matches, p2Matches, isP2Turn;
+	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
+	if (position & 1) { // Player 2's turn
+		return hash(p1Matches, p2Matches + move, 0);
+	} else { // Player 1's turn
+		return hash(p1Matches + move, p2Matches, 1);
 	}
-	else {
-		/*FOR DEBUG ONLY */
-
-		/*FOR DEBUG ONLY */
-		addition = matches;
-		matches = matches * power(MULTIPLE, 2);
-		currentTurn = FIRST_TURN; /* What about undo? */
-		return (position - power(MULTIPLE, 3) - matches + addition);
-		/* Subtract 1000000 to get first player turn*/
-	}
-	printf("Current Turn: %d", currentTurn);
 }
 
-
-/************************************************************************
-**
-** NAME:        Primitive
-**
-** DESCRIPTION: Returns the value of a position if it fulfills certain
-**              'primitive' constraints.
-**
-**              Example: Tic-tac-toe - Last piece already placed
-**
-**              Case                                  Return Value
-**              *********************************************************
-**              Current player sees three in a row    lose
-**              Entire board filled                   tie
-**              All other cases                       undecided
-**
-** INPUTS:      POSITION position : The position to inspect.
-**
-** OUTPUTS:     (VALUE)           : one of
-**                                  (win, lose, tie, undecided)
-**
-** CALLS:       None
-**
-************************************************************************/
-
-/* Actually there is a tie... If there are even matches, even though it doesn't make sense */
-VALUE Primitive (POSITION position)
-{
-
-	if(gameOver(position)) {
-		int whoseTurn = playersTurn(position);
-		int firstMatches = firstPlayerMatches(position);
-		int secondMatches = secondPlayerMatches(position);
-		if(whoseTurn == FIRST_TURN) {
-			if((firstMatches % 2) != 0)
-				return lose;
-			else
-				return win;
+VALUE Primitive(POSITION position) {
+	int p1Matches, p2Matches, isP2Turn;
+	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
+	if (p1Matches + p2Matches == 15) {
+		if (isP2Turn) {
+			return p1Matches & 1 ? win : lose;
+		} else {
+			return p2Matches & 1 ? win : lose;
 		}
-		else {
-			if((secondMatches % 2) != 0)
-				return lose;
-			else
-				return win;
-		}
-	}
-	else
+	} else {
 		return undecided;
-
+	}
 }
 
 
@@ -293,28 +119,14 @@ VALUE Primitive (POSITION position)
 **              GetPrediction()      : Returns the prediction of the game
 **
 ************************************************************************/
-
-void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
-{
-	(void)playersName;
-	(void)usersTurn;
-	int i;
-	int currentMatches = numberOfMatches(position);
+void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn) {
+	int p1Matches, p2Matches, isP2Turn;
+	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
 	printf("\n");
-	printf("\n");
-	printf(" ");
-	for(i = 0; i < currentMatches; i++) {
-		printf("O ");
-	}
-	printf("\n");
-	for(i = 0; i < currentMatches; i++) {
-		printf("/ ");
-	}
-	printf("\n");
-	printf("\n");
-	printf("The number of matches currently on the board: %d \n", currentMatches);
-	printf("The number of matches first player has is: %d \n", firstPlayerMatches(position));
-	printf("The number of matches second player has is: %d \n", secondPlayerMatches(position));
+	printf("The number of matches currently on the board: %d\n", 15 - p1Matches - p2Matches);
+	printf("The number of matches first player has is: %d\n", p1Matches);
+	printf("The number of matches second player has is: %d\n", p2Matches);
+	printf("It is Player %d's turn. %s\n", isP2Turn ? 2 : 1, GetPrediction(position, playersName, usersTurn));
 	printf("\n");
 }
 
@@ -329,12 +141,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **              STRING  computersName : The computer's name.
 **
 ************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%s just removed %d matches from the table.\n", computersName, computersMove % MULTIPLE);
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	printf("%8s's move: %d\n", computersName, computersMove);
 }
-
 
 /************************************************************************
 **
@@ -345,12 +154,8 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ** INPUTS:      MOVE move         : The move to print.
 **
 ************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
+void PrintMove(MOVE move) {
+	printf("%d", move);
 }
 
 /************************************************************************
@@ -362,16 +167,12 @@ void PrintMove (MOVE move)
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
-
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(5);
-	/* Not quitesure whether this is only for player's move, but... */
-	sprintf(move, "[%d]", theMove % 100);
+STRING MoveToString(MOVE theMove) {
+	STRING move = (STRING) SafeMalloc(2);
+	move[0] = theMove + '0';
+	move[1] = '\0';
 	return move;
 }
-
 
 /************************************************************************
 **
@@ -393,291 +194,63 @@ MOVE theMove;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
-{
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playersName) {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
-
-	for (;; ) {
-		/***********************************************************
-		* CHANGE THE LINE BELOW TO MATCH YOUR MOVE FORMAT
-		***********************************************************/
+	for (;;) {
 		printf("%8s's move [(u)ndo/1/2/3] : ", playersName);
-
 		input = HandleDefaultTextInput(position, move, playersName);
-
-		if (input != Continue)
-			return input;
+		if (input != Continue) return input;
 	}
-
 	/* NOTREACHED */
 	return Continue;
 }
 
+BOOLEAN ValidTextInput(STRING input) { return input[0] >= '1' && input[0] <= '3'; }
+MOVE ConvertTextInputToMove(STRING input) { return input[0] - '0'; }
+void SetTclCGameSpecificOptions(int options[]) { (void)options; }
+POSITION GetInitialPosition() { return 0; }
+int NumberOfOptions() { return 1; }
+int getOption() { return 0; }
+void setOption(int option) {}
+void DebugMenu() {}
+void GameSpecificMenu() {}
 
-/************************************************************************
-**
-** NAME:        ValidTex\tInput
-**
-** DESCRIPTION: Rudimentary check to check if input is in the move form
-**              you are expecting. Does not check if it is a valid move.
-**              Only checks if it fits the move form.
-**
-**              Reserved Input Characters - DO NOT USE THESE ONE CHARACTER
-**                                          COMMANDS IN YOUR GAME
-**              ?, s, u, r, h, a, c, q
-**                                          However, something like a3
-**                                          is okay.
-**
-**              Example: Tic-tac-toe Move Format : Integer from 1 to 9
-**                       Only integers between 1 to 9 are accepted
-**                       regardless of board position.
-**                       Moves will be checked by the core.
-**
-** INPUTS:      STRING input : The string input the user typed.
-**
-** OUTPUTS:     BOOLEAN      : TRUE if the input is a valid text input.
-**
-************************************************************************/
-
-BOOLEAN ValidTextInput (STRING input)
-{
-
-	return (input[0] <= (MAXMOVE + '0') && input[0] >= '1');
-}
-
-
-/************************************************************************
-**
-** NAME:        ConvertTextInputToMove
-**
-** DESCRIPTION: Converts the string input your internal move representation.
-**              Gamesman already checked the move with ValidTextInput
-**              and ValidMove.
-**
-** INPUTS:      STRING input : The VALID string input from the user.
-**
-** OUTPUTS:     MOVE         : Move converted from user input.
-**
-************************************************************************/
-
-MOVE ConvertTextInputToMove (STRING input)
-{
-	return (currentTurn*MULTIPLE + (input[0] - '0'));
-}
-
-
-/************************************************************************
-**
-** NAME:        GameSpecificMenu
-**
-** DESCRIPTION: Prints, receives, and sets game-specific parameters.
-**
-**              Examples
-**              Board Size, Board Type
-**
-**              If kGameSpecificMenu == FALSE
-**                   Gamesman will not enable GameSpecificMenu
-**                   Gamesman will not call this function
-**
-**              Resets gNumberOfPositions if necessary
-**
-************************************************************************/
-
-void GameSpecificMenu ()
-{
-
-}
-
-
-/************************************************************************
-**
-** NAME:        SetTclCGameSpecificOptions
-**
-** DESCRIPTION: Set the C game-specific options (called from Tcl)
-**              Ignore if you don't care about Tcl for now.
-**
-************************************************************************/
-
-void SetTclCGameSpecificOptions (int options[])
-{
-	(void)options;
-}
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	int totalMatches; /* first and second Matches probably should not be changed */
-	printf("Please input the total number of matches: ");
-	scanf("%d",&totalMatches);
-	printf("Total matches is: %d \n", totalMatches);
-	currentTurn = FIRST_TURN;
-	return FIRST_TURN*power(MULTIPLE, 3) + totalMatches*power(MULTIPLE, 2);
-
-}
-
-
-/************************************************************************
-**
-** NAME:        NumberOfOptions
-**
-** DESCRIPTION: Calculates and returns the number of variants
-**              your game supports.
-**
-** OUTPUTS:     int : Number of Game Variants
-**
-************************************************************************/
-
-int NumberOfOptions ()
-{
-
-	return 1; /* Currently only have the option of changing the number of matches */
-}
-
-
-/************************************************************************
-**
-** NAME:        getOption
-**
-** DESCRIPTION: A hash function that returns a number corresponding
-**              to the current variant of the game.
-**              Each set of variants needs to have a different number.
-**
-** OUTPUTS:     int : the number representation of the options.
-**
-************************************************************************/
-
-int getOption ()
-{
-	return 1; /* ???? */
-}
-
-
-/************************************************************************
-**
-** NAME:        setOption
-**
-** DESCRIPTION: The corresponding unhash function for game variants.
-**              Unhashes option and sets the necessary variants.
-**
-** INPUT:       int option : the number representation of the options.
-**
-************************************************************************/
-
-void setOption (int option)
-{
-	(void)option;
-	int maxMoves;
-	printf("Please enter the number of matches you allow to be taken off board each time:");
-	scanf("%d", &maxMoves);
-	MAXMOVE = maxMoves;
-}
-
-
-/************************************************************************
-**
-** NAME:        DebugMenu
-**
-** DESCRIPTION: Game Specific Debug Menu (Gamesman comes with a default
-**              debug menu). Menu used to debug internal problems.
-**
-**              If kDebugMenu == FALSE
-**                   Gamesman will not display a debug menu option
-**                   Gamesman will not call this function
-**
-************************************************************************/
-
-void DebugMenu ()
-{
-	/* Check undo, because it doesn't work right now*/
-}
-
-
-/************************************************************************
-**
-** Everything specific to this module goes below these lines.
-**
-** Things you want down here:
-** Move Hasher
-** Move Unhasher
-** Any other function you deem necessary to help the ones above.
-**
-************************************************************************/
-
-/* Note: the number of representation we are temporarily supporting is in the form of 1234567,
-   where 1 is the player's turn, 23 is the number of matches left, 45 is the matches first player has, and
-   67 is the number of matches second player has. */
-
-/* Might have to move the above definition variables up, depending on whether we need it in formal functions. */
-
-/* Function player's turn accepts a current position and determine whose turn is it right now.
-   Arguments: position number */
-int playersTurn(POSITION position) {
-	return (position / power(MULTIPLE, 3));
-}
-
-BOOLEAN gameOver(POSITION position) {
-	return (numberOfMatches(position) == 0);
-}
-
-int numberOfMatches(POSITION position) {
-	return (position / power(MULTIPLE, 2)) % MULTIPLE;
-}
-
-int firstPlayerMatches(POSITION position) {
-	return (position / MULTIPLE) % MULTIPLE;
-}
-
-int secondPlayerMatches(POSITION position) {
-	return position % MULTIPLE;
-}
-
-int power(int number, int pow) {
-	int i;
-	int answer = 1;
-	for(i = 0; i < pow; i++) {
-		answer = answer*number;
+POSITION InteractStringToPosition(STRING str) {
+	int isP2Turn = str[2] == 'B' ? 1 : 0;
+	str += 23;
+	int p1Matches = 0, p2Matches = 0;
+	for (int i = 0; i < 24; i++) {
+		if (str[i] == 'x') {
+			p1Matches++;
+		} else if (str[i] == 'o') {
+			p2Matches++;
+		}
 	}
-
-	return answer;
-}
-
-POSITION InteractStringToPosition(STRING string) {
-	int matches, first_player_matches, second_player_matches, position;
-	int success = GetValue(string, "matches", GetInt, &matches) &&
-                  GetValue(string, "first_player_matches", GetInt, &first_player_matches) &&
-                  GetValue(string, "second_player_matches", GetInt, &second_player_matches) &&
-                  GetValue(string, "position", GetInt, &position);
-    if(success){
-    	return position;
-    } else {
-    	return INVALID_POSITION;
-    }    
+	return hash(p1Matches, p2Matches, isP2Turn);
 }
 
 STRING InteractPositionToString(POSITION position) {
-	// char* emptyBoard = (char *) SafeMalloc(1);
-	int matches = numberOfMatches(position);
-	int first_player_matches = firstPlayerMatches(position);
-	int second_player_matches = secondPlayerMatches(position);
-	return MakeBoardString("", "matches", StrFromI(matches), "first_player_matches", StrFromI(first_player_matches), 
-		"second_player_matches", StrFromI(second_player_matches), "position", StrFromI(position), "");
+	int p1Matches, p2Matches, isP2Turn;
+	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
+	char *buf = (char *) SafeMalloc(60);
+	snprintf(buf, 9, "R_%c_0_0_", isP2Turn ? 'B' : 'A');
+	memset(buf + 8, '\0', 52);
+	memset(buf + 8, '-', 39);
+	memset(buf + 8, 'n', 15 - p1Matches - p2Matches);
+	memset(buf + 23, 'x', p1Matches);
+	memset(buf + 35, 'o', p2Matches);
+	if (15 - p1Matches - p2Matches) {
+		snprintf(buf + 47, 13, "...~%d~%d~%d", 15 - p1Matches - p2Matches, p1Matches, p2Matches);
+	} else {
+		snprintf(buf + 47, 13, "...~~%d~%d", p1Matches, p2Matches);
+	}
+	return buf;
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+	int p1Matches, p2Matches, isP2Turn;
+	unhash(pos, &p1Matches, &p2Matches, &isP2Turn);
+	STRING moveString = UWAPI_Board_Regular2D_MakeAddStringWithSound(mv + '0', 15 - p1Matches - p2Matches - mv, 'x');
+	moveString[0] = 'T';
+	return moveString;
 }

@@ -18,15 +18,6 @@
 #define MIN_BOARD_SIZE  2
 #define NUM_OPTIONS     3
 
-/* External Globals */
-#ifndef MEMWATCH
-extern GENERIC_PTR SafeMalloc ();
-extern void SafeFree ();
-#endif
-//extern VALUE *gDatabase;
-extern STRING gValueString[];
-/* External Globals */
-
 /* Globals setup for use by outside functions */
 POSITION gNumberOfPositions   = 0;
 POSITION gInitialPosition     = 0;
@@ -248,7 +239,6 @@ void InitializeGame () {
 MOVELIST *GenerateMoves (POSITION position) {
 	int i, j;
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	BOARD board = arraytoboard(position);
 	for (i = 0; i < (base - 1); i++) {
 		for (j = 0; j < (base - i); j++) {
@@ -541,8 +531,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName) {
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 	do {
 		printf("%8s's move [(u)ndo/(1-%d)] :  ", playerName, sumto(base));
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
@@ -594,9 +583,7 @@ void PrintMove (MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(3);
 	sprintf(move, "%d", theMove);
 	return move;
@@ -933,7 +920,7 @@ void SetWinningCondition () {
 WINBY computeWinBy(POSITION pos) {
 	BOARD board = arraytoboard(pos);
 	int i, j, countX = 0, countO = 0, color, k, m, count;
-	int pointsX = 0, pointsO = 0, threesX = 0, threesO = 0;
+	int pointsX = 0, pointsO = 0;
 	int dlvisited[base][base], drvisited[base][base], hvisited[base][base];
 	for(i = 0; i < base; i++) {
 		for(j = 0; j < base; j++) {
@@ -957,11 +944,9 @@ WINBY computeWinBy(POSITION pos) {
 				countO = count;
 			if((count > 2) && (color == X)) {
 				pointsX += 3 + (count - 3) * 2;
-				threesX++;
 			}
 			else if((count > 2) && (color == O)) {
 				pointsO += 3 + (count - 3) * 2;
-				threesO++;
 			}
 			for (k = i, m = j, count = 0; k < base && m < (base - k) &&
 			     ((WinningCondition == tallythrees) ? TRUE : !drvisited[k][m]) &&
@@ -975,11 +960,9 @@ WINBY computeWinBy(POSITION pos) {
 				countO = count;
 			if((count > 2) && (color == X)) {
 				pointsX += 3 + (count - 3) * 2;
-				threesX++;
 			}
 			else if((count > 2) && (color == O)) {
 				pointsO += 3 + (count - 3) * 2;
-				threesO++;
 			}
 			for (k = i, m = j, count = 0; m < (base - k) &&
 			     ((WinningCondition == tallythrees) ? TRUE : !hvisited[k][m]) &&
@@ -993,11 +976,9 @@ WINBY computeWinBy(POSITION pos) {
 				countO = count;
 			if((count > 2) && (color == X)) {
 				pointsX += 3 + (count - 3) * 2;
-				threesX++;
 			}
 			else if((count > 2) && (color == O)) {
 				pointsO += 3 + (count - 3) * 2;
-				threesO++;
 			}
 		}
 	}

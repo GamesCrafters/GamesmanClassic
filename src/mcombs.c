@@ -219,7 +219,7 @@ MOVELIST *GenerateMoves(POSITION position)
 {
 	// Here, use head = CreateMovelistNode(move,head) ;
 	// then return head when done
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	int i = 1;
   unsigned long long mask = 1;
 	if(Primitive(position) == undecided)
@@ -303,9 +303,7 @@ void PrintMove(MOVE theMove)
 	SafeFree( m );
 }
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(4);
 	sprintf(move, "%d", theMove);
 	return move;

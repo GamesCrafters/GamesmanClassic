@@ -890,7 +890,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	int startBin = mancalaL + 1;
 	int endBin = mancalaR;
 	int *arrayHashedBoard;
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 
 	arrayHashedBoard = array_hash(position);
 	t = arrayHashedBoard[turn];
@@ -1079,9 +1079,7 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString (MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(8);
 	if(theMove > mancalaR) {
 		theMove = boardSize - theMove + mancalaR;

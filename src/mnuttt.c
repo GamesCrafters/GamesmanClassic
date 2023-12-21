@@ -153,10 +153,6 @@ int dir_increments[NUM_OF_DIRS][2] = {
 *************************************************************************/
 
 /* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
 extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
@@ -486,8 +482,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
+STRING MoveToString(MOVE theMove)
 {
 	STRING move = (STRING) SafeMalloc(5);
 	int position = Unhasher_Index(theMove);
@@ -522,7 +517,6 @@ MOVE theMove;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 	char player_char = (generic_hash_turn(position) == PLAYER1_TURN) ? PLAYER1_PIECE : PLAYER2_PIECE;
 
 	for (;; ) {
@@ -984,18 +978,41 @@ POSITION getCanonicalPosition (POSITION p) {
 	return p;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	int player = str[2] == 'A' ? 1 : 2;
+	str += 8;
+	char board[BOARD_SIZE];
+	for (int i = 0; i < BOARD_SIZE; i++) {
+		if (str[i] == '-') {
+			board[i] = EMPTY_PIECE;
+		} else {
+			board[i] = str[i];
+		}
+	}
+	return generic_hash_hash(board, player);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+	enum UWAPI_Turn turn = generic_hash_turn(pos) == 1 ? UWAPI_TURN_A : UWAPI_TURN_B;
+	int bs = BOARD_SIZE;
+	char board[bs + 1];
+	generic_hash_unhash(pos, board);
+	for (int i = 0; i < bs; i++) {
+		if (board[i] == EMPTY_PIECE) {
+			board[i] = '-';
+		}
+	}
+	board[BOARD_SIZE] = '\0';
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, bs + 1, board);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
+STRING InteractMoveToString(POSITION pos, MOVE move) {
 	(void)pos;
-	return MoveToString(mv);
+	int from = Unhasher_Index(move);
+	int row = Row(from);
+	int col = Column(from);
+	int direction = Unhasher_Direction(move);
+	int to = Index(row + dir_increments[direction][0], \
+	                         col + dir_increments[direction][1]);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'x');
 }

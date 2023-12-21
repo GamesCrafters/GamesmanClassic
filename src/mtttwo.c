@@ -1390,14 +1390,14 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
   if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv
     return UWAPI_Board_Regular2D_MakeAddStringWithSound('g', boardSize + numGridPlacements, 'x');
   } else if (mv >= 400000) { // Move is "choose where to move grid" 400000 + mv
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'z');
+    return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', to, 'z');
   } else if (mv >= 300000) { // Move is "select piece to move" 300000 + mv
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', from, 'y');
+    return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', from, 'y');
   } else if (mv >= 200000) { // Move is "select where to move piece" 200000 + mv
     return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'z');
   } else {
     if (from == to) {
-      return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'x');
+      return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', to, 'x');
     } else {
       return MoveToString(mv);
     }

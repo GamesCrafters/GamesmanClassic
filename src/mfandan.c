@@ -503,10 +503,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	BlankOX board[BOARDSIZE];
 	POSITION newPosition;
 	char turn = WhoseTurn(thePosition);
@@ -662,10 +659,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	dbg("->PrintComputersMove");
 	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
@@ -687,9 +681,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	dbg("->Primitive");
 	BlankOX board[BOARDSIZE];
 
@@ -719,11 +711,7 @@ POSITION position;
 ************************************************************************/
 
 //shing
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	dbg("->PrintPos");
 	int x, y;
 	int displayBoardWidth = (BOARDWIDTH - 1 ) * 6 + 1;
@@ -987,19 +975,8 @@ void space(int n) {
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
-	Coordinates IndexToCoordinates(int);
-	int CoordinatesToIndex(Coordinates);
-	int InBounds(Coordinates);
-	Coordinates Neighbor(Coordinates,Direction);
-	Direction NextDirection(Coordinates, Direction);
-	Direction OtherDirection(Direction);
-	BlankOX OtherPlayer(char current);
-	BlankOX WhoseTurn(int);
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 
 	char thisPlayer = WhoseTurn(position);
 	char otherPlayer = thisPlayer==X ? O : X;
@@ -1210,14 +1187,9 @@ int CoordinatesToIndex(Coordinates pos) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	dbg("->GetAndPrintPlayersMove");
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
@@ -1243,9 +1215,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	dbg("->ValidTextInput");
 
 	char file;
@@ -1356,9 +1326,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 
 	char file;
 	int row;
@@ -1470,10 +1438,10 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
+void PrintMove(MOVE theMove) {
+	STRING moveString = MoveToString(theMove);
+	printf( "%s", moveString );
+	SafeFree(moveString);
 }
 
 /************************************************************************
@@ -1486,9 +1454,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc( 13 );
 	int pos,dir,cap;
 

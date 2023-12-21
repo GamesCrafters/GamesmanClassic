@@ -34,6 +34,7 @@ POSITION gInitialPosition;
 POSITION kBadPosition        = -1;
 CONST_STRING kAuthorName         = "Anh Thai and Sandra Tang";
 CONST_STRING kGameName           = "Dragons & Swans";
+CONST_STRING kDBName = "swans";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -224,11 +225,13 @@ int gNumDragons = MIN_DRAGONS;
 /* local prototypes */
 void generic_hash_unhash2(int, char*, char*, int*, int*);
 POSITION generic_hash_hash2(char*, char, int, int);
-BOOLEAN OkMove(char[], char, SLOT, int);
+BOOLEAN OkMove(char*, char, SLOT, int);
 BOOLEAN CantMove(POSITION);
 void MoveToSlots(MOVE theMove,SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn);
+char OnlyPlayerLeft(char *theBoard);
+BOOLEAN AllFilledIn(char *theBoard);
 
 STRING MoveToString( MOVE );
 
@@ -341,9 +344,7 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int *theOptions) {
 	gToTrapIsToWin = (BOOLEAN) theOptions[0];
 }
 
@@ -362,10 +363,7 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	SLOT fromSlot, toSlot;
 	char whosTurn;
 	int phase, numSwans;
@@ -409,8 +407,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	char whosTurn;
 	signed char c;
 	int numX, numO;
@@ -475,10 +472,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	SLOT fromSlot,toSlot;
 	int phase;
 	phase = computersMove & 1; /* phase 1 = 0, phase 2 = 1 */
@@ -515,11 +509,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN AllFilledIn();
-	char OnlyPlayerLeft();
+VALUE Primitive(POSITION position) {
 	char whosTurn;
 	char theBoard[16];
 	int phase, numSwans;
@@ -539,10 +529,8 @@ POSITION position;
 		return(undecided);        /* no one has won yet */
 }
 
-BOOLEAN CantMove(position)
-POSITION position;
-{
-	MOVELIST *ptr, *GenerateMoves();
+BOOLEAN CantMove(POSITION position) {
+	MOVELIST *ptr;
 	BOOLEAN cantMove;
 	ptr = GenerateMoves(position);
 	cantMove = (ptr == NULL);
@@ -551,9 +539,7 @@ POSITION position;
 }
 
 
-char OnlyPlayerLeft(theBoard)
-char theBoard[16];
-{
+char OnlyPlayerLeft(char *theBoard) {
 	int i;
 	BOOLEAN sawO = FALSE, sawX = FALSE;
 	for(i = 0; i < BOARDSIZE; i++) {
@@ -589,11 +575,7 @@ char theBoard[16];
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int i;
 	char whosTurn;
 	int phase, numSwans;
@@ -653,11 +635,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	MOVE tempMove;
 	int i,j,k, l, phase, numSwans;
 	char theBoard[16];
@@ -689,8 +668,7 @@ POSITION position;
 	return(head);
 }
 
-BOOLEAN OkMove(char *theBoard, char whosTurn, SLOT fromSlot, int direction)
-{
+BOOLEAN OkMove(char *theBoard, char whosTurn, SLOT fromSlot, int direction) {
 	SLOT toSlot;
 	toSlot = GetToSlot(theBoard,fromSlot,direction,whosTurn);
 	return((theBoard[fromSlot] == whosTurn) &&
@@ -698,8 +676,7 @@ BOOLEAN OkMove(char *theBoard, char whosTurn, SLOT fromSlot, int direction)
 	       (theBoard[toSlot] == 'b'));
 }
 
-SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn)
-{
+SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn) {
 	/* direction:
 	       5
 
@@ -768,11 +745,7 @@ SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 	int phase, numSwans;
 	char whosTurn;
@@ -812,9 +785,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	SLOT fromSlot, toSlot;
 	if(input[1] == '\0') /* one digit input */
 		return((input[0] >= '1') && (input[0] <= '9'));
@@ -841,10 +812,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
-	MOVE SlotsToMove();
+MOVE ConvertTextInputToMove(STRING input) {
 	SLOT fromSlot, toSlot;
 	int ret;
 	MOVE tempMove;
@@ -873,9 +841,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -891,9 +857,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 10 );
 	SLOT fromSlot, toSlot;
 	int phase;
@@ -929,8 +893,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void generic_hash_unhash2(int hashed, char* dest, char* whosTurn, int* phase, int* numSwans)
-{
+void generic_hash_unhash2(int hashed, char* dest, char* whosTurn, int* phase, int* numSwans) {
 	int whoseTurnTemp, phaseTemp;
 
 	// isolate numswans
@@ -967,10 +930,7 @@ void generic_hash_unhash2(int hashed, char* dest, char* whosTurn, int* phase, in
 **
 ************************************************************************/
 
-void MoveToSlots(theMove, fromSlot, toSlot)
-MOVE theMove;
-SLOT *fromSlot, *toSlot;
-{
+void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot) {
 	*fromSlot = theMove % (BOARDSIZE+1);
 	*toSlot   = theMove / (BOARDSIZE+1);
 }
@@ -988,9 +948,7 @@ SLOT *fromSlot, *toSlot;
 **
 ************************************************************************/
 
-MOVE SlotsToMove (fromSlot, toSlot)
-SLOT fromSlot, toSlot;
-{
+MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot) {
 	return ((MOVE) toSlot* (BOARDSIZE+1) + fromSlot);
 }
 
@@ -1006,8 +964,7 @@ SLOT fromSlot, toSlot;
 **
 ************************************************************************/
 
-POSITION generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
-{
+POSITION generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans) {
 	POSITION temp;
 	int whoseTurnTemp;
 
@@ -1041,9 +998,7 @@ POSITION generic_hash_hash2(char* board, char whosTurn, int phase, int numSwans)
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBoard)
-char theBoard[16];
-{
+BOOLEAN AllFilledIn(char *theBoard) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -1051,9 +1006,6 @@ char theBoard[16];
 		answer &= (theBoard[i] == 'o' || theBoard[i] == 'x');
 	return(answer);
 }
-
-
-CONST_STRING kDBName = "swans";
 
 int NumberOfOptions()
 {
@@ -1078,35 +1030,23 @@ void setOption(int option)
 }
 
 POSITION InteractStringToPosition(STRING string) {
-  enum UWAPI_Turn turn;
-  unsigned int num_rows, num_columns;
-  STRING board;
-  if (!UWAPI_Board_Regular2D_ParsePositionString(string, &turn, &num_rows, &num_columns, &board)) {
-    // Failed to parse string
-    return INVALID_POSITION;
-  }
-  STRING phase = UWAPI_Board_Regular2D_GetAdditionalParam(string, "phase");
-  STRING numSwans = UWAPI_Board_Regular2D_GetAdditionalParam(string, "numSwans");
+  char turn = string[2] == 'A' ? 'o' : 'x';
+  string += 8;
+  int numSwans = (string[BOARDSIZE] - '0') * 10 + (string[BOARDSIZE + 1] - '0');
 
   // Convert UWAPI standard board string to internal board representation
   char oxboard[BOARDSIZE];
-  int i;
-  for (i = 0; i < BOARDSIZE; i++) {
-    if (board[i] == '-') {
+  for (int i = 0; i < BOARDSIZE; i++) {
+    if (string[i] == '-') {
       oxboard[i] = 'b';
     } else {
-      oxboard[i] = board[i];
+      oxboard[i] = string[i];
     }
   }
+  int phase = numSwans > 0 ? 1 : 2;
 
   // Convert internal board representation to internal position
-  POSITION position = generic_hash_hash2(oxboard, (turn == UWAPI_TURN_A ? 'o' : 'x'), atoi(phase), atoi(numSwans));
-
-  // Return internal position
-  SafeFreeString(numSwans);
-  SafeFreeString(phase);
-  SafeFreeString(board); // Free the string!
-  return position;
+  return generic_hash_hash2(oxboard, turn, phase, numSwans);
 }
 
 
@@ -1116,27 +1056,29 @@ STRING InteractPositionToString(POSITION pos) {
   int phase, numSwans;
   generic_hash_unhash2(pos, oxboard, &whosTurn, &phase, &numSwans);
 
-  char phaseValue[11];
-  sprintf(phaseValue, "%d", phase);
-
-  char numSwansValue[11];
-  sprintf(numSwansValue, "%d", numSwans);
-
   // Convert internal board representation to UWAPI standard board string
-  char board[BOARDSIZE + 1];
-  int i;
-  for (i = 0; i < BOARDSIZE; i++) {
+  char board[BOARDSIZE + 5]; // two digits for swans to place, two digits for swans eaten, 1 null terminator
+  int swansOnBoard = 0;
+  for (int i = 0; i < BOARDSIZE; i++) {
     if (oxboard[i] == 'b') {
       board[i] = '-';
     } else {
-      board[i] = oxboard[i];
-    }
+		if (oxboard[i] == 'o') {
+			swansOnBoard++;
+		}
+		board[i] = oxboard[i];
+	}
   }
-  board[BOARDSIZE] = '\0';
+  int swansEaten = 12 - numSwans - swansOnBoard;
+  board[BOARDSIZE] = numSwans / 10 + '0';
+  board[BOARDSIZE + 1] = numSwans % 10 + '0';
+  board[BOARDSIZE + 2] = swansEaten / 10 + '0';
+  board[BOARDSIZE + 3] = swansEaten % 10 + '0';
+  board[BOARDSIZE + 4] = '\0';
 
   // Return formatted UWAPI position string
   enum UWAPI_Turn turn = (whosTurn == 'o') ? UWAPI_TURN_A : UWAPI_TURN_B;
-  return UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, 4, 4, board, "phase", phaseValue, "numSwans", numSwansValue, "");
+  return UWAPI_Board_Regular2D_MakeBoardString(turn, 20, board);
 }
 
 STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
@@ -1149,7 +1091,7 @@ STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
 	phase = theMove & 1;
 	theMove = theMove >> 1;
 	if (phase == 0) {
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('o', theMove, whosTurn);
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('s', theMove, whosTurn);
 	} else {
 		MoveToSlots(theMove,&fromSlot,&toSlot);
 		/* MOVE is 0-15 */

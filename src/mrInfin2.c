@@ -330,6 +330,7 @@ char gBlankOXPosition[15][4] = { "---", // 0
 
 /** Function Prototypes **/
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+POSITION BlankOXToPosition(BlankOX *theBlankOX);
 int ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
 
 STRING MoveToString( MOVE );
@@ -404,16 +405,13 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	//if theMove goes beyond 1, 2, 3, or 4, 5, 6 (for the special pieces)then throw error
 	int currentScore, tempScore;
 	int matchingYellow, matchingBlue, totalmatches;
 	int c1, c2, c3, c4, c5, c6, c7, c8; // ints to find columns,rows,diags
 
-	BlankOX theBlankOX[REDUCTBOARDSIZE], WhoseTurn();
+	BlankOX theBlankOX[REDUCTBOARDSIZE];
 
 	int columnNum, turn;
 	int b0, b1, b2, b3,b4,b5,b6; //immediate retrieval of thePosition's values
@@ -1037,7 +1035,6 @@ MOVE theMove;
 
 POSITION GetInitialPosition()
 {
-	POSITION BlankOXToPosition();
 	BlankOX theBlankOX[REDUCTBOARDSIZE], temp;
 	signed char c;
 	int i;
@@ -1165,10 +1162,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	if (computersMove <= 3 && computersMove >= 1) {
 		printf("%8s's move              : %2d\n", computersName, computersMove);
 	}
@@ -1200,10 +1194,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	int ThreeInARow();
+VALUE Primitive(POSITION position) {
 	BlankOX theBlankOX[REDUCTBOARDSIZE];
 
 	int turn;
@@ -1273,11 +1264,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	/* All our variables before functions */
 	BlankOX theBlankOX[REDUCTBOARDSIZE];
 	char elt[REALBOARDSIZE];
@@ -1416,11 +1403,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankOX theBlankOX[REDUCTBOARDSIZE];
 
 	int i;
@@ -1491,11 +1475,7 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 
 	do {
@@ -1527,9 +1507,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return (input[0] <= '6' && input[0] >= '1');
 
 }
@@ -1546,9 +1524,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) input[0] -'0'); // hehe, i fixed this!! (EM)
 	// our game takes in input from 1-6 ONLY.
 }
@@ -1563,9 +1539,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -1581,9 +1555,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 2 );
 
 	// Our theMove is from 1-6, because of special pieces
@@ -1630,10 +1602,7 @@ void setOption(int option) {
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
-{
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 	int b0,b1, b2, b3, b4, b5, b6;
 
 	b6 = thePos % 2; // turn
@@ -1667,9 +1636,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX)
-BlankOX *theBlankOX;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	POSITION position = 0;
 
 	int turn = theBlankOX[6];
@@ -1706,10 +1673,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-int ThreeInARow(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
+int ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
 	// the arguments, A,B,C passed into this function is in decreasing order.
 
 	int blackpiece = (int)theBlankOX[1];
@@ -1842,9 +1806,7 @@ int ConvertBackToInt(char* letter)
 **
 ************************************************************************/
 // WE NEVER NEED TO USE THIS FUNCTION
-BOOLEAN AllFilledIn(theBlankOX)
-BlankOX theBlankOX[];
-{
+BOOLEAN AllFilledIn(BlankOX *theBlankOX) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -1868,9 +1830,7 @@ BlankOX theBlankOX[];
 **
 ************************************************************************/
 
-BlankOX WhoseTurn(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX WhoseTurn(BlankOX *theBlankOX) {
 	//printf("Inside WhoseTurn");
 
 	if (theBlankOX[6] == 1 ) {

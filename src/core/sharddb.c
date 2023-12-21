@@ -259,26 +259,24 @@ void shardGamesmanDetailedPositionResponse(STRING board, POSITION pos) {
 	}
 	VALUE value;
 	REMOTENESS remoteness;
-	printf("\"board\": \"%s\",", board);
-	printf("\"remoteness\":%d,", Remoteness(pos));
-	InteractPrintJSONPositionValue(pos);
+	printf("\"board\":\"%s\"", board);
+	sharddb_cache_get(&value, &remoteness, pos);
+	InteractPrintJSONPositionValue(value); // e.g. will print ,"value":"win"
+	printf(",\"remoteness\":%d", remoteness);
 	printf(",\"moves\":[");
 
 	MOVELIST *all_next_moves = IGenerateMoves(pos);
 	MOVELIST *current_move = all_next_moves;
-	POSITIONLIST *nextPositions = NULL;
 	STRING move_string = NULL;
 	while (current_move) {
-		POSITION choice = DoMove(pos, current_move->move);
-		nextPositions = StorePositionInList(choice, nextPositions);
-		STRING nextBoard = IInteractPositionToString(choice);
-		printf("{\"board\":\"%s\",", nextBoard);
+		POSITION childPosition = DoMove(pos, current_move->move);
+		STRING nextBoard = IInteractPositionToString(childPosition);
+		printf("{\"board\":\"%s\"", nextBoard);
 		SafeFree(nextBoard);
 
-		sharddb_cache_get(&value, &remoteness, choice);
-		printf("\"remoteness\":%d,", remoteness);
-		char value_char = gValueLetter[value];
-		printf("\"value\":\"%s\"", ValueCharToValueString(value_char));
+		sharddb_cache_get(&value, &remoteness, childPosition);
+		InteractPrintJSONPositionValue(value); // e.g. will print ,"value":"win"
+		printf(",\"remoteness\":%d", remoteness);
 		int w = (IROWCOUNT + 1) * ICOLUMNCOUNT - 1 - (current_move->move / (IROWCOUNT + 1));
 		printf(",\"move\":\"M_%d_%d_x\"", w, w + ICOLUMNCOUNT);
 		move_string = gMoveToStringFunPtr(current_move->move);
@@ -293,7 +291,6 @@ void shardGamesmanDetailedPositionResponse(STRING board, POSITION pos) {
 	}
 	move_string = NULL;
 	FreeMoveList(all_next_moves);
-	FreePositionList(nextPositions);
 
 	printf("]}}");
 }

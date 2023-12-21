@@ -10,7 +10,6 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* IMPORTANT GLOBAL VARIABLES */

@@ -246,12 +246,6 @@ BOOLEAN moveStraight = TRUE;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 int vcfg(int* this_cfg);
 int next_player(POSITION position);
 
@@ -614,9 +608,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (move)
-MOVE move;
-{
+STRING MoveToString(MOVE move) {
 	STRING m = (STRING) SafeMalloc( 14 );
 	if (get_move_source(move) == 0 && get_move_dest(move) == 0) {
 		sprintf( m,
@@ -662,7 +654,6 @@ MOVE move;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************

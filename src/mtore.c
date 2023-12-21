@@ -285,16 +285,6 @@ char gBoard[9];
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
-extern POSITION         generic_hash_hash(char *board, int player);
-extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
-
 POSITION getCanonicalPosition(POSITION position);
 
 STRING MoveToString( MOVE );
@@ -621,7 +611,6 @@ STRING MoveToString (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -744,45 +733,8 @@ void SetTclCGameSpecificOptions (int options[])
 **
 ************************************************************************/
 
-/*  Copied from mttt.c
- */
-POSITION GetInitialPosition ()
-{
-	// POSITION BlankOXToPosition();
-	//BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	//signed char c;
-	//int i, goodInputs = 0;
 
-
-	//printf("\n\n\t----- Get Initial Position -----\n");
-	//printf("\n\tPlease input the position to begin with.\n");
-	//printf("\tNote that it should be in the following format:\n\n");
-	//printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	//i = 0;
-	//getchar();
-	//while(i < BOARDSIZE && (c = getchar()) != EOF) {
-	//if(c == 'x' || c == 'X')
-	//  theBlankOX[i++] = x;
-	//else if(c == 'o' || c == 'O' || c == '0')
-	//  theBlankOX[i++] = o;
-	//else if(c == '-')
-	//  theBlankOX[i++] = Blank;
-	//else
-	//  ;   /* do nothing */
-	//}
-
-	/*
-	   getchar();
-	   printf("\nNow, whose turn is it? [O/X] : ");
-	   scanf("%c",&c);
-	   if(c == 'x' || c == 'X')
-	   whosTurn = x;
-	   else
-	   whosTurn = o;
-	 */
-
-	//return(BlankOXToPosition(theBlankOX,whosTurn));
+POSITION GetInitialPosition() {
 	return 0;
 }
 
@@ -798,8 +750,7 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
+int NumberOfOptions () {
 	return 2;
 }
 
@@ -816,8 +767,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
-{
+int getOption () {
 	if (gStandardGame) {
 		return 2;
 	} else {
@@ -837,8 +787,7 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (int option)
-{
+void setOption (int option) {
 	if (option == 1) {
 		gStandardGame = 0;
 	} else if (option == 2) {
@@ -846,7 +795,6 @@ void setOption (int option)
 	} else {
 		BadElse("setOption");
 	}
-
 }
 
 
@@ -863,10 +811,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu ()
-{
-
-}
+void DebugMenu() {}
 
 
 /************************************************************************
@@ -880,7 +825,7 @@ void DebugMenu ()
 **
 ************************************************************************/
 
-POSITION getCanonicalPosition (POSITION position) {
+POSITION getCanonicalPosition(POSITION position) {
 
 	char board[9], invertedBoard[9], reversedSideBoard[9], temp;
 	POSITION minPosHash = position, newHash = 0;

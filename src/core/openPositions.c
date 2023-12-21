@@ -960,7 +960,7 @@ void DeterminePure1(POSITION position)
 	POSITION child=kBadPosition, parent;
 	POSITIONLIST *ptr;
 	VALUE childValue;
-	POSITION F0EdgeCount = 0;
+	//POSITION F0EdgeCount = 0;
 
 	/* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
 
@@ -1049,7 +1049,7 @@ void DeterminePure1(POSITION position)
 						printf("Parent's Value: %d. Parent: %llu. Child: %llu\n", gPositionValue[parent], parent, child);
 						assert(FALSE);
 					}
-					F0EdgeCount -= (gDrawNumberChildrenOriginal[parent] - 1);
+					//F0EdgeCount -= (gDrawNumberChildrenOriginal[parent] - 1);
 					InsertLoseDR(parent);
 					if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into DR head\n",parent,"lose");
 					/* We always need to change the remoteness because we examine winning node with
@@ -1060,7 +1060,7 @@ void DeterminePure1(POSITION position)
 						maxLevel = level;
 					}
 				} else if (parent != kBadPosition) {
-					F0EdgeCount++;
+					//F0EdgeCount++;
 				}
 				ptr = ptr->next;
 			} /* while there are still parents */

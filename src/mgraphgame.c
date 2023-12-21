@@ -14,14 +14,14 @@
 
 /* IMPORTANT GLOBAL VARIABLES */
 CONST_STRING kAuthorName = "Arihant Choudhary, Cameron Cheung";
-CONST_STRING kGameName = "Example Graph Game for Draw Remoteness/Level Demo"; //  use this spacing and case
-CONST_STRING kDBName = "graphgame";     // use this spacing and case
-POSITION gNumberOfPositions = 21;           // TODO: Put your number of positions upper bound here.
-POSITION gInitialPosition = 0;             // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE;                 // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = TRUE;            // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = TRUE;                    // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = FALSE;       // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+CONST_STRING kGameName = "Example Graph Game";
+CONST_STRING kDBName = "graphgame";
+POSITION gNumberOfPositions = 21;
+POSITION gInitialPosition = 0;
+BOOLEAN kPartizan = FALSE;
+BOOLEAN kTieIsPossible = TRUE;
+BOOLEAN kLoopy = TRUE;
+BOOLEAN kSupportsSymmetries = FALSE;  
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
@@ -31,7 +31,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 void *gGameSpecificTclInit = NULL;
 
 /* You do not have to change these for now. */
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 
 /* These variables are not needed for solving but if you have time
@@ -47,82 +47,59 @@ CONST_STRING kHelpExample = "";
 
 /* You don't have to change this. */
 void DebugMenu() {}
-/* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[])
-{
-    (void)theOptions;
-}
-/* Do not worry about this yet because you will only be supporting 1 variant for now. */
-void GameSpecificMenu() {}
+void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
+
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
-int listOfMoves[][4] = {
-    {1, 1}, //0
-    {2, 0, 2}, // 1
-    {1, 3}, // 2
-    {1, 4}, //3
-    {2, 6, 7}, //4
-    {2, 3, 4}, // 5
-    {2, 5, 8}, //6
-    {2, 5, 8}, //7
-    {1, 9}, // 8
-    {2, 8, 10}, // 9
-    {3, 9, 11, 12}, //10
-    {1, 10}, //11
-    {2, 13, 17}, //12
-    {1, 15}, // 13
-    {1, 12}, //14
-    {2, 14, 16}, //15
-    {1, 18}, //16
-    {3, 11, 18, 20}, //17
-    {0}, //18 Loss State
-    {2, 16, 20}, //19
-    {2, 16, 19} //20
-    };
+int listOfMoves0[21][4] = {
+    {1, 1}, {2, 0, 2}, {1, 3}, {1, 4}, {2, 6, 7}, {2, 3, 4}, {2, 5, 8},
+    {2, 5, 8}, {1, 9}, {2, 8, 10}, {3, 9, 11, 12}, {1, 10}, {2, 13, 17},
+    {1, 15}, {1, 12}, {2, 14, 16}, {1, 18}, {3, 11, 18, 20},
+    {0}, {2, 16, 20}, {2, 16, 19}
+};
 
-/* TODO: Add a hashing function and unhashing function, if needed. */
+int listOfMoves1[11][4] = {
+    {0}, {1, 0}, {2, 1, 0}, {2, 2, 1}, {2, 3, 2}, {2, 4, 3}, {2, 5, 4}, {2, 6, 5},
+    {2, 7, 6}, {2, 8, 7}, {2, 9, 8}
+};
+
+int listOfMoves2[16][4] = {
+    {2, 1, 2}, {3, 2, 3, 4}, {1, 5}, {2, 7, 8}, {2, 8, 9}, {3, 6, 9, 10}, 
+    {3, 5, 10, 11}, {2, 8, 12}, {2, 7, 13}, {2, 13, 14}, {1, 15}, {0},
+    {0}, {0}, {0}, {0}
+};
+
+int (*listOfMoves)[4] = listOfMoves0;
 
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
-void InitializeGame()
-{
+void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
     gMoveToStringFunPtr = &MoveToString;
 
-    /* YOUR CODE HERE */
     kUsePureDraw = TRUE;
-
+    kCombinatorial = FALSE;
+    kLoopy = TRUE;
+    setOption(getOption());
 }
 
 /* Return the hash value of the initial position. */
-POSITION GetInitialPosition()
-{
-    /* YOUR CODE HERE */
-    return 0;
+POSITION GetInitialPosition() {
+    return gInitialPosition;
 }
 
 /* Return a linked list of moves. */
-MOVELIST *GenerateMoves(POSITION position)
-{
+MOVELIST *GenerateMoves(POSITION position) {
     MOVELIST *moves = NULL;
-    /* YOUR CODE HERE
-       To add to the linked list, do
-       moves = CreateMovelistNode(<the move you're adding>, moves);
-       See the function CreateMovelistNode in src/core/misc.c
-    */
-    for (int i = 1; i <= listOfMoves[position][0]; i++)
-    {
+    for (int i = 1; i <= listOfMoves[position][0]; i++) {
         moves = CreateMovelistNode(listOfMoves[position][i], moves);
     }
-
     return moves;
 }
 
 /* Return the position that results from making the
 input move on the input position. */
-POSITION DoMove(POSITION position, MOVE move)
-{
-    /* YOUR CODE HERE */
+POSITION DoMove(POSITION position, MOVE move) {
     return move;
 }
 
@@ -132,20 +109,26 @@ POSITION DoMove(POSITION position, MOVE move)
 **  OUTPUTS: (VALUE) an enum; one of: (win, lose, tie, undecided)
 **  See src/core/types.h for the value enum definition.
 ******************************************************************/
-VALUE Primitive(POSITION position)
-{
+VALUE Primitive(POSITION position) {
     /* YOUR CODE HERE */
-    if (position == 18) {
-        return lose;
+    if (listOfMoves == listOfMoves2) {
+        if (position == 11) {
+            return lose;
+        } else if (position >= 12 && position <= 14) {
+            return win;
+        } else if (position == 15) {
+            return tie;
+        }
+    } else if (listOfMoves == listOfMoves1) {
+        if (position == 0) return lose;
     } else {
-        return undecided;
+        if (position == 18) return lose;
     }
+    return undecided;
 }
 
 /* Symmetry Handling: Return the canonical position. */
-POSITION GetCanonicalPosition(POSITION position)
-{
-    /* YOUR CODE HERE */
+POSITION GetCanonicalPosition(POSITION position) {
     return position;
 }
 
@@ -153,29 +136,17 @@ POSITION GetCanonicalPosition(POSITION position)
 
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
-void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
-{
-    /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
-    /* YOUR CODE HERE */
-    printf("%llu", position);
-    printf("\n");
-
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+    printf("%llu\n", position);
 }
 
-void PrintComputersMove(MOVE computersMove, STRING computersName)
-{
-    /* YOUR CODE HERE */
-    printf("%d", computersMove);
-    printf("\n");
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    printf("%8s's move: %d\n", computersName, computersMove);
 }
 
-USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName)
-{
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
     USERINPUT ret;
-    do
-    {
-        /* List of available moves */
-        // Modify the player's move prompt as you wish
+    do {
         printf("%8s's move: ", playerName);
 
         ret = HandleDefaultTextInput(position, move, playerName);
@@ -187,35 +158,27 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 }
 
 /* Return whether the input text signifies a valid move. */
-BOOLEAN ValidTextInput(STRING input)
-{
-    /* YOUR CODE HERE */
+BOOLEAN ValidTextInput(STRING input) {
     return input[0] >= '0' && input[0] <= '9';
 }
 
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
-MOVE ConvertTextInputToMove(STRING input)
-{
-    /* YOUR CODE HERE */
+MOVE ConvertTextInputToMove(STRING input) {
     return atoi(input);
 }
 
 /* Return the string representation of the move.
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move)
-{
-    /* YOUR CODE HERE */
+STRING MoveToString(MOVE move) {
     STRING s = malloc(sizeof(char)*3);
     snprintf(s, 3, "%d", move);
     return s;
 }
 
 /* Basically just print the move. */
-void PrintMove(MOVE move)
-{
-    /* YOUR CODE HERE */
+void PrintMove(MOVE move) {
     printf("%d", move);
 }
 
@@ -224,24 +187,70 @@ void PrintMove(MOVE move)
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
 /* How many variants are you supporting? */
-int NumberOfOptions()
-{
-    /* YOUR CODE HERE */
-    return 1;
+int NumberOfOptions() {
+    return 3;
 }
 
 /* Return the current variant id. */
-int getOption()
-{
-    /* YOUR CODE HERE */
-    return 0;
+int getOption() {
+    if (listOfMoves == listOfMoves0) {
+        return 0;
+    } else if (listOfMoves == listOfMoves1) {
+        return 1;
+    } else {
+        return 2;
+    }
 }
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
-void setOption(int option)
-{
-    /* YOUR CODE HERE  */
+void setOption(int option) {
+    kCombinatorial = FALSE;
+    kUsePureDraw = FALSE;
+    kLoopy = TRUE;
+    gInitialPosition = 0;
+    if (option == 0) {
+        kUsePureDraw = TRUE;
+        listOfMoves = listOfMoves0;
+        gNumberOfPositions = 21;
+    } else if (option == 1) {
+        kCombinatorial = TRUE;
+        kLoopy = FALSE;
+        gInitialPosition = 10;
+        listOfMoves = listOfMoves1;
+        gNumberOfPositions = 11;
+    } else {
+        listOfMoves = listOfMoves2;
+        gNumberOfPositions = 16;
+    }
+}
+
+void GameSpecificMenu() {
+    char inp;
+	while (TRUE) {
+		printf("\n\n\n");
+		printf("        ----- Game-specific options for Five Field Kono -----\n\n");
+		printf("        Select an option:\n\n");
+		printf("        0)      Graph with Interesting Pure Draw Levels\n");
+		printf("        1)      10-to-0-by-1-or-2 Graph\n");
+        printf("        2)      Graph with Various Primitive Values\n");
+		printf("\nSelect an option: ");
+		inp = GetMyChar();
+		if (inp == '0') {
+            setOption(0);
+            return;
+		} else if (inp == '1') {
+            setOption(1);
+            return;
+		} else if (inp == '2') {
+            setOption(2);
+            return;
+        }
+		else if (inp == 'b' || inp == 'B') return;
+		else {
+			printf("Invalid input.\n");
+		}
+	}
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -251,7 +260,7 @@ They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
 POSITION InteractStringToPosition(STRING str) {
     str += 8;
-    for (POSITION p = 0; p < 21; p++) {
+    for (POSITION p = 0; p < gNumberOfPositions; p++) {
         if (str[p] == 'x') {
             return p;
         }
@@ -260,11 +269,11 @@ POSITION InteractStringToPosition(STRING str) {
 }
 
 STRING InteractPositionToString(POSITION position) {
-    char board[22];
-    memset(board, '-', 21);
+    char board[gNumberOfPositions + 1];
+    memset(board, '-', gNumberOfPositions);
     board[position] = 'x';
-    board[21] = '\0';
-    return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, 22, board);
+    board[gNumberOfPositions] = '\0';
+    return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, gNumberOfPositions + 1, board);
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {

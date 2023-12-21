@@ -26,6 +26,7 @@ POSITION gMinimalPosition    = 17524;
 
 CONST_STRING kAuthorName         = "Dan Garcia";
 CONST_STRING kGameName           = "Dodgem";
+CONST_STRING kDBName = "dodgem";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -162,17 +163,18 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn);
 void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(SLOT fromSlot, int direction,BlankOX whosTurn);
+BOOLEAN OkMove(BlankOX *theBlankOX, BlankOX whosTurn, SLOT fromSlot, int direction);
+BlankOX OnlyPlayerLeft(BlankOX *theBlankOX);
+BOOLEAN CantMove(POSITION position);
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn);
 
 STRING MToS (MOVE);
 
-void InitializeGame()
-{
+void InitializeGame() {
 	gMoveToStringFunPtr = &MToS;
 }
 
-void FreeGame()
-{
-}
+void FreeGame() {}
 
 /************************************************************************
 **
@@ -183,9 +185,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
-}
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -197,10 +197,8 @@ void DebugMenu()
 **
 ************************************************************************/
 
-void GameSpecificMenu()
-{
+void GameSpecificMenu() {
 	char GetMyChar();
-	POSITION GetInitialPosition();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -248,9 +246,7 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int *theOptions) {
 	gToTrapIsToWin = (BOOLEAN) theOptions[0];
 }
 
@@ -269,10 +265,7 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	SLOT fromSlot, toSlot;
 	BlankOX theBlankOX[BOARDSIZE], whosTurn;
 
@@ -303,7 +296,6 @@ MOVE theMove;
 
 POSITION GetInitialPosition() /* UNWRITTEN */
 {
-	POSITION BlankOXToPosition();
 	BlankOX theBlankOX[BOARDSIZE], whosTurn;
 	signed char c;
 	int i;
@@ -348,10 +340,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	SLOT fromSlot,toSlot;
 	MoveToSlots(computersMove,&fromSlot,&toSlot);
 	printf("%8s's move              : %d%d\n", computersName,
@@ -382,11 +371,8 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN CantMove(), OkMove();
-	BlankOX theBlankOX[BOARDSIZE],whosTurn,OnlyPlayerLeft();
+VALUE Primitive(POSITION position) {
+	BlankOX theBlankOX[BOARDSIZE],whosTurn;
 
 	PositionToBlankOX(position,theBlankOX,&whosTurn);
 
@@ -398,10 +384,8 @@ POSITION position;
 		return(undecided);        /* no one has won yet */
 }
 
-BOOLEAN CantMove(position)
-POSITION position;
-{
-	MOVELIST *ptr, *GenerateMoves();
+BOOLEAN CantMove(POSITION position) {
+	MOVELIST *ptr;
 	BOOLEAN cantMove;
 
 	ptr = GenerateMoves(position);
@@ -411,9 +395,7 @@ POSITION position;
 }
 
 
-BlankOX OnlyPlayerLeft(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX OnlyPlayerLeft(BlankOX *theBlankOX) {
 	int i;
 	BOOLEAN sawO = FALSE, sawX = FALSE;
 	for(i = 0; i < BOARDSIZE; i++) {
@@ -449,11 +431,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	//  VALUE GetValueOfPosition();
 	BlankOX theBlankOx[BOARDSIZE], whosTurn;
 
@@ -493,12 +471,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	BOOLEAN OkMove();
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	BlankOX theBlankOX[BOARDSIZE], whosTurn;
 	int i,j; /* Values for J: 0=left,1=straight,2=right */
 
@@ -513,11 +487,7 @@ POSITION position;
 	return(head);
 }
 
-BOOLEAN OkMove(theBlankOX,whosTurn,fromSlot,direction)
-BlankOX *theBlankOX, whosTurn;
-SLOT fromSlot;
-int direction;
-{
+BOOLEAN OkMove(BlankOX *theBlankOX, BlankOX whosTurn, SLOT fromSlot, int direction) {
 	SLOT toSlot;
 	toSlot = GetToSlot(fromSlot,direction,whosTurn);
 	return((theBlankOX[fromSlot] == whosTurn) &&
@@ -525,8 +495,7 @@ int direction;
 	       (theBlankOX[toSlot] == Blank || toSlot == OFFTHEBOARD));
 }
 
-SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn)
-{
+SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn) {
 	if((fromSlot < 3 && whosTurn == x && direction == 1) ||
 	   (((fromSlot % 3) == 2) && whosTurn == o && direction == 1))
 		return(OFFTHEBOARD);
@@ -580,12 +549,8 @@ SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1-9] : ", playerName);
@@ -615,9 +580,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	char fromChar, toChar;
 	SLOT fromSlot, toSlot;
 	int ret;
@@ -643,10 +606,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
-	MOVE SlotsToMove();
+MOVE ConvertTextInputToMove(STRING input) {
 	SLOT fromSlot, toSlot;
 	char fromChar, toChar;
 	(void)sscanf(input,"%c%c", &fromChar, &toChar);
@@ -672,18 +632,14 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(theMove,&fromSlot,&toSlot);
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	printf("%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
 }
 
-STRING MToS(theMove)
-MOVE theMove;
-{
+STRING MToS(MOVE theMove) {
 	SLOT fromSlot, toSlot;
 	STRING move = (STRING) SafeMalloc(3);
 	MoveToSlots(theMove,&fromSlot,&toSlot);
@@ -710,11 +666,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX,whosTurn)
-POSITION thePos;
-BlankOX *theBlankOX;
-BlankOX *whosTurn;
-{
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn) {
 	int i;
 
 	if (thePos >= POSITION_OFFSET) { /* X moves first <==> pos >= offset */
@@ -754,10 +706,7 @@ BlankOX *whosTurn;
 **
 ************************************************************************/
 
-void MoveToSlots(theMove, fromSlot, toSlot)
-MOVE theMove;
-SLOT *fromSlot, *toSlot;
-{
+void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot) {
 	*fromSlot = theMove % (BOARDSIZE+1);
 	*toSlot   = theMove / (BOARDSIZE+1);
 }
@@ -775,9 +724,7 @@ SLOT *fromSlot, *toSlot;
 **
 ************************************************************************/
 
-MOVE SlotsToMove (fromSlot, toSlot)
-SLOT fromSlot, toSlot;
-{
+MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot) {
 	return ((MOVE) toSlot*(BOARDSIZE+1) + fromSlot);
 }
 
@@ -793,9 +740,7 @@ SLOT fromSlot, toSlot;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX,whosTurn)
-BlankOX *theBlankOX,whosTurn;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
 	int i;
 	POSITION position = 0;
 
@@ -807,8 +752,6 @@ BlankOX *theBlankOX,whosTurn;
 
 	return(position);
 }
-
-CONST_STRING kDBName = "dodgem";
 
 int NumberOfOptions() {
 	return 4;

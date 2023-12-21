@@ -19,8 +19,6 @@
 
 #include "gamesman.h"
 
-extern STRING gValueString[];
-
 POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
 POSITION gInitialPosition    = 812760; /* The initial position (starting board) */
@@ -191,13 +189,6 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum);
 void PrintSpaces(int spaces);
 
 STRING MoveToString( MOVE );
-
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
 
 /************************************************************************
 **
@@ -1068,7 +1059,6 @@ void PrintSpaces(int spaces)
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-	MOVELIST *CreateMovelistNode();
 	MOVELIST *moves = NULL;
 	char board[BOARDSIZE];
 	int i=0;
@@ -1459,8 +1449,7 @@ int validMove(const char board[BOARDSIZE], int move[2],int player)
 
 USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName)
 {
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 
 	if (GETANDPRINT_DEBUG) {printf("mASALTO - GetAndPrintPlayersMove() Start\n"); }
 
@@ -1637,7 +1626,9 @@ MOVE ConvertTextInputToMove (STRING input)
 
 void PrintMove (MOVE move)
 {
-	printf( "%s", MoveToString( move ) );
+	STRING moveString = MoveToString(move);
+	printf( "%s", moveString);
+	SafeFree(moveString);
 }
 
 
@@ -1651,9 +1642,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(9);
 
 	int moveArray[2];

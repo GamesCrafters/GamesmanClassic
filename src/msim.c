@@ -28,6 +28,7 @@ POSITION gMinimalPosition    = 0;
 
 CONST_STRING kAuthorName          = "Dan Garcia and Sunil Ramesh et. al";
 CONST_STRING kGameName            = "SIM";
+CONST_STRING kDBName = "sim";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = FALSE;
@@ -148,6 +149,9 @@ char *gBlankOXString[] = { "-", "O", "X" };
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969 };
 
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+POSITION BlankOXToPosition(BlankOX *theBlankOX);
+BOOLEAN Triangle(BlankOX *theBlankOX, int a, int b, int c);
+BlankOX WhoseTurn(BlankOX *theBlankOX);
 
 STRING MoveToString( MOVE );
 POSITION GetCanonical (POSITION p);
@@ -159,14 +163,12 @@ POSITION GetCanonical (POSITION p);
 **
 ************************************************************************/
 
-void InitializeGame()
-{
+void InitializeGame() {
 	gMoveToStringFunPtr = &MoveToString;
 	gCanonicalPosition = GetCanonical;
 }
 
-void FreeGame()
-{
+void FreeGame() {
 }
 
 /************************************************************************
@@ -178,8 +180,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
+void DebugMenu() {
 	char GetMyChar();
 
 	do {
@@ -229,8 +230,7 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions[])
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	/* No need to have anything here, we have no extra options */
 	(void)theOptions;
 }
@@ -251,11 +251,8 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
-	BlankOX theBlankOX[BOARDSIZE], WhoseTurn();
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
+	BlankOX theBlankOX[BOARDSIZE];
 
 	PositionToBlankOX(thePosition,theBlankOX);
 
@@ -273,9 +270,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
-	POSITION BlankOXToPosition();
+POSITION GetInitialPosition() {
 	BlankOX theBlankOX[BOARDSIZE];
 	signed char c;
 	int i;
@@ -325,10 +320,7 @@ int gUserToInternalMove[] =
 	-1,  4,  8, 11, 13, 14
 };
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, gInternalToUserMove[computersMove]);
 }
 
@@ -355,10 +347,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN ThreeInARow(), AllFilledIn(), Triangle();
+VALUE Primitive(POSITION position) {
 	BlankOX theBlankOX[BOARDSIZE];
 
 	PositionToBlankOX(position,theBlankOX);
@@ -484,11 +473,7 @@ void DrawSimBoard( char** disp, int width, int height )
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int i;
 	//  VALUE GetValueOfPosition();
 	BlankOX theBlankOx[BOARDSIZE];
@@ -540,11 +525,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankOX theBlankOX[BOARDSIZE];
 	int i;
 
@@ -580,12 +562,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/[1-6][1-6]] :  ", playerName);
@@ -615,9 +593,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return ((input[0] <= '6' && input[0] >= '1') && (input[1] <= '6' && input[1] >= '1') && (input[0] != input[1]));
 }
 
@@ -633,9 +609,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	/* We get in "25", and return 7 ... etc.. */
 	return gUserToInternalMove[(input[0]-'0')*10 + (input[1]-'0')];
 }
@@ -650,9 +624,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -668,9 +640,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 3 );
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	sprintf(m, "%d", gInternalToUserMove[theMove]);
@@ -729,9 +699,7 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX)
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX)
-BlankOX *theBlankOX;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	int i;
 	POSITION position = 0;
 
@@ -754,10 +722,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-BOOLEAN Triangle(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
+BOOLEAN Triangle(BlankOX *theBlankOX, int a, int b, int c) {
 	return(       theBlankOX[a] == theBlankOX[b] &&
 	              theBlankOX[b] == theBlankOX[c] &&
 	              theBlankOX[c] != Blank );
@@ -775,9 +740,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankOX)
-BlankOX theBlankOX[];
-{
+BOOLEAN AllFilledIn(BlankOX *theBlankOX) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -801,9 +764,7 @@ BlankOX theBlankOX[];
 **
 ************************************************************************/
 
-BlankOX WhoseTurn(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX WhoseTurn(BlankOX *theBlankOX) {
 	int i, xcount = 0, ocount = 0;
 
 	for(i = 0; i < BOARDSIZE; i++)
@@ -818,9 +779,6 @@ BlankOX *theBlankOX;
 	else
 		return(o);
 }
-
-
-CONST_STRING kDBName = "sim";
 
 int NumberOfOptions()
 {

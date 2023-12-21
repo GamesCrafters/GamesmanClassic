@@ -149,6 +149,7 @@ STRING InteractMoveToString(POSITION, MOVE);
 /*********** BEGIN TIER FUNCIONS ***********/
 void SetupTierStuff() {
 	// kSupportsTierGamesman
+  kExclusivelyTierGamesman = TRUE;
 	kSupportsTierGamesman = TRUE;
 	// All function pointers-
 	gTierChildrenFunPtr= &TierChildren;
@@ -340,13 +341,57 @@ MOVELIST *GenerateMoves(POSITION position) {
         }
       }
     }
-  } else {
-    for (int i = 0; i < boardDimensionX; i++){
-      for (int j = 0; j < boardDimensionY; j++){
-        if (board[i*boardDimensionY+j] == piece && player % 2 == (i+j+1) % 2){
-          int moveValue = i * boardDimensionY + j;
-          moveValue = moveValue * 2;
-          moves = CreateMovelistNode(moveValue, moves);
+  } else { // Start of the game (removing a piece from the board)
+    // P1 removes one of P1's pieces at the center or corners of the board
+    // There are two "center" pieces that can be removed in an EVENxEVEN board 
+    // and one "center" piece that can be removed in an ODDxEVEN or ODDxODD board.
+    // P2 removes one of P2's pieces orthogonally adjacent to the hole created by P1
+    int pm = player % 2;
+    int moveValue;
+    if (player == 1) { // P1's turn
+      // corner moves
+      for (int i = 0; i < boardDimensionX; i++){
+        for (int j = 0; j < boardDimensionY; j++) {
+          if ((i == 0 || i == boardDimensionX - 1) && (j == 0 || j == boardDimensionY - 1)) {
+            if (board[i*boardDimensionY+j] == piece && player % 2 == (i+j+1) % 2) {
+              int moveValue = i * boardDimensionY + j;
+              moveValue = moveValue * 2;
+              moves = CreateMovelistNode(moveValue, moves);
+            }
+          }
+        }
+      }
+      for (int i = (boardDimensionX - 1) >> 1; i <= boardDimensionX >> 1; i++) {
+        for (int j = (boardDimensionY - 1) >> 1; j <= boardDimensionY >> 1; j++) {
+          if (board[i*boardDimensionY+j] == piece && player % 2 == (i+j+1) % 2) {
+            int moveValue = i * boardDimensionY + j;
+            moveValue = moveValue * 2;
+            moves = CreateMovelistNode(moveValue, moves);
+          }
+        }
+      }
+    } else { // P2's turn
+      for (int i = 0; i < boardDimensionX; i++) {
+        for (int j = 0; j < boardDimensionY; j++) {
+          if (board[i * boardDimensionY + j] == emptyPiece) {
+            if (i != 0 && pm % 2 == ((i-1)+j+1) % 2) {
+              moveValue = ((i-1) * boardDimensionY + j) * 2;
+              moves = CreateMovelistNode(moveValue, moves);
+            }
+            if (i != boardDimensionX-1 && pm % 2 == ((i+1)+j+1) % 2) {
+              moveValue = ((i+1) * boardDimensionY + j) * 2;
+              moves = CreateMovelistNode(moveValue, moves);
+            }
+            if (j != 0 && pm % 2 == (i+(j-1)+1) % 2) {
+              moveValue = (i * boardDimensionY + (j-1)) * 2;
+              moves = CreateMovelistNode(moveValue, moves);
+            }
+            if (j != boardDimensionY-1 && pm % 2 == (i+(j+1)+1) % 2) {
+              moveValue = (i * boardDimensionY + (j+1)) * 2;
+              moves = CreateMovelistNode(moveValue, moves);
+            }
+            return moves;
+          }
         }
       }
     }
@@ -524,7 +569,9 @@ STRING MoveToString(MOVE move) {
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  printf("%s", MoveToString(move));
+  STRING moveString = MoveToString(move);
+  printf("%s", moveString);
+  SafeFree(moveString);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -635,7 +682,7 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
   char* result = (char*) SafeMalloc(16);
   int simMove = move / 2;
   if (move % 2 == 0){
-    sprintf(result, "A_-_%d_x", simMove);
+    sprintf(result, "A_h_%d_x", simMove);
   } else {
     int from = simMove / boardSize;
     int to = simMove % boardSize;

@@ -237,12 +237,6 @@ int                     charToInt (char);
 void                    computeTables (void);
 void                    PrintPosition (POSITION, STRING, BOOLEAN);
 
-// External
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 STRING MoveToString(MOVE);
 
 /************************************************************************
@@ -371,7 +365,6 @@ void SetNumPieces ()
 void GameSpecificMenu()
 {
 	char GetMyChar();
-	POSITION GetInitialPosition();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -453,10 +446,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **              whoseTurn ()
 **				MoveToSlots()
 *************************************************************************/
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	SLOT srcPos, destPos;
 	srcPos = GET_SRC(theMove);
 	destPos = GET_DEST(theMove);
@@ -492,7 +482,6 @@ MOVE theMove;
 
 POSITION GetInitialPosition()
 {
-	POSITION hash();
 	struct GPosition myPosition;
 	struct GPosition comparePosition;
 	signed char c;
@@ -543,10 +532,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	SLOT srcPos, destPos;
 	srcPos = GET_SRC(computersMove);
 	destPos = GET_DEST(computersMove);
@@ -707,12 +693,7 @@ void gobbletPrintSpace(SLOT mySpace)
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
-	STRING PrintSpace();
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	//  VALUE GetValueOfPosition();
 	struct GPosition myPos = unhash(position);
 	int i = 1;
@@ -767,11 +748,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	struct GPosition myPosition;
 	int topPieceFrom;
 	int pieceColorFrom;
@@ -832,13 +810,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/(1-%d 1-%d)] :  ", playerName, TABLE_SLOTS + PIECE_SIZES, TABLE_SLOTS);
@@ -869,9 +842,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	int i;
 	i = atoi(input);
 	if((i == 0) || (i < 1 || i > TABLE_SLOTS + PIECE_SIZES) )
@@ -901,9 +872,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	SLOT srcPos, destPos;
 
 	srcPos = atoi(input) - 1;
@@ -924,9 +893,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -942,9 +909,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(8);
 	SLOT srcPos, destPos;
 	srcPos = GET_SRC(theMove);

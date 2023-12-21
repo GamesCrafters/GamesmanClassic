@@ -148,9 +148,7 @@ void FreeGame()
 
 }
 
-void LoadGraphFromFile(graphFilename)
-STRING graphFilename;
-{
+void LoadGraphFromFile(STRING graphFilename) {
 	POSITIONLIST *head = NULL;
 	FILE *fp;
 	POSITION nodeNumber, nodeChild, i, numberNodes;
@@ -260,8 +258,7 @@ VALUE TextToValue(char c) {
 **
 ************************************************************************/
 
-void DebugMenu()
-{
+void DebugMenu() {
 	POSITION i;
 
 	for (i = 0; i <= gLargestNodeNumber; i++) {
@@ -357,8 +354,7 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	POSITION initialPosition;
 	printf("Please input the starting node number   : ");
 	scanf(POSITION_FORMAT, &initialPosition);
@@ -376,10 +372,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove);
 }
 
@@ -402,9 +395,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	VALUE theValue;
 	if((theValue = gGraphPrimitiveList[position]) != undecided)
 		if (theValue == lose)
@@ -438,11 +429,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	printf("\nTOTAL                        : " POSITION_FORMAT " %s \n\n",
 	       position, GetPrediction(position,playerName,usersTurn));
 }
@@ -464,9 +451,7 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	POSITIONLIST* temp;
 	MOVELIST* result;
 
@@ -499,12 +484,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/num] :  ", playerName);
@@ -534,9 +515,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	int i;
 
 	return(input[0] >= (int)'0' &&
@@ -556,9 +535,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	int ans;
 	char goAgainChar;
 
@@ -583,9 +560,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	if ((POSITION)theMove >= gNumberOfPositions) {
 		printf(POSITION_FORMAT "g", (POSITION)theMove%gNumberOfPositions);
 	} else {
@@ -593,19 +568,16 @@ MOVE theMove;
 	}
 }
 
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	return 2;
 }
 
-int getOption()
-{
+int getOption() {
 	if(gStandardGame) return 1;
 	return 2;
 }
 
-void setOption(int option)
-{
+void setOption(int option) {
 	if(option == 1)
 		gStandardGame = TRUE;
 	else

@@ -54,7 +54,7 @@ void
 symdb_free( );
 
 GMSTATUS
-symdb_free_slice( );
+symdb_free_slice( SLICE sl );
 
 // get/set value
 VALUE

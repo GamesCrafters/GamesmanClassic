@@ -205,12 +205,8 @@ int INIT_O = 4;  //Cannot exceed 7
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
 STRING MoveToString(MOVE);
+void PositionToBoard(POSITION pos, TOBlank **board);
 //VOID PositiontoPieces
 
 
@@ -301,9 +297,7 @@ int MyNumberOfPos() {
 **
 ************************************************************************/
 
-void PositionToBoard(pos,board)
-POSITION pos;
-TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
+void PositionToBoard(POSITION pos, TOBlank **board)
 // board is a two-dimensional array of size
 // TNO_WIDTH x TNO_HEIGHT
 {
@@ -370,16 +364,14 @@ void InitializeGame ()
 }
 
 
-void PiecesOnBoard(pos)
-POSITION pos;
-{
+void PiecesOnBoard(POSITION pos) {
 	Board.t = 0;
 	Board.o = 0;
 	Board.total = 0;
 
 	int row, col;
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	PositionToBoard(pos,board);
+	PositionToBoard(pos, (TOBlank **) board);
 
 	for (row=TNO_HEIGHT-1; row>=0; row--) {
 		for (col=0; col<TNO_WIDTH; col++) {
@@ -391,9 +383,7 @@ POSITION pos;
 }
 
 
-void PositionToPieces(pos)
-POSITION pos;
-{
+void PositionToPieces(POSITION pos) {
 	unsigned long i;
 	i = (TNO_HEIGHT+1)*TNO_WIDTH;
 
@@ -439,9 +429,7 @@ POSITION pos;
 **
 ** OUTPUTS:     1 or 2
 ************************************************************************/
-int WhoseTurn(pos)
-POSITION pos;
-{
+int WhoseTurn(POSITION pos) {
 	PositionToPieces(pos);
 	if(Player1.total == Player2.total) {
 		return 1;
@@ -479,7 +467,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	player = WhoseTurn(position);
 	PositionToPieces(position);
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	PositionToBoard(position,board);
+	PositionToBoard(position, (TOBlank**) board);
 
 	for (col=0; col<TNO_WIDTH; col++) {
 		move = 0;
@@ -671,7 +659,7 @@ VALUE Primitive (POSITION position)
 
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
 	int col,row, player1=1, t=1, count=0, ottoWins=0, tootWins=0;
-	PositionToBoard(position, board); // Temporary storage.
+	PositionToBoard(position, (TOBlank**) board); // Temporary storage.
 
 
 
@@ -938,7 +926,7 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 {
 	int i, row, playerTurn, pieceCount;
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	PositionToBoard(position,board);
+	PositionToBoard(position, (TOBlank**) board);
 	playerTurn = WhoseTurn(position);
 	PositionToPieces(position);
 
@@ -1090,9 +1078,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(4);
 
 	sprintf(move, "%d%c", moveUnhashCol(theMove), moveUnhashPiece(theMove));

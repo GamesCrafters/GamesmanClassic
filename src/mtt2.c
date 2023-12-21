@@ -29,6 +29,7 @@ POSITION gMinimalPosition    =  0;
 
 CONST_STRING kAuthorName         = "Niko Gomez & Colby Guan";
 CONST_STRING kGameName           = "Tic-Tac-Two";
+CONST_STRING kDBName = "tt2";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = FALSE;
@@ -423,10 +424,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
@@ -502,11 +500,7 @@ VALUE Primitive(POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	BlankOX theBlankOx[BOARDSIZE];
 
 	PositionToBlankOX(position,theBlankOx);
@@ -577,38 +571,6 @@ MOVELIST *GenerateMoves(POSITION position)
 
 /************************************************************************
 **
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-************************************************************************/
-
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
-	int i;
-
-	theCanonicalPosition = position;
-
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-
-		newPosition = DoSymmetry(position, i); /* get new */
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
-	}
-
-	return(theCanonicalPosition);
-}
-
-/************************************************************************
-**
 ** NAME:        DoSymmetry
 **
 ** DESCRIPTION: Perform the symmetry operation specified by the input
@@ -622,13 +584,9 @@ POSITION position;
 **
 ************************************************************************/
 
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
 	int i;
 	BlankOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
-	POSITION BlankOXToPosition();
 
 	PositionToBlankOX(position,theBlankOx);
 	PositionToBlankOX(position,symmBlankOx); /* Make copy */
@@ -639,6 +597,36 @@ int symmetry;
 		symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
 
 	return(BlankOXToPosition(symmBlankOx));
+}
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+**
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(POSITION position) {
+	POSITION newPosition, theCanonicalPosition;
+	int i;
+
+	theCanonicalPosition = position;
+
+	for(i = 0; i < NUMSYMMETRIES; i++) {
+
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
+
+	return(theCanonicalPosition);
 }
 
 /**************************************************/
@@ -664,11 +652,7 @@ int symmetry;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 
 	do {
@@ -700,9 +684,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	(void)input;
 	return TRUE;//((input[0] <= '9' && input[0] >= '1')&&(input[1] <= '9' && input[0] >= '1'));
 }
@@ -719,9 +701,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
     //Converts the input into an integer, then subtracts 1 from the interger 
     //and turns it back into a string for the internal representation
     //Is atoi a function?
@@ -741,9 +721,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING str = MoveToString( theMove );
 	printf( "%s", str );
 	SafeFree( str );
@@ -760,8 +738,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove)
-{
+STRING MoveToString (MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 3 );
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	sprintf( m, "%d", theMove + 1);
@@ -795,10 +772,7 @@ STRING MoveToString (MOVE theMove)
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
-{
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 	int i;
 	for(i = 17; i >= 0; i--) {
 		if(thePos >= (POSITION)(x * g3Array[i])) {
@@ -830,9 +804,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX)
-BlankOX *theBlankOX;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	int i;
 	POSITION position = 0;
 
@@ -855,10 +827,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-BOOLEAN ThreeInARow(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
     /**
      * FRONT | BACK
 	 * 0 1 2 | 9  10 11
@@ -910,9 +879,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankOX)
-BlankOX theBlankOX[];
-{
+BOOLEAN AllFilledIn(BlankOX *theBlankOX) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -936,9 +903,7 @@ BlankOX theBlankOX[];
 **
 ************************************************************************/
 
-BlankOX WhoseTurn(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX WhoseTurn(BlankOX *theBlankOX) {
 	int i, xcount = 0, ocount = 0;
 
 	for(i = 0; i < BOARDSIZE; i++)
@@ -953,8 +918,6 @@ BlankOX *theBlankOX;
 	else
 		return(o);
 }
-
-CONST_STRING kDBName = "tt2";
 
 int NumberOfOptions()
 {

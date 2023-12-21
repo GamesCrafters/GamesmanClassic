@@ -10,19 +10,7 @@
 **
 **************************************************************************/
 
-/*************************************************************************
-**
-** Everything below here must be in every game file
-**
-**************************************************************************/
-
 #include "gamesman.h"
-
-/*************************************************************************
-**
-** Game-specific constants
-**
-**************************************************************************/
 
 CONST_STRING kGameName            = "(Four Field) Kono";   /* The name of your game */
 CONST_STRING kAuthorName          = "Greg Bonin and Nathan Spindel";     /* Your name(s) */
@@ -86,6 +74,18 @@ CONST_STRING kHelpExample =
 #define BLACK_PLAYER 1
 #define WHITE_PLAYER 2
 
+BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
+int gSymmetryMatrix[8][16] = {
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
+	{0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15},
+	{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},
+	{15,11,7,3,14,10,6,2,13,9,5,1,12,8,4,0},
+	{3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12},
+	{12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3},
+	{12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3},
+	{3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12}
+};
+
 /*************************************************************************
 **
 ** Global Variables
@@ -118,12 +118,7 @@ MOVE makeMove(int source, int dest);
 int neighbors(int x, int y);
 
 STRING MoveToString(MOVE);
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
+POSITION GetCanonicalPosition(POSITION position);
 
 /************************************************************************
 **
@@ -164,6 +159,9 @@ void InitializeGame ()
 	gInitialPosition = generic_hash_hash(gBoard, 1);
 
 	gMoveToStringFunPtr = &MoveToString;
+
+	gCanonicalPosition = GetCanonicalPosition;
+	gSymmetries = TRUE;
 }
 
 
@@ -346,6 +344,48 @@ VALUE Primitive (POSITION position)
 		return undecided;
 }
 
+/* Symmetry Handling: Return the canonical position. */
+POSITION GetCanonicalPosition(POSITION position) {
+  char board[BOARDSIZE];
+  char board2[BOARDSIZE];
+  generic_hash_unhash(position, board);
+  int turn = generic_hash_turn(position);
+  int oppTurn = (turn == 1) ? 2 : 1;
+  POSITION symmetricPosition = 0;
+  int *t;
+  int i, j;
+  for (i = 1; i < 8; i++) {
+    t = gSymmetryMatrix[i];
+    for (j = 0; j < BOARDSIZE; j++) {
+      board2[j] = board[t[j]];
+    }
+    symmetricPosition = generic_hash_hash(board2, turn);
+    if (symmetricPosition < position) {
+      position = symmetricPosition;
+    }
+  }
+  
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (board[i] == 'x') {
+		board[i] = 'o';
+    } else if (board[i] == 'o') {
+		board[i] = 'x';
+	}
+  }
+
+  for (i = 0; i < 8; i++) {
+    t = gSymmetryMatrix[i];
+    for (j = 0; j < BOARDSIZE; j++) {
+      board2[j] = board[t[j]];
+    }
+    symmetricPosition = generic_hash_hash(board2, oppTurn);
+    if (symmetricPosition < position) {
+      position = symmetricPosition;
+    }
+  }
+  return position;
+}
+
 
 /************************************************************************
 **
@@ -481,8 +521,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
+STRING MoveToString (MOVE theMove)
 {
 	STRING move = (STRING) SafeMalloc(8);
 	sprintf(move, "[%d %d]", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
@@ -513,7 +552,6 @@ MOVE theMove;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		printf("%8s's move [(u)ndo/1-%d 1-%d] : ", playersName, BOARDSIZE, BOARDSIZE);
@@ -750,12 +788,8 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	return WIDTH
-	       + (6 + HEIGHT)
-	       + (12 + (gStandardGame ? 2 : 1))
-	       + (14 + (gAllowVWrap ? 2 : 1))
-	       + (16 + (gAllowHWrap ? 2 : 1))
-	       + (18 + (gMustCapture ? 2 : 1));
+	return (WIDTH << 8) | (HEIGHT << 4) | ((gStandardGame ? 1 : 0) << 3) |\
+	 ((gAllowVWrap ? 1 : 0) << 2) | ((gAllowHWrap ? 1 : 0) << 1) | (gMustCapture ? 1 : 0);
 }
 
 
@@ -772,22 +806,23 @@ int getOption ()
 
 void setOption (int option)
 {
-	gMustCapture = (option % 18 == 2);
-	option -= 2;
+	gMustCapture = option & 1;
+	option >>= 1;
 
-	gAllowHWrap = (option % 16 == 2);
-	option -= 2;
+	gAllowHWrap = option & 1;
+	option >>= 1;
 
-	gAllowVWrap = (option % 14 == 2);
-	option -= 2;
+	gAllowVWrap = option & 1;
+	option >>= 1;
 
-	gStandardGame = (option % 12 == 2);
-	option -= 2;
+	gStandardGame = option & 1;
+	option >>= 1;
 
-	HEIGHT = option % 5;
-	option -= 6;
+	HEIGHT = option & 0xF;
+	option >>= 4;
 
 	WIDTH = option;
+	InitializeGame();
 }
 
 
@@ -868,18 +903,34 @@ int neighbors(int x, int y) {
 		return 0;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION InteractStringToPosition(STRING str) {
+	int turn = str[2] == 'A' ? 1 : 2;
+	str += 8;
+	char board[BOARDSIZE];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (str[i] == '-') {
+			board[i] = ' ';
+		} else {
+			board[i] = str[i];
+		}
+	}
+	return generic_hash_hash(board, turn);
 }
 
 STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+	char board[BOARDSIZE + 1];
+	enum UWAPI_Turn turn = generic_hash_turn(pos) == 1 ? UWAPI_TURN_A : UWAPI_TURN_B;
+	generic_hash_unhash(pos, board);
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (board[i] == ' ') {
+			board[i] = '-';
+		}
+	}
+	board[BOARDSIZE] = '\0';
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, BOARDSIZE + 1, board);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	(void)pos;
-	return MoveToString(mv);
+	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(getSourceFromMove(mv), getDestFromMove(mv), 'x');
 }

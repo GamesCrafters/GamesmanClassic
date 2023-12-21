@@ -137,12 +137,6 @@ int possize;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 //int                   vcfg(int *this_cfg);
 void                    InitializeHelpStrings();
 MOVELIST*               getValidMoves(STRING board, int index, int* count);
@@ -543,7 +537,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-	printf("%s's move: %s", computersName, MoveToString(computersMove));
+	STRING moveString = MoveToString(computersMove);
+	printf("%s's move: %s", computersName, moveString);
+	SafeFree(moveString);
 }
 
 
@@ -622,7 +618,6 @@ STRING MoveToString (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 

@@ -694,7 +694,7 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
   (void)position;
   STRING result = (STRING) SafeMalloc(10);
 
-  sprintf(result, "A_-_%d_x", move);
+  sprintf(result, "A_h_%d_x", move);
 
   return result;
 }

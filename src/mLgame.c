@@ -736,10 +736,7 @@ POSITION GetInitialPosition() {
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int L = unhashMoveL(computersMove);
 	int SValue = unhashMoveSValue(computersMove);
 	char SPiece = 'w';
@@ -772,7 +769,7 @@ STRING computersName;
 ************************************************************************/
 
 VALUE Primitive(POSITION position) {
-	MOVELIST *head = NULL, *ptr, *GenerateMoves();
+	MOVELIST *head = NULL, *ptr;
 	inPrimitive = 1;
 	head = ptr = GenerateMoves(position);
 	inPrimitive = 0;
@@ -913,7 +910,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	int newL2Piece = Make48(L1, L2);
 	int newS1Piece = Make8to16(L1, Make48(L1, L2), S1);
 	int newS2Piece = Make7to16(L1, Make48(L1, L2), newS1Piece, S2);
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	int i, j;
 
 	if (whosMove == 1) {
@@ -1044,12 +1041,8 @@ MOVELIST *GenerateMoves(POSITION position) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("    Move format: ['Orientation' 'Pos of corner' 'N-Piece' 'Pos of N-Piece']\n");
@@ -1206,7 +1199,9 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void PrintMove(MOVE theMove) {
-	printf( "%s", MoveToString( theMove ) );
+	STRING moveString = MoveToString(theMove);
+	printf( "%s", moveString);
+	SafeFree(moveString);
 }
 
 /************************************************************************
@@ -1219,9 +1214,7 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(13);
 
 	int L = unhashMoveL(theMove);
@@ -2139,13 +2132,13 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		S1 = Make8to16(L1, L2, S1);
 		S2 = Make7to16(L1, L2, S1, S2);
 		if (SP == 1) { 
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', S1 - 1, 'y');
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', S1 - 1, 'y');
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', S2 - 1, 'y');
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', S2 - 1, 'y');
 		}
 	} else if (mv >= 100000) { // Choosing where to place neutral piece
 		int SV = unhashMoveSValue(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', SV - 1, 'z');
+		return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', SV - 1, 'z');
 	} else {
 		return MoveToString(mv);
 	}

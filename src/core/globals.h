@@ -173,6 +173,7 @@ extern UNDOMOVELIST*    (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING (*gTierToStringFunPtr)(TIER);
 extern MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*);
+extern STRING (*gInteractCustomDoMoveFunPtr)(STRING,MOVE);
 // For the experimental GenerateMoves
 extern int (*gGenerateMovesEfficientFunPtr)(POSITION);
 extern MOVE*            gGenerateMovesArray;

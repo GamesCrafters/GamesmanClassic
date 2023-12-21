@@ -343,7 +343,7 @@ POSITION GetInitialPosition()
 {
 	BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
 	signed char c;
-	int i = 0, xcount = 0, ycount = 0;
+	int i = 0;
 
 	printf("\n\n\t----- Get Initial Position -----\n");
 	printf("\n\tPlease input the position to begin with.\n");
@@ -353,9 +353,9 @@ POSITION GetInitialPosition()
 	getchar();
 	while(i < BOARDSIZE && (c = getchar()) != EOF) {
 		if(c == 'x' || c == 'X') {
-			board[i++] = x; xcount++;
+			board[i++] = x;
 		} else if(c == 'o' || c == 'O' || c == '0') {
-			board[i++] = o; ycount++;
+			board[i++] = o;
 		} else if(c == '-')
 			board[i++] = Blank;
 		/* else do nothing */
@@ -375,10 +375,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
@@ -500,36 +497,6 @@ MOVELIST* GenerateMoves(POSITION position)
 
 /************************************************************************
 **
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-************************************************************************/
-
-POSITION GetCanonicalPosition(POSITION position)
-{
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
-	int i;
-
-	theCanonicalPosition = position;
-
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-		newPosition = DoSymmetry(position, i); /* get new */
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
-	}
-
-	return(theCanonicalPosition);
-}
-
-/************************************************************************
-**
 ** NAME:        DoSymmetry
 **
 ** DESCRIPTION: Perform the symmetry operation specified by the input
@@ -559,6 +526,36 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 	if (board != NULL)
 		SafeFree(board);
 	return(BlankOXToPosition(symmBoard));
+}
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+**
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(POSITION position)
+{
+	POSITION newPosition, theCanonicalPosition;
+	int i;
+
+	theCanonicalPosition = position;
+
+	for(i = 0; i < NUMSYMMETRIES; i++) {
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
+
+	return(theCanonicalPosition);
 }
 
 /**************************************************/
@@ -832,7 +829,7 @@ TIERPOSITION NumberOfTierPositions(TIER tier) {
 void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
 	BlankOX* board = (BlankOX *) SafeMalloc(BOARDSIZE * sizeof(BlankOX));
 	signed char c;
-	int i = 0, xcount = 0, ycount = 0;
+	int i = 0;
 
 	printf("\n\n\t----- Get Initial Position -----\n");
 	printf("\n\tPlease input the position to begin with.\n");
@@ -841,9 +838,9 @@ void GetInitialTierPosition(TIER* tier, TIERPOSITION* tierposition) {
 
 	while(i < BOARDSIZE && (c = GetMyChar()) != EOF) {
 		if(c == 'x' || c == 'X') {
-			board[i++] = x; xcount++;
+			board[i++] = x;
 		} else if(c == 'o' || c == 'O' || c == '0') {
-			board[i++] = o; ycount++;
+			board[i++] = o;
 		} else if(c == '-')
 			board[i++] = Blank;
 		/* else do nothing */

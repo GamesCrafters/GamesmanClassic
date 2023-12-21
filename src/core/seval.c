@@ -43,8 +43,8 @@ int numLibraryTraits = 4;
 int numCustomTraits = 0;
 
 //private functions
-void printEvaluator();
-void printFeature();
+void printEvaluator(seList evaluator);
+void printFeature(fList feature);
 STRING getScaleFnName(fList feature);
 
 /************************************************************************

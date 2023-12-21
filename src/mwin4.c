@@ -196,6 +196,7 @@ TIERPOSITION    NumberOfTierPositions(TIER tier);
 int             MostSigBit(uint num);
 POSITION        ModPosToPosition(POSITION p);
 POSITION        PositionToModPos(POSITION p, TIER t);
+XOBlank WhoseTurn(POSITION pos);
 /************************************************************************
 **
 ** NAME:        GetInitialPosition
@@ -367,7 +368,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 
 POSITION DoMove(POSITION position, MOVE move)
 {
-	XOBlank turn,WhoseTurn();
+	XOBlank turn;
 	POSITION turn2;
 	int i,free=0;
 	POSITION permutation_index, sizebits, remainderbits, temp=1;
@@ -610,7 +611,7 @@ VALUE Primitive(POSITION position)
 	} else {
 
 		int col, row, xx=0, oo=1, bb=2;
-		XOBlank linearBoard[WIN4_WIDTH*WIN4_HEIGHT], WhoseTurn();
+		XOBlank linearBoard[WIN4_WIDTH*WIN4_HEIGHT];
 
 		if (gUseGPS) {
 			int lastRow = gPosition.heights[gPosition.lastColumn];
@@ -677,7 +678,7 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 {
 	int i,row;
 	//  VALUE GetValueOfPosition();
-	XOBlank board[MAXW][MAXH], WhoseTurn();
+	XOBlank board[MAXW][MAXH];
 
 	PositionToBoard(position,board);
 

@@ -481,7 +481,6 @@ static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 							SetSlotMax(child, SL_DRAW_LEVEL_SLOT);
 							break;
 						} else if (parentValue != win && parentValue != drawwin) {
-							printf("PWL: %d\n", parentValue);
 							BadElse("ProcessWinLose");
 						}
 					}
@@ -504,7 +503,6 @@ static void ProcessWinLose(VALUE valForWin, VALUE valForLose, int level) {
 					}
 				} else {
 					/* We should not see other values DeQueued from win and lose queues. */
-					printf("PWL2: %d\n", childValue);
 					BadElse("ProcessWinLose2");
 				}
 			}
@@ -524,7 +522,7 @@ static void ProcessTie() {
 		for (ptr = parentsOf[child]; ptr; ptr = ptr->next) {
 			parent = ptr->position;
 			/* Skip if this is the initial position (parent is kBadPosition). */
-			if (parent == kBadPosition) {
+			if (parent != kBadPosition) {
 				parentValue = GetValueFromBPDB(parent);
 				/* If parent is undecided and this is the last unknown child, parent is tie. */
 				if (parentValue == undecided && --numberChildren[parent] == 0) {
@@ -536,9 +534,6 @@ static void ProcessTie() {
 				}
 			}
 		}
-		/* We won't need to visit the parents of a tying position again. */
-		FreePositionList(parentsOf[child]);
-		parentsOf[child] = NULL;
 	} /* while there are still positions in tie FR. */
 }
 
@@ -548,10 +543,9 @@ are also nonpure draws.
 Mark all nonpure draw positions as drawdraws. The Tie frontier is repurposed
 to contain nonpure draw positions. */
 static BOOLEAN ProcessDrawDraws() {
-	POSITION pos, parent, child;
-	VALUE parentValue, childValue;
+	POSITION pos, parent;
+	VALUE parentValue;
 	POSITIONLIST *ptr;
-	MOVELIST *moves, *head;
 
 	BOOLEAN nonpureDrawsExist = tieFRHead != NULL;
 	while (tieFRHead) {
@@ -569,23 +563,6 @@ static BOOLEAN ProcessDrawDraws() {
 				}
 			}
 		}
-
-		// moves = GenerateMoves(pos);
-		// head = moves;
-		// while (moves) {
-		// 	child = DoMove(pos, moves->move);
-		// 	if (child != kBadPosition) {
-		// 		childValue = GetValueFromBPDB(child);
-		// 		if (childValue == drawwin || childValue == drawlose || childValue == undecided) {
-		// 			InsertTieFR(child);
-		// 			SetValueInBPDB(child, drawdraw);
-		// 			SetSlotMax(child, SL_REM_SLOT);
-		// 			SetSlotMax(child, SL_DRAW_LEVEL_SLOT);
-		// 		}
-		// 	}
-		// 	moves = moves->next;
-		// }
-		// FreeMoveList(head);
 	} /* while there are still positions in tie FR. */
 	return nonpureDrawsExist;
 }
@@ -743,7 +720,7 @@ static BOOLEAN SanityCheckDatabase(void) {
 		}
 	}
 
-	int totalrems = 100;
+	int totalrems = REMOTENESS_MAX;
 	int totaldls = 100;
 	POSITION drawLevelCount[totalrems * totaldls];
 	memset(drawLevelCount, 0, sizeof(POSITION) * totalrems * totaldls);
@@ -752,8 +729,6 @@ static BOOLEAN SanityCheckDatabase(void) {
 		if (va != undecided) {
 			REMOTENESS rem = (REMOTENESS) GetSlot(po, SL_REM_SLOT);
 			DRAWLEVEL dl = (DRAWLEVEL) GetSlot(po, SL_DRAW_LEVEL_SLOT);
-			// PrintPosition(po, "", FALSE);
-			// printf("%llu %s Remoteness: %d; Level: %d\n", po, gValueString[va], rem, dl);
 			drawLevelCount[dl * totalrems + rem]++;
 		}
 	}

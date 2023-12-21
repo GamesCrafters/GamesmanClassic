@@ -333,7 +333,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move,
                                  STRING playerName) {
     /* local variables */
-    USERINPUT ret, HandleDefaultTextInput();
+    USERINPUT ret;
     do {
         printf("Enter your move here: ");
         ret = HandleDefaultTextInput(position, move, playerName);
@@ -397,7 +397,11 @@ MOVE ConvertTextInputToMove(STRING input) {
 **
 ************************************************************************/
 
-void PrintMove(MOVE move) { printf("%s", MoveToString(move)); }
+void PrintMove(MOVE move) {
+    STRING moveString = MoveToString(move);
+    printf("%s", moveString);
+    SafeFree(moveString);
+}
 
 /************************************************************************
 **

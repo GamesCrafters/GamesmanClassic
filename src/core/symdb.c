@@ -528,7 +528,11 @@ symdb_get_value(
         POSITION pos
         )
 {
-	return (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_VALUESLOT );
+	VALUE val = (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_VALUESLOT );
+	if (val == tie && symdb_get_remoteness(pos) == (int) symdb_write_slice->maxvalue[SYMDB_REMSLOT/2] ) {
+		val = drawdraw;
+	}
+	return val;
 }
 
 REMOTENESS

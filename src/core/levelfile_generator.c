@@ -754,7 +754,6 @@ int readLevelFileType0(char* compressed_filename, BITARRAY *array, int length)
 ****************************************************************************/
 int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length)
 {
-	int index = 0;
 	UINT64 minHashValue = getLevelFileMinHashValue(compressed_filename);
 	UINT64 maxHashValue = getLevelFileMaxHashValue(compressed_filename);
 	UINT64 bitsPerPosition = log2(maxHashValue - minHashValue) + 1;
@@ -905,7 +904,6 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 			printf("case2\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 			printf("--- %x %d\n", *buffer, currentIndex);
-			index++;
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
 			tempBitIndexInByte = 1;
 			currentIndex += 8;
@@ -963,7 +961,6 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 			printf("case3\n");
 			status = bitlib_file_read_bytes(compressed_filep, buffer, 1);
 			printf("--- %x %d\n", *buffer, currentIndex);
-			index++;
 			if(currentIndex)
 				tempNumber = (tempNumber << (bitsPerPosition - currentIndex))  + ((*buffer) >> (8-(bitsPerPosition-currentIndex)));
 			else
@@ -1050,7 +1047,6 @@ int readLevelFileType1(char* compressed_filename, BITARRAY *bitArray, int length
 ****************************************************************************/
 int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length)
 {
-	int index = 0;
 	UINT64 minHashValue = getLevelFileMinHashValue(compressed_filename);
 	UINT64 maxHashValue = getLevelFileMaxHashValue(compressed_filename);
 	UINT64 lastZero = getLastZero(compressed_filename);
@@ -1223,7 +1219,6 @@ int readLevelFileType2(char* compressed_filename, BITARRAY *bitArray, int length
 				}
 				endSectionCounter = 0;
 			}
-			index++;
 			tempNumber += ((*buffer) << (bitsPerPosition - currentIndex));
 			tempBitIndexInByte = 1;
 			currentIndex += 8;

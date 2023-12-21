@@ -401,7 +401,6 @@ void AutoSolveAllTiersMultiProcess() {
     ifprintf(gTierSolvePrint, "Fully Solving the game...\n\n");
 
 	pid_t wpid = 1;
-	int tiersStarted = 0;
 	BOOLEAN loop = TRUE;
 
 	TIERLIST *list;
@@ -439,7 +438,6 @@ void AutoSolveAllTiersMultiProcess() {
 				finished[ptr->tier] = -1;
 
                 loop = TRUE;
-				tiersStarted++;
 
                 pid_t child_pid;
 
@@ -2144,7 +2142,6 @@ void DoTierDependencies(TIER tier, FILE* fp, time_t times[][2], time_t min_time,
 	//Now link this tier to all of the tiers it depends on
 
 	TIERLIST *childs, *childPtr;
-	int dependencies = 0;
 	//Get all the children; i.e. All the tiers it depends on.
 	childs = gTierChildrenFunPtr(tier);
 	for (childPtr = childs; childPtr != NULL; childPtr = childPtr->next)
@@ -2160,7 +2157,6 @@ void DoTierDependencies(TIER tier, FILE* fp, time_t times[][2], time_t min_time,
 			//print out very simple
 			printf("d%llu:%llu\n", tier, childPtr->tier);
 		}
-		dependencies++;
 	}
 
 	if (gVisTiers) {

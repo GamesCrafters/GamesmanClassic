@@ -301,13 +301,8 @@ static const int DEFAULT_PIECES_ARRAY[] =
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-        extern GENERIC_PTR      SafeMalloc ();
-extern void                     SafeFree ();
-#endif
 
-        STRING                          MoveToString(MOVE move);
+STRING                          MoveToString(MOVE move);
 
 /*************************************************************************
 **
@@ -620,7 +615,6 @@ STRING MoveToString (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************

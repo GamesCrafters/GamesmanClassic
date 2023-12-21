@@ -19,8 +19,6 @@
 #include "gamesman.h"
 #include <dirent.h>
 
-extern STRING gValueString[];
-
 POSITION gNumberOfPositions  = 0;
 
 POSITION gInitialPosition    = 0;
@@ -294,12 +292,6 @@ int hashLookup(char* token, classes node_classes, nodes board);
 /* Addition to list the contents of a directory. -JJ */
 void    PrettyPrintDir (const char*, const char*);
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 
 /************************************************************************
 **
@@ -447,10 +439,7 @@ void SetTclCGameSpecificOptions(int options[])
 **
 *************************************************************************/
 
-POSITION DoMove (thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove (POSITION thePosition, MOVE theMove) {
 
 	int to, from;
 	int player;
@@ -532,10 +521,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int to, from;
 
 	moveUnHash(computersMove, &to, &from);
@@ -567,10 +553,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive (pos)
-POSITION pos;
-{
-	int generic_hash_turn();
+VALUE Primitive (POSITION pos) {
 
 	char string_board[MAX_NODES];
 	int player = generic_hash_turn(pos);
@@ -623,11 +606,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-void PrintPosition (position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	char string_board[MAX_NODES];
 
 	generic_hash_unhash(position, string_board);
@@ -666,12 +645,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	int generic_hash_turn();
-	VALUE Primitive();
+MOVELIST *GenerateMoves (POSITION position) {
+	MOVELIST *head = NULL;
 
 	char string_board[MAX_NODES];
 	int player, i, j, max_pieces;
@@ -764,13 +739,8 @@ BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode* from_node
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%s's move [1-%d 1-%d/u(undo)]: ", playerName, num_nodes,
@@ -803,9 +773,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (input)
-STRING input;
-{
+BOOLEAN ValidTextInput (STRING input) {
 	int from, to;
 
 	sscanf(input, "%d %d", &from, &to);
@@ -831,9 +799,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (input)
-STRING input;
-{
+MOVE ConvertTextInputToMove (STRING input) {
 	int to, from;
 
 	sscanf(input, "%d %d", &from, &to);
@@ -854,10 +820,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove (move)
-MOVE move;
-{
-	void moveUnHash();
+void PrintMove (MOVE move) {
 
 	int to, from;
 	moveUnHash(move, &to, &from);

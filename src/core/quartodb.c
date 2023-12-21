@@ -587,6 +587,7 @@ void quartoDetailedPositionResponse(STRING str) {
     enum UWAPI_Turn turn;
 	unsigned int num_rows, num_columns; // Unused
     STRING board;
+    STRING childBoard;
 	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
 		// Failed to parse string
 		printf("}}");
@@ -603,6 +604,7 @@ void quartoDetailedPositionResponse(STRING str) {
     for (i = 0; i < 16; i++) {
         if (board[i] == '\0') {
             printf("}}"); // Invalid board string: board string not long enough
+            SafeFree(board);
             return;
         } else if (board[i] == '-') {
             level--;
@@ -611,6 +613,7 @@ void quartoDetailedPositionResponse(STRING str) {
             piece = board[i] - 'A';
             if (piece > 15) {
                 printf("}}"); // Invalid board string: contains invalid characters
+                SafeFree(board);
                 return;
             }
             piecesPlaced |= UINT16_C(1) << piece;
@@ -624,6 +627,7 @@ void quartoDetailedPositionResponse(STRING str) {
     }
     if (piecesPlacedCount != occupiedSlotsCount) {
         printf("}}"); // Invalid board string: number of pieces placed does not match number of occupied slots
+        SafeFree(board);
         return;
     }
 
@@ -652,6 +656,7 @@ void quartoDetailedPositionResponse(STRING str) {
 
     if (isPrimitive) { // handles moves list for primitive and level 16
         printf("]}}");
+        SafeFree(board);
         return;
     }
 
@@ -686,7 +691,9 @@ void quartoDetailedPositionResponse(STRING str) {
                 getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
                 if (remoteness) { // non-primitive child
                     board[16] = childTier.pieceToPlace + 'A';
-                    printf("{\"board\":\"%s\",", UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board));
+                    childBoard = UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board);
+                    printf("{\"board\":\"%s\",", childBoard);
+                    SafeFree(childBoard);
                     printf("\"remoteness\":%d,", remoteness);
                     printf("\"value\":\"%s\",", vctvs(valueChar));
                     printf("\"move\":\"A_%c_%d\",", childTier.pieceToPlace + 'A', 16 + nextSlot * 16 + childTier.pieceToPlace);
@@ -696,7 +703,9 @@ void quartoDetailedPositionResponse(STRING str) {
                     }
                 } else {
                     board[16] = '-';
-                    printf("{\"board\":\"%s\",", UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board));
+                    childBoard = UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board);
+                    printf("{\"board\":\"%s\",", childBoard);
+                    SafeFree(childBoard);
                     printf("\"remoteness\":%d,", remoteness);
                     printf("\"value\":\"%s\",", vctvs(valueChar));
                     printf("\"move\":\"A_-_%d\",", nextSlot); 
@@ -717,7 +726,10 @@ void quartoDetailedPositionResponse(STRING str) {
         getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
         board[nextSlot] = pieceToPlace + 'A';
         board[16] = '-';
-        printf("{\"board\":\"%s\",", UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board));
+
+        childBoard = UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board);
+        printf("{\"board\":\"%s\",", childBoard);
+        SafeFree(childBoard);
         printf("\"remoteness\":%d,", remoteness);
         printf("\"value\":\"%s\",", vctvs(valueChar));
         printf("\"move\":\"A_-_%d\",", nextSlot); 
@@ -725,5 +737,6 @@ void quartoDetailedPositionResponse(STRING str) {
         board[16] = pieceToPlace + 'A';
     }
 
+    SafeFree(board);
 	printf("]}}");
 }

@@ -61,6 +61,7 @@ POSITION gMinimalPosition  = 65535;
 
 CONST_STRING kAuthorName         = "Dan Garcia";
 CONST_STRING kGameName           = "Tac Tix";
+CONST_STRING kDBName = "tactix";
 BOOLEAN kPartizan           = FALSE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -196,6 +197,9 @@ int FourInRow[k4InARow][4] = {  {0,1,2,3},{4,5,6,7},{8,9,10,11},{12,13,14,15},
 
 /** Function Prototypes **/
 void PositionToBlankO(POSITION thePos,BlankO *theBlankO);
+BOOLEAN Contiguous2(BlankO *theBlankO, int a, int b);
+BOOLEAN Contiguous3(BlankO *theBlankO, int a, int b, int c);
+BOOLEAN Contiguous4(BlankO *theBlankO, int a, int b, int c, int d);
 
 STRING MoveToString( MOVE );
 
@@ -373,10 +377,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	int i, j = 1;
 
 	for(i = 0, j = 1; i < gBoardSize; i++, j*=2)
@@ -397,8 +398,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	int initialPosition;
 	printf("Keeping in mind that X always goes first...\n");
 	printf("Please input a 9-element string of either 0,1, or 2.\n");
@@ -419,10 +419,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int i, j = 1;
 	printf("%8s's move                    : [ ", computersName);
 	for(i = 0, j = 1; i < gBoardSize; i++, j*=2)
@@ -454,9 +451,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	if( position == 0 )
 		return(gStandardGame ? lose : win);
 	else
@@ -481,15 +476,8 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	BlankO *theBlankO;
-  #ifndef MEMWATCH
-	GENERIC_PTR SafeMalloc();
-  #endif
 	theBlankO = (BlankO *) SafeMalloc (sizeof(BlankO) * gBoardSize);
 	PositionToBlankO(position,theBlankO);
 
@@ -538,18 +526,11 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVE theMove;
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
-	BOOLEAN Contiguous2(), Contiguous3(), Contiguous4();
 	BlankO *theBlankO;
 	int i, index1, index2, index3;
-  #ifndef MEMWATCH
-	GENERIC_PTR SafeMalloc();
-  #endif
 
 	theBlankO = (BlankO *) SafeMalloc (sizeof(BlankO) * gBoardSize);
 	PositionToBlankO(position,theBlankO);
@@ -593,6 +574,8 @@ POSITION position;
 			head = CreateMovelistNode(theMove,head);
 		}
 	}
+	SafeFree((GENERIC_PTR)theBlankO);
+
 	return(head);
 }
 
@@ -615,13 +598,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		*theMove = 0;
@@ -652,9 +630,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	BOOLEAN valid = TRUE;
 	int slot[4], ret, i;
 	ret = sscanf(input,"%d %d %d %d", &slot[0],&slot[1],&slot[2],&slot[3]);
@@ -675,9 +651,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	int slot[4], ret, i;
 	MOVE tmpMove = 0;
 	ret = sscanf(input,"%d %d %d %d", &slot[0],&slot[1],&slot[2],&slot[3]);
@@ -696,9 +670,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -714,9 +686,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 20 );
 	STRING temp = (STRING) SafeMalloc( 20 );
 
@@ -773,10 +743,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankO(thePos,theBlankO)
-POSITION thePos;
-BlankO *theBlankO;
-{
+void PositionToBlankO(POSITION thePos, BlankO *theBlankO) {
 	int i, j = 1;
 	for(i = 0, j = 1; i < gBoardSize; i++, j*=2)
 		if(j & thePos) /* ith move */
@@ -797,9 +764,7 @@ BlankO *theBlankO;
 **
 ************************************************************************/
 
-POSITION BlankOToPosition(theBlankO)
-BlankO *theBlankO;
-{
+POSITION BlankOToPosition(BlankO *theBlankO) {
 	int i;
 	POSITION position = 0;
 
@@ -822,10 +787,7 @@ BlankO *theBlankO;
 **
 ************************************************************************/
 
-BOOLEAN Contiguous4(theBlankO,a,b,c,d)
-BlankO theBlankO[];
-int a,b,c,d;
-{
+BOOLEAN Contiguous4(BlankO *theBlankO, int a, int b, int c, int d) {
 	return(       theBlankO[a] == o &&
 	              theBlankO[b] == o &&
 	              theBlankO[c] == o &&
@@ -845,10 +807,7 @@ int a,b,c,d;
 **
 ************************************************************************/
 
-BOOLEAN Contiguous3(theBlankO,a,b,c)
-BlankO theBlankO[];
-int a,b,c;
-{
+BOOLEAN Contiguous3(BlankO *theBlankO, int a, int b, int c) {
 	return(       theBlankO[a] == o &&
 	              theBlankO[b] == o &&
 	              theBlankO[c] == o );
@@ -867,14 +826,9 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN Contiguous2(theBlankO,a,b)
-BlankO theBlankO[];
-int a,b;
-{
+BOOLEAN Contiguous2(BlankO *theBlankO, int a, int b) {
 	return(theBlankO[a] == o && theBlankO[b] == o );
 }
-
-CONST_STRING kDBName = "tactix";
 
 int NumberOfOptions()
 {

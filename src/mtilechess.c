@@ -243,12 +243,6 @@ void printProperBoard(char*);
 char* flushBoard(char*);
 char* switchBoardSize(char*);
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -574,7 +568,6 @@ void PrintMove (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************

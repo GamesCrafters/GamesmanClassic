@@ -193,8 +193,8 @@ void PopulateEdgelist(EDGELIST *tree) {
 	MOVELIST *childMoves;
 	MOVE theMove;
 	OPEN_POS_DATA pdata, cdata;
-	int resizeCount = 0;
-	int resizeLevelCount = 0;
+	// int resizeCount = 0;
+	// int resizeLevelCount = 0;
 
 	if(!kLoopy || !gUseOpen)
 		level = 0;
@@ -225,7 +225,7 @@ void PopulateEdgelist(EDGELIST *tree) {
 			/* If the level is more than the number in tree, resize to handle more levels */
 
 			if(level > (GameTree.NumberOfLevels - 1)) {
-				resizeCount++;
+				//resizeCount++;
 				ResizeTree(&GameTree, level);
 			}
 
@@ -236,7 +236,7 @@ void PopulateEdgelist(EDGELIST *tree) {
 			/* Resize an individual level if no room left */
 
 			if(((GameTree.edgesPerLevel)[level] - 2) <= (GameTree.nextEdgeInLevel)[level]) {
-				resizeLevelCount++;
+				//resizeLevelCount++;
 				(GameTree.edges)[level] = SafeRealloc((GameTree.edges)[level], (GameTree.edgesPerLevel)[level] * 2 * sizeof(EDGE));
 				(GameTree.edgesPerLevel)[level] = (GameTree.edgesPerLevel)[level] * 2;
 			}

@@ -416,16 +416,6 @@ char piece_strings[13] = {'K','Q','R','B','N','P',
 /*************************************************************************/
 
 /* Function prototypes here. */
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
-extern POSITION         generic_hash_hash(char *board, int player);
-extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
 BOOLEAN offBoard(MOVE);
 BOOLEAN isPlayer(PIECE,MPLAYER);
 
@@ -772,7 +762,6 @@ POSITION GetInitialPosition () {
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
-	void PrintMove();
 	printf("  > %s's move : ",computersName);
 	PrintMove(computersMove);
 	printf("\n");
@@ -993,8 +982,7 @@ MOVELIST *GenerateMoves (POSITION position) {
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE* theMove, STRING playerName) {
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 	do {
 		printf("%8s's move > ",playerName);
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);

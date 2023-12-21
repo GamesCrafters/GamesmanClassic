@@ -301,10 +301,12 @@ void HandleArguments (int argc, char *argv[])
 				gMessage = TRUE;
 			} else {
 				option = atoi(argv[++i]);
-				if(option > NumberOfOptions()) {
-					fprintf(stderr, "\nInvalid option configuration!\n\n");
-					gMessage = TRUE;
-				} else
+				// This is commented out because it's possible for max variant ID
+				// to be larger than NumberOfOptions()
+				// if(option > NumberOfOptions()) {
+				// 	fprintf(stderr, "\nInvalid option configuration!\n\n");
+				// 	gMessage = TRUE;
+				// } else
 					setOption(option);
 			}
 		} else if (!strcasecmp(argv[i], "--nobpdb")) {

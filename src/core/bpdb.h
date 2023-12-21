@@ -67,7 +67,7 @@ void
 bpdb_free( );
 
 GMSTATUS
-bpdb_free_slice( );
+bpdb_free_slice( SLICE sl );
 
 // get/set value
 VALUE

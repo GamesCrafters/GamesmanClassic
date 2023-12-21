@@ -327,12 +327,8 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
     char* board;
     int MoveArrayNum = (int)theMove;
 
-#if DEBUG
-    printf("\nDoMove starting at Move %d\n", MoveArrayNum);
-#endif
-
-    board = getBoard(thePosition);
-    whoseturn = getTurn(thePosition);
+	board = getBoard(thePosition);
+	whoseturn = getTurn(thePosition);
 
     // assigning opponent pieces and own pieces
     if (whoseturn == 1) {
@@ -450,23 +446,16 @@ POSITION SetupInitialPosition() {
 }
 
 void init_board_hash(void) {
-    int hash_data[] = {
-        BLANKPIECE, 0, OthCols * OthRows, WHITEPIECE, 0, OthCols * OthRows,
-        BLACKPIECE, 0, OthCols * OthRows, -1};
-    POSITION max;
-    POSITION init;
-#if DEBUG
-    printf("OthRows = %d, OthCols = %d", OthRows, OthCols);
-    printf("\ninit_board_hash starting...\n");
-#endif
-    max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
-    // init = generic_hash_hash(start_standard_board, BLACK);
-    init = MakeInitialSquare();
-#if DEBUG
-    printf("\nmax is \n" POSITION_FORMAT, max);
-#endif
-    gInitialPosition = init;
-    gNumberOfPositions = max;
+	int hash_data[] = { BLANKPIECE, 0, OthCols * OthRows,
+		                WHITEPIECE, 0, OthCols * OthRows,
+		                BLACKPIECE, 0, OthCols * OthRows, -1 };
+	POSITION max;
+	POSITION init;
+	max = generic_hash_init(OthCols * OthRows, hash_data, NULL, 0);
+	//init = generic_hash_hash(start_standard_board, BLACK);
+	init = MakeInitialSquare();
+	gInitialPosition = init;
+	gNumberOfPositions = max;
 }
 
 /************************************************************************
@@ -518,10 +507,6 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 VALUE Primitive(POSITION pos) {
     int blanktally, blacktally, whitetally, whoseturn;
     char* board;
-
-#if DEBUG
-    printf("Primitive Starting");
-#endif
 
     board = getBoard(pos);
     whoseturn = (int)getTurn(pos);
@@ -583,10 +568,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
     // for loops inits
     int i, j, alpha, hyphens;
-
-#if DEBUG
-    printf("\nPrintPosition starting\n");
-#endif
 
     /*Information gathering*/
     board = getBoard(position);
@@ -706,10 +687,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     printf("\t+");
     for (hyphens = 0; hyphens < (2 * OthCols) + 25; hyphens++) printf("-");
     printf("+\n\n");
-
-#if DEBUG
-    printf("\nEnd PrintPosition\n");
-#endif
 }
 
 /************************************************************************
@@ -730,31 +707,23 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 **
 ************************************************************************/
 
-MOVELIST* GenerateMoves(POSITION position) {
-    int i, j, whoseturn = getTurn(position);
-    char* board;
-    char ownpiece, opponentpiece;
-    int AnyMovesAtAll = 0;
-    int move[2];
-    int numsolvercounter;
-    MOVELIST *CreateMovelistNode(), *head = NULL;
+MOVELIST *GenerateMoves(POSITION position) {
+	int i, j, whoseturn = getTurn(position);
+	char* board;
+	char ownpiece, opponentpiece;
+	int AnyMovesAtAll = 0;
+	int move[2];
+	int numsolvercounter;
+	MOVELIST *head = NULL;
 
-#if DEBUG
-    printf("\nGenerate Moves starting\n");
-#endif
-
-    if (SOLVERCOUNTER && (solvercounter != -1)) {
-        numsolvercounter =
-            printf("%d / %d Positions Solved", solvercounter, solvercountermax);
-        for (i = 0; i < numsolvercounter; i++) printf("\b");
-        solvercounter++;
-        if (solvercounter > solvercountermax - 1) {
-#if DEBUG
-            printf("Solvercounter ended");
-#endif
-            solvercounter = -1;
-        }
-    }
+	if (SOLVERCOUNTER && (solvercounter != -1)) {
+		numsolvercounter = printf("%d / %d Positions Solved", solvercounter, solvercountermax);
+		for (i = 0; i < numsolvercounter; i++) printf("\b");
+		solvercounter++;
+		if (solvercounter > solvercountermax - 1) {
+			solvercounter = -1;
+		}
+	}
 
     board = getBoard(position);
     /*assigning opponent pieces and own pieces*/
@@ -788,11 +757,7 @@ MOVELIST* GenerateMoves(POSITION position) {
     free(board);
     if (!AnyMovesAtAll) head = CreateMovelistNode(PASSMOVE, head);
 
-#if DEBUG
-    printf("\nEnd Generate Moves\n");
-#endif
-
-    return head;
+	return head;
 }
 
 /************************************************************************
@@ -814,27 +779,20 @@ MOVELIST* GenerateMoves(POSITION position) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE* theMove,
-                                 STRING playerName) {
-    BOOLEAN ValidMove();
-    USERINPUT ret, HandleDefaultTextInput();
-    char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
+USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
+	char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
 
-#if DEBUG
-    printf("GetAndPrintPlayersMove Start\n");
-#endif
+	do {
+		printf("%8s's move [(u)ndo/([a-%c][1-%d])] :  ", \
+		       playerName, alphabet[OthCols - 1], OthRows);
 
-    do {
-        printf("%8s's move [(u)ndo/([a-%c][1-%d])] :  ", playerName,
-               alphabet[OthCols - 1], OthRows);
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 
-        ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-#if DEBUG
-        printf("GetAndPrintPlayersMove Returning\n");
-#endif
-        if (ret != Continue) return ret;
-    } while (TRUE);
-    return Continue; /* this is never reached, but lint is now happy */
+		if (ret != Continue) return ret;
+	}
+	while (TRUE);
+	return Continue; /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -854,30 +812,26 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE* theMove,
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(STRING input) {
-    char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    size_t len = strlen(input);
-#if DEBUG
-    printf("ValidTextInput Starting. Strlen = %d\n", (int)strlen(input));
-#endif
-
-    if (len == 1) {
-        input[0] = toupper(input[0]);
-        return (input[0] == USERINDICATESPASS);
-    } else if (len == 2) {
-        input[0] = toupper(input[0]);
-        input[1] = toupper(input[1]);
-        return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1]) &&
-                ('1' <= input[1] && input[1] <= '9'));
-    } else if (len == 3) {
-        input[0] = toupper(input[0]);
-        input[1] = toupper(input[1]);
-        input[2] = toupper(input[2]);
-        return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1]) &&
-                ('1' <= input[1] && input[1] <= '9') &&
-                ('0' <= input[2] && input[2] <= '9'));
-    }
-    return FALSE;
+BOOLEAN ValidTextInput (STRING input) {
+	char alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	size_t len = strlen(input);
+	if (len == 1) {
+		input[0] = toupper(input[0]);
+		return (input[0] == USERINDICATESPASS);
+	} else if (len == 2) {
+		input[0] = toupper(input[0]);
+		input[1] = toupper(input[1]);
+		return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1])
+		        && ('1' <= input[1] && input[1] <= '9'));
+	} else if (len == 3) {
+		input[0] = toupper(input[0]);
+		input[1] = toupper(input[1]);
+		input[2] = toupper(input[2]);
+		return (('A' <= input[0] && input[0] <= alphabet[OthCols - 1])
+		        && ('1' <= input[1] && input[1] <= '9')
+		        && ('0' <= input[2] && input[2] <= '9'));
+	}
+	return FALSE;
 }
 
 /************************************************************************
@@ -930,17 +884,13 @@ void PrintMove(MOVE move) {
     int ArrayNum, mymove[2];
     char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
 
-#if DEBUG
-    printf("PrintMove starting at %d\n", move);
-#endif
-
-    ArrayNum = (int)move;
-    if (ArrayNum == PASSMOVE) {
-        printf("[No Available Moves. Please hit 'd' to pass.] ");
-    } else {
-        ArrayNumtoCoord(ArrayNum, mymove);
-        printf("%c%d", alphabet[mymove[1] - 1], InvertRow(mymove[0]));
-    }
+	ArrayNum = (int) move;
+	if (ArrayNum == PASSMOVE) {
+		printf("[No Available Moves. Please hit 'd' to pass.] ");
+	} else {
+		ArrayNumtoCoord(ArrayNum, mymove);
+		printf("%c%d", alphabet[mymove[1] - 1], InvertRow(mymove[0]));
+	}
 }
 
 /************************************************************************
@@ -1741,7 +1691,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
     if ((int)mv == PASSMOVE) {
         return UWAPI_Board_Regular2D_MakeAddStringWithSound('P', 20, 'y');
     } else {
-        return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', mv, 'x');
+        return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', mv, 'x');
     }
 }
 

@@ -29,6 +29,7 @@ POSITION gInitialPosition     = 0;      /* Calculated in InitializeGame */
 
 CONST_STRING kAuthorName          = "Johnny Tran and Steve Wu";
 CONST_STRING kGameName            = "Rubik's Checkers";
+CONST_STRING kDBName = "rubikscheckers";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -67,16 +68,6 @@ CONST_STRING kHelpExample =             /* TODO */
 ** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
-
-// External Functions
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc();
-extern void             SafeFree();
-#endif
-extern POSITION         generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), int player);
-extern POSITION         generic_hash_hash(char* board, int player);
-extern char             *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
 
 STRING MoveToString(MOVE);
 
@@ -486,10 +477,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	//int myPosition = thePosition;
 	char myPosition[boardSize];
 	POSITION retValue;
@@ -719,8 +707,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(MOVE computersMove, STRING computersName)
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	(void)computersMove;
 	(void)computersName;
 	// TODO
@@ -787,9 +774,7 @@ unsigned int CountPieces(char board[],
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	char board[boardSize];
 	unsigned int p1Pieces, p2Pieces;
 	int whosTurn = generic_hash_turn(position);
@@ -833,11 +818,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	char board[boardSize];
 	int player;
 	unsigned int i, j, k = 0;
@@ -1165,11 +1146,8 @@ MOVELIST *makePromote(char *initialPosition, int currentIndex, MOVELIST *head){
 
 //need to write makePromote
 //
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL, *oldHead = NULL;
-	MOVELIST *CreateMovelistNode();
 	char initialPosition[boardSize];
 	//char tempPositions[boardSize];
 
@@ -1237,13 +1215,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
-	BOOLEAN ValidMove();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 	
 	do {
 		printf("%8s's move [ (u)ndo/(a-%c)(1-%d)[(a-%c)(1-%d)]* ] : ", playerName, 'a' - 1 + cols*2, rows, 'a' - 1 + cols*2, rows);
@@ -1290,9 +1263,7 @@ void getTextFromIndex(int index, char* pos) {
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	// TODO
 	unsigned int i = 1, myIndex;
 	char currentRow = input[1], currentCol = input[0];
@@ -1347,9 +1318,7 @@ STRING input;
 
 //NO ERROR CHECKING YET
 //write
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	int i = 2;
 	char currentRow = input[1], currentCol = input[0];
 	int myMove, currentIndex, nextIndex;
@@ -1452,9 +1421,7 @@ int canPromote(int index, POSITION position) {
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING s = (STRING) SafeMalloc(100); // replace with exact #
 	s[0] = 0; // Initialize string to null
 
@@ -1552,9 +1519,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	/*  unsigned int currentMove, previousMove, counter=0, done = FALSE;
 	   char *myMove = (char *)malloc((32-MVHASHACC)/2*sizeof(char));
 	   printf("(%d ", theMove>>(32-MVHASHACC)), counter = 0;
@@ -1663,9 +1628,6 @@ MOVE theMove;
 	printf("%s",s);
 	SafeFree(s);
 }
-
-
-CONST_STRING kDBName = "Rubik's Checkers";
 
 int NumberOfOptions()
 {

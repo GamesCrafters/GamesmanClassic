@@ -762,7 +762,7 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
   }
   int fromindex = (firstplayer) ? cnt : (cnt + 7);
 
-  sprintf(str, "A_-_%d_x", fromindex);
+  sprintf(str, "A_z_%d_x", fromindex + 19);
 
   return str;
 }

@@ -127,9 +127,9 @@ STRING MoveToString(MOVE);
 **
 ************************************************************************/
 
-void InitializeGame()
-{
+void InitializeGame() {
 	gMoveToStringFunPtr = &MoveToString;
+	kCombinatorial = TRUE;
 }
 
 /************************************************************************
@@ -149,11 +149,8 @@ void InitializeGame()
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 
 	/* If at 9, you can only go 1 to 10. Otherwise you can go 1 or 2 */
 	if (position < 9)
@@ -178,10 +175,7 @@ POSITION position;
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	return(thePosition + theMove);
 }
 
@@ -205,9 +199,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	if(position == 10) /* If it's your turn, and it's 10, THEY got there! */
 		return(gStandardGame ? lose : win);
 	else
@@ -232,11 +224,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	//  VALUE GetValueOfPosition();
 
 	printf("\nTOTAL                        : " POSITION_FORMAT " %s \n\n",
@@ -255,10 +243,7 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %1d\n", computersName, computersMove);
 }
 
@@ -273,9 +258,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	printf("%d", theMove);
 }
 
@@ -298,12 +281,8 @@ MOVE theMove;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1/2] : ", playerName);
@@ -342,9 +321,8 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(STRING input)
-{
-	return(input[0] == '1' || input[0] == '2');
+BOOLEAN ValidTextInput(STRING input) {
+	return input[0] == '1' || input[0] == '2';
 }
 
 
@@ -360,8 +338,7 @@ BOOLEAN ValidTextInput(STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(STRING input)
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) input[0] - '0'); /* user inputs '1','2', our rep. is 1,2 */
 }
 
@@ -376,8 +353,7 @@ MOVE ConvertTextInputToMove(STRING input)
 **
 ************************************************************************/
 
-void GameSpecificMenu() {
-}
+void GameSpecificMenu() {}
 
 
 /************************************************************************
@@ -389,8 +365,7 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions[])
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	/* No need to have anything here, we have no extra options */
 	(void)theOptions;
 }
@@ -407,8 +382,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	POSITION initialPosition;
 	printf("Please input the starting value [1 - 10] : ");
 	scanf(POSITION_FORMAT,&initialPosition);
@@ -426,9 +400,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(3);
 
 	sprintf( move, "%d", theMove );
@@ -447,8 +419,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
+int NumberOfOptions() {
 	return 2;
 }
 
@@ -465,8 +436,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
-{
+int getOption() {
 	return(gStandardGame ? 1 : 2);
 }
 
@@ -482,8 +452,7 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (int option)
-{
+void setOption(int option) {
 	if      (option == 1)
 		gStandardGame = TRUE;
 	else if (option == 2)
@@ -505,8 +474,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu() {
-}
+void DebugMenu() {}
 
 
 STRING GetNextMoveValues(char* board, int option) {

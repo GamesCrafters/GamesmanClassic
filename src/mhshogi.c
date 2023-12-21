@@ -219,12 +219,6 @@ sMove unhashMove(MOVE move);
 
 STRING MoveToString(MOVE);
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -279,9 +273,7 @@ void InitializeGame ()
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	BlankOX theBlankOX[boardSize];
 	MOVELIST *head = NULL;
 
@@ -614,9 +606,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(5);
 
 	struct cleanMove x;
@@ -651,7 +641,6 @@ MOVE theMove;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************

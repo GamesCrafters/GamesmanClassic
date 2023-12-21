@@ -16,7 +16,6 @@
 
 #include "gamesman.h"
 
-extern STRING gValueString[];
 POSITION gNumberOfPositions  = 924;
 
 POSITION gInitialPosition    = 9;
@@ -197,12 +196,6 @@ TIERPOSITION NumberOfTierPositions(TIER tier);
 POSITION hash(int);
 void unhash(POSITION, int*);
 void FreeHelper(struct row**);
-
-// External
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
 
 // Internal
 int destination (int, int);
@@ -443,10 +436,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **              Unhash ()
 **	        destination ()
 *************************************************************************/
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	if (DEBUGGING)
 		printf("Starting Do Move with input: %d\n", theMove);
 	int destination(int,int);
@@ -654,10 +644,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move   : ", computersName);
 	PrintMove(computersMove);
 	//SafeFree(computersMove);
@@ -684,8 +671,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive ( POSITION h )
-{
+VALUE Primitive ( POSITION h ) {
 	if (DEBUGGING) printf("prim\n");
 	BOOLEAN game_over(char[]);
 
@@ -757,11 +743,7 @@ BOOLEAN game_over(char theBoard[]){
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int whoseMove;
 	unhash(position, &whoseMove);
 	int r, spacing;
@@ -1005,14 +987,10 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	if (DEBUGGING)
 		printf("generate\n");
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode(); /* In gamesman.c */
-	VALUE Primitive();
 	int slot, direction, ssdir;
 	int pusher2, pusher3, pushee1, pushee2, pushee3;
 	char whoseTurn, opponent;
@@ -1180,12 +1158,7 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 	char whoseTurn;
 	if (generic_hash_turn(thePosition) == 2) {
@@ -1228,8 +1201,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (STRING input)
-{
+BOOLEAN ValidTextInput (STRING input) {
 	int length = strlen(input), i = 0;
 
 	if((length == 4) || (length == 5)) /* one piece case */
@@ -1286,9 +1258,7 @@ BOOLEAN ValidTextInput (STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	if (DEBUGGING)
 		printf("Starting conversion\n");
 	int dir, p1, p2, p3, pushee;
@@ -1378,15 +1348,13 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
+void PrintMove(MOVE theMove) {
+	STRING moveString = MoveToString(theMove);
+	printf( "%s", moveString);
+	SafeFree(moveString);
 }
 
-STRING MoveToString( theMove )
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(12);
 
 	if (DEBUGGING)
@@ -1482,8 +1450,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	int options = 0, n, p;
 	for (n = 2; n <= MAXN; n++) {
 		for (p = 2; p <= maxPieces(n); p++) {
@@ -1505,8 +1472,7 @@ int NumberOfOptions()
 **
 ************************************************************************/
 
-int getOption()
-{
+int getOption() {
 	int option = 1, n, p;
 	for (n = 2; n < N; n++) {
 		for (p = 2; p <= maxPieces(n); p++) {

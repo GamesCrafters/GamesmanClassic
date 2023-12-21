@@ -135,6 +135,7 @@ PlayerY < PlayerY's minimum score.\n";
 CONST_STRING kHelpReverseObjective ="";
 CONST_STRING kHelpTieOccursWhen ="";
 CONST_STRING kHelpExample = "";
+CONST_STRING kDBName = "3spot";
 
 STRING MoveToString(MOVE);
 
@@ -185,9 +186,7 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 /*********************************************
 ** get the red piece's position on the board *
 *********************************************/
-int GetRedPosition(thePosition)
-POSITION thePosition;
-{
+int GetRedPosition(POSITION thePosition) {
 	int temp = thePosition;
 	temp = temp & 0x00000f00;
 	temp = temp >> 8;
@@ -197,10 +196,7 @@ POSITION thePosition;
 /*********************************************
 ** set a new position for the red piece     **
 *********************************************/
-int SetRedPosition(thePosition, place)
-POSITION thePosition;
-int place;
-{
+int SetRedPosition(POSITION thePosition, int place) {
 	thePosition = thePosition & 0xfffff0ff;
 	thePosition = thePosition | (place << 8);
 	return thePosition;
@@ -209,9 +205,7 @@ int place;
 /*********************************************
 ** get the wht piece's position on the board *
 *********************************************/
-int GetWhitePosition(thePosition)
-POSITION thePosition;
-{
+int GetWhitePosition(POSITION thePosition) {
 	int temp = thePosition;
 	temp = temp & 0x000000f0;
 	temp = temp >> 4;
@@ -221,10 +215,7 @@ POSITION thePosition;
 /*********************************************
 ** set a new position for the wht piece     **
 *********************************************/
-int SetWhitePosition(thePosition, place)
-POSITION thePosition;
-int place;
-{
+int SetWhitePosition(POSITION thePosition, int place) {
 	thePosition = thePosition & 0xffffff0f;
 	thePosition = thePosition | (place << 4);
 	return thePosition;
@@ -233,9 +224,7 @@ int place;
 /*********************************************
 ** get the blu piece's position on the board *
 *********************************************/
-int GetBluePosition(thePosition)
-POSITION thePosition;
-{
+int GetBluePosition(POSITION thePosition) {
 	int temp = thePosition;
 	temp = temp & 0x0000000F;
 	return temp;
@@ -244,10 +233,7 @@ POSITION thePosition;
 /*********************************************
 ** set a new position for the wht piece     **
 *********************************************/
-int SetBluePosition(thePosition, place)
-POSITION thePosition;
-int place;
-{
+int SetBluePosition(POSITION thePosition, int place) {
 	thePosition = thePosition & 0xfffffff0;
 	thePosition = thePosition | place;
 	return thePosition;
@@ -256,9 +242,7 @@ int place;
 /*
  * get the score of player 1
  */
-int GetPlayer1Score(thePosition)
-POSITION thePosition;
-{
+int GetPlayer1Score(POSITION thePosition) {
 	int temp = 0;
 	temp = thePosition  & 0x000F0000;
 	temp = temp >> 16;
@@ -268,30 +252,19 @@ POSITION thePosition;
 /*
  * get the score of player 2
  */
-int GetPlayer2Score(thePosition)
-POSITION thePosition;
-{
+int GetPlayer2Score(POSITION thePosition) {
 	int temp = 0;
 	temp = thePosition  & 0x0000F000;
 	temp = temp >> 12;
-	//printf("the score returned is %x\n", temp);
 	return temp;
 }
 
 /*
  * get whose turn it is, 1 for player1 , 0 for p2
  */
-int GetWhoseTurn(POSITION thePosition){
-#ifdef x
-	printf("player%d's turn\n",(thePosition >> 20) + 1);
-#endif
+int GetWhoseTurn(POSITION thePosition) {
 	return (thePosition >> 20) & 1;
 }
-
-/*
- *
-   char *gBlankDRWBString[] = { ".", "o", "R", "W", "B" };
- */
 
 /************************************************************************
 **
@@ -301,15 +274,12 @@ int GetWhoseTurn(POSITION thePosition){
 **
 ************************************************************************/
 
-void InitializeGame()
-{
+void InitializeGame() {
 	gMoveToStringFunPtr = &MoveToString;
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
-void FreeGame()
-{
-}
+void FreeGame() {}
 
 /************************************************************************
 **
@@ -320,13 +290,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
-#ifdef funcname
-	printf("Func call: DebugMenu\n");
-#endif
-
-}
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -339,10 +303,6 @@ void DebugMenu()
 ************************************************************************/
 
 void GameSpecificMenu() {
-#ifdef funcname
-	printf("Func call: GameSpecificMenu\n");
-#endif
-
 	char GetMyChar();
 	POSITION GetInitialPosition();
 
@@ -405,9 +365,6 @@ void GameSpecificMenu() {
 
 /// 2nd menu ///
 void SetTargetScoresMenu() {
-#ifdef funcname
-	printf("Func call: GameSpecificMenu\n");
-#endif
 
 	printf("\n\t----- Game-specific options for %s -----\n", kGameName);
 	printf("\n\t--------- Score Selection Menu ---------\n\n");
@@ -518,8 +475,7 @@ void SetDotPositionMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions[])
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	(void)theOptions;
 }
 
@@ -540,15 +496,9 @@ void SetTclCGameSpecificOptions(int theOptions[])
 // track of things like that -- since whose turn it is is part of the
 // information kept in a position
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	int score = 0;
 	int temp = 0;
-#ifdef funcname
-	printf("Func call: DoMove(0x%x, 0x%x)\n", thePosition, theMove);
-#endif
 
 	if (GetWhoseTurn(thePosition)) {
 		//it is player 1's turn
@@ -625,11 +575,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
-#ifdef funcname
-	printf("Func call: GetInitialPosition()\n");
-#endif
+POSITION GetInitialPosition() {
 	return 0x001009BD;
 }
 
@@ -644,13 +590,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
-#ifdef funcname
-	printf("Func call: PrintComputersMove(0x%x, %s)\n", computersMove, computersName);
-#endif
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("In his infinite wisdom, %8s's move = ",computersName);
 	PrintMove(computersMove);
 	printf("\n");
@@ -680,17 +620,7 @@ STRING computersName;
 ************************************************************************/
 
 //erroneous since there can exist a primitive winning condition
-VALUE Primitive(position)
-POSITION position;
-{
-	//normal scoring
-#ifdef funcname
-	printf("Func call: Primitive(0x%x)\n", position);
-#endif
-#ifdef x
-	printf("Primitive evaluated: 0x%x\n",position);
-#endif
-
+VALUE Primitive(POSITION position) {
 	if (invertedScoring == 0) {
 		if (GetWhoseTurn(position) == 0) {
 			//if it is player2's turn and player1 has more than the min
@@ -716,7 +646,6 @@ POSITION position;
 			}
 
 		} else {
-
 
 			//if it is player2's turn and player1 has more than the min
 			//then it is a lose
@@ -819,15 +748,8 @@ char GetInitChar(int i, int j){
 	}
 }
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
-#ifdef funcname
-	printf("Func call: PrintPosition(0x%x, %s, &d)\n", position, playerName, usersTurn);
-#endif
 	ClearTheBoard();
 	theBoard[pieceToBoard(GetRedPosition(position),0)] = 'R';
 	theBoard[pieceToBoard(GetRedPosition(position),1)] = 'R';
@@ -864,7 +786,7 @@ BOOLEAN usersTurn;
 	return;
 }
 
-void ClearTheBoard(){
+void ClearTheBoard() {
 	int i;
 	for (i = 0; i < 9; i++) {
 		theBoard[i] = theInitialBoard[i];
@@ -888,23 +810,16 @@ void ClearTheBoard(){
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	//////////////////////////////////////////////////
 	//         DECLARE VARIABLES                    //
 	//////////////////////////////////////////////////
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+	MOVELIST *head = NULL;
 	int theBoard[] = {0,0,0,0,0,0,0,0,0};
 	int i, j, k, otherPlayerPos = 0, whitePos = 0, myPos = 0;
 	int myNewPos = 0;
 	int whiteNewPos = 0;
 	int newMove = 0;
-
-#ifdef funcname
-	printf("Func call: GenerateMoves(0x%x)\n", position);
-#endif
 
 	//////////////////////////////////////////////////
 	//          INITIALIZE THE VARIABLES            //
@@ -933,18 +848,6 @@ POSITION position;
 		theBoard[pieceToBoard(whitePos, 1)] = 2;
 		theBoard[pieceToBoard(myPos, 0)] = 3;
 		theBoard[pieceToBoard(myPos, 1)] = 3;
-#ifdef debugmovelist
-		printf("%d%d%d\n%d%d%d\n%d%d%d\n\n",
-		       theBoard[0],
-		       theBoard[1],
-		       theBoard[2],
-		       theBoard[3],
-		       theBoard[4],
-		       theBoard[5],
-		       theBoard[6],
-		       theBoard[7],
-		       theBoard[8]);
-#endif
 
 		//////////////////////////////////////////////////
 		//  TRY ALL MOVES WITH BOTH PIECES HORIZONTAL   //
@@ -986,9 +889,6 @@ POSITION position;
 							     theBoard[k + 1] == 0)) {
 								whiteNewPos = boardToPos(k,'h');
 								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE1: %x\n", newMove);
-#endif
 								head = CreateMovelistNode(newMove, head);
 							}
 						}
@@ -1038,9 +938,6 @@ POSITION position;
 							     theBoard[k + 3] == 0)) {
 								whiteNewPos = boardToPos(k,'v');
 								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE2a: %x, %d\n", newMove, theBoard[k]);
-#endif
 								head = CreateMovelistNode(newMove, head);
 							}
 						}
@@ -1093,9 +990,6 @@ POSITION position;
 							     theBoard[k + 1] == 0)) {
 								whiteNewPos = boardToPos(k,'h');
 								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE3: %x\n", newMove);
-#endif
 								head = CreateMovelistNode(newMove, head);
 							}
 						}
@@ -1147,9 +1041,6 @@ POSITION position;
 							     theBoard[k + 3] == 0)) {
 								whiteNewPos = boardToPos(k,'v');
 								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE4: %x\n", newMove);
-#endif
 								head = CreateMovelistNode(newMove, head);
 							}
 						}
@@ -1159,9 +1050,6 @@ POSITION position;
 				}
 			}
 		}
-#ifdef debugmovelist
-		printf("GENERATE MOVELIST RETURNED\n");
-#endif
 		return(head);
 	} else {
 		return(NULL);
@@ -1219,13 +1107,8 @@ int boardToPos(int pos, char orientation){
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/(1-8)(v|h) (1-8)(v|h) ] :", playerName);
@@ -1257,9 +1140,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return
 	        ((input[0] <= '8' && input[0] >= '1') &&
 	         (input[1] <= 'v' || input[1] >= 'h') &&
@@ -1282,7 +1163,7 @@ STRING input;
 **
 ************************************************************************/
 
-int ctoi (char c){
+int ctoi(char c) {
 	switch (c) {
 	case '1': return 0;
 	case '2': return 1;
@@ -1299,9 +1180,7 @@ int ctoi (char c){
 	return -1;
 }
 
-STRING MoveToString( theMove )
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING move = (STRING) SafeMalloc(8);
 	if( (theMove & 0x0F) == 0 ) {
 		sprintf( move, "(%c%c)", moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2] );
@@ -1314,9 +1193,7 @@ MOVE theMove;
 	return move;
 }
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	MOVE temp;
 	temp = boardToPos(ctoi(input[0]), input[1]);
 	temp = temp << 4;
@@ -1324,7 +1201,6 @@ STRING input;
 	    input[3] <= '9') {
 		temp = temp | boardToPos(ctoi(input[3]), input[4]);
 	}
-	//  printf("converted moves is %x\n", temp);
 	return temp;
 }
 
@@ -1338,22 +1214,17 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
+void PrintMove(MOVE theMove) {
+	STRING moveString = MoveToString(theMove);
+	printf( "%s", moveString );
+	SafeFree(moveString);
 }
 
-
-CONST_STRING kDBName = "3dot";
-
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	return 2*2*2*(MAX_SCORE-MIN_SCORE+1)*(MAX_SCORE-MIN_SCORE+1);
 }
 
-int getOption()
-{
+int getOption() {
 	int option = 1;
 	if(gStandardGame) option += 1;
 	if(invertedScoring) option += 1*2;
@@ -1363,8 +1234,7 @@ int getOption()
 	return option;
 }
 
-void setOption(int option)
-{
+void setOption(int option) {
 	option -= 1;
 	gStandardGame = option%2==1;
 	invertedScoring = option/2%2==1;

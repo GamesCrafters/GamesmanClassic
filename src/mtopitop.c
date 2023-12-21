@@ -152,8 +152,8 @@ void InitializeGame();
 void DebugMenu();
 char* unhashPosition(POSITION position, char *turn, int *disallowedMove, int *blueLeft, int *redLeft, int *smallLeft, int *largeLeft);
 POSITION hashPosition(char* board, char turn, int disallowedMove);
-void unhashMove(MOVE move, char *piece, int *from, int *to);
-MOVE hashMove(char piece, int from, int to);
+void unhashMove(MOVE move, char *piece, int *from, int *to, BOOLEAN *p2Turn);
+MOVE hashMove(char piece, int from, int to, BOOLEAN p2Turn);
 void GameSpecificMenu();
 void SetTclCGameSpecificOptions(int theOptions[]);
 POSITION DoMove(POSITION position, MOVE move);
@@ -679,12 +679,12 @@ STRING TierToString(TIER tier) {
 	return str;
 }
 
-void unhashMove(MOVE move, char *piece, int *from, int *to) {
+void unhashMove(MOVE move, char *piece, int *from, int *to, BOOLEAN *p2Turn) {
 	*to = move & 0b1111;
 	move >>= 4;
 	*from = move & 0b1111;
 	move >>= 4;
-	switch (move) {
+	switch (move & 0b1111) {
 		case 1:
 			*piece = REDBUCKETPIECE;
 			break;
@@ -698,9 +698,11 @@ void unhashMove(MOVE move, char *piece, int *from, int *to) {
 			*piece = BLUEBUCKETPIECE;
 			break;
 	}
+	move >>= 4;
+	*p2Turn = move ? TRUE : FALSE;
 }
 
-MOVE hashMove(char piece, int from, int to) {
+MOVE hashMove(char piece, int from, int to, BOOLEAN p2Turn) {
 	MOVE theHash = 0;
 	theHash |= to;
 	theHash |= from << 4;
@@ -716,6 +718,9 @@ MOVE hashMove(char piece, int from, int to) {
 			break;
 		default:
 			break;
+	}
+	if (p2Turn) {
+		theHash |= 1 << 12;
 	}
 	return theHash;
 }
@@ -859,7 +864,8 @@ POSITION DoMove(POSITION position, MOVE move) {
 	
 	char piece;
 	int from, to;
-	unhashMove(move, &piece, &from, &to);
+	BOOLEAN p2Turn;
+	unhashMove(move, &piece, &from, &to, &p2Turn);
 	if (from == to) { // Placement
 		board[to] = piece;
 		switch (piece) {
@@ -1108,32 +1114,32 @@ MOVELIST *GenerateMoves(POSITION position) {
 	
 			// PLACEMENT //
 			if (blueLeft > 0 && turn == BLUE)
-				moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, to, to), moveList);
+				moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, to, to, turn == RED), moveList);
 			else if (redLeft > 0 && turn == RED)
-				moveList = CreateMovelistNode(hashMove(REDBUCKETPIECE, to, to), moveList);
+				moveList = CreateMovelistNode(hashMove(REDBUCKETPIECE, to, to, turn == RED), moveList);
 
-			if (smallLeft > 0) moveList = CreateMovelistNode(hashMove(SMALLPIECE, to, to), moveList);
-      		if (largeLeft > 0) moveList = CreateMovelistNode(hashMove(LARGEPIECE, to, to), moveList);
+			if (smallLeft > 0) moveList = CreateMovelistNode(hashMove(SMALLPIECE, to, to, FALSE), moveList);
+      		if (largeLeft > 0) moveList = CreateMovelistNode(hashMove(LARGEPIECE, to, to, FALSE), moveList);
 
 			// SLIDE TO BLANK //
 			for (int j = 0; j < numAdjacencies[to]; j++) {
 				int from = adjacencyMatrix[to][j];
 				if (!(from == idsToMoves[0][disallowedMove] && to == idsToMoves[1][disallowedMove])) { // Don't undo previous person's slide
 					if ((turn == BLUE && board[from] != BLANKPIECE && board[from] != REDBUCKETPIECE && board[from] != REDSMALLPIECE && board[from] != REDCASTLEPIECE) || (turn == RED && board[from] != BLANKPIECE && board[from] != BLUEBUCKETPIECE && board[from] != BLUESMALLPIECE && board[from] != BLUECASTLEPIECE))
-						moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to), moveList);
+						moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to, FALSE), moveList);
 				}
 			}
 		} else if (board[to] == SMALLPIECE || board[to] == CASTLEPIECE) { // SLIDE ONTO SMALL PIECE OR CASTLE PIECE //
 			for (int j = 0; j < numAdjacencies[to]; j++) {
 				int from = adjacencyMatrix[to][j];
 				if ((turn == BLUE && board[from] == BLUEBUCKETPIECE) || (turn == RED && board[from] == REDBUCKETPIECE))
-					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to), moveList);
+					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to, FALSE), moveList);
 			}
 		} else if (board[to] == LARGEPIECE) { // SLIDE ONTO LARGE PIECE //
 			for (int j = 0; j < numAdjacencies[to]; j++) {
 				int from = adjacencyMatrix[to][j];
 				if (board[from] == SMALLPIECE || (turn == BLUE && board[from] == BLUESMALLPIECE) || (turn == RED && board[from] == REDSMALLPIECE))
-					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to), moveList);
+					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to, FALSE), moveList);
 			}
 		}
 	}
@@ -1275,7 +1281,7 @@ BOOLEAN ValidTextInput(STRING input) {
 MOVE ConvertTextInputToMove(STRING input) {
 	char piece = BLUEBUCKETPIECE;
 	if (input[0] >= 49 && input[0] <= 57) {// Movement
-		return hashMove(piece, input[0] - '1', input[2] - '1');
+		return hashMove(piece, input[0] - '1', input[2] - '1', FALSE);
 	} else if (input[0] == 'N' || input[0] == 'n') {
 		return NULLMOVE;
 	} else {
@@ -1295,7 +1301,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 			default:
 				break;
 		}
-		return hashMove(piece, input[1] - '1', input[1] - '1');
+		return hashMove(piece, input[1] - '1', input[1] - '1', FALSE);
 	}
 }
 
@@ -1338,12 +1344,13 @@ STRING DisallowedMoveToString(int disallowedMove) {
 STRING MoveToString(MOVE move) {
 	char piece;
 	int from, to;
+	BOOLEAN p2Turn;
 	if (move == NULLMOVE) {
 		STRING moveString = (STRING) SafeMalloc(7);
 		sprintf(moveString, "None");
 		return moveString;
 	}
-	unhashMove(move, &piece, &from, &to);
+	unhashMove(move, &piece, &from, &to, &p2Turn);
 	if (from == to) { // Placement
 		STRING moveString = (STRING) SafeMalloc(5);
 		sprintf(moveString, "%c%d", piece, from + 1);
@@ -1468,7 +1475,8 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 	
 	char piece;
 	int from, to;
-	unhashMove(move, &piece, &from, &to);
+	BOOLEAN p2Turn;
+	unhashMove(move, &piece, &from, &to, &p2Turn);
 
 	if (from == to) {// Placement
 		if (piece == SMALLPIECE) {
@@ -1476,7 +1484,7 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 		} else if (piece == LARGEPIECE) {
 			return UWAPI_Board_Regular2D_MakeAddStringWithSound('w', 114 + to, 'x');
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('u', 96 + to, 'y');
+			return UWAPI_Board_Regular2D_MakeAddStringWithSound(p2Turn ? 'u' : 't', 96 + to, 'y');
 		}
 	} else {
 		if (to > from) {

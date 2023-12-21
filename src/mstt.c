@@ -101,6 +101,12 @@ typedef enum possibleBoardPieces {
 /* function prototypes */
 POSITION BlankOXToPosition(BlankOX* theBlankOX);
 void PositionToBlankOX(POSITION thePos,BlankOX  *theBlankOX);
+BlankOX WhoseTurn(int thePos);
+void PerformGravity(BlankOX* theBoard);
+void ShiftRows(BlankOX* theBoard, int theRow, int theDirection);
+int colEmptyPos(BlankOX* theBoard, int col);
+BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
+void printBoard(POSITION thePos);
 
 STRING MoveToString( MOVE );
 
@@ -178,9 +184,6 @@ void DebugMenu() {
 
 void GameSpecificMenu()
 {
-	char GetMyChar();
-	POSITION GetInitialPosition();
-
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
 
@@ -305,11 +308,9 @@ void SetTclCGameSpecificOptions(int theOptions[])
 POSITION DoMove(POSITION thePosition, MOVE theMove)
 {
 
-	BlankOX theBoard[BOARDSIZE], WhoseTurn();
+	BlankOX theBoard[BOARDSIZE];
 	POSITION thePos;
 	int empty = 0;
-	void printBoard(), PerformGravity(), ShiftRows();
-	int colEmptyPos();
 
 	PositionToBlankOX(thePosition,theBoard);
 
@@ -444,10 +445,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
@@ -474,12 +472,8 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN ThreeInARow(), AllFilledIn();
+VALUE Primitive(POSITION position) {
 	BlankOX theBlankOX[BOARDSIZE];
-	BlankOX WhoseTurn();
 	BlankOX NotWhoseTurn = WhoseTurn(position)%2 + 1;
 	BlankOX WhichTurn = WhoseTurn(position);
 
@@ -529,11 +523,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int i;
 	//  VALUE GetValueOfPosition();
 	BlankOX theBlankOx[BOARDSIZE];
@@ -694,11 +684,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankOX theBlankOX[BOARDSIZE];
 	int i;
 
@@ -800,13 +787,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/0-8] :  ", playerName);
@@ -837,8 +819,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
+BOOLEAN ValidTextInput(STRING input)
 {
 	int inputNum = atoi(input);
 	return (inputNum <= 27 && inputNum >= 1);
@@ -856,9 +837,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) (atoi(input) - 1));
 	/*  int inputNum = atoi(input);
 	    return((MOVE) input[0] - '0'); */
@@ -874,9 +853,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
+void PrintMove(MOVE theMove) {
 	STRING m = MoveToString( theMove );
 	printf( "%s", m );
 	SafeFree( m );
@@ -892,9 +869,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
+STRING MoveToString(MOVE theMove) {
 	STRING m = (STRING) SafeMalloc( 3 );
 	sprintf( m, "%d", theMove+1);
 	return m;
@@ -919,10 +894,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
-{
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 	int i;
 	thePos = (thePos - (thePos%3))/3; /*take out last turn bit*/
 
@@ -957,9 +929,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX)
-BlankOX *theBlankOX;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	int i;
 	POSITION position = 0;
 
@@ -985,9 +955,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
+POSITION GetCanonicalPosition(POSITION position) {
 	/*  POSITION newPosition, theCanonicalPosition, DoSymmetry();
 	    int i;
 
@@ -1082,10 +1050,7 @@ MOVE DecodeMove(POSITION thePosition, POSITION canPosition, MOVE move)
 **
 ************************************************************************/
 
-BOOLEAN ThreeInARow(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
 	if (theBlankOX[a] == theBlankOX[b] &&
 	    theBlankOX[b] == theBlankOX[c] &&
 	    theBlankOX[c] != Blank ) {
@@ -1106,19 +1071,8 @@ int a,b,c;
 ** OUTPUTS:     (BOOLEAN) TRUE iff all the blanks are filled in.
 **
 ************************************************************************/
-/*
-   BOOLEAN AllFilledIn(theBlankOX)
-     BlankOX theBlankOX[];
-   {
-   BOOLEAN answer = TRUE;
-   int i;
 
-   for(i = 0; i < BOARDSIZE; i++)
-    answer &= (theBlankOX[i] == o || theBlankOX[i] == x);
 
-   return(answer);
-   }
- */
 /************************************************************************
 **
 ** NAME:        WhoseTurn
@@ -1133,8 +1087,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BlankOX WhoseTurn(int thePos)
-{
+BlankOX WhoseTurn(int thePos) {
 	return (BlankOX)((int)thePos % 3);
 	
 	/* in our TicTacToe, x always goes first */

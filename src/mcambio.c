@@ -182,17 +182,6 @@ char *gBoard;
 **
 *************************************************************************/
 
-/* External */
-extern GENERIC_PTR      SafeSafeMalloc ();
-extern void             SafeSafeFree ();
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
-extern POSITION         generic_hash_hash(char *board, int player);
-extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
-extern void             generic_hash_custom_context_mode(BOOLEAN on);
-extern void             generic_hash_set_context(int context);
-extern void             generic_hash_context_switch(int context);
-/* Internal */
 void                    InitializeGame();
 MOVELIST               *GenerateMoves(POSITION position);
 POSITION                DoMove (POSITION position, MOVE move);
@@ -298,7 +287,6 @@ MOVELIST *GenerateMoves (POSITION position)
 /* must check all the math used for general case, such as 5x5 and on */
 {
 	MOVELIST *moves = NULL;
-	MOVELIST *CreateMovelistNode();
 
 	char opposymbol;
 	int turn, i;
@@ -818,7 +806,6 @@ void PrintMove (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	char *gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
 

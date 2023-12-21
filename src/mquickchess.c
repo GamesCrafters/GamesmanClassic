@@ -128,11 +128,6 @@ int Tier0Context;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 void setupPieces(char *Board);
 BOOLEAN inCheck(char *bA, int currentPlayer);
@@ -638,7 +633,6 @@ void PrintMove (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -1979,37 +1973,60 @@ BOOLEAN replacement(char *boardArray, char replacementPiece) {
 	return TRUE;
 }
 
-/************************************************************************
-**
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-************************************************************************/
+BOOLEAN isPawn(POSITION position) {
+	int i, j;
+	char piece, boardArray[rows*cols];
+	unhash(position, boardArray);
+	for(i = 0; i < rows; i++) {
+		for(j = 0; j < cols; j++) {
+			piece = boardArray[(i * cols) + j];
+			if(piece == WHITE_PAWN || piece == BLACK_PAWN )
+				return TRUE;
+		}
+	}
+	return FALSE;
+}
 
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION newPosition, theCanonicalPosition;
-	int i;
+BOOLEAN isBishop(POSITION position) {
+	int i, j;
+	char piece, boardArray[rows*cols];
+	unhash(position, boardArray);
+	for(i = 0; i < rows; i++) {
+		for(j = 0; j < cols; j++) {
+			piece = boardArray[(i * cols) + j];
+			if(piece == WHITE_BISHOP || piece == BLACK_BISHOP)
+				return TRUE;
+		}
+	}
+	return FALSE;
+}
 
-	theCanonicalPosition = position;
+POSITION flipLR(POSITION position) {
+	int i, j;
+	char currentBoardArray[rows*cols], flippedBoardArray[rows*cols];
+	int currentPlayer = generic_hash_turn(position);
 
-	for(i = 1; i < NUMSYMMETRIES; i++) {
-		if(!((isPawn(position) || isBishop(position)) && i > 1)) {
-			newPosition = DoSymmetry(position, i); /* get new */
-			if(newPosition < theCanonicalPosition) /* THIS is the one */
-				theCanonicalPosition = newPosition; /* set it to the ans */
+	unhash(position, currentBoardArray);
+	for(i = 0; i < rows; i++) {
+		for(j = 0; j < cols; j++) {
+			flippedBoardArray[(i * cols) + j] = currentBoardArray[(i * cols) + (cols - 1 - j)];
 		}
 	}
 
-	return(theCanonicalPosition);
+	return hash(flippedBoardArray, currentPlayer);
+}
+POSITION flipUD(POSITION position) {
+	int i, j;
+	char currentBoardArray[rows*cols], flippedBoardArray[rows*cols];
+	int currentPlayer = generic_hash_turn(position);
+
+	unhash(position, currentBoardArray);
+	for(i = 0; i < rows; i++) {
+		for(j = 0; j < cols; j++) {
+			flippedBoardArray[(i * cols) + j] = currentBoardArray[((rows-1-i) * cols) + j];
+		}
+	}
+	return hash(flippedBoardArray, currentPlayer);
 }
 
 /************************************************************************
@@ -2027,10 +2044,7 @@ POSITION position;
 **
 ************************************************************************/
 
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
 	POSITION newPosition;
 	switch (symmetry) {
 	case 1:
@@ -2047,68 +2061,35 @@ int symmetry;
 	return newPosition;
 }
 
-POSITION flipLR(position)
-POSITION position;
-{
-	int i, j;
-	char currentBoardArray[rows*cols], flippedBoardArray[rows*cols];
-	int currentPlayer = generic_hash_turn(position);
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+**
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
 
-	unhash(position, currentBoardArray);
-	for(i = 0; i < rows; i++) {
-		for(j = 0; j < cols; j++) {
-			flippedBoardArray[(i * cols) + j] = currentBoardArray[(i * cols) + (cols - 1 - j)];
+POSITION GetCanonicalPosition(POSITION position) {
+	POSITION newPosition, theCanonicalPosition;
+	int i;
+
+	theCanonicalPosition = position;
+
+	for(i = 1; i < NUMSYMMETRIES; i++) {
+		if(!((isPawn(position) || isBishop(position)) && i > 1)) {
+			newPosition = DoSymmetry(position, i); /* get new */
+			if(newPosition < theCanonicalPosition) /* THIS is the one */
+				theCanonicalPosition = newPosition; /* set it to the ans */
 		}
 	}
 
-	return hash(flippedBoardArray, currentPlayer);
-}
-POSITION flipUD(position)
-POSITION position;
-{
-	int i, j;
-	char currentBoardArray[rows*cols], flippedBoardArray[rows*cols];
-	int currentPlayer = generic_hash_turn(position);
-
-	unhash(position, currentBoardArray);
-	for(i = 0; i < rows; i++) {
-		for(j = 0; j < cols; j++) {
-			flippedBoardArray[(i * cols) + j] = currentBoardArray[((rows-1-i) * cols) + j];
-		}
-	}
-	return hash(flippedBoardArray, currentPlayer);
-}
-
-BOOLEAN isPawn(position)
-POSITION position;
-{
-	int i, j;
-	char piece, boardArray[rows*cols];
-	unhash(position, boardArray);
-	for(i = 0; i < rows; i++) {
-		for(j = 0; j < cols; j++) {
-			piece = boardArray[(i * cols) + j];
-			if(piece == WHITE_PAWN || piece == BLACK_PAWN )
-				return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-BOOLEAN isBishop(position)
-POSITION position;
-{
-	int i, j;
-	char piece, boardArray[rows*cols];
-	unhash(position, boardArray);
-	for(i = 0; i < rows; i++) {
-		for(j = 0; j < cols; j++) {
-			piece = boardArray[(i * cols) + j];
-			if(piece == WHITE_BISHOP || piece == BLACK_BISHOP)
-				return TRUE;
-		}
-	}
-	return FALSE;
+	return(theCanonicalPosition);
 }
 
 /************************************************************************
@@ -2642,9 +2623,7 @@ TIER gPiecesArrayToTier(int *piecesArray) {
 
 
 
-STRING MoveToString(move)
-MOVE move;
-{
+STRING MoveToString(MOVE move) {
 	char rowf, colf, rowi, coli, replacementPiece;
 	STRING moveStr;
 	rowf = (move & 15) + 48;
