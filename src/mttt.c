@@ -905,4 +905,42 @@ POSITION ActualNumberOfPositions(int variant) {
 	return 5478;
 }
 
-GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
+static char tttuwapimap[] = { '-', 'o', 'x' };
+
+POSITION InteractStringToPosition(STRING str) {
+	char *board = str + 8;
+	BlankOX oxboard[BOARDSIZE];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (board[i] == 'o') {
+			oxboard[i] = o;
+		} else if (board[i] == 'x') {
+			oxboard[i] = x;
+		} else if (board[i] == '-') {
+			oxboard[i] = Blank;
+		} else {
+			return INVALID_POSITION;
+		}
+	}
+	return BlankOXToPosition(oxboard);
+}
+
+STRING InteractPositionToString(POSITION pos) {
+	BlankOX oxboard[BOARDSIZE];
+	PositionToBlankOX(pos, oxboard);
+	char board[BOARDSIZE + 1];
+	int i;
+	for (i = 0; i < BOARDSIZE; i++) {
+		board[i] = tttuwapimap[oxboard[i]];
+	}
+	board[BOARDSIZE] = '\0';
+	return UWAPI_Board_Regular2D_MakeBoardString(
+		WhoseTurn(oxboard) == x ? UWAPI_TURN_A : UWAPI_TURN_B,
+		BOARDSIZE, board);
+}
+
+STRING InteractMoveToString(POSITION pos, MOVE mv) {
+	BlankOX oxboard[BOARDSIZE];
+	PositionToBlankOX(pos, oxboard);
+	return UWAPI_Board_Regular2D_MakeAddString(tttuwapimap[WhoseTurn(oxboard)], mv);
+}
+
