@@ -47,11 +47,6 @@ extern LocalBoard lBoard;
 		if (!UWAPI_Board_Regular2D_ParsePositionString(str, NULL, &num_rows, &num_columns, &board)) { \
 			return INVALID_POSITION; \
 		} \
-		\
-		if (num_rows != BOARDROWS || num_columns != BOARDCOLS) { \
-			SafeFreeString(board); \
-			return INVALID_POSITION; \
-		} \
  		\
 		BlankOX oxboard[BOARDSIZE]; \
 		int i; \
@@ -82,9 +77,9 @@ extern LocalBoard lBoard;
 		} \
 		board[BOARDSIZE] = '\0'; \
 		\
-		return UWAPI_Board_Regular2D_MakePositionString( \
+		return UWAPI_Board_Regular2D_MakeBoardString( \
 			WhoseTurn(oxboard) == x ? UWAPI_TURN_A : UWAPI_TURN_B, \
-			BOARDROWS, BOARDCOLS, board); \
+			BOARDROWS * BOARDCOLS, board); \
 	} \
 	\
 	STRING InteractMoveToString(POSITION pos, MOVE mv) { \

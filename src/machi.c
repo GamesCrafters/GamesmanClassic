@@ -1100,12 +1100,6 @@ POSITION InteractStringToPosition(STRING str) {
 		return INVALID_POSITION;
 	}
 
-	// Validate parsed board size
-	if (num_rows != 3 || num_columns != 3) {
-		SafeFreeString(board); // Free the string!
-		return INVALID_POSITION;
-	}
-
 	// Convert UWAPI standard board string to internal board representation
 	BlankOX oxboard[BOARDSIZE];
 	int i;
@@ -1153,7 +1147,7 @@ STRING InteractPositionToString(POSITION pos) {
 
 	// Return formatted UWAPI position string
 	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakePositionString(turn, 3, 3, board);
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 9, board);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {

@@ -3584,12 +3584,6 @@ POSITION InteractStringToPosition(STRING str) {
     return INVALID_POSITION;
   }
 
-  // Validate parsed board size
-  if ((int)num_rows != rows || (int)num_columns != cols) {
-    SafeFreeString(board); // Free the string!
-    return INVALID_POSITION;
-  }
-
   // Convert UWAPI standard board string to internal board representation
   char oxboard[BOARDSIZE];
   int i;

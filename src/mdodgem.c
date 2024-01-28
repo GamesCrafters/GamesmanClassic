@@ -864,7 +864,7 @@ STRING InteractPositionToString(POSITION pos) {
 
 	oxboard[INTERACT_BOARDSIZE] = '\0';
 
-	return UWAPI_Board_Regular2D_MakePositionString(turn, INTERACT_ROWS, INTERACT_COLS, oxboard);
+	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, oxboard);
 }
 
 STRING MoveToString(MOVE theMove) {

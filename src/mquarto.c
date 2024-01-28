@@ -346,7 +346,7 @@ POSITION InteractStringToPosition(STRING str) {
 
 STRING InteractPositionToString(POSITION position) {
   (void)position;
-  return UWAPI_Board_Regular2D_MakePositionString(UWAPI_TURN_A, 17, 1, "-----------------");
+  return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_A, 17, "-----------------");
 }
 
 STRING InteractMoveToString(POSITION position, MOVE move) {

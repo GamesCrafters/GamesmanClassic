@@ -1638,14 +1638,8 @@ POSITION InteractStringToPosition(STRING pos) {
         return INVALID_POSITION;
     }
 
-    // Validate parsed board size
-    if ((int)num_rows != OthRows || (int)num_columns != OthCols) {
-        SafeFreeString(board);  // Free the string!
-        return INVALID_POSITION;
-    }
-
     // Convert UWAPI standard board string to internal board representation
-    int BOARDSIZE = num_rows * num_columns;
+    int BOARDSIZE = 4 * 4;
     int i;
     for (i = 0; i < BOARDSIZE; i++) {
         if (board[i] == '-') {
