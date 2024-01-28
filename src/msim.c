@@ -930,11 +930,7 @@ POSITION GetCanonical (POSITION p){
 }
 
 POSITION InteractStringToPosition(STRING str) {
-  STRING board;
-  if (!UWAPI_Board_Custom_ParsePositionString(str, &board)) {
-    // Failed to parse string
-    return INVALID_POSITION;
-  }
+  STRING board = str + 8;
 
   BlankOX theBlankOx[BOARDSIZE];
   int i;
@@ -947,7 +943,6 @@ POSITION InteractStringToPosition(STRING str) {
       theBlankOx[i] = Blank;
   }
 
-  SafeFreeString(board); // Free the string!
   return BlankOXToPosition(theBlankOx);
 }
 
@@ -957,17 +952,23 @@ STRING InteractPositionToString(POSITION position) {
   
   char board[BOARDSIZE + 1];
   int i;
+  int count = 0;
   for(i = 0; i < BOARDSIZE; i++){
-    if(theBlankOx[i] == o)
+    if(theBlankOx[i] == o) {
       board[i] = 'o';
-    else if(theBlankOx[i] == x)
+	}
+    else if(theBlankOx[i] == x) {
       board[i] = 'x';
-    else if(theBlankOx[i] == Blank)
+	}
+    else if(theBlankOx[i] == Blank) {
       board[i] = '-';
+	  count++;
+	}
   }
   board[BOARDSIZE] = '\0';
+  enum UWAPI_Turn uturn = (count & 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
 
-  return UWAPI_Board_Custom_MakePositionString(board);
+  return UWAPI_Board_Regular2D_MakeBoardString(uturn, BOARDSIZE, board);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {

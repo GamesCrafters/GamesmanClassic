@@ -670,7 +670,7 @@ void quartoDetailedPositionResponse(STRING str) {
     uint64_t childBitBoard;
     if (level == -1) {
         for (i = 0; i < 16; i++) {
-            printf("{\"board\":\"R_B_17_1_----------------%c\",\"remoteness\":16,\"value\":\"tie\",", i + 'A');
+            printf("{\"board\":\"R_B_0_0_----------------%c\",\"remoteness\":16,\"value\":\"tie\",", i + 'A');
             printf("\"move\":\"A_%c_%d\",", i + 'A', 272 + i); /// TODO
             printf("\"moveName\":\"%d%d%d%d\"}", (i>>3)&1, (i>>2)&1, (i>>1)&1, i&1);
             if (i < 15) {
@@ -691,7 +691,7 @@ void quartoDetailedPositionResponse(STRING str) {
                 getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
                 if (remoteness) { // non-primitive child
                     board[16] = childTier.pieceToPlace + 'A';
-                    childBoard = UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board);
+                    childBoard = UWAPI_Board_Regular2D_MakeBoardString(turn, 17, board);
                     printf("{\"board\":\"%s\",", childBoard);
                     SafeFree(childBoard);
                     printf("\"remoteness\":%d,", remoteness);
@@ -703,7 +703,7 @@ void quartoDetailedPositionResponse(STRING str) {
                     }
                 } else {
                     board[16] = '-';
-                    childBoard = UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board);
+                    childBoard = UWAPI_Board_Regular2D_MakeBoardString(turn, 17, board);
                     printf("{\"board\":\"%s\",", childBoard);
                     SafeFree(childBoard);
                     printf("\"remoteness\":%d,", remoteness);
@@ -727,7 +727,7 @@ void quartoDetailedPositionResponse(STRING str) {
         board[nextSlot] = pieceToPlace + 'A';
         board[16] = '-';
 
-        childBoard = UWAPI_Board_Regular2D_MakePositionString(turn, 17, 1, board);
+        childBoard = UWAPI_Board_Regular2D_MakeBoardString(turn, 17, board);
         printf("{\"board\":\"%s\",", childBoard);
         SafeFree(childBoard);
         printf("\"remoteness\":%d,", remoteness);

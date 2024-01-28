@@ -886,7 +886,7 @@ STRING InteractPositionToString(POSITION pos) {
 		posString[i] = (posArray[i] == Blank) ? '-' : 'O';
 	}
 	posString[i] = '\0';
-	return UWAPI_Board_Regular2D_MakePositionString(UWAPI_TURN_C, 4, 4, posString);
+	return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, 16, posString);
 }
 
 STRING InteractMoveToString(POSITION pos, MOVE mv) {
