@@ -306,16 +306,16 @@ void DebugMenu()
 			HelpMenus();
 			break;
 		case 'C': case 'c': /* Write PPM to s(C)reen */
-			tttppm(0,0);
+			//tttppm(0,0);
 			break;
 		case 'I': case 'i': /* Write PPM to f(I)le */
-			tttppm(0,1);
+			//tttppm(0,1);
 			break;
 		case 'S': case 's': /* Write Postscript to (S)creen */
-			tttppm(1,0);
+			//tttppm(1,0);
 			break;
 		case 'F': case 'f': /* Write Postscript to (F)ile */
-			tttppm(1,1);
+			//tttppm(1,1);
 			break;
 		case 'B': case 'b':
 			return;
@@ -885,8 +885,8 @@ POSITION ActualNumberOfPositions(int variant) {
 
 POSITION StringToPosition(char *positionString) {
 	int turn;
-	char *entityString;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &entityString)) {
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
 		BlankOX oxboard[BOARDSIZE];
 		for (int i = 0; i < BOARDSIZE; i++) {
 			if (board[i] == 'o') {
@@ -928,7 +928,7 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
 	BlankOX oxboard[BOARDSIZE];
 	PositionToBlankOX(position, oxboard);
-	char token = (WhoseTurn(oxboard) == x) ? 1 : 2;
-	AutoGUIMakeMoveButtonStringA(token, move, '-', autoguiMoveStringBuffer)
+	char token = (WhoseTurn(oxboard) == x) ? 'x' : 'o';
+	AutoGUIMakeMoveButtonStringA(token, move, '-', autoguiMoveStringBuffer);
 }
 

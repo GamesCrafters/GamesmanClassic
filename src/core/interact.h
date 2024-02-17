@@ -16,7 +16,6 @@ STRING InteractReadLong(STRING input, long * result);
 STRING InteractReadBoardString(STRING input, char ** result);
 STRING InteractValueCharToValueString(char value_char);
 void InteractPrintJSONPositionValue(VALUE value);
-void InteractFreeBoardString(STRING board);
 void InteractCheckErrantExtra(STRING input, int max_words);
 void ServerInteractLoop(void);
 extern POSITION gInitialPosition;

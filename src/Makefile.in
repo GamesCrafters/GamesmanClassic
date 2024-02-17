@@ -455,7 +455,7 @@ YOTE_SO			= $(LIBDIR)/libmyote$(LIBSUFFIX)
 
 ### Games written in C that work with the current gamesman core:
 # Object files
-CGAMEOBJS = $(TTT_OBJ)
+CGAMEOBJS = $(TTT_OBJ) $(TTTPPM_OBJ)
 #CGAMEOBJS = $(1210_OBJ) $(TIGERS_OBJ) $(TTTIER_OBJ) $(BAGHCHAL_OBJ) $(ATAXX_OBJ) \
 #        $(WINKERS_OBJ)$(ASALTO_OBJ) $(OTHELLO_OBJ) $(CHOMP_OBJ) \
 #	    $(TTT_OBJ) $(TT2_OBJ) $(SIM_OBJ) $(STT_OBJ) $(DODGEM_OBJ) $(BLOCKING_OBJ) \

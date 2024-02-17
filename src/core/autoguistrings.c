@@ -9,12 +9,12 @@ BOOLEAN ParseAutoGUIFormattedPositionString(char *positionString, int *turn, cha
     // It can probably be increased without issue, but no games at the time of
     // writing have a position string this long, so we don't find it necessary.
 
-    size_t len = strnlen(autoguiPositionString, MAX_POSITION_STRING_LENGTH << 1);
-    if (len < 3 || (autoguiPositionString[0] != '1' && autoguiPositionString[0] != '2') || len > MAX_POSITION_STRING_LENGTH) {
+    size_t len = strnlen(positionString, MAX_POSITION_STRING_LENGTH << 1);
+    if (len < 3 || (positionString[0] != '1' && positionString[0] != '2') || len > MAX_POSITION_STRING_LENGTH) {
         return 0;
     } else {
-        *turn = autoguiPositionString[0] - '0';
-        *entityString = autoguiPositionString + 2;
+        *turn = positionString[0] - '0';
+        *entityString = positionString + 2;
         return 1;
     }
 }

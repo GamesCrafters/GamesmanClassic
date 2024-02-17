@@ -177,6 +177,7 @@ POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING (*gTierToStringFunPtr)(TIER) = NULL;
 MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*) = NULL;
 STRING (*gInteractCustomDoMoveFunPtr)(STRING,MOVE,char*) = NULL;
+void (*gPositionToStringFunPtr)(POSITION,char*) = NULL;
 
 BOOLEAN kUsePureDraw = FALSE;
 // For the experimental GenerateMoves

@@ -751,5 +751,3 @@ POSITION ActualNumberOfPositions(int variant) {
 	(void)variant;
 	return 5478;
 }
-
-GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
