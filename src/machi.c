@@ -93,7 +93,6 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683 };
 POSITION BlankOXToPosition(BlankOX* theBlankOX, BlankOX whosTurn);
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX,BlankOX *whosTurn);
 STRING GetVarString();
-STRING MoveToString (MOVE);
 STRING _PositionToString(POSITION);
 POSITION ActualNumberOfPositions(int variant);
 POSITION GetCanonicalPosition(POSITION position);
@@ -146,7 +145,6 @@ void InitializeGame()
 		}
 	}
 
-	gMoveToStringFunPtr = &MoveToString;
 	gCustomUnhash = &_PositionToString;
 
 	gGetVarStringPtr = &GetVarString;
@@ -839,27 +837,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 	return theMove;
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	if(theMove < 9) {
-		printf("%d", theMove + 1);
-	} else {
-		/* else
-		   printf("%d", theMove + 11); */
-		printf("%d", theMove);
-	}
-}
-
 STRING _PositionToString(POSITION thePos) {
 	BlankOX* turn = SafeMalloc( sizeof(BlankOX) );
 	BlankOX* board = SafeMalloc( sizeof(BlankOX)*BOARDSIZE );
@@ -1076,78 +1053,48 @@ POSITION ActualNumberOfPositions(int variant) {
 	return 5390;
 }
 
-POSITION PositionStringToPosition(STRING positionString) {
-
-}
-
-void PositionToAutoGUIPositionString(POSITION position, char *autoguiPositionStringBuffer) {
-
-}
-
-void MoveToAutoGUIMoveString(MOVE move, char *autoguiMoveStringBuffer) {
-
-}
-
-void MoveToString(MOVE theMove, char *moveStringBuffer) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	if(theMove < 9) {
-		STRING move = (STRING) SafeMalloc(2);
-		sprintf(move, "%d", theMove + 1);
-		return move;
+	if (move < 9) {
+		snprintf(moveStringBuffer, 5, "%d", move + 1);
 	} else {
-		STRING move = (STRING) SafeMalloc(3);
-		sprintf(move, "%d", theMove);
-		return move;
+		snprintf(moveStringBuffer, 5, "%d", move);
 	}
 }
 
-
-
-POSITION InteractStringToPosition(STRING str) {
-	// Parse UWAPI standard position string & get UWAPI standard board string
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns;
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	// Convert UWAPI standard board string to internal board representation
-	BlankOX oxboard[BOARDSIZE];
-	int i;
-	for (i = 0; i < BOARDSIZE; i++) {
-		if (board[i] == 'o') {
-			oxboard[i] = o;
-		} else if (board[i] == 'x') {
-			oxboard[i] = x;
-		} else if (board[i] == '-') {
-			oxboard[i] = Blank;
-		} else {
-			SafeFreeString(board); // Free the string!
-			return INVALID_POSITION;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		// Convert UWAPI standard board string to internal board representation
+		BlankOX oxboard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (board[i] == 'o') {
+				oxboard[i] = o;
+			} else if (board[i] == 'x') {
+				oxboard[i] = x;
+			} else if (board[i] == '-') {
+				oxboard[i] = Blank;
+			} else {
+				return NULL_POSITION;
+			}
 		}
+		// Convert internal board representation to internal position
+		BlankOX whosTurn = (turn == 1) ? o : x;
+		return BlankOXToPosition(oxboard, whosTurn);
 	}
-
-	// Convert internal board representation to internal position
-	BlankOX whosTurn = (turn == UWAPI_TURN_A) ? o : x;
-	POSITION position = BlankOXToPosition(oxboard, whosTurn);
-
-	// Return internal position
-	SafeFreeString(board); // Free the string!
-	return position;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	// Convert internal position to internal board representation
 	BlankOX oxboard[BOARDSIZE];
 	BlankOX whosTurn;
-	PositionToBlankOX(pos, oxboard, &whosTurn);
+	PositionToBlankOX(position, oxboard, &whosTurn);
 
 	// Convert internal board representation to UWAPI standard board string
 	char board[BOARDSIZE + 1];
-	int i;
-	for (i = 0; i < BOARDSIZE; i++) {
+	for (int i = 0; i < BOARDSIZE; i++) {
 		if (oxboard[i] == o) {
 			board[i] = 'o';
 		} else if (oxboard[i] == x) {
@@ -1157,22 +1104,15 @@ STRING InteractPositionToString(POSITION pos) {
 		}
 	}
 	board[BOARDSIZE] = '\0';
-
-	// Return formatted UWAPI position string
-	enum UWAPI_Turn turn = (whosTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 9, board);
+	// Return AutoGUI-formatted position string
+	return AutoGUIMakePositionString((whosTurn == o) ? 1 : 2, board, autoguiPositionStringBuffer);	
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	BlankOX oxboard[BOARDSIZE];
-	BlankOX whosTurn;
-	PositionToBlankOX(pos, oxboard, &whosTurn);
-
-	if (mv < 9) {
-		// Add piece
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', mv, 'x');
-	} else {
-		// Move piece
-		return UWAPI_Board_Regular2D_MakeMoveStringWithSound(mv / 10 - 1, mv % 10 - 1, 'y');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	if (move < 9) { // Place Piece
+		return AutoGUIMakeMoveButtonStringA('-', move, 'x', autoguiMoveStringBuffer);
+	} else { // Slide Piece
+		return AutoGUIMakeMoveButtonStringM(move / 10 - 1, move % 10 - 1, 'y', autoguiMoveStringBuffer);
 	}
 }

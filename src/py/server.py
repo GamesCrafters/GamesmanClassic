@@ -133,10 +133,11 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         unquoted = urllib.parse.unquote(self.path)
         parsed = urllib.parse.urlparse(unquoted)
         path = parsed.path.split('/')
-        httpCommand = path[-1]
-        if httpCommand == 'favicon.ico':
+        if 'favicon.ico' in path:
             return
-        game_name = path[-2]
+        game_id = path[1]
+        variant_id = path[2]
+        command = path[3]
         
         # Can't use urlparse.parse_qs because of equal signs in board string
         query: defaultdict[str, str] = defaultdict(str)
@@ -150,30 +151,32 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
                 else:
                     # Only key present
                     query[splitKeyVal[0]] = ''
-                    
+        
+        query['number'] = variant_id
+
         self.server.log.info(f"GET: {unquoted}")
 
-        game = self.server.get_game(game_name)
+        game = self.server.get_game(game_id)
         
         # Board should start and end in quotes
-        if 'board' in query and query['board'][0] != '"':
-            query['board'] = f'"{query["board"]}"'
+        if 'p' in query and query['p'][0] != '"':
+            query['p'] = f'"{query["p"]}"'
 
-        httpCommandToGamesmanCommand = {
+        commandToGamesmanCommand = {
                 'start':
                 'start_response',
 
-                'position':
-                f'position_response {query["board"]}',
+                'positions':
+                f'position_response {query["p"]}',
             }
         
-        if httpCommand in httpCommandToGamesmanCommand:
-            c_command = httpCommandToGamesmanCommand[httpCommand]
+        if command in commandToGamesmanCommand:
+            c_command = commandToGamesmanCommand[command]
             # Dispatches responsibility to the game object to respond
             game.push_request(GameRequest(self, query, c_command))
         else:
             try:
-                game.respond_to_unknown_request(GameRequest(self, query, httpCommand))
+                game.respond_to_unknown_request(GameRequest(self, query, command))
             except NotImplementedError:
                 self.respond(could_not_parse_msg)
         
