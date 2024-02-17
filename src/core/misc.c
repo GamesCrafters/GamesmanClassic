@@ -377,6 +377,17 @@ MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE 
 	return theHead;
 }
 
+MULTIPARTEDGELIST *CreateMultipartEdgeListNode2(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, MULTIPARTEDGELIST* next)
+{
+	MULTIPARTEDGELIST* head = (MULTIPARTEDGELIST*) SafeMalloc (sizeof(MULTIPARTEDGELIST));
+	head->from = from;
+	head->to = to;
+	head->partMove = partMove;
+	head->fullMove = fullMove;
+	head->next = next;
+	return head;
+}
+
 MOVELIST *CopyMovelist(MOVELIST* theMovelist)
 {
 	MOVELIST *ptr, *head = NULL;

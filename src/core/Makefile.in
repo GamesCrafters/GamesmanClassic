@@ -41,7 +41,8 @@ DEBUG_OBJ	= debug$(OBJSUFFIX)
 GAMEPLAY_OBJ	= gameplay$(OBJSUFFIX)
 MAIN_OBJ	= main$(OBJSUFFIX)
 MISC_OBJ	= misc$(OBJSUFFIX)
-MLIB_OBJ	= mlib$(OBJSUFFIX)
+MLIB_OBJ = mlib$(OBJSUFFIX)
+AUTOGUI_STRINGS_OBJ = autoguistrings$(OBJSUFFIX)
 TEXTUI_OBJ	= textui$(OBJSUFFIX)
 STRINGBUILDER_OBJ = StringBuilder$(OBJSUFFIX)
 VISUALIZATION_OBJ = visualization$(OBJSUFFIX)
@@ -90,7 +91,7 @@ SOLVER_LOOPYPD	= solveloopypd$(OBJSUFFIX)
 ##############################################################################
 ### Files
 
-CORE=$(ANALYSIS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
+CORE=$(ANALYSIS_OBJ) $(AUTOGUI_STRINGS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DEBUG_OBJ) \
      $(GAMEPLAY_OBJ) $(MAIN_OBJ) $(MISC_OBJ) $(MLIB_OBJ) $(SEVAL_OBJ) $(TEXTUI_OBJ) \
      $(DB_OBJ) $(MEMDB_OBJ) $(BPDB_OBJ) $(BPDB_BITLIB_OBJ) $(BPDB_SCHEMES_OBJ) $(BPDB_MISC_OBJ) \
      $(TWOBITDB_OBJ) $(COLLDB_OBJ) $(UNIVHT_OBJ) $(UNIVDB_OBJ) \
@@ -104,7 +105,7 @@ SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 
 MODULES=$(CORE) $(SOLVERS) hash.o memwatch.o
 
-INCLUDES=analysis.h constants.h debug.h filedb.h gameplay.h gamesman.h \
+INCLUDES=analysis.h autoguistrings.h constants.h debug.h filedb.h gameplay.h gamesman.h \
 	 globals.h misc.h mlib.h solveloopyga.h solveloopy.h solvestd.h seval.h\
 	 memdb.h bpdb.h bpdb_bitlib.h bpdb_schemes.h bpdb_misc.h twobitdb.h db.h \
 	 solvezero.h solveloopyup.h solveretrograde.h solvevsstd.h solvevsloopy.h \

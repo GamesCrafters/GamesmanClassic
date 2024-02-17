@@ -358,6 +358,7 @@ void PrintMoveHistory(POSITION position)
 	int whoseTurn = kPlayerOneTurn;
 	int ct = 1;
 	moveList* mlist = mList;
+	char moveStringBuffer[32];
 	printf("\n\t*************************************\n");
 	printf("\t  Script of %s", kGameName);
 	printf("\n\t*************************************\n");
@@ -370,7 +371,8 @@ void PrintMoveHistory(POSITION position)
 
 		if (whoseTurn == kPlayerOneTurn)
 			printf("%d.\t", ct++);
-		PrintMove(mlist->move);
+		MoveToString(mlist->move, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		if (whoseTurn == kPlayerOneTurn)
 			whoseTurn = kPlayerTwoTurn;
 		else {
@@ -755,7 +757,7 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
 	int drawDash = 1;
 
 	int comment;
-	STRING moveString;
+	char moveStringBuffer[maxPossibleMoveLength];
 	int moveLen;
 
 	char moveToPrint[maxPossibleMoveLength];
@@ -790,83 +792,53 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
 	                     position);
 
 	if (whoseTurn == playerOne) {
-		if (gMoveToStringFunPtr == NULL) {
-			if (comment == 0)
-				printf("         ");
-			if (comment == 1)
-				printf("?        ");
-			if (comment == 2)
-				printf("?!       ");
-			PrintMove(moveInfo->move);
-			printf("%s\n", line);
-		} else {
-			moveString = gMoveToStringFunPtr(moveInfo->move);
-			moveLen = strlen(moveString);
-			if (comment == 0)
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen);
-			if (comment == 1) {
-				strcat(moveToPrint, "?");
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
-			}
-			if (comment == 2) {
-				strcat(moveToPrint, "?!");
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
-			}
-			strcat(moveToPrint, moveString);
-			printf("%s%s\n", moveToPrint, line);
-			SafeFree(moveString);
+		MoveToString(moveInfo->move, moveStringBuffer);
+		moveLen = strlen(moveStringBuffer);
+		if (comment == 0)
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen);
+		if (comment == 1) {
+			strcat(moveToPrint, "?");
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
 		}
+		if (comment == 2) {
+			strcat(moveToPrint, "?!");
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
+		}
+		strcat(moveToPrint, moveStringBuffer);
+		printf("%s%s\n", moveToPrint, line);
 	} else {
-		if (gMoveToStringFunPtr == NULL) {
-			printf("          %s", line);
-			PrintMove(moveInfo->move);
-			if (comment == 0)
-				printf("\n");
-			if (comment == 1)
-				printf("        ?\n");
-			if (comment == 2)
-				printf("       ?!\n");
-		} else {
-			addSpacePadding(moveToPrint, maxMoveLen);
-			printf("%s%s",moveToPrint,line);
-			moveString = gMoveToStringFunPtr(moveInfo->move);
-			moveLen = strlen(moveString);
-			strcpy(moveToPrint, moveString);
-			if (comment == 0)
-				strcat(moveToPrint, "\n");
-			if (comment == 1) {
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
-				strcat(moveToPrint, "?");
-			}
-			if (comment == 2) {
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
-				strcat(moveToPrint, "?!");
-			}
-			printf("%s", moveToPrint);
-			SafeFree(moveString);
+		addSpacePadding(moveToPrint, maxMoveLen);
+		printf("%s%s",moveToPrint,line);
+		MoveToString(moveInfo->move, moveStringBuffer);
+		moveLen = strlen(moveStringBuffer);
+		strcpy(moveToPrint, moveStringBuffer);
+		if (comment == 0)
+			strcat(moveToPrint, "\n");
+		if (comment == 1) {
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
+			strcat(moveToPrint, "?");
 		}
-
+		if (comment == 2) {
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
+			strcat(moveToPrint, "?!");
+		}
+		printf("%s", moveToPrint);
 	}
 }
 
 int getMaxMoveLength()
 {
 
-	STRING move;
+	char moveStringBuffer[40];
 	moveList* mlist = mList;
 	int result = 0;
 	int newLen = 0;
 
-	if (gMoveToStringFunPtr == NULL)
-		return maxN;
-
 	while(mlist != 0) {
-
-		move = gMoveToStringFunPtr(mlist->move);
-		newLen = strlen(move);
+		MoveToString(mlist->move, moveStringBuffer);
+		newLen = strlen(moveStringBuffer);
 		if (newLen > result)
 			result = newLen;
-		SafeFree(move);
 		mlist = mlist->next;
 	}
 
@@ -1238,11 +1210,13 @@ UNDO *Stalemate(UNDO* undo, POSITION stalematePosition, BOOLEAN* abort)
 BOOLEAN PrintPossibleMoves(POSITION thePosition)
 {
 	MOVELIST *ptr, *head;
+	char moveStringBuffer[32];
 
 	head = ptr = GenerateMoves(thePosition);
 	printf("\nValid Moves : [ ");
 	while (ptr != NULL) {
-		PrintMove(ptr->move);
+		MoveToString(ptr->move, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		printf(" ");
 		ptr = ptr->next;
 	}
@@ -1254,9 +1228,11 @@ BOOLEAN PrintPossibleMoves(POSITION thePosition)
 /* Jiong */
 void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
 {
+	char moveStringBuffer[32];
 	while (ptr != NULL) {
 		printf("\n\t\t");
-		PrintMove(ptr->move);
+		MoveToString(ptr->move, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		printf(" \t");
 		if((remoteptr->remoteness) == REMOTENESS_MAX)
 			printf("Draw");
@@ -1274,12 +1250,14 @@ void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
 void PrintMovesWithDelta(POSITION thePosition, MOVELIST* ptr, REMOTENESSLIST* remoteptr, VALUE val)
 {
 	REMOTENESSLIST* rl_copy = CopyRemotenesslist(remoteptr);
+	char moveStringBuffer[32];
 
 	while (ptr != NULL) {
 		int winBy;
 		MOVE theMove = ptr->move;
 		printf("\n\t\t");
-		PrintMove(theMove);
+		MoveToString(theMove, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		printf(" \t");
 		if (gWinBy) {
 			POSITION child = DoMove(thePosition, theMove);
@@ -1781,6 +1759,7 @@ MOVE GetComputersMove(POSITION thePosition)
 	int oldsmartness = smartness;
 	ptr = head = prev = NULL;
 	i = 0;
+	char moveStringBuffer[32];
 
 	moves = GetValueMoves(thePosition);
 
@@ -1803,7 +1782,8 @@ MOVE GetComputersMove(POSITION thePosition)
 		while(ptr->next != NULL)
 			ptr = ptr->next;
 		if(gHints) {
-			PrintMove(ptr->move);
+			MoveToString(ptr->move, moveStringBuffer);
+			printf("%s", moveStringBuffer);
 			printf(" ]\n\n");
 		}
 		oldValueOfPosition++;
@@ -1837,7 +1817,8 @@ MOVE GetComputersMove(POSITION thePosition)
 
 		if(gHints) {
 			while(ptr != NULL) {
-				PrintMove(ptr->move);
+				MoveToString(ptr->move, moveStringBuffer);
+				printf("%s", moveStringBuffer);
 				printf(" ");
 				ptr = ptr->next;
 			}
@@ -1881,7 +1862,8 @@ MOVE GetComputersMove(POSITION thePosition)
 			ptr = moves->moveList[i];
 			while (ptr) {
 				if (gHints) {
-					PrintMove(ptr->move);
+					MoveToString(ptr->move, moveStringBuffer);
+					printf("%s", moveStringBuffer);
 					printf(" ");
 				}
 				head = CreateMovelistNode(ptr->move, head);
@@ -1920,7 +1902,8 @@ MOVE GetComputersMove(POSITION thePosition)
 
 		if (gHints) {
 			while(ptr != NULL) {
-				PrintMove(ptr->move);
+				MoveToString(ptr->move, moveStringBuffer);
+				printf("%s", moveStringBuffer);
 				printf(" ");
 			}
 			printf("]\n\n");

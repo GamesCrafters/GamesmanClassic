@@ -1419,6 +1419,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	MOVELIST* head;
 	int onlyOneMove;
 	int i = 0;
+	char moveStringBuffer[32];
 
 	for (i = 0; i < MAXINPUTLENGTH; ++i) {
 		input[i] = '\0';
@@ -1430,7 +1431,8 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	*theMove = head->move;
 	if ( gSkipInputOnSingleMove && onlyOneMove ) {
 		printf("\n---------- SELECTING THE ONLY MOVE ---------> ");
-		PrintMove(*theMove);
+		MoveToString(*theMove, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		printf("\n");
 		return (Move);
 	}
@@ -1441,19 +1443,11 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	if(input[0] == '\0') {
 		/* [DDG 2005-01-09] Check if there is only one move to be made.
 		 * If so, this can be a shortcut for moving, just hitting enter! */
-		/*      head = GenerateMoves(thePosition); What are all moves available? */
-		/* There's exactly one */
-		/*if (onlyOneMove = (head != NULL && head->next == NULL)){
-		 *  *theMove = head->move;
-		 * printf("----- AUTO-MOVE-SELECTED ------------> ");
-		 * PrintMove(*theMove);
-		 * printf("\n");
-		 *}
-		 * FreeMoveList(head);*/
 
 		if ( onlyOneMove ) {
 			printf("\n-------- SELECTING THE ONLY MOVE --------> ");
-			PrintMove(*theMove);
+			MoveToString(*theMove, moveStringBuffer);
+			printf("%s", moveStringBuffer);
 			printf("\n");
 			return(Move);
 		} else

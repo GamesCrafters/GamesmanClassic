@@ -860,20 +860,6 @@ void PrintMove(MOVE theMove) {
 	}
 }
 
-
-STRING MoveToString(MOVE theMove) {
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	if(theMove < 9) {
-		STRING move = (STRING) SafeMalloc(2);
-		sprintf(move, "%d", theMove + 1);
-		return move;
-	} else {
-		STRING move = (STRING) SafeMalloc(3);
-		sprintf(move, "%d", theMove);
-		return move;
-	}
-}
-
 STRING _PositionToString(POSITION thePos) {
 	BlankOX* turn = SafeMalloc( sizeof(BlankOX) );
 	BlankOX* board = SafeMalloc( sizeof(BlankOX)*BOARDSIZE );
@@ -1089,6 +1075,33 @@ POSITION ActualNumberOfPositions(int variant) {
 	(void)variant;
 	return 5390;
 }
+
+POSITION PositionStringToPosition(STRING positionString) {
+
+}
+
+void PositionToAutoGUIPositionString(POSITION position, char *autoguiPositionStringBuffer) {
+
+}
+
+void MoveToAutoGUIMoveString(MOVE move, char *autoguiMoveStringBuffer) {
+
+}
+
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+	if(theMove < 9) {
+		STRING move = (STRING) SafeMalloc(2);
+		sprintf(move, "%d", theMove + 1);
+		return move;
+	} else {
+		STRING move = (STRING) SafeMalloc(3);
+		sprintf(move, "%d", theMove);
+		return move;
+	}
+}
+
+
 
 POSITION InteractStringToPosition(STRING str) {
 	// Parse UWAPI standard position string & get UWAPI standard board string
