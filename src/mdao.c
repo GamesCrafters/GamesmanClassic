@@ -138,8 +138,6 @@ VALUE                   Primitive (POSITION position);
 void                    PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn);
 void                    printBoard(char board[]);
 void                    PrintComputersMove(MOVE computersMove, STRING computersName);
-void                    PrintMove(MOVE move);
-STRING                  MoveToString(MOVE);
 USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
@@ -188,7 +186,6 @@ void InitializeGame ()
 	generic_hash_init_sym(0, BOARD_ROWS, BOARD_COLS, reflections, 4, rotations, 3, 1);
 	gInitialPosition = generic_hash_hash(board, PLAYER1_TURN);
 
-	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 
 }
@@ -474,23 +471,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 	        directions[direction]);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-	STRING moveString = MoveToString(move);
-	printf( "%s", moveString );
-	SafeFree(moveString);
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -501,16 +481,11 @@ void PrintMove (MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(5);
-
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	int position = Unhasher_Index(theMove);
 	int direction = Unhasher_Direction(theMove);
-
-	sprintf (move, "%c%d%s", Column (position)+ROW_START, BOARD_ROWS-Row (position),
+	snprintf (moveStringBuffer, 10, "%c%d%s", Column (position)+ROW_START, BOARD_ROWS-Row (position),
 	         directions[direction]);
-
-	return move;
 }
 
 
@@ -830,60 +805,38 @@ POSITION ActualNumberOfPositions(int variant) {
 
 /****************** AUTOGUI FUNCTIONS ******************/
 
-POSITION InteractStringToPosition(STRING str) {
-  // Ignore the first 8 characters
-  char realBoard[BOARD_SIZE];
-
-  for (int i = 0; i < BOARD_SIZE; i++) {
-    if (str[i + 8] == 'X') {
-      realBoard[i] = 'X';
-    } else if (str[i + 8] == 'O') {
-      realBoard[i] = 'O';
-    } else {
-      realBoard[i] = ' ';
-    }
-  }
-
-  return generic_hash_hash(realBoard, str[2] == 'A' ? 1 : 2);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		char realBoard[BOARD_SIZE];
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			if (board[i] == '-') {
+				realBoard[i] = ' ';
+			} else {
+				realBoard[i] = board[i];
+			}
+		}
+		return generic_hash_hash(realBoard, turn);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char board[BOARD_SIZE];
-	generic_hash_unhash(pos, board);
-
-	int player = generic_hash_turn(pos);
-
-	// R_A_0_0_TG-T-S--H
-	STRING result = (STRING) SafeMalloc(9 + BOARD_SIZE);
-	result[0] = 'R';
-	result[1] = '_';
-	result[2] = player % 2 == 1 ? 'A' : 'B';
-	result[3] = '_';
-	result[4] = '0';
-	result[5] = '_';
-	result[6] = '0';
-	result[7] = '_';
-
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[BOARD_SIZE + 1];
+	generic_hash_unhash(position, board);
 	for (int i = 0; i < BOARD_SIZE; i++) {
-		if (board[i] == 'X') {
-		result[8 + i] = 'X';
-		} else if (board[i] == 'O') {
-		result[8 + i] = 'O';
-		} else {
-		result[8 + i] = '-';
+		if (board[i] == ' ') {
+			board[i] = '-';
 		}
 	}
-
-	result[8 + BOARD_SIZE] = '\0';
-
-	return result;
+	board[BOARD_SIZE] = '\0';
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE move) {
-    (void)pos;
-    STRING result = (STRING) SafeMalloc(12);
-
-	int position = Unhasher_Index(move);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	int i1 = Unhasher_Index(move);
 	int direction = Unhasher_Direction(move);
 
 	//   STRING directions[NUM_OF_DIRS] = {
@@ -893,8 +846,5 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 	//   };
 
 	int indexAdjust[] = {-3, 1, 5, -4, 4, -5, -1, 3};
-
-	sprintf(result, "M_%d_%d_x", position, position + indexAdjust[direction]);
-
-	return result;
+	AutoGUIMakeMoveButtonStringM(i1, i1 + indexAdjust[direction], 'x', autoguiMoveStringBuffer);
 }

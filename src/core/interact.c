@@ -117,6 +117,8 @@ void ServerInteractLoop(void) {
 	char* input = (char *) SafeMalloc(input_size);
 	char *positionStringBuffer = (char *) SafeMalloc(MAX_POSITION_STRING_LENGTH);
 	char *moveStringBuffer = (char *) SafeMalloc(MAX_MOVE_BUTTON_STRING_LENGTH);
+	positionStringBuffer[0] = '\0';
+	moveStringBuffer[0] = '\0';
 	#define RESULT "result =>> "
 	POSITION position;
 	POSITION childPosition;

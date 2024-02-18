@@ -217,8 +217,6 @@ int BoardPosToArrayPos(int x, int y);
 MOVE hashMove(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY);
 sMove unhashMove(MOVE move);
 
-STRING MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -251,8 +249,6 @@ void InitializeGame ()
 
 	int reflections[] = {90};
 	generic_hash_init_sym(0, numOfRows, numOfCols, reflections, 1, NULL, 0, 0);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -559,6 +555,21 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("%s\n\n", GetPrediction(position, playersName, usersTurn));
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	struct cleanMove x;
+	x = unhashMove(theMove);
+	snprintf( moveStringBuffer, 10, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
+}
 
 /************************************************************************
 **
@@ -571,50 +582,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%s's move: ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *theMove         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(5);
-
-	struct cleanMove x;
-	x = unhashMove(theMove);
-
-	sprintf( move, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
-
-	return move;
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+	char moveStringBuffer[20];
+	MoveToString(computersMove, moveStringBuffer);
+	printf("%s's move: %s\n", computersName, moveStringBuffer);
 }
 
 
@@ -1509,18 +1480,18 @@ MOVE hashMove(unsigned int fromX,
 	return move;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

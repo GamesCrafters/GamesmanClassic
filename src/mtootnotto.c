@@ -205,7 +205,6 @@ int INIT_O = 4;  //Cannot exceed 7
 **
 *************************************************************************/
 
-STRING MoveToString(MOVE);
 void PositionToBoard(POSITION pos, TOBlank **board);
 //VOID PositiontoPieces
 
@@ -357,10 +356,6 @@ void InitializeGame ()
 
 
 	SetupTierStuff();
-
-	//PrintPosition(148479, "blah", TRUE);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -1078,11 +1073,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(4);
-
+void MoveToString(MOVE theMove, char *move) {
 	sprintf(move, "%d%c", moveUnhashCol(theMove), moveUnhashPiece(theMove));
-	return move;
 }
 
 
@@ -1516,18 +1508,18 @@ BOOLEAN IsLegal(POSITION position) {
 	return TRUE; //if it never encounters an invalid position
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

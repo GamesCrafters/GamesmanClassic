@@ -282,8 +282,6 @@ BOOLEAN canmovedownright(int arraynum);
 BOOLEAN canmovedownleft(int arraynum);
 BOOLEAN canmoveupright(int arraynum);
 
-STRING MoveToString( MOVE );
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -319,8 +317,6 @@ void InitializeGame ()
 	gBoard[gBoardlength] = '\0';
 	gInitialPosition = generic_hash_hash(gBoard, 1);
 	/* printf("This is the initialPosition:%d", gInitialPosition); */
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -822,43 +818,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely formats the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%8s's move   : ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -869,8 +828,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 8 );
+void MoveToString(MOVE theMove, char *m) {
 	int xcoord, ycoord, dir, Arraynum;
 	STRING direction = NULL;
 	xcoord = GetXCoord(theMove);
@@ -895,7 +853,26 @@ STRING MoveToString(MOVE theMove) {
 	else if (dir == DOWNLEFT)
 		direction = "dl";
 	sprintf( m, "[%d %s]", Arraynum + 1, direction);
-	return m;
+}
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely formats the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove (MOVE computersMove, STRING computersName)
+{
+	printf("%8s's move   : ", computersName);
+	char msb[20];
+	MoveToString(computersMove, msb);
+	printf("%s", msb);
+	printf("\n");
 }
 
 
@@ -1366,19 +1343,18 @@ BOOLEAN canmovedownright(int arraynum)
 	return (canmovedown(arraynum+1) && canmoveright(arraynum+gBoardwidth));
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	(void)board;
-	return -1;
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

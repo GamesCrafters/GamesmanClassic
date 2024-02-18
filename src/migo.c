@@ -297,15 +297,6 @@ static const int DEFAULT_PIECES_ARRAY[] =
 
 /*************************************************************************
 **
-** Function Prototypes
-**
-*************************************************************************/
-
-
-STRING                          MoveToString(MOVE move);
-
-/*************************************************************************
-**
 ** IMPLEMENTATION
 **
 *************************************************************************/
@@ -382,8 +373,6 @@ void InitializeHelpStrings (void)
 
 	        kHelpExample =
 	                "";
-
-	gMoveToStringFunPtr = &MoveToString;
 
 }
 
@@ -549,25 +538,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 	(void)computersName;
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = MoveToString( move );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -578,17 +548,11 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
-{
-	char* buf = SafeMalloc(3 * sizeof(char));
-
+void MoveToString (MOVE move, char *moveStringBuffer) {
 	GoMove my_move = unhashMove(move);
-	buf[0] = my_move->x + 'A';
-	buf[1] = my_move->y + '1';
-	buf[2] = '\0';
-	delGoMove(my_move);
-
-	return buf;
+	moveStringBuffer[0] = my_move->x + 'A';
+	moveStringBuffer[1] = my_move->y + '1';
+	moveStringBuffer[2] = '\0';
 }
 
 
@@ -1336,18 +1300,18 @@ delGoStone(GoStone which) {
 **
 ************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

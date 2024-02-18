@@ -100,8 +100,6 @@ CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
 CONST_STRING kHelpExample =
         "It's not rocket science.";
 
-STRING MoveToString(MOVE);
-
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -183,8 +181,6 @@ void InitializeGame()
 	gNumberOfPositions*=2;
 
 	free( theBoard );
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame() {}
@@ -681,22 +677,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
-	printf( "%s", moveString );
-	SafeFree(moveString);
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -705,13 +685,9 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(3);
-
+void MoveToString (MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf( move, "%d", theMove+1 );
-
-	return move;
+	snprintf( moveStringBuffer, 10, "%d", move + 1 );
 }
 
 
@@ -1219,18 +1195,18 @@ void setOption(int option)
 	gBoardHeight = option/(2*(MAX_WIDTH-MIN_WIDTH+1))%(MAX_HEIGHT-MIN_HEIGHT+1);
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

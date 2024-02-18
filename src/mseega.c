@@ -254,8 +254,6 @@ int legalMove(int from, int to);
 
 /* Function prototypes here. */
 
-STRING                  MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -287,8 +285,6 @@ void InitializeGame () {
 		gInitialPosition = hash(b);
 		//printf ("init------------- %d",gInitialPosition);
 	} while (FALSE);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -950,7 +946,6 @@ MOVE ConvertTextInputToMove (STRING input) {
 		setMove2(&m,p1);
 	else
 		setMove(&m, 'x', p1, p2);
-	if (DEBUGGING2) {printf("Conversion finds "); PrintMove(m); printf(".\n"); }
 	return m;
 	//get first piece
 	//formula: result = letter + number
@@ -983,57 +978,6 @@ MOVE ConvertTextInputToMove (STRING input) {
 
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-/* Converts the number to the specified base and puts this into the
-   array. Returns the number of digits that it used. */
-/*
-   void numberInBase(char* out, unsigned int n, int b, char* lookuptable) {
-   int i,j;
-   char swap;
-   out[0]='\0';
-   for (i=1; n!=0; i++) {
-   out[i]=lookuptable[n%b];
-   n = n/b;
-   }
-   if (i==1) out[i++]=lookuptable[0]; // if the number was 0, print 0.
-   i--;
-   for (j=0;i>j;i--,j++) {
-   swap=out[i];
-   out[i]=out[j];
-   out[j]=swap;
-   }
-   }
-   void PrintMove (MOVE move) {
-   char alphabet[]="abcdefghijklmnopqrstuvwxyz";
-   char digits[]="0123456789";
-   // TODO: change this to log(maxnum)/log(base), so that we are
-   //   not restricted to boards of size 10^4 * 10^4
-   char row1[5],col1[5]; // numbers from 0 to base
-   char row2[5],col2[5];
-   numberInBase(row1, fromWhere(&move)/width, 26, alphabet);
-   numberInBase(col1, fromWhere(&move)%width, 10, digits);
-   numberInBase(row2, toWhere(&move)/width, 26, alphabet);
-   numberInBase(col2, toWhere(&move)%width, 10, digits);
-   printf("Move with coordinates %s%s and %s%s.",row1,col1,row2,col2);
-   printf("%d",move);
-   }
- */
-void PrintMove(MOVE move) {
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -1044,12 +988,8 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
-	STRING m = (STRING) SafeMalloc( 5 );
-
+void MoveToString(MOVE move, char *m) {
 	sprintf(m, "[%d]", toWhere(&move));
-
-	return m;
 }
 
 
@@ -1345,18 +1285,18 @@ int forbiddenSpot(int r) {
 	}
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

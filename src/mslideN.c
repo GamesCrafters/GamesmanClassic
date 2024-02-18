@@ -171,7 +171,6 @@ BOOLEAN firstPass = TRUE;
 
 static int* g3Array;
 
-STRING MoveToString( MOVE );
 void SetInitialBoardSize();
 void InitializeGameVariables(int);
 BlankOX PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX);
@@ -188,7 +187,6 @@ void InitializeGame()
 		firstPass = FALSE;
 	}
 
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -794,22 +792,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -818,10 +800,8 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 3 );
+void MoveToString(MOVE theMove, char *m) {
 	sprintf(m, "%d", theMove);
-	return m;
 }
 
 /************************************************************************
@@ -919,19 +899,18 @@ void setOption(int option)
 	gDiagonalRightGravity = option/(2*2*2*2)%2==1;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

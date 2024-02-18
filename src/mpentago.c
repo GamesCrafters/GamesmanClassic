@@ -212,14 +212,6 @@ int BOARDSIZE;  /* ROWSIZE * ROWSIZE */
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
-STRING                  MoveToString(MOVE move);
-
 /* Mine */
 //BOOLEAN isOnBoard(POSITION position);
 BOOLEAN nInARow(POSITION position);
@@ -333,9 +325,6 @@ void InitializeHelpStrings ()
 
 	kHelpExample =
 	        "";
-
-	gMoveToStringFunPtr = &MoveToString;
-
 
 	if (DEBUG) {
 		printf("InitializingHelpStrings End\n");
@@ -726,18 +715,18 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-	if (DEBUG) {
-		printf("PrintComputersMove Start..\n");
-	}
+	// if (DEBUG) {
+	// 	printf("PrintComputersMove Start..\n");
+	// }
 
-	STRING str = MoveToString(computersMove);
-	printf("%s's move: %s", computersName, str);
-	SafeFree(str);
+	// STRING str = MoveToString(computersMove);
+	// printf("%s's move: %s", computersName, str);
+	// SafeFree(str);
 
 
-	if (DEBUG) {
-		printf("PrintComputersMove End..\n");
-	}
+	// if (DEBUG) {
+	// 	printf("PrintComputersMove End..\n");
+	// }
 }
 
 
@@ -753,17 +742,17 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 void PrintMove (MOVE move)
 {
-	if (DEBUG) {
-		printf("PrintMove Start..\n");
-	}
+	// if (DEBUG) {
+	// 	printf("PrintMove Start..\n");
+	// }
 
-	STRING str = MoveToString( move );
-	printf( "%s", str );
-	SafeFree( str );
+	// STRING str = MoveToString( move );
+	// printf( "%s", str );
+	// SafeFree( str );
 
-	if (DEBUG) {
-		printf("PrintMove End..\n");
-	}
+	// if (DEBUG) {
+	// 	printf("PrintMove End..\n");
+	// }
 }
 
 
@@ -777,49 +766,49 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
+void MoveToString (MOVE move, char *moveStringBuffer)
 {
-	if (DEBUG) {
-		printf("MoveToString Start..\n");
-	}
+	// if (DEBUG) {
+	// 	printf("MoveToString Start..\n");
+	// }
 
-	int col, row, boardToRotate;
-	BOOLEAN isRotateCW;
-
-
-	isRotateCW = isRotateClockwise(move);
-	if (!isRotateCW) {
-		move *= -1;
-	}
-	col = getColumn(move);
-	row = getRow(move);
-	boardToRotate = getBoardToRotate(move);
+	// int col, row, boardToRotate;
+	// BOOLEAN isRotateCW;
 
 
-	STRING stringMove = (STRING) SafeMalloc(27 * sizeof(char));
-
-	//  printf("col: %d\n", col);
-
-	if (isRotateCW) {
-		if (moveFormat == 1) {
-			sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d cw\n", col + 'a', ROWSIZE - row, boardToRotate);
-		} else if (moveFormat == 2) {
-			sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d - \n", col + 'a', ROWSIZE - row, boardToRotate);
-		}
-	} else {
-		if (moveFormat == 1) {
-			sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d cc\n", col + 'a', ROWSIZE - row, boardToRotate);
-		} else if (moveFormat == 2) {
-			sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d + \n", col + 'a', ROWSIZE - row, boardToRotate);
-		}
-	}
-
-	return stringMove;
+	// isRotateCW = isRotateClockwise(move);
+	// if (!isRotateCW) {
+	// 	move *= -1;
+	// }
+	// col = getColumn(move);
+	// row = getRow(move);
+	// boardToRotate = getBoardToRotate(move);
 
 
-	if (DEBUG) {
-		printf("MoveToString End..\n");
-	}
+	// STRING stringMove = (STRING) SafeMalloc(27 * sizeof(char));
+
+	// //  printf("col: %d\n", col);
+
+	// if (isRotateCW) {
+	// 	if (moveFormat == 1) {
+	// 		sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d cw\n", col + 'a', ROWSIZE - row, boardToRotate);
+	// 	} else if (moveFormat == 2) {
+	// 		sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d - \n", col + 'a', ROWSIZE - row, boardToRotate);
+	// 	}
+	// } else {
+	// 	if (moveFormat == 1) {
+	// 		sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d cc\n", col + 'a', ROWSIZE - row, boardToRotate);
+	// 	} else if (moveFormat == 2) {
+	// 		sprintf(stringMove, "Col:%c, Row:%d, Rotate:%d + \n", col + 'a', ROWSIZE - row, boardToRotate);
+	// 	}
+	// }
+
+	// return stringMove;
+
+
+	// if (DEBUG) {
+	// 	printf("MoveToString End..\n");
+	// }
 }
 
 
@@ -1844,18 +1833,18 @@ BOOLEAN canGoDown(int location) {
 **
 ************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

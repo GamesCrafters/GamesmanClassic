@@ -69,10 +69,6 @@ CONST_STRING kHelpExample =             /* TODO */
 **
 **************************************************************************/
 
-STRING MoveToString(MOVE);
-
-
-
 // How a piece can move
 #define FORWARD               1
 #define BACKWARD              2
@@ -158,7 +154,6 @@ void ForceInitialize() {
 	}
 	gInitialPosition = generic_hash_hash(initialPosition, P1);
 	SafeFree(initialPosition);
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 void InitializeOnce() {
@@ -1421,8 +1416,7 @@ int canPromote(int index, POSITION position) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING s = (STRING) SafeMalloc(100); // replace with exact #
+void MoveToString(MOVE theMove, char *s) {
 	s[0] = 0; // Initialize string to null
 
 	unsigned int move = theMove;
@@ -1505,128 +1499,6 @@ STRING MoveToString(MOVE theMove) {
 			move = move << 2;
 		}
 	}
-
-	return s;
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	/*  unsigned int currentMove, previousMove, counter=0, done = FALSE;
-	   char *myMove = (char *)malloc((32-MVHASHACC)/2*sizeof(char));
-	   printf("(%d ", theMove>>(32-MVHASHACC)), counter = 0;
-	   theMove = theMove<<MVHASHACC;
-	   currentMove = previousMove = theMove>>30;
-	   while(counter<(32-MVHASHACC)/2 && !done){
-	   previousMove = currentMove;
-	   currentMove = (theMove>>30)&0x00000003;
-	   if(currentMove != oppositeMove(previousMove))
-	    myMove[counter] = currentMove+'0';
-	   else
-	    done = TRUE;
-	   theMove = theMove<<2;
-	   counter++;
-	   }
-	   myMove[counter-1] = 0;
-	   if(counter<=(32-MVHASHACC)/2)
-	   printf("%s", myMove);
-	   printf(")");
-	   SafeFree(myMove);
-	 */ /*
-	   unsigned int move = theMove;
-	   unsigned int startIndex = (move >> (32-MVHASHACC+1));
-	   unsigned int currentIndex = startIndex;
-	   unsigned int currentMove = 0, previousMove = 0;
-	   char startSq[3], nextSq[3];
-	   unsigned int maxJumps = (32-MVHASHACC)/2, i = 0;
-	   int done = FALSE, jump = FALSE;
-
-	   //generic_hash_unhash(curBoard, myBoard);
-	   // Print initial square
-	   getTextFromIndex(startIndex, startSq);
-	   printf("%s", startSq);
-	   move = move << MVHASHACC;
-
-	   if(((theMove>>(32-MVHASHACC))&0x00000001) == 1)
-	    jump = TRUE;
-	   else{
-	    //getTextFromIndex(currentIndex, nextSq);
-	    //printf("%s", nextSq);
-	    currentMove = move>>30;
-	    switch(currentMove){
-	    case FORWARDLEFT:
-	      currentIndex = forwardLeft(currentIndex);
-	      break;
-	    case FORWARDRIGHT:
-	      currentIndex = forwardRight(currentIndex);
-	      break;
-	    case BACKWARDLEFT:
-	      currentIndex = backwardLeft(currentIndex);
-	      break;
-	    case BACKWARDRIGHT:
-	      currentIndex = backwardRight(currentIndex);
-	      break;
-	    default:
-	      BadElse("PrintMove");
-	    }
-	    getTextFromIndex(currentIndex, nextSq);
-	    printf("%s", nextSq);
-	   }
-
-	   //if (canPromote(startIndex, curBoard)) return;
-
-	   // Loop through jumps
-	   if(jump == TRUE){
-	      if (move == 0) return;
-
-	   for (i = 0; (i < maxJumps) && !done; i++) {
-	      previousMove = currentMove;
-	      currentMove = (move >> 30)&0x00000003;
-	      if ((currentMove == oppositeMove(previousMove)) && (i != 0)) {
-	          done = TRUE;
-	      } else {
-	        //printf("%d", currentIndex);
-	          switch (currentMove) {
-	              case FORWARDLEFT:
-	                  currentIndex = forwardLeft(forwardLeft(currentIndex));
-	                  currentMove = FORWARDLEFT;
-	                break;
-	              case FORWARDRIGHT:
-	                  currentIndex = forwardRight(forwardRight(currentIndex));
-	                  currentMove = FORWARDRIGHT;
-	                break;
-	              case BACKWARDRIGHT:
-	                //printf("~%d%d%c~", currentTurn, currentIndex, myBoard[backwardRight(currentTurn, currentIndex)]);
-	                  currentIndex = backwardRight(backwardRight(currentIndex));
-	                  currentMove = BACKWARDRIGHT;
-	                break;
-	              case BACKWARDLEFT:
-	                  currentIndex = backwardLeft(backwardLeft(currentIndex));
-	                  currentMove = BACKWARDLEFT;
-	                break;
-	          default:
-	                BadElse("PrintMove");
-	          }
-	          getTextFromIndex(currentIndex, nextSq);
-	          printf("%s", nextSq);
-	      }
-
-	      move = move << 2;
-	      }
-	   }
-	   // TODO */
-
-	STRING s = MoveToString(theMove);
-	printf("%s",s);
-	SafeFree(s);
 }
 
 int NumberOfOptions()
@@ -1680,18 +1552,18 @@ void setOption(int option)
 	cols = extract;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

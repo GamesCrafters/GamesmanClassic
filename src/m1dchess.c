@@ -377,7 +377,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     printf("%c", board[i]);
   }
 
-  printf("\n\t01234567\n\n");
+  printf("\n\t12345678\n\n");
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -394,30 +394,14 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
-  int origin = ((int) input[0] - 48) * 10;
-  origin += ((int) input[1] - 48);
-
-  int target = ((int) input[3] - 48) * 10;
-  target += ((int) input[4] - 48);
-
-  if (origin < 0 || origin >= boardSize) {
-    return FALSE;
-  } else if (target < 0 || target >= boardSize) {
-    return FALSE;
-  }
-
-  return TRUE;
+  return input[0] >= '1' && input[0] <= '8' && input[1] == ' ' && input[2] >= '1' && input[2] <= '8';
 }
 
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-  int origin = ((int) input[0] - 48) * 10;
-  origin += ((int) input[1] - 48);
-
-  int target = ((int) input[3] - 48) * 10;
-  target += ((int) input[4] - 48);
-
+  int origin = input[0] - '1';
+  int target = input[2] - '1';
   return origin * 100 + target;
 }
 
@@ -427,7 +411,7 @@ type when they specify moves. */
 void MoveToString(MOVE move, char *moveStringBuffer) {
   int origin = move / 100;
   int target = move % 100;
-  snprintf(moveStringBuffer, 10, "%d %d", origin, target);
+  snprintf(moveStringBuffer, 10, "%d %d", origin + 1, target + 1);
 }
 
 /* Basically just print the move. */

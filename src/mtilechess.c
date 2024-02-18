@@ -265,7 +265,6 @@ void InitializeGame ()
 		}
 	}
 	pieces[counter] = '\0';
-	gMoveToStringFunPtr = &MToS;
 	for (int i = 0; i < boardSize; i += (totalPieces+1)) {
 		largestBoard = largestBoard | (long long unsigned)pow(2,i);
 	}
@@ -882,10 +881,8 @@ void DebugMenu ()
 ************************************************************************/
 
 /* Returns a string representation of theMove */
-STRING MToS(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(7);
+void MoveToString(MOVE theMove, char *move) {
 	fillMove(theMove,move);
-	return move;
 }
 
 void fillMove(MOVE move, char *moveStr) {
@@ -3116,34 +3113,18 @@ POSITION InteractStringToPosition(STRING board) {
 	}
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char * board = unhashBoard(pos);
-	if (gHashWindowInitialized) {
-		char * formatted = MakeBoardString(board,
-			"turn", StrFromI(getCurrTurn(pos)),
-			"pos", StrFromI(pos),
-			"tier", TierstringFromPosition(pos),
-			"");
-		free ( board );
-		return formatted;
-	}
-	else {
-		char * formatted = MakeBoardString(board,
-			"turn", StrFromI(getCurrTurn(pos)),
-			"pos", StrFromI(pos),
-			"");
-		free ( board );
-		return formatted;
-	}
-
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING MoveToString(MOVE theMove) {
-	(void)theMove;
-	return StringDup("");
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -92,8 +92,6 @@ Computer's move              :  2    \n\n\
 TOTAL                        : 11    \n\n\
 Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ;
 
-STRING MoveToString(MOVE);
-
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -111,7 +109,6 @@ STRING gGameSpecificMenu = "1.\tSet the value of N\n  \t(the target ending sum.\
 void InitializeGame()
 {
 	gNumberOfPositions = N + 1;
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -406,10 +403,8 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(3);
-	sprintf( move, "%d", theMove );
-	return move;
+void MoveToString (MOVE theMove, char *moveStringBuffer) {
+	sprintf(moveStringBuffer, "%d", theMove );
 }
 
 int NumberOfOptions()
@@ -442,22 +437,6 @@ void setOption(int option)
 	}
 }
 
-
-POSITION InteractStringToPosition(STRING str) {
-	STRING board;
-	UWAPI_Board_Custom_ParsePositionString(str, &board);
-	POSITION pos = atoi(board);
-	SafeFreeString(board); // Free the string!
-	return pos;
-}
-
-STRING InteractPositionToString(POSITION pos) {
-	char buffer[32];
-	snprintf(buffer, 32, "%lld",pos);
-	return UWAPI_Board_Custom_MakePositionString(buffer);
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
-}
+POSITION StringToPosition(char *positionString) { return NULL_POSITION; }
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}

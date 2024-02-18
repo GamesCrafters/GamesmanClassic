@@ -154,7 +154,6 @@ BOOLEAN ThreeInARow(BlankOX[], int, int, int);
 void UndoMove(MOVE move);
 BlankOX WhoseTurn(BlankOX *theBlankOX);
 
-STRING MoveToString( MOVE );
 POSITION ActualNumberOfPositions(int variant);
 
 /**************************************************/
@@ -226,8 +225,6 @@ void InitializeGame()
 	gPosition.nextPiece = x;
 	gPosition.piecesPlaced = 0;
 	gUndoMove = UndoMove;
-
-	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
@@ -711,22 +708,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) int_move); /* user input is 01-18, our rep. is 0-17 */
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING str = MoveToString( theMove );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
 
 /************************************************************************
 **
@@ -738,12 +719,9 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 3 );
+void MoveToString (MOVE theMove, char *m) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	sprintf( m, "%d", theMove + 1);
-
-	return m;
 }
 
 /************************************************************************
@@ -944,4 +922,20 @@ void setOption(int option)
 POSITION ActualNumberOfPositions(int variant) {
 	(void)variant;
 	return 5478;
+}
+
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

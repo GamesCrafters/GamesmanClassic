@@ -280,7 +280,6 @@ void PrintMoveGroup(MOVE move);
 void PrintMovePrompt(char *name);
 
 STRING MoveGroupToString(MOVE move);
-STRING MoveToString(MOVE);
 
 /**************************************************** ConvertTextInputToMove */
 MOVE ConvertTextInputToMove(STRING input) {
@@ -507,8 +506,6 @@ void InitializeGame() {
 
 
 	gNumberOfPositions = generic_hash_init(gBoardSize, piecesArray, NULL, 0);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 /*********************************************************** NumberOfOptions */
@@ -537,26 +534,16 @@ void PrintComputersMove(MOVE move, STRING name) {
 	putchar('\n');
 }
 
-/***************************************************************** PrintMove */
-void PrintMove(MOVE move) {
-	STRING s = MoveToString( move );
-	printf( "%s", s );
-	SafeFree(s);
-}
-
 /***************************************************************** MoveToString */
-STRING MoveToString( MOVE move ) {
-	STRING s = (STRING) SafeMalloc( 10 );
-
+void MoveToString( MOVE move , char *moveStringBuffer) {
 	STRING temp = MoveGroupToString(move);
 
 	if( move > UCHAR_MAX )
-		sprintf( s, "[%s]", temp );
+		snprintf(moveStringBuffer, 20, "[%s]", temp );
 	else
-		sprintf( s, "%s", temp );
+		snprintf(moveStringBuffer, 20, "%s", temp );
 
 	SafeFree( temp );
-	return s;
 }
 
 /************************************************************* PrintPosition */
@@ -915,18 +902,19 @@ void PrintMovePrompt(char *name) {
 }
 
 void *gGameSpecificTclInit = NULL;
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-  return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -188,8 +188,6 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum);
 
 void PrintSpaces(int spaces);
 
-STRING MoveToString( MOVE );
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -208,9 +206,6 @@ void InitializeGame ()
 
 	/* GoAgain assignment moved here. -JJ */
 	gGoAgain = GoAgain;
-
-	gMoveToStringFunPtr = &MoveToString;
-
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
 
@@ -676,23 +671,6 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	{
 		next_player = (generic_hash_turn(getPosition(thePosition)) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
 	}
-
-	if (DOMOVE_TEST)
-	{
-		printf("MOVE FOR NEXT BOARD: "); PrintMove(theMove);
-		printf("\n");
-		printf("NEXT PLAYER: ");
-		if (next_player == FOX_PLAYER)
-		{
-			printf("%d Fox",next_player);
-		}
-		else if (next_player == GEESE_PLAYER)
-		{
-			printf("%d Geese",next_player);
-		}
-		printf("  goAgainFoxNum = %d \n",goAgainFoxNum);
-		PrintBoard(board);
-	}
 	if (DOMOVE_DEBUG) { printf("mASALTO - DoMove() Done\n"); }
 	return mergePositionGoAgain(generic_hash_hash(board,next_player),goAgainFoxNum);
 }
@@ -700,11 +678,6 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 BOOLEAN GoAgain(POSITION pos, MOVE move)
 {
 	int player = generic_hash_turn(getPosition(pos));
-	if(GAMESMAN_GOAGAIN_DEBUG)
-	{
-		printf("Move: "); PrintMove(move); printf("    ");
-		printf("player == %d ",player);
-	}
 	if (variant_goAgain && player == FOX_PLAYER)
 	{
 		int moveArray[2];
@@ -1613,25 +1586,6 @@ MOVE ConvertTextInputToMove (STRING input)
 	return hashMove(move);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : Fixed m3spot case errorThe move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING moveString = MoveToString(move);
-	printf( "%s", moveString);
-	SafeFree(moveString);
-}
-
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -1642,9 +1596,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(9);
-
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	int moveArray[2];
 	char origin_grid[2];
 	char destination_grid[2];
@@ -1659,9 +1611,7 @@ STRING MoveToString(MOVE theMove) {
 	coordToGridCoordinate(origin_coord, origin_grid);
 	coordToGridCoordinate(destination_coord, destination_grid);
 
-	sprintf(move, "[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
-
-	return move;
+	snprintf(moveStringBuffer, 15, "[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
 }
 
 
@@ -2234,18 +2184,18 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum)
 	return -1;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

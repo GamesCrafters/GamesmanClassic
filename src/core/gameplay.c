@@ -1213,14 +1213,14 @@ BOOLEAN PrintPossibleMoves(POSITION thePosition)
 	char moveStringBuffer[32];
 
 	head = ptr = GenerateMoves(thePosition);
-	printf("\nValid Moves : [ ");
+	printf("\nValid Moves: ");
 	while (ptr != NULL) {
 		MoveToString(ptr->move, moveStringBuffer);
 		printf("[%s]", moveStringBuffer);
 		printf(" ");
 		ptr = ptr->next;
 	}
-	printf("]\n\n");
+	printf("\n\n");
 	FreeMoveList(head);
 	return(TRUE); /* This should always return true for GetAndPrintPlayersMove */
 }

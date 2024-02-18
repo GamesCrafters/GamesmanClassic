@@ -278,7 +278,6 @@ int getNumOfDigit(int n);
 
 void dbg(char *);
 
-STRING MoveToString(MOVE);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void dbg(char* msg) {
@@ -394,8 +393,6 @@ void InitializeGame()
 
 	gInitialPosition = initialPos;
 	gMinimalPosition = initialPos;
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -1044,8 +1041,6 @@ MOVELIST *GenerateMoves(POSITION position) {
 							}
 							if(!forcedCapture) {
 								move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0; // cap = 0
-								printf("Adding move:\n");
-								PrintMove(move);
 								head = CreateMovelistNode(move, head);
 							}
 						} // end if can attack by withdraw
@@ -1430,22 +1425,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
-	printf( "%s", moveString );
-	SafeFree(moveString);
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -1454,8 +1433,7 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc( 13 );
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	int pos,dir,cap;
 
 	cap = 3 & theMove;
@@ -1470,14 +1448,10 @@ STRING MoveToString(MOVE theMove) {
 	char* direction = StringDir( dir );
 	char* capture = StringCap( cap );
 
-	sprintf( move, "[ %s %s %s ]", position, direction, capture );
-
-
+	snprintf( moveStringBuffer, 20, "[ %s %s %s ]", position, direction, capture );
 	SafeFree( position );
 	SafeFree( direction );
 	SafeFree( capture );
-
-	return move;
 }
 
 char* StringCap(int cap) {
@@ -1792,19 +1766,18 @@ int FileRowToIndex(char file, int row) {
    // ----------------------------------------------------
  */
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv)
-{
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }
