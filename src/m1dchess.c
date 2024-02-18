@@ -25,7 +25,6 @@ BOOLEAN kSupportsSymmetries = FALSE; // Whether symmetries are supported (i.e. w
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -69,13 +68,12 @@ int vcfg(int pieces[]) {
 solving or playing the game. */
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
 
   // {char, min, max, char, min, max, ..., -1}
-  int piecesArray[] = {'t', 1, 1, 'k', 0, 1, 'r', 0, 1, 'T', 1, 1, 'K', 0, 1, 'R', 0, 1, '-', 2, 6, -1};
+  int piecesArray[] = {'K', 1, 1, 'N', 0, 1, 'R', 0, 1, 'k', 1, 1, 'n', 0, 1, 'r', 0, 1, '-', 2, 6, -1};
   gNumberOfPositions = generic_hash_init(boardSize, piecesArray, &vcfg, 0);
 
-  char initial[8] = {'t', 'k', 'r', '-', '-', 'R', 'K', 'T'};
+  char initial[8] = {'K', 'N', 'R', '-', '-', 'r', 'n', 'k'};
   gInitialPosition = generic_hash_hash(initial, 1);
 }
 
@@ -92,23 +90,23 @@ BOOLEAN CheckCheck(POSITION position, int player) {
   int kingLoc = 0;
 
   for (int i = 0; i < boardSize; i++) {
-    if ((player == 1 && board[i] == 't') || (player == 2 && board[i] == 'T')) {
+    if ((player == 1 && board[i] == 'K') || (player == 2 && board[i] == 'k')) {
       kingLoc = i;
       break;
     }
   }
 
   // Check opposing king
-  if (kingLoc > 0 && (board[kingLoc - 1] == 'T' || board[kingLoc - 1] == 't')) {
+  if (kingLoc > 0 && (board[kingLoc - 1] == 'k' || board[kingLoc - 1] == 'K')) {
     return TRUE;
-  } else if (kingLoc < boardSize - 1 && (board[kingLoc + 1] == 'T' || board[kingLoc + 1] == 't')) {
+  } else if (kingLoc < boardSize - 1 && (board[kingLoc + 1] == 'k' || board[kingLoc + 1] == 'K')) {
     return TRUE;
   }
 
   // Check opposing knight
-  if (kingLoc > 1 && ((board[kingLoc - 2] == 'K' && player == 1) || (board[kingLoc - 2] == 'k' && player == 2))) {
+  if (kingLoc > 1 && ((board[kingLoc - 2] == 'n' && player == 1) || (board[kingLoc - 2] == 'N' && player == 2))) {
     return TRUE;
-  } else if (kingLoc < boardSize - 2 && ((board[kingLoc + 2] == 'K' && player == 1) || (board[kingLoc + 2] == 'k' && player == 2))) {
+  } else if (kingLoc < boardSize - 2 && ((board[kingLoc + 2] == 'n' && player == 1) || (board[kingLoc + 2] == 'N' && player == 2))) {
     return TRUE;
   }
 
@@ -116,7 +114,7 @@ BOOLEAN CheckCheck(POSITION position, int player) {
   for (int i = kingLoc + 1; i < boardSize; i++) {
     if (board[i] == '-') {
       continue;
-    } else if ((player == 1 && board[i] == 'R') || (player == 2 && board[i] == 'r')) {
+    } else if ((player == 1 && board[i] == 'r') || (player == 2 && board[i] == 'R')) {
       return TRUE;
     } else {
       break;
@@ -126,7 +124,7 @@ BOOLEAN CheckCheck(POSITION position, int player) {
   for (int i = kingLoc - 1; i >= 0; i--) {
     if (board[i] == '-') {
       continue;
-    } else if ((player == 1 && board[i] == 'R') || (player == 2 && board[i] == 'r')) {
+    } else if ((player == 1 && board[i] == 'r') || (player == 2 && board[i] == 'R')) {
       return TRUE;
     } else {
       break;
@@ -154,13 +152,13 @@ MOVELIST *GenerateMoves(POSITION position) {
   int player = generic_hash_turn(position);
 
   for (int i = 0; i < 8; i++) {
-    if ((board[i] == 't' && player == 1) || (board[i] == 'T' && player == 2)) {
+    if ((board[i] == 'K' && player == 1) || (board[i] == 'k' && player == 2)) {
       if (i > 0) {
         if (board[i - 1] == '-') {
           moves = MoveChecker(position, i * 100 + (i - 1), player, moves);
-        } else if (player == 1 && (board[i - 1] == 'K' || board[i - 1] == 'R')) {
+        } else if (player == 1 && (board[i - 1] == 'n' || board[i - 1] == 'r')) {
           moves = MoveChecker(position, i * 100 + (i - 1), player, moves);
-        } else if (player == 2 && (board[i - 1] == 'k' || board[i - 1] == 'r')) {
+        } else if (player == 2 && (board[i - 1] == 'N' || board[i - 1] == 'R')) {
           moves = MoveChecker(position, i * 100 + (i - 1), player, moves);
         }
       }
@@ -168,21 +166,21 @@ MOVELIST *GenerateMoves(POSITION position) {
       if (i < boardSize - 1) {
         if (board[i + 1] == '-') {
           moves = MoveChecker(position, i * 100 + (i + 1), player, moves);
-        } else if (player == 1 && (board[i + 1] == 'K' || board[i + 1] == 'R')) {
+        } else if (player == 1 && (board[i + 1] == 'n' || board[i + 1] == 'r')) {
           moves = MoveChecker(position, i * 100 + (i + 1), player, moves);
-        } else if (player == 2 && (board[i + 1] == 'k' || board[i + 1] == 'r')) {
+        } else if (player == 2 && (board[i + 1] == 'N' || board[i + 1] == 'R')) {
           moves = MoveChecker(position, i * 100 + (i + 1), player, moves);
         }
       }      
 
-    } else if ((board[i] == 'k' && player == 1) || (board[i] == 'K' && player == 2)) {
+    } else if ((board[i] == 'N' && player == 1) || (board[i] == 'n' && player == 2)) {
 
       if (i > 1) {
         if (board[i - 2] == '-') {
           moves = MoveChecker(position, i * 100 + (i - 2), player, moves);
-        } else if (player == 1 && (board[i - 2] == 'K' || board[i - 2] == 'R')) {
+        } else if (player == 1 && (board[i - 2] == 'n' || board[i - 2] == 'r')) {
           moves = MoveChecker(position, i * 100 + (i - 2), player, moves);
-        } else if (player == 2 && (board[i - 2] == 'k' || board[i - 2] == 'r')) {
+        } else if (player == 2 && (board[i - 2] == 'N' || board[i - 2] == 'R')) {
           moves = MoveChecker(position, i * 100 + (i - 2), player, moves);
         }
       }
@@ -190,23 +188,23 @@ MOVELIST *GenerateMoves(POSITION position) {
       if (i < boardSize - 2) {
         if (board[i + 2] == '-') {
           moves = MoveChecker(position, i * 100 + (i + 2), player, moves);
-        } else if (player == 1 && (board[i + 2] == 'K' || board[i + 2] == 'R')) {
+        } else if (player == 1 && (board[i + 2] == 'n' || board[i + 2] == 'r')) {
           moves = MoveChecker(position, i * 100 + (i + 2), player, moves);
-        } else if (player == 2 && (board[i + 2] == 'k' || board[i + 2] == 'r')) {
+        } else if (player == 2 && (board[i + 2] == 'N' || board[i + 2] == 'R')) {
           moves = MoveChecker(position, i * 100 + (i + 2), player, moves);
         }
       }    
       
-    } else if ((board[i] == 'r' && player == 1) || (board[i] == 'R' && player == 2)) {
+    } else if ((board[i] == 'R' && player == 1) || (board[i] == 'r' && player == 2)) {
       int target = i - 1;
 
       while (target >= 0) {
         if (board[target] == '-') {
           moves = MoveChecker(position, i * 100 + target, player, moves);
-        } else if (player == 1 && (board[target] == 'K' || board[target] == 'R')) {
+        } else if (player == 1 && (board[target] == 'n' || board[target] == 'r')) {
           moves = MoveChecker(position, i * 100 + target, player, moves);
           break;
-        } else if (player == 2 && (board[target] == 'k' || board[target] == 'r')) {
+        } else if (player == 2 && (board[target] == 'N' || board[target] == 'R')) {
           moves = MoveChecker(position, i * 100 + target, player, moves);
           break;
         } else {
@@ -221,10 +219,10 @@ MOVELIST *GenerateMoves(POSITION position) {
       while (target < boardSize) {
         if (board[target] == '-') {
           moves = MoveChecker(position, i * 100 + target, player, moves);
-        } else if (player == 1 && (board[target] == 'K' || board[target] == 'R')) {
+        } else if (player == 1 && (board[target] == 'n' || board[target] == 'r')) {
           moves = MoveChecker(position, i * 100 + target, player, moves);
           break;
-        } else if (player == 2 && (board[target] == 'k' || board[target] == 'r')) {
+        } else if (player == 2 && (board[target] == 'N' || board[target] == 'R')) {
           moves = MoveChecker(position, i * 100 + target, player, moves);
           break;
         } else {
@@ -284,7 +282,7 @@ VALUE Primitive(POSITION position) {
   BOOLEAN others = FALSE;
 
   for (int i = 0; i < boardSize; i++) {
-    if (board[i] == 'r' || board[i] == 'R' || board[i] == 'k' || board[i] == 'K') {
+    if (board[i] == 'R' || board[i] == 'r' || board[i] == 'N' || board[i] == 'n') {
       others = TRUE;
     }
   }
@@ -382,12 +380,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("\n\t01234567\n\n");
 }
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  STRING moveString = MoveToString(computersMove);
-  printf("%s's move: [%s]\n", computersName, moveString);
-  SafeFree(moveString);
-}
-
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   USERINPUT ret;
 	do {
@@ -432,22 +424,23 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
   int origin = move / 100;
   int target = move % 100;
-
-  STRING res = (STRING) SafeMalloc(6);
-
-  sprintf(res, "%02d %02d", origin, target);
-
-  return res;
+  snprintf(moveStringBuffer, 10, "%d %d", origin, target);
 }
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-  STRING moveString = MoveToString(move);
-  printf("[%s]", moveString);
-  SafeFree(moveString);
+  char moveStringBuffer[10];
+  MoveToString(move, moveStringBuffer);
+  printf("%s", moveStringBuffer);
+}
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  printf("%s's move: ", computersName);
+  PrintMove(computersMove);
+  printf("\n");
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -480,54 +473,28 @@ void setOption(int option) {
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-POSITION InteractStringToPosition(STRING board) {
-  char realBoard[boardSize];
-
-  int player = board[2] == 'A' ? 1 : 2;
-
-  for (int i = 0; i < boardSize; i++) {
-    realBoard[i] = board[i + 8];
-  }
-
-  return generic_hash_hash(realBoard, player);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+    return generic_hash_hash(board, turn);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  char board[boardSize];
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[boardSize + 1];
   generic_hash_unhash(position, board);
-
-  STRING result = (STRING) SafeMalloc(9 + boardSize);
-  result[0] = 'R';
-  result[1] = '_';
-  result[2] = generic_hash_turn(position) == 1 ? 'A' : 'B';
-  result[3] = '_';
-  result[4] = '0';
-  result[5] = '_';
-  result[6] = '0';
-  result[7] = '_';
-
-  for (int i = 0; i < boardSize; i++) {
-    result[i + 8] = board[i];
-  }
-
-  result[8 + boardSize] = '\0';
-
-  return result;
+  board[boardSize] = '\0';
+  AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-  
-  STRING result = (STRING) SafeMalloc(10);
-
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
   char board[boardSize];
   generic_hash_unhash(position, board);
-
   int origin = move / 100;
   int target = move % 100;
-
   char sound = (board[target] == '-') ? 'x' : 'y';
-
-  sprintf(result, "M_%d_%d_%c", origin, target, sound);
-
-  return result;
+  AutoGUIMakeMoveButtonStringM(origin, target, sound, autoguiMoveStringBuffer);
 }

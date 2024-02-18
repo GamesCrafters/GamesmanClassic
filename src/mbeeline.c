@@ -23,7 +23,6 @@ BOOLEAN kSupportsSymmetries = TRUE; // Whether symmetries are supported (i.e. wh
 
 /* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 CONST_STRING kGameName = "Beeline";
 CONST_STRING kDBName = "beeline";
@@ -61,7 +60,6 @@ const int boardDimension = 4;
 const int boardSize = boardDimension * boardDimension;
 
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION ActualNumberOfPositions(int variant);
 
 /************************************************************************
@@ -78,7 +76,6 @@ int vcfg(int pieces[]) {
 
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
   gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 
   // {char, min, max, char, min, max, ..., -1}
@@ -202,7 +199,9 @@ POSITION GetInitialPosition() {
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
   (void)computersName;
-  PrintMove(computersMove);
+  int origin = computersMove / 100;
+  int target = computersMove % 100;
+  printf("[%02d %02d]", origin, target);
 }
 
 /************************************************************************
@@ -747,23 +746,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-  int origin = move / 100;
-  int target = move % 100;
-
-  printf("[%02d %02d]", origin, target);
-}
-
-/************************************************************************
-**
 ** NAME: MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -772,15 +754,10 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
-  char* result = (char*) SafeMalloc(5);
-
+void MoveToString(MOVE move, char *moveStringBuffer) {
   int origin = move / 100;
   int target = move % 100;
-
-  sprintf(result, "%2d %2d", origin, target);
-
-  return result;
+  snprintf(moveStringBuffer, 10, "%2d %2d", origin, target);
 }
 
 int NumberOfOptions() {
@@ -800,70 +777,56 @@ POSITION ActualNumberOfPositions(int variant) {
   return gNumberOfPositions;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-  // Ignore the first 8 characters
-  char realBoard[boardSize];
-
-  for (int i = 0; i < boardSize; i++) {
-    if (board[i + 8] == 'W') {
-      realBoard[i] = 'w';
-    } else if (board[i + 8] == 'B') {
-      realBoard[i] = 'b';
-    } else {
-      realBoard[i] = ' ';
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+    char realBoard[boardSize];
+    for (int i = 0; i < boardSize; i++) {
+      if (board[i] == 'W') {
+        realBoard[i] = 'w';
+      } else if (board[i] == 'B') {
+        realBoard[i] = 'b';
+      } else {
+        realBoard[i] = ' ';
+      }
     }
-  }
-
-  int player = board[2] == 'A' ? 1 : 2;
-
-  return generic_hash_hash(realBoard, player);
+    return generic_hash_hash(realBoard, turn);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
   char board[boardSize];
   generic_hash_unhash(position, board);
-
-  // R_A_0_0_TG-T-S--H
-  STRING result = (STRING) SafeMalloc(9 + boardSize);
-  result[0] = 'R';
-  result[1] = '_';
-  result[2] = generic_hash_turn(position) == 1 ? 'A' : 'B';
-  result[3] = '_';
-  result[4] = '0';
-  result[5] = '_';
-  result[6] = '0';
-  result[7] = '_';
-
+  char result[boardSize + 1];
   for (int i = 0; i < boardSize; i++) {
     if (board[i] == 'w') {
-      result[8 + i] = 'W';
+      result[i] = 'W';
     } else if (board[i] == 'b') {
-      result[8 + i] = 'B';
+      result[i] = 'B';
     } else {
-      result[8 + i] = '-';
+      result[i] = '-';
     }
   }
-
-  result[8 + boardSize] = '\0';
-
-  return result;
+  result[boardSize] = '\0';
+  AutoGUIMakePositionString(
+    generic_hash_turn(position), 
+    result, 
+    autoguiPositionStringBuffer
+  );
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-  (void)position;
-  STRING result = (STRING) SafeMalloc(10);
-
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
   int origin = move / 100;
   int target = move % 100;
-
   int originRow = origin / boardDimension;
   int originCol = origin % boardDimension;
-
   int targetRow = target / boardDimension;
   int targetCol = target % boardDimension;
 
   int newTarget = 11;
-
   if (targetRow == originRow && targetCol < originCol) {
     newTarget = origin - 1;
   } else if (targetRow == originRow && targetCol > originCol) {
@@ -877,8 +840,5 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
   } else {
     newTarget = origin - boardDimension + 1;
   }
-
-  sprintf(result, "M_%d_%d_b", origin, newTarget);
-
-  return result;
+  AutoGUIMakeMoveButtonStringM(origin, newTarget, 'b', autoguiMoveStringBuffer);
 }

@@ -1080,8 +1080,8 @@ POSITION StringToPosition(char *positionString) {
 			}
 		}
 		// Convert internal board representation to internal position
-		BlankOX whosTurn = (turn == 1) ? o : x;
-		return BlankOXToPosition(oxboard, whosTurn);
+		BlankOX whoseTurn = (turn == 1) ? o : x;
+		return BlankOXToPosition(oxboard, whoseTurn);
 	}
 	return NULL_POSITION;
 }
@@ -1089,8 +1089,8 @@ POSITION StringToPosition(char *positionString) {
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	// Convert internal position to internal board representation
 	BlankOX oxboard[BOARDSIZE];
-	BlankOX whosTurn;
-	PositionToBlankOX(position, oxboard, &whosTurn);
+	BlankOX whoseTurn;
+	PositionToBlankOX(position, oxboard, &whoseTurn);
 
 	// Convert internal board representation to UWAPI standard board string
 	char board[BOARDSIZE + 1];
@@ -1105,7 +1105,7 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 	}
 	board[BOARDSIZE] = '\0';
 	// Return AutoGUI-formatted position string
-	return AutoGUIMakePositionString((whosTurn == o) ? 1 : 2, board, autoguiPositionStringBuffer);	
+	return AutoGUIMakePositionString((whoseTurn == o) ? 1 : 2, board, autoguiPositionStringBuffer);	
 }
 
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {

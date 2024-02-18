@@ -1216,7 +1216,7 @@ BOOLEAN PrintPossibleMoves(POSITION thePosition)
 	printf("\nValid Moves : [ ");
 	while (ptr != NULL) {
 		MoveToString(ptr->move, moveStringBuffer);
-		printf("%s", moveStringBuffer);
+		printf("[%s]", moveStringBuffer);
 		printf(" ");
 		ptr = ptr->next;
 	}
