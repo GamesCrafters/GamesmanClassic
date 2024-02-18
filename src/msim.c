@@ -153,7 +153,6 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX);
 BOOLEAN Triangle(BlankOX *theBlankOX, int a, int b, int c);
 BlankOX WhoseTurn(BlankOX *theBlankOX);
 
-STRING MoveToString( MOVE );
 POSITION GetCanonical (POSITION p);
 /************************************************************************
 **
@@ -164,7 +163,6 @@ POSITION GetCanonical (POSITION p);
 ************************************************************************/
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
 	gCanonicalPosition = GetCanonical;
 }
 
@@ -616,22 +614,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -640,11 +622,9 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 3 );
+void MoveToString(MOVE theMove, char *m) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf(m, "%d", gInternalToUserMove[theMove]);
-	return m;
+	snprintf(m, 10, "%d", gInternalToUserMove[theMove]);
 }
 
 /************************************************************************
@@ -929,49 +909,47 @@ POSITION GetCanonical (POSITION p){
 	return canonP;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-  STRING board = str + 8;
-
-  BlankOX theBlankOx[BOARDSIZE];
-  int i;
-  for(i = 0; i < BOARDSIZE; i++){
-    if(board[i] == 'o')
-      theBlankOx[i] = o;
-    else if(board[i] == 'x')
-      theBlankOx[i] = x;
-    else if(board[i] == '-')
-      theBlankOx[i] = Blank;
-  }
-
-  return BlankOXToPosition(theBlankOx);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		BlankOX theBlankOx[BOARDSIZE];
+		for(int i = 0; i < BOARDSIZE; i++){
+			if (board[i] == 'o') {
+				theBlankOx[i] = o;
+			} else if(board[i] == 'x') {
+				theBlankOx[i] = x;
+			} else {
+				theBlankOx[i] = Blank;
+			}
+		}
+		return BlankOXToPosition(theBlankOx);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  BlankOX theBlankOx[BOARDSIZE];
-  PositionToBlankOX(position, theBlankOx);
-  
-  char board[BOARDSIZE + 1];
-  int i;
-  int count = 0;
-  for(i = 0; i < BOARDSIZE; i++){
-    if(theBlankOx[i] == o) {
-      board[i] = 'o';
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	BlankOX theBlankOx[BOARDSIZE];
+	PositionToBlankOX(position, theBlankOx);
+	
+	char board[BOARDSIZE + 1];
+	int count = 0;
+	for(int i = 0; i < BOARDSIZE; i++){
+		if(theBlankOx[i] == o) {
+			board[i] = 'o';
+		} else if(theBlankOx[i] == x) {
+			board[i] = 'x';
+		} else {
+			board[i] = '-';
+			count++;
+		}
 	}
-    else if(theBlankOx[i] == x) {
-      board[i] = 'x';
-	}
-    else if(theBlankOx[i] == Blank) {
-      board[i] = '-';
-	  count++;
-	}
-  }
-  board[BOARDSIZE] = '\0';
-  enum UWAPI_Turn uturn = (count & 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
-
-  return UWAPI_Board_Regular2D_MakeBoardString(uturn, BOARDSIZE, board);
+	board[BOARDSIZE] = '\0';
+	int turn = (count & 1) ? 1 : 2;
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	MoveToString(move, autoguiMoveStringBuffer);
 }

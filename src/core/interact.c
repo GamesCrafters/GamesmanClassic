@@ -172,7 +172,7 @@ void ServerInteractLoop(void) {
 				quartoDetailedPositionResponse(inputPositionString);
 				continue;
 			}
-			//char opp_turn_char = (inputPositionString[0] == '1') ? '2' : '1';
+			char oppTurnChar = (inputPositionString[0] == '1') ? '2' : '1';
 			position = StringToPosition(inputPositionString);
 			if (position == NULL_POSITION) {
 				printf("%s", invalidBoardString);
@@ -216,10 +216,12 @@ void ServerInteractLoop(void) {
 					reversedMoves = CreateMovelistNode(currentMove->move, reversedMoves);
 
 					PositionToAutoGUIString(childPosition, positionStringBuffer);
+					if (positionStringBuffer[0] == '0') positionStringBuffer[0] = oppTurnChar; // Handle impartial games
 					printf("{\"autoguiPosition\":\"%s\"", positionStringBuffer);
 
 					if (!positionStringMatchesAutoGUIPositionString) {
 						gPositionToStringFunPtr(childPosition, positionStringBuffer);
+						if (positionStringBuffer[0] == '0') positionStringBuffer[0] = oppTurnChar; // Handle impartial games
 					}
 					printf(",\"position\":\"%s\"", positionStringBuffer);
 
@@ -227,7 +229,6 @@ void ServerInteractLoop(void) {
 					// } else {
 					// 	gInteractCustomDoMoveFunPtr(inputPositionString, currentMove->move, positionStringBuffer);
 					// }
-					//if (positionStringBuffer[0] == '0') positionStringBuffer[0] = opp_turn_char; // Handle impartial games
 
 					val = GetValueOfPosition(childPosition);
 					InteractPrintJSONPositionValue(val);
@@ -299,12 +300,13 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(gInitialTier, FALSE);
 			}
 			PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
+			if (positionStringBuffer[0] == '0') positionStringBuffer[0] = '1'; // Handle Impartial Games
 			printf(RESULT "{\"autoguiPosition\":\"%s\"", positionStringBuffer);
 			if (!positionStringMatchesAutoGUIPositionString) {
 				gPositionToStringFunPtr(gInitialPosition, positionStringBuffer);
+				if (positionStringBuffer[0] == '0') positionStringBuffer[0] = '1'; // Handle Impartial Games
 			}
 			printf(",\"position\":\"%s\"}", positionStringBuffer);
-			//if (positionStringBuffer[0] == '0') positionStringBuffer[0] = '1'; // Resolve arbitrary turn.
 		} else if (FirstWordMatches(input, "start")) {
 			InteractCheckErrantExtra(input, 1);
 			printf(RESULT POSITION_FORMAT, gInitialPosition);

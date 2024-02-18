@@ -287,8 +287,6 @@ char gBoard[9];
 
 POSITION getCanonicalPosition(POSITION position);
 
-STRING MoveToString( MOVE );
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -323,8 +321,6 @@ void InitializeGame ()
 	gInitialPosition = generic_hash_hash(gBoard, 1);
 
 	gCanonicalPosition = getCanonicalPosition;
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -548,26 +544,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-
-{
-	STRING str = MoveToString( move );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -578,13 +554,9 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
+void MoveToString (MOVE move, char *m)
 {
-	STRING m = (STRING) SafeMalloc( 5 );
-
-	sprintf( m, "%d", move);
-
-	return m;
+	snprintf( m, 10, "%d", move);
 }
 
 
@@ -892,36 +864,42 @@ POSITION getCanonicalPosition(POSITION position) {
 	return minPosHash;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		char copy[9];
+		for (int i = 0; i < 9; i++) {
+			if (board[i] == '-') {
+				copy[i] = '_';
+			} else {
+				copy[i] = board[i];
+			}
+		}
+		return generic_hash_hash(copy, turn);
 	}
-	for (int i = 0; i < 9; i++) if (board[i] == '-') board[i] = '_';
-	POSITION toReturn = generic_hash_hash(board, (turn == UWAPI_TURN_A) ? 1 : 2);
-	SafeFreeString(board); // Free the string.
-	return toReturn;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char board[10];
-	generic_hash_unhash(pos, board);
-	for (int i = 0; i < 9; i++) if (board[i] == '_') board[i] = '-';
-	board[9] = '\0'; // Make sure to null-terminate your board.
-	enum UWAPI_Turn turn = (generic_hash_turn(pos) == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 9, board);
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	char board[9];
-	generic_hash_unhash(pos, board);
+	generic_hash_unhash(position, board);
 	for (int i = 0; i < 9; i++) {
 		if (board[i] == '_') {
-			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(mv, i, 'x');
+			board[i] = '-';
 		}
 	}
-	return NULL;
+	board[9] = '\0'; // Make sure to null-terminate your board.
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	char board[9];
+	generic_hash_unhash(position, board);
+	for (int i = 0; i < 9; i++) {
+		if (board[i] == '_') {
+			AutoGUIMakeMoveButtonStringM(move, i, 'x', autoguiMoveStringBuffer);
+			break;
+		}
+	}
 }

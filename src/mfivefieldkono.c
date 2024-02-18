@@ -151,18 +151,12 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 void availableMoves(POSITION position);
 BOOLEAN ValidTextInput(STRING input);
 MOVE ConvertTextInputToMove(STRING input);
-STRING MoveToString(MOVE move);
 void PrintMove(MOVE move);
 
 /* Variant Functions */
 int NumberOfOptions();
 int getOption();
 void setOption(int option);
-
-/* INTERACT FUNCTIONS */
-POSITION InteractStringToPosition(STRING board);
-STRING InteractPositionToString(POSITION position);
-STRING InteractMoveToString(POSITION position, MOVE move);
 
 /* UNUSED INTERFACE IMPLEMENTATIONS */
 void DebugMenu();
@@ -229,7 +223,6 @@ VALUE variant_condition[3] = {tie, lose, win};
 /* Initialize any global variables or data structures needed. */
 void InitializeGame() {
   precompute_fact(fact_array, 13);
-  gMoveToStringFunPtr = &MoveToString;
   gInitialPosition = GetInitialPosition();
   gCanonicalPosition = GetCanonicalPosition;
   gSymmetries = TRUE;
@@ -851,7 +844,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type in. */
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
   /* YOUR CODE HERE */
   int from, to;
   unhashMove(move, &from, &to);
@@ -859,13 +852,11 @@ STRING MoveToString(MOVE move) {
   char toToAlpha = posToAlpha[to];
   char fromToIdx = (char) ('0' + posToIdx[from]);
   char toToIdx = (char) ('0' + posToIdx[to]);
-  STRING output = (STRING) malloc(6*sizeof(char));
-  output[0] = fromToAlpha;
-  output[1] = fromToIdx;
-  output[2] = toToAlpha;
-  output[3] = toToIdx;
-  output[4] = '\0';
-  return output;
+  moveStringBuffer[0] = fromToAlpha;
+  moveStringBuffer[1] = fromToIdx;
+  moveStringBuffer[2] = toToAlpha;
+  moveStringBuffer[3] = toToIdx;
+  moveStringBuffer[4] = '\0';
 }
 
 /* Basically just print the move. */
@@ -910,29 +901,26 @@ void setOption(int option) {
 
 /* INTERACT FUNCTIONS */
 
-POSITION InteractStringToPosition(STRING board) {
-  enum UWAPI_Turn turn;
-  unsigned int num_rows, num_columns;
-  STRING charBoard;
-  if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &charBoard)) {
-    // Failed to parse string
-    return INVALID_POSITION;
-  }
-  FFK_Board real_board;
-  for (int i = 0; i < 25; i++) {
-    if (i % 2 == 0) real_board.odd_component[i/2] = charBoard[i];
-    else real_board.even_component[(i-1)/2] = charBoard[i];
-  }
-  real_board.oppTurn = (turn == UWAPI_TURN_A) ? 0 : 1;
-  free(charBoard);
-  return Hash(&real_board);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+    FFK_Board real_board;
+    for (int i = 0; i < 25; i++) {
+      if (i % 2 == 0) real_board.odd_component[i/2] = board[i];
+      else real_board.even_component[(i-1)/2] = board[i];
+    }
+    real_board.oppTurn = (turn == 1) ? 0 : 1;
+    return Hash(&real_board);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) { 
-  // UWAPI_Board_Regular2D_MakeBoardString(turn, 25, charBoard);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	// UWAPI_Board_Regular2D_MakeBoardString(turn, 25, charBoard);
   // enum UWAPI_Turn turn = (whosTurn == V) ? UWAPI_TURN_A : UWAPI_TURN_B;
   FFK_Board *board = Unhash(position);
-  enum UWAPI_Turn turn = (board->oppTurn == 0) ? UWAPI_TURN_A : UWAPI_TURN_B;
+  int turn = (board->oppTurn == 0) ? 1 : 2;
   char charBoard[26];
   for (int i = 0; i < 25; i++) {
     if (i % 2 == 0) charBoard[i] = board->odd_component[i/2];
@@ -940,11 +928,11 @@ STRING InteractPositionToString(POSITION position) {
   }
   charBoard[25] = '\0';
   free(board);
-  return UWAPI_Board_Regular2D_MakeBoardString(turn, 25, charBoard);;
+  AutoGUIMakePositionString(turn, charBoard, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) { 
-  (void)position;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
   int from, to;
   unhashMove(move, &from, &to);
   if (from >= 12) {
@@ -956,9 +944,8 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
     from = (2 * from) + 1;
     to = (2 * to) + 1;
   }
-  return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'x');
+  AutoGUIMakeMoveButtonStringM(from, to, 'x', autoguiMoveStringBuffer);
 }
-
 
 
 

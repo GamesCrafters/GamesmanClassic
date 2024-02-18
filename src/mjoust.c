@@ -205,8 +205,6 @@ BOOLEAN PossibleQueen(int, int, int, int, BlankBurntOX[]);
 /* Possible burn and helpers */
 BOOLEAN PieceBurn(int, POSITION, BlankBurntOX[]);
 
-STRING MoveToString(MOVE);
-
 char *gBlankBurntOXString[] = { "-", "*", "O", "X" };
 STRING kBBExplanation =
         "\nIn Burned Bridges, the spots you touch \
@@ -254,8 +252,6 @@ void InitializeGame() {
 	gInitialPosition = GenerateNewInitial();
 	gMinimalPosition = gInitialPosition;
 	gNumberOfPositions = BOARDSIZE*(BOARDSIZE-1)*pow(2,BOARDSIZE-2)*2; /* xpos * ypos * burned spaces * whoseturn */
-
-	gMoveToStringFunPtr = &MoveToString;
 
 	/*Symmetry code (Messy)*/
 	gCanonicalPosition = GetCanonicalPosition;
@@ -1565,21 +1561,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* This version has the first move input as the first 5 bits. */
 	return (EncodeTheMove(move-1, burn-1));
 }
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
 
 /************************************************************************
 **
@@ -1591,9 +1572,7 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING moveStr = (STRING) SafeMalloc(8);
-
+void MoveToString(MOVE theMove, char *moveStr) {
 	int burn;
 	int move;
 	burn = ExtractBurn(theMove);
@@ -1601,13 +1580,11 @@ STRING MoveToString(MOVE theMove) {
 
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	if (burnType==0) {
-		sprintf(moveStr, "[%d]", move + 1);
+		snprintf(moveStr, 10, "%d", move + 1);
 	}
 	else {
-		sprintf(moveStr, "[%d %d]", move + 1, burn + 1);
+		snprintf(moveStr, 10, "%d %d", move + 1, burn + 1);
 	}
-
-	return moveStr;
 }
 
 int NumberOfOptions() {
@@ -2363,34 +2340,37 @@ void ChangeBoardSize(){
 	InitializeGame();
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	BlankBurntOX turn = str[2] == 'A' ? x : o;
-	BlankBurntOX board[BOARDSIZE];
-	str += 8;
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (str[i]) {
-			case 'X':
-				board[i] = x;
-				break;
-			case 'O':
-				board[i] = o;
-				break;
-			case 'B':
-				board[i] = Burnt;
-				break;
-			default:
-				board[i] = Blank;
-				break;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		BlankBurntOX whoseTurn = turn == 1 ? x : o;
+		BlankBurntOX realBoard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			switch (board[i]) {
+				case 'X':
+					realBoard[i] = x;
+					break;
+				case 'O':
+					realBoard[i] = o;
+					break;
+				case 'B':
+					realBoard[i] = Burnt;
+					break;
+				default:
+					realBoard[i] = Blank;
+					break;
+			}
 		}
+		return BlankBurntOXToPosition(realBoard, whoseTurn);
 	}
-
-	return BlankBurntOXToPosition(board, turn);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	BlankBurntOX board[BOARDSIZE];
-	PositionToBlankBurntOX(pos, board);
-	enum UWAPI_Turn turn = WhoseTurn(pos) == x ? UWAPI_TURN_A : UWAPI_TURN_B;
+	PositionToBlankBurntOX(position, board);
+	int turn = WhoseTurn(position) == x ? 1 : 2;
 
 	char str[BOARDSIZE + 1];
 	for (int i = 0; i < BOARDSIZE; i++) {
@@ -2410,15 +2390,12 @@ STRING InteractPositionToString(POSITION pos) {
 		}
 	}
 	str[BOARDSIZE] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, BOARDSIZE + 1, str);
+	AutoGUIMakePositionString(turn, str, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	// In AutoGUI we only support BurnType 0 for now.
-
-	MOVE extractedMove = ExtractMove(mv);
-	MOVE oldSpot = GetPFromPosition(pos);
-
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(oldSpot, extractedMove, 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+  	MOVE extractedMove = ExtractMove(move);
+  	MOVE oldSpot = GetPFromPosition(position);
+	AutoGUIMakeMoveButtonStringM(oldSpot, extractedMove, 'x', autoguiMoveStringBuffer);
 }

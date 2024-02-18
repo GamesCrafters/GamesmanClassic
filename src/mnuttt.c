@@ -165,7 +165,6 @@ VALUE                   Primitive (POSITION position);
 void                    PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn);
 void                    printBoard(char board[]);
 void                    PrintComputersMove(MOVE computersMove, STRING computersName);
-void                    PrintMove(MOVE move);
 USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
@@ -189,8 +188,6 @@ void                    initializePiecesArray(int p_a[]);
 void                    initializeBoard(char board[]);
 POSITION                getCanonicalPosition(POSITION p);
 
-STRING                  MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -212,8 +209,6 @@ void InitializeGame ()
 	gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL, 0);
 	gInitialPosition = generic_hash_hash(board, PLAYER1_TURN);
 	gCanonicalPosition = getCanonicalPosition;
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -454,24 +449,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 	        directions[direction]);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -482,15 +459,11 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove)
+void MoveToString(MOVE theMove, char *moveStringBuffer)
 {
-	STRING move = (STRING) SafeMalloc(5);
 	int position = Unhasher_Index(theMove);
 	int direction = Unhasher_Direction(theMove);
-
-	sprintf (move, "[%c%d %s]", Column (position)+ROW_START, BOARD_ROWS-Row (position), \
-	         directions[direction]);
-	return move;
+	snprintf(moveStringBuffer, 10, "%c%d %s", Column (position)+ROW_START, BOARD_ROWS-Row (position), directions[direction]);
 }
 
 
@@ -978,41 +951,43 @@ POSITION getCanonicalPosition (POSITION p) {
 	return p;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	int player = str[2] == 'A' ? 1 : 2;
-	str += 8;
-	char board[BOARD_SIZE];
-	for (int i = 0; i < BOARD_SIZE; i++) {
-		if (str[i] == '-') {
-			board[i] = EMPTY_PIECE;
-		} else {
-			board[i] = str[i];
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		char realBoard[BOARD_SIZE];
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			if (board[i] == '-') {
+				realBoard[i] = EMPTY_PIECE;
+			} else {
+				realBoard[i] = board[i];
+			}
 		}
+		return generic_hash_hash(realBoard, turn);
 	}
-	return generic_hash_hash(board, player);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	enum UWAPI_Turn turn = generic_hash_turn(pos) == 1 ? UWAPI_TURN_A : UWAPI_TURN_B;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	int bs = BOARD_SIZE;
 	char board[bs + 1];
-	generic_hash_unhash(pos, board);
+	generic_hash_unhash(position, board);
 	for (int i = 0; i < bs; i++) {
 		if (board[i] == EMPTY_PIECE) {
 			board[i] = '-';
 		}
 	}
 	board[BOARD_SIZE] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, bs + 1, board);
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE move) {
-	(void)pos;
-	int from = Unhasher_Index(move);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+  	int from = Unhasher_Index(move);
 	int row = Row(from);
 	int col = Column(from);
 	int direction = Unhasher_Direction(move);
 	int to = Index(row + dir_increments[direction][0], \
 	                         col + dir_increments[direction][1]);
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'x');
+  	AutoGUIMakeMoveButtonStringM(from, to, 'x', autoguiMoveStringBuffer);
 }
