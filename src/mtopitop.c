@@ -166,15 +166,11 @@ POSITION GetCanonicalPosition(POSITION position);
 USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName);
 BOOLEAN ValidTextInput(STRING input);
 MOVE ConvertTextInputToMove(STRING input);
-void PrintMove(MOVE theMove);
 STRING DisallowedMoveToString(int disallowedMove);
-STRING MoveToString(MOVE move);
 int NumberOfOptions();
 int getOption();
 void setOption(int option);
-POSITION InteractStringToPosition(STRING board);
-STRING InteractPositionToString(POSITION pos);
-STRING InteractMoveToString(POSITION pos, MOVE mv);
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 void countPiecesOnBoard(char *board, int *bb, int *rb, int *bs, int *rs, int *bc, int *rc, int *s, int *l, int *c);
 
@@ -206,7 +202,7 @@ void InitializeGame() {
 	/********************************/
 	
 	gCanonicalPosition = GetCanonicalPosition;
-	gMoveToStringFunPtr = &MoveToString;
+	gPositionToStringFunPtr = &PositionToString;
 
 	kSupportsTierGamesman = TRUE;
 	kExclusivelyTierGamesman = TRUE;
@@ -951,23 +947,6 @@ POSITION GetInitialPosition() {
 	return hashPosition(board, BLUE, 0);
 }
 
-/************************************************************************
-**
-** NAME: PrintComputersMove
-**
-** DESCRIPTION: Nicely format the computers move.
-**
-** INPUTS: MOVE computersMove : The computer's move.
-** STRING computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-	STRING str = MoveToString(computersMove);
-	printf("%8s's move: %s\n", computersName, str);
-	SafeFree(str);
-}
-
 VALUE Primitive(POSITION position) {
 	char turn;
 	int disallowedMove, blueLeft, redLeft, smallLeft, largeLeft;
@@ -1305,22 +1284,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 	}
 }
 
-/************************************************************************
-**
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-	STRING str = MoveToString(move);
-	printf("%s", str);
-	SafeFree(str);
-}
-
 STRING DisallowedMoveToString(int disallowedMove) {
 	STRING moveString = (STRING) SafeMalloc(7);
 	if (disallowedMove == 0) {
@@ -1341,25 +1304,37 @@ STRING DisallowedMoveToString(int disallowedMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
 	char piece;
 	int from, to;
 	BOOLEAN p2Turn;
 	if (move == NULLMOVE) {
-		STRING moveString = (STRING) SafeMalloc(7);
-		sprintf(moveString, "None");
-		return moveString;
+		snprintf(moveStringBuffer, 10, "None");
+	} else {
+		unhashMove(move, &piece, &from, &to, &p2Turn);
+		if (from == to) { // Placement
+			snprintf(moveStringBuffer, 10, "%c%d", piece, from + 1);
+		} else { // Sliding
+			snprintf(moveStringBuffer, 10, "%d-%d", from  +1, to + 1);
+		}
 	}
-	unhashMove(move, &piece, &from, &to, &p2Turn);
-	if (from == to) { // Placement
-		STRING moveString = (STRING) SafeMalloc(5);
-		sprintf(moveString, "%c%d", piece, from + 1);
-		return moveString;
-	} else { // Sliding
-		STRING moveString = (STRING) SafeMalloc(6);
-		sprintf(moveString, "%d-%d", from  +1, to + 1);
-		return moveString;
-	}
+}
+
+/************************************************************************
+**
+** NAME: PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS: MOVE computersMove : The computer's move.
+** STRING computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	char str[10];
+	MoveToString(computersMove, str);
+	printf("%8s's move: %s\n", computersName, str);
 }
 
 // 27 bucket centers
@@ -1372,44 +1347,53 @@ STRING MoveToString(MOVE move) {
 // 1 pass turn center [123]
 
 // BUCKET (3) top mid bottom SMALL mid bottom (2) LARGE bottom (1) 
-POSITION InteractStringToPosition(STRING str) {
-	char turn = (str[2] == 'A') ? BLUE : RED;
-	char *entityString = str + 8;
-	char board[9];
-	int i, j;
-	for (i = 0, j = 0; i < 9; i++, j += 6) {
-		if (entityString[j] == BLUEBUCKETPIECE) {
-			board[i] = BLUECASTLEPIECE;
-		} else if (entityString[j] == REDBUCKETPIECE) {
-			board[i] = REDCASTLEPIECE;
-		} else if (entityString[j + 1] == BLUEBUCKETPIECE) {
-			board[i] = BLUESMALLPIECE;
-		} else if (entityString[j + 1] == REDBUCKETPIECE) {
-			board[i] = REDSMALLPIECE;
-		} else if (entityString[j + 2] == BLUEBUCKETPIECE) {
-			board[i] = BLUEBUCKETPIECE;
-		} else if (entityString[j + 2] == REDBUCKETPIECE) {
-			board[i] = REDBUCKETPIECE;
-		} else if (entityString[j + 3] == SMALLPIECE) {
-			board[i] = CASTLEPIECE;
-		} else if (entityString[j + 4] == SMALLPIECE) {
-			board[i] = SMALLPIECE;
-		} else if (entityString[j + 5] == LARGEPIECE) {
-			board[i] = LARGEPIECE;
-		} else {
-			board[i] = BLANKPIECE;
-		}
-	}
-	int disallowedMove = (entityString[54] == '-') ? 0 : movesToIds[entityString[54] - '1'][entityString[55] - '1'];
 
-	TIER tier;
-	TIERPOSITION tierposition;
-	hashBoard(board, turn, disallowedMove, &tier, &tierposition);
-	gInitializeHashWindow(tier, FALSE);
-	return tierposition;
+int uwapiArrowCoords[8][9] = {
+	{ 9,  0,  9,  2,  4,  9,  9,  9,  9},
+	{ 9,  9,  6,  8, 10, 12,  9,  9,  9},
+	{ 9,  9,  9,  9, 14, 16,  9,  9,  9},
+	{ 9,  9,  9,  9, 18,  9, 20, 22,  9},
+	{ 9,  9,  9,  9,  9, 24, 26, 28, 30},
+	{ 9,  9,  9,  9,  9,  9,  9, 32, 34},
+	{ 9,  9,  9,  9,  9,  9,  9, 36,  9},
+	{ 9,  9,  9,  9,  9,  9,  9,  9, 38}
+};
+
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	char turn;
+	int disallowedMove, blueLeft, redLeft, smallLeft, largeLeft;
+	char *board = unhashPosition(position, &turn, &disallowedMove, &blueLeft, &redLeft, &smallLeft, &largeLeft);
+
+	positionStringBuffer[0] = turn == BLUE ? '1' : '2';
+	positionStringBuffer[1] = '_';
+	memcpy(positionStringBuffer + 2, board, 9);
+	if (disallowedMove) {
+		positionStringBuffer[11] = (disallowedMove == 0) ? '-' : idsToMoves[0][disallowedMove] + '1';
+		positionStringBuffer[12] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
+		positionStringBuffer[13] = '\0';
+	} else {
+		positionStringBuffer[11] = '\0';
+	}
+	SafeFree(board);
 }
 
-STRING InteractPositionToString(POSITION position) {
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		char turnChar = (turn == 1) ? BLUE : RED;
+		int disallowedMove = (board[9] == '\0') ? 0 : movesToIds[board[9] - '1'][board[10] - '1'];
+
+		TIER tier;
+		TIERPOSITION tierposition;
+		hashBoard(board, turnChar, disallowedMove, &tier, &tierposition);
+		gInitializeHashWindow(tier, FALSE);
+		return tierposition;
+	}
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char entityString[57];
 	memset(entityString, '-', 57 * sizeof(char));
 
@@ -1449,28 +1433,17 @@ STRING InteractPositionToString(POSITION position) {
 
 	SafeFree(board);
 
-	enum UWAPI_Turn uwapiTurn = (turn == BLUE) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	int uturn = (turn == BLUE) ? 1 : 2;
 	entityString[54] = (disallowedMove == 0) ? '-' : idsToMoves[0][disallowedMove] + '1';
 	entityString[55] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
 	entityString[56] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(uwapiTurn, 57, entityString);
+	AutoGUIMakePositionString(uturn, entityString, autoguiPositionStringBuffer);
 }
 
-int uwapiArrowCoords[8][9] = {
-	{ 9,  0,  9,  2,  4,  9,  9,  9,  9},
-	{ 9,  9,  6,  8, 10, 12,  9,  9,  9},
-	{ 9,  9,  9,  9, 14, 16,  9,  9,  9},
-	{ 9,  9,  9,  9, 18,  9, 20, 22,  9},
-	{ 9,  9,  9,  9,  9, 24, 26, 28, 30},
-	{ 9,  9,  9,  9,  9,  9,  9, 32, 34},
-	{ 9,  9,  9,  9,  9,  9,  9, 36,  9},
-	{ 9,  9,  9,  9,  9,  9,  9,  9, 38}
-};
-
-STRING InteractMoveToString(POSITION pos, MOVE move) {
-	(void)pos;
-	if (move == NULLMOVE) {
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('P', 123, 'v');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+  	if (move == NULLMOVE) {
+		return AutoGUIMakeMoveButtonStringA('P', 123, 'v', autoguiMoveStringBuffer);
 	}
 	
 	char piece;
@@ -1480,19 +1453,19 @@ STRING InteractMoveToString(POSITION pos, MOVE move) {
 
 	if (from == to) {// Placement
 		if (piece == SMALLPIECE) {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('v', 105 + to, 'w');
+			AutoGUIMakeMoveButtonStringA('v', 105 + to, 'w', autoguiMoveStringBuffer);
 		} else if (piece == LARGEPIECE) {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('w', 114 + to, 'x');
+			AutoGUIMakeMoveButtonStringA('w', 114 + to, 'x', autoguiMoveStringBuffer);
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound(p2Turn ? 'u' : 't', 96 + to, 'y');
+			AutoGUIMakeMoveButtonStringA(p2Turn ? 'u' : 't', 96 + to, 'y', autoguiMoveStringBuffer);
 		}
 	} else {
 		if (to > from) {
 			int d = uwapiArrowCoords[from][to] + 56;
-			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(d, d + 1, 'z');
+			AutoGUIMakeMoveButtonStringM(d, d + 1, 'z', autoguiMoveStringBuffer);
 		} else {
 			int d = uwapiArrowCoords[to][from] + 56;
-			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(d + 1, d, 'z');
+			AutoGUIMakeMoveButtonStringM(d + 1, d, 'z', autoguiMoveStringBuffer);
 		}
 	}
 }

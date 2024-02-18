@@ -55,7 +55,7 @@ CONST_STRING kHelpTieOccursWhen =
 CONST_STRING kHelpExample =
         "";
 
-STRING MoveToString(MOVE);
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 POSITION hash(int p1Matches, int p2Matches, int isP2Turn) {
 	return (p2Matches * 26 + (p1Matches << 1)) | isP2Turn;
@@ -67,7 +67,7 @@ void unhash(POSITION position, int *p1Matches, int *p2Matches, int *isP2Turn) {
 	*isP2Turn = position & 1;
 }
 
-void InitializeGame() { gMoveToStringFunPtr = &MoveToString; }
+void InitializeGame() { gPositionToStringFunPtr = &PositionToString; }
 
 MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *moves = NULL;
@@ -167,11 +167,9 @@ void PrintMove(MOVE move) {
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **
 ************************************************************************/
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(2);
-	move[0] = theMove + '0';
-	move[1] = '\0';
-	return move;
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	moveStringBuffer[0] = theMove + '0';
+	moveStringBuffer[1] = '\0';
 }
 
 /************************************************************************
@@ -215,42 +213,62 @@ void setOption(int option) {}
 void DebugMenu() {}
 void GameSpecificMenu() {}
 
-POSITION InteractStringToPosition(STRING str) {
-	int isP2Turn = str[2] == 'B' ? 1 : 0;
-	str += 23;
-	int p1Matches = 0, p2Matches = 0;
-	for (int i = 0; i < 24; i++) {
-		if (str[i] == 'x') {
-			p1Matches++;
-		} else if (str[i] == 'o') {
-			p2Matches++;
-		}
-	}
-	return hash(p1Matches, p2Matches, isP2Turn);
-}
-
-STRING InteractPositionToString(POSITION position) {
+void PositionToString(POSITION position, char *positionStringBuffer) {
 	int p1Matches, p2Matches, isP2Turn;
 	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
-	char *buf = (char *) SafeMalloc(60);
-	snprintf(buf, 9, "R_%c_0_0_", isP2Turn ? 'B' : 'A');
-	memset(buf + 8, '\0', 52);
-	memset(buf + 8, '-', 39);
-	memset(buf + 8, 'n', 15 - p1Matches - p2Matches);
-	memset(buf + 23, 'x', p1Matches);
-	memset(buf + 35, 'o', p2Matches);
-	if (15 - p1Matches - p2Matches) {
-		snprintf(buf + 47, 13, "...~%d~%d~%d", 15 - p1Matches - p2Matches, p1Matches, p2Matches);
-	} else {
-		snprintf(buf + 47, 13, "...~~%d~%d", p1Matches, p2Matches);
-	}
-	return buf;
+	snprintf(positionStringBuffer, 12, "%c_%d_%d", isP2Turn ? '2' : '1', p1Matches, p2Matches);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		int isP2Turn = turn == 2 ? 1 : 0;
+		int p1Matches = 0;
+		int p2Matches = 0;
+		int idxOfUnderscore = 7;
+		for (int i = 0; i < 6; i++) {
+			if (board[i] == '_') {
+				idxOfUnderscore = i;
+				break;
+			} else if (board[i] == '\0') {
+				break;
+			}
+		}
+		if (idxOfUnderscore < 7) {
+			board[idxOfUnderscore] = '\0';
+			p1Matches = atoi(board);
+			board[idxOfUnderscore] = '_';
+			p2Matches = atoi(board + idxOfUnderscore + 1);
+		} else {
+			return NULL_POSITION;
+		}
+		return hash(p1Matches, p2Matches, isP2Turn);
+	}
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *buf) {
 	int p1Matches, p2Matches, isP2Turn;
-	unhash(pos, &p1Matches, &p2Matches, &isP2Turn);
-	STRING moveString = UWAPI_Board_Regular2D_MakeAddStringWithSound(mv + '0', 15 - p1Matches - p2Matches - mv, 'x');
-	moveString[0] = 'T';
-	return moveString;
+	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
+	buf[0] = isP2Turn ? '2' : '1';
+	buf[1] = '_';
+	memset(buf + 2, '-', 41);
+	memset(buf + 2, 'n', 15 - p1Matches - p2Matches);
+	memset(buf + 17, 'x', p1Matches);
+	memset(buf + 29, 'o', p2Matches);
+	if (15 - p1Matches - p2Matches) {
+		snprintf(buf + 41, 13, "...~%d~%d~%d", 15 - p1Matches - p2Matches, p1Matches, p2Matches);
+	} else {
+		snprintf(buf + 41, 13, "...~~%d~%d", p1Matches, p2Matches);
+	}
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	int p1Matches, p2Matches, isP2Turn;
+	unhash(position, &p1Matches, &p2Matches, &isP2Turn);
+	char text[2];
+	text[0] = move + '0';
+	text[1] = '\0';
+	AutoGUIMakeMoveButtonStringT(text, 15 - p1Matches - p2Matches - move, 'x', autoguiMoveStringBuffer);
 }

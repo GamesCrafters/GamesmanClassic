@@ -19,6 +19,7 @@ BOOLEAN ParseAutoGUIFormattedPositionString(char *positionString, int *turn, cha
     }
 }
 
+/* `entityString` must be null-terminated. */
 void AutoGUIMakePositionString(int turn, char *entityString, char *buf) {
     snprintf(buf, MAX_POSITION_STRING_LENGTH, "%d_%s", turn, entityString);
 }
@@ -27,6 +28,7 @@ void AutoGUIMakeMoveButtonStringA(char token, unsigned int at, char sound, char 
     snprintf(buf, MAX_MOVE_BUTTON_STRING_LENGTH, "A_%c_%d_%c", token, at, sound);
 }
 
+/* `text` must be null-terminated. */
 void AutoGUIMakeMoveButtonStringT(char *text, unsigned int at, char sound, char *buf) {
     snprintf(buf, MAX_MOVE_BUTTON_STRING_LENGTH, "T_%s_%d_%c", text, at, sound);
 }

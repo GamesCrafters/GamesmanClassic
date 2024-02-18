@@ -25,7 +25,6 @@ BOOLEAN kSupportsSymmetries = FALSE;
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void *gGameSpecificTclInit = NULL;
@@ -48,7 +47,7 @@ CONST_STRING kHelpExample = "";
 /* You don't have to change this. */
 void DebugMenu() {}
 void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
-
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
 int listOfMoves0[21][4] = {
@@ -75,8 +74,7 @@ int (*listOfMoves)[4] = listOfMoves0;
 solving or playing the game. */
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
-
+    gPositionToStringFunPtr = &PositionToString;
     kUsePureDraw = TRUE;
     kCombinatorial = FALSE;
     kLoopy = TRUE;
@@ -171,10 +169,8 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move.
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
-    STRING s = malloc(sizeof(char)*3);
-    snprintf(s, 3, "%d", move);
-    return s;
+void MoveToString(MOVE move, char *moveStringBuffer) {
+    snprintf(moveStringBuffer, 3, "%d", move);
 }
 
 /* Basically just print the move. */
@@ -255,27 +251,22 @@ void GameSpecificMenu() {
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING str) {
-    str += 8;
-    for (POSITION p = 0; p < gNumberOfPositions; p++) {
-        if (str[p] == 'x') {
-            return p;
-        }
-    }
-    return 0;
+void PositionToString(POSITION position, char *positionStringBuffer) {
+    snprintf(positionStringBuffer, 6, "0_%d", (int) position);
 }
 
-STRING InteractPositionToString(POSITION position) {
-    char board[gNumberOfPositions + 1];
+POSITION StringToPosition(char *positionString) {
+	return atoi(positionString + 2);
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[gNumberOfPositions + 1];
     memset(board, '-', gNumberOfPositions);
     board[position] = 'x';
     board[gNumberOfPositions] = '\0';
-    return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, gNumberOfPositions + 1, board);
+    AutoGUIMakePositionString(0, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-    return UWAPI_Board_Regular2D_MakeMoveStringWithSound((unsigned int) position, (unsigned int) move, 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  AutoGUIMakeMoveButtonStringM((unsigned int) position, (unsigned int) move, 'x', autoguiMoveStringBuffer);
 }
