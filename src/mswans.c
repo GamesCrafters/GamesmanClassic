@@ -233,8 +233,6 @@ SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn);
 char OnlyPlayerLeft(char *theBoard);
 BOOLEAN AllFilledIn(char *theBoard);
 
-STRING MoveToString( MOVE );
-
 void InitializeGame()
 {
 	int numSwans = 12;
@@ -251,8 +249,6 @@ void InitializeGame()
 	if (numDragons>3) initialBoard[12] = 'x';
 
 	gInitialPosition = generic_hash_hash2(initialBoard, 'o', 1, numSwans);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame()
@@ -833,22 +829,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -857,21 +837,18 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 10 );
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
 	int phase;
 	phase = theMove & 1;
 	theMove = theMove >> 1;
 	if(phase == 0)
-		sprintf( m, "%d", theMove + 1);
+		snprintf(moveStringBuffer, 15, "%d", theMove + 1);
 	else {
 		MoveToSlots(theMove,&fromSlot,&toSlot);
 		/* The plus 1 is because the user thinks it's 1-16, but MOVE is 0-15 */
-		sprintf( m, "[ %d %d ] ", fromSlot + 1, toSlot + 1);
+		snprintf(moveStringBuffer, 15, "%d %d", fromSlot + 1, toSlot + 1);
 	}
-
-	return m;
 }
 
 /************************************************************************
@@ -1029,72 +1006,75 @@ void setOption(int option)
 	gNumDragons = (option/4)+MIN_DRAGONS;
 }
 
-POSITION InteractStringToPosition(STRING string) {
-  char turn = string[2] == 'A' ? 'o' : 'x';
-  string += 8;
-  int numSwans = (string[BOARDSIZE] - '0') * 10 + (string[BOARDSIZE + 1] - '0');
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		char whoseTurn = (turn == 1) ? 'o' : 'x';
+		int numSwans = (board[BOARDSIZE] - '0') * 10 + (board[BOARDSIZE + 1] - '0');
 
-  // Convert UWAPI standard board string to internal board representation
-  char oxboard[BOARDSIZE];
-  for (int i = 0; i < BOARDSIZE; i++) {
-    if (string[i] == '-') {
-      oxboard[i] = 'b';
-    } else {
-      oxboard[i] = string[i];
-    }
-  }
-  int phase = numSwans > 0 ? 1 : 2;
-
-  // Convert internal board representation to internal position
-  return generic_hash_hash2(oxboard, turn, phase, numSwans);
-}
-
-
-STRING InteractPositionToString(POSITION pos) {
-  char oxboard[BOARDSIZE];
-  char whosTurn;
-  int phase, numSwans;
-  generic_hash_unhash2(pos, oxboard, &whosTurn, &phase, &numSwans);
-
-  // Convert internal board representation to UWAPI standard board string
-  char board[BOARDSIZE + 5]; // two digits for swans to place, two digits for swans eaten, 1 null terminator
-  int swansOnBoard = 0;
-  for (int i = 0; i < BOARDSIZE; i++) {
-    if (oxboard[i] == 'b') {
-      board[i] = '-';
-    } else {
-		if (oxboard[i] == 'o') {
-			swansOnBoard++;
+		// Convert UWAPI standard board string to internal board representation
+		char oxboard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (board[i] == '-') {
+				oxboard[i] = 'b';
+			} else {
+				oxboard[i] = board[i];
+			}
 		}
-		board[i] = oxboard[i];
-	}
-  }
-  int swansEaten = 12 - numSwans - swansOnBoard;
-  board[BOARDSIZE] = numSwans / 10 + '0';
-  board[BOARDSIZE + 1] = numSwans % 10 + '0';
-  board[BOARDSIZE + 2] = swansEaten / 10 + '0';
-  board[BOARDSIZE + 3] = swansEaten % 10 + '0';
-  board[BOARDSIZE + 4] = '\0';
+		int phase = numSwans > 0 ? 1 : 2;
 
-  // Return formatted UWAPI position string
-  enum UWAPI_Turn turn = (whosTurn == 'o') ? UWAPI_TURN_A : UWAPI_TURN_B;
-  return UWAPI_Board_Regular2D_MakeBoardString(turn, 20, board);
+		// Convert internal board representation to internal position
+		return generic_hash_hash2(oxboard, whoseTurn, phase, numSwans);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractMoveToString(POSITION thePosition, MOVE theMove) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char oxboard[BOARDSIZE];
 	char whosTurn;
+	int phase, numSwans;
+	generic_hash_unhash2(position, oxboard, &whosTurn, &phase, &numSwans);
+
+	// Convert internal board representation to UWAPI standard board string
+	char board[BOARDSIZE + 5]; // two digits for swans to place, two digits for swans eaten, 1 null terminator
+	int swansOnBoard = 0;
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (oxboard[i] == 'b') {
+		board[i] = '-';
+		} else {
+			if (oxboard[i] == 'o') {
+				swansOnBoard++;
+			}
+			board[i] = oxboard[i];
+		}
+	}
+	int swansEaten = 12 - numSwans - swansOnBoard;
+	board[BOARDSIZE] = numSwans / 10 + '0';
+	board[BOARDSIZE + 1] = numSwans % 10 + '0';
+	board[BOARDSIZE + 2] = swansEaten / 10 + '0';
+	board[BOARDSIZE + 3] = swansEaten % 10 + '0';
+	board[BOARDSIZE + 4] = '\0';
+
+	// Return formatted UWAPI position string
+	int turn = (whosTurn == 'o') ? 1 : 2;
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	char oxboard[BOARDSIZE];
+	char whosTurn;
 	int p, numSwans;
-	generic_hash_unhash2(thePosition, oxboard, &whosTurn, &p, &numSwans);
+	generic_hash_unhash2(position, oxboard, &whosTurn, &p, &numSwans);
 	SLOT fromSlot, toSlot;
 	int phase;
-	phase = theMove & 1;
-	theMove = theMove >> 1;
+	phase = move & 1;
+	move = move >> 1;
 	if (phase == 0) {
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('s', theMove, whosTurn);
+		return AutoGUIMakeMoveButtonStringA('s', move, whosTurn, autoguiMoveStringBuffer);
 	} else {
-		MoveToSlots(theMove,&fromSlot,&toSlot);
+		MoveToSlots(move,&fromSlot,&toSlot);
 		/* MOVE is 0-15 */
-    	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, whosTurn);
+    	return AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, whosTurn, autoguiMoveStringBuffer);
 	}
 }

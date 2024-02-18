@@ -189,6 +189,7 @@ void ServerInteractLoop(void) {
 				printf(",\"autoguiPosition\":\"%s\"", inputPositionString);
 			} else {
 				PositionToAutoGUIString(position, positionStringBuffer);
+				positionStringBuffer[0] = inputPositionString[0]; // Handle impartial games
 				printf(",\"autoguiPosition\":\"%s\"", positionStringBuffer);
 			}
 
@@ -216,12 +217,12 @@ void ServerInteractLoop(void) {
 					reversedMoves = CreateMovelistNode(currentMove->move, reversedMoves);
 
 					PositionToAutoGUIString(childPosition, positionStringBuffer);
-					if (positionStringBuffer[0] == '0') positionStringBuffer[0] = oppTurnChar; // Handle impartial games
+					if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
 					printf("{\"autoguiPosition\":\"%s\"", positionStringBuffer);
 
 					if (!positionStringMatchesAutoGUIPositionString) {
 						gPositionToStringFunPtr(childPosition, positionStringBuffer);
-						if (positionStringBuffer[0] == '0') positionStringBuffer[0] = oppTurnChar; // Handle impartial games
+						if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
 					}
 					printf(",\"position\":\"%s\"", positionStringBuffer);
 
@@ -300,11 +301,11 @@ void ServerInteractLoop(void) {
 				gInitializeHashWindow(gInitialTier, FALSE);
 			}
 			PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
-			if (positionStringBuffer[0] == '0') positionStringBuffer[0] = '1'; // Handle Impartial Games
+			if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = '1'; // Handle Impartial Games
 			printf(RESULT "{\"autoguiPosition\":\"%s\"", positionStringBuffer);
 			if (!positionStringMatchesAutoGUIPositionString) {
 				gPositionToStringFunPtr(gInitialPosition, positionStringBuffer);
-				if (positionStringBuffer[0] == '0') positionStringBuffer[0] = '1'; // Handle Impartial Games
+				if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = '1'; // Handle Impartial Games
 			}
 			printf(",\"position\":\"%s\"}", positionStringBuffer);
 		} else if (FirstWordMatches(input, "start")) {
@@ -448,19 +449,19 @@ BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, vo
 	int i;
 	BOOLEAN result = FALSE;
 	for (outer = board_string; *outer; outer++) {
-		if (*outer == ';') {
+		if (*outer == ',') {
 			outer += 1;
 			for(i = 0; key[i] && outer[i] == key[i]; i++) {}
 			if ( ( !outer[i] || outer[i] == '=' ) && (!key[i]) ) {
 				/* Match. */
 				i += 1; /* Skip '='. */
-				semicolon = strchr(outer + i, ';');
+				semicolon = strchr(outer + i, ',');
 				if (semicolon) {
 					*semicolon = '\0';
 				}
 				result = func(outer + i, target);
 				if (semicolon) {
-					*semicolon = ';';
+					*semicolon = ',';
 				}
 				if (result && semicolon) {
 					/* Check for duplicates. */
