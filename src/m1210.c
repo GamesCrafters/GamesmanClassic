@@ -95,7 +95,7 @@ Computer's move              :  2    \n\n\
 TOTAL                        : 11    \n\n\
 Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ;
 
-STRING MoveToString(MOVE);
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 /*************************************************************************
 **
@@ -128,7 +128,7 @@ STRING MoveToString(MOVE);
 ************************************************************************/
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
+	gPositionToStringFunPtr = &PositionToString;
 	kCombinatorial = TRUE;
 }
 
@@ -245,21 +245,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %1d\n", computersName, computersMove);
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	printf("%d", theMove);
 }
 
 /************************************************************************
@@ -400,12 +385,8 @@ POSITION GetInitialPosition() {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(3);
-
-	sprintf( move, "%d", theMove );
-
-	return move;
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 3, "%d", move);
 }
 
 /************************************************************************
@@ -504,26 +485,37 @@ STRING GetNextMoveValues(char* board, int option) {
 	return NULL;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	board = board + 8;
-	for (int i = 0; i < gNumberOfPositions; i++) {
-		if (board[i] == 'x') {
-			return i;
+/* Position String is formatted: <turn>_<number>. Example: 2_5 means that
+it is Player 2's turn and the current number is 5. However, since
+this is an impartial game, we will set the turn character to 0. */
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	snprintf(positionStringBuffer, 8, "0_%d", (int) position);
+}
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *number;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &number)) {
+		POSITION position = (POSITION) atoi(number);
+		if (position >= gNumberOfPositions) {
+			return NULL_POSITION;
+		} else {
+			return position;
 		}
 	}
-	return 0;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char buffer[gNumberOfPositions + 1];
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char entityString[gNumberOfPositions + 1];
 	for (int i = 0; i < gNumberOfPositions; i++) {
-		buffer[i] = '-';
+		entityString[i] = '-';
 	}
-	buffer[pos] = 'x';
-	buffer[gNumberOfPositions] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, gNumberOfPositions + 1, buffer);
+	entityString[position] = 'x';
+	entityString[gNumberOfPositions] = '\0';
+  	AutoGUIMakePositionString(0, entityString, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(pos, pos + mv, 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	AutoGUIMakeMoveButtonStringM(position, position + move, 'x', autoguiMoveStringBuffer);
 }

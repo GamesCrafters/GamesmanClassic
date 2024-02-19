@@ -23,7 +23,6 @@ BOOLEAN kLoopy = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
 
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void *gGameSpecificTclInit = NULL;
@@ -40,6 +39,7 @@ CONST_STRING kHelpExample = "";
 
 void DebugMenu() {}
 void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 int numRows = 4;
 int numCols = 7;
@@ -85,7 +85,7 @@ POSITION hash(int *rowSizes) {
 solving or playing the game. */
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
+    gPositionToStringFunPtr = &PositionToString;
     kCombinatorial = TRUE;
 }
 
@@ -171,12 +171,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     printf("\n");
 }
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-    STRING moveString = MoveToString(computersMove);
-    printf("%8s's move: %s", computersName, moveString);
-    SafeFree(moveString);
-}
-
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move,
                                  STRING playerName) {
     USERINPUT ret;
@@ -205,10 +199,9 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move.
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveString) {
     int rowOneIndexed = move / numCols + 1;
     int col = move % numCols;
-    STRING moveString = SafeMalloc(4);
     moveString[0] = 'A' + col;
     if (rowOneIndexed < 10) {
         moveString[1] = rowOneIndexed + '0';
@@ -218,16 +211,12 @@ STRING MoveToString(MOVE move) {
         moveString[2] = (rowOneIndexed % 10) + '0';
         moveString[3] = '\0';
     }
-    return moveString;
 }
 
-/* Basically just print the move. */
-void PrintMove(MOVE move) {
-    /* YOUR CODE HERE */
-    /* If you malloc anything, make sure to free it! */
-    STRING moveString = MoveToString(move);
-    printf("%s", moveString);
-    SafeFree(moveString);
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    char moveString[8];
+    MoveToString(computersMove, moveString);
+    printf("%8s's move: %s", computersName, moveString);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -291,29 +280,52 @@ void GameSpecificMenu() {
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING str) {
-    str += 8;
+void PositionToString(POSITION position, char *positionStringBuffer) {
     int rowSizes[numRows];
-    int rowSize;
-
+    unhash(position, rowSizes);
+    positionStringBuffer[0] = '0';
+    int idx = 1;
     for (int i = 0; i < numRows; i++) {
-        rowSize = 0;
-        for (rowSize = 0; rowSize < numCols; rowSize++) {
-            if (str[rowSize] == '-') {
-                break;
-            }
+        if (rowSizes[i] == 0) {
+            break;
         }
-        rowSizes[i] = rowSize;
-        str += numCols;
+        idx += snprintf(positionStringBuffer + idx, 4, ",%d", rowSizes[i]);
     }
-    return hash(rowSizes);
+    positionStringBuffer[1] = '_';
 }
 
-STRING InteractPositionToString(POSITION position) {
-    char board[numRows * numCols + 1];
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *rowSizesStr;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &rowSizesStr)) {
+        int rowSizes[numRows];
+        memset(rowSizes, 0, sizeof(int) * numRows);
+        int rowSize = 0;
+        int rowSizesStrIdx = 0;
+        int rowSizesIdx = 0;
+        while (rowSizesIdx < numRows) {
+            if (rowSizesStr[rowSizesStrIdx] == ',') {
+                rowSizes[rowSizesIdx++] = rowSize;
+                rowSize = 0;
+            } else if (rowSizesStr[rowSizesStrIdx] >= '0' && rowSizesStr[rowSizesStrIdx] <= '9') {
+                rowSize = rowSize * 10 + (rowSizesStr[rowSizesStrIdx] - '0');
+            } else {
+                if (rowSizesStr[rowSizesStrIdx] == '\0') {
+                    rowSizes[rowSizesIdx++] = rowSize;
+                    break;
+                } else {
+                    return NULL_POSITION;
+                }
+            }
+            rowSizesStrIdx++;
+        }
+        return hash(rowSizes);
+	}
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[numRows * numCols + 1];
     memset(board, '-', numRows * numCols);
 
     int rowSizes[numRows];
@@ -325,12 +337,12 @@ STRING InteractPositionToString(POSITION position) {
             }
         }
     }
-
     board[0] = 'p';
     board[numRows * numCols] = '\0';
-    return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, numRows * numCols + 1, board);
+    AutoGUIMakePositionString(0, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound('t', move, 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+    (void) position;
+    return AutoGUIMakeMoveButtonStringA('t', move, 'x', autoguiMoveStringBuffer);
 }

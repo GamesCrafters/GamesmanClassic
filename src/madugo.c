@@ -25,7 +25,6 @@ BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -126,14 +125,6 @@ void PrintComputersMove(MOVE, STRING);
 USERINPUT GetAndPrintPlayersMove(POSITION, MOVE *, STRING);
 BOOLEAN ValidTextInput(STRING);
 MOVE ConvertTextInputToMove(STRING);
-STRING MoveToString(MOVE);
-void PrintMove(MOVE);
-
-// Interact functions
-POSITION InteractStringToPosition(STRING);
-STRING InteractPositionToString(POSITION);
-STRING InteractPositionToEndData(POSITION);
-STRING InteractMoveToString(POSITION, MOVE);
 
 /*********** BEGIN TIER FUNCIONS ***********/
 
@@ -432,7 +423,6 @@ void InitializeGame() {
   BOARDSIZE = BOARDDIMENSIONX * BOARDDIMENSIONY;
 
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
  	gSymmetries = TRUE;
 
 	combinationsInit();
@@ -691,13 +681,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("turn: %c intermediate: %d\n", turn, intermediate);
 }
 
-
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  (void) computersName;
-    printf("%s", "computer's move: ");
-    PrintMove(computersMove);
-}
-
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   USERINPUT ret;
 	do {
@@ -754,14 +737,13 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
-  STRING movestring = (STRING) SafeMalloc(40);
+void MoveToString(MOVE move, char *movestring) {
   char temp[40];
   if (move % 3 == 0){
     move /= 3;
     int from = move / BOARDSIZE;
     int to = move % BOARDSIZE;
-    sprintf(movestring, "m %d %d", from, to);
+    snprintf(movestring, 40, "m %d %d", from, to);
   } else {
     int stack[6];
     int top = -1;
@@ -772,24 +754,21 @@ STRING MoveToString(MOVE move) {
       move /= moveOffset;
     }
     if (top == -1){
-      sprintf(movestring, "%s", "s");
+      snprintf(movestring, 40, "%s", "s");
     } else {
-      sprintf(movestring, "%s", "j");
+      snprintf(movestring, 40, "%s", "j");
       for (; top >= 0; top--){
-        sprintf(temp, "%s", movestring);
-        sprintf(movestring, "%s %d", temp, stack[top]);
+        snprintf(temp, 40, "%s", movestring);
+        snprintf(movestring, 40, "%s %d", temp, stack[top]);
       }
     }
   }
-
-  return movestring;
 }
 
-/* Basically just print the move. */
-void PrintMove(MOVE move) {
-  STRING moveString = MoveToString(move);
-  printf("(%s)", moveString);
-  SafeFree(moveString);
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    char movestring[40];
+    MoveToString(computersMove, movestring);
+    printf("%s's Move: %s\n", computersName, movestring);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -844,54 +823,55 @@ void setOption(int option) {
 
 
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
-	char realBoard[BOARDSIZE];
-	char turn = (board[2] == 'A') ? O : X;
-  int intermediate = board[8] == 'I' ? 1 : 0;
-  int numx = 0;
-  for (int i = 0; i < BOARDSIZE; i++) {
-    if (board[i+boardOffset] == '-'){
-      realBoard[i] = BLANK;
-    } else if (board[i+boardOffset] == 'W'){
-      realBoard[i] = X;
-      numx++;
-    } else {
-      realBoard[i] = O;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		char realBoard[BOARDSIZE];
+    char turnChar = (turn == 1) ? O : X;
+    int intermediate = board[0] == 'I' ? 1 : 0;
+    int numx = 0;
+    for (int i = 0; i < BOARDSIZE; i++) {
+      if (board[i + 1] == '-'){
+        realBoard[i] = BLANK;
+      } else if (board[i + 1] == 'W'){
+        realBoard[i] = X;
+        numx++;
+      } else {
+        realBoard[i] = O;
+      }
     }
+    gInitializeHashWindow(SetTier(numx, intermediate), FALSE);
+    return hash(realBoard, turnChar, intermediate);
 	}
-	gInitializeHashWindow(SetTier(numx, intermediate), FALSE);
-	return hash(realBoard, turn, intermediate);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {  
-  char* result = calloc(boardOffset + BOARDSIZE + 1, sizeof(char));
-  memcpy(result, initialInteractString, boardOffset+BOARDSIZE);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char entityString[BOARDSIZE + 2];
   char turn;
   int numx, intermediate;
   char *board = unhash(position, &turn, &numx, &intermediate);
-  result[2] = (turn == O) ? 'A' : 'B';
-  result[8] = (intermediate == 1) ? 'I' : 'N';
+  entityString[0] = (intermediate == 1) ? 'I' : 'N';
 
   for (int i = 0; i < BOARDSIZE; i++) {
     if (board[i] != BLANK) {
-      result[i+boardOffset] = (board[i] == X) ? 'W' : 'B';
+      entityString[i + 1] = (board[i] == X) ? 'W' : 'B';
+    } else {
+      entityString[i + 1] = '-';
     }
 	}
 	SafeFree(board);
-
-  result[boardOffset + BOARDSIZE] = '\0';
-	return result;
+  entityString[BOARDSIZE + 1] = '\0';
+  AutoGUIMakePositionString((turn == O) ? 1 : 2, entityString, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
   if (move % 3 == 0){
     move /= 3;
     int from = move / BOARDSIZE;
     int to = move % BOARDSIZE;
-    return UWAPI_Board_Regular2D_MakeMoveString(from+1, to+1);
+    AutoGUIMakeMoveButtonStringM(from + 1, to + 1, '-', autoguiMoveStringBuffer);
   } else {
     char turn;
     int numx, intermediate;
@@ -906,12 +886,13 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
       }
     }
     if (move == 1){
-      return UWAPI_Board_Regular2D_MakeAddString('-', ox*BOARDDIMENSIONY+oy+1);
+      AutoGUIMakeMoveButtonStringA('-', ox*BOARDDIMENSIONY+oy+1, '-', autoguiMoveStringBuffer);
+    } else {
+      move /= 3;
+      int mx, my;
+      mx = ox + DX[move-1]*2;
+      my = oy + DY[move-1]*2;
+      AutoGUIMakeMoveButtonStringM(ox*BOARDDIMENSIONY+oy+1, mx*BOARDDIMENSIONY+my+1, '-', autoguiMoveStringBuffer);
     }
-    move /= 3;
-    int mx, my;
-    mx = ox + DX[move-1]*2;
-    my = oy + DY[move-1]*2;
-    return UWAPI_Board_Regular2D_MakeMoveString(ox*BOARDDIMENSIONY+oy+1, mx*BOARDDIMENSIONY+my+1);
   }
 }

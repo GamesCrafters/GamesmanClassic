@@ -179,7 +179,8 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			if (kSupportsShardGamesman) {
-				shardGamesmanDetailedPositionResponse(inputPositionString, position);
+				shardGamesmanDetailedPositionResponse(
+					inputPositionString, position, positionStringBuffer, moveStringBuffer);
 				continue;
 			}
 			POSITIONLIST *childPositions = NULL;

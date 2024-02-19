@@ -40,3 +40,7 @@ void AutoGUIMakeMoveButtonStringM(unsigned int from, unsigned int to, char sound
 void AutoGUIMakeMoveButtonStringL(unsigned int p1, unsigned int p2, char sound, char *buf) {
     snprintf(buf, MAX_MOVE_BUTTON_STRING_LENGTH, "L_%d_%d_%c", p1, p2, sound);
 }
+
+void AutoGUIWriteEmptyString(char *buf) {
+    buf[0] = '\0';
+}

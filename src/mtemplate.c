@@ -67,7 +67,7 @@ void GameSpecificMenu() {}
 solving or playing the game. */
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
+    gPositionToStringFunPtr = &PositionToString;
 
     /* YOUR CODE HERE */
 }
@@ -200,20 +200,24 @@ void setOption(int option) { /* YOUR CODE HERE  */
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING str) {
-    /* YOUR CODE HERE */
-    return 0;
+/* input: human-readable position string */
+
+void PositionToString(POSITION position, char *positionStringBuffer) {
+
 }
 
-STRING InteractPositionToString(POSITION position) {
-    /* YOUR CODE HERE */
-    return NULL;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-    /* YOUR CODE HERE */
-    return MoveToString(move);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
 }

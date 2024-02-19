@@ -666,7 +666,6 @@ POSITION hash(char*, int, int, char);
 char* TclUnhash(POSITION);
 char* unhash(POSITION, int*, int*,char*);
 void ChangeBoardSize();
-STRING MoveToString(MOVE);
 POSITION GetCanonicalPosition(POSITION position);
 POSITION DoSymmetry(POSITION position, int symmetry);
 POSITION GetInitialPosition();
@@ -780,7 +779,6 @@ void InitializeGame() {
 
 	gSymmetries = TRUE;
 	gCanonicalPosition = GetCanonicalPosition;
-	gMoveToStringFunPtr = &MoveToString;
 
 	kSupportsTierGamesman = TRUE;
 	kExclusivelyTierGamesman = TRUE;
@@ -942,39 +940,6 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	printf("\n\n");
 	if (board != NULL)
 		SafeFree(board);
-}
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely formats the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName) {
-	printf("%8s's move : ", computersName);
-	PrintMove(computersMove);
-	printf("\n\n");
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-	STRING s = MoveToString(move);
-	printf("%s", s);
-	SafeFree(s);
 }
 
 /************************************************************************
@@ -1454,20 +1419,36 @@ void ChangeBoardSize() {
 	}
 }
 
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
 	int from, to, remove;
 	unhashMove(move, &from, &to, &remove);
-	STRING moveStr = (STRING) SafeMalloc(sizeof(char) * 4);
 	int fromX = get_x(from);
 	int fromY = get_y(from);
 	int toX = get_x(to);
 	int toY = get_y(to);
 	if (from == to) { // Placement
-		sprintf(moveStr, "%c%c", toY + 'a' - 1, '0' + sideLength - toX + 1);
+		snprintf(moveStringBuffer, 8, "%c%c", toY + 'a' - 1, '0' + sideLength - toX + 1);
 	} else { // Movement
-		sprintf(moveStr, "%c%c%c%c", fromY + 'a' - 1, '0' + sideLength - fromX + 1, toY + 'a' - 1, '0' + sideLength - toX + 1);
+		snprintf(moveStringBuffer, 8, "%c%c%c%c", fromY + 'a' - 1, '0' + sideLength - fromX + 1, toY + 'a' - 1, '0' + sideLength - toX + 1);
 	}
-	return moveStr;
+}
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely formats the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+	printf("%8s's move : ", computersName);
+	char moveStringBuffer[8];
+	MoveToString(computersMove, moveStringBuffer);
+	printf("%s\n\n", moveStringBuffer);
 }
 
 /************************************************************************
@@ -1649,65 +1630,54 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char* finalBoard = calloc(40, sizeof(char));
-	memcpy(finalBoard, initialBaghchalInteractString, 40);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+		char turnChar = (turn == 1) ? GOAT : TIGER;
+		int goatsLeft = 10 * (board[25] - '0') + (board[26] - '0');
+		int goatsCaptured = 10 * (board[27] - '0') + (board[28] - '0');
+
+		TIER tier;
+		TIERPOSITION tierposition;
+		hashBoard(board, goatsLeft, goatsCaptured, turnChar, &tier, &tierposition);
+		gInitializeHashWindow(tier, FALSE);
+		return tierposition;
+	}
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char finalBoard[30];
 	char turn;
 	int goatsLeft, goatsCaptured;
-	char *board = unhash(pos, &goatsLeft, &goatsCaptured, &turn);
-	finalBoard[2] = (turn == GOAT) ? 'A' : 'B';
-	memcpy(finalBoard + 8, board, boardSize * sizeof(char));
-	finalBoard[goatsLeftTensIdx] = (goatsLeft / 10) + '0';
-	finalBoard[goatsLeftOnesIdx] = (goatsLeft % 10) + '0';
-	finalBoard[goatsCapturedTensIdx] = (goatsCaptured / 10) + '0';
-	finalBoard[goatsCapturedOnesIdx] = (goatsCaptured % 10) + '0';
-	finalBoard[goatsCapturedOnesIdx + 1] = '\0';
+	char *board = unhash(position, &goatsLeft, &goatsCaptured, &turn);
+	memcpy(finalBoard, board, boardSize * sizeof(char));
 	SafeFree(board);
-	return finalBoard;
+	finalBoard[25] = (goatsLeft / 10) + '0';
+	finalBoard[26] = (goatsLeft % 10) + '0';
+	finalBoard[27] = (goatsCaptured / 10) + '0';
+	finalBoard[28] = (goatsCaptured % 10) + '0';
+	finalBoard[29] = '\0';
+	AutoGUIMakePositionString(turn == GOAT ? 1 : 2, finalBoard, autoguiPositionStringBuffer);
 }
 
-POSITION InteractStringToPosition(STRING string) {
-	int goatsLeft, goatsCaptured;
-	char turn = (string[2] == 'A') ? GOAT : TIGER;
-	char fboard[boardSize];
-	memcpy(fboard, string + 8, boardSize * sizeof(char));
-	
-	if (sideLength == 3) {
-		goatsLeft = string[goatsLeftOnesIdx] - '0';
-	} else {
-		goatsLeft = 10 * (string[goatsLeftTensIdx] - '0') + (string[goatsLeftOnesIdx] - '0');
-	}
-
-	if (sideLength == 5) {
-		goatsCaptured = 10 * (string[goatsCapturedTensIdx] - '0') + (string[goatsCapturedOnesIdx] - '0');
-	} else {
-		goatsCaptured = (string[goatsCapturedOnesIdx] - '0');
-	}
-
-	TIER tier;
-	TIERPOSITION tierposition;
-	hashBoard(fboard, goatsLeft, goatsCaptured, turn, &tier, &tierposition);
-	gInitializeHashWindow(tier, FALSE);
-	return tierposition;
-}
-
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
 	TIER tier; TIERPOSITION tierposition;
-	gUnhashToTierPosition(pos, &tierposition, &tier);
+	gUnhashToTierPosition(position, &tierposition, &tier);
 	int goatsLeft, goatsCaptured;
 	char turn = GOAT;
 	unhashTier(tier, &goatsLeft, &goatsCaptured, &turn);
 	if (goatsLeft == 0) {
-		turn = (pos >= combinations[boardSize][tigers][20 - goatsLeft - goatsCaptured]) ? TIGER : GOAT;
+		turn = (position >= combinations[boardSize][tigers][20 - goatsLeft - goatsCaptured]) ? TIGER : GOAT;
 	}
 
 	char sound = (turn == GOAT) ? 'g' : 't';
 	int from, to, remove;
-	unhashMove(mv, &from, &to, &remove);
+	unhashMove(move, &from, &to, &remove);
 	if (from == to) {
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, sound);
+		AutoGUIMakeMoveButtonStringA('-', to, sound, autoguiMoveStringBuffer);
 	} else {
-		return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, sound);
+		AutoGUIMakeMoveButtonStringM(from, to, sound, autoguiMoveStringBuffer);
 	}
 }

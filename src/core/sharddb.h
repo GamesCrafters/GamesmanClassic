@@ -38,6 +38,6 @@
 void sharddb_init                            (DB_Table*);
 void sharddb_cache_init                      (void);
 void sharddb_cache_deallocate                (void);
-void shardGamesmanDetailedPositionResponse   (STRING board, POSITION position);
+void shardGamesmanDetailedPositionResponse(STRING inputPositionString, POSITION pos, char *positionStringBuffer, char *moveStringBuffer);
 
 #endif /* GMCORE_BPDB_H */

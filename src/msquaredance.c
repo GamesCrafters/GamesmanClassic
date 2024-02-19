@@ -24,7 +24,7 @@ BOOLEAN kLoopy = FALSE;
 BOOLEAN kSupportsSymmetries = TRUE;
 
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
+void PositionToString(POSITION position, char *positionStringBuffer);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -357,7 +357,7 @@ void InitializeGame() {
 	/********************************/
   
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
+  gPositionToStringFunPtr = &PositionToString;
 
   /* Tier and UndoMove Variables and Function Pointers */
   gTierChildrenFunPtr = &getTierChildren;
@@ -557,12 +557,6 @@ void PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn) {
   printf("    a   b   c   d       %s\n", GetPrediction(position, playersName, usersTurn));
 }
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  printf("%8s's move [([a-d][1-4][u/d])] : ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   USERINPUT input;
 	do {
@@ -609,8 +603,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
-  STRING moveString = SafeMalloc(4);
+void MoveToString(MOVE move, char *moveString) {
   BOOLEAN p1Turn;
   int to, isUp;
   unhashMove(move, &p1Turn, &to, &isUp);
@@ -630,14 +623,18 @@ STRING MoveToString(MOVE move) {
     }
   }
   moveString[3] = '\0';
-
-  return moveString;
 }
 
 void PrintMove(MOVE move) {
-  STRING moveString = MoveToString(move);
+  char moveString[16];
+  MoveToString(move, moveString);
   printf("%s", moveString);
-  SafeFree(moveString);
+}
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  printf("%8s's move [([a-d][1-4][u/d])] : ", computersName);
+	PrintMove(computersMove);
+	printf("\n");
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -724,34 +721,6 @@ void setOption(int option) {
 
 
 
-POSITION InteractStringToPosition(STRING str) {
-  str += 8;
-  char board[boardSize];
-  TIER tier = boardSize;
-  for (int i = 0; i < boardSize; i++) {
-    switch (str[i]) {
-      case 'U': case 'W':
-        board[i] = U;
-        break;
-      case 'D': case 'X':
-        board[i] = D;
-        break;
-      case 'u': case 'Y':
-        board[i] = u;
-        break;
-      case 'd': case 'Z':
-        board[i] = d;
-        break;
-      default:
-        board[i] = BLANK;
-        tier--;
-        break;
-    }
-  }
-  gInitializeHashWindow(tier, FALSE);
-  return hash(board);
-}
-
 BOOLEAN highlightSquare(char *board, int **slots) {
   int *z;
   int i;
@@ -781,8 +750,49 @@ BOOLEAN highlightSquare(char *board, int **slots) {
   return FALSE;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  char board[boardSize + 1];
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	char board[boardSize + 1];
+  BOOLEAN p1Turn;
+  unhash(position, board, &p1Turn);
+  board[boardSize] = '\0';
+  encodingToLetters(board);
+  AutoGUIMakePositionString(p1Turn ? 1 : 2, board, positionStringBuffer);
+}
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *entityString;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &entityString)) {
+    char board[boardSize];
+    TIER tier = boardSize;
+    for (int i = 0; i < boardSize; i++) {
+      switch (entityString[i]) {
+        case 'U':
+          board[i] = U;
+          break;
+        case 'D':
+          board[i] = D;
+          break;
+        case 'u':
+          board[i] = u;
+          break;
+        case 'd':
+          board[i] = d;
+          break;
+        default:
+          board[i] = BLANK;
+          tier--;
+          break;
+      }
+    }
+    gInitializeHashWindow(tier, FALSE);
+    return hash(board);
+	}
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[boardSize + 1];
   BOOLEAN p1Turn;
   unhash(position, board, &p1Turn);
   int *slots = NULL;
@@ -813,12 +823,11 @@ STRING InteractPositionToString(POSITION position) {
       }
     }
   }
-
-  enum UWAPI_Turn turn = p1Turn ? UWAPI_TURN_A : UWAPI_TURN_B;
-  return UWAPI_Board_Regular2D_MakeBoardString(turn, boardSize + 1, board);
+  int turn = p1Turn ? 1 : 2;
+  AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
   (void) position;
   BOOLEAN p1Turn;
   int to, isUp;
@@ -839,5 +848,5 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
       moveToken = 't';
     }
   }
-  return UWAPI_Board_Regular2D_MakeAddStringWithSound(moveToken, offs + to, 'x');
+  AutoGUIMakeMoveButtonStringA(moveToken, offs + to, 'x', autoguiMoveStringBuffer);
 }

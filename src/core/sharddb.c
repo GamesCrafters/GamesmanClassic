@@ -15,6 +15,7 @@
 #include <zlib.h>
 #include <sys/stat.h>
 #include "gamesman.h"
+#include "autoguistrings.h"
 #include <dirent.h>
 #include "interact.h"
 #include "sharddb.h"
@@ -164,136 +165,49 @@ BOOLEAN sharddb_load_database() {
 int IROWCOUNT = 6;
 int ICOLUMNCOUNT = 6;
 
-MOVELIST *IGenerateMoves(POSITION position) {
-  MOVELIST *moves = NULL;
-  for (int i = 0; i < ICOLUMNCOUNT; i++) {
-    MOVE start = (IROWCOUNT + 1) * (i + 1) - 1;
-    while ((position & (1ULL<<start)) == 0) start--; // This is what sigbit does
-    if (start != (IROWCOUNT + 1) * (i + 1) - 1) { // If there is space in this column
-      moves = CreateMovelistNode(start, moves);
-    }
-  }
-  return moves;
-}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer);
 
-POSITION IInteractStringToPosition(STRING str) {
-  char *board = str + 8; // Assumes UWAPI position string header is R_(A|B)_0_0_
-  POSITION pos = 0;
-  for (int c = 0; c < ICOLUMNCOUNT; c++) {
-    POSITION colbits = 0;
-    BOOLEAN endFound = FALSE;
-    for (int r = 0; !endFound && r < IROWCOUNT; r++) {
-      char piece = board[IROWCOUNT * (c + 1) - 1 - r];
-      if (piece == 'O') {
-        colbits |= (1 << r);
-      } else if (piece == '-') {
-        endFound = TRUE;
-        colbits |= (1 << r);
-      }
-    }
-    if (!endFound) colbits |= (1 << IROWCOUNT);
-    pos |= (colbits << ((IROWCOUNT + 1) * (ICOLUMNCOUNT - 1 - c)));
-  }
-  if (str[2] == 'B') pos |= (1ULL << 63);
-  return pos;
-}
-
-STRING IInteractPositionToString(POSITION position) {
-//   int strLen = IROWCOUNT * ICOLUMNCOUNT + 1;
-//   char pieces[strLen];
-//   int piecesPlaced = 0;
-//   int k = 0;
-//   BOOLEAN pastSigBit = FALSE;
-
-//   for (int i = (IROWCOUNT + 1) * ICOLUMNCOUNT - 1; i >= 0; i--) {
-//     BOOLEAN bit = (position >> i) & 1;
-//     if (i % (IROWCOUNT + 1) == IROWCOUNT) {
-//       pastSigBit = bit;
-//     } else if (bit) {
-//       if (pastSigBit) {
-//         pieces[k] = 'O';
-//         piecesPlaced++;
-//       } else {
-//         pieces[k] = '-';
-//         pastSigBit = TRUE;
-//       }
-//       k++;
-//     } else {
-//       if (pastSigBit) {
-//         pieces[k] = 'X';
-//         piecesPlaced++;
-//       } else {
-//         pieces[k] = '-';
-//       }
-//       k++;
-//     }
-//   }
-
-//   pieces[IROWCOUNT * ICOLUMNCOUNT] = '\0';
-//   enum UWAPI_Turn turn = (piecesPlaced & 1) ? UWAPI_TURN_B : UWAPI_TURN_A; 
-//   return UWAPI_Board_Regular2D_MakeBoardString(turn, strLen, pieces);
-return NULL;
-}
-
-STRING ValueCharToValueString(char value_char) {
-	switch(value_char) {
-	case 'T':
-		return "tie";
-	case 'W':
-		return "win";
-	case 'L':
-		return "lose";
-	case 'U':
-		return "undecided";
-	default:
-		return "error";
-	}
-}
-
-void shardGamesmanDetailedPositionResponse(STRING board, POSITION pos) {
+void shardGamesmanDetailedPositionResponse(STRING inputPositionString, POSITION pos, char *positionStringBuffer, char *moveStringBuffer) {
 	
-	// printf(RESULT "{\"status\":\"ok\",\"response\":{");
-	// if (getOption() == 2) {
-	// 	ICOLUMNCOUNT = 7;
-	// } else {
-	// 	ICOLUMNCOUNT = 6;
-	// }
-	// VALUE value;
-	// REMOTENESS remoteness;
-	// printf("\"board\":\"%s\"", board);
-	// sharddb_cache_get(&value, &remoteness, pos);
-	// InteractPrintJSONPositionValue(value); // e.g. will print ,"value":"win"
-	// printf(",\"remoteness\":%d", remoteness);
-	// printf(",\"moves\":[");
+	printf(RESULT "{\"position\":\"%s\",\"autoguiPosition\":\"%s\"", inputPositionString, inputPositionString);
 
-	// MOVELIST *all_next_moves = IGenerateMoves(pos);
-	// MOVELIST *current_move = all_next_moves;
-	// STRING move_string = NULL;
-	// while (current_move) {
-	// 	POSITION childPosition = DoMove(pos, current_move->move);
-	// 	STRING nextBoard = IInteractPositionToString(childPosition);
-	// 	printf("{\"board\":\"%s\"", nextBoard);
-	// 	SafeFree(nextBoard);
+	ICOLUMNCOUNT = (getOption() == 2) ? 7 : 6;
+	VALUE value;
+	REMOTENESS remoteness;
+	sharddb_cache_get(&value, &remoteness, pos);
+	InteractPrintJSONPositionValue(value); // e.g. will print ,"value":"win"
+	printf(",\"remoteness\":%d", remoteness);
+	printf(",\"moves\":[");
 
-	// 	sharddb_cache_get(&value, &remoteness, childPosition);
-	// 	InteractPrintJSONPositionValue(value); // e.g. will print ,"value":"win"
-	// 	printf(",\"remoteness\":%d", remoteness);
-	// 	int w = (IROWCOUNT + 1) * ICOLUMNCOUNT - 1 - (current_move->move / (IROWCOUNT + 1));
-	// 	printf(",\"move\":\"M_%d_%d_x\"", w, w + ICOLUMNCOUNT);
-	// 	move_string = gMoveToStringFunPtr(current_move->move);
-	// 	printf(",\"moveName\":\"%s\"", move_string);
-	// 	SafeFree(move_string);
+	if (remoteness > 0) {
+		POSITION childPosition;
+		MOVELIST *movesHead = GenerateMoves(pos);
+		MOVELIST *currentMove = movesHead;
+		while (currentMove) {
+			childPosition = DoMove(pos, currentMove->move);
+			PositionToAutoGUIString(childPosition, positionStringBuffer);
+			printf("{\"position\":\"%s\",\"autoguiPosition\":\"%s\"", positionStringBuffer, positionStringBuffer);
 
-	// 	current_move = current_move->next;
-	// 	printf("}");
-	// 	if (current_move) {
-	// 		printf(",");
-	// 	}
-	// }
-	// move_string = NULL;
-	// FreeMoveList(all_next_moves);
+			sharddb_cache_get(&value, &remoteness, childPosition);
+			InteractPrintJSONPositionValue(value); // e.g. will print ,"value":"win"
+			printf(",\"remoteness\":%d", remoteness);
+		
+			MoveToString(currentMove->move, moveStringBuffer);
+			printf(",\"move\":\"%s\"", moveStringBuffer);
 
-	// printf("]}}");
+			MoveToAutoGUIString(childPosition, currentMove->move, moveStringBuffer);
+			printf(",\"autoguiMove\":\"%s\"", moveStringBuffer);
+
+			currentMove = currentMove->next;
+			printf("}");
+			if (currentMove) {
+				printf(",");
+			}
+		}
+		FreeMoveList(movesHead);
+	}
+	printf("]}");
 }
 
 /* LRU Cache */
