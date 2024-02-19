@@ -58,9 +58,6 @@ CONST_STRING kHelpExample = "";
 **
 **************************************************************************/
 
-POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
-
 POSITION GetCanonicalPosition(POSITION position) {
   return position;
 }
@@ -297,22 +294,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-    STRING moveString = MoveToString(move);
-    printf("%s", moveString);
-    SafeFree(moveString);
-}
-
-/************************************************************************
-**
 ** NAME: MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -321,9 +302,9 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
   (void)move;
-  return NULL;
+  (void)moveStringBuffer;
 }
 
 int NumberOfOptions() {
@@ -339,18 +320,16 @@ void setOption(int option) {
   gInitialPosition = 0;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-  (void)str;
- return 0;
+POSITION StringToPosition(char *positionString) {
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  (void)position;
-  return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_A, 17, "-----------------");
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+  snprintf(autoguiPositionStringBuffer, 20, "1_-----------------");
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-  (void)position;
-  (void)move;
-  return "not implemented";
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  (void) autoguiMoveStringBuffer;
 }

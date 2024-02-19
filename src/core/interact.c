@@ -169,7 +169,7 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			if (kUsesQuartoGamesman) {
-				quartoDetailedPositionResponse(inputPositionString);
+				quartoDetailedPositionResponse(inputPositionString, positionStringBuffer);
 				continue;
 			}
 			char oppTurnChar = (inputPositionString[0] == '1') ? '2' : '1';
@@ -301,7 +301,11 @@ void ServerInteractLoop(void) {
 			if (kExclusivelyTierGamesman) {
 				gInitializeHashWindow(gInitialTier, FALSE);
 			}
-			PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
+			if (gRandomInitialPositionFunPtr != NULL) {
+				PositionToAutoGUIString(gRandomInitialPositionFunPtr(), positionStringBuffer);
+			} else {
+				PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
+			}
 			if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = '1'; // Handle Impartial Games
 			printf(RESULT "{\"autoguiPosition\":\"%s\"", positionStringBuffer);
 			if (!positionStringMatchesAutoGUIPositionString) {

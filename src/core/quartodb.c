@@ -581,162 +581,153 @@ void getValueRemoteness(int level, QUARTOTIER *tier, uint64_t bitBoard, char *va
     }
 }
 
-void quartoDetailedPositionResponse(STRING str) {
-	// printf("result =>> {\"status\":\"ok\",\"response\":{");
+void quartoDetailedPositionResponse(STRING positionString, char *positionStringBuffer) {
+	printf("result =>> {");
 
-    // enum UWAPI_Turn turn;
-	// unsigned int num_rows, num_columns; // Unused
-    // STRING board;
-    // STRING childBoard;
-	// if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-	// 	// Failed to parse string
-	// 	printf("}}");
-    //     return;
-	// }
+    int turn;
+    char *boardOrig;
+	if (!ParseAutoGUIFormattedPositionString(positionString, &turn, &boardOrig)) {
+		// Failed to parse string
+		printf("}");
+        return;
+	}
 
-    // int level = 16;
-    // uint16_t piecesPlaced = 0;
-    // uint16_t occupiedSlots = 0xFFFF;
-    // uint64_t bitBoard = 0;
-    // uint64_t piece;
-    // int i, j;
+    char board[20];
+    memcpy(board, boardOrig, sizeof(char) * 17);
+    board[17] = '\0';
 
-    // for (i = 0; i < 16; i++) {
-    //     if (board[i] == '\0') {
-    //         printf("}}"); // Invalid board string: board string not long enough
-    //         SafeFree(board);
-    //         return;
-    //     } else if (board[i] == '-') {
-    //         level--;
-    //         occupiedSlots ^= UINT16_C(1) << i;
-    //     } else {
-    //         piece = board[i] - 'A';
-    //         if (piece > 15) {
-    //             printf("}}"); // Invalid board string: contains invalid characters
-    //             SafeFree(board);
-    //             return;
-    //         }
-    //         piecesPlaced |= UINT16_C(1) << piece;
-    //         bitBoard |= piece << (i << 2);
-    //     }
-    // }
-    // int piecesPlacedCount = 0, occupiedSlotsCount = 0;
-    // for (i = 0; i < 16; i++) {
-    //     if (piecesPlaced & (1 << i)) piecesPlacedCount++;
-    //     if (occupiedSlots & (1 << i)) occupiedSlotsCount++;
-    // }
-    // if (piecesPlacedCount != occupiedSlotsCount) {
-    //     printf("}}"); // Invalid board string: number of pieces placed does not match number of occupied slots
-    //     SafeFree(board);
-    //     return;
-    // }
+    int level = 16;
+    uint16_t piecesPlaced = 0;
+    uint16_t occupiedSlots = 0xFFFF;
+    uint64_t bitBoard = 0;
+    uint64_t piece;
+    int i, j;
 
-    // char valueChar;
-    // int remoteness;
-    // QUARTOTIER tier;
-    // uint8_t pieceToPlace = 0;
-    // BOOLEAN isPrimitive = FALSE;
-    // if (board[16] == '-') {
-    //     if (level == 0) {
-    //         level = -1;
-    //     } else {
-    //         isPrimitive = TRUE;
-    //     }
-    // } else {
-    //     pieceToPlace = board[16] - 'A';
-    // }
+    for (i = 0; i < 16; i++) {
+        if (board[i] == '\0') {
+            printf("}"); // Invalid board string: board string not long enough
+            return;
+        } else if (board[i] == '-') {
+            level--;
+            occupiedSlots ^= UINT16_C(1) << i;
+        } else {
+            piece = board[i] - 'A';
+            if (piece > 15) {
+                printf("}"); // Invalid board string: contains invalid characters
+                return;
+            }
+            piecesPlaced |= UINT16_C(1) << piece;
+            bitBoard |= piece << (i << 2);
+        }
+    }
+    int piecesPlacedCount = 0, occupiedSlotsCount = 0;
+    for (i = 0; i < 16; i++) {
+        if (piecesPlaced & (1 << i)) piecesPlacedCount++;
+        if (occupiedSlots & (1 << i)) occupiedSlotsCount++;
+    }
+    if (piecesPlacedCount != occupiedSlotsCount) {
+        printf("}"); // Invalid board string: number of pieces placed does not match number of occupied slots
+        return;
+    }
 
-    // buildTier(&tier, pieceToPlace, piecesPlaced, occupiedSlots);
-    // getValueRemoteness(level, &tier, bitBoard, &valueChar, &remoteness);
+    char valueChar;
+    int remoteness;
+    QUARTOTIER tier;
+    uint8_t pieceToPlace = 0;
+    BOOLEAN isPrimitive = FALSE;
+    if (board[16] == '-') {
+        if (level == 0) {
+            level = -1;
+        } else {
+            isPrimitive = TRUE;
+        }
+    } else {
+        pieceToPlace = board[16] - 'A';
+    }
 
-	// printf("\"board\":\"%s\",", str);
-	// printf("\"remoteness\":%d,", remoteness);
-    // printf("\"value\":\"%s\",", vctvs(valueChar));
-	// printf("\"moves\":[");
+    buildTier(&tier, pieceToPlace, piecesPlaced, occupiedSlots);
+    getValueRemoteness(level, &tier, bitBoard, &valueChar, &remoteness);
 
-    // if (isPrimitive) { // handles moves list for primitive and level 16
-    //     printf("]}}");
-    //     SafeFree(board);
-    //     return;
-    // }
+	printf("\"position\":\"%s\",\"autoguiPosition\":\"%s\",", positionString, positionString);
+	printf("\"remoteness\":%d,", remoteness);
+    printf("\"positionValue\":\"%s\",", vctvs(valueChar));
+	printf("\"moves\":[");
 
-    // //////////////
+    if (!isPrimitive) {
+        turn = (turn == 1) ? 2 : 1;
+        uint8_t *emptySlots = unsetBitLists + (tier.occupiedSlots << 4);
+        QUARTOTIER childTier;
+        childTier.level = tier.level + 1;
+        int8_t nextSlot;
+        uint64_t childBitBoard;
+        if (level == -1) {
+            for (i = 0; i < 16; i++) {
+                printf("{\"position\":\"2_----------------%c\",\"autoguiPosition\":\"2_----------------%c\",\"remoteness\":16,\"positionValue\":\"tie\",", i + 'A', i + 'A');
+                printf("\"autoguiMove\":\"A_%c_%d\",", i + 'A', 272 + i); /// TODO
+                printf("\"move\":\"%d%d%d%d\"}", (i>>3)&1, (i>>2)&1, (i>>1)&1, i&1);
+                if (i < 15) {
+                    printf(",");
+                }
+            }
+        } else if (level < 15) {
+            childTier.piecesPlaced = tier.piecesPlaced | (1 << tier.pieceToPlace);
+            uint8_t *remainingPieces = unsetBitLists + ((childTier.piecesPlaced) << 4);
+            for (i = 0; i < 16 - level; i++) { // Iterate through all possible empty slots
+                nextSlot = emptySlots[i];
+                childTier.occupiedSlots = tier.occupiedSlots | (1 << nextSlot);
+                childTier.occupiedSlotsMask = tier.occupiedSlotsMask | (UINT64_C(0xF) << (nextSlot << 2));
+                childBitBoard = bitBoard | (((uint64_t) tier.pieceToPlace) << (nextSlot << 2));
+                board[nextSlot] = pieceToPlace + 'A';
+                for (j = 0; j < 15 - level; j++) {  // Iterate through all possible remaining pieces
+                    childTier.pieceToPlace = remainingPieces[j];
+                    getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
+                    if (remoteness) { // non-primitive child
+                        board[16] = childTier.pieceToPlace + 'A';
+                        AutoGUIMakePositionString(turn, board, positionStringBuffer);
+                        printf("{\"position\":\"%s\",", positionStringBuffer);
+                        printf("\"autoguiPosition\":\"%s\",", positionStringBuffer);
+                        printf("\"remoteness\":%d,", remoteness);
+                        printf("\"positionValue\":\"%s\",", vctvs(valueChar));
+                        printf("\"autoguiMove\":\"A_%c_%d\",", childTier.pieceToPlace + 'A', 16 + nextSlot * 16 + childTier.pieceToPlace);
+                        printf("\"move\":\"%d-%d%d%d%d\"}", nextSlot+1, (childTier.pieceToPlace>>3)&1, (childTier.pieceToPlace>>2)&1, (childTier.pieceToPlace>>1)&1, childTier.pieceToPlace&1);  // slot is 1-indexed in moveName
+                        if (i < 15 - level || j < 14 - level) {
+                            printf(",");
+                        }
+                    } else {
+                        board[16] = '-';
+                        AutoGUIMakePositionString(turn, board, positionStringBuffer);
+                        printf("{\"position\":\"%s\",", positionStringBuffer);
+                        printf("\"autoguiPosition\":\"%s\",", positionStringBuffer);
+                        printf("\"remoteness\":%d,", remoteness);
+                        printf("\"positionValue\":\"%s\",", vctvs(valueChar));
+                        printf("\"autoguiMove\":\"A_-_%d\",", nextSlot); 
+                        printf("\"move\":\"%d\"}", nextSlot+1); // slot is 1-indexed in moveName
+                        if (i < 15 - level) {
+                            printf(",");
+                        }
+                        break;
+                    }
+                }
+                board[nextSlot] = '-';
+            }
+            board[16] = pieceToPlace + 'A';
+        } else { // level == 15
+            nextSlot = emptySlots[0];
+            childTier.occupiedSlotsMask = UINT64_C(-1);
+            childBitBoard = bitBoard | (((uint64_t) tier.pieceToPlace) << (nextSlot << 2));
+            getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
+            board[nextSlot] = pieceToPlace + 'A';
+            board[16] = '-';
 
-    // turn = (turn == UWAPI_TURN_A) ? UWAPI_TURN_B : UWAPI_TURN_A;
-    // uint8_t *emptySlots = unsetBitLists + (tier.occupiedSlots << 4);
-    // QUARTOTIER childTier;
-    // childTier.level = tier.level + 1;
-    // int8_t nextSlot;
-    // uint64_t childBitBoard;
-    // if (level == -1) {
-    //     for (i = 0; i < 16; i++) {
-    //         printf("{\"board\":\"R_B_0_0_----------------%c\",\"remoteness\":16,\"value\":\"tie\",", i + 'A');
-    //         printf("\"move\":\"A_%c_%d\",", i + 'A', 272 + i); /// TODO
-    //         printf("\"moveName\":\"%d%d%d%d\"}", (i>>3)&1, (i>>2)&1, (i>>1)&1, i&1);
-    //         if (i < 15) {
-    //             printf(",");
-    //         }
-    //     }
-    // } else if (level < 15) {
-    //     childTier.piecesPlaced = tier.piecesPlaced | (1 << tier.pieceToPlace);
-    //     uint8_t *remainingPieces = unsetBitLists + ((childTier.piecesPlaced) << 4);
-    //     for (i = 0; i < 16 - level; i++) { // Iterate through all possible empty slots
-    //         nextSlot = emptySlots[i];
-    //         childTier.occupiedSlots = tier.occupiedSlots | (1 << nextSlot);
-    //         childTier.occupiedSlotsMask = tier.occupiedSlotsMask | (UINT64_C(0xF) << (nextSlot << 2));
-    //         childBitBoard = bitBoard | (((uint64_t) tier.pieceToPlace) << (nextSlot << 2));
-    //         board[nextSlot] = pieceToPlace + 'A';
-    //         for (j = 0; j < 15 - level; j++) {  // Iterate through all possible remaining pieces
-    //             childTier.pieceToPlace = remainingPieces[j];
-    //             getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
-    //             if (remoteness) { // non-primitive child
-    //                 board[16] = childTier.pieceToPlace + 'A';
-    //                 childBoard = UWAPI_Board_Regular2D_MakeBoardString(turn, 17, board);
-    //                 printf("{\"board\":\"%s\",", childBoard);
-    //                 SafeFree(childBoard);
-    //                 printf("\"remoteness\":%d,", remoteness);
-    //                 printf("\"value\":\"%s\",", vctvs(valueChar));
-    //                 printf("\"move\":\"A_%c_%d\",", childTier.pieceToPlace + 'A', 16 + nextSlot * 16 + childTier.pieceToPlace);
-    //                 printf("\"moveName\":\"%d-%d%d%d%d\"}", nextSlot+1, (childTier.pieceToPlace>>3)&1, (childTier.pieceToPlace>>2)&1, (childTier.pieceToPlace>>1)&1, childTier.pieceToPlace&1);  // slot is 1-indexed in moveName
-    //                 if (i < 15 - level || j < 14 - level) {
-    //                     printf(",");
-    //                 }
-    //             } else {
-    //                 board[16] = '-';
-    //                 childBoard = UWAPI_Board_Regular2D_MakeBoardString(turn, 17, board);
-    //                 printf("{\"board\":\"%s\",", childBoard);
-    //                 SafeFree(childBoard);
-    //                 printf("\"remoteness\":%d,", remoteness);
-    //                 printf("\"value\":\"%s\",", vctvs(valueChar));
-    //                 printf("\"move\":\"A_-_%d\",", nextSlot); 
-    //                 printf("\"moveName\":\"%d\"}", nextSlot+1); // slot is 1-indexed in moveName
-    //                 if (i < 15 - level) {
-    //                     printf(",");
-    //                 }
-    //                 break;
-    //             }
-    //         }
-    //         board[nextSlot] = '-';
-    //     }
-    //     board[16] = pieceToPlace + 'A';
-    // } else { // level == 15
-    //     nextSlot = emptySlots[0];
-    //     childTier.occupiedSlotsMask = UINT64_C(-1);
-    //     childBitBoard = bitBoard | (((uint64_t) tier.pieceToPlace) << (nextSlot << 2));
-    //     getValueRemoteness(level + 1, &childTier, childBitBoard, &valueChar, &remoteness);
-    //     board[nextSlot] = pieceToPlace + 'A';
-    //     board[16] = '-';
-
-    //     childBoard = UWAPI_Board_Regular2D_MakeBoardString(turn, 17, board);
-    //     printf("{\"board\":\"%s\",", childBoard);
-    //     SafeFree(childBoard);
-    //     printf("\"remoteness\":%d,", remoteness);
-    //     printf("\"value\":\"%s\",", vctvs(valueChar));
-    //     printf("\"move\":\"A_-_%d\",", nextSlot); 
-    //     printf("\"moveName\":\"%d\"}", nextSlot+1); // slot is 1-indexed in moveName
-    //     board[16] = pieceToPlace + 'A';
-    // }
-
-    // SafeFree(board);
-	// printf("]}}");
+            AutoGUIMakePositionString(turn, board, positionStringBuffer);
+            printf("{\"position\":\"%s\",", positionStringBuffer);
+            printf("\"autoguiPosition\":\"%s\",", positionStringBuffer);
+            printf("\"remoteness\":%d,", remoteness);
+            printf("\"positionValue\":\"%s\",", vctvs(valueChar));
+            printf("\"autoguiMove\":\"A_-_%d\",", nextSlot); 
+            printf("\"move\":\"%d\"}", nextSlot+1); // slot is 1-indexed in moveName
+            board[16] = pieceToPlace + 'A';
+        }
+    }
+	printf("]}");
 }

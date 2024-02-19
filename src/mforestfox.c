@@ -28,6 +28,7 @@ BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
+POSITION GenerateRandomStartPosition(void);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -235,6 +236,7 @@ BOOLEAN isLegal(POSITION position) {
 void InitializeGame() {
 
   gCanonicalPosition = GetCanonicalPosition;
+  gRandomInitialPositionFunPtr = &GenerateRandomStartPosition;
   hash_init();
   /* YOUR CODE HERE */
   gTierChildrenFunPtr = &getTierChildren;
@@ -620,8 +622,6 @@ void setOption(int option) {
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-
-
 POSITION GenerateRandomStartPosition() {
   MOVELIST *moves = GenerateMoves(0);
   MOVELIST *head = moves;
@@ -635,6 +635,7 @@ POSITION GenerateRandomStartPosition() {
   if (moves) {
     move = moves->move;
   }
+  FreeMoveList(head);
   return DoMove(0, move);
 }
 
@@ -683,6 +684,7 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
   if (position == 0) {
     AutoGUIWriteEmptyString(autoguiPositionStringBuffer);
   } else {
+    char cboard[20];
     int turn = leadPlayerMoved(position) ? 2 : 1;
     STATUS status = getCardStatus(position);
     int index = 0;
@@ -691,48 +693,47 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
       unsigned int mask = 0x3 << ((i - 1) * 2);
       unsigned int bits = (status & mask) >> ((i - 1) * 2);
       if (bits == 0b01) {
-        autoguiPositionStringBuffer[index] = i + 96;
+        cboard[index] = i + 96;
         index++;
       }
     }
     for (; index < 7; index++) {
-      autoguiPositionStringBuffer[index] = '-';
+      cboard[index] = '-';
     }
     // set the second
     for (int i = 1; i <= 15; i++) {
       unsigned int mask = 0x3 << ((i - 1) * 2);
       unsigned int bits = (status & mask) >> ((i - 1) * 2);
       if (bits == 0b10) {
-        autoguiPositionStringBuffer[index] = i + 96;
+        cboard[index] = i + 96;
         index++;
       }
     }
     int tricks = 0;
     for (; index < 14; index++) {
-      autoguiPositionStringBuffer[index] = '-';
+      cboard[index] = '-';
       tricks++;
     }
     
     // set the remaining information
-    autoguiPositionStringBuffer[14] = getDecreeCard(position) + 96;
+    cboard[14] = getDecreeCard(position) + 96;
     if (turn == 1) {
-      autoguiPositionStringBuffer[15] = '-';
+      cboard[15] = '-';
       CARD second_card = getLastCard(position);
       if (second_card == 0) {
-        autoguiPositionStringBuffer[16] = '-';
+        cboard[16] = '-';
       } else {
-        autoguiPositionStringBuffer[16] = second_card + 96;
+        cboard[16] = second_card + 96;
       }
     } else {
-      autoguiPositionStringBuffer[15] = getLastCard(position) + 96;
-      autoguiPositionStringBuffer[16] = '-';
+      cboard[15] = getLastCard(position) + 96;
+      cboard[16] = '-';
     }
     SCORE firstscore = firstPlayerScore(position);
-    autoguiPositionStringBuffer[17] = firstscore + '0';
-    autoguiPositionStringBuffer[18] = tricks - firstscore + '0';
-    autoguiPositionStringBuffer[19] = '\0';
-
-    AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
+    cboard[17] = firstscore + '0';
+    cboard[18] = tricks - firstscore + '0';
+    cboard[19] = '\0';
+    AutoGUIMakePositionString(turn, cboard, autoguiPositionStringBuffer);
   }
 }
 
