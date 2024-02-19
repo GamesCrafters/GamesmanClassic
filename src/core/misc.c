@@ -362,30 +362,16 @@ MOVELIST *CreateMovelistNode(MOVE theMove, MOVELIST* theNextMove)
 	return(theHead);
 }
 
-MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST* next)
+MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, MULTIPARTEDGELIST* next)
 {
-	MULTIPARTEDGELIST* theHead;
-
-	theHead = (MULTIPARTEDGELIST*) SafeMalloc (sizeof(MULTIPARTEDGELIST));
+	MULTIPARTEDGELIST* theHead = (MULTIPARTEDGELIST*) SafeMalloc (sizeof(MULTIPARTEDGELIST));
 	theHead->from = from;
 	theHead->to = to;
 	theHead->partMove = partMove;
 	theHead->fullMove = fullMove;
-	theHead->isTerminal = isTerminal;
 	theHead->next = next;
 
 	return theHead;
-}
-
-MULTIPARTEDGELIST *CreateMultipartEdgeListNode2(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, MULTIPARTEDGELIST* next)
-{
-	MULTIPARTEDGELIST* head = (MULTIPARTEDGELIST*) SafeMalloc (sizeof(MULTIPARTEDGELIST));
-	head->from = from;
-	head->to = to;
-	head->partMove = partMove;
-	head->fullMove = fullMove;
-	head->next = next;
-	return head;
 }
 
 MOVELIST *CopyMovelist(MOVELIST* theMovelist)

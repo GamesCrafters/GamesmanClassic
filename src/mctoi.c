@@ -367,8 +367,7 @@ CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
 CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
-STRING MoveToString(MOVE);
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION, MOVELIST*, POSITIONLIST*);
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION, MOVELIST*, POSITIONLIST*, POSITIONLIST**);
 
 /*************************************************************************
 **
@@ -458,7 +457,6 @@ void InitializeGame(){
 	InitializeHelpString();
 
 	gCustomUnhash = unhash;
-	gMoveToStringFunPtr = &MoveToString;
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
@@ -1200,21 +1198,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
-	printf( "%s", moveString );
-	SafeFree(moveString);
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -1223,22 +1206,22 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(4);
+void MoveToString (MOVE theMove, char *move) {
+	/* The plus 1s are because the user thinks it's 1-9, but MOVE is 0-8 */
+	if (theMove & (1 << 18)) {
+		theMove ^= (1 << 18);
+		int from = MoveFrom(theMove & 0xFFFF);
+		int to = MoveTo(theMove & 0xFFFF);
+		snprintf(move, 8, "%d%d", from + 1, to + 1);
+	} else {
 
-	if (MoveFrom(theMove) == 9) { /* if placing pieces into the board     */
-		sprintf(move, "%d%c", MoveTo(theMove) +1, (MoveOrientation(theMove) ? '+' : 'x'));
-	} else {                   /* otherwise                            */
-		                   /* The plus 1 is because the user
-		                    * thinks it's 1-9, but MOVE is 0-8
-		                    */
-		sprintf(move, "%d%d%c", MoveFrom       (theMove) + 1,
-		        MoveTo         (theMove) + 1,
-		        (MoveOrientation(theMove) ? '+' : 'x')
-		        );
+		if (MoveFrom(theMove) == 9) { /* if placing pieces into the board */
+			snprintf(move, 8, "%d%c", MoveTo(theMove) + 1, (MoveOrientation(theMove) ? '+' : 'x'));
+		} else {                  
+			snprintf(move, 8, "%d%d%c", MoveFrom(theMove) + 1,
+					MoveTo(theMove) + 1, (MoveOrientation(theMove) ? '+' : 'x'));
+		}
 	}
-
-	return move;
 }
 
 /************************************************************************
@@ -2329,150 +2312,146 @@ STRING unhash (POSITION pos) {
 	return board;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	BlankoxOX turn = (str[2] == 'A') ? Rx : Wx;
-	str += 8;
-	
-	static BlankoxOX board[BOARDSIZE];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (str[i]) {
-			case '-':
-				board[i] = Blank;
-				break;
-			case 'X':
-				board[i] = Rx;
-				break;
-			case 'x':
-				board[i] = Wx;
-				break;
-			case 'T':
-				board[i] = Rt;
-				break;
-			case 't':
-				board[i] = Wt;
-				break;
-			default:
-				break;
-		}
-	}
-	// BOARDSIZE = from, BOARDSIZE+1 = to
-	// Conversion from intermediate to real
-	if (str[BOARDSIZE] != '-') { // is intermediate position
-		int mpfrom = str[BOARDSIZE] - 'a', mpto = str[BOARDSIZE + 1] - 'a';
-		board[mpfrom] = board[mpto];
-		if (mpfrom != mpto) {
-			board[str[BOARDSIZE + 1] - 'a'] = Blank;
-		}
-	}
-	return HashChungToi(board, turn);
-}
-
 POSITION encodeIntermediatePosition(POSITION position, POSITION from, POSITION to) {
 	// 0b1 1 00000 0; intermediate marker (1), from (5), to (5)
-	return position | (1LL << 63) | (from << 58) | (to << 53);
+	return position | (1LL << 30) | (from << 25) | (to << 20);
 }
 
 BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, int *from, int *to) {
-	*origPos = interPos & 0x0000FFFFFFFFFFFF;
-	*from = (interPos >> 58) & 0x1F;
-	*to = (interPos >> 53) & 0x1F;
-	return (interPos >> 63) ? TRUE : FALSE;
+	*origPos = interPos & 0xFFFFF;
+	*from = (interPos >> 25) & 0x1F;
+	*to = (interPos >> 20) & 0x1F;
+	return (interPos >> 30) ? TRUE : FALSE;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	POSITION origPos;
-	int from, to;
 
-	BOOLEAN isIntermediate = decodeIntermediatePosition(pos, &origPos, &from, &to);
-	char *board = unhash(origPos);
-
-	enum UWAPI_Turn turn = (GetTurn(origPos) == Rx) ? UWAPI_TURN_A : UWAPI_TURN_B;
-
-	char finalBoard[BOARDSIZE + 3];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		finalBoard[i] = board[i];
-	}
-	if (isIntermediate) {
-		finalBoard[to] = finalBoard[from];
-		if (from != to) {
-			finalBoard[from] = '-';
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *str;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &str)) {
+		BlankoxOX board[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			switch (str[i]) {
+				case '-':
+					board[i] = Blank;
+					break;
+				case 'X':
+					board[i] = Rx;
+					break;
+				case 'x':
+					board[i] = Wx;
+					break;
+				case 'T':
+					board[i] = Rt;
+					break;
+				case 't':
+					board[i] = Wt;
+					break;
+				default:
+					break;
+			}
 		}
-		finalBoard[BOARDSIZE] = from + 'a';
-		finalBoard[BOARDSIZE + 1] = to + 'a';
-	} else {
-		finalBoard[BOARDSIZE] = '-';
-		finalBoard[BOARDSIZE + 1] = '-';
+		return HashChungToi(board, turn == 1 ? Rx : Wx);
 	}
-	finalBoard[BOARDSIZE + 2] = '\0';
+	return NULL_POSITION;
+}
 
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	char *board = unhash(position);
+	char entityString[BOARDSIZE + 1];
+	memcpy(entityString, board, BOARDSIZE * sizeof(char));
+	entityString[BOARDSIZE] = '\0';
 	SafeFree(board);
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, BOARDSIZE + 3, finalBoard);
+	int turn = (GetTurn(position) == Rx) ? 1 : 2;
+	AutoGUIMakePositionString(turn, entityString, positionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	int from = MoveFrom(mv & 0xFFFF);
-	int to = MoveTo(mv & 0xFFFF);
-	if (mv & (1 << 18)) { // PartMove: selecting which piece to move and where to move it. Encoded as 1 << 18 | original mv
-		mv ^= (1 << 18);
-		if (from == to) {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'y');
-		} else {
-			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'z');
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	POSITION origPosition;
+	int from, to;
+	BOOLEAN isIntermediate = decodeIntermediatePosition(position, &origPosition, &from, &to);
+
+	int turn = (GetTurn(origPosition) == Rx) ? 1 : 2;
+	char *board = unhash(origPosition);
+	char entityString[BOARDSIZE + 1];
+	memcpy(entityString, board, BOARDSIZE * sizeof(char));
+	SafeFree(board);
+
+	if (isIntermediate) {
+		entityString[to] = entityString[from];
+		if (from != to) {
+			entityString[from] = '-';
 		}
-	} else if (mv & (1 << 17)) { // PartMove: After slide, select orientation. Encoded as 1 << 17 | original mv
-		mv ^= (1 << 17);
-		int orientation = MoveOrientation(mv);
-		char *board = unhash(pos & 0x0000FFFFFFFFFFFF);
+	}
+	entityString[BOARDSIZE] = '\0';
+	AutoGUIMakePositionString(turn, entityString, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+  	int from = MoveFrom(move & 0xFFFF);
+	int to = MoveTo(move & 0xFFFF);
+	if (move & (1 << 18)) { // PartMove: selecting which piece to move and where to move it. Encoded as 1 << 18 | original move
+		if (from == to) {
+			AutoGUIMakeMoveButtonStringA('-', to, 'y', autoguiMoveStringBuffer);
+		} else {
+			AutoGUIMakeMoveButtonStringM(from, to, 'z', autoguiMoveStringBuffer);
+		}
+	} else if (move & (1 << 17)) { // PartMove: After slide, select orientation. Encoded as 1 << 17 | original move
+		move ^= (1 << 17);
+		int orientation = MoveOrientation(move);
+		char *board = unhash(position & 0x0000FFFFFFFFFFFF);
 		BOOLEAN isDifferentOrientation = (orientation && (board[from] == 'X' || board[from] == 'x')) || (!orientation && (board[from] == 'T' || board[from] == 't'));
 		SafeFree(board);
 		if (isDifferentOrientation) {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('r', to + 9, 'x');
+			AutoGUIMakeMoveButtonStringA('r', to + 9, 'x', autoguiMoveStringBuffer);
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', to, 'y');
+			AutoGUIMakeMoveButtonStringA('-', to, 'y', autoguiMoveStringBuffer);
 		}
-	} else { // Placing piece fullmove
-		char c; int at;
-		if (MoveOrientation(mv)) {
-			c = 'p';
-			at = to;
+	} else { // FullMove: Placing a Piece
+		if (from != 9) { 
+			// There is only an AutoGUI string for a placing fullmove.
+			// There is no autogui string for a jumping fullmove
+			// because the jumping is multipart.
+			AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
 		} else {
-			c = 'q';
-			at = to + 9;
+			char c; int at;
+			if (MoveOrientation(move)) {
+				c = 'p';
+				at = to;
+			} else {
+				c = 'q';
+				at = to + 9;
+			}
+			AutoGUIMakeMoveButtonStringA(c, 18 + at, 'x', autoguiMoveStringBuffer);
 		}
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound(c, 18 + at, 'x');
 	}
 }
 
 // CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList, POSITIONLIST **intermediatePositionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
-	BOOLEAN edgeFromToAdded[9][9] = {
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE},
-		{FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE}
-	};
-	int from, to;
+	int from = 10, to = 10;
+	int lastFrom = 10, lastTo = 10;
+	POSITION interPos;
+	POSITIONLIST *intermediatePositions = NULL;
 	
-	while (moveList != NULL) {
+	while (moveList) {
 		from = MoveFrom(moveList->move);
-		if (from != 9) {
+		if (from != 9) { // i.e., this is a Jumping Move, so it is multipart
 			to = MoveTo(moveList->move);
-			POSITION interPos = encodeIntermediatePosition(position, from, to);
-			if (!edgeFromToAdded[from][to]) {
-				mpel = CreateMultipartEdgeListNode(position, interPos, (1 << 18) | moveList->move, 0, FALSE, mpel);
-				edgeFromToAdded[from][to] = TRUE;
+			interPos = encodeIntermediatePosition(position, from, to);
+			if (from != lastFrom || to != lastTo) { // Make sure we do not add duplicate multipart edges
+				intermediatePositions = StorePositionInList(interPos, intermediatePositions);
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, (1 << 18) | moveList->move, 0, mpel);
+				lastFrom = from;
+				lastTo = to;
 			}
-			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, (1 << 17) | moveList->move, moveList->move, TRUE, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, (1 << 17) | moveList->move, moveList->move, mpel);
 		}
-
 		moveList = moveList->next;
 		positionList = positionList->next;
 	}
+	*intermediatePositionList = intermediatePositions;
 	return mpel;
 }

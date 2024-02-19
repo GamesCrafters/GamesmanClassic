@@ -184,7 +184,6 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			POSITIONLIST *childPositions = NULL;
-			MOVELIST *reversedMoves = NULL;
 			printf(RESULT "{\"position\":\"%s\"", inputPositionString);
 			if (positionStringMatchesAutoGUIPositionString) {
 				printf(",\"autoguiPosition\":\"%s\"", inputPositionString);
@@ -215,7 +214,6 @@ void ServerInteractLoop(void) {
 				while (currentMove) {
 					childPosition = DoMove(position, currentMove->move);
 					childPositions = StorePositionInList(childPosition, childPositions);
-					reversedMoves = CreateMovelistNode(currentMove->move, reversedMoves);
 
 					PositionToAutoGUIString(childPosition, positionStringBuffer);
 					if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
@@ -257,46 +255,63 @@ void ServerInteractLoop(void) {
 						printf(",");
 					}
 				}
-				FreeMoveList(movesHead);
+				printf("]");
 
-				if (FALSE && gGenerateMultipartMoveEdgesFunPtr != NULL) {
-					// MULTIPARTEDGELIST *curr_edge, *all_edges;
-					// curr_edge = all_edges = gGenerateMultipartMoveEdgesFunPtr(position, reversedMoves, childPositions);
-					// if (curr_edge != NULL) {
-					// 	printf("],\"multipart\":[");
-					// 	while (curr_edge != NULL) {
-					// 		printf("{");
-					// 		if (curr_edge->from != ((POSITION) -1)) {
-					// 			InteractPositionToString(curr_edge->from, positionStringBuffer);
-					// 			printf("\"from\":\"%s\",", positionStringBuffer);
-					// 		}
+				if (gGenerateMultipartMoveEdgesFunPtr != NULL) {
+					MULTIPARTEDGELIST *currEdge, *allEdges;
+					POSITIONLIST *intermediatePositions = NULL;
+					currEdge = allEdges = gGenerateMultipartMoveEdgesFunPtr(position, movesHead, childPositions, &intermediatePositions);
+					POSITIONLIST *interPosHead = intermediatePositions;
+					if (intermediatePositions != NULL) {
+						printf(",\"multipartIntermediateStates\":{");
+						while (intermediatePositions) {
+							PositionToAutoGUIString(intermediatePositions->position, positionStringBuffer);
+							printf("\"%llu\":\"%s\"", intermediatePositions->position, positionStringBuffer);
+							intermediatePositions = intermediatePositions->next;
+							if (intermediatePositions) {
+								printf(",");
+							}
+						}
+						printf("}");
+						FreePositionList(interPosHead);
+					}
+					if (currEdge != NULL) {
+						printf(",\"multipartPartMoves\":[");
 
-					// 		if (curr_edge->to != ((POSITION) -1)) {
-					// 			InteractPositionToString(curr_edge->to, positionStringBuffer);
-					// 			printf("\"to\":\"%s\",", positionStringBuffer);
-					// 		}
+						while (currEdge != NULL) {
+							printf("{");
+							if (currEdge->from != NULL_POSITION) {
+								printf("\"from\":\"%llu\",", currEdge->from);
+							}
+
+							if (currEdge->to != NULL_POSITION) {
+								printf("\"to\":\"%llu\",", currEdge->to);
+							}
 							
-					// 		InteractMoveToString(position, curr_edge->partMove, moveStringBuffer);
-					// 		printf("\"partMove\":\"%s\"", moveStringBuffer);
+							MoveToAutoGUIString(position, currEdge->partMove, moveStringBuffer);
+							printf("\"autoguiMove\":\"%s\",", moveStringBuffer);
 							
-					// 		if (curr_edge->isTerminal) {
-					// 			InteractMoveToString(position, curr_edge->fullMove, moveStringBuffer);
-					// 			printf(",\"move\":\"%s\"", moveStringBuffer);
-					// 		}
-					// 		curr_edge = curr_edge->next;
-					// 		printf("}");
-							
-					// 		if (curr_edge) {
-					// 			printf(",");
-					// 		}
-					// 	}
-					// 	FreeMultipartEdgeList(all_edges);
-					// }
+							if (currEdge->to == NULL_POSITION) {
+								MoveToString(currEdge->fullMove, moveStringBuffer);
+							} else {
+								MoveToString(currEdge->partMove, moveStringBuffer);
+							}
+							printf("\"move\":\"%s\"", moveStringBuffer);
+
+							printf("}");
+							currEdge = currEdge->next;
+							if (currEdge) {
+								printf(",");
+							}
+						}
+						printf("]");
+						FreeMultipartEdgeList(allEdges);
+					}
 				}
 				FreePositionList(childPositions);
-				FreeMoveList(reversedMoves);
+				FreeMoveList(movesHead);
 			}
-			printf("]}");
+			printf("}");
 		} else if (FirstWordMatches(input, "start_response")) {
 			if (kExclusivelyTierGamesman) {
 				gInitializeHashWindow(gInitialTier, FALSE);
