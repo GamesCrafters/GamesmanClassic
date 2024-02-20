@@ -25,20 +25,20 @@ void AutoGUIMakePositionString(int turn, char *entityString, char *buf) {
 }
 
 void AutoGUIMakeMoveButtonStringA(char token, unsigned int at, char sound, char *buf) {
-    snprintf(buf, MAX_MOVE_BUTTON_STRING_LENGTH, "A_%c_%d_%c", token, at, sound);
+    snprintf(buf, MAX_MOVE_STRING_LENGTH, "A_%c_%d_%c", token, at, sound);
 }
 
 /* `text` must be null-terminated. */
 void AutoGUIMakeMoveButtonStringT(char *text, unsigned int at, char sound, char *buf) {
-    snprintf(buf, MAX_MOVE_BUTTON_STRING_LENGTH, "T_%s_%d_%c", text, at, sound);
+    snprintf(buf, MAX_MOVE_STRING_LENGTH, "T_%s_%d_%c", text, at, sound);
 }
 
 void AutoGUIMakeMoveButtonStringM(unsigned int from, unsigned int to, char sound, char *buf) {
-    snprintf(buf, MAX_MOVE_BUTTON_STRING_LENGTH, "M_%d_%d_%c", from, to, sound);
+    snprintf(buf, MAX_MOVE_STRING_LENGTH, "M_%d_%d_%c", from, to, sound);
 }
 
 void AutoGUIMakeMoveButtonStringL(unsigned int p1, unsigned int p2, char sound, char *buf) {
-    snprintf(buf, MAX_MOVE_BUTTON_STRING_LENGTH, "L_%d_%d_%c", p1, p2, sound);
+    snprintf(buf, MAX_MOVE_STRING_LENGTH, "L_%d_%d_%c", p1, p2, sound);
 }
 
 void AutoGUIWriteEmptyString(char *buf) {

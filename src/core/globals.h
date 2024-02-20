@@ -171,7 +171,7 @@ extern UNDOMOVELIST*    (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING (*gTierToStringFunPtr)(TIER);
 extern MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*);
-extern void (*gAutoGUIPositionStringDoMoveFunPtr)(char*,MOVE,char*);
+extern void (*gPositionStringToAutoGUIPositionStringFunPtr)(char*,char*);
 extern void (*gPositionStringDoMoveFunPtr)(char*,MOVE,char*);
 extern void (*gPositionToStringFunPtr)(POSITION,char*);
 extern POSITION (*gRandomInitialPositionFunPtr)(void);

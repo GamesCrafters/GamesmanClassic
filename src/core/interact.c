@@ -116,9 +116,10 @@ void ServerInteractLoop(void) {
 	int input_size = 512;
 	char* input = (char *) SafeMalloc(input_size);
 	char *positionStringBuffer = (char *) SafeMalloc(MAX_POSITION_STRING_LENGTH);
-	char *moveStringBuffer = (char *) SafeMalloc(MAX_MOVE_BUTTON_STRING_LENGTH);
+	char *moveStringBuffer = (char *) SafeMalloc(MAX_MOVE_STRING_LENGTH);
 	AutoGUIWriteEmptyString(positionStringBuffer);
 	AutoGUIWriteEmptyString(moveStringBuffer);
+
 	moveStringBuffer[0] = '\0';
 	#define RESULT "result =>> "
 	POSITION position;
@@ -133,7 +134,8 @@ void ServerInteractLoop(void) {
 		sharddb_cache_init();
 	}
 
-	BOOLEAN positionStringMatchesAutoGUIPositionString = (gAutoGUIPositionStringDoMoveFunPtr == NULL) ? (gPositionToStringFunPtr == NULL) : (gPositionStringDoMoveFunPtr == NULL);
+	BOOLEAN positionStringMatchesAutoGUIPositionString = (gPositionStringDoMoveFunPtr == NULL) ? (gPositionToStringFunPtr == NULL) : (gPositionStringToAutoGUIPositionStringFunPtr == NULL);
+	char *positionStringBuffer2 = (char *) SafeMalloc(MAX_POSITION_STRING_LENGTH);
 	/* Set stdout to do by line buffering so that sever interaction works right.
 	 * Otherwise the "ready =>>" message will sit in the buffer forever while
 	 * the server waits for it.
@@ -190,7 +192,11 @@ void ServerInteractLoop(void) {
 			if (positionStringMatchesAutoGUIPositionString) {
 				printf(",\"autoguiPosition\":\"%s\"", inputPositionString);
 			} else {
-				PositionToAutoGUIString(position, positionStringBuffer);
+				if (gPositionStringDoMoveFunPtr != NULL && gPositionStringToAutoGUIPositionStringFunPtr != NULL) {
+					gPositionStringToAutoGUIPositionStringFunPtr(inputPositionString, positionStringBuffer);
+				} else {
+					PositionToAutoGUIString(position, positionStringBuffer);
+				}
 				positionStringBuffer[0] = inputPositionString[0]; // Handle impartial games
 				printf(",\"autoguiPosition\":\"%s\"", positionStringBuffer);
 			}
@@ -217,11 +223,16 @@ void ServerInteractLoop(void) {
 					childPosition = DoMove(position, currentMove->move);
 					childPositionsTail = AppendToTailOfPositionList(childPosition, childPositionsTail);
 
-					if (gAutoGUIPositionStringDoMoveFunPtr == NULL) {
+					if (gPositionStringDoMoveFunPtr == NULL) {
 						PositionToAutoGUIString(childPosition, positionStringBuffer);
 						if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
 					} else {
-					 	gAutoGUIPositionStringDoMoveFunPtr(inputPositionString, currentMove->move, positionStringBuffer);
+					 	if (gPositionStringToAutoGUIPositionStringFunPtr != NULL) {
+							gPositionStringDoMoveFunPtr(inputPositionString, currentMove->move, positionStringBuffer2);
+							gPositionStringToAutoGUIPositionStringFunPtr(positionStringBuffer2, positionStringBuffer);
+						} else {
+							gPositionStringDoMoveFunPtr(inputPositionString, currentMove->move, positionStringBuffer);
+						}
 					}
 
 					printf("{\"autoguiPosition\":\"%s\"", positionStringBuffer);
@@ -451,6 +462,7 @@ void ServerInteractLoop(void) {
 	SafeFree(input);
 	SafeFree(positionStringBuffer);
 	SafeFree(moveStringBuffer);
+	SafeFree(positionStringBuffer2);
 	#undef RESULT
 }
 

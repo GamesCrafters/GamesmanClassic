@@ -48,7 +48,7 @@ TIERLIST *getTierChildren(TIER tier);
 TIERPOSITION numberOfTierPositions(TIER tier);
 POSITION reflectOverXAxis(POSITION bitBoard);
 POSITION reflectOverYAxis(POSITION bitBoard);
-void AutoGUIPositionStringDoMove(char *parentPositionString, MOVE move, char *childPositionStringBuffer);
+void PositionStringDoMove(char *parentPositionString, MOVE move, char *childAutoGUIPositionStringBuffer);
 
 int sideLength = 6;
 int boardSize = 36; // The number of 1x1 spaces on the board.
@@ -121,7 +121,7 @@ void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
     gTierChildrenFunPtr = &getTierChildren;
     gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
-    gAutoGUIPositionStringDoMoveFunPtr = &AutoGUIPositionStringDoMove;
+    gPositionStringDoMoveFunPtr = &PositionStringDoMove;
     gInitialTierPosition = gInitialPosition;
     kSupportsTierGamesman = TRUE;
     kExclusivelyTierGamesman = TRUE;
@@ -401,17 +401,17 @@ applying a move to the parent string representation. Outside of this code,
 we still get the hash representation of the child position to query the database with,
 but this function is for the sake of getting the AutoGUI to show the original
 red and blue piece placements. */
-void AutoGUIPositionStringDoMove(char *parentPositionString, MOVE move, char *childPositionStringBuffer) {
-    memcpy(childPositionStringBuffer, parentPositionString, boardSize + 2);
-    childPositionStringBuffer[boardSize + 3] = '\0';
+void PositionStringDoMove(char *parentPositionString, MOVE move, char *childAutoGUIPositionStringBuffer) {
+    memcpy(childAutoGUIPositionStringBuffer, parentPositionString, boardSize + 2);
+    childAutoGUIPositionStringBuffer[boardSize + 3] = '\0';
     if (parentPositionString[0] == '1') {
-        childPositionStringBuffer[move + 2] = 'u';
-        childPositionStringBuffer[move + sideLength + 2] = 'd';
-        childPositionStringBuffer[0] = '2';
+        childAutoGUIPositionStringBuffer[move + 2] = 'u';
+        childAutoGUIPositionStringBuffer[move + sideLength + 2] = 'd';
+        childAutoGUIPositionStringBuffer[0] = '2';
     } else {
-        childPositionStringBuffer[move + 2] = 'l';
-        childPositionStringBuffer[move + 1 + 2] = 'r';
-        childPositionStringBuffer[0] = '1';
+        childAutoGUIPositionStringBuffer[move + 2] = 'l';
+        childAutoGUIPositionStringBuffer[move + 1 + 2] = 'r';
+        childAutoGUIPositionStringBuffer[0] = '1';
     }
 }
 
@@ -435,7 +435,7 @@ POSITION StringToPosition(char *positionString) {
 }
 
 /* This function will only be called on the initial position because we have
-implemented gAutoGUIStringDoMoveFunPtr. */
+implemented gPositionStringDoMoveFunPtr. */
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	(void) position;
     char board[boardSize + 1];

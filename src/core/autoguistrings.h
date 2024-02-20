@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #define MAX_POSITION_STRING_LENGTH 128
-#define MAX_MOVE_BUTTON_STRING_LENGTH 32
+#define MAX_MOVE_STRING_LENGTH 32
 
 /*
     `positionString` is assumed to be in AutoGUI format
