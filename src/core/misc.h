@@ -41,6 +41,7 @@ MOVELIST*       CreateMovelistNode              (MOVE move, MOVELIST* tail);
 MOVELIST*       CopyMovelist                    (MOVELIST* list);
 
 POSITIONLIST*   StorePositionInList             (POSITION pos, POSITIONLIST* head);
+POSITIONLIST*   AppendToTailOfPositionList      (POSITION pos, POSITIONLIST* tail);
 POSITIONLIST*   CopyPositionList                (POSITIONLIST* list);
 
 IPOSITIONLIST*  StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePositionList);

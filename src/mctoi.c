@@ -367,7 +367,7 @@ CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
 CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION, MOVELIST*, POSITIONLIST*, POSITIONLIST**);
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION, MOVELIST*, POSITIONLIST*);
 
 /*************************************************************************
 **
@@ -2429,12 +2429,11 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 }
 
 // CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList, POSITIONLIST **intermediatePositionList) {
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
 	int from = 10, to = 10;
 	int lastFrom = 10, lastTo = 10;
 	POSITION interPos;
-	POSITIONLIST *intermediatePositions = NULL;
 	
 	while (moveList) {
 		from = MoveFrom(moveList->move);
@@ -2442,7 +2441,6 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 			to = MoveTo(moveList->move);
 			interPos = encodeIntermediatePosition(position, from, to);
 			if (from != lastFrom || to != lastTo) { // Make sure we do not add duplicate multipart edges
-				intermediatePositions = StorePositionInList(interPos, intermediatePositions);
 				mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, (1 << 18) | moveList->move, 0, mpel);
 				lastFrom = from;
 				lastTo = to;
@@ -2452,6 +2450,5 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 		moveList = moveList->next;
 		positionList = positionList->next;
 	}
-	*intermediatePositionList = intermediatePositions;
 	return mpel;
 }

@@ -427,6 +427,16 @@ POSITIONLIST *StorePositionInList(POSITION pos, POSITIONLIST* head)
 	return(tmp);
 }
 
+POSITIONLIST *AppendToTailOfPositionList(POSITION pos, POSITIONLIST* tail) {
+	POSITIONLIST *newTail = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
+	newTail->position = pos;
+	newTail->next = NULL;
+	if (tail != NULL) {
+		tail->next = newTail;
+	}
+	return newTail;
+}
+
 POSITIONLIST *CopyPositionlist(POSITIONLIST* thePositionlist)
 {
 	POSITIONLIST *ptr, *head = NULL;

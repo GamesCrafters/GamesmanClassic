@@ -170,7 +170,7 @@ extern BOOLEAN (*gIsLegalFunPtr)(POSITION);
 extern UNDOMOVELIST*    (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING (*gTierToStringFunPtr)(TIER);
-extern MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*,POSITIONLIST**);
+extern MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*);
 extern STRING (*gInteractCustomDoMoveFunPtr)(STRING,MOVE,char*);
 extern void (*gPositionToStringFunPtr)(POSITION,char*);
 extern POSITION (*gRandomInitialPositionFunPtr)(void);
