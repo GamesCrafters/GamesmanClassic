@@ -160,11 +160,10 @@ void MoveToSlots(MOVE theMove, SLOT *fromSlot, MOVE *toSlot);
 POSITION SnakeHash(BlankBHT* theBlankBHT);
 MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
 BOOLEAN trapped(BlankBHT *theBlankBHT, BlankBHT who);
-
-STRING InteractCustomDoMove(STRING str, MOVE move);
+void AutoGUIStringDoMove(char *parentPositionString, MOVE move, char *childPositionStringBuffer);
 
 void InitializeGame() {
-	gInteractCustomDoMoveFunPtr = &InteractCustomDoMove;
+	gAutoGUIPositionStringDoMoveFunPtr = &AutoGUIStringDoMove;
 }
 
 /************************************************************************

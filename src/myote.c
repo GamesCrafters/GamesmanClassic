@@ -144,8 +144,6 @@ USERINPUT GetAndPrintPlayersMove(POSITION, MOVE *, STRING);
 BOOLEAN ValidTextInput(STRING);
 MOVE ConvertTextInputToMove(STRING);
 STRING MoveToString(MOVE);
-void PrintMove(MOVE);
-
 
 
 // Interact functions
@@ -760,10 +758,7 @@ MOVE ConvertTextInputToMove(STRING input) {
     remove = arg[3];
   }
 
-  MOVE move = MoveEncode(from, to, pass, remove);
-
-  PrintMove(move);
-  return move;
+  return MoveEncode(from, to, pass, remove);
 }
 
 /* Return the string representation of the move. 
@@ -784,13 +779,6 @@ STRING MoveToString(MOVE move) {
     sprintf(movestring, "(j %d %d %d %d)", from, pass, to, remove);
   }
   return movestring;
-}
-
-/* Basically just print the move. */
-void PrintMove(MOVE move) {
-  STRING moveString = MoveToString(move);
-  printf("%s", moveString);
-  SafeFree(moveString);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/

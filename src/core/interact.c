@@ -117,7 +117,8 @@ void ServerInteractLoop(void) {
 	char* input = (char *) SafeMalloc(input_size);
 	char *positionStringBuffer = (char *) SafeMalloc(MAX_POSITION_STRING_LENGTH);
 	char *moveStringBuffer = (char *) SafeMalloc(MAX_MOVE_BUTTON_STRING_LENGTH);
-	positionStringBuffer[0] = '\0';
+	AutoGUIWriteEmptyString(positionStringBuffer);
+	AutoGUIWriteEmptyString(moveStringBuffer);
 	moveStringBuffer[0] = '\0';
 	#define RESULT "result =>> "
 	POSITION position;
@@ -132,7 +133,7 @@ void ServerInteractLoop(void) {
 		sharddb_cache_init();
 	}
 
-	BOOLEAN positionStringMatchesAutoGUIPositionString = gPositionToStringFunPtr == NULL;
+	BOOLEAN positionStringMatchesAutoGUIPositionString = (gAutoGUIPositionStringDoMoveFunPtr == NULL) ? (gPositionToStringFunPtr == NULL) : (gPositionStringDoMoveFunPtr == NULL);
 	/* Set stdout to do by line buffering so that sever interaction works right.
 	 * Otherwise the "ready =>>" message will sit in the buffer forever while
 	 * the server waits for it.
@@ -216,20 +217,24 @@ void ServerInteractLoop(void) {
 					childPosition = DoMove(position, currentMove->move);
 					childPositionsTail = AppendToTailOfPositionList(childPosition, childPositionsTail);
 
-					PositionToAutoGUIString(childPosition, positionStringBuffer);
-					if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
+					if (gAutoGUIPositionStringDoMoveFunPtr == NULL) {
+						PositionToAutoGUIString(childPosition, positionStringBuffer);
+						if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
+					} else {
+					 	gAutoGUIPositionStringDoMoveFunPtr(inputPositionString, currentMove->move, positionStringBuffer);
+					}
+
 					printf("{\"autoguiPosition\":\"%s\"", positionStringBuffer);
 
 					if (!positionStringMatchesAutoGUIPositionString) {
-						gPositionToStringFunPtr(childPosition, positionStringBuffer);
-						if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
+						if (gPositionStringDoMoveFunPtr == NULL) {
+							gPositionToStringFunPtr(childPosition, positionStringBuffer);
+							if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = oppTurnChar; // Handle impartial games
+						} else {
+							gPositionStringDoMoveFunPtr(inputPositionString, currentMove->move, positionStringBuffer);
+						}
 					}
 					printf(",\"position\":\"%s\"", positionStringBuffer);
-
-					// if (gInteractCustomDoMoveFunPtr == NULL) {
-					// } else {
-					// 	gInteractCustomDoMoveFunPtr(inputPositionString, currentMove->move, positionStringBuffer);
-					// }
 
 					val = GetValueOfPosition(childPosition);
 					InteractPrintJSONPositionValue(val);

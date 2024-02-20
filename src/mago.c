@@ -510,9 +510,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn){
 ************************************************************************/
 
 void MoveToString (MOVE move, char *moveStringBuffer) {
-	moveStr[0] = (move/100)+'a'-1;
-	moveStr[1] = (move % 100) + '0';
-	moveStr[2] = '\0';
+	moveStringBuffer[0] = (move/100)+'a'-1;
+	moveStringBuffer[1] = (move % 100) + '0';
+	moveStringBuffer[2] = '\0';
 }
 
 /************************************************************************

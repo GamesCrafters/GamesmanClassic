@@ -176,7 +176,9 @@ UNDOMOVELIST*   (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING (*gTierToStringFunPtr)(TIER) = NULL;
 MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*) = NULL;
-STRING (*gInteractCustomDoMoveFunPtr)(STRING,MOVE,char*) = NULL;
+void (*gAutoGUIPositionStringDoMoveFunPtr)(char*,MOVE,char*) = NULL;
+void (*gPositionStringDoMoveFunPtr)(char*,MOVE,char*) = NULL;
+
 void (*gPositionToStringFunPtr)(POSITION,char*) = NULL;
 POSITION (*gRandomInitialPositionFunPtr)(void) = NULL;
 
