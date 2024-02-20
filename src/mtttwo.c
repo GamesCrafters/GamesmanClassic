@@ -60,14 +60,10 @@ POSITION UnDoMove(POSITION position, UNDOMOVE undoMove);
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier);
 BOOLEAN ValidTextInput(STRING input);
 MOVE ConvertTextInputToMove(STRING input);
-STRING MoveToString(MOVE theMove);
 void PrintMove(MOVE theMove);
 int NumberOfOptions();
 int getOption();
 void setOption(int option);
-POSITION InteractStringToPosition(STRING board);
-STRING InteractPositionToString(POSITION pos);
-STRING InteractMoveToString(POSITION pos, MOVE mv);
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
 POSITION GetCanonicalPositionTest(POSITION position, POSITION *symmetricTo);
@@ -370,7 +366,6 @@ void InitializeGame() {
 	/********************************/
 
 	gCanonicalPosition = GetCanonicalPosition;
-	gMoveToStringFunPtr = &MoveToString;
 
 	kSupportsTierGamesman = TRUE;
 	kExclusivelyTierGamesman = TRUE;
@@ -1180,47 +1175,31 @@ MOVE ConvertTextInputToMove(STRING input) {
 **
 ** A-DEST, M-SRC-DEST, G-SRC-DEST
 ************************************************************************/
-STRING MoveToString(MOVE theMove) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
   BOOLEAN isGridMove;
   int from, to;
-  unhashMove(theMove, &isGridMove, &from, &to);
-  STRING typeString; 
+  unhashMove(move % 100000, &isGridMove, &from, &to);
   // 0: placing new pieces
   // message: "A-DEST"
-  if (from == to) {
-    typeString = (STRING) SafeMalloc(3); 
-    strcpy(typeString, "A-"); 
-    STRING destString = (STRING) SafeMalloc(3);
-    sprintf(destString, "%d", to + 1);
-    strcat(typeString, destString);
+  if (move >= 500000) { // Move is "choose to move grid"; 500000 + move
+    snprintf(moveStringBuffer, 4, "G");
+  } else if (move >= 300000) { // Move is "select piece to move"; 300000 + move
+    snprintf(moveStringBuffer, 8, "M-%d", from);
+  } else {
+    if (from == to) {
+      snprintf(moveStringBuffer, 8, "A-%d", to + 1);
+    }
+    // 1: moving existing pieces
+    // message: "M-SRC-DEST"
+    else if (!isGridMove) {
+      snprintf(moveStringBuffer, 8, "M-%d-%d", from + 1, to + 1);
+    }
+    // 2: moving the grid
+    // message: "G-SRC-DEST"
+    else {
+      snprintf(moveStringBuffer, 8, "G-%d-%d", from + 1, to + 1); 
+    }
   }
-  // 1: moving existing pieces
-  // message: "M-SRC-DEST"
-  else if (!isGridMove) {
-    typeString = (STRING) SafeMalloc(3); 
-    strcpy(typeString, "M-"); 
-    STRING sourceString = (STRING) SafeMalloc(3); 
-    sprintf(sourceString, "%d", from + 1); 
-    STRING destString = (STRING) SafeMalloc(3); 
-    sprintf(destString, "%d", to + 1); 
-    strcat(typeString, sourceString); 
-    strcat(typeString, "-"); 
-    strcat(typeString, destString); 
-  }
-  // 2: moving the grid
-  // message: "G-SRC-DEST"
-  else {
-    typeString = (STRING) SafeMalloc(3); 
-    strcpy(typeString, "G-"); 
-    STRING sourceString = (STRING) SafeMalloc(3); 
-    sprintf(sourceString, "%d", from + 1); 
-    STRING destString = (STRING) SafeMalloc(3); 
-    sprintf(destString, "%d", to + 1); 
-    strcat(typeString, sourceString); 
-    strcat(typeString, "-"); 
-    strcat(typeString, destString);   
-  }
-  return typeString;
 }
 
 /************************************************************************
@@ -1234,13 +1213,9 @@ STRING MoveToString(MOVE theMove) {
 ************************************************************************/
 
 void PrintMove(MOVE theMove) {
-  STRING str = MoveToString(theMove);
-	printf("%s", str);
-  if (str != NULL) {
-    SafeFree(str);
-  } else {
-    printf("Passed in empty move."); 
-  }
+  char moveStringBuffer[10];
+  MoveToString(theMove, moveStringBuffer);
+	printf("%s", moveStringBuffer);
 }
 
 int NumberOfOptions() {
@@ -1308,98 +1283,91 @@ BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN
 	return (interPos >> 63) ? TRUE : FALSE;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-  char turn = (str[2] == 'A') ? X : O;
-  char *board = str + 8;
-  int xPlaced = 0, oPlaced = 0;
-  int i;
-  for (i = 0; i < boardSize; i++) {
-    switch (board[i]) {
-      case 'X':
-        xPlaced++;
-        break;
-      case 'O':
-        oPlaced++;
-        break;
-      default:
-        break;
+POSITION StringToPosition(char *positionString) {
+	int turnInt;
+	char *board;
+	if (ParseAutoGUIFormattedPositionString(positionString, &turnInt, &board)) {
+		char turn = (turnInt == 1) ? X : O;
+    int xPlaced = 0, oPlaced = 0;
+    int i;
+    for (i = 0; i < boardSize; i++) {
+      switch (board[i]) {
+        case 'X':
+          xPlaced++;
+          break;
+        case 'O':
+          oPlaced++;
+          break;
+        default:
+          break;
+      }
     }
-  }
-  int gridPos = 12;
-  for (; i < boardSize + numGridPlacements; i++) {
-    if (board[i] == 'G') {
-      gridPos = revCenterMapping[i - boardSize];
-      break;
+    int gridPos = 12;
+    for (; i < boardSize + numGridPlacements; i++) {
+      if (board[i] == 'G') {
+        gridPos = revCenterMapping[i - boardSize];
+        break;
+      }
     }
-  }
-
-  // No work needed to convert from intermediate state to real position
-  // because entities in intermediate state are the same as in real position
-
-  TIER tier;
-	TIERPOSITION tierposition;
-	hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier, &tierposition);
-	gInitializeHashWindow(tier, FALSE);
-	return tierposition;
+    TIER tier;
+    TIERPOSITION tierposition;
+    hashBoard(board, xPlaced, oPlaced, gridPos, turn, &tier, &tierposition);
+    gInitializeHashWindow(tier, FALSE);
+    return tierposition;
+	}
+	return NULL_POSITION;
 }
 
 /* boardSize (pieces) + numGridPlacements (where grid is) + 1 ("select grid center" sign + also for multipart) + 2 (multipart) */
-STRING InteractPositionToString(POSITION interPos) {
-  POSITION pos;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	POSITION pos;
   BOOLEAN isGridMove;
   int from;
-  BOOLEAN isIntermediate = decodeIntermediatePosition(interPos, &pos, &isGridMove, &from);
+  BOOLEAN isIntermediate = decodeIntermediatePosition(position, &pos, &isGridMove, &from);
 
   int xPlaced, oPlaced, gridPos;
   char turn;
   char *board = unhash(pos, &xPlaced, &oPlaced, &gridPos, &turn);
 
-  enum UWAPI_Turn uwapi_turn = (turn == X) ? UWAPI_TURN_A : UWAPI_TURN_B;
+  int turnInt = (turn == X) ? 1 : 2;
 
-  int bsngp = boardSize + numGridPlacements;
-
-  char finalBoard[bsngp + 4];
-  memset(finalBoard, '-', (bsngp + 4) * sizeof(char));
-  int i;
-  for (i = 0; i < boardSize; i++) {
-    finalBoard[i] = board[i];
-  }
+  int entityStringSize = boardSize + numGridPlacements + 2;
+  char finalBoard[entityStringSize];
+  memset(finalBoard, '-', entityStringSize * sizeof(char));
+  memcpy(finalBoard, board, boardSize * sizeof(char));
 
   int cmIdx = centerMapping[gridPos];
   finalBoard[boardSize + cmIdx] = 'G';
 
   if (isIntermediate) {
     if (isGridMove) {
-      finalBoard[bsngp] = 't';
+      finalBoard[entityStringSize - 2] = 'T';
     } else {
-      finalBoard[bsngp + 1] = (from / 10) + '0';
-      finalBoard[bsngp + 2] = (from % 10) + '0';
+      finalBoard[entityStringSize - 2] = 'a' + from;
     }
   }
-  finalBoard[bsngp + 3] = '\0';
+  finalBoard[entityStringSize - 1] = '\0';
   SafeFree(board);
-  STRING test = UWAPI_Board_Regular2D_MakeBoardString(uwapi_turn, 40, finalBoard);
-  return test;
+  AutoGUIMakePositionString(turnInt, finalBoard, autoguiPositionStringBuffer);
 }
 
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-  (void)pos;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
   int isGridMove, from, to;
-  unhashMove(mv % 100000, &isGridMove, &from, &to);
-  if (mv >= 500000) { // Move is "choose to move grid"; 500000 + mv
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound('g', boardSize + numGridPlacements, 'x');
-  } else if (mv >= 400000) { // Move is "choose where to move grid" 400000 + mv
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', to, 'z');
-  } else if (mv >= 300000) { // Move is "select piece to move" 300000 + mv
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', from, 'y');
-  } else if (mv >= 200000) { // Move is "select where to move piece" 200000 + mv
-    return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, 'z');
+  unhashMove(move % 100000, &isGridMove, &from, &to);
+  if (move >= 500000) { // Move is "choose to move grid"; 500000 + move
+    AutoGUIMakeMoveButtonStringA('g', boardSize + numGridPlacements, 'x', autoguiMoveStringBuffer);
+  } else if (move >= 400000) { // Move is "choose where to move grid"; 400000 + move
+    AutoGUIMakeMoveButtonStringA('h', to, 'z', autoguiMoveStringBuffer);
+  } else if (move >= 300000) { // Move is "select piece to move"; 300000 + move
+    AutoGUIMakeMoveButtonStringA('h', from, 'y', autoguiMoveStringBuffer);
+  } else if (move >= 200000) { // Move is "select where to move piece"; 200000 + move
+    AutoGUIMakeMoveButtonStringM(from, to, 'z', autoguiMoveStringBuffer);
   } else {
-    if (from == to) {
-      return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', to, 'x');
-    } else {
-      return MoveToString(mv);
+    if (from == to) { // Single-part move
+      AutoGUIMakeMoveButtonStringA('h', to, 'x', autoguiMoveStringBuffer);
+    } else { // A full-move that is multipart
+      AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
     }
   }
 }
@@ -1407,7 +1375,7 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 // CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
-	BOOLEAN edgeFromAdded[25] = {FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE,FALSE};
+  int edgeFromAdded = 0;
   BOOLEAN gridMoveAdded = FALSE;
   POSITION gridMoveInterPos = encodeIntermediatePosition(position, TRUE, 0);
 	while (moveList != NULL) {
@@ -1418,19 +1386,19 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
     if (isGridMove) {
       if (!gridMoveAdded) {
         // Add "choose to move grid" partMove
-        mpel = CreateMultipartEdgeListNode(position, gridMoveInterPos, 500000 + moveList->move, 0, FALSE, mpel);
+        mpel = CreateMultipartEdgeListNode(NULL_POSITION, gridMoveInterPos, 500000 + moveList->move, 0, mpel);
         gridMoveAdded = TRUE;
       }
       // Add "choose where to move grid" partMove
-      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, positionList->position, 400000 + moveList->move, moveList->move, TRUE, mpel);
+      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, NULL_POSITION, 400000 + moveList->move, moveList->move, mpel);
     } else if (from != to) {
       POSITION slideMoveInterPos = encodeIntermediatePosition(position, FALSE, from);
-      if (!edgeFromAdded[from]) {
+      if (!(edgeFromAdded & (1 << from))) {
         // Add "select piece to move" partMove
-        mpel = CreateMultipartEdgeListNode(position, slideMoveInterPos, 300000 + moveList->move, 0, FALSE, mpel);
-        edgeFromAdded[from] = TRUE;
+        mpel = CreateMultipartEdgeListNode(NULL_POSITION, slideMoveInterPos, 300000 + moveList->move, 0, mpel);
+        edgeFromAdded ^= (1 << from);
       }
-      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, positionList->position, 200000 + moveList->move, moveList->move, TRUE, mpel);
+      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, NULL_POSITION, 200000 + moveList->move, moveList->move, mpel);
     }
     // Ignore placement moves, they're single-part
 
