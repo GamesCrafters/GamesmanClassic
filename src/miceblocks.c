@@ -124,7 +124,6 @@ void ChangeBoardSize();
 void SetWinningCondition();
 WINBY computeWinBy (POSITION);
 
-STRING MoveToString(MOVE);
 /* Function declarations */
 
 
@@ -213,8 +212,6 @@ void InitializeGame () {
 		kHelpStandardObjective = gStandard;
 		kHelpReverseObjective = gStandardR;
 	}
-
-	gMoveToStringFunPtr = &MoveToString;
 	gPutWinBy = &computeWinBy;
 }
 
@@ -557,21 +554,6 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %d\n\n", computersName, computersMove);
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
 
 /************************************************************************
 **
@@ -583,10 +565,8 @@ void PrintMove (MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(3);
-	sprintf(move, "%d", theMove);
-	return move;
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 10, "%d", theMove);
 }
 
 /************************************************************************
@@ -986,20 +966,19 @@ WINBY computeWinBy(POSITION pos) {
 	return diff > 0 ? diff : -diff;
 }
 
-/* end of file. */
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }
 

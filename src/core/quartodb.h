@@ -36,6 +36,6 @@
 #include "db.h"
 
 void    quartodb_init     (DB_Table*);
-void    quartoDetailedPositionResponse(STRING board);
+void    quartoDetailedPositionResponse(STRING board, char *positionStringBuffer);
 
 #endif /* GMCORE_QUARTODB_H */

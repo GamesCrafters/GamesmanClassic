@@ -220,8 +220,6 @@ int getfrom (MOVE theMove);
 int getto(MOVE theMove);
 BlankOX getwhosTurnfromMove(MOVE theMove);
 
-STRING MoveToString(MOVE);
-
 /************************************************************************
 ** NAME:        InitializeGame
 ** DESCRIPTION: Initialize the gDatabase, a global variable.
@@ -268,8 +266,6 @@ void InitializeGame() {
 	 */
 	gInitialPosition = DefaultInitialPosition();
 	generic_hash_unhash(gInitialPosition, board);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -1080,17 +1076,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 }
 
 /************************************************************************
-** NAME:        PrintMove
-** DESCRIPTION: Print the move in a nice format.
-** INPUTS:      MOVE *theMove         : The move to print.
-************************************************************************/
-void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
-	printf( "%s", moveString );
-	SafeFree(moveString);
-}
-
-/************************************************************************
 **
 ** NAME:        MoveToString
 **
@@ -1100,9 +1085,7 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(10);
-
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	SLOT from, to;
 	char letter, num, dir;
 	BlankOX whosTurn;
@@ -1124,10 +1107,8 @@ STRING MoveToString(MOVE theMove) {
 		dir = 'r';
 	else dir = '-';
 	if (gChessMoves)
-		sprintf(move, "%c%c%c", letter, num, dir);
-	else sprintf( move, "[ %d %d ] ", from, to);
-
-	return move;
+		snprintf(moveStringBuffer, 15, "%c%c%c", letter, num, dir);
+	else snprintf( moveStringBuffer, 15, "%d %d", from, to);
 }
 
 /************************************************************************
@@ -1249,74 +1230,63 @@ BlankOX getwhosTurnfromMove(MOVE theMove) {
 	return (player == 1) ? o : x;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; 
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-    	// Failed to parse string
-    	return INVALID_POSITION;
-  	}
-	BlankOX realBoard[boardsize];
-	int i = 0;
-	for (i = 0; i < boardsize; i++) {
-		switch (board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				realBoard[i] = Blank;
-				break;
-			case 'x':
-				realBoard[i] = x;
-				break;
-			case 'o':
-				realBoard[i] = o;
-				break;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOX realBoard[boardsize];
+		for (int i = 0; i < boardsize; i++) {
+			switch (board[i]) {
+				case '-':
+					realBoard[i] = Blank;
+					break;
+				case 'x':
+					realBoard[i] = x;
+					break;
+				case 'o':
+					realBoard[i] = o;
+					break;
+				default:
+					return NULL_POSITION;
+					break;
+			}
 		}
+		return generic_hash_hash(realBoard, (turn == 1) ? 2 : 1);
 	}
-    SafeFree(board);
-	return generic_hash_hash(realBoard, (turn == UWAPI_TURN_A) ? 2 : 1);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	BlankOX whoseTurn;
 	BlankOX board[boardsize];
-	PositionToBlankOX(pos,board,&whoseTurn);
-	int i = 0;
+	PositionToBlankOX(position, board, &whoseTurn);
 	char finalBoard[boardsize + 8 + 1];
-
-	for (i = 0; i < boardsize; i++) {
+	for (int i = 0; i < boardsize; i++) {
 		switch (board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected position\n");
-				break;
-			case Blank:
-				finalBoard[i] = '-';
-				break;
 			case x:
 				finalBoard[i] = 'x';
 				break;
 			case o:
 				finalBoard[i] = 'o';
 				break;
+			default:
+				finalBoard[i] = '-';
+				break;
 		}
 	}
 
 	for (int j = boardsize; j < boardsize + 8; j++) finalBoard[j] = '-';
 	finalBoard[boardsize + 8] = '\0'; // Make sure to null-terminate your board.
-
-	enum UWAPI_Turn turn = (whoseTurn == x) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25 + 8, finalBoard);
+	int turn = (whoseTurn == x) ? 1 : 2;
+	AutoGUIMakePositionString(turn, finalBoard, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	SLOT fromSlot, toSlot;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	SLOT fromSlot, toSlot;
 	BlankOX turn;
-	MoveToSlots(mv, &fromSlot, &toSlot, &turn);
+	MoveToSlots(move, &fromSlot, &toSlot, &turn);
 	BlankOX theBlankOx[boardsize], whoseTurn;
-	PositionToBlankOX(pos, theBlankOx, &whoseTurn);
+	PositionToBlankOX(position, theBlankOx, &whoseTurn);
 
 	if (toSlot == offtheboard) {
 		switch (fromSlot) {
@@ -1330,6 +1300,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		}
 	}
 	char soundChar = (whoseTurn == x) ? 'x' : 'y';
-
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, soundChar);
+	AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, soundChar, autoguiMoveStringBuffer);
 }

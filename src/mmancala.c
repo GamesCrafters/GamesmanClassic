@@ -187,8 +187,6 @@ void UpdateGameSpecs();
 void BadMenuChoice();
 int rearranger_hash_init(int, int, int);
 
-STRING MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -225,9 +223,6 @@ void InitializeGame()
 	// printf("slot %d: %d\n",z,arrayBoard[z]);
 
 	SafeFree (arrayBoard);
-
-	gMoveToStringFunPtr = MoveToString;
-
 }
 
 
@@ -1048,27 +1043,6 @@ MOVE ConvertTextInputToMove(STRING input)
 	return (newMove > mancalaR ? boardSize - newMove + mancalaR : newMove);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move that has just been carried out.  The move
-**              represents the bin # from the board configuration.
-**              Because the bins on the bottom row don't
-**              index perfectly with our board's array configuration,
-**              an extra calculation must be done for a selection on those
-**              bins.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove)
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -1079,13 +1053,11 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(8);
+void MoveToString (MOVE theMove, char *moveStringBuffer) {
 	if(theMove > mancalaR) {
 		theMove = boardSize - theMove + mancalaR;
 	}
-	sprintf(move, "%d", theMove);
-	return move;
+	snprintf(moveStringBuffer, 10, "%d", theMove);
 }
 
 
@@ -1494,29 +1466,6 @@ int my_nCr(int n, int r)
 
 
 void* gGameSpecificTclInit = NULL;
-POSITION InteractStringToPosition(STRING board) {
-    int *arrayHashBoard = SafeMalloc(sizeof(int) * (boardSize + 1)), i;
-    char *split;
-    for (i = 0; i < boardSize; i++) {
-        split = strchr(board, 's');
-        if (!split) {
-            split = strchr(board, ';');
-        }
-        *split = '\0';
-        arrayHashBoard[i] = atoi(board);
-        board = split + 1;
-    }
-    board --;
-    *board = ';';
-    POSITION pos;
-    if (GetValue(board, "turn", GetInt, &arrayHashBoard[turn]) == 0) {
-        pos = INVALID_POSITION;
-    } else {
-        pos = array_unhash(arrayHashBoard);
-    }
-    SafeFree(arrayHashBoard);
-    return pos;
-}
 
 int numDigits(int number){
     int digits = 0;
@@ -1528,8 +1477,37 @@ int numDigits(int number){
     return digits;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	int *arrayHashedBoard = array_hash(pos), i;
+POSITION StringToPosition(char *positionString) {
+	char pscopy[120];
+	memcpy(pscopy, positionString, 100);
+	char *oldpsval = positionString;
+	int *arrayHashBoard = SafeMalloc(sizeof(int) * (boardSize + 1)), i;
+    char *split;
+    for (i = 0; i < boardSize; i++) {
+        split = strchr(positionString, 's');
+        if (!split) {
+            split = strchr(positionString, ',');
+        }
+        *split = '\0';
+        arrayHashBoard[i] = atoi(positionString);
+        positionString = split + 1;
+    }
+    positionString--;
+    *positionString = ',';
+    POSITION pos;
+    if (GetValue(positionString, "turn", GetInt, &arrayHashBoard[turn]) == 0) {
+        pos = INVALID_POSITION;
+    } else {
+        pos = array_unhash(arrayHashBoard);
+    }
+    SafeFree(arrayHashBoard);
+	positionString = oldpsval;
+	memcpy(positionString, pscopy, 100);
+    return pos;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	int *arrayHashedBoard = array_hash(position), i;
     int digitLength = 0;
     for (i = 0; i < boardSize; i++) {
         digitLength += numDigits(arrayHashedBoard[i]);
@@ -1546,14 +1524,13 @@ STRING InteractPositionToString(POSITION pos) {
     
     *board = '\0';
     char* turnValue = (char*) SafeMalloc(numDigits(arrayHashedBoard[turn]));
-    sprintf(turnValue, "%d", arrayHashedBoard[turn]);
-    char* retString = MakeBoardString(start, "turn", turnValue, "");
-
+    snprintf(turnValue, 5, "%d", arrayHashedBoard[turn]);
+    //char* retString = MakeBoardString(start, "turn", turnValue, "");
+	snprintf(autoguiPositionStringBuffer, 120, "%s,turn=%s", start, turnValue);
     SafeFree(arrayHashedBoard);
-	return retString;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  MoveToString(move, autoguiMoveStringBuffer);
 }

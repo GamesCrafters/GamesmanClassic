@@ -42,6 +42,7 @@ void DebugModule()
 	MOVELIST *head = NULL, *ptr;
 	MOVE theMove;
 	BOOLEAN haveMove = FALSE, tempPredictions = gPrintPredictions;
+	char moveStringBuffer[32];
 
 	gPrintPredictions = FALSE;
 
@@ -81,7 +82,8 @@ void DebugModule()
 			while(ptr != NULL) {
 				numberMoves++;
 				printf("%2d : ",numberMoves);
-				PrintMove(ptr->move);
+				MoveToString(ptr->move, moveStringBuffer);
+				printf("%s", moveStringBuffer);
 				printf("\n");
 				ptr = ptr->next;
 			}
@@ -91,7 +93,8 @@ void DebugModule()
 			printf("\n");
 			(void) GetAndPrintPlayersMove(gInitialPosition, &theMove, gPlayerName[kPlayerOneTurn]);
 			printf("You Chose: ");
-			PrintMove(theMove);
+			MoveToString(ptr->move, moveStringBuffer);
+			printf("%s", moveStringBuffer);
 			haveMove = TRUE;
 			break;
 		case '5':
@@ -113,4 +116,3 @@ void DebugModule()
 	} while(TRUE);
 
 }
-

@@ -257,10 +257,6 @@ void ChangeNumPieces();
 MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIST* moves);
 BOOLEAN valid_move(int source_pos, int dest_pos, char* board);
 
-
-STRING MoveToString(MOVE);
-
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -284,8 +280,6 @@ void InitializeGame () {
 	}
 	gInitialPosition = generic_hash_hash(board, 1);
 	getOption();
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -561,43 +555,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	SafeFree(board);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely formats the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%8s's move: ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -608,8 +565,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
-	STRING m = (STRING) SafeMalloc( 14 );
+void MoveToString(MOVE move, char *m) {
 	if (get_move_source(move) == 0 && get_move_dest(move) == 0) {
 		sprintf( m,
 		         "[%c%d]",
@@ -626,8 +582,26 @@ STRING MoveToString(MOVE move) {
 		         get_x_coord(get_move_place(move)) + 'a',
 		         height - get_y_coord(get_move_place(move)));
 	}
+}
 
-	return m;
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely formats the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove (MOVE computersMove, STRING computersName)
+{
+	printf("%8s's move: ", computersName);
+	char msb[20];
+	MoveToString(computersMove, msb);
+	printf("%s", msb);
+	printf("\n");
 }
 
 
@@ -1404,18 +1378,18 @@ BOOLEAN valid_move(int source_pos, int dest_pos, char* board) {
 	return TRUE;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

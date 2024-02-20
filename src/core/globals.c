@@ -46,7 +46,6 @@ STRING (*GetHelpTextInterface)() = NULL;
 STRING (*GetHelpOnYourTurn)() = NULL;
 STRING (*GetHelpObjective)() = NULL;
 STRING (*GetHelpTieOccursWhen)() = NULL;
-STRING (*gMoveToStringFunPtr)(MOVE) = NULL;
 STRING (*gGetVarStringPtr)() = NULL;
 WINBY (*gPutWinBy)(POSITION) = NULL;
 
@@ -177,7 +176,11 @@ UNDOMOVELIST*   (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING (*gTierToStringFunPtr)(TIER) = NULL;
 MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*) = NULL;
-STRING (*gInteractCustomDoMoveFunPtr)(STRING,MOVE) = NULL;
+void (*gPositionStringToAutoGUIPositionStringFunPtr)(char*,char*) = NULL;
+void (*gPositionStringDoMoveFunPtr)(char*,MOVE,char*) = NULL;
+
+void (*gPositionToStringFunPtr)(POSITION,char*) = NULL;
+POSITION (*gRandomInitialPositionFunPtr)(void) = NULL;
 
 BOOLEAN kUsePureDraw = FALSE;
 // For the experimental GenerateMoves

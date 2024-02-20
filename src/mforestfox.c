@@ -11,6 +11,7 @@
 ************************************************************************/
 
 #include "gamesman.h"
+#include <time.h>
 
 /* IMPORTANT GLOBAL VARIABLES */
 CONST_STRING kAuthorName = "Jiachun Li, Yifan Zhou";
@@ -27,7 +28,7 @@ BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
+POSITION GenerateRandomStartPosition(void);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -235,7 +236,7 @@ BOOLEAN isLegal(POSITION position) {
 void InitializeGame() {
 
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
+  gRandomInitialPositionFunPtr = &GenerateRandomStartPosition;
   hash_init();
   /* YOUR CODE HERE */
   gTierChildrenFunPtr = &getTierChildren;
@@ -584,15 +585,8 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
-  STRING s = (STRING) SafeMalloc(sizeof(char) * 2);
-	sprintf(s, "%d", move);
-  return s;
-}
-
-/* Basically just print the move. */
-void PrintMove(MOVE move) {
-  printf("The move is %d %x\n", move,move);
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 3, "%d", move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -628,141 +622,141 @@ void setOption(int option) {
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-
-
-
-
-
-
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING str) {
-  /* YOUR CODE HERE */
-  /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
-
-  if (strcmp(str, "R_R_0_0_-------------------\0") == 0) return 0;
-
-  BOOLEAN moved = (str[2] == 'A') ? FALSE : TRUE; 
-
-  STATUS status = 0;
-  // first check first player's cards
-  for (int i = 8; i < 15; i++) {
-    if (str[i] == '-') continue;
-    int card = str[i] - 96;
-    status |= (0b01 << 2*(card - 1));
+POSITION GenerateRandomStartPosition() {
+  MOVELIST *moves = GenerateMoves(0);
+  MOVELIST *head = moves;
+  srand(time(NULL));
+  int num = rand() % 51480;
+  MOVE move = 89810586;
+  while (moves && num > 0) {
+    moves = moves->next;
+    num--;
   }
-  // check the second player's cards
-  for (int i = 15; i < 22; i++) {
-    if (str[i] == '-') continue;
-    int card = str[i] - 96;
-    status |= (0b10 << 2*(card - 1));
+  if (moves) {
+    move = moves->move;
   }
-
-  CARD decreecard = str[22] - 96;
-  CARD lastcard;
-  if (str[23] == '-' && str[24] == '-') lastcard = 0;
-  else {
-    CARD firstcard = (str[23] != '-') ? str[23] - 96 : 0;
-    CARD secondcard = (str[24] != '-') ? str[24] - 96 : 0;
-    lastcard = (firstcard > 0) ? firstcard : secondcard;
-  }
-  
-  SCORE firstscore = str[25]-'0';
-
-  return setPositionHash(moved, firstscore, decreecard, lastcard, status);
+  FreeMoveList(head);
+  return DoMove(0, move);
 }
 
-STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE */
-  /* R_A_0_0_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
-  
-  STRING str = (STRING) SafeMalloc(sizeof(char) * 27);
-
-  if (position == 0) {
-    sprintf(str, "R_R_0_0_-------------------");
-    return str;
-  }
-
-  sprintf(str, "R_%c_0_0_", leadPlayerMoved(position) ? 'B' : 'A');
-  
-  STATUS status = getCardStatus(position);
-  int index = 8;
-  // set the first player's cards
-  for (int i = 1; i <= 15; i++) {
-    unsigned int mask = 0x3 << ((i-1)*2);
-    unsigned int bits = (status & mask) >> ((i-1)*2);
-    if (bits == 0b01) {
-      str[index] = i + 96;
-      index++;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+  /*1(turn)_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
+    int card = 0;
+    BOOLEAN moved = (turn == 1) ? FALSE : TRUE; 
+    STATUS status = 0;
+    // first check first player's cards
+    for (int i = 0; i < 7; i++) {
+      if (board[i] != '-') {
+        card = board[i] - 96;
+        status |= (0b01 << 2 * (card - 1));
+      }
     }
-  }
-  for (; index < 15; index++) {
-    str[index] = '-';
-  }
-  // set the second
-  for (int i = 1; i <= 15; i++) {
-    unsigned int mask = 0x3 << ((i-1)*2);
-    unsigned int bits = (status & mask) >> ((i-1)*2);
-    if (bits == 0b10) {
-      str[index] = i + 96;
-      index++;
+    // check the second player's cards
+    for (int i = 7; i < 14; i++) {
+      if (board[i] != '-') {
+        card = board[i] - 96;
+        status |= (0b10 << 2 * (card - 1));
+      }
     }
-  }
-  int tricks = 0;
-  for (; index < 22; index++) {
-    str[index] = '-';
-    tricks++;
-  }
-  
-  // set the remaining information
-  str[22] = getDecreeCard(position) + 96;
-  if (str[2] == 'A') {
-    str[23] = '-';
-    CARD second_card = getLastCard(position);
-    if (second_card == 0) str[24] = '-';
-    else str[24] = getLastCard(position) + 96;
-  }
-  else {
-    str[23] = getLastCard(position) + 96;
-    str[24] = '-';
-  }
-  SCORE firstscore = firstPlayerScore(position);
-  str[25] = firstscore + '0';
-  str[26] = tricks - firstscore + '0';
 
-  return str;
+    CARD decreecard = board[14] - 96;
+    CARD lastcard;
+    if (board[15] == '-' && board[16] == '-') {
+      lastcard = 0;
+    } else {
+      CARD firstcard = (board[15] != '-') ? board[15] - 96 : 0;
+      CARD secondcard = (board[16] != '-') ? board[16] - 96 : 0;
+      lastcard = (firstcard > 0) ? firstcard : secondcard;
+    }
+    
+    SCORE firstscore = board[17] - '0';
+    return setPositionHash(moved, firstscore, decreecard, lastcard, status);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE */
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+  /* 1(turn)_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
 
-  STRING str = (STRING) SafeMalloc(sizeof(char) * 10);
-
-  // shuffled moves
   if (position == 0) {
-    sprintf(str, "R_-_0");
-    return str;
-  }
-
-  STATUS status = getCardStatus(position);
-  BOOLEAN firstplayer = leadPlayerMoved(position) ? FALSE : TRUE;
-  int cnt = 0;
-  for (int i = 1; i <= 15; i++) {
-    unsigned int mask = 0x3 << ((i-1)*2);
-    unsigned int bits = (status & mask) >> ((i-1)*2);
-    if (firstplayer && bits == 0b01) {
-      if (i == move) break;
-      cnt++;
+    AutoGUIWriteEmptyString(autoguiPositionStringBuffer);
+  } else {
+    char cboard[20];
+    int turn = leadPlayerMoved(position) ? 2 : 1;
+    STATUS status = getCardStatus(position);
+    int index = 0;
+    // set the first player's cards
+    for (int i = 1; i <= 15; i++) {
+      unsigned int mask = 0x3 << ((i - 1) * 2);
+      unsigned int bits = (status & mask) >> ((i - 1) * 2);
+      if (bits == 0b01) {
+        cboard[index] = i + 96;
+        index++;
+      }
     }
-    else if (!firstplayer && bits == 0b10) {
-      if (i == move) break;
-      cnt++;
+    for (; index < 7; index++) {
+      cboard[index] = '-';
     }
+    // set the second
+    for (int i = 1; i <= 15; i++) {
+      unsigned int mask = 0x3 << ((i - 1) * 2);
+      unsigned int bits = (status & mask) >> ((i - 1) * 2);
+      if (bits == 0b10) {
+        cboard[index] = i + 96;
+        index++;
+      }
+    }
+    int tricks = 0;
+    for (; index < 14; index++) {
+      cboard[index] = '-';
+      tricks++;
+    }
+    
+    // set the remaining information
+    cboard[14] = getDecreeCard(position) + 96;
+    if (turn == 1) {
+      cboard[15] = '-';
+      CARD second_card = getLastCard(position);
+      if (second_card == 0) {
+        cboard[16] = '-';
+      } else {
+        cboard[16] = second_card + 96;
+      }
+    } else {
+      cboard[15] = getLastCard(position) + 96;
+      cboard[16] = '-';
+    }
+    SCORE firstscore = firstPlayerScore(position);
+    cboard[17] = firstscore + '0';
+    cboard[18] = tricks - firstscore + '0';
+    cboard[19] = '\0';
+    AutoGUIMakePositionString(turn, cboard, autoguiPositionStringBuffer);
   }
-  int fromindex = (firstplayer) ? cnt : (cnt + 7);
+}
 
-  sprintf(str, "A_z_%d_x", fromindex + 19);
-
-  return str;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  if (position == 0) {
+    AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
+  } else {
+    STATUS status = getCardStatus(position);
+    BOOLEAN firstplayer = leadPlayerMoved(position) ? FALSE : TRUE;
+    int cnt = 0;
+    for (int i = 1; i <= 15; i++) {
+      unsigned int mask = 0x3 << ((i-1)*2);
+      unsigned int bits = (status & mask) >> ((i-1)*2);
+      if (firstplayer && bits == 0b01) {
+        if (i == move) break;
+        cnt++;
+      }
+      else if (!firstplayer && bits == 0b10) {
+        if (i == move) break;
+        cnt++;
+      }
+    }
+    int fromindex = (firstplayer) ? cnt : (cnt + 7);
+    AutoGUIMakeMoveButtonStringA('z', fromindex + 19, 'x', autoguiMoveStringBuffer);
+  }
 }

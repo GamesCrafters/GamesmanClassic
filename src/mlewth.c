@@ -113,7 +113,6 @@ void* gGameSpecificTclInit = NULL;
 **
 *************************************************************************/
 
-STRING MoveToString(MOVE);
 POSITION GetCanonicalPosition(POSITION position);
 
 int boardSize = 25;
@@ -144,7 +143,6 @@ int gSymmetryMatrix[8][25] = {
 void InitializeGame () {
 	int pieces[] = {'W', 12, 12, 'B', 12, 12, '-', 1, 1, -1};
 	gNumberOfPositions = generic_hash_init(boardSize, pieces, NULL, 0);
-	gMoveToStringFunPtr = &MoveToString;
 	gCanonicalPosition = GetCanonicalPosition;
 	gInitialPosition = GetInitialPosition();
 	gSymmetries = TRUE;
@@ -285,24 +283,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
-	printf("%s has moved ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-	printf("%d", move + 1);
+	printf("%s has moved %d\n", computersName, computersMove + 1);
 }
 
 /************************************************************************
@@ -315,11 +296,9 @@ void PrintMove (MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveString) {
 	move += 1; // one-index
-	STRING moveString = (STRING) SafeMalloc(3);
-	snprintf(moveString, 3, "%d", move);
-	return moveString;
+	snprintf(moveString, 20, "%d", move);
 }
 
 
@@ -523,26 +502,29 @@ void setOption(int option) {
 
 void DebugMenu() {}
 
-POSITION InteractStringToPosition(STRING str) {
-	return generic_hash_hash(str + 8, (str[2] == 'A') ? 1 : 2);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		return generic_hash_hash(board, turn);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char board[boardSize + 1];
-	generic_hash_unhash(pos, board);
-	enum UWAPI_Turn turn = (generic_hash_turn(pos) == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	generic_hash_unhash(position, board);
 	board[boardSize] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, boardSize + 1, board);
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	char board[boardSize];
-	generic_hash_unhash(pos, board);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	char board[boardSize];
+	generic_hash_unhash(position, board);
 	for (int i = 0; i < boardSize; i++) {
 		if (board[i] == '-') {
-			return UWAPI_Board_Regular2D_MakeMoveStringWithSound(mv, i, 'x');
+			AutoGUIMakeMoveButtonStringM(move, i, 'x', autoguiMoveStringBuffer);
+			break;
 		}
 	}
-	// should not be reached
-	return NULL;
 }

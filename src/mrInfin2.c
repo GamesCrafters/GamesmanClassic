@@ -333,8 +333,6 @@ void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
 POSITION BlankOXToPosition(BlankOX *theBlankOX);
 int ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
 
-STRING MoveToString( MOVE );
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -344,7 +342,6 @@ STRING MoveToString( MOVE );
 ************************************************************************/
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -1531,22 +1528,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -1555,12 +1536,9 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 2 );
-
+void MoveToString(MOVE theMove, char *m) {
 	// Our theMove is from 1-6, because of special pieces
 	sprintf( m, "%d", theMove);
-	return m;
 }
 
 /*** Database Functions ***/
@@ -1842,18 +1820,18 @@ BlankOX WhoseTurn(BlankOX *theBlankOX) {
 }
 
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

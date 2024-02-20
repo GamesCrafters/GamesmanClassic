@@ -2914,18 +2914,18 @@ int getNumPieces(int* piecesArray) {
 **
 ************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -165,7 +165,7 @@ POSITION flipLR(POSITION position);
 POSITION flipUD(POSITION position);
 BOOLEAN isPawn(POSITION position);
 BOOLEAN isBishop(POSITION position);
-STRING MoveToString(MOVE move);
+void PrintMove (MOVE move);
 int opposingPlayer(int player);
 POSITION gUnDoMove(POSITION position, UNDOMOVE umove);
 UNDOMOVE createUndoMove(int rowi, int coli, int rowf, int colf);
@@ -262,7 +262,6 @@ void InitializeGame ()
 {
 	int i, zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
 	int  *piecesArray, minBlank, maxBlank;
-	gMoveToStringFunPtr = &MoveToString;
 	gCanonicalPosition = GetCanonicalPosition;
 	gUnDoMoveFunPtr = &gUnDoMove;
 	gGenerateUndoMovesToTierFunPtr = &gGenerateUndoMovesToTier;
@@ -589,24 +588,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
 	(void)computersMove;
 	(void)computersName;
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = MoveToString(move);
-	printf( "%s", str );
-	SafeFree( str );
 }
 
 
@@ -959,152 +940,6 @@ void DebugMenu ()
 	printf("theboard:%s\n", theBoard);
 	TIER t = BoardToTier(theBoard);
 	printf("%s\n", TierToString(t));
-	//MOVE m;
-	/*
-	   int coli, rowi, colf, rowf;
-	   coli = 10;
-	   colf = 10;
-	   rowi = 4;
-	   rowf = 3;
-	   m = (coli << 12) | (rowi << 8) | (colf << 4) | rowf;
-	 */
-	//	m = createMove(0,0,1,0);
-	/*
-	   printf("input move is %s\n", "a4a1");
-	   m = ConvertTextInputToMove("a4a1");
-	   PrintMove(m);
-	 */
-	//PrintPosition(gInitialPosition, "me", TRUE);
-	/*POSITION newPos = DoMove(gInitialPosition,
-	   PrintPosition(newPos, "me", TRUE);
-	   m = ConvertTextInputToMove("b1a2");
-	   newPos = DoMove(newPos, m);
-	   PrintPosition(newPos, "me", TRUE);
-	 */
-	/*
-	   m = ConvertTextInputToMove("b1c1");
-	   PrintPosition(gInitialPosition, "me", TRUE);
-	   POSITION newPos = DoMove(gInitialPosition,m);
-	   PrintPosition(newPos, "me", TRUE);
-	   if(inCheck(newPos, 1)) {
-	   printf("player 1 in check\n");
-	   }
-	   if(inCheck(gInitialPosition, 2)) {
-	   printf("player 2 in check\n");
-	   }
-	 */
-	/*
-	   int i;
-	   char bA[rows*cols];
-	   printf("the number of spaces is: %d\n", rows*cols);
-	   unhash(gInitialPosition, bA);
-
-	   for(i = 0; i < BOARDSIZE; i++) {
-	   printf("seeing whats on the board on space %d: %c\n", i, bA[i]);
-	   }
-
-	   unhash(flipLR(gInitialPosition), bA);
-
-	   for(i = 0; i < BOARDSIZE; i++) {
-	   printf("seeing whats on the board on space %d: %c\n", i, bA[i]);
-	   }
-	 */
-	/*
-	   MOVE m1, m2;
-	   STRING s1, s2;
-	   m1 = createMove(1, 2, 2, 3);
-	   m2 = createPawnMove(1, 3, 4, 5, WHITE_PAWN);
-	   s1 = MoveToString(m1);
-	   s2 = MoveToString(m2);
-
-	   printf("%s\n", s1);
-	   printf("%s\n", s2);
-	   SafeFree(s1);
-	   SafeFree(s2);
-	 */
-	//int i;
-	//printf("Islegal returns %d for this board\nThe number of positions in tier 3 is %d", IsLegal(gInitialPosition), NumberOfTierPositions((TIER)4));
-	//for(i = 0; i < 40; i++) {
-	//printf("tier %d has %d positions\n", i, NumberOfTierPositions((TIER)i));
-	//}
-	/*
-	   UNDOMOVE m;
-	   m = createReplaceCaptureUndoMove(0, 0, 1, 1, 0);
-
-	   PrintPosition(gInitialPosition, "me", TRUE);
-	   PrintPosition(gTUndoMove(gInitialPosition, m), "me", TRUE);
-	 */
-	// PrintPosition(gInitialPosition, "me", TRUE);
-	//printf("yes\n");
-	//printUndoMoveList(gGenerateUndoMovesToTier(gInitialPosition, 2));
-
-	/* TIER t;
-
-	   //int *piecesArray = (int *) malloc(DISTINCT_PIECES * sizeof(int));
-	   t = gPositionToTier(gInitialPosition);
-	   printf("%d\n", t);
-	   PrintPosition(gInitialPosition, "me", TRUE);
-	   //printf("%s %s", TierToString(19),  TierToString(3));
-	   //printf("the tier value is %d in decimal and %x in hex\n", t, t);
-	   //printTierList(gTierChildren(t));
-	   //printPiecesArray(gTierToPiecesArray(257, piecesArray));
-	   //free(piecesArray);
-	   printf("The KkBR tier moves\n");
-	   printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 9));
-	   printf("The KkR tier moves\n");
-	   printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 137));
-	   printf("The KkB tier moves\n");
-	 */
-	//printUndoMoveList(gGenerateUndoMovesToTier (gInitialPosition, 2));
-	/* int i , zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
-	   i = countBits(223);;
-	   printf("numBits in i = %d\n", i);
-	   TIER tierlist[NUM_TIERS];
-	   // Replace "NUM_TIERS" with how many total tiers your game has
-	   for(i = 0; i < NUM_TIERS; i++) {
-	   numBits = countBits(i);
-	   switch(numBits) {
-	   case 0:
-	    tierlist[zeroPiece] = i;
-	    zeroPiece++;
-	    break;
-	   case 1:
-	    tierlist[onePiece] = i;
-	    onePiece++;
-	    break;
-	   case 2:
-	    tierlist[twoPiece] = i;
-	    twoPiece++;
-	    break;
-	   case 3:
-	    tierlist[threePiece] = i;
-	    threePiece++;
-	    break;
-	   case 4:
-	    tierlist[fourPiece] = i;
-	    fourPiece++;
-	    break;
-	   case 5:
-	    tierlist[fivePiece] = i;
-	    fivePiece++;
-	    break;
-	   case 6:
-	    tierlist[sixPiece] = i;
-	    sixPiece++;
-	    break;
-	   case 7:
-	    tierlist[sevenPiece] = i;
-	    sevenPiece++;
-	    break;
-	   case 8:
-	    tierlist[eightPiece] = i;
-	    eightPiece++;
-	    break;
-
-	   }
-	   }
-	   printTierArray(tierlist);
-	 */
 }
 
 
@@ -2623,25 +2458,36 @@ TIER gPiecesArrayToTier(int *piecesArray) {
 
 
 
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
 	char rowf, colf, rowi, coli, replacementPiece;
-	STRING moveStr;
 	rowf = (move & 15) + 48;
 	colf = ((move >> 4) & 15) - 10 + 97;
 	rowi = ((move >> 8) & 15) + 48;
 	coli = ((move >> 12) & 15) - 10 + 97;
 	replacementPiece =  move >> 16;
 	if (replacementPiece == 0) {
-		moveStr = (STRING) SafeMalloc(sizeof(char)*4 + 1);
-		sprintf(moveStr, "%c%c%c%c", coli, rowi, colf, rowf);
+		snprintf(moveStringBuffer, 20, "%c%c%c%c", coli, rowi, colf, rowf);
 	} else {
-		moveStr = (STRING) SafeMalloc(sizeof(char)*6 + 1);
-		sprintf(moveStr, "%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);
+		snprintf(moveStringBuffer, 20, "%c%c%c%c=%c", coli, rowi, colf, rowf, replacementPiece);
 	}
-	return moveStr;
 }
 
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Prints the move in a nice format.
+**
+** INPUTS:      MOVE move         : The move to print.
+**
+************************************************************************/
 
+void PrintMove (MOVE move)
+{
+	char moveStringBuffer[20];
+	MoveToString(move, moveStringBuffer);
+	printf( "%s", moveStringBuffer );
+}
 
 void generateReplacementUndoMoves(char *boardArray, UNDOMOVELIST **moves, int currentPlayer, int i, int j, TIER t){
 	UNDOMOVE newuMove;
@@ -3409,246 +3255,64 @@ POSITION hash(char* board, int turn)
 	return position;
 }
 
-// $Log: not supported by cvs2svn $
-// Revision 1.51  2006/12/19 20:00:51  arabani
-// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
-//
-// Revision 1.50  2006/12/07 08:51:56  vert84
-// *** empty log message ***
-//
-// Revision 1.49  2006/12/07 08:24:52  vert84
-// *** empty log message ***
-//
-// Revision 1.48  2006/12/07 08:06:43  vert84
-// *** empty log message ***
-//
-// Revision 1.47  2006/12/07 07:40:50  vert84
-// *** empty log message ***
-//
-// Revision 1.46  2006/12/07 05:55:35  vert84
-// *** empty log message ***
-//
-// Revision 1.45  2006/12/07 04:51:00  vert84
-// *** empty log message ***
-//
-// Revision 1.44  2006/12/07 02:19:58  vert84
-// *** empty log message ***
-//
-// Revision 1.43  2006/12/07 02:18:23  vert84
-// *** empty log message ***
-//
-// Revision 1.42  2006/12/07 01:40:49  vert84
-// *** empty log message ***
-//
-// Revision 1.41  2006/12/04 00:47:09  vert84
-// *** empty log message ***
-//
-// Revision 1.40  2006/11/02 02:57:51  vert84
-// *** empty log message ***
-//
-// Revision 1.39  2006/10/17 10:45:21  max817
-// HUGE amount of changes to all generic_hash games, so that they call the
-// new versions of the functions.
-//
-// Revision 1.38  2006/10/03 08:10:03  scarr2508
-// added ActualNumberOfPositions
-// -sean
-//
-// Revision 1.37  2006/09/27 07:00:08  vert84
-// Reverting to version from May 2006
-//
-// Revision 1.36  2006/08/16 03:46:28  runner139
-// *** empty log message ***
-//
-// Revision 1.35  2006/08/14 00:46:01  runner139
-// *** empty log message ***
-//
-// Revision 1.34  2006/08/09 17:23:17  runner139
-// *** empty log message ***
-//
-// Revision 1.33  2006/08/09 02:10:49  runner139
-// *** empty log message ***
-//
-// Revision 1.30  2006/08/08 21:58:39  runner139
-// *** empty log message ***
-//
-// Revision 1.29  2006/08/08 07:36:32  runner139
-// *** empty log message ***
-//
-// Revision 1.28  2006/08/05 08:02:44  runner139
-// *** empty log message ***
-//
-// Revision 1.24  2006/07/28 01:58:14  runner139
-// *** empty log message ***
-//
-// Revision 1.23  2006/07/18 07:47:26  runner139
-// *** empty log message ***
-//
-// Revision 1.22  2006/07/18 02:06:15  runner139
-// *** empty log message ***
-//
-// Revision 1.21  2006/07/17 02:40:19  max817
-// Just CVS'ing this file in for Adam, since his CVS doesn't work right now.
-// Now the make is no longer broken! -Max
-//
-// Revision 1.20  2006/07/11 03:29:45  runner139
-// *** empty log message ***
-//
-// Revision 1.19  2006/07/08 03:25:29  runner139
-// *** empty log message ***
-//
-// Revision 1.18  2006/07/06 03:08:09  runner139
-// *** empty log message ***
-//
-// Revision 1.17  2006/06/29 23:41:20  runner139
-// *** empty log message ***
-//
-// Revision 1.16  2006/06/29 22:08:23  runner139
-// *** empty log message ***
-//
-// Revision 1.15  2006/06/27 23:57:41  runner139
-// *** empty log message ***
-//
-// Revision 1.14  2006/06/27 05:38:14  runner139
-// *** empty log message ***
-//
-// Revision 1.13  2006/06/27 05:18:18  runner139
-// *** empty log message ***
-//
-// Revision 1.8  2006/04/16 10:34:37  vert84
-// *** empty log message ***
-//
-// Revision 1.7  2006/04/11 04:19:45  vert84
-// *** empty log message ***
-//
-// Revision 1.6  2006/04/11 01:38:35  vert84
-// *** empty log message ***
-//
-// Revision 1.5  2006/04/11 00:39:47  runner139
-// *** empty log message ***
-//
-// Revision 1.4  2006/03/18 04:16:10  runner139
-// *** empty log message ***
-//
-// Revision 1.3  2006/03/12 03:56:42  vert84
-// Updated description fields.
-//
-// Revision 1.2  2006/03/05 03:32:12  yanpeichen
-// Yanpei Chen changing mquickchess.c
-//
-// Deleted a stray character that caused a file inclusion error.
-//
-// Revision 1.1  2006/03/01 01:49:21  vert84
-// Added quickchess to cvs
-//
-// Revision 1.7  2006/01/29 09:59:47  ddgarcia
-// Removed "gDatabase" reference from comment in InitializeGame
-//
-// Revision 1.6  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.5  2005/10/06 03:06:11  hevanm
-// Changed kDebugDetermineValue to be FALSE.
-//
-// Revision 1.4  2005/05/02 17:33:01  nizebulous
-// mtemplate.c: Added a comment letting people know to include gSymmetries
-//           in their getOption/setOption hash.
-// mttc.c: Edited to handle conflicting types.  Created a PLAYER type for
-//         gamesman.  mttc.c had a PLAYER type already, so I changed it.
-// analysis.c: Changed initialization of option variable in analyze() to -1.
-// db.c: Changed check in the getter functions (GetValueOfPosition and
-//       getRemoteness) to check if gMenuMode is Evaluated.
-// gameplay.c: Removed PlayAgainstComputer and PlayAgainstHuman.  Wrote PlayGame
-//             which is a generic version of the two that uses to PLAYER's.
-// gameplay.h: Created the necessary structs and types to have PLAYER's, both
-//          Human and Computer to be sent in to the PlayGame function.
-// gamesman.h: Really don't think I changed anything....
-// globals.h: Also don't think I changed anything....both these I just looked at
-//            and possibly made some format changes.
-// textui.c: Redid the portion of the menu that allows you to choose opponents
-//        and then play a game.  Added computer vs. computer play.  Also,
-//           changed the analysis part of the menu so that analysis should
-//        work properly with symmetries (if it is in getOption/setOption hash).
-//
-// Revision 1.3  2005/03/10 02:06:47  ogren
-// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
-//
-char* InteractPositionToString(POSITION pos);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		// Convert UWAPI standard board string to internal board representation
+		char oxboard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (board[i] == '-') {
+				oxboard[i] = ' ';
+			} else {
+				oxboard[i] = board[i];
+			}
+		}
 
-POSITION InteractStringToPosition(STRING str) {
-  enum UWAPI_Turn turn;
-  unsigned int num_rows, num_columns;
-  STRING board;
-  if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-    // Failed to parse string
-    return INVALID_POSITION;
-  }
+		gInitializeHashWindow(BoardToTier(oxboard), FALSE);
 
-  // Convert UWAPI standard board string to internal board representation
-  char oxboard[BOARDSIZE];
-  int i;
-  for (i = 0; i < BOARDSIZE; i++) {
-    if (board[i] == '-') {
-      oxboard[i] = ' ';
-    } else {
-      oxboard[i] = board[i];
-    }
-  }
-
-  // Convert internal board representation to internal position
-  POSITION position = hash(oxboard, (turn == UWAPI_TURN_B ? BLACK_TURN : WHITE_TURN));
-  // Return internal position
-  SafeFreeString(board); // Free the string!
-  return position;
-
+		// Convert internal board representation to internal position
+		return hash(oxboard, (turn == 2 ? BLACK_TURN : WHITE_TURN));
+	}
+	return NULL_POSITION;
 }
 
-char * position_to_string_storage = NULL;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char oxboard[BOARDSIZE];
+	unhash(position, oxboard);
 
-char* InteractPositionToString(POSITION pos) {
-  char oxboard[BOARDSIZE];
-  unhash(pos, oxboard);
-
-  TIERPOSITION tierpos;
+	TIERPOSITION tierpos;
 	TIER tier;
-	gUnhashToTierPosition(pos, &tierpos, &tier);
-  int whosturn = generic_hash_turn(tierpos);
+	gUnhashToTierPosition(position, &tierpos, &tier);
+	int whosturn = generic_hash_turn(tierpos);
 
-  // Convert internal board representation to UWAPI standard board string
-  char board[BOARDSIZE + 1];
-  int i;
-  for (i = 0; i < BOARDSIZE; i++) {
-    if (oxboard[i] == ' ') {
-      board[i] = '-';
-    } else {
-      board[i] = oxboard[i];
-    }
-  }
-  board[BOARDSIZE] = '\0';
+	// Convert internal board representation to UWAPI standard board string
+	char board[BOARDSIZE + 1];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (oxboard[i] == ' ') {
+			board[i] = '-';
+		} else {
+			board[i] = oxboard[i];
+		}
+	}
+	board[BOARDSIZE] = '\0';
 
-  // Return formatted UWAPI position string
-  enum UWAPI_Turn turn = (whosturn == BLACK_TURN) ? UWAPI_TURN_B : UWAPI_TURN_A;
-  STRING UWAPI_String = UWAPI_Board_Regular2D_MakePositionStringWithAdditionalParams(turn, rows, cols, board, "GamesmanClassic", "", "");
-  if (UWAPI_String == NULL) {
-    return UWAPI_String;
-  } else {
-    STRING final_boardstring = MakeBoardString(UWAPI_String, "tier", StrFromI(tier), "");
-    SafeFreeString(UWAPI_String);
-    return final_boardstring;
-  }
+	// Return formatted UWAPI position string
+	int turn = (whosturn == BLACK_TURN) ? 2 : 1;
+  	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE move) {
-  char oxboard[BOARDSIZE];
-  unhash(pos, oxboard);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	char oxboard[BOARDSIZE];
+	unhash(position, oxboard);
 
-  char rowf, colf, rowi, coli;
-  rowf = (move & 15);
-  colf = ((move >> 4) & 15) - 10;
-  rowi = ((move >> 8) & 15);
-  coli = ((move >> 12) & 15) - 10;
-  int from = (rows - rowi)*(cols)+coli;
-  int to = (rows - rowf)*(cols)+colf;
-  char sound = (oxboard[to] == ' ') ? 'x' : 'y';
-  return UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, to, sound);
+	char rowf, colf, rowi, coli;
+	rowf = (move & 15);
+	colf = ((move >> 4) & 15) - 10;
+	rowi = ((move >> 8) & 15);
+	coli = ((move >> 12) & 15) - 10;
+	int from = (rows - rowi)*(cols)+coli;
+	int to = (rows - rowf)*(cols)+colf;
+	char sound = (oxboard[to] == ' ') ? 'x' : 'y';
+	AutoGUIMakeMoveButtonStringM(from, to, sound, autoguiMoveStringBuffer);
 }

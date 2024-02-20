@@ -432,8 +432,6 @@ int numOnBoard(PIECE piece, BOARD board);
 int sizeOfPieceType(struct pieceType *pt);
 MOVE makeMove(PIECE piece, CELL source, CELL dest);
 
-STRING MoveToString( MOVE );
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -495,9 +493,6 @@ void InitializeGame () {
 		gInitialPosition = generic_hash_hash(board,WHITE); // white goes first
 		SafeFree(board);
 	}
-
-	gMoveToStringFunPtr = &MoveToString;
-
 	return;
 }
 
@@ -747,25 +742,6 @@ POSITION GetInitialPosition () {
 		}
 	}
 	return pos;
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely format the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName) {
-	printf("  > %s's move : ",computersName);
-	PrintMove(computersMove);
-	printf("\n");
-	return;
 }
 
 
@@ -1065,23 +1041,6 @@ MOVE ConvertTextInputToMove (STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-	STRING str = MoveToString( move );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -1090,9 +1049,8 @@ void PrintMove (MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
+void MoveToString (MOVE move, char *m)
 {
-	STRING m = (STRING) SafeMalloc( 8 );
 	STRING m2 = (STRING) SafeMalloc( 8 );
 
 	//  sprintf( m, "" );
@@ -1120,7 +1078,25 @@ STRING MoveToString (MOVE move)
 
 
 	SafeFree( m2 );
-	return m;
+}
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+	printf("  > %s's move : ",computersName);
+	char msb[20];
+	MoveToString(computersMove, msb);
+	printf("\n");
+	return;
 }
 
 
@@ -1886,18 +1862,18 @@ BOARD generateBoard(struct pieceType *pieces) {
 	return newBoard;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

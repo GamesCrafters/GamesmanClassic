@@ -137,8 +137,6 @@ Player's move :  5 w\n\
 \n\
 Excellent! You won!"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ;
 
-STRING MoveToString( MOVE );
-
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -233,8 +231,6 @@ void InitializeGame()
 	if (DEBUGGING) printf("start initialize game\n");
 
 	SetupGame();
-
-	gMoveToStringFunPtr = &MoveToString;
 
 	if (DEBUGGING) printf("end initializegame\n");
 }
@@ -631,24 +627,6 @@ POSITION GetInitialPosition()
 	}
 
 	return hash(player);
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove*
-** DESCRIPTION: Nicely format the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-	printf("%8s's move   : ", computersName);
-	PrintMove(computersMove);
-	//SafeFree(computersMove);
-	printf("\n");
 }
 
 
@@ -1338,24 +1316,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 	return move;
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
-	printf( "%s", moveString);
-	SafeFree(moveString);
-}
-
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(12);
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 
 	if (DEBUGGING)
 		printf("starting MoveToString w/move = %d\n", theMove);
@@ -1407,36 +1368,52 @@ STRING MoveToString(MOVE theMove) {
 	/*printf("slot1 = %d, slot2 = %d, slot3 = %d, direction = %d\n", slot1, slot2, slot3, direction);*/
 
 	if ((slot1 == NULLSLOT) && (slot2 == NULLSLOT)) {
-		sprintf(move, "[%c%c %s]", intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
+		snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
 	}
 	else if ((slot3 == NULLSLOT) && (slot2 == NULLSLOT)) {
-		sprintf(move, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
+		snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
 	}
 	else if (slot1 == NULLSLOT) {
 		if ((slot3 - 1 ) == destination ((slot2 - 1), direction))
-			sprintf(move, "[%c%c %s]", intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
+			snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
 		else
-			sprintf(move, "[%c%c %c%c %s]",intToCoordinateX(slot2), intToCoordinateY(slot2),
+			snprintf(moveStringBuffer, 15, "[%c%c %c%c %s]",intToCoordinateX(slot2), intToCoordinateY(slot2),
 			        intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
 	}
 	else if (slot3 == NULLSLOT) {
 		if ((slot2 - 1) == destination ((slot1 - 1), direction))
-			sprintf(move, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
+			snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
 		else
-			sprintf(move, "[%c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
+			snprintf(moveStringBuffer, 15, "[%c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
 			        intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
 	}
 	else if ((slot2 - 1) == destination((slot1 - 1), direction)) {
-		sprintf(move, "[%c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
+		snprintf(moveStringBuffer, 15, "[%c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
 	}
 	else {
-		sprintf(move, "[%c%c %c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
+		snprintf(moveStringBuffer, 15, "[%c%c %c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
 		        intToCoordinateX(slot2), intToCoordinateY(slot2), intToCoordinateX(slot3),
 		        intToCoordinateY(slot3), dir);
 	}
 	if (DEBUGGING) printf("finished MoveToString\n");
+}
 
-	return move;
+/************************************************************************
+**
+** NAME:        PrintComputersMove*
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	printf("%8s's move   : ", computersName);
+	char msb[30];
+	MoveToString(computersMove, msb);
+	//SafeFree(computersMove);
+	printf("%s\n", msb);
 }
 
 /************************************************************************
@@ -2403,22 +2380,19 @@ STRING TierToString(TIER tier) {
 // Revision 1.25  2005/09/15 03:56:08  ogren
 // added : $, : $, changed kGameName = Abalone
 //
-POSITION InteractStringToPosition(STRING board) {
-	POSITION pos = INVALID_POSITION;
-	GetValue(board, "pos", GetUnsignedLongLong, &pos);
-	return pos;
+POSITION StringToPosition(char *positionString) {
+	POSITION position = NULL_POSITION;
+	GetValue(positionString, "pos", GetUnsignedLongLong, &position);
+	return position;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	int whoseMove;
-	unhash(pos, &whoseMove);
-	return MakeBoardString(gBoard,
-			       "turn", StrFromI(whoseMove),
-			       "pos", StrFromI(pos),
-	                       "");
+	unhash(position, &whoseMove);
+	snprintf(autoguiPositionStringBuffer, 120, "%s,turn=%lld,pos=%lld", gBoard, (long long) whoseMove, (long long) position);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  MoveToString(move, autoguiMoveStringBuffer);
 }

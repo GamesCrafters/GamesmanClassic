@@ -201,7 +201,6 @@ void UndoMove(MOVE move);
 BlankOX WhoseTurn(BlankOX *theBlankOX);
 int tttppm(int x, int y);
 
-STRING MoveToString( MOVE );
 POSITION ActualNumberOfPositions(int variant);
 
 /**************************************************/
@@ -272,8 +271,6 @@ void InitializeGame() {
 	gPosition.nextPiece = x;
 	gPosition.piecesPlaced = 0;
 	gUndoMove = UndoMove;
-
-	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
@@ -309,16 +306,16 @@ void DebugMenu()
 			HelpMenus();
 			break;
 		case 'C': case 'c': /* Write PPM to s(C)reen */
-			tttppm(0,0);
+			//tttppm(0,0);
 			break;
 		case 'I': case 'i': /* Write PPM to f(I)le */
-			tttppm(0,1);
+			//tttppm(0,1);
 			break;
 		case 'S': case 's': /* Write Postscript to (S)creen */
-			tttppm(1,0);
+			//tttppm(1,0);
 			break;
 		case 'F': case 'f': /* Write Postscript to (F)ile */
-			tttppm(1,1);
+			//tttppm(1,1);
 			break;
 		case 'B': case 'b':
 			return;
@@ -706,37 +703,18 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING str = MoveToString( theMove );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
-** DESCRIPTION: Returns the move as a STRING
+** DESCRIPTION: Writes string representation of move to moveStringBuffer
 **
 ** INPUTS:      MOVE *move         : The move to put into a string.
+**              char *moveStringBuffer : Buffer to write movestring to
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 3 );
+void MoveToString(MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf( m, "%d", theMove + 1);
-
-	return m;
+	snprintf(moveStringBuffer, 2, "%d", move + 1);
 }
 
 /************************************************************************
@@ -905,42 +883,52 @@ POSITION ActualNumberOfPositions(int variant) {
 	return 5478;
 }
 
-static char tttuwapimap[] = { '-', 'o', 'x' };
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOX oxboard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (board[i] == 'o') {
+				oxboard[i] = o;
+			} else if (board[i] == 'x') {
+				oxboard[i] = x;
+			} else if (board[i] == '-') {
+				oxboard[i] = Blank;
+			} else {
+				return NULL_POSITION;
+			}
+		}
+		return BlankOXToPosition(oxboard);
+	}
+	return NULL_POSITION;
+}
 
-POSITION InteractStringToPosition(STRING str) {
-	char *board = str + 8;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	BlankOX oxboard[BOARDSIZE];
+	PositionToBlankOX(position, oxboard);
+	char board[BOARDSIZE + 1];
 	for (int i = 0; i < BOARDSIZE; i++) {
-		if (board[i] == 'o') {
-			oxboard[i] = o;
-		} else if (board[i] == 'x') {
-			oxboard[i] = x;
-		} else if (board[i] == '-') {
-			oxboard[i] = Blank;
+		if (oxboard[i] == o) {
+			board[i] = 'o';
+		} else if (oxboard[i] == x) {
+			board[i] = 'x';
 		} else {
-			return INVALID_POSITION;
+			board[i] = '-';
 		}
 	}
-	return BlankOXToPosition(oxboard);
-}
-
-STRING InteractPositionToString(POSITION pos) {
-	BlankOX oxboard[BOARDSIZE];
-	PositionToBlankOX(pos, oxboard);
-	char board[BOARDSIZE + 1];
-	int i;
-	for (i = 0; i < BOARDSIZE; i++) {
-		board[i] = tttuwapimap[oxboard[i]];
-	}
 	board[BOARDSIZE] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(
-		WhoseTurn(oxboard) == x ? UWAPI_TURN_A : UWAPI_TURN_B,
-		BOARDSIZE, board);
+	AutoGUIMakePositionString(
+		WhoseTurn(oxboard) == x ? 1 : 2, 
+		board, 
+		autoguiPositionStringBuffer
+	);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
 	BlankOX oxboard[BOARDSIZE];
-	PositionToBlankOX(pos, oxboard);
-	return UWAPI_Board_Regular2D_MakeAddString(tttuwapimap[WhoseTurn(oxboard)], mv);
+	PositionToBlankOX(position, oxboard);
+	char token = (WhoseTurn(oxboard) == x) ? 'x' : 'o';
+	AutoGUIMakeMoveButtonStringA(token, move, '-', autoguiMoveStringBuffer);
 }
 

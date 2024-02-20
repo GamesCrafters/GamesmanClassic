@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: Chopsticks
 **
-** AUTHOR:      Firstname Lastname
+** AUTHOR:      Cameron Cheung
 **
 ** DATE:        2023-11-15
 **
@@ -12,7 +12,7 @@
 
 #include "gamesman.h"
 
-CONST_STRING kAuthorName = "Firstname Lastname";
+CONST_STRING kAuthorName = "Cameron Cheung";
 CONST_STRING kGameName = "Chopsticks";
 CONST_STRING kDBName = "chopsticks";
 POSITION gNumberOfPositions = 1250;
@@ -22,7 +22,6 @@ BOOLEAN kTieIsPossible = FALSE;
 BOOLEAN kLoopy = TRUE;
 BOOLEAN kSupportsSymmetries = TRUE;
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void *gGameSpecificTclInit = NULL;
@@ -94,6 +93,7 @@ void unhashPosition(POSITION position, BOOLEAN *isP2Turn, int *p1Left,
                     int *p1Right, int *p2Left, int *p2Right);
 MOVE hashMove(BOOLEAN usingRightHand, int target, int amount);
 void unhashMove(MOVE move, BOOLEAN *usingRightHand, int *target, int *amount);
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 /* TODO: Add a hashing function and unhashing function, if needed. */
 POSITION hashPosition(BOOLEAN isP2Turn, int p1Left, int p1Right, int p2Left,
@@ -129,7 +129,7 @@ void unhashMove(MOVE move, BOOLEAN *usingRightHand, int *target, int *amount) {
 solving or playing the game. */
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
+    gPositionToStringFunPtr = &PositionToString;
     gInitialPosition = hashPosition(FALSE, 1, 1, 1, 1);
     gSymmetries = TRUE;
 }
@@ -381,12 +381,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
         p1Right > 2 ? '|' : ',', p1Right > 3 ? '|' : ',');
 }
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-    STRING moveString = MoveToString(computersMove);
-    printf("%s's move: %s\n", computersName, moveString);
-    SafeFree(moveString);
-}
-
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move,
                                  STRING playerName) {
     USERINPUT ret;
@@ -410,7 +404,6 @@ BOOLEAN ValidTextInput(STRING input) {
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
-    /* YOUR CODE HERE */
     BOOLEAN usingRightHand = input[0] == 'r' || input[0] == 'R';
     int amount = 0;
     int target = 0;
@@ -427,28 +420,25 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move.
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
     BOOLEAN usingRightHand;
     int target, amount;
     unhashMove(move, &usingRightHand, &target, &amount);
-    STRING moveString = SafeMalloc(3);
-    moveString[0] = usingRightHand ? 'R' : 'L';
+    moveStringBuffer[0] = usingRightHand ? 'R' : 'L';
     if (target == 1) {
-        moveString[1] = 'L';
+        moveStringBuffer[1] = 'L';
     } else if (target == 2) {
-        moveString[1] = 'R';
+        moveStringBuffer[1] = 'R';
     } else {
-        moveString[1] = '0' + amount;
+        moveStringBuffer[1] = '0' + amount;
     }
-    moveString[2] = '\0';
-    return moveString;
+    moveStringBuffer[2] = '\0';
 }
 
-/* Basically just print the move. */
-void PrintMove(MOVE move) {
-    STRING moveString = MoveToString(move);
-    printf("%s", moveString);
-    SafeFree(moveString);
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    char moveString[10];
+    MoveToString(computersMove, moveString);
+    printf("%s's move: %s\n", computersName, moveString);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -498,49 +488,33 @@ void GameSpecificMenu() {
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING str) {
-    BOOLEAN isP2Turn = str[2] == 'B';
-    str += 8;
-
-    int count = 0, i = 0;
-    for (; i < 4; i++) {
-        if (str[i] == 'f') count++;
-    }
-    int p1Left = count;
-
-    count = 0;
-    for (; i < 8; i++) {
-        if (str[i] == 'f') count++;
-    }
-    int p1Right = count;
-
-    count = 0;
-    for (; i < 12; i++) {
-        if (str[i] == 'f') count++;
-    }
-    int p2Left = count;
-
-    count = 0;
-    for (; i < 16; i++) {
-        if (str[i] == 'f') count++;
-    }
-    int p2Right = count;
-
-    return hashPosition(isP2Turn, p1Left, p1Right, p2Left, p2Right);
-}
-
-STRING InteractPositionToString(POSITION position) {
+void PositionToString(POSITION position, char *positionStringBuffer) {
     BOOLEAN isP2Turn;
     int p1Left, p1Right, p2Left, p2Right;
     unhashPosition(position, &isP2Turn, &p1Left, &p1Right, &p2Left, &p2Right);
+    snprintf(positionStringBuffer, 10, "%c_%d%d%d%d", isP2Turn ? '2' : '1', p1Left, p1Right, p2Left, p2Right);
+}
 
+POSITION StringToPosition(char *positionString) {
+    for (int i = 2; i < 6; i++) {
+        if (positionString[i] < '0' || positionString[i] > '4') {
+            return NULL_POSITION;
+        }
+    }
+    return hashPosition(
+        positionString[0] == '2', 
+        positionString[2] - '0', positionString[3] - '0', 
+        positionString[4] - '0', positionString[5] - '0'
+    );
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	BOOLEAN isP2Turn;
+    int p1Left, p1Right, p2Left, p2Right;
+    unhashPosition(position, &isP2Turn, &p1Left, &p1Right, &p2Left, &p2Right);
     char fingers[17];
     memset(fingers, '-', 16);
     fingers[16] = '\0';
-
     int i;
     for (i = 0; i < p1Left; i++) {
         fingers[i] = 'f';
@@ -554,10 +528,10 @@ STRING InteractPositionToString(POSITION position) {
     for (i = 12; i < 12 + p2Right; i++) {
         fingers[i] = 'f';
     }
-    return UWAPI_Board_Regular2D_MakeBoardString(isP2Turn ? UWAPI_TURN_B : UWAPI_TURN_A, 16, fingers);
+    AutoGUIMakePositionString(isP2Turn ? 2 : 1, fingers, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
     BOOLEAN isP2Turn = position & 1;
     BOOLEAN usingRightHand;
     int target, amount;
@@ -589,7 +563,7 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
         } else {
             token = '0' + amount;
         }
-        return UWAPI_Board_Regular2D_MakeAddStringWithSound(token, offset + idx, 'x');
+        AutoGUIMakeMoveButtonStringA(token, offset + idx, 'x', autoguiMoveStringBuffer);
     } else { // is attack move
         int fromCenter, toCenter;
         int offset = 16;
@@ -611,6 +585,6 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
         } else {
             toCenter = isP2Turn ? 1 : 3;
         }
-        return UWAPI_Board_Regular2D_MakeMoveStringWithSound(offset + fromCenter, offset + toCenter, 'x');
+        AutoGUIMakeMoveButtonStringM(offset + fromCenter, offset + toCenter, 'x', autoguiMoveStringBuffer);
     }
 }

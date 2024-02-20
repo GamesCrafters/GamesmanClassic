@@ -137,8 +137,6 @@ CONST_STRING kHelpTieOccursWhen ="";
 CONST_STRING kHelpExample = "";
 CONST_STRING kDBName = "3spot";
 
-STRING MoveToString(MOVE);
-
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -275,7 +273,6 @@ int GetWhoseTurn(POSITION thePosition) {
 ************************************************************************/
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
@@ -577,23 +574,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 
 POSITION GetInitialPosition() {
 	return 0x001009BD;
-}
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely format the computers move.
-**
-** INPUTS:      MOVE   *computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-	printf("In his infinite wisdom, %8s's move = ",computersName);
-	PrintMove(computersMove);
-	printf("\n");
 }
 
 /************************************************************************
@@ -1180,17 +1160,19 @@ int ctoi(char c) {
 	return -1;
 }
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(8);
-	if( (theMove & 0x0F) == 0 ) {
-		sprintf( move, "(%c%c)", moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2] );
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	if (move >> 9) { // Placing Colored Piece Part-Move
+		move ^= (1 << 9);
+		snprintf( moveStringBuffer, 12, "%c%c", moveToTextInt[(move >> 4) -2], moveToTextOri[(move >> 4) -2]);
 	} else {
-		sprintf( move, "(%c%c %c%c)",
-		         moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2],
-		         moveToTextInt[(theMove & 0x0F) -2], moveToTextOri[(theMove & 0x0F) -2] );
+		if( (move & 0x0F) == 0 ) {
+			snprintf( moveStringBuffer, 12, "%c%c", moveToTextInt[(move >> 4) -2], moveToTextOri[(move >> 4) -2] );
+		} else {
+			snprintf( moveStringBuffer, 12, "%c%c %c%c",
+					moveToTextInt[(move >> 4) -2], moveToTextOri[(move >> 4) -2],
+					moveToTextInt[(move & 0x0F) -2], moveToTextOri[(move & 0x0F) -2] );
+		}
 	}
-
-	return move;
 }
 
 MOVE ConvertTextInputToMove(STRING input) {
@@ -1215,9 +1197,26 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
+	char moveString[12];
+	MoveToString(theMove, moveString);
 	printf( "%s", moveString );
-	SafeFree(moveString);
+}
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS:      MOVE   *computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	printf("In his infinite wisdom, %8s's move = ",computersName);
+	PrintMove(computersMove);
+	printf("\n");
 }
 
 int NumberOfOptions() {
@@ -1247,102 +1246,88 @@ int betweenMap[14] = {-1,-1,24,16,19,17,14,18,25,21,20,22,15,23};
 int horList[2][6] = {{0,1,3,4,6,7}, {1,2,4,5,7,8}};
 int verList[2][6] = {{0,1,2,3,4,5}, {3,4,5,6,7,8}};
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn t;
-	unsigned int r, c; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &t, &r, &c, &board)) {
-		return INVALID_POSITION;
-	}
-	POSITION turn = (t == UWAPI_TURN_A) ? 0x100000LL : 0;
-	POSITION red, white, blue;
+POSITION StringToPosition(char *positionString) {
+	int turnInt;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turnInt, &board)) {
+		POSITION turn = (turnInt == 1) ? 0x100000LL : 0;
+		POSITION red, white, blue;
 
-	for (int i = 0; i < 6; i++) {
-		char h1 = board[horList[0][i]];
-		char h2 = board[horList[1][i]];
-		char v1 = board[verList[0][i]];
-		char v2 = board[verList[1][i]];
-		// We're actually switching B and R here because we want B to be the first player
-		// but the game was coded to have red go first.
-		if (h1 == h2) {
-			int value = boardToPos(horList[0][i], 'h');
-			if (h1 == 'B') {
-				red = value << 8;
-			} else if (h1 == 'W') {
-				white = value << 4;
-			} else if (h1 == 'R') {
-				blue = value;
+		for (int i = 0; i < 6; i++) {
+			char h1 = board[horList[0][i]];
+			char h2 = board[horList[1][i]];
+			char v1 = board[verList[0][i]];
+			char v2 = board[verList[1][i]];
+			// We're actually switching B and R here because we want B to be the first player
+			// but the game was coded to have red go first.
+			if (h1 == h2) {
+				int value = boardToPos(horList[0][i], 'h');
+				if (h1 == 'B') {
+					red = value << 8;
+				} else if (h1 == 'W') {
+					white = value << 4;
+				} else if (h1 == 'R') {
+					blue = value;
+				}
+			}
+			if (v1 == v2) {
+				int value = boardToPos(verList[0][i], 'v');
+				if (v1 == 'B') {
+					red = value << 8;
+				} else if (v1 == 'W') {
+					white = value << 4;
+				} else if (v1 == 'R') {
+					blue = value;
+				}
 			}
 		}
-		if (v1 == v2) {
-			int value = boardToPos(verList[0][i], 'v');
-			if (v1 == 'B') {
-				red = value << 8;
-			} else if (v1 == 'W') {
-				white = value << 4;
-			} else if (v1 == 'R') {
-				blue = value;
-			}
-		}
-	}
 
-	POSITION ptsA = (10 * (board[9] - '0') + (board[10] - '0'));
-	POSITION ptsB = (10 * (board[11] - '0') + (board[12] - '0'));
-	// Conversion from intermediate state to real position
-	if (board[13] != '-') {
-		if (turn) {
-			ptsA -= pointsEarned[(red >> 8) - 2];
-			red = (board[13] - 'a') << 8;
-		} else {
-			ptsB -= pointsEarned[blue - 2];
-			blue = board[13] - 'a';
-		}
+		POSITION ptsA = (10 * (board[9] - '0') + (board[10] - '0'));
+		POSITION ptsB = (10 * (board[11] - '0') + (board[12] - '0'));
+		ptsA <<= 16;
+		ptsB <<= 12;
+		return turn | ptsA | ptsB | red | white | blue;
 	}
-	ptsA <<= 16;
-	ptsB <<= 12;
-	SafeFreeString(board);
-	return turn | ptsA | ptsB | red | white | blue;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char board[15];
-	memset(board, '-', 15 * sizeof(char));
-	
-	enum UWAPI_Turn turn = (GetWhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[14];
+	memset(board, '-', 14 * sizeof(char));
 
-	if (pos >> 63) { // Convert intermediate state to real position
-		board[13] = 'a' + ((pos >> 59) & 0b1111);
-		pos &= 0xFFFFFFFFFFF;
+	if (position >> 63) { // Convert intermediate state to real position
+		position &= 0xFFFFFFFFFFF;
 	}
+	
+	int turn = (GetWhoseTurn(position)) ? 1 : 2;
 
 	// We're actually switching B and R here because we want B to be the first player
 	// but the game was coded to have red go first.
-	board[pieceToBoard(GetRedPosition(pos), 0)] = 'B';
-	board[pieceToBoard(GetRedPosition(pos), 1)] = 'B';
-	board[pieceToBoard(GetBluePosition(pos), 0)] = 'R';
-	board[pieceToBoard(GetBluePosition(pos), 1)] = 'R';
-	board[pieceToBoard(GetWhitePosition(pos), 0)] = 'W';
-	board[pieceToBoard(GetWhitePosition(pos), 1)] = 'W';
+	board[pieceToBoard(GetRedPosition(position), 0)] = 'B';
+	board[pieceToBoard(GetRedPosition(position), 1)] = 'B';
+	board[pieceToBoard(GetBluePosition(position), 0)] = 'R';
+	board[pieceToBoard(GetBluePosition(position), 1)] = 'R';
+	board[pieceToBoard(GetWhitePosition(position), 0)] = 'W';
+	board[pieceToBoard(GetWhitePosition(position), 1)] = 'W';
 
-	int player1Score = GetPlayer1Score(pos);
-	int player2Score = GetPlayer2Score(pos);
+	int player1Score = GetPlayer1Score(position);
+	int player2Score = GetPlayer2Score(position);
 	board[9] = (player1Score / 10) + '0';
 	board[10] = (player1Score % 10) + '0';
 	board[11] = (player2Score / 10) + '0';
 	board[12] = (player2Score % 10) + '0';
-	board[14] = '\0';
-
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
+	board[13] = '\0';
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	if (mv >> 9) { // Placing player's piece.	
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound(moveToTextOri[((mv & 0xFF) >> 4)-2], betweenMap[(mv >> 4) & 0xF], 'x');
-	} else if ((mv >> 8) & 1) { // Placing neutral piece.
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound(moveToTextOri[(mv & 0x0F)-2], betweenMap[mv & 0xF], 'x');
-	} else {
-		return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	if (move >> 9) { // Placing player's piece.	
+		AutoGUIMakeMoveButtonStringA(moveToTextOri[((move & 0xFF) >> 4)-2], betweenMap[(move >> 4) & 0xF], 'x', autoguiMoveStringBuffer);
+	} else if ((move >> 8) & 1) { // Placing neutral piece.
+		AutoGUIMakeMoveButtonStringA(moveToTextOri[(move & 0x0F)-2], betweenMap[move & 0xF], 'x', autoguiMoveStringBuffer);
+	} else { // Full-moves do not have an autogui move string.
+		AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
 	}
 }
 
@@ -1356,26 +1341,23 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 			POSITION origRed = (position >> 8) & 0xF;
 			POSITION interPos = (1LL << 63) | (origRed << 59) | (position & 0xFFF0F0FF) | (positionList->position & 0xF0000) | ((move >> 4) << 8);
 			if (!(edgeFromAdded & (1 << (move >> 4)))) {
-				mpel = CreateMultipartEdgeListNode(position, interPos, move | 0x200, 0, FALSE, mpel);
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, move | 0x200, 0, mpel);
 				edgeFromAdded |= (1 << (move >> 4));
 			}
-			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, move | 0x100, move, TRUE, mpel);
-			
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, move | 0x100, move, mpel);
 			moveList = moveList->next;
 			positionList = positionList->next;
 		}
 	} else {
 		while (moveList != NULL) {
 			MOVE move = moveList->move;
-
 			POSITION origBlue = position & 0xF;
 			POSITION interPos = (1LL << 63) | (origBlue << 59) | (position & 0xFFFF0FF0) | (positionList->position & 0xF000) | (move >> 4);
 			if (!(edgeFromAdded & (1 << (move >> 4)))) {
-				mpel = CreateMultipartEdgeListNode(position, interPos, move | 0x200, 0, FALSE, mpel);
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, move | 0x200, 0, mpel);
 				edgeFromAdded |= (1 << (move >> 4));
 			}
-			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, move | 0x100, move, TRUE, mpel);
-			
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, move | 0x100, move, mpel);
 			moveList = moveList->next;
 			positionList = positionList->next;
 		}

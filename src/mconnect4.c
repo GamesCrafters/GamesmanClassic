@@ -59,7 +59,6 @@ CONST_STRING kHelpExample = "";
 **************************************************************************/
 
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 
 int ROWCOUNT = 6;
 int COLUMNCOUNT = 6;
@@ -90,7 +89,6 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 void InitializeGame() {
     kSupportsShardGamesman = TRUE;
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
 
     uint64_t l = 0;
     for (int i = 0; i < COLUMNCOUNT; i++)
@@ -300,10 +298,8 @@ MOVELIST *GenerateMoves(POSITION position) {
     MOVELIST *moves = NULL;
     for (int i = 0; i < COLUMNCOUNT; i++) {
         MOVE start = (ROWCOUNT + 1) * (i + 1) - 1;
-        while ((position & (1ULL << start)) == 0)
-            start--;  // This is what sigbit does
-        if (start != (ROWCOUNT + 1) * (i + 1) -
-                         1) {  // If there is space in this column
+        while ((position & (1ULL<<start)) == 0) start--; // This is what sigbit does
+        if (start != (ROWCOUNT + 1) * (i + 1) - 1) { // If there is space in this column
             moves = CreateMovelistNode(start, moves);
         }
     }
@@ -389,22 +385,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-    STRING moveString = MoveToString(move);
-    printf("%s", moveString);
-    SafeFree(moveString);
-}
-
-/************************************************************************
-**
 ** NAME: MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -413,17 +393,15 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
-    STRING movestring = (STRING)SafeMalloc(5);
-    movestring[1] = '\0';
-    movestring[2] = '\0';
+void MoveToString(MOVE move, char *moveStringBuffer) {
+    moveStringBuffer[1] = '\0';
+    moveStringBuffer[2] = '\0';
     if (gIsInteract) {
-        snprintf(movestring, 4, "%d",
+        snprintf(moveStringBuffer, 4, "%d",
                  COLUMNCOUNT - (move / (ROWCOUNT + 1)));
     } else {
-        snprintf(movestring, 4, "%d", move);
+        snprintf(moveStringBuffer, 4, "%d", move);
     }
-    return movestring;
 }
 
 int NumberOfOptions() { return 2; }
@@ -455,29 +433,33 @@ void setOption(int option) {
     gInitialPosition = INITIALPOSITION;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-  char *board = str + 8;
-  POSITION pos = 0;
-  for (int c = 0; c < COLUMNCOUNT; c++) {
-    POSITION colbits = 0;
-    BOOLEAN endFound = FALSE;
-    for (int r = 0; !endFound && r < ROWCOUNT; r++) {
-      char piece = board[ROWCOUNT * (c + 1) - 1 - r];
-      if (piece == 'O') {
-        colbits |= (1 << r);
-      } else if (piece == '-') {
-        endFound = TRUE;
-        colbits |= (1 << r);
-      }
-    }
-    if (!endFound) colbits |= (1 << ROWCOUNT);
-    pos |= (colbits << ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
-  }
-  if (str[2] == 'B') pos |= (1ULL << 63);
-  return pos;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+        POSITION pos = 0;
+        for (int c = 0; c < COLUMNCOUNT; c++) {
+            POSITION colbits = 0;
+            BOOLEAN endFound = FALSE;
+            for (int r = 0; !endFound && r < ROWCOUNT; r++) {
+            char piece = board[ROWCOUNT * (c + 1) - 1 - r];
+            if (piece == 'O') {
+                colbits |= (1 << r);
+            } else if (piece == '-') {
+                endFound = TRUE;
+                colbits |= (1 << r);
+            }
+            }
+            if (!endFound) colbits |= (1 << ROWCOUNT);
+            pos |= (colbits << ((ROWCOUNT + 1) * (COLUMNCOUNT - 1 - c)));
+        }
+        if (turn == 2) pos |= (1ULL << 63);
+        return pos;
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
   int strLen = ROWCOUNT * COLUMNCOUNT + 1;
   char pieces[strLen];
   int piecesPlaced = 0;
@@ -509,11 +491,12 @@ STRING InteractPositionToString(POSITION position) {
   }
 
   pieces[ROWCOUNT * COLUMNCOUNT] = '\0';
-  enum UWAPI_Turn turn = (piecesPlaced & 1) ? UWAPI_TURN_B : UWAPI_TURN_A; 
-  return UWAPI_Board_Regular2D_MakeBoardString(turn, strLen, pieces);
+  int turn = (piecesPlaced & 1) ? 2 : 1; 
+  AutoGUIMakePositionString(turn, pieces, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-    (void)position;
-    return NULL;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  int w = (ROWCOUNT + 1) * COLUMNCOUNT - 1 - (move / (ROWCOUNT + 1));
+  AutoGUIMakeMoveButtonStringM(w, w + COLUMNCOUNT, 'x', autoguiMoveStringBuffer);
 }

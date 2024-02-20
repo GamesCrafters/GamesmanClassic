@@ -135,9 +135,6 @@ BOOLEAN AllFilledIn(BlankHV *theBlankHV);
 BOOLEAN FourInARow(BlankHV *theBlankHV, int a, int b, int c, int d);
 BOOLEAN ThreeInARow(BlankHV *theBlankHV, int a, int b, int c);
 POSITION BlankHVToPosition(BlankHV *theBlankHV);
-
-STRING MoveToString(MOVE move);
-
 POSITION                ActualNumberOfPositions(int variant);
 
 /*************************************************************************
@@ -148,7 +145,6 @@ POSITION                ActualNumberOfPositions(int variant);
 
 void InitializeGame()
 {
-	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
@@ -719,22 +715,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -743,8 +723,7 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 4 );
+void MoveToString (MOVE theMove, char *moveStringBuffer) {
 	int squareNum;
 	char moveType;
 
@@ -756,9 +735,7 @@ STRING MoveToString (MOVE theMove) {
 		moveType = '|';
 	else
 		moveType = 'x';
-
-	sprintf(m, "%c%d", moveType, squareNum);
-	return m;
+	snprintf(moveStringBuffer, 8, "%c%d", moveType, squareNum);
 }
 
 /************************************************************************
@@ -948,94 +925,70 @@ POSITION ActualNumberOfPositions(int variant) {
 	}
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	enum UWAPI_Turn turn;
-	
-	unsigned int num_rows, num_columns; // Unused
-	STRING charBoard;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &charBoard)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	BlankHV enumBoard[BOARDSIZE];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (charBoard[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				enumBoard[i] = Blank;
-				break;
-			case 'h':
-				enumBoard[i] = H;
-				break;
-			case 'v':
-				enumBoard[i] = V;
-				break;
-
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankHV enumBoard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			switch (board[i]) {
+				case '-':
+					enumBoard[i] = Blank;
+					break;
+				case 'h':
+					enumBoard[i] = H;
+					break;
+				case 'v':
+					enumBoard[i] = V;
+					break;
+				default:
+					return NULL_POSITION;
+					break;
+			}
 		}
+		return BlankHVToPosition(enumBoard);
 	}
-
-	SafeFreeString(charBoard); // Free the string: (Removing Garbage Memory)
-
-	return BlankHVToPosition(enumBoard);
+	return NULL_POSITION;
 }
 
-
-STRING InteractPositionToString(POSITION pos) { 
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	//takes in a position hash 'pos'. pos is an integer
 	BlankHV enumBoard[BOARDSIZE]; //creating a board array of enums (Blank, H, V)
 
-	PositionToBlankHV(pos, enumBoard);
-	char charBoard[BOARDSIZE +1]; 
-
+	PositionToBlankHV(position, enumBoard);
+	char board[BOARDSIZE + 1]; 
 	for (int i = 0; i < BOARDSIZE; i++) {
 		switch (enumBoard[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected position\n");
-				break;
-			case Blank:
-				charBoard[i] = '-';
-				break;
 			case H:
-				charBoard[i] = 'h';
+				board[i] = 'h';
 				break;
 			case V:
-				charBoard[i] = 'v';
+				board[i] = 'v';
 				break;
-
+			default:
+				board[i] = '-';
+				break;
 		}
 	}
-	charBoard[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
-
-	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */ 
-	return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, 16, charBoard); //this function puts the R_A_0_0 in front of our string
+	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
+	AutoGUIMakePositionString(0, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE theMove) 
-{
-	(void)pos;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void)position;
 	int squareNum;
-	if(0 <= theMove && theMove < BOARDSIZE){
-		squareNum = theMove % BOARDSIZE;
+	if (0 <= move && move < BOARDSIZE){
+		squareNum = move % BOARDSIZE;
 		int left = squareNum + 16;
 		int right = squareNum + 32;
-		return UWAPI_Board_Regular2D_MakeLineStringWithSound(left, right, 'y');
-	}
-		
-	else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE){
-		squareNum = theMove % BOARDSIZE;
+		AutoGUIMakeMoveButtonStringL(left, right, 'y', autoguiMoveStringBuffer);
+	} else if (BOARDSIZE <= move && move < 2 * BOARDSIZE) {
+		squareNum = move % BOARDSIZE;
 		int top = squareNum + 32 + 16;
 		int bottom = squareNum + 32 + 32;
-		return UWAPI_Board_Regular2D_MakeLineStringWithSound(top, bottom, 'y');
+		AutoGUIMakeMoveButtonStringL(top, bottom, 'y', autoguiMoveStringBuffer);
+	} else if (2 * BOARDSIZE <= move && move < 3 * BOARDSIZE) {
+		squareNum = move % BOARDSIZE;
+		AutoGUIMakeMoveButtonStringA('r', squareNum, 'x', autoguiMoveStringBuffer);
 	}
-		
-	else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE){
-		squareNum = theMove % BOARDSIZE;
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('r', squareNum, 'x');
-
-	}
-	return MoveToString(theMove);
-
 }

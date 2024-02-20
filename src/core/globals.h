@@ -120,8 +120,6 @@ extern STRING (*GetHelpOnYourTurn)();
 extern STRING (*GetHelpObjective)();
 extern STRING (*GetHelpTieOccursWhen)();
 
-extern STRING (*gMoveToStringFunPtr)(MOVE);
-
 /* Variant string function pointer */
 extern STRING (*gGetVarStringPtr)();
 
@@ -173,7 +171,10 @@ extern UNDOMOVELIST*    (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER);
 extern POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE);
 extern STRING (*gTierToStringFunPtr)(TIER);
 extern MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*);
-extern STRING (*gInteractCustomDoMoveFunPtr)(STRING,MOVE);
+extern void (*gPositionStringToAutoGUIPositionStringFunPtr)(char*,char*);
+extern void (*gPositionStringDoMoveFunPtr)(char*,MOVE,char*);
+extern void (*gPositionToStringFunPtr)(POSITION,char*);
+extern POSITION (*gRandomInitialPositionFunPtr)(void);
 // For the experimental GenerateMoves
 extern int (*gGenerateMovesEfficientFunPtr)(POSITION);
 extern MOVE*            gGenerateMovesArray;

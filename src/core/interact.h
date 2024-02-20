@@ -16,18 +16,9 @@ STRING InteractReadLong(STRING input, long * result);
 STRING InteractReadBoardString(STRING input, char ** result);
 STRING InteractValueCharToValueString(char value_char);
 void InteractPrintJSONPositionValue(VALUE value);
-void InteractFreeBoardString(STRING board);
 void InteractCheckErrantExtra(STRING input, int max_words);
 void ServerInteractLoop(void);
 extern POSITION gInitialPosition;
-
-char * MakeBoardString(char * first, ...);
-
-char * StringDup( char const * s );
-void SafeFreeString(char * string);
-char * StrFromI( long long i );
-char * TierstringFromPosition(POSITION pos);
-char * StringFormat(size_t max_size, char * format_str, ...);
 
 typedef BOOLEAN (* get_value_func_t)( char *, void *);
 
@@ -39,6 +30,5 @@ BOOLEAN GetValueInner(char * board_string, char * key, get_value_func_t func, vo
 BOOLEAN GetInt(char* value, int* placeholder);
 BOOLEAN GetUnsignedLongLong(char* value, unsigned long long* placeholder);
 BOOLEAN GetChar(char* value, char* placeholder);
-void PrintLevel(POSITION pos, unsigned int depth, char * move_string);
 
 #endif /* GMCORE_INTERACT_H */

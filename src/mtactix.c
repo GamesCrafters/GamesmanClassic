@@ -201,8 +201,6 @@ BOOLEAN Contiguous2(BlankO *theBlankO, int a, int b);
 BOOLEAN Contiguous3(BlankO *theBlankO, int a, int b, int c);
 BOOLEAN Contiguous4(BlankO *theBlankO, int a, int b, int c, int d);
 
-STRING MoveToString( MOVE );
-
 /*
    0 1 2
    3 4 5
@@ -228,7 +226,6 @@ STRING MoveToString( MOVE );
 void InitializeGame()
 {
 	kCombinatorial = TRUE;
-	gMoveToStringFunPtr= &MoveToString;
 }
 
 void FreeGame()
@@ -662,22 +659,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -686,26 +667,19 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 20 );
-	STRING temp = (STRING) SafeMalloc( 20 );
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	char m[20];
 
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	int i;
-	sprintf( temp, "[ " );
-	sprintf( m, "%s", temp);
-
-	for(i = 0; i < gBoardSize; i++) {
+	snprintf(moveStringBuffer, 20, "[ " );
+	snprintf(m, 20, "%s", moveStringBuffer);
+	for(int i = 0; i < gBoardSize; i++) {
 		if(theMove & g2Array[i]) {
-			sprintf( temp, "%s%d ", m, i+1);
-			sprintf( m, "%s", temp );
+			snprintf(moveStringBuffer, 20, "%s%d ", m, i+1);
+			snprintf(m, 20, "%s", moveStringBuffer);
 		}
 	}
-
-	sprintf( temp, "%s]", m);
-
-	SafeFree( m );
-	return temp;
+	snprintf(moveStringBuffer, 20, "%s]", m);
 }
 
 /************************************************************************
@@ -849,58 +823,52 @@ void setOption(int option)
 		gStandardGame = FALSE;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	BlankO theBlankO[gBoardSize];
-	for (int i = 0; i < gBoardSize; i++) {
-		switch (board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				theBlankO[i] = Blank;
-				break;
-			case 'O':
-				theBlankO[i] = o;
-				break;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankO theBlankO[gBoardSize];
+		for (int i = 0; i < gBoardSize; i++) {
+			switch (board[i]) {
+				case '-':
+					theBlankO[i] = Blank;
+					break;
+				case 'O':
+					theBlankO[i] = o;
+					break;
+				default:
+					return NULL_POSITION;
+			}
 		}
+		return BlankOToPosition(theBlankO);
 	}
-
-	SafeFreeString(board); // Free the string.
-	return BlankOToPosition(theBlankO);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	BlankO posArray[gBoardSize];
-	PositionToBlankO(pos, posArray);
+	PositionToBlankO(position, posArray);
 	char posString[gBoardSize + 1];
-	int i;
-	for (i = 0; i < gBoardSize; i++) {
+	for (int i = 0; i < gBoardSize; i++) {
 		posString[i] = (posArray[i] == Blank) ? '-' : 'O';
 	}
-	posString[i] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(UWAPI_TURN_C, 16, posString);
+	posString[gBoardSize] = '\0';
+	AutoGUIMakePositionString(0, posString, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	int lsb = -1, msb = -1;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  int lsb = -1, msb = -1;
 	for (int i = 0; i < 16; i++) {
-		if (mv & 1) {
+		if (move & 1) {
 			msb = i;
 			if (lsb == -1) lsb = i;
 		}
-		mv >>= 1;
+		move >>= 1;
 	}
 	if (msb == lsb) {
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('-', lsb, 'x');
+		AutoGUIMakeMoveButtonStringA('-', lsb, 'x', autoguiMoveStringBuffer);
+		return;
 	}
 	BOOLEAN isVert = (msb - lsb > 3);
 	int which = -1, lsbi = -1, msbi = -1;
@@ -920,7 +888,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		default: idx = (lsbi) ? 4 : 3; break;
 	}
 	int from = 16 + ((isVert) ? 48 : 0) + 2 * (6 * which + idx);
-	char *toReturn = UWAPI_Board_Regular2D_MakeMoveStringWithSound(from, from + 1, 'x');
-	toReturn[0] = 'L';
-	return toReturn;
+	AutoGUIMakeMoveButtonStringL(from, from + 1, 'x', autoguiMoveStringBuffer);
 }

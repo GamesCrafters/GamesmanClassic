@@ -56,7 +56,6 @@ CONST_STRING kHelpExample           = "some really long thing<-Actually play a g
 CONST_STRING kAuthorName            = "Nicholas Herson";
 
 static int isLinearCombination(POSITION, int, int);
-STRING MoveToString(MOVE);
 
 void InitializeGame()
 {
@@ -67,7 +66,6 @@ void InitializeGame()
 	// gInitialPosition = ((1<<(rows*3)) - 1) * 2;
 	gMinimalPosition = gInitialPosition;
 
-	gMoveToStringFunPtr = &MoveToString;
 	//gGetSEvalCustomFnPtr = &getSEvalCustomFnPtr;
 	//gCustomTraits = CUSTOM_TRAITS;
 }
@@ -296,17 +294,8 @@ MOVE ConvertTextInputToMove(STRING input)
 	return ret;
 }
 
-void PrintMove(MOVE theMove)
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(4);
-	sprintf(move, "%d", theMove);
-	return move;
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 10, "%d", theMove);
 }
 
 CONST_STRING kDBName = "combinations";
@@ -331,18 +320,18 @@ void setOption(int option)
 	//upper = option/2%(MAX_ROWS-MIN_ROWS+1)+MIN_ROWS;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-  (void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-  (void)pos;
-  return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

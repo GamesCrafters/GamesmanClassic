@@ -146,7 +146,6 @@ POSITION                DoMove (POSITION position, MOVE move);
 VALUE                   Primitive (POSITION position);
 void                    PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn);
 void                    PrintComputersMove(MOVE computersMove, STRING computersName);
-void                    PrintMove(MOVE move);
 USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
@@ -165,8 +164,6 @@ void                    MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE                    SlotsToMove (SLOT fromSlot, SLOT toSlot);
 void                    InitializeAdjacency();
 void                    InitializeOrder();
-
-STRING MoveToString(MOVE);
 
 /************************************************************************
 **
@@ -207,8 +204,6 @@ void InitializeGame ()
 
 	gInitialPosition = generic_hash_hash( theBlankFG, WhoGoesFirst );
 	SafeFree(theBlankFG);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -490,24 +485,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 	       fromSlot+1,toSlot+1);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -518,15 +495,12 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(10);
+void MoveToString(MOVE theMove, char *move) {
 	SLOT fromSlot, toSlot;
 
 	MoveToSlots(theMove,&fromSlot,&toSlot);
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf( move, "[ %d %d ]", fromSlot + 1, toSlot + 1);
-
-	return move;
+	snprintf( move, 15, "[ %d %d ]", fromSlot + 1, toSlot + 1);
 }
 
 
@@ -977,40 +951,34 @@ void InitializeOrder () {
 	return;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		int whoseTurn = (turn == 2) ? FOXTURN : GOOSETURN;
+		return generic_hash_hash(board, whoseTurn);
 	}
-
-	int whoseTurn = (turn == UWAPI_TURN_B) ? FOXTURN : GOOSETURN;
-	POSITION ret = generic_hash_hash(board, whoseTurn);
-	SafeFreeString(board); // Free the string.
-	return ret;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char board[BOARDSIZE];
-	generic_hash_unhash(pos, board);
-	int whoseTurn = generic_hash_turn(pos);
+	generic_hash_unhash(position, board);
+	int whoseTurn = generic_hash_turn(position);
 	char ret[BOARDSIZE + 1];
 
-	enum UWAPI_Turn turn = (whoseTurn == FOXTURN) ? UWAPI_TURN_B : UWAPI_TURN_A;
+	int turn = (whoseTurn == FOXTURN) ? 2 : 1;
 	memcpy(&ret[0], board, sizeof(char) * BOARDSIZE);
 	ret[BOARDSIZE] = '\0';
-
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 32, ret);
+  	AutoGUIMakePositionString(turn, ret, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	char board[BOARDSIZE];
-	generic_hash_unhash(pos, board);
-	int whoseTurn = generic_hash_turn(pos);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	char board[BOARDSIZE];
+	generic_hash_unhash(position, board);
+	int whoseTurn = generic_hash_turn(position);
 	char sound = (whoseTurn == FOXTURN) ? 'f' : 'h';
 	SLOT fromSlot, toSlot;
-	MoveToSlots(mv,&fromSlot,&toSlot);
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, sound);
+	MoveToSlots(move, &fromSlot, &toSlot);
+  	AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, sound, autoguiMoveStringBuffer);
 }

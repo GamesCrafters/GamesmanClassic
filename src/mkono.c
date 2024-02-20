@@ -117,7 +117,6 @@ int getDestFromMove(MOVE move);
 MOVE makeMove(int source, int dest);
 int neighbors(int x, int y);
 
-STRING MoveToString(MOVE);
 POSITION GetCanonicalPosition(POSITION position);
 
 /************************************************************************
@@ -157,9 +156,6 @@ void InitializeGame ()
 	}
 
 	gInitialPosition = generic_hash_hash(gBoard, 1);
-
-	gMoveToStringFunPtr = &MoveToString;
-
 	gCanonicalPosition = GetCanonicalPosition;
 	gSymmetries = TRUE;
 }
@@ -493,24 +489,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 		       source, dest, computersName, dest, source);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -521,11 +499,8 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove)
-{
-	STRING move = (STRING) SafeMalloc(8);
-	sprintf(move, "[%d %d]", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
-	return move;
+void MoveToString (MOVE theMove, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 10, "[%d %d]", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
 }
 
 
@@ -903,34 +878,37 @@ int neighbors(int x, int y) {
 		return 0;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	int turn = str[2] == 'A' ? 1 : 2;
-	str += 8;
-	char board[BOARDSIZE];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		if (str[i] == '-') {
-			board[i] = ' ';
-		} else {
-			board[i] = str[i];
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *str;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &str)) {
+		char board[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (str[i] == '-') {
+				board[i] = ' ';
+			} else {
+				board[i] = str[i];
+			}
 		}
+		return generic_hash_hash(board, turn);
 	}
-	return generic_hash_hash(board, turn);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char board[BOARDSIZE + 1];
-	enum UWAPI_Turn turn = generic_hash_turn(pos) == 1 ? UWAPI_TURN_A : UWAPI_TURN_B;
-	generic_hash_unhash(pos, board);
+	generic_hash_unhash(position, board);
 	for (int i = 0; i < BOARDSIZE; i++) {
 		if (board[i] == ' ') {
 			board[i] = '-';
 		}
 	}
 	board[BOARDSIZE] = '\0';
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, BOARDSIZE + 1, board);
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(getSourceFromMove(mv), getDestFromMove(mv), 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  AutoGUIMakeMoveButtonStringM(getSourceFromMove(move), getDestFromMove(move), 'x', autoguiMoveStringBuffer);
 }

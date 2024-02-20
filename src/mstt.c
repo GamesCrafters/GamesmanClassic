@@ -107,8 +107,7 @@ void ShiftRows(BlankOX* theBoard, int theRow, int theDirection);
 int colEmptyPos(BlankOX* theBoard, int col);
 BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
 void printBoard(POSITION thePos);
-
-STRING MoveToString( MOVE );
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 /* The position contains a last digit that records the turn, 1 - o's, 2 - x's*/
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
@@ -154,7 +153,7 @@ BOOLEAN gExtraSlider = FALSE; /*only the horizontal sliders by default*/
 
 void InitializeGame()
 {
-	gMoveToStringFunPtr = &MoveToString;
+	gPositionToStringFunPtr = &PositionToString;
 }
 
 void FreeGame()
@@ -845,22 +844,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -869,10 +852,8 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING m = (STRING) SafeMalloc( 3 );
-	sprintf( m, "%d", theMove+1);
-	return m;
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 5, "%d", theMove+1);
 }
 
 /************************************************************************
@@ -1298,74 +1279,96 @@ void setOption(int option)
 // Note on interact: Currently, this only works with the default variant
 ////////////////////////////////////////////////////////////////////////////////
 
-// UWAPI Position String: 
+
+/* Although PositionString and AutoGUIPositionString do not match,
+both are still in AutoGUI format, so we can still use the AutoGUI helper functions. */
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	// Convert internal position to internal board representation
+	BlankOX oxboard[BOARDSIZE];
+	PositionToBlankOX(position, oxboard);
+
+	// Convert internal representation to human-readable position string
+	char board[13];
+	memset(board, '-', 12 * sizeof(char));
+	int i;
+
+	// Set pieces
+	for (i = 0; i < 9; i++) {
+		int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
+		if (oxboard[oxboard_index] == o) {
+			board[i] = 'o';
+		} else if (oxboard[oxboard_index] == x) {
+			board[i] = 'x';
+		}
+	}
+
+	// Set sliders
+	for (i = 9; i < 12; i++) {
+		switch (oxboard[i]) {
+			case 0: board[i] = 'L'; break;
+			case 1: board[i] = 'C'; break;
+			default: board[i] = 'R'; break;
+		} 
+	}
+	
+	board[12] = '\0'; // Null-terminate boardstring
+	
+	// Return formatted UWAPI position string
+	int turn = (WhoseTurn(position) == o) ? 1 : 2;
+  	AutoGUIMakePositionString(turn, board, positionStringBuffer);
+}
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOX oxboard[BOARDSIZE];
+
+		// Set the pieces
+		int i;
+		for (i = 0; i < 9; i++) {
+			int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
+
+			if (board[i] == 'o') {
+				oxboard[oxboard_index] = o;
+			} else if (board[i] == 'x') {
+				oxboard[oxboard_index] = x;
+			} else {
+				oxboard[oxboard_index] = Blank;
+			}
+		}
+
+		// Set sliders
+		for (i = 9; i < 12; i++) {
+			switch (board[i]) {
+				case 'L': oxboard[i] = 0; break;
+				case 'C': oxboard[i] = 1; break;
+				default: oxboard[i] = 2; break;
+			} 
+		}
+
+
+		// A hack to get everything to work
+		// @sethlu: I'm not sure why it's made this way in this game
+		oxboard[12] = 0;
+		oxboard[13] = 0;
+		oxboard[14] = 0;
+		BlankOX whoseTurn = (turn == 1) ? o : x;
+		return BlankOXToPosition(oxboard) + whoseTurn;
+	}
+	return NULL_POSITION;
+}
+
+// AutoGUI Position String: 
 // 0-9: Pieces (9 places where pieces can be)
 // 10-17: Sliders (3 places where each slider can be)
 // 18-23: top arrow buttons (6 arrow endpoint coords needed)
 // 24-41: side arrows (3 arrow endpoints needed for each of six side arrow buttons)
-
-POSITION InteractStringToPosition(STRING str) {
-	STRING board = str + 8;
-	BlankOX oxboard[BOARDSIZE];
-
-	// Set the pieces
-	for (int i = 0; i < 9; i++) {
-		int oxboard_index = (i % 3) * 3 + 2 - (i / 3);
-
-		if (board[i] == 'o') {
-			oxboard[oxboard_index] = o;
-		} else if (board[i] == 'x') {
-			oxboard[oxboard_index] = x;
-		} else {
-			oxboard[oxboard_index] = Blank;
-		}
-	}
-
-	// Note the row shifts
-	// Top row shifts
-	if (board[9] == 'S') {
-		oxboard[9] = 0;
-	} else if (board[10] == 'S') {
-		oxboard[9] = 1;
-	} else {
-		oxboard[9] = 2;
-	}
-
-	// Middle row shifts
-	if (board[12] == 'S') {
-		oxboard[10] = 0;
-	} else if (board[13] == 'S') {
-		oxboard[10] = 1;
-	} else {
-		oxboard[10] = 2;
-	}
-
-	// Bottom row shifts
-	if (board[15] == 'S') {
-		oxboard[11] = 0;
-	} else if (board[16] == 'S') {
-		oxboard[11] = 1;
-	} else {
-		oxboard[11] = 2;
-	}
-
-	// A hack to get everything to work
-	// @sethlu: I'm not sure why it's made this way in this game
-	oxboard[12] = 0;
-	oxboard[13] = 0;
-	oxboard[14] = 0;
-	BlankOX whoseTurn = (str[2] == 'A') ? o : x;
-	POSITION position = BlankOXToPosition(oxboard) + whoseTurn;
-
-	// Return internal position
-	return position;
-}
-
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	// Convert internal position to internal board representation
 	BlankOX oxboard[BOARDSIZE];
-	PositionToBlankOX(pos, oxboard);
-	BlankOX whoseTurn = WhoseTurn(pos);
+	PositionToBlankOX(position, oxboard);
+	BlankOX whoseTurn = WhoseTurn(position);
 
 	// Convert internal board representation to UWAPI standard board string
 	char board[19];
@@ -1389,21 +1392,21 @@ STRING InteractPositionToString(POSITION pos) {
 	board[18] = '\0'; // Null-terminate boardstring
 	
 	// Return formatted UWAPI position string
-	enum UWAPI_Turn turn = (whoseTurn == o) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 19, board);
+	int turn = (whoseTurn == o) ? 1 : 2;
+  	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	BlankOX oxboard[BOARDSIZE];
-	PositionToBlankOX(pos, oxboard);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	BlankOX oxboard[BOARDSIZE];
+	PositionToBlankOX(position, oxboard);
 
-	if (mv < 3) {
-		return UWAPI_Board_Regular2D_MakeMoveString(18 + mv, 21 + mv);
-	} else if (mv < 6) {
-		int a = 24 + oxboard[9 + mv - 3] + (mv - 3) * 3;
-		return UWAPI_Board_Regular2D_MakeMoveString(a, a + 1);
+	if (move < 3) {
+		AutoGUIMakeMoveButtonStringM(18 + move, 21 + move, '-', autoguiMoveStringBuffer);
+	} else if (move < 6) {
+		int a = 24 + oxboard[9 + move - 3] + (move - 3) * 3;
+		AutoGUIMakeMoveButtonStringM(a, a + 1, '-', autoguiMoveStringBuffer);
 	} else {
-		int a = 33 + oxboard[9 + mv - 6] + (mv - 6) * 3;
-		return UWAPI_Board_Regular2D_MakeMoveString(a, a - 1);
+		int a = 33 + oxboard[9 + move - 6] + (move - 6) * 3;
+		AutoGUIMakeMoveButtonStringM(a, a - 1, '-', autoguiMoveStringBuffer);
 	}
 }

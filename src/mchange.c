@@ -111,8 +111,6 @@ LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
          ( 7 8 9 )           : O - O \n\n\
 Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
 
-STRING MoveToString(MOVE);
-
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -163,7 +161,6 @@ MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
 ************************************************************************/
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -668,22 +665,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
-	printf( "%s", moveString);
-	SafeFree(moveString);
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -692,15 +673,11 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(6);
-
+void MoveToString (MOVE move, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
-	MoveToSlots(theMove,&fromSlot,&toSlot);
-/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf(move, "[%d %d]", fromSlot+1, toSlot+1);
-
-	return move;
+	MoveToSlots(move, &fromSlot, &toSlot);
+	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+	snprintf(moveStringBuffer, 10, "[%d %d]", fromSlot + 1, toSlot + 1);
 }
 
 
@@ -804,73 +781,6 @@ MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot) {
 	return((MOVE)toSlot*(BOARDSIZE+1) + fromSlot);
 }
 
-
-
-
-
-
-
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-	BlankOX theBlankOx[BOARDSIZE], whoseTurn;
-
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				theBlankOx[i] = Blank;
-				break;
-			case 'x':
-				theBlankOx[i] = x;
-				break;
-			case 'o':
-				theBlankOx[i] = o;
-				break;
-		}
-	}
-
-	whoseTurn = (turn == UWAPI_TURN_A) ? x : o;
-	SafeFreeString(board);
-	return BlankOXToPosition(theBlankOx, whoseTurn);
-}
-
-STRING InteractPositionToString(POSITION pos) {
-	BlankOX theBlankOx[BOARDSIZE], whoseTurn;
-	PositionToBlankOX(pos,theBlankOx,&whoseTurn);
-	char board[BOARDSIZE + 1];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (theBlankOx[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected position\n");
-				break;
-			case Blank:
-				board[i] = '-';
-				break;
-			case o:
-				board[i] = 'o';
-				break;
-			case x:
-				board[i] = 'x';
-				break;
-		}
-	}
-	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
-
-	enum UWAPI_Turn turn = (whoseTurn == x) ? UWAPI_TURN_A : UWAPI_TURN_B;
-
-	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 14, board);
-}
-
-
 int arrowSource[14][14] = {
 	{-1,-1,-1,0,0,-1,-1,3,-1,4,-1,-1,-1,9},
 	{-1,-1,-1,-1,1,1,-1,-1,4,-1,5,8,-1,-1},
@@ -888,10 +798,56 @@ int arrowSource[14][14] = {
 	{4,-1,-1,-1,9,-1,10,-1,-1,13,13,-1,-1,-1}
 };
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	int fromSlot = mv % (BOARDSIZE + 1);
-	int toSlot = mv / (BOARDSIZE + 1);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOX theBlankOx[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			switch (board[i]) {
+				case '-':
+					theBlankOx[i] = Blank;
+					break;
+				case 'x':
+					theBlankOx[i] = x;
+					break;
+				case 'o':
+					theBlankOx[i] = o;
+					break;
+				default:
+					return NULL_POSITION;
+			}
+		}
+		return BlankOXToPosition(theBlankOx, (turn == 1) ? x : o);
+	}
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	BlankOX theBlankOx[BOARDSIZE], whoseTurn;
+	PositionToBlankOX(position, theBlankOx, &whoseTurn);
+	char board[BOARDSIZE + 1];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (theBlankOx[i]) {
+			case o:
+				board[i] = 'o';
+				break;
+			case x:
+				board[i] = 'x';
+				break;
+			default:
+				board[i] = '-';
+				break;
+		}
+	}
+	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
+	AutoGUIMakePositionString((whoseTurn == x) ? 1 : 2, board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	int fromSlot = move % (BOARDSIZE + 1);
+	int toSlot = move / (BOARDSIZE + 1);
 	int adjustedFromSlot = arrowSource[fromSlot][toSlot];
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(adjustedFromSlot, toSlot, 'x');
+	AutoGUIMakeMoveButtonStringM(adjustedFromSlot, toSlot, 'x', autoguiMoveStringBuffer);
 }

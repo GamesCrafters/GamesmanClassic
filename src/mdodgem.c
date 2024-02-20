@@ -171,7 +171,6 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn);
 STRING MToS (MOVE);
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MToS;
 }
 
 void FreeGame() {}
@@ -622,29 +621,10 @@ MOVE ConvertTextInputToMove(STRING input) {
 	return(SlotsToMove(fromSlot,toSlot));
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(theMove,&fromSlot,&toSlot);
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
-}
-
-STRING MToS(MOVE theMove) {
-	SLOT fromSlot, toSlot;
-	STRING move = (STRING) SafeMalloc(3);
-	MoveToSlots(theMove,&fromSlot,&toSlot);
-	sprintf(move, "%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
-	return move;
+	snprintf(moveStringBuffer, 10, "%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
 }
 
 /************************************************************************
@@ -793,44 +773,38 @@ void setOption(int option) {
 	}
 }
 
-
-POSITION InteractStringToPosition(STRING string) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns;
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(string, &turn, &num_rows, &num_columns, &board)) {
-    	// Failed to parse string
-    	return INVALID_POSITION;
-  	}
-	POSITION position = 0;
-	for (int i = 0; i < BOARDSIZE; i += 1) {
-		int offset = i / 3 + 4;
-		if (board[i + offset] == 'x') {
-			position += g3Array[i] * (int) x;
-		} else if (board[i + offset] == 'o') {
-			position += g3Array[i] * (int) o;
-		} else {
-			position += g3Array[i] * (int) Blank;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		POSITION position = 0;
+		for (int i = 0; i < BOARDSIZE; i += 1) {
+			int offset = i / 3 + 4;
+			if (board[i + offset] == 'x') {
+				position += g3Array[i] * (int) x;
+			} else if (board[i + offset] == 'o') {
+				position += g3Array[i] * (int) o;
+			} else {
+				position += g3Array[i] * (int) Blank;
+			}
 		}
+		// Player X in Dodgem is Player 2
+		if (turn == 2) {
+			position += POSITION_OFFSET;
+		}
+		return position;
 	}
-	// Player X in Dodgem is same as player B in UWAPI
-	if (turn == UWAPI_TURN_B) {
-		position += POSITION_OFFSET;
-	}
-    SafeFree(board);
-	return position;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char oxboard[INTERACT_BOARDSIZE + 1];
-	enum UWAPI_Turn turn;
-
-	if (pos >= POSITION_OFFSET) {
-		turn = UWAPI_TURN_B;
-		pos -= POSITION_OFFSET;
+	int turn;
+	if (position >= POSITION_OFFSET) {
+		turn = 2;
+		position -= POSITION_OFFSET;
 	} else {
-		turn = UWAPI_TURN_A;
+		turn = 1;
 	}
 
 	for (int i = BOARDSIZE - 1; i >= 0; i -= 1) {
@@ -842,55 +816,45 @@ STRING InteractPositionToString(POSITION pos) {
 		// 0    1    2    3 
 		// Therefore, we need to add offset of i/4 when putting it onto a 4x4 board
 		int offset = i / 3 + 4;
-		if (pos >= (POSITION)(x * g3Array[i])) {
+		if (position >= (POSITION)(x * g3Array[i])) {
 			oxboard[i + offset] = 'x';
-			pos -= x * g3Array[i];
-		} else if (pos >= (POSITION)(o * g3Array[i])) {
+			position -= x * g3Array[i];
+		} else if (position >= (POSITION)(o * g3Array[i])) {
 			oxboard[i + offset] = 'o';
-			pos -= o * g3Array[i];
-		} else if (pos >= (POSITION)(Blank * g3Array[i])) {
+			position -= o * g3Array[i];
+		} else if (position >= (POSITION)(Blank * g3Array[i])) {
 			oxboard[i + offset] = '-';
-			pos -= Blank * g3Array[i];
+			position -= Blank * g3Array[i];
 		} else {
-			BadElse("InteractPositionToString");
+			BadElse("PositionToAutoGUIString");
 		}
 	}
-
 	for (int j = 0; j < INTERACT_BOARDSIZE; j += 1) {
 		if (j % 4 == 3 || j / 4 == 0) {
 			oxboard[j] = '-';
 		}
 	}
-
 	oxboard[INTERACT_BOARDSIZE] = '\0';
-
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, oxboard);
+	AutoGUIMakePositionString(turn, oxboard, autoguiPositionStringBuffer);
 }
 
-STRING MoveToString(MOVE theMove) {
-	(void)theMove;
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-
-	enum UWAPI_Turn turn;
-
-	if (pos >= POSITION_OFFSET) { // Player X
-		turn = UWAPI_TURN_B;
-	} else { // Player O
-		turn = UWAPI_TURN_A;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	int turn = 0;
+	if (position >= POSITION_OFFSET) { // Player X i.e. Player 2
+		turn = 2;
+	} else { // Player O i.e. Player 1
+		turn = 1;
 	}
 
 	SLOT fromSlot, toSlot;
-	MoveToSlots(mv, &fromSlot, &toSlot);
+	MoveToSlots(move, &fromSlot, &toSlot);
 
 	fromSlot = fromSlot / 3 + 4 + fromSlot;
-
 	if (toSlot == OFFTHEBOARD) {
 		if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
 			// If the piece is moving off the board from the top row
-			if (turn == UWAPI_TURN_A) {
+			if (turn == 1) {
 				toSlot = fromSlot + 1;
 			} else {
 				toSlot = fromSlot - 4;
@@ -899,6 +863,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	} else {
 		toSlot = toSlot / 3 + 4 + toSlot;
 	}
-
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, 'x');
+	AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, 'x', autoguiMoveStringBuffer);
 }

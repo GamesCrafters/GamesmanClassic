@@ -120,8 +120,6 @@ MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(SLOT fromSlot,int neighbor);
 POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn);
 
-STRING MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -131,7 +129,6 @@ STRING MoveToString(MOVE);
 ************************************************************************/
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
 	/* This game is the same game as Blocking and is known to be pure draw. */
 	kUsePureDraw = TRUE;
 }
@@ -647,22 +644,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -671,14 +652,10 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(11);
-
+void MoveToString (MOVE move, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
-	MoveToSlots(theMove,&fromSlot,&toSlot);
-
-	sprintf(move, "[ %d %d ] ", fromSlot, toSlot);
-	return move;
+	MoveToSlots(move, &fromSlot, &toSlot);
+	snprintf(moveStringBuffer, 12, "%d %d", fromSlot, toSlot);
 }
 
 
@@ -806,25 +783,29 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
 	return(position);
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	whosTurn = (str[2] == 'A') ? o : x;
-	str += 8;
-	for (int i = 0; i < BOARDSIZE; i++) {
-		if (str[i] == 'x') { 
-			theBlankOX[i] = o;
-		} else if (str[i] == 'o') {
-			theBlankOX[i] = x;
-		} else {
-			theBlankOX[i] = Blank;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOX theBlankOX[BOARDSIZE], whoseTurn;
+		whoseTurn = (turn == 1) ? o : x;
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (board[i] == 'x') { 
+				theBlankOX[i] = o;
+			} else if (board[i] == 'o') {
+				theBlankOX[i] = x;
+			} else {
+				theBlankOX[i] = Blank;
+			}
 		}
+		return BlankOXToPosition(theBlankOX, whoseTurn);
 	}
-	return BlankOXToPosition(theBlankOX, whosTurn);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-	BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	PositionToBlankOX(position, theBlankOX, &whosTurn);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	BlankOX theBlankOX[BOARDSIZE], whoseTurn;
+	PositionToBlankOX(position, theBlankOX, &whoseTurn);
 	char board[6];
 	for (int i = 0; i < BOARDSIZE; i++) {
 		if (theBlankOX[i] == o) {
@@ -836,13 +817,13 @@ STRING InteractPositionToString(POSITION position) {
 		}
 	}
 	board[5] = '\0';
-	enum UWAPI_Turn turn = whosTurn == o ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 6, board);
+	int turn = whoseTurn == o ? 1 : 2;
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	int fromSlot, toSlot;
-	MoveToSlots(mv, &fromSlot, &toSlot);
-	return UWAPI_Board_Regular2D_MakeMoveStringWithSound(fromSlot, toSlot, 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+  	int fromSlot, toSlot;
+	MoveToSlots(move, &fromSlot, &toSlot);
+ 	AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, 'x', autoguiMoveStringBuffer);
 }

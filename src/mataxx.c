@@ -118,8 +118,6 @@ void SetupTierStuff();
 STRING TierToString(TIER tier);
 TIERLIST* TierChildren(TIER tier);
 TIERPOSITION NumberOfTierPositions(TIER tier);
-
-STRING MoveToString(MOVE move);
 int GenerateMovesEfficient (POSITION);
 
 /************************************************************************
@@ -139,8 +137,6 @@ void InitializeGame ()
 	//gPutWinBy = &computeWinBy;
 
 	gGenerateMovesEfficientFunPtr = &GenerateMovesEfficient;
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -177,9 +173,6 @@ void InitializeGame ()
 
    kHelpExample =
    "";
-
-    gMoveToStringFunPtr = &MoveToString;
-
    }*/
 
 
@@ -385,6 +378,24 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		SafeFree(board);
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString (MOVE move, char *moveStr)
+{
+	moveStr[0] = ((move/1000) % 10)+'a'-1;
+	moveStr[1] = ((move/100) % 10)+'0';
+	moveStr[2] = ((move/10) % 10)+'a'-1;
+	moveStr[3] = (move % 10)+'0';
+	moveStr[4] = '\0';
+}
 
 /************************************************************************
 **
@@ -399,49 +410,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-	printf("%8s's move : ", computersName);
-	PrintMove(computersMove);
-	printf("\n\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = MoveToString(move);
-	printf("%s", str);
-	SafeFree(str);
-}
-
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *move         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString (MOVE move)
-{
-	STRING moveStr = (STRING) SafeMalloc(sizeof(char)*5);
-	moveStr[0] = ((move/1000) % 10)+'a'-1;
-	moveStr[1] = ((move/100) % 10)+'0';
-	moveStr[2] = ((move/10) % 10)+'a'-1;
-	moveStr[3] = (move % 10)+'0';
-	moveStr[4] = '\0';
-	return moveStr;
+	char moveStringBuffer[20];
+	MoveToString(computersMove, moveStringBuffer);
+	printf("%8s's move : %s\n\n", computersName, moveStringBuffer);
 }
 
 
@@ -944,18 +915,18 @@ int GenerateMovesEfficient (POSITION position)
 	return index;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

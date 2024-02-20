@@ -187,7 +187,7 @@ BOOLEAN pieceIsolated(int boardSquare);
 Direction oppositeDirection(Direction direction);
 POSITION setInitialPosition();
 int numPiecesLeft(char color);
-STRING moveUnhash(MOVE move);
+void moveUnhash(MOVE move, char *moveString);
 MOVE moveHash(STRING input);
 char* boardUnhash(POSITION pos, char* board);
 POSITION boardHash(char* board, int player);
@@ -195,8 +195,6 @@ POSITION power(POSITION base, int exponent);
 int boardHash_turn(POSITION pos);
 int goInDirection(Direction direction);
 void InitializeHelpStrings();
-
-STRING                  MoveToString(MOVE move);
 
 /************************************************************************
 **
@@ -358,8 +356,6 @@ Player 1 wins!"                                                                 
    kHelpExample =
    "";
  */
-	gMoveToStringFunPtr = &MoveToString;
-
 }
 
 
@@ -672,6 +668,36 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString (MOVE move, char *moveStringBuffer) {
+	moveUnhash(move, moveStringBuffer);
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Prints the move in a nice format.
+**
+** INPUTS:      MOVE move         : The move to print.
+**
+************************************************************************/
+
+void PrintMove (MOVE move)
+{
+	char str[20];
+	MoveToString(move, str);
+	printf("%s", str);
+}
 
 /************************************************************************
 **
@@ -686,44 +712,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-	STRING str = MoveToString(computersMove);
+	char str[20];
+	MoveToString(computersMove, str);
 	printf("%s's move: %s", computersName, str);
-	SafeFree(str);
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = MoveToString(move);
-	printf("%s", str);
-	SafeFree(str);
-}
-
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *move         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString (MOVE move)
-{
-	STRING moveString = moveUnhash(move);
-	return moveString;
 }
 
 
@@ -1302,9 +1293,8 @@ MOVE moveHash(STRING input)
 	return move;
 }
 
-STRING moveUnhash(MOVE move)
+void moveUnhash(MOVE move, char *moveString)
 {
-	STRING moveString = (STRING) SafeMalloc(5);
 	int startSquare, endSquare;
 	char letter, number;
 
@@ -1319,8 +1309,6 @@ STRING moveUnhash(MOVE move)
 	moveString[2] = letter;
 	moveString[3] = number;
 	moveString[4] = '\0';
-
-	return moveString;
 }
 
 
@@ -1454,18 +1442,18 @@ POSITION power(POSITION base, int exponent)
 **
 ************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -32,7 +32,6 @@ BOOLEAN kSupportsSymmetries = TRUE; //Whether symmetries are supported (i.e. whe
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -133,17 +132,6 @@ void PrintComputersMove(MOVE, STRING);
 USERINPUT GetAndPrintPlayersMove(POSITION, MOVE *, STRING);
 BOOLEAN ValidTextInput(STRING);
 MOVE ConvertTextInputToMove(STRING);
-STRING MoveToString(MOVE);
-void PrintMove(MOVE);
-
-
-
-// Interact functions
-POSITION InteractStringToPosition(STRING);
-STRING InteractPositionToString(POSITION);
-STRING InteractPositionToEndData(POSITION);
-STRING InteractMoveToString(POSITION, MOVE);
-
 
 
 /*********** BEGIN TIER FUNCIONS ***********/
@@ -279,7 +267,6 @@ void InitializeGame() {
   /********************************/
 
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
   gSymmetries = TRUE;
 
   boardSize = boardDimensionX * boardDimensionY;
@@ -512,11 +499,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("\t%s\n\n", GetPrediction(position,playerName,usersTurn));
 }
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  (void) computersName;
-  PrintMove(computersMove);
-}
-
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   USERINPUT ret;
 	do {
@@ -539,14 +521,12 @@ the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
   if (strlen(input) == 3){
     int move = (((int)input[0] - 48) * boardDimensionY + ((int)input[2] - 48))*2;
-    PrintMove(move);
     return move;
   } else {
     int move = ((int)input[0] - 48) * boardDimensionY + ((int)input[2] - 48);
     move *= boardSize;
     move += ((int)input[4] - 48) * boardDimensionY + ((int)input[6] - 48);
     move = move*2+1;
-    PrintMove(move);
     return move;
   }
 }
@@ -554,24 +534,22 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
-  char* result = (char*) SafeMalloc(30);
+void MoveToString(MOVE move, char *moveStringBuffer) {
   int simMove = move / 2;
   if (move % 2 == 0){
-    sprintf(result, "%d", simMove);
+    snprintf(moveStringBuffer, 30, "%d", simMove);
   } else {
     int from = simMove / boardSize;
     int to = simMove % boardSize;
-    sprintf(result, "%d -> %d", from, to);
+    snprintf(moveStringBuffer, 30, "%d -> %d", from, to);
   }    
-  return result;
 }
 
-/* Basically just print the move. */
-void PrintMove(MOVE move) {
-  STRING moveString = MoveToString(move);
-  printf("%s", moveString);
-  SafeFree(moveString);
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+  (void) computersName;
+  char msb[30];
+  MoveToString(computersMove, msb);
+  printf("%s's Move: %s\n", computersName, msb);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -620,73 +598,61 @@ void setOption(int option) {
 
 
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
-  // Ignore the first 8 characters
-  char realBoard[boardSize];
 
-  for (int i = 0; i < boardSize; i++) {
-    if (board[i + 8] == emptyPiece) {
-      realBoard[i] = emptyPiece;
-    } else {
-      realBoard[i] = piece;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		// Ignore the first 8 characters
+    char realBoard[boardSize];
+
+    for (int i = 0; i < boardSize; i++) {
+      if (board[i] == emptyPiece) {
+        realBoard[i] = emptyPiece;
+      } else {
+        realBoard[i] = piece;
+      }
     }
-  }
-  int player = board[2] == 'A' ? 1 : 2;
+    POSITION position;
+    if (gHashWindowInitialized) {
+      TIER tier = BoardToTier(realBoard); // find this board's tier
+      generic_hash_context_switch(tier); // switch to that context
+      TIERPOSITION tierpos = generic_hash_hash((char*)realBoard, turn); //unhash
 
-  POSITION position;
-	if (gHashWindowInitialized) {
-		TIER tier = BoardToTier(realBoard); // find this board's tier
-		generic_hash_context_switch(tier); // switch to that context
-		TIERPOSITION tierpos = generic_hash_hash((char*)realBoard, player); //unhash
+      gInitializeHashWindow(tier, FALSE); // TODO: should be called in interact.c @Cameron :)
 
-    gInitializeHashWindow(tier, FALSE); // TODO: should be called in interact.c @Cameron :)
+      position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
 
-		position = gHashToWindowPosition(tierpos, tier); //gets TIERPOS, find POS
-
-	} else position = generic_hash_hash((char*)realBoard, player);
-	return position;
-
-  // return BoardToPosition(realBoard, player);
+    } else position = generic_hash_hash((char*)realBoard, turn);
+    return position;
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  char board[boardSize];
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[boardSize + 1];
   int player;
   PositionToBoard(position, board, &player);
-  STRING result = (STRING) SafeMalloc(9 + boardSize);
-  result[0] = 'R';
-  result[1] = '_';
-  result[2] = player == 1 ? 'A' : 'B';
-  result[3] = '_';
-  result[4] = '0';
-  result[5] = '_';
-  result[6] = '0';
-  result[7] = '_';
-  for (int i = 0; i < boardDimensionX; i++){
-    for (int j = 0; j < boardDimensionY; j++){
-      if (board[i*boardDimensionY+j] == emptyPiece)
-        result[i*boardDimensionY+j+8] = emptyPiece;
+  for (int i = 0; i < boardDimensionX; i++) {
+    for (int j = 0; j < boardDimensionY; j++) {
+      if (board[i * boardDimensionY + j] == emptyPiece)
+        board[i * boardDimensionY + j] = emptyPiece;
       else
-        result[i*boardDimensionY+j+8] = printPiece[(i+j+1)%2];
+        board[i * boardDimensionY + j] = printPiece[(i + j + 1) % 2];
     }
   }
-  result[8 + boardSize] = '\0';
-  return result;
+  board[boardSize] = '\0';
+  AutoGUIMakePositionString(player, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
   (void) position;
-  char* result = (char*) SafeMalloc(16);
   int simMove = move / 2;
   if (move % 2 == 0){
-    sprintf(result, "A_h_%d_x", simMove);
+    AutoGUIMakeMoveButtonStringA('h', simMove, 'x', autoguiMoveStringBuffer);
   } else {
     int from = simMove / boardSize;
     int to = simMove % boardSize;
-    sprintf(result, "M_%d_%d_y", from, to);
-  }    
-  return result;
+    AutoGUIMakeMoveButtonStringM(from, to, 'y', autoguiMoveStringBuffer);
+  }
 }

@@ -25,7 +25,6 @@ BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -206,7 +205,6 @@ TIERPOSITION numberOfTierPositions(TIER tier) {
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
 void InitializeGame() {
-  gMoveToStringFunPtr = &MoveToString;
   gInitialPosition = 0;
   gCanonicalPosition = GetCanonicalPosition;
   gSymmetries = TRUE;
@@ -420,10 +418,8 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
-  char * move_str = malloc(sizeof(char) * 3);
-  snprintf(move_str, 2, "%d", move);
-  return move_str;
+void MoveToString(MOVE move, char *moveStringBuffer) {
+  snprintf(moveStringBuffer, 3, "%d", move);
 }
 
 /* Basically just print the move. */
@@ -494,75 +490,64 @@ void setOption(int option) {
 
 
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING str) {
-  enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		Slide5Board s5b;
+    for (int i = 0; i < 25; i++) {
+      switch (board[i]) {
+        case '-':
+          s5b.board[i + 1] = 0;
+          break;
+        case 'X':
+          s5b.board[i + 1] = 1;
+          break;
+        case 'O':
+          s5b.board[i + 1] = 2;
+          break;
+        default:
+          return NULL_POSITION;
+          break;
+      }
+    }
+    s5b.board[0] = (turn == 1) ? 0 : 1;
+
+    TIER tier = 0;
+    for (int i = 25; i > 0; i--) {
+      tier = (tier << 1) | (s5b.board[i] > 0 ? 1 : 0);
+    }
+    gInitializeHashWindow(tier, FALSE);
+    return Hash(&s5b);
 	}
-
-	Slide5Board s5b;
-	for (int i = 0; i < 25; i++) {
-		switch (board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				s5b.board[i + 1] = 0;
-				break;
-			case 'X':
-				s5b.board[i + 1] = 1;
-				break;
-			case 'O':
-				s5b.board[i + 1] = 2;
-				break;
-		}
-	}
-  s5b.board[0] = (turn == UWAPI_TURN_A) ? 0 : 1;
-
-  TIER tier = 0;
-  for (int i = 25; i > 0; i--) {
-    tier = (tier << 1) | (s5b.board[i] > 0 ? 1 : 0);
-  }
-  gInitializeHashWindow(tier, FALSE);
-
-	SafeFreeString(board); // Free the string.
-	return Hash(&s5b);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  Slide5Board *s5b = Unhash(position);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	Slide5Board *s5b = Unhash(position);
 
 	char board[26];
 	for (int i = 1; i < 26; i++) {
 		switch (s5b->board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected position\n");
-				break;
 			case 0:
 				board[i - 1] = '-';
 				break;
 			case 1:
 				board[i - 1] = 'X';
 				break;
-			case 2:
+			default:
 				board[i - 1] = 'O';
 				break;
 		}
 	}
 	board[25] = '\0'; // Make sure to null-terminate your board.
 
-	enum UWAPI_Turn turn = s5b->board[0] ? UWAPI_TURN_B : UWAPI_TURN_A;
+	int turn = s5b->board[0] ? 2 : 1;
   free(s5b);
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 25, board);
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-  (void)position;
-  return UWAPI_Board_Regular2D_MakeMoveStringWithSound(25 + move * 2, 26 + move * 2, 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  AutoGUIMakeMoveButtonStringM(25 + move * 2, 26 + move * 2, 'x', autoguiMoveStringBuffer);
 }

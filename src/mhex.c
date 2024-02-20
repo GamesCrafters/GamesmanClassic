@@ -140,7 +140,6 @@ int possize;
 //int                   vcfg(int *this_cfg);
 void                    InitializeHelpStrings();
 MOVELIST*               getValidMoves(STRING board, int index, int* count);
-STRING                  MoveToString(MOVE move);
 void                    PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 void                    playSwapMove(char* board);
 void                    push(lnode** stack, int index);
@@ -221,9 +220,6 @@ void InitializeHelpStrings ()
 
 	kHelpExample =
 	        "";
-
-	gMoveToStringFunPtr = &MoveToString;
-
 }
 
 
@@ -523,6 +519,42 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString (MOVE move, char *moveStringBuffer) {
+	if(move == SWAPMOVE) {
+		moveStringBuffer[0] = 'w';
+		moveStringBuffer[1] = '\0';
+	} else {
+		moveStringBuffer[0] = 'a' + (int)(move % boardcols);
+		moveStringBuffer[1] = '0' + (int)(move / boardcols);
+		moveStringBuffer[2] = '\0';
+	}
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Prints the move in a nice format.
+**
+** INPUTS:      MOVE move         : The move to print.
+**
+************************************************************************/
+
+void PrintMove(MOVE move) {
+	char moveStringBuffer[20];
+	MoveToString( move, moveStringBuffer );
+	printf( "%s", moveStringBuffer );
+}
 
 /************************************************************************
 **
@@ -535,63 +567,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	STRING moveString = MoveToString(computersMove);
-	printf("%s's move: %s", computersName, moveString);
-	SafeFree(moveString);
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = (char*)SafeMalloc(20*sizeof(char));
-	str = MoveToString( move );
-
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *move         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString (MOVE move)
-{
-	STRING movestring = (char*)SafeMalloc(20*sizeof(char));
-
-	if(move == SWAPMOVE) {
-
-		movestring [0] = 'w';
-		movestring [1] = '\0';
-
-	} else {
-
-		movestring[0] = 'a' + (int)(move % boardcols);
-		movestring[1] = '0' + (int)(move / boardcols);
-
-		movestring[2] = '\0';
-
-	}
-
-	return movestring;
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+	char moveStringBuffer[20];
+	MoveToString(computersMove, moveStringBuffer);
+	printf("%s's move: %s", computersName, moveStringBuffer);
 }
 
 
@@ -1119,18 +1098,18 @@ void getIntVal(int* target) {
 ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
 ************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

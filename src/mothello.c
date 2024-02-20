@@ -154,13 +154,12 @@ int oppositedirection(int);
 BOOLEAN IsPlayableBoard(char[]);
 
 BOOLEAN quickgeneratemoves(char[], int);
-
+void PositionToString(POSITION position, char *positionStringBuffer);
 char* getBoard(POSITION);
 char* getBlankBoard(void);
 
 extern BOOLEAN (*gGoAgain)(POSITION, MOVE);
 
-STRING MoveToString(MOVE);
 POSITION ActualNumberOfPositions(int variant);
 
 /* TIER-SPECIFIC FUNCTION DECLARATIONS */
@@ -234,9 +233,9 @@ void InitializeGame(void) {
 #endif
 
     fflush(stdout);
-    gMoveToStringFunPtr = &MoveToString;
     gPutWinBy = &computeWinBy;
     gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+    gPositionToStringFunPtr = &PositionToString;
 
     // Setup Tier Stuff
     // SetupTierStuff();
@@ -872,29 +871,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-    int ArrayNum, mymove[2];
-    char alphabet[] = "abcdefghijklmnopqrstuvwxyz";
-
-	ArrayNum = (int) move;
-	if (ArrayNum == PASSMOVE) {
-		printf("[No Available Moves. Please hit 'd' to pass.] ");
-	} else {
-		ArrayNumtoCoord(ArrayNum, mymove);
-		printf("%c%d", alphabet[mymove[1] - 1], InvertRow(mymove[0]));
-	}
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -903,15 +879,13 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-    STRING move = (STRING)SafeMalloc(3);
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
     if ((int)theMove == PASSMOVE) {
-        sprintf(move, "P");
+        snprintf(moveStringBuffer, 6, "P");
     } else {
-        sprintf(move, "%c%d", theMove % OthCols + 'a',
+        snprintf(moveStringBuffer, 6, "%c%d", theMove % OthCols + 'a',
                 InvertRow(theMove / OthCols + 1));
     }
-    return move;
 }
 
 /************************************************************************
@@ -1629,63 +1603,81 @@ void printBoard(char* board) {
     }
 }
 
-POSITION InteractStringToPosition(STRING pos) {
-    enum UWAPI_Turn turn;
-    unsigned int num_rows, num_columns;
-    STRING board;
-    if (!UWAPI_Board_Regular2D_ParsePositionString(pos, &turn, &num_rows,
-                                                   &num_columns, &board)) {
-        return INVALID_POSITION;
-    }
 
-    // Convert UWAPI standard board string to internal board representation
-    int BOARDSIZE = 4 * 4;
-    int i;
-    for (i = 0; i < BOARDSIZE; i++) {
-        if (board[i] == '-') {
-            board[i] = ' ';
-        }
-    }
-
-    int whosTurn = (turn == UWAPI_TURN_A) ? BLACK : WHITE;
-    POSITION position = getPosition(board, whosTurn);
-    // No need to free string because getPosition does it
-    return position;
-}
-
-STRING InteractPositionToString(POSITION pos) {
-    char* board = getBoard(pos);
-    int whosTurn = generic_hash_turn(pos);
-    int BOARDSIZE = OthRows * OthCols;
-    int whitetally, blacktally, i;
-
-    for (i = 0; i < BOARDSIZE; i++) {
+void PositionToString(POSITION position, char *positionStringBuffer) {
+    char* board = getBoard(position);
+    int BOARDSIZE = 16;
+    for (int i = 0; i < BOARDSIZE; i++) {
         if (board[i] == ' ') {
             board[i] = '-';
         }
     }
-    enum UWAPI_Turn turn = (whosTurn == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
-    char* formatted =
-        UWAPI_Board_Regular2D_MakePositionString(turn, OthRows, OthCols, board);
+    positionStringBuffer[0] = generic_hash_turn(position) + '0';
+    positionStringBuffer[1] = '_';
+    memcpy(positionStringBuffer + 2, board, 16);
+    positionStringBuffer[18] = '\0';
+    free(board);
+}
+
+/* The difference between the PositionString and AutoGUIPositionString is that the
+AutoGUIPositionString contains characters for the players' scores, while the PositionString
+does not. */
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+    /* Even though the PositionString and AutoGUIPositionString are not the same,
+    we can still use ParseStandardOnelinePositionString because the PositionString
+    is still in AutoGUI format. */
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+        // Convert UWAPI standard board string to internal board representation
+        int BOARDSIZE = 16;
+        char *boardCopy = (char *) malloc(sizeof(char) * BOARDSIZE);
+        for (int i = 0; i < BOARDSIZE; i++) {
+            if (board[i] == '-') {
+                boardCopy[i] = ' ';
+            } else {
+                boardCopy[i] = board[i];
+            }
+        }
+        return getPosition(boardCopy, (turn == 1) ? BLACK : WHITE);
+        // No need to free boardCopy because getPosition does it
+	}
+	return NULL_POSITION;
+}
+
+/* The difference between the PositionString and AutoGUIPositionString is that the
+AutoGUIPositionString contains characters for the players' scores, while the PositionString
+does not. */
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char* board = getBoard(position);
+    int BOARDSIZE = 16;
+    int whitetally, blacktally;
+
+    for (int i = 0; i < BOARDSIZE; i++) {
+        if (board[i] == ' ') {
+            board[i] = '-';
+        }
+    }
+    char formatted[21];
+    memcpy(formatted, board, 16);
 
     // Append piece counts to the end of the string, assuming enough space.
     tallyPieces(board, &blacktally, &whitetally, NULL);
-    formatted[24] = blacktally / 10 + '0';
-    formatted[25] = blacktally % 10 + '0';
-    formatted[26] = whitetally / 10 + '0';
-    formatted[27] = whitetally % 10 + '0';
-    formatted[28] = '\0';
-
+    formatted[16] = blacktally / 10 + '0';
+    formatted[17] = blacktally % 10 + '0';
+    formatted[18] = whitetally / 10 + '0';
+    formatted[19] = whitetally % 10 + '0';
+    formatted[20] = '\0';
     free(board);
-    return formatted;
+    AutoGUIMakePositionString(generic_hash_turn(position), formatted, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-    (void)pos;
-    if ((int)mv == PASSMOVE) {
-        return UWAPI_Board_Regular2D_MakeAddStringWithSound('P', 20, 'y');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+    (void) position;
+    if ((int)move == PASSMOVE) {
+        AutoGUIMakeMoveButtonStringA('P', 20, 'x', autoguiMoveStringBuffer);
     } else {
-        return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', mv, 'x');
+        AutoGUIMakeMoveButtonStringA('h', move, 'x', autoguiMoveStringBuffer);
     }
 }
 

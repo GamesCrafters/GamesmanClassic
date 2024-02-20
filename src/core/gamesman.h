@@ -28,13 +28,13 @@
 #include "analysis.h"
 #include "visualization.h"
 #include "openPositions.h"
+#include "autoguistrings.h"
 #include "constants.h"
 #include "globals.h"
 #include "debug.h"
 #include "gameplay.h"
 #include "misc.h"
 #include "textui.h"
-#include "mlib.h"
 #include "interact.h"
 #include "main.h"
 #include "seval.h"
@@ -54,7 +54,7 @@ MOVELIST*               GenerateMoves                   (POSITION position);
 USERINPUT               GetAndPrintPlayersMove          (POSITION thePosition, MOVE* theMove, STRING playerName);
 BOOLEAN                 ValidTextInput                  (STRING input);
 MOVE                    ConvertTextInputToMove          (STRING input);
-void                    PrintMove                       (MOVE theMove);
+void                    MoveToString                    (MOVE move, char *moveStringBuffer);
 int                     NumberOfOptions                 (void);
 int                     getOption                       (void);
 void                    setOption                       (int option);

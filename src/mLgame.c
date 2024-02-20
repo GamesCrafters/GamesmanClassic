@@ -128,7 +128,6 @@ Type '?' if you need assistance...\n\n\n\
    X's turn      (Dan will Lose in 0) \n\n\n\
 Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ;
 
-STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -339,7 +338,6 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 
 void InitializeGame()
 {
-	gMoveToStringFunPtr = &MoveToString;
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
@@ -1186,26 +1184,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-** CALLS:       unhashMoveL(MOVE)
-**              unhashMoveSPiece(MOVE)
-**              unhashMoveSValue(MOVE)
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING moveString = MoveToString(theMove);
-	printf( "%s", moveString);
-	SafeFree(moveString);
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -1214,20 +1192,16 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(13);
-
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	int L = unhashMoveL(theMove);
-	if (unhashMoveSPiece(theMove) == 0)
-		sprintf( move, "[%d %d] ", transPairs[L][0], transPairs[L][1]);
-	else if (unhashMoveSPiece(theMove) == 1)
-		sprintf( move, "[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(theMove));
-	else
-		sprintf( move, "[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(theMove));
-
-	return move;
+	if (unhashMoveSPiece(theMove) == 0) {
+		snprintf( moveStringBuffer, 16, "%d %d", transPairs[L][0], transPairs[L][1]);
+	} else if (unhashMoveSPiece(theMove) == 1) {
+		snprintf( moveStringBuffer, 16, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(theMove));
+	} else {
+		snprintf( moveStringBuffer, 16, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(theMove));
+	}
 }
-
 
 /**************************************************************
 ** Lgame specific functions
@@ -1991,69 +1965,44 @@ POSITION decodeInterpos(POSITION interPos, int *isIntermediate, int *fromLPiece,
 	return interPos & 0x0000000FFFFFFFFF;
 }
 
-/* R_A_0_0_[16 (board)][5 (multipart move information)]*/
-POSITION InteractStringToPosition(STRING str) {
-	char *board = str + 7; // Note that this board is offset by -1 from the pieceString
-	BOOLEAN L1Found = FALSE, L2Found = FALSE, S1Found = FALSE, S2Found = FALSE;
+/* 1_WRR--BR--BR--BBG */
+POSITION StringToPosition(char *positionString) {
+	int whoseMove = positionString[0] == '1' ? 1 : 2;
+	char *board = positionString + 1;
 	int L1 = 0, L2 = 0, S1 = 0, S2 = 0;
-	int whoseMove = (str[2] == 'A') ? 1 : 2;
-	int prevL = 10 * (board[17] - 'a') + (board[18] - 'a');
-	int whichS = board[19] - 'a';
-	int prevS = 10 * (board[20] - 'a') + (board[21] - 'a');
-	if (prevL != 0) {
-		if (whichS == 1) {
-			S1 = prevS;
-			S1Found = TRUE;
-		} else if (whichS == 2) {
-			S2 = prevS;
-			S2Found = TRUE;
+
+	for (int i = 1; i <= 16; i++) {
+		if (board[i] == 'W') {
+			S1 = i;
+			break;
 		}
-		if (whoseMove == 1) {
-			L1 = prevL;
-			L1Found = TRUE;
-		} else {
-			L2 = prevL;
-			L2Found = TRUE;
+	}
+	
+	for (int i = 1; i <= 16; i++) {
+		if (board[i] == 'G') {
+			S2 = i;
+			break;
 		}
 	}
 
-	if (!S1Found) {
-		for (int i = 1; i <= 16; i++) {
-			if (board[i] == 'W') {
-				S1 = i;
-				break;
-			}
-		}
-	}
-	if (!S2Found) {
-		for (int i = 1; i <= 16; i++) {
-			if (board[i] == 'G') {
-				S2 = i;
-				break;
-			}
-		}
-	}
 
-	if (!L1Found) {
-		for (int i = 1; i <= 48; i++) {
-			if (board[FOURSQUARES[i][0]] == 'R' && 
-				board[FOURSQUARES[i][1]] == 'R' &&
-				board[FOURSQUARES[i][2]] == 'R' &&
-				board[FOURSQUARES[i][3]] == 'R') {
-				L1 = i;
-				break;
-			}
+	for (int i = 1; i <= 48; i++) {
+		if (board[FOURSQUARES[i][0]] == 'R' && 
+			board[FOURSQUARES[i][1]] == 'R' &&
+			board[FOURSQUARES[i][2]] == 'R' &&
+			board[FOURSQUARES[i][3]] == 'R') {
+			L1 = i;
+			break;
 		}
 	}
-	if (!L2Found) {
-		for (int i = 1; i <= 48; i++) {
-			if (board[FOURSQUARES[i][0]] == 'B' && 
-				board[FOURSQUARES[i][1]] == 'B' &&
-				board[FOURSQUARES[i][2]] == 'B' &&
-				board[FOURSQUARES[i][3]] == 'B') {
-				L2 = i;
-				break;
-			}
+	
+	for (int i = 1; i <= 48; i++) {
+		if (board[FOURSQUARES[i][0]] == 'B' && 
+			board[FOURSQUARES[i][1]] == 'B' &&
+			board[FOURSQUARES[i][2]] == 'B' &&
+			board[FOURSQUARES[i][3]] == 'B') {
+			L2 = i;
+			break;
 		}
 	}
 	
@@ -2064,9 +2013,9 @@ POSITION InteractStringToPosition(STRING str) {
 	return hash(L1, L2, S1, S2, whoseMove);
 }
 
-STRING InteractPositionToString(POSITION interpos) {	
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	int isIntermediate, fromLPiece, SPiece, fromSPiece, toLPiece;
-	POSITION pos = decodeInterpos(interpos, &isIntermediate, &fromLPiece, &SPiece, &fromSPiece, &toLPiece);
+	POSITION pos = decodeInterpos(position, &isIntermediate, &fromLPiece, &SPiece, &fromSPiece, &toLPiece);
 	char board[23] = "-----------------aaaaa\0";
 	int L1 = unhashL1(pos);
 	int L2 = unhashL2(pos);
@@ -2074,7 +2023,7 @@ STRING InteractPositionToString(POSITION interpos) {
 	int S2 = unhashS2(pos);
 	int whoseTurn = unhashTurn(pos);
 
-	enum UWAPI_Turn turn = (whoseTurn == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	int turn = (whoseTurn == 1) ? 1 : 2;
 
 	L2 = Make48(L1, L2);
 	S1 = Make8to16(L1, L2, S1);
@@ -2101,46 +2050,41 @@ STRING InteractPositionToString(POSITION interpos) {
 			for (int i = 0; i < 4; i++) board[FOURSQUARES[L1][i]] = 'R';
 			for (int i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i]] = 'B';
 		}
-		board[17] = (fromLPiece / 10) + 'a';
-		board[18] = (fromLPiece % 10) + 'a';
-		board[19] = SPiece + 'a';
-		board[20] = (fromSPiece / 10) + 'a';
-		board[21] = (fromSPiece % 10) + 'a';
 	} else {
 		board[S1] = 'W';
 		board[S2] = 'G';
 		for (int i = 0; i < 4; i++) board[FOURSQUARES[L1][i]] = 'R';
 		for (int i = 0; i < 4; i++) board[FOURSQUARES[L2][i]] = 'B';
 	}
-	board[22] = '\0';
-	
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 23, board + 1);
+	board[17] = '\0';
+	AutoGUIMakePositionString(turn, board + 1, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	if (mv >= 300000) { // Selecting L: corner and orientation
-		int L = unhashMoveL(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound(((L - 1) / 6) + '1', 20 + L, 'x');
-	} else if (mv >= 200000) { // Selecting which neutral piece to place
-		int SP = unhashMoveSPiece(mv % 100000); // SP will NOT be 0 if mv is a part-move
-		int L1 = unhashL1(pos);
-		int L2 = unhashL2(pos);
-		int S1 = unhashS1(pos);
-		int S2 = unhashS2(pos);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  if (move >= 300000) { // Selecting L: corner and orientation
+		int L = unhashMoveL(move % 100000);
+		return AutoGUIMakeMoveButtonStringA(((L - 1) / 6) + '1', 20 + L, 'x');
+	} else if (move >= 200000) { // Selecting which neutral piece to place
+		int SP = unhashMoveSPiece(move % 100000); // SP will NOT be 0 if mv is a part-move
+		int L1 = unhashL1(position);
+		int L2 = unhashL2(position);
+		int S1 = unhashS1(position);
+		int S2 = unhashS2(position);
 
 		L2 = Make48(L1, L2);
 		S1 = Make8to16(L1, L2, S1);
 		S2 = Make7to16(L1, L2, S1, S2);
 		if (SP == 1) { 
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', S1 - 1, 'y');
+			return AutoGUIMakeMoveButtonStringA('h', S1 - 1, 'y');
 		} else {
-			return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', S2 - 1, 'y');
+			return AutoGUIMakeMoveButtonStringA('h', S2 - 1, 'y');
 		}
-	} else if (mv >= 100000) { // Choosing where to place neutral piece
-		int SV = unhashMoveSValue(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', SV - 1, 'z');
+	} else if (move >= 100000) { // Choosing where to place neutral piece
+		int SV = unhashMoveSValue(move % 100000);
+		return AutoGUIMakeMoveButtonStringA('h', SV - 1, 'z');
 	} else {
-		return MoveToString(mv);
+		AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
 	}
 }
 

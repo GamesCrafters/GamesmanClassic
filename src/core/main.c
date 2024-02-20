@@ -45,7 +45,7 @@
 #include "visualization.h"
 #include "openPositions.h"
 //#include "Parallel.h"
-extern POSITION InteractStringToPosition(STRING str);
+extern POSITION StringToPosition(STRING str);
 
 /*
 ** Globals
@@ -279,6 +279,7 @@ void SolveAndStore()
 void HandleArguments (int argc, char *argv[])
 {
 	int i, option;
+	char moveStringBuffer[32];
 	for(i = 1; i < argc; i++) {
 		if(!strcasecmp(argv[i], "--nodb")) {
 			gSaveDatabase = FALSE;
@@ -440,7 +441,8 @@ void HandleArguments (int argc, char *argv[])
 				printf("\nGenerateMoves returns: [ ");
 				MOVELIST *moves = GenerateMoves(atoi(argv[2])), *ptr;
 				for (ptr = moves; ptr != NULL; ptr = ptr->next) {
-					PrintMove(ptr->move);
+					MoveToString(ptr->move, moveStringBuffer);
+					printf("%s", moveStringBuffer);
 					printf(" ");
 				}
 				printf("]\n\n");
@@ -519,8 +521,8 @@ void HandleArguments (int argc, char *argv[])
 				// where "position" is a board string, "move" is a move string
 				// that describes how to reach the specified board from its
 				// parent, and "value" specifies the win/lose/tie value.
-				/* POSITION pos = InteractStringToPosition(boardStr, whoseMove, option); */
-				POSITION pos = InteractStringToPosition(boardStr);
+				/* POSITION pos = StringToPosition(boardStr, whoseMove, option); */
+				POSITION pos = StringToPosition(boardStr);
 				VALUE primitiveValue = Primitive(pos);
 				if (getNextMoveValues) {
 					if (primitiveValue) {
@@ -542,9 +544,6 @@ void HandleArguments (int argc, char *argv[])
 								} else if (value == lose) {
 									value = win;
 								}
-								/* Broken. */
-								/* printf("(%s, %s, %d)", childPosition, MoveToString(moves->move), */
-								/*        GetValueOfPosition(child)); */
 								moves = moves->next;
 								if (moves != NULL) {
 									printf(", ");

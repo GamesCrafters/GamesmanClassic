@@ -23,7 +23,6 @@ BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (
 
 /* Do not change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 CONST_STRING kGameName = "Santorini";
 CONST_STRING kDBName = "santorini";
@@ -67,7 +66,6 @@ void GameSpecificMenu() {}
 solving or playing the game. */
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
 
   /* YOUR CODE HERE */
   
@@ -165,16 +163,10 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move. 
 Ideally this matches with what the user is supposed to
 type in. */
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
   /* YOUR CODE HERE */
   (void)move;
-  return NULL;
-}
-
-/* Basically just print the move. */
-void PrintMove(MOVE move) {
-  /* YOUR CODE HERE */
-  (void)move;
+  (void)moveStringBuffer;
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -219,23 +211,18 @@ void setOption(int option) {
 
 
 
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE LATER BUT NOT NOW */
-  (void)board;
-  return 0;
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE LATER BUT NOT NOW */
-  (void)position;
-  return NULL;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
-  /* YOUR CODE HERE LATER BUT NOT NOW */
-  (void)position;
-  return MoveToString(move);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -484,11 +484,9 @@ void PrintMove(MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
+void MoveToString (MOVE move, char *moveStringBuffer)
 {
-  char * c = malloc(MAX_MOVE_STRING_SIZE);
-  snprintf(c, MAX_MOVE_STRING_SIZE, "%u,%u", DECODE_MOVE_START(move), DECODE_MOVE_END(move));
-  return c;
+  snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%u,%u", DECODE_MOVE_START(move), DECODE_MOVE_END(move));
 }
 
 CONST_STRING kDBName = "ponghauki";
@@ -515,32 +513,18 @@ POSITION ActualNumberOfPositions(int variant)
 }
 
 
-POSITION InteractStringToPosition(STRING board)
-{
-  int i, turn;
-  char board_char[BOARD_SIZE];
-  for(i = 0; i < BOARD_SIZE; i++){
-    board_char[i] = board[i];
-  }
-
-  int success = GetValue(board, "turn", GetInt, &turn);
-  if (success) {
-    return generic_hash_hash(board_char, turn);
-  } else {
-    return INVALID_POSITION;
-  }
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos)
-{
-  char board[BOARD_SIZE + 1];
-  int current_player = generic_hash_turn(pos);
-  generic_hash_unhash(pos, board);
-  return MakeBoardString(board, "turn",  StrFromI(current_player), "");
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv)
-{
-  (void)pos;
-  return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

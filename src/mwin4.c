@@ -27,6 +27,7 @@
 **************************************************************************/
 
 #include "gamesman.h"
+#include "core/mlib.h"
 
 POSITION gNumberOfPositions   = 0; // Initialized to MyNumberOfPos()
 POSITION gInitialPosition     = 0;     // Initialized to MyInitialPosition()
@@ -182,7 +183,6 @@ void            InitPieceToNumConvs();
 void            UndoMove(MOVE move);
 void            SetupTierStuff();
 void            positionToBinary(POSITION p);
-STRING          MoveToString( MOVE );
 POSITION        GetCanonicalPosition(POSITION position);
 
 TIER            PositionToTier(POSITION pos);
@@ -243,7 +243,6 @@ void InitializeGame()
 	gPosition.nextPiece = x;
 	gPosition.piecesPlaced = 0;
 	gUndoMove = UndoMove;
-	gMoveToStringFunPtr =  &MoveToString;
 	gCanonicalPosition = GetCanonicalPosition;
 }
 
@@ -817,23 +816,6 @@ MOVE ConvertTextInputToMove(STRING input)
 	return((MOVE) input[0] - '1'); /* user input is 1-5, our rep. is 0-4 */
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove)
-{
-	STRING str = MoveToString( theMove );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
 
 /************************************************************************
 **
@@ -845,13 +827,10 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove)
+void MoveToString (MOVE theMove, char *m)
 {
-	STRING m = (STRING) SafeMalloc( 3 );
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	sprintf( m, "%d", theMove + 1);
-
-	return m;
 }
 
 
@@ -1496,21 +1475,18 @@ void positionToBinary(POSITION pos) {
 	SafeFree(board);
 }
 
-
-
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	(void)pos;
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

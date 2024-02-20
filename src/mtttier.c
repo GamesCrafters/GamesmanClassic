@@ -163,7 +163,6 @@ typedef char BlankOX;
 BOOLEAN AllFilledIn(BlankOX*);
 BOOLEAN ThreeInARow(BlankOX*, int, int, int);
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 
 // HASH/UNHASH
 char* customUnhash(POSITION);
@@ -239,8 +238,6 @@ void InitializeGame()
 			}
 		}
 	}
-
-	gMoveToStringFunPtr = &MoveToString;
 	gCustomUnhash = &customUnhash;
 	// gCustomUnhash is a (STRING) char *
 	// linearUnhash expects void *
@@ -638,24 +635,6 @@ MOVE ConvertTextInputToMove(STRING input)
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove)
-{
-	STRING str = MoveToString( theMove );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -664,13 +643,10 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove)
+void MoveToString (MOVE theMove, char *m)
 {
-	STRING m = (STRING) SafeMalloc( 3 );
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	sprintf( m, "%d", theMove + 1);
-
-	return m;
 }
 
 BOOLEAN ThreeInARow(BlankOX* board, int a, int b, int c)
@@ -895,53 +871,18 @@ STRING TierToString(TIER tier) {
 	return tierStr;
 }
 
-POSITION InteractStringToPosition(STRING boardStr) {
-	// change boardStr to BlankOX
-	BlankOX *board = malloc(sizeof(BlankOX)* BOARDSIZE);
-	if (strlen(boardStr) < BOARDSIZE) {
-		printf("String to Position for ACHI failed\n");
-		return -1;
-	}
-	int i;
-	for (i = 0; i < BOARDSIZE; i++) {
-		if (boardStr[i] == 'o') {
-			board[i] = o;
-		}
-		else if (boardStr[i] == 'x') {
-			board[i] = x;
-		}
-		else if (boardStr[i] == ' ') {
-			board[i] = Blank;
-		}
-	}
-	return BlankOXToPosition(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-    BlankOX *board = PositionToBlankOX(pos);
-    int i;
-    char* safe_board = (char*)SafeMalloc((BOARDSIZE + 1) * sizeof(char));
-		char* whole_board = NULL;
-    for (i = 0; i < BOARDSIZE; i++) {
-        if (board[i] == o) {
-            safe_board[i] = 'o';
-        }
-        else if (board[i] == x) {
-            safe_board[i] = 'x';
-        }
-        else if (board[i] == Blank) {
-            safe_board[i] = ' ';
-        }
-    }
-    *(safe_board+BOARDSIZE) = '\0';
-		whole_board = MakeBoardString(safe_board,
-				"tier", TierstringFromPosition(pos),
-				"");
-		SafeFree(safe_board);
-	return whole_board;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

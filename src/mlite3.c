@@ -136,8 +136,6 @@ VALUE Surround(BlankOOOXXX *theBlankOOOXXX, PLAYER_TURN whoseTurn);
 /** Changing Variants **/
 void InitializeHelpStrings();
 
-STRING MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeDatabases
@@ -148,7 +146,6 @@ STRING MoveToString(MOVE);
 
 void InitializeGame() {
 	InitializeHelpStrings();
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 void FreeGame() {}
@@ -768,22 +765,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -792,12 +773,9 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE theMove) {
-	STRING move = (STRING) SafeMalloc(2);
-
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf(move, "%d", theMove);
-	return move;
+	snprintf(moveStringBuffer, 5, "%d", theMove);
 }
 
 /************************************************************************
@@ -1024,53 +1002,49 @@ void setOption(int option) {
 	InitializeHelpStrings();
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	theBlankOOOXXX[0] = (BlankOOOXXX)(turn == UWAPI_TURN_B ? o : x);
-	for (int i = 1; i < BOARDSIZE; i++) {
-		switch (board[i-1]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				theBlankOOOXXX[i] = Blank;
-				break;
-			case 'a':
-				theBlankOOOXXX[i] = o1;
-				break;
-			case 'b':
-				theBlankOOOXXX[i] = o2;
-				break;
-			case 'c':
-				theBlankOOOXXX[i] = o3;
-				break;
-			case '1':
-				theBlankOOOXXX[i] = x1;
-				break;
-			case '2':
-				theBlankOOOXXX[i] = x2;
-				break;
-			case '3':
-				theBlankOOOXXX[i] = x3;
-				break;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+		theBlankOOOXXX[0] = (BlankOOOXXX)(turn == 2 ? o : x);
+		for (int i = 1; i < BOARDSIZE; i++) {
+			switch (board[i-1]) {
+				default:
+					fprintf(stderr, "Error: Unexpected char in position\n");
+					break;
+				case '-':
+					theBlankOOOXXX[i] = Blank;
+					break;
+				case 'a':
+					theBlankOOOXXX[i] = o1;
+					break;
+				case 'b':
+					theBlankOOOXXX[i] = o2;
+					break;
+				case 'c':
+					theBlankOOOXXX[i] = o3;
+					break;
+				case '1':
+					theBlankOOOXXX[i] = x1;
+					break;
+				case '2':
+					theBlankOOOXXX[i] = x2;
+					break;
+				case '3':
+					theBlankOOOXXX[i] = x3;
+					break;
+			}
 		}
+		return BlankOOOXXXToPosition(theBlankOOOXXX);
 	}
-
-	SafeFreeString(board); // Free the string.
-	return BlankOOOXXXToPosition(theBlankOOOXXX);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	PositionToBlankOOOXXX(pos, theBlankOOOXXX);
-	enum UWAPI_Turn turn = (!WhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	PositionToBlankOOOXXX(position, theBlankOOOXXX);
+	int turn = (!WhoseTurn(position)) ? 1 : 2;
 
 	char board[BOARDSIZE];
 	for (int i = 0; i < BOARDSIZE-1; i++) {
@@ -1102,14 +1076,12 @@ STRING InteractPositionToString(POSITION pos) {
 		}
 	}
 	board[BOARDSIZE-1] = '\0'; // Make sure to null-terminate your board.
-
-	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	(void)pos;
-	SLOT toSlot;
-	MoveToSlots(mv, &toSlot);
-	return UWAPI_Board_Regular2D_MakeAddStringWithSound('h', toSlot - 1, 'x');
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+ 	SLOT toSlot;
+	MoveToSlots(move, &toSlot);
+	AutoGUIMakeMoveButtonStringA('h', toSlot - 1, 'x', autoguiMoveStringBuffer);
 }

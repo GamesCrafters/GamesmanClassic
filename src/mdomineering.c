@@ -23,7 +23,6 @@ BOOLEAN kLoopy = FALSE;
 BOOLEAN kSupportsSymmetries = TRUE;
 
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void *gGameSpecificTclInit = NULL;
@@ -49,8 +48,7 @@ TIERLIST *getTierChildren(TIER tier);
 TIERPOSITION numberOfTierPositions(TIER tier);
 POSITION reflectOverXAxis(POSITION bitBoard);
 POSITION reflectOverYAxis(POSITION bitBoard);
-STRING InteractCustomDoMove(STRING str, MOVE move);
-
+void PositionStringDoMove(char *parentPositionString, MOVE move, char *childAutoGUIPositionStringBuffer);
 
 int sideLength = 6;
 int boardSize = 36; // The number of 1x1 spaces on the board.
@@ -121,10 +119,9 @@ void InitializeGame() {
 	}
 	/********************************/
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
     gTierChildrenFunPtr = &getTierChildren;
     gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
-    gInteractCustomDoMoveFunPtr = &InteractCustomDoMove;
+    gPositionStringDoMoveFunPtr = &PositionStringDoMove;
     gInitialTierPosition = gInitialPosition;
     kSupportsTierGamesman = TRUE;
     kExclusivelyTierGamesman = TRUE;
@@ -302,12 +299,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     printf("      Player %d's Turn       %s\n\n", isP2Turn ? 2 : 1, GetPrediction(position, playerName, usersTurn));
 }
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-    STRING moveString = MoveToString(computersMove);
-    printf("%s's move: %s\n", computersName, moveString);
-    SafeFree(moveString);
-}
-
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
     USERINPUT ret;
     do {
@@ -333,19 +324,22 @@ MOVE ConvertTextInputToMove(STRING input) {
 /* Return the string representation of the move in heap space.
 Ideally this matches with what the user is supposed to
 type when they specify moves. */
-STRING MoveToString(MOVE move) {
-    STRING moveString = SafeMalloc(3);
-    moveString[0] = move % sideLength + 'a';
-    moveString[1] = move / sideLength + '1';
-    moveString[2] = '\0';
-    return moveString;
+void MoveToString(MOVE move, char *moveStringBuffer) {
+    moveStringBuffer[0] = move % sideLength + 'a';
+    moveStringBuffer[1] = move / sideLength + '1';
+    moveStringBuffer[2] = '\0';
 }
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
-    STRING moveString = MoveToString(move);
-    printf("%s", moveString);
-    SafeFree(moveString);
+    char moveStringBuffer[5];
+    MoveToString(move, moveStringBuffer);
+    printf("%s", moveStringBuffer);
+}
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    printf("%s's move: ", computersName);
+    PrintMove(computersMove);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -396,64 +390,61 @@ void GameSpecificMenu() {
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
-POSITION InteractStringToPosition(STRING str) {
-    str += 8;
-    POSITION bitBoard = 0;
-    TIER tierDoubled = 0;
-    for (int i = 0; i < boardSize; i++) {
-        if (str[i] == '-') {
-            bitBoard |= ((POSITION) 1) << i;
-        } else {
-            tierDoubled++;
-        }
-    }
-    gInitializeHashWindow(tierDoubled >> 1, FALSE);
-    return hash(bitBoard);
-}
-
-STRING InteractPositionToString(POSITION position) {
-    BOOLEAN isP2Turn;
-    POSITION bitBoard = unhash(position, &isP2Turn);
-    char board[boardSize + 1];
-    for (int i = 0; i < boardSize; i++) {
-        if (bitBoard & (((POSITION) 1) << i)) {
-            board[i] = '-';
-        } else {
-            board[i] = 'X';
-        }
-    }
-    board[boardSize] = '\0';
-    enum UWAPI_Turn turn = isP2Turn ? UWAPI_TURN_B : UWAPI_TURN_A;
-    return UWAPI_Board_Regular2D_MakeBoardString(turn, boardSize + 1, board);
-}
-
 /* Why this function? Answer:
 Our internal representation of the position ignores whether an occupied
-space is a blue or red piece. (See InteractStringToPosition). 
-We can't convert from position to string using InteractPositionToString, because
-the information about where the blue pieces and red pieces were is lost. 
+space is a blue or red piece. (See StringToPosition). 
+We can't convert from position to string using PositionToAutoGUIString, aside from 
+the initial position, because the information about where the blue pieces and red 
+pieces were is lost. 
 This function allows us to get the child position string representation after 
 applying a move to the parent string representation. Outside of this code,
 we still get the hash representation of the child position to query the database with,
 but this function is for the sake of getting the AutoGUI to show the original
 red and blue piece placements. */
-STRING InteractCustomDoMove(STRING str, MOVE move) {
-    STRING childPositionStr = SafeMalloc(9 + boardSize); // 8 for header and 1 for null terminator
-    memcpy(childPositionStr, str, 8 + boardSize);
-    childPositionStr[8 + boardSize] = '\0';
-    if (str[2] == 'A') {
-        childPositionStr[8 + move] = 'u';
-        childPositionStr[8 + move + sideLength] = 'd';
-        childPositionStr[2] = 'B';
+void PositionStringDoMove(char *parentPositionString, MOVE move, char *childAutoGUIPositionStringBuffer) {
+    memcpy(childAutoGUIPositionStringBuffer, parentPositionString, boardSize + 2);
+    childAutoGUIPositionStringBuffer[boardSize + 3] = '\0';
+    if (parentPositionString[0] == '1') {
+        childAutoGUIPositionStringBuffer[move + 2] = 'u';
+        childAutoGUIPositionStringBuffer[move + sideLength + 2] = 'd';
+        childAutoGUIPositionStringBuffer[0] = '2';
     } else {
-        childPositionStr[8 + move] = 'l';
-        childPositionStr[8 + move + 1] = 'r';
-        childPositionStr[2] = 'A';
+        childAutoGUIPositionStringBuffer[move + 2] = 'l';
+        childAutoGUIPositionStringBuffer[move + 1 + 2] = 'r';
+        childAutoGUIPositionStringBuffer[0] = '1';
     }
-    return childPositionStr;
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+        POSITION bitBoard = 0;
+        TIER tierDoubled = 0;
+        for (int i = 0; i < boardSize; i++) {
+            if (board[i] == '-') {
+                bitBoard |= ((POSITION) 1) << i;
+            } else {
+                tierDoubled++;
+            }
+        }
+        gInitializeHashWindow(tierDoubled >> 1, FALSE);
+        return hash(bitBoard);
+	}
+	return NULL_POSITION;
+}
+
+/* This function will only be called on the initial position because we have
+implemented gPositionStringDoMoveFunPtr. */
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+    char board[boardSize + 1];
+    memset(board, '-', boardSize * sizeof(char));
+    board[boardSize] = '\0';
+    AutoGUIMakePositionString(1, board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
     /* We are breaking the abstraction barrier a bit in order to
     determine just whose turn it is. 
     There are `boardSize` center coordinates for the piece halves,
@@ -469,5 +460,5 @@ STRING InteractMoveToString(POSITION position, MOVE move) {
         token = 'v';
         to += move + boardSize - sideLength;
     }
-    return UWAPI_Board_Regular2D_MakeAddStringWithSound(token, to, 'x');
+    AutoGUIMakeMoveButtonStringA(token, to, 'x', autoguiMoveStringBuffer);
 }
