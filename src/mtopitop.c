@@ -1380,7 +1380,7 @@ void PositionToString(POSITION position, char *positionStringBuffer) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		char turnChar = (turn == 1) ? BLUE : RED;
 		int disallowedMove = (board[9] == '\0') ? 0 : movesToIds[board[9] - '1'][board[10] - '1'];
 

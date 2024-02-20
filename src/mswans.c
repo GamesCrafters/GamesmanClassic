@@ -1009,7 +1009,7 @@ void setOption(int option)
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		char whoseTurn = (turn == 1) ? 'o' : 'x';
 		int numSwans = (board[BOARDSIZE] - '0') * 10 + (board[BOARDSIZE + 1] - '0');
 

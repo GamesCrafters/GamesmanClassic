@@ -1915,7 +1915,7 @@ POSITION GetCanonicalPosition(POSITION position) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		char realBoard[BOARDSIZE];
 		int numX = 0, numO = 0;
 		for (int i = 0; i < BOARDSIZE; i++) {

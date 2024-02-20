@@ -912,7 +912,7 @@ POSITION GetCanonical (POSITION p){
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		BlankOX theBlankOx[BOARDSIZE];
 		for(int i = 0; i < BOARDSIZE; i++){
 			if (board[i] == 'o') {

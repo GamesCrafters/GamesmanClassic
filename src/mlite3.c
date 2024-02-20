@@ -1005,7 +1005,7 @@ void setOption(int option) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 		theBlankOOOXXX[0] = (BlankOOOXXX)(turn == 2 ? o : x);
 		for (int i = 1; i < BOARDSIZE; i++) {

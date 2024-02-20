@@ -1633,7 +1633,7 @@ STRING TierToString(TIER tier) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		char turnChar = (turn == 1) ? GOAT : TIGER;
 		int goatsLeft = 10 * (board[25] - '0') + (board[26] - '0');
 		int goatsCaptured = 10 * (board[27] - '0') + (board[28] - '0');

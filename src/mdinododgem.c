@@ -1233,7 +1233,7 @@ BlankOX getwhosTurnfromMove(MOVE theMove) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		BlankOX realBoard[boardsize];
 		for (int i = 0; i < boardsize; i++) {
 			switch (board[i]) {

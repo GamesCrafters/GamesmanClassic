@@ -1,6 +1,6 @@
 #include "autoguistrings.h"
 
-BOOLEAN ParseAutoGUIFormattedPositionString(char *positionString, int *turn, char **entityString) {
+BOOLEAN ParseStandardOnelinePositionString(char *positionString, int *turn, char **entityString) {
     // Format: "<turn>_<entityString>" (`turn` is either '0', '1' or '2')
     // Example (TicTacToe): 1_---------, 2_--x------, 1_--x-o----, 2_x-x-o----
     // 1 if player 1's turn, 2 if player 2's turn. 0 if the game is impartial and

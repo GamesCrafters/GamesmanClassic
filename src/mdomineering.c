@@ -418,7 +418,7 @@ void PositionStringDoMove(char *parentPositionString, MOVE move, char *childAuto
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
         POSITION bitBoard = 0;
         TIER tierDoubled = 0;
         for (int i = 0; i < boardSize; i++) {

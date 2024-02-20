@@ -1286,7 +1286,7 @@ BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, BOOLEAN
 POSITION StringToPosition(char *positionString) {
 	int turnInt;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turnInt, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turnInt, &board)) {
 		char turn = (turnInt == 1) ? X : O;
     int xPlaced = 0, oPlaced = 0;
     int i;

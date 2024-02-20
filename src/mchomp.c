@@ -297,7 +297,7 @@ void PositionToString(POSITION position, char *positionStringBuffer) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *rowSizesStr;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &rowSizesStr)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &rowSizesStr)) {
         int rowSizes[numRows];
         memset(rowSizes, 0, sizeof(int) * numRows);
         int rowSize = 0;

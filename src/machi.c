@@ -1065,7 +1065,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		// Convert UWAPI standard board string to internal board representation
 		BlankOX oxboard[BOARDSIZE];
 		for (int i = 0; i < BOARDSIZE; i++) {

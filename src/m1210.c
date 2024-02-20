@@ -495,7 +495,7 @@ void PositionToString(POSITION position, char *positionStringBuffer) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *number;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &number)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &number)) {
 		POSITION position = (POSITION) atoi(number);
 		if (position >= gNumberOfPositions) {
 			return NULL_POSITION;

@@ -803,7 +803,7 @@ static void printBoard(int *indices, int hare_i) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
         int i, j = 3, n = numCells(currVariant), hare_i = 0;
         int indices[4];
         for (i = 0; i < n; ++i) {

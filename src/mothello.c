@@ -1626,9 +1626,9 @@ POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
     /* Even though the PositionString and AutoGUIPositionString are not the same,
-    we can still use ParseAutoGUIFormattedPositionString because the PositionString
+    we can still use ParseStandardOnelinePositionString because the PositionString
     is still in AutoGUI format. */
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
         // Convert UWAPI standard board string to internal board representation
         int BOARDSIZE = 16;
         char *boardCopy = (char *) malloc(sizeof(char) * BOARDSIZE);

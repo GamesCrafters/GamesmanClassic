@@ -489,7 +489,7 @@ void setOption(int option) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		char realBoard[boardSize];
     int count = 0;
     for (int i = 0; i < boardSize; i++) {

@@ -882,7 +882,7 @@ int neighbors(int x, int y) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *str;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &str)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &str)) {
 		char board[BOARDSIZE];
 		for (int i = 0; i < BOARDSIZE; i++) {
 			if (str[i] == '-') {

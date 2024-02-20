@@ -1277,7 +1277,7 @@ void PositionStringToAutoGUIPositionString(char *positionString, char *autoguiPo
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		BlankBHT realBoard[BOARDSIZE];
 		for (int i = 0; i < BOARDSIZE; i++) {
 			switch (board[i]) {

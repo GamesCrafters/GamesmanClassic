@@ -693,7 +693,7 @@ POSITION encodeIntermediatePosition(POSITION realParentPosition, POSITION moveFr
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *str;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &str)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &str)) {
     char board[boardSize];
     TIER tier = boardSize;
     for (int i = 0; i < boardSize; i++) {

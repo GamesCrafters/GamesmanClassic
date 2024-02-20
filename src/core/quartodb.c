@@ -586,7 +586,7 @@ void quartoDetailedPositionResponse(STRING positionString, char *positionStringB
 
     int turn;
     char *boardOrig;
-	if (!ParseAutoGUIFormattedPositionString(positionString, &turn, &boardOrig)) {
+	if (!ParseStandardOnelinePositionString(positionString, &turn, &boardOrig)) {
 		// Failed to parse string
 		printf("}");
         return;

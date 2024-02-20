@@ -786,7 +786,7 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		BlankOX theBlankOX[BOARDSIZE], whoseTurn;
 		whoseTurn = (turn == 1) ? o : x;
 		for (int i = 0; i < BOARDSIZE; i++) {

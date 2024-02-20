@@ -694,7 +694,7 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		return hashIt(board, turn == 1 ? 'W' : 'B');
 	}
 	return NULL_POSITION;

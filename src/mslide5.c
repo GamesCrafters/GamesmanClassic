@@ -493,7 +493,7 @@ void setOption(int option) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		Slide5Board s5b;
     for (int i = 0; i < 25; i++) {
       switch (board[i]) {

@@ -1249,7 +1249,7 @@ int verList[2][6] = {{0,1,2,3,4,5}, {3,4,5,6,7,8}};
 POSITION StringToPosition(char *positionString) {
 	int turnInt;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turnInt, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turnInt, &board)) {
 		POSITION turn = (turnInt == 1) ? 0x100000LL : 0;
 		POSITION red, white, blue;
 

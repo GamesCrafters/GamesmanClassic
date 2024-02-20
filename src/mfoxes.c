@@ -954,7 +954,7 @@ void InitializeOrder () {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		int whoseTurn = (turn == 2) ? FOXTURN : GOOSETURN;
 		return generic_hash_hash(board, whoseTurn);
 	}

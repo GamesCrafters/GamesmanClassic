@@ -602,7 +602,7 @@ void setOption(int option) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		// Ignore the first 8 characters
     char realBoard[boardSize];
 

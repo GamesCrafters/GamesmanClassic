@@ -642,7 +642,7 @@ POSITION GenerateRandomStartPosition() {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
   /*1(turn)_abdce--hijkl--o(decree card)-(first card)f(second card)3(first score)0(second score) */
     int card = 0;
     BOOLEAN moved = (turn == 1) ? FALSE : TRUE; 

@@ -904,7 +904,7 @@ void setOption(int option) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
     FFK_Board real_board;
     for (int i = 0; i < 25; i++) {
       if (i % 2 == 0) real_board.odd_component[i/2] = board[i];

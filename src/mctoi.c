@@ -2328,7 +2328,7 @@ BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, int *fr
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *str;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &str)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &str)) {
 		BlankoxOX board[BOARDSIZE];
 		for (int i = 0; i < BOARDSIZE; i++) {
 			switch (str[i]) {

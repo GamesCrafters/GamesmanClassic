@@ -867,7 +867,7 @@ POSITION getCanonicalPosition(POSITION position) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		char copy[9];
 		for (int i = 0; i < 9; i++) {
 			if (board[i] == '-') {

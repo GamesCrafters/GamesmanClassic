@@ -762,7 +762,7 @@ void PositionToString(POSITION position, char *positionStringBuffer) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *entityString;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &entityString)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &entityString)) {
     char board[boardSize];
     TIER tier = boardSize;
     for (int i = 0; i < boardSize; i++) {

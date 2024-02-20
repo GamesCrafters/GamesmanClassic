@@ -222,7 +222,7 @@ void PositionToString(POSITION position, char *positionStringBuffer) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		int isP2Turn = turn == 2 ? 1 : 0;
 		int p1Matches = 0;
 		int p2Matches = 0;

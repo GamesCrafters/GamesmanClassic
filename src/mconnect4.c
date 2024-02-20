@@ -436,7 +436,7 @@ void setOption(int option) {
 POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
-	if (ParseAutoGUIFormattedPositionString(positionString, &turn, &board)) {
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
         POSITION pos = 0;
         for (int c = 0; c < COLUMNCOUNT; c++) {
             POSITION colbits = 0;
