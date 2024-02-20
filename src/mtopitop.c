@@ -1443,7 +1443,8 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
 	(void) position;
   	if (move == NULLMOVE) {
-		return AutoGUIMakeMoveButtonStringA('P', 123, 'v', autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringA('P', 123, 'v', autoguiMoveStringBuffer);
+		return;
 	}
 	
 	char piece;

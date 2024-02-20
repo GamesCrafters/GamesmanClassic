@@ -1401,12 +1401,12 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 	PositionToBlankOX(position, oxboard);
 
 	if (move < 3) {
-		return AutoGUIMakeMoveButtonStringM(18 + move, 21 + move, '-', autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringM(18 + move, 21 + move, '-', autoguiMoveStringBuffer);
 	} else if (move < 6) {
 		int a = 24 + oxboard[9 + move - 3] + (move - 3) * 3;
-		return AutoGUIMakeMoveButtonStringM(a, a + 1, '-', autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringM(a, a + 1, '-', autoguiMoveStringBuffer);
 	} else {
 		int a = 33 + oxboard[9 + move - 6] + (move - 6) * 3;
-		return AutoGUIMakeMoveButtonStringM(a, a - 1, '-', autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringM(a, a - 1, '-', autoguiMoveStringBuffer);
 	}
 }

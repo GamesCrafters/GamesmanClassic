@@ -835,7 +835,7 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 		}
 	}
 	oxboard[INTERACT_BOARDSIZE] = '\0';
-	return AutoGUIMakePositionString(turn, oxboard, autoguiPositionStringBuffer);
+	AutoGUIMakePositionString(turn, oxboard, autoguiPositionStringBuffer);
 }
 
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {

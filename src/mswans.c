@@ -1071,10 +1071,10 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 	phase = move & 1;
 	move = move >> 1;
 	if (phase == 0) {
-		return AutoGUIMakeMoveButtonStringA('s', move, whosTurn, autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringA('s', move, whosTurn, autoguiMoveStringBuffer);
 	} else {
 		MoveToSlots(move,&fromSlot,&toSlot);
 		/* MOVE is 0-15 */
-    	return AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, whosTurn, autoguiMoveStringBuffer);
+    	AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, whosTurn, autoguiMoveStringBuffer);
 	}
 }

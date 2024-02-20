@@ -344,5 +344,5 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
     (void) position;
-    return AutoGUIMakeMoveButtonStringA('t', move, 'x', autoguiMoveStringBuffer);
+    AutoGUIMakeMoveButtonStringA('t', move, 'x', autoguiMoveStringBuffer);
 }

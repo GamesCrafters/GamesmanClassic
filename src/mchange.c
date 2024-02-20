@@ -841,7 +841,7 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 		}
 	}
 	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
-	return AutoGUIMakePositionString((whoseTurn == x) ? 1 : 2, board, autoguiPositionStringBuffer);
+	AutoGUIMakePositionString((whoseTurn == x) ? 1 : 2, board, autoguiPositionStringBuffer);
 }
 
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {

@@ -75,7 +75,6 @@ POSITION UndoMove(POSITION position,
 solving or playing the game. */
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
 
     /* Tier and UndoMove Variables and Function Pointers */
     gTierChildrenFunPtr = &getTierChildren;

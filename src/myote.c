@@ -447,7 +447,6 @@ void InitializeGame() {
   BOARDSIZE = BOARDDIMENSIONX * BOARDDIMENSIONY;
 
   gCanonicalPosition = GetCanonicalPosition;
-  gMoveToStringFunPtr = &MoveToString;
  	gSymmetries = TRUE;
 
 	combinationsInit();

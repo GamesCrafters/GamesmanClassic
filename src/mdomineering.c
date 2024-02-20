@@ -121,7 +121,6 @@ void InitializeGame() {
 	}
 	/********************************/
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
     gTierChildrenFunPtr = &getTierChildren;
     gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
     gInteractCustomDoMoveFunPtr = &InteractCustomDoMove;

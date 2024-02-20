@@ -1104,15 +1104,14 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 		}
 	}
 	board[BOARDSIZE] = '\0';
-	// Return AutoGUI-formatted position string
-	return AutoGUIMakePositionString((whoseTurn == o) ? 1 : 2, board, autoguiPositionStringBuffer);	
+	AutoGUIMakePositionString((whoseTurn == o) ? 1 : 2, board, autoguiPositionStringBuffer);	
 }
 
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
 	(void) position;
 	if (move < 9) { // Place Piece
-		return AutoGUIMakeMoveButtonStringA('-', move, 'x', autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringA('-', move, 'x', autoguiMoveStringBuffer);
 	} else { // Slide Piece
-		return AutoGUIMakeMoveButtonStringM(move / 10 - 1, move % 10 - 1, 'y', autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringM(move / 10 - 1, move % 10 - 1, 'y', autoguiMoveStringBuffer);
 	}
 }

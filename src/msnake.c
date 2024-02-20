@@ -161,11 +161,9 @@ POSITION SnakeHash(BlankBHT* theBlankBHT);
 MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
 BOOLEAN trapped(BlankBHT *theBlankBHT, BlankBHT who);
 
-STRING MoveToString( MOVE );
 STRING InteractCustomDoMove(STRING str, MOVE move);
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
 	gInteractCustomDoMoveFunPtr = &InteractCustomDoMove;
 }
 
