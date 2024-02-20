@@ -126,6 +126,7 @@ void ServerInteractLoop(void) {
 	POSITION childPosition;
 	MOVELIST *currentMove = NULL;
 	MOVELIST *movesHead = NULL;
+	MOVE move;
 	STRING invalidBoardString = 
 		"\n" RESULT "{\"error\":\"Invalid board string.\"}";
 	char* inputPositionString = NULL;
@@ -341,106 +342,133 @@ void ServerInteractLoop(void) {
 			}
 			break;
 		} else if (FirstWordMatches(input, "value")) {
-			// if (!InteractReadPosition(input, &position)) {
-			// 	continue;
-			// }
-			// InteractCheckErrantExtra(input, 2);
-			// printf(RESULT "%c", gValueLetter[GetValueOfPosition(position)]);
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 2);
+			printf(RESULT "%c", gValueLetter[GetValueOfPosition(position)]);
 		} else if (FirstWordMatches(input, "child_positions")) {
-			// if (!InteractReadPosition(input, &position)) {
-			// 	continue;
-			// }
-			// InteractCheckErrantExtra(input, 2);
-			// printf(RESULT "[");
-			// currentMove = movesHead = GenerateMoves(position);
-			// while (currentMove) {
-			// 	childPosition = DoMove(position, currentMove->move);
-			// 	currentMove = currentMove->next;
-			// 	printf(POSITION_FORMAT, childPosition);
-			// 	if (currentMove) {
-			// 		printf(", ");
-			// 	}
-			// }
-			// printf("]");
-			// FreeMoveList(movesHead);
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 2);
+			printf(RESULT "[");
+			currentMove = movesHead = GenerateMoves(position);
+			while (currentMove) {
+				childPosition = DoMove(position, currentMove->move);
+				currentMove = currentMove->next;
+				printf(POSITION_FORMAT, childPosition);
+				if (currentMove) {
+					printf(", ");
+				}
+			}
+			printf("]");
+			FreeMoveList(movesHead);
 		} else if (FirstWordMatches(input, "moves")) {
-			// if (!InteractReadPosition(input, &position)) {
-			// 	continue;
-			// }
-			// InteractCheckErrantExtra(input, 2);
-			// printf(RESULT "[");
-			// currentMove = movesHead = GenerateMoves(position);
-			// while (currentMove) {
-			// 	printf("%d", currentMove->move);
-			// 	currentMove = currentMove->next;
-			// 	if (currentMove) {
-			// 		printf(", ");
-			// 	}
-			// }
-			// printf("]");
-			// FreeMoveList(movesHead);
-		} else if (FirstWordMatches(input, "named_moves")) {
-			// if (!InteractReadPosition(input, &position)) {
-			// 	continue;
-			// }
-			// InteractCheckErrantExtra(input, 2);
-			// printf(RESULT "[");
-			// currentMove = movesHead = GenerateMoves(position);
-			// while (currentMove) {
-			// 	InteractMoveToString(position, currentMove->move, moveStringBuffer);
-			// 	printf("%s", moveStringBuffer);
-			// 	currentMove = currentMove->next;
-			// 	if (currentMove) {
-			// 		printf(", ");
-			// 	}
-			// }
-			// printf("]");
-			// FreeMoveList(movesHead);
-		} else if (FirstWordMatches(input, "board")) {
-			// if (InteractReadPosition(input, &position)) {
-			// 	InteractCheckErrantExtra(input, 2);
-			// 	InteractPositionToString(position, positionStringBuffer);
-			// 	printf(RESULT "\"%s\"", positionStringBuffer);
-			// }
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 2);
+			printf(RESULT "[");
+			currentMove = movesHead = GenerateMoves(position);
+			while (currentMove) {
+				printf("%d", currentMove->move);
+				currentMove = currentMove->next;
+				if (currentMove) {
+					printf(", ");
+				}
+			}
+			printf("]");
+			FreeMoveList(movesHead);
+		} else if (FirstWordMatches(input, "moves")) {
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 2);
+			printf(RESULT "[");
+			currentMove = movesHead = GenerateMoves(position);
+			while (currentMove) {
+				MoveToString(currentMove->move, moveStringBuffer);
+				printf("%s", moveStringBuffer);
+				currentMove = currentMove->next;
+				if (currentMove) {
+					printf(", ");
+				}
+			}
+			printf("]");
+			FreeMoveList(movesHead);
+		} else if (FirstWordMatches(input, "autogui_moves")) {
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 2);
+			printf(RESULT "[");
+			currentMove = movesHead = GenerateMoves(position);
+			while (currentMove) {
+				MoveToAutoGUIString(position, currentMove->move, moveStringBuffer);
+				printf("%s", moveStringBuffer);
+				currentMove = currentMove->next;
+				if (currentMove) {
+					printf(", ");
+				}
+			}
+			printf("]");
+			FreeMoveList(movesHead);
+		} else if (FirstWordMatches(input, "position_string")) {
+			if (InteractReadPosition(input, &position)) {
+				InteractCheckErrantExtra(input, 2);
+				if (gPositionToStringFunPtr == NULL) {
+					PositionToAutoGUIString(position, positionStringBuffer);
+				} else {
+					gPositionToStringFunPtr(position, positionStringBuffer);
+				}
+				printf(RESULT "\"%s\"", positionStringBuffer);
+			}
+		} else if (FirstWordMatches(input, "autogui_position_string")) {
+			if (InteractReadPosition(input, &position)) {
+				InteractCheckErrantExtra(input, 2);
+				PositionToAutoGUIString(position, positionStringBuffer);
+				printf(RESULT "\"%s\"", positionStringBuffer);
+			}
 		} else if (FirstWordMatches(input, "remoteness")) {
-			// if (!InteractReadPosition(input, &position)) {
-			// 	continue;
-			// }
-			// InteractCheckErrantExtra(input, 2);
-			// printf(RESULT "%d", Remoteness(position));
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 2);
+			printf(RESULT "%d", Remoteness(position));
 		} else if (FirstWordMatches(input, "mex")) {
-			// if (!InteractReadPosition(input, &position)) {
-			// 	continue;
-			// }
-			// InteractCheckErrantExtra(input, 2);
-			// if(kCombinatorial && !gTwoBits) {
-			// 	printf(RESULT "%c", mex);
-			// } else {
-			// 	printf(RESULT "not implemented");
-			// }
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 2);
+			if(kCombinatorial && !gTwoBits) {
+				printf(RESULT "%d", MexLoad(position));
+			} else {
+				printf(RESULT "not implemented");
+			}
 		} else if (FirstWordMatches(input, "result")) {
-			// if (!InteractReadPosition(input, &position)) {
-			// 	continue;
-			// }
-			// InteractCheckErrantExtra(input, 3);
-			// char * unparsed_move = strchr(input, ' ');
-			// if (unparsed_move && *unparsed_move) {
-			// 	unparsed_move = strchr(unparsed_move + 1, ' ');
-			// }
-			// if (unparsed_move) {
-			// 	move = atoi(unparsed_move);
-			// 	position = DoMove(position, move);
-			// 	printf(RESULT POSITION_FORMAT, position);
-			// } else {
-			// 	printf(" error =>> missing move number in result request\n");
-			// }
+			if (!InteractReadPosition(input, &position)) {
+				continue;
+			}
+			InteractCheckErrantExtra(input, 3);
+			char * unparsed_move = strchr(input, ' ');
+			if (unparsed_move && *unparsed_move) {
+				unparsed_move = strchr(unparsed_move + 1, ' ');
+			}
+			if (unparsed_move) {
+				move = atoi(unparsed_move);
+				position = DoMove(position, move);
+				printf(RESULT POSITION_FORMAT, position);
+			} else {
+				printf(" error =>> missing move number in result request\n");
+			}
 		} else if (FirstWordMatches(input, "position")) {
-			// if (!InteractReadBoardString(input, &inputPositionString)) {
-			// 	printf("%s", invalidBoardString);
-			// 	continue;
-			// }
-			// position = InteractStringToPosition(inputPositionString);
-			// printf("board: " POSITION_FORMAT, position);
+			if (!InteractReadBoardString(input, &inputPositionString)) {
+				printf("%s", invalidBoardString);
+				continue;
+			}
+			position = StringToPosition(inputPositionString);
+			printf("position hash: " POSITION_FORMAT, position);
 		} else {
 			printf(" error =>> unknown command: '%s'", input);
 			printf(" valid commands are:\n");
@@ -448,9 +476,11 @@ void ServerInteractLoop(void) {
 			printf("   position_response <position string>                 [JSON Response Providing Solved Data for Position Represented by Input String and Solved Data for its Child Positions]\n");
 			printf("   position <position string>                          [Hash of Input Position String, Provided By InteractStringToPosition()]\n");
 			printf("   start                                               [Hash of Initial Position]\n");
-			printf("   board <hashed position>                             [Position String of Input Hashed Position, Provided by InteractPositionToString()]\n");
+			printf("   position_string <hashed position>                   [Position String of Input Hashed Position, Provided by gPositionToStringFunPtr if it's not null, else by PositionToAutoGUIString()]\n");
+			printf("   autogui_position_string <hashed position>           [AutoGUI Position String of Input Hashed Position, Provided by PositionToAutoGUIString()]\n");
+			printf("   moves <hashed position>                             [String Representations of Legal Moves from Input Hashed Position, Provided by MoveToString()]\n");
+			printf("   autogui_moves <hashed position>                     [AutoGUI String Representations of Legal Moves from Input Hashed Position, Provided by MoveToAutoGUIString()]\n");
 			printf("   result <hashed position> <hashed move>              [Hashed Child Position Resulting from Making Input Hashed Move to Input Hashed Position]\n");
-			printf("   named_moves <hashed position>                       [Names of Legal Moves from Input Hashed Position, Provided by InteractMoveToString()]\n");
 			printf("   child_positions <hashed position>                   [Hashed Child Positions of Input Hashed Position]\n");
 			printf("   value <hashed position>                             [Character Representing Value of Input Hashed Position]\n");
 			printf("   remoteness <hashed position>                        [Remoteness of Input Hashed Position]\n");
