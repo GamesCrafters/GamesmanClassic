@@ -25,10 +25,13 @@ CONST_STRING kDBName = "yourgamename";      // Use this spacing and case
 POSITION gNumberOfPositions = 0;
 
 /**
- * @brief An upper bound on the number of positions here.
- *
- * @details The hash value of each reachable position must be less
- * than this `gNumberOfPositions`.
+ * @brief The hash value of the initial position of the default
+ * variant of the game.
+ * 
+ * @note If multiple variants are supported and the hash value
+ * of the initial position is different among those variants,
+ * then ensure that gInitialPosition is modified appropriately
+ * in both setOption() and GameSpecificMenu().
  */
 POSITION gInitialPosition = 0;
 
@@ -135,8 +138,7 @@ void InitializeGame() {
 void FreeGame() {}
 
 /**
- * @brief Return the hash of the initial position. Different variants of
- * the game may have different initial positions.
+ * @brief Return the initial position of the current variant.
  * 
  * @return The initial position, encoded as a 64-bit integer. See the
  * POSITION typedef in src/core/types.h.
@@ -158,7 +160,7 @@ POSITION GetInitialPosition() {
  * @note It may be helpful to use the CreateMovelistNode() function
  * to assemble the linked list. But remember that this allocates heap space. 
  * If you use GenerateMoves in any of the other functions in this file, 
- * make sure to free the linked list using FreeMoveList(). 
+ * make sure to free the returned linked list using FreeMoveList(). 
  * See src/core/misc.c for more information on CreateMovelistNode() and
  * FreeMoveList().
  */
@@ -244,15 +246,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 /**
- * @brief Print the position in a pretty format, including the
- * prediction of the game's outcome.
+ * @brief Find out if the player wants to an undo or abort or not.
+ * If so, return Undo or Abort and don't change `move`.
+ * Otherwise, get the new `move` and fill the pointer up.
  * 
- * @param position   : The position to pretty-print.
- * @param playerName : The name of the player.
- * @param usersTurn  : TRUE <==> it's a user's turn.
+ * @param position The position the user is at.
+ * @param move The move to fill with user's move.
+ * @param playerName The name of the player whose turn it is
  * 
- * @note See GetPrediction() in src/core/gameplay.h to see how
- * to print the prediction of the game's outcome.
+ * @return One of (Undo, Abort, Continue)
  */
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
     USERINPUT ret;
@@ -260,10 +262,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
         /* List of available moves */
         // Modify the player's move prompt as you wish
         printf("%8s's move: ", playerName);
-
         ret = HandleDefaultTextInput(position, move, playerName);
-        if (ret != Continue) return (ret);
-
+        if (ret != Continue) return ret;
     } while (TRUE);
     return (Continue); /* this is never reached, but lint is now happy */
 }
@@ -386,9 +386,7 @@ void GameSpecificMenu() {}
  * Position String. You can in fact delete this function and leave
  * gStringToPositionFunPtr as NULL in InitializeGame().
  */
-void PositionToString(POSITION position, char *positionStringBuffer) {
-
-}
+void PositionToString(POSITION position, char *positionStringBuffer) {}
 
 /**
  * @brief Convert the input position string to
@@ -433,8 +431,7 @@ POSITION StringToPosition(char *positionString) {
  * character (which is the first character) of autoguiPositionStringBuffer
  * to '0'.
  */
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
-}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
 
 /**
  * @brief Write an AutoGUI-formatted move string for the given move 
@@ -450,6 +447,4 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
  */
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-  (void) position;
-}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}
