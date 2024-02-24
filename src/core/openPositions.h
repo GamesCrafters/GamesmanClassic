@@ -112,7 +112,7 @@ void CleanupOpenPositions(void);
 void FreeOpenPositions(void);
 
 /* do the actual work! */
-void ComputeOpenPositions();
+void ComputeOpenPositions(void);
 
 /* call this with each draw position before calling computeOpenPositions.  This keeps us from having
    search for draw positions before we can do work */
@@ -136,8 +136,8 @@ void PrintSingleOpenData(POSITION p);
 MOVE ChooseSmartComputerMove(POSITION from, MOVELIST * moves, REMOTENESSLIST * remotenesses);
 
 /* Open positions DB save/load functions */
-BOOLEAN SaveOpenPositionsData();
-BOOLEAN LoadOpenPositionsData();
+BOOLEAN SaveOpenPositionsData(void);
+BOOLEAN LoadOpenPositionsData(void);
 
 /* These are the "private" functions for openPositions' consumption only */
 void EnqueueDP(POSITION pos);
@@ -160,9 +160,9 @@ extern REMOTENESS*         gPositionLevel;
 extern POSITIONLIST**      gDrawParents;
 
 /* Functions relative to purity */
-BOOLEAN RunPurityCheck();
+BOOLEAN RunPurityCheck(void);
 //void SetDrawParents(POSITION parent, POSITION root);
-//void DrawParentInitialize();
+//void DrawParentInitialize(void);
 
 /** PURITY */
 BOOLEAN           DeterminePure             (POSITION position);

@@ -53,7 +53,7 @@ typedef struct DB {
 	   even when, for example, the cannonical sibling of a position is within range,
 	   but the position itself is not. */
 
-	void (*free_db)();
+	void (*free_db)(void);
 
 	VALUE (*get_value)(POSITION pos);
 	VALUE (*put_value)(POSITION pos, VALUE val);
@@ -74,15 +74,15 @@ typedef struct DB {
 
 	DRAWLEVEL (*get_drawlevel)(POSITION pos);
 
-	BOOLEAN (*save_database)();
-	BOOLEAN (*load_database)();
+	BOOLEAN (*save_database)(void);
+	BOOLEAN (*load_database)(void);
 
 	// bpdb
 	UINT64 (*get_slice_slot)(UINT64 position, UINT8 index);
 	UINT64 (*set_slice_slot)(UINT64 position, UINT8 index, UINT64 value);
 	UINT64 (*set_slice_slot_max)(UINT64 position, UINT8 index);
 	GMSTATUS (*add_slot)(UINT8 size, char *name, BOOLEAN write, BOOLEAN adjust, BOOLEAN reservemax, UINT32 *slotindex);
-	GMSTATUS (*allocate)();
+	GMSTATUS (*allocate)(void);
 
 	void (*get_bulk)(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
 
@@ -99,12 +99,12 @@ VALUE       db_original_put_value(POSITION pos, VALUE data);
    changed */
 
 /* General */
-void            CreateDatabases         ();
-void            InitializeDatabases     ();
-void            DestroyDatabases        ();
-BOOLEAN         ReinitializeTierDB      ();
-void            InitializeShardDB       ();
-void            InitializeQuartoDB      ();
+void            CreateDatabases         (void);
+void            InitializeDatabases     (void);
+void            DestroyDatabases        (void);
+BOOLEAN         ReinitializeTierDB      (void);
+void            InitializeShardDB       (void);
+void            InitializeQuartoDB      (void);
 
 UINT64
 GetSlot(
@@ -136,7 +136,7 @@ AddSlot(
         );
 
 GMSTATUS
-Allocate( );
+Allocate(void);
 
 /* Since the solvers will These will be deprecated soon */
 /* Value */
@@ -151,7 +151,7 @@ void            SetRemoteness           (POSITION pos, REMOTENESS val);
 BOOLEAN         Visited                 (POSITION pos);
 void            MarkAsVisited           (POSITION pos);
 void            UnMarkAsVisited         (POSITION pos);
-void            UnMarkAllAsVisited      ();
+void            UnMarkAllAsVisited      (void);
 
 /* Mex */
 void            MexStore                (POSITION pos, MEX mex);
@@ -166,8 +166,8 @@ void            DrawLevelStore          (POSITION pos, DRAWLEVEL level);
 DRAWLEVEL       DrawLevelLoad           (POSITION pos);
 
 /* Persistence */
-BOOLEAN         SaveDatabase            ();
-BOOLEAN         LoadDatabase            ();
+BOOLEAN         SaveDatabase            (void);
+BOOLEAN         LoadDatabase            (void);
 
 //bulk
 void GetValueAndRemotenessOfPositionBulk(POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);

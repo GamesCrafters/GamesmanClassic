@@ -63,3 +63,4 @@ void                    GameSpecificMenu                (void);
 void                    DebugMenu                       (void);
 
 #endif /* GMCORE_GAMESMAN_H */
+

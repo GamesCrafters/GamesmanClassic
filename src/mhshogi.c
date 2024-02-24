@@ -568,7 +568,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	struct cleanMove x;
 	x = unhashMove(theMove);
-	snprintf( moveStringBuffer, 10, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
+	sprintf( moveStringBuffer, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
 }
 
 /************************************************************************

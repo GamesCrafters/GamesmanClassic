@@ -18,10 +18,10 @@ BOOLEAN         ValidMove                       (POSITION pos, MOVE move);
 
 int             GetRandomNumber                 (int max);
 int             GetSmallRandomNumber            (int n);
-int             randSafe                        ();
+int             randSafe                        (void);
 
-unsigned int    Stopwatch                       ();
-void            ExitStageRight                  ();
+unsigned int    Stopwatch                       (void);
+void            ExitStageRight                  (void);
 void            ExitStageRightErrorString       (STRING msg);
 
 void ifprintf(BOOLEAN, char*, ...);
@@ -66,7 +66,7 @@ MULTIPARTEDGELIST* CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE 
 void            FoundBadPosition                (POSITION pos, POSITION parent, MOVE move);
 
 BOOLEAN         DefaultGoAgain                  (POSITION pos, MOVE move);
-POSITION        GetNextPosition                 ();             // TODO: Move to solve
+POSITION        GetNextPosition                 (void);             // TODO: Move to solve
 
 MEXCALC         MexAdd                          (MEXCALC calc, MEX mex);
 MEX             MexCompute                      (MEXCALC calc);
@@ -75,7 +75,7 @@ MEXCALC         MexCalcInit                     (void);
 void            MexFormat                       (POSITION pos, STRING str);
 MEX             MexPrimitive                    (VALUE value);
 
-STRING get_var_string();
-STRING kHelpStarWritten();
+STRING get_var_string(void);
+STRING kHelpStarWritten(void);
 
 #endif /* GMCORE_MISC_H */

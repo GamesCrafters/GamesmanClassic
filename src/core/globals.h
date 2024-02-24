@@ -115,13 +115,13 @@ extern void (*gUndoMove)(MOVE move);
 extern void*            gGameSpecificTclInit;
 
 /* Help string function pointers */
-extern STRING (*GetHelpTextInterface)();
-extern STRING (*GetHelpOnYourTurn)();
-extern STRING (*GetHelpObjective)();
-extern STRING (*GetHelpTieOccursWhen)();
+extern STRING (*GetHelpTextInterface)(void);
+extern STRING (*GetHelpOnYourTurn)(void);
+extern STRING (*GetHelpObjective)(void);
+extern STRING (*GetHelpTieOccursWhen)(void);
 
 /* Variant string function pointer */
-extern STRING (*gGetVarStringPtr)();
+extern STRING (*gGetVarStringPtr)(void);
 
 extern OPPONENT gOpponent;
 
@@ -196,3 +196,4 @@ extern BOOLEAN gCheckPure;
 
 
 #endif /* GMCORE_GLOBALS_H */
+

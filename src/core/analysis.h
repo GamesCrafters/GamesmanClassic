@@ -22,45 +22,45 @@ void    PrintBadPositions               (char value, int maxPos, POSITIONLIST* b
                                          POSITIONLIST* badTiePos, POSITIONLIST* badLosePos);
 void    PrintMexValues                  (MEX value, int maxpos);
 void    PrintValuePositions             (char value, int maxPos);
-void    PrintGameValueSummary           ();
-void    PrintDetailedGameValueSummary();
-void    PrintDetailedOpenSummary();
+void    PrintGameValueSummary           (void);
+void    PrintDetailedGameValueSummary   (void);
+void    PrintDetailedOpenSummary        (void);
 
 /* Analysis output */
 
-void    analyze                         ();
-VALUE   AnalyzePosition(POSITION thePosition, VALUE value);
-void    AnalysisCollation();
-float   DetermineProbability    (POSITION position, VALUE value);
+void    analyze                         (void);
+VALUE   AnalyzePosition                 (POSITION thePosition, VALUE value);
+void    AnalysisCollation               (void);
+float   DetermineProbability            (POSITION position, VALUE value);
 void    writeVarStat                    (STRING statName, STRING text, FILE* out);
-void    DatabaseCombVisualization       ();
+void    DatabaseCombVisualization       (void);
 
 /* Analysis save/load */
-BOOLEAN LoadAnalysis();
-void    SaveAnalysis();
+BOOLEAN LoadAnalysis(void);
+void    SaveAnalysis(void);
 
 /* Analysis misc */
 
-void    createAnalysisGameDir           ();
-void    createAnalysisVarDir            ();
-void    writeGameHTML                   ();
-void    createVarTable                  ();
-void    writeVarHTML                    ();
-BOOLEAN CorruptedValuesP                ();
+void    createAnalysisGameDir           (void);
+void    createAnalysisVarDir            (void);
+void    writeGameHTML                   (void);
+void    createVarTable                  (void);
+void    writeVarHTML                    (void);
+BOOLEAN CorruptedValuesP                (void);
 
 float   PercentDone                     (STATICMESSAGE msg);
 float   PercentLoaded                   (STATICMESSAGE msg);
-void    InitializeAnalysis();
+void    InitializeAnalysis(void);
 
 /* Analysis XML Support */
 
 void    writeXML                        (STATICMESSAGE msg);
-void    prepareXMLFile                  ();
-void    prepareXMLVarFile               ();
-void    closeXMLFile                    ();
-void    closeXMLVarFile                 ();
-void    writeXMLData                    ();
-void    writeXMLVarData                 ();
+void    prepareXMLFile                  (void);
+void    prepareXMLVarFile               (void);
+void    closeXMLFile                    (void);
+void    closeXMLVarFile                 (void);
+void    writeXMLData                    (void);
+void    writeXMLVarData                 (void);
 
 /* Interestingness */
 void DetermineInterestingness(POSITION position);
