@@ -386,7 +386,8 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void MoveToString(MOVE move, char *moveStringBuffer) {
-	snprintf(moveStringBuffer, 3, "%d", move);
+	moveStringBuffer[0] = move + '0';
+	moveStringBuffer[1] = '\0';
 }
 
 /************************************************************************

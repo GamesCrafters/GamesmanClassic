@@ -1056,9 +1056,9 @@ POSITION ActualNumberOfPositions(int variant) {
 void MoveToString(MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	if (move < 9) {
-		snprintf(moveStringBuffer, 5, "%d", move + 1);
+		sprintf(moveStringBuffer, "%d", move + 1);
 	} else {
-		snprintf(moveStringBuffer, 5, "%d", move);
+		sprintf(moveStringBuffer, "%d", move);
 	}
 }
 

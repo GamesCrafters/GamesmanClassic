@@ -411,7 +411,7 @@ type when they specify moves. */
 void MoveToString(MOVE move, char *moveStringBuffer) {
   int origin = move / 100;
   int target = move % 100;
-  snprintf(moveStringBuffer, 10, "%d %d", origin + 1, target + 1);
+  snprintf(moveStringBuffer, 5, "%c %c", origin + '1', target + '1');
 }
 
 /* Basically just print the move. */

@@ -631,7 +631,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
   int targetRow = target / BOARD_DIMS;
   int targetCol = target % BOARD_DIMS;
 
-  snprintf(moveStringBuffer, 8, "%d%c %d%c", originRow + 1, (char) (originCol + 97), targetRow + 1, (char) (targetCol + 97));
+  snprintf(moveStringBuffer, 8, "%c%c %c%c", originRow + '1', originCol + 'a', targetRow + '1', targetCol + 'a');
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/

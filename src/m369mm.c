@@ -1040,13 +1040,15 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 	int removeIdx = move & 0x1F;
 
 	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
-		snprintf(moveStringBuffer, 12, "%d-%dr%d",fromIdx, toIdx, removeIdx);
+		sprintf(moveStringBuffer, "%d-%dr%d",fromIdx, toIdx, removeIdx);
 	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
-		snprintf(moveStringBuffer, 12, "%d-%d", fromIdx, toIdx);
+		sprintf(moveStringBuffer, "%d-%d", fromIdx, toIdx);
+	} else if (fromIdx == 31 && toIdx == 31 && removeIdx != 31) {
+		sprintf(moveStringBuffer, "r%d", removeIdx);
 	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
-		snprintf(moveStringBuffer, 12, "%d", toIdx);
+		sprintf(moveStringBuffer, "%d", toIdx);
 	} else {
-		snprintf(moveStringBuffer, 12, "%dr%d", toIdx, removeIdx);
+		sprintf(moveStringBuffer, "%dr%d", toIdx, removeIdx);
 	}
 }
 
