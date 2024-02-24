@@ -120,7 +120,7 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
 /**
  * @brief Initialize any global variables.
  */
-void InitializeGame() {
+void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
 
     // If you want formal position strings to
@@ -135,7 +135,7 @@ void InitializeGame() {
  * @brief If you allocated heap memory in InitializeGame(), free all of
  * that memory here.
  */
-void FreeGame() {}
+void FreeGame(void) {}
 
 /**
  * @brief Return the initial position of the current variant.
@@ -143,7 +143,7 @@ void FreeGame() {}
  * @return The initial position, encoded as a 64-bit integer. See the
  * POSITION typedef in src/core/types.h.
  */
-POSITION GetInitialPosition() {
+POSITION GetInitialPosition(void) {
     return 0;
 }
 
@@ -325,7 +325,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
  * @brief Menu used to debug internal problems. 
  * Does nothing if kDebugMenu == FALSE.
  */
-void DebugMenu() {}
+void DebugMenu(void) {}
 
 /*********** END TEXTUI FUNCTIONS ***********/
 
@@ -334,14 +334,14 @@ void DebugMenu() {}
 /**
  * @return The total number of variants supported.
  */
-int NumberOfOptions() {
+int NumberOfOptions(void) {
     return 1;
 }
 
 /**
  * @return The current variant ID.
  */
-int getOption() {
+int getOption(void) {
     return 0;
 }
 
@@ -359,7 +359,7 @@ void setOption(int option) {
  * parameters, such as the side-length of a tic-tac-toe board, for example. 
  * Does nothing if kGameSpecificMenu == FALSE.
  */
-void GameSpecificMenu() {}
+void GameSpecificMenu(void) {}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
