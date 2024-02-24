@@ -626,6 +626,13 @@ void MoveToString(MOVE move, char *moveString) {
 		moveFrom = (move >> 11) & 0x1F;
     moveTo = (move >> 6) & 0x1F;
     writeFullMoveString = FALSE;
+  } else if (move & (1 << 19)) {
+    unhashMove(move, &moveFrom, &moveTo, &placeAt, &isUp);
+    moveString[0] = 'a' + (placeAt % 4);
+    moveString[1] = '1' + (placeAt / 4);
+    moveString[2] = isUp ? 'U' : 'D';
+    moveString[3] = '\0';
+    return;
   } else {
     // FullMove
     unhashMove(move, &moveFrom, &moveTo, &placeAt, &isUp);

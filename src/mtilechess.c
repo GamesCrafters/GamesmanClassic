@@ -191,7 +191,7 @@ BOOLEAN isLegalBoard(char *bA);
 BOOLEAN isLegalFormat(char *board);
 BOOLEAN isIsolation(char **board);
 char *setBoard(char *board);
-char *getBoard();
+char *getBoard(void);
 void generateBishopMoves(char *bA, MOVELIST **moves, int place, int currentPlayer);
 void generateRookMoves(char *bA, MOVELIST **moves, int place, int currentPlayer);
 void generateQueenMoves(char *bA, MOVELIST **moves, int place, int currentPlayer);
@@ -223,13 +223,13 @@ int bitCount(long long unsigned n);
 BOOLEAN isDirectionCheck(char *boardArray, int place, int direction, int opponentKingPlace);
 void fillMove(MOVE move, char *moveStr);
 MOVE getMove(STRING input);
-void SetupTierStuff();
+void SetupTierStuff(void);
 TIER TierPieceValue(char, int);
 TIER getTier(char*);
-TIER getInitialTier();
+TIER getInitialTier(void);
 int alignPieceToTier(char, TIER, int);
 TIERPOSITION getTierPosition(char*, int);
-TIERPOSITION getInitialTierPosition();
+TIERPOSITION getInitialTierPosition(void);
 TIERLIST* TierChildren(TIER);
 char* tierToBoard(TIER, TIERPOSITION);
 TIERPOSITION NumberOfTierPositions(TIER);
@@ -253,7 +253,7 @@ char* switchBoardSize(char*);
 **
 ************************************************************************/
 
-void InitializeGame ()
+void InitializeGame (void)
 {
 	int counter = 0, boardSize = (int)(pow((int)sqrt(strlen(theBoard))-2,2)), totalPieces = (int)sqrt(boardSize);
 	long long unsigned largestBoard = 0;
@@ -669,7 +669,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
+void GameSpecificMenu (void)
 {
 	int numpieces = 0;
 	char *board = NULL;
@@ -766,7 +766,7 @@ void SetTclCGameSpecificOptions (int options[])
 **
 ************************************************************************/
 
-POSITION GetInitialPosition ()
+POSITION GetInitialPosition (void)
 {
 	return gInitialPosition;
 }
@@ -783,7 +783,7 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
+int NumberOfOptions (void)
 {
 	return 1527;
 }
@@ -801,7 +801,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
+int getOption (void)
 {
 	int numPieces = (int)sqrt(strlen(theBoard))-2, j = 0, offset;
 	int temp = 0;
@@ -863,7 +863,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu ()
+void DebugMenu (void)
 {
 
 }
@@ -2118,7 +2118,7 @@ BOOLEAN isLegalFormat(char *board) {
 	        pieceArray[pieceValue('P')] <= 8 && pieceArray[pieceValue('p')] <= 8);
 }
 
-char *getBoard() {
+char *getBoard(void) {
 	char *boardArray = SafeMalloc(1000*sizeof(char));
 	int i = 0;
 	char c;
@@ -2369,7 +2369,7 @@ char* flushBoard(char* bA) {
 
 //Tier Gamesman stuff below
 //NTS: put in the function prototypes
-void SetupTierStuff() {
+void SetupTierStuff(void) {
 	kSupportsTierGamesman = TRUE;
 	gInitialTier = getInitialTier();
 	gInitialTierPosition = getInitialTierPosition();
@@ -2518,7 +2518,7 @@ TIER getTier(char* board) {
 	return retval;
 }
 
-TIER getInitialTier() {
+TIER getInitialTier(void) {
 	//  TIER initialTier;
 	//  int length = strlen(theBoard);
 	//  for (int i = 0; i < length; i++) {
@@ -2589,7 +2589,7 @@ TIERPOSITION getTierPosition(char* board, int currentPlayer) {
 	return (retval<<1) + (currentPlayer & 1);
 }
 
-TIERPOSITION getInitialTierPosition() {
+TIERPOSITION getInitialTierPosition(void) {
 /*   TIER initialTier = getInitialTier(); */
 /*   TIERPOSITION retval = 0; */
 /*   int length = strlen(theBoard); */

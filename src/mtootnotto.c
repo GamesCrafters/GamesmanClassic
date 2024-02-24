@@ -228,7 +228,7 @@ TIERLIST* TierChildren(TIER);
 TIERPOSITION NumberOfTierPositions(TIER);
 BOOLEAN IsLegal(POSITION);
 BOOLEAN tierCheckNumPieces(POSITION);
-void SetupTierStuff();
+void SetupTierStuff(void);
 //STRING TierToString(TIER);
 
 
@@ -250,7 +250,7 @@ void SetupTierStuff();
 ** For 4x4 with 4 Ts and 4 Os the number is: 37,782,561
 ************************************************************************/
 
-int MyInitialPosition() {
+int MyInitialPosition(void) {
 	POSITION p=0;
 	int i;
 	p+=INIT_T;
@@ -277,7 +277,7 @@ int MyInitialPosition() {
 ** OUTPUTS:     unsigned long int (number)
 **
 ************************************************************************/
-int MyNumberOfPos() {
+int MyNumberOfPos(void) {
 	int i;
 	unsigned long size=1;
 	for (i=0; i<(TNO_HEIGHT+1)*TNO_WIDTH+6; i++)
@@ -344,7 +344,7 @@ void PositionToBoard(POSITION pos, TOBlank **board)
 **
 ************************************************************************/
 
-void InitializeGame ()
+void InitializeGame (void)
 {
 	gNumberOfPositions = MyNumberOfPos(); //ORIGINAL
 	gInitialPosition = MyInitialPosition();
@@ -1158,7 +1158,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
+void GameSpecificMenu (void)
 {
 	int test = 0;
 	do {
@@ -1264,7 +1264,7 @@ void SetTclCGameSpecificOptions (int options[])
 **
 ************************************************************************/
 
-POSITION GetInitialPosition ()
+POSITION GetInitialPosition (void)
 {
 	return MyInitialPosition();
 }
@@ -1281,7 +1281,7 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
+int NumberOfOptions (void)
 {
 	/*or 1 << 13 for the 13 different settings,
 	   miserre, o, t, width, height, where everything but misere is 3 bits,
@@ -1302,7 +1302,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
+int getOption (void)
 {
 	/*return TNO_HEIGHT*1000 + TNO_WIDTH*100 + INIT_T*10 + INIT_O;*/
 	int option = 0;
@@ -1364,7 +1364,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu ()
+void DebugMenu (void)
 {
 
 }
@@ -1389,7 +1389,7 @@ void DebugMenu ()
 **
 ************************************************************************/
 
-void SetupTierStuff() {
+void SetupTierStuff(void) {
 
 	// kSupportsTierGamesman
 	kSupportsTierGamesman = TRUE;
