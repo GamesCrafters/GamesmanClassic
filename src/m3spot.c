@@ -1232,10 +1232,6 @@ POSITION StringToPosition(char *positionString) {
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char board[14];
 	memset(board, '-', 14 * sizeof(char));
-
-	// Convert intermediate state to real position
-	position &= 0xFFFFFFFFFFF;
-	
 	int turn = (GetWhoseTurn(position)) ? 1 : 2;
 
 	// We're actually switching B and R here because we want B to be the first player
@@ -1286,37 +1282,32 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 	MULTIPARTEDGELIST *mpel = NULL;
 	int edgeFromAdded = 0;
 	MOVE move;
-	POSITION interPos;
+	POSITION intermediateState;
+	int isP1Turn = GetWhoseTurn(position);
 
-	if (GetWhoseTurn(position)) { // Player 1's Turn
-		while (moveList != NULL) {
-			move = moveList->move;
-			if (move & 0xF) {
-				interPos = (1LL << 63) | (position & 0xFFF0F0FF) | (positionList->position & 0xF0000) | ((move >> 4) << 8);
-				if (!(edgeFromAdded & (1 << (move >> 4)))) {
-					mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, move | 0x200, 0, mpel);
-					edgeFromAdded |= (1 << (move >> 4));
-				}
-				mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, move | 0x100, move, mpel);
+	while (moveList != NULL) {
+		move = moveList->move;
+		if (move & 0xF) {
+			// The intermediate state is the state of the board when the current player has
+			// moved their color piece but hasn't moved the neutral piece yet.
+			// The intermediate state will have the child position's colored piece location
+			// the child position's current-player's score, and the parent position's neutral
+			// piece location.
+			if (isP1Turn) {
+				intermediateState = (position & 0xFFF0F0FF) | (positionList->position & 0xF0000) | ((move >> 4) << 8);
+			} else {
+				intermediateState = (position & 0xFFFF0FF0) | (positionList->position & 0xF000) | (move >> 4);
+			}			
+			
+			if (!(edgeFromAdded & (1 << (move >> 4)))) {
+				// Condition is for preventing duplicate edges from being added
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, intermediateState, move | 0x200, 0, mpel);
+				edgeFromAdded |= (1 << (move >> 4));
 			}
-			moveList = moveList->next;
-			positionList = positionList->next;
+			mpel = CreateMultipartEdgeListNode(intermediateState, NULL_POSITION, move | 0x100, move, mpel);
 		}
-	} else { // Player 2's Turn
-		while (moveList != NULL) {
-			move = moveList->move;
-			if (move & 0xF) {
-				interPos = (1LL << 63) | (position & 0xFFFF0FF0) | (positionList->position & 0xF000) | (move >> 4);
-				if (!(edgeFromAdded & (1 << (move >> 4)))) {
-					mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, move | 0x200, 0, mpel);
-					edgeFromAdded |= (1 << (move >> 4));
-				}
-				mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, move | 0x100, move, mpel);
-			}
-			moveList = moveList->next;
-			positionList = positionList->next;
-		}
+		moveList = moveList->next;
+		positionList = positionList->next;
 	}
-
 	return mpel;
 }
