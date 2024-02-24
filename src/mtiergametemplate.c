@@ -157,7 +157,7 @@ POSITION GetInitialPosition() {
  * 
  * @param position The position to branch off of.
  * 
- * @return A linked list of the legal moves from the input position.
+ * @return The head of a linked list of the legal moves from the input position.
  * 
  * @note Moves are encoded as 32-bit integers. See the MOVE typedef
  * in src/core/types.h.

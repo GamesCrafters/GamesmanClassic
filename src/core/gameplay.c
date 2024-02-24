@@ -191,8 +191,6 @@ void PlayGame(PLAYER playerOne, PLAYER playerTwo)
 			}
 		}
 
-		printf("4\n");
-
 		PrintPosition(position,player->name,(player->type==Human ? TRUE : FALSE));
 		switch(value) {
 		case tie:

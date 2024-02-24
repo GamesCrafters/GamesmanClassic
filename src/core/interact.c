@@ -265,7 +265,10 @@ void ServerInteractLoop(void) {
 					printf(",\"move\":\"%s\"", moveStringBuffer);
 
 					MoveToAutoGUIString(position, currentMove->move, moveStringBuffer);
-					printf(",\"autoguiMove\":\"%s\"", moveStringBuffer);
+					if (moveStringBuffer[0] != '\0') {
+						// Print this field only if autoguiMove is not an empty string
+						printf(",\"autoguiMove\":\"%s\"", moveStringBuffer);
+					}
 
 					currentMove = currentMove->next;
 					printf("}");
@@ -283,25 +286,24 @@ void ServerInteractLoop(void) {
 						MULTIPARTEDGELIST *allEdges = currEdge;
 						printf("],\"partMoves\":[");
 						while (currEdge != NULL) {
-							printf("{");
+							MoveToAutoGUIString(position, currEdge->partMove, moveStringBuffer);
+							printf("{\"autoguiMove\":\"%s\"", moveStringBuffer);
+
+							MoveToString(currEdge->partMove, moveStringBuffer);
+							printf(",\"move\":\"%s\"", moveStringBuffer);
+
 							if (currEdge->from != NULL_POSITION) {
 								PositionToAutoGUIString(currEdge->from, positionStringBuffer);
-								printf("\"from\":\"%s\",", positionStringBuffer);
+								printf(",\"from\":\"%s\"", positionStringBuffer);
 							}
 
 							if (currEdge->to != NULL_POSITION) {
-								printf("\"to\":\"%s\",", positionStringBuffer);
-							}
-							
-							MoveToAutoGUIString(position, currEdge->partMove, moveStringBuffer);
-							printf("\"autoguiMove\":\"%s\",", moveStringBuffer);
-							
-							if (currEdge->to == NULL_POSITION) {
-								MoveToString(currEdge->fullMove, moveStringBuffer);
+								printf(",\"to\":\"%s\"", positionStringBuffer);
 							} else {
-								MoveToString(currEdge->partMove, moveStringBuffer);
+								MoveToString(currEdge->fullMove, moveStringBuffer);
+								printf(",\"full\":\"%s\"", moveStringBuffer);
 							}
-							printf("\"move\":\"%s\"}", moveStringBuffer);
+							printf("}");
 
 							currEdge = currEdge->next;
 							if (currEdge) {
