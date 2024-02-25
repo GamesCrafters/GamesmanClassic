@@ -2183,7 +2183,7 @@ BOOLEAN RemoteMergeToMakeTierDBIfCan(TIER tier) {
 		return FALSE;
 	char directory[MAXINPUTLENGTH];
 	char* filename;
-	sprintf(directory,"./data/m%s_%d_tierdb",kDBName,variant);
+	snprintf(directory, 79, "./data/m%s_%d_tierdb",kDBName,variant);
 	// init the hash window
 	gInitializeHashWindow(tier, TRUE);
 	// keep an array of visited nums
@@ -2370,7 +2370,7 @@ void RemoteSolveLevelFile(TIER tier, TIERPOSITION start, TIERPOSITION finish) {
 BOOLEAN RemoteMergeToMakeLevelFileIfCan(TIER tier) {
 	char directory[MAXINPUTLENGTH];
 	char* filename; POSITION min, max;
-	sprintf(directory,"./data/m%s_%d_tierdb",kDBName,variant);
+	snprintf(directory, 79, "./data/m%s_%d_tierdb",kDBName,variant);
 	// init the hash window
 	gInitializeHashWindow(tier, FALSE);
 	// keep an array of visited nums

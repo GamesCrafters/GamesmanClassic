@@ -1182,22 +1182,22 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
   // 0: placing new pieces
   // message: "A-DEST"
   if (move >= 500000) { // Move is "choose to move grid"; 500000 + move
-    snprintf(moveStringBuffer, 4, "G");
+    sprintf(moveStringBuffer, "G");
   } else if (move >= 300000) { // Move is "select piece to move"; 300000 + move
-    snprintf(moveStringBuffer, 8, "M-%d", from);
+    sprintf(moveStringBuffer, "M-%d", from);
   } else {
     if (from == to) {
-      snprintf(moveStringBuffer, 8, "A-%d", to + 1);
+      sprintf(moveStringBuffer, "A-%d", to + 1);
     }
     // 1: moving existing pieces
     // message: "M-SRC-DEST"
     else if (!isGridMove) {
-      snprintf(moveStringBuffer, 8, "M-%d-%d", from + 1, to + 1);
+      sprintf(moveStringBuffer, "M-%d-%d", from + 1, to + 1);
     }
     // 2: moving the grid
     // message: "G-SRC-DEST"
     else {
-      snprintf(moveStringBuffer, 8, "G-%d-%d", from + 1, to + 1); 
+      sprintf(moveStringBuffer, "G-%d-%d", from + 1, to + 1); 
     }
   }
 }

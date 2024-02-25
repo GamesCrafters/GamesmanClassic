@@ -1580,10 +1580,10 @@ void MoveToString(MOVE theMove, char *moveStr) {
 
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	if (burnType==0) {
-		snprintf(moveStr, 10, "%d", move + 1);
+		sprintf(moveStr, "%d", move + 1);
 	}
 	else {
-		snprintf(moveStr, 10, "%d %d", move + 1, burn + 1);
+		sprintf(moveStr, "%d %d", move + 1, burn + 1);
 	}
 }
 

@@ -49,6 +49,7 @@
  */
 
 gamesdb_bman* gamesdb_bman_init(gamesdb_buffer* bufp){
+	(void) bufp;
 	gamesdb_bman *new = (gamesdb_bman*) gamesdb_SafeMalloc(sizeof(gamesdb_bman));
 	new->hash = gamesdb_basichash_create(INDEX_BITLENGTH, INDEX_CHUNKSIZE);
 	new->clock_hand = NULL;

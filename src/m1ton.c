@@ -437,6 +437,17 @@ void setOption(int option)
 	}
 }
 
-POSITION StringToPosition(char *positionString) { return NULL_POSITION; }
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) 	autoguiPositionStringBuffer;
+}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
+}

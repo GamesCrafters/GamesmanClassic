@@ -209,7 +209,9 @@ void SetTclCGameSpecificOptions(int options[]) { (void)options; }
 POSITION GetInitialPosition() { return 0; }
 int NumberOfOptions() { return 1; }
 int getOption() { return 0; }
-void setOption(int option) {}
+void setOption(int option) {
+	(void) option;
+}
 void DebugMenu() {}
 void GameSpecificMenu() {}
 

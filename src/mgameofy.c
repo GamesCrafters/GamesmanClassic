@@ -577,7 +577,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
     current++;
   }
 
-  snprintf(moveStringBuffer, 5, "%c%d", (char) (row + 97), col);  
+  sprintf(moveStringBuffer, "%c%d", (char) (row + 97), col);  
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/

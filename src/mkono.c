@@ -500,7 +500,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 void MoveToString (MOVE theMove, char *moveStringBuffer) {
-	snprintf(moveStringBuffer, 10, "[%d %d]", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
+	sprintf(moveStringBuffer, "%d %d", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
 }
 
 

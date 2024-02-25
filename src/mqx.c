@@ -735,7 +735,7 @@ void MoveToString (MOVE theMove, char *moveStringBuffer) {
 		moveType = '|';
 	else
 		moveType = 'x';
-	snprintf(moveStringBuffer, 8, "%c%d", moveType, squareNum);
+	sprintf(moveStringBuffer, "%c%d", moveType, squareNum);
 }
 
 /************************************************************************

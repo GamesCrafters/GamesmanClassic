@@ -687,7 +687,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 void MoveToString (MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	snprintf( moveStringBuffer, 10, "%d", move + 1 );
+	sprintf( moveStringBuffer, "%d", move + 1 );
 }
 
 

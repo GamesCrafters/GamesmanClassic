@@ -853,7 +853,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
-	snprintf(moveStringBuffer, 5, "%d", theMove+1);
+	sprintf(moveStringBuffer, "%d", theMove + 1);
 }
 
 /************************************************************************

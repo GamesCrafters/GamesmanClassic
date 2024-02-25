@@ -1214,16 +1214,16 @@ void MoveToString (MOVE move, char *moveStringBuffer) {
 	/* The plus 1s are because the user thinks it's 1-9, but MOVE is 0-8 */
 	if (move & 0x40000) {
 		move ^= 0x40000;
-		snprintf(moveStringBuffer, 8, "%d%d", MoveFrom(move) + 1, MoveTo(move) + 1);
+		sprintf(moveStringBuffer, "%d%d", MoveFrom(move) + 1, MoveTo(move) + 1);
 	} else if (move & 0x20000) {
 		// All part-moves from the same intermediate state must have different part-move names
 		move ^= 0x20000;
-		snprintf(moveStringBuffer, 8, "%c", MoveOrientation(move) ? '+' : 'x');
+		sprintf(moveStringBuffer, "%c", MoveOrientation(move) ? '+' : 'x');
 	} else {
 		if (MoveFrom(move) == 9) { /* if placing pieces into the board */
-			snprintf(moveStringBuffer, 8, "%d%c", MoveTo(move) + 1, MoveOrientation(move) ? '+' : 'x');
+			sprintf(moveStringBuffer, "%d%c", MoveTo(move) + 1, MoveOrientation(move) ? '+' : 'x');
 		} else {                  
-			snprintf(moveStringBuffer, 8, "%d%d%c", MoveFrom(move) + 1, MoveTo(move) + 1, (MoveOrientation(move) ? '+' : 'x'));
+			sprintf(moveStringBuffer, "%d%d%c", MoveFrom(move) + 1, MoveTo(move) + 1, (MoveOrientation(move) ? '+' : 'x'));
 		}
 	}
 }
@@ -2415,6 +2415,7 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 }
 
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	(void) positionList;
 	MULTIPARTEDGELIST *mpel = NULL;
 	int from = 10, to = 10;
 	int lastFrom = 10, lastTo = 10;

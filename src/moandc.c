@@ -531,6 +531,7 @@ BOOLEAN ValidTextInput(STRING input) {
 	// printf(input[0]);
 	// printf((int)input[0] <= 92 && (int)input[0] >= 1);
 	// return((int)input[0] <= 92 && (int)input[0] >= 1);
+	(void) input;
 	return TRUE;
 }
 

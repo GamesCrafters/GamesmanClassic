@@ -265,7 +265,7 @@ POSITION GetCanonicalPosition(POSITION position) {
     1x1 spaces on the board).
 */
 TIERLIST *getTierChildren(TIER tier) {
-    if (tier < boardSize >> 1) {
+    if (tier < ((unsigned int) boardSize) >> 1) {
         return CreateTierlistNode(tier + 1, NULL);
     }
     return NULL;

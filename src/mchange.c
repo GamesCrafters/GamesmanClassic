@@ -677,7 +677,7 @@ void MoveToString (MOVE move, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(move, &fromSlot, &toSlot);
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	snprintf(moveStringBuffer, 10, "[%d %d]", fromSlot + 1, toSlot + 1);
+	sprintf(moveStringBuffer, "%d %d", fromSlot + 1, toSlot + 1);
 }
 
 

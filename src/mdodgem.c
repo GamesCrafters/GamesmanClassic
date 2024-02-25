@@ -624,7 +624,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(theMove,&fromSlot,&toSlot);
-	snprintf(moveStringBuffer, 10, "%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
+	sprintf(moveStringBuffer, "%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
 }
 
 /************************************************************************

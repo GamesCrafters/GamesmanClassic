@@ -47,7 +47,7 @@ CONST_STRING kHelpExample = "";
 /* You don't have to change this. */
 void DebugMenu() {}
 /* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+void SetTclCGameSpecificOptions(int theOptions[]) { (void) theOptions; }
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
@@ -67,10 +67,12 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
 solving or playing the game. */
 
 TIERLIST* getTierChildren(TIER tier) {
+  (void) tier;
   return CreateTierlistNode(0, NULL);
 }
 
 POSITION numberOfTierPositions(TIER tier) {
+  (void) tier;
   return gNumberOfPositions;
 }
 
@@ -555,6 +557,9 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     for (int j = 0; j < BOARD_DIMS; j++) {
       printf("%c", board[i * BOARD_DIMS + j]);
     }
+    if (i == 2) {
+      printf("          %s", GetPrediction(position, playerName, usersTurn));
+    }
 
     printf("\n");
   }
@@ -572,7 +577,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
   int targetRow = target / BOARD_DIMS;
   int targetCol = target % BOARD_DIMS;
 
-  printf("Computer's move: [%d%c %d%c]\n", originRow + 1, (char) (originCol + 97), targetRow + 1, (char) (targetCol + 97));
+  printf("%s's move: [%d%c %d%c]\n", computersName, originRow + 1, (char) (originCol + 97), targetRow + 1, (char) (targetCol + 97));
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -648,20 +653,18 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 
 /* How many variants are you supporting? */
 int NumberOfOptions() {
-  /* YOUR CODE HERE */
   return 1;
 }
 
 /* Return the current variant id. */
 int getOption() {
-  /* YOUR CODE HERE */
   return 0;
 }
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
-  /* YOUR CODE HERE  */
+  (void) option;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
@@ -674,6 +677,7 @@ POSITION swapTurn(POSITION position) {
 }
 
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
+  (void) tier;
   MOVELIST *moves = GenerateMoves(swapTurn(position));
   MOVELIST *head = moves;
   UNDOMOVELIST *undoMoves = NULL;

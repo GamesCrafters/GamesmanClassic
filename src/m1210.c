@@ -509,7 +509,7 @@ POSITION StringToPosition(char *positionString) {
 
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char entityString[gNumberOfPositions + 1];
-	for (int i = 0; i < gNumberOfPositions; i++) {
+	for (unsigned i = 0; i < gNumberOfPositions; i++) {
 		entityString[i] = '-';
 	}
 	entityString[position] = 'x';

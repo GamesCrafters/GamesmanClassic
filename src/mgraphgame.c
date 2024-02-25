@@ -98,6 +98,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 /* Return the position that results from making the
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
+    (void) position;
     return move;
 }
 
@@ -135,6 +136,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+    (void) playerName;
+    (void) usersTurn;
     printf("%llu\n", position);
 }
 

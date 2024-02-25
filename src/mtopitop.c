@@ -1309,13 +1309,13 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 	int from, to;
 	BOOLEAN p2Turn;
 	if (move == NULLMOVE) {
-		snprintf(moveStringBuffer, 10, "None");
+		sprintf(moveStringBuffer, "None");
 	} else {
 		unhashMove(move, &piece, &from, &to, &p2Turn);
 		if (from == to) { // Placement
-			snprintf(moveStringBuffer, 10, "%c%d", piece, from + 1);
+			sprintf(moveStringBuffer, "%c%d", piece, from + 1);
 		} else { // Sliding
-			snprintf(moveStringBuffer, 10, "%d-%d", from  +1, to + 1);
+			sprintf(moveStringBuffer, "%d-%d", from + 1, to + 1);
 		}
 	}
 }

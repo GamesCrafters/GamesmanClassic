@@ -843,11 +843,11 @@ void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	phase = theMove & 1;
 	theMove = theMove >> 1;
 	if(phase == 0)
-		snprintf(moveStringBuffer, 15, "%d", theMove + 1);
+		sprintf(moveStringBuffer, "%d", theMove + 1);
 	else {
 		MoveToSlots(theMove,&fromSlot,&toSlot);
 		/* The plus 1 is because the user thinks it's 1-16, but MOVE is 0-15 */
-		snprintf(moveStringBuffer, 15, "%d %d", fromSlot + 1, toSlot + 1);
+		sprintf(moveStringBuffer, "%d %d", fromSlot + 1, toSlot + 1);
 	}
 }
 
