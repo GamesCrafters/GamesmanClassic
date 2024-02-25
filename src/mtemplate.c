@@ -31,7 +31,8 @@ POSITION gNumberOfPositions = 0;
  * @note If multiple variants are supported and the hash value
  * of the initial position is different among those variants,
  * then ensure that gInitialPosition is modified appropriately
- * in both setOption() and GameSpecificMenu().
+ * in both setOption() and GameSpecificMenu(). You may also
+ * choose to modify `gInitialPosition` in InitializeGame().
  */
 POSITION gInitialPosition = 0;
 
@@ -48,9 +49,9 @@ BOOLEAN kPartizan = FALSE;
 BOOLEAN kTieIsPossible = FALSE;
 
 /**
- * @brief TRUE if there exists a position P in the game such
- * that, there is a sequence of N >= 1 moves one can make starting from P
- * that allows them to revisit P.
+ * @brief Whether the game is loopy. It is TRUE if there exists a position
+ * P in the game such that, there is a sequence of N >= 1 moves one can
+ * make starting from P that allows them to revisit P.
  */
 BOOLEAN kLoopy = FALSE;
 
@@ -132,7 +133,7 @@ void InitializeGame(void) {
 }
 
 /**
- * @brief Return a list of the legal moves from the input position.
+ * @brief Return the head of a list of the legal moves from the input position.
  * 
  * @param position The position to branch off of.
  * 
@@ -230,7 +231,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 /**
- * @brief Find out if the player wants to an undo or abort or not.
+ * @brief Find out if the player wants to undo, abort, or neither.
  * If so, return Undo or Abort and don't change `move`.
  * Otherwise, get the new `move` and fill the pointer up.
  * 
@@ -257,7 +258,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
  * TextUI, return TRUE if the input move string is of the right "form"
  * and can be converted to a move hash.
  * 
- * @param input : The string input the user typed.
+ * @param input The string input the user typed.
  * 
  * @return TRUE iff the input is a valid text input.
  */
@@ -286,8 +287,10 @@ MOVE ConvertTextInputToMove(STRING input) {
  * @param moveStringBuffer The buffer to write the move string
  * to.
  * 
- * @note Ensure that the move string written to `moveStringBuffer`
- * is properly null-terminated.
+ * @note The space available in `moveStringBuffer` is MAX_MOVE_STRING_LENGTH 
+ * (see src/core/autoguistrings.h). Do not write past this limit and ensure
+ * that the move string written to `moveStringBuffer` is properly 
+ * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
     return NULL;
@@ -339,9 +342,9 @@ void setOption(int option) {
 }
 
 /**
- * @brief Menu used to change the variant, i.e., change game-specific 
- * parameters, such as the side-length of a tic-tac-toe board, for example. 
- * Does nothing if kGameSpecificMenu == FALSE.
+ * @brief Interactive menu used to change the variant, i.e., change
+ * game-specific parameters, such as the side-length of a tic-tac-toe
+ * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
 void GameSpecificMenu(void) {}
 
@@ -364,6 +367,11 @@ void GameSpecificMenu(void) {}
  * @param position The position for which to generate the formal 
  * position string.
  * @param positionStringBuffer The buffer to write the position string to.
+ * 
+ * @note The space available in `positionStringBuffer` is 
+ * MAX_POSITION_STRING_LENGTH (see src/core/autoguistrings.h). Do not write
+ * past this limit and ensure that the position string written to 
+ * `positionStringBuffer` is properly null-terminated.
  * 
  * @note You need not implement this function if you wish for the
  * AutoGUI Position String to be the same as the Human-Readable Formal
@@ -408,8 +416,12 @@ POSITION StringToPosition(char *positionString) {
  * @note You may find AutoGUIMakePositionString() helpful. 
  * (See src/core/autoguistrings.h)
  * 
- * @note Ensure that your position string is null-terminated.
- * AutoGUIMakePositionString() should do this for you, if you choose to use it.
+ * @note The space available in `autoguiPositionStringBuffer` is 
+ * MAX_POSITION_STRING_LENGTH (see src/core/autoguistrings.h). Do not write
+ * past this limit and ensure that the position string written to 
+ * `autoguiPositionStringBuffer` is properly null-terminated.
+ * AutoGUIMakePositionString() should handle the null-terminator, 
+ * if you choose to use it.
  * 
  * @note If the game is impartial and a turn is not encoded, set the turn
  * character (which is the first character) of autoguiPositionStringBuffer
@@ -427,6 +439,10 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @param move : The move hash from which the AutoGUI move string is generated.
  * @param autoguiMoveStringBuffer : The buffer to write the AutoGUI
  * move string to.
+ * 
+ * @note The space available in `autoguiMoveStringBuffer` is MAX_MOVE_STRING_LENGTH 
+ * (see src/core/autoguistrings.h). Do not write past this limit and ensure that
+ * the move string written to `moveStringBuffer` is properly null-terminated.
  * 
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
