@@ -201,24 +201,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** INPUTS:      POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	POSITION initialPosition;
-	printf("Please input the starting value [0 - N] : ");
-	scanf(POSITION_FORMAT,&initialPosition);
-	return initialPosition;
-}
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.

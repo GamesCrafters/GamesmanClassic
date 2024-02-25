@@ -415,43 +415,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	signed char c;
-	int i;
-
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	theBlankOOOXXX[0] = (BlankOOOXXX)x;
-	i = 1;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOOOXXX[i++] = (BlankOOOXXX)x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOOOXXX[i++] = (BlankOOOXXX)o;
-		else if(c == '-')
-			theBlankOOOXXX[i++] = Blank;
-	}
-
-	return(BlankOOOXXXToPosition(theBlankOOOXXX));
-}
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.

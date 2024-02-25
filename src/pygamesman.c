@@ -266,10 +266,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 }
 
-POSITION GetInitialPosition() {
-	return 0;
-}
-
 void PrintMove(MOVE move) {
 	PyObject *py_move;
 

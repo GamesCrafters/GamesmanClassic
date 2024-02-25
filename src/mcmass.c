@@ -350,24 +350,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	return outPosition;
 }
 
-
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	return((POSITION)0);
-}
-
 /************************************************************************
 **
 ** NAME:        PrintComputersMove

@@ -89,11 +89,6 @@ void InitializeGame() {
     kCombinatorial = TRUE;
 }
 
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-    return gNumberOfPositions - 1;
-}
-
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
     MOVELIST *moves = NULL;

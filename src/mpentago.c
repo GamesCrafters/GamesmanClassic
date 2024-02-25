@@ -993,26 +993,6 @@ void SetTclCGameSpecificOptions (int options[])
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	//    return 0;
-	return gInitialPosition; //haha what the?
-}
-
-
-/************************************************************************
-**
 ** NAME:        NumberOfOptions
 **
 ** DESCRIPTION: Calculates and returns the number of variants

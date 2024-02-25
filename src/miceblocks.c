@@ -426,44 +426,6 @@ VALUE Primitive (POSITION pos) {
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	int i, numX = 0, numO = 0, turn;
-	char input[sumto(base)], c;
-	BOOLEAN cont = TRUE;
-	while(cont) {
-		cont = FALSE;
-		printf("type in a %d character string of X's, O's and -'s (- denotes empty):  ", sumto(base));
-		scanf("%s", input);
-		for(i = 0; i < sumto(base); i++) {
-			c = tolower(input[i]);
-			if(c == 'x')
-				numX++;
-			else if(c == 'o')
-				numO++;
-		}
-		if((numX - numO) != 0 || (numX - numO) != 1) {
-			printf("\nInvalid Board!\n\n");
-			cont = TRUE;
-		}
-		else if(numX > numO)
-			turn = 0;
-		else
-			turn = 1;
-	}
-	return generic_hash_hash(input, turn);
-}
-
-/************************************************************************
-**
 ** NAME:        PrintPosition
 **
 ** DESCRIPTION: Print the position in a pretty format, including the

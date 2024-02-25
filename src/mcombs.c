@@ -158,11 +158,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 	return thePosition;
 }
 
-POSITION GetInitialPosition()
-{
-	return gInitialPosition;
-}
-
 // Print out a computer's move
 void PrintComputersMove(MOVE computersMove, STRING computersName)
 {

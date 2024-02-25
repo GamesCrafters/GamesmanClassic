@@ -167,22 +167,6 @@ void UndoMove(MOVE move)
 
 /************************************************************************
 **
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-  return gInitialPosition;
-}
-
-/************************************************************************
-**
 ** NAME: PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.

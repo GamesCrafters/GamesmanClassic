@@ -137,16 +137,6 @@ void InitializeGame(void) {
 }
 
 /**
- * @brief Return the initial position of the current variant.
- * 
- * @return The initial position, encoded as a 64-bit integer. See the
- * POSITION typedef in src/core/types.h.
- */
-POSITION GetInitialPosition(void) {
-    return 0;
-}
-
-/**
  * @brief Return a list of the legal moves from the input position.
  * 
  * @param position The position to branch off of.

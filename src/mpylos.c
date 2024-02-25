@@ -471,11 +471,6 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING name) {
 	return userInput;
 }
 
-/******************************************************** GetInitialPosition */
-POSITION GetInitialPosition() {
-	return gInitialPosition;
-}
-
 /***************************************************************** getOption */
 int getOption() {
 	Options options;

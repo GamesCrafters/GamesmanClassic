@@ -264,7 +264,6 @@ void DebugMenu(void) {}
 void GameSpecificMenu(void) {
     char selection_command;
     char selection = 'Z';
-    // POSITION GetInitialPosition();
     do {
         printf("\n\t----- Game Specific Options for Othello ----- \n\n");
         printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT,
@@ -357,19 +356,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
         }
     }
     return getPosition(board, nextplayer);
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: returns the initial position of this board.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-    if (gInitialPosition == 0) init_board_hash();
-    return gInitialPosition;
 }
 
 /************************************************************************

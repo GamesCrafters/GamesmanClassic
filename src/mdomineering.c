@@ -139,11 +139,6 @@ void InitializeGame() {
     }
 }
 
-/* Return the hash value of the initial position within the initial tier. */
-POSITION GetInitialPosition() {
-    return 0;
-}
-
 /* Return a linked list of moves. A move is encoded as the index of the top square
 of a vertical piece being placed or by the left square of a horizontal piece being
 placed. If the nth bit of the bitBoard is set, that means that index n (space n) 

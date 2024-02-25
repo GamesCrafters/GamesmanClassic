@@ -446,46 +446,6 @@ POSITION GetCanonicalPosition(POSITION position) {
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-/*  we haven't changed this, but we probably should */
-
-POSITION GetInitialPosition() {
-	BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	signed char c;
-	int i;
-
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	i = 0;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOX[i++] = x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOX[i++] = o;
-		else if(c == '-')
-			theBlankOX[i++] = Blank;
-		/* else do nothing */
-	}
-
-	whosTurn = o;
-	return(BlankOXToPosition(theBlankOX,whosTurn));
-}
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.

@@ -299,7 +299,6 @@ void DebugMenu() {}
 
 void GameSpecificMenu() {
 	char GetMyChar();
-	POSITION GetInitialPosition();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -329,9 +328,6 @@ void GameSpecificMenu() {
 			break;
 		case 'S': case 's':
 			SetTargetScoresMenu();
-			break;
-		case '1':
-			gInitialPosition = GetInitialPosition();
 			break;
 		case 'R': case 'r':
 			invertedScoring  = !invertedScoring;
@@ -525,21 +521,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 		thePosition |= (theMove >> 4); // Set P2 piece location bits
 	}
 	return thePosition ^ 0x00100000; // Turn bit flipped
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	return 0x001009BD;
 }
 
 /************************************************************************

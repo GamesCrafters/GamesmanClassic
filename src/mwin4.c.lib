@@ -181,21 +181,6 @@ int 		CountContinuousPieces(int column, int row, Direction horizontalDirection,
 void 		PositionToBoard(POSITION pos, XOBlank board[MAXW][MAXH]);
 void 		UndoMove(MOVE move);
 
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-** 
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-    return MyInitialPosition();
-}
-
 void InitializeGame()
 {
 	unsigned int i, j;

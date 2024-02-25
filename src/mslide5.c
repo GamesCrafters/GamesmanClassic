@@ -226,18 +226,6 @@ void InitializeGame() {
   //gGenerateUndoMovesToTierFunPtr = gGenerateUndoMovesToTier;
 }
 
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  Slide5Board initial_board;
-
-  initial_board.board[0] = 0; // Set player 0's turn
-  for (int i = 1; i < 26; i++) {
-    initial_board.board[i] = 0; 
-  }
-
-  return Hash(&initial_board);
-}
-
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
   (void)position;

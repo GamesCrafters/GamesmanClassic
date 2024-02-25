@@ -371,10 +371,6 @@ void InitializeGame() {
   combinationsInit();  
 }
 
-POSITION GetInitialPosition() {
-  return 0;
-}
-
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;

@@ -45,7 +45,6 @@ MOVE hashMove(BOOLEAN isGridMove, int from, int to);
 void unhashMove(MOVE move, BOOLEAN *isGridMove, int *from, int *to);
 void GameSpecificMenu();
 POSITION DoMove(POSITION position, MOVE move);
-POSITION GetInitialPosition();
 void PrintComputersMove(MOVE computersMove, STRING computersName);
 VALUE Primitive(POSITION position);
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
@@ -599,21 +598,6 @@ POSITION DoMove(POSITION position, MOVE move) {
   POSITION toReturn = hash(board, xPlaced, oPlaced, gridPos, turn);
   SafeFree(board);
   return toReturn;
-}
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-  return gInitialPosition;
 }
 
 /************************************************************************

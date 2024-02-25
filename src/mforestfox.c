@@ -251,11 +251,6 @@ void InitializeGame() {
   } 
 }
 
-POSITION GetInitialPosition() {
-  
-  /* YOUR CODE HERE */
-  return setPositionHash(0,0,0,0,0);
-}
 // void getPositionHash(BOOLEAN *moved,SCORE *score,CARD *decreecard,CARD *lastcard,STATUS *status,POSITION p){
 //   char *board = getBoard(p);
 //   moved = leadPlayerMoved(board);

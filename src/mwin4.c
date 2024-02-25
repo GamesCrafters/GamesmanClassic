@@ -197,20 +197,6 @@ int             MostSigBit(uint num);
 POSITION        ModPosToPosition(POSITION p);
 POSITION        PositionToModPos(POSITION p, TIER t);
 XOBlank WhoseTurn(POSITION pos);
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	return MyInitialPosition();
-}
 
 void InitializeGame()
 {

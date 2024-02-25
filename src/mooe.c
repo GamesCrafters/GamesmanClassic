@@ -206,7 +206,6 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playersNa
 BOOLEAN ValidTextInput(STRING input) { return input[0] >= '1' && input[0] <= '3'; }
 MOVE ConvertTextInputToMove(STRING input) { return input[0] - '0'; }
 void SetTclCGameSpecificOptions(int options[]) { (void)options; }
-POSITION GetInitialPosition() { return 0; }
 int NumberOfOptions() { return 1; }
 int getOption() { return 0; }
 void setOption(int option) {

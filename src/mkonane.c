@@ -118,7 +118,6 @@ STRING TierToString(TIER);
 BOOLEAN inBoard(int, int);
 int boardStatus(POSITION);
 void InitializeGame();
-POSITION GetInitialPosition();
 MOVELIST *GenerateMoves(POSITION);
 POSITION DoMove(POSITION, MOVE);
 VALUE Primitive(POSITION);
@@ -284,11 +283,6 @@ void InitializeGame() {
     initialBoard[i] = piece;
   }
   gInitialPosition = BoardToPosition(initialBoard, 1);
-}
-
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return gInitialPosition;
 }
 
 /* Return a linked list of moves. */

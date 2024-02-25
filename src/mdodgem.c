@@ -167,7 +167,6 @@ BOOLEAN OkMove(BlankOX *theBlankOX, BlankOX whosTurn, SLOT fromSlot, int directi
 BlankOX OnlyPlayerLeft(BlankOX *theBlankOX);
 BOOLEAN CantMove(POSITION position);
 POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn);
-POSITION GetInitialPosition(void);
 
 STRING MToS (MOVE);
 
@@ -204,7 +203,6 @@ void GameSpecificMenu() {
 		printf("\tCurrent Initial Position:\n");
 		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
 
-		printf("\tI)\tChoose the (I)nitial position\n");
 		printf("\tT)\t(T)rapping opponent toggle from %s to %s\n",
 		       gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 		       !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
@@ -220,9 +218,6 @@ void GameSpecificMenu() {
 			break;
 		case 'H': case 'h':
 			HelpMenus();
-			break;
-		case '1':
-			gInitialPosition = GetInitialPosition();
 			break;
 		case 'T': case 't':
 			gToTrapIsToWin = !gToTrapIsToWin;
@@ -279,52 +274,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 		       + (whosTurn == o ? POSITION_OFFSET : -POSITION_OFFSET)
 		       - (g3Array[fromSlot] * (int)whosTurn) /* take from slot */
 		       + (g3Array[toSlot] * (int)whosTurn)); /* put in to slot */
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position returned
-**
-************************************************************************/
-
-POSITION GetInitialPosition() /* UNWRITTEN */
-{
-	BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	signed char c;
-	int i;
-
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	i = 0;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOX[i++] = x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOX[i++] = o;
-		else if(c == '-')
-			theBlankOX[i++] = Blank;
-		/* else do nothing */
-	}
-
-	getchar();
-	printf("\nNow, whose turn is it? [O/X] : ");
-	scanf("%c",&c);
-	if(c == 'x' || c == 'X')
-		whosTurn = x;
-	else
-		whosTurn = o;
-
-	return(BlankOXToPosition(theBlankOX,whosTurn));
 }
 
 /************************************************************************

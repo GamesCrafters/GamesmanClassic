@@ -103,11 +103,6 @@ void InitializeGame() {
   gInitialPosition = generic_hash_hash(initialBoard, 1);
 }
 
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return gInitialPosition;
-}
-
 BOOLEAN checkBoard(char board[], int boardNum) {
   int startIndex = boardNum * 9;
 
