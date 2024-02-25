@@ -52,12 +52,11 @@ void DebugModule()
 		printf("\tCurrent Position:\n");
 		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
 
-		printf("\t1)\tGet the debugger initial position (GetInitialPosition)\n");
-		printf("\t2)\tPrint what PRIMITIVE() would return for this position\n");
-		printf("\t3)\tPrint the list of moves available for this position\n");
-		printf("\t4)\tChoose a move (GetAndPrintPlayersMove)\n");
+		printf("\t1)\tPrint what PRIMITIVE() would return for this position\n");
+		printf("\t2)\tPrint the list of moves available for this position\n");
+		printf("\t3)\tChoose a move (GetAndPrintPlayersMove)\n");
 		if (haveMove)
-			printf("\t5)\tDo that Move (DoMove)\n");
+			printf("\t4)\tDo that Move (DoMove)\n");
 
 		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
 		printf("\n\nSelect an option: ");
@@ -70,12 +69,9 @@ void DebugModule()
 			HelpMenus();
 			break;
 		case '1':
-			gInitialPosition = GetInitialPosition();
-			break;
-		case '2':
 			printf("\nPrimitive Returns: %s\n",gValueString[Primitive(gInitialPosition)]);
 			break;
-		case '3':
+		case '2':
 			printf("\nThe list of available moves is:\n");
 			head = ptr = GenerateMoves(gInitialPosition);
 			numberMoves = 0;
@@ -89,7 +85,7 @@ void DebugModule()
 			}
 			FreeMoveList(head);
 			break;
-		case '4':
+		case '3':
 			printf("\n");
 			(void) GetAndPrintPlayersMove(gInitialPosition, &theMove, gPlayerName[kPlayerOneTurn]);
 			printf("You Chose: ");
@@ -97,7 +93,7 @@ void DebugModule()
 			printf("%s", moveStringBuffer);
 			haveMove = TRUE;
 			break;
-		case '5':
+		case '4':
 			if(haveMove) {
 				gInitialPosition = DoMove(gInitialPosition, theMove);
 				haveMove = FALSE;

@@ -232,6 +232,7 @@ MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn);
 char OnlyPlayerLeft(char *theBoard);
 BOOLEAN AllFilledIn(char *theBoard);
+POSITION GetInitialPosition(void);
 
 void InitializeGame()
 {
@@ -249,10 +250,6 @@ void InitializeGame()
 	if (numDragons>3) initialBoard[12] = 'x';
 
 	gInitialPosition = generic_hash_hash2(initialBoard, 'o', 1, numSwans);
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************

@@ -395,10 +395,6 @@ void InitializeGame()
 	gMinimalPosition = initialPos;
 }
 
-void FreeGame()
-{
-}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu

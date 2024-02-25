@@ -167,13 +167,12 @@ BOOLEAN OkMove(BlankOX *theBlankOX, BlankOX whosTurn, SLOT fromSlot, int directi
 BlankOX OnlyPlayerLeft(BlankOX *theBlankOX);
 BOOLEAN CantMove(POSITION position);
 POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn);
+POSITION GetInitialPosition(void);
 
 STRING MToS (MOVE);
 
 void InitializeGame() {
 }
-
-void FreeGame() {}
 
 /************************************************************************
 **

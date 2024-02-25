@@ -110,6 +110,7 @@ int toIndex (int, int);
 int legalCoords (int, int);
 void countPieces (char*, int*, int*);
 void ChangeBoardSize();
+POSITION GetInitialPosition(void);
 
 WINBY computeWinBy (POSITION);
 

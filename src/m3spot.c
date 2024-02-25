@@ -276,8 +276,6 @@ void InitializeGame() {
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
-void FreeGame() {}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu

@@ -327,6 +327,7 @@ int clearS2(int L1, int L2, int S1, int S2);
 int checkCor(int Lo, int Lc);
 int checkOrient(int Lo, int L1);
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
+POSITION GetInitialPosition(void);
 
 /************************************************************************
 **
@@ -339,10 +340,6 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 void InitializeGame()
 {
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************

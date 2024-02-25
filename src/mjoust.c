@@ -171,7 +171,7 @@ BOOLEAN CanKnightMove(BlankBurntOX*, int, int);
 BOOLEAN CanRookMove(BlankBurntOX*, int, int);
 BOOLEAN CanBishopMove(BlankBurntOX*, int, int);
 
-
+POSITION GetInitialPosition(void);
 
 /* pulls the current piece location from the position */
 unsigned int GetPFromPosition(POSITION);

@@ -111,10 +111,6 @@ void InitializeGame()
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
-void FreeGame()
-{
-}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu

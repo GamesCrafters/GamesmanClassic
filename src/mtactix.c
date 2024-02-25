@@ -228,10 +228,6 @@ void InitializeGame()
 	kCombinatorial = TRUE;
 }
 
-void FreeGame()
-{
-}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu

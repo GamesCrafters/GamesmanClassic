@@ -148,8 +148,6 @@ void InitializeGame() {
 	InitializeHelpStrings();
 }
 
-void FreeGame() {}
-
 // Set up the help strings based on the variant being played
 // gGameObjective = THREE_IN_A_ROW, SURROUND, BOTH
 void InitializeHelpStrings() {

@@ -46,7 +46,6 @@
 
 void                    InitializeGame                  (void);
 POSITION                DoMove                          (POSITION thePosition, MOVE theMove);
-POSITION                GetInitialPosition              (void);
 void                    PrintComputersMove              (MOVE computersMove, STRING computersName);
 VALUE                   Primitive                       (POSITION position);
 void                    PrintPosition                   (POSITION position, STRING playerName, BOOLEAN usersTurn);

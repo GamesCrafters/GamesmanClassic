@@ -166,9 +166,6 @@ void InitializeGame() {
 	gCanonicalPosition = GetCanonical;
 }
 
-void FreeGame() {
-}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu

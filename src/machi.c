@@ -152,8 +152,6 @@ void InitializeGame()
 	InitializeHelpStrings();
 }
 
-void FreeGame() {}
-
 /*****
 ** void InitializeHelpStrings()
 **

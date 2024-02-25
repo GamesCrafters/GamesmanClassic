@@ -137,12 +137,6 @@ void InitializeGame(void) {
 }
 
 /**
- * @brief If you allocated heap memory in InitializeGame(), free all of
- * that memory here.
- */
-void FreeGame(void) {}
-
-/**
  * @brief Return the initial position of the current variant.
  * 
  * @return The initial position, encoded as a 64-bit integer. See the

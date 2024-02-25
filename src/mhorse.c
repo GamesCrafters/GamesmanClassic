@@ -119,6 +119,7 @@ void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(SLOT fromSlot,int neighbor);
 POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn);
+POSITION GetInitialPosition(void);
 
 /************************************************************************
 **

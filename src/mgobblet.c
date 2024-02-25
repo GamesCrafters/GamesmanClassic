@@ -236,6 +236,7 @@ int                     getTopPieceColor (SLOT);
 int                     charToInt (char);
 void                    computeTables (void);
 void                    PrintPosition (POSITION, STRING, BOOLEAN);
+POSITION                GetInitialPosition(void);
 
 /************************************************************************
 **

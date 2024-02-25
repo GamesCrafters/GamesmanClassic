@@ -178,10 +178,6 @@ EXTERNC void InitializeGame()
     InitializeDatabasesForReal();
 }
 
-EXTERNC void FreeGame()
-{}
-
-
 #ifndef NO_GRAPHICS
 
 static int

@@ -118,6 +118,7 @@ int toIndex (int, int);
 int legalCoords (int, int);
 void countPieces (char*, int*, int*);
 void ChangeBoardSize();
+POSITION GetInitialPosition(void);
 
 TIER BoardToTier(char* board);
 void SetupTierStuff();

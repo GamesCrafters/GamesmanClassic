@@ -88,10 +88,6 @@ void InitializeGame()
   kUsePureDraw = TRUE;
 }
 
-void FreeGame()
-{
-}
-
 /************************************************************************
 **
 ** NAME: DebugMenu

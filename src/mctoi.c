@@ -464,10 +464,6 @@ void InitializeGame(){
 	gPositionToStringFunPtr = &PositionToString;
 }
 
-void FreeGame() {
-
-}
-
 // Set up the help strings based on the current variant being played
 void InitializeHelpString() {
 

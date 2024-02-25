@@ -70,11 +70,6 @@ void InitializeGame()
 	//gCustomTraits = CUSTOM_TRAITS;
 }
 
-// Not sure what this is supposed to do
-void FreeGame()
-{
-}
-
 // Probably not going to implement this
 void DebugMenu()
 {

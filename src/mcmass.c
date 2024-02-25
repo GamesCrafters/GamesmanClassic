@@ -183,8 +183,6 @@ void InitializeGame()
 	free( theBoard );
 }
 
-void FreeGame() {}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu

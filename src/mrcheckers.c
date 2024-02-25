@@ -115,6 +115,7 @@ BOOLEAN forceCapture        = FALSE;     // No forced captures
 BOOLEAN startPromoted       = TRUE;      // Starting pieces are already kings
 unsigned int promoteRow     = BACKWARD;  // Promote on your row
 
+POSITION GetInitialPosition(void);
 /*
    typedef enum square {
     empty, orangeKing, orangeMan, greenKing, greenMan
@@ -194,10 +195,6 @@ void InitializeGame()
     gInitialPosition = generic_hash_hash(initialPosition, P1);
     SafeFree(initialPosition);
    }*/
-
-void FreeGame()
-{
-}
 
 //Switches the forward and backward mobility for P2 -
 //used for absolute movement directions
