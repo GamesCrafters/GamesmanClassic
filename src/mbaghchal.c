@@ -668,7 +668,6 @@ char* unhash(POSITION, int*, int*,char*);
 void ChangeBoardSize();
 POSITION GetCanonicalPosition(POSITION position);
 POSITION DoSymmetry(POSITION position, int symmetry);
-POSITION GetInitialPosition();
 
 //TIER GAMESMAN
 void SetupTierStuff();

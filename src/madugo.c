@@ -111,7 +111,6 @@ MOVE MoveEncode(int, int, int, int);
 void MoveDecode(MOVE, int*, int*, int*, int*);
 int boardStatus(POSITION);
 void InitializeGame();
-POSITION GetInitialPosition();
 MOVELIST *GenerateMoves(POSITION);
 POSITION DoMove(POSITION, MOVE);
 VALUE Primitive(POSITION);
@@ -452,10 +451,6 @@ void InitializeGame() {
 	gInitialPosition = hash(board, O, 0);
 
 	// InitializeHelpStrings();
-}
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return gInitialPosition;
 }
 
 MOVELIST *dfs(char* board, MOVE moveValue, MOVELIST* moves, int ox, int oy, int depth, int intermediate){

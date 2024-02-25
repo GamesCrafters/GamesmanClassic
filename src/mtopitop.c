@@ -157,7 +157,6 @@ MOVE hashMove(char piece, int from, int to, BOOLEAN p2Turn);
 void GameSpecificMenu();
 void SetTclCGameSpecificOptions(int theOptions[]);
 POSITION DoMove(POSITION position, MOVE move);
-POSITION GetInitialPosition();
 void PrintComputersMove(MOVE computersMove, STRING computersName);
 char* PrintHelper(char piece, int level);
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
@@ -928,23 +927,6 @@ POSITION DoMove(POSITION position, MOVE move) {
 	SafeFree(board);
 
 	return position;
-}
-
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	char board[9] = {BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE};
-	return hashPosition(board, BLUE, 0);
 }
 
 VALUE Primitive(POSITION position) {
