@@ -1162,14 +1162,18 @@ MOVE ConvertTextInputToMove(STRING input) {
 void MoveToString(MOVE move, char *moveStringBuffer) {
   BOOLEAN isGridMove;
   int from, to;
-  unhashMove(move % 100000, &isGridMove, &from, &to);
+  unhashMove(move & 0xFFFF, &isGridMove, &from, &to);
   // 0: placing new pieces
   // message: "A-DEST"
-  if (move >= 500000) { // Move is "choose to move grid"; 500000 + move
-    sprintf(moveStringBuffer, "G");
-  } else if (move >= 300000) { // Move is "select piece to move"; 300000 + move
-    sprintf(moveStringBuffer, "M-%d", from);
-  } else {
+  if (move & 0x80000) { // Move is "choose to move grid" partmove
+    sprintf(moveStringBuffer, "G-%d", from + 1);
+  } else if (move & 0x40000) { // Move is "select piece to move" partmove
+    sprintf(moveStringBuffer, "M-%d", from + 1);
+  } else if (move & 0x30000) { 
+    // Move is partmove: either select where to move grid or
+    // select where to move piece
+    sprintf(moveStringBuffer, "%d", to + 1);
+  } else { // fullmove
     if (from == to) {
       sprintf(moveStringBuffer, "A-%d", to + 1);
     }
@@ -1338,14 +1342,14 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
   (void) position;
   int isGridMove, from, to;
-  unhashMove(move % 100000, &isGridMove, &from, &to);
-  if (move >= 500000) { // Move is "choose to move grid"; 500000 + move
+  unhashMove(move & 0xFFFF, &isGridMove, &from, &to);
+  if (move & 0x80000) { // Move is "choose to move grid";
     AutoGUIMakeMoveButtonStringA('g', boardSize + numGridPlacements, 'x', autoguiMoveStringBuffer);
-  } else if (move >= 400000) { // Move is "choose where to move grid"; 400000 + move
-    AutoGUIMakeMoveButtonStringA('h', to, 'z', autoguiMoveStringBuffer);
-  } else if (move >= 300000) { // Move is "select piece to move"; 300000 + move
+  } else if (move & 0x40000) { // Move is "select piece to move";
     AutoGUIMakeMoveButtonStringA('h', from, 'y', autoguiMoveStringBuffer);
-  } else if (move >= 200000) { // Move is "select where to move piece"; 200000 + move
+  } else if (move & 0x20000) { // Move is "select where to move grid";
+    AutoGUIMakeMoveButtonStringA('h', to, 'z', autoguiMoveStringBuffer);
+  } else if (move & 0x10000) { // Move is "select where to move piece"
     AutoGUIMakeMoveButtonStringM(from, to, 'z', autoguiMoveStringBuffer);
   } else {
     if (from == to) { // Single-part move
@@ -1370,19 +1374,20 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
     if (isGridMove) {
       if (!gridMoveAdded) {
         // Add "choose to move grid" partMove
-        mpel = CreateMultipartEdgeListNode(NULL_POSITION, gridMoveInterPos, 500000 + moveList->move, 0, mpel);
+        mpel = CreateMultipartEdgeListNode(NULL_POSITION, gridMoveInterPos, 0x80000 | moveList->move, 0, mpel);
         gridMoveAdded = TRUE;
       }
       // Add "choose where to move grid" partMove
-      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, NULL_POSITION, 400000 + moveList->move, moveList->move, mpel);
+      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, NULL_POSITION, 0x20000 | moveList->move, moveList->move, mpel);
     } else if (from != to) {
       POSITION slideMoveInterPos = encodeIntermediatePosition(position, FALSE, from);
       if (!(edgeFromAdded & (1 << from))) {
         // Add "select piece to move" partMove
-        mpel = CreateMultipartEdgeListNode(NULL_POSITION, slideMoveInterPos, 300000 + moveList->move, 0, mpel);
+        mpel = CreateMultipartEdgeListNode(NULL_POSITION, slideMoveInterPos, 0x40000 | moveList->move, 0, mpel);
         edgeFromAdded ^= (1 << from);
       }
-      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, NULL_POSITION, 200000 + moveList->move, moveList->move, mpel);
+      // Add "select where to move the piece" partMove
+      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, NULL_POSITION, 0x10000 | moveList->move, moveList->move, mpel);
     }
     // Ignore placement moves, they're single-part
 
