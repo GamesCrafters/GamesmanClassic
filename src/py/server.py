@@ -135,6 +135,11 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         path = parsed.path.split('/')
         if 'favicon.ico' in path:
             return
+        
+        if len(path) < 4 or path[1] == '' or path[2] == '' or path[3] == '':
+            self.respond(could_not_parse_msg)
+            return
+        
         game_id = path[1]
         variant_id = path[2]
         command = path[3]
