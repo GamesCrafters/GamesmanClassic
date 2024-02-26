@@ -95,7 +95,7 @@ STRING InteractValueCharToValueString(char value_char) {
 }
 
 void InteractPrintJSONMEXValue(POSITION position) {
-	if (kCombinatorial && !gTwoBits) {
+	if (gSupportsMex && !gTwoBits) {
 		printf(",\"mex\":");
 		int theMex = MexLoad(position);
 		if(theMex == (MEX) 0)
@@ -443,7 +443,7 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			InteractCheckErrantExtra(input, 2);
-			if(kCombinatorial && !gTwoBits) {
+			if(gSupportsMex && !gTwoBits) {
 				printf(RESULT "%d", MexLoad(position));
 			} else {
 				printf(RESULT "not implemented");

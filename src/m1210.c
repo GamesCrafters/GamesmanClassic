@@ -129,7 +129,7 @@ void PositionToString(POSITION position, char *positionStringBuffer);
 
 void InitializeGame() {
 	gPositionToStringFunPtr = &PositionToString;
-	kCombinatorial = TRUE;
+	gSupportsMex = TRUE;
 }
 
 /************************************************************************

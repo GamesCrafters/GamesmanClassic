@@ -225,7 +225,7 @@ BOOLEAN Contiguous4(BlankO *theBlankO, int a, int b, int c, int d);
 
 void InitializeGame()
 {
-	kCombinatorial = TRUE;
+	gSupportsMex = TRUE;
 }
 
 /************************************************************************

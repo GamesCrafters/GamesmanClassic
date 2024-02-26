@@ -87,7 +87,7 @@ void GameSpecificMenu() {
 solving or playing the game. */
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
-  kCombinatorial = TRUE;
+  gSupportsMex = TRUE;
   boardSize = numberOfBoards * 9;
 
   // {char, min, max, char, min, max, ..., -1}

@@ -133,6 +133,19 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
  * @brief Initialize any global variables.
  */
 void InitializeGame(void) {
+    if (gIsInteract) {
+        // We set this so that once the game is solved and if 
+        // we are in interact mode,
+        // we need not malloc a buffer for the entire tier.
+        // We only need a buffer for the entire tier WHILE
+        // solving, but when the solve is finished, the buffer
+        // is split into gzipped chunks. So AFTER the solve,
+        // we need only need to load the gzipped chunk rather
+        // than the whole tier.
+        // If you don't understand what any of this means,
+        // just don't change this if statement and this assignment.
+		gLoadTierdbArray = FALSE;
+	}
     kSupportsTierGamesman = TRUE;
     kExclusivelyTierGamesman = TRUE;
     gCanonicalPosition = GetCanonicalPosition;

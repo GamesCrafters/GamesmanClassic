@@ -260,6 +260,9 @@ BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
 void InitializeGame ()
 {
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE;
+	}
 	int i, zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
 	int  *piecesArray, minBlank, maxBlank;
 	gCanonicalPosition = GetCanonicalPosition;

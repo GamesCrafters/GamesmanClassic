@@ -86,7 +86,7 @@ solving or playing the game. */
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
     gPositionToStringFunPtr = &PositionToString;
-    kCombinatorial = TRUE;
+    gSupportsMex = TRUE;
 }
 
 /* Return a linked list of moves. */
