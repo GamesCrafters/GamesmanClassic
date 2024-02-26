@@ -1329,9 +1329,14 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 
   if (isIntermediate) {
     if (isGridMove) {
+      // Show "Choose a grid center" SVG message at bottom
       finalBoard[entityStringSize - 2] = 'T';
     } else {
-      finalBoard[entityStringSize - 2] = 'a' + from;
+      // For making the different intermediate positions have
+      // different autogui position strings
+      // This is needed to distinguish the intermediate positions because
+      // We need to show a different set of part-moves from each
+      finalBoard[entityStringSize - 2] = 'a' + from; // will not be shown
     }
   }
   finalBoard[entityStringSize - 1] = '\0';
@@ -1344,7 +1349,7 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
   int isGridMove, from, to;
   unhashMove(move & 0xFFFF, &isGridMove, &from, &to);
   if (move & 0x80000) { // Move is "choose to move grid";
-    AutoGUIMakeMoveButtonStringA('g', boardSize + numGridPlacements, 'x', autoguiMoveStringBuffer);
+    AutoGUIMakeMoveButtonStringA('Z', boardSize + numGridPlacements, 'x', autoguiMoveStringBuffer);
   } else if (move & 0x40000) { // Move is "select piece to move";
     AutoGUIMakeMoveButtonStringA('h', from, 'y', autoguiMoveStringBuffer);
   } else if (move & 0x20000) { // Move is "select where to move grid";

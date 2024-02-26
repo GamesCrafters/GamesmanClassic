@@ -1147,16 +1147,27 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void MoveToString(MOVE move, char *moveStringBuffer) {
-	BOOLEAN moveIsPartMove = (move >= 100000);
-	move %= 100000;
+	MOVE partMoveData = (move & 0xF00000);
+	move &= 0xFFFFF;
 	int L = unhashMoveL(move);
 	int SPiece = unhashMoveSPiece(move);
-	if (SPiece == 0 || moveIsPartMove) {
-		snprintf( moveStringBuffer, 16, "%d %d", transPairs[L][0], transPairs[L][1]);
-	} else if (SPiece == 1) {
-		snprintf( moveStringBuffer, 16, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(move));
+	if (partMoveData & 0x800000) {
+		sprintf(moveStringBuffer, "%d %d", transPairs[L][0], transPairs[L][1]);
+	} else if (partMoveData & 0x400000) {
+		snprintf(moveStringBuffer, 10, "pass1");
+	} else if (partMoveData & 0x200000) {
+		snprintf(moveStringBuffer, 10, "pass2");
+	} else if (partMoveData & 0x100000) {
+		char p = (SPiece == 1) ? 'w' : 'g';
+		sprintf(moveStringBuffer, "%c %d", p, unhashMoveSValue(move));
 	} else {
-		snprintf( moveStringBuffer, 16, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(move));
+		if (SPiece == 0) {
+			sprintf(moveStringBuffer, "%d %d", transPairs[L][0], transPairs[L][1]);
+		} else if (SPiece == 1) {
+			sprintf(moveStringBuffer, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(move));
+		} else {
+			sprintf(moveStringBuffer, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(move));
+		}
 	}
 }
 
@@ -1994,13 +2005,13 @@ void PositionToAutoGUIString(POSITION state, char *autoguiPositionStringBuffer) 
 }
 
 void MoveToAutoGUIString(POSITION position, MOVE partMove, char *autoguiMoveStringBuffer) {
-	MOVE fullMove = partMove % 100000;
+	MOVE fullMove = partMove & 0xFFFFF;
 	int L, SV, L1, L2, S1, S2;
-	if (partMove >= 400000) {
+	if (partMove & 0x800000) {
 		// Part-Move 1: Selecting L-piece corner and orientation
 		L = unhashMoveL(fullMove);
 		AutoGUIMakeMoveButtonStringA(((L - 1) / 6) + '1', 20 + L, 'x', autoguiMoveStringBuffer);
-	} else if (partMove >= 200000) {
+	} else if (partMove & 0x600000) {
 		// Part-Move 2: Choosing not to move a neutral piece
 		// Buttons for choosing not to move a neutral piece
 		// There are two buttons/partMoves that the user can click to indicate that
@@ -2011,7 +2022,7 @@ void MoveToAutoGUIString(POSITION position, MOVE partMove, char *autoguiMoveStri
 		L2 = Make48(L1, L2);
 		S1 = Make8to16(L1, L2, S1);
 
-		if (partMove >= 300000) {
+		if (partMove & 0x400000) {
 			// Circle Button that appears on S1
 			AutoGUIMakeMoveButtonStringA('-', S1 - 1, 'y', autoguiMoveStringBuffer);
 		} else {
@@ -2020,7 +2031,7 @@ void MoveToAutoGUIString(POSITION position, MOVE partMove, char *autoguiMoveStri
 			S2 = Make7to16(L1, L2, S1, S2);
 			AutoGUIMakeMoveButtonStringA('-', S2 - 1, 'y', autoguiMoveStringBuffer);
 		}
-	} else if (partMove >= 100000) {
+	} else if (partMove & 0x100000) {
 		// Part-Move 2: Choosing where to slide neutral piece (arrow button)
 		SV = unhashMoveSValue(fullMove);
 		L1 = unhashL1(position);
@@ -2064,7 +2075,7 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 			// This part-move corresponds to selecting the L-piece corner and orientation
 			// The condition is to ensure we don't add the same part-move twice
 			interPos = encodeInterPos(position, 1, L);
-			mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, moveList->move + 400000, 0, mpel);
+			mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, 0x800000 | moveList->move, 0, mpel);
 			prevL = L;
 		}
 
@@ -2072,11 +2083,11 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 			// This is reached if the current move is a don't-move-either-neutral-piece move.
 			// We create two part-moves because we want two circle buttons on each neutral piece,
 			// either of which the user can click to indicate that they don't want to move the neutral piece
-			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, moveList->move + 300000, moveList->move, mpel);
-			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, moveList->move + 200000, moveList->move, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x400000 | moveList->move, moveList->move, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x200000 | moveList->move, moveList->move, mpel);
 		} else {
 			// This is reached if the current move is a move-a-neutral-piece move
-			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, moveList->move + 100000, moveList->move, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x100000 | moveList->move, moveList->move, mpel);
 		}
 
 		moveList = moveList->next;
