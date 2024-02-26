@@ -1365,7 +1365,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
   }
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
   int edgeFromAdded = 0;

@@ -1995,7 +1995,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 	}
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	(void) position;
 	// Assumes moveList/positionList is same ordering as generated in GenerateMoves
