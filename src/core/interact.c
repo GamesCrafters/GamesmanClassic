@@ -127,6 +127,7 @@ void ServerInteractLoop(void) {
 	MOVELIST *currentMove = NULL;
 	MOVELIST *movesHead = NULL;
 	MOVE move;
+	REMOTENESS rem = 0;
 	STRING invalidBoardString = 
 		"\n" RESULT "{\"error\":\"Invalid board string.\"}";
 	char* inputPositionString = NULL;
@@ -203,10 +204,13 @@ void ServerInteractLoop(void) {
 			}
 
 			val = GetValueOfPosition(position);
+			rem = Remoteness(position);
+			if (val == tie && rem == 255) {
+				val = drawdraw;
+			}
 			InteractPrintJSONPositionValue(val); // e.g. will print ,"value":"win"
-
 			if (val != drawwin && val != drawlose && val != drawdraw) {
-				printf(",\"remoteness\":%d", Remoteness(position));
+				printf(",\"remoteness\":%d", rem);
 			}
 
 			InteractPrintJSONMEXValue(position);
@@ -249,10 +253,15 @@ void ServerInteractLoop(void) {
 					printf(",\"position\":\"%s\"", positionStringBuffer);
 
 					val = GetValueOfPosition(childPosition);
+					rem = Remoteness(childPosition);
+					if (val == tie && rem == 255) {
+						val = drawdraw;
+					}
 					InteractPrintJSONPositionValue(val);
 					if (val != drawwin && val != drawlose && val != drawdraw) {
-						printf(",\"remoteness\":%d", Remoteness(childPosition));
+						printf(",\"remoteness\":%d", rem);
 					}
+
 					InteractPrintJSONMEXValue(childPosition);
 					if (gPutWinBy) printf(",\"winby\":%d", WinByLoad(childPosition));
 					if (kUsePureDraw && (val == drawwin || val == drawlose)) {
@@ -348,7 +357,12 @@ void ServerInteractLoop(void) {
 				continue;
 			}
 			InteractCheckErrantExtra(input, 2);
-			printf(RESULT "%c", gValueLetter[GetValueOfPosition(position)]);
+			val = GetValueOfPosition(childPosition);
+			rem = Remoteness(childPosition);
+			if (val == tie && rem == 255) {
+				val = drawdraw;
+			}
+			printf(RESULT "%c", gValueLetter[val]);
 		} else if (FirstWordMatches(input, "child_positions")) {
 			if (!InteractReadPosition(input, &position)) {
 				continue;
